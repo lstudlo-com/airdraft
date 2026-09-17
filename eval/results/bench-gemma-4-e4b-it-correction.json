@@ -1,0 +1,190 @@
+{
+  "label": "bench-gemma-4-e4b-it-correction",
+  "cases": "correction_cases.json",
+  "model": "gemma-4-e4b-it",
+  "runs": 2,
+  "total": 12,
+  "max": 20,
+  "results": [
+    {
+      "id": "gemma-homophone",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到 Jima 的我們自行架設的模型，是這樣子嗎？",
+          "seconds": 1.01,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到 Jima 的我們自行架設的模型，是這樣子嗎？",
+          "seconds": 0.58,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "number-version",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 0.52,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 0.53,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "qwen-asr-name",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 0.8,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 0.65,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "我認為使用 Cloud Code 是一個非常好的方法，因為 Cloud Code 相較於用 API 計費很省錢",
+          "seconds": 0.59,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "我認為使用 Cloud Code 是一個非常好的方法，因為 Cloud Code 相較於用 API 計費很省錢",
+          "seconds": 0.59,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-1",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "第一個是輔助使用權限會因為簽章改變而失效。第二個市場句子的轉錄會被截斷。",
+          "seconds": 0.62,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "第一個是輔助使用權限會因為簽章改變而失效。第二個市場句子的轉錄會被截斷。",
+          "seconds": 0.6,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-2",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 0.57,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 0.57,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "speech-recognition-term",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "再來是語音辨識的部分，我們接了兩個本地引擎。",
+          "seconds": 0.44,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "再來是語音辨識的部分，我們接了兩個本地引擎。",
+          "seconds": 0.44,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "git-pull",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "先把 develop branch 的 content 把它破下來，然後開 PR。",
+          "seconds": 0.53,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "先把 develop branch 的 content 把它破下來，然後開 PR。",
+          "seconds": 0.42,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "keep-last-question",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "請你先幫我看一下這兩個評測的資料夾，裡面是兩位專家判官給的建議。請做比較深入的分析，那個角色之前有些版本沒有測試到，可以跳過嗎？",
+          "seconds": 1.02,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "請你先幫我看一下這兩個評測的資料夾，裡面分別是兩位專家判官給的建議，然後做比較深入的分析。那個角色之前有些版本沒有測試到，可以跳過嗎？",
+          "seconds": 0.92,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-overcorrection",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 0.44,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 0.43,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

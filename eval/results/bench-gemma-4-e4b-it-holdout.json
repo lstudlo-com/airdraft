@@ -1,0 +1,226 @@
+{
+  "label": "bench-gemma-4-e4b-it-holdout",
+  "cases": "holdout_cases.json",
+  "model": "gemma-4-e4b-it",
+  "runs": 2,
+  "total": 23,
+  "max": 24,
+  "results": [
+    {
+      "id": "deploy-homophone",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "等一下我們先把新版本部署到 dev 環境，確認沒問題再上正式機。",
+          "seconds": 0.55,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "等一下我們先把新版本部署到 dev 環境，確認沒問題再上正式機。",
+          "seconds": 0.55,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "reproduce-homophone",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "這個 bug 在我的手機上沒辦法重現，你那邊可以再試一次嗎？",
+          "seconds": 0.53,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "這個 bug 在我的手機上沒辦法重現，你那邊可以再試一次嗎？",
+          "seconds": 0.55,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "branch-homophone",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "請幫我從 develop 開一個新的分支，名字叫 fix login。",
+          "seconds": 0.49,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "請幫我從 develop 開一個新的分支，名字叫 fix login。",
+          "seconds": 0.49,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "supabase-context",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "把使用者的設定存到 Supabase 的 profiles 表裡面。",
+          "seconds": 0.42,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "把使用者的設定存到 Supabase 的 profiles 表裡面。",
+          "seconds": 0.43,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "swiftui-term",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "這個畫面用 SwiftUI 的 Observable 重寫會比較乾淨。",
+          "seconds": 0.41,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "這個畫面用 SwiftUI 的 Observable 重寫會比較乾淨。",
+          "seconds": 0.43,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "lm-studio-term",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "LM Studio 的伺服器沒有開，所以 refine 的步驟都失敗了",
+          "seconds": 0.47,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "LM Studio 的伺服器沒有開，所以 refine 的步驟都失敗了",
+          "seconds": 0.47,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "recent-dictation-term",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "昨天說的那個 FireRed 模型，中文真的比較準。",
+          "seconds": 0.46,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "昨天說的那個 FireRed 模型，中文真的比較準。",
+          "seconds": 0.46,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "milliseconds-number",
+      "passed": 1,
+      "runs": [
+        {
+          "ok": false,
+          "text": "現在 API 的延遲大概兩百毫秒左右，比上週快了一倍",
+          "seconds": 0.51,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "現在 API 的延遲大概 200 毫秒左右，比上週快了一倍",
+          "seconds": 0.55,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "readme-term",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "記得順便更新專案的 README 檔案。",
+          "seconds": 0.41,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "記得順便更新專案的 README 檔案。",
+          "seconds": 0.42,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-change-business",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我們下週二會跟客戶開會，討論新的報價方案。",
+          "seconds": 0.49,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我們下週二會跟客戶開會，討論新的報價方案。",
+          "seconds": 0.48,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-change-idiom",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "這家店的咖啡很有質感，下次一起去。",
+          "seconds": 0.4,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "這家店的咖啡很有質感，下次一起去。",
+          "seconds": 0.42,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "keep-last-question-2",
+      "passed": 2,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我剛剛看了一下 log，好像是 token 過期了，所以 request 一直被拒絕。那我們是不是應該在過期前就先自動 refresh 呢？",
+          "seconds": 0.77,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我剛剛看了一下 log，好像是 token 過期了，所以 request 一直被拒絕。那我們是不是應該在過期前就先自動 refresh 呢？",
+          "seconds": 0.77,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

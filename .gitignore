@@ -1,0 +1,20 @@
+# Xcode / SwiftPM
+*.xcodeproj
+*.xcworkspace
+!*.xcodeproj/project.pbxproj
+xcuserdata/
+DerivedData/
+.build/
+.swiftpm/
+Packages/*/.build/
+Packages/*/Package.resolved
+
+# macOS
+.DS_Store
+
+# Local models / secrets (never commit). Anchored: Sources/**/Models is code.
+/Models/
+*.env
+
+# Repackaged sherpa-onnx binaries (scripts/make-sherpa-xcframeworks.sh)
+Packages/SherpaOnnxKit/Vendor/

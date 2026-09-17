@@ -1,0 +1,58 @@
+[
+  {
+    "model": "gemma-4-e4b-it",
+    "row": 124,
+    "in_chars": 485,
+    "out_chars": 465,
+    "seconds": 3.85
+  },
+  {
+    "model": "gemma-4-e4b-it",
+    "row": 119,
+    "in_chars": 614,
+    "out_chars": 598,
+    "seconds": 5.09
+  },
+  {
+    "model": "gemma-4-e4b-it",
+    "row": 117,
+    "in_chars": 583,
+    "out_chars": 576,
+    "seconds": 4.77
+  },
+  {
+    "model": "gemma-4-e4b-it",
+    "row": 113,
+    "in_chars": 553,
+    "out_chars": 542,
+    "seconds": 4.12
+  },
+  {
+    "model": "google/gemma-4-26b-a4b-qat",
+    "row": 124,
+    "in_chars": 485,
+    "out_chars": 464,
+    "seconds": 3.98
+  },
+  {
+    "model": "google/gemma-4-26b-a4b-qat",
+    "row": 119,
+    "in_chars": 614,
+    "out_chars": 576,
+    "seconds": 5.75
+  },
+  {
+    "model": "google/gemma-4-26b-a4b-qat",
+    "row": 117,
+    "in_chars": 583,
+    "out_chars": 511,
+    "seconds": 5.01
+  },
+  {
+    "model": "google/gemma-4-26b-a4b-qat",
+    "row": 113,
+    "in_chars": 553,
+    "out_chars": 531,
+    "seconds": 4.7
+  }
+]

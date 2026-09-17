@@ -1,0 +1,46 @@
+[
+  {
+    "model": "gemma-4-e4b-it",
+    "instance": "gemma-4-e4b-it",
+    "load_seconds": 5.5,
+    "load_config": {
+      "context_length": 131072,
+      "parallel": 4,
+      "reasoning_budget_message": ""
+    },
+    "correction_cases.json": {
+      "passed": 12,
+      "max": 20,
+      "median_seconds": 0.57,
+      "p90_seconds": 0.92
+    },
+    "holdout_cases.json": {
+      "passed": 23,
+      "max": 24,
+      "median_seconds": 0.47,
+      "p90_seconds": 0.55
+    }
+  },
+  {
+    "model": "google/gemma-4-26b-a4b-qat",
+    "instance": "google/gemma-4-26b-a4b-qat",
+    "load_seconds": 8.4,
+    "load_config": {
+      "context_length": 226304,
+      "parallel": 4,
+      "reasoning_budget_message": ""
+    },
+    "correction_cases.json": {
+      "passed": 20,
+      "max": 20,
+      "median_seconds": 0.58,
+      "p90_seconds": 0.84
+    },
+    "holdout_cases.json": {
+      "passed": 24,
+      "max": 24,
+      "median_seconds": 0.53,
+      "p90_seconds": 0.64
+    }
+  }
+]

@@ -1,0 +1,249 @@
+{
+  "label": "baseline-p4",
+  "model": "gemma4",
+  "runs": 3,
+  "total": 21,
+  "max": 30,
+  "results": [
+    {
+      "id": "gemma-homophone",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到我們自行架設的模型，是這樣子嗎？",
+          "seconds": 2.07,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到我們自行架設的模型，是這樣子嗎？",
+          "seconds": 0.47,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到我們自行架設的模型，是這樣子嗎？",
+          "seconds": 0.48,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "number-version",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 0.59,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 0.46,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 0.49,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "qwen-asr-name",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 0.87,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 0.63,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 0.61,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢",
+          "seconds": 0.8,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢",
+          "seconds": 0.55,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢",
+          "seconds": 0.53,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-1",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "第一個是輔助使用權限會因為版本改變而失效。\n第二個是市場句子的轉錄會被截斷。",
+          "seconds": 0.79,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "第一個是輔助使用權限會因為籤章改變而失效。\n第二個是市場句子的轉錄會被截斷。",
+          "seconds": 0.63,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "第一個是輔助使用權限會因為籤章改變而失效。\n第二個是市場句子的轉錄會被截斷。",
+          "seconds": 0.62,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-2",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 0.73,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 0.54,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 0.53,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "speech-recognition-term",
+      "passed": 0,
+      "runs": [
+        {
+          "ok": false,
+          "text": "再來是語音變式的部分，我們接了兩個本地引擎。",
+          "seconds": 0.58,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "再來是語音變式的部分，我們接了兩個本地引擎。",
+          "seconds": 0.39,
+          "stderr": ""
+        },
+        {
+          "ok": false,
+          "text": "再來是語音變式的部分，我們接了兩個本地引擎。",
+          "seconds": 0.39,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "git-pull",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 0.58,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 0.41,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 0.42,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "keep-last-question",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "請你先幫我看一下這兩個評測的資料夾，裡面分別是兩位專家判官給的建議，然後做比較深入的分析。之前有些版本沒有測試到的角色可以跳過嗎？",
+          "seconds": 1.14,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "請你先幫我看一下這兩個評測的資料夾，裡面分別是兩位專家判官給的建議，然後做比較深入的分析。之前有些版本沒有測試到的角色，可以跳過嗎？",
+          "seconds": 0.91,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "請你先幫我看一下這兩個評測的資料夾，裡面分別是兩位專家判官給的建議，然後做比較深入的分析。之前有些版本沒有測試到的角色，可以跳過嗎？",
+          "seconds": 1.06,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-overcorrection",
+      "passed": 3,
+      "runs": [
+        {
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 0.7,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 0.45,
+          "stderr": ""
+        },
+        {
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 0.79,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,365 @@
+<title>airdraft 語音模型圖鑑</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#f5f5f7; --panel:#ffffff; --panel-2:#f0f0f3; --ink:#1c1c1e; --ink-2:#4a4a4f; --ink-3:#7c7c85;
+  --line:#dcdce1; --accent:#2f6fde; --accent-soft:#e3ecfb; --warn:#b8741a; --warn-soft:#f7e9d3;
+  --good:#2f7d3a; --good-soft:#e1f1e3; --muted-soft:#ebebef; --tip-bg:#1c1c1e; --tip-ink:#f5f5f7;
+  --shadow:0 12px 30px rgba(0,0,0,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141416; --panel:#1c1c20; --panel-2:#232328; --ink:#ececf0; --ink-2:#b0b0b8; --ink-3:#7e7e88;
+    --line:#2e2e35; --accent:#6ea0ff; --accent-soft:#1d2c4a; --warn:#e2a24a; --warn-soft:#3a2b14;
+    --good:#6fcf7c; --good-soft:#1d3323; --muted-soft:#2a2a31; --tip-bg:#ececf0; --tip-ink:#141416;
+    --shadow:0 12px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141416; --panel:#1c1c20; --panel-2:#232328; --ink:#ececf0; --ink-2:#b0b0b8; --ink-3:#7e7e88;
+  --line:#2e2e35; --accent:#6ea0ff; --accent-soft:#1d2c4a; --warn:#e2a24a; --warn-soft:#3a2b14;
+  --good:#6fcf7c; --good-soft:#1d3323; --muted-soft:#2a2a31; --tip-bg:#ececf0; --tip-ink:#141416;
+  --shadow:0 12px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans TC",-apple-system,"PingFang TC",sans-serif;font-size:15px;line-height:1.6;padding-inline:clamp(16px,4vw,40px);padding-block:32px 64px}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(26px,3.4vw,38px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600;margin-bottom:12px}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.lede{color:var(--ink-2);max-width:68ch;margin-top:10px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+header{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.now{background:var(--good)} .dot.add{background:var(--accent)} .dot.paper{background:var(--ink-3)}
+
+/* winners */
+.winners{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:30px}
+.win{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.win .cat{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.win .best{font-size:17px;font-weight:600}
+.win .second{font-size:13px;color:var(--ink-2)}
+.win .metric{font-size:13px;color:var(--ink-2)}
+.win .metric b{color:var(--ink);font-weight:600}
+
+/* filters */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.toolbar .lbl{font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.chip:focus-visible,.tip:focus-visible,.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* table */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:36px}
+table{border-collapse:collapse;width:1630px;table-layout:fixed;font-size:13.5px}
+td{overflow-wrap:anywhere}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{position:sticky;top:0;background:var(--panel-2);font-weight:600;font-size:12.5px;color:var(--ink-2);white-space:normal;line-height:1.35;z-index:1}
+tbody tr:last-child td{border-bottom:0}
+tbody tr.hide{display:none}
+td.name{font-weight:600}
+td.name small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
+td.num{text-align:right;white-space:normal}
+td.num .na{color:var(--ink-3)}
+.pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.pill.now{background:var(--good-soft);color:var(--good)}
+.pill.add{background:var(--accent-soft);color:var(--accent)}
+.pill.paper{background:var(--muted-soft);color:var(--ink-2)}
+.best-cell{color:var(--accent);font-weight:600}
+
+/* tooltip: one floating element on body, never clipped by the table */
+.tip{border-bottom:1px dotted var(--ink-3);cursor:help;text-decoration:none;color:inherit}
+#tipbox{position:fixed;z-index:1000;max-width:min(340px,80vw);background:var(--tip-bg);color:var(--tip-ink);padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.5;font-weight:400;box-shadow:var(--shadow);pointer-events:none;opacity:0;transition:opacity .1s}
+#tipbox.show{opacity:1}
+/* sortable headers */
+th.sortable{cursor:pointer;user-select:none}
+th.sortable .hd{display:flex;align-items:flex-start;gap:6px}
+th.sortable .arrow{color:var(--ink-3);font-size:11px;flex:none;margin-top:2px}
+th.sortable.active{color:var(--ink);background:var(--accent-soft)}
+th.sortable.active .arrow{color:var(--accent)}
+th.sortable:hover{background:var(--muted-soft)}
+th.sortable.active:hover{background:var(--accent-soft)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.card.hide{display:none}
+.card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card h3{font-size:16px;font-weight:600}
+.card .sub{font-size:12.5px;color:var(--ink-3)}
+.card .use{font-size:14px;color:var(--ink-2)}
+.card .use b{color:var(--ink);font-weight:600}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;margin-top:2px}
+.kv dt{color:var(--ink-3)} .kv dd{margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--panel-2);color:var(--ink-2)}
+.note{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:8px}
+footer{margin-top:40px;font-size:12.5px;color:var(--ink-3);max-width:80ch}
+footer a{color:var(--accent)}
+@media (max-width:640px){ .winners{grid-template-columns:1fr} }
+@media (prefers-reduced-motion: reduce){ .tip::after{transition:none} }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">airdraft · 2026-09 · 最終保留 10 個引擎</span>
+  <h1>語音辨識模型圖鑑</h1>
+  <p class="lede">airdraft 目前支援的引擎，加上值得納入的開源候選模型。指標名稱都有說明，滑鼠移到虛線文字上即可查看。數字取自各模型的技術報告與 Open ASR Leaderboard，測試條件不完全相同，只適合看相對關係。</p>
+  <div class="legend">
+    <span><i class="dot now"></i>已支援</span>
+    <span><i class="dot add"></i>可加入（有 Mac 執行環境）</span>
+    <span><i class="dot paper"></i>僅論文或無開放權重</span>
+    <span>粗體青色 = 該欄最佳（開源、可在 Mac 執行者）</span>
+  </div>
+</header>
+
+<section class="winners" aria-label="各領域最佳">
+  <div class="win"><div class="cat">中文準確度</div><div class="best">FireRedASR2</div><div class="metric">普通話四測試集平均 <span class="tip mono" tabindex="0" data-tip="CER，字元錯誤率：把辨識結果逐字與正確文本比對，錯字、漏字、多字的總數除以總字數。中文沒有空格分詞，所以用字元而非單字計算。越低越好。">CER</span> <b>2.89</b></div><div class="second">次佳：Qwen3-ASR 1.7B（3.76，已支援）</div></div>
+  <div class="win"><div class="cat">英文準確度</div><div class="best">Cohere Transcribe 2B</div><div class="metric"><span class="tip" tabindex="0" data-tip="Hugging Face Open ASR Leaderboard：唯一由第三方統一條件跑的英文榜，對八個公開英文測試集取平均 WER。比各家自報的數字可信。">Open ASR 榜</span> 平均 <span class="tip mono" tabindex="0" data-tip="WER，單字錯誤率：辨識結果與正確文本之間替換、刪除、插入的單字數除以總單字數。英文等以空格分詞的語言用它。越低越好。">WER</span> <b>5.42</b></div><div class="second">次佳：Qwen3-ASR 1.7B（5.76，已支援）</div></div>
+  <div class="win"><div class="cat">中英混雜</div><div class="best">Qwen3-ASR 1.7B</div><div class="metric"><span class="tip" tabindex="0" data-tip="語言辨識準確率：模型判斷一段語音是哪種語言的正確比例。混雜語音要先辨對語言才不會把英文拼成中文注音或反之。">語言辨識</span> <b>97.9%</b>，30 語言同一模型</div><div class="second">次佳：FireRedASR2-AED（訓練含混雜，無公開數字）</div></div>
+  <div class="win"><div class="cat">速度</div><div class="best">SenseVoice-small</div><div class="metric">M4 Pro 上 <span class="tip" tabindex="0" data-tip="即時倍率：音檔長度除以處理時間。100 倍表示 1 分鐘音檔 0.6 秒處理完。RTF 是它的倒數（處理時間 ÷ 音檔長度），越小越快。">52 到 118 倍即時</span></div><div class="second">次佳：Qwen3-ASR 1.7B 5-bit（約 37 倍，已支援）</div></div>
+</section>
+
+<div class="toolbar" role="group" aria-label="篩選">
+  <span class="lbl">狀態</span>
+  <button class="chip" data-filter="status" data-value="all" aria-pressed="true">全部</button>
+  <button class="chip" data-filter="status" data-value="now" aria-pressed="false">已支援</button>
+  <button class="chip" data-filter="status" data-value="add" aria-pressed="false">可加入</button>
+  <button class="chip" data-filter="status" data-value="paper" aria-pressed="false">僅論文</button>
+  <span class="lbl" style="margin-left:12px">強項</span>
+  <button class="chip" data-filter="strength" data-value="all" aria-pressed="true">全部</button>
+  <button class="chip" data-filter="strength" data-value="zh" aria-pressed="false">中文</button>
+  <button class="chip" data-filter="strength" data-value="en" aria-pressed="false">英文</button>
+  <button class="chip" data-filter="strength" data-value="mix" aria-pressed="false">中英混雜</button>
+  <button class="chip" data-filter="strength" data-value="speed" aria-pressed="false">速度</button>
+</div>
+
+<div class="tablewrap">
+<table id="cmp">
+<colgroup>
+  <col style="width:210px"><col style="width:70px"><col style="width:78px"><col style="width:76px"><col style="width:120px">
+  <col style="width:110px"><col style="width:96px"><col style="width:118px"><col style="width:126px"><col style="width:96px">
+  <col style="width:190px"><col style="width:190px"><col style="width:180px"><col style="width:100px">
+</colgroup>
+<thead><tr>
+  <th class="sortable" data-key="name" data-dir="asc"><span class="hd"><span>模型</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="overall" data-dir="desc"><span class="hd"><span class="tip" data-tip="綜合分數（1 到 10）：我依「中文、英文、混雜三項準確度」「Apple Silicon 速度」「能否在這台 Mac 執行」「權重是否拿得到」加權後的判斷，不是任何單一 benchmark。預設排序用它，最好的在最上面。">綜合</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="status" data-dir="asc"><span class="hd"><span>狀態</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="params" data-dir="asc"><span class="hd"><span class="tip" data-tip="模型參數量，B = 十億。越大通常越準也越慢、越吃記憶體。排序由小到大。">參數</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="size" data-dir="asc"><span class="hd"><span class="tip" data-tip="下載到本機的權重大小。量化（4-bit、5-bit、8-bit）會縮小檔案與記憶體，代價是一點點準確度。排序由小到大。">大小</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="aishell2" data-dir="asc"><span class="hd"><span class="tip mono" data-tip="AISHELL-2 測試集的 CER（字元錯誤率）。AISHELL-2 是 1,000 小時朗讀式普通話語料，環境乾淨，代表「安靜環境下的標準普通話」。越低越好。">AISHELL-2</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="fleurs" data-dir="asc"><span class="hd"><span class="tip mono" data-tip="Fleurs-zh 的 CER。FLEURS 是 Google 的 102 語言朗讀測試集，中文部分為普通話。適合跨模型、跨語言比較。越低越好。">Fleurs-zh</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="wenet" data-dir="asc"><span class="hd"><span class="tip mono" data-tip="WenetSpeech test_net 與 test_meeting 的 CER。前者是網路影片音訊，後者是會議錄音，都是真實、有雜訊的中文。排序用兩者平均。越低越好。">WenetSpeech 網路 / 會議</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="libri" data-dir="asc"><span class="hd"><span class="tip mono" data-tip="LibriSpeech test-clean / test-other 的 WER（單字錯誤率）。英文有聲書語料，clean 是清晰朗讀，other 是較難的口音與錄音品質。排序用兩者平均。越低越好。">LibriSpeech clean / other</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="openasr" data-dir="asc"><span class="hd"><span class="tip mono" data-tip="Hugging Face Open ASR Leaderboard 的平均 WER，八個英文測試集由第三方統一條件跑。是最可信的英文橫向比較。越低越好。">Open ASR 榜</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="mixScore" data-dir="desc"><span class="hd"><span class="tip" data-tip="中英混雜（code-switching）能力。2026 年這些模型沒有公開對比數字，這裡以「是否把混雜列為訓練目標」「語言辨識準確率」「是否同時支援中英」給 0 到 3 分排序。">中英混雜</span><span class="arrow"></span></span></th>
+  <th class="sortable" data-key="speedX" data-dir="desc"><span class="hd"><span class="tip" data-tip="Apple Silicon 上的即時倍率：音檔長度 ÷ 處理時間，越大越快。聽寫是短句，10 倍以上都在一秒內完成。雲端 API 與無 Mac 執行環境者排最後。">Mac 速度</span><span class="arrow"></span></span></th>
+  <th><span>語言</span></th>
+  <th><span>授權</span></th>
+</tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+
+<h2>各模型的適用情境</h2>
+<div class="cards" id="cards"></div>
+
+<footer>
+  <p>資料來源：Qwen3-ASR 技術報告（arXiv 2601.21337）、FireRedASR2S（2603.10420）、Qwen-Audio-3.0-ASR（2609.07549）、Cohere Transcribe 發布文、Fun-ASR（2509.12508）、Index-ASR（2601.00890）、Open ASR Leaderboard、speech-swift 與 Whisper Notes 的 Apple Silicon 實測。Whisper 系列依要求不納入排名，僅作為已支援引擎列出。各報告的測試條件不同，跨表比較請保守解讀。</p>
+</footer>
+</div>
+
+<script>
+const T = {
+  cer: 'CER，字元錯誤率：錯字、漏字、多字總數除以總字數，中文常用。越低越好。',
+  wer: 'WER，單字錯誤率：替換、刪除、插入的單字數除以總單字數，英文常用。越低越好。',
+};
+const models = [
+ {overall:9.4,paramsN:1.7,sizeN:2.3,aishell2N:2.71,fleursN:2.41,wenetN:5.425,libriN:2.505,openasrN:5.76,mixScore:3,speedX:37,name:'Qwen3-ASR 1.7B',sub:'MLX 5-bit / 8-bit · speech-swift',status:'now',strength:['zh','en','mix'],params:'1.7B',size:'2.3 / 3.2 GB',
+  aishell2:'2.71',fleurs:'2.41',wenet:'4.97 / 5.88',libri:'1.63 / 3.38',openasr:'5.76',mix:'設計目標；語言辨識 97.9%',speed:'約 37×（M5 Pro，5-bit）',langs:'30 語言＋22 方言，含 zh_TW',lic:'Apache-2.0',
+  use:'<b>預設引擎。</b>中文、英文、混雜都在前段，30 種語言一個模型搞定，載入後單句 1 秒內。唯一輸給專用模型的是純中文安靜語音與純英文的極限準確度。',
+  note:'輸出有標點；可能吐簡體，App 會轉繁體。首次載入約 3 分鐘（含下載）。'},
+ {overall:7.6,paramsN:0.6,sizeN:0.68,aishell2N:3.15,fleursN:2.88,wenetN:6.425,libriN:3.33,openasrN:null,mixScore:2,speedX:55,name:'Qwen3-ASR 0.6B',sub:'MLX 4-bit · speech-swift',status:'now',strength:['speed'],params:'0.6B',size:'680 MB',
+  aishell2:'3.15',fleurs:'2.88',wenet:'5.97 / 6.88',libri:'2.11 / 4.55',openasr:'—',mix:'同 1.7B 的設計，準確度略低',speed:'約 55×（M4 Pro，4-bit）',langs:'同 1.7B',lic:'Apache-2.0',
+  use:'<b>省記憶體的快速版。</b>筆電電池模式或同時跑大型 LLM 時用；中文比 Whisper turbo 準，英文差一點。',
+  note:'長句偶有重複退化，speech-swift 已加 n-gram 抑制。'},
+ {overall:6.4,paramsN:0.8,sizeN:1.5,aishell2N:5.06,fleursN:4.09,wenetN:14.485,libriN:2.74,openasrN:7.75,mixScore:1,speedX:9,name:'Whisper Large v3 Turbo',sub:'WhisperKit · Core ML',status:'now',strength:['en'],params:'0.8B',size:'1.5 GB（626 MB 壓縮版）',
+  aishell2:'5.06*',fleurs:'4.09*',wenet:'9.86 / 19.11*',libri:'1.51 / 3.97*',openasr:'7.75',mix:'可用，未針對優化',speed:'約 9×（實測 8.2 s 音檔 0.9 s）',langs:'99 語言',lic:'MIT',
+  use:'<b>對照基準與備援。</b>英文清晰語音仍很穩，中文明顯落後；不需要 MLX，Neural Engine 就能跑。',
+  note:'* 為 Whisper Large v3 的數字，turbo 略差。無標點，靠 LLM 補。首次編譯約 90 秒。'},
+ {overall:5.8,paramsN:1.55,sizeN:3.1,aishell2N:5.06,fleursN:4.09,wenetN:14.485,libriN:2.74,openasrN:7.44,mixScore:1,speedX:4,name:'Whisper Large v3',sub:'WhisperKit · Core ML',status:'now',strength:['en'],params:'1.55B',size:'3.1 GB',
+  aishell2:'5.06',fleurs:'4.09',wenet:'9.86 / 19.11',libri:'1.51 / 3.97',openasr:'7.44',mix:'可用，未針對優化',speed:'約 4×',langs:'99 語言',lic:'MIT',
+  use:'<b>只在 turbo 明顯出錯時才值得換。</b>準確度與 turbo 幾乎相同，速度慢一倍。',note:''},
+ {overall:2.0,paramsN:0.074,sizeN:0.15,aishell2N:null,fleursN:null,wenetN:null,libriN:8.5,openasrN:null,mixScore:0,speedX:80,name:'Whisper Base / Tiny',sub:'WhisperKit · Core ML',status:'now',strength:['speed'],params:'74M / 39M',size:'150 / 75 MB',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'約 5 / 12（base）',openasr:'—',mix:'差',speed:'極快',langs:'99 語言',lic:'MIT',
+  use:'<b>只用來測試 pipeline。</b>中文幾乎不能用。',note:''},
+ {overall:6.3,paramsN:null,sizeN:null,aishell2N:4.24,fleursN:2.44,wenetN:23.785000000000004,libriN:2.57,openasrN:null,mixScore:2,speedX:null,name:'OpenAI gpt-4o-transcribe',sub:'遠端 API（OpenAI 預設項）',status:'now',strength:['en'],params:'—',size:'雲端',
+  aishell2:'4.24',fleurs:'2.44',wenet:'15.30 / 32.27',libri:'1.39 / 3.75',openasr:'—',mix:'佳',speed:'網路往返約 1 到 2 秒',langs:'多語',lic:'商用 API',
+  use:'<b>英文與乾淨中文的雲端上限對照。</b>會議、網路雜訊中文很差（WenetSpeech 15 / 32）。語音會離開本機。',note:'mini 版更便宜，數字未公開。'},
+ {overall:5.9,paramsN:0.8,sizeN:null,aishell2N:5.06,fleursN:4.09,wenetN:14.485,libriN:2.74,openasrN:7.75,mixScore:1,speedX:null,name:'Groq whisper-large-v3-turbo',sub:'遠端 API',status:'now',strength:['speed'],params:'0.8B',size:'雲端',
+  aishell2:'5.06',fleurs:'4.09',wenet:'9.86 / 19.11',libri:'1.51 / 3.97',openasr:'7.75',mix:'可用',speed:'雲端極快，含往返約 1 秒',langs:'99 語言',lic:'商用 API',
+  use:'<b>本機沒有 GPU 資源時的快速備援。</b>準確度等同本機 turbo。',note:''},
+ {overall:3.0,paramsN:3,sizeN:2.0,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:7.68,mixScore:0,speedX:13,name:'Mistral Voxtral Mini Transcribe',sub:'遠端 API（本機版在 speech-swift）',status:'now',strength:['en'],params:'3B',size:'雲端 / 約 2 GB',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'—',openasr:'7.68',mix:'不支援中文',speed:'本機 MLX 約 13×（M5 Pro）',langs:'8 種歐洲語言＋印地語',lic:'Apache-2.0',
+  use:'<b>不適合你的情境。</b>沒有中文，僅保留給純歐語使用者。',note:''},
+ {overall:8.7,paramsN:1.0,sizeN:2.0,aishell2N:2.15,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:2,speedX:null,name:'FireRedASR2-AED',status:'now',sub:'sherpa-onnx（2026-02 轉換）',strength:['zh','mix'],params:'1B+',size:'約 2 GB',
+  aishell2:'2.15（LLM 版）',fleurs:'—',wenet:'—',libri:'未公開',openasr:'—',mix:'訓練含混雜，無公開數字',speed:'待實測（ONNX CPU/CoreML）',langs:'普通話、20+ 方言、英文',lic:'CC BY 4.0',
+  use:'<b>中文準確度第一的可執行版本。</b>普通話四測試集平均 CER 2.89（LLM 版），方言 11.55，都勝過 Qwen3-ASR。缺點是只有中英，且英文數字未公開。',
+  note:'LLM 版 8B+ 更準但對聽寫太重。需要新增 sherpa-onnx 依賴。'},
+ {overall:8.4,paramsN:2.0,sizeN:2.4,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:5.42,mixScore:1,speedX:20,name:'Cohere Transcribe 2B',status:'now',sub:'speech-swift · MLX',strength:['en'],params:'2B',size:'約 2.4 GB（FP16）',
+  aishell2:'—',fleurs:'有中文，數字僅圖表',wenet:'—',libri:'—',openasr:'5.42',mix:'未說明',speed:'官方稱同級 3 倍吞吐',langs:'14 語言含中文、日、韓',lic:'Apache-2.0',
+  use:'<b>英文最佳的可執行開源模型。</b>Open ASR 榜第一，接法與 Qwen3 相同，成本最低；中文表現要自己測。',note:''},
+ {overall:4.8,paramsN:2.0,sizeN:4.0,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:5.33,mixScore:0,speedX:null,name:'IBM Granite Speech 4.1 2B',sub:'PyTorch / vLLM',status:'add',strength:['en'],params:'2B',size:'約 4 GB',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'—',openasr:'5.33',mix:'無中文',speed:'無 Mac 原生執行環境',langs:'英、法、德、西',lic:'Apache-2.0',
+  use:'<b>英文榜第一，但沒有中文、沒有 Mac 執行環境。</b>對這個 App 只有參考價值。',note:''},
+ {overall:4.4,paramsN:2.5,sizeN:5.0,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:5.63,mixScore:0,speedX:null,name:'NVIDIA Canary-Qwen 2.5B',sub:'NeMo / PyTorch',status:'add',strength:['en'],params:'2.5B',size:'約 5 GB',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'—',openasr:'5.63',mix:'純英文',speed:'無 Mac 原生執行環境',langs:'英文',lic:'CC BY 4.0',
+  use:'<b>純英文第三。</b>同樣沒有 Mac 執行環境，不建議。',note:''},
+ {overall:6.1,paramsN:0.234,sizeN:0.83,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:1,speedX:85,name:'SenseVoice-small',status:'now',sub:'sherpa-onnx / MLX',strength:['speed','zh'],params:'234M',size:'827 MB',
+  aishell2:'—（CommonVoice zh CER 10.78）',fleurs:'—',wenet:'—',libri:'—（CommonVoice en WER 14.71）',openasr:'—',mix:'弱',speed:'52 到 118×（M4 Pro）',langs:'中、粵、英、日、韓',lic:'MIT',
+  use:'<b>速度第一。</b>非自回歸架構，27 分鐘中文播客 14 秒轉完；中文與粵語比 Whisper 準，英文明顯弱。適合長錄音批次或極低延遲。',note:'自帶情緒與音效標記，需過濾。'},
+ {overall:5.4,paramsN:0.6,sizeN:0.5,aishell2N:null,fleursN:null,wenetN:null,libriN:2.6,openasrN:8.0,mixScore:0,speedX:32,name:'Parakeet TDT v3',sub:'speech-swift / FluidAudio · Core ML',status:'add',strength:['speed','en'],params:'0.6B',size:'500 MB（INT8）',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'約 1.7 / 3.5',openasr:'約 8.0（1.1B 版 6.7）',mix:'無中文',speed:'約 32×（Neural Engine）',langs:'25 種歐洲語言',lic:'CC BY 4.0',
+  use:'<b>英文極速。</b>跑在 Neural Engine 上，不佔 GPU；但完全沒有中文。',note:''},
+ {overall:5.0,paramsN:0.6,sizeN:0.54,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:1,speedX:30,name:'Nemotron 3.5 Streaming 0.6B',sub:'speech-swift · MLX / Core ML',status:'add',strength:['speed'],params:'0.6B',size:'540 MB（5-bit）',
+  aishell2:'—',fleurs:'FLEURS 六語平均 WER 11.5',wenet:'—',libri:'—',openasr:'—',mix:'有 zh-CN，未針對混雜',speed:'串流 320 ms 分段',langs:'40 語系含 zh-CN',lic:'NVIDIA Open Model',
+  use:'<b>邊說邊出字的串流候選。</b>自帶標點大小寫，延遲最低；準確度明顯低於 Qwen3，適合即時預覽而非最終稿。',note:''},
+ {overall:5.3,paramsN:1.5,sizeN:3.0,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:2,speedX:null,name:'GLM-ASR-Nano 1.5B',sub:'PyTorch / vLLM / GGUF',status:'add',strength:['zh'],params:'1.5B',size:'約 3 GB',
+  aishell2:'自報套件平均 4.10',fleurs:'—',wenet:'強項（會議）',libri:'—',openasr:'—',mix:'中英＋粵語',speed:'無 Mac 原生執行環境',langs:'中、粵、方言、英、多語',lic:'開放權重',
+  use:'<b>中文第三，特別針對粵語與會議。</b>沒有 MLX 或 CoreML 移植，暫不建議。',note:'Qwen3-ASR 報告以它為對照組並勝出。'},
+ {overall:6.9,paramsN:7,sizeN:14,aishell2N:2.63,fleursN:null,wenetN:5.859999999999999,libriN:1.975,openasrN:null,mixScore:2,speedX:null,name:'Kimi-Audio 7B',sub:'PyTorch',status:'add',strength:['zh','en'],params:'7B',size:'約 14 GB',
+  aishell2:'2.63',fleurs:'—',wenet:'5.45 / 6.27',libri:'1.32 / 2.63',openasr:'—',mix:'中英',speed:'太重，不適合聽寫',langs:'中、英',lic:'MIT',
+  use:'<b>中英都很準的大模型。</b>LibriSpeech 1.32 / 2.63 是開源最佳之一，但 7B 對每句聽寫太慢、太吃記憶體。',note:''},
+ {overall:6.8,paramsN:null,sizeN:0,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:1,speedX:50,name:'Apple Speech (SpeechAnalyzer)',sub:'macOS 26 內建 · Neural Engine',status:'now',strength:['speed'],params:'—',size:'內建，無需下載',
+  aishell2:'—',fleurs:'—',wenet:'—',libri:'第三方測 WER 約 2 到 4.5',openasr:'—',mix:'需指定語言（zh-TW / en-US）',speed:'約 50×，比 Whisper turbo 快一倍',langs:'含 zh-TW、en、ja、ko',lic:'系統內建（非開源）',
+  use:'<b>零設定的即時預覽引擎。</b>不用下載，Neural Engine 跑，串流友善；但無法自動偵測語言，中英混雜要靠事後 LLM 修。',note:''},
+ {overall:7.2,paramsN:null,sizeN:null,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:5.83,mixScore:2,speedX:null,name:'ElevenLabs Scribe v2',sub:'遠端 API',status:'now',strength:['zh','en','mix'],params:'—',size:'雲端',
+  aishell2:'—',fleurs:'FLEURS 多語 93.5% 準確',wenet:'—',libri:'—',openasr:'5.83',mix:'佳，90 語言含中文',speed:'約 150 ms 首字（串流版）',langs:'90 語言',lic:'商用 API',
+  use:'<b>商用多語言最佳。</b>中文與混雜都很強，可當本地模型的對照上限；語音會離開本機。',note:''},
+ {overall:6.6,paramsN:null,sizeN:null,aishell2N:2.02,fleursN:2.08,wenetN:4.31,libriN:1.715,openasrN:null,mixScore:3,speedX:null,name:'Qwen-Audio-3.0-ASR',sub:'2026-09-09 技術報告',status:'paper',strength:['zh','en','mix'],params:'未公開',size:'—',
+  aishell2:'2.02',fleurs:'2.08',wenet:'4.31 / —',libri:'1.19 / 2.24',openasr:'—',mix:'30 語言＋16 方言',speed:'首字 < 200 ms（雲端）',langs:'30 語言',lic:'尚無開放權重',
+  use:'<b>目前所有指標的最高點，但拿不到權重。</b>一旦開源，會是 Qwen3-ASR 的直接升級。',note:''},
+ {overall:4.0,paramsN:0.8,sizeN:null,aishell2N:null,fleursN:null,wenetN:null,libriN:null,openasrN:null,mixScore:2,speedX:null,name:'Fun-ASR-nano',sub:'阿里 FunAudioLLM',status:'paper',strength:['mix'],params:'0.8B',size:'—',
+  aishell2:'AISHELL-1 1.76',fleurs:'—',wenet:'—',libri:'—',openasr:'—',mix:'自報內部混雜集 WER 1.59',speed:'—',langs:'中、英',lic:'權重未確認',
+  use:'<b>唯一公開混雜數字的模型，但無法驗證。</b>內部測試集、權重未確認開源，只能當參考。',note:''},
+ {overall:4.2,paramsN:8,sizeN:null,aishell2N:3.11,fleursN:null,wenetN:5.695,libriN:2.73,openasrN:null,mixScore:2,speedX:null,name:'Index-ASR 8B',sub:'Bilibili，技術報告',status:'paper',strength:['zh'],params:'8B',size:'—',
+  aishell2:'3.11',fleurs:'—',wenet:'5.22 / 6.17',libri:'1.92 / 3.54',openasr:'—',mix:'中英',speed:'—',langs:'中、英',lic:'未公開權重',
+  use:'<b>強調雜訊環境與熱詞。</b>準確度不如 FireRedASR，且無權重。',note:''},
+];
+
+const bestKeys = {aishell2:'2.15（LLM 版）', fleurs:'2.41', wenet:'4.97 / 5.88', libri:'1.32 / 2.63', openasr:'5.42'};
+const statusLabel = {now:'已支援', add:'可加入', paper:'僅論文'};
+const statusOrder = {now:0, add:1, paper:2};
+const rows = document.getElementById('rows');
+const cards = document.getElementById('cards');
+function cell(v, key){
+  const na = v==='—' || v==='' ;
+  const best = bestKeys[key]===v ? ' best-cell' : '';
+  return `<td class="num mono${best}">${na?'<span class="na">—</span>':v}</td>`;
+}
+let sortKey='overall', sortDir='desc';
+function sortValue(m,key){
+  switch(key){
+    case 'name': return m.name.toLowerCase();
+    case 'status': return statusOrder[m.status];
+    case 'params': return m.paramsN;
+    case 'size': return m.sizeN;
+    case 'aishell2': return m.aishell2N;
+    case 'fleurs': return m.fleursN;
+    case 'wenet': return m.wenetN;
+    case 'libri': return m.libriN;
+    case 'openasr': return m.openasrN;
+    default: return m[key];
+  }
+}
+function renderTable(){
+  const list=[...models].sort((a,b)=>{
+    const va=sortValue(a,sortKey), vb=sortValue(b,sortKey);
+    if(va==null && vb==null) return b.overall-a.overall;
+    if(va==null) return 1; if(vb==null) return -1;         // missing values always last
+    if(typeof va==='string') return sortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    const d = va-vb;
+    if(d===0) return b.overall-a.overall;
+    return sortDir==='asc' ? d : -d;
+  });
+  rows.innerHTML='';
+  list.forEach(m=>{
+    const tr=document.createElement('tr');
+    tr.dataset.status=m.status; tr.dataset.strength=m.strength.join(' ');
+    tr.innerHTML = `<td class="name">${m.name}<small>${m.sub}</small></td>
+      <td class="num mono">${m.overall.toFixed(1)}</td>
+      <td><span class="pill ${m.status}">${statusLabel[m.status]}</span></td>
+      <td class="mono">${m.params}</td><td class="mono">${m.size}</td>
+      ${cell(m.aishell2,'aishell2')}${cell(m.fleurs,'fleurs')}${cell(m.wenet,'wenet')}${cell(m.libri,'libri')}${cell(m.openasr,'openasr')}
+      <td>${m.mix}</td><td>${m.speed}</td><td>${m.langs}</td><td>${m.lic}</td>`;
+    rows.appendChild(tr);
+  });
+  document.querySelectorAll('th.sortable').forEach(th=>{
+    const active = th.dataset.key===sortKey;
+    th.classList.toggle('active', active);
+    th.querySelector('.arrow').textContent = active ? (sortDir==='asc' ? '▲' : '▼') : '⇅';
+    th.setAttribute('aria-sort', active ? (sortDir==='asc'?'ascending':'descending') : 'none');
+  });
+  applyFilter();
+}
+document.querySelectorAll('th.sortable').forEach(th=>{
+  th.tabIndex=0;
+  const go=()=>{
+    const key=th.dataset.key;
+    if(sortKey===key){ sortDir = sortDir==='asc' ? 'desc' : 'asc'; }
+    else { sortKey=key; sortDir=th.dataset.dir; }   // first click = best on top
+    renderTable();
+  };
+  th.addEventListener('click',go);
+  th.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} });
+});
+models.forEach(m=>{
+  const c = document.createElement('article');
+  c.className='card'; c.tabIndex=0; c.dataset.status=m.status; c.dataset.strength=m.strength.join(' ');
+  c.innerHTML = `<div class="top"><div><h3>${m.name}</h3><div class="sub">${m.sub}</div></div><span class="pill ${m.status}">${statusLabel[m.status]}</span></div>
+    <p class="use">${m.use}</p>
+    <dl class="kv"><dt>綜合</dt><dd class="mono">${m.overall.toFixed(1)} / 10</dd><dt>強項</dt><dd class="tags">${m.strength.map(s=>`<span class="tag">${({zh:'中文',en:'英文',mix:'中英混雜',speed:'速度'})[s]}</span>`).join('')}</dd>
+    <dt>大小</dt><dd class="mono">${m.size}</dd><dt>語言</dt><dd>${m.langs}</dd><dt>授權</dt><dd>${m.lic}</dd></dl>
+    ${m.note?`<div class="note">${m.note}</div>`:''}`;
+  cards.appendChild(c);
+});
+[...cards.children].sort((a,b)=>0); // cards keep authoring order
+const state={status:'all',strength:'all'};
+function applyFilter(){
+  document.querySelectorAll('#rows tr, #cards .card').forEach(el=>{
+    const okS = state.status==='all' || el.dataset.status===state.status;
+    const okT = state.strength==='all' || el.dataset.strength.split(' ').includes(state.strength);
+    el.classList.toggle('hide', !(okS&&okT));
+  });
+}
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+  const f=b.dataset.filter; state[f]=b.dataset.value;
+  document.querySelectorAll(`.chip[data-filter="${f}"]`).forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
+  applyFilter();
+}));
+renderTable();
+
+// Floating tooltip: one element on body, positioned by JS, so sticky headers and overflow never cover it.
+const tipbox=document.createElement('div'); tipbox.id='tipbox'; tipbox.setAttribute('role','tooltip'); document.body.appendChild(tipbox);
+function showTip(el){
+  tipbox.textContent=el.dataset.tip; tipbox.classList.add('show');
+  const r=el.getBoundingClientRect(); const w=tipbox.offsetWidth, h=tipbox.offsetHeight;
+  let x=r.left, y=r.bottom+8;
+  if(x+w>window.innerWidth-12) x=window.innerWidth-12-w;
+  if(y+h>window.innerHeight-12) y=r.top-8-h;
+  tipbox.style.left=Math.max(12,x)+'px'; tipbox.style.top=Math.max(12,y)+'px';
+}
+function hideTip(){ tipbox.classList.remove('show'); }
+document.querySelectorAll('.tip').forEach(el=>{
+  el.tabIndex=0;
+  el.addEventListener('mouseenter',()=>showTip(el)); el.addEventListener('mouseleave',hideTip);
+  el.addEventListener('focus',()=>showTip(el)); el.addEventListener('blur',hideTip);
+  el.addEventListener('click',e=>e.stopPropagation()==null && showTip(el)); // clicking the label shows the tip, not sort
+});
+window.addEventListener('scroll',hideTip,{passive:true});
+document.querySelector('.tablewrap').addEventListener('scroll',hideTip,{passive:true});
+</script>
