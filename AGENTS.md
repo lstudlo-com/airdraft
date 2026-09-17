@@ -12,6 +12,11 @@ status table current.
 
 ## Structure
 
+- Moon is a small task runner around the existing Xcode layout. `.prototools` pins
+  moon; `.moon/workspace.yml` maps one `airdraft` project; `moon.yml` defines
+  `prepare` (once after clone), `generate`, `build`, and `test`. Use
+  `moon run airdraft:build` / `moon run airdraft:test` for routine validation.
+  Keep Xcode tasks uncached in moon and serialized by the shared mutex.
 - `project.yml` is the source of truth for the Xcode project. After changing it run
   `xcodegen generate`. `airdraft.xcodeproj` is generated and git-ignored.
 - `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.

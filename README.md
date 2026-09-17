@@ -55,6 +55,25 @@ Selected text turns the utterance into an edit instruction for that text.
 
 ## Build
 
+The repository uses [moon](https://moonrepo.dev/docs/setup-workspace) as a small
+task runner around Xcode. Install [proto](https://moonrepo.dev/docs/proto/install)
+once, then run these commands from the repository root:
+
+```sh
+proto install                # installs moon 2.5.5, pinned in .prototools
+moon run airdraft:prepare     # once after cloning: prepare native speech libraries
+moon run airdraft:build       # regenerates the Xcode project, then builds
+moon run airdraft:test        # regenerates the project, then runs core tests
+```
+
+`moon tasks` lists the four tasks. `.moon/workspace.yml` maps the existing app
+as one project; `moon.yml` defines its commands and dependencies. Xcode keeps
+its own incremental build cache in DerivedData. Moon caching is disabled for
+these tasks because the signed products live outside the repository; build
+and test also share a mutex so they cannot write to that build tree concurrently.
+
+Direct Xcode commands remain available:
+
 ```sh
 scripts/make-sherpa-xcframeworks.sh   # once: repackages sherpa-onnx + onnxruntime static libs
 xcodegen generate          # regenerates airdraft.xcodeproj from project.yml
@@ -168,6 +187,9 @@ single-call thinking effort, so tool-free dictation does not offer them.
 
 ```
 project.yml                     XcodeGen spec (app target, test scheme, Info.plist, entitlements)
+.moon/workspace.yml              moon workspace, one Airdraft project
+moon.yml                        prepare, generate, build and test tasks
+.prototools                      pinned moon version
 Sources/App/
   App/          AirdraftApp, AppContainer (object graph), ModelLifecycle (what is in memory)
   Hotkeys/      HotkeyService ▸ CarbonHotkey (combos) or EventTapHotkey (modifier-only)

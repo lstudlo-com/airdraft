@@ -18,3 +18,7 @@ Packages/*/Package.resolved
 
 # Repackaged sherpa-onnx binaries (scripts/make-sherpa-xcframeworks.sh)
 Packages/SherpaOnnxKit/Vendor/
+
+# moon
+.moon/cache
+.moon/docker

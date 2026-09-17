@@ -1,0 +1,11 @@
+$schema: https://moonrepo.dev/schemas/workspace.json
+
+projects:
+  airdraft: .
+
+defaultProject: airdraft
+versionConstraint: '=2.5.5'
+
+vcs:
+  client: git
+  defaultBranch: main

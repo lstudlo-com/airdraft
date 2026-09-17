@@ -1,0 +1,35 @@
+$schema: https://moonrepo.dev/schemas/project.json
+
+language: swift
+layer: application
+
+# Xcode manages its own incremental builds outside the repository.
+# A moon cache hit must not skip rebuilding a missing app or test bundle.
+taskOptions:
+  cache: false
+  mutex: airdraft-xcode
+
+tasks:
+  prepare:
+    description: Repackage the native speech libraries. Run once after cloning.
+    command: bash scripts/make-sherpa-xcframeworks.sh
+    toolchains: system
+    options:
+      runInCI: false
+
+  generate:
+    description: Generate the Xcode project from project.yml.
+    command: xcodegen generate
+    toolchains: system
+
+  build:
+    description: Build the Airdraft macOS app.
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation build
+    toolchains: system
+    deps: [generate]
+
+  test:
+    description: Run AirdraftCore tests in the app's Xcode build tree.
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test
+    toolchains: system
+    deps: [generate]
