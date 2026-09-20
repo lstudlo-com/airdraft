@@ -22,3 +22,9 @@ Packages/SherpaOnnxKit/Vendor/
 # moon
 .moon/cache
 .moon/docker
+
+# Local native release artifacts
+/dist/
+
+# Python release tooling
+__pycache__/

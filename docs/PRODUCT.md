@@ -18,9 +18,14 @@ version must be; read it before changing UI, settings, or prompt handling.
 6. **Safe to experiment.** One button restores every built-in profile and the shared
    base rules to defaults; a per-profile reset exists too.
 
+Added 2026-09-21:
+
+7. **App updates.** Signed updates installed on quit without interrupting dictation.
+8. **Microphone choice.** Save a specific input as the default across restarts and reconnects.
+
 ## Status
 
-| Goal | State (2026-09-18) |
+| Goal | State (2026-09-21) |
 |---|---|
 | 1 | Airdraft branding throughout the app, CLI and developer tools; Superwhisper-style main window (sidebar, cards, key caps, theme + HUD tiles); dark recording pill at bottom centre with Classic / Mini / None. Existing settings and data survive the rename. Onboarding still missing. |
 | 2 | Done: `Transcriber` / `Refiner` protocols, `EngineFactory`, per-stage config. Ten speech engines kept (see `docs/model-atlas.html`); everything else was removed on purpose. |
@@ -28,6 +33,8 @@ version must be; read it before changing UI, settings, or prompt handling.
 | 4 | Done: `RefinementProfile` + `ProfileStore`, Profiles tab, prompt preview. |
 | 5 | Done: add / delete in Profiles tab; built-ins cannot be deleted. |
 | 6 | Done: per-profile reset, base-rules reset, "Reset all profiles to defaults". |
+| 7 | Sparkle 2.10.0 adds manual checks, daily checks and optional automatic downloads. Main pushes test committed sources and build the DMG locally; GitHub publishes the verified draft for the matching commit. See `docs/updates.md`. |
+| 8 | Device pickers in the toolbar, menu bar and Configuration save a persistent device UID. Missing devices fail visibly without selecting another input; interruptions stop recording. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
 
 ## Verification rules
 

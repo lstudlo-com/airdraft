@@ -63,10 +63,11 @@ status table current.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:
   LLM error or timeout still inserts the raw transcript.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
-- Secrets go in `Keychain` (service `com.lightiichen.transcribar`), never in UserDefaults,
+- Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
-- The legacy bundle ID, Keychain service and `Application Support/Transcribar` directory
-  are intentional compatibility identifiers. Keep them stable across app renames.
+- The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
+  `com.lightiichen.transcribar` preferences and credentials without overwriting current
+  values. Keep `Application Support/Transcribar` for existing models and history.
 - Swift language mode is 5 on a Swift 6 compiler; keep `@MainActor` on UI-facing
   classes and `Sendable` on protocol types.
 - Prompt changes bump `PromptBuilder.version` so history records stay comparable, and must be
@@ -78,6 +79,12 @@ status table current.
   Built-ins have stable ids and must stay resettable to `RefinementProfile.defaults`.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
+
+## Local releases
+
+Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
+hook builds committed sources locally for every origin/main push. The GitHub
+workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.
 
 ## Validation
 

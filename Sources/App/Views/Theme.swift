@@ -212,10 +212,17 @@ struct PageScaffold<Content: View, Accessory: View>: View {
                 .help("Toggle sidebar")
                 accessory
                 Spacer()
-                Text(MicrophoneInfo.defaultName)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Image(systemName: "laptopcomputer").font(.system(size: 13)).foregroundStyle(.secondary)
+                Menu {
+                    MicrophonePicker()
+                } label: {
+                    Label(container.microphones.label(container.settings.microphone), systemImage: "mic")
+                        .font(.system(size: 13, weight: .medium))
+                        .lineLimit(1)
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .disabled(container.pipeline.state.isBusy)
+                .help("Change microphone. Your choice is saved as the default.")
             }
             .padding(.horizontal, Theme.pagePadding)
             // With the sidebar collapsed the toolbar starts at the window edge; keep clear of the traffic lights.
@@ -259,11 +266,5 @@ struct SearchField: View {
         .padding(.vertical, 5)
         .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.primary.opacity(0.07)))
         .frame(width: 220)
-    }
-}
-
-enum MicrophoneInfo {
-    static var defaultName: String {
-        AVCaptureDevice.default(for: .audio)?.localizedName ?? "No microphone"
     }
 }

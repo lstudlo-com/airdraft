@@ -1,0 +1,21 @@
+name: Publish local macOS release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: airdraft-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify and publish the locally built draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/release.py publish "$GITHUB_SHA"

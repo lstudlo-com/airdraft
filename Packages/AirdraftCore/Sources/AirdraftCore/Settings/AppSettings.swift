@@ -55,11 +55,16 @@ public final class AppSettings {
     /// Ask LM Studio to unload the LLM when the app quits.
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
+    public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
 
     private let defaults: UserDefaults
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        if defaults === UserDefaults.standard, Bundle.main.bundleIdentifier == AppIdentity.bundleID {
+            AppIdentity.importLegacyDefaults(into: defaults,
+                legacy: defaults.persistentDomain(forName: AppIdentity.legacyBundleID) ?? [:])
+        }
         asr = Self.load("asr", from: defaults) ?? ASRConfig()
         llm = Self.load("llm", from: defaults) ?? LLMConfig()
         hotkey = Self.load("hotkey", from: defaults) ?? .optionSpace
@@ -71,6 +76,7 @@ public final class AppSettings {
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 10
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
+        microphone = Self.load("microphone", from: defaults) ?? .systemDefault
     }
 
     public nonisolated static var supportDirectory: URL {

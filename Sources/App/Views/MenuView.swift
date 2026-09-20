@@ -30,6 +30,8 @@ struct MenuView: View {
         }
         Divider()
 
+        MicrophonePicker()
+
         Picker("Profile", selection: Binding(
             get: { container.profiles.activeProfileID },
             set: { container.profiles.setActive($0) }
@@ -54,6 +56,8 @@ struct MenuView: View {
 
         Button("Open Airdraft…") { container.showMainWindow(openWindow) }
         Button("History…") { container.navigation.page = .history; container.showMainWindow(openWindow) }
+        Button("Check for Updates…") { container.updates.checkForUpdates() }
+            .disabled(!container.updates.canCheckForUpdates)
         Divider()
         Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")

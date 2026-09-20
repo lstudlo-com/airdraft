@@ -22,6 +22,10 @@ final class AppContainer {
     let models: ModelLifecycle
     let pipeline: DictationPipeline
     let hotkeys = HotkeyService()
+    let microphones = MicrophoneStore()
+    @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
+        self?.pipeline.state.isBusy ?? false
+    }
     let navigation = Navigation()
     private let escapeHotkey = CarbonHotkey()
     private var started = false

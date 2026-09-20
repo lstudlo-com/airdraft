@@ -10,13 +10,17 @@ settings:
     SWIFT_VERSION: "5.0"
     MACOSX_DEPLOYMENT_TARGET: "15.0"
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: YCC3HE6KCZ
+    # Match the identity already used by the installed development build.
+    DEVELOPMENT_TEAM: WTUFL68AK9
     CODE_SIGN_IDENTITY: "Apple Development"
     ENABLE_HARDENED_RUNTIME: NO
     SWIFT_STRICT_CONCURRENCY: minimal
 packages:
   AirdraftCore:
     path: Packages/AirdraftCore
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
 targets:
   airdraft:
     type: application
@@ -28,16 +32,24 @@ targets:
           - "*.entitlements"
     dependencies:
       - package: AirdraftCore
+      - package: Sparkle
     info:
       path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: Airdraft
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: "0.1.1"
         CFBundleVersion: "1"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"
         NSMicrophoneUsageDescription: "Airdraft 需要麥克風來進行語音聽寫。"
         NSHumanReadableCopyright: ""
+        SUFeedURL: https://github.com/lstudlo-com/airdraft/releases/latest/download/appcast.xml
+        SUPublicEDKey: "OfxXCWN57nT7jmfbzyk6meZT19SD10JU9Z6fyhBA6Nc="
+        SUEnableAutomaticChecks: true
+        SUAutomaticallyUpdate: false
+        SUEnableSystemProfiling: false
+        SUVerifyUpdateBeforeExtraction: true
+        SURequireSignedFeed: true
     entitlements:
       path: Sources/App/airdraft.entitlements
       properties:
@@ -45,8 +57,8 @@ targets:
         com.apple.security.device.audio-input: true
     settings:
       base:
-        # Keep the installed app's identity so settings and permission grants survive the rename.
-        PRODUCT_BUNDLE_IDENTIFIER: com.lightiichen.transcribar
+        # Product identity; AppIdentity imports legacy settings and credentials.
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft
         PRODUCT_NAME: airdraft
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO

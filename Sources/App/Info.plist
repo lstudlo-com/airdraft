@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>0.1.1</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
@@ -28,5 +28,19 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Airdraft 需要麥克風來進行語音聽寫。</string>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUEnableSystemProfiling</key>
+	<false/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/lstudlo-com/airdraft/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>OfxXCWN57nT7jmfbzyk6meZT19SD10JU9Z6fyhBA6Nc=</string>
+	<key>SURequireSignedFeed</key>
+	<true/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 </dict>
 </plist>

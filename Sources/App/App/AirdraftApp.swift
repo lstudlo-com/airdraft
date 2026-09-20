@@ -44,7 +44,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+        if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == "microphones" {
+            MicrophoneSelfTest.run()
+            return
+        }
         AppContainer.shared.start()
+        if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == nil {
+            AppContainer.shared.updates.start()
+        }
 
         // Self-test: AIRDRAFT_SELFTEST=mic records 3 s from the microphone;
         // AIRDRAFT_SELFTEST=<path.wav> feeds that file. Either way the HUD, the
@@ -76,6 +83,12 @@ struct AirdraftApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(width: 980, height: 660)
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { container.updates.checkForUpdates() }
+                    .disabled(!container.updates.canCheckForUpdates)
+            }
+        }
     }
 }
 

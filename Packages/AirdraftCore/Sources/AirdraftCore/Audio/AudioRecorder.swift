@@ -5,22 +5,25 @@ public enum AudioRecorderError: Error, LocalizedError {
     case microphoneDenied
     case formatUnavailable
     case alreadyRecording
+    case microphoneUnavailable(String)
 
     public var errorDescription: String? {
         switch self {
         case .microphoneDenied: return "Microphone access was denied."
         case .formatUnavailable: return "Could not create the 16 kHz mono audio format."
         case .alreadyRecording: return "Already recording."
+        case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
         }
     }
 }
 
-/// Captures the default input device and resamples to 16 kHz mono Float32,
+/// Captures the selected input device and resamples to 16 kHz mono Float32,
 /// which is what every ASR engine here expects.
 public final class AudioRecorder: @unchecked Sendable {
     public static let sampleRate: Double = 16_000
 
-    private let engine = AVAudioEngine()
+    private var engine: AVAudioEngine?
+    private var configurationObserver: NSObjectProtocol?
     private var converter: AVAudioConverter?
     private var samples: [Float] = []
     private let lock = NSLock()
@@ -28,6 +31,9 @@ public final class AudioRecorder: @unchecked Sendable {
 
     /// Called on the audio thread with the RMS level of each buffer (0...1).
     public var levelHandler: (@Sendable (Float) -> Void)?
+    /// Delivered on the main queue if the active input is interrupted.
+    public var interruptionHandler: (@Sendable () -> Void)?
+    public private(set) var activeMicrophone: Microphone?
 
     public init() {}
 
@@ -44,31 +50,56 @@ public final class AudioRecorder: @unchecked Sendable {
         }
     }
 
-    public func start() throws {
+    public func start(microphone preference: MicrophonePreference = .systemDefault) throws {
         lock.lock()
         if recording { lock.unlock(); throw AudioRecorderError.alreadyRecording }
         samples.removeAll(keepingCapacity: true)
-        recording = true
         lock.unlock()
 
+        guard let device = preference.resolve(in: MicrophoneDevices.available(), systemDefaultID: MicrophoneDevices.systemDefaultID) else {
+            throw AudioRecorderError.microphoneUnavailable(preference.name)
+        }
+        // Recreate the engine to discard the previous device's format and route.
+        let engine = AVAudioEngine()
         let input = engine.inputNode
+        try input.auAudioUnit.setDeviceID(device.id)
         let inputFormat = input.outputFormat(forBus: 0)
-        guard let targetFormat = AVAudioFormat(
+        guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0,
+              let targetFormat = AVAudioFormat(
             commonFormat: .pcmFormatFloat32,
             sampleRate: Self.sampleRate,
             channels: 1,
             interleaved: false
         ) else { throw AudioRecorderError.formatUnavailable }
 
-        converter = AVAudioConverter(from: inputFormat, to: targetFormat)
+        guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
+            throw AudioRecorderError.formatUnavailable
+        }
+        self.converter = converter
 
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
             self?.handle(buffer: buffer, targetFormat: targetFormat)
         }
 
-        engine.prepare()
-        try engine.start()
+        do {
+            engine.prepare()
+            try engine.start()
+        } catch {
+            input.removeTap(onBus: 0)
+            engine.stop()
+            self.converter = nil
+            throw error
+        }
+        self.engine = engine
+        activeMicrophone = device
+        lock.lock(); recording = true; lock.unlock()
+        configurationObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
+        ) { [weak self, weak engine] _ in
+            guard let self, let engine, self.engine === engine, self.isRecording else { return }
+            self.interruptionHandler?()
+        }
     }
 
     /// Trailing silence appended to every recording so the recogniser sees a
@@ -77,9 +108,15 @@ public final class AudioRecorder: @unchecked Sendable {
 
     /// Stops and returns everything captured since `start()`, plus tail padding.
     public func stop() -> [Float] {
+        guard let engine else { return [] }
+        if let configurationObserver { NotificationCenter.default.removeObserver(configurationObserver) }
+        configurationObserver = nil
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         flushConverter()
+        self.engine = nil
+        converter = nil
+        activeMicrophone = nil
         lock.lock(); defer { lock.unlock() }
         recording = false
         var out = samples

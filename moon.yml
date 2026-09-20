@@ -33,3 +33,28 @@ tasks:
     command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test
     toolchains: system
     deps: [generate]
+
+  build-release:
+    description: Build an optimized Apple Silicon app for packaging.
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Release -destination generic/platform=macOS ARCHS=arm64 -skipPackagePluginValidation -skipMacroValidation build
+    toolchains: system
+    deps: [generate]
+
+  release-setup:
+    description: Install the local hook that builds a DMG on pushes to main.
+    command: python3 scripts/release.py install-hook
+    toolchains: system
+    options:
+      runInCI: false
+
+  release-prepare:
+    description: Test committed sources, build a DMG locally, and upload a verified draft.
+    command: python3 scripts/release.py prepare
+    toolchains: system
+    options:
+      runInCI: false
+
+  release-publish:
+    description: Recover publication after a successful main push.
+    command: python3 scripts/release.py publish
+    toolchains: system

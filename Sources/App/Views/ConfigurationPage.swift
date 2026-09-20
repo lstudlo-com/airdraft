@@ -8,6 +8,8 @@ struct ConfigurationPage: View {
     var body: some View {
         @Bindable var settings = container.settings
         PageScaffold {
+            MicrophoneSettings()
+
             SectionTitle("Appearance")
             Card {
                 SettingRow(title: "Theme") {
@@ -93,12 +95,13 @@ struct ConfigurationPage: View {
                     }
                 }
             }
+            UpdateSettings(updates: container.updates)
         }
     }
 
     private var micStatus: String {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: return "Granted · \(MicrophoneInfo.defaultName)"
+        case .authorized: return "Granted · \(container.microphones.label(container.settings.microphone))"
         case .denied: return "Denied. Enable it in System Settings ▸ Privacy & Security ▸ Microphone"
         case .restricted: return "Restricted"
         default: return "Not requested yet"

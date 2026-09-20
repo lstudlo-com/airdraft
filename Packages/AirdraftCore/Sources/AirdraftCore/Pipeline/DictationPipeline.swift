@@ -97,6 +97,13 @@ public final class DictationPipeline {
                 }
             }
         }
+        recorder.interruptionHandler = { [weak self] in
+            Task { @MainActor in
+                guard let self, self.isRecording else { return }
+                self.cancel()
+                self.fail("The microphone disconnected or its audio format changed. Check the microphone selection and record again.")
+            }
+        }
     }
 
     public var isRecording: Bool { state == .recording }
@@ -119,7 +126,7 @@ public final class DictationPipeline {
         }
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
         do {
-            try recorder.start()
+            try recorder.start(microphone: settings.microphone)
         } catch {
             fail("Could not start recording: \(error.localizedDescription)")
             return

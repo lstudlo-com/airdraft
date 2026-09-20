@@ -72,6 +72,26 @@ its own incremental build cache in DerivedData. Moon caching is disabled for
 these tasks because the signed products live outside the repository; build
 and test also share a mutex so they cannot write to that build tree concurrently.
 
+### Microphone selection
+
+Choose a microphone from the window toolbar, menu bar, or Configuration →
+Microphone. Your choice becomes Airdraft's saved default. System default follows
+macOS; a specific device stays selected across restarts and reconnects. If it is
+unavailable, reconnect it or choose another input. Airdraft never silently
+substitutes another microphone. Finish dictation before switching devices.
+
+### App updates
+
+Airdraft uses Sparkle for **Check for Updates…**, daily background checks, and
+optional automatic downloads that install on quit. These controls are in
+Configuration → Updates. Releases use a signed GitHub-hosted update feed; it
+is published with each release. Run `moon run airdraft:release-setup` once on the
+release Mac. Every push to `origin/main` then tests committed sources, builds the
+DMG locally, and uploads a draft. GitHub publishes it after the push succeeds.
+
+See [the update release procedure](docs/updates.md) for signing keys, Release
+builds, DMG packaging, and validation without a paid Apple developer membership.
+
 Direct Xcode commands remain available:
 
 ```sh
@@ -156,7 +176,7 @@ single-call thinking effort, so tool-free dictation does not offer them.
 - **Signing must be stable for Accessibility to stick.** Ad-hoc builds get a
   cdhash-based code requirement, so every rebuild invalidates the grant even though
   the toggle stays on. `project.yml` pins `DEVELOPMENT_TEAM`; after changing signing
-  run `tccutil reset Accessibility com.lightiichen.transcribar` and grant once more.
+  run `tccutil reset Accessibility com.lstudlo.app.airdraft` and grant once more.
 - **Stale Hugging Face tokens.** A revoked `HF_TOKEN` or `~/.cache/huggingface/token`
   turns public Hub downloads into 401s. The app's downloader never sends a token, so this
   only affects other tools.
@@ -218,12 +238,12 @@ eval/                           Prompt correction eval, LLM benchmarks, results
 
 Data lives in `~/Library/Application Support/Transcribar/` (`history.sqlite`,
 `dictionary.json`). API keys are stored in the login Keychain under the
-service `com.lightiichen.transcribar`.
+service `com.lstudlo.app.airdraft`.
 
-The app is named Airdraft. Its legacy bundle identifier and Keychain
-service remain `com.lightiichen.transcribar`, and its data directory keeps the old
-name so existing settings, permission grants, API keys, models and history carry
-over. The project, scheme and app are `airdraft`; the Swift module is `AirdraftCore`.
+The app bundle identifier and Keychain service are `com.lstudlo.app.airdraft`.
+Legacy preferences and API keys migrate from `com.lightiichen.transcribar`; the
+data directory stays in place for existing models and history. macOS requires
+new Microphone and Accessibility grants after the identifier changes. The project, scheme and app are `airdraft`; the Swift module is `AirdraftCore`.
 Logs use `com.lightiichen.airdraft`, and self-tests use `AIRDRAFT_SELFTEST` and
 `AIRDRAFT_SELFTEST_ASR`. Evaluation fixtures retain their original sample text.
 
