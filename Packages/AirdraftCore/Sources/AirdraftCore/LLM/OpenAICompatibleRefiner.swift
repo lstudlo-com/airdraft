@@ -10,6 +10,8 @@ public struct OpenAICompatibleRefiner: Refiner {
     public let temperature: Double
     public let timeout: TimeInterval
     public let effort: ThinkingEffort
+    public let provider: LLMProviderKind
+    private let session: URLSession
 
     public init(
         baseURL: URL,
@@ -17,7 +19,9 @@ public struct OpenAICompatibleRefiner: Refiner {
         apiKey: String?,
         temperature: Double = 0.2,
         timeout: TimeInterval = 20,
-        effort: ThinkingEffort = .off
+        effort: ThinkingEffort = .off,
+        provider: LLMProviderKind = .openAICompatible,
+        session: URLSession = .shared
     ) {
         self.baseURL = baseURL
         self.model = model
@@ -25,47 +29,18 @@ public struct OpenAICompatibleRefiner: Refiner {
         self.temperature = temperature
         self.timeout = timeout
         self.effort = effort
+        self.provider = provider
+        self.session = session
         self.id = "openai-compatible:\(baseURL.host ?? "?")/\(model)"
     }
 
     public func refine(_ request: RefineRequest) async throws -> RefineResult {
         let started = Date()
-        let system = PromptBuilder.systemPrompt(for: request)
-        let user = PromptBuilder.userMessage(for: request)
-
-        let minimalPayload: [String: Any] = [
-            "model": model,
-            "stream": false,
-            "messages": [
-                ["role": "system", "content": system],
-                ["role": "user", "content": user],
-            ],
-        ]
-        let basePayload: [String: Any] = [
-            "model": model,
-            "temperature": temperature,
-            "stream": false,
-            "messages": [
-                ["role": "system", "content": system],
-                ["role": "user", "content": user],
-            ],
-        ]
-
-        // Reasoning models spend seconds "thinking" before a one-line cleanup.
-        // These extras switch that off on LM Studio (Gemma 4: reasoning_effort),
-        // vLLM / llama-server (Qwen3: chat_template_kwargs). Providers that
-        // reject unknown parameters answer 400, so we retry once without them.
-        var extras: [String: Any] = ["reasoning_effort": effort == .off ? "none" : effort.rawValue]
-        if effort == .off {
-            extras["chat_template_kwargs"] = ["enable_thinking": false]
-        }
-
-
-        var (data, http) = try await post(basePayload.merging(extras) { $1 })
+        var (data, http) = try await post(payload(for: request))
         if http.statusCode == 400 {
             // A provider that rejects an optional field (reasoning_effort, temperature)
             // must not cost the user the dictation: retry with the bare request.
-            (data, http) = try await post(minimalPayload)
+            (data, http) = try await post(payload(for: request, minimal: true))
         }
         guard (200..<300).contains(http.statusCode) else {
             throw RefinerError.http(status: http.statusCode, body: String(decoding: data, as: UTF8.self))
@@ -89,7 +64,42 @@ public struct OpenAICompatibleRefiner: Refiner {
         return RefineResult(text: text, engine: id, latencyMs: ms, promptVersion: PromptBuilder.version, servedBy: reply.model)
     }
 
-    private func post(_ payload: [String: Any]) async throws -> (Data, HTTPURLResponse) {
+    func payload(for request: RefineRequest, minimal: Bool = false) -> [String: Any] {
+        var body: [String: Any] = [
+            "model": model, "stream": false,
+            "messages": [
+                ["role": "system", "content": PromptBuilder.systemPrompt(for: request)],
+                ["role": "user", "content": PromptBuilder.userMessage(for: request)],
+            ],
+        ]
+        guard !minimal else { return body }
+        body["temperature"] = temperature
+        if provider == .cerebras || provider == .groq {
+            // These APIs do not accept local-server chat_template_kwargs.
+            // Unknown models get the spec-core request and temperature only.
+            let isOSS = provider == .cerebras ? model == "gpt-oss-120b"
+                : ["openai/gpt-oss-20b", "openai/gpt-oss-120b"].contains(model)
+            let supportsOff = provider == .cerebras
+                ? ["qwen-3.8-27b", "gemma-4-31b"].contains(model)
+                : model == "qwen/qwen3.8-27b"
+            if isOSS || supportsOff {
+                let levels: [ThinkingEffort] = isOSS ? [.low, .medium, .high] : ThinkingEffort.standard
+                let effective = effort.supported(in: levels) ?? .low
+                body["reasoning_effort"] = effective == .off ? "none" : effective.rawValue
+                if provider == .groq {
+                    if isOSS { body["include_reasoning"] = false }
+                    else { body["reasoning_format"] = "hidden" }
+                }
+            }
+        } else {
+            // Preserve existing LM Studio/vLLM behaviour and the one-shot 400 fallback.
+            body["reasoning_effort"] = effort == .off ? "none" : effort.rawValue
+            if effort == .off { body["chat_template_kwargs"] = ["enable_thinking": false] }
+        }
+        return body
+    }
+
+    func makeRequest(_ payload: [String: Any]) throws -> URLRequest {
         var req = URLRequest(url: baseURL.appendingPathComponent("chat/completions"))
         req.httpMethod = "POST"
         req.timeoutInterval = timeout
@@ -98,11 +108,15 @@ public struct OpenAICompatibleRefiner: Refiner {
             req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        return req
+    }
 
+    private func post(_ payload: [String: Any]) async throws -> (Data, HTTPURLResponse) {
+        let req = try makeRequest(payload)
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: req)
+            (data, response) = try await session.data(for: req)
         } catch let error as URLError where error.code == .timedOut {
             throw RefinerError.timeout
         }

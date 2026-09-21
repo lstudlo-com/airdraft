@@ -63,7 +63,7 @@ struct RefinementSettings: View {
                     }
                     if !llm.kind.isCLI {
                         RowDivider()
-                        SettingRow(title: "Thinking effort", subtitle: "Cleanup needs none; higher levels cost seconds per dictation") {
+                        SettingRow(title: "Thinking effort", subtitle: thinkingSubtitle) {
                             Picker("", selection: $settings.llm.thinkingEffort) {
                                 ForEach(ThinkingEffort.standard) { Text($0.title).tag($0) }
                             }
@@ -77,6 +77,13 @@ struct RefinementSettings: View {
             .foregroundStyle(.secondary)
         }
         .onAppear(perform: refreshKeys)
+    }
+
+    private var thinkingSubtitle: String {
+        if [.cerebras, .groq].contains(llm.kind), llm.model.contains("gpt-oss") {
+            return "This model requires reasoning; Off uses its lowest effort"
+        }
+        return "Cleanup needs none; higher levels cost seconds per dictation"
     }
 
     // MARK: - Provider rows
@@ -137,7 +144,7 @@ struct RefinementSettings: View {
         RefinementModelRow()
         RowDivider()
         testRow
-        Text("Only the transcript text is sent to \(llm.kind.title). Audio stays on this Mac.")
+        Text("Text is sent to \(llm.kind.title) for refinement. Audio is handled by your speech recognition provider.")
             .font(.system(size: 11.5))
             .foregroundStyle(.tertiary)
     }
@@ -252,6 +259,8 @@ struct ProviderTile: View {
         case .anthropic: return .orange
         case .gemini: return .blue
         case .openRouter: return .purple
+        case .cerebras: return .orange
+        case .groq: return .pink
         case .claudeCode: return .orange
         case .codex: return .teal
         case .none: return .gray
@@ -361,12 +370,12 @@ struct RefinementModelRow: View {
                         }
                         .labelsHidden().frame(width: 240)
                     }
-                    if tool != nil, !models.isEmpty {
+                    if !models.isEmpty {
                         Button { customModel.toggle() } label: {
                             Image(systemName: customModel ? "list.bullet" : "pencil")
                         }
                         .buttonStyle(SoftButtonStyle())
-                        .help(customModel ? "Choose from the model list" : "Use any model ID or alias supported by the CLI")
+                        .help(customModel ? "Choose from the model list" : "Use a model ID supported by the provider")
                         .accessibilityLabel(customModel ? "Choose a listed model" : "Enter a custom model")
                     }
                     Button { refreshID = UUID() } label: {

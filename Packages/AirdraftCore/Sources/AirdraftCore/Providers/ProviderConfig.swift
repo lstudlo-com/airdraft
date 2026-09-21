@@ -16,12 +16,14 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
 /// Where refinement runs. Cloud providers are native: each speaks its own API
 /// with its own key, so nothing depends on a compatibility shim.
 public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiable {
-    /// Any OpenAI-compatible server you host: LM Studio, Ollama, vLLM, Groq, custom.
+    /// Any OpenAI-compatible server you host: LM Studio, Ollama, vLLM, custom.
     case openAICompatible
     case openAI
     case anthropic
     case gemini
     case openRouter
+    case cerebras
+    case groq
     /// A coding-agent CLI already installed and logged in on this Mac; the
     /// user's own subscription pays for it, so there is no API key.
     case claudeCode
@@ -59,13 +61,15 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "Anthropic"
         case .gemini: return "Google Gemini"
         case .openRouter: return "OpenRouter"
+        case .cerebras: return "Cerebras"
+        case .groq: return "Groq"
         case .claudeCode: return "Claude Code CLI"
         case .codex: return "Codex CLI"
         case .none: return "Off"
         }
     }
 
-    /// Fits the provider tiles, where six names share one row.
+    /// Fits the provider tiles.
     public var shortTitle: String {
         switch self {
         case .openAICompatible: return "Local"
@@ -73,6 +77,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "Anthropic"
         case .gemini: return "Gemini"
         case .openRouter: return "OpenRouter"
+        case .cerebras: return "Cerebras"
+        case .groq: return "Groq"
         case .claudeCode: return "Claude Code"
         case .codex: return "Codex"
         case .none: return "Off"
@@ -87,6 +93,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "Cloud · your key"
         case .gemini: return "Cloud · your key"
         case .openRouter: return "Cloud · every model"
+        case .cerebras, .groq: return "Cloud · your key"
         case .claudeCode: return "Your Claude subscription"
         case .codex: return "Your ChatGPT subscription"
         case .none: return "Raw transcript"
@@ -100,6 +107,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "a.circle"
         case .gemini: return "sparkle"
         case .openRouter: return "arrow.triangle.branch"
+        case .cerebras: return "cpu"
+        case .groq: return "bolt"
         case .claudeCode: return "terminal"
         case .codex: return "terminal.fill"
         case .none: return "nosign"
@@ -108,7 +117,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
 
     public var isCloud: Bool {
         switch self {
-        case .openAI, .anthropic, .gemini, .openRouter: return true
+        case .openAI, .anthropic, .gemini, .openRouter, .cerebras, .groq: return true
         case .openAICompatible, .claudeCode, .codex, .none: return false
         }
     }
@@ -123,6 +132,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "https://api.anthropic.com/v1"
         case .gemini: return "https://generativelanguage.googleapis.com/v1beta"
         case .openRouter: return "https://openrouter.ai/api/v1"
+        case .cerebras: return "https://api.cerebras.ai/v1"
+        case .groq: return "https://api.groq.com/openai/v1"
         case .claudeCode, .codex: return ""
         case .none: return ""
         }
@@ -136,6 +147,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "claude-haiku-4-5-20251001"
         case .gemini: return "gemini-2.5-flash"
         case .openRouter: return "google/gemini-2.5-flash"
+        case .cerebras: return "qwen-3.8-27b"
+        case .groq: return "openai/gpt-oss-20b"
         // Empty means "whatever the CLI itself is set to".
         case .claudeCode: return "sonnet"
         case .codex: return "gpt-6-astra"
@@ -151,6 +164,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return "llm.anthropic"
         case .gemini: return "llm.gemini"
         case .openRouter: return "llm.openrouter"
+        case .cerebras: return "llm.cerebras"
+        case .groq: return "llm.groq"
         case .claudeCode, .codex: return ""
         case .none: return ""
         }
@@ -163,6 +178,8 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
         case .gemini: return URL(string: "https://aistudio.google.com/apikey")
         case .openRouter: return URL(string: "https://openrouter.ai/keys")
+        case .cerebras: return URL(string: "https://cloud.cerebras.ai")
+        case .groq: return URL(string: "https://console.groq.com/keys")
         case .openAICompatible, .claudeCode, .codex, .none: return nil
         }
     }
@@ -403,6 +420,14 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         } else {
             thinkingEffort = d.thinkingEffort
         }
+        // Only the exact former built-in Groq preset is migrated. Custom URLs
+        // and credential references remain untouched.
+        if kind == .openAICompatible, baseURL == LLMProviderKind.groq.defaultBaseURL,
+           apiKeyRef == LLMProviderKind.groq.keyRef {
+            kind = .groq
+            baseURL = LLMProviderKind.openAICompatible.defaultBaseURL
+            apiKeyRef = LLMProviderKind.openAICompatible.keyRef
+        }
     }
 
     /// Endpoint actually used: the editable one for a local server, the provider's own for cloud.
@@ -468,7 +493,6 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
     public static let llm: [EndpointPreset] = [
         .init(name: "LM Studio (local)", baseURL: "http://localhost:1234/v1", defaultModel: "google/gemma-4-26b-a4b-qat", keyRef: "llm.lmstudio"),
         .init(name: "Ollama (local)", baseURL: "http://localhost:11434/v1", defaultModel: "qwen3:8b", keyRef: "llm.ollama"),
-        .init(name: "Groq", baseURL: "https://api.groq.com/openai/v1", defaultModel: "llama-3.3-70b-versatile", keyRef: "llm.groq"),
         .init(name: "Custom", baseURL: "http://localhost:8000/v1", defaultModel: "", keyRef: "llm.custom"),
     ]
 

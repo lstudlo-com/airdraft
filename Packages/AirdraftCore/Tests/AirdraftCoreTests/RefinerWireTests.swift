@@ -68,12 +68,18 @@ final class RefinerWireTests: XCTestCase {
             (LLMProviderKind.openAICompatible, "OpenAICompatibleRefiner"),
             (.openAI, "OpenAICompatibleRefiner"),
             (.openRouter, "OpenAICompatibleRefiner"),
+            (.cerebras, "OpenAICompatibleRefiner"),
+            (.groq, "OpenAICompatibleRefiner"),
             (.anthropic, "AnthropicRefiner"),
             (.gemini, "GeminiRefiner"),
         ] {
             config.select(kind)
             let refiner = await factory.refiner(for: config)
             XCTAssertEqual(String(describing: Swift.type(of: refiner!)), expected, "\(kind)")
+            if let chat = refiner as? OpenAICompatibleRefiner {
+                XCTAssertEqual(chat.provider, kind)
+                XCTAssertEqual(chat.baseURL, config.endpoint)
+            }
         }
         config.select(.none)
         let off = await factory.refiner(for: config)

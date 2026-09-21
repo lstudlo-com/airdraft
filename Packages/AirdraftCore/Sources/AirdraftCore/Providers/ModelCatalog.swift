@@ -13,7 +13,8 @@ public enum ModelCatalog {
         let key = Keychain.get(config.keyRef)
         switch config.kind.wire {
         case .openAIChat:
-            return try await fetch(baseURL: base, apiKey: key, timeout: timeout)
+            let ids = try await fetch(baseURL: base, apiKey: key, timeout: timeout)
+            return refinementModels(in: ids, for: config.kind)
         case .anthropicMessages:
             var req = URLRequest(url: base.appendingPathComponent("models"))
             req.timeoutInterval = timeout
@@ -38,6 +39,17 @@ public enum ModelCatalog {
                 .filter { $0.supportedGenerationMethods?.contains("generateContent") ?? true }
                 .map { $0.name.replacingOccurrences(of: "models/", with: "") }
                 .sorted()
+        }
+    }
+
+    /// Groq's shared /models also lists speech, moderation and tool-using systems.
+    /// They are not text refiners. Keep unknown chat model names selectable.
+    static func refinementModels(in ids: [String], for kind: LLMProviderKind) -> [String] {
+        guard kind == .groq else { return ids }
+        return ids.filter { id in
+            let name = id.lowercased()
+            return !["whisper", "orpheus", "playai-tts", "prompt-guard", "safeguard", "compound"]
+                .contains(where: name.contains)
         }
     }
 

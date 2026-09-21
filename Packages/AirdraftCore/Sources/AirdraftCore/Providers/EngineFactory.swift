@@ -60,7 +60,8 @@ public actor EngineFactory {
                 apiKey: key,
                 temperature: config.temperature,
                 timeout: config.timeoutSeconds,
-                effort: config.thinkingEffort
+                effort: config.thinkingEffort,
+                provider: config.kind
             )
         case .anthropicMessages:
             return AnthropicRefiner(

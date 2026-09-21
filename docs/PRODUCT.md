@@ -32,7 +32,7 @@ Added 2026-09-21:
 |---|---|
 | 1 | Airdraft branding throughout the app, CLI and developer tools; Superwhisper-style main window (sidebar, cards, key caps, theme + HUD tiles); dark recording pill at bottom centre with Classic / Mini / None. Configuration and Models share equal 16-point card insets, 8-point heading gaps and 20-point section gaps; settings rows add no extra vertical inset. Existing settings and data survive the rename. Onboarding still missing. |
 | 2 | Done: `Transcriber` / `Refiner` protocols, `EngineFactory`, per-stage config. Ten speech engines kept (see `docs/model-atlas.html`); everything else was removed on purpose. |
-| 3 | Provider presets, `/models` picker, one-click anonymous model downloads. Codex and Claude Code discover their model lists and per-model thinking levels from the installed CLI; custom model IDs remain available. CLI model and effort choices survive provider switches. First-run onboarding not yet built. |
+| 3 | Provider presets, `/models` picker, one-click anonymous model downloads. Codex and Claude Code discover their model lists and per-model thinking levels from the installed CLI; custom model IDs remain available. CLI model and effort choices survive provider switches. First-run onboarding not yet built. Refinement includes dedicated Cerebras and Groq options with separate Keychain keys, live model discovery, provider-specific reasoning parameters, and migration of the former Groq server preset. |
 | 4 | Done: `RefinementProfile` + `ProfileStore`, Profiles tab, prompt preview. |
 | 5 | Done: add / delete in Profiles tab; built-ins cannot be deleted. |
 | 6 | Done: per-profile reset, base-rules reset, "Reset all profiles to defaults". |
