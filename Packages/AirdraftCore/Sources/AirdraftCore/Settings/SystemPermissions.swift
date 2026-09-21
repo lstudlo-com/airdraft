@@ -49,7 +49,7 @@ public final class SystemPermissions {
 
     public func requestMicrophone() async {
         if checkMicrophone() == .notDetermined {
-            _ = await AVCaptureDevice.requestAccess(for: .audio)
+            _ = await MicrophonePermission.shared.request()
         }
         refresh()
     }

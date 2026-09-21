@@ -68,6 +68,9 @@ public final class DictationPipeline {
     private var processingTask: Task<Void, Never>?
     private var autoStopTask: Task<Void, Never>?
     private var stopping = false
+    private var recordingRequest: Task<Void, Never>?
+    private var recordingRequestID = UUID()
+    private let requestMicrophoneAccess: @Sendable () async -> Bool
 
     public init(
         settings: AppSettings,
@@ -77,7 +80,8 @@ public final class DictationPipeline {
         factory: EngineFactory,
         recorder: AudioRecorder = AudioRecorder(),
         contextReader: AppContextReader? = nil,
-        inserter: TextInserter? = nil
+        inserter: TextInserter? = nil,
+        requestMicrophoneAccess: @escaping @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
     ) {
         self.settings = settings
         self.dictionary = dictionary
@@ -87,6 +91,7 @@ public final class DictationPipeline {
         self.recorder = recorder
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
+        self.requestMicrophoneAccess = requestMicrophoneAccess
 
         recorder.levelHandler = { [weak self] level in
             Task { @MainActor in
@@ -107,20 +112,30 @@ public final class DictationPipeline {
     }
 
     public var isRecording: Bool { state == .recording }
+    public var isBusy: Bool { state.isBusy || recordingRequest != nil }
 
     // MARK: - Control
 
     public func toggle() {
-        if isRecording { stopAndProcess() } else { startRecording() }
+        if recordingRequest != nil && !isRecording { cancel() }
+        else if isRecording { stopAndProcess() } else { startRecording() }
     }
 
     public func startRecording() {
-        guard !state.isBusy else { return }
-        Task { await beginRecording() }
+        guard !state.isBusy, recordingRequest == nil else { return }
+        let token = UUID()
+        recordingRequestID = token
+        recordingRequest = Task {
+            await beginRecording()
+            if recordingRequestID == token { recordingRequest = nil }
+        }
     }
 
     private func beginRecording() async {
-        guard await AudioRecorder.requestMicrophoneAccess() else {
+        guard !Task.isCancelled else { return }
+        let granted = await requestMicrophoneAccess()
+        guard !Task.isCancelled else { return }
+        guard granted else {
             fail("Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.")
             return
         }
@@ -150,6 +165,10 @@ public final class DictationPipeline {
     public static let releaseGraceSeconds: Double = 0.35
 
     public func stopAndProcess() {
+        if recordingRequest != nil && !isRecording {
+            cancel()
+            return
+        }
         guard state == .recording, !stopping else { return }
         stopping = true
         Task { @MainActor in
@@ -179,7 +198,7 @@ public final class DictationPipeline {
     /// Runs 16 kHz mono samples through transcription, refinement, dictionary and
     /// history exactly like a recording would. Used by self-tests and the CLI.
     public func processSamples(_ samples: [Float], context: AppContext = .empty) {
-        guard !state.isBusy else { return }
+        guard !isBusy else { return }
         prewarmRefiner(context: context)
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
@@ -212,6 +231,9 @@ public final class DictationPipeline {
     }
 
     public func cancel() {
+        recordingRequestID = UUID()
+        recordingRequest?.cancel()
+        recordingRequest = nil
         stopping = false
         autoStopTask?.cancel()
         processingTask?.cancel()

@@ -48,6 +48,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MicrophoneSelfTest.run()
             return
         }
+        if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST_ISOLATED"] == "1",
+           let path = ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] {
+            IsolatedPipelineSelfTest.run(path: path)
+            return
+        }
         AppContainer.shared.start()
         if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == nil {
             AppContainer.shared.updates.start()

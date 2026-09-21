@@ -8,7 +8,9 @@ import SwiftUI
 struct RefinementSettings: View {
     @Environment(AppContainer.self) private var container
     @State private var testResult = ""
-    @State private var keysPresent: Set<String> = []
+    @State private var testTask: Task<Void, Never>?
+    @State private var testID = UUID()
+    @State private var keyPresence: [String: Keychain.Presence] = [:]
 
     private var llm: LLMConfig { container.settings.llm }
 
@@ -76,7 +78,13 @@ struct RefinementSettings: View {
             .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(.secondary)
         }
-        .onAppear(perform: refreshKeys)
+        .task { await refreshKeys() }
+        .onChange(of: llm) { _, _ in cancelTest() }
+        .onDisappear { cancelTest() }
+        .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { note in
+            if note.object as? String == llm.keyRef { cancelTest() }
+            Task { await refreshKeys() }
+        }
     }
 
     private var thinkingSubtitle: String {
@@ -127,7 +135,7 @@ struct RefinementSettings: View {
         }
         RowDivider()
         SettingRow(title: "API key", subtitle: "Local servers usually need none") {
-            APIKeyField(account: llm.keyRef, onSave: refreshKeys)
+            APIKeyField(account: llm.keyRef, onSave: { Task { await refreshKeys() } })
         }
         RowDivider()
         RefinementModelRow()
@@ -138,7 +146,7 @@ struct RefinementSettings: View {
     @ViewBuilder
     private var cloudRows: some View {
         SettingRow(title: "\(llm.kind.title) API key", subtitle: "Stored in your Keychain") {
-            APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL, onSave: refreshKeys)
+            APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL, onSave: { Task { await refreshKeys() } })
         }
         RowDivider()
         RefinementModelRow()
@@ -182,7 +190,11 @@ struct RefinementSettings: View {
 
     private var testRow: some View {
         SettingRow(title: "Connection", subtitle: testResult.isEmpty ? nil : testResult) {
-            Button("Test") { Task { await test() } }.buttonStyle(SoftButtonStyle())
+            Button("Test") {
+                let token = UUID()
+                testID = token
+                testTask = Task { await test(token: token) }
+            }.buttonStyle(SoftButtonStyle()).disabled(testTask != nil)
         }
     }
 
@@ -193,12 +205,21 @@ struct RefinementSettings: View {
         case .none: return "No LLM"
         case .openAICompatible: return llm.kind == kind ? container.models.llmStatus.label : "LM Studio, Ollama"
         case .claudeCode, .codex: return kind.cliTool?.locate() == nil ? "Not installed" : "Subscription"
-        default: return keysPresent.contains(kind.keyRef) ? "Key saved" : "Add key"
+        default:
+            switch keyPresence[kind.keyRef] {
+            case .saved: return "Key saved"
+            case .unavailable: return "Key unavailable"
+            default: return "Add key"
+            }
         }
     }
 
-    private func refreshKeys() {
-        keysPresent = Set(LLMProviderKind.allCases.filter { !$0.keyRef.isEmpty && !(Keychain.get($0.keyRef) ?? "").isEmpty }.map(\.keyRef))
+    private func refreshKeys() async {
+        guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
+        keyPresence = await Task.detached {
+            Dictionary(uniqueKeysWithValues: LLMProviderKind.allCases.filter { !$0.keyRef.isEmpty }
+                .map { ($0.keyRef, Keychain.presence($0.keyRef)) })
+        }.value
     }
 
     private var statusSubtitle: String {
@@ -223,9 +244,20 @@ struct RefinementSettings: View {
         return Circle().fill(color).frame(width: 7, height: 7)
     }
 
-    private func test() async {
+    private func cancelTest() {
+        testID = UUID()
+        testTask?.cancel()
+        testTask = nil
+        testResult = ""
+    }
+
+    private func test(token: UUID) async {
+        let config = llm
         testResult = "Testing…"
-        guard let refiner = await container.factory.refiner(for: container.settings.llm) else {
+        defer { if testID == token { testTask = nil } }
+        let candidate = await container.factory.refiner(for: config)
+        guard testID == token, !Task.isCancelled else { return }
+        guard let refiner = candidate else {
             testResult = "Refinement is off"
             return
         }
@@ -237,8 +269,10 @@ struct RefinementSettings: View {
         )
         do {
             let r = try await refiner.refine(req)
+            guard testID == token, !Task.isCancelled else { return }
             testResult = "OK in \(r.latencyMs) ms: \(r.text.prefix(60))"
         } catch {
+            guard testID == token, !Task.isCancelled else { return }
             testResult = "Failed: \(error.localizedDescription)"
         }
     }
@@ -297,29 +331,40 @@ struct APIKeyField: View {
     let account: String
     var console: URL? = nil
     var onSave: (() -> Void)? = nil
-    @State private var value = ""
-    @State private var saved = false
+    @State private var editor = CredentialEditor()
+
+    private var needsAccess: Bool {
+        editor.needsAccess || (ProcessInfo.processInfo.arguments.contains("--render-window") &&
+            ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_KEYCHAIN"] == "locked")
+    }
 
     var body: some View {
-        HStack(spacing: 8) {
-            if let console {
-                Button("Get a key") { NSWorkspace.shared.open(console) }
-                    .buttonStyle(.link)
-                    .font(.system(size: 12))
-                    .fixedSize()
+        @Bindable var editor = editor
+        VStack(alignment: .trailing, spacing: Theme.controlSpacing) {
+            HStack(spacing: 8) {
+                if let console {
+                    Button("Get a key") { NSWorkspace.shared.open(console) }
+                        .buttonStyle(.link).font(.system(size: 12)).fixedSize()
+                }
+                SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
+                    .textFieldStyle(.roundedBorder).frame(width: 200).disabled(editor.isBusy)
+                if needsAccess {
+                    Button("Allow access") { Task { await editor.authorize(); onSave?() } }
+                        .buttonStyle(SoftButtonStyle()).fixedSize().disabled(editor.isBusy)
+                }
+                Button("Save") { Task { await editor.save(); onSave?() } }
+                    .buttonStyle(SoftButtonStyle()).fixedSize().disabled(!editor.canSave)
             }
-            SecureField("", text: $value).textFieldStyle(.roundedBorder).frame(width: 200)
-            Button(saved ? "Saved" : "Save") {
-                Keychain.set(value, for: account)
-                saved = true
-                onSave?()
-                Task { try? await Task.sleep(for: .seconds(1.2)); saved = false }
+            if let message = editor.message ?? (needsAccess ? "Your saved key needs access approval." : nil) {
+                Text(message).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .buttonStyle(SoftButtonStyle())
-            .fixedSize()
         }
-        .onAppear { value = Keychain.get(account) ?? "" }
-        .onChange(of: account) { _, new in value = Keychain.get(new) ?? "" }
+        .task(id: account) {
+            guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
+            await editor.load(account: account)
+        }
+        .onDisappear { editor.cancel() }
     }
 }
 
@@ -405,6 +450,9 @@ struct RefinementModelRow: View {
             }
         }
         .task(id: "\(taskKey)|\(refreshID)") { await refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { note in
+            if note.object as? String == llm.keyRef { refreshID = UUID() }
+        }
     }
 
     private func modelTitle(_ id: String) -> String {
@@ -412,9 +460,10 @@ struct RefinementModelRow: View {
         return info.title + (info.hidden ? " (hidden)" : "")
     }
 
-    private var taskKey: String { "\(llm.kind.rawValue)|\(llm.baseURL)|\(llm.cliExecutable ?? "")" }
+    private var taskKey: String { "\(llm.kind.rawValue)|\(llm.baseURL)|\(llm.keyRef)|\(llm.cliExecutable ?? "")" }
 
     private func refresh() async {
+        guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
         let key = taskKey
         let config = llm
         loading = true
@@ -449,6 +498,7 @@ struct RefinementModelRow: View {
 
     /// Endpoints answer with a page of JSON; the row only has space for the point of it.
     private static func shortMessage(for error: Error) -> String {
+        if let error = error as? Keychain.AccessError { return error.localizedDescription }
         if case RefinerError.http(let status, _) = error {
             switch status {
             case 401, 403: return "Add a valid API key to list models."

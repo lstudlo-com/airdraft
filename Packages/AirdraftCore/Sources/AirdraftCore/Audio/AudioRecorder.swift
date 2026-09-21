@@ -58,11 +58,7 @@ public final class AudioRecorder: @unchecked Sendable {
     }
 
     public static func requestMicrophoneAccess() async -> Bool {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: return true
-        case .notDetermined: return await AVCaptureDevice.requestAccess(for: .audio)
-        default: return false
-        }
+        await MicrophonePermission.shared.request()
     }
 
     public func start(microphone preference: MicrophonePreference = .systemDefault) throws {

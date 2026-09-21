@@ -25,7 +25,7 @@ final class AppContainer {
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
     @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
-        self?.pipeline.state.isBusy ?? false
+        self?.pipeline.isBusy ?? false
     }
     let navigation = Navigation()
     private let escapeHotkey = CarbonHotkey()

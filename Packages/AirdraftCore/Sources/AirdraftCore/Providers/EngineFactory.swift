@@ -10,15 +10,22 @@ public actor EngineFactory {
     private var idleUnloadMinutes = 10
     private var local: [String: any Transcriber] = [:]
     private var idleTask: Task<Void, Never>?
+    private let credentialReader: @Sendable (String) throws -> String?
 
-    public init(status: EngineStatus) {
+    public init(status: EngineStatus,
+                credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) }) {
         self.status = status
+        self.credentialReader = credentialReader
         Task { await self.startIdleWatch() }
     }
 
     public func transcriber(for config: ASRConfig) -> any Transcriber {
         let id = config.engineID
         if let cached = local[id] { return cached }
+        let account = config.kind == .elevenLabs ? EndpointPreset.elevenLabsKeyRef : config.apiKeyRef
+        let key: String?
+        do { key = config.kind.isLocal ? nil : try credentialReader(account) }
+        catch { return CredentialFailureEngine(id: id, error: error) }
         let engine: any Transcriber
         switch config.kind {
         case .whisperKit: engine = WhisperKitTranscriber(variant: config.whisperModel)
@@ -29,10 +36,10 @@ public actor EngineFactory {
         case .apple: engine = AppleSpeechTranscriber(locale: config.appleLocale)
         case .elevenLabs:
             // Remote engines are cheap to build and pick up key changes this way.
-            return ElevenLabsTranscriber(modelId: config.elevenLabsModel, apiKey: Keychain.get(EndpointPreset.elevenLabsKeyRef))
+            return ElevenLabsTranscriber(modelId: config.elevenLabsModel, apiKey: key)
         case .openAICompatible:
             let url = URL(string: config.baseURL) ?? URL(string: "https://api.openai.com/v1")!
-            return OpenAICompatibleTranscriber(baseURL: url, model: config.model, apiKey: Keychain.get(config.apiKeyRef))
+            return OpenAICompatibleTranscriber(baseURL: url, model: config.model, apiKey: key)
         }
         local[id] = engine
         return engine
@@ -51,7 +58,9 @@ public actor EngineFactory {
                               timeout: max(config.timeoutSeconds, 60), supportedEfforts: info?.dictationEfforts)
         }
         guard let url = config.endpoint else { return nil }
-        let key = Keychain.get(config.keyRef)
+        let key: String?
+        do { key = try credentialReader(config.keyRef) }
+        catch { return CredentialFailureEngine(id: "credential-unavailable", error: error) }
         switch config.kind.wire {
         case .openAIChat:
             return OpenAICompatibleRefiner(
@@ -142,4 +151,14 @@ public actor EngineFactory {
             await unload(engine)
         }
     }
+}
+
+/// Preserves the engine contracts and the pipeline's raw-text fallback while
+/// reporting denied Keychain access without unauthenticated provider requests.
+struct CredentialFailureEngine: Transcriber, Refiner {
+    let id: String
+    let error: Error
+    func prepare() async throws { throw error }
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript { throw error }
+    func refine(_ request: RefineRequest) async throws -> RefineResult { throw error }
 }

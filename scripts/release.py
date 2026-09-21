@@ -201,6 +201,7 @@ def prepare(commit):
     output = ROOT / "dist/releases" / tag
     output.mkdir(parents=True, exist_ok=True)
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
+    logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
     run(xcodegen(), "generate", cwd=source)
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
               "-skipPackagePluginValidation", "-skipMacroValidation",

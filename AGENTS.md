@@ -73,6 +73,12 @@ status table current.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
 - Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
+- Passive credential access must never prompt. Badges use `Keychain.presence`;
+  reads distinguish missing from denied/locked. Only a selected-key Allow access
+  action may authorize reading. Use `CredentialEditor` for key fields; never report
+  Saved after a failed write or migrate over an inaccessible current item.
+  Keep the real signed-identity fixture test in `scripts/verify-keychain.py` in the
+  release gate. See `docs/keychain-access.md`.
 - The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
   `com.lightiichen.transcribar` preferences and credentials without overwriting current
   values. Keep `Application Support/Transcribar` for existing models and history.

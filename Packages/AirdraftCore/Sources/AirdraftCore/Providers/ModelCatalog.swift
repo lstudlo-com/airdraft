@@ -10,7 +10,7 @@ public enum ModelCatalog {
             return try await CLIModelCatalog.shared.models(tool: tool, executable: executable, refresh: true, timeout: timeout).map(\.id)
         }
         guard let base = config.endpoint else { return [] }
-        let key = Keychain.get(config.keyRef)
+        let key = try Keychain.read(config.keyRef)
         switch config.kind.wire {
         case .openAIChat:
             let ids = try await fetch(baseURL: base, apiKey: key, timeout: timeout)

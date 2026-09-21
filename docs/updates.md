@@ -79,7 +79,7 @@ Every push to `origin/main` performs these steps:
 
 1. Export the exact pushed commit to ignored `dist/release-source`. Uncommitted
    app and website changes cannot enter the DMG.
-2. Run release-gate and core tests, then build an optimized Apple Silicon app
+2. Run release-gate, cross-identity Keychain fixture, and core tests, then build an optimized Apple Silicon app
    with the pinned certificate. Verify its bundle ID, team, certificate, default
    designated requirement, validity, and absence of debugger entitlements or a
    device provisioning profile. Exercise real Sparkle installs with both a

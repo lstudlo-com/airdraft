@@ -62,7 +62,7 @@ final class RefinerWireTests: XCTestCase {
 
     @MainActor
     func testFactoryPicksTheProviderWire() async {
-        let factory = EngineFactory(status: EngineStatus())
+        let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in nil })
         var config = LLMConfig()
         for (kind, expected) in [
             (LLMProviderKind.openAICompatible, "OpenAICompatibleRefiner"),
