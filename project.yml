@@ -37,7 +37,7 @@ targets:
       path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: Airdraft
-        CFBundleShortVersionString: "0.1.1"
+        CFBundleShortVersionString: "0.1.2"
         CFBundleVersion: "1"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"

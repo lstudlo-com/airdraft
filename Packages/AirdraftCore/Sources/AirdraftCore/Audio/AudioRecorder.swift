@@ -1,18 +1,22 @@
 import AVFoundation
 import Foundation
+import os
 
 public enum AudioRecorderError: Error, LocalizedError {
     case microphoneDenied
     case formatUnavailable
     case alreadyRecording
     case microphoneUnavailable(String)
+    case deviceSetupFailed(String, Int)
 
     public var errorDescription: String? {
         switch self {
         case .microphoneDenied: return "Microphone access was denied."
-        case .formatUnavailable: return "Could not create the 16 kHz mono audio format."
+        case .formatUnavailable: return "The microphone's audio format is unavailable. Reconnect it or choose another microphone."
         case .alreadyRecording: return "Already recording."
         case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
+        case .deviceSetupFailed(let name, let code):
+            return "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone."
         }
     }
 }
@@ -21,6 +25,7 @@ public enum AudioRecorderError: Error, LocalizedError {
 /// which is what every ASR engine here expects.
 public final class AudioRecorder: @unchecked Sendable {
     public static let sampleRate: Double = 16_000
+    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "recorder")
 
     private var engine: AVAudioEngine?
     private var configurationObserver: NSObjectProtocol?
@@ -34,6 +39,8 @@ public final class AudioRecorder: @unchecked Sendable {
     /// Delivered on the main queue if the active input is interrupted.
     public var interruptionHandler: (@Sendable () -> Void)?
     public private(set) var activeMicrophone: Microphone?
+    /// Actual HAL route, which may be AVAudioEngine's private aggregate device.
+    public var inputRouteID: UInt32? { engine?.inputNode.auAudioUnit.deviceID }
 
     public init() {}
 
@@ -62,7 +69,20 @@ public final class AudioRecorder: @unchecked Sendable {
         // Recreate the engine to discard the previous device's format and route.
         let engine = AVAudioEngine()
         let input = engine.inputNode
-        try input.auAudioUnit.setDeviceID(device.id)
+        // AVAudioEngine already follows the system input through a managed route.
+        // Preserve that route for System default; only override it when the user
+        // explicitly selects a device.
+        if preference.uid != nil {
+            do {
+                if input.auAudioUnit.deviceID != device.id {
+                    try input.auAudioUnit.setDeviceID(device.id)
+                }
+            } catch {
+                let code = (error as NSError).code
+                Self.log.error("recorder: selecting device=\(device.name, privacy: .public) id=\(device.id) failed code=\(code)")
+                throw AudioRecorderError.deviceSetupFailed(device.name, code)
+            }
+        }
         let inputFormat = input.outputFormat(forBus: 0)
         guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0,
               let targetFormat = AVAudioFormat(
@@ -89,11 +109,14 @@ public final class AudioRecorder: @unchecked Sendable {
             input.removeTap(onBus: 0)
             engine.stop()
             self.converter = nil
-            throw error
+            let code = (error as NSError).code
+            Self.log.error("recorder: starting device=\(device.name, privacy: .public) id=\(device.id) failed code=\(code)")
+            throw AudioRecorderError.deviceSetupFailed(device.name, code)
         }
         self.engine = engine
         activeMicrophone = device
         lock.lock(); recording = true; lock.unlock()
+        Self.log.notice("recorder: started device=\(device.name, privacy: .public) requested=\(device.id) route=\(input.auAudioUnit.deviceID) systemDefault=\(preference.uid == nil)")
         configurationObserver = NotificationCenter.default.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
         ) { [weak self, weak engine] _ in
