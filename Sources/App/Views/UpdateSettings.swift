@@ -4,9 +4,8 @@ struct UpdateSettings: View {
     let updates: AppUpdater
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionTitle("Updates")
-            Card(padding: 16) {
+        PageSection("Updates") {
+            SettingsCard {
                 SettingRow(title: "Airdraft", subtitle: updates.versionLabel) {
                     Button("Check for Updates…") { updates.checkForUpdates() }
                         .buttonStyle(SoftButtonStyle())

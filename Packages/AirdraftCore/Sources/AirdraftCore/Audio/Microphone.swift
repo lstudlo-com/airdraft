@@ -31,6 +31,17 @@ public struct MicrophonePreference: Codable, Equatable, Sendable {
 }
 
 public enum MicrophoneDevices {
+    /// AVAudioEngine can wrap the selected input in a private aggregate device.
+    public static func route(_ route: AudioDeviceID, contains device: AudioDeviceID) -> Bool {
+        if route == device { return true }
+        var address = address(kAudioAggregateDevicePropertyActiveSubDeviceList)
+        var size: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(route, &address, 0, nil, &size) == noErr, size > 0 else { return false }
+        var devices = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
+        guard AudioObjectGetPropertyData(route, &address, 0, nil, &size, &devices) == noErr else { return false }
+        return devices.contains(device)
+    }
+
     public static var systemDefaultID: AudioDeviceID? {
         var address = address(kAudioHardwarePropertyDefaultInputDevice)
         var device = AudioDeviceID(0)

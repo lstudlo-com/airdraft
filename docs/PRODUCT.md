@@ -30,15 +30,34 @@ Added 2026-09-21:
 
 | Goal | State (2026-09-21) |
 |---|---|
-| 1 | Airdraft branding throughout the app, CLI and developer tools; Superwhisper-style main window (sidebar, cards, key caps, theme + HUD tiles); dark recording pill at bottom centre with Classic / Mini / None. Existing settings and data survive the rename. Onboarding still missing. |
+| 1 | Airdraft branding throughout the app, CLI and developer tools; Superwhisper-style main window (sidebar, cards, key caps, theme + HUD tiles); dark recording pill at bottom centre with Classic / Mini / None. Configuration and Models share equal 16-point card insets, 8-point heading gaps and 20-point section gaps; settings rows add no extra vertical inset. Existing settings and data survive the rename. Onboarding still missing. |
 | 2 | Done: `Transcriber` / `Refiner` protocols, `EngineFactory`, per-stage config. Ten speech engines kept (see `docs/model-atlas.html`); everything else was removed on purpose. |
 | 3 | Provider presets, `/models` picker, one-click anonymous model downloads. Codex and Claude Code discover their model lists and per-model thinking levels from the installed CLI; custom model IDs remain available. CLI model and effort choices survive provider switches. First-run onboarding not yet built. |
 | 4 | Done: `RefinementProfile` + `ProfileStore`, Profiles tab, prompt preview. |
 | 5 | Done: add / delete in Profiles tab; built-ins cannot be deleted. |
 | 6 | Done: per-profile reset, base-rules reset, "Reset all profiles to defaults". |
 | 7 | Sparkle 2.10.0 adds manual checks, daily checks and optional automatic downloads. Main pushes test committed sources and build the DMG locally; GitHub publishes the verified draft for the matching commit. See `docs/updates.md`. |
-| 8 | Device pickers in the toolbar, menu bar and Configuration save a persistent device UID. Missing devices fail visibly without selecting another input; interruptions stop recording. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
+| 8 | Device pickers in the toolbar, menu bar and Configuration save a persistent device UID. Missing devices fail visibly without selecting another input; same-input audio reconfiguration recovers without clearing captured audio. Missing or changed inputs report a specific error; see `docs/microphones.md`. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
 | 9 | Live Accessibility/microphone state, shared setup and recovery instructions, running-copy diagnostics, and a separate Airdraft Debug identity. Ad-hoc public updates still require reauthorization when their signing identity changes. Developer ID signing and verification on the affected second Mac remain outstanding; see `docs/accessibility.md`. |
+
+## Interface consistency
+
+Standing requirement from Light, reaffirmed 2026-09-21:
+
+- Section cards have equal padding on all four sides: 16 pt, defined once as
+  `Theme.cardPadding`. Vertical and horizontal padding must be the same.
+- The card owns its outer insets. Settings rows inside it add no vertical padding;
+  otherwise the first and last rows make the card look taller than its side insets.
+- Configuration and Models use `PageSection` and `SettingsCard`, including
+  microphone, updates, permissions, refinement and provider settings. New settings
+  sections must use these components too.
+- Use shared spacing: 8 pt from a section heading to its content, 20 pt between
+  sections, and 12 pt between settings-card children. Keep content spacing separate
+  from the card's outer padding. Table headers and rows own their equal 16 pt insets
+  inside a zero-padding table container.
+- Verify both light and dark appearances and scroll through lower sections. Before
+  reporting a released fix, inspect the app built from the exact committed sources;
+  a correct rendering of uncommitted changes does not prove the DMG contains them.
 
 ## Verification rules
 

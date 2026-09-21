@@ -6,6 +6,10 @@ import SwiftUI
 enum Theme {
     static let sidebarWidth: CGFloat = 200
     static let pagePadding: CGFloat = 24
+    static let cardPadding: CGFloat = 16
+    static let sectionSpacing: CGFloat = 20
+    static let sectionTitleSpacing: CGFloat = 8
+    static let controlSpacing: CGFloat = 12
     static let cardRadius: CGFloat = 12
     static let contentMaxWidth: CGFloat = 860
 }
@@ -31,21 +35,58 @@ struct VisualEffectView: NSViewRepresentable {
 
 /// Rounded, softly filled container for a group of rows.
 struct Card<Content: View>: View {
-    var padding: CGFloat = 14
+    var padding: CGFloat = Theme.cardPadding
+    var spacing: CGFloat = 0
     @ViewBuilder var content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) { content }
+        VStack(alignment: .leading, spacing: spacing) { content }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
                     .fill(Color.primary.opacity(0.05))
             )
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
             )
+    }
+}
+
+private struct SettingRowInsetKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 11
+}
+
+extension EnvironmentValues {
+    var settingRowInset: CGFloat {
+        get { self[SettingRowInsetKey.self] }
+        set { self[SettingRowInsetKey.self] = newValue }
+    }
+}
+
+/// The card owns all four outer insets; rows add no second vertical inset.
+struct SettingsCard<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        Card(spacing: Theme.controlSpacing) { content }
+            .environment(\.settingRowInset, 0)
+    }
+}
+
+struct PageSection<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+    init(_ title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+            SectionTitle(title)
+            content
+        }
     }
 }
 
@@ -66,12 +107,12 @@ struct SectionTitle<Trailing: View>: View {
             Spacer()
             trailing
         }
-        .padding(.horizontal, 2)
     }
 }
 
 /// Title + optional subtitle on the left, any control on the right.
 struct SettingRow<Trailing: View>: View {
+    @Environment(\.settingRowInset) private var rowInset
     let title: String
     var subtitle: String? = nil
     @ViewBuilder var trailing: Trailing
@@ -87,7 +128,7 @@ struct SettingRow<Trailing: View>: View {
             Spacer(minLength: 12)
             trailing
         }
-        .padding(.vertical, 11)
+        .padding(.vertical, rowInset)
     }
 }
 
@@ -230,7 +271,7 @@ struct PageScaffold<Content: View, Accessory: View>: View {
             .frame(height: 44)
             Divider().opacity(0.4)
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) { content }
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) { content }
                     .padding(Theme.pagePadding)
                     .frame(maxWidth: Theme.contentMaxWidth, alignment: .leading)
                     .frame(maxWidth: .infinity, alignment: .leading)

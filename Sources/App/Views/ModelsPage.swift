@@ -49,53 +49,55 @@ struct ModelsPage: View {
                 }
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .padding(Theme.cardPadding)
                 RowDivider()
                 ForEach(Array(visible.enumerated()), id: \.element.id) { index, entry in
-                    if index > 0 { RowDivider().padding(.leading, 14) }
+                    if index > 0 { RowDivider().padding(.leading, Theme.cardPadding) }
                     ModelRow(entry: entry)
                 }
             }
 
             remoteSpeechSettings
 
-            SectionTitle("Refinement")
-            RefinementSettings()
+            PageSection("Refinement") {
+                RefinementSettings()
+            }
 
-            SectionTitle("Memory")
-            Card {
-                SettingRow(title: "Unload idle speech model", subtitle: "Frees RAM when you have not dictated for a while") {
-                    Picker("", selection: $settings.idleUnloadMinutes) {
-                        Text("After 5 min").tag(5)
-                        Text("After 10 min").tag(10)
-                        Text("After 30 min").tag(30)
-                        Text("Never").tag(0)
+            PageSection("Memory") {
+                SettingsCard {
+                    SettingRow(title: "Unload idle speech model", subtitle: "Frees RAM when you have not dictated for a while") {
+                        Picker("", selection: $settings.idleUnloadMinutes) {
+                            Text("After 5 min").tag(5)
+                            Text("After 10 min").tag(10)
+                            Text("After 30 min").tag(30)
+                            Text("Never").tag(0)
+                        }
+                        .labelsHidden().frame(width: 140)
                     }
-                    .labelsHidden().frame(width: 140)
-                }
-                RowDivider()
-                SettingRow(title: "Unload LLM when quitting", subtitle: "LM Studio keeps models in memory until they are unloaded") {
-                    Toggle("", isOn: $settings.unloadLLMOnQuit).labelsHidden().toggleStyle(.switch)
+                    RowDivider()
+                    SettingRow(title: "Unload LLM when quitting", subtitle: "LM Studio keeps models in memory until they are unloaded") {
+                        Toggle("", isOn: $settings.unloadLLMOnQuit).labelsHidden().toggleStyle(.switch)
+                    }
                 }
             }
 
-            SectionTitle("Speech options")
-            Card {
-                SettingRow(title: "Language", subtitle: "Blank = auto-detect") {
-                    TextField("auto", text: $settings.asr.language).textFieldStyle(.roundedBorder).frame(width: 90)
-                }
-                RowDivider()
-                SettingRow(title: "Chinese script") {
-                    Picker("", selection: $settings.asr.chineseScript) {
-                        ForEach(ChineseScript.allCases) { Text($0.title).tag($0) }
+            PageSection("Speech options") {
+                SettingsCard {
+                    SettingRow(title: "Language", subtitle: "Blank = auto-detect") {
+                        TextField("auto", text: $settings.asr.language).textFieldStyle(.roundedBorder).frame(width: 90)
                     }
-                    .pickerStyle(.segmented).labelsHidden().frame(width: 240)
-                }
-                if settings.asr.kind == .apple {
                     RowDivider()
-                    SettingRow(title: "Apple Speech locale", subtitle: "No auto language detection with this engine") {
-                        TextField("zh-TW", text: $settings.asr.appleLocale).textFieldStyle(.roundedBorder).frame(width: 110)
+                    SettingRow(title: "Chinese script") {
+                        Picker("", selection: $settings.asr.chineseScript) {
+                            ForEach(ChineseScript.allCases) { Text($0.title).tag($0) }
+                        }
+                        .pickerStyle(.segmented).labelsHidden().frame(width: 240)
+                    }
+                    if settings.asr.kind == .apple {
+                        RowDivider()
+                        SettingRow(title: "Apple Speech locale", subtitle: "No auto language detection with this engine") {
+                            TextField("zh-TW", text: $settings.asr.appleLocale).textFieldStyle(.roundedBorder).frame(width: 110)
+                        }
                     }
                 }
             }
@@ -113,7 +115,7 @@ struct ModelsPage: View {
         @Bindable var settings = container.settings
         switch settings.asr.kind {
         case .openAICompatible:
-            Card {
+            SettingsCard {
                 SettingRow(title: settings.asr.baseURL.contains("groq") ? "Groq API key" : "OpenAI API key", subtitle: "Audio leaves this Mac") {
                     APIKeyField(account: settings.asr.apiKeyRef)
                 }
@@ -125,7 +127,7 @@ struct ModelsPage: View {
                 ModelField(title: "Model", model: $settings.asr.model, baseURL: settings.asr.baseURL, apiKeyRef: settings.asr.apiKeyRef, speechOnly: true)
             }
         case .elevenLabs:
-            Card {
+            SettingsCard {
                 SettingRow(title: "ElevenLabs API key", subtitle: "Audio leaves this Mac") {
                     APIKeyField(account: EndpointPreset.elevenLabsKeyRef)
                 }

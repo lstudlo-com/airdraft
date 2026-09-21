@@ -97,11 +97,11 @@ public final class DictationPipeline {
                 }
             }
         }
-        recorder.interruptionHandler = { [weak self] in
+        recorder.interruptionHandler = { [weak self] reason in
             Task { @MainActor in
                 guard let self, self.isRecording else { return }
                 self.cancel()
-                self.fail("The microphone disconnected or its audio format changed. Check the microphone selection and record again.")
+                self.fail(reason.localizedDescription)
             }
         }
     }

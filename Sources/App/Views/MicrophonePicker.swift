@@ -37,9 +37,8 @@ struct MicrophoneSettings: View {
     var body: some View {
         let store = container.microphones
         let preference = container.settings.microphone
-        VStack(alignment: .leading, spacing: 8) {
-            SectionTitle("Microphone")
-            Card(padding: 16) {
+        PageSection("Microphone") {
+            SettingsCard {
                 SettingRow(title: "Default microphone", subtitle: "Saved for every recording and next launch") {
                     MicrophonePicker().labelsHidden().frame(width: 230)
                 }

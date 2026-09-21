@@ -14,8 +14,8 @@ struct RefinementSettings: View {
 
     var body: some View {
         @Bindable var settings = container.settings
-        VStack(alignment: .leading, spacing: 14) {
-            Card(padding: 12) {
+        VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+            Card {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                     ForEach(LLMProviderKind.allCases) { kind in
                         ProviderTile(
@@ -30,7 +30,7 @@ struct RefinementSettings: View {
                 }
             }
 
-            Card {
+            SettingsCard {
                 switch llm.kind {
                 case .none:
                     SettingRow(title: "Refinement is off", subtitle: "Dictation inserts the raw transcript, with vocabulary and script conversion only") {
@@ -46,7 +46,7 @@ struct RefinementSettings: View {
             }
 
             DisclosureGroup("Advanced") {
-                Card {
+                SettingsCard {
                     SettingRow(title: "Temperature") {
                         HStack {
                             Slider(value: $settings.llm.temperature, in: 0...1, step: 0.1).frame(width: 160)
@@ -140,7 +140,6 @@ struct RefinementSettings: View {
         Text("Only the transcript text is sent to \(llm.kind.title). Audio stays on this Mac.")
             .font(.system(size: 11.5))
             .foregroundStyle(.tertiary)
-            .padding(.top, 2)
     }
 
     /// A CLI already installed and logged in on this Mac: nothing to configure but
@@ -165,7 +164,6 @@ struct RefinementSettings: View {
         Text("Runs on this Mac through your \(llm.kind == .claudeCode ? "Claude" : "ChatGPT") subscription: no API key, no per-token bill. Each call is a one-shot run with no tools and no project context.")
             .font(.system(size: 11.5))
             .foregroundStyle(.tertiary)
-            .padding(.top, 2)
     }
 
     private var cliSubtitle: String {

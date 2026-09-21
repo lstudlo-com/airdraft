@@ -10,96 +10,101 @@ struct ConfigurationPage: View {
         PageScaffold {
             MicrophoneSettings()
 
-            SectionTitle("Appearance")
-            Card {
-                SettingRow(title: "Theme") {
-                    HStack(spacing: 10) {
-                        ForEach(AppearanceMode.allCases) { mode in
-                            ChoiceTile(title: mode.title, selected: settings.appearance == mode, action: { settings.appearance = mode }) {
-                                ThemePreview(mode: mode)
+            PageSection("Appearance") {
+                SettingsCard {
+                    SettingRow(title: "Theme") {
+                        HStack(spacing: 10) {
+                            ForEach(AppearanceMode.allCases) { mode in
+                                ChoiceTile(title: mode.title, selected: settings.appearance == mode, action: { settings.appearance = mode }) {
+                                    ThemePreview(mode: mode)
+                                }
                             }
                         }
                     }
-                }
-                RowDivider()
-                SettingRow(title: "Recording window") {
-                    HStack(spacing: 10) {
-                        ForEach(HUDStyle.allCases) { style in
-                            ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
-                                HUDPreview(style: style)
+                    RowDivider()
+                    SettingRow(title: "Recording window") {
+                        HStack(spacing: 10) {
+                            ForEach(HUDStyle.allCases) { style in
+                                ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
+                                    HUDPreview(style: style)
+                                }
                             }
                         }
                     }
                 }
             }
 
-            SectionTitle("Keyboard Shortcuts")
-            Card {
-                SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record, release when done" : "Press to start, press again to stop") {
-                    HotkeyRecorderView()
-                }
-                RowDivider()
-                SettingRow(title: "Push to talk or toggle") {
-                    Picker("", selection: $settings.hotkeyBehavior) {
-                        Text("Hold to talk").tag(HotkeyBehavior.hold)
-                        Text("Toggle").tag(HotkeyBehavior.toggle)
+            PageSection("Keyboard Shortcuts") {
+                SettingsCard {
+                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record, release when done" : "Press to start, press again to stop") {
+                        HotkeyRecorderView()
                     }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 200)
-                }
-                RowDivider()
-                SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
-                    KeyCap(text: "esc")
-                }
-            }
-
-            SectionTitle("Behaviour")
-            Card {
-                SettingRow(title: "Insert text via") {
-                    Picker("", selection: $settings.insertionMethod) {
-                        Text("Accessibility, then paste").tag(InsertionMethod.auto)
-                        Text("Always paste").tag(InsertionMethod.paste)
-                    }
-                    .labelsHidden()
-                    .frame(width: 220)
-                }
-                RowDivider()
-                SettingRow(title: "Read app context", subtitle: "Window title, text near the cursor, selection") {
-                    Toggle("", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
-                }
-                RowDivider()
-                SettingRow(title: "Maximum recording") {
-                    Stepper("\(settings.maxRecordingSeconds) s", value: $settings.maxRecordingSeconds, in: 10...1800, step: 10)
-                        .frame(width: 120)
-                }
-            }
-
-            SectionTitle("Permissions")
-            Card {
-                SettingRow(title: "Microphone", subtitle: micStatus) {
-                    if container.permissions.microphone != .authorized {
-                        Button(container.permissions.microphone == .notDetermined ? "Request…" : "Open Settings…") {
-                            if container.permissions.microphone == .notDetermined {
-                                Task { await container.permissions.requestMicrophone() }
-                            } else if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-                                NSWorkspace.shared.open(url)
-                            }
+                    RowDivider()
+                    SettingRow(title: "Push to talk or toggle") {
+                        Picker("", selection: $settings.hotkeyBehavior) {
+                            Text("Hold to talk").tag(HotkeyBehavior.hold)
+                            Text("Toggle").tag(HotkeyBehavior.toggle)
                         }
-                            .buttonStyle(SoftButtonStyle())
-                    } else {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .frame(width: 200)
                     }
-                }
-                RowDivider()
-                SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier-only shortcuts") {
-                    if container.permissions.accessibilityGranted {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    } else {
-                        AccessibilityPermissionActions()
+                    RowDivider()
+                    SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
+                        KeyCap(text: "esc")
                     }
                 }
             }
+
+            PageSection("Behaviour") {
+                SettingsCard {
+                    SettingRow(title: "Insert text via") {
+                        Picker("", selection: $settings.insertionMethod) {
+                            Text("Accessibility, then paste").tag(InsertionMethod.auto)
+                            Text("Always paste").tag(InsertionMethod.paste)
+                        }
+                        .labelsHidden()
+                        .frame(width: 220)
+                    }
+                    RowDivider()
+                    SettingRow(title: "Read app context", subtitle: "Window title, text near the cursor, selection") {
+                        Toggle("", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
+                    }
+                    RowDivider()
+                    SettingRow(title: "Maximum recording") {
+                        Stepper("\(settings.maxRecordingSeconds) s", value: $settings.maxRecordingSeconds, in: 10...1800, step: 10)
+                            .frame(width: 120)
+                    }
+                }
+            }
+
+            PageSection("Permissions") {
+                SettingsCard {
+                    SettingRow(title: "Microphone", subtitle: micStatus) {
+                        if container.permissions.microphone != .authorized {
+                            Button(container.permissions.microphone == .notDetermined ? "Request…" : "Open Settings…") {
+                                if container.permissions.microphone == .notDetermined {
+                                    Task { await container.permissions.requestMicrophone() }
+                                } else if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                                .buttonStyle(SoftButtonStyle())
+                        } else {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        }
+                    }
+                    RowDivider()
+                    SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier-only shortcuts") {
+                        if container.permissions.accessibilityGranted {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        } else {
+                            AccessibilityPermissionActions()
+                        }
+                    }
+                }
+            }
+
             UpdateSettings(updates: container.updates)
         }
     }

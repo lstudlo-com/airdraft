@@ -152,8 +152,7 @@ struct ModelRow: View {
                 Text(error).font(.system(size: 11.5)).foregroundStyle(.orange).padding(.leading, 56)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
+        .padding(Theme.cardPadding)
         .background(hovering ? Color.primary.opacity(0.03) : .clear)
         .onHover { hovering = $0 }
         .help(entry.note)

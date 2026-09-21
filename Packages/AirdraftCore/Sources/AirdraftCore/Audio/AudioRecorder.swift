@@ -8,12 +8,14 @@ public enum AudioRecorderError: Error, LocalizedError {
     case alreadyRecording
     case microphoneUnavailable(String)
     case deviceSetupFailed(String, Int)
+    case inputChanged
 
     public var errorDescription: String? {
         switch self {
         case .microphoneDenied: return "Microphone access was denied."
         case .formatUnavailable: return "The microphone's audio format is unavailable. Reconnect it or choose another microphone."
         case .alreadyRecording: return "Already recording."
+        case .inputChanged: return "The microphone input changed. Record again."
         case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
         case .deviceSetupFailed(let name, let code):
             return "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone."
@@ -28,7 +30,9 @@ public final class AudioRecorder: @unchecked Sendable {
     private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "recorder")
 
     private var engine: AVAudioEngine?
+    private let notifications: NotificationCenter
     private var configurationObserver: NSObjectProtocol?
+    private var configurationCheck: DispatchWorkItem?
     private var converter: AVAudioConverter?
     private var samples: [Float] = []
     private let lock = NSLock()
@@ -37,12 +41,16 @@ public final class AudioRecorder: @unchecked Sendable {
     /// Called on the audio thread with the RMS level of each buffer (0...1).
     public var levelHandler: (@Sendable (Float) -> Void)?
     /// Delivered on the main queue if the active input is interrupted.
-    public var interruptionHandler: (@Sendable () -> Void)?
+    public var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
     public private(set) var activeMicrophone: Microphone?
     /// Actual HAL route, which may be AVAudioEngine's private aggregate device.
     public var inputRouteID: UInt32? { engine?.inputNode.auAudioUnit.deviceID }
 
-    public init() {}
+    public convenience init() { self.init(notifications: .default) }
+
+    public init(notifications: NotificationCenter) {
+        self.notifications = notifications
+    }
 
     public var isRecording: Bool {
         lock.lock(); defer { lock.unlock() }
@@ -70,11 +78,11 @@ public final class AudioRecorder: @unchecked Sendable {
         let engine = AVAudioEngine()
         let input = engine.inputNode
         // AVAudioEngine already follows the system input through a managed route.
-        // Preserve that route for System default; only override it when the user
-        // explicitly selects a device.
+        // Preserve that route when it already contains the selected input. Only
+        // override it to select a different physical device.
         if preference.uid != nil {
             do {
-                if input.auAudioUnit.deviceID != device.id {
+                if !MicrophoneDevices.route(input.auAudioUnit.deviceID, contains: device.id) {
                     try input.auAudioUnit.setDeviceID(device.id)
                 }
             } catch {
@@ -83,6 +91,41 @@ public final class AudioRecorder: @unchecked Sendable {
                 throw AudioRecorderError.deviceSetupFailed(device.name, code)
             }
         }
+        try installCaptureTap(on: engine)
+        self.engine = engine
+        activeMicrophone = device
+        // Core Audio also posts this for output changes and startup negotiation.
+        // Leave its notification queue before touching or releasing the engine.
+        configurationObserver = notifications.addObserver(
+            forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil
+        ) { [weak self, weak engine] _ in
+            DispatchQueue.main.async { [weak self, weak engine] in
+                guard let self, let engine, self.engine === engine, self.isRecording else { return }
+                self.configurationCheck?.cancel()
+                let check = DispatchWorkItem { [weak self, weak engine] in
+                    guard let self, let engine, self.engine === engine, self.isRecording else { return }
+                    self.recoverConfiguration(of: engine)
+                }
+                self.configurationCheck = check
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100), execute: check)
+            }
+        }
+
+        do {
+            engine.prepare()
+            try engine.start()
+        } catch {
+            cancel()
+            let code = (error as NSError).code
+            Self.log.error("recorder: starting device=\(device.name, privacy: .public) id=\(device.id) failed code=\(code)")
+            throw AudioRecorderError.deviceSetupFailed(device.name, code)
+        }
+        lock.lock(); recording = true; lock.unlock()
+        Self.log.notice("recorder: started device=\(device.name, privacy: .public) requested=\(device.id) route=\(input.auAudioUnit.deviceID) systemDefault=\(preference.uid == nil)")
+    }
+
+    private func installCaptureTap(on engine: AVAudioEngine) throws {
+        let input = engine.inputNode
         let inputFormat = input.outputFormat(forBus: 0)
         guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0,
               let targetFormat = AVAudioFormat(
@@ -95,34 +138,51 @@ public final class AudioRecorder: @unchecked Sendable {
         guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
             throw AudioRecorderError.formatUnavailable
         }
-        self.converter = converter
+        lock.lock(); self.converter = converter; lock.unlock()
 
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
-            self?.handle(buffer: buffer, targetFormat: targetFormat)
+            self?.handle(buffer: buffer, converter: converter, targetFormat: targetFormat)
         }
+    }
 
+    private func recoverConfiguration(of engine: AVAudioEngine) {
+        guard let device = activeMicrophone else { return }
+        guard MicrophoneDevices.available().contains(where: { $0.uid == device.uid && $0.id == device.id }) else {
+            reportInterruption(.microphoneUnavailable(device.name))
+            return
+        }
+        let input = engine.inputNode
+        let route = input.auAudioUnit.deviceID
+        guard MicrophoneDevices.route(route, contains: device.id) else {
+            reportInterruption(.inputChanged)
+            return
+        }
+        let format = input.outputFormat(forBus: 0)
+        if engine.isRunning, format == converter?.inputFormat {
+            Self.log.notice("recorder: configuration notification ignored; input is healthy device=\(device.name, privacy: .public)")
+            return
+        }
+        // Keep the captured samples and the selected device. Only rebuild the tap
+        // and converter if Core Audio stopped the engine or changed its format.
+        engine.stop()
+        input.removeTap(onBus: 0)
+        flushConverter()
         do {
+            try installCaptureTap(on: engine)
             engine.prepare()
             try engine.start()
+            Self.log.notice("recorder: resumed after configuration change device=\(device.name, privacy: .public) rate=\(format.sampleRate) channels=\(format.channelCount)")
         } catch {
-            input.removeTap(onBus: 0)
-            engine.stop()
-            self.converter = nil
-            let code = (error as NSError).code
-            Self.log.error("recorder: starting device=\(device.name, privacy: .public) id=\(device.id) failed code=\(code)")
-            throw AudioRecorderError.deviceSetupFailed(device.name, code)
+            let reason = (error as? AudioRecorderError)
+                ?? .deviceSetupFailed(device.name, (error as NSError).code)
+            reportInterruption(reason)
         }
-        self.engine = engine
-        activeMicrophone = device
-        lock.lock(); recording = true; lock.unlock()
-        Self.log.notice("recorder: started device=\(device.name, privacy: .public) requested=\(device.id) route=\(input.auAudioUnit.deviceID) systemDefault=\(preference.uid == nil)")
-        configurationObserver = NotificationCenter.default.addObserver(
-            forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
-        ) { [weak self, weak engine] _ in
-            guard let self, let engine, self.engine === engine, self.isRecording else { return }
-            self.interruptionHandler?()
-        }
+    }
+
+    private func reportInterruption(_ reason: AudioRecorderError) {
+        Self.log.error("recorder: input interrupted: \(reason.localizedDescription, privacy: .public)")
+        interruptionHandler?(reason)
     }
 
     /// Trailing silence appended to every recording so the recogniser sees a
@@ -132,15 +192,17 @@ public final class AudioRecorder: @unchecked Sendable {
     /// Stops and returns everything captured since `start()`, plus tail padding.
     public func stop() -> [Float] {
         guard let engine else { return [] }
-        if let configurationObserver { NotificationCenter.default.removeObserver(configurationObserver) }
+        configurationCheck?.cancel()
+        configurationCheck = nil
+        if let configurationObserver { notifications.removeObserver(configurationObserver) }
         configurationObserver = nil
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         flushConverter()
         self.engine = nil
-        converter = nil
         activeMicrophone = nil
         lock.lock(); defer { lock.unlock() }
+        converter = nil
         recording = false
         var out = samples
         samples.removeAll()
@@ -152,6 +214,7 @@ public final class AudioRecorder: @unchecked Sendable {
 
     /// The sample-rate converter keeps a few milliseconds internally; drain it.
     private func flushConverter() {
+        lock.lock(); defer { lock.unlock() }
         guard let converter,
               let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: Self.sampleRate, channels: 1, interleaved: false),
               let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4096) else { return }
@@ -162,20 +225,25 @@ public final class AudioRecorder: @unchecked Sendable {
         }
         guard status != .error, out.frameLength > 0, let channel = out.floatChannelData?[0] else { return }
         let chunk = Array(UnsafeBufferPointer(start: channel, count: Int(out.frameLength)))
-        lock.lock()
         samples.append(contentsOf: chunk)
-        lock.unlock()
     }
 
     public func cancel() {
         _ = stop()
     }
 
-    private func handle(buffer: AVAudioPCMBuffer, targetFormat: AVAudioFormat) {
-        guard let converter else { return }
+    private func handle(buffer: AVAudioPCMBuffer, converter: AVAudioConverter, targetFormat: AVAudioFormat) {
+        lock.lock()
+        guard self.converter === converter, buffer.format == converter.inputFormat else {
+            lock.unlock()
+            return
+        }
         let ratio = targetFormat.sampleRate / buffer.format.sampleRate
         let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
-        guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
+        guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else {
+            lock.unlock()
+            return
+        }
 
         var consumed = false
         var error: NSError?
@@ -188,12 +256,14 @@ public final class AudioRecorder: @unchecked Sendable {
             outStatus.pointee = .haveData
             return buffer
         }
-        guard status != .error, let channel = out.floatChannelData?[0] else { return }
+        guard status != .error, let channel = out.floatChannelData?[0] else {
+            lock.unlock()
+            return
+        }
 
         let count = Int(out.frameLength)
         let chunk = Array(UnsafeBufferPointer(start: channel, count: count))
 
-        lock.lock()
         samples.append(contentsOf: chunk)
         lock.unlock()
 

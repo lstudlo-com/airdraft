@@ -30,6 +30,14 @@ status table current.
 
 ## Rules
 
+- Interface consistency is a product requirement. Native section cards must have
+  equal top, bottom, leading and trailing insets: `Theme.cardPadding` (16 pt).
+  Use `PageSection` and `SettingsCard` for settings sections, including Configuration
+  and Models. The card owns the outer padding; rows inside it must not add another
+  vertical inset. Use shared spacing tokens instead of page-specific values.
+  Read the interface consistency rules in `docs/PRODUCT.md` and inspect light/dark
+  renders, including lower sections. For a released UI fix, verify the app built
+  from the committed release sources, not only the dirty workspace.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
@@ -100,6 +108,11 @@ workflow publishes the verified draft after the push succeeds. See `docs/updates
   Synthetic key events and screenshots from this shell do not work (no Accessibility /
   Screen Recording); do not rely on them. The user presses the real shortcut.
 - Use `/usr/bin/log`, not `log`: zsh has a `log` builtin.
+- `AVAudioEngineConfigurationChange` is not proof of a disconnected microphone:
+  output changes can trigger it too. Check the actual input route and format,
+  recover the same input without clearing captured samples, and leave the Core
+  Audio notification queue before engine operations. The microphone self-test
+  must check interruption callbacks and resumed capture, not sample count alone.
 - Keep `DEVELOPMENT_TEAM` in `project.yml`; ad-hoc signing breaks Accessibility on every rebuild.
 - MLX (Qwen3-ASR, Cohere) only works in Xcode-built products; `swift build` has no Metal library.
 - sherpa-onnx (FireRedASR2, SenseVoice) is linked through `Packages/SherpaOnnxKit`, whose
