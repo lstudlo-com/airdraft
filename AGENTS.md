@@ -93,6 +93,12 @@ status table current.
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push. The GitHub
 workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.
+Never override release signing with `CODE_SIGN_IDENTITY=-`. macOS permissions
+require a stable certificate-bound designated requirement; Sparkle signatures do
+not provide that identity. Keep `scripts/release-signing.json` pinned. Certificate
+or team changes need an explicit migration review, not an automatic fallback.
+Verify the app inside the DMG and run the real updater identity checks. Do not
+claim that signing tests prove permission continuity on an untested second Mac.
 
 ## Validation
 

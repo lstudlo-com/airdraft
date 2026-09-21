@@ -40,18 +40,29 @@ The existing shared model/history directory and Keychain service are unchanged.
 Older debug copies with the release or legacy bundle ID must be quit and their
 stale Accessibility entries removed once. The app cannot transfer their grants.
 
-Public releases currently use ad-hoc signing because no Developer ID certificate
-is configured. Their designated requirement is a `cdhash`, so a changed binary
-does not match the previous build's identity. Reauthorization after updates can
-still be necessary. The UI changes and separate debug ID do not eliminate that
-distribution limitation.
+Releases through 0.1.4 were ad-hoc signed. Their designated requirement was a
+`cdhash`, so a changed binary did not match the previous build's identity. This
+caused the enabled-but-untrusted state after Sparkle updates; UI refreshes and a
+separate Debug bundle ID could not fix it.
 
-For reliable public distribution, enroll in the Apple Developer Program and
-use a consistent Developer ID Application identity, hardened runtime, and
-notarization in the local release workflow. Keep the release bundle ID stable.
+Starting with 0.1.5, the local release workflow signs with the pinned Apple
+Development certificate and verifies its default designated requirement, team,
+bundle ID, certificate and validity before packaging and again inside the DMG.
+An absent certificate or incompatible signature blocks the release. Existing
+ad-hoc permissions cannot be transferred by the app: use the recovery steps above
+when moving from 0.1.4 or earlier, and approve Microphone again if requested.
+Subsequent compatible certificate-signed updates retain the same signing identity.
+
+Apple Development is the available personal-use option on this Mac. It is not a
+substitute for Developer ID signing and notarization for public distribution.
+The certificate expires March 15, 2027; the release gate stops 30 days before
+expiry. Renewal or migration to Developer ID must explicitly verify compatibility
+with the previous designated requirement, or document the permission migration.
+
 Sparkle's Ed25519 signature authenticates updates but does not establish macOS
-permission identity. Do not substitute an identifier-only designated requirement
-to try to preserve grants; that would discard the signer binding.
+permission identity. Never use an identifier-only designated requirement to try
+to preserve grants; that would discard the signer binding. Never edit TCC.db or
+silently reset all permissions as part of an update.
 
 ## Implementation and evidence
 
@@ -63,7 +74,8 @@ process with a failed event tap gets a shortcut error, not a permission error.
 Text insertion and context reading retain their checks at the point of use.
 
 The September 21 M5 screenshot shows enabled switches while the app reports
-untrusted. Locally inspected 0.1.2 release and development signatures differ:
+untrusted. Locally inspected 0.1.3 and 0.1.4 releases have different hash-based requirements;
+0.1.4 fails validation against 0.1.3’s requirement. Development signatures differ too:
 the release uses a binary hash, development uses an Apple Development certificate,
 and both previously used the release bundle ID. These are verified identity
 differences; which stale entry the M5 matched remains unverified without diagnostics
@@ -76,6 +88,7 @@ and permission/shortcut/insertion check on the affected second Mac.
 
 References:
 
+- [Apple requirements and privilege continuity](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)
 - [Apple code-signing identity and designated requirements](https://developer.apple.com/library/archive/technotes/tn2206/_index.html)
 - [Apple DTS on ad-hoc signing and TCC](https://developer.apple.com/forums/thread/125438)
 - [Apple Developer ID distribution](https://developer.apple.com/developer-id/)

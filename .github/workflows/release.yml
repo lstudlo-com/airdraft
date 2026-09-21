@@ -15,6 +15,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Test release and signing gates
+        run: python3 scripts/test-release.py
       - name: Verify and publish the locally built draft
         env:
           GH_TOKEN: ${{ github.token }}

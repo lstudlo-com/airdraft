@@ -15,6 +15,8 @@ import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 
+from release_signing import POLICY, inspect_app, inspect_dmg, preflight, validate_metadata
+
 REPO = "lstudlo-com/airdraft"
 ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,7 +72,30 @@ def release_for(tag):
     return next((r for r in releases() if r["tag_name"] == tag), None)
 
 
+def validate_continuity(previous):
+    # The one known ad-hoc -> certificate migration. No future unsigned baseline
+    # is accepted, even if someone accidentally omits signing metadata again.
+    if (previous.get("tag") == "v0.1.4-build.6"
+            and previous.get("commit") == "7dbd3aaac6a669715c64c150238f71d397e0ad26"
+            and "signing" not in previous):
+        return
+    signing = previous.get("signing")
+    identity_fields = ("bundleID", "teamID", "designatedRequirement")
+    if not isinstance(signing, dict) or any(signing.get(key) != POLICY[key] for key in identity_fields):
+        raise RuntimeError("Latest published release has a different permission identity. "
+                           "Refusing to publish an incompatible update.")
+
+
+def check_previous_release():
+    tag = gh("api", f"repos/{REPO}/releases/latest", "--jq", ".tag_name", capture=True)
+    with tempfile.TemporaryDirectory(prefix="airdraft-previous-release-") as temporary:
+        gh("release", "download", tag, "--repo", REPO, "--dir", temporary,
+           "--pattern", "release.json")
+        validate_continuity(json.loads((Path(temporary) / "release.json").read_text()))
+
+
 def validate_manifest(manifest, commit, tag):
+    validate_metadata(manifest.get("signing"))
     if manifest.get("commit") != commit or manifest.get("tag") != tag:
         raise RuntimeError("Release manifest does not match the pushed commit/tag")
     build = manifest.get("build")
@@ -105,6 +130,9 @@ def download_and_verify(tag, commit, directory):
         raise RuntimeError("Feed does not describe this release's signed DMG")
     if int(enclosure.get("length", "0")) != (directory / archive).stat().st_size:
         raise RuntimeError("Feed archive length mismatch")
+    if sys.platform == "darwin":
+        if inspect_dmg(directory / archive) != manifest["signing"]:
+            raise RuntimeError("DMG signature differs from its release manifest")
     return manifest
 
 
@@ -159,6 +187,7 @@ def prepare(commit):
     build = int(run("git", "rev-list", "--count", commit, capture=True))
     project = run("git", "show", f"{commit}:project.yml", capture=True)
     version, tag = version_for(project, build)
+    check_previous_release()
     existing = release_for(tag)
     if existing:
         with tempfile.TemporaryDirectory(prefix="airdraft-release-check-") as temporary:
@@ -166,13 +195,16 @@ def prepare(commit):
         print(f"Verified existing release assets for {tag}; push may continue.", flush=True)
         return
     source = export_snapshot(commit)
+    identity = preflight()
     project = re.sub(r'CFBundleVersion: "[0-9]+"', f'CFBundleVersion: "{build}"', project)
     (source / "project.yml").write_text(project + "\n")
     output = ROOT / "dist/releases" / tag
     output.mkdir(parents=True, exist_ok=True)
+    logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
     run(xcodegen(), "generate", cwd=source)
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
-              "-skipPackagePluginValidation", "-skipMacroValidation", "CODE_SIGN_IDENTITY=-", "CODE_SIGN_STYLE=Manual"]
+              "-skipPackagePluginValidation", "-skipMacroValidation",
+              f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
     logged(common + ["-configuration", "Debug", "test"], source, output / "build.log")
     logged(common + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
@@ -180,6 +212,11 @@ def prepare(commit):
     app = Path(settings["TARGET_BUILD_DIR"]) / settings["FULL_PRODUCT_NAME"]
     derived = Path(settings["BUILD_DIR"]).parents[1]
     tools = derived / "SourcePackages/artifacts/sparkle/Sparkle/bin"
+    signing = inspect_app(app)
+    logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent],
+           source, output / "updater.log")
+    logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent,
+            "--legacy-source"], source, output / "updater.log")
     # Package to a fresh directory, then replace only our generated local output.
     with tempfile.TemporaryDirectory(prefix="airdraft-package-", dir=output) as temporary:
         artifacts = Path(temporary)
@@ -191,6 +228,7 @@ def prepare(commit):
                 shutil.copy2(asset, output / asset.name)
     archive = output / f"Airdraft-{version}-{build}-arm64.dmg"
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
+                "signing": signing,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)
@@ -198,7 +236,13 @@ def prepare(commit):
     notes.write_text(f"{subject}\n\nDownload the DMG, open it, and drag Airdraft into Applications.\n\n"
                      "Requires Apple Silicon and macOS 15 or later. This build is not notarized; "
                      "macOS may require approval in System Settings → Privacy & Security on first launch. "
-                     "After an update, Accessibility access may need to be granted again.\n\n"
+                     "Signed with the pinned Apple Development certificate for personal use; "
+                     "this is not a Developer ID/notarized public distribution build.\n\n"
+                     "Upgrading from 0.1.4 or earlier changes the old ad-hoc app identity. "
+                     "If access is missing, quit Airdraft, remove its stale Accessibility entries, "
+                     "add /Applications/airdraft.app, and reopen it. Approve Microphone if prompted. "
+                     "Certificate-signed updates now preserve the designated requirement; "
+                     "the release process rejects incompatible signing identities.\n\n"
                      f"Includes a signed Sparkle update feed. Built locally from `{commit}`.\n")
     # A draft creates no public tag. The workflow sets its final target after Git accepts the push.
     gh("release", "create", tag, archive, output / "appcast.xml", output / "release.json",
@@ -224,6 +268,7 @@ def publish(commit):
         manifest = download_and_verify(tag, commit, Path(temporary))
     if manifest["build"] != build:
         raise RuntimeError("Release build does not match commit history")
+    check_previous_release()
     if not release["draft"]:
         target = gh("api", f"repos/{REPO}/git/ref/tags/{tag}", "--jq", ".object.sha", capture=True)
         if target != commit:

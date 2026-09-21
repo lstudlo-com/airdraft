@@ -1,0 +1,6 @@
+{
+  "bundleID": "com.lstudlo.app.airdraft",
+  "teamID": "WTUFL68AK9",
+  "certificateSHA1": "DE7400E0AF5764542237B43160374111F700367E",
+  "designatedRequirement": "identifier \"com.lstudlo.app.airdraft\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Liang Zhen Chen (U2HTFLS8K5)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */"
+}

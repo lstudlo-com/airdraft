@@ -10,6 +10,8 @@ import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 
+from release_signing import inspect_app, inspect_dmg
+
 
 def run(*args, capture=False):
     return subprocess.run([str(arg) for arg in args], check=True, text=True,
@@ -53,7 +55,7 @@ def main():
     public_key = run(tools / "generate_keys", "--account", args.account, "-p", capture=True).stdout.strip()
     if public_key != info.get("SUPublicEDKey"):
         parser.error("The Keychain signing key does not match the public key embedded in the app")
-    run("codesign", "--verify", "--deep", "--strict", app)
+    inspect_app(app)
     executable = app / "Contents/MacOS" / info["CFBundleExecutable"]
     if run("lipo", "-archs", executable, capture=True).stdout.strip() != "arm64":
         parser.error("This release workflow currently supports Apple Silicon builds only")
@@ -79,6 +81,7 @@ def main():
         run("hdiutil", "create", "-volname", "Airdraft", "-srcfolder", contents,
             "-format", "UDZO", "-ov", archive)
     run("hdiutil", "verify", archive)
+    inspect_dmg(archive)
     run(tools / "generate_appcast", "--account", args.account,
         "--download-url-prefix", args.download_url_prefix,
         "--maximum-deltas", "0", "--versions", build, "-o", feed_path, output)

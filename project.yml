@@ -37,7 +37,7 @@ targets:
       path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: "$(AIRDRAFT_DISPLAY_NAME)"
-        CFBundleShortVersionString: "0.1.4"
+        CFBundleShortVersionString: "0.1.5"
         CFBundleVersion: "1"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"
@@ -64,6 +64,10 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         AIRDRAFT_DISPLAY_NAME: Airdraft
       configs:
+        Release:
+          # Never ship Xcode's debug entitlements. The release script pins and
+          # validates the certificate; it must not override signing with '-'.
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.debug
           PRODUCT_NAME: Airdraft Debug

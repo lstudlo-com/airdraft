@@ -36,9 +36,9 @@ Added 2026-09-21:
 | 4 | Done: `RefinementProfile` + `ProfileStore`, Profiles tab, prompt preview. |
 | 5 | Done: add / delete in Profiles tab; built-ins cannot be deleted. |
 | 6 | Done: per-profile reset, base-rules reset, "Reset all profiles to defaults". |
-| 7 | Sparkle 2.10.0 adds manual checks, daily checks and optional automatic downloads. Main pushes test committed sources and build the DMG locally; GitHub publishes the verified draft for the matching commit. See `docs/updates.md`. |
+| 7 | Sparkle checks and verified installation on quit, with local builds for each main push. From 0.1.5, the release gate requires a pinned Apple Development certificate and a stable designated requirement, inspects the packaged DMG, and exercises real certificate-signed and legacy-migration updates. Developer ID/notarization and M5 permission continuity remain unverified; see `docs/updates.md`. |
 | 8 | Device pickers in the toolbar, menu bar and Configuration save a persistent device UID. Missing devices fail visibly without selecting another input; same-input audio reconfiguration recovers without clearing captured audio. Missing or changed inputs report a specific error; see `docs/microphones.md`. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
-| 9 | Live Accessibility/microphone state, shared setup and recovery instructions, running-copy diagnostics, and a separate Airdraft Debug identity. Ad-hoc public updates still require reauthorization when their signing identity changes. Developer ID signing and verification on the affected second Mac remain outstanding; see `docs/accessibility.md`. |
+| 9 | Live Accessibility/microphone state, running-copy diagnostics, and a separate Debug identity. The ad-hoc release defect is removed from 0.1.5; users migrating from older builds may need to grant access again. Later releases must preserve the approved signing identity. Verification on the affected M5 remains outstanding; see `docs/accessibility.md`. |
 
 ## Interface consistency
 

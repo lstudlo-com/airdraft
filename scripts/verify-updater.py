@@ -13,6 +13,8 @@ import threading
 import time
 import uuid
 
+from release_signing import designated_requirement, inspect_app, preflight
+
 
 def run(*args, **kwargs):
     return subprocess.run([str(arg) for arg in args], check=True, **kwargs)
@@ -22,9 +24,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sparkle", type=pathlib.Path, required=True,
                         help="Extracted Sparkle distribution with Sparkle.framework and bin")
+    parser.add_argument("--legacy-source", action="store_true",
+                        help="Also cover migration from the former ad-hoc app identity")
     args = parser.parse_args()
+    identity = preflight()
     root = pathlib.Path(__file__).resolve().parent.parent
     sparkle = args.sparkle.resolve()
+    framework = sparkle / "Sparkle.framework"
+    if not framework.exists():
+        framework = sparkle / "Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+    if not framework.is_dir():
+        parser.error("Sparkle distribution has no macOS framework")
     account = "com.lstudlo.app.airdraft.sparkle"
     public_key = run(sparkle / "bin/generate_keys", "--account", account, "-p",
                      capture_output=True, text=True).stdout.strip()
@@ -34,8 +44,8 @@ def main():
         app = work / "UpdaterTest.app"
         macos = app / "Contents/MacOS"
         macos.mkdir(parents=True)
-        run("ditto", sparkle / "Sparkle.framework", app / "Contents/Frameworks/Sparkle.framework")
-        run("swiftc", "-parse-as-library", "-swift-version", "5", "-F", sparkle,
+        run("ditto", framework, app / "Contents/Frameworks/Sparkle.framework")
+        run("swiftc", "-parse-as-library", "-swift-version", "5", "-F", framework.parent,
             "-framework", "Sparkle", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
             root / "Sources/App/App/AppUpdater.swift", root / "scripts/verify-updater.swift",
             "-o", macos / "UpdaterTest")
@@ -62,20 +72,34 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
                 "SUAutomaticallyUpdate": False,
                 "NSAppTransportSecurity": {"NSAllowsLocalNetworking": True}}
         (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
-        run("codesign", "--force", "--sign", "-", app)
+        run("codesign", "--force", "--sign", "-" if args.legacy_source else identity, app)
+        old_requirement = None if args.legacy_source else designated_requirement(app)
+        if args.legacy_source:
+            try:
+                inspect_app(app)
+            except RuntimeError as error:
+                if "ad-hoc" not in str(error):
+                    raise
+            else:
+                raise RuntimeError("Release gate accepted an ad-hoc app")
         try:
             for mode in ("policy", "valid-feed", "tampered-feed"):
                 if mode == "tampered-feed":
                     feed.write_bytes(feed.read_bytes().replace(b"Version 2", b"Version 3"))
                 run(macos / "UpdaterTest", mode, timeout=25)
 
-            # Build an actual ad-hoc signed update and exercise Sparkle's
+            # Build an actual certificate-signed update and exercise Sparkle's
             # downloader and out-of-process installer, entirely inside temp.
             target = work / "new/UpdaterTest.app"
             run("ditto", app, target)
             target_info = dict(info, CFBundleVersion="2", CFBundleShortVersionString="0.1.1")
             (target / "Contents/Info.plist").write_bytes(plistlib.dumps(target_info))
-            run("codesign", "--force", "--sign", "-", target)
+            run("codesign", "--force", "--sign", identity, target)
+            target_requirement = designated_requirement(target)
+            if old_requirement:
+                if target_requirement != old_requirement:
+                    raise RuntimeError("Update changed the original app's designated requirement")
+                run("codesign", "--verify", "--strict", "-R", "=" + old_requirement, target)
             archives = work / "updates"
             archives.mkdir()
             archive = archives / "update.zip"
@@ -105,7 +129,12 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             else:
                 raise RuntimeError("Sparkle did not replace the fixture app after quit")
             run("codesign", "--verify", "--deep", "--strict", app)
-            print("PASS: ad-hoc signed version 1 → 2 installed on quit", flush=True)
+            run("codesign", "--verify", "--strict", "-R", "=" + target_requirement, app)
+            if designated_requirement(app) != target_requirement:
+                raise RuntimeError("Sparkle installation changed the app identity")
+            migration = "ad-hoc → certificate migration" if args.legacy_source else "stable certificate identity"
+            print(f"PASS: version 1 → 2 installed on quit; {migration}", flush=True)
+            print("NOTE: this verifies signing continuity, not a granted TCC permission on another Mac.", flush=True)
             run(macos / "UpdaterTest", "installed", timeout=25)
         finally:
             server.shutdown()

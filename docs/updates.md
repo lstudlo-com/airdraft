@@ -32,8 +32,18 @@ key to resolve a missing-key error for an already distributed app.
 
 Sparkle signing is separate from Apple Developer ID signing. An app without
 notarization still requires the user's Gatekeeper approval on initial download.
-Ad-hoc signatures can also invalidate Accessibility grants after an update.
-Developer ID signing and notarization remain the recommended public release path.
+macOS privacy grants depend on the app’s code-signing designated requirement.
+Sparkle’s signatures do not preserve that identity. Releases through 0.1.4 were
+ad-hoc signed: each binary had a different hash-based requirement. That was a
+release defect, not something a permission refresh could fix.
+
+From 0.1.5, local releases use the existing Apple Development certificate pinned
+in `scripts/release-signing.json`. This is a personal-use signing path, not
+Developer ID distribution or notarization. Developer ID signing and notarization
+remain the supported public distribution path. The current certificate expires
+on March 15, 2027; packaging stops when fewer than 30 days remain. Renew it
+deliberately and verify compatibility with the previous designated requirement
+before changing the policy. Never replace it automatically or fall back to ad-hoc.
 Debug builds use Apple Development signing with a separate
 `com.lstudlo.app.airdraft.debug` identity and the name **Airdraft Debug**. They do
 not install public Sparkle releases. See [Accessibility access](accessibility.md)
@@ -52,7 +62,9 @@ moon run airdraft:release-setup
 The second command migrates the existing Sparkle Keychain account in place and
 installs `.git/hooks/pre-push`. It refuses to overwrite an unrelated hook. It does
 not change global Git configuration. Requirements: macOS, Xcode, Python 3.12+,
-`gh auth login`, and the existing Sparkle signing key. XcodeGen 2.46.0 downloads
+`gh auth login`, the pinned Apple signing certificate and its private key, and
+the existing Sparkle signing key. Public certificate fingerprints are committed;
+private keys stay in Keychain. XcodeGen 2.46.0 downloads
 locally with a pinned SHA-256 if it is missing from PATH.
 
 Then commit and push normally:
@@ -67,21 +79,30 @@ Every push to `origin/main` performs these steps:
 
 1. Export the exact pushed commit to ignored `dist/release-source`. Uncommitted
    app and website changes cannot enter the DMG.
-2. Run core tests and build an optimized Apple Silicon app locally. Xcode keeps
+2. Run release-gate and core tests, then build an optimized Apple Silicon app
+   with the pinned certificate. Verify its bundle ID, team, certificate, default
+   designated requirement, validity, and absence of debugger entitlements or a
+   device provisioning profile. Exercise real Sparkle installs with both a
+   certificate-signed source and a legacy ad-hoc source. Xcode keeps
    one reusable DerivedData tree for that snapshot; no build tree is placed in Git.
 3. Use the complete Git commit count as the increasing `CFBundleVersion`.
    The display version comes from `project.yml`. For example, version `0.1.1`,
    build `3` produces tag `v0.1.1-build.3`. Each push gets a distinct build without
    a generated version commit. Bump the display version when appropriate.
-4. Create and sign the DMG and `appcast.xml`, attach a SHA-256 manifest identifying
-   the source commit, and upload all three to a GitHub draft release. Download and
-   verify them before allowing the push to continue.
+4. Create the DMG, mount it read-only, and verify the bundled app’s signing
+   identity again. Sign the archive and `appcast.xml` with Sparkle, and attach a
+   SHA-256 manifest identifying the source commit and Apple signing identity.
+   Upload all three to a draft, download them, and inspect the downloaded DMG
+   before allowing the push to continue.
 5. After Git accepts the push, `.github/workflows/release.yml` verifies the draft
    against the pushed SHA, binds its tag to that SHA, and publishes it as latest.
    The signing key stays in this Mac's Keychain; GitHub performs no macOS build.
 
-The current public build uses ad-hoc signing because there is no Developer ID
-certificate. The DMG contains Airdraft and an Applications shortcut. It requires
+Ad-hoc releases are rejected even by the standalone packager. Certificate, team,
+bundle ID or designated-requirement changes block publication. GitHub verifies
+the signing metadata against the committed policy and the downloaded asset
+hashes; the local Mac performs the actual code-signature checks.
+The DMG contains Airdraft and an Applications shortcut. It requires
 Apple Silicon and macOS 15 or later. Local models remain separate downloads.
 Build logs and artifacts are under `dist/releases/<tag>/`.
 
@@ -126,15 +147,19 @@ python3 scripts/verify-updater.py --sparkle /path/to/Sparkle-2.10.0
 This compiles the production updater into a disposable app with its own settings
 domain. It verifies preference persistence, dictation guards, deferred restart
 and cancellation, acceptance of signed feeds, and rejection of altered feeds and
-downloads. It then installs an ad-hoc-signed update on quit using Sparkle's real
-helper and launches the updated app. A local HTTP server supplies test fixtures;
+downloads. It installs a certificate-signed update on quit using Sparkle’s real
+helper, verifies that the installed app still satisfies the old designated
+requirement, and launches it. Add `--legacy-source` to verify that an old ad-hoc
+app can install the new certificate-signed release. This migration changes the
+old identity and cannot transfer its permissions. A local HTTP server supplies test fixtures;
 the production feed requires HTTPS. Airdraft's settings, history, models, and
 installed app are not modified by this test.
 
-Debug and Release builds, the core test suite, dark/light window renders, and
-the local updater verification passed during integration. The generated DMG and
-its signed appcast are local artifacts. A public feed and an installation on a
-second Mac remain release checks, not results of this local verification.
+Signing compatibility and a successful fixture installation do not establish
+that a user’s Accessibility or Microphone grant survived on another Mac. Verify
+the affected M5 separately: grant the migrated release once, install a subsequent
+certificate-signed update, and test the physical shortcut, capture, and insertion.
+See [Accessibility access](accessibility.md) for migration recovery.
 
 References: [Sparkle setup](https://sparkle-project.org/documentation/),
 [publishing updates](https://sparkle-project.org/documentation/publishing/),
