@@ -34,7 +34,11 @@ Sparkle signing is separate from Apple Developer ID signing. An app without
 notarization still requires the user's Gatekeeper approval on initial download.
 Ad-hoc signatures can also invalidate Accessibility grants after an update.
 Developer ID signing and notarization remain the recommended public release path.
-The Debug build retains the development identity used by the installed app.
+Debug builds use Apple Development signing with a separate
+`com.lstudlo.app.airdraft.debug` identity and the name **Airdraft Debug**. They do
+not install public Sparkle releases. See [Accessibility access](accessibility.md)
+for migration and recovery steps when System Settings shows an enabled switch
+but the running app is untrusted.
 
 ## Automatic releases from this Mac
 

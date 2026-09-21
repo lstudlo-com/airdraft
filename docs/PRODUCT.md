@@ -23,6 +23,9 @@ Added 2026-09-21:
 7. **App updates.** Signed updates installed on quit without interrupting dictation.
 8. **Microphone choice.** Save a specific input as the default across restarts and reconnects.
 
+9. **Clear permission setup.** Show permissions for the running copy, refresh
+   after changes, and explain recovery from stale grants and duplicate builds.
+
 ## Status
 
 | Goal | State (2026-09-21) |
@@ -35,6 +38,7 @@ Added 2026-09-21:
 | 6 | Done: per-profile reset, base-rules reset, "Reset all profiles to defaults". |
 | 7 | Sparkle 2.10.0 adds manual checks, daily checks and optional automatic downloads. Main pushes test committed sources and build the DMG locally; GitHub publishes the verified draft for the matching commit. See `docs/updates.md`. |
 | 8 | Device pickers in the toolbar, menu bar and Configuration save a persistent device UID. Missing devices fail visibly without selecting another input; interruptions stop recording. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
+| 9 | Live Accessibility/microphone state, shared setup and recovery instructions, running-copy diagnostics, and a separate Airdraft Debug identity. Ad-hoc public updates still require reauthorization when their signing identity changes. Developer ID signing and verification on the affected second Mac remain outstanding; see `docs/accessibility.md`. |
 
 ## Verification rules
 

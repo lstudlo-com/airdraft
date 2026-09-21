@@ -122,12 +122,12 @@ struct HomePage: View {
             }
             RowDivider().padding(.leading, 32)
             HealthRow(
-                ok: AppContextReader.isAccessibilityTrusted,
+                ok: container.permissions.accessibilityGranted,
                 title: "Accessibility",
-                detail: AppContextReader.isAccessibilityTrusted ? "Granted" : "Not granted, text cannot be inserted yet"
+                detail: container.permissions.accessibilityGranted ? "Granted" : "macOS has not granted this copy access to insert text"
             ) {
-                if !AppContextReader.isAccessibilityTrusted {
-                    Button("Grant…") { AppContextReader.requestAccessibility(); container.openAccessibilitySettings() }.buttonStyle(SoftButtonStyle())
+                if !container.permissions.accessibilityGranted {
+                    AccessibilityPermissionActions()
                 }
             }
             RowDivider().padding(.leading, 32)

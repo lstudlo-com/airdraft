@@ -27,10 +27,12 @@ final class HotkeyService {
 
     private let carbon = CarbonHotkey()
     private let eventTap = EventTapHotkey()
+    private let permissions: SystemPermissions
     private var pollTimer: Timer?
     private(set) var hotkey: Hotkey = .optionSpace
 
-    init() {
+    init(permissions: SystemPermissions) {
+        self.permissions = permissions
         carbon.onPress = { [weak self] in self?.press() }
         carbon.onRelease = { [weak self] in self?.release() }
         eventTap.onPress = { [weak self] in self?.press() }
@@ -63,7 +65,17 @@ final class HotkeyService {
     }
 
     var needsAccessibility: Bool {
-        backend == .eventTap && !AppContextReader.isAccessibilityTrusted
+        backend == .eventTap && !permissions.accessibilityGranted
+    }
+
+    func refreshPermissionState() {
+        guard backend == .eventTap else { return }
+        if permissions.accessibilityGranted {
+            eventTap.start()
+        } else {
+            eventTap.stop()
+        }
+        refreshEventTapStatus()
     }
 
     private func refreshEventTapStatus() {
@@ -74,7 +86,9 @@ final class HotkeyService {
         isActive = active
         statusText = active
             ? "Active (\(hotkey.displayString))"
-            : "Waiting for Accessibility permission (needed for \(hotkey.displayString))"
+            : permissions.accessibilityGranted
+                ? "Permission granted, but the shortcut monitor is unavailable. Quit and reopen Airdraft."
+                : "Waiting for Accessibility permission (needed for \(hotkey.displayString))"
     }
 
     private func press() {

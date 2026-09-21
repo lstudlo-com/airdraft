@@ -47,6 +47,10 @@ final class AppUpdater: NSObject, SPUUpdaterDelegate {
 
     /// Called only on a normal app launch, never by offscreen renders or self-tests.
     func start() {
+        guard Bundle.main.bundleIdentifier != "com.lstudlo.app.airdraft.debug" else {
+            startupError = "Development builds do not install public releases."
+            return
+        }
         guard !isStarted else { return }
         do {
             try controller.updater.start()

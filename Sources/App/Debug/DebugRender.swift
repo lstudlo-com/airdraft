@@ -28,7 +28,13 @@ enum DebugRender {
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
                 container.navigation.page = page
-                let root = MainWindowView().environment(container)
+                let root = Group {
+                    if pageName == "permissions" {
+                        AccessibilityPermissionHelp()
+                    } else {
+                        MainWindowView()
+                    }
+                }.environment(container)
                 let host = NSHostingView(rootView: root)
                 let frame = NSRect(x: 0, y: 0, width: 980, height: height)
                 host.frame = frame
@@ -42,7 +48,8 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    try? png.write(to: dir.appendingPathComponent("\(page.rawValue)-\(suffix).png"))
+                    let name = pageName == "permissions" ? "permissions" : page.rawValue
+                    try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }
         }

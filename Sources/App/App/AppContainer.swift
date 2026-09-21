@@ -21,7 +21,8 @@ final class AppContainer {
     let factory: EngineFactory
     let models: ModelLifecycle
     let pipeline: DictationPipeline
-    let hotkeys = HotkeyService()
+    let permissions = SystemPermissions()
+    let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
     @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
         self?.pipeline.state.isBusy ?? false
@@ -32,6 +33,7 @@ final class AppContainer {
     private var indicator: IndicatorPanelController?
 
     init(settings suppliedSettings: AppSettings? = nil) {
+        hotkeys = HotkeyService(permissions: permissions)
         let dir = AppSettings.supportDirectory
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
@@ -73,11 +75,9 @@ final class AppContainer {
         }
         escapeHotkey.onPress = { [weak self] in self?.pipeline.cancel() }
 
+        permissions.accessibilityDidChange = { [weak self] in self?.hotkeys.refreshPermissionState() }
+        permissions.startMonitoring()
         registerHotkeys()
-        if !AppContextReader.isAccessibilityTrusted {
-            // Needed for cursor insertion, app context and modifier-only shortcuts.
-            AppContextReader.requestAccessibility()
-        }
         applyAppearance()
         observeAppearance()
         observeWindows()
@@ -145,6 +145,7 @@ final class AppContainer {
     }
 
     func openAccessibilitySettings() {
+        permissions.requestAccessibility()
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
         }

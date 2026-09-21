@@ -78,8 +78,14 @@ struct ConfigurationPage: View {
             SectionTitle("Permissions")
             Card {
                 SettingRow(title: "Microphone", subtitle: micStatus) {
-                    if AVCaptureDevice.authorizationStatus(for: .audio) != .authorized {
-                        Button("Request…") { Task { _ = await AudioRecorder.requestMicrophoneAccess() } }
+                    if container.permissions.microphone != .authorized {
+                        Button(container.permissions.microphone == .notDetermined ? "Request…" : "Open Settings…") {
+                            if container.permissions.microphone == .notDetermined {
+                                Task { await container.permissions.requestMicrophone() }
+                            } else if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
                             .buttonStyle(SoftButtonStyle())
                     } else {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
@@ -87,11 +93,10 @@ struct ConfigurationPage: View {
                 }
                 RowDivider()
                 SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier-only shortcuts") {
-                    if AppContextReader.isAccessibilityTrusted {
+                    if container.permissions.accessibilityGranted {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     } else {
-                        Button("Grant…") { AppContextReader.requestAccessibility(); container.openAccessibilitySettings() }
-                            .buttonStyle(SoftButtonStyle())
+                        AccessibilityPermissionActions()
                     }
                 }
             }
@@ -100,7 +105,7 @@ struct ConfigurationPage: View {
     }
 
     private var micStatus: String {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        switch container.permissions.microphone {
         case .authorized: return "Granted · \(container.microphones.label(container.settings.microphone))"
         case .denied: return "Denied. Enable it in System Settings ▸ Privacy & Security ▸ Microphone"
         case .restricted: return "Restricted"
