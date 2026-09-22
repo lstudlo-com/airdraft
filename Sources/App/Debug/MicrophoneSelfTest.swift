@@ -16,15 +16,29 @@ enum MicrophoneSelfTest {
             }
             let notifications = RecordingNotificationCenter()
             let recorder = AudioRecorder(notifications: notifications)
-            let interruptions = InterruptionCount()
+            let interruptions = CallbackCount()
+            let buffers = CallbackCount()
             recorder.interruptionHandler = { _ in interruptions.increment() }
+            recorder.levelHandler = { _ in buffers.increment() }
             let devices = MicrophoneDevices.available()
             log.notice("microphone-test: found \(devices.count) input devices")
-            let choices = [MicrophonePreference.systemDefault] + devices.map {
+            let environment = ProcessInfo.processInfo.environment
+            var choices = [MicrophonePreference.systemDefault] + devices.map {
                 MicrophonePreference(uid: $0.uid, name: $0.name)
             }
+            if let name = environment["AIRDRAFT_MICROPHONE_TEST_DEVICE"] {
+                choices = choices.filter { $0.name == name || $0.uid == name }
+            }
+            if let value = environment["AIRDRAFT_MICROPHONE_TEST_CHANNEL"], let channel = Int(value) {
+                choices = choices.map { choice in
+                    var choice = choice
+                    choice.channelIndex = channel - 1
+                    return choice
+                }
+            }
+            let requireSignal = environment["AIRDRAFT_MICROPHONE_TEST_REQUIRE_SIGNAL"] == "1"
             let cycles = Int(ProcessInfo.processInfo.environment["AIRDRAFT_MICROPHONE_TEST_CYCLES"] ?? "") ?? 3
-            var failures = 0
+            var failures = choices.isEmpty ? 1 : 0
             for cycle in 1...max(1, cycles) {
                 for choice in choices {
                     do {
@@ -42,12 +56,16 @@ enum MicrophoneSelfTest {
                         notifications.postConfigurationChange()
                         try await Task.sleep(for: .milliseconds(400))
                         let resumed = notifications.engine?.isRunning == true
+                        let buffersAfterRestart = buffers.value
+                        try await Task.sleep(for: .milliseconds(250))
+                        let resumedCapture = buffers.value > buffersAfterRestart
                         let samples = recorder.stop()
+                        let peak = samples.reduce(Float(0)) { max($0, abs($1)) }
                         let captured = samples.count > Int(AudioRecorder.sampleRate * 1.1)
                         let uninterrupted = interruptions.value == initialInterruptions
-                        let passed = selected && captured && resumed && uninterrupted
+                        let passed = selected && captured && resumed && resumedCapture && uninterrupted && (!requireSignal || peak > 0)
                         if !passed { failures += 1 }
-                        log.notice("microphone-test: cycle=\(cycle) \(choice.name, privacy: .public) routeVerified=\(selected) resumed=\(resumed) uninterrupted=\(uninterrupted) samples=\(samples.count) \(passed ? "PASS" : "FAIL", privacy: .public)")
+                        log.notice("microphone-test: cycle=\(cycle) \(choice.name, privacy: .public) input=\((choice.channelIndex ?? 0) + 1) routeVerified=\(selected) resumed=\(resumed) resumedCapture=\(resumedCapture) uninterrupted=\(uninterrupted) samples=\(samples.count) peak=\(peak) \(passed ? "PASS" : "FAIL", privacy: .public)")
                     } catch {
                         recorder.cancel()
                         failures += 1
@@ -93,7 +111,7 @@ private final class RecordingNotificationCenter: NotificationCenter, @unchecked 
     }
 }
 
-private final class InterruptionCount: @unchecked Sendable {
+private final class CallbackCount: @unchecked Sendable {
     private let lock = NSLock()
     private var count = 0
     var value: Int { lock.lock(); defer { lock.unlock() }; return count }

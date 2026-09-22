@@ -9,6 +9,7 @@ public enum AudioRecorderError: Error, LocalizedError {
     case microphoneUnavailable(String)
     case deviceSetupFailed(String, Int)
     case inputChanged
+    case inputChannelUnavailable(Int)
 
     public var errorDescription: String? {
         switch self {
@@ -16,6 +17,8 @@ public enum AudioRecorderError: Error, LocalizedError {
         case .formatUnavailable: return "The microphone's audio format is unavailable. Reconnect it or choose another microphone."
         case .alreadyRecording: return "Already recording."
         case .inputChanged: return "The microphone input changed. Record again."
+        case .inputChannelUnavailable(let channel):
+            return "Input \(channel) is unavailable on this microphone. Choose an input channel in Configuration."
         case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
         case .deviceSetupFailed(let name, let code):
             return "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone."
@@ -37,6 +40,7 @@ public final class AudioRecorder: @unchecked Sendable {
     private var samples: [Float] = []
     private let lock = NSLock()
     private var recording = false
+    private var inputChannelIndex = 0
 
     /// Called on the audio thread with the RMS level of each buffer (0...1).
     public var levelHandler: (@Sendable (Float) -> Void)?
@@ -87,6 +91,7 @@ public final class AudioRecorder: @unchecked Sendable {
                 throw AudioRecorderError.deviceSetupFailed(device.name, code)
             }
         }
+        inputChannelIndex = preference.channelIndex ?? 0
         try installCaptureTap(on: engine)
         self.engine = engine
         activeMicrophone = device
@@ -117,12 +122,23 @@ public final class AudioRecorder: @unchecked Sendable {
             throw AudioRecorderError.deviceSetupFailed(device.name, code)
         }
         lock.lock(); recording = true; lock.unlock()
-        Self.log.notice("recorder: started device=\(device.name, privacy: .public) requested=\(device.id) route=\(input.auAudioUnit.deviceID) systemDefault=\(preference.uid == nil)")
+        Self.log.notice("recorder: started device=\(device.name, privacy: .public) requested=\(device.id) route=\(input.auAudioUnit.deviceID) systemDefault=\(preference.uid == nil) input=\(self.inputChannelIndex + 1) channels=\(input.outputFormat(forBus: 0).channelCount)")
     }
 
     private func installCaptureTap(on engine: AVAudioEngine) throws {
         let input = engine.inputNode
         let inputFormat = input.outputFormat(forBus: 0)
+        let converter = try Self.captureConverter(from: inputFormat, channelIndex: inputChannelIndex)
+        let targetFormat = converter.outputFormat
+        lock.lock(); self.converter = converter; lock.unlock()
+
+        input.removeTap(onBus: 0)
+        input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
+            self?.handle(buffer: buffer, converter: converter, targetFormat: targetFormat)
+        }
+    }
+
+    static func captureConverter(from inputFormat: AVAudioFormat, channelIndex: Int) throws -> AVAudioConverter {
         guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0,
               let targetFormat = AVAudioFormat(
             commonFormat: .pcmFormatFloat32,
@@ -130,16 +146,18 @@ public final class AudioRecorder: @unchecked Sendable {
             channels: 1,
             interleaved: false
         ) else { throw AudioRecorderError.formatUnavailable }
+        guard channelIndex >= 0, channelIndex < Int(inputFormat.channelCount) else {
+            throw AudioRecorderError.inputChannelUnavailable(channelIndex + 1)
+        }
 
         guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
             throw AudioRecorderError.formatUnavailable
         }
-        lock.lock(); self.converter = converter; lock.unlock()
-
-        input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
-            self?.handle(buffer: buffer, converter: converter, targetFormat: targetFormat)
-        }
+        // Discrete hardware inputs have no speaker layout. Automatic conversion
+        // can map mono to -1 (silence), even while buffers keep arriving. Select
+        // the microphone explicitly; mixing all inputs would include loopback.
+        converter.channelMap = [NSNumber(value: channelIndex)]
+        return converter
     }
 
     private func recoverConfiguration(of engine: AVAudioEngine) {
@@ -201,6 +219,8 @@ public final class AudioRecorder: @unchecked Sendable {
         converter = nil
         recording = false
         var out = samples
+        let peak = samples.reduce(Float(0)) { max($0, abs($1)) }
+        Self.log.notice("recorder: stopped frames=\(out.count) peak=\(peak)")
         samples.removeAll()
         if !out.isEmpty {
             out.append(contentsOf: [Float](repeating: 0, count: Int(Self.tailPaddingSeconds * Self.sampleRate)))

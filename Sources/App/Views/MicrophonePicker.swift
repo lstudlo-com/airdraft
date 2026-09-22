@@ -42,6 +42,27 @@ struct MicrophoneSettings: View {
                 SettingRow(title: "Default microphone", subtitle: "Saved for every recording and next launch") {
                     MicrophonePicker().labelsHidden().frame(width: 230)
                 }
+                let channelCount = store.selected(preference)?.inputChannelCount ?? 0
+                let selectedChannel = preference.channelIndex ?? 0
+                if channelCount > 1 || selectedChannel != 0 {
+                    RowDivider()
+                    SettingRow(title: "Input channel", subtitle: "Choose the input your microphone is connected to") {
+                        Picker("Input channel", selection: Binding(
+                            get: { container.settings.microphone.channelIndex ?? 0 },
+                            set: { container.settings.microphone.channelIndex = $0 }
+                        )) {
+                            ForEach(0..<channelCount, id: \.self) { channel in
+                                Text("Input \(channel + 1)").tag(channel)
+                            }
+                            if selectedChannel >= channelCount || selectedChannel < 0 {
+                                Text("Input \(selectedChannel + 1) · unavailable").tag(selectedChannel)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 230)
+                        .disabled(container.pipeline.isBusy)
+                    }
+                }
                 RowDivider()
                 HStack(spacing: 8) {
                     Image(systemName: store.selected(preference) == nil ? "mic.slash" : "mic")

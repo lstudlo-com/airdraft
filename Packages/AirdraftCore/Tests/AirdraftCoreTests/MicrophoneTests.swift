@@ -28,11 +28,18 @@ final class MicrophoneTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
         let settings = AppSettings(defaults: defaults)
         XCTAssertEqual(settings.microphone, .systemDefault)
-        let preference = MicrophonePreference(uid: usb.uid, name: usb.name)
+        let preference = MicrophonePreference(uid: usb.uid, name: usb.name, channelIndex: 1)
         settings.microphone = preference
         XCTAssertEqual(AppSettings(defaults: defaults).microphone, preference)
         settings.microphone = .systemDefault
         XCTAssertEqual(AppSettings(defaults: defaults).microphone, .systemDefault)
+    }
+
+    func testExistingMicrophonePreferenceDefaultsToFirstInput() throws {
+        let data = Data(#"{"uid":"usb-mic","name":"USB microphone"}"#.utf8)
+        let preference = try JSONDecoder().decode(MicrophonePreference.self, from: data)
+        XCTAssertEqual(preference.uid, usb.uid)
+        XCTAssertNil(preference.channelIndex)
     }
 
     func testFailedStartCanBeRetriedAndStopIsSafe() {

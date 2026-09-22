@@ -5,11 +5,13 @@ public struct Microphone: Identifiable, Equatable, Sendable {
     public let id: AudioDeviceID
     public let uid: String
     public let name: String
+    public let inputChannelCount: Int
 
-    public init(id: AudioDeviceID, uid: String, name: String) {
+    public init(id: AudioDeviceID, uid: String, name: String, inputChannelCount: Int = 1) {
         self.id = id
         self.uid = uid
         self.name = name
+        self.inputChannelCount = inputChannelCount
     }
 }
 
@@ -17,11 +19,14 @@ public struct Microphone: Identifiable, Equatable, Sendable {
 public struct MicrophonePreference: Codable, Equatable, Sendable {
     public var uid: String?
     public var name: String
+    /// Zero-based hardware input. Older preferences use the first input.
+    public var channelIndex: Int?
     public static let systemDefault = MicrophonePreference(uid: nil, name: "System default")
 
-    public init(uid: String?, name: String) {
+    public init(uid: String?, name: String, channelIndex: Int? = nil) {
         self.uid = uid
         self.name = name
+        self.channelIndex = channelIndex
     }
 
     public func resolve(in devices: [Microphone], systemDefaultID: AudioDeviceID?) -> Microphone? {
@@ -59,9 +64,10 @@ public enum MicrophoneDevices {
         var ids = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
         guard AudioObjectGetPropertyData(system, &address, 0, nil, &size, &ids) == noErr else { return [] }
         return ids.compactMap { id in
-            guard hasInput(id), let uid = string(id, kAudioDevicePropertyDeviceUID),
+            let channels = inputChannelCount(id)
+            guard channels > 0, let uid = string(id, kAudioDevicePropertyDeviceUID),
                   let name = string(id, kAudioObjectPropertyName) else { return nil }
-            return Microphone(id: id, uid: uid, name: name)
+            return Microphone(id: id, uid: uid, name: name, inputChannelCount: channels)
         }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
@@ -78,15 +84,15 @@ public enum MicrophoneDevices {
         return value as String
     }
 
-    private static func hasInput(_ id: AudioDeviceID) -> Bool {
+    private static func inputChannelCount(_ id: AudioDeviceID) -> Int {
         var address = address(kAudioDevicePropertyStreamConfiguration)
         address.mScope = kAudioDevicePropertyScopeInput
         var size: UInt32 = 0
-        guard AudioObjectGetPropertyDataSize(id, &address, 0, nil, &size) == noErr, size > 0 else { return false }
+        guard AudioObjectGetPropertyDataSize(id, &address, 0, nil, &size) == noErr, size > 0 else { return 0 }
         let data = UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: MemoryLayout<AudioBufferList>.alignment)
         defer { data.deallocate() }
-        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, data) == noErr else { return false }
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, data) == noErr else { return 0 }
         return UnsafeMutableAudioBufferListPointer(data.assumingMemoryBound(to: AudioBufferList.self))
-            .contains { $0.mNumberChannels > 0 }
+            .reduce(0) { $0 + Int($1.mNumberChannels) }
     }
 }
