@@ -234,10 +234,12 @@ struct PageScaffold<Content: View, Accessory: View>: View {
     @Environment(AppContainer.self) private var container
     @ViewBuilder var content: Content
     @ViewBuilder var accessory: Accessory
+    var scrollsContent: Bool
 
-    init(@ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
+    init(scrollsContent: Bool = true, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
         self.content = content()
         self.accessory = accessory()
+        self.scrollsContent = scrollsContent
     }
 
     var body: some View {
@@ -270,13 +272,18 @@ struct PageScaffold<Content: View, Accessory: View>: View {
             .padding(.leading, container.navigation.sidebarCollapsed ? 64 : 0)
             .frame(height: 44)
             Divider().opacity(0.4)
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.sectionSpacing) { content }
-                    .padding(Theme.pagePadding)
-                    .frame(maxWidth: Theme.contentMaxWidth, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            if scrollsContent {
+                ScrollView { pageContent }
+            } else {
+                pageContent.frame(maxHeight: .infinity, alignment: .topLeading)
             }
         }
+    }
+    private var pageContent: some View {
+        VStack(alignment: .leading, spacing: Theme.sectionSpacing) { content }
+            .padding(Theme.pagePadding)
+            .frame(maxWidth: Theme.contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

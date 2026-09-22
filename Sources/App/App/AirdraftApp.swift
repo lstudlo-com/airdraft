@@ -32,6 +32,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Debug aid: `airdraft --render-hud /path/out.png` writes the HUD as an
         // image and exits, so the design can be checked without screen recording.
         let args = CommandLine.arguments
+        if let idx = args.firstIndex(of: "--preview-profiles"), idx + 1 < args.count {
+            ProfilePreview.open(directory: URL(fileURLWithPath: args[idx + 1]))
+            return
+        }
+        if let idx = args.firstIndex(of: "--render-profile-states"), idx + 1 < args.count {
+            ProfilePreview.render(to: URL(fileURLWithPath: args[idx + 1]))
+            NSApp.terminate(nil)
+            return
+        }
         if let idx = args.firstIndex(of: "--render-hud"), idx + 1 < args.count {
             DebugRender.renderHUD(to: URL(fileURLWithPath: args[idx + 1]))
             NSApp.terminate(nil)

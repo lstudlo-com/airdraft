@@ -67,6 +67,16 @@ public final class ProfileStore {
         ))
     }
 
+    /// Copy the selected profile, including raw-transcript behavior, without activating it.
+    @discardableResult
+    public func duplicate(id: UUID) -> RefinementProfile? {
+        guard let source = profiles.first(where: { $0.id == id }) else { return nil }
+        return add(RefinementProfile(
+            name: uniqueName("\(source.name) copy"), symbol: source.symbol,
+            usesLLM: source.usesLLM, task: source.task, instructions: source.instructions
+        ))
+    }
+
     public func update(_ profile: RefinementProfile) {
         guard let idx = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
         var p = profile

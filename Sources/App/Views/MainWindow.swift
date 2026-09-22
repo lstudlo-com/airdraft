@@ -39,6 +39,7 @@ final class Navigation {
 
 struct MainWindowView: View {
     @Environment(AppContainer.self) private var container
+    var profileSelection: UUID? = nil
 
     var body: some View {
         HStack(spacing: 0) {
@@ -63,7 +64,7 @@ struct MainWindowView: View {
     private var page: some View {
         switch container.navigation.page {
         case .home: HomePage()
-        case .profiles: ProfilesPage()
+        case .profiles: ProfilesPage(selection: profileSelection)
         case .vocabulary: VocabularyPage()
         case .configuration: ConfigurationPage()
         case .models: ModelsPage()

@@ -32,9 +32,9 @@ final class AppContainer {
     private var started = false
     private var indicator: IndicatorPanelController?
 
-    init(settings suppliedSettings: AppSettings? = nil) {
+    init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil) {
         hotkeys = HotkeyService(permissions: permissions)
-        let dir = AppSettings.supportDirectory
+        let dir = dataDirectory ?? AppSettings.supportDirectory
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
         engineStatus = EngineStatus()

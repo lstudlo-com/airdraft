@@ -60,4 +60,28 @@ final class ProfileStoreTests: XCTestCase {
         XCTAssertEqual(store.profiles, RefinementProfile.defaults)
         XCTAssertEqual(store.activeProfileID, RefinementProfile.cleanID)
     }
+
+    func testDuplicateUsesSelectedProfileAndPreservesRawBehaviorAfterReload() throws {
+        let dir = tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ProfileStore(directory: dir)
+        var source = store.profiles[3]
+        source.task = "Remembered task"
+        source.instructions = "Remembered instructions"
+        source.symbol = "doc.text"
+        store.update(source)
+
+        let copy = try XCTUnwrap(store.duplicate(id: source.id))
+        XCTAssertNotEqual(copy.id, source.id)
+        XCTAssertFalse(copy.isBuiltIn)
+        XCTAssertFalse(copy.usesLLM)
+        XCTAssertEqual(copy.task, source.task)
+        XCTAssertEqual(copy.instructions, source.instructions)
+        XCTAssertEqual(copy.symbol, source.symbol)
+        XCTAssertEqual(copy.name, "Verbatim copy")
+        XCTAssertEqual(store.duplicate(id: source.id)?.name, "Verbatim copy 2")
+        XCTAssertEqual(store.activeProfileID, RefinementProfile.cleanID)
+        XCTAssertEqual(ProfileStore(directory: dir).profiles.first { $0.id == copy.id }, copy)
+        XCTAssertNil(store.duplicate(id: UUID()))
+    }
 }
