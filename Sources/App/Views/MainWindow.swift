@@ -2,7 +2,7 @@ import AirdraftCore
 import SwiftUI
 
 enum Page: String, CaseIterable, Identifiable {
-    case home, profiles, vocabulary, configuration, models, history
+    case home, profiles, vocabulary, history, configuration, models
     var id: String { rawValue }
 
     var title: String {
@@ -18,32 +18,16 @@ enum Page: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .home: return "house.fill"
+        case .home: return "house"
         case .profiles: return "sparkles"
-        case .vocabulary: return "book.closed.fill"
-        case .configuration: return "gearshape.fill"
-        case .models: return "books.vertical.fill"
-        case .history: return "clock.fill"
+        case .vocabulary: return "book.closed"
+        case .configuration: return "gearshape"
+        case .models: return "square.stack.3d.up"
+        case .history: return "clock"
         }
     }
 
-    var color: Color {
-        switch self {
-        case .home: return .orange
-        case .profiles, .vocabulary: return .blue
-        case .configuration, .models: return .gray
-        case .history: return .purple
-        }
-    }
 
-    /// Sidebar groups get extra spacing between them, like Superwhisper.
-    var group: Int {
-        switch self {
-        case .home, .profiles, .vocabulary: return 0
-        case .configuration, .models: return 1
-        case .history: return 2
-        }
-    }
 }
 
 @MainActor
@@ -92,70 +76,54 @@ struct SidebarView: View {
     @Environment(AppContainer.self) private var container
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Spacer().frame(height: 44) // traffic lights
-            ForEach(Array(Page.allCases.enumerated()), id: \.element.id) { index, page in
-                if index > 0, page.group != Page.allCases[index - 1].group {
-                    Spacer().frame(height: 16)
-                }
-                SidebarItem(page: page, selected: container.navigation.page == page) {
-                    container.navigation.page = page
-                }
-            }
-            Spacer()
-            footer
-        }
-        .padding(.horizontal, 12)
-        .padding(.bottom, 14)
-    }
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Airdraft")
+                .font(.system(size: 15, weight: .semibold))
+                .padding(.horizontal, 10)
+                .padding(.top, 54)
+                .padding(.bottom, 20)
 
-    private var footer: some View {
-        VStack(alignment: .leading, spacing: 8) {
+            navigationGroup([.home, .profiles, .vocabulary, .history])
+            navigationGroup([.configuration, .models])
+                .padding(.top, 16)
+
+            Spacer(minLength: 20)
             Text(footerLine)
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 6)
-            HStack(spacing: 8) {
-                Text("Airdraft").font(.system(size: 14, weight: .semibold))
-                PillTag(text: "LOCAL")
-                Spacer()
+                .padding(.horizontal, 10)
+                .padding(.bottom, 18)
+        }
+        .padding(.horizontal, 10)
+    }
+
+    private func navigationGroup(_ pages: [Page]) -> some View {
+        VStack(spacing: 2) {
+            ForEach(pages) { page in
+                Button { container.navigation.page = page } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: page.symbol)
+                            .font(.system(size: 15, weight: .regular))
+                            .frame(width: 20)
+                            .accessibilityHidden(true)
+                        Text(page.title)
+                            .font(.system(size: 13, weight: .regular))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(height: NavigationStyle.rowHeight)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page))
+                .accessibilityAddTraits(container.navigation.page == page ? .isSelected : [])
+                .accessibilityIdentifier("sidebar.\(page.rawValue)")
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.primary.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
         }
     }
 
     private var footerLine: String {
         let stats = (try? container.history?.stats()) ?? nil
-        guard let stats, stats.words > 0 else { return "No dictations yet" }
+        guard let stats, stats.words > 0 else { return "Ready to dictate" }
         return "\(stats.words.formatted()) words dictated"
-    }
-}
-
-struct SidebarItem: View {
-    let page: Page
-    let selected: Bool
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        HStack(spacing: 10) {
-            IconBadge(symbol: page.symbol, color: page.color)
-            Text(page.title)
-                .font(.system(size: 14.5, weight: .medium))
-                .foregroundStyle(.primary)
-            Spacer()
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 7)
-        .background(
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(selected ? Color.primary.opacity(0.11) : (hovering ? Color.primary.opacity(0.05) : .clear))
-        )
-        .contentShape(Rectangle())
-        .onHover { hovering = $0 }
-        .onTapGesture(perform: action)
     }
 }
