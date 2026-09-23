@@ -101,8 +101,7 @@ struct MenuView: View {
         case .whisperKit: return "WhisperKit"
         case .apple: return "Apple Speech"
         case .openAICompatible: return "Custom server"
-        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
-            return container.settings.asr.kind.preset?.name ?? "Cloud"
+        case .elevenLabs: return "ElevenLabs"
         }
     }
 
