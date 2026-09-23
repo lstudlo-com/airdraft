@@ -9,16 +9,17 @@ struct MenuView: View {
         @Bindable var settings = container.settings
 
         Text(statusLine)
+            .help(statusDetail)
         if !container.hotkeys.isActive {
-            Button("⚠︎ Hotkey inactive: \(container.hotkeys.statusText)") {
-                if container.hotkeys.needsAccessibility { container.openAccessibilitySettings() }
+            Button("Shortcut unavailable…") {
+                if container.hotkeys.needsAccessibility {
+                    container.openAccessibilitySettings()
+                } else {
+                    container.navigation.page = .configuration
+                    container.showMainWindow(openWindow)
+                }
             }
-        }
-        if let outcome = container.pipeline.lastOutcome {
-            Text(String(outcome.final.prefix(60)))
-                .font(.caption)
-            Text("ASR \(outcome.asrMs) ms · LLM \(outcome.llmMs) ms" + (outcome.llmSkippedReason.map { " · \($0)" } ?? ""))
-                .font(.caption)
+            .help(container.hotkeys.statusText)
         }
         Divider()
 
@@ -46,8 +47,10 @@ struct MenuView: View {
         )) {
             ForEach(LLMProviderKind.allCases) { Text($0.title).tag($0) }
         }
-        Text("Speech: \(settings.asr.engineLabel) · \(speechStateLabel)")
-        Text("LLM: \(settings.llm.engineLabel) · \(container.models.llmStatus.label)")
+        Text("Speech: \(speechProviderLabel) · \(speechStateLabel)")
+            .help("\(settings.asr.engineLabel) · \(fullSpeechStateLabel)")
+        Text(llmSummary)
+            .help(llmDetail)
         Button("Unload models") {
             container.models.unloadSpeechModels()
             container.models.unloadLLM()
@@ -65,7 +68,61 @@ struct MenuView: View {
 
     private var speechStateLabel: String {
         guard container.settings.asr.kind.isLocal else { return "Cloud" }
+        switch container.engineStatus.state(for: container.settings.asr.engineID) {
+        case .notLoaded: return "Not loaded"
+        case .loading: return "Loading…"
+        case .ready: return "Loaded"
+        case .failed: return "Unavailable"
+        }
+    }
+
+    private var fullSpeechStateLabel: String {
+        guard container.settings.asr.kind.isLocal else { return "Cloud" }
         return container.engineStatus.state(for: container.settings.asr.engineID).label
+    }
+
+    private var speechProviderLabel: String {
+        switch container.settings.asr.kind {
+        case .qwen3: return "Qwen3-ASR"
+        case .fireRed: return "FireRedASR2"
+        case .cohere: return "Cohere"
+        case .senseVoice: return "SenseVoice"
+        case .whisperKit: return "WhisperKit"
+        case .apple: return "Apple Speech"
+        case .openAICompatible: return "Custom server"
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
+            return container.settings.asr.kind.preset?.name ?? "Cloud"
+        }
+    }
+
+    private var llmStateLabel: String {
+        switch container.models.llmStatus.state {
+        case .unknown: return "Checking…"
+        case .remote: return "Cloud"
+        case .ready(let detail): return detail == "CLI not found" ? "CLI missing" : "Ready"
+        case .unreachable: return "Server offline"
+        case .notLoaded: return "Not loaded"
+        case .loading: return "Loading…"
+        case .loaded: return "Loaded"
+        case .failed: return "Unavailable"
+        }
+    }
+
+    private var llmSummary: String {
+        guard container.settings.llm.kind != .none else { return "Refinement: Off" }
+        return "LLM: \(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
+    }
+
+    private var llmDetail: String {
+        guard container.settings.llm.kind != .none else { return "Raw transcript without refinement" }
+        return "\(container.settings.llm.engineLabel) · \(container.models.llmStatus.label)"
+    }
+
+    private var statusDetail: String {
+        switch container.pipeline.state {
+        case .failed(let message), .notice(let message): return message
+        default: return statusLine
+        }
     }
 
     private var statusLine: String {
@@ -78,8 +135,8 @@ struct MenuView: View {
         case .transcribing: return "Transcribing…"
         case .refining: return "Refining…"
         case .inserting: return "Inserting…"
-        case .failed(let msg): return "Error: \(msg)"
-        case .notice(let msg): return msg
+        case .failed: return "Dictation failed"
+        case .notice(let message): return message
         }
     }
 }
