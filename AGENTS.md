@@ -30,6 +30,11 @@ status table current.
 
 ## Rules
 
+- After completing and validating a requested fix or feature, make a local
+  conventional commit for that task unless the user asks to leave it uncommitted.
+  Stage only task-related files or hunks; preserve unrelated worktree changes.
+  If the task cannot be committed cleanly, explain why. Push or release only
+  when the user requests it.
 - Interface consistency is a product requirement. Native section cards must have
   equal top, bottom, leading and trailing insets: `Theme.cardPadding` (16 pt).
   Use `PageSection` and `SettingsCard` for settings sections, including Configuration
