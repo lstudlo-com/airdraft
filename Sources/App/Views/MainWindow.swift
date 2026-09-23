@@ -39,12 +39,23 @@ final class Navigation {
 
 struct MainWindowView: View {
     @Environment(AppContainer.self) private var container
-    var profileSelection: UUID? = nil
+    var profileSelection: UUID?
+    var microphoneRenderLevel: Float?
+    @State private var activeOverlay: WindowOverlay?
+
+    init(profileSelection: UUID? = nil, previewOverlay: WindowOverlay? = nil, microphoneRenderLevel: Float? = nil) {
+        self.profileSelection = profileSelection
+        self.microphoneRenderLevel = microphoneRenderLevel
+        self._activeOverlay = State(initialValue: previewOverlay)
+    }
 
     var body: some View {
         HStack(spacing: 0) {
             if !container.navigation.sidebarCollapsed {
-                SidebarView()
+                SidebarView(
+                    openMicrophone: { activeOverlay = activeOverlay == .microphone ? nil : .microphone },
+                    openSettings: { activeOverlay = .settings }
+                )
                     .frame(width: Theme.sidebarWidth)
                     .background(VisualEffectView(material: .sidebar))
                     .transition(.move(edge: .leading))
@@ -56,8 +67,30 @@ struct MainWindowView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .background(TranslucentWindowView())
         .ignoresSafeArea()
         .frame(minWidth: 900, minHeight: 600)
+        .overlay {
+            if let activeOverlay {
+                Group {
+                    if activeOverlay == .settings {
+                        Color.black.opacity(0.38)
+                            .onTapGesture { self.activeOverlay = nil }
+                        AccountSettingsOverlay { self.activeOverlay = nil }
+                    } else {
+                        Color.black.opacity(0.001)
+                            .onTapGesture { self.activeOverlay = nil }
+                        MicrophoneSelectionOverlay(onClose: { self.activeOverlay = nil },
+                                                   renderLevel: microphoneRenderLevel)
+                            .padding(.leading, 16)
+                            .padding(.bottom, 99)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .onExitCommand { activeOverlay = nil }
         .overlay(alignment: .topLeading) {
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) {
@@ -77,6 +110,8 @@ struct MainWindowView: View {
             .help(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
             .accessibilityLabel(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
             .accessibilityIdentifier("sidebar.toggle")
+            .disabled(activeOverlay != nil)
+            .accessibilityHidden(activeOverlay != nil)
         }
     }
 
@@ -95,6 +130,8 @@ struct MainWindowView: View {
 
 struct SidebarView: View {
     @Environment(AppContainer.self) private var container
+    let openMicrophone: () -> Void
+    let openSettings: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -109,12 +146,7 @@ struct SidebarView: View {
                 .padding(.top, 16)
 
             Spacer(minLength: 20)
-            Divider().opacity(0.4)
-                .padding(.horizontal, -10)
-                .padding(.bottom, 8)
-            Menu {
-                MicrophonePicker()
-            } label: {
+            Button(action: openMicrophone) {
                 HStack(spacing: 10) {
                     Image(systemName: "mic")
                         .font(.system(size: 15))
@@ -130,22 +162,41 @@ struct SidebarView: View {
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
-                .padding(.horizontal, 10)
-                .frame(height: 36)
-                .contentShape(Rectangle())
-                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius))
+                .padding(.horizontal, 14)
+                .frame(height: 38)
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .frame(height: 38)
+            .background(Capsule().fill(Color.primary.opacity(0.08)))
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+            .contentShape(Capsule())
+            .padding(.horizontal, 4)
+            .padding(.top, 8)
             .disabled(container.pipeline.state.isBusy)
             .help("Change microphone. Your choice is saved as the default.")
             .accessibilityLabel("Microphone: \(container.microphones.label(container.settings.microphone))")
-            Text(footerLine)
-                .font(.system(size: 11))
+            HStack(alignment: .center) {
+                Button(action: openSettings) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 15))
+                        .frame(width: 30, height: 30)
+                        .contentShape(RoundedRectangle(cornerRadius: 7))
+                }
+                .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.top, 8)
-                .padding(.bottom, 18)
+                .help("Settings")
+                .accessibilityLabel("Settings")
+                .accessibilityIdentifier("sidebar.settings")
+                Spacer(minLength: 2)
+                Text(footerLine)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 6)
+            .padding(.top, 8)
+            .padding(.bottom, 14)
         }
         .padding(.horizontal, 10)
     }

@@ -26,9 +26,15 @@ Added 2026-09-21:
 9. **Clear permission setup.** Show permissions for the running copy, refresh
    after changes, and explain recovery from stale grants and duplicate builds.
 
+Added 2026-09-24:
+
+10. **Accessible account and microphone controls.** Keep a translucent sidebar;
+    place account settings at its lower left, and show device choices with a live
+    input-level preview in a spacious overlay.
+
 ## Status
 
-| Goal | State (2026-09-23) |
+| Goal | State (2026-09-24) |
 |---|---|
 | 1 | Airdraft branding throughout the app, CLI and developer tools; compact Codex-inspired sidebar with monochrome symbols and quiet selection, a toggle beside the traffic lights, and a microphone picker above the bottom word count; content begins without an empty title row; native cards, key caps and theme/HUD previews; dark recording pill at bottom centre with Classic / Mini / None. Configuration and Models share equal 16-point card insets, 8-point heading gaps and 20-point section gaps; settings rows add no extra vertical inset. The menu bar keeps status labels compact and shows Unload models only when a managed model is loaded; full model details remain in the main window. Existing settings and data survive the rename. Onboarding still missing. |
 | 2 | Done: `Transcriber` / `Refiner` protocols, `EngineFactory`, per-stage config. Ten speech engines kept (see `docs/model-atlas.html`); everything else was removed on purpose. |
@@ -39,6 +45,7 @@ Added 2026-09-21:
 | 7 | Sparkle checks and verified installation on quit, with local builds for each main push. From 0.1.5, the release gate requires a pinned Apple Development certificate and a stable designated requirement, inspects the packaged DMG, and exercises real certificate-signed and legacy-migration updates. Developer ID/notarization and M5 permission continuity remain unverified; see `docs/updates.md`. |
 | 8 | Device pickers in the sidebar, menu bar and Configuration save a persistent device UID. Multi-input devices also save an input channel in Configuration. Explicit channel mapping preserves microphone audio on discrete-channel interfaces without mixing loopback; unavailable channels fail visibly. Missing devices fail visibly without selecting another input; same-input audio reconfiguration recovers without clearing captured audio. Missing or changed inputs report a specific error; see `docs/microphones.md`. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
 | 9 | Live Accessibility/microphone state, running-copy diagnostics, and a separate Debug identity. The ad-hoc release defect is removed from 0.1.5; users migrating from older builds may need to grant access again. Later releases must preserve the approved signing identity. Verification on the affected M5 remains outstanding; see `docs/accessibility.md`. Keychain navigation/background reads are silent; selected-key approval is explicit, migration preserves inaccessible current entries, and key editors report write failures. Pending microphone requests cancel with shortcut release. See `docs/keychain-access.md`. |
+| 10 | Implemented: macOS frosted sidebar material, a bottom-left settings button, a centered account/subscription overlay with labeled sample data, and a larger microphone chooser with a live input meter. The level preview retains no audio. |
 
 ## Interface consistency
 
@@ -51,6 +58,8 @@ Standing requirement from Light, reaffirmed 2026-09-21:
 - Configuration and Models use `PageSection` and `SettingsCard`, including
   microphone, updates, permissions, refinement and provider settings. New settings
   sections must use these components too.
+- The sidebar keeps a frosted background. Its microphone capsule opens a device
+  overlay with an input meter; its lower-left gear opens centered account settings.
 - Use shared spacing: 8 pt from a section heading to its content, 20 pt between
   sections, and 12 pt between settings-card children. Keep content spacing separate
   from the card's outer padding. Table headers and rows own their equal 16 pt insets

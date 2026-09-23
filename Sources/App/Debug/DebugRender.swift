@@ -24,6 +24,7 @@ enum DebugRender {
         } else {
             container = AppContainer.shared
         }
+        let overlay = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_OVERLAY"]
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
@@ -32,7 +33,9 @@ enum DebugRender {
                     if pageName == "permissions" {
                         AccessibilityPermissionHelp()
                     } else {
-                        MainWindowView()
+                        MainWindowView(previewOverlay: overlay == "microphone" ? .microphone :
+                                       overlay == "settings" ? .settings : nil,
+                                       microphoneRenderLevel: overlay == "microphone" ? 0.42 : nil)
                     }
                 }.environment(container)
                 let host = NSHostingView(rootView: root)

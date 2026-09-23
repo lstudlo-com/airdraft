@@ -123,9 +123,12 @@ window's top left, just after the macOS traffic lights, and remains there when
 the sidebar is collapsed. The sidebar moves with the existing 0.18-second
 ease-in-out transition.
 
-The selected microphone lives at the bottom of the sidebar, above the dictation
-word count. It opens the same microphone picker used elsewhere in the app. The
-word count is the last sidebar item.
+The selected microphone sits in a padded capsule above the sidebar footer.
+The footer places a settings icon at the left and the word count at the right.
+The capsule opens a spacious anchored device overlay with a live input meter.
+The gear opens a centered Account and Subscription overlay with clearly labeled
+sample data. The sidebar uses native frosted material against a transparent
+window background.
 
 Profiles uses a fixed 164-point list, a divider and a flexible editor. The list
 and editor scroll independently. Profile rows are 36 points high and reuse the

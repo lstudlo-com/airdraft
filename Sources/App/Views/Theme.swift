@@ -33,6 +33,21 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
+/// Let the sidebar material sample the desktop behind the window.
+struct TranslucentWindowView: NSViewRepresentable {
+    final class BackingView: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            window?.isOpaque = false
+            window?.backgroundColor = .clear
+            window?.titlebarAppearsTransparent = true
+        }
+    }
+
+    func makeNSView(context: Context) -> BackingView { BackingView() }
+    func updateNSView(_ view: BackingView, context: Context) {}
+}
+
 /// Rounded, softly filled container for a group of rows.
 struct Card<Content: View>: View {
     var padding: CGFloat = Theme.cardPadding

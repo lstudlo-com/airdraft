@@ -40,6 +40,7 @@ public final class AudioRecorder: @unchecked Sendable {
     private var samples: [Float] = []
     private let lock = NSLock()
     private var recording = false
+    private var monitoringOnly = false
     private var inputChannelIndex = 0
 
     /// Called on the audio thread with the RMS level of each buffer (0...1).
@@ -66,9 +67,19 @@ public final class AudioRecorder: @unchecked Sendable {
     }
 
     public func start(microphone preference: MicrophonePreference = .systemDefault) throws {
+        try start(microphone: preference, monitoringOnly: false)
+    }
+
+    /// Opens the selected input for a live level preview without retaining audio.
+    public func startLevelMonitoring(microphone preference: MicrophonePreference) throws {
+        try start(microphone: preference, monitoringOnly: true)
+    }
+
+    private func start(microphone preference: MicrophonePreference, monitoringOnly: Bool) throws {
         lock.lock()
         if recording { lock.unlock(); throw AudioRecorderError.alreadyRecording }
         samples.removeAll(keepingCapacity: true)
+        self.monitoringOnly = monitoringOnly
         lock.unlock()
 
         guard let device = preference.resolve(in: MicrophoneDevices.available(), systemDefaultID: MicrophoneDevices.systemDefaultID) else {
@@ -218,6 +229,7 @@ public final class AudioRecorder: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         converter = nil
         recording = false
+        monitoringOnly = false
         var out = samples
         let peak = samples.reduce(Float(0)) { max($0, abs($1)) }
         Self.log.notice("recorder: stopped frames=\(out.count) peak=\(peak)")
@@ -241,7 +253,7 @@ public final class AudioRecorder: @unchecked Sendable {
         }
         guard status != .error, out.frameLength > 0, let channel = out.floatChannelData?[0] else { return }
         let chunk = Array(UnsafeBufferPointer(start: channel, count: Int(out.frameLength)))
-        samples.append(contentsOf: chunk)
+        if !monitoringOnly { samples.append(contentsOf: chunk) }
     }
 
     public func cancel() {
@@ -280,7 +292,7 @@ public final class AudioRecorder: @unchecked Sendable {
         let count = Int(out.frameLength)
         let chunk = Array(UnsafeBufferPointer(start: channel, count: count))
 
-        samples.append(contentsOf: chunk)
+        if !monitoringOnly { samples.append(contentsOf: chunk) }
         lock.unlock()
 
         if let levelHandler, count > 0 {
