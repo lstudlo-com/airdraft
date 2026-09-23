@@ -58,6 +58,26 @@ struct MainWindowView: View {
         }
         .ignoresSafeArea()
         .frame(minWidth: 900, minHeight: 600)
+        .overlay(alignment: .topLeading) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    container.navigation.sidebarCollapsed.toggle()
+                }
+            } label: {
+                Image(systemName: "sidebar.left")
+                    .font(.system(size: 14))
+                    .frame(width: 28, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusEffectDisabled()
+            .foregroundStyle(.secondary)
+            .padding(.leading, 88)
+            .offset(y: -38)
+            .help(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
+            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
+            .accessibilityIdentifier("sidebar.toggle")
+        }
     }
 
     @ViewBuilder
@@ -89,10 +109,42 @@ struct SidebarView: View {
                 .padding(.top, 16)
 
             Spacer(minLength: 20)
+            Divider().opacity(0.4)
+                .padding(.horizontal, -10)
+                .padding(.bottom, 8)
+            Menu {
+                MicrophonePicker()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "mic")
+                        .font(.system(size: 15))
+                        .frame(width: 20)
+                        .accessibilityHidden(true)
+                    Text(container.microphones.label(container.settings.microphone))
+                        .font(.system(size: 13))
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 10))
+                        .frame(width: 12)
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 36)
+                .contentShape(Rectangle())
+                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius))
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .disabled(container.pipeline.state.isBusy)
+            .help("Change microphone. Your choice is saved as the default.")
+            .accessibilityLabel("Microphone: \(container.microphones.label(container.settings.microphone))")
             Text(footerLine)
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 10)
+                .padding(.top, 8)
                 .padding(.bottom, 18)
         }
         .padding(.horizontal, 10)

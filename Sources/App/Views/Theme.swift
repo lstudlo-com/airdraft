@@ -229,49 +229,30 @@ struct SoftButtonStyle: ButtonStyle {
     }
 }
 
-/// Page skeleton: toolbar row (sidebar toggle, optional accessory, microphone), then scrolling content.
+/// Page skeleton without a separate title row.
 struct PageScaffold<Content: View, Accessory: View>: View {
     @Environment(AppContainer.self) private var container
     @ViewBuilder var content: Content
     @ViewBuilder var accessory: Accessory
     var scrollsContent: Bool
+    private let hasAccessory: Bool
 
-    init(scrollsContent: Bool = true, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
+    init(scrollsContent: Bool = true, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory) {
         self.content = content()
         self.accessory = accessory()
         self.scrollsContent = scrollsContent
+        self.hasAccessory = true
+    }
+
+    init(scrollsContent: Bool = true, @ViewBuilder content: () -> Content) where Accessory == EmptyView {
+        self.content = content()
+        self.accessory = EmptyView()
+        self.scrollsContent = scrollsContent
+        self.hasAccessory = false
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) { container.navigation.sidebarCollapsed.toggle() }
-                } label: {
-                    Image(systemName: "sidebar.left").font(.system(size: 14))
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help("Toggle sidebar")
-                accessory
-                Spacer()
-                Menu {
-                    MicrophonePicker()
-                } label: {
-                    Label(container.microphones.label(container.settings.microphone), systemImage: "mic")
-                        .font(.system(size: 13, weight: .medium))
-                        .lineLimit(1)
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-                .disabled(container.pipeline.state.isBusy)
-                .help("Change microphone. Your choice is saved as the default.")
-            }
-            .padding(.horizontal, Theme.pagePadding)
-            // With the sidebar collapsed the toolbar starts at the window edge; keep clear of the traffic lights.
-            .padding(.leading, container.navigation.sidebarCollapsed ? 64 : 0)
-            .frame(height: 44)
-            Divider().opacity(0.4)
+        Group {
             if scrollsContent {
                 ScrollView { pageContent }
             } else {
@@ -280,10 +261,19 @@ struct PageScaffold<Content: View, Accessory: View>: View {
         }
     }
     private var pageContent: some View {
-        VStack(alignment: .leading, spacing: Theme.sectionSpacing) { content }
-            .padding(Theme.pagePadding)
-            .frame(maxWidth: Theme.contentMaxWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+            if hasAccessory {
+                HStack(spacing: 12) {
+                    accessory
+                    Spacer()
+                }
+            }
+            content
+        }
+        .padding(Theme.pagePadding)
+        .padding(.top, container.navigation.sidebarCollapsed ? 44 : 0)
+        .frame(maxWidth: Theme.contentMaxWidth, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

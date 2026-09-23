@@ -4,8 +4,17 @@ import SwiftUI
 struct ProfilesPage: View {
     @Environment(AppContainer.self) private var container
     @State private var selection: UUID?
-    @State private var confirmResetAll = false
-    @State private var showBaseRules = false
+    @State private var editingProfileID: UUID?
+    @State private var presentedSheet: ProfileSheet?
+    @State private var confirmation: ProfileConfirmation?
+
+    private static let symbols: [(String, String)] = [
+        ("sparkles", "Clean"), ("text.line.first.and.arrowtriangle.forward", "Concise"),
+        ("list.bullet", "List"), ("text.quote", "Quotation"), ("envelope", "Email"),
+        ("bubble.left", "Message"), ("doc.text", "Document"),
+        ("chevron.left.forwardslash.chevron.right", "Code"), ("globe", "Language"),
+        ("checklist", "Checklist")
+    ]
 
     init(selection: UUID? = nil) {
         _selection = State(initialValue: selection)
@@ -14,25 +23,53 @@ struct ProfilesPage: View {
     var body: some View {
         PageScaffold(scrollsContent: false) {
             HStack {
-                Text("Profiles").font(.system(size: 20, weight: .semibold))
                 Spacer()
-                Button { selection = container.profiles.addNew().id } label: {
+                Button {
+                    let newProfile = container.profiles.addNew()
+                    selection = newProfile.id
+                    editingProfileID = newProfile.id
+                } label: {
                     Label("New profile", systemImage: "plus")
                 }
                 .controlSize(.small)
                 .accessibilityIdentifier("profiles.new")
                 Menu {
-                    Button("Shared rules…") { showBaseRules = true }
-                    Divider()
-                    Button("Reset all profiles…", role: .destructive) { confirmResetAll = true }
+                    if let profile = selectedProfile {
+                        Button("Rename profile") { editingProfileID = profile.id }
+                        Menu {
+                            ForEach(Self.symbols, id: \.0) { symbol, name in
+                                Button {
+                                    setSymbol(symbol, for: profile.id)
+                                } label: {
+                                    Label(name, systemImage: symbol)
+                                }
+                            }
+                        } label: {
+                            Label("Change icon", systemImage: profile.symbol.isEmpty ? "text.alignleft" : profile.symbol)
+                        }
+                        Button("Duplicate profile") {
+                            selection = container.profiles.duplicate(id: profile.id)?.id
+                        }
+                        Button("Preview prompt…") { presentedSheet = .prompt(profile) }
+                            .disabled(!profile.usesLLM)
+                        if profile.isBuiltIn {
+                            Button("Reset profile…") { confirmation = .reset(profile) }
+                                .disabled(container.profiles.isDefault(profile))
+                        } else {
+                            Button("Delete profile…", role: .destructive) { confirmation = .delete(profile) }
+                        }
+                        Divider()
+                    }
+                    Button("Shared rules…") { presentedSheet = .sharedRules }
+                    Button("Reset all profiles…", role: .destructive) { confirmation = .resetAll }
                 } label: {
                     Image(systemName: "ellipsis").frame(width: 24, height: 24)
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .fixedSize()
-                .help("Profile settings")
-                .accessibilityLabel("Profile settings")
+                .help("Profile actions and shared rules")
+                .accessibilityLabel("Profile actions")
             }
 
             HStack(alignment: .top, spacing: Theme.pagePadding) {
@@ -41,9 +78,13 @@ struct ProfilesPage: View {
                         ForEach(container.profiles.profiles) { profile in
                             ProfileListRow(
                                 profile: profile,
+                                name: nameBinding(for: profile),
                                 active: profile.id == container.profiles.activeProfileID,
-                                selected: profile.id == selection
-                            ) { selection = profile.id }
+                                selected: profile.id == selection,
+                                editing: profile.id == editingProfileID,
+                                action: { selection = profile.id },
+                                finishRename: { finishRename(profile.id) }
+                            )
                         }
                     }
                 }
@@ -51,13 +92,7 @@ struct ProfilesPage: View {
                 Divider().opacity(0.4)
                 ScrollView {
                     if let profile = selectedProfile {
-                        ProfileEditor(profile: profile, onDuplicate: {
-                            selection = container.profiles.duplicate(id: profile.id)?.id
-                        }, onDelete: {
-                            container.profiles.remove(id: profile.id)
-                            selection = container.profiles.activeProfileID
-                        })
-                        .id(profile.id)
+                        ProfileEditor(profile: profile).id(profile.id)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -67,51 +102,176 @@ struct ProfilesPage: View {
         .onAppear {
             if selectedProfile == nil { selection = container.profiles.activeProfileID }
         }
-        .sheet(isPresented: $showBaseRules) { SharedProfileRulesEditor() }
-        .confirmationDialog("Reset all profiles?", isPresented: $confirmResetAll, titleVisibility: .visible) {
-            Button("Reset all profiles", role: .destructive) {
-                container.profiles.resetAll()
-                selection = container.profiles.activeProfileID
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .sharedRules: SharedProfileRulesEditor()
+            case .prompt(let profile): ProfilePromptPreview(profile: profile)
+            }
+        }
+        .confirmationDialog(
+            confirmation?.title ?? "",
+            isPresented: Binding(
+                get: { confirmation != nil },
+                set: { if !$0 { confirmation = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            if let confirmation {
+                Button(confirmation.actionTitle, role: .destructive) {
+                    perform(confirmation)
+                }
             }
         } message: {
-            Text("Restores built-in profiles and shared rules. Profiles you created will be deleted.")
+            Text(confirmation?.message ?? "")
         }
     }
 
     private var selectedProfile: RefinementProfile? {
         container.profiles.profiles.first { $0.id == selection }
     }
+
+    private func nameBinding(for profile: RefinementProfile) -> Binding<String> {
+        Binding(
+            get: { container.profiles.profiles.first { $0.id == profile.id }?.name ?? profile.name },
+            set: { name in
+                guard var updated = container.profiles.profiles.first(where: { $0.id == profile.id }) else { return }
+                updated.name = name
+                container.profiles.update(updated)
+            }
+        )
+    }
+
+    private func setSymbol(_ symbol: String, for id: UUID) {
+        guard var updated = container.profiles.profiles.first(where: { $0.id == id }) else { return }
+        updated.symbol = symbol
+        container.profiles.update(updated)
+    }
+
+    private func finishRename(_ id: UUID) {
+        if var profile = container.profiles.profiles.first(where: { $0.id == id }),
+           profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            profile.name = "Untitled profile"
+            container.profiles.update(profile)
+        }
+        editingProfileID = nil
+    }
+
+    private func perform(_ action: ProfileConfirmation) {
+        switch action {
+        case .reset(let profile):
+            container.profiles.resetProfile(id: profile.id)
+        case .delete(let profile):
+            container.profiles.remove(id: profile.id)
+            selection = container.profiles.activeProfileID
+        case .resetAll:
+            container.profiles.resetAll()
+            selection = container.profiles.activeProfileID
+        }
+        editingProfileID = nil
+        confirmation = nil
+    }
+}
+
+private enum ProfileSheet: Identifiable {
+    case sharedRules
+    case prompt(RefinementProfile)
+
+    var id: String {
+        switch self {
+        case .sharedRules: "shared-rules"
+        case .prompt(let profile): "prompt-\(profile.id)"
+        }
+    }
+}
+
+private enum ProfileConfirmation {
+    case reset(RefinementProfile)
+    case delete(RefinementProfile)
+    case resetAll
+
+    var title: String {
+        switch self {
+        case .reset(let profile): "Reset “\(profile.name)” to its default?"
+        case .delete(let profile): "Delete “\(profile.name)”?"
+        case .resetAll: "Reset all profiles?"
+        }
+    }
+
+    var actionTitle: String {
+        switch self {
+        case .reset: "Reset profile"
+        case .delete: "Delete profile"
+        case .resetAll: "Reset all profiles"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .reset: "Your changes to this built-in profile will be replaced."
+        case .delete: "This cannot be undone."
+        case .resetAll: "Restores built-in profiles and shared rules. Profiles you created will be deleted."
+        }
+    }
 }
 
 private struct ProfileListRow: View {
     let profile: RefinementProfile
+    @Binding var name: String
     let active: Bool
     let selected: Bool
+    let editing: Bool
     let action: () -> Void
+    let finishRename: () -> Void
+    @FocusState private var nameFocused: Bool
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 9) {
-                Image(systemName: profile.symbol.isEmpty ? "text.alignleft" : profile.symbol)
-                    .font(.system(size: 14))
-                    .frame(width: 18)
-                    .accessibilityHidden(true)
-                Text(profile.name).font(.system(size: 13)).lineLimit(1)
-                Spacer(minLength: 2)
-                if active {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.secondary)
+        Group {
+            if editing {
+                row {
+                    TextField("Profile name", text: $name)
+                        .textFieldStyle(.plain)
+                        .focused($nameFocused)
+                        .accessibilityLabel("Profile name")
+                        .task {
+                            await Task.yield()
+                            nameFocused = true
+                        }
+                        .onSubmit { finishRename() }
+                        .onExitCommand { finishRename() }
+                        .onChange(of: nameFocused) { _, focused in
+                            if !focused { finishRename() }
+                        }
                 }
+                .background(Color.primary.opacity(0.09), in: RoundedRectangle(cornerRadius: 7))
+            } else {
+                Button(action: action) {
+                    row { Text(name.isEmpty ? "Untitled profile" : name).lineLimit(1) }
+                }
+                .buttonStyle(NavigationRowStyle(selected: selected))
+                .accessibilityLabel(name)
+                .accessibilityValue(active ? "Current dictation profile" : "")
+                .accessibilityAddTraits(selected ? .isSelected : [])
+                .help(active ? "\(name) · Current dictation profile" : name)
             }
-            .padding(.horizontal, 10)
-            .frame(height: 36)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(NavigationRowStyle(selected: selected))
-        .accessibilityLabel(profile.name)
-        .accessibilityValue(active ? "Current dictation profile" : "")
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .help(active ? "\(profile.name) · Current dictation profile" : profile.name)
+    }
+
+    private func row<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 9) {
+            Image(systemName: profile.symbol.isEmpty ? "text.alignleft" : profile.symbol)
+                .font(.system(size: 14))
+                .frame(width: 18)
+                .accessibilityHidden(true)
+            content().font(.system(size: 13))
+            Spacer(minLength: 2)
+            if active {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 36)
+        .contentShape(Rectangle())
     }
 }

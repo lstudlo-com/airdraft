@@ -104,27 +104,34 @@ The resolved prompt preview uses system monospaced text. SF Symbols supply icons
 do not substitute text glyphs. The native system font is intentional and must not
 be replaced with a web display font.
 
-Profile titles display up to two lines through a plain `Button`. Activating the
-title or Rename profile opens a focused inline `TextField`. Short list rows may
-truncate names, but their tooltip and accessibility label contain the full name.
+Profiles use the name in the selection list as their only visible title. New
+profile and Rename profile open a focused inline `TextField` in that list. Short
+rows may truncate names, but their tooltip and accessibility label contain the
+full name.
 
 ## Layout
 
-`Theme.swift` owns the spacing tokens above. The window has a 200-point sidebar,
-a 44-point toolbar and a minimum size of 900 by 600 points. Navigation rows use
+`Theme.swift` owns the spacing tokens above. The window has a 200-point sidebar
+and a minimum size of 900 by 600 points. Navigation rows use
 the documented component height and a 2-point gap. The sidebar separates daily
 destinations from Configuration and Models with space rather than headings.
 
 `PageScaffold` applies `pagePadding`, `sectionSpacing` and an 860-point maximum
-content width. Its sidebar toggle preserves space for the window controls when
+content width. It has no empty title row or divider. Search controls, where
+needed, appear at the top of the page content. The sidebar toggle sits at the
+window's top left, just after the macOS traffic lights, and remains there when
 the sidebar is collapsed. The sidebar moves with the existing 0.18-second
 ease-in-out transition.
 
+The selected microphone lives at the bottom of the sidebar, above the dictation
+word count. It opens the same microphone picker used elsewhere in the app. The
+word count is the last sidebar item.
+
 Profiles uses a fixed 164-point list, a divider and a flexible editor. The list
 and editor scroll independently. Profile rows are 36 points high and reuse the
-navigation selection style. Preserve the editor's wrapping title and reachable
-actions at the minimum window size; do not introduce mobile breakpoints into
-this macOS layout.
+navigation selection style. Keep the editor aligned with the selected row and
+its single action menu reachable at the minimum window size; do not introduce
+mobile breakpoints into this macOS layout.
 
 **The Card Owns Its Insets Rule.** Settings sections use `PageSection` and
 `SettingsCard`. `cardPadding` applies equally on all four sides. Rows inside a
@@ -157,16 +164,18 @@ not activate it.
 
 ### Profile editor
 
-Instructions lead. The optional Task uses `DisclosureGroup` and opens when a
-stored task is present. Turning refinement off replaces those fields with a
-short explanation of the remaining transcript processing.
+The selected profile's settings begin with Refine transcript. Instructions lead
+below it. The optional Task uses `DisclosureGroup` and opens when a stored task
+is present. Turning refinement off replaces those fields with a short
+explanation of the remaining transcript processing.
 
-Keep New profile visible in the page header. The profile header contains the
-icon menu, rename control, actions menu and current-profile status or Use profile
-button. The actions menu contains rename, duplicate, prompt preview and either
-built-in reset or custom-profile deletion. The page menu contains Shared rules
-and Reset all profiles. Preserve native disabled and destructive states and the
-existing confirmations.
+Keep New profile and one action menu above the list and editor. The menu
+contains selected-profile rename, icon, duplicate, prompt preview and either
+built-in reset or custom-profile deletion, followed by Shared rules and Reset
+all profiles. The list checkmark identifies the active dictation profile;
+an inactive selection shows Use profile beside the refinement switch. Do not
+repeat the page or selected-profile name as an editor heading. Preserve native
+disabled and destructive states and the existing confirmations.
 
 ### Text fields and sheets
 
