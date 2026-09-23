@@ -51,9 +51,11 @@ struct MenuView: View {
             .help("\(settings.asr.engineLabel) · \(fullSpeechStateLabel)")
         Text(llmSummary)
             .help(llmDetail)
-        Button("Unload models") {
-            container.models.unloadSpeechModels()
-            container.models.unloadLLM()
+        if canUnloadModels {
+            Button("Unload models") {
+                container.models.unloadSpeechModels()
+                container.models.unloadLLM()
+            }
         }
         Divider()
 
@@ -67,6 +69,7 @@ struct MenuView: View {
     }
 
     private var speechStateLabel: String {
+        if container.settings.asr.kind == .apple { return "Built in" }
         guard container.settings.asr.kind.isLocal else { return "Cloud" }
         switch container.engineStatus.state(for: container.settings.asr.engineID) {
         case .notLoaded: return "Not loaded"
@@ -77,8 +80,16 @@ struct MenuView: View {
     }
 
     private var fullSpeechStateLabel: String {
+        if container.settings.asr.kind == .apple { return "Built in" }
         guard container.settings.asr.kind.isLocal else { return "Cloud" }
         return container.engineStatus.state(for: container.settings.asr.engineID).label
+    }
+
+    private var canUnloadModels: Bool {
+        let asr = container.settings.asr
+        let speechLoaded = asr.kind.isLocal && asr.kind != .apple
+            && container.engineStatus.state(for: asr.engineID) == .ready
+        return speechLoaded || container.models.llmStatus.isLoaded
     }
 
     private var speechProviderLabel: String {
