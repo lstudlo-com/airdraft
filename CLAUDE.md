@@ -35,6 +35,11 @@ status table current.
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.
 
+- The native sidebar wordmark is a template SVG in `SidebarWordmark.imageset`.
+  Regenerate it with `swift scripts/render-sidebar-wordmark.swift`. Keep the
+  capsule, waveform and caret as unfilled strokes matched to the lettering stem;
+  keep the lowercase lettering as vector paths and the accessible name Airdraft.
+
 ## Rules
 
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as

@@ -105,6 +105,15 @@ The resolved prompt preview uses system monospaced text. SF Symbols supply icons
 do not substitute text glyphs. The native system font is intentional and must not
 be replaced with a web display font.
 
+The sidebar replaces its text title with the template SVG
+`SidebarWordmark.imageset/wordmark.svg`. On its 108-by-24-point canvas, an outlined
+capsule holds the app icon's five waveform strokes and separate caret on the
+left; lowercase `airdraft` glyph paths sit 8 points to the right. The lettering
+uses SF Pro Medium at 18 points, and the icon's 1.9752-point stroke matches the
+measured font stem. Use semantic primary color in light and dark appearances and
+the accessibility label `Airdraft`. Regenerate the asset from the repository root
+with `swift scripts/render-sidebar-wordmark.swift`.
+
 Profiles use the name in the selection list as their only visible title. New
 profile and Rename profile open a focused inline `TextField` in that list. Short
 rows may truncate names, but their tooltip and accessibility label contain the

@@ -141,8 +141,11 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Airdraft")
-                .font(.system(size: 15, weight: .semibold))
+            Image("SidebarWordmark")
+                .renderingMode(.template)
+                .foregroundStyle(.primary)
+                .accessibilityLabel("Airdraft")
+                .accessibilityIdentifier("sidebar.wordmark")
                 .padding(.horizontal, 10)
                 .padding(.top, 54)
                 .padding(.bottom, 20)
