@@ -15,7 +15,7 @@ The LLM is best-effort: a timeout or error inserts the raw transcript instead of
 ## App
 
 Menu-bar app with a Superwhisper-style main window (Home, Profiles, Vocabulary,
-Configuration, Models, History). Hold **⌥ Space** (default) to dictate; the
+Configuration, Models, History). Hold **⌃ ⌥** (Control + Option, default) to dictate; the
 recording pill appears at the bottom centre of the screen.
 
 - Shortcuts: key combinations register through Carbon and need no permission.
@@ -198,7 +198,7 @@ single-call thinking effort, so tool-free dictation does not offer them.
    can take a minute; the pill shows "Loading model".
 4. Models ▸ Refinement: preset "LM Studio (local)", pick the model from the list
    (`lms server start` first). Press "Test".
-5. Hold ⌥ Space (default), speak, release. Change the key under Configuration ▸
+5. Hold ⌃ ⌥ (Control + Option, default), speak, release. Change the key under Configuration ▸
    Keyboard Shortcuts ▸ "Record shortcut" and press the key or combination. A modifier
    on its own (Right ⌥, fn) also works but needs Accessibility; for fn set System
    Settings ▸ Keyboard ▸ "Press 🌐 key to" to "Do Nothing".

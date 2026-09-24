@@ -10,26 +10,35 @@ import os
 /// Main-thread only.
 final class EventTapHotkey {
     private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "hotkey")
-    var hotkey: Hotkey = .optionSpace { didSet { isDown = false } }
+    var hotkey: Hotkey = .controlOption { didSet { releaseHeldKey(reason: "shortcut changed") } }
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
     /// While true, events pass through untouched (used by the recorder UI).
-    var suspended = false
+    var suspended = false {
+        didSet {
+            if suspended { releaseHeldKey(reason: "monitor suspended") }
+        }
+    }
 
-    private(set) var isActive = false
+    var isActive: Bool {
+        guard let tap, CFMachPortIsValid(tap) else { return false }
+        return CGEvent.tapIsEnabled(tap: tap)
+    }
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var retryTimer: Timer?
-    private var isDown = false
+    private var pressState = HotkeyPressState()
 
     func start() {
-        guard tap == nil else { return }
+        guard tap == nil, retryTimer == nil else { return }
         if !createTap() {
             retryTimer?.invalidate()
-            retryTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+            let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
                 guard let self, self.tap == nil else { return }
                 if self.createTap() { self.retryTimer?.invalidate(); self.retryTimer = nil }
             }
+            RunLoop.main.add(timer, forMode: .common)
+            retryTimer = timer
         }
     }
 
@@ -37,10 +46,59 @@ final class EventTapHotkey {
         retryTimer?.invalidate()
         retryTimer = nil
         if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
-        if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
+        if let tap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            CFMachPortInvalidate(tap)
+        }
         source = nil
         tap = nil
-        isActive = false
+        releaseHeldKey(reason: "monitor stopped")
+    }
+
+    /// Also runs after wake through the service's common-mode health timer.
+    /// A cached "created successfully" flag cannot detect a disabled/dead tap.
+    func refresh(afterInterruption: Bool = false) {
+        guard let tap else { start(); return }
+        guard CFMachPortIsValid(tap) else {
+            Self.log.error("event tap invalid; recreating")
+            stop()
+            start()
+            return
+        }
+        let wasDisabled = !CGEvent.tapIsEnabled(tap: tap)
+        if wasDisabled || afterInterruption {
+            Self.log.notice("event tap disabled; re-enabling")
+            CGEvent.tapEnable(tap: tap, enable: true)
+            reconcileKeyState(afterInterruption: true)
+        }
+    }
+
+    private func reconcileKeyState(afterInterruption: Bool) {
+        guard !suspended, pressState.isDown else { return }
+        if let transition = pressState.reconcile(
+            afterInterruption: afterInterruption,
+            hotkey: hotkey,
+            modifierFlags: CGEventSource.flagsState(.combinedSessionState).rawValue,
+            keyIsDown: CGEventSource.keyState(.combinedSessionState, key: hotkey.keyCode)
+        ) {
+            Self.log.notice("recovered missed release for \(self.hotkey.displayString, privacy: .public)")
+            deliver(transition)
+        }
+    }
+
+    private func releaseHeldKey(reason: String) {
+        if let transition = pressState.reset() {
+            Self.log.notice("reset held shortcut: \(reason, privacy: .public)")
+            deliver(transition)
+        }
+    }
+
+    private func deliver(_ transition: HotkeyPressState.Transition?) {
+        switch transition {
+        case .pressed: onPress?()
+        case .released: onRelease?()
+        case nil: break
+        }
     }
 
     private func createTap() -> Bool {
@@ -75,52 +133,34 @@ final class EventTapHotkey {
         CGEvent.tapEnable(tap: tap, enable: true)
         self.tap = tap
         self.source = source
-        isActive = true
         Self.log.notice("event tap created")
         return true
     }
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+            Self.log.notice("event tap interrupted: type=\(type.rawValue, privacy: .public)")
+            refresh(afterInterruption: true)
             return Unmanaged.passUnretained(event)
         }
         guard !suspended else { return Unmanaged.passUnretained(event) }
 
-        let keyCode = UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode))
-        let flags = event.flags.rawValue & Hotkey.relevantModifierMask
-
-        if hotkey.isModifierOnly {
-            guard type == .flagsChanged, keyCode == hotkey.keyCode,
-                  let bit = Hotkey.modifierFlag(for: keyCode) else { return Unmanaged.passUnretained(event) }
-            let down = flags & bit != 0
-            if down, !isDown {
-                isDown = true
-                onPress?()
-            } else if !down, isDown {
-                isDown = false
-                onRelease?()
-            }
-            return Unmanaged.passUnretained(event)
-        }
-
-        guard keyCode == hotkey.keyCode else { return Unmanaged.passUnretained(event) }
+        let kind: HotkeyPressState.Event
         switch type {
-        case .keyDown:
-            guard flags == hotkey.modifiers else { return Unmanaged.passUnretained(event) }
-            let repeatFlag = event.getIntegerValueField(.keyboardEventAutorepeat)
-            if repeatFlag == 0, !isDown {
-                isDown = true
-                onPress?()
-            }
-            return nil // swallow
-        case .keyUp:
-            guard isDown else { return Unmanaged.passUnretained(event) }
-            isDown = false
-            onRelease?()
-            return nil
-        default:
-            return Unmanaged.passUnretained(event)
+        case .keyDown: kind = .keyDown
+        case .keyUp: kind = .keyUp
+        case .flagsChanged: kind = .flagsChanged
+        default: return Unmanaged.passUnretained(event)
         }
+        let result = pressState.handle(
+            kind,
+            hotkey: hotkey,
+            keyCode: UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode)),
+            flags: event.flags.rawValue,
+            isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
+            modifierKeyIsDown: CGEventSource.keyState(.combinedSessionState, key: hotkey.keyCode)
+        )
+        deliver(result.transition)
+        return result.consumesEvent ? nil : Unmanaged.passUnretained(event)
     }
 }

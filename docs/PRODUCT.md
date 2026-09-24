@@ -36,7 +36,7 @@ Added 2026-09-24:
 
 | Goal | State (2026-09-24) |
 |---|---|
-| 1 | Airdraft branding throughout the app, CLI and developer tools; compact Codex-inspired sidebar with monochrome symbols and quiet selection, a toggle beside the traffic lights, and a microphone picker above the bottom word count; content begins without an empty title row; native cards, key caps and theme/HUD previews; dark recording pill at bottom centre with Classic / Mini / None. Configuration and Models share equal 16-point card insets, 8-point heading gaps and 20-point section gaps; settings rows add no extra vertical inset. The menu bar keeps status labels compact and shows Unload models only when a managed model is loaded; full model details remain in the main window. Existing settings and data survive the rename. Onboarding still missing. |
+| 1 | Airdraft branding throughout the app, CLI and developer tools; compact Codex-inspired sidebar with monochrome symbols, quiet selection and a subtle half-point divider, a toggle beside the traffic lights, and a microphone picker above the bottom word count; content begins without an empty title row; native cards, key caps and theme/HUD previews; dark recording pill at bottom centre with Classic / Mini / None. Configuration and Models share equal 16-point card insets, 8-point heading gaps and 20-point section gaps; settings rows add no extra vertical inset. The menu bar keeps status labels compact and shows Unload models only when a managed model is loaded; full model details remain in the main window. Control + Option is the default hold-to-dictate shortcut; saved shortcuts are preserved. Existing settings and data survive the rename. Onboarding still missing. |
 | 2 | Done: `Transcriber` / `Refiner` protocols, `EngineFactory`, per-stage config. Ten speech engines kept (see `docs/model-atlas.html`); everything else was removed on purpose. |
 | 3 | Provider presets, `/models` picker, one-click anonymous model downloads. Codex and Claude Code discover their model lists and per-model thinking levels from the installed CLI; custom model IDs remain available. CLI model and effort choices survive provider switches. First-run onboarding not yet built. Refinement includes dedicated Cerebras and Groq options with separate Keychain keys, live model discovery, provider-specific reasoning parameters, and migration of the former Groq server preset. |
 | 4 | Done: `RefinementProfile` + `ProfileStore`; Profiles pairs a compact list with an open editor. The list provides the only profile title; the editor starts with Refine transcript, Instructions and optional Task. One menu holds profile actions, icon selection and shared rules. |
@@ -72,7 +72,7 @@ Standing requirement from Light, reaffirmed 2026-09-21:
 
 - Every UI change is rendered with `--render-window all` and looked at before it is reported.
 - Every pipeline change is exercised with `AIRDRAFT_SELFTEST=<wav>` and confirmed in the log and history.
-- Shortcut backends log their registration; "Carbon hotkey registered" must appear at start.
+- Shortcut backends log their registration. The default Control + Option shortcut uses the event tap and requires Accessibility; key combinations such as Option + Space use Carbon.
 
 ## Non-goals for now
 

@@ -1,11 +1,10 @@
 import Foundation
 
-/// A global hotkey: either a key plus modifiers (⌥ Space) or a single modifier
-/// key on its own (Right ⌥, fn), which is the most comfortable hold-to-talk key.
+/// A global hotkey: a key plus modifiers, a single modifier, or a modifier combination.
 public struct Hotkey: Codable, Sendable, Equatable, Hashable {
-    /// Virtual key code (kVK_*). For modifier-only hotkeys this is the modifier key itself.
+    /// Virtual key code (kVK_*). Ignored for modifier combinations.
     public var keyCode: UInt16
-    /// CGEventFlags raw value masked to ⌘ ⌥ ⌃ ⇧ fn. Zero for modifier-only hotkeys.
+    /// CGEventFlags masked to ⌘ ⌥ ⌃ ⇧ fn. Zero for a single modifier-only key.
     public var modifiers: UInt64
     public var isModifierOnly: Bool
 
@@ -15,7 +14,10 @@ public struct Hotkey: Codable, Sendable, Equatable, Hashable {
         self.isModifierOnly = isModifierOnly
     }
 
-    /// ⌥ Space, the default. Works through Carbon without any permission.
+    /// ⌃ ⌥, the default. Either side of each modifier works; requires Accessibility.
+    public static let controlOption = Hotkey(
+        keyCode: 0, modifiers: maskControl | maskAlternate, isModifierOnly: true)
+    /// ⌥ Space remains available as a custom shortcut.
     public static let optionSpace = Hotkey(keyCode: 49, modifiers: Hotkey.maskAlternate)
     public static let escape = Hotkey(keyCode: 53)
 
@@ -41,14 +43,14 @@ public struct Hotkey: Codable, Sendable, Equatable, Hashable {
 
     /// One label per key cap, modifiers first: ["⌥", "Space"] or ["Right ⌥"].
     public var keyCaps: [String] {
-        if isModifierOnly { return [Hotkey.modifierKeyName(keyCode)] }
+        if isModifierOnly && modifiers == 0 { return [Hotkey.modifierKeyName(keyCode)] }
         var caps: [String] = []
         if modifiers & Hotkey.maskSecondaryFn != 0 { caps.append("fn") }
         if modifiers & Hotkey.maskControl != 0 { caps.append("⌃") }
         if modifiers & Hotkey.maskAlternate != 0 { caps.append("⌥") }
         if modifiers & Hotkey.maskShift != 0 { caps.append("⇧") }
         if modifiers & Hotkey.maskCommand != 0 { caps.append("⌘") }
-        caps.append(Hotkey.keyName(keyCode))
+        if !isModifierOnly { caps.append(Hotkey.keyName(keyCode)) }
         return caps
     }
 

@@ -82,7 +82,8 @@ system appearance, including the accent shown in the live Save button.
 ### Neutral
 
 The main background is `NSColor.windowBackgroundColor`; the sidebar uses
-`NSVisualEffectView.Material.sidebar`. Text uses `.primary` and `.secondary`.
+`NSVisualEffectView.Material.sidebar`. Its content divider is 0.5 points wide
+with primary color at 0.06 opacity. Text uses `.primary` and `.secondary`.
 `NavigationRowStyle` applies `Color.primary` at 0.09 opacity for selection,
 0.045 for hover and 0.14 for a press.
 

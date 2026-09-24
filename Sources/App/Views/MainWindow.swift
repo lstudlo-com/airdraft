@@ -61,8 +61,8 @@ struct MainWindowView: View {
                     .background(VisualEffectView(material: .sidebar))
                     .overlay(alignment: .trailing) {
                         Rectangle()
-                            .fill(Color.primary.opacity(0.18))
-                            .frame(width: 1)
+                            .fill(Color.primary.opacity(0.06))
+                            .frame(width: 0.5)
                             .allowsHitTesting(false)
                     }
                     .transition(.move(edge: .leading))

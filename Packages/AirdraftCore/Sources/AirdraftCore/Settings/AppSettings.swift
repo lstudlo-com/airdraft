@@ -67,7 +67,7 @@ public final class AppSettings {
         }
         asr = Self.load("asr", from: defaults) ?? ASRConfig()
         llm = Self.load("llm", from: defaults) ?? LLMConfig()
-        hotkey = Self.load("hotkey", from: defaults) ?? .optionSpace
+        hotkey = Self.load("hotkey", from: defaults) ?? .controlOption
         hotkeyBehavior = Self.load("hotkeyBehavior", from: defaults) ?? .hold
         insertionMethod = Self.load("insertionMethod", from: defaults) ?? .auto
         useAppContext = Self.load("useAppContext", from: defaults) ?? true

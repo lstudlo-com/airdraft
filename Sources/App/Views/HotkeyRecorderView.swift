@@ -4,21 +4,23 @@ import SwiftUI
 
 /// Click "Change", press the key or combination, done. A modifier pressed and
 /// released on its own becomes a modifier-only hotkey (Right ⌥, fn).
+/// Multiple modifiers held together become a side-independent combination.
 struct HotkeyRecorderView: View {
     @Environment(AppContainer.self) private var container
     @State private var recording = false
     @State private var monitors: [Any] = []
     @State private var pendingModifier: UInt16?
+    @State private var pendingModifiers: UInt64 = 0
 
     var body: some View {
         HStack(spacing: 10) {
-            if container.settings.hotkey != .optionSpace, !recording {
-                Button { container.settings.hotkey = .optionSpace } label: {
+            if container.settings.hotkey != .controlOption, !recording {
+                Button { container.settings.hotkey = .controlOption } label: {
                     Image(systemName: "arrow.counterclockwise")
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .help("Reset to ⌥ Space")
+                .help("Reset to \(Hotkey.controlOption.displayString)")
             }
             if recording {
                 Text("Press a key or combination…  Esc cancels")
@@ -42,14 +44,21 @@ struct HotkeyRecorderView: View {
     private func start() {
         recording = true
         pendingModifier = nil
+        pendingModifiers = 0
         container.hotkeys.suspended = true
 
         let flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
             let code = event.keyCode
             guard let bit = Hotkey.modifierFlag(for: code) else { return nil }
-            let down = UInt64(event.modifierFlags.rawValue) & bit != 0
+            let mods = UInt64(event.modifierFlags.rawValue) & Hotkey.relevantModifierMask
+            if pendingModifiers.nonzeroBitCount > 1, mods & pendingModifiers != pendingModifiers {
+                finish(Hotkey(keyCode: 0, modifiers: pendingModifiers, isModifierOnly: true))
+                return nil
+            }
+            let down = mods & bit != 0
             if down {
                 pendingModifier = code
+                pendingModifiers = mods
             } else if pendingModifier == code {
                 finish(Hotkey(keyCode: code, isModifierOnly: true))
             }
@@ -77,6 +86,7 @@ struct HotkeyRecorderView: View {
         for m in monitors { NSEvent.removeMonitor(m) }
         monitors = []
         pendingModifier = nil
+        pendingModifiers = 0
         recording = false
         container.hotkeys.suspended = false
     }

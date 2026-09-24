@@ -29,7 +29,7 @@ final class HotkeyService {
     private let eventTap = EventTapHotkey()
     private let permissions: SystemPermissions
     private var pollTimer: Timer?
-    private(set) var hotkey: Hotkey = .optionSpace
+    private(set) var hotkey: Hotkey = .controlOption
 
     init(permissions: SystemPermissions) {
         self.permissions = permissions
@@ -59,9 +59,11 @@ final class HotkeyService {
         eventTap.start()
         backend = .eventTap
         refreshEventTapStatus()
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refreshEventTapStatus() }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        pollTimer = timer
     }
 
     var needsAccessibility: Bool {
@@ -79,6 +81,8 @@ final class HotkeyService {
     }
 
     private func refreshEventTapStatus() {
+        guard backend == .eventTap else { return }
+        eventTap.refresh()
         let active = eventTap.isActive
         if active != isActive {
             Self.log.notice("event tap active=\(active) key=\(self.hotkey.displayString)")
