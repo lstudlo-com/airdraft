@@ -57,8 +57,8 @@ struct MainWindowView: View {
                     openSettings: { activeOverlay = .settings }
                 )
                     .frame(width: Theme.sidebarWidth)
-                    // A small adjustment keeps the native blur; larger alpha cuts reveal sharp background text.
-                    .background(VisualEffectView(material: .sidebar).opacity(0.94))
+                    // Opacity here mixes sharp desktop pixels back over the native blur.
+                    .background(VisualEffectView(material: .sidebar))
                     .overlay(alignment: .trailing) {
                         Rectangle()
                             .fill(Color.primary.opacity(0.18))
