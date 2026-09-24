@@ -23,6 +23,28 @@ credentials, or history. Do not reset all apps' permissions or modify TCC.db.
 On a managed work Mac, an organization policy may control the setting; involve
 the administrator if it is locked or the above recovery fails.
 
+## Reset permissions and remove local app copies
+
+From the repository root, preview the exact bundles first:
+
+```sh
+swift scripts/purge-airdraft-apps.swift --dry-run
+```
+
+Then run `swift scripts/purge-airdraft-apps.swift` to quit running copies, reset
+Accessibility for the release and Debug bundle IDs, and remove verified Airdraft
+app bundles. It also handles the legacy Transcribar identity when that app is
+still installed. The script searches Applications, Xcode build products, and
+Spotlight results, and removes local copies under this user's home directory or
+`/Applications`. It does not touch models, history, settings, credentials,
+cloud storage, or other users' Accessibility permissions. An app in
+`/Applications` may also be used by other accounts. Run the script as the normal
+user, without `sudo`.
+
+Apple's per-bundle `tccutil` reset may not remove an older path-based entry from
+the Accessibility list. Remove any such entry manually in System Settings with
+the minus button. Do not edit TCC.db or reset other apps' permissions.
+
 Home and Configuration expose a setup sheet with the running app's location,
 Show in Finder, a live recheck, and Copy Diagnostics. Diagnostics include only
 OS/app versions, bundle ID, signing identity, permission status, and paths of
