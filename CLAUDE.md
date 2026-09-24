@@ -24,12 +24,51 @@ status table current.
 - `Sources/App` is the SwiftUI shell: `App/` (entry point, `AppContainer`, `ModelLifecycle`),
   `Hotkeys/`, `HUD/`, `Views/` (one file per page, shared components in `Theme.swift`),
   `Debug/` (offscreen renders, self-tests).
+- `apps/marketing` is the Astro marketing website, initialized from Cloudflare's
+  official Astro Framework Starter and deployed with Workers static assets.
+  Read its `PRODUCT.md` and `DESIGN.md` before changing content or design. JavaScript packages
+  use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
+  `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
+  `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
+  require those checks and desktop/mobile browser verification, not Xcode tests.
 - The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.
 
 ## Rules
 
+- Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
+  byte-for-byte replicas. Whenever documentation, Markdown, project behavior or
+  workflows change, update affected guidance in both files in the same change;
+  never update only one. Create, rename, move or remove both files together.
+  Verify that every pair matches before finishing or committing the change.
+- After completing and validating a requested fix or feature, make a local
+  conventional commit for that task unless the user asks to leave it uncommitted.
+  Stage only task-related files or hunks; preserve unrelated worktree changes.
+  If the task cannot be committed cleanly, explain why. Push or release only
+  when the user requests it.
+- Interface consistency is a product requirement. Native section cards must have
+  equal top, bottom, leading and trailing insets: `Theme.cardPadding` (16 pt).
+  Use `PageSection` and `SettingsCard` for settings sections, including Configuration
+  and Models. The card owns the outer padding; rows inside it must not add another
+  vertical inset. Use shared spacing tokens instead of page-specific values.
+  Page content must fill its available width after `Theme.pagePadding`; do not add
+  a left-aligned maximum width that strands section controls far from the window's
+  right edge. Section headings, their trailing controls and cards share one right
+  edge. Use `.settingsPicker(width:)` for native pickers in settings rows or section
+  headings so the visible picker aligns with that edge. Numeric settings with a
+  stepper must also support direct keyboard entry through `SettingsNumberStepper`.
+  Keep settings copy purposeful: do not add descriptions that merely restate the
+  selected provider, that a list is showing models, or other facts already obvious
+  from the control. Keep concise text when it changes a decision or explains an
+  actionable error, unavailable state, permission, or cost. Put related heading
+  actions immediately beside their selector rather than separating them with a
+  fixed-width invisible frame. Provider selection uses one compact picker, not
+  a grid of decorative provider cards. Profile list rows use names without icons.
+  Read the interface consistency rules in `docs/PRODUCT.md` and inspect light/dark
+  renders at minimum and wider window sizes, including lower sections. Check every
+  page for the same alignment and input pattern. For a released UI fix, verify the app built
+  from the committed release sources, not only the dirty workspace.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
@@ -65,6 +104,12 @@ status table current.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
 - Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
+- Passive credential access must never prompt. Badges use `Keychain.presence`;
+  reads distinguish missing from denied/locked. Only a selected-key Allow access
+  action may authorize reading. Use `CredentialEditor` for key fields; never report
+  Saved after a failed write or migrate over an inaccessible current item.
+  Keep the real signed-identity fixture test in `scripts/verify-keychain.py` in the
+  release gate. See `docs/keychain-access.md`.
 - The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
   `com.lightiichen.transcribar` preferences and credentials without overwriting current
   values. Keep `Application Support/Transcribar` for existing models and history.
@@ -80,6 +125,18 @@ status table current.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
 
+## Local releases
+
+Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
+hook builds committed sources locally for every origin/main push. The GitHub
+workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.
+Never override release signing with `CODE_SIGN_IDENTITY=-`. macOS permissions
+require a stable certificate-bound designated requirement; Sparkle signatures do
+not provide that identity. Keep `scripts/release-signing.json` pinned. Certificate
+or team changes need an explicit migration review, not an automatic fallback.
+Verify the app inside the DMG and run the real updater identity checks. Do not
+claim that signing tests prove permission continuity on an untested second Mac.
+
 ## Validation
 
 - Tests: `xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test`
@@ -94,6 +151,11 @@ status table current.
   Synthetic key events and screenshots from this shell do not work (no Accessibility /
   Screen Recording); do not rely on them. The user presses the real shortcut.
 - Use `/usr/bin/log`, not `log`: zsh has a `log` builtin.
+- `AVAudioEngineConfigurationChange` is not proof of a disconnected microphone:
+  output changes can trigger it too. Check the actual input route and format,
+  recover the same input without clearing captured samples, and leave the Core
+  Audio notification queue before engine operations. The microphone self-test
+  must check interruption callbacks and resumed capture, not sample count alone.
 - Keep `DEVELOPMENT_TEAM` in `project.yml`; ad-hoc signing breaks Accessibility on every rebuild.
 - MLX (Qwen3-ASR, Cohere) only works in Xcode-built products; `swift build` has no Metal library.
 - sherpa-onnx (FireRedASR2, SenseVoice) is linked through `Packages/SherpaOnnxKit`, whose
@@ -104,5 +166,6 @@ status table current.
 - speech-swift has no releases and is pinned to a revision in `Packages/AirdraftCore/Package.swift`.
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
-  SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer, OpenAI, Groq, ElevenLabs Scribe.
+  SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
+  ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
   Do not re-add the removed Whisper variants or Voxtral without a reason.
