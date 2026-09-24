@@ -57,9 +57,14 @@ struct MainWindowView: View {
                     openSettings: { activeOverlay = .settings }
                 )
                     .frame(width: Theme.sidebarWidth)
-                    .background(VisualEffectView(material: .sidebar))
+                    .background(VisualEffectView(material: .sidebar).opacity(0.62))
+                    .overlay(alignment: .trailing) {
+                        Rectangle()
+                            .fill(Color.primary.opacity(0.18))
+                            .frame(width: 1)
+                            .allowsHitTesting(false)
+                    }
                     .transition(.move(edge: .leading))
-                Divider().opacity(0.4)
             }
             ZStack {
                 Color(nsColor: .windowBackgroundColor)
