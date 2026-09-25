@@ -1,0 +1,157 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Button from "../components/ui/Button.astro";
+import Disclosure from "../components/ui/Disclosure.astro";
+import Section from "../components/ui/Section.astro";
+import Surface from "../components/ui/Surface.astro";
+import { paidPlan, siteLinks } from "../data/site";
+import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
+---
+
+<Layout
+  title="Pricing — Airdraft"
+  description="Airdraft is free to build from source. Cloud providers bill you directly, only if you use them."
+>
+  <SiteHeader />
+  <main id="main">
+    <Section
+      level={1}
+      first
+      title="Pricing"
+      intro="Airdraft is free to build from source. Cloud providers bill you directly, only if you use them."
+    >
+      <div class="plans">
+        <Surface as="article" class="plan">
+          <h2>Open source</h2>
+          <p class="plan-price">$0</p>
+          <ul class="plan-features">
+            <li>Every feature in the app</li>
+            <li>Local speech and refinement models</li>
+            <li>Your own API keys for cloud providers</li>
+            <li>Updates by pulling the repository</li>
+          </ul>
+          <Button
+            href={siteLinks.source}
+            variant="primary"
+            icon="external"
+            class="plan-action"
+          >
+            View on GitHub
+          </Button>
+        </Surface>
+
+        <Surface as="article" class="plan">
+          <h2>Supporter</h2>
+          <p class="plan-price">Any amount</p>
+          <ul class="plan-features">
+            <li>Pays for time spent on Airdraft</li>
+            <li>Unlocks nothing extra</li>
+          </ul>
+          {siteLinks.buyMeACoffee ? (
+            <Button
+              href={siteLinks.buyMeACoffee}
+              icon="external"
+              class="plan-action"
+            >
+              Buy me a coffee
+            </Button>
+          ) : (
+            <Button disabled class="plan-action">
+              Donations not set up yet
+            </Button>
+          )}
+        </Surface>
+
+        {paidPlan ? (
+          <Surface as="article" class="plan">
+            <h2>{paidPlan.name}</h2>
+            <p class="plan-price">
+              {paidPlan.price}
+              {paidPlan.period && <span> / {paidPlan.period}</span>}
+            </p>
+            <p class="plan-description">{paidPlan.description}</p>
+            <ul class="plan-features">
+              {paidPlan.features.map((feature) => (
+                <li>{feature}</li>
+              ))}
+            </ul>
+            <Button href={paidPlan.url} icon="right" class="plan-action">
+              {paidPlan.action}
+            </Button>
+          </Surface>
+        ) : (
+          <Surface as="article" variant="well" class="plan plan-pending">
+            <h2>Ready-to-run app</h2>
+            <p class="plan-price">Not announced</p>
+            <p class="plan-description">
+              The paid option: install it like any Mac app, no Xcode needed.
+              Price and date will be announced in the changelog.
+            </p>
+            <Button href="/changelog/" variant="quiet" icon="right">
+              Changelog
+            </Button>
+          </Surface>
+        )}
+      </div>
+    </Section>
+
+    <Section
+      id="provider-costs"
+      title="What cloud speech costs"
+      intro="Local models cost nothing to run. Cloud providers charge per audio hour on your own account."
+    >
+      <Surface variant="well" class="price-table-wrap">
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th scope="col">Provider</th>
+              <th scope="col" class="price-model-cell">
+                Default model
+              </th>
+              <th scope="col">Per audio hour</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cloudSpeechPrices.map((row) => (
+              <tr>
+                <th scope="row">
+                  {row.provider}
+                  <span class="price-model">{row.model}</span>
+                </th>
+                <td class="price-model-cell">{row.model}</td>
+                <td>{row.price}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Surface>
+      <p class="table-note">
+        List prices from Airdraft’s model catalogue, {catalogueDate}. Check the
+        provider before you rely on them.
+      </p>
+    </Section>
+
+    <Section id="pricing-questions" title="Questions" width="narrow">
+      <div class="question-list well">
+        <Disclosure summary="Is the open-source build limited?">
+          <p>No. There are no locked features.</p>
+        </Disclosure>
+        <Disclosure summary="What does refinement cost?">
+          <p>
+            Local refinement through LM Studio or Ollama is free. Cloud
+            refinement is billed per token by the provider you pick. Claude Code
+            and Codex use your existing subscription.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Do I need an API key?">
+          <p>
+            Only for cloud providers. Keys are stored in the macOS Keychain.
+          </p>
+        </Disclosure>
+      </div>
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

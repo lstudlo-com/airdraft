@@ -1,0 +1,16 @@
+---
+/** Recessed, non-interactive names: providers, requirements, profiles. */
+interface Props {
+  items: string[];
+  label?: string;
+  class?: string;
+}
+
+const { items, label, class: className } = Astro.props;
+---
+
+<ul class:list={["chips", className]} aria-label={label}>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>

@@ -1,0 +1,21 @@
+---
+import DisclosureIcon from "../DisclosureIcon.astro";
+
+/** A native question-and-answer row. Place several inside a `well` list. */
+interface Props {
+  summary: string;
+  open?: boolean;
+}
+
+const { summary, open = false } = Astro.props;
+---
+
+<details open={open}>
+  <summary>
+    {summary}
+    <DisclosureIcon />
+  </summary>
+  <div class="details-body">
+    <slot />
+  </div>
+</details>

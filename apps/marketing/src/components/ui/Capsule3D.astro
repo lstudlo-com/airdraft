@@ -1,0 +1,89 @@
+---
+import { capsule } from "../../data/icon";
+
+/**
+ * The icon's capsule as real CSS 3D geometry: a raised ring whose groove is an
+ * actual opening, and waveform bars that stand up from the groove floor.
+ * Place it inside an element with `transform-style: preserve-3d`.
+ *
+ * Each bar's height is `--lift` (px). The shared voice script
+ * (src/scripts/voice.ts) raises it while the visitor moves or scrolls;
+ * `--rise` (0–1) scales every bar, for entrance animations.
+ */
+interface Props {
+  /** px per icon point. */
+  scale: number;
+  /** Height of the ring above its base, px. */
+  lift: number;
+  /** Bar height for the quietest and loudest bar, px. */
+  rise: [number, number];
+  /** Slices per bar; more slices keep tall bars solid. */
+  slices: number;
+  /** Extra px the loudest bar gains at full voice. */
+  voice: number;
+  /** Bars lean toward the pointer's horizontal position. */
+  follow?: boolean;
+  /** A soft shadow cast onto the surface below. */
+  cast?: boolean;
+  class?: string;
+}
+
+const {
+  scale,
+  lift,
+  rise,
+  slices,
+  voice,
+  follow = false,
+  cast = false,
+  class: className,
+} = Astro.props;
+const shape = capsule(scale);
+const floor = 0.6;
+const ringSlices = Math.max(2, Math.round(lift));
+const box = (left: number, top: number, width: number, height: number) =>
+  `left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px;`;
+---
+
+<div
+  class:list={["capsule3d", className]}
+  style={`width: ${shape.width}px; height: ${shape.height}px; --ring: ${shape.ring}px; --pill-radius: ${shape.height / 2}px; --floor: ${floor}px;`}
+  data-waveform
+  data-voice={voice}
+  data-follow={follow ? "" : undefined}
+>
+  {cast && <span class="c-cast" style="--z: 0.2px" />}
+  <span class="c-floor" style={`--z: ${floor}px`}></span>
+  {Array.from({ length: ringSlices }, (_, index) => (
+    <span
+      class="c-ring"
+      style={`--z: ${(((index + 1) / ringSlices) * lift).toFixed(2)}px`}
+    />
+  ))}
+  <span class="c-ring c-ring-top" style={`--z: ${lift + 0.1}px`}></span>
+  {shape.marks.map((mark, index) => {
+    const base =
+      rise[0] + (rise[1] - rise[0]) * mark.level + (mark.caret ? 2 : 0);
+    return (
+      <span
+        class:list={["c-bar", mark.caret && "c-caret"]}
+        style={`${box(mark.x, (shape.height - mark.length) / 2, shape.barWidth, mark.length)} --lift: ${base.toFixed(1)}px; --c: ${mark.bottom}; --top: ${mark.top}; --bottom: ${mark.bottom};`}
+        data-bar
+        data-index={index}
+        data-base={base.toFixed(1)}
+      >
+        {Array.from({ length: slices }, (_, slice) => (
+          <span
+            class="c-slice"
+            style={`--k: ${((slice + 1) / slices).toFixed(3)}`}
+          />
+        ))}
+        <span class="c-bar-top" />
+      </span>
+    );
+  })}
+</div>
+
+<script>
+  import "../../scripts/voice";
+</script>

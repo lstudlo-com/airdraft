@@ -1,0 +1,29 @@
+---
+/**
+ * The app's recording indicator (IndicatorPanel): white waveform bars, then a
+ * timer or a state such as Decoding or Refining. Decorative, so hidden from
+ * assistive technology. Pass `levels` (0–1) for a still frame.
+ */
+interface Props {
+  label?: string;
+  levels?: number[];
+  class?: string;
+}
+
+const {
+  label = "0:00.0",
+  levels = Array.from({ length: 14 }, () => 0.14),
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={["hud", className]} aria-hidden="true" data-hud>
+  <span class="hud-bars">
+    {levels.map((level) => (
+      <span style={`--level: ${level}`} />
+    ))}
+  </span>
+  <span class="hud-label" data-hud-label>
+    {label}
+  </span>
+</div>

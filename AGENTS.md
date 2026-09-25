@@ -26,7 +26,8 @@ status table current.
   `Debug/` (offscreen renders, self-tests).
 - `apps/marketing` is the Astro marketing website, initialized from Cloudflare's
   official Astro Framework Starter and deployed with Workers static assets.
-  Read its `PRODUCT.md` and `DESIGN.md` before changing content or design. JavaScript packages
+  Read its `PRODUCT.md` and `DESIGN.md` before changing content or design, and
+  build pages from its reusable components in `src/components/ui/`. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
@@ -34,8 +35,15 @@ status table current.
 - The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.
+  `swift scripts/render-app-icon-variants.swift [dir]` renders candidate icons and a comparison
+  sheet (current icon first, with 64, 32 and 16 px sizes) to a scratch directory without touching the
+  asset catalogue; port the chosen variant into `render-app-icon.swift`. The icon script also
+  writes the website's `airdraft-icon.png` and `favicon.png`. After changing the icon, run
+  `uv run apps/marketing/scripts/render-brand.py` (coloured capsule SVGs) and update
+  `apps/marketing/src/data/icon.ts`, which the website's 3D hero object is built from.
 
-- The native sidebar wordmark is a template SVG in `SidebarWordmark.imageset`.
+- The native sidebar wordmark is a template SVG in `SidebarWordmark.imageset`. The website's
+  logo (`apps/marketing/src/components/ui/Brand.astro`) reads the same file at build time.
   Regenerate it with `swift scripts/render-sidebar-wordmark.swift`. Keep the
   capsule, waveform and caret as unfilled strokes matched to the lettering stem;
   keep the lowercase lettering as vector paths and the accessible name Airdraft.

@@ -1,0 +1,49 @@
+$schema: https://moonrepo.dev/schemas/project.json
+
+language: typescript
+layer: application
+
+tasks:
+  dev:
+    description: Start the Astro marketing website locally.
+    command: pnpm run dev
+    toolchains: system
+    options:
+      cache: false
+      persistent: true
+      runInCI: false
+
+  build:
+    description: Build the static marketing website for Cloudflare Workers.
+    command: pnpm run build
+    toolchains: system
+    inputs:
+      - src/**/*
+      - public/**/*
+      - astro.config.mjs
+      - tsconfig.json
+      - package.json
+      - /pnpm-lock.yaml
+      - /pnpm-workspace.yaml
+      - /package.json
+      - /.prototools
+      - $SITE_URL
+    outputs:
+      - dist
+
+  check:
+    description: Check Astro types and website formatting.
+    command: pnpm run check
+    toolchains: system
+    options:
+      cache: false
+
+  preview:
+    description: Build and serve the website in Cloudflare's local runtime.
+    command: pnpm run preview
+    toolchains: system
+    deps: [build]
+    options:
+      cache: false
+      persistent: true
+      runInCI: false

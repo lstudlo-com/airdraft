@@ -1,0 +1,51 @@
+---
+/**
+ * A page section: a heading, an optional one-line intro, then content.
+ * `level={1}` with `first` makes it a page header (no section gap above).
+ */
+interface Props {
+  id?: string;
+  title: string;
+  intro?: string;
+  level?: 1 | 2;
+  first?: boolean;
+  width?: "default" | "narrow";
+  class?: string;
+}
+
+const {
+  id,
+  title,
+  intro,
+  level = 2,
+  first = false,
+  width = "default",
+  class: className,
+} = Astro.props;
+const headingId = `${
+  id ??
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}-heading`;
+const Heading = level === 1 ? "h1" : "h2";
+---
+
+<section
+  class:list={[
+    "section",
+    "wrap",
+    first ? "section-first" : "section-space",
+    width === "narrow" && "section-narrow",
+    className,
+  ]}
+  id={id}
+  aria-labelledby={headingId}
+>
+  <div class="section-heading">
+    <Heading id={headingId}>{title}</Heading>
+    {intro && <p>{intro}</p>}
+  </div>
+  <slot />
+</section>

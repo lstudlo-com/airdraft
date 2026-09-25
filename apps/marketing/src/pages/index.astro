@@ -1,0 +1,224 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Arrow from "../components/Arrow.astro";
+import DictationPreview from "../components/DictationPreview.astro";
+import GetAirdraft from "../components/GetAirdraft.astro";
+import HeroPlateau from "../components/HeroPlateau.astro";
+import PipelineStory from "../components/PipelineStory.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import BentoTile from "../components/ui/BentoTile.astro";
+import Button from "../components/ui/Button.astro";
+import Hud from "../components/ui/Hud.astro";
+import Keys from "../components/ui/Keys.astro";
+import Section from "../components/ui/Section.astro";
+import { siteLinks } from "../data/site";
+
+// Illustrative outputs for the bento graphics (decorative, sample text).
+const spoken = "Um, tell Maya the, uh, draft is coming tomorrow.";
+const outputs = [
+  "Tell Maya the draft is coming tomorrow.",
+  "Draft to Maya tomorrow.",
+  "Maya gets the draft tomorrow.",
+  spoken,
+];
+const profiles = ["Clean", "Concise", "Summary", "Verbatim"];
+const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
+---
+
+<Layout>
+  <SiteHeader />
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-heading" data-hero>
+      <!-- Exactly one screen tall at every size: the first view is the object
+           and the copy, nothing else. -->
+      <div class="hero-stage">
+        <HeroPlateau />
+        <div class="hero-copy" data-hero-copy>
+          <h1 id="hero-heading">
+            <span>The Mac transcription app</span> <span>you own.</span>
+          </h1>
+          <div class="hero-actions">
+            <Button href="/pricing/" variant="primary" size="lg" icon="right">
+              Get Airdraft
+            </Button>
+            <Button href={siteLinks.source} size="lg" icon="external">
+              View source
+            </Button>
+            <Button href="#try" variant="quiet" icon="down">
+              Try the sample
+            </Button>
+          </div>
+          <ul class="hero-meta">
+            <li>Open source</li>
+            <li>macOS 15+ on Apple silicon</li>
+          </ul>
+        </div>
+      </div>
+
+      <DictationPreview />
+    </section>
+
+    <Section id="features" title="What Airdraft handles for you">
+      <div class="bento">
+        <BentoTile
+          wide
+          art="cursor"
+          title="Inserts at your cursor"
+          caption="In whatever app you’re typing in."
+        >
+          <div class="art-cursor">
+            <div class="art-field">
+              <p data-typed>
+                Hi Maya, I’ll send the draft tomorrow morning.
+                <span class="caret"></span>
+              </p>
+            </div>
+            <Hud label="Refining" levels={hudLevels} class="art-hud" />
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="shortcut"
+          title="One shortcut"
+          caption="Hold ⌃⌥, or record your own."
+        >
+          <Keys keys={["⌃", "⌥"]} label="Control Option" size="xl" />
+        </BentoTile>
+
+        <BentoTile
+          art="profiles"
+          title="Profiles"
+          caption="Four built in. Rewrite any of them."
+        >
+          <div class="art-profiles" data-outputs={JSON.stringify(outputs)}>
+            <ul class="profile-picker">
+              {profiles.map((profile, index) => (
+                <li class:list={[index === 0 && "is-selected"]}>{profile}</li>
+              ))}
+            </ul>
+            <p class="art-output" data-output>
+              {outputs[0]}
+            </p>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="vocabulary"
+          title="Your vocabulary"
+          caption="Teach it names and jargon once."
+        >
+          <div class="art-vocab">
+            <span class="art-wrong" data-wrong>
+              cooper tino
+            </span>
+            <Arrow direction="down" />
+            <span class="chip-strong art-right" data-right>
+              Cupertino
+            </span>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="history"
+          title="History"
+          caption="Search it, flip to the original, copy."
+        >
+          <div
+            class="art-deck"
+            data-texts={JSON.stringify([outputs[0], spoken])}
+          >
+            <span class="art-card art-card-back"></span>
+            <span class="art-card art-card-mid"></span>
+            <div class="art-card art-card-front">
+              <ul class="profile-picker art-toggle">
+                <li class="is-selected">Refined</li>
+                <li>Original</li>
+              </ul>
+              <p data-history>{outputs[0]}</p>
+            </div>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="fallback"
+          title="Nothing is lost"
+          caption="If cleanup fails, the raw text goes in."
+        >
+          <div class="art-fallback">
+            <span class="chip-muted" data-status>
+              Refinement failed
+            </span>
+            <div class="art-field">
+              <p data-typed>
+                {spoken}
+                <span class="caret"></span>
+              </p>
+            </div>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          wide
+          art="privacy"
+          id="privacy"
+          title="Stays on your Mac"
+          caption="With local models, nothing leaves. Keys live in the Keychain."
+        >
+          <div class="art-privacy">
+            <div class="art-mac">
+              <span class="art-mac-label">This Mac</span>
+              <div class="art-flow">
+                <span class="art-node">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6.5 9a6.5 6.5 0 0 0 13 0M12 18.5V21"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                    ></path>
+                  </svg>
+                </span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">Speech</span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">Refinement</span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">
+                  <span class="caret"></span>
+                </span>
+              </div>
+            </div>
+            <div class="art-cloud">
+              <span class="art-cloud-link"></span>
+              <span class="chip-muted">Cloud, if you choose</span>
+            </div>
+          </div>
+        </BentoTile>
+      </div>
+    </Section>
+
+    <PipelineStory />
+
+    <GetAirdraft />
+  </main>
+
+  <SiteFooter />
+</Layout>
+
+<script>
+  import "../scripts/story";
+</script>

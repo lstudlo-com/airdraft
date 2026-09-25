@@ -1,0 +1,61 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Arrow from "../components/Arrow.astro";
+import { changelog } from "../data/changelog";
+
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00Z`));
+---
+
+<Layout
+  title="Changelog — Airdraft"
+  description="Changes to Airdraft, newest first. Unreleased work is marked as unreleased."
+>
+  <SiteHeader />
+  <!-- Read mode: dated, source-grounded entries on the shared silver surface. -->
+  <main id="main" class="changelog wrap">
+    <div class="changelog-intro">
+      <h1>Changelog</h1>
+    </div>
+    <div class="changelog-entries">
+      {changelog.map((entry) => (
+        <article class="changelog-entry" aria-labelledby={entry.id}>
+          <div class="entry-meta">
+            {entry.date ? (
+              <time datetime={entry.date}>{formatDate(entry.date)}</time>
+            ) : (
+              <span class="unreleased-label">Unreleased</span>
+            )}
+          </div>
+          <div class="entry-content">
+            <h2 id={entry.id}>
+              <a href={`#${entry.id}`}>{entry.title}</a>
+            </h2>
+            <p class="entry-summary">{entry.summary}</p>
+            <ul class="change-list">
+              {entry.changes.map((change) => (
+                <li>
+                  <h3>{change.title}</h3>
+                  <p>{change.description}</p>
+                </li>
+              ))}
+            </ul>
+            {entry.source && (
+              <a class="text-link entry-source" href={entry.source.url}>
+                {entry.source.label} <Arrow direction="external" />
+              </a>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </main>
+  <SiteFooter />
+</Layout>

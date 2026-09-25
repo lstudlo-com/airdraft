@@ -1,0 +1,84 @@
+---
+import Arrow from "./Arrow.astro";
+import Button from "./ui/Button.astro";
+import Hud from "./ui/Hud.astro";
+---
+
+<section
+  class="preview panel"
+  id="try"
+  aria-labelledby="preview-heading"
+  data-preview
+>
+  <div class="preview-head">
+    <h2 id="preview-heading">Try a sample dictation</h2>
+    <span class="tag preview-tag">Sample</span>
+  </div>
+  <div class="preview-stage">
+    <div class="spoken well">
+      <span class="field-label">What you said</span>
+      <p data-spoken>
+        “<span class="filler struck">Um,</span> let Maya know I’ll send the
+        draft tomorrow morning. <span class="filler struck">And, uh,</span> ask
+        if we can move our check-in to two.”
+      </p>
+    </div>
+    <span class="stage-arrow" aria-hidden="true">
+      <Arrow />
+    </span>
+    <div class="written" data-written>
+      <span class="field-label">What Airdraft inserts</span>
+      <div class="result-copy" aria-live="polite" data-result>
+        <p>
+          Hi Maya, I’ll send the draft tomorrow morning. Could we move our
+          check-in to two?<span class="caret" aria-hidden="true"></span>
+        </p>
+      </div>
+      <div
+        class="profile-picker"
+        role="group"
+        aria-label="Refinement profile"
+        data-profile-picker
+        hidden
+      >
+        <button type="button" data-profile="clean" aria-pressed="true">
+          Clean
+        </button>
+        <button type="button" data-profile="concise" aria-pressed="false">
+          Concise
+        </button>
+        <button type="button" data-profile="summary" aria-pressed="false">
+          Summary
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="preview-controls">
+    <Button class="run-button" data-play hidden>
+      <svg
+        slot="icon"
+        class="play-symbol"
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+      </svg>
+      <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
+      <span data-play-label>Run sample</span>
+    </Button>
+    <Hud />
+    <p class="preview-status" aria-live="polite" data-status></p>
+  </div>
+  <noscript>
+    <p class="no-script-note">
+      Showing the Clean profile. Turn on JavaScript to run the sample.
+    </p>
+  </noscript>
+</section>
+
+<script>
+  import "../scripts/preview";
+</script>

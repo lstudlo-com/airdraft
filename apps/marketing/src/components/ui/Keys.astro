@@ -1,0 +1,16 @@
+---
+/** Keycaps for a shortcut, e.g. `keys={["⌃", "⌥"]} label="Control Option"`. */
+interface Props {
+  keys: string[];
+  label: string;
+  size?: "md" | "lg" | "xl";
+}
+
+const { keys, label, size = "md" } = Astro.props;
+---
+
+<span class:list={["keys", size !== "md" && `keys-${size}`]} aria-label={label}>
+  {keys.map((key) => (
+    <kbd aria-hidden="true">{key}</kbd>
+  ))}
+</span>

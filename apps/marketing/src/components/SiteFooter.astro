@@ -1,0 +1,26 @@
+---
+import Brand from "./ui/Brand.astro";
+import { license, siteLinks } from "../data/site";
+
+const links = [
+  { href: siteLinks.source, label: "GitHub" },
+  { href: siteLinks.build, label: "Build instructions" },
+  { href: "/pricing/", label: "Pricing" },
+  { href: "/support/", label: "Support" },
+  { href: "/support/#fund", label: "Donate" },
+  { href: "/changelog/", label: "Changelog" },
+  { href: "/#privacy", label: "Privacy" },
+  ...(license ? [{ href: license.url, label: license.name }] : []),
+];
+---
+
+<footer class="site-footer wrap">
+  <a class="brand" href="/" aria-label="Airdraft home">
+    <Brand size="sm" />
+  </a>
+  <nav class="footer-links" aria-label="Footer">
+    {links.map((link) => (
+      <a href={link.href}>{link.label}</a>
+    ))}
+  </nav>
+</footer>

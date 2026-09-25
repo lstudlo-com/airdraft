@@ -1,0 +1,54 @@
+---
+// The app's own outlined wordmark: capsule, waveform and caret as strokes, then
+// "airdraft" as outlined lettering. Read straight from the asset catalogue so
+// the website and the app never drift; regenerate it with
+// scripts/render-sidebar-wordmark.swift.
+import wordmark from "../../../../../Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg?raw";
+
+/**
+ * The Airdraft logo. Drawn in the current text colour. The waveform strokes
+ * listen to the shared voice (src/scripts/voice.ts) and lift a little when the
+ * visitor moves, scrolls, or hovers the logo; the caret stays still.
+ */
+interface Props {
+  size?: "md" | "sm";
+}
+
+const { size = "md" } = Astro.props;
+
+// Split the waveform path into one path per stroke so each bar can move.
+const svg = wordmark
+  .replace(/<title>[\s\S]*?<\/title>\s*/, "")
+  .replace(/<!--[\s\S]*?-->\s*/g, "")
+  .replace(/ width="[\d.]+" height="[\d.]+"/, "")
+  .replace(
+    "<svg ",
+    `<svg class="brand-wordmark" aria-hidden="true" focusable="false" data-waveform data-voice="1" `,
+  )
+  .replaceAll('"#000"', '"currentColor"')
+  .replace(/<path d="(M[^"]+)"\/>/, (_, data: string) => {
+    const strokes = data.trim().split(/\s(?=M)/);
+    return strokes
+      .map((stroke, index) =>
+        index < strokes.length - 1
+          ? `<path class="brand-bar" d="${stroke}" data-bar data-index="${index}" data-base="0"/>`
+          : `<path class="brand-caret" d="${stroke}"/>`,
+      )
+      .join("");
+  });
+---
+
+<span
+  class:list={["brand-lockup", size === "sm" && "brand-lockup-sm"]}
+  data-brand
+>
+  <Fragment set:html={svg} />
+</span>
+
+<script>
+  import { pulse } from "../../scripts/voice";
+
+  for (const brand of document.querySelectorAll<HTMLElement>("[data-brand]")) {
+    brand.addEventListener("pointerenter", () => pulse(0.7));
+  }
+</script>

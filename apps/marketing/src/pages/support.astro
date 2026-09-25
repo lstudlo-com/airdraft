@@ -1,0 +1,111 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Button from "../components/ui/Button.astro";
+import Disclosure from "../components/ui/Disclosure.astro";
+import Section from "../components/ui/Section.astro";
+import Surface from "../components/ui/Surface.astro";
+import { siteLinks } from "../data/site";
+---
+
+<Layout
+  title="Support — Airdraft"
+  description="Fix common Airdraft problems, report a bug, or help fund development."
+>
+  <SiteHeader />
+  <main id="main">
+    <Section level={1} first title="Support" width="narrow">
+      <div class="question-list well">
+        <Disclosure summary="Nothing appears after I let go">
+          <p>
+            Airdraft needs Accessibility to insert text. Turn it on in System
+            Settings ▸ Privacy & Security ▸ Accessibility.
+          </p>
+          <p>
+            If you rebuilt the app with different signing, the old grant no
+            longer applies. Run{" "}
+            <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>,
+            then grant it again.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Nothing is recorded">
+          <p>
+            Allow Microphone when macOS asks. Choose the input from the window
+            toolbar, the menu bar, or Configuration ▸ Microphone.
+          </p>
+        </Disclosure>
+        <Disclosure summary="The first dictation takes a minute">
+          <p>
+            After a model downloads, its first run compiles it for the Neural
+            Engine. The recording pill shows “Loading model” until it’s ready.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Local refinement is slow">
+          <p>
+            Reasoning models can think for 10 to 60 seconds before a one-line
+            cleanup. Keep “Disable model thinking” on.
+          </p>
+        </Disclosure>
+        <Disclosure summary="The fn key doesn’t work as a shortcut">
+          <p>
+            Set System Settings ▸ Keyboard ▸ “Press 🌐 key to” to “Do Nothing”.
+            Shortcuts made of a single modifier key also need Accessibility.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Chinese comes out in the wrong script">
+          <p>Choose the script in Models ▸ Speech options ▸ Chinese script.</p>
+        </Disclosure>
+      </div>
+      <div class="support-actions">
+        <Button href={siteLinks.issues} icon="external">
+          Open an issue
+        </Button>
+        <Button href={siteLinks.build} variant="quiet" icon="external">
+          Build instructions
+        </Button>
+      </div>
+    </Section>
+
+    <Section id="fund" title="Help fund Airdraft" width="narrow">
+      <Surface class="fund-panel">
+        <div>
+          <h3>Donate</h3>
+          <p>A one-off contribution toward development time.</p>
+        </div>
+        {siteLinks.buyMeACoffee ? (
+          <Button
+            href={siteLinks.buyMeACoffee}
+            variant="primary"
+            icon="external"
+          >
+            Buy me a coffee
+          </Button>
+        ) : (
+          <Button disabled>Not set up yet</Button>
+        )}
+      </Surface>
+      <ul class="fund-list">
+        <li>
+          <div>
+            <h3>Star the repository</h3>
+            <p>It helps other Mac users find the project.</p>
+          </div>
+          <Button href={siteLinks.source} variant="quiet" icon="external">
+            GitHub
+          </Button>
+        </li>
+        <li>
+          <div>
+            <h3>Report bugs, suggest models</h3>
+            <p>Include your macOS version and which engines you use.</p>
+          </div>
+          <Button href={siteLinks.issues} variant="quiet" icon="external">
+            Issues
+          </Button>
+        </li>
+      </ul>
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

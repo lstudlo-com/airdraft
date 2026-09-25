@@ -1,0 +1,107 @@
+---
+// Component reference for the site's design system. Not linked, not indexed.
+import Layout from "../layouts/Layout.astro";
+import Button from "../components/ui/Button.astro";
+import Chips from "../components/ui/Chips.astro";
+import Disclosure from "../components/ui/Disclosure.astro";
+import Hud from "../components/ui/Hud.astro";
+import Keys from "../components/ui/Keys.astro";
+import Section from "../components/ui/Section.astro";
+import Surface from "../components/ui/Surface.astro";
+---
+
+<Layout title="Components — Airdraft" noindex>
+  <main id="main">
+    <Section
+      level={1}
+      first
+      title="Components"
+      intro="Everything in src/components/ui, in each state."
+    >
+      <div class="ds-group">
+        <h2>Button</h2>
+        <div class="ds-row">
+          <Button variant="primary" size="lg" icon="external" href="#">
+            Primary, large
+          </Button>
+          <Button variant="primary" icon="right" href="#">
+            Primary
+          </Button>
+          <Button size="lg" icon="external" href="#">
+            Secondary, large
+          </Button>
+          <Button icon="right">Secondary button</Button>
+          <Button variant="quiet" icon="right" href="#">
+            Quiet
+          </Button>
+          <Button disabled>Disabled</Button>
+          <Button iconOnly label="Icon only" href="#">
+            <svg
+              slot="icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              ></path>
+            </svg>
+          </Button>
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>Surface</h2>
+        <div class="ds-grid">
+          <Surface class="ds-sample">
+            <h3>Panel</h3>
+          </Surface>
+          <Surface variant="well" class="ds-sample">
+            <h3>Well</h3>
+          </Surface>
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>Chips, keys, tag</h2>
+        <div class="ds-row">
+          <Chips items={["Qwen3-ASR", "Soniox", "LM Studio"]} />
+          <Keys keys={["⌃", "⌥"]} label="Control Option" />
+          <Keys keys={["⌃", "⌥"]} label="Control Option" size="lg" />
+          <span class="tag">Sample</span>
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>HUD</h2>
+        <div class="ds-row">
+          <Hud
+            label="0:03.5"
+            levels={[
+              0.2, 0.5, 0.9, 0.6, 1, 0.7, 0.4, 0.8, 0.5, 0.3, 0.6, 0.4, 0.2,
+              0.14,
+            ]}
+          />
+          <Hud label="Refining" />
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>Disclosure</h2>
+        <div class="question-list well">
+          <Disclosure summary="A question" open>
+            <p>The answer, in one or two sentences.</p>
+          </Disclosure>
+          <Disclosure summary="Another question">
+            <p>Closed by default.</p>
+          </Disclosure>
+        </div>
+      </div>
+    </Section>
+  </main>
+</Layout>

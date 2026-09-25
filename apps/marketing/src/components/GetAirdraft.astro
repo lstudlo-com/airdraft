@@ -1,0 +1,91 @@
+---
+import Button from "./ui/Button.astro";
+import Surface from "./ui/Surface.astro";
+import { paidPlan, siteLinks } from "../data/site";
+
+/**
+ * The close: every way to get Airdraft, side by side. The ready-to-run app is
+ * the paid option; until src/data/site.ts has a real `paidPlan`, it says so
+ * and sends visitors to the pricing page. Donations show a disabled key until
+ * the Buy Me a Coffee URL is set.
+ */
+---
+
+<section
+  class="section wrap section-space get"
+  id="get-airdraft"
+  aria-labelledby="get-heading"
+>
+  <div class="section-heading">
+    <h2 id="get-heading">Get Airdraft</h2>
+    <p>
+      Free to build from source. The paid option is a ready-to-run app, so you
+      don’t need Xcode.
+    </p>
+  </div>
+
+  <div class="offers">
+    <Surface as="article" class="offer" data-offer="">
+      <h3>Build it yourself</h3>
+      <p class="offer-price">Free</p>
+      <p class="offer-note">
+        Every feature. Needs Xcode on an Apple silicon Mac.
+      </p>
+      <Button href={siteLinks.build} icon="external" class="offer-action">
+        Build instructions
+      </Button>
+    </Surface>
+
+    <Surface as="article" class="offer offer-featured" data-offer="">
+      <h3>{paidPlan?.name ?? "Ready-to-run app"}</h3>
+      <p class="offer-price">
+        {paidPlan ? paidPlan.price : "Coming"}
+        {paidPlan?.period && <span> / {paidPlan.period}</span>}
+      </p>
+      <p class="offer-note">
+        {paidPlan?.description ??
+          "Install it like any Mac app. Price and date aren’t announced yet."}
+      </p>
+      {paidPlan ? (
+        <Button
+          href={paidPlan.url}
+          variant="primary"
+          size="lg"
+          icon="right"
+          class="offer-action"
+        >
+          {paidPlan.action}
+        </Button>
+      ) : (
+        <Button
+          href="/pricing/"
+          variant="primary"
+          size="lg"
+          icon="right"
+          class="offer-action"
+        >
+          See pricing
+        </Button>
+      )}
+    </Surface>
+
+    <Surface as="article" class="offer" data-offer="">
+      <h3>Support the project</h3>
+      <p class="offer-price">Any amount</p>
+      <p class="offer-note">Pays for development time. Unlocks nothing.</p>
+      {siteLinks.buyMeACoffee ? (
+        <Button
+          href={siteLinks.buyMeACoffee}
+          icon="external"
+          class="offer-action"
+        >
+          Donate
+        </Button>
+      ) : (
+        <Button disabled class="offer-action">
+          Donations not set up yet
+        </Button>
+      )}
+    </Surface>
+  </div>
+</section>

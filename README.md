@@ -60,14 +60,15 @@ task runner around Xcode. Install [proto](https://moonrepo.dev/docs/proto/instal
 once, then run these commands from the repository root:
 
 ```sh
-proto install                # installs moon 2.5.5, pinned in .prototools
+proto install                # installs pinned moon, Node, and pnpm
 moon run airdraft:prepare     # once after cloning: prepare native speech libraries
 moon run airdraft:build       # regenerates the Xcode project, then builds
 moon run airdraft:test        # regenerates the project, then runs core tests
 ```
 
-`moon tasks` lists the four tasks. `.moon/workspace.yml` maps the existing app
-as one project; `moon.yml` defines its commands and dependencies. Xcode keeps
+`moon tasks` lists the native and marketing tasks. `.moon/workspace.yml` maps
+`airdraft` to the repository root and `marketing` to `apps/marketing`;
+each project's `moon.yml` defines its commands and dependencies. Xcode keeps
 its own incremental build cache in DerivedData. Moon caching is disabled for
 these tasks because the signed products live outside the repository; build
 and test also share a mutex so they cannot write to that build tree concurrently.
@@ -91,6 +92,29 @@ DMG locally, and uploads a draft. GitHub publishes it after the push succeeds.
 
 See [the update release procedure](docs/updates.md) for signing keys, Release
 builds, DMG packaging, and validation without a paid Apple developer membership.
+
+### Marketing website
+
+The Astro website lives in [`apps/marketing`](apps/marketing/README.md), initialized
+from Cloudflare's official Astro Framework Starter and served as static assets by
+Cloudflare Workers. It shares this Git repository and one pnpm workspace/lockfile;
+the native app retains its existing Xcode and Swift package layout.
+
+```sh
+pnpm install
+pnpm dev:marketing            # http://localhost:4321
+pnpm check:marketing          # types and formatting
+pnpm build:marketing          # static production build
+pnpm preview:marketing        # build + local Cloudflare runtime
+```
+
+Website commands do not run Xcode. The website README documents the original C3
+command, local preview, production URL setting, and Cloudflare monorepo deployment.
+The GitHub workflow validates the website without publishing it.
+The private preview is deployed at [airdraft.app](https://airdraft.app), protected
+by Cloudflare Access using the existing L Studio Google login and owner allowlist.
+
+### Direct Xcode commands
 
 Direct Xcode commands remain available:
 

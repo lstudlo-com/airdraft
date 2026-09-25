@@ -1,0 +1,203 @@
+---
+/**
+ * "You choose where each step runs": the dictation pipeline as six short
+ * scenes. Each scene is one line of copy and one card, and each card holds a
+ * single choice: the engines that can run that step in that place.
+ *
+ * Without JavaScript, on narrow screens and with reduced motion, copy and card
+ * pairs stack. On desktop, src/scripts/story.ts pins the section and flies the
+ * cards through 3D space as the visitor scrolls: the steps ahead wait in a
+ * queue receding to the upper right; each card hops forward, its picker wheel
+ * turns through the names, then it flies past to the lower left.
+ *
+ * Provider lists mirror ASRProviderKind, LLMProviderKind and the local engines
+ * in the root CLAUDE.md; update them together.
+ */
+type Place = "mac" | "cloud" | "plan" | "cursor";
+interface Scene {
+  stage: number;
+  place: Place;
+  label: string;
+  title: string;
+  line: string;
+  items?: string[];
+}
+
+const stages = ["Speech to text", "Refinement", "Insertion"];
+const stepper = ["Speech", "Refinement", "Insertion"];
+
+const scenes: Scene[] = [
+  {
+    stage: 0,
+    place: "mac",
+    label: "This Mac",
+    title: "On this Mac",
+    line: "Audio never leaves your Mac.",
+    items: [
+      "Qwen3-ASR",
+      "Whisper",
+      "SenseVoice",
+      "FireRedASR2",
+      "Cohere Transcribe",
+      "Apple SpeechAnalyzer",
+    ],
+  },
+  {
+    stage: 0,
+    place: "cloud",
+    label: "Cloud",
+    title: "Or in the cloud",
+    line: "Audio goes to the provider, on your own API key.",
+    items: ["Soniox", "Groq", "ElevenLabs", "OpenAI", "Deepgram", "OpenRouter"],
+  },
+  {
+    stage: 1,
+    place: "mac",
+    label: "This Mac",
+    title: "On this Mac",
+    line: "A local model cleans up the transcript. It stays here.",
+    items: ["LM Studio", "Ollama", "OpenAI-compatible"],
+  },
+  {
+    stage: 1,
+    place: "cloud",
+    label: "Cloud",
+    title: "Or in the cloud",
+    line: "The transcript goes to the provider you pick.",
+    items: ["OpenAI", "Anthropic", "Gemini", "OpenRouter", "Groq", "Cerebras"],
+  },
+  {
+    stage: 1,
+    place: "plan",
+    label: "Your subscription",
+    title: "Or on your subscription",
+    line: "Uses the Claude or ChatGPT plan you already pay for.",
+    items: ["Claude Code", "Codex"],
+  },
+  {
+    stage: 2,
+    place: "cursor",
+    label: "At your cursor",
+    title: "At your cursor",
+    line: "Your vocabulary fixes names last. Then the text goes into the app you’re typing in.",
+  },
+];
+
+// First and last scene of each stage, for the stepper's fill.
+const ranges = stages.map((_, stage) => {
+  const indices = scenes.flatMap((scene, index) =>
+    scene.stage === stage ? [index] : [],
+  );
+  return [indices[0], indices[indices.length - 1]];
+});
+
+const icons: Record<Place, string> = {
+  mac: "M4.5 6.5A1.5 1.5 0 0 1 6 5h12a1.5 1.5 0 0 1 1.5 1.5V15h-15V6.5ZM2.5 18.5h19",
+  cloud:
+    "M7.2 18.5h10.3a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.5 9.2a4.66 4.66 0 0 0 .7 9.3Z",
+  plan: "M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1ZM7.5 9.5l3 2.5-3 2.5M12.5 14.5h4",
+  cursor: "M9 4.5h6M9 19.5h6M12 4.5v15",
+};
+const edges = 6;
+---
+
+<section
+  class="story wrap section-space"
+  id="how-it-works"
+  aria-labelledby="how-heading"
+  data-story
+>
+  <div class="story-sticky">
+    <div class="story-head">
+      <div class="section-heading story-intro">
+        <h2 id="how-heading">You choose where each step runs</h2>
+        <p>
+          Speech and refinement run separately. Pick local or cloud for each.
+        </p>
+      </div>
+      <ol class="story-stages" aria-hidden="true">
+        {stepper.map((name, index) => (
+          <li data-stage={index} data-range={JSON.stringify(ranges[index])}>
+            <span>{name}</span>
+            <i>
+              <b data-stage-fill />
+            </i>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <ol class="scene-copies">
+      {scenes.map((scene, index) => (
+        <li
+          class="scene-copy"
+          data-scene-copy={index}
+          style={`--row: ${index + 2}; --order: ${index * 2 + 1}`}
+        >
+          <p class="scene-eyebrow">{stages[scene.stage]}</p>
+          <h3 id={`scene-${index}`}>{scene.title}</h3>
+          <p>{scene.line}</p>
+        </li>
+      ))}
+    </ol>
+
+    <div class="flight" data-flight>
+      <div class="deck" data-deck>
+        {scenes.map((scene, index) => (
+          <article
+            class="scene-card"
+            data-scene-card={index}
+            aria-labelledby={`scene-${index}`}
+            style={`--i: ${index}; --row: ${index + 2}; --order: ${index * 2 + 2}; --count: ${scene.items?.length ?? 1}`}
+          >
+            {Array.from({ length: edges }, (_, edge) => (
+              <span
+                class="card-edge"
+                style={`--z: ${(-(edge + 1) * 2.2).toFixed(1)}px`}
+                aria-hidden="true"
+              />
+            ))}
+            <div class="card-face">
+              <div class="card-head">
+                <span class="card-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d={icons[scene.place]}
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span>{scene.label}</span>
+              </div>
+              {scene.items ? (
+                <div class="wheel-window">
+                  <span class="wheel-band" aria-hidden="true" />
+                  <ul class="wheel">
+                    {scene.items.map((item, position) => (
+                      <li style={`--n: ${position}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div class="fix-field">
+                  <p>
+                    Meet me in{" "}
+                    <span class="fix">
+                      <del class="fix-wrong">cooper tino</del>
+                      <ins class="fix-right">Cupertino</ins>
+                    </span>{" "}
+                    at nine.
+                    <span class="caret" aria-hidden="true" />
+                  </p>
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

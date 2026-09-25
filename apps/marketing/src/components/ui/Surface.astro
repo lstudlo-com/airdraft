@@ -1,0 +1,25 @@
+---
+/**
+ * The two materials: a raised `panel` (the icon's body) or a recessed `well`
+ * (the icon's pressed track). Never nest a panel inside a panel.
+ */
+interface Props {
+  as?: "div" | "article" | "section" | "aside" | "li";
+  variant?: "panel" | "well";
+  id?: string;
+  class?: string;
+  [aria: `aria-${string}`]: string | undefined;
+  [data: `data-${string}`]: string | undefined;
+}
+
+const {
+  as: Tag = "div",
+  variant = "panel",
+  class: className,
+  ...attributes
+} = Astro.props;
+---
+
+<Tag class:list={[variant, className]} {...attributes}>
+  <slot />
+</Tag>

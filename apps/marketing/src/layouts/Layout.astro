@@ -1,0 +1,66 @@
+---
+import "@fontsource-variable/manrope";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+const {
+  title = "Airdraft — Open-source dictation for the Mac",
+  description = "Hold a shortcut, speak, and let go: Airdraft cleans up what you said and inserts it at your cursor. Open source, with local or cloud models for each step.",
+  noindex = false,
+} = Astro.props;
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site)
+  : undefined;
+const socialImage = Astro.site
+  ? new URL("/airdraft-icon.png", Astro.site)
+  : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#e6eaf1" />
+    <meta name="color-scheme" content="light" />
+    {noindex && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
+    <link rel="apple-touch-icon" href="/airdraft-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    {socialImage && (
+      <meta
+        property="og:image:alt"
+        content="Airdraft’s silver app icon with a blue waveform and text caret"
+      />
+    )}
+    <meta name="twitter:card" content="summary" />
+    <title>{title}</title>
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body>
+    <!--
+    THESIS: Speech becomes tidy text at the cursor with one held shortcut.
+    OWN-WORLD: The app icon's silver body, pressed track, waveform and caret supply every surface on the page.
+    STORY: See it run, choose where each stage runs, learn what leaves the Mac, then get the source.
+    FIRST VIEWPORT: A plain promise, the real shortcut, and a sample that plays itself with the app's HUD.
+    FORM: Refined silver neumorphism. Layered light from the upper left; filled blue key for the one primary action.
+    FINISH: No invented release, price, license or measurement. Visible focus, reduced motion, useful without JavaScript.
+    -->
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,25 @@
+---
+/**
+ * One bento cell, always the same shape: a large graphic in a recessed well,
+ * a short title, and one line of text. The graphic goes in the default slot
+ * and is decorative; the title and line carry the meaning.
+ * `art` names the graphic's animation in src/scripts/story.ts.
+ */
+interface Props {
+  title: string;
+  caption: string;
+  art: string;
+  wide?: boolean;
+  id?: string;
+}
+
+const { title, caption, art, wide = false, id } = Astro.props;
+---
+
+<article class:list={["tile", "panel", wide && "tile-wide"]} id={id}>
+  <div class="tile-art well" aria-hidden="true" data-art={art}>
+    <slot />
+  </div>
+  <h3>{title}</h3>
+  <p>{caption}</p>
+</article>

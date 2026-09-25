@@ -23,6 +23,18 @@ Packages/SherpaOnnxKit/Vendor/
 .moon/cache
 .moon/docker
 
+# Website workspace / local Cloudflare state
+node_modules/
+apps/*/dist/
+apps/*/.astro/
+apps/*/.wrangler/
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.impeccable/review/
+.impeccable/build/
+
 # Local native release artifacts
 /dist/
 

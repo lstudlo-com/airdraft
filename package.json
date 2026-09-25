@@ -1,0 +1,13 @@
+{
+  "name": "airdraft-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": { "node": ">=24.0.0 <27" },
+  "scripts": {
+    "dev:marketing": "moon run marketing:dev",
+    "build:marketing": "moon run marketing:build",
+    "check:marketing": "moon run marketing:check",
+    "preview:marketing": "moon run marketing:preview"
+  },
+  "devDependencies": { "@moonrepo/cli": "2.5.5" }
+}

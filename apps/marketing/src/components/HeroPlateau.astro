@@ -1,0 +1,86 @@
+---
+import Capsule3D from "./ui/Capsule3D.astro";
+import { capsule, icon } from "../data/icon";
+
+/**
+ * The app icon rebuilt as a solid, not a picture of one (geometry from
+ * src/data/icon.ts). The body's face sits on top; its walls are real 3D
+ * faces around the rounded outline, running far down and fading into the page.
+ * Each wall is shaded by the way it faces the upper-left light, so the
+ * lighting stays right as the object turns. The capsule on top is Capsule3D.
+ *
+ * Orientation comes from CSS variables on `.plateau` (unitless degrees):
+ * --tp/--xp follow the pointer and --ts/--xs follow the scroll
+ * (src/scripts/story.ts).
+ */
+const size = 300; // body face width, px
+const scale = size / icon.side;
+const radius = icon.corner * scale;
+const depth = 480; // how far the walls run before they vanish, px
+const facets = 10; // faces per rounded corner
+
+interface Wall {
+  x: number;
+  y: number;
+  width: number;
+  phi: number;
+}
+const walls: Wall[] = [];
+const straight = size - 2 * radius;
+walls.push(
+  { x: size / 2, y: 0, width: straight, phi: 270 },
+  { x: size, y: size / 2, width: straight, phi: 0 },
+  { x: size / 2, y: size, width: straight, phi: 90 },
+  { x: 0, y: size / 2, width: straight, phi: 180 },
+);
+const corners = [
+  { cx: radius, cy: radius, start: 180 },
+  { cx: size - radius, cy: radius, start: 270 },
+  { cx: size - radius, cy: size - radius, start: 0 },
+  { cx: radius, cy: size - radius, start: 90 },
+];
+const half = (90 / facets / 2) * (Math.PI / 180);
+for (const corner of corners) {
+  for (let index = 0; index < facets; index++) {
+    const angle = corner.start + (index + 0.5) * (90 / facets);
+    const theta = (angle * Math.PI) / 180;
+    const reach = radius * Math.cos(half);
+    walls.push({
+      x: corner.cx + reach * Math.cos(theta),
+      y: corner.cy + reach * Math.sin(theta),
+      width: 2 * radius * Math.sin(half) + 0.8,
+      phi: angle,
+    });
+  }
+}
+const pill = capsule(scale);
+---
+
+<div class="plateau" aria-hidden="true" data-plateau>
+  <div
+    class="plateau-object"
+    style={`width: ${size}px; height: ${size}px; --depth: ${depth}px;`}
+  >
+    {walls.map((wall) => (
+      <span
+        class="p-wall"
+        style={`width: ${wall.width.toFixed(2)}px; --phi: ${wall.phi.toFixed(2)}deg; transform: translate3d(${(wall.x - wall.width / 2).toFixed(2)}px, ${wall.y.toFixed(2)}px, 0) rotateZ(${(wall.phi - 90).toFixed(2)}deg) rotateX(-90deg);`}
+      />
+    ))}
+    <span class="p-face" style={`border-radius: ${radius.toFixed(2)}px`}></span>
+    <div
+      class="p-capsule"
+      style={`left: ${(size - pill.width) / 2}px; top: ${(size - pill.height) / 2}px;`}
+    >
+      <Capsule3D
+        scale={scale}
+        lift={14}
+        rise={[3, 12]}
+        slices={16}
+        voice={22}
+        follow
+        cast
+      />
+    </div>
+  </div>
+</div>

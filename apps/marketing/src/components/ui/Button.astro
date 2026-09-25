@@ -1,0 +1,82 @@
+---
+import Arrow from "../Arrow.astro";
+
+/**
+ * The site's keys. One `primary` per screen; `secondary` for everything else
+ * that should look pressable; `quiet` for inline text actions.
+ *
+ * Renders an `<a>` with `href`, otherwise a `<button>`. A disabled link renders
+ * as a non-interactive `<span aria-disabled="true">`.
+ * Icon-only keys need `label`, which becomes the accessible name and tooltip.
+ */
+interface Props {
+  href?: string;
+  variant?: "primary" | "secondary" | "quiet";
+  size?: "md" | "lg";
+  icon?: "right" | "down" | "external" | "none";
+  label?: string;
+  iconOnly?: boolean;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+  id?: string;
+  hidden?: boolean;
+  class?: string;
+  [data: `data-${string}`]: string | boolean | undefined;
+  [aria: `aria-${string}`]: string | boolean | undefined;
+}
+
+const {
+  href,
+  variant = "secondary",
+  size = "md",
+  icon = "none",
+  label,
+  iconOnly = false,
+  disabled = false,
+  type = "button",
+  class: className,
+  ...attributes
+} = Astro.props;
+
+const classes = [
+  variant === "quiet" ? "text-link" : "key",
+  variant === "primary" && "key-primary",
+  size === "lg" && variant !== "quiet" && "key-lg",
+  iconOnly && "key-icon",
+  disabled && "is-disabled",
+  className,
+];
+const name = iconOnly ? label : undefined;
+---
+
+{disabled ? (
+  <span class:list={classes} aria-disabled="true" {...attributes}>
+    <slot name="icon" />
+    <slot />
+    {icon !== "none" && <Arrow direction={icon} />}
+  </span>
+) : href ? (
+  <a
+    class:list={classes}
+    href={href}
+    aria-label={name}
+    title={name}
+    {...attributes}
+  >
+    <slot name="icon" />
+    <slot />
+    {icon !== "none" && <Arrow direction={icon} />}
+  </a>
+) : (
+  <button
+    class:list={classes}
+    type={type}
+    aria-label={name}
+    title={name}
+    {...attributes}
+  >
+    <slot name="icon" />
+    <slot />
+    {icon !== "none" && <Arrow direction={icon} />}
+  </button>
+)}
