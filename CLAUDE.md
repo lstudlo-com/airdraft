@@ -42,11 +42,19 @@ status table current.
   `uv run apps/marketing/scripts/render-brand.py` (coloured capsule SVGs) and update
   `apps/marketing/src/data/icon.ts`, which the website's 3D hero object is built from.
 
-- The native sidebar wordmark is a template SVG in `SidebarWordmark.imageset`. The website's
-  logo (`apps/marketing/src/components/ui/Brand.astro`) reads the same file at build time.
-  Regenerate it with `swift scripts/render-sidebar-wordmark.swift`. Keep the
-  capsule, waveform and caret as unfilled strokes matched to the lettering stem;
-  keep the lowercase lettering as vector paths and the accessible name Airdraft.
+- Native sidebar branding is `SidebarBrandMark` in `MainWindow.swift`: a compact
+  25-point-high neumorphic capsule with five raised waveform bars and a separate
+  caret, without visible lettering. Keep the waveform height pattern and use
+  `NeumorphicSurface` with `outlineOnly` for its raised capsule rim. Keep the
+  interior unfilled, with no recessed well, so the sidebar shows through directly.
+  The bars and caret stay raised and legible.
+  Scale the original compact mark uniformly by 1.25: about 51 by 25 points
+  in a 30-point row. Retain its leading alignment, outer spacing and the
+  accessible name Airdraft.
+  It is a static image, not a button or a live meter.
+  The outlined `SidebarWordmark.imageset` SVG remains the website and installer
+  wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
+  keep its capsule strokes and lowercase lettering paths intact.
 
 ## Rules
 

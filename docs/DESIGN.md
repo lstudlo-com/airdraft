@@ -115,14 +115,22 @@ The resolved prompt preview uses system monospaced text. SF Symbols supply icons
 do not substitute text glyphs. The native system font is intentional and must not
 be replaced with a web display font.
 
-The sidebar replaces its text title with the template SVG
-`SidebarWordmark.imageset/wordmark.svg`. On its 108-by-24-point canvas, an outlined
-capsule holds the app icon's five waveform strokes and separate caret on the
-left; lowercase `airdraft` glyph paths sit 8 points to the right. The lettering
-uses SF Pro Medium at 18 points, and the icon's 1.9752-point stroke matches the
-measured font stem. Use semantic primary color in light and dark appearances and
-the accessibility label `Airdraft`. Regenerate the asset from the repository root
-with `swift scripts/render-sidebar-wordmark.swift`.
+The sidebar brand is a standalone neumorphic capsule without visible lettering.
+`SidebarBrandMark` in `MainWindow.swift` keeps the app icon's five waveform
+levels and separated caret, scaling the original compact mark proportionally
+by 1.25 to about 51 by 25 points in a 30-point row.
+The capsule uses an outline-only `NeumorphicSurface`: a raised rim with no face
+fill or recessed well. The sidebar shows directly through its empty interior,
+including with Reduce Transparency. Raised neutral waveform bars and the caret
+catch light from the top left; increased contrast strengthens the edges. Keep the original leading alignment
+and header spacing, with 54 points above and 20 points below the row.
+It has no hover, click or meter behavior.
+Expose it as one image named `Airdraft` to assistive technology.
+
+The outlined `SidebarWordmark.imageset/wordmark.svg` remains the website and
+installer wordmark. Regenerate that asset with
+`swift scripts/render-sidebar-wordmark.swift`; sidebar branding no longer
+renders it.
 
 Profiles use the name in the selection list as their only visible title. New
 profile and Rename profile open a focused inline `TextField` in that list. Short
