@@ -166,6 +166,9 @@ rule for panels or buttons.
 
 ## Shapes
 
+The Auto theme thumbnail clips its dark half to its actual layout bounds so the
+diagonal split reaches the bottom and trailing edges without exposing the light base.
+
 Use the navigation, editor and card radii for their respective components.
 Shared cards have continuous corners and a half-point border. Editable text
 areas have a half-point resting border that becomes a 1.5-point accent border

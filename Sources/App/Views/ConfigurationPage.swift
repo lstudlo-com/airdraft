@@ -130,11 +130,16 @@ struct ThemePreview: View {
             case .dark: window(dark: true)
             case .auto:
                 window(dark: false)
-                window(dark: true).mask(
-                    Path { p in
-                        p.move(to: CGPoint(x: 96, y: 0)); p.addLine(to: CGPoint(x: 96, y: 60)); p.addLine(to: CGPoint(x: 0, y: 60)); p.closeSubpath()
+                window(dark: true).mask {
+                    GeometryReader { geometry in
+                        Path { path in
+                            path.move(to: CGPoint(x: geometry.size.width, y: 0))
+                            path.addLine(to: CGPoint(x: geometry.size.width, y: geometry.size.height))
+                            path.addLine(to: CGPoint(x: 0, y: geometry.size.height))
+                            path.closeSubpath()
+                        }
                     }
-                )
+                }
             }
         }
     }
