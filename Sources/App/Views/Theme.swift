@@ -35,6 +35,24 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
+/// A mostly opaque sidebar that retains a small amount of the native desktop blur.
+struct SidebarBackground: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        ZStack {
+            if !reduceTransparency {
+                VisualEffectView(material: .sidebar)
+            }
+            Color(white: scheme == .dark ? 0.22 : 0.90)
+                .opacity(reduceTransparency ? 1 : 0.92)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 /// Let the sidebar material sample the desktop behind the window.
 struct TranslucentWindowView: NSViewRepresentable {
     final class BackingView: NSView {
