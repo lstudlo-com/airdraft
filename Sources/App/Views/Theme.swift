@@ -21,6 +21,8 @@ enum Theme {
     // Align the collapsed toggle's symbol with the page title, outside the icon rail.
     static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
         - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
+    static let sidebarCollapsedHeaderInset = (sidebarToggleWidth + sidebarToggleSymbolSize) / 2
+        + controlSpacing
     static let cardPadding: CGFloat = 16
     static let sectionSpacing: CGFloat = 28
     static let sectionTitleSpacing: CGFloat = 12
@@ -517,8 +519,9 @@ struct PageFilter<Selection: Hashable>: View {
     }
 }
 
-/// Shared page header: destination title on the left, page controls on the right.
+/// Page headings and actions share the titlebar row and stay visible while content scrolls.
 struct PageScaffold<Content: View, Accessory: View>: View {
+    @Environment(AppContainer.self) private var container
     let page: Page
     @ViewBuilder var content: Content
     @ViewBuilder var accessory: Accessory
@@ -539,7 +542,18 @@ struct PageScaffold<Content: View, Accessory: View>: View {
     }
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            HStack(spacing: Theme.controlSpacing) {
+                Text(page.title)
+                    .font(.system(size: 20, weight: .semibold))
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: Theme.controlSpacing)
+                accessory
+            }
+            .padding(.leading, container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedHeaderInset : 0)
+            .padding(.horizontal, Theme.pagePadding)
+            .frame(height: Theme.titlebarHeight)
+
             if scrollsContent {
                 ScrollView { pageContent }
             } else {
@@ -549,14 +563,6 @@ struct PageScaffold<Content: View, Accessory: View>: View {
     }
     private var pageContent: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            HStack(spacing: Theme.controlSpacing) {
-                Text(page.title)
-                    .font(.system(size: 20, weight: .semibold))
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: Theme.controlSpacing)
-                accessory
-            }
-            .frame(minHeight: 30)
             content
         }
         .padding(Theme.pagePadding)

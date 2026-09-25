@@ -69,6 +69,7 @@ status table current.
   names, and keep the titlebar toggle available to expand it again. In the collapsed
   state, place the toggle outside the rail in the content titlebar, with its symbol
   aligned to the page leading inset and its center aligned to the window buttons.
+  Inset the page heading beside the collapsed toggle so their hit areas stay separate.
   The outlined `SidebarWordmark.imageset` SVG remains the website and installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
   keep its capsule strokes and lowercase lettering paths intact.
@@ -133,9 +134,10 @@ status table current.
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges;
-  align the sidebar toggle with their centers in the 46-point titlebar. Reserve
-  that titlebar above page content in both sidebar states so the toggle never
-  overlaps a heading and collapsing does not shift pages vertically.
+  align the sidebar toggle with their centers in the 46-point titlebar. Page
+  headings and actions occupy that same row and stay visible while content
+  scrolls. Do not add a blank titlebar spacer above the page header. Keep one
+  shared page inset below the header, and preserve vertical positions on collapse.
   History has a compact 52-point timeline beside its independently scrolling
   cards. One time-and-tick button jumps to each entry; the current entry stays
   highlighted as the cards scroll. Returning the cards to the top also restores

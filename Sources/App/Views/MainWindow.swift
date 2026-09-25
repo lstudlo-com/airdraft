@@ -69,7 +69,6 @@ struct MainWindowView: View {
             ZStack {
                 Color(nsColor: .windowBackgroundColor)
                 page
-                    .padding(.top, Theme.titlebarHeight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
