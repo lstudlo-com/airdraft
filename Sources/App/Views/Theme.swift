@@ -35,7 +35,7 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
-/// A mostly opaque sidebar that retains a small amount of the native desktop blur.
+/// A tinted sidebar that keeps the native desktop blur visible.
 struct SidebarBackground: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -46,7 +46,7 @@ struct SidebarBackground: View {
                 VisualEffectView(material: .sidebar)
             }
             Color(white: scheme == .dark ? 0.22 : 0.90)
-                .opacity(reduceTransparency ? 1 : 0.92)
+                .opacity(reduceTransparency ? 1 : 0.70)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

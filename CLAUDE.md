@@ -50,8 +50,8 @@ status table current.
 
 ## Rules
 
-- The sidebar background uses `SidebarBackground`: native blur under a 92%-opaque
-  neutral layer, leaving only slight translucency. Reduce Transparency makes it
+- The sidebar background uses `SidebarBackground`: native blur under a 70%-opaque
+  neutral layer, retaining visible translucency. Reduce Transparency makes it
   fully opaque. Tint the background only; keep sidebar content fully opaque.
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
   byte-for-byte replicas. Whenever documentation, Markdown, project behavior or
