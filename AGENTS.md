@@ -153,6 +153,14 @@ or team changes need an explicit migration review, not an automatic fallback.
 Verify the app inside the DMG and run the real updater identity checks. Do not
 claim that signing tests prove permission continuity on an untested second Mac.
 
+The DMG installer uses `scripts/build-dmg.py` through `package-update.py`.
+Keep its locked `uv` dependencies, `scripts/dmg-layout.json` and the code-rendered
+Retina artwork in `scripts/render-dmg-background.swift` together. Reuse the
+outlined wordmark and silver capsule geometry. Inspect the actual mounted Finder
+window, including installation copy when path/status bars remain visible. Never
+add FinderInfo to the signed app to hide its extension; strict signing rejects
+it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview path.
+
 ## Validation
 
 - Tests: `xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test`

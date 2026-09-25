@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T09:38:58Z",
+  "title": "Design system: Airdraft Finder installer",
+  "extensions": {
+    "shadows": [
+      {
+        "name": "capsule-ambient",
+        "value": "SwiftUI shadow: #8F9BB1 at 28%, radius 20 pt, x 6 pt, y 16 pt",
+        "purpose": "Lift the outer capsule under upper-left light."
+      },
+      {
+        "name": "capsule-contact",
+        "value": "SwiftUI shadow: #5F6C87 at 18%, radius 2 pt, y 2 pt",
+        "purpose": "Define the lower edge of the outer capsule."
+      },
+      {
+        "name": "capsule-recess",
+        "value": "SwiftUI inner shadows: #8F9BB1 at 40%, radius 10 pt, x 5 pt, y 7 pt; white at 95%, radius 8 pt, x -5 pt, y -6 pt",
+        "purpose": "Recess the installation area."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Installation capsule",
+      "kind": "custom",
+      "refersTo": "installation-capsule",
+      "description": "Static illustration of the capsule artwork. Native Finder supplies the interactive files and labels; the SwiftUI renderer is authoritative.",
+      "html": "<div class=\"ds-installation-capsule\" role=\"img\" aria-label=\"Recessed silver installation capsule\"><div class=\"ds-installation-recess\"></div></div>",
+      "css": ".ds-installation-capsule { display: grid; place-items: center; width: 574px; height: 194px; border-radius: 97px; background: linear-gradient(#F5F7FA, #E2E7EE); box-shadow: 6px 16px 20px rgba(143,155,177,.28), 0 2px 2px rgba(95,108,135,.18); } .ds-installation-recess { width: 544px; height: 164px; border-radius: 82px; background: #E6EAF1; box-shadow: inset 5px 7px 10px rgba(143,155,177,.40), inset -5px -6px 8px rgba(255,255,255,.95); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The silver installation capsule",
+    "overview": "The app icon's silver capsule holds the app and its Applications destination. The outlined Airdraft wordmark introduces the window; the arrow and two short instructions explain the action. Finder owns the files, labels, selection and drag interaction.",
+    "dos": [
+      "Do inspect the mounted Finder window, including retained path and status bars.",
+      "Do regenerate artwork from code and preserve its provenance file.",
+      "Do keep native labels and installation behavior intact."
+    ],
+    "donts": [
+      "Don't add FinderInfo to the signed app to hide its extension; strict signing rejects it.",
+      "Don't claim a local preview is a published release."
+    ]
+  }
+}

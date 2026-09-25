@@ -34,6 +34,11 @@ Added 2026-09-24:
     place account settings at its lower left, and show device choices with a live
     input-level preview in a spacious overlay.
 
+## Installation experience
+
+The DMG carries Airdraft's visual identity, presents an obvious drag to Applications,
+and keeps the installation instructions legible within Finder.
+
 ## Status
 
 | Goal | State (2026-09-25) |
@@ -48,6 +53,7 @@ Added 2026-09-24:
 | 8 | Device pickers in the sidebar, menu bar and Configuration save a persistent device UID. Multi-input devices also save an input channel in Configuration. Explicit channel mapping preserves microphone audio on discrete-channel interfaces without mixing loopback; unavailable channels fail visibly. Missing devices fail visibly without selecting another input; same-input audio reconfiguration recovers without clearing captured audio. Missing or changed inputs report a specific error; see `docs/microphones.md`. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
 | 9 | Live Accessibility/microphone state, running-copy diagnostics, and a separate Debug identity. The ad-hoc release defect is removed from 0.1.5; users migrating from older builds may need to grant access again. Later releases must preserve the approved signing identity. Verification on the affected M5 remains outstanding; see `docs/accessibility.md`. Keychain navigation/background reads are silent; selected-key approval is explicit, migration preserves inaccessible current entries, and key editors report write failures. Pending microphone requests cancel with shortcut release. See `docs/keychain-access.md`. |
 | 10 | Implemented: macOS frosted sidebar material, a bottom-left settings button, a centered account/subscription overlay with labeled sample data, and a larger microphone chooser with a live input meter. The level preview retains no audio. |
+| Installer | Implemented locally: a silver capsule installer with the shared outlined wordmark, real app and Applications icons, Retina background, and saved Finder positioning. Packaging verifies the image layout and signed app. The Finder preview uses an existing signed Release build; this change is not yet published. |
 
 ## Interface consistency
 

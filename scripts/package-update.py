@@ -6,7 +6,6 @@ import pathlib
 import plistlib
 import re
 import subprocess
-import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 
@@ -74,13 +73,8 @@ def main():
     if archive.exists():
         parser.error(f"Refusing to overwrite {archive}")
 
-    with tempfile.TemporaryDirectory(prefix="airdraft-dmg-") as staging:
-        contents = pathlib.Path(staging)
-        run("ditto", app, contents / app.name)
-        (contents / "Applications").symlink_to("/Applications", target_is_directory=True)
-        run("hdiutil", "create", "-volname", "Airdraft", "-srcfolder", contents,
-            "-format", "UDZO", "-ov", archive)
-    run("hdiutil", "verify", archive)
+    run("uv", "run", "--locked", pathlib.Path(__file__).with_name("build-dmg.py"),
+        "--app", app, "--output", archive)
     inspect_dmg(archive)
     run(tools / "generate_appcast", "--account", args.account,
         "--download-url-prefix", args.download_url_prefix,

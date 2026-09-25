@@ -62,7 +62,7 @@ moon run airdraft:release-setup
 The second command migrates the existing Sparkle Keychain account in place and
 installs `.git/hooks/pre-push`. It refuses to overwrite an unrelated hook. It does
 not change global Git configuration. Requirements: macOS, Xcode, Python 3.12+,
-`gh auth login`, the pinned Apple signing certificate and its private key, and
+`uv`, `gh auth login`, the pinned Apple signing certificate and its private key, and
 the existing Sparkle signing key. Public certificate fingerprints are committed;
 private keys stay in Keychain. XcodeGen 2.46.0 downloads
 locally with a pinned SHA-256 if it is missing from PATH.
@@ -164,3 +164,35 @@ See [Accessibility access](accessibility.md) for migration recovery.
 References: [Sparkle setup](https://sparkle-project.org/documentation/),
 [publishing updates](https://sparkle-project.org/documentation/publishing/),
 [update preferences](https://sparkle-project.org/documentation/customization/).
+
+## Installer presentation
+
+`package-update.py` builds the designed Finder disk image through
+`scripts/build-dmg.py` before signing the Sparkle feed. The builder uses
+[dmgbuild](https://dmgbuild.readthedocs.io/en/v1.6.7/settings.html) 1.6.7;
+`uv run --locked` pins its dependencies with `scripts/build-dmg.py.lock`.
+No Finder automation or Accessibility permission is needed to package it.
+
+The silver capsule background is generated from code by
+`scripts/render-dmg-background.swift`, using the shared outlined wordmark.
+`scripts/dmg-layout.json` owns the window and icon coordinates. The TIFF contains
+1x and 2x representations. Its bottom bleed accommodates Finder's path and status
+bars when the user's preferences override the saved visibility flags.
+
+To inspect artwork or build a local installer from an existing signed Release app:
+
+```sh
+swift scripts/render-dmg-background.swift dist/dmg-artwork
+uv run --locked scripts/build-dmg.py --app /path/to/airdraft.app --output dist/Airdraft-Preview.dmg
+```
+
+The output path must be new. Packaging verifies the disk image, its embedded
+background and icon positions, the Applications link, and the app's strict code
+signature against the input identity before making the output available. Do not
+set FinderInfo on the signed app to hide its extension; this breaks strict code
+signature validation. Finder already displays the app's localized name.
+
+Open the actual DMG in Finder and inspect the full window before releasing a
+layout change. Background renders alone do not prove icon alignment or visible
+instructions. A preview built from an existing app validates packaging, not a new
+app release. See [installer design](installer/DESIGN.md).
