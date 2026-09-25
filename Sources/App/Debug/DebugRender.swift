@@ -83,6 +83,14 @@ enum DebugRender {
                 window.layoutIfNeeded()
                 host.layoutSubtreeIfNeeded()
                 RunLoop.main.run(until: Date().addingTimeInterval(container.settings.llm.kind.isCLI && page == .models ? 3 : 0.3))
+                if env["AIRDRAFT_RENDER_VERIFY_NAVIGATION"] == "1", page == .history {
+                    // Visibility callbacks require an onscreen window.
+                    window.makeKeyAndOrderFront(nil)
+                    RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+                    verifyHistoryScrolling(in: host)
+                    verifyPointerFocus()
+                    window.orderOut(nil)
+                }
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
@@ -91,6 +99,66 @@ enum DebugRender {
                 }
             }
         }
+    }
+
+    /// Exercise the real SwiftUI scroll views without synthetic global input or user-data writes.
+    private static func verifyHistoryScrolling(in host: NSView) {
+        setbuf(stdout, nil)
+        func scrollViews(in view: NSView) -> [NSScrollView] {
+            (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
+        }
+        let views = scrollViews(in: host).sorted {
+            $0.convert($0.bounds, to: host).minX < $1.convert($1.bounds, to: host).minX
+        }
+        precondition(views.count == 2, "History verification needs populated history and both scroll columns")
+        let timeline = views[0], cards = views[1]
+        func wheel(_ view: NSScrollView, delta: Int32) {
+            // Deliver directly to the view. No global event posting or Accessibility grant.
+            let cgEvent = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1,
+                                  wheel1: delta, wheel2: 0, wheel3: 0)!
+            cgEvent.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+            view.scrollWheel(with: NSEvent(cgEvent: cgEvent)!)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        }
+        func scroll(_ view: NSScrollView, toBottom: Bool) {
+            let distance = Int32(min(1_000_000, view.documentView?.bounds.height ?? 0))
+            wheel(view, delta: toBottom ? -distance : distance)
+        }
+        // Lazy rows refine their estimated heights after the first jump.
+        scroll(cards, toBottom: true)
+        scroll(cards, toBottom: true)
+        precondition(cards.contentView.bounds.minY > 100, "History did not scroll down")
+        precondition(timeline.contentView.bounds.minY > 0, "Timeline did not follow the lower cards")
+        scroll(cards, toBottom: false)
+        precondition(cards.contentView.bounds.minY <= 1 && timeline.contentView.bounds.minY <= 1,
+                     "Returning cards to the top must restore the timeline day heading")
+
+        // The first card remains visible across this small movement. Its ID does not change.
+        wheel(cards, delta: -10)
+        scroll(timeline, toBottom: true)
+        precondition(timeline.contentView.bounds.minY > 0, "Timeline must overflow for the edge regression")
+        scroll(cards, toBottom: false)
+        precondition(timeline.contentView.bounds.minY <= 1,
+                     "Top-edge synchronization must work when the first record is already active")
+        print("PASS: History bottom-to-top and unchanged-first-record synchronization")
+    }
+
+    private static func verifyPointerFocus() {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
+                              styleMask: [.titled], backing: .buffered, defer: false)
+        let editor = NSTextView(frame: NSRect(x: 20, y: 20, width: 200, height: 100))
+        window.contentView?.addSubview(editor)
+        editor.string = "Keep this selection"
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        precondition(window.makeFirstResponder(editor))
+        editor.setSelectedRange(NSRange(location: 5, length: 4))
+        TranslucentWindowView.BackingView.dismissFocus(in: window, at: editor.convert(NSPoint(x: 30, y: 30), to: nil))
+        precondition(window.firstResponder === editor && editor.selectedRange() == NSRange(location: 5, length: 4),
+                     "Clicking within the editor must preserve focus and selection")
+        TranslucentWindowView.BackingView.dismissFocus(in: window, at: NSPoint(x: 350, y: 250))
+        precondition(window.firstResponder !== editor, "Clicking elsewhere must clear editor focus")
+        print("PASS: Pointer focus dismissal preserves active-editor selection")
     }
 
     static func renderHUD(to url: URL) {

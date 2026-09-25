@@ -10,13 +10,17 @@ enum Theme {
     static let titlebarHeight: CGFloat = 46
     static let sidebarToggleLeading: CGFloat = 73
     static let sidebarToggleWidth: CGFloat = 28
-    static let sidebarWidth: CGFloat = 200
+    static let sidebarToggleSymbolSize: CGFloat = 14
+    static let sidebarWidth: CGFloat = 170
     static let sidebarContentInset: CGFloat = 10
     static let sidebarBrandInset: CGFloat = 10
     static let sidebarBrandHeight: CGFloat = 25
     static let sidebarBrandWidth: CGFloat = 744 * sidebarBrandHeight / 364
     static let sidebarCollapsedWidth = sidebarBrandWidth + 2 * (sidebarContentInset + sidebarBrandInset)
     static let pagePadding: CGFloat = 24
+    // Align the collapsed toggle's symbol with the page title, outside the icon rail.
+    static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
+        - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
     static let cardPadding: CGFloat = 16
     static let sectionSpacing: CGFloat = 28
     static let sectionTitleSpacing: CGFloat = 12
@@ -77,15 +81,44 @@ struct SidebarBackground: View {
 
 /// Let the sidebar material sample the desktop behind the window.
 struct TranslucentWindowView: NSViewRepresentable {
+    var onPointerDown: () -> Void = {}
+
     final class BackingView: NSView {
+        var onPointerDown: () -> Void = {}
+        private var pointerMonitor: Any?
+
+        deinit {
+            if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
+            NotificationCenter.default.removeObserver(self)
+        }
+
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
+            if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
+            pointerMonitor = nil
             NotificationCenter.default.removeObserver(self, name: NSWindow.didResizeNotification, object: nil)
             if let window {
                 NotificationCenter.default.addObserver(self, selector: #selector(windowDidResize),
                                                       name: NSWindow.didResizeNotification, object: window)
+                pointerMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+                    guard let self, let window = self.window, event.window === window else { return event }
+                    self.onPointerDown()
+                    Self.dismissFocus(in: window, at: event.locationInWindow)
+                    return event
+                }
             }
             configureWindow()
+        }
+
+        /// Clear stale control focus before dispatching the click to its new target.
+        /// Leave clicks within the current editor alone so selection and IME composition survive.
+        static func dismissFocus(in window: NSWindow, at point: NSPoint) {
+            if let editor = window.firstResponder as? NSTextView {
+                if editor.bounds.intersection(editor.visibleRect).contains(editor.convert(point, from: nil)) { return }
+                if editor.isFieldEditor, let field = editor.delegate as? NSView,
+                   field.bounds.intersection(field.visibleRect).contains(field.convert(point, from: nil)) { return }
+            }
+            window.makeFirstResponder(nil)
         }
 
         override func layout() {
@@ -128,7 +161,10 @@ struct TranslucentWindowView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> BackingView { BackingView() }
-    func updateNSView(_ view: BackingView, context: Context) { view.configureWindow() }
+    func updateNSView(_ view: BackingView, context: Context) {
+        view.onPointerDown = onPointerDown
+        view.configureWindow()
+    }
 }
 
 /// Rounded, softly filled container for a group of rows.

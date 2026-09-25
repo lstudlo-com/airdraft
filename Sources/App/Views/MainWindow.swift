@@ -43,6 +43,7 @@ struct MainWindowView: View {
     var microphoneRenderLevel: Float?
     @State private var activeOverlay: WindowOverlay?
     @FocusState private var overlayFocus: WindowOverlay?
+    @State private var focusRestoreTask: Task<Void, Never>?
 
     init(profileSelection: UUID? = nil, previewOverlay: WindowOverlay? = nil, microphoneRenderLevel: Float? = nil) {
         self.profileSelection = profileSelection
@@ -68,6 +69,7 @@ struct MainWindowView: View {
             ZStack {
                 Color(nsColor: .windowBackgroundColor)
                 page
+                    .padding(.top, Theme.titlebarHeight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -80,15 +82,14 @@ struct MainWindowView: View {
                 }
             } label: {
                 Image(systemName: "sidebar.left")
-                    .font(.system(size: 14))
+                    .font(.system(size: Theme.sidebarToggleSymbolSize))
                     .frame(width: Theme.sidebarToggleWidth, height: Theme.titlebarHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .focusEffectDisabled()
             .foregroundStyle(.secondary)
             .padding(.leading, container.navigation.sidebarCollapsed
-                ? Theme.sidebarCollapsedWidth - Theme.sidebarContentInset - Theme.sidebarToggleWidth
+                ? Theme.sidebarCollapsedToggleLeading
                 : Theme.sidebarToggleLeading)
             .help(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityLabel(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
@@ -96,7 +97,7 @@ struct MainWindowView: View {
             .disabled(activeOverlay != nil)
             .accessibilityHidden(activeOverlay != nil)
         }
-        .background(TranslucentWindowView())
+        .background(TranslucentWindowView(onPointerDown: clearOverlayFocus))
         .ignoresSafeArea()
         .frame(width: Theme.windowWidth)
         .frame(minHeight: Theme.windowMinHeight, maxHeight: .infinity)
@@ -126,14 +127,27 @@ struct MainWindowView: View {
         }
         .onExitCommand { activeOverlay = nil }
         .onChange(of: activeOverlay) { previous, next in
-            if next != nil { overlayFocus = nil; return }
+            clearOverlayFocus()
+            guard next == nil else { return }
             guard let previous else { return }
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(100))
-                if activeOverlay == nil { overlayFocus = previous }
+            // Pointer dismissal should not leave the trigger outlined. Keyboard and
+            // VoiceOver dismissal return focus after the background becomes enabled.
+            let eventType = NSApp.currentEvent?.type
+            guard eventType == .keyDown || eventType == .keyUp || NSWorkspace.shared.isVoiceOverEnabled else { return }
+            focusRestoreTask = Task { @MainActor in
+                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+                guard !Task.isCancelled, activeOverlay == nil else { return }
+                overlayFocus = previous
             }
         }
+        .onDisappear { clearOverlayFocus() }
 
+    }
+
+    private func clearOverlayFocus() {
+        focusRestoreTask?.cancel()
+        focusRestoreTask = nil
+        overlayFocus = nil
     }
 
     @ViewBuilder

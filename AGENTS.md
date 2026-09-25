@@ -61,11 +61,14 @@ status table current.
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
   It is a static image, not a button or a live meter.
+  The expanded sidebar is 170 points wide.
   Collapsing the sidebar keeps an icon rail. Derive its width from the unchanged
   brand width plus equal 20-point side insets. Center destination, microphone
   and available account icons horizontally while preserving their expanded
   vertical positions and row heights. Hide text, retain tooltips and accessible
-  names, and keep the titlebar toggle available to expand it again.
+  names, and keep the titlebar toggle available to expand it again. In the collapsed
+  state, place the toggle outside the rail in the content titlebar, with its symbol
+  aligned to the page leading inset and its center aligned to the window buttons.
   The outlined `SidebarWordmark.imageset` SVG remains the website and installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
   keep its capsule strokes and lowercase lettering paths intact.
@@ -123,10 +126,14 @@ status table current.
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges;
-  align the sidebar toggle with their centers in the 46-point titlebar.
+  align the sidebar toggle with their centers in the 46-point titlebar. Reserve
+  that titlebar above page content in both sidebar states so the toggle never
+  overlaps a heading and collapsing does not shift pages vertically.
   History has a compact 52-point timeline beside its independently scrolling
   cards. One time-and-tick button jumps to each entry; the current entry stays
-  highlighted as the cards scroll. Keep day groups, search, lazy card loading
+  highlighted as the cards scroll. Returning the cards to the top also restores
+  the timeline's first day heading, even when its first entry is already active.
+  Keep day groups, search, lazy card loading
   and native card actions. The timeline follows the same filtered records.
   Home waveform entrance waits for initial history, then animates rendered scale
   once; never animate placeholder replacement or per-frame bar layout height.
@@ -266,6 +273,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
   `AIRDRAFT_RENDER_SIDEBAR_COLLAPSED=1` renders the compact icon rail; compare
   it with the expanded sidebar at the same window height.
+  `AIRDRAFT_RENDER_VERIFY_NAVIGATION=1` with `--render-window history <dir>` checks
+  bottom-to-top timeline synchronization, including an unchanged first active
+  record, and pointer focus dismissal versus editing selection. Use enough
+  history to overflow both columns; it does not modify records.
 - Interactive `--preview-profiles` windows must call `startAppearanceUpdates()` so
   Auto, Light and Dark affect the window without starting hotkeys, models or the updater.
 - Xcode previews (`#Preview`, Debug only) are for fast iteration, not a substitute for the renders
@@ -346,6 +357,9 @@ quitting with recoverable audio or unsaved changes. Saving failures must stay vi
 Engine loading, inference and unloading share the factory lease. Downloads belong
 to `ModelDownloadStore`, survive page navigation, and cannot select incomplete files.
 A late download must not replace a newer provider choice. Release builds exclude
-sample account data. Overlay focus stays inside the modal and returns to its trigger.
+sample account data. Overlay focus stays inside the modal. Keyboard and VoiceOver
+dismissal returns focus to its trigger; pointer dismissal clears it. Clicking
+elsewhere clears stale control focus without interrupting clicks within an active
+text editor. Cancel pending focus restoration when another pointer action begins.
 
 Microphone choices exclude hidden Core Audio devices and temporary `CADefaultDeviceAggregate` bridges created by audio engines; user-created aggregate inputs remain available.

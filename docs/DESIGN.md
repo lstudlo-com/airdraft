@@ -140,7 +140,7 @@ commits a non-empty name; an empty edit keeps the previous name.
 
 ## Layout
 
-`Theme.swift` owns the spacing tokens above. The window has a 200-point expanded
+`Theme.swift` owns the spacing tokens above. The window has a 170-point expanded
 sidebar and a fixed width of 784 points. The collapsed sidebar remains an icon
 rail, sized from the unchanged brand width plus its 20-point inset on each side,
 about 91 points total. Destination, microphone and available account icons are
@@ -164,8 +164,11 @@ left and page controls on the right. Profiles keeps New Profile and its action
 menu together in that right-side control group. Comparable actions use the shared
 compact capsule treatment. The sidebar toggle sits at the
 window's top left, just after the macOS traffic lights. In the compact rail it
-moves left enough to clear the divider while keeping the same centerline.
-Page headers keep their vertical position when the sidebar changes width.
+moves into the content titlebar, entirely outside the rail. Its symbol aligns
+with the page title's leading inset and stays on the window-button centerline.
+A dedicated 46-point titlebar sits above page content in both states, so the
+toggle has its own space and page headers keep their vertical position when the
+sidebar changes width.
 The sidebar changes width with the existing 0.18-second
 ease-in-out animation.
 
@@ -284,7 +287,8 @@ History keeps its title and search above two independently scrolling columns.
 A 52-point guide on the left groups compact timestamps and horizontal ticks by
 day. Its dates and times align with the History heading's leading edge. Each 24-point row is a button that jumps to its transcription; the active
 row uses a longer, stronger tick and emphasized time. The guide follows the
-current card without adding a second selection state. Day labels, search
+current card without adding a second selection state. When the cards return to
+the top, the guide restores its first day heading as well as its first timestamp. Day labels, search
 results and deletion use the same record list in both columns. Full dates and
 times remain available in tooltips and accessibility labels.
 
@@ -324,6 +328,12 @@ below the 14 pt section headings. Every provider key is an `APIKeyField` row
 followed by a Connection row with Test and Cancel.
 
 ### Text fields and sheets
+
+Pointer clicks clear stale control focus before the new target handles the click.
+Clicks inside the active text editor preserve its selection and composition.
+Overlay dismissal restores trigger focus for keyboard and VoiceOver interaction;
+pointer dismissal clears it. A subsequent pointer action cancels pending focus
+restoration. Native keyboard focus cues remain visible.
 
 `ProfileTextEditor` owns the label, empty-state guidance, border and focused
 state. Profile changes save through their bindings. The base system prompt uses

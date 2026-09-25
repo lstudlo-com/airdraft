@@ -19,6 +19,7 @@ struct HistoryPage: View {
     @State private var currentRecordID: Int64?
     @State private var entryScrollPosition = ScrollPosition(idType: Int64.self)
     @State private var entriesAtTop = true
+    @State private var timelineScrollPosition = ScrollPosition(idType: Int64.self)
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -127,47 +128,46 @@ struct HistoryPage: View {
     }
 
     private var timeline: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
-                    ForEach(groups, id: \.title) { group in
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(group.timelineTitle)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(entries) { entry in
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let heading = entry.heading {
+                            Text(heading == "Today" || heading == "Yesterday" ? heading :
+                                 entry.record.createdAt.formatted(.dateTime.month(.abbreviated).day()))
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, minHeight: Theme.sectionTitleMinHeight, alignment: .leading)
+                                .padding(.top, entry.id == records.first?.id ? 0 : Theme.controlSpacing)
                                 .padding(.bottom, Theme.sectionTitleSpacing)
-                                .help(group.title)
-                            ForEach(group.records) { record in
-                                if let id = record.id {
-                                    HistoryTimelineButton(record: record, selected: id == currentRecordID) {
-                                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
-                                            currentRecordID = id
-                                            entryScrollPosition.scrollTo(id: id, anchor: .top)
-                                        }
-                                    }
-                                    .id(id)
-                                }
+                                .help(heading)
+                        }
+                        HistoryTimelineButton(record: entry.record, selected: entry.id == currentRecordID) {
+                            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+                                currentRecordID = entry.id
+                                entryScrollPosition.scrollTo(id: entry.id, anchor: .top)
                             }
                         }
                     }
-                }
-                .id("history.timeline.top")
-            }
-            .scrollIndicators(.hidden)
-            .onChange(of: currentRecordID) { _, id in
-                if id == records.first?.id {
-                    proxy.scrollTo("history.timeline.top", anchor: .top)
-                } else if let id {
-                    proxy.scrollTo(id)
+                    .id(entry.id)
                 }
             }
-            .onChange(of: entriesAtTop) { _, atTop in
-                // The first card can already be active while its heading is still
-                // offscreen. Reaching the edge must restore the entire timeline.
-                if atTop { proxy.scrollTo("history.timeline.top", anchor: .top) }
+            .scrollTargetLayout()
+        }
+        .scrollPosition($timelineScrollPosition)
+        .scrollIndicators(.hidden)
+        .onChange(of: currentRecordID) { _, id in
+            if id == records.first?.id {
+                timelineScrollPosition.scrollTo(edge: .top)
+            } else if let id {
+                timelineScrollPosition.scrollTo(id: id)
             }
+        }
+        .onChange(of: entriesAtTop) { _, atTop in
+            // The first card can already be active while its heading is still
+            // offscreen. Reaching the edge must restore the entire timeline.
+            if atTop { timelineScrollPosition.scrollTo(edge: .top) }
         }
         .frame(width: HistoryTimelineButton.columnWidth)
         .accessibilityElement(children: .contain)
@@ -178,11 +178,6 @@ struct HistoryPage: View {
     private struct Group {
         let title: String
         let records: [DictationRecord]
-
-        var timelineTitle: String {
-            if title == "Today" || title == "Yesterday" { return title }
-            return records.first?.createdAt.formatted(.dateTime.month(.abbreviated).day()) ?? title
-        }
     }
 
     private struct Entry: Identifiable {
