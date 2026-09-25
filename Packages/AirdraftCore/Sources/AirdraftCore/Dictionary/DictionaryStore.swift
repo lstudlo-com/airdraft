@@ -39,8 +39,11 @@ public final class DictionaryStore {
     }
 
     public func restore(_ entry: DictionaryEntry) {
-        if let index = entries.firstIndex(where: { $0.id == entry.id }) { entries[index] = entry }
-        else { entries.append(entry) }
+        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
+            // Undo restores removed aliases while preserving edits made since the removal.
+            let newerAliases = entries[index].aliases.filter { !entry.aliases.contains($0) }
+            entries[index].aliases = entry.aliases + newerAliases
+        } else { entries.append(entry) }
         save()
     }
 

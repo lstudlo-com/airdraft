@@ -235,6 +235,7 @@ struct RefinementSettings: View {
         let config = llm
         testResult = ""
         defer { if testID == token { testTask = nil } }
+        guard !RenderMode.excludesCredentials || !config.kind.requiresKey else { return }
         let candidate = await container.factory.refiner(for: config)
         guard testID == token, !Task.isCancelled else { return }
         guard let refiner = candidate else {
@@ -281,7 +282,10 @@ struct APIKeyField: View {
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
                     .textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth).disabled(editor.isBusy)
-                Button("Save") { Task { await editor.save() } }
+                Button("Save") {
+                    guard !RenderMode.excludesCredentials else { return }
+                    Task { await editor.save() }
+                }
                     .buttonStyle(SoftButtonStyle()).fixedSize().disabled(!editor.canSave)
             }
             if needsAccess || editor.message != nil {
@@ -291,18 +295,23 @@ struct APIKeyField: View {
                             .frame(maxWidth: Theme.fieldWidth, alignment: .trailing)
                     }
                     if needsAccess {
-                    Button("Allow Access") { Task { await editor.authorize() } }
+                        Button("Allow Access") {
+                            guard !RenderMode.excludesCredentials else { return }
+                            Task { await editor.authorize() }
+                        }
                         .buttonStyle(SoftButtonStyle()).fixedSize().disabled(editor.isBusy)
                     }
                 }
             }
         }
+        .disabled(RenderMode.excludesCredentials)
         .task(id: account) {
-            guard !RenderMode.isActive else { return }
+            guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
             await editor.load(account: account)
         }
         .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { note in
-            guard note.object as? String == account, !editor.isBusy, !editor.canSave else { return }
+            guard !RenderMode.excludesCredentials,
+                  note.object as? String == account, !editor.isBusy, !editor.canSave else { return }
             Task { await editor.load(account: account) }
         }
         .onDisappear { editor.cancel() }
@@ -399,6 +408,7 @@ struct RefinementModelRow: View {
 
     private func refresh() async {
         guard !RenderMode.isActive else { return }
+        guard !RenderMode.excludesCredentials || llm.kind.isCLI else { return }
         let key = taskKey
         let config = llm
         loading = true

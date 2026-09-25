@@ -8,6 +8,7 @@ final class CLISession: @unchecked Sendable {
     let key: String
     private let process = Process()
     private let stdin = Pipe(), stdout = Pipe()
+    private let control = RunCancellation()
     private let log = Logger(subsystem: AppIdentity.logSubsystem, category: "cli")
 
     init(key: String, executable: String, arguments: [String], environment: [String: String], workDir: URL) throws {
@@ -20,35 +21,40 @@ final class CLISession: @unchecked Sendable {
         process.standardOutput = stdout
         // Never read, so a pipe here could fill and stall the session.
         process.standardError = FileHandle.nullDevice
-        try process.run()
+        try control.start(process)
     }
 
     var isAlive: Bool { process.isRunning }
 
     /// Sends one user message and reads stream-json lines until the result arrives.
     func send(_ text: String, timeout: TimeInterval) throws -> String {
+        defer { stop() }
+        try control.checkCancellation()
         let message: [String: Any] = [
             "type": "user",
             "message": ["role": "user", "content": [["type": "text", "text": text]]],
         ]
         var line = try JSONSerialization.data(withJSONObject: message)
         line.append(0x0A)
-        stdin.fileHandleForWriting.write(line)
-
-        let deadline = Date().addingTimeInterval(timeout)
-        var reader = PipeLineReader(handle: stdout.fileHandleForReading)
-        defer { stop() }
-        while let lineData = try reader.nextLine(until: deadline) {
+        var result: String?
+        try CLIProcess.exchange(process, stdin: stdin.fileHandleForWriting,
+                                stdout: stdout.fileHandleForReading, input: line,
+                                timeout: timeout, control: control) { lineData in
             guard let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
-                  object["type"] as? String == "result" else { continue }
-            if let result = object["result"] as? String { return result }
-            throw RefinerError.http(status: 0, body: String(describing: object).prefix(300).description)
+                  object["type"] as? String == "result" else { return false }
+            guard object["is_error"] as? Bool != true,
+                  let text = object["result"] as? String else {
+                throw RefinerError.http(status: 0, body: String(describing: object).prefix(300).description)
+            }
+            result = text
+            return true
         }
-        throw RefinerError.invalidResponse
+        guard let result else { throw RefinerError.invalidResponse }
+        return result
     }
 
     func stop() {
-        try? stdin.fileHandleForWriting.close()
+        control.cancel()
         CLIProcess.stop(process)
     }
 
@@ -67,7 +73,9 @@ public actor CLIWarmPool {
 
     func prewarm(key: String, make: () throws -> CLISession) {
         discardIfStale()
-        guard session == nil else { return }
+        guard session?.key != key else { return }
+        session?.stop()
+        session = nil
         do {
             session = try make()
             startedAt = Date()

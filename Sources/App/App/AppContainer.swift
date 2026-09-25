@@ -10,7 +10,18 @@ import os
 @MainActor
 @Observable
 final class AppContainer {
-    static let shared = AppContainer()
+    static let shared: AppContainer = {
+        #if DEBUG
+        // UI automation may relaunch a crashed copied bundle without its arguments.
+        // Such a launch must stop before opening the user's real preferences/data.
+        if Bundle.main.bundleIdentifier?.hasSuffix(".e2e") == true, !LocalE2E.isActive {
+            print("E2E bundle requires --e2e-local; refusing normal startup")
+            exit(64)
+        }
+        if LocalE2E.isActive { return LocalE2E.makeContainer() }
+        #endif
+        return AppContainer()
+    }()
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "app")
 
     let settings: AppSettings
@@ -43,7 +54,15 @@ final class AppContainer {
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
         engineStatus = EngineStatus()
+        #if DEBUG
+        if LocalE2E.isActive {
+            factory = EngineFactory(status: engineStatus, credentialReader: { _ in nil })
+        } else {
+            factory = EngineFactory(status: engineStatus)
+        }
+        #else
         factory = EngineFactory(status: engineStatus)
+        #endif
         models = ModelLifecycle(settings: settings, factory: factory, engineStatus: engineStatus)
         dictionary = DictionaryStore(directory: dir)
         profiles = ProfileStore(directory: dir)
@@ -56,13 +75,23 @@ final class AppContainer {
             Self.log.error("history unavailable: \(error.localizedDescription, privacy: .public)")
         }
 
+        var recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
+        #if DEBUG
+        if LocalE2E.isActive {
+            recordingPreflight = { asr, llm, refinementEnabled, microphone, insertionEnabled in
+                try LocalE2E.checkRecording(asr: asr, llm: llm, refinementEnabled: refinementEnabled,
+                                            microphone: microphone, insertionEnabled: insertionEnabled)
+            }
+        }
+        #endif
         pipeline = DictationPipeline(
             settings: settings,
             dictionary: dictionary,
             profiles: profiles,
             history: history,
             historyDirectory: dir,
-            factory: factory
+            factory: factory,
+            recordingPreflight: recordingPreflight
         )
     }
 
@@ -100,9 +129,9 @@ final class AppContainer {
         registerHotkeys()
         startAppearanceUpdates()
         observeWindows()
-        pipeline.onLLMUsed = { [weak self] instance in self?.models.noteLLMUsed(instance) }
-        pipeline.llmNeedsLoad = { [weak self] in await self?.models.llmNeedsLoad() ?? false }
-        pipeline.loadLLM = { [weak self] in await self?.models.loadLLMIfNeeded() }
+        pipeline.onLLMUsed = { [weak self] instance, config in self?.models.noteLLMUsed(instance, config: config) }
+        pipeline.llmNeedsLoad = { [weak self] config in await self?.models.llmNeedsLoad(config: config) ?? false }
+        pipeline.loadLLM = { [weak self] config in await self?.models.loadLLMIfNeeded(config: config) }
         models.start()
         audioCleanupTask = Task { [weak self] in
             while !Task.isCancelled {

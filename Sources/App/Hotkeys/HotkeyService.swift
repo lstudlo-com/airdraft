@@ -22,7 +22,13 @@ final class HotkeyService {
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
     var suspended = false {
-        didSet { eventTap.suspended = suspended }
+        didSet {
+            guard suspended != oldValue else { return }
+            eventTap.suspended = suspended
+            // Carbon consumes registered shortcuts before the recorder's local
+            // monitor receives them. Unregister both backends while recording.
+            apply(hotkey)
+        }
     }
 
     private let carbon = CarbonHotkey()
@@ -44,6 +50,13 @@ final class HotkeyService {
         self.hotkey = hotkey
         carbon.unregister()
         eventTap.stop()
+
+        guard !suspended else {
+            backend = .none
+            isActive = false
+            statusText = "Paused while recording a shortcut"
+            return
+        }
 
         if CarbonHotkey.canRegister(hotkey) {
             let ok = carbon.register(hotkey)
@@ -90,6 +103,7 @@ final class HotkeyService {
     }
 
     private func press() {
+        guard !suspended else { return }
         Self.log.notice("press \(self.hotkey.displayString, privacy: .public)")
         onPress?()
     }

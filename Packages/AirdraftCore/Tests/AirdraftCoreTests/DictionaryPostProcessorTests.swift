@@ -2,6 +2,23 @@ import XCTest
 @testable import AirdraftCore
 
 final class DictionaryPostProcessorTests: XCTestCase {
+    func testCanonicalTermContainingItsAliasIsNotExpandedAgain() {
+        let latin = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme"])]
+        XCTAssertEqual(DictionaryPostProcessor.apply("Acme Studio and Acme", entries: latin), "Acme Studio and Acme Studio")
+        let cjk = [DictionaryEntry(term: "長谷川", aliases: ["長谷"])]
+        XCTAssertEqual(DictionaryPostProcessor.apply("長谷川和長谷", entries: cjk), "長谷川和長谷川")
+    }
+
+    func testLongerAliasWinsAndReplacementIsNotProcessedAgain() {
+        let entries = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme", "Acme Corporation"])]
+        XCTAssertEqual(DictionaryPostProcessor.apply("Acme Corporation and Acme", entries: entries), "Acme Studio and Acme Studio")
+    }
+
+    func testLiteralReplacementCharactersAndMixedScriptCaseArePreserved() {
+        let entries = [DictionaryEntry(term: "$1 \\ final", aliases: ["alias", "中文Test"])]
+        XCTAssertEqual(DictionaryPostProcessor.apply("alias 中文Test 中文test", entries: entries), "$1 \\ final $1 \\ final 中文test")
+    }
+
     func testLatinAliasReplacedOnWordBoundary() {
         let entries = [DictionaryEntry(term: "Floze", aliases: ["flows", "flow's"])]
         XCTAssertEqual(DictionaryPostProcessor.apply("open flows now", entries: entries), "open Floze now")

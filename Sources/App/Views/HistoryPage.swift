@@ -2,6 +2,10 @@ import AirdraftCore
 import SwiftUI
 import Observation
 
+extension Notification.Name {
+    static let historyEntriesChanged = Notification.Name("Airdraft.historyEntriesChanged")
+}
+
 /// Database preparation and page actions stay independent of scroll position.
 struct HistoryPage: View {
     @Environment(AppContainer.self) private var container
@@ -73,6 +77,7 @@ struct HistoryPage: View {
                 do {
                     playback.stop()
                     try container.history?.deleteAll()
+                    NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
                     Task { await reload() }
                 } catch { errorMessage = "History could not be cleared. " + error.localizedDescription }
             }
@@ -127,8 +132,79 @@ private final class HistoryScrollState {
 /// Survives lazy row eviction without keeping the row's view hierarchy alive.
 @MainActor @Observable
 final class HistoryCardState {
+    enum Presentation { case details, deletion }
     var showRaw = false
     var expanded = false
+    var showInfo = false
+    var copied = false
+    var confirmDelete = false
+    var mounted = false
+    var pendingPresentation: Presentation?
+
+    func dismissPresentation() {
+        pendingPresentation = nil
+        showInfo = false
+        confirmDelete = false
+    }
+
+    func copy(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        copied = true
+        Task { try? await Task.sleep(for: .seconds(1.2)); copied = false }
+    }
+}
+
+/// The visual stacks never observe viewport IDs. Only the replacement AX
+/// child reads them, keeping normal scrolling independent of row view updates.
+@MainActor @Observable
+private final class HistoryVisibleRows {
+    var ids: [Int64] = []
+    @ObservationIgnored var viewport = HistoryViewport()
+
+    func update(_ visible: [Int64], snapshot: HistorySnapshot) {
+        let ordered = visible.compactMap { snapshot.indexByID[$0] }.sorted().map { snapshot.entries[$0].id }
+        if ids != ordered { ids = ordered }
+    }
+
+    func paging(_ edge: Edge, from position: ScrollPosition) -> ScrollPosition {
+        guard viewport.height > 0 else { return position }
+        // macOS exposes Next/Previous Page as leading/trailing swipes.
+        let forward = edge == .bottom || edge == .leading
+        let target = viewport.offset + (forward ? viewport.height : -viewport.height)
+        var next = position
+        if target <= 0 { next.scrollTo(edge: .top) }
+        else if target >= viewport.maximumOffset { next.scrollTo(edge: .bottom) }
+        else { next.scrollTo(y: target) }
+        return next
+    }
+}
+
+private struct HistoryViewport: Equatable {
+    var offset: CGFloat = 0
+    var height: CGFloat = 0
+    var maximumOffset: CGFloat = 0
+
+    init() {}
+
+    init(_ geometry: ScrollGeometry) {
+        offset = geometry.contentOffset.y + geometry.contentInsets.top
+        height = geometry.containerSize.height
+        maximumOffset = max(0, geometry.contentSize.height + geometry.contentInsets.top
+                            + geometry.contentInsets.bottom - height)
+    }
+}
+
+private struct HistoryVisibleAccessibility<Content: View>: View {
+    let snapshot: HistorySnapshot
+    let visibility: HistoryVisibleRows
+    let content: ([HistoryEntry]) -> Content
+
+    var body: some View {
+        let indices = visibility.ids.compactMap { snapshot.indexByID[$0] }.sorted()
+        let entries = indices.isEmpty ? Array(snapshot.entries.prefix(1)) : indices.map { snapshot.entries[$0] }
+        content(entries)
+    }
 }
 
 private struct HistoryEntries: View {
@@ -142,16 +218,13 @@ private struct HistoryEntries: View {
     let loading: Bool
     let reload: () -> Void
     let loadMore: () -> Void
+    @State private var visibility = HistoryVisibleRows()
+    @Namespace private var rotorNamespace
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
-                ForEach(snapshot.entries) { entry in
-                    HistoryRecordRow(entry: entry, state: rowStates[entry.id]!, playback: playback,
-                                     isFirst: entry.id == snapshot.entries.first?.id,
-                                     showReview: $showReview, errorMessage: $errorMessage, reload: reload)
-                        .id(entry.id)
-                }
+                rows(snapshot.entries, accessibilityOnly: false)
             }
             .scrollTargetLayout()
             if hasMore {
@@ -163,16 +236,70 @@ private struct HistoryEntries: View {
         .pageScrollEdge()
         .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
         .scrollPosition($scroll.entryPosition)
+        .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { _, value in
+            visibility.viewport = value
+        }
         .onScrollGeometryChange(for: Bool.self) { geometry in
             geometry.contentOffset.y <= -geometry.contentInsets.top + 1
         } action: { _, atTop in
             scroll.entriesAtTop = atTop
             if atTop { scroll.currentRecordID = snapshot.entries.first?.id }
         }
-        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.01) { visibleIDs in
+        // Zero includes fully offscreen prefetched rows. A small positive
+        // fraction excludes those while retaining tall expanded transcripts.
+        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.0001) { visibleIDs in
+            visibility.update(visibleIDs, snapshot: snapshot)
             if let id = snapshot.firstVisibleID(in: visibleIDs) { scroll.currentRecordID = id }
         }
+        .accessibilityRepresentation {
+            HistoryVisibleAccessibility(snapshot: snapshot, visibility: visibility) { entries in
+                VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+                    rows(entries, accessibilityOnly: true)
+                    if hasMore {
+                        Button(loading ? "Loading…" : "Load Older Dictations", action: loadMore).disabled(loading)
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Dictation entries")
+            .accessibilityScrollAction { edge in
+                scroll.entryPosition = visibility.paging(edge, from: scroll.entryPosition)
+            }
+            .accessibilityAction(named: "Scroll to First Dictation") { scroll.entryPosition.scrollTo(edge: .top) }
+            .accessibilityAction(named: "Scroll to Last Dictation") { scroll.entryPosition.scrollTo(edge: .bottom) }
+            .accessibilityAction(named: "Next Dictation") { move(by: 1) }
+            .accessibilityAction(named: "Previous Dictation") { move(by: -1) }
+            .accessibilityRotor("Dictations") {
+                ForEach(snapshot.entries) { entry in
+                    AccessibilityRotorEntry(Text(entry.timestamp), id: entry.id, in: rotorNamespace) {
+                        scroll.entryPosition.scrollTo(id: entry.id, anchor: .top)
+                    }
+                }
+            }
+        }
         .accessibilityIdentifier("history.entries")
+        .onDisappear { for state in rowStates.values { state.dismissPresentation() } }
+    }
+
+    private func move(by offset: Int) {
+        guard !snapshot.entries.isEmpty else { return }
+        let current = scroll.currentRecordID.flatMap { snapshot.indexByID[$0] } ?? 0
+        let next = min(snapshot.entries.count - 1, max(0, current + offset))
+        scroll.entryPosition.scrollTo(id: snapshot.entries[next].id, anchor: .top)
+    }
+
+    private func rows(_ entries: [HistoryEntry], accessibilityOnly: Bool) -> some View {
+        ForEach(entries) { entry in
+            HistoryRecordRow(entry: entry, state: rowStates[entry.id]!, rotorNamespace: rotorNamespace, playback: playback,
+                             isFirst: entry.id == snapshot.entries.first?.id,
+                             showReview: $showReview, errorMessage: $errorMessage, reload: reload,
+                             accessibilityOnly: accessibilityOnly,
+                             reveal: { scroll.entryPosition.scrollTo(id: entry.id, anchor: .top) },
+                             clearPresentations: {
+                                 for state in rowStates.values { state.dismissPresentation() }
+                             })
+                .id(entry.id)
+        }
     }
 }
 
@@ -180,25 +307,107 @@ private struct HistoryRecordRow: View {
     @Environment(AppContainer.self) private var container
     let entry: HistoryEntry
     let state: HistoryCardState
+    let rotorNamespace: Namespace.ID
     let playback: HistoryPlayback
     let isFirst: Bool
     @Binding var showReview: Bool
     @Binding var errorMessage: String?
     let reload: () -> Void
+    var accessibilityOnly = false
+    var reveal: () -> Void = {}
+    var clearPresentations: () -> Void = {}
 
+    @ViewBuilder
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            if let heading = entry.heading {
-                SectionTitle(heading)
-                    .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
+        if accessibilityOnly {
+            accessibleCard.accessibilityRotorEntry(id: entry.id, in: rotorNamespace)
+        } else {
+            VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+                if let heading = entry.heading {
+                    SectionTitle(heading)
+                        .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
+                }
+                HistoryCard(entry: entry, state: state,
+                            canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
+                            playing: playback.recordID == entry.id,
+                            onPlay: entry.audioAvailable ? play : nil,
+                            onRetranscribe: entry.audioAvailable && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
+                            onDelete: delete)
+                    .accessibilityIdentifier("history.entry.\(entry.id)")
             }
-            HistoryCard(entry: entry, state: state,
-                        canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
-                        playing: playback.recordID == entry.id,
-                        onPlay: entry.audioAvailable ? play : nil,
-                        onRetranscribe: entry.audioAvailable && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
-                        onDelete: delete)
-                .accessibilityIdentifier("history.entry.\(entry.id)")
+            .onAppear {
+                state.mounted = true
+                if let pending = state.pendingPresentation {
+                    state.pendingPresentation = nil
+                    present(pending)
+                }
+            }
+            .onDisappear {
+                state.mounted = false
+                state.dismissPresentation()
+            }
+        }
+    }
+
+    /// Keep the visual stack lazy without exposing SwiftUI's crashing native
+    /// lazy-list edge actions. This lightweight tree only represents visible
+    /// rows; the real card remains the owner of native layout and presenters.
+    private var accessibleCard: some View {
+        @Bindable var state = state
+        let content = state.showRaw ? entry.rawText : entry.finalText
+        return VStack(alignment: .leading) {
+            if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
+            Text(state.expanded ? content.full : content.preview)
+                .lineLimit(state.expanded ? nil : 6)
+                .textSelection(.enabled)
+                .accessibilityLabel(content.full)
+                .accessibilityAction(named: state.expanded ? "Collapse Transcript" : "Expand Transcript") {
+                    reveal()
+                    state.expanded.toggle()
+                }
+            if entry.record.rawTranscript != entry.record.finalText {
+                Picker("Version", selection: $state.showRaw) {
+                    Text("Refined").tag(false)
+                    Text("Original").tag(true)
+                }.pickerStyle(.segmented)
+            }
+            Text(entry.metadata)
+            if entry.audioAvailable {
+                Button(playback.recordID == entry.id ? "Stop Playback" : "Play Recording", action: play)
+                    .accessibilityLabel(playback.recordID == entry.id ? "Stop Playback" : "Play Recording")
+                    .accessibilityIdentifier("history.play.\(entry.id)")
+                    .disabled(container.pipeline.isBusy)
+                Button("Retranscribe", action: retranscribe)
+                    .accessibilityLabel("Retranscribe")
+                    .accessibilityIdentifier("history.retranscribe.\(entry.id)")
+                    .disabled(container.pipeline.isBusy || container.pipeline.hasRecoverableRecording)
+            }
+            Button("Copy") { state.copy(content.full) }
+                .accessibilityLabel("Copy")
+                .accessibilityIdentifier("history.copy.\(entry.id)")
+            Button("Details") { revealAndPresent(.details) }
+                .accessibilityLabel("Details")
+                .accessibilityIdentifier("history.details.\(entry.id)")
+            if !container.pipeline.isBusy, !container.pipeline.isSavingHistory {
+                Button("Delete") { revealAndPresent(.deletion) }
+                    .accessibilityLabel("Delete")
+                    .accessibilityIdentifier("history.delete.\(entry.id)")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("history.entry.\(entry.id)")
+    }
+
+    private func revealAndPresent(_ presentation: HistoryCardState.Presentation) {
+        clearPresentations()
+        if state.mounted { reveal(); present(presentation) }
+        else { state.pendingPresentation = presentation; reveal() }
+    }
+
+    private func present(_ presentation: HistoryCardState.Presentation) {
+        switch presentation {
+        case .details: state.showInfo = true
+        case .deletion: state.confirmDelete = true
         }
     }
 
@@ -220,6 +429,7 @@ private struct HistoryRecordRow: View {
         do {
             playback.stop()
             try container.history?.delete(id: entry.id)
+            NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
             reload()
         } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
     }
@@ -229,6 +439,8 @@ private struct HistoryTimeline: View {
     let snapshot: HistorySnapshot
     let scroll: HistoryScrollState
     @State private var position = ScrollPosition(idType: Int64.self)
+    @State private var visibility = HistoryVisibleRows()
+    @Namespace private var rotorNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -261,6 +473,38 @@ private struct HistoryTimeline: View {
         .pageScrollEdge()
         .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
         .scrollPosition($position)
+        .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { _, value in
+            visibility.viewport = value
+        }
+        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.0001) { ids in
+            visibility.update(ids, snapshot: snapshot)
+        }
+        .accessibilityRepresentation {
+            HistoryVisibleAccessibility(snapshot: snapshot, visibility: visibility) { entries in
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(entries) { entry in
+                        if let heading = entry.timelineHeading { Text(heading).accessibilityAddTraits(.isHeader) }
+                        HistoryTimelineButton(entry: entry, selected: entry.id == scroll.currentRecordID) {
+                            scroll.currentRecordID = entry.id
+                            scroll.entryPosition.scrollTo(id: entry.id, anchor: .top)
+                        }
+                        .accessibilityRotorEntry(id: entry.id, in: rotorNamespace)
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Dictation times")
+            .accessibilityScrollAction { edge in position = visibility.paging(edge, from: position) }
+            .accessibilityAction(named: "Scroll to First Dictation") { position.scrollTo(edge: .top) }
+            .accessibilityAction(named: "Scroll to Last Dictation") { position.scrollTo(edge: .bottom) }
+            .accessibilityRotor("Dictation Times") {
+                ForEach(snapshot.entries) { entry in
+                    AccessibilityRotorEntry(Text(entry.timestamp), id: entry.id, in: rotorNamespace) {
+                        position.scrollTo(id: entry.id, anchor: .top)
+                    }
+                }
+            }
+        }
         .scrollIndicators(.hidden)
         .onChange(of: scroll.currentRecordID) { _, id in
             if id == snapshot.entries.first?.id { position.scrollTo(edge: .top) }
@@ -322,9 +566,6 @@ struct HistoryCard: View {
     var onPlay: (() -> Void)? = nil
     var onRetranscribe: (() -> Void)? = nil
     let onDelete: () -> Void
-    @State private var showInfo = false
-    @State private var copied = false
-    @State private var confirmDelete = false
 
     private var content: HistoryTextContent { state.showRaw ? entry.rawText : entry.finalText }
     private var shownText: String { content.full }
@@ -364,15 +605,15 @@ struct HistoryCard: View {
                             .help("Retranscribe with the current model and profile")
                             .accessibilityLabel("Retranscribe")
                     }
-                    Button(action: copy) { Image(systemName: copied ? "checkmark" : "doc.on.doc") }
+                    Button(action: copy) { Image(systemName: state.copied ? "checkmark" : "doc.on.doc") }
                         .help("Copy")
                         .accessibilityLabel("Copy")
-                    Button { showInfo.toggle() } label: { Image(systemName: "info.circle") }
+                    Button { state.showInfo.toggle() } label: { Image(systemName: "info.circle") }
                         .help("Details")
                         .accessibilityLabel("Details")
-                        .popover(isPresented: $showInfo, arrowEdge: .bottom) { details.padding(Theme.cardPadding).frame(width: 360) }
+                        .popover(isPresented: $state.showInfo, arrowEdge: .bottom) { details.padding(Theme.cardPadding).frame(width: 360) }
                     if canDelete {
-                        Button { confirmDelete = true } label: { Image(systemName: "trash") }
+                        Button { state.confirmDelete = true } label: { Image(systemName: "trash") }
                             .help("Delete")
                             .accessibilityLabel("Delete")
                     }
@@ -386,18 +627,15 @@ struct HistoryCard: View {
             Button("Copy", action: copy)
             if let onPlay { Button(playing ? "Stop Playback" : "Play Recording", action: onPlay) }
             if let onRetranscribe { Button("Retranscribe", action: onRetranscribe) }
-            if canDelete { Button("Delete…", role: .destructive) { confirmDelete = true } }
+            if canDelete { Button("Delete…", role: .destructive) { state.confirmDelete = true } }
         }
-        .confirmationDialog("Delete this dictation?", isPresented: $confirmDelete) {
+        .confirmationDialog("Delete this dictation?", isPresented: $state.confirmDelete) {
             Button("Delete", role: .destructive, action: onDelete)
         }
     }
 
     private func copy() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(shownText, forType: .string)
-        copied = true
-        Task { try? await Task.sleep(for: .seconds(1.2)); copied = false }
+        state.copy(shownText)
     }
 
     private var details: some View {

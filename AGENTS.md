@@ -150,11 +150,16 @@ status table current.
   once per database page off the main actor. Keep timeline scroll state separate
   from page data, and find the first visible record through the snapshot ID index.
   Never scan or regroup all loaded records during scrolling or check files from
-  row bodies. Collapsed text uses bounded native layout with cached sizing, not
+  row bodies. Keep accessibility scrolling independent of SwiftUI lazy-row identity
+  traversal; its lightweight representation exposes visible rows, shares row actions
+  and provides first/last, page and record navigation. Exclude zero-visibility
+  prefetched rows from active-entry tracking, and reveal the real row before
+  presenting Details or Delete. Collapsed text uses bounded native layout with cached sizing, not
   hidden full transcripts or geometry-to-state height feedback. Preserve full text
   for Copy and expansion, and keep expansion/version state outside lazy rows.
   Keep day groups, search, lazy card loading
-  and native card actions. The timeline follows the same filtered records.
+  and native card actions. The timeline follows the same filtered records. Refresh sidebar word totals after single/all history
+  deletion and every completed save retry; reject stale asynchronous count results.
   Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
   Keep light-mode bars visibly darker than the well, with raised highlights and
   down-right shadows. Preserve bar heights, hover behavior and the colored caret.
@@ -339,6 +344,11 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
   ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
   Do not re-add the removed Whisper variants or Voxtral without a reason.
+  Whisper decodes sequential windows of at most 25 seconds, disables the SDK's
+  one-second tail clipping, and preserves cancellation/errors across every chunk.
+  Check both sub-second speech and final words beyond 30 seconds after changes.
+  Both synchronous and async audio chunk decoders check cancellation before and
+  after each chunk, so cancelled recordings never continue into later windows.
 
 ## Production gate evidence
 
@@ -405,3 +415,16 @@ elsewhere clears stale control focus without interrupting clicks within an activ
 text editor. Cancel pending focus restoration when another pointer action begins.
 
 Microphone choices exclude hidden Core Audio devices and temporary `CADefaultDeviceAggregate` bridges created by audio engines; user-created aggregate inputs remain available.
+
+## Credential-free E2E verification
+
+Use `scripts/test-local-e2e.py` for the explicit local-only test selection; the
+whole core suite also includes API credential tests. `LocalE2E` is Debug-only,
+uses a supplied data directory and optional `AIRDRAFT_E2E_MODEL_ROOT`, and injects
+a nil credential reader. GUI fixture bundles ending in `.e2e` must refuse startup
+without `--e2e-local`, including automatic relaunch after a crash. Check the process
+before UI operations. Never use normal preferences/history as E2E fixtures.
+Use `scripts/verify-native-behaviors.py` and `scripts/verify-model-lifecycle.py`
+for native regression fixtures. `verify-updater.py --ephemeral-key` uses a
+disposable Sparkle seed and temporary update target. Record live, fixture,
+source-review and unavailable coverage separately. See `docs/local-e2e.md`.

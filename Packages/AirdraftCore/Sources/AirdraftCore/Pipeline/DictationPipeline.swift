@@ -74,11 +74,11 @@ public final class DictationPipeline {
     public var onRecordingBlocked: (() -> Void)?
     public var onOutcome: ((DictationOutcome) -> Void)?
     /// Called with the LLM instance id that served a refinement.
-    public var onLLMUsed: ((String) -> Void)?
+    public var onLLMUsed: ((String, LLMConfig) -> Void)?
     /// Returns true when the refinement model must be loaded before use.
-    public var llmNeedsLoad: (() async -> Bool)?
+    public var llmNeedsLoad: ((LLMConfig) async -> Bool)?
     /// Loads the refinement model (called only when `llmNeedsLoad` said so).
-    public var loadLLM: (() async -> Void)?
+    public var loadLLM: ((LLMConfig) async -> Void)?
     /// When false the final text is not inserted anywhere (self-tests).
     public var insertionEnabled = true
 
@@ -271,6 +271,7 @@ public final class DictationPipeline {
         guard isCurrent(token) else { return }
         let asr = settings.asr
         let llm = settings.llm
+        let profile = profiles.activeProfile
         let microphone = settings.microphone
         let output = selectedOutput()
         let needsInsertion = insertionEnabled && output.destination == .cursor
@@ -279,9 +280,9 @@ public final class DictationPipeline {
                 throw RecordingPrerequisiteError("Recording did not start. " + reason)
             }
             if let recordingPreflight {
-                try await recordingPreflight(asr, llm, profiles.activeProfile.usesLLM, microphone, needsInsertion)
+                try await recordingPreflight(asr, llm, profile.usesLLM, microphone, needsInsertion)
             } else {
-                try RecordingPrerequisites.check(asr: asr, llm: llm, refinementEnabled: profiles.activeProfile.usesLLM,
+                try RecordingPrerequisites.check(asr: asr, llm: llm, refinementEnabled: profile.usesLLM,
                                                  microphone: microphone, insertionEnabled: needsInsertion)
                 if asr.kind.isLocal {
                     let engine = await factory.transcriber(for: asr)
@@ -291,7 +292,8 @@ public final class DictationPipeline {
                 }
             }
             guard isCurrent(token) else { return }
-            guard settings.asr == asr, settings.llm == llm, settings.microphone == microphone, selectedOutput() == output else {
+            guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+                  settings.microphone == microphone, selectedOutput() == output else {
                 throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
             }
         } catch {
@@ -304,10 +306,12 @@ public final class DictationPipeline {
         guard isCurrent(token) else { return }
         guard granted else {
             fail("Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.")
+            onRecordingBlocked?()
             return
         }
-        guard selectedOutput() == output else {
-            fail("Recording did not start because the output destination changed. Try again.")
+        guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+              settings.microphone == microphone, selectedOutput() == output else {
+            fail("Recording did not start because setup changed. Try your shortcut again.")
             onRecordingBlocked?()
             return
         }
@@ -322,6 +326,7 @@ public final class DictationPipeline {
         } catch {
             stopPreview()
             fail("Could not start recording: \(error.localizedDescription)")
+            onRecordingBlocked?()
             return
         }
         recordingStartedAt = Date()
@@ -444,7 +449,7 @@ public final class DictationPipeline {
     /// already known: it does not depend on what is said.
     private func prewarmRefiner(context: AppContext) {
         let config = settings.llm
-        guard config.kind.cliTool != nil else { return }
+        guard profiles.activeProfile.usesLLM, config.kind.cliTool != nil else { return }
         let request = RefineRequest(
             transcript: "",
             profile: profiles.activeProfile,
@@ -537,6 +542,16 @@ public final class DictationPipeline {
 
     private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID, reviewOnly: Bool = false) async {
         guard isCurrent(token) else { return }
+        // Muted/digital-silence recordings contain no speech. Some recognizers
+        // hallucinate on them; never let that text reach delivery or history.
+        // Use exact silence, not a volume threshold that could reject quiet speech.
+        guard samples.contains(where: { $0 != 0 }) else {
+            recovery = nil
+            hasRecoverableRecording = false
+            lastIssue = nil
+            set(.idle)
+            return
+        }
         let output = outputAtStart ?? selectedOutput()
         let entries = dictionary.entries
         let asrConfig = asrAtStart ?? settings.asr
@@ -609,17 +624,17 @@ public final class DictationPipeline {
                     guard isCurrent(token) else { throw CancellationError() }
                     guard let refiner = await factory.refiner(for: llmConfig) else { throw RefinerError.invalidResponse }
                     try Task.checkCancellation()
-                    if let needs = llmNeedsLoad, await needs() {
+                    if let needs = llmNeedsLoad, await needs(llmConfig) {
                         try Task.checkCancellation()
                         guard isCurrent(token) else { throw CancellationError() }
-                        await loadLLM?()
+                        await loadLLM?(llmConfig)
                     }
                     try Task.checkCancellation()
                     guard isCurrent(token) else { throw CancellationError() }
                     return try await refiner.refine(request)
                 }
                 guard isCurrent(token) else { return }
-                if let served = result.servedBy { onLLMUsed?(served) }
+                if let served = result.servedBy { onLLMUsed?(served, llmConfig) }
                 refined = result.text
                 llmMs = result.latencyMs
                 llmEngine = result.engine

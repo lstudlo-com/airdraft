@@ -14,16 +14,17 @@ public enum DictionaryPostProcessor {
 
             var candidates = entry.aliases
                 .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty && $0 != term }
-            // Fix casing of the term itself ("floze" -> "Floze").
-            if !entry.caseSensitive, isLatin(term) {
-                candidates.append(term)
-            }
+                .filter { !$0.isEmpty && $0 != term && (isLatin($0) || $0.count >= 2) }
+            // Match canonical spellings too, so a shorter alias cannot rewrite
+            // part of an already correct term. Latin matches also fix its casing.
+            candidates.append(term)
             candidates.sort { $0.count > $1.count }
-
-            for alias in candidates {
-                output = replace(alias: alias, with: term, in: output, caseSensitive: entry.caseSensitive)
-            }
+            let pattern = candidates.map { pattern(for: $0, caseSensitive: entry.caseSensitive) }.joined(separator: "|")
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+            output = regex.stringByReplacingMatches(
+                in: output, range: NSRange(output.startIndex..., in: output),
+                withTemplate: NSRegularExpression.escapedTemplate(for: term)
+            )
         }
         return output
     }
@@ -52,21 +53,12 @@ public enum DictionaryPostProcessor {
         }
     }
 
-    static func replace(alias: String, with term: String, in text: String, caseSensitive: Bool) -> String {
+    private static func pattern(for alias: String, caseSensitive: Bool) -> String {
+        let literal = NSRegularExpression.escapedPattern(for: alias)
         if isLatin(alias) {
-            let pattern = "(?<![\\p{L}\\p{N}])" + NSRegularExpression.escapedPattern(for: alias) + "(?![\\p{L}\\p{N}])"
-            let options: NSRegularExpression.Options = caseSensitive ? [] : [.caseInsensitive]
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return text }
-            let range = NSRange(text.startIndex..., in: text)
-            return regex.stringByReplacingMatches(
-                in: text, options: [], range: range,
-                withTemplate: NSRegularExpression.escapedTemplate(for: term)
-            )
-        } else {
-            // CJK and mixed scripts: literal replacement. Require at least two
-            // characters so a single common character never gets rewritten.
-            guard alias.count >= 2 else { return text }
-            return text.replacingOccurrences(of: alias, with: term)
+            let bounded = "(?<![\\p{L}\\p{N}])" + literal + "(?![\\p{L}\\p{N}])"
+            return caseSensitive ? bounded : "(?i:\(bounded))"
         }
+        return literal
     }
 }

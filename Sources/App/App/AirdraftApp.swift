@@ -56,6 +56,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Debug aid: `airdraft --render-hud /path/out.png` writes the HUD as an
         // image and exits, so the design can be checked without screen recording.
         let args = CommandLine.arguments
+        if LocalE2E.isActive {
+            if LocalE2E.runAction() { return true }
+            if !args.contains("--render-window"), !args.contains("--render-hud") {
+                AppContainer.shared.start()
+                AppContainer.shared.showMainWindow()
+                if args.contains("--e2e-menu") {
+                    Task { @MainActor in
+                        await Task.yield()
+                        AppContainer.shared.openWindowAction?(id: "e2e-menu")
+                    }
+                }
+                return true
+            }
+        }
         if let idx = args.firstIndex(of: "--preview-profiles"), idx + 1 < args.count {
             ProfilePreview.open(directory: URL(fileURLWithPath: args[idx + 1]))
             return true
@@ -115,6 +129,21 @@ struct AirdraftApp: App {
         }
         .menuBarExtraStyle(.menu)
 
+        #if DEBUG
+        Window("Airdraft E2E Menu", id: "e2e-menu") {
+            if LocalE2E.isActive {
+                VStack(alignment: .leading, spacing: 12) {
+                    MenuView().environment(container)
+                }
+                .padding(20)
+                .frame(width: 420)
+            }
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
+        .commandsRemoved()
+        #endif
+
         Window("Airdraft", id: "main") {
             MainWindowView()
                 .environment(container)
@@ -155,6 +184,8 @@ private struct MenuBarLabel: View {
 
     var body: some View {
         Image(systemName: container.menuIcon)
-            .onAppear { container.openWindowAction = openWindow }
+            .onAppear {
+                container.openWindowAction = openWindow
+            }
     }
 }

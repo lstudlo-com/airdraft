@@ -61,7 +61,7 @@ enum DebugRender {
             if let effort = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_EFFORT"].flatMap(ThinkingEffort.init(rawValue:)) {
                 settings.llm.thinkingEffort = effort
             }
-            container = AppContainer(settings: settings)
+            container = AppContainer(settings: settings, dataDirectory: LocalE2E.isActive ? LocalE2E.directory : nil)
         } else {
             container = AppContainer.shared
         }

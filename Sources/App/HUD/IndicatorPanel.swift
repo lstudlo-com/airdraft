@@ -78,7 +78,10 @@ final class IndicatorPanelController {
 
     private func show() {
         let style = styleProvider()
-        guard style != .none else { return }
+        guard style != .none else {
+            panel.orderOut(nil)
+            return
+        }
         let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
         applyStyle(style, preview: preview)
         guard let screen = targetScreen else {

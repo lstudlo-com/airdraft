@@ -94,7 +94,7 @@ public actor SherpaTranscriber: Transcriber {
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
         // are split at silences so memory and latency stay bounded.
-        let text = AudioChunker.transcribe(samples, maxSeconds: 30) { Self.decode($0, with: recognizer.pointer) }
+        let text = try AudioChunker.transcribe(samples, maxSeconds: 30) { Self.decode($0, with: recognizer.pointer) }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
         // Parakeet auto-detects internally; this API returns no detected language.
         // Do not report an ignored language hint as recognition metadata.

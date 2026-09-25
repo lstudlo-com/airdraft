@@ -99,11 +99,13 @@ def validate_manifest(manifest, commit, tag):
     if manifest.get("commit") != commit or manifest.get("tag") != tag:
         raise RuntimeError("Release manifest does not match the pushed commit/tag")
     build = manifest.get("build")
-    if not isinstance(build, int) or build < 1:
+    if type(build) is not int or build < 1:
         raise RuntimeError("Invalid release build")
     version = manifest.get("version", "")
     if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
         raise RuntimeError("Invalid release version")
+    if tag != f"v{version}-build.{build}":
+        raise RuntimeError("Release version/build does not match its tag")
     archive = f"Airdraft-{version}-{build}-arm64.dmg"
     expected = {archive, "appcast.xml"}
     if set(manifest.get("sha256", {})) != expected:

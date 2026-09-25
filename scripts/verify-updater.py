@@ -17,6 +17,7 @@ from release_signing import designated_requirement, inspect_app, preflight
 
 
 def run(*args, **kwargs):
+    kwargs.setdefault("timeout", 120)
     return subprocess.run([str(arg) for arg in args], check=True, **kwargs)
 
 
@@ -26,6 +27,8 @@ def main():
                         help="Extracted Sparkle distribution with Sparkle.framework and bin")
     parser.add_argument("--legacy-source", action="store_true",
                         help="Also cover migration from the former ad-hoc app identity")
+    parser.add_argument("--ephemeral-key", action="store_true",
+                        help="Use a disposable fixture signing seed, without reading Sparkle's Keychain item")
     args = parser.parse_args()
     identity = preflight()
     root = pathlib.Path(__file__).resolve().parent.parent
@@ -36,15 +39,35 @@ def main():
     if not framework.is_dir():
         parser.error("Sparkle distribution has no macOS framework")
     account = "com.lstudlo.app.airdraft.sparkle"
-    public_key = run(sparkle / "bin/generate_keys", "--account", account, "-p",
-                     capture_output=True, text=True).stdout.strip()
+    public_key = None
+    if not args.ephemeral_key:
+        public_key = run(sparkle / "bin/generate_keys", "--account", account, "-p",
+                         capture_output=True, text=True).stdout.strip()
     bundle_id = "com.lightiichen.airdraft.updater-test." + uuid.uuid4().hex
     with tempfile.TemporaryDirectory(prefix="airdraft-updater-test-") as temp:
         work = pathlib.Path(temp)
+        signing_arguments = ["--account", account]
+        if args.ephemeral_key:
+            seed = work / "fixture-signing-seed"
+            generator = work / "fixture-signing-seed.swift"
+            generator.write_text('''import Foundation
+import CryptoKit
+let key = Curve25519.Signing.PrivateKey()
+let file = URL(fileURLWithPath: CommandLine.arguments[1])
+try Data(key.rawRepresentation.base64EncodedString().utf8).write(to: file)
+try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+print(key.publicKey.rawRepresentation.base64EncodedString())
+''')
+            public_key = run("swift", generator, seed, capture_output=True, text=True).stdout.strip()
+            signing_arguments = ["--ed-key-file", seed]
         app = work / "UpdaterTest.app"
         macos = app / "Contents/MacOS"
         macos.mkdir(parents=True)
-        run("ditto", framework, app / "Contents/Frameworks/Sparkle.framework")
+        embedded_framework = app / "Contents/Frameworks/Sparkle.framework"
+        run("ditto", framework, embedded_framework)
+        # Match Xcode's embed-and-sign step. Hardened library validation requires
+        # the loaded framework and fixture executable to share a team identity.
+        run("codesign", "--force", "--options", "runtime", "--sign", identity, embedded_framework)
         run("swiftc", "-parse-as-library", "-swift-version", "5", "-F", framework.parent,
             "-framework", "Sparkle", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
             root / "Sources/App/App/AppUpdater.swift", root / "scripts/verify-updater.swift",
@@ -61,7 +84,7 @@ def main():
 sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="/>
 </item></channel></rss>''')
         # This probe never downloads the archive. Its feed signature is real.
-        run(sparkle / "bin/sign_update", "--account", account, feed)
+        run(sparkle / "bin/sign_update", *signing_arguments, feed)
         info = {"CFBundleIdentifier": bundle_id, "CFBundleExecutable": "UpdaterTest",
                 "CFBundleName": "UpdaterTest", "CFBundlePackageType": "APPL",
                 "CFBundleVersion": "1", "CFBundleShortVersionString": "0.1.0",
@@ -72,7 +95,8 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
                 "SUAutomaticallyUpdate": False,
                 "NSAppTransportSecurity": {"NSAllowsLocalNetworking": True}}
         (app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
-        run("codesign", "--force", "--sign", "-" if args.legacy_source else identity, app)
+        source_runtime = [] if args.legacy_source else ["--options", "runtime"]
+        run("codesign", "--force", *source_runtime, "--sign", "-" if args.legacy_source else identity, app)
         old_requirement = None if args.legacy_source else designated_requirement(app)
         if args.legacy_source:
             try:
@@ -94,7 +118,7 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             run("ditto", app, target)
             target_info = dict(info, CFBundleVersion="2", CFBundleShortVersionString="0.1.1")
             (target / "Contents/Info.plist").write_bytes(plistlib.dumps(target_info))
-            run("codesign", "--force", "--sign", identity, target)
+            run("codesign", "--force", "--options", "runtime", "--sign", identity, target)
             target_requirement = designated_requirement(target)
             if old_requirement:
                 if target_requirement != old_requirement:
@@ -105,7 +129,7 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             archive = archives / "update.zip"
             run("ditto", "-c", "-k", "--keepParent", target, archive)
             feed.unlink()
-            run(sparkle / "bin/generate_appcast", "--account", account,
+            run(sparkle / "bin/generate_appcast", *signing_arguments,
                 "--download-url-prefix", f"http://127.0.0.1:{server.server_port}/updates/",
                 "--maximum-deltas", "0", "-o", feed, archives)
             original_archive = archive.read_bytes()

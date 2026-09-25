@@ -53,13 +53,34 @@ public enum AudioChunker {
 
     /// Decodes each chunk in order and joins the non-empty texts. For engines
     /// that only take whole utterances of limited length.
-    public static func transcribe(_ samples: [Float], maxSeconds: Double, decode: ([Float]) throws -> String) rethrows -> String {
+    public static func transcribe(_ samples: [Float], maxSeconds: Double, decode: ([Float]) throws -> String) throws -> String {
+        try Task.checkCancellation()
         let chunks = split(samples, maxSeconds: maxSeconds)
         var parts: [String] = []
         for chunk in chunks {
+            try Task.checkCancellation()
             let text = try decode(chunk.samples).trimmingCharacters(in: .whitespacesAndNewlines)
+            try Task.checkCancellation()
             if !text.isEmpty { parts.append(text) }
         }
         return parts.joined(separator: chunks.count > 1 ? " " : "")
+    }
+
+    /// Async engines decode bounded windows sequentially. A failed or cancelled
+    /// window must not return the successfully decoded prefix as a full transcript.
+    public static func transcribeAsync(
+        _ samples: [Float], maxSeconds: Double,
+        decode: ([Float]) async throws -> String
+    ) async throws -> String {
+        try Task.checkCancellation()
+        let chunks = split(samples, maxSeconds: maxSeconds, minTailSeconds: 0)
+        var parts: [String] = []
+        for chunk in chunks {
+            try Task.checkCancellation()
+            let text = try await decode(chunk.samples).trimmingCharacters(in: .whitespacesAndNewlines)
+            try Task.checkCancellation()
+            if !text.isEmpty { parts.append(text) }
+        }
+        return parts.joined(separator: " ")
     }
 }

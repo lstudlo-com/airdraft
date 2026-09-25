@@ -12,11 +12,15 @@ struct MicrophonePicker: View {
         Picker(title, selection: Binding(
             get: { container.settings.microphone.uid ?? "" },
             set: { uid in
+                let next: MicrophonePreference
                 if let device = store.devices.first(where: { $0.uid == uid }) {
-                    container.settings.microphone = MicrophonePreference(uid: device.uid, name: device.name)
+                    next = MicrophonePreference(uid: device.uid, name: device.name)
                 } else if uid.isEmpty {
-                    container.settings.microphone = .systemDefault
+                    next = .systemDefault
+                } else {
+                    return
                 }
+                container.settings.microphone = store.selection(next, preservingChannelFrom: container.settings.microphone)
             }
         )) {
             Text("System default").tag("")

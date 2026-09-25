@@ -77,17 +77,23 @@ public final class AppContextReader {
            let value: String = attribute(focused, kAXValueAttribute),
            let rangeValue: AXValue = attribute(focused, kAXSelectedTextRangeAttribute) {
             var range = CFRange()
-            if AXValueGetValue(rangeValue, .cfRange, &range) {
-                let utf16 = Array(value.utf16)
-                let loc = max(0, min(range.location, utf16.count))
-                let end = max(loc, min(range.location + range.length, utf16.count))
-                let before = String(utf16CodeUnits: Array(utf16[max(0, loc - maxBeforeChars)..<loc]), count: min(loc, maxBeforeChars))
-                let after = String(utf16CodeUnits: Array(utf16[end..<min(utf16.count, end + maxAfterChars)]), count: min(utf16.count - end, maxAfterChars))
-                ctx.textBeforeCursor = before
-                ctx.textAfterCursor = after
+            if AXValueGetValue(rangeValue, .cfRange, &range),
+               let text = Self.surroundingText(value, range: range, maxBefore: maxBeforeChars, maxAfter: maxAfterChars) {
+                ctx.textBeforeCursor = text.before
+                ctx.textAfterCursor = text.after
             }
         }
         return ctx
+    }
+
+    static func surroundingText(_ value: String, range: CFRange, maxBefore: Int, maxAfter: Int) -> (before: String, after: String)? {
+        let count = value.utf16.count
+        guard range.location >= 0, range.length >= 0, range.location <= count,
+              range.length <= count - range.location,
+              let selection = Range(NSRange(location: range.location, length: range.length), in: value) else { return nil }
+        let before = String(value[..<selection.lowerBound].suffix(max(0, maxBefore)))
+        let after = String(value[selection.upperBound...].prefix(max(0, maxAfter)))
+        return (before, after)
     }
 
     // MARK: - AX helpers

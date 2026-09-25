@@ -38,6 +38,20 @@ final class MicrophoneStore {
         preference.resolve(in: devices, systemDefaultID: systemDefaultID)
     }
 
+    func selection(_ preference: MicrophonePreference, preservingChannelFrom current: MicrophonePreference) -> MicrophonePreference {
+        Self.selection(preference, preservingChannelFrom: current, devices: devices, systemDefaultID: systemDefaultID)
+    }
+
+    static func selection(_ preference: MicrophonePreference, preservingChannelFrom current: MicrophonePreference,
+                          devices: [Microphone], systemDefaultID: AudioDeviceID?) -> MicrophonePreference {
+        var next = preference
+        if let device = current.resolve(in: devices, systemDefaultID: systemDefaultID),
+           next.resolve(in: devices, systemDefaultID: systemDefaultID)?.uid == device.uid {
+            next.channelIndex = current.channelIndex
+        }
+        return next
+    }
+
     func label(_ preference: MicrophonePreference) -> String {
         selected(preference)?.name ?? "\(preference.name) · unavailable"
     }

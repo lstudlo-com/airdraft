@@ -91,6 +91,24 @@ enum CLIProcess {
         }
     }
 
+    /// A prewarmed process shares the same bounded, simultaneous input/output pump.
+    /// Finish as soon as its terminal JSON line arrives, even if it waits for more input.
+    static func exchange(_ process: Process, stdin: FileHandle, stdout: FileHandle,
+                         input: Data, timeout: TimeInterval, control: RunCancellation,
+                         consumeLine: @escaping (Data) throws -> Bool) throws {
+        guard timeout.isFinite, timeout > 0 else { throw RefinerError.timeout }
+        let deadline = ProcessInfo.processInfo.systemUptime + timeout
+        for descriptor in [stdin.fileDescriptor, stdout.fileDescriptor] {
+            let flags = fcntl(descriptor, F_GETFL)
+            guard flags >= 0, fcntl(descriptor, F_SETFL, flags | O_NONBLOCK) != -1 else {
+                throw Failure.pipeFailure
+            }
+        }
+        guard fcntl(stdin.fileDescriptor, F_SETNOSIGPIPE, 1) != -1 else { throw Failure.pipeFailure }
+        _ = try pump(process, stdin: stdin, stdout: stdout.fileDescriptor, stderr: -1,
+                     input: input, deadline: deadline, control: control, consumeLine: consumeLine)
+    }
+
     private static func checkDeadline(_ deadline: TimeInterval, control: RunCancellation) throws {
         try control.checkCancellation()
         guard ProcessInfo.processInfo.systemUptime < deadline else { throw RefinerError.timeout }
@@ -99,9 +117,12 @@ enum CLIProcess {
     /// One owner for all file descriptors. A bounded poll loop avoids parked reader
     /// threads when an exited child leaves its pipes open in a descendant.
     private static func pump(_ process: Process, stdin: FileHandle, stdout: Int32, stderr: Int32,
-                             input: Data, deadline: TimeInterval, control: RunCancellation) throws -> Output {
-        var inputOpen = true, outputOpen = true, errorOpen = true
+                             input: Data, deadline: TimeInterval, control: RunCancellation,
+                             consumeLine: ((Data) throws -> Bool)? = nil) throws -> Output {
+        var inputOpen = true, outputOpen = true, errorOpen = stderr >= 0
         var sent = 0
+        var lineStart = 0
+        var lineScan = 0
         var out = BoundedOutput(), err = BoundedOutput()
         while true {
             try checkDeadline(deadline, control: control)
@@ -145,6 +166,21 @@ enum CLIProcess {
                     throw Failure.pipeFailure
                 }
             }
+            if let consumeLine {
+                guard !out.truncated else { throw RefinerError.invalidResponse }
+                while lineScan < out.data.count {
+                    let index = lineScan
+                    lineScan += 1
+                    guard out.data[index] == 0x0A else { continue }
+                    let line = out.data.subdata(in: lineStart..<index)
+                    lineStart = lineScan
+                    if try consumeLine(line) {
+                        guard sent == input.count else { throw Failure.incompleteInput }
+                        try checkDeadline(deadline, control: control)
+                        return Output(status: 0, stdout: "", stderr: "", stdoutTruncated: false, stderrTruncated: false)
+                    }
+                }
+            }
         }
     }
 
@@ -171,7 +207,7 @@ enum CLIProcess {
 }
 
 /// Cancellation and launch share one lock, so an already cancelled run cannot start a child.
-private final class RunCancellation: @unchecked Sendable {
+final class RunCancellation: @unchecked Sendable {
     private let lock = OSAllocatedUnfairLock()
     private var cancelled = false
 

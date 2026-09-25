@@ -23,9 +23,13 @@ final class ModelLifecycle {
     private var lastASR: ASRConfig?
     private var speechLoadTask: Task<Void, Never>?
     private var llmGeneration = UUID()
+    private var llmCleanupGeneration = UUID()
     private var dictationBusy = false
+    private var usedLLMEndpoints: [URL: Set<String>] = [:]
+    private var llmUnloads: [UUID: (url: URL, task: Task<Void, Error>)] = [:]
 
     func setDictationBusy(_ busy: Bool) {
+        if busy && !dictationBusy { llmCleanupGeneration = UUID() }
         dictationBusy = busy
         if !busy { handleSettingsChange() }
     }
@@ -107,8 +111,9 @@ final class ModelLifecycle {
     /// True when LM Studio is reachable but the configured model is not loaded,
     /// so the app should load it (small context) instead of letting LM Studio
     /// JIT-load it with its huge default context.
-    func llmNeedsLoad() async -> Bool {
-        let config = settings.llm
+    func llmNeedsLoad(config: LLMConfig) async -> Bool {
+        await waitForLLMUnloads(config)
+        guard !Task.isCancelled else { return false }
         guard let url = await lmStudioURL(config) else { return false }
         return ((try? await lmStudio.instances(baseURL: url, modelKey: config.model)) ?? []).isEmpty
     }
@@ -117,29 +122,46 @@ final class ModelLifecycle {
         Task { await loadLLMIfNeeded() }
     }
 
-    /// Loads the configured model in LM Studio unless an instance is already up.
-    func loadLLMIfNeeded() async {
+    /// Explicit configs belong to an in-flight dictation; UI loads follow selection.
+    func loadLLMIfNeeded(config requestedConfig: LLMConfig? = nil) async {
         let token = UUID()
         llmGeneration = token
-        let config = settings.llm
-        guard let url = await lmStudioURL(config) else { return await refreshLLMStatus() }
+        llmCleanupGeneration = UUID()
+        let config = requestedConfig ?? settings.llm
+        let followsSelection = requestedConfig == nil
+        await waitForLLMUnloads(config)
+        guard !Task.isCancelled, token == llmGeneration else { return }
+        guard let url = await lmStudioURL(config) else {
+            if config == settings.llm { await refreshLLMStatus() }
+            return
+        }
         if let existing = try? await lmStudio.instances(baseURL: url, modelKey: config.model).first {
-            guard !Task.isCancelled, token == llmGeneration, settings.llm == config else { return }
-            llmStatus.markUsed(existing)
-            llmStatus.set(.loaded(instance: existing))
+            guard !Task.isCancelled, token == llmGeneration,
+                  !followsSelection || settings.llm == config else { return }
+            markLLMUsed(existing, config: config)
+            if settings.llm == config { llmStatus.set(.loaded(instance: existing)) }
             return
         }
         // Set the outcome directly: refreshLLMStatus leaves a `.loading` state alone.
-        guard !Task.isCancelled, token == llmGeneration, settings.llm == config else { return }
-        llmStatus.set(.loading)
+        guard !Task.isCancelled, token == llmGeneration,
+              !followsSelection || settings.llm == config else { return }
+        if settings.llm == config { llmStatus.set(.loading) }
         do {
             let id = try await lmStudio.load(baseURL: url, modelKey: config.model)
-            guard !Task.isCancelled, token == llmGeneration, settings.llm == config else {
-                try? await lmStudio.unload(baseURL: url, instanceID: id)
+            markLLMUsed(id, config: config)
+            guard !Task.isCancelled, token == llmGeneration,
+                  !followsSelection || settings.llm == config else {
+                // Another session may now use the same model. Keep ownership for
+                // quit cleanup instead of unloading a reselected or active model.
+                guard !dictationBusy, !sameManagedModel(config, settings.llm) else { return }
+                do {
+                    try await unloadLLMInstance(id, at: url)
+                } catch {
+                    Self.log.error("Stale LLM load cleanup failed; retaining instance for cleanup retry")
+                }
                 return
             }
-            llmStatus.markUsed(id)
-            llmStatus.set(.loaded(instance: id))
+            if settings.llm == config { llmStatus.set(.loaded(instance: id)) }
             Self.log.notice("LLM loaded instance=\(id, privacy: .public)")
         } catch {
             guard token == llmGeneration, settings.llm == config else { return }
@@ -150,27 +172,86 @@ final class ModelLifecycle {
     func unloadLLM() {
         guard !dictationBusy else { return }
         llmGeneration = UUID()
+        let cleanupToken = UUID()
+        llmCleanupGeneration = cleanupToken
+        let config = settings.llm
         Task {
-            await unloadInstances(of: settings.llm, onlyUsedByApp: false)
-            await refreshLLMStatus()
+            if await unloadInstances(of: config, onlyUsedByApp: false, generation: cleanupToken), settings.llm == config {
+                await refreshLLMStatus()
+            }
         }
     }
 
-    func noteLLMUsed(_ instance: String) {
+    func noteLLMUsed(_ instance: String, config: LLMConfig) {
         // This set is used to unload LM Studio instances. Cloud provider names
         // reported by OpenRouter are not local model instance IDs.
-        guard settings.llm.kind == .openAICompatible else { return }
-        llmStatus.markUsed(instance)
+        guard config.kind == .openAICompatible else { return }
+        markLLMUsed(instance, config: config)
         Task { await refreshLLMStatus() }
     }
 
-    private func unloadInstances(of config: LLMConfig, onlyUsedByApp: Bool) async {
-        guard let url = await lmStudioURL(config) else { return }
-        let ids = (try? await lmStudio.instances(baseURL: url, modelKey: config.model)) ?? []
-        for id in ids where !onlyUsedByApp || llmStatus.usedInstances.contains(id) {
-            try? await lmStudio.unload(baseURL: url, instanceID: id)
-            llmStatus.forget(id)
-            Self.log.notice("LLM unloaded instance=\(id, privacy: .public)")
+    private func markLLMUsed(_ id: String, config: LLMConfig) {
+        llmStatus.markUsed(id)
+        if let url = config.endpoint { usedLLMEndpoints[url, default: []].insert(id) }
+    }
+
+    private func forgetLLM(_ id: String, at url: URL) {
+        usedLLMEndpoints[url]?.remove(id)
+        if !usedLLMEndpoints.values.contains(where: { $0.contains(id) }) { llmStatus.forget(id) }
+    }
+
+    private func sameManagedModel(_ lhs: LLMConfig, _ rhs: LLMConfig) -> Bool {
+        lhs.kind == rhs.kind && lhs.baseURL == rhs.baseURL && lhs.model == rhs.model
+    }
+
+    private func canUnload(_ config: LLMConfig, onlyUsedByApp: Bool, generation: UUID) -> Bool {
+        !Task.isCancelled && !dictationBusy && generation == llmCleanupGeneration
+            && (!onlyUsedByApp || !sameManagedModel(config, settings.llm))
+    }
+
+    private func waitForLLMUnloads(_ config: LLMConfig) async {
+        guard let url = config.endpoint else { return }
+        let pending = llmUnloads.values.filter { $0.url == url }.map(\.task)
+        for task in pending { _ = try? await task.value }
+    }
+
+    /// Once sent, an unload may still succeed after selection changes. New
+    /// preparation waits for its response before relying on instance discovery.
+    private func unloadLLMInstance(_ id: String, at url: URL) async throws {
+        let token = UUID()
+        let task = Task {
+            try await lmStudio.unload(baseURL: url, instanceID: id)
+            forgetLLM(id, at: url)
+        }
+        llmUnloads[token] = (url, task)
+        defer { llmUnloads[token] = nil }
+        try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
+    @discardableResult
+    private func unloadInstances(of config: LLMConfig, onlyUsedByApp: Bool, generation: UUID) async -> Bool {
+        guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
+        guard let url = await lmStudioURL(config) else { return true }
+        guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
+        do {
+            let ids = try await lmStudio.instances(baseURL: url, modelKey: config.model)
+            guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
+            for id in ids where !onlyUsedByApp || usedLLMEndpoints[url]?.contains(id) == true {
+                guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
+                try await unloadLLMInstance(id, at: url)
+                Self.log.notice("LLM unloaded instance=\(id, privacy: .public)")
+            }
+            return true
+        } catch {
+            if canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation), settings.llm == config {
+                llmStatus.set(.failed(error.localizedDescription))
+            }
+            Self.log.error("LLM unload failed; retaining instance for cleanup retry")
+            return false
         }
     }
 
@@ -180,6 +261,7 @@ final class ModelLifecycle {
     func shutdown() async {
         speechLoadTask?.cancel()
         llmGeneration = UUID()
+        llmCleanupGeneration = UUID()
         do {
             try await OperationDeadline.run(seconds: 5) { [self] in
                 await factory.unloadAll()
@@ -192,11 +274,15 @@ final class ModelLifecycle {
     }
 
     private func unloadUsedLLMOnQuit() async {
-        guard settings.unloadLLMOnQuit,
-              let url = URL(string: settings.llm.baseURL),
-              !llmStatus.usedInstances.isEmpty else { return }
-        for id in llmStatus.usedInstances {
-            try? await lmStudio.unload(baseURL: url, instanceID: id)
+        guard settings.unloadLLMOnQuit else { return }
+        for (url, ids) in usedLLMEndpoints {
+            for id in ids {
+                do {
+                    try await unloadLLMInstance(id, at: url)
+                } catch {
+                    Self.log.error("LLM cleanup failed")
+                }
+            }
         }
     }
 
@@ -222,11 +308,15 @@ final class ModelLifecycle {
 
         let previous = lastLLM
         lastLLM = settings.llm
-        if let previous, previous.model != settings.llm.model || previous.baseURL != settings.llm.baseURL || previous.kind != settings.llm.kind {
+        if let previous, !sameManagedModel(previous, settings.llm) {
+            llmGeneration = UUID()
+            let cleanupToken = UUID()
+            llmCleanupGeneration = cleanupToken
+            llmStatus.set(.unknown)
             Task {
                 // Unload what this app was using on the old endpoint or model.
-                await unloadInstances(of: previous, onlyUsedByApp: true)
-                await refreshLLMStatus()
+                await unloadInstances(of: previous, onlyUsedByApp: true, generation: cleanupToken)
+                if cleanupToken == llmCleanupGeneration { await refreshLLMStatus() }
             }
         }
     }

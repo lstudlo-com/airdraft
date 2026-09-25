@@ -38,7 +38,7 @@ struct ModelField: View {
     }
 
     private func refresh() async {
-        guard !RenderMode.isActive else { return }
+        guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
         let token = UUID()
         requestID = token
         models = []

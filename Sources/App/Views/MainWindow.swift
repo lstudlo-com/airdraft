@@ -198,6 +198,7 @@ struct SidebarView: View {
     let openAccount: () -> Void
     var overlayFocus: FocusState<WindowOverlay?>.Binding
     @State private var wordsDictated = 0
+    @State private var wordCountRefresh = UUID()
 
     private var isCollapsed: Bool { container.navigation.sidebarCollapsed }
 
@@ -283,12 +284,22 @@ struct SidebarView: View {
         }
         .padding(.horizontal, Theme.sidebarContentInset)
         .task(id: container.pipeline.lastOutcome) { await refreshWordCount() }
+        .onReceive(NotificationCenter.default.publisher(for: .historyEntriesChanged)) { _ in
+            Task { await refreshWordCount() }
+        }
+        .onChange(of: container.pipeline.isSavingHistory) { _, saving in
+            if !saving { Task { await refreshWordCount() } }
+        }
     }
 
-    /// Counted off the main actor, once per dictation rather than on every redraw.
+    /// Counted off the main actor after a save or deletion, never on redraw.
     private func refreshWordCount() async {
         guard let history = container.history else { return }
-        wordsDictated = await Task.detached { (try? history.stats().words) ?? 0 }.value
+        let token = UUID()
+        wordCountRefresh = token
+        let count = await Task.detached { (try? history.stats().words) ?? 0 }.value
+        guard !Task.isCancelled, wordCountRefresh == token else { return }
+        wordsDictated = count
     }
 
     private func navigationGroup(_ pages: [Page]) -> some View {

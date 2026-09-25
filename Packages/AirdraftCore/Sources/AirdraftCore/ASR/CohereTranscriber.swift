@@ -30,7 +30,7 @@ public actor CohereTranscriber: Transcriber {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
         let model = try await loadedModel()
         let started = Date()
-        let text = AudioChunker.transcribe(samples, maxSeconds: 25) {
+        let text = try AudioChunker.transcribe(samples, maxSeconds: 25) {
             model.transcribe(audio: $0, sampleRate: 16_000, language: hints.language)
         }
         let ms = Int(Date().timeIntervalSince(started) * 1000)

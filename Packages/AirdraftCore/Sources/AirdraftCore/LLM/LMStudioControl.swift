@@ -13,10 +13,14 @@ public actor LMStudioControl {
 
     private let session: URLSession
 
-    public init() {
+    public init(session: URLSession? = nil) {
+        if let session {
+            self.session = session
+            return
+        }
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 5
-        session = URLSession(configuration: config)
+        self.session = URLSession(configuration: config)
     }
 
     /// `baseURL` is the OpenAI-compatible one, e.g. http://localhost:1234/v1.
@@ -24,6 +28,7 @@ public actor LMStudioControl {
         guard var c = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else { return nil }
         c.path = "/api/v1"
         c.query = nil
+        c.fragment = nil
         return c.url
     }
 
@@ -45,7 +50,8 @@ public actor LMStudioControl {
     /// Ids of the loaded instances of the model with this key (the id used in chat requests).
     public func instances(baseURL: URL, modelKey: String) async throws -> [String] {
         guard let root = Self.apiRoot(for: baseURL) else { return [] }
-        let (data, _) = try await session.data(from: root.appendingPathComponent("models"))
+        let (data, response) = try await session.data(from: root.appendingPathComponent("models"))
+        try Self.validate(response, data: data)
         struct Reply: Decodable {
             struct Model: Decodable {
                 struct Loaded: Decodable { let id: String }
@@ -55,8 +61,12 @@ public actor LMStudioControl {
             let models: [Model]
         }
         let reply = try JSONDecoder().decode(Reply.self, from: data)
+        // An instance identifier selects one loaded copy, even when its model has siblings.
+        if reply.models.contains(where: { $0.loaded_instances?.contains(where: { $0.id == modelKey }) == true }) {
+            return [modelKey]
+        }
         return reply.models
-            .filter { $0.key == modelKey || $0.loaded_instances?.contains(where: { $0.id == modelKey }) == true }
+            .filter { $0.key == modelKey }
             .flatMap { $0.loaded_instances ?? [] }
             .map(\.id)
     }
@@ -72,10 +82,8 @@ public actor LMStudioControl {
             "model": modelKey,
             "context_length": Self.dictationContextLength,
         ])
-        let (data, response) = try await URLSession.shared.data(for: req)
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw RefinerError.http(status: (response as? HTTPURLResponse)?.statusCode ?? 0, body: String(decoding: data, as: UTF8.self))
-        }
+        let (data, response) = try await session.data(for: req)
+        try Self.validate(response, data: data)
         struct Reply: Decodable { let instance_id: String }
         return try JSONDecoder().decode(Reply.self, from: data).instance_id
     }
@@ -87,7 +95,15 @@ public actor LMStudioControl {
         req.timeoutInterval = 30
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: ["instance_id": instanceID])
-        _ = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
+        try Self.validate(response, data: data)
+    }
+
+    private static func validate(_ response: URLResponse, data: Data) throws {
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            throw RefinerError.http(status: (response as? HTTPURLResponse)?.statusCode ?? 0,
+                                    body: String(decoding: data, as: UTF8.self))
+        }
     }
 }
 

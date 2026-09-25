@@ -50,7 +50,15 @@ public enum LocalModels {
         try FileManager.default.removeItem(at: folder)
     }
 
-    public static var root: URL { AppSettings.supportDirectory.appendingPathComponent("Models", isDirectory: true) }
+    public static var root: URL {
+        #if DEBUG
+        if let path = ProcessInfo.processInfo.environment["AIRDRAFT_E2E_MODEL_ROOT"],
+           path.hasPrefix("/") {
+            return URL(fileURLWithPath: path, isDirectory: true)
+        }
+        #endif
+        return AppSettings.supportDirectory.appendingPathComponent("Models", isDirectory: true)
+    }
     public static var whisperKitRoot: URL { root.appendingPathComponent("whisperkit-coreml", isDirectory: true) }
     public static var whisperTokenizerFolder: URL { root.appendingPathComponent("tokenizer/whisper-large-v3", isDirectory: true) }
 
@@ -88,10 +96,11 @@ public enum LocalModels {
 
     /// Weights plus tokenizer present.
     public static func hasQwen3(_ modelId: String) -> Bool {
-        let folder = qwen3Folder(for: modelId)
-        guard let names = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else { return false }
-        let hasWeights = names.contains { $0.hasSuffix(".safetensors") }
-        return hasWeights && names.contains("vocab.json") && names.contains("merges.txt")
+        hasQwen3(at: qwen3Folder(for: modelId))
+    }
+
+    static func hasQwen3(at folder: URL) -> Bool {
+        hasMLXFiles(at: folder, required: ["vocab.json", "merges.txt"])
     }
 
     // MARK: Cohere Transcribe (speech-swift layout)
@@ -99,8 +108,21 @@ public enum LocalModels {
     public static var cohereRoot: URL { root.appendingPathComponent("cohere-transcribe", isDirectory: true) }
     public static func cohereFolder(for modelId: String) -> URL { cohereRoot.appendingPathComponent(modelId, isDirectory: true) }
     public static func hasCohere(_ modelId: String) -> Bool {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: cohereFolder(for: modelId).path)) ?? []
-        return names.contains { $0.hasSuffix(".safetensors") } && names.contains { $0.hasPrefix("tokenizer") }
+        hasCohere(at: cohereFolder(for: modelId))
+    }
+
+    static func hasCohere(at folder: URL) -> Bool {
+        hasMLXFiles(at: folder, required: ["config.json", "tokenizer.model", "tokenizer_config.json"])
+    }
+
+    private static func hasMLXFiles(at folder: URL, required: [String]) -> Bool {
+        guard let names = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else { return false }
+        let weights = names.filter { $0.hasSuffix(".safetensors") }
+        guard !weights.isEmpty else { return false }
+        return (weights + required).allSatisfy { name in
+            let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appendingPathComponent(name).path)
+            return attributes?[.type] as? FileAttributeType == .typeRegular && (attributes?[.size] as? Int64 ?? 0) > 0
+        }
     }
 
     // MARK: sherpa-onnx models (SenseVoice, FireRedASR2, Parakeet)

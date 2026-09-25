@@ -7,10 +7,15 @@ final class PipelineSafetyTests: XCTestCase {
         let suite = "airdraft.safety.\(UUID().uuidString)"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
-        settings.asr = ASRConfig(kind: .groq)
+        settings.asr = ASRConfig(kind: .parakeet)
         settings.llm = LLMConfig(kind: .none)
+        settings.useAppContext = false
+        settings.livePreviewEnabled = false
         let recorder = TestRecorder()
-        let factory = EngineFactory(status: EngineStatus(), transcriberBuilder: { _ in SlowSpeech(delay: delay) })
+        let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
+                XCTFail("Pipeline tests must not read credentials")
+                return nil
+            }, transcriberBuilder: { _ in SlowSpeech(delay: delay) })
         let pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
             profiles: ProfileStore(directory: directory), history: nil, factory: factory,
             recorder: recorder, recordingPreflight: { _, _, _, _, _ in }, requestMicrophoneAccess: { true })
@@ -61,11 +66,16 @@ final class PipelineSafetyTests: XCTestCase {
         defer { cleanup(dir, suite) }
         let engine = RecoveringSpeech()
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
-        settings.asr = ASRConfig(kind: .groq)
+        settings.asr = ASRConfig(kind: .parakeet)
         settings.llm = LLMConfig(kind: .none)
+        settings.useAppContext = false
+        settings.livePreviewEnabled = false
         let pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: dir),
             profiles: ProfileStore(directory: dir), history: nil,
-            factory: EngineFactory(status: EngineStatus(), transcriberBuilder: { _ in engine }))
+            factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in
+                XCTFail("Pipeline tests must not read credentials")
+                return nil
+            }, transcriberBuilder: { _ in engine }))
         pipeline.insertionEnabled = false
         pipeline.processSamples([Float](repeating: 0.1, count: 16000))
         for _ in 0..<100 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(2)) }

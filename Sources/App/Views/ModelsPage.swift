@@ -74,7 +74,7 @@ struct ModelsPage: View {
                 }
             }
 
-            if filter != .local {
+            if filter != .local, !RenderMode.excludesCredentials {
                 cloudModels
                 customSpeechSettings
             }
@@ -111,7 +111,7 @@ struct ModelsPage: View {
                     get: { settings.llm.kind },
                     set: { settings.llm.select($0) }
                 )) {
-                    ForEach(LLMProviderKind.allCases) { kind in
+                    ForEach(LLMProviderKind.allCases.filter { !RenderMode.excludesCredentials || !$0.requiresKey }) { kind in
                         Text(kind.title).tag(kind)
                     }
                 }
@@ -145,11 +145,11 @@ struct ModelsPage: View {
         } accessory: {
             SearchField(text: $query, placeholder: "Search models")
             PageFilter(title: "Show models", selection: $filter,
-                       options: Filter.allCases.map { ($0, $0.title) })
+                       options: Filter.allCases.filter { !RenderMode.excludesCredentials || $0 != .cloud }.map { ($0, $0.title) })
         }
         .onAppear {
             if !initialized {
-                filter = settings.asr.kind.preset == nil ? .all : .cloud
+                filter = RenderMode.excludesCredentials ? .local : (settings.asr.kind.preset == nil ? .all : .cloud)
                 if RenderMode.isActive,
                    let value = RenderMode.value("FILTER").flatMap(Filter.init(rawValue:)) {
                     filter = value
@@ -363,6 +363,7 @@ private struct SpeechKeyRows: View {
     }
 
     private func test() {
+        guard !RenderMode.excludesCredentials else { return }
         cancel()
         let token = generation
         let account = preset.keyRef

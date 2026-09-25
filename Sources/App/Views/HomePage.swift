@@ -225,7 +225,7 @@ struct HomePage: View {
     }
 
     private func refreshRefinementKey() async {
-        guard !RenderMode.isActive else { return }
+        guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
         let account = container.settings.llm.keyRef
         let present = await Task.detached { Keychain.presence(account) == .saved }.value
         guard account == container.settings.llm.keyRef, !Task.isCancelled else { return }
@@ -262,7 +262,7 @@ struct HomePage: View {
     }
 
     private func refreshSpeechKey() async {
-        guard !RenderMode.isActive else { return }
+        guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
         let account = container.settings.asr.keyRef
         let present = await Task.detached { Keychain.presence(account) == .saved }.value
         guard account == container.settings.asr.keyRef, !Task.isCancelled else { return }

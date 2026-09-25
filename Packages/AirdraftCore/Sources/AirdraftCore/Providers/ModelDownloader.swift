@@ -190,14 +190,11 @@ public actor ModelDownloader {
     }
 
     /// bsdtar refuses absolute and `..` member paths by default.
-    private static func unpack(_ archive: URL, into root: URL) async throws -> Int32 {
+    static func unpack(_ archive: URL, into root: URL) async throws -> Int32 {
         let tar = Process()
         tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
         tar.arguments = ["-xjf", archive.path, "-C", root.path]
-        return try await withCheckedThrowingContinuation { continuation in
-            tar.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
-            do { try tar.run() } catch { continuation.resume(throwing: error) }
-        }
+        return try await CLIProcess.run(tar, input: "", timeout: 300).status
     }
 
     // MARK: - Hub helpers
@@ -222,8 +219,8 @@ public actor ModelDownloader {
         let encoded = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
         let url = URL(string: "https://huggingface.co/\(repo)/resolve/main/\(encoded)")!
         let (tmp, response) = try await URLSession.shared.download(from: url)
+        defer { try? FileManager.default.removeItem(at: tmp) }
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            try? FileManager.default.removeItem(at: tmp)
             throw DownloadError.download(file: path, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
         }
         try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)

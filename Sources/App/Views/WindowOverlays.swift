@@ -85,11 +85,7 @@ struct MicrophoneSelectionOverlay: View {
 
     private func choose(_ newPreference: MicrophonePreference) {
         guard !isBusy else { return }
-        var next = newPreference
-        if let selected, container.microphones.selected(next)?.uid == selected.uid {
-            next.channelIndex = preference.channelIndex
-        }
-        container.settings.microphone = next
+        container.settings.microphone = container.microphones.selection(newPreference, preservingChannelFrom: preference)
     }
 
     private func synchronizePreviews() {

@@ -40,22 +40,27 @@ public actor WhisperKitTranscriber: Transcriber {
         options.temperature = 0
         options.usePrefillPrompt = true
         options.skipSpecialTokens = true
-        // Timestamps must stay on: Whisper uses them to seek past the first
-        // 30 s window. Without them long recordings silently stop at ~30 s.
+        // Preserve timestamp seeking inside each bounded window.
         options.withoutTimestamps = false
-        options.chunkingStrategy = .vad
-        options.concurrentWorkerCount = 4
+        // The SDK's one-second clipping default skips sub-second speech entirely.
+        options.windowClipTime = 0
+        // Decode our bounded windows directly. WhisperKit's long-clip seeking
+        // can lose later speech, and its VAD fan-out drops failed chunks.
+        options.chunkingStrategy = nil
         if let prompt = hints.promptText, let tokenizer = pipe.tokenizer {
             // Whisper accepts roughly 224 prompt tokens; keep the tail.
             let tokens = tokenizer.encode(text: " " + prompt).filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = Array(tokens.suffix(200))
         }
 
-        let results = try await pipe.transcribe(audioArray: samples, decodeOptions: options)
-        let text = results.map(\.text).joined(separator: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        var detectedLanguage: String?
+        let text = try await AudioChunker.transcribeAsync(samples, maxSeconds: 25) { chunk in
+            let results = try await pipe.transcribe(audioArray: chunk, decodeOptions: options)
+            if detectedLanguage == nil { detectedLanguage = results.first?.language }
+            return results.map(\.text).joined(separator: " ")
+        }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
-        return Transcript(text: text, language: results.first?.language, engine: id, latencyMs: ms)
+        return Transcript(text: text, language: detectedLanguage, engine: id, latencyMs: ms)
     }
 
     private func loadedPipe() async throws -> WhisperKit {

@@ -213,7 +213,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
             suite = "airdraft.history-retranscription.\(UUID().uuidString)"
             directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
             settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
-            settings.asr = ASRConfig(kind: .groq)
+            settings.asr = ASRConfig(kind: .parakeet)
             settings.llm = LLMConfig(kind: .none)
             settings.useAppContext = false
             history = try HistoryStore(directory: directory)

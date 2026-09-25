@@ -53,7 +53,7 @@ struct MenuView: View {
             get: { container.settings.llm.kind },
             set: { container.settings.llm.select($0) }
         )) {
-            ForEach(LLMProviderKind.allCases) { Text($0.title).tag($0) }
+            ForEach(LLMProviderKind.allCases.filter { !RenderMode.excludesCredentials || !$0.requiresKey }) { Text($0.title).tag($0) }
         }
         Text("Speech: \(speechProviderLabel) · \(speechStateLabel)")
             .help("\(settings.asr.engineLabel) · \(fullSpeechStateLabel)")

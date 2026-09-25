@@ -106,10 +106,13 @@ public final class TextInserter {
         guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processID,
               let original = target.element, let current = focusedElement(pid: target.processID),
               CFEqual(original, current) else { return false }
-        if let range = target.selection {
-            guard let now = selection(current), now.location == range.location, now.length == range.length else { return false }
-        }
-        return true
+        return Self.selectionMatches(target.selection, selection(current))
+    }
+
+    static func selectionMatches(_ expected: CFRange?, _ current: CFRange?) -> Bool {
+        guard let expected, let current, expected.location >= 0, expected.length >= 0,
+              expected.length <= Int.max - expected.location else { return false }
+        return expected.location == current.location && expected.length == current.length
     }
 
     private func focusedElement(pid: Int32) -> AXUIElement? {
@@ -134,7 +137,7 @@ public final class TextInserter {
 
     // MARK: - Accessibility
 
-    private enum WriteResult { case notAttempted, inserted, uncertain }
+    enum WriteResult: Equatable { case notAttempted, inserted, uncertain }
 
     private func insertViaAccessibility(_ text: String, target: InsertionTarget) -> WriteResult {
         guard matches(target), let focused = target.element else { return .notAttempted }
@@ -145,10 +148,18 @@ public final class TextInserter {
         var settable: DarwinBoolean = false
         guard AXUIElementIsAttributeSettable(focused, kAXSelectedTextAttribute as CFString, &settable) == .success,
               settable.boolValue, let before = value(focused), let range = selection(focused),
+              Self.selectionMatches(target.selection, range),
               let expected = Self.replacing(before, range: range, with: text) else { return .notAttempted }
+        return Self.verifiedWrite(expected: expected, isCurrent: { matches(target) }, write: {
+            AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success
+        }, read: { value(focused) })
+    }
+
+    static func verifiedWrite(expected: String, isCurrent: () -> Bool,
+                              write: () -> Bool, read: () -> String?) -> WriteResult {
+        guard isCurrent() else { return .notAttempted }
         // Once a write is attempted, an error or unchanged length is not permission to replay it.
-        guard AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success,
-              value(focused) == expected else { return .uncertain }
+        guard write(), read() == expected else { return .uncertain }
         return .inserted
     }
 
@@ -167,8 +178,8 @@ public final class TextInserter {
 
     // MARK: - Paste
 
-    private func insertViaPaste(_ text: String) async -> Bool {
-        let pasteboard = NSPasteboard.general
+    func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
+                        postPaste: (() -> Bool)? = nil) async -> Bool {
         let saved = snapshot(pasteboard)
 
         // Only on the clipboard long enough to paste: keep it off other devices
@@ -180,7 +191,7 @@ public final class TextInserter {
         pasteboard.writeObjects([item])
         let ourChange = pasteboard.changeCount
 
-        guard postCommandV() else { return false }
+        guard (postPaste ?? postCommandV)() else { return false }
         try? await Task.sleep(for: .seconds(restoreDelay))
         // Restore only if nobody replaced the clipboard in the meantime.
         if pasteboard.changeCount == ourChange {

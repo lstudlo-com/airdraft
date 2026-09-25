@@ -178,6 +178,24 @@ final class PipelinePreviewTests: XCTestCase {
         XCTAssertNil(fixture.pipeline.previewIssue)
     }
 
+    func testHiddenHUDNeverStartsSpeechPreview() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanUp() }
+        fixture.settings.hudStyle = .none
+        try await begin(fixture)
+        fixture.recorder.capture(Fixture.samples)
+
+        XCTAssertTrue(fixture.previews.sessions.isEmpty)
+        XCTAssertNil(fixture.recorder.samplesHandler)
+        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+        fixture.pipeline.stopAndProcess()
+        try await waitUntil("Final speech still finishes with hidden HUD") {
+            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy
+        }
+        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
+        XCTAssertEqual(try fixture.history.count(), 1)
+    }
+
     func testRecorderStartFailureCancelsPreviewAndDetachesSamples() async throws {
         let fixture = try Fixture()
         defer { fixture.cleanUp() }
@@ -233,7 +251,7 @@ final class PipelinePreviewTests: XCTestCase {
             suite = "airdraft.pipeline-preview.\(UUID().uuidString)"
             directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
             settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
-            settings.asr = ASRConfig(kind: .groq)
+            settings.asr = ASRConfig(kind: .parakeet)
             settings.llm = LLMConfig(kind: .none)
             settings.useAppContext = false
             settings.livePreviewEnabled = true

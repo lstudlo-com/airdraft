@@ -36,6 +36,23 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             release.validate_manifest(self.manifest(), 'd' * 40, 'v0.1.1-build.3')
 
+    def test_manifest_version_and_build_must_match_tag(self):
+        for version, build in [('0.9.9', 3), ('0.1.1', 4)]:
+            with self.subTest(version=version, build=build):
+                manifest = self.manifest()
+                manifest.update(version=version, build=build)
+                manifest['sha256'] = {f'Airdraft-{version}-{build}-arm64.dmg': 'b' * 64,
+                                      'appcast.xml': 'c' * 64}
+                with self.assertRaisesRegex(RuntimeError, 'version/build'):
+                    release.validate_manifest(manifest, 'a' * 40, manifest['tag'])
+
+    def test_manifest_rejects_boolean_build_numbers(self):
+        manifest = self.manifest()
+        manifest.update(build=True, tag='v0.1.1-build.True')
+        manifest['sha256'] = {'Airdraft-0.1.1-True-arm64.dmg': 'b' * 64, 'appcast.xml': 'c' * 64}
+        with self.assertRaisesRegex(RuntimeError, 'build'):
+            release.validate_manifest(manifest, 'a' * 40, manifest['tag'])
+
     def test_manifest_rejects_other_tags_paths_and_missing_assets(self):
         with self.assertRaises(RuntimeError):
             release.validate_manifest(self.manifest(), 'a' * 40, 'v0.1.1-build.4')
