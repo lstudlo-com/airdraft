@@ -650,19 +650,6 @@
     padding: 28px;
     text-align: left;
   }
-  .preview-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .preview-head h2 {
-    font-size: var(--step-1);
-    font-weight: 700;
-    line-height: 1.4;
-    letter-spacing: -0.015em;
-  }
 
   .preview-stage {
     display: grid;
@@ -2021,9 +2008,6 @@
     .preview {
       margin-top: 44px;
       padding: 18px;
-    }
-    .preview-head {
-      margin-bottom: 16px;
     }
     .preview-stage {
       grid-template-columns: minmax(0, 1fr);

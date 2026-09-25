@@ -329,7 +329,7 @@ for `--press`. Focus shows the 2px accent ring.
 - `Surface`: `variant="panel"` (raised) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel.
 - `Chips`: recessed, non-interactive names in ink. `.chip-muted` and `.chip-strong` show a before → after pair.
 - `Keys`: keycaps in the system face; `size="lg"` for feature tiles.
-- `.tag`: a small recessed label, such as "Sample" beside the sample heading.
+- `.tag`: a small recessed label.
 
 ### Hud (`ui/Hud.astro`) and the dictation sample
 
@@ -343,7 +343,9 @@ counts, then shows Decoding and Refining, fillers are struck one at a time, and
 the result card lifts as the text is typed with the icon's caret. Profile
 buttons re-run only the refinement; Stop jumps to the result. Without
 JavaScript the Clean result shows; reduced motion shows it immediately and
-never autoplays. It is labelled "Sample".
+never autoplays. It has no visible heading or badge; its accessible name is
+"Sample dictation", and its field labels ("What you said", "What Airdraft
+inserts") carry it.
 
 ### Bento (`ui/BentoTile.astro`)
 
