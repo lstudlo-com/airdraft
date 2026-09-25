@@ -221,3 +221,5 @@ Artifact signing checks require Hardened Runtime as well as the pinned identity.
 Public distribution additionally requires `scripts/verify-public-distribution.py`
 on the final app and DMG. Do not relabel Apple Development builds as public-ready
 or change the pinned identity without the explicit migration review.
+
+Microphone choices exclude hidden Core Audio devices and temporary `CADefaultDeviceAggregate` bridges created by audio engines; user-created aggregate inputs remain available.

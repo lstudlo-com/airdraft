@@ -66,3 +66,7 @@ Input 2, system-default Input 2 and the built-in microphone. Each checked a
 nonzero signal and audio callbacks after engine recovery. Light/dark Configuration
 renders were inspected. These checks do not replace speaking while holding the
 physical dictation shortcut, and this workspace build is not a published update.
+
+## Temporary audio devices
+
+The picker excludes hidden Core Audio devices and temporary `CADefaultDeviceAggregate` bridges created internally by audio engines. These inputs disappear with their owning engine and cannot be saved as a reliable microphone choice. User-created aggregate devices, including audio software inputs, remain available.

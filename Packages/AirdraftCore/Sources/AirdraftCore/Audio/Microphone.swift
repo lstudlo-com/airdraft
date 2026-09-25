@@ -65,10 +65,20 @@ public enum MicrophoneDevices {
         guard AudioObjectGetPropertyData(system, &address, 0, nil, &size, &ids) == noErr else { return [] }
         return ids.compactMap { id in
             let channels = inputChannelCount(id)
-            guard channels > 0, let uid = string(id, kAudioDevicePropertyDeviceUID),
+            guard !isHidden(id), channels > 0, let uid = string(id, kAudioDevicePropertyDeviceUID),
                   let name = string(id, kAudioObjectPropertyName) else { return nil }
+            // AVAudioEngine's private input bridge can appear during preview.
+            // It disappears with its owner and is never a user-selectable input.
+            guard !uid.hasPrefix("CADefaultDeviceAggregate-") && !name.hasPrefix("CADefaultDeviceAggregate-") else { return nil }
             return Microphone(id: id, uid: uid, name: name, inputChannelCount: channels)
         }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    private static func isHidden(_ id: AudioDeviceID) -> Bool {
+        var property = address(kAudioDevicePropertyIsHidden)
+        var hidden: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        return AudioObjectGetPropertyData(id, &property, 0, nil, &size, &hidden) == noErr && hidden != 0
     }
 
     public static func address(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {
