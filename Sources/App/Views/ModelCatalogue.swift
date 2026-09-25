@@ -11,8 +11,8 @@ struct ModelEntry: Identifiable {
     let color: Color
     let symbol: String
     let tags: [String]
-    let speed: Int      // 0...5
-    let accuracy: Int   // 0...5
+    let speed: Int      // 1...5 relative rating; 0 means unrated
+    let accuracy: Int   // 1...5 relative rating; 0 means unrated
     let storage: Storage
     let note: String
     /// Points a speech config at this model.
@@ -61,6 +61,11 @@ enum ModelCatalogue {
             note: "Fastest."
         ) { $0.kind = .senseVoice },
         ModelEntry(
+            id: "sherpa:parakeet", title: "Parakeet TDT v3", vendor: "NVIDIA · ONNX", color: .green, symbol: "waveform",
+            tags: ["EN", "+24"], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
+            note: "25 European languages. Does not support Chinese."
+        ) { $0.kind = .parakeet },
+        ModelEntry(
             id: "whisper:turbo", title: "Whisper v3 Turbo", vendor: "OpenAI · Core ML", color: .gray, symbol: "waveform",
             tags: ["99 languages"], speed: 3, accuracy: 3, storage: .download(sizeLabel: "1.5 GB"),
             note: "Runs on the Neural Engine."
@@ -68,7 +73,7 @@ enum ModelCatalogue {
         ModelEntry(
             id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", color: .gray, symbol: "apple.logo",
             tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
-            note: "Built in, no download."
+            note: "macOS manages language assets."
         ) { $0.kind = .apple },
     ]
 }
@@ -229,11 +234,11 @@ struct ModelRow: View {
                 .accessibilityValue(selected ? "Selected" : "Not selected")
                 .help(installed ? "Use this model" : "Download first")
             } speed: {
-                ModelMetric(title: "Speed", fraction: Double(entry.speed) / 5, label: "\(entry.speed) / 5",
-                            detail: "Airdraft's relative guidance for local models. Actual speed depends on your Mac.")
+                ModelMetric(title: "Speed", fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? "\(entry.speed) / 5" : "Not rated",
+                            detail: entry.speed > 0 ? "Airdraft's relative guidance for local models. Actual speed depends on your Mac." : "Not benchmarked in Airdraft.")
             } accuracy: {
-                ModelMetric(title: "Accuracy", fraction: Double(entry.accuracy) / 5, label: "\(entry.accuracy) / 5",
-                            detail: "Airdraft's relative guidance for local models. " + entry.note)
+                ModelMetric(title: "Accuracy", fraction: entry.accuracy > 0 ? Double(entry.accuracy) / 5 : nil, label: entry.accuracy > 0 ? "\(entry.accuracy) / 5" : "Not rated",
+                            detail: (entry.accuracy > 0 ? "Airdraft's relative guidance for local models. " : "Not benchmarked in Airdraft. ") + entry.note)
             } cost: {
                 storageLabel
             } accessory: {

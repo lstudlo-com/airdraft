@@ -295,7 +295,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   can drop the installed Metal toolchain from dependency builds on Xcode 27.
 - speech-swift has no releases and is pinned to a revision in `Packages/AirdraftCore/Package.swift`.
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
-- Speech engines kept on purpose: Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
+- Speech engines kept on purpose: Parakeet TDT 0.6B v3 INT8, Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
   SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
   ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
   Do not re-add the removed Whisper variants or Voxtral without a reason.
@@ -310,6 +310,16 @@ Artifact signing checks require Hardened Runtime as well as the pinned identity.
 Public distribution additionally requires `scripts/verify-public-distribution.py`
 on the final app and DMG. Do not relabel Apple Development builds as public-ready
 or change the pinned identity without the explicit migration review.
+
+## Live transcription preview
+
+Live preview uses a separate Apple Speech analyzer on macOS 26+ and the same
+16 kHz microphone chunks as final transcription. Its language is independent of
+the selected final ASR provider. Install assets explicitly in Models through
+`ModelDownloadStore`; preview never downloads or uses a cloud provider. Bound its
+audio queue and displayed text, replace provisional phrases, and cancel without
+waiting before final ASR. Reject callbacks from old sessions. Preview errors are
+nonfatal; preview text never reaches history, refinement, clipboard or scripts.
 
 ## Saved recording history
 

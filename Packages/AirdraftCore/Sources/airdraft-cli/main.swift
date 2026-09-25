@@ -4,7 +4,7 @@ import AirdraftCore
 // Headless harness for evaluation and debugging. Same engines as the app;
 // local engines load from ~/Library/Application Support/Transcribar/Models.
 //
-//   airdraft-cli transcribe <audio> [--whisper VARIANT | --qwen3 [ID] | --cohere [ID] | --sensevoice | --firered | --apple [LOCALE] | --elevenlabs [MODEL]]
+//   airdraft-cli transcribe <audio> [--whisper VARIANT | --qwen3 [ID] | --cohere [ID] | --sensevoice | --firered | --parakeet | --apple [LOCALE] | --elevenlabs [MODEL]]
 //                              [--url BASE --model M] [--lang zh] [--vocab "A,B"]
 //   airdraft-cli refine "<text>" [--llm-url BASE] [--llm-model M] [--mode clean|concise|summary] [--instructions "..."] [--task "..."]
 //                           [--family general|email|workChat|personalChat|document|code|terminal] [--dict "Term=alias1,alias2;Term2"]
@@ -68,6 +68,7 @@ func makeTranscriber(_ args: Args) -> any Transcriber {
     if let id = args.optionalValue("qwen3", default: defaults.qwen3Model) { return Qwen3ASRTranscriber(modelId: id) }
     if args["sensevoice"] != nil { return SherpaTranscriber(model: .senseVoice) }
     if args["firered"] != nil { return SherpaTranscriber(model: .fireRed) }
+    if args["parakeet"] != nil { return SherpaTranscriber(model: .parakeet) }
     if let locale = args.optionalValue("apple", default: defaults.appleLocale) { return AppleSpeechTranscriber(locale: locale) }
     if let model = args.optionalValue("elevenlabs", default: defaults.elevenLabsModel) {
         return ElevenLabsTranscriber(modelId: model, apiKey: asrKey ?? ProcessInfo.processInfo.environment["ELEVENLABS_API_KEY"])

@@ -120,6 +120,8 @@ struct ModelsPage: View {
                 RefinementSettings()
             }
 
+            if settings.livePreviewEnabled { SpeechPreviewSettings() }
+
             PageSection("Memory") {
                 SettingsCard {
                     SettingRow(title: "Unload idle speech model", subtitle: "Frees RAM when you have not dictated for a while") {

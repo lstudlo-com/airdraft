@@ -19,6 +19,7 @@ enum DebugRender {
         if env["AIRDRAFT_RENDER_AUDIO_HISTORY"] == "1" {
             container = PreviewData.container
             container.settings.audioRetention = .week
+            container.settings.livePreviewEnabled = env["AIRDRAFT_RENDER_PREVIEW"] == "1"
             _ = try? container.history?.save(DictationRecord(mode: "Clean", family: "general",
                 rawTranscript: "um please send the report tomorrow", refinedText: "Please send the report tomorrow.",
                 finalText: "Please send the report tomorrow.", asrEngine: "preview", audioSeconds: 2,
@@ -55,6 +56,9 @@ enum DebugRender {
                 let root = Group {
                     if pageName == "permissions" {
                         AccessibilityPermissionHelp()
+                    } else if pageName == "speech-preview" {
+                        ScrollView { SpeechPreviewSettings().padding(Theme.pagePadding) }
+                            .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "refinement" {
                         ScrollView {
                             PageSection("Refinement") { RefinementSettings() }
@@ -82,7 +86,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = ["permissions", "refinement"].contains(pageName) ? pageName : page.rawValue
+                    let name = ["permissions", "refinement", "speech-preview"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }
@@ -113,6 +117,13 @@ enum DebugRender {
                 if let img = renderer.nsImage { images.append(img) }
             }
         }
+        let preview = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+            style: .classic, showPreview: true,
+            sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")
+            .padding(12).background(Color(white: 0.93))
+        let previewRenderer = ImageRenderer(content: preview)
+        previewRenderer.scale = 2
+        if let rendered = previewRenderer.nsImage { images.append(rendered) }
         let width = images.map(\.size.width).max() ?? 0
         let height = images.reduce(0) { $0 + $1.size.height }
         let sheet = NSImage(size: NSSize(width: width, height: height))

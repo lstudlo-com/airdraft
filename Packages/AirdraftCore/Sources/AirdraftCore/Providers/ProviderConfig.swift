@@ -5,6 +5,7 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     case fireRed
     case cohere
     case senseVoice
+    case parakeet
     case whisperKit
     case apple
     case openAICompatible
@@ -338,6 +339,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .cohere: return "cohere-transcribe:\(cohereModel)"
         case .fireRed: return "sherpa-onnx:fireRed"
         case .senseVoice: return "sherpa-onnx:senseVoice"
+        case .parakeet: return "sherpa-onnx:parakeet"
         case .apple: return "apple-speech:\(effectiveAppleLocale)"
         case .elevenLabs: return "elevenlabs:\(speechModelID)"
         case .openAI, .openRouter, .groq, .deepgram, .soniox:
@@ -393,6 +395,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .fireRed: return "FireRedASR2-AED"
         case .cohere: return "Cohere Transcribe · \((cohereModel as NSString).lastPathComponent)"
         case .senseVoice: return "SenseVoice-small"
+        case .parakeet: return "Parakeet TDT v3"
         case .apple: return "Apple Speech · \(appleLocale)"
         case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
             return "\(kind.preset?.name ?? kind.rawValue) · \(selectedSpeechModel?.title ?? model)"

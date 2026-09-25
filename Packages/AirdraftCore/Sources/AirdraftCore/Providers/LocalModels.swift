@@ -20,6 +20,7 @@ public enum LocalModels {
         case .cohere: return hasCohere(config.cohereModel)
         case .fireRed: return hasSherpa(.fireRed)
         case .senseVoice: return hasSherpa(.senseVoice)
+        case .parakeet: return hasSherpa(.parakeet)
         case .apple: return AppleSpeechTranscriber.isAvailable
         case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return true
         }
@@ -33,6 +34,7 @@ public enum LocalModels {
         case .cohere: return cohereFolder(for: config.cohereModel)
         case .fireRed: return sherpaFolder(for: .fireRed)
         case .senseVoice: return sherpaFolder(for: .senseVoice)
+        case .parakeet: return sherpaFolder(for: .parakeet)
         case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return nil
         }
     }
@@ -101,16 +103,26 @@ public enum LocalModels {
         return names.contains { $0.hasSuffix(".safetensors") } && names.contains { $0.hasPrefix("tokenizer") }
     }
 
-    // MARK: sherpa-onnx models (SenseVoice, FireRedASR2)
+    // MARK: sherpa-onnx models (SenseVoice, FireRedASR2, Parakeet)
 
     public static var sherpaRoot: URL { root.appendingPathComponent("sherpa-onnx", isDirectory: true) }
     public static func sherpaFolder(for model: SherpaTranscriber.Model) -> URL {
         sherpaRoot.appendingPathComponent(model.folderName, isDirectory: true)
     }
     public static func hasSherpa(_ model: SherpaTranscriber.Model) -> Bool {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: sherpaFolder(for: model).path)) ?? []
-        return names.contains("tokens.txt") && model.onnxPrefixes.allSatisfy { prefix in
-            names.contains { $0.hasPrefix(prefix) && $0.hasSuffix(".onnx") }
+        hasSherpa(model, at: sherpaFolder(for: model))
+    }
+
+    /// Asset completeness only: the downloader checks this before removing its transaction marker.
+    static func hasSherpa(_ model: SherpaTranscriber.Model, at folder: URL) -> Bool {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        func isNonemptyFile(_ name: String) -> Bool {
+            let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appendingPathComponent(name).path)
+            return attributes?[.type] as? FileAttributeType == .typeRegular && (attributes?[.size] as? Int64 ?? 0) > 0
+        }
+        return isNonemptyFile("tokens.txt") && model.onnxPrefixes.allSatisfy { prefix in
+            guard let name = model.onnxFilename(for: prefix, in: names) else { return false }
+            return isNonemptyFile(name)
         }
     }
 }

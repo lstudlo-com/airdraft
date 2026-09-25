@@ -109,6 +109,20 @@ final class AppContainer {
             }
         }
         observeAudioRetention()
+        observeLivePreview()
+    }
+
+    private func observeLivePreview() {
+        observeChanges({ [weak self] in
+            _ = self?.settings.livePreviewEnabled
+            _ = self?.settings.hudStyle
+        }) { [weak self] in
+            guard let self else { return }
+            if !self.settings.livePreviewEnabled || self.settings.hudStyle == .none {
+                self.pipeline.disableLivePreview()
+            }
+            self.indicator?.update(for: self.pipeline.state)
+        }
     }
 
     private func observeAudioRetention() {

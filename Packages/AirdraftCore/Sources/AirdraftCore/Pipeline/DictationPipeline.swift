@@ -42,6 +42,12 @@ public final class DictationPipeline {
     public private(set) var hasRecoverableRecording = false
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
+    public private(set) var previewText = ""
+    public private(set) var previewIssue: String?
+    public private(set) var previewEnabledForRecording = false
+    private var previewSession: (any SpeechPreviewSession)?
+    public typealias PreviewBuilder = @Sendable (String, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
+    private let previewBuilder: PreviewBuilder
     public private(set) var reviewOutcome: DictationOutcome?
     public private(set) var audioStorageError: String?
     public private(set) var audioRevision = 0
@@ -104,6 +110,7 @@ public final class DictationPipeline {
         historyDirectory: URL? = nil,
         factory: EngineFactory,
         recorder: any AudioRecording = AudioRecorder(),
+        previewBuilder: @escaping PreviewBuilder = { SpeechPreview.start(locale: $0, onText: $1, onIssue: $2) },
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
         insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
@@ -118,6 +125,7 @@ public final class DictationPipeline {
         if history == nil && historyDirectory != nil { historyStorageError = "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." }
         self.factory = factory
         self.recorder = recorder
+        self.previewBuilder = previewBuilder
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
         self.insertText = insertText
@@ -147,6 +155,38 @@ public final class DictationPipeline {
                 self.fail(reason.localizedDescription + (samples.isEmpty ? "" : " Captured audio is kept for retry."))
             }
         }
+    }
+
+    private func startPreview(for token: UUID) {
+        stopPreview()
+        guard settings.livePreviewEnabled, settings.hudStyle != .none else { return }
+        previewEnabledForRecording = true
+        let session = previewBuilder(settings.livePreviewLocale, { [weak self] text in
+            Task { @MainActor in
+                guard let self, self.isCurrent(token), self.isRecording, self.previewEnabledForRecording else { return }
+                self.previewText = String(text.suffix(500))
+            }
+        }, { [weak self] issue in
+            Task { @MainActor in
+                guard let self, self.isCurrent(token), self.isRecording, self.previewEnabledForRecording else { return }
+                self.previewText = ""
+                self.previewIssue = issue
+            }
+        })
+        previewSession = session
+        recorder.samplesHandler = { samples in session.append(samples) }
+    }
+
+    /// Apply an explicit Off choice immediately without interrupting final capture.
+    public func disableLivePreview() { stopPreview() }
+
+    private func stopPreview() {
+        recorder.samplesHandler = nil
+        previewSession?.cancel()
+        previewSession = nil
+        previewText = ""
+        previewIssue = nil
+        previewEnabledForRecording = false
     }
 
     public var isRecording: Bool { state == .recording }
@@ -212,9 +252,11 @@ public final class DictationPipeline {
         insertionTargetAtStart = inserter.captureTarget()
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
         wireRecorder(for: token)
+        startPreview(for: token)
         do {
             try recorder.start(microphone: microphone)
         } catch {
+            stopPreview()
             fail("Could not start recording: \(error.localizedDescription)")
             return
         }
@@ -257,6 +299,7 @@ public final class DictationPipeline {
         autoStopTask?.cancel()
         releaseTask?.cancel()
         stopping = false
+        stopPreview()
         let samples = recorder.stop()
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
@@ -360,6 +403,7 @@ public final class DictationPipeline {
     public func cancel() {
         // Once a write begins, finish recording its outcome before accepting a new session.
         guard state != .inserting else { return }
+        stopPreview()
         generation = UUID()
         recovery = nil
         hasRecoverableRecording = false

@@ -82,6 +82,20 @@ struct ConfigurationPage: View {
                 }
             }
 
+            PageSection("Live preview") {
+                SettingsCard {
+                    SettingRow(title: "Show text while speaking", subtitle: "Uses Apple Speech on this Mac. Your selected speech model still produces the final transcript.") {
+                        Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.switch)
+                    }
+                    if settings.livePreviewEnabled {
+                        RowDivider()
+                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Choose Classic or Mini above to see the preview." : "Set the language and install its assets in Models.") {
+                            Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+                        }
+                    }
+                }
+            }
+
             PageSection("Audio history") {
                 SettingsCard {
                     SettingRow(title: "Keep recordings", subtitle: "Save audio on this Mac for playback and retranscription. Off removes saved audio; text history stays.") {

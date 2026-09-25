@@ -1,4 +1,5 @@
 import CohereTranscribeASR
+import CryptoKit
 import Foundation
 import Qwen3ASR
 
@@ -22,6 +23,7 @@ public actor ModelDownloader {
         case emptyListing
         case alreadyInProgress
         case incomplete
+        case checksumMismatch
         case unsafePath(String)
         public var errorDescription: String? {
             switch self {
@@ -29,6 +31,7 @@ public actor ModelDownloader {
             case .download(let f, let s): return "Download of \(f) failed (HTTP \(s))."
             case .alreadyInProgress: return "This model is already downloading."
             case .incomplete: return "The model download is incomplete. Retry to finish the missing files."
+            case .checksumMismatch: return "The model archive failed its integrity check. Download it again."
             case .emptyListing: return "The model folder is empty on Hugging Face."
             case .unsafePath(let path): return "Refused to download \(path): it points outside the models folder."
             }
@@ -74,7 +77,12 @@ public actor ModelDownloader {
         case .cohere: try await downloadCohere(modelId: config.cohereModel, progress: progress)
         case .fireRed: try await downloadSherpa(model: .fireRed, progress: progress)
         case .senseVoice: try await downloadSherpa(model: .senseVoice, progress: progress)
-        case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return
+        case .parakeet: try await downloadSherpa(model: .parakeet, progress: progress)
+        case .apple:
+            progress(Progress(fraction: 0, currentFile: "Installing language"))
+            try await AppleSpeechTranscriber(locale: config.effectiveAppleLocale).prepare()
+            progress(Progress(fraction: 1, currentFile: "Language installed"))
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return
         }
     }
 
@@ -109,9 +117,14 @@ public actor ModelDownloader {
         try await exclusive("sherpa:\(model.rawValue)") {
             progress(Progress(fraction: 0, currentFile: model.folderName + ".tar.bz2"))
             let (tmp, response) = try await URLSession.shared.download(from: model.archiveURL)
+            defer { try? FileManager.default.removeItem(at: tmp) }
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                try? FileManager.default.removeItem(at: tmp)
                 throw DownloadError.download(file: model.folderName, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
+            }
+            try Task.checkCancellation()
+            if let checksum = model.archiveSHA256 {
+                progress(Progress(fraction: 0.75, currentFile: "Verifying archive"))
+                try Self.verifySHA256(of: tmp, expected: checksum)
             }
             progress(Progress(fraction: 0.8, currentFile: "unpacking"))
             let root = LocalModels.sherpaRoot
@@ -125,6 +138,19 @@ public actor ModelDownloader {
                 throw DownloadError.download(file: model.folderName, status: Int(status))
             }
         }
+    }
+
+    /// Stream the archive so verification does not retain hundreds of MB in memory.
+    static func verifySHA256(of file: URL, expected: String) throws {
+        let handle = try FileHandle(forReadingFrom: file)
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while let bytes = try handle.read(upToCount: 1_048_576), !bytes.isEmpty {
+            try Task.checkCancellation()
+            hasher.update(data: bytes)
+        }
+        let actual = hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        guard actual == expected.lowercased() else { throw DownloadError.checksumMismatch }
     }
 
     /// A WhisperKit variant plus the shared tokenizer files, from the Hub's public file API.

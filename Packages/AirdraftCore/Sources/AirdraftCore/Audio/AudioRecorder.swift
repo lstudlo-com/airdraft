@@ -31,10 +31,15 @@ public enum AudioRecorderError: Error, LocalizedError {
 public protocol AudioRecording: AnyObject, Sendable {
     var isRecording: Bool { get }
     var levelHandler: (@Sendable (Float) -> Void)? { get set }
+    var samplesHandler: (@Sendable ([Float]) -> Void)? { get set }
     var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)? { get set }
     func start(microphone: MicrophonePreference) throws
     func stop() -> [Float]
     func cancel()
+}
+
+public extension AudioRecording {
+    var samplesHandler: (@Sendable ([Float]) -> Void)? { get { nil } set {} }
 }
 
 public final class AudioRecorder: AudioRecording, @unchecked Sendable {
@@ -47,10 +52,18 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     private var configurationCheck: DispatchWorkItem?
     private var converter: AVAudioConverter?
     private var samples: [Float] = []
+    private var sampleCallback: (@Sendable ([Float]) -> Void)?
     private let lock = NSLock()
     private var recording = false
     private var monitoringOnly = false
     private var inputChannelIndex = 0
+
+    /// Optional preview receives the same converted samples after the capture lock
+    /// is released. Monitoring-only sessions never feed transcription.
+    public var samplesHandler: (@Sendable ([Float]) -> Void)? {
+        get { lock.withLock { sampleCallback } }
+        set { lock.withLock { sampleCallback = newValue } }
+    }
 
     /// Called on the audio thread with the RMS level of each buffer (0...1).
     public var levelHandler: (@Sendable (Float) -> Void)?
@@ -302,7 +315,9 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
         let chunk = Array(UnsafeBufferPointer(start: channel, count: count))
 
         if !monitoringOnly { samples.append(contentsOf: chunk) }
+        let preview = monitoringOnly ? nil : sampleCallback
         lock.unlock()
+        if !chunk.isEmpty { preview?(chunk) }
 
         if let levelHandler, count > 0 {
             var sum: Float = 0

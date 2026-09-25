@@ -12,6 +12,7 @@ final class IndicatorPanelController {
     private let styleProvider: () -> HUDStyle
     private var hideTask: Task<Void, Never>?
     private var currentStyle: HUDStyle = .classic
+    private var currentPreview = false
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle) {
         self.pipeline = pipeline
@@ -30,16 +31,17 @@ final class IndicatorPanelController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        let host = NSHostingView(rootView: IndicatorView(pipeline: pipeline, style: .classic))
+        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: .classic, showPreview: false))
         host.frame = NSRect(origin: .zero, size: size)
         panel.contentView = host
     }
 
-    private func applyStyle(_ style: HUDStyle) {
-        guard style != currentStyle else { return }
+    private func applyStyle(_ style: HUDStyle, preview: Bool) {
+        guard style != currentStyle || preview != currentPreview else { return }
         currentStyle = style
-        let size = IndicatorView.size(for: style)
-        let host = NSHostingView(rootView: IndicatorView(pipeline: pipeline, style: style))
+        currentPreview = preview
+        let size = RecordingHUDView.size(for: style, preview: preview)
+        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: style, showPreview: preview))
         host.frame = NSRect(origin: .zero, size: size)
         panel.contentView = host
     }
@@ -77,12 +79,13 @@ final class IndicatorPanelController {
     private func show() {
         let style = styleProvider()
         guard style != .none else { return }
-        applyStyle(style)
+        let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
+        applyStyle(style, preview: preview)
         guard let screen = targetScreen else {
             Self.log.error("no screen available for HUD")
             return
         }
-        let size = IndicatorView.size(for: style)
+        let size = RecordingHUDView.size(for: style, preview: preview)
         let frame = NSRect(
             x: screen.visibleFrame.midX - size.width / 2,
             y: screen.visibleFrame.minY + 18,
@@ -92,6 +95,42 @@ final class IndicatorPanelController {
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
         Self.log.notice("HUD shown at \(NSStringFromRect(frame), privacy: .public) visible=\(self.panel.isVisible, privacy: .public)")
+    }
+}
+
+/// Preview remains nonactivating and separate from the final transcript.
+struct RecordingHUDView: View {
+    var pipeline: DictationPipeline?
+    var snapshot: HUDSnapshot?
+    var style: HUDStyle
+    var showPreview: Bool
+    var sampleText: String?
+
+    static func size(for style: HUDStyle, preview: Bool) -> CGSize {
+        preview ? CGSize(width: 360, height: 120) : IndicatorView.size(for: style)
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            if showPreview {
+                Text(pipeline?.previewIssue ?? sampleText ?? (pipeline?.previewText).flatMap { $0.isEmpty ? nil : $0 } ?? "Listening…")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.95))
+                    .lineLimit(3)
+                    .truncationMode(.head)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .frame(width: 360, height: 76)
+                    .background {
+                        NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 16, style: .continuous), depth: 1.5)
+                    }
+                    .environment(\.colorScheme, .dark)
+            }
+            if let pipeline { IndicatorView(pipeline: pipeline, style: style) }
+            else if let snapshot { IndicatorView(snapshot: snapshot, style: style) }
+        }
+        .frame(width: Self.size(for: style, preview: showPreview).width,
+               height: Self.size(for: style, preview: showPreview).height, alignment: .bottom)
     }
 }
 

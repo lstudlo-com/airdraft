@@ -81,6 +81,8 @@ public final class AppSettings {
     /// Ask LM Studio to unload the LLM when the app quits.
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
+    public var livePreviewEnabled: Bool { didSet { persist("livePreviewEnabled", livePreviewEnabled) } }
+    public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
 
@@ -103,6 +105,8 @@ public final class AppSettings {
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 10
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
+        livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
+        livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
     }
