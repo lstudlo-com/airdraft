@@ -67,7 +67,8 @@ status table current.
   vertical inset. Use shared spacing tokens instead of page-specific values.
   Section headings use a shared 32-point minimum row height, a 12-point gap to
   their content and 28-point section spacing. Center titles and trailing controls
-  vertically within the row, including provider pickers.
+  vertically within the row, including provider pickers. Inset only the heading
+  text by `Theme.sectionTitleLeadingInset` (4 pt) for optical alignment.
   Page content must fill its available width after `Theme.pagePadding`; do not add
   a left-aligned maximum width that strands section controls far from the window's
   right edge. Section headings, their trailing controls and cards share one right

@@ -10,6 +10,7 @@ enum Theme {
     static let sectionSpacing: CGFloat = 28
     static let sectionTitleSpacing: CGFloat = 12
     static let sectionTitleMinHeight: CGFloat = 32
+    static let sectionTitleLeadingInset: CGFloat = 4
     static let controlSpacing: CGFloat = 12
     static let cardRadius: CGFloat = 12
     static let contentMaxWidth: CGFloat = 860
@@ -120,6 +121,7 @@ struct SectionTitle<Trailing: View>: View {
             Text(text)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
+                .padding(.leading, Theme.sectionTitleLeadingInset)
             Spacer()
             trailing
         }

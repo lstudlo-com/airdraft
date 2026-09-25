@@ -34,6 +34,7 @@ components:
   section-title:
     typography: "{typography.section}"
     minHeight: "32pt"
+    textLeadingInset: "4pt"
   navigation-row:
     typography: "{typography.body}"
     rounded: "{rounded.navigation}"
@@ -156,6 +157,8 @@ settings card add no vertical padding. Use `sectionTitleSpacing` above content,
 `SectionTitle` uses `sectionTitleMinHeight` for a 32-point minimum row height,
 with its title and trailing controls vertically centered. The 12-point content
 gap and 28-point section gap keep each heading closer to its own content.
+Only the title text receives the 4-point `sectionTitleLeadingInset` for optical
+alignment; the row and trailing controls retain their shared edges.
 
 ## Elevation & Depth
 
