@@ -177,15 +177,20 @@ not activate it.
 
 ### Profile editor
 
-The selected profile's settings begin with Refine transcript. Instructions lead
-below it. The optional Task uses `DisclosureGroup` and opens when a stored task
+The Profiles sidebar item uses `square.and.pencil`. A full-width Base system
+prompt section sits above the list and editor, using `PageSection` and
+`SettingsCard`. It shows whether the saved prompt is default or custom. Edit
+opens a warning about effects on all AI-refined profiles before the draft editor.
+
+The selected profile's settings begin with Refine transcript. Profile
+instructions lead below it. The optional Task uses `DisclosureGroup` and opens when a stored task
 is present. Turning refinement off replaces those fields with a short
 explanation of the remaining transcript processing.
 
 Keep New profile and one action menu above the list and editor. The menu
 contains selected-profile rename, icon, duplicate, prompt preview and either
-built-in reset or custom-profile deletion, followed by Shared rules and Reset
-all profiles. The list checkmark identifies the active dictation profile;
+built-in reset or custom-profile deletion, followed by Reset all profiles.
+The list checkmark identifies the active dictation profile;
 an inactive selection shows Use profile beside the refinement switch. Do not
 repeat the page or selected-profile name as an editor heading. Preserve native
 disabled and destructive states and the existing confirmations.
@@ -193,9 +198,10 @@ disabled and destructive states and the existing confirmations.
 ### Text fields and sheets
 
 `ProfileTextEditor` owns the label, empty-state guidance, border and focused
-state. Profile changes save through their bindings. Shared rules use a draft in
-a separate sheet with Save, Cancel and Restore defaults. The prompt preview is
-scrollable, selectable text with a Done action. Keep the existing default and
+state. Profile changes save through their bindings. The base system prompt uses
+a draft in a separate sheet with Save, Cancel and Restore defaults. Cancel
+discards the draft, including a pending restore; Save rejects whitespace-only
+text. The prompt preview is scrollable, selectable text with a Done action. Keep the existing default and
 cancel keyboard shortcuts.
 
 Apple's [sidebar guidance](https://developer.apple.com/design/human-interface-guidelines/sidebars)

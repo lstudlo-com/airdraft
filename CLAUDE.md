@@ -135,6 +135,9 @@ status table current.
   instances the app used). Never return `.terminateLater` from the app delegate: it deadlocks.
 - LLM behaviours are `RefinementProfile`s in `ProfileStore`, never hard-coded modes.
   Built-ins have stable ids and must stay resettable to `RefinementProfile.defaults`.
+- Profiles exposes the shared base system prompt separately from profile instructions.
+  Show a warning before opening its editor; keep edits in a draft until Save, with
+  Cancel and Restore defaults. Use the existing `ProfileStore.baseRules` pipeline.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
 

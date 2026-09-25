@@ -34,7 +34,7 @@ struct ProfileEditor: View {
                 }
             }
             if current.usesLLM {
-                ProfileTextEditor(title: "Instructions", text: binding(\.instructions), height: 200)
+                ProfileTextEditor(title: "Profile instructions", text: binding(\.instructions), height: 200)
                 DisclosureGroup("Task", isExpanded: $showTask) {
                     ProfileTextEditor(
                         title: "Task", text: binding(\.task), height: 90,

@@ -1,17 +1,17 @@
 import AirdraftCore
 import SwiftUI
 
-struct SharedProfileRulesEditor: View {
+struct BaseSystemPromptEditor: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     @State private var draft = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            Text("Shared rules").font(.system(size: 20, weight: .semibold))
-            Text("Applied to every profile that refines a transcript.")
+            Text("Base system prompt").font(.system(size: 20, weight: .semibold))
+            Text("Shared by all profiles that use AI refinement. Profile instructions and context rules are added automatically.")
                 .font(.system(size: 13)).foregroundStyle(.secondary)
-            ProfileTextEditor(title: "Shared rules", text: $draft, height: 320, showsTitle: false)
+            ProfileTextEditor(title: "Base system prompt", text: $draft, height: 320, showsTitle: false)
             HStack {
                 Button("Restore defaults") { draft = PromptBuilder.defaultBaseRules }
                     .disabled(draft == PromptBuilder.defaultBaseRules)

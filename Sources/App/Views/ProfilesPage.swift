@@ -7,6 +7,7 @@ struct ProfilesPage: View {
     @State private var editingProfileID: UUID?
     @State private var presentedSheet: ProfileSheet?
     @State private var confirmation: ProfileConfirmation?
+    @State private var showsBasePromptWarning = false
 
     private static let symbols: [(String, String)] = [
         ("sparkles", "Clean"), ("text.line.first.and.arrowtriangle.forward", "Concise"),
@@ -60,7 +61,6 @@ struct ProfilesPage: View {
                         }
                         Divider()
                     }
-                    Button("Shared rules…") { presentedSheet = .sharedRules }
                     Button("Reset all profiles…", role: .destructive) { confirmation = .resetAll }
                 } label: {
                     Image(systemName: "ellipsis").frame(width: 24, height: 24)
@@ -68,10 +68,29 @@ struct ProfilesPage: View {
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .fixedSize()
-                .help("Profile actions and shared rules")
+                .help("Profile actions")
                 .accessibilityLabel("Profile actions")
             }
 
+            PageSection("Base system prompt") {
+                SettingsCard {
+                    HStack(spacing: Theme.controlSpacing) {
+                        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+                            Text(container.profiles.baseRulesAreDefault ? "Default prompt" : "Custom prompt")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Shared by all profiles that use AI refinement. Each profile adds its own instructions.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                        Button("Edit…") { showsBasePromptWarning = true }
+                            .buttonStyle(SoftButtonStyle())
+                            .accessibilityLabel("Edit base system prompt")
+                            .accessibilityIdentifier("profiles.editBasePrompt")
+                    }
+                }
+            }
             HStack(alignment: .top, spacing: Theme.pagePadding) {
                 ScrollView {
                     VStack(spacing: 2) {
@@ -104,9 +123,15 @@ struct ProfilesPage: View {
         }
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
-            case .sharedRules: SharedProfileRulesEditor()
+            case .basePrompt: BaseSystemPromptEditor()
             case .prompt(let profile): ProfilePromptPreview(profile: profile)
             }
+        }
+        .alert("Edit the base system prompt?", isPresented: $showsBasePromptWarning) {
+            Button("Cancel", role: .cancel) {}
+            Button("Continue editing") { presentedSheet = .basePrompt }
+        } message: {
+            Text("Changes affect every profile that uses AI refinement. Removing core rules can reduce accuracy or make the AI answer your dictation instead of refining it. You can restore the default prompt at any time.")
         }
         .confirmationDialog(
             confirmation?.title ?? "",
@@ -173,12 +198,12 @@ struct ProfilesPage: View {
 }
 
 private enum ProfileSheet: Identifiable {
-    case sharedRules
+    case basePrompt
     case prompt(RefinementProfile)
 
     var id: String {
         switch self {
-        case .sharedRules: "shared-rules"
+        case .basePrompt: "base-prompt"
         case .prompt(let profile): "prompt-\(profile.id)"
         }
     }
@@ -209,7 +234,7 @@ private enum ProfileConfirmation {
         switch self {
         case .reset: "Your changes to this built-in profile will be replaced."
         case .delete: "This cannot be undone."
-        case .resetAll: "Restores built-in profiles and shared rules. Profiles you created will be deleted."
+        case .resetAll: "Restores built-in profiles and the base system prompt. Profiles you created will be deleted."
         }
     }
 }

@@ -19,7 +19,7 @@ enum Page: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .home: return "house"
-        case .profiles: return "sparkles"
+        case .profiles: return "square.and.pencil"
         case .vocabulary: return "book.closed"
         case .configuration: return "gearshape"
         case .models: return "square.stack.3d.up"
