@@ -91,6 +91,12 @@ class ReleaseTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 release.validate_continuity(legacy | replacement)
 
+    def test_hardened_runtime_is_required_even_with_certificate_signature(self):
+        for flags in ["", "CodeDirectory flags=0x0(none)", "CodeDirectory flags=0x2(adhoc)"]:
+            with self.assertRaisesRegex(RuntimeError, "Hardened Runtime"):
+                release_signing.validate_runtime(flags)
+        release_signing.validate_runtime("CodeDirectory flags=0x10000(runtime)")
+
     def test_ad_hoc_signature_is_rejected_before_packaging(self):
         with patch.object(release_signing, 'command') as command:
             command.return_value.stderr = b'Signature=adhoc\nTeamIdentifier=not set\n'

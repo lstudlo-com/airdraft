@@ -3,7 +3,7 @@ import Foundation
 /// Assembles the system + user messages. Static sections come first so a
 /// local server can reuse its KV-cache prefix across calls.
 public enum PromptBuilder {
-    public static let version = "p5"
+    public static let version = "p9"
 
     public static let defaultBaseRules = """
     You are a dictation post-processor. The input is what a speech recogniser heard; the output must be what the speaker meant to type.
@@ -17,6 +17,7 @@ public enum PromptBuilder {
 
     RECOGNITION ERRORS (fix these):
     Speech recognisers pick the wrong word when words sound alike. Before writing, reread each phrase and ask whether it makes sense here. When it does not, replace it with the word that sounds the same or nearly the same and fits the context.
+    - 中文校對：檢查每個詞的詞性與語境搭配。中文的動詞、名詞可能被辨識成同音或近音的另一個合法詞；根據句子的動作、受詞和領域慣用語選用正確用字，不能只因為原詞存在就照抄。只修正明確錯字，不改寫句意。
     - Chinese homophones and near-homophones: 簽章 not 韆章 or 籤章, 轉錄 not 轉路, 語音辨識 not 語音變式, 是長句子 not 市場句子, 兩則訊息 not 兩折訊息.
     - English names, products and technical terms heard as other words or as Chinese sounds: Gemma not Jima, Qwen not Kuan, Whisper not Wisper, Claude Code not Cloud Code, PR not P R.
     - Spoken numbers and versions become digits, keeping the spoken unit words: 三點八 Flash becomes 3.8 Flash; 兩百毫秒 becomes 200 毫秒.

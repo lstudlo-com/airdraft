@@ -210,3 +210,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
   ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
   Do not re-add the removed Whisper variants or Voxtral without a reason.
+
+## Production gate evidence
+
+Release preparation runs `scripts/test-prompt-gate.py` and `scripts/verify-prompt.py`
+against the committed export before packaging. Keep `eval/results/prompt-validation.json`
+bound to the current prompt assembly and both evaluation datasets; no per-case
+regressions are accepted. Rebuild the CLI before collecting fresh three-run reports.
+Artifact signing checks require Hardened Runtime as well as the pinned identity.
+Public distribution additionally requires `scripts/verify-public-distribution.py`
+on the final app and DMG. Do not relabel Apple Development builds as public-ready
+or change the pinned identity without the explicit migration review.

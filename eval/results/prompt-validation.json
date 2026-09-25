@@ -1,0 +1,19 @@
+{
+  "prompt_version": "p9",
+  "model": "qwen/qwen3.8-27b",
+  "model_instance": "airdraft-release-eval",
+  "datasets": {
+    "correction_cases.json": {
+      "candidate": "p9-qwen38-correction.json",
+      "candidate_sha256": "4e81e5668132e8a273f19996a0d264c98770edca3101b301852fc101c2b8254e",
+      "baseline": "p5-qwen38-correction.json",
+      "baseline_sha256": "a9dfbd38a2c1dd8a2b314b27599a19b068b46c5c137e638ada8d3bf54a7e9e04"
+    },
+    "holdout_cases.json": {
+      "candidate": "p9-qwen38-holdout.json",
+      "candidate_sha256": "4a0f8fbb0e09d58022e3db5bfcff75031a4c90217f75361788eb883ebf58c155",
+      "baseline": "p5-qwen38-holdout.json",
+      "baseline_sha256": "6251b65c6f7c3b01cc5e9b7a58cbd427cd36a315f13a33b3c16c0a8a44e0d781"
+    }
+  }
+}

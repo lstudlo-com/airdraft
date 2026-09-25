@@ -196,3 +196,29 @@ Open the actual DMG in Finder and inspect the full window before releasing a
 layout change. Background renders alone do not prove icon alignment or visible
 instructions. A preview built from an existing app validates packaging, not a new
 app release. See [installer design](installer/DESIGN.md).
+
+## Production readiness gates
+
+Before packaging a new release, `release.py` runs `scripts/verify-prompt.py` against
+its exported, committed sources. The evidence in `eval/results/prompt-validation.json`
+must bind both three-run correction and holdout evaluations to the current prompt
+version, base rules, assembly sources and datasets. Each case must match or improve
+its recorded baseline. A higher total cannot conceal a regressed case. Rebuild the
+CLI and rerun `eval/run_correction_eval.py` after changing any bound source.
+
+`release_signing.inspect_app` also requires the Hardened Runtime flag on the actual
+signed artifact. A matching certificate alone is insufficient.
+
+Public distribution has a separate read-only gate:
+
+```sh
+python3 scripts/verify-public-distribution.py /path/to/Airdraft.app
+python3 scripts/verify-public-distribution.py /path/to/Airdraft.dmg
+```
+
+It requires the approved signing identity, Developer ID Application, valid stapled
+notarization and Gatekeeper acceptance; DMGs also verify the enclosed app. The
+current Apple Development identity is intentionally rejected. Obtain Developer ID
+and complete an explicit permission/Keychain migration review before changing
+`scripts/release-signing.json`; this check does not change the policy or submit
+anything to Apple. Existing personal builds remain labeled as such.

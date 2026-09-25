@@ -13,7 +13,8 @@ settings:
     # Match the identity already used by the installed development build.
     DEVELOPMENT_TEAM: WTUFL68AK9
     CODE_SIGN_IDENTITY: "Apple Development"
-    ENABLE_HARDENED_RUNTIME: NO
+    # Blocks code injection into a process that holds Microphone and Accessibility access.
+    ENABLE_HARDENED_RUNTIME: YES
     SWIFT_STRICT_CONCURRENCY: minimal
 packages:
   AirdraftCore:

@@ -40,12 +40,19 @@ def validate_metadata(metadata):
                            "A signer change requires an explicit permission-migration review.")
 
 
+def validate_runtime(output):
+    flags = re.search(r"flags=0x([0-9a-fA-F]+)", output)
+    if not flags or not int(flags.group(1), 16) & 0x10000:
+        raise RuntimeError("Release is missing Hardened Runtime; rebuild with ENABLE_HARDENED_RUNTIME=YES")
+
+
 def inspect_app(app):
     app = Path(app)
     command("codesign", "--verify", "--deep", "--strict", app)
     output = command("codesign", "-d", "--verbose=4", app).stderr.decode()
     if "Signature=adhoc" in output:
         raise RuntimeError("Refusing an ad-hoc release: updates would invalidate macOS permissions")
+    validate_runtime(output)
     with (app / "Contents/Info.plist").open("rb") as source:
         info = plistlib.load(source)
     team = re.search(r"^TeamIdentifier=(.+)$", output, re.MULTILINE)

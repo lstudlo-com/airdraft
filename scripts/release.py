@@ -200,6 +200,8 @@ def prepare(commit):
     (source / "project.yml").write_text(project + "\n")
     output = ROOT / "dist/releases" / tag
     output.mkdir(parents=True, exist_ok=True)
+    logged([sys.executable, source / "scripts/test-prompt-gate.py"], source, output / "prompt.log")
+    logged([sys.executable, source / "scripts/verify-prompt.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
     logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
     run(xcodegen(), "generate", cwd=source)
