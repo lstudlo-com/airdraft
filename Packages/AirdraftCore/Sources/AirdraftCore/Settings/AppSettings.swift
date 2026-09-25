@@ -40,6 +40,12 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+public enum TextOutputDestination: String, Codable, CaseIterable, Sendable, Identifiable {
+    case cursor, script
+    public var id: String { rawValue }
+    public var title: String { self == .cursor ? "Insert at cursor" : "Send to script" }
+}
+
 /// Audio retention is independent of text history; Off also removes saved audio.
 public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiable {
     case off, day, week, month, forever
@@ -73,6 +79,8 @@ public final class AppSettings {
     public var hotkey: Hotkey { didSet { persist("hotkey", hotkey) } }
     public var hotkeyBehavior: HotkeyBehavior { didSet { persist("hotkeyBehavior", hotkeyBehavior) } }
     public var insertionMethod: InsertionMethod { didSet { persist("insertionMethod", insertionMethod) } }
+    public var outputDestination: TextOutputDestination { didSet { persist("outputDestination", outputDestination) } }
+    public var outputScriptPath: String { didSet { persist("outputScriptPath", outputScriptPath) } }
     public var useAppContext: Bool { didSet { persist("useAppContext", useAppContext) } }
     public var maxRecordingSeconds: Int { didSet { persist("maxRecordingSeconds", maxRecordingSeconds) } }
     public var appearance: AppearanceMode { didSet { persist("appearance", appearance) } }
@@ -99,6 +107,8 @@ public final class AppSettings {
         hotkey = Self.load("hotkey", from: defaults) ?? .controlOption
         hotkeyBehavior = Self.load("hotkeyBehavior", from: defaults) ?? .hold
         insertionMethod = Self.load("insertionMethod", from: defaults) ?? .auto
+        outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
+        outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""
         useAppContext = Self.load("useAppContext", from: defaults) ?? true
         maxRecordingSeconds = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         appearance = Self.load("appearance", from: defaults) ?? .auto

@@ -31,6 +31,8 @@ final class AppContainer {
     let navigation = Navigation()
     private let escapeHotkey = CarbonHotkey()
     private var started = false
+    @ObservationIgnored private var startupCompleted = false
+    @ObservationIgnored private var shutdownStarted = false
     @ObservationIgnored private var appearanceUpdatesStarted = false
     private var indicator: IndicatorPanelController?
     private var audioCleanupTask: Task<Void, Never>?
@@ -66,7 +68,7 @@ final class AppContainer {
 
     /// Call once from the app delegate.
     func start() {
-        guard !started else { return }
+        guard !started, !shutdownStarted else { return }
         started = true
         Self.log.notice("start: accessibilityTrusted=\(AppContextReader.isAccessibilityTrusted, privacy: .public)")
 
@@ -110,6 +112,31 @@ final class AppContainer {
         }
         observeAudioRetention()
         observeLivePreview()
+        startupCompleted = true
+    }
+
+    /// Background intents can arrive during launch. Wait for the delegate's normal
+    /// startup instead of creating panels or event taps before the app is ready.
+    func prepareForAutomation() async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(10))
+        while !startupCompleted, !shutdownStarted {
+            try Task.checkCancellation()
+            guard clock.now < deadline else {
+                throw RecordingPrerequisiteError("Airdraft startup timed out. Open Airdraft, then try this action again.")
+            }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        try Task.checkCancellation()
+        guard !shutdownStarted else {
+            throw RecordingPrerequisiteError("Airdraft is quitting. Reopen it before running this action.")
+        }
+    }
+
+    /// Called only after quitting has been approved, before asynchronous cleanup.
+    func beginShutdown() {
+        shutdownStarted = true
+        audioCleanupTask?.cancel()
     }
 
     private func observeLivePreview() {

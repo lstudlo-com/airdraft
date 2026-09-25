@@ -73,8 +73,14 @@ struct HomePage: View {
     // MARK: Readiness
 
     private var setupIssues: Int {
-        [container.hotkeys.isActive, container.permissions.accessibilityGranted, microphoneReady, speechReady, refinementTone != .attention]
+        [container.hotkeys.isActive, outputReady, microphoneReady, speechReady, refinementTone != .attention]
             .filter { !$0 }.count
+    }
+
+    private var outputReady: Bool {
+        container.settings.outputDestination == .script
+            ? ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath) == nil
+            : container.permissions.accessibilityGranted
     }
 
     private var pipelineSummary: String {
@@ -124,7 +130,9 @@ struct HomePage: View {
                 RowDivider()
                 healthRows
                 if hasLoadedOverview && overview.stats.dictations == 0 {
-                    Text("After setup, place the cursor in a text field and use your shortcut to dictate a short sentence. Your first result will appear in History.")
+                    Text(container.settings.outputDestination == .script
+                         ? "Use your shortcut to dictate. The selected script receives the final text, and a copy appears in History."
+                         : "After setup, place the cursor in a text field and use your shortcut to dictate a short sentence. Your first result will appear in History.")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -140,13 +148,21 @@ struct HomePage: View {
                 Button("Change") { container.navigation.page = .configuration }.buttonStyle(SoftButtonStyle())
             }
         }
-        HealthRow(
-            ok: container.permissions.accessibilityGranted,
-            title: "Accessibility",
-            detail: container.permissions.accessibilityGranted ? "Granted" : "macOS has not granted this copy access to insert text"
-        ) {
-            if !container.permissions.accessibilityGranted {
-                AccessibilityPermissionActions()
+        if container.settings.outputDestination == .script {
+            HealthRow(ok: outputReady, title: "Script output",
+                      detail: ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath)
+                        ?? URL(fileURLWithPath: container.settings.outputScriptPath).lastPathComponent) {
+                Button("Configure") { container.navigation.page = .configuration }.buttonStyle(SoftButtonStyle())
+            }
+        } else {
+            HealthRow(
+                ok: container.permissions.accessibilityGranted,
+                title: "Accessibility",
+                detail: container.permissions.accessibilityGranted ? "Granted" : "macOS has not granted this copy access to insert text"
+            ) {
+                if !container.permissions.accessibilityGranted {
+                    AccessibilityPermissionActions()
+                }
             }
         }
         HealthRow(ok: microphoneReady, title: "Microphone", detail: microphoneDetail) {
@@ -200,7 +216,7 @@ struct HomePage: View {
 
     private var refinementDetail: String {
         let llm = container.settings.llm
-        guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · the transcript is inserted as spoken" }
+        guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · use the original transcript" }
         if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device · profile \(container.profiles.activeProfile.name)" }
         let state = refinementNeedsKey ? "API key needed" : container.models.llmStatus.label
         return "\(llm.engineLabel) · \(state) · profile \(container.profiles.activeProfile.name)"

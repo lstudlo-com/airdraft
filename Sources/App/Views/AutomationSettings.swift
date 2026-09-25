@@ -1,0 +1,60 @@
+import AirdraftCore
+import AppKit
+import SwiftUI
+
+struct AutomationSettings: View {
+    @Environment(AppContainer.self) private var container
+    @State private var selectionError: String?
+
+    var body: some View {
+        @Bindable var settings = container.settings
+        PageSection("Output and automation") {
+            SettingsCard {
+                SettingRow(title: "Final text") {
+                    Picker("Final text", selection: $settings.outputDestination) {
+                        ForEach(TextOutputDestination.allCases) { Text($0.title).tag($0) }
+                    }.settingsPicker(width: 180)
+                }
+                if settings.outputDestination == .script {
+                    RowDivider()
+                    SettingRow(title: "Executable script",
+                               subtitle: selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
+                                ?? "Receives the final text on standard input. Runs once per dictation, with a 10-second limit.") {
+                        VStack(alignment: .trailing, spacing: 6) {
+                            if !settings.outputScriptPath.isEmpty {
+                                Text(URL(fileURLWithPath: settings.outputScriptPath).lastPathComponent)
+                                    .font(.caption).lineLimit(1).truncationMode(.middle)
+                                    .help(settings.outputScriptPath)
+                            }
+                            Button("Choose Script…", action: chooseScript).buttonStyle(SoftButtonStyle())
+                        }
+                    }
+                }
+                RowDivider()
+                SettingRow(title: "Shortcuts", subtitle: "Start, stop or cancel dictation from a shortcut. Stop begins transcription using the output selected above.") {
+                    Button("Open Shortcuts") {
+                        NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Shortcuts.app"))
+                    }.buttonStyle(SoftButtonStyle())
+                }
+            }
+        }
+    }
+
+    private func chooseScript() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose an Executable Script"
+        panel.prompt = "Choose"
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            if let reason = ScriptDelivery.unavailableReason(path: url.path) {
+                selectionError = reason
+                return
+            }
+            container.settings.outputScriptPath = url.path
+            selectionError = nil
+        }
+    }
+}

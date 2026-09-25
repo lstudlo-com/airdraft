@@ -55,16 +55,20 @@ struct ConfigurationPage: View {
                 }
             }
 
+            AutomationSettings()
+
             PageSection("Behavior") {
                 SettingsCard {
-                    SettingRow(title: "Insert text via") {
-                        Picker("Insert text via", selection: $settings.insertionMethod) {
-                            Text("Accessibility, then paste").tag(InsertionMethod.auto)
-                            Text("Always paste").tag(InsertionMethod.paste)
+                    if settings.outputDestination == .cursor {
+                        SettingRow(title: "Insert text via") {
+                            Picker("Insert text via", selection: $settings.insertionMethod) {
+                                Text("Accessibility, then paste").tag(InsertionMethod.auto)
+                                Text("Always paste").tag(InsertionMethod.paste)
+                            }
+                            .settingsPicker(width: 220)
                         }
-                        .settingsPicker(width: 220)
+                        RowDivider()
                     }
-                    RowDivider()
                     SettingRow(title: "Read app context",
                                subtitle: "Sends the window title, nearby text and selection with the transcript to your refinement provider. Password fields and password managers are skipped.") {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)

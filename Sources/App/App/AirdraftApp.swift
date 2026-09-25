@@ -26,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 app.downloads.cancelAll()
             }
             shutdownStarted = true
+            app.beginShutdown()
             Task { @MainActor [weak self] in
                 await AppContainer.shared.models.shutdown()
                 self?.shutdownFinished = true

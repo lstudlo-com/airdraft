@@ -52,7 +52,14 @@ public final class DictationPipeline {
     public private(set) var audioStorageError: String?
     public private(set) var audioRevision = 0
     private var reviewGeneration: UUID?
-    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, reviewOnly: Bool)?
+    private struct OutputSnapshot: Sendable, Equatable {
+        var destination: TextOutputDestination
+        var scriptPath: String
+        var insertionMethod: InsertionMethod
+    }
+    private var outputAtStart: OutputSnapshot?
+    private let sendScript: @Sendable (String, String) async throws -> Void
+    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, reviewOnly: Bool, output: OutputSnapshot)?
     private var unsavedHistory: [(record: DictationRecord, samples: [Float]?)] = []
     private let historyDirectory: URL?
     public private(set) var historyStore: HistoryStore?
@@ -114,6 +121,7 @@ public final class DictationPipeline {
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
         insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
+        sendScript: @escaping @Sendable (String, String) async throws -> Void = { try await ScriptDelivery.send(text: $0, to: $1) },
         recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil,
         requestMicrophoneAccess: @escaping @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
     ) {
@@ -129,6 +137,7 @@ public final class DictationPipeline {
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
         self.insertText = insertText
+        self.sendScript = sendScript
         self.requestMicrophoneAccess = requestMicrophoneAccess
         self.recordingPreflight = recordingPreflight
 
@@ -214,17 +223,66 @@ public final class DictationPipeline {
         }
     }
 
+    /// App Intents use the same startup task and only report success once capture begins.
+    public func startFromAutomation() async throws {
+        if isRecording { return }
+        guard !isBusy else { throw RecordingPrerequisiteError("Airdraft is already starting or processing a recording.") }
+        guard !hasRecoverableRecording else { throw RecordingPrerequisiteError("Retry or discard the saved recording in Airdraft first.") }
+        try Task.checkCancellation()
+        startRecording()
+        let token = recordingRequestID
+        guard let request = recordingRequest else {
+            throw RecordingPrerequisiteError(lastIssue ?? "Recording could not start.")
+        }
+        do {
+            try await OperationDeadline.run(seconds: 15) { await request.value }
+            try Task.checkCancellation()
+        } catch {
+            if recordingRequestID == token, generation == token { cancel() }
+            if case RefinerError.timeout = error {
+                throw RecordingPrerequisiteError("Recording startup timed out. Open Airdraft to check the selected model and permissions.")
+            }
+            throw error
+        }
+        guard generation == token else { throw CancellationError() }
+        guard isRecording else { throw RecordingPrerequisiteError(lastIssue ?? "Recording did not start.") }
+    }
+
+    public func stopFromAutomation() throws {
+        guard isRecording || recordingRequest != nil || !isBusy else {
+            throw RecordingPrerequisiteError("Airdraft is already processing a recording.")
+        }
+        stopAndProcess()
+    }
+
+    public func cancelFromAutomation() throws {
+        guard state != .inserting else {
+            throw RecordingPrerequisiteError("Text delivery has started and cannot be cancelled safely.")
+        }
+        cancel()
+    }
+
+    private func selectedOutput() -> OutputSnapshot {
+        OutputSnapshot(destination: settings.outputDestination, scriptPath: settings.outputScriptPath,
+                       insertionMethod: settings.insertionMethod)
+    }
+
     private func beginRecording(token: UUID) async {
         guard isCurrent(token) else { return }
         let asr = settings.asr
         let llm = settings.llm
         let microphone = settings.microphone
+        let output = selectedOutput()
+        let needsInsertion = insertionEnabled && output.destination == .cursor
         do {
+            if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
+                throw RecordingPrerequisiteError("Recording did not start. " + reason)
+            }
             if let recordingPreflight {
-                try await recordingPreflight(asr, llm, profiles.activeProfile.usesLLM, microphone, insertionEnabled)
+                try await recordingPreflight(asr, llm, profiles.activeProfile.usesLLM, microphone, needsInsertion)
             } else {
                 try RecordingPrerequisites.check(asr: asr, llm: llm, refinementEnabled: profiles.activeProfile.usesLLM,
-                                                 microphone: microphone, insertionEnabled: insertionEnabled)
+                                                 microphone: microphone, insertionEnabled: needsInsertion)
                 if asr.kind.isLocal {
                     let engine = await factory.transcriber(for: asr)
                     guard await engine.isReady() else {
@@ -233,7 +291,7 @@ public final class DictationPipeline {
                 }
             }
             guard isCurrent(token) else { return }
-            guard settings.asr == asr, settings.llm == llm, settings.microphone == microphone else {
+            guard settings.asr == asr, settings.llm == llm, settings.microphone == microphone, selectedOutput() == output else {
                 throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
             }
         } catch {
@@ -248,8 +306,14 @@ public final class DictationPipeline {
             fail("Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.")
             return
         }
+        guard selectedOutput() == output else {
+            fail("Recording did not start because the output destination changed. Try again.")
+            onRecordingBlocked?()
+            return
+        }
         asrAtStart = asr
-        insertionTargetAtStart = inserter.captureTarget()
+        outputAtStart = output
+        insertionTargetAtStart = needsInsertion ? inserter.captureTarget() : nil
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
         wireRecorder(for: token)
         startPreview(for: token)
@@ -322,6 +386,7 @@ public final class DictationPipeline {
         guard !isBusy else { return }
         generation = UUID()
         asrAtStart = nil
+        outputAtStart = selectedOutput()
         let token = generation
         prewarmRefiner(context: context)
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
@@ -435,6 +500,7 @@ public final class DictationPipeline {
         asrAtStart = nil
         generation = UUID()
         let token = generation
+        outputAtStart = recovery.output
         if recovery.reviewOnly { reviewGeneration = token }
         set(.transcribing)
         processingTask = Task {
@@ -443,8 +509,8 @@ public final class DictationPipeline {
         }
     }
 
-    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false) {
-        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target, reviewOnly)
+    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false, output: OutputSnapshot? = nil) {
+        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target, reviewOnly, output ?? outputAtStart ?? selectedOutput())
         hasRecoverableRecording = true
     }
 
@@ -471,6 +537,7 @@ public final class DictationPipeline {
 
     private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID, reviewOnly: Bool = false) async {
         guard isCurrent(token) else { return }
+        let output = outputAtStart ?? selectedOutput()
         let entries = dictionary.entries
         let asrConfig = asrAtStart ?? settings.asr
         let llmConfig = settings.llm
@@ -499,7 +566,7 @@ public final class DictationPipeline {
             transcript = try await factory.transcribe(samples, hints: hints, config: asrConfig)
         } catch {
             guard isCurrent(token) else { return }
-            retain(samples, context: context, target: target, reviewOnly: reviewOnly)
+            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: output)
             fail("Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.")
             return
         }
@@ -559,7 +626,7 @@ public final class DictationPipeline {
                 promptVersion = result.promptVersion
             } catch {
                 llmError = error.localizedDescription
-                skipReason = "LLM failed, inserted raw transcript"
+                skipReason = "LLM failed, using raw transcript"
             }
         } else {
             skipReason = "LLM off"
@@ -578,21 +645,36 @@ public final class DictationPipeline {
             return
         }
 
-        // 4. Insert
+        // 4. Deliver once. A script can have external side effects, so never retry it
+        // or fall back to pasting when its completion is uncertain.
         set(.inserting)
         var notice: String?
-        let inserted: Bool
+        var deliveryError: String?
+        var inserted = false
+        var outputSucceeded = false
         if insertionEnabled {
-            let result: InsertionResult
-            if let insertText { result = await insertText(final, settings.insertionMethod, target) }
-            else { result = await inserter.insert(final, method: settings.insertionMethod, target: target) }
-            inserted = result.didInsert
-            notice = result.notice
-        } else {
-            inserted = false
+            switch output.destination {
+            case .cursor:
+                let result: InsertionResult
+                if let insertText { result = await insertText(final, output.insertionMethod, target) }
+                else { result = await inserter.insert(final, method: output.insertionMethod, target: target) }
+                inserted = result.didInsert
+                outputSucceeded = result.didInsert
+                notice = result.notice
+            case .script:
+                do {
+                    try await sendScript(final, output.scriptPath)
+                    outputSucceeded = true
+                } catch {
+                    deliveryError = "Script delivery failed or was interrupted. It may already have acted; it was not retried. Your text is kept in History. " + error.localizedDescription
+                    notice = deliveryError
+                }
+            }
         }
         if llmError != nil, notice == nil {
-            notice = "LLM unavailable, raw text inserted"
+            notice = outputSucceeded
+                ? (output.destination == .script ? "Refinement unavailable; raw text sent to script." : "Refinement unavailable; raw text inserted.")
+                : "Refinement unavailable; raw text is available in History."
         }
 
         // 5. History
@@ -614,7 +696,9 @@ public final class DictationPipeline {
             asrMs: transcript.latencyMs,
             llmMs: llmMs,
             inserted: inserted,
-            error: llmError
+            error: (llmError != nil || deliveryError != nil) ? [llmError, deliveryError].compactMap { $0 }.joined(separator: "\n") : nil,
+            outputDestination: insertionEnabled ? output.destination.rawValue : nil,
+            outputSucceeded: insertionEnabled ? outputSucceeded : nil
         )
         if history != nil || historyDirectory != nil {
             unsavedHistory.append((record, settings.audioRetention == .off ? nil : samples))

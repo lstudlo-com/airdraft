@@ -243,6 +243,7 @@ public struct CLIRefiner: Refiner {
         guard output.status == 0 else {
             throw RefinerError.http(status: Int(output.status), body: String((output.stderr + output.stdout).prefix(400)))
         }
+        guard !output.stdoutTruncated else { throw RefinerError.invalidResponse }
         return output.stdout
     }
 }

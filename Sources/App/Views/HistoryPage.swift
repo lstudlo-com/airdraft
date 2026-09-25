@@ -390,6 +390,9 @@ struct HistoryCard: View {
     private var meta: String {
         var parts = [record.createdAt.formatted(date: .omitted, time: .shortened)]
         if let app = record.appName { parts.append(app) }
+        if record.outputDestination == TextOutputDestination.script.rawValue {
+            parts.append(record.outputSucceeded == true ? "Sent to script" : "Script failed")
+        }
         parts.append(record.mode)
         parts.append("\(String(format: "%.0f", record.audioSeconds)) s")
         return parts.joined(separator: " · ")
@@ -404,7 +407,11 @@ struct HistoryCard: View {
             row("Speech", "\(record.asrEngine) · \(record.asrMs) ms")
             row("Refinement", record.llmEngine.map { "\($0) · \(record.llmMs) ms" } ?? "skipped")
             if let e = record.error { row("Error", e) }
-            row("Inserted", record.inserted ? "yes" : "no")
+            if record.outputDestination == TextOutputDestination.script.rawValue {
+                row("Script delivery", record.outputSucceeded == true ? "completed" : "failed or interrupted")
+            } else {
+                row("Inserted", record.inserted ? "yes" : "no")
+            }
         }
         .font(.system(size: 12))
     }

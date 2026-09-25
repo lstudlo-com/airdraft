@@ -322,6 +322,19 @@ Public distribution additionally requires `scripts/verify-public-distribution.py
 on the final app and DMG. Do not relabel Apple Development builds as public-ready
 or change the pinned identity without the explicit migration review.
 
+## Dictation automation
+
+App Intents control the existing pipeline in the background. Start must await
+actual capture, with cancellation and a bounded startup wait. Reject commands
+after approved shutdown. Never activate the app on successful automation.
+Snapshot the output destination, script path and insertion method when recording
+starts; keep that snapshot through speech recovery. Scripts receive only the
+final text after conversion and dictionary processing, as literal UTF-8 stdin
+through `CLIProcess`, without shell interpolation. Bound pipes and execution.
+Never retry uncertain delivery or fall back to pasting. Keep final text and
+accurate delivery status in history. Review-only transcription and disabled
+insertion must never execute scripts. See `docs/automation.md`.
+
 ## Live transcription preview
 
 Live preview uses a separate Apple Speech analyzer on macOS 26+ and the same

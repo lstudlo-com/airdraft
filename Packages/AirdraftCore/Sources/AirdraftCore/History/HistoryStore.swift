@@ -26,6 +26,8 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     public var inserted: Bool
     public var error: String?
     public var audioFilename: String?
+    public var outputDestination: String?
+    public var outputSucceeded: Bool?
 
     public init(
         id: Int64? = nil,
@@ -48,7 +50,9 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         llmMs: Int,
         inserted: Bool,
         error: String? = nil,
-        audioFilename: String? = nil
+        audioFilename: String? = nil,
+        outputDestination: String? = nil,
+        outputSucceeded: Bool? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -71,6 +75,8 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         self.inserted = inserted
         self.error = error
         self.audioFilename = audioFilename
+        self.outputDestination = outputDestination
+        self.outputSucceeded = outputSucceeded
     }
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -136,6 +142,12 @@ public final class HistoryStore: Sendable {
         migrator.registerMigration("v2") { db in
             try db.alter(table: DictationRecord.databaseTableName) { t in
                 t.add(column: "audioFilename", .text)
+            }
+        }
+        migrator.registerMigration("v3") { db in
+            try db.alter(table: DictationRecord.databaseTableName) { t in
+                t.add(column: "outputDestination", .text)
+                t.add(column: "outputSucceeded", .boolean)
             }
         }
         try migrator.migrate(dbQueue)

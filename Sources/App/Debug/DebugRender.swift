@@ -20,6 +20,10 @@ enum DebugRender {
             container = PreviewData.container
             container.settings.audioRetention = .week
             container.settings.livePreviewEnabled = env["AIRDRAFT_RENDER_PREVIEW"] == "1"
+            if env["AIRDRAFT_RENDER_SCRIPT"] == "1" {
+                container.settings.outputDestination = .script
+                container.settings.outputScriptPath = "/usr/bin/true"
+            }
             _ = try? container.history?.save(DictationRecord(mode: "Clean", family: "general",
                 rawTranscript: "um please send the report tomorrow", refinedText: "Please send the report tomorrow.",
                 finalText: "Please send the report tomorrow.", asrEngine: "preview", audioSeconds: 2,
@@ -56,6 +60,9 @@ enum DebugRender {
                 let root = Group {
                     if pageName == "permissions" {
                         AccessibilityPermissionHelp()
+                    } else if pageName == "automation" {
+                        ScrollView { AutomationSettings().padding(Theme.pagePadding) }
+                            .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "speech-preview" {
                         ScrollView { SpeechPreviewSettings().padding(Theme.pagePadding) }
                             .background(Color(nsColor: .windowBackgroundColor))
@@ -94,7 +101,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = ["permissions", "refinement", "speech-preview"].contains(pageName) ? pageName : page.rawValue
+                    let name = ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

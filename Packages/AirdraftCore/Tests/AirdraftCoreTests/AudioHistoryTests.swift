@@ -65,6 +65,8 @@ final class AudioHistoryTests: XCTestCase {
         XCTAssertEqual(migrated.asrEngine, "legacy")
         XCTAssertEqual(migrated.audioSeconds, 1.5)
         XCTAssertNil(migrated.audioFilename)
+        XCTAssertNil(migrated.outputDestination)
+        XCTAssertNil(migrated.outputSucceeded)
         XCTAssertFalse(FileManager.default.fileExists(atPath: recordings.path))
         let withAudio = try store.save(record(), samples: [0, 0.5, -0.5])
         XCTAssertNotNil(store.audioURL(for: withAudio))
