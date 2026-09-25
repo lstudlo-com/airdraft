@@ -131,6 +131,18 @@ xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -sk
 xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test   # AirdraftCoreTests
 ```
 
+### Xcode Canvas previews
+
+Open `HomePage.swift` or `HomeHero.swift` with the `airdraft` scheme and Debug
+configuration, then show the Canvas. Keep **Editor → Canvas → Use Legacy Previews
+Execution** off. Legacy preview builds can miss the installed Metal toolchain
+required by MLX on Xcode 27.
+
+`SherpaOnnxKit` wraps its native archives in a dynamic library so the normal
+preview linker does not encounter duplicate Sherpa symbols. Its linker anchor
+keeps the C API exported for the app. Preview declarations use sample data from
+`Debug/PreviewData.swift`.
+
 ## Headless harness
 
 `airdraft-cli` runs the same engines without the app, for evaluation and debugging
