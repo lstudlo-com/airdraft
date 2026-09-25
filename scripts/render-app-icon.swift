@@ -1,5 +1,6 @@
 // Renders the airdraft app icon (neumorphic "speech → cursor" bar) on the
-// macOS icon grid and writes every size of the app's AppIcon.appiconset.
+// macOS icon grid and writes every size of the app's AppIcon.appiconset, plus
+// the website's copies of the icon and favicon.
 // Usage, from the repo root: swift scripts/render-app-icon.swift
 import AppKit
 import SwiftUI
@@ -10,6 +11,7 @@ let baseTop = Color(red: 0.945, green: 0.957, blue: 0.976)       // #F1F4F9
 let baseBottom = Color(red: 0.863, green: 0.882, blue: 0.914)     // #DCE1E9
 let lightShadow = Color.white
 let darkShadow = Color(red: 0.639, green: 0.690, blue: 0.776)     // #A3B0C6
+let contact = Color(red: 0.373, green: 0.424, blue: 0.529)        // #5F6C87
 let accentTop = Color(red: 0.420, green: 0.478, blue: 1.000)      // #6B7AFF
 let accentBottom = Color(red: 0.231, green: 0.765, blue: 0.957)   // #3BC3F4
 
@@ -36,33 +38,37 @@ struct Icon: View {
 
             // Everything on the body is clipped to it, so soft shadows never spill past the edge.
             ZStack {
-            // Raised pill: the "bar".
+            // Raised pill: the "bar". A bright top edge and a short shadow
+            // underneath give it its height, instead of a wide soft halo.
             Capsule(style: .continuous)
                 .fill(LinearGradient(colors: [baseTop, baseBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: 672, height: 330)
-                .shadow(color: lightShadow, radius: 30, x: -22, y: -22)
-                .shadow(color: darkShadow.opacity(0.9), radius: 34, x: 24, y: 28)
+                .overlay(Capsule(style: .continuous)
+                    .strokeBorder(LinearGradient(colors: [lightShadow.opacity(0.9), lightShadow.opacity(0)],
+                                                 startPoint: .top, endPoint: .center), lineWidth: 4))
+                .frame(width: 744, height: 364)
+                .shadow(color: darkShadow.opacity(0.55), radius: 20, y: 18)
+                .shadow(color: contact.opacity(0.35), radius: 2, y: 3)
 
             // Pressed track inside the pill.
             Capsule(style: .continuous)
                 .fill(base.shadow(.inner(color: darkShadow, radius: 16, x: 12, y: 12))
                           .shadow(.inner(color: lightShadow, radius: 14, x: -10, y: -10)))
-                .frame(width: 584, height: 242)
+                .frame(width: 650, height: 270)
 
             // Waveform bars warming from neutral to the accent, then the caret where text lands.
-            HStack(alignment: .center, spacing: 28) {
+            HStack(alignment: .center, spacing: 30) {
                 ForEach(Array(levels.enumerated()), id: \.offset) { i, level in
                     let t = Double(i + 1) / Double(levels.count + 1)
                     Capsule(style: .continuous)
                         .fill(LinearGradient(colors: [mix(neutral, accentTop, t * 0.85), mix(neutral, accentBottom, t * 0.85)], startPoint: .top, endPoint: .bottom))
-                        .frame(width: 34, height: 170 * level)
-                        .shadow(color: darkShadow.opacity(0.45), radius: 4, x: 2, y: 3)
+                        .frame(width: 38, height: 190 * level)
+                        .shadow(color: darkShadow.opacity(0.2), radius: 4, x: 2, y: 3)
                 }
                 Capsule(style: .continuous)
                     .fill(LinearGradient(colors: [accentTop, accentBottom], startPoint: .top, endPoint: .bottom))
-                    .frame(width: 34, height: 186)
+                    .frame(width: 38, height: 208)
                     .shadow(color: accentTop.opacity(0.6), radius: 22)
-                    .padding(.leading, 18)
+                    .padding(.leading, 20)
             }
             }
             .frame(width: side, height: side)
@@ -81,23 +87,38 @@ func mix(_ a: Color, _ b: Color, _ t: Double) -> Color {
     return Color(red: lerp(ca.redComponent, cb.redComponent), green: lerp(ca.greenComponent, cb.greenComponent), blue: lerp(ca.blueComponent, cb.blueComponent))
 }
 
+@MainActor func master(_ icon: Icon) -> CGImage {
+    let renderer = ImageRenderer(content: icon)
+    renderer.scale = 1
+    guard let image = renderer.cgImage else { fatalError("render failed") }
+    return image
+}
+
+/// Resample to `size` pixels and write a PNG.
+@MainActor func write(_ image: CGImage, size: Int, to url: URL) {
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4,
+                               hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+    NSGraphicsContext.saveGraphicsState()
+    let context = NSGraphicsContext(bitmapImageRep: rep)!
+    context.imageInterpolation = .high
+    NSGraphicsContext.current = context
+    context.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: size, height: size))
+    NSGraphicsContext.restoreGraphicsState()
+    try! rep.representation(using: .png, properties: [:])!.write(to: url)
+}
+
 @MainActor func render() {
     let dir = URL(fileURLWithPath: "Sources/App/Assets.xcassets/AppIcon.appiconset")
-    let renderer = ImageRenderer(content: Icon())
-    renderer.scale = 1
-    guard let master = renderer.cgImage else { fatalError("render failed") }
+    let icon = master(Icon())
     for size in [16, 32, 64, 128, 256, 512, 1024] {
-        let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4,
-                                   hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
-        NSGraphicsContext.saveGraphicsState()
-        let context = NSGraphicsContext(bitmapImageRep: rep)!
-        context.imageInterpolation = .high
-        NSGraphicsContext.current = context
-        context.cgContext.draw(master, in: CGRect(x: 0, y: 0, width: size, height: size))
-        NSGraphicsContext.restoreGraphicsState()
-        try! rep.representation(using: .png, properties: [:])!.write(to: dir.appendingPathComponent("icon_\(size).png"))
+        write(icon, size: size, to: dir.appendingPathComponent("icon_\(size).png"))
     }
     print("wrote \(dir.path)")
+
+    let site = URL(fileURLWithPath: "apps/marketing/public")
+    write(icon, size: 512, to: site.appendingPathComponent("airdraft-icon.png"))
+    write(icon, size: 64, to: site.appendingPathComponent("favicon.png"))
+    print("wrote \(site.path)")
 }
 
 MainActor.assumeIsolated { render() }
