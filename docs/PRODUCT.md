@@ -52,7 +52,7 @@ and keeps the installation instructions legible within Finder.
 | 7 | Sparkle checks and verified installation on quit, with local builds for each main push. From 0.1.5, the release gate requires a pinned Apple Development certificate and a stable designated requirement, inspects the packaged DMG, and exercises real certificate-signed and legacy-migration updates. Developer ID/notarization and M5 permission continuity remain unverified; see `docs/updates.md`. |
 | 8 | Device pickers in the sidebar, menu bar and Configuration save a persistent device UID. Multi-input devices also save an input channel in Configuration. Explicit channel mapping preserves microphone audio on discrete-channel interfaces without mixing loopback; unavailable channels fail visibly. Missing devices fail visibly without selecting another input; same-input audio reconfiguration recovers without clearing captured audio. Missing or changed inputs report a specific error; see `docs/microphones.md`. `com.lstudlo.app.airdraft` imports legacy settings and credentials. |
 | 9 | Live Accessibility/microphone state, running-copy diagnostics, and a separate Debug identity. The ad-hoc release defect is removed from 0.1.5; users migrating from older builds may need to grant access again. Later releases must preserve the approved signing identity. Verification on the affected M5 remains outstanding; see `docs/accessibility.md`. Keychain navigation/background reads are silent; selected-key approval is explicit, migration preserves inaccessible current entries, and key editors report write failures. Pending microphone requests cancel with shortcut release. See `docs/keychain-access.md`. |
-| 10 | Implemented: macOS frosted sidebar material beneath a 70%-opaque neutral layer for reduced translucency, with a fully opaque Reduce Transparency fallback, a bottom-left settings button, a centered account/subscription overlay with labeled sample data, and a larger microphone chooser with a live input meter. The level preview retains no audio. |
+| 10 | Implemented: macOS frosted sidebar material beneath a 70%-opaque darker neutral layer for reduced translucency, with a fully opaque Reduce Transparency fallback, a bottom-left settings button, a centered account/subscription overlay with labeled sample data, and a larger microphone chooser with a live input meter. The level preview retains no audio. |
 | Installer | Implemented locally: a silver capsule installer with the shared outlined wordmark, real app and Applications icons, Retina background, and saved Finder positioning. Packaging verifies the image layout and signed app. The Finder preview uses an existing signed Release build; this change is not yet published. |
 
 ## Interface consistency
@@ -66,7 +66,7 @@ Standing requirement from Light, reaffirmed 2026-09-21:
 - Configuration and Models use `PageSection` and `SettingsCard`, including
   microphone, updates, permissions, refinement and provider settings. New settings
   sections must use these components too.
-- The sidebar uses native blur beneath a 70%-opaque neutral layer, retaining
+- The sidebar uses native blur beneath a 70%-opaque darker neutral layer, retaining
   visible translucency. Reduce Transparency makes the background fully opaque.
   Sidebar content stays fully opaque. Its microphone capsule opens a device
   overlay with an input meter; its lower-left gear opens centered account settings.

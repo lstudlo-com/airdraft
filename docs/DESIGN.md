@@ -87,7 +87,7 @@ system appearance, including the accent shown in the live Save button.
 
 The main background is `NSColor.windowBackgroundColor`; the sidebar uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
-70%-opaque neutral fill, white level 0.90 in light mode and 0.22 in dark mode.
+70%-opaque neutral fill, white level 0.86 in light mode and 0.12 in dark mode.
 The remaining 30% contribution comes from the already blurred material. Reduce
 Transparency removes the blur and makes the fill fully opaque. Apply this tint
 to the background only; the logo, text and controls keep their opacity.

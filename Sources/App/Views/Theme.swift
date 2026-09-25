@@ -45,7 +45,7 @@ struct SidebarBackground: View {
             if !reduceTransparency {
                 VisualEffectView(material: .sidebar)
             }
-            Color(white: scheme == .dark ? 0.22 : 0.90)
+            Color(white: scheme == .dark ? 0.12 : 0.86)
                 .opacity(reduceTransparency ? 1 : 0.70)
         }
         .allowsHitTesting(false)
