@@ -69,6 +69,7 @@ status table current.
   when the user requests it.
 - Interface consistency is a product requirement. Native section cards must have
   equal top, bottom, leading and trailing insets: `Theme.cardPadding` (16 pt).
+  All page content cards use `Theme.cardRadius` (18 pt) for continuous corners.
   Use `PageSection` and `SettingsCard` for settings sections, including Configuration
   and Models. The card owns the outer padding; rows inside it must not add another
   vertical inset. Use shared spacing tokens instead of page-specific values.

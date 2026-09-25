@@ -15,7 +15,7 @@ enum Theme {
     static let sectionTitleMinHeight: CGFloat = 32
     static let sectionTitleLeadingInset: CGFloat = 4
     static let controlSpacing: CGFloat = 12
-    static let cardRadius: CGFloat = 12
+    static let cardRadius: CGFloat = 18
     static let contentMaxWidth: CGFloat = 860
 }
 

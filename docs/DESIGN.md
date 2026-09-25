@@ -23,7 +23,7 @@ typography:
 rounded:
   navigation: "7pt"
   editor: "8pt"
-  card: "12pt"
+  card: "18pt"
 spacing:
   sectionTitleSpacing: "12pt"
   controlSpacing: "12pt"
@@ -181,7 +181,7 @@ The Auto theme thumbnail clips its dark half to its actual layout bounds so the
 diagonal split reaches the bottom and trailing edges without exposing the light base.
 
 Use the navigation, editor and card radii for their respective components.
-Shared cards have continuous corners and a half-point border. Editable text
+Shared cards use `Theme.cardRadius` for 18-point continuous corners and a half-point border. Editable text
 areas have a half-point resting border that becomes a 1.5-point accent border
 when focused. Keep these text-area boundaries even though the surrounding
 Profiles editor is unboxed.
