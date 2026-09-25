@@ -20,6 +20,12 @@ struct RefinementSettings: View {
                     SettingRow(title: "Refinement is off", subtitle: "Dictation inserts the raw transcript, with vocabulary and script conversion only") {
                         EmptyView()
                     }
+                case .appleIntelligence:
+                    SettingRow(title: "On-device cleanup", subtitle: AppleIntelligenceRefiner.unavailableReason ?? "Ready. Runs on this Mac without an API key or a separate server.") {
+                        StatusDot(ok: AppleIntelligenceRefiner.unavailableReason == nil)
+                    }
+                    RowDivider()
+                    testRow
                 case .openAICompatible:
                     localServerRows
                 case .claudeCode, .codex:
@@ -32,7 +38,7 @@ struct RefinementSettings: View {
             if llm.kind != .none {
             DisclosureGroup("Advanced") {
                 SettingsCard {
-                    if llm.kind != .anthropic && !llm.kind.isCLI {
+                    if llm.kind != .anthropic && !llm.kind.isCLI && llm.kind != .appleIntelligence {
                     SettingRow(title: "Temperature") {
                         HStack {
                             Slider(value: $settings.llm.temperature, in: 0...1, step: 0.1).frame(width: 160).accessibilityLabel("Temperature")
@@ -53,7 +59,7 @@ struct RefinementSettings: View {
                     SettingRow(title: "Skip refinement under") {
                         SettingsNumberStepper(title: "Skip refinement under", value: $settings.llm.minWordsForLLM, in: 0...20, unit: "words")
                     }
-                    if !llm.kind.isCLI {
+                    if !llm.kind.isCLI && llm.kind != .appleIntelligence {
                         RowDivider()
                         SettingRow(title: "Thinking effort", subtitle: thinkingSubtitle) {
                             Picker("Thinking effort", selection: Binding(

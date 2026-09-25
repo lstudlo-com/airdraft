@@ -161,6 +161,10 @@ status table current.
   and `EngineFactory.refiner` switches on the wire. A new provider is a new case plus, for a new
   wire, a `Refiner` and a request-shape test in `RefinerWireTests` (a wrong field name otherwise
   only shows up as a 400 mid-dictation). Cloud keys live under `llm.<provider>` in the Keychain.
+- Apple Intelligence refinement uses Foundation Models on macOS 26+ with a fresh
+  on-device session per dictation. Check system availability before recording;
+  never read a key or contact an endpoint for it. Keep the shared prompts and
+  raw-transcript fallback for unavailable, refused, oversized or timed-out requests.
 - Every provider speaks a different contract; the differences that have bitten us are:
   OpenAI-compatible (`Authorization: Bearer`, system as `messages[0]`, `reasoning_effort`),
   Anthropic (`x-api-key` + `anthropic-version`, top-level `system`, required `max_tokens`,

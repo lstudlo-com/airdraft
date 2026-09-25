@@ -65,6 +65,18 @@ final class RecordingPrerequisitesTests: XCTestCase {
         XCTAssertThrowsError(try check(.init(kind: .groq), llm: .init(kind: .anthropic), env: env))
     }
 
+    func testAppleAvailabilityBlocksOnlyWhenRefinementIsEnabled() throws {
+        var env = environment()
+        env.appleIntelligenceUnavailable = { "Apple model not ready" }
+        let llm = LLMConfig(kind: .appleIntelligence)
+        XCTAssertThrowsError(try check(.init(kind: .apple), llm: llm, env: env))
+        try RecordingPrerequisites.check(asr: .init(kind: .apple), llm: llm, refinementEnabled: false,
+            microphone: .systemDefault, insertionEnabled: true, environment: env)
+        env.appleIntelligenceUnavailable = { nil }
+        env.readCredential = { _ in XCTFail("No keys for either local stage"); return nil }
+        try check(.init(kind: .apple), llm: llm, env: env)
+    }
+
     func testReadySetupPassesWithoutRecordingOrNetwork() throws {
         try check(.init(kind: .groq), env: environment())
     }

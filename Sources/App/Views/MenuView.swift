@@ -115,6 +115,9 @@ struct MenuView: View {
     }
 
     private var llmStateLabel: String {
+        if container.settings.llm.kind == .appleIntelligence {
+            return AppleIntelligenceRefiner.unavailableReason == nil ? "On-device" : "Unavailable"
+        }
         switch container.models.llmStatus.state {
         case .unknown: return "Checking…"
         case .remote: return "Cloud"
@@ -134,6 +137,9 @@ struct MenuView: View {
 
     private var llmDetail: String {
         guard container.settings.llm.kind != .none else { return "Raw transcript without refinement" }
+        if container.settings.llm.kind == .appleIntelligence {
+            return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device"
+        }
         return "\(container.settings.llm.engineLabel) · \(container.models.llmStatus.label)"
     }
 

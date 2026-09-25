@@ -39,16 +39,19 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     /// user's own subscription pays for it, so there is no API key.
     case claudeCode
     case codex
+    /// Apple's on-device system language model (macOS 26+).
+    case appleIntelligence
     /// Insert the raw transcript.
     case none
 
     public var id: String { rawValue }
 
     /// Request shape the provider speaks.
-    public enum Wire: Sendable { case openAIChat, anthropicMessages, geminiGenerateContent, cli }
+    public enum Wire: Sendable { case openAIChat, anthropicMessages, geminiGenerateContent, cli, appleIntelligence }
 
     public var wire: Wire {
         switch self {
+        case .appleIntelligence: return .appleIntelligence
         case .anthropic: return .anthropicMessages
         case .gemini: return .geminiGenerateContent
         case .claudeCode, .codex: return .cli
@@ -76,6 +79,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .groq: return "Groq"
         case .claudeCode: return "Claude Code CLI"
         case .codex: return "Codex CLI"
+        case .appleIntelligence: return "Apple Intelligence"
         case .none: return "Off"
         }
     }
@@ -92,6 +96,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .groq: return "Groq"
         case .claudeCode: return "Claude Code"
         case .codex: return "Codex"
+        case .appleIntelligence: return "Apple Intelligence"
         case .none: return "Off"
         }
     }
@@ -99,7 +104,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     public var isCloud: Bool {
         switch self {
         case .openAI, .anthropic, .gemini, .openRouter, .cerebras, .groq: return true
-        case .openAICompatible, .claudeCode, .codex, .none: return false
+        case .openAICompatible, .claudeCode, .codex, .appleIntelligence, .none: return false
         }
     }
 
@@ -116,7 +121,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .cerebras: return "https://api.cerebras.ai/v1"
         case .groq: return "https://api.groq.com/openai/v1"
         case .claudeCode, .codex: return ""
-        case .none: return ""
+        case .appleIntelligence, .none: return ""
         }
     }
 
@@ -133,7 +138,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         // Empty means "whatever the CLI itself is set to".
         case .claudeCode: return "sonnet"
         case .codex: return "gpt-6-astra"
-        case .none: return ""
+        case .appleIntelligence, .none: return ""
         }
     }
 
@@ -148,7 +153,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .cerebras: return "llm.cerebras"
         case .groq: return "llm.groq"
         case .claudeCode, .codex: return ""
-        case .none: return ""
+        case .appleIntelligence, .none: return ""
         }
     }
 
@@ -161,7 +166,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .openRouter: return URL(string: "https://openrouter.ai/keys")
         case .cerebras: return URL(string: "https://cloud.cerebras.ai")
         case .groq: return URL(string: "https://console.groq.com/keys")
-        case .openAICompatible, .claudeCode, .codex, .none: return nil
+        case .openAICompatible, .claudeCode, .codex, .appleIntelligence, .none: return nil
         }
     }
 
@@ -489,11 +494,12 @@ public struct LLMConfig: Codable, Sendable, Equatable {
 
     /// Endpoint actually used: the editable one for a local server, the provider's own for cloud.
     public var endpoint: URL? {
-        URL(string: kind.isCloud ? kind.defaultBaseURL : baseURL)
+        guard kind != .appleIntelligence && kind != .none && !kind.isCLI else { return nil }
+        return URL(string: kind.isCloud ? kind.defaultBaseURL : baseURL)
     }
 
     /// Keychain account holding the key for the selected provider.
-    public var keyRef: String { kind.isCloud ? kind.keyRef : apiKeyRef }
+    public var keyRef: String { kind == .appleIntelligence || kind == .none || kind.isCLI ? "" : (kind.isCloud ? kind.keyRef : apiKeyRef) }
 
     /// Executable for the selected CLI provider: the stored path, else wherever it is installed.
     public var cliExecutable: String? {
@@ -531,6 +537,7 @@ public struct LLMConfig: Codable, Sendable, Equatable {
 
     public var engineLabel: String {
         switch kind {
+        case .appleIntelligence: return "Apple Intelligence"
         case .none: return "Off"
         case .openAICompatible: return "\(endpoint?.host ?? baseURL) · \(model)"
         case .claudeCode, .codex: return "\(kind.title) · \(model.isEmpty ? "default model" : model)"

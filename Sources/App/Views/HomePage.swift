@@ -189,6 +189,7 @@ struct HomePage: View {
     private var refinementTone: StatusDot.Tone {
         let llm = container.settings.llm
         if llm.kind == .none || !container.profiles.activeProfile.usesLLM { return .inactive }
+        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason == nil ? .ok : .attention }
         if refinementNeedsKey || (llm.kind.isCLI && llm.cliExecutable == nil) { return .attention }
         switch container.models.llmStatus.state {
         case .unreachable, .failed: return .attention
@@ -200,6 +201,7 @@ struct HomePage: View {
     private var refinementDetail: String {
         let llm = container.settings.llm
         guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · the transcript is inserted as spoken" }
+        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device · profile \(container.profiles.activeProfile.name)" }
         let state = refinementNeedsKey ? "API key needed" : container.models.llmStatus.label
         return "\(llm.engineLabel) · \(state) · profile \(container.profiles.activeProfile.name)"
     }

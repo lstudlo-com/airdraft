@@ -68,6 +68,7 @@ public actor EngineFactory {
     /// in Settings takes effect on the next dictation.
     public func refiner(for config: LLMConfig) async -> (any Refiner)? {
         guard config.kind != .none else { return nil }
+        if config.kind == .appleIntelligence { return AppleIntelligenceRefiner(timeout: config.timeoutSeconds) }
         if let tool = config.kind.cliTool {
             guard let executable = config.cliExecutable else { return nil }
             let models = try? await CLIModelCatalog.shared.models(tool: tool, executable: executable, timeout: 3)
@@ -100,7 +101,7 @@ public actor EngineFactory {
                 effort: config.thinkingEffort,
                 timeout: config.timeoutSeconds
             )
-        case .cli:
+        case .appleIntelligence, .cli:
             return nil  // handled above, where the executable is resolved
         case .geminiGenerateContent:
             return GeminiRefiner(

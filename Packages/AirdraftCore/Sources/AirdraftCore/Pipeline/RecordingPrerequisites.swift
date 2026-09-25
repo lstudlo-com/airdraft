@@ -18,11 +18,14 @@ public enum RecordingPrerequisites {
         public var devices: [Microphone]
         public var defaultDeviceID: UInt32?
         public var readCredential: (String) throws -> String?
+        public var appleIntelligenceUnavailable: () -> String?
         public var installed: (ASRConfig) -> Bool
         public init(microphoneAuthorized: Bool, accessibilityAuthorized: Bool,
                     devices: [Microphone], defaultDeviceID: UInt32?,
                     readCredential: @escaping (String) throws -> String?,
-                    installed: @escaping (ASRConfig) -> Bool) {
+                    installed: @escaping (ASRConfig) -> Bool,
+                    appleIntelligenceUnavailable: @escaping () -> String? = { AppleIntelligenceRefiner.unavailableReason }) {
+            self.appleIntelligenceUnavailable = appleIntelligenceUnavailable
             self.microphoneAuthorized = microphoneAuthorized
             self.accessibilityAuthorized = accessibilityAuthorized
             self.devices = devices
@@ -68,6 +71,9 @@ public enum RecordingPrerequisites {
             else { _ = try readKey(asr.keyRef, stage: "speech", environment: environment) }
         }
         if refinementEnabled, llm.kind != .none {
+            if llm.kind == .appleIntelligence, let reason = environment.appleIntelligenceUnavailable() {
+                try reject("Recording did not start. " + reason)
+            }
             if llm.kind.requiresKey { try requireKey(llm.keyRef, stage: "refinement", environment: environment) }
             if llm.kind.isCLI, llm.cliExecutable == nil {
                 try reject("Recording did not start. Set up the selected refinement CLI in Models, or turn refinement Off."); return

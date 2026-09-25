@@ -11,6 +11,7 @@ public enum ModelCatalog {
 
     /// Models the configured refinement provider serves, in its own API shape.
     public static func refinementModels(for config: LLMConfig, timeout: TimeInterval = 10) async throws -> [String] {
+        if config.kind == .appleIntelligence { return [] }
         if let tool = config.kind.cliTool {
             guard let executable = config.cliExecutable else { throw RefinerError.invalidResponse }
             return try await CLIModelCatalog.shared.models(tool: tool, executable: executable, refresh: true, timeout: timeout).map(\.id)
@@ -31,7 +32,7 @@ public enum ModelCatalog {
                 let data: [Model]
             }
             return try await decode(req, as: Reply.self).data.map(\.id)
-        case .cli:
+        case .appleIntelligence, .cli:
             return config.kind.cliTool?.modelSuggestions ?? []
         case .geminiGenerateContent:
             var req = URLRequest(url: base.appendingPathComponent("models"))
