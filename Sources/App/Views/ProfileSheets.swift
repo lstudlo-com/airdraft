@@ -9,8 +9,8 @@ struct BaseSystemPromptEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
             Text("Base system prompt").font(.system(size: 20, weight: .semibold))
-            Text("Shared by all profiles that use AI refinement. Profile instructions and context rules are added automatically.")
-                .font(.system(size: 13)).foregroundStyle(.secondary)
+            Text("Shared across AI profiles; profile instructions are added automatically.")
+                .supportingText()
             ProfileTextEditor(title: "Base system prompt", text: $draft, height: 320, showsTitle: false)
             HStack {
                 Button("Restore Defaults") { draft = PromptBuilder.defaultBaseRules }

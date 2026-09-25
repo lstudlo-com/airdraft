@@ -2,18 +2,35 @@ import AirdraftCore
 import AppKit
 import SwiftUI
 
+/// Keep the message and its action together, including when a long diagnostic wraps.
+struct InlineNotice<Actions: View>: View {
+    let message: String
+    @ViewBuilder var actions: Actions
+
+    init(_ message: String, @ViewBuilder actions: () -> Actions) {
+        self.message = message
+        self.actions = actions()
+    }
+
+    var body: some View {
+        SettingsCard {
+            HStack(spacing: Theme.controlSpacing) {
+                Text(message).supportingText().textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                actions.fixedSize()
+            }
+            .buttonStyle(SoftButtonStyle())
+        }
+    }
+}
+
 struct StorageNotice: View {
     let message: String
     let retry: () -> Void
 
     var body: some View {
-        SettingsCard {
-            Text(message).font(.system(size: 12.5)).textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Spacer()
-                Button("Retry Saving", action: retry).buttonStyle(SoftButtonStyle())
-            }
+        InlineNotice(message) {
+            Button("Retry Saving", action: retry)
         }
     }
 }
@@ -22,18 +39,22 @@ struct DictationRecovery: View {
     @Environment(AppContainer.self) private var container
 
     var body: some View {
-        if let message = container.pipeline.lastIssue {
-            SettingsCard {
-                Text(message).font(.system(size: 12.5)).textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
+        if let message = RenderMode.value("NOTICE") ?? container.pipeline.lastIssue {
+            InlineNotice(message) {
                 HStack(spacing: Theme.controlSpacing) {
                     if container.pipeline.hasRecoverableRecording {
-                        Button("Retry Transcription") { container.pipeline.retryRecording() }
-                        Button("Change Provider") { container.navigation.page = .models }
-                        Spacer(minLength: 0)
-                        Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording() }
+                        Button("Retry") { container.pipeline.retryRecording() }
+                            .help("Retry transcription")
+                        Menu {
+                            Button("Change Provider") { container.navigation.page = .models }
+                            Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording() }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
+                        .accessibilityLabel("Recording recovery options")
                     } else {
-                        Spacer()
                         Button("Dismiss") { container.pipeline.dismissIssue() }
                     }
                 }

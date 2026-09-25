@@ -40,15 +40,14 @@ struct ProfileEditor: View {
                     ProfileTextEditor(
                         title: "Task", text: binding(\.task), height: 90,
                         showsTitle: false,
-                        placeholder: "Optional: give the transcript a different purpose, such as a summary or translation."
+                        placeholder: "Optional: summarize, translate, or set another task."
                     )
                     .padding(.top, Theme.sectionTitleSpacing)
                 }
                 .settingsDisclosure()
             } else {
-                Text("Your transcript is inserted without AI refinement. Vocabulary replacements and script conversion still apply.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                Text("No AI refinement. Vocabulary and script conversion still apply.")
+                    .supportingText()
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

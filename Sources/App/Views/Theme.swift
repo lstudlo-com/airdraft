@@ -28,6 +28,7 @@ enum Theme {
     static let sectionTitleLeadingInset: CGFloat = 4
     static let controlSpacing: CGFloat = 12
     static let cardRadius: CGFloat = 18
+    static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
 }
@@ -334,13 +335,22 @@ struct SettingRow<Trailing: View>: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13, weight: .medium))
                 if let subtitle {
-                    Text(subtitle).font(.system(size: 12.5)).foregroundStyle(.secondary)
+                    Text(subtitle).supportingText()
                 }
             }
             Spacer(minLength: 12)
             trailing
         }
         .padding(.vertical, rowInset)
+    }
+}
+
+extension View {
+    /// Descriptions stay smaller and quieter than the setting they explain.
+    func supportingText() -> some View {
+        font(Theme.supportingFont)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -650,7 +660,7 @@ struct EmptyNote: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.system(size: 12.5)).foregroundStyle(.secondary)
+        Text(text).supportingText()
     }
 }
 
@@ -702,7 +712,7 @@ struct OverlayPanel<Content: View>: View {
                     Text(title).font(.system(size: 17, weight: .semibold))
                         .accessibilityAddTraits(.isHeader)
                     if let subtitle {
-                        Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary)
+                        Text(subtitle).supportingText()
                     }
                 }
                 Spacer()

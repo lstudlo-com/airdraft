@@ -36,7 +36,7 @@ struct ConfigurationPage: View {
 
             PageSection("Keyboard shortcuts") {
                 SettingsCard {
-                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record, release when done" : "Press to start, press again to stop") {
+                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record; release to stop" : "Press to start or stop") {
                         HotkeyRecorderView()
                     }
                     RowDivider()
@@ -70,11 +70,11 @@ struct ConfigurationPage: View {
                         RowDivider()
                     }
                     SettingRow(title: "Read app context",
-                               subtitle: "Sends the window title, nearby text and selection with the transcript to your refinement provider. Password fields and password managers are skipped.") {
+                               subtitle: "Sends window title, nearby text and selection to AI. Skips password fields and managers.") {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
                     }
                     RowDivider()
-                    SettingRow(title: "Maximum recording", subtitle: settings.asr.kind == .groq ? "Groq recordings stop after 740 s to stay within its upload limit" : nil) {
+                    SettingRow(title: "Maximum recording", subtitle: settings.asr.kind == .groq ? "Groq upload limit: 740 s" : nil) {
                         SettingsNumberStepper(
                             title: "Maximum recording",
                             value: $settings.maxRecordingSeconds,
@@ -88,12 +88,12 @@ struct ConfigurationPage: View {
 
             PageSection("Live preview") {
                 SettingsCard {
-                    SettingRow(title: "Show text while speaking", subtitle: "Uses Apple Speech on this Mac. Your selected speech model still produces the final transcript.") {
+                    SettingRow(title: "Show text while speaking", subtitle: "On-device Apple Speech; final model unchanged") {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.switch)
                     }
                     if settings.livePreviewEnabled {
                         RowDivider()
-                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Choose Classic or Mini above to see the preview." : "Set the language and install its assets in Models.") {
+                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Requires Classic or Mini recording window" : "Choose and install a language in Models") {
                             Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
                         }
                     }
@@ -102,7 +102,7 @@ struct ConfigurationPage: View {
 
             PageSection("Audio history") {
                 SettingsCard {
-                    SettingRow(title: "Keep recordings", subtitle: "Save audio on this Mac for playback and retranscription. Off removes saved audio; text history stays.") {
+                    SettingRow(title: "Keep recordings", subtitle: "Local playback and retry. Off deletes audio, keeps text.") {
                         Picker("Keep recordings", selection: $settings.audioRetention) {
                             ForEach(AudioRetention.allCases) { Text($0.title).tag($0) }
                         }.settingsPicker(width: 160)
@@ -151,7 +151,7 @@ struct ConfigurationPage: View {
     private var micStatus: String {
         switch container.permissions.microphone {
         case .authorized: return "Granted · \(container.microphones.label(container.settings.microphone))"
-        case .denied: return "Denied. Enable it in System Settings ▸ Privacy & Security ▸ Microphone"
+        case .denied: return "Denied · allow in System Settings"
         case .restricted: return "Restricted"
         default: return "Not requested yet"
         }

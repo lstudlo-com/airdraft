@@ -25,9 +25,8 @@ struct ProfilesPage: View {
                         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
                             Text(container.profiles.baseRulesAreDefault ? "Default prompt" : "Custom prompt")
                                 .font(.system(size: 13, weight: .medium))
-                            Text("Shared by all profiles that use AI refinement. Each profile adds its own instructions.")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
+                            Text("Shared by all AI refinement profiles")
+                                .supportingText()
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 0)
@@ -122,7 +121,7 @@ struct ProfilesPage: View {
             Button("Cancel", role: .cancel) {}
             Button("Continue Editing") { presentedSheet = .basePrompt }
         } message: {
-            Text("Changes affect every profile that uses AI refinement. Removing core rules can reduce accuracy or make the AI answer your dictation instead of refining it. You can restore the default prompt at any time.")
+            Text("Affects all AI profiles. Removing rules may reduce accuracy or make AI answer your dictation. Defaults can be restored.")
         }
         .confirmationDialog(
             confirmation?.title ?? "",

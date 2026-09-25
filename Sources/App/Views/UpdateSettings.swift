@@ -12,7 +12,7 @@ struct UpdateSettings: View {
                         .disabled(!updates.canCheckForUpdates)
                 }
                 RowDivider()
-                SettingRow(title: "Check automatically", subtitle: "Check for new versions once a day") {
+                SettingRow(title: "Check automatically", subtitle: "Once a day") {
                     Toggle("Check automatically", isOn: Binding(
                         get: { updates.automaticallyChecksForUpdates },
                         set: { updates.setAutomaticChecks($0) }
@@ -21,7 +21,7 @@ struct UpdateSettings: View {
                     .disabled(!updates.isStarted)
                 }
                 RowDivider()
-                SettingRow(title: "Download updates automatically", subtitle: "Install downloaded updates when you quit Airdraft") {
+                SettingRow(title: "Download updates automatically", subtitle: "Installs when you quit") {
                     Toggle("Download updates automatically", isOn: Binding(
                         get: { updates.automaticallyDownloadsUpdates },
                         set: { updates.setAutomaticDownloads($0) }

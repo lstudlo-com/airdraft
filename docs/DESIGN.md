@@ -15,7 +15,7 @@ typography:
     fontSize: "13pt"
     fontWeight: 500
   supporting:
-    fontSize: "12pt"
+    fontSize: "11pt"
     fontWeight: 400
   metadata:
     fontSize: "11pt"
@@ -324,7 +324,12 @@ disabled and destructive states and the existing confirmations.
 in progress, off), `RefreshButton`, `EmptyNote`, `OverlayPanel` for the
 microphone and account panels, and `.settingsDisclosure()`, which styles only a
 disclosure header. Settings row titles use the field-label role (13 pt medium),
-below the 14 pt section headings. Every provider key is an `APIKeyField` row
+below the 14 pt section headings. Descriptions share `.supportingText()`: 11 pt
+regular in the native secondary color, with one short phrase where possible.
+Privacy and recovery instructions remain explicit; longer model explanations
+stay inside their details disclosure. Inline notices keep text and actions in
+one horizontal row, and every Home readiness row has a `RowDivider`.
+Every provider key is an `APIKeyField` row
 followed by a Connection row with Test and Cancel.
 
 ### Text fields and sheets

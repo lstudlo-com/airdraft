@@ -103,8 +103,7 @@ struct HomePage: View {
                         Text(issues == 0 ? "Ready to dictate" : issues == 1 ? "1 setup step needs attention" : "\(issues) setup steps need attention")
                             .font(.system(size: 13, weight: .medium))
                         Text(pipelineSummary)
-                            .font(.system(size: 11.5))
-                            .foregroundStyle(.secondary)
+                            .supportingText()
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
@@ -131,10 +130,9 @@ struct HomePage: View {
                 healthRows
                 if hasLoadedOverview && overview.stats.dictations == 0 {
                     Text(container.settings.outputDestination == .script
-                         ? "Use your shortcut to dictate. The selected script receives the final text, and a copy appears in History."
-                         : "After setup, place the cursor in a text field and use your shortcut to dictate a short sentence. Your first result will appear in History.")
-                        .font(.system(size: 12)).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                         ? "Use your shortcut. Results go to your script and History."
+                         : "Place your cursor, then use your shortcut to dictate.")
+                        .supportingText()
                 }
             }
         }
@@ -148,6 +146,7 @@ struct HomePage: View {
                 Button("Change") { container.navigation.page = .configuration }.buttonStyle(SoftButtonStyle())
             }
         }
+        RowDivider()
         if container.settings.outputDestination == .script {
             HealthRow(ok: outputReady, title: "Script output",
                       detail: ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath)
@@ -158,13 +157,14 @@ struct HomePage: View {
             HealthRow(
                 ok: container.permissions.accessibilityGranted,
                 title: "Accessibility",
-                detail: container.permissions.accessibilityGranted ? "Granted" : "macOS has not granted this copy access to insert text"
+                detail: container.permissions.accessibilityGranted ? "Granted" : "Allow text insertion in System Settings"
             ) {
                 if !container.permissions.accessibilityGranted {
                     AccessibilityPermissionActions()
                 }
             }
         }
+        RowDivider()
         HealthRow(ok: microphoneReady, title: "Microphone", detail: microphoneDetail) {
             if !microphoneReady {
                 Button(container.permissions.microphone == .notDetermined ? "Allow Microphone" : "Microphone Settings") {
@@ -174,6 +174,7 @@ struct HomePage: View {
                 }.buttonStyle(SoftButtonStyle())
             }
         }
+        RowDivider()
         HealthRow(ok: speechReady, title: "Speech", detail: speechDetail) {
             if !speechReady {
                 if container.settings.asr.kind.isLocal, LocalModels.isInstalled(container.settings.asr) {
@@ -187,6 +188,7 @@ struct HomePage: View {
                 }
             }
         }
+        RowDivider()
         HealthRow(tone: refinementTone, title: "Refinement", detail: refinementDetail) {
             if refinementTone == .attention {
                 Button(refinementNeedsKey ? "Add API Key" : "Models") { container.navigation.page = .models }
@@ -216,10 +218,10 @@ struct HomePage: View {
 
     private var refinementDetail: String {
         let llm = container.settings.llm
-        guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · use the original transcript" }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device · profile \(container.profiles.activeProfile.name)" }
+        guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · original transcript" }
+        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "On-device · \(container.profiles.activeProfile.name)" }
         let state = refinementNeedsKey ? "API key needed" : container.models.llmStatus.label
-        return "\(llm.engineLabel) · \(state) · profile \(container.profiles.activeProfile.name)"
+        return "\(state) · \(container.profiles.activeProfile.name)"
     }
 
     private func refreshRefinementKey() async {
@@ -245,9 +247,12 @@ struct HomePage: View {
 
     private var speechDetail: String {
         let asr = container.settings.asr
-        if !asr.kind.isLocal { return asr.engineLabel + ((asr.kind.preset != nil) && !speechKeyPresent ? " · API key needed or locked" : " · cloud connection checked when used") }
-        if !LocalModels.isInstalled(asr) { return asr.engineLabel + " · model not installed" }
-        return asr.engineLabel + " · " + container.engineStatus.state(for: asr.engineID).label
+        if !asr.kind.isLocal {
+            guard asr.kind.preset != nil else { return "Custom endpoint" }
+            return speechKeyPresent ? "API key saved" : "API key missing or locked"
+        }
+        if !LocalModels.isInstalled(asr) { return "Model not installed" }
+        return container.engineStatus.state(for: asr.engineID).label
     }
 
     private var speechReady: Bool {
@@ -365,8 +370,8 @@ struct HealthRow<Trailing: View>: View {
         HStack(spacing: Theme.controlSpacing) {
             StatusDot(tone)
             VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.system(size: 12.5, weight: .medium))
-                Text(detail).font(.system(size: 11.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(title).font(.system(size: 13, weight: .medium))
+                Text(detail).supportingText()
             }
             Spacer(minLength: Theme.controlSpacing)
             trailing

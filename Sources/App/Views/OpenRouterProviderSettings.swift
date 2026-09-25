@@ -46,7 +46,7 @@ struct OpenRouterProviderSettings: View {
     var body: some View {
         @Bindable var settings = container.settings
         Group {
-            SettingRow(title: "Inference provider", subtitle: "Saved separately for each model") {
+            SettingRow(title: "Inference provider", subtitle: "Saved per model") {
                 HStack(spacing: Theme.sectionTitleSpacing) {
                     Picker("Inference provider", selection: $settings.llm.openRouterRouting.providerID) {
                         Text("Automatic").tag("")
@@ -66,32 +66,32 @@ struct OpenRouterProviderSettings: View {
             if !routing.providerID.isEmpty {
                 SettingRow(title: "Allow other providers as fallback",
                            subtitle: routing.allowFallbacks
-                            ? "Other hosts may have different speed and pricing"
-                            : "If this host fails, insert the original transcript") {
+                            ? "Other hosts may cost more"
+                            : "Use raw text if this host fails") {
                     Toggle("Allow other providers as fallback", isOn: $settings.llm.openRouterRouting.allowFallbacks)
                         .labelsHidden().toggleStyle(.switch)
                 }
                 if model.hasSuffix(":nitro") || model.hasSuffix(":floor") {
-                    Text("Choosing a provider overrides this model variant's speed or price sorting. Select Automatic to use that sorting.")
-                        .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                    Text("Automatic preserves speed or price sorting.")
+                        .supportingText()
                 }
             }
 
             if let errorMessage {
-                Text(errorMessage).font(.system(size: 12.5)).foregroundStyle(.secondary)
+                Text(errorMessage).supportingText()
             } else if loading {
-                Text("Loading providers and performance…").font(.system(size: 12.5)).foregroundStyle(.secondary)
+                Text("Loading providers…").supportingText()
             } else if routing.providerID.isEmpty {
-                Text("OpenRouter chooses the host. Select one to see its speed, pricing and limits.")
-                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                Text("Select a host to compare speed and pricing.")
+                    .supportingText()
             } else if relatedEndpoints.isEmpty {
-                Text("This saved provider is not currently listed for this model. Choose another provider or refresh. Your routing preference is preserved.")
-                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                Text("Saved host unavailable. Choose another or refresh.")
+                    .supportingText()
             }
 
             if relatedEndpoints.count > 1 {
                 RowDivider()
-                EmptyNote("This provider has several endpoints. Choose one and turn off fallback to restrict routing.")
+                EmptyNote("Choose one endpoint and disable fallback to restrict routing.")
                     .fixedSize(horizontal: false, vertical: true)
                     .help("Listed default-tier endpoints are shown separately for comparison. Flex and Priority endpoints require an explicit choice; Automatic routing can also use model variants.")
                 ForEach(relatedEndpoints) { endpoint in
@@ -138,8 +138,8 @@ struct OpenRouterProviderSettings: View {
     private func endpointDetails(_ endpoint: OpenRouterEndpoint) -> some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
             if let status = endpoint.status, status != 0 {
-                Text("OpenRouter reports this endpoint as unavailable. Refresh or choose another host.")
-                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                Text("Endpoint unavailable. Refresh or choose another host.")
+                    .supportingText()
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3),
                       alignment: .leading, spacing: Theme.controlSpacing) {

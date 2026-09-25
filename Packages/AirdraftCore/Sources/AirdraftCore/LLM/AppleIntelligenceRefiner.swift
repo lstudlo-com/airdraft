@@ -26,10 +26,10 @@ public struct AppleIntelligenceRefiner: Refiner {
         case .available: return nil
         case .unavailable(.deviceNotEligible): return "This Mac does not support Apple Intelligence."
         case .unavailable(.appleIntelligenceNotEnabled):
-            return "Turn on Apple Intelligence in System Settings, or choose another refinement provider."
+            return "Enable Apple Intelligence in System Settings."
         case .unavailable(.modelNotReady):
-            return "Apple Intelligence is still preparing its model. Try again after its download finishes in System Settings."
-        case .unavailable: return "Apple Intelligence is unavailable. Check System Settings or choose another provider."
+            return "Apple Intelligence preparing · check System Settings"
+        case .unavailable: return "Unavailable · check Apple Intelligence in System Settings"
         }
     }
 

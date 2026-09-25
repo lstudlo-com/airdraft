@@ -19,7 +19,7 @@ struct AutomationSettings: View {
                     RowDivider()
                     SettingRow(title: "Executable script",
                                subtitle: selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
-                                ?? "Receives the final text on standard input. Runs once per dictation, with a 10-second limit.") {
+                                ?? "Final text via stdin · one run · 10 s limit") {
                         VStack(alignment: .trailing, spacing: 6) {
                             if !settings.outputScriptPath.isEmpty {
                                 Text(URL(fileURLWithPath: settings.outputScriptPath).lastPathComponent)
@@ -31,7 +31,7 @@ struct AutomationSettings: View {
                     }
                 }
                 RowDivider()
-                SettingRow(title: "Shortcuts", subtitle: "Start, stop or cancel dictation from a shortcut. Stop begins transcription using the output selected above.") {
+                SettingRow(title: "Shortcuts", subtitle: "Start, stop or cancel from Apple Shortcuts") {
                     Button("Open Shortcuts") {
                         NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Shortcuts.app"))
                     }.buttonStyle(SoftButtonStyle())

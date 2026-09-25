@@ -70,7 +70,7 @@ struct ModelsPage: View {
                             ModelRow(entry: entry)
                         }
                     }
-                    EmptyNote("Relative ratings for local models. Speed varies with your Mac; accuracy varies with language and audio.")
+                    EmptyNote("Relative ratings; results vary by Mac, language and audio.")
                 }
             }
 
@@ -96,7 +96,7 @@ struct ModelsPage: View {
                     }
                     if settings.asr.kind == .apple {
                         RowDivider()
-                        SettingRow(title: "Apple Speech locale", subtitle: "No auto language detection with this engine") {
+                        SettingRow(title: "Apple Speech locale", subtitle: "Language must be selected manually") {
                             Picker("Apple Speech locale", selection: $settings.asr.appleLocale) {
                                 ForEach(SpeechLanguage.appleLocales(including: settings.asr.appleLocale), id: \.code) { Text($0.name).tag($0.code) }
                             }
@@ -124,7 +124,7 @@ struct ModelsPage: View {
 
             PageSection("Memory") {
                 SettingsCard {
-                    SettingRow(title: "Unload idle speech model", subtitle: "Frees RAM when you have not dictated for a while") {
+                    SettingRow(title: "Unload idle speech model", subtitle: "Frees memory between dictations") {
                         Picker("Unload idle speech model", selection: $settings.idleUnloadMinutes) {
                             Text("After 5 min").tag(5)
                             Text("After 10 min").tag(10)
@@ -135,7 +135,7 @@ struct ModelsPage: View {
                     }
                     if settings.llm.kind == .openAICompatible {
                         RowDivider()
-                        SettingRow(title: "Unload LM Studio model when quitting", subtitle: "LM Studio keeps models in memory until they are unloaded") {
+                        SettingRow(title: "Unload LM Studio model on quit") {
                             Toggle("Unload LM Studio model when quitting", isOn: $settings.unloadLLMOnQuit).labelsHidden().toggleStyle(.switch)
                         }
                     }
@@ -190,10 +190,10 @@ struct ModelsPage: View {
                         if let openRouterCatalogError {
                             Text(openRouterCatalogError)
                         } else if openRouterLoading {
-                            Text("Loading OpenRouter's speech model catalog…")
+                            Text("Loading speech models…")
                         }
                         if selectedOpenRouterModelMissing {
-                            Label("Your saved speech model is not in the current catalog. Choose another model before dictating.", systemImage: "exclamationmark.triangle")
+                            Label("Saved model unavailable. Choose another.", systemImage: "exclamationmark.triangle")
                                 .foregroundStyle(.orange)
                         }
                     }
@@ -241,8 +241,8 @@ struct ModelsPage: View {
         } catch {
             guard !Task.isCancelled else { return }
             openRouterCatalogError = openRouterModels.isEmpty
-                ? "Could not load OpenRouter's speech models. Showing curated choices. Refresh to try again."
-                : "Could not refresh OpenRouter's speech models. Showing the last loaded list."
+                ? "Catalog unavailable; showing saved choices. Try Refresh."
+                : "Refresh failed; showing the last list."
         }
     }
 
@@ -275,27 +275,23 @@ private struct CloudModelDetails: View {
 
     var body: some View {
         Card(spacing: Theme.controlSpacing) {
-            if preset.kind != .openRouter {
-                Text(model.qualityDetail)
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            DisclosureGroup("Pricing and performance details", isExpanded: $expanded) {
+            DisclosureGroup("Pricing and performance", isExpanded: $expanded) {
                 VStack(alignment: .leading, spacing: 8) {
+                    if preset.kind != .openRouter { Text(model.qualityDetail) }
                     Text(model.billing)
                     Text(model.speedDetail)
                     if model.realtimeSpeedFactor != nil {
-                        Text("Speed bars compare this provider's models; × is audio duration divided by processing time. Accuracy bars show 1 − word error rate (WER); lower WER is better. These are provider benchmarks, not measurements on your recordings.")
+                        Text("Provider benchmarks: speed = audio ÷ processing time; accuracy = 1 − WER. Your results may vary.")
                     }
                     Text(preset.kind == .openRouter
-                         ? "OpenRouter model availability and pricing can change. Check the linked model and pricing pages before use; displayed costs are not a bill for your recordings."
-                         : "Provider-reported information · checked Sep 18, 2026. Prices exclude optional add-ons and account discounts.")
+                         ? "Availability and prices vary. See current provider pricing."
+                         : "Provider data · Sep 18, 2026 · excludes add-ons and discounts")
                     HStack(spacing: 16) {
                         Link(preset.kind == .openRouter ? "OpenRouter model page" : "Official model documentation", destination: model.documentationURL)
                         Link(preset.kind == .openRouter ? "Speech model catalog" : "Official pricing", destination: preset.pricingURL)
                     }.foregroundStyle(Color.accentColor)
                 }
-                .font(.system(size: 12)).foregroundStyle(.secondary)
+                .supportingText()
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, Theme.sectionTitleSpacing)
             }

@@ -15,7 +15,7 @@ struct SpeechPreviewSettings: View {
         let job = container.downloads.jobs[config.engineID]
         PageSection("Live preview") {
             SettingsCard {
-                SettingRow(title: "Apple Speech language", subtitle: "Used only for the live preview") {
+                SettingRow(title: "Apple Speech language", subtitle: "Preview only") {
                     Picker("Preview language", selection: $settings.livePreviewLocale) {
                         ForEach(SpeechLanguage.appleLocales(including: settings.livePreviewLocale), id: \.code) {
                             Text($0.name).tag($0.code)
@@ -23,7 +23,7 @@ struct SpeechPreviewSettings: View {
                     }.settingsPicker(width: 200)
                 }
                 RowDivider()
-                SettingRow(title: "Language assets", subtitle: job?.error ?? reason ?? "Ready for on-device preview") {
+                SettingRow(title: "Language assets", subtitle: job?.error ?? reason ?? "Ready") {
                     if let progress = job?.progress {
                         HStack {
                             ProgressView().controlSize(.small)
@@ -42,7 +42,7 @@ struct SpeechPreviewSettings: View {
             }
         }
         .task(id: "\(settings.livePreviewLocale)|\(refreshID)") {
-            guard !RenderMode.isActive else { reason = "Install this language to enable preview."; return }
+            guard !RenderMode.isActive else { reason = "Language not installed"; return }
             let locale = settings.livePreviewLocale
             let unavailable = await SpeechPreview.unavailableReason(locale: locale)
             guard !Task.isCancelled, locale == settings.livePreviewLocale else { return }

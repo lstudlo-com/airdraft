@@ -52,8 +52,8 @@ struct HistoryTranscriptionReview: View {
                 Spacer()
                 if container.pipeline.isBusy { ProgressView().controlSize(.small) }
             }
-            Text("Uses your current speech model and profile. The original history entry stays unchanged.")
-                .font(.callout).foregroundStyle(.secondary)
+            Text("Current model and profile · original unchanged")
+                .supportingText()
             if container.pipeline.reviewOutcome != nil {
                 Picker("Version", selection: $showRaw) {
                     Text("Refined").tag(false)

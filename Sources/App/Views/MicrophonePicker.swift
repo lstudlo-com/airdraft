@@ -39,14 +39,14 @@ struct MicrophoneSettings: View {
         let preference = container.settings.microphone
         PageSection("Microphone") {
             SettingsCard {
-                SettingRow(title: "Default microphone", subtitle: "Saved for every recording and next launch") {
+                SettingRow(title: "Default microphone") {
                     MicrophonePicker().settingsPicker(width: 230)
                 }
                 let channelCount = store.selected(preference)?.inputChannelCount ?? 0
                 let selectedChannel = preference.channelIndex ?? 0
                 if channelCount > 1 || selectedChannel != 0 {
                     RowDivider()
-                    SettingRow(title: "Input channel", subtitle: "Choose the input your microphone is connected to") {
+                    SettingRow(title: "Input channel", subtitle: "Your microphone’s physical input") {
                         Picker("Input channel", selection: Binding(
                             get: { container.settings.microphone.channelIndex ?? 0 },
                             set: { container.settings.microphone.channelIndex = $0 }
@@ -62,14 +62,10 @@ struct MicrophoneSettings: View {
                         .disabled(container.pipeline.isBusy)
                     }
                 }
-                RowDivider()
-                HStack(spacing: 8) {
-                    Image(systemName: store.selected(preference) == nil ? "mic.slash" : "mic")
-                    Text(store.label(preference))
-                    Spacer()
+                if store.selected(preference) == nil {
+                    RowDivider()
+                    EmptyNote("Microphone unavailable. Connect it or choose another.")
                 }
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
             }
         }
     }

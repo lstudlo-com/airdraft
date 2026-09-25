@@ -9,6 +9,7 @@ struct RefinementSettings: View {
     @State private var testResult = ""
     @State private var testTask: Task<Void, Never>?
     @State private var testID = UUID()
+    @State private var showsAdvanced = RenderMode.value("DETAILS") == "1"
     private var llm: LLMConfig { container.settings.llm }
 
     var body: some View {
@@ -17,11 +18,11 @@ struct RefinementSettings: View {
             SettingsCard {
                 switch llm.kind {
                 case .none:
-                    SettingRow(title: "Refinement is off", subtitle: "Dictation inserts the raw transcript, with vocabulary and script conversion only") {
+                    SettingRow(title: "Refinement is off", subtitle: "Vocabulary and script conversion still apply") {
                         EmptyView()
                     }
                 case .appleIntelligence:
-                    SettingRow(title: "On-device cleanup", subtitle: AppleIntelligenceRefiner.unavailableReason ?? "Ready. Runs on this Mac without an API key or a separate server.") {
+                    SettingRow(title: "On-device cleanup", subtitle: AppleIntelligenceRefiner.unavailableReason ?? "Ready · no key or server needed") {
                         StatusDot(ok: AppleIntelligenceRefiner.unavailableReason == nil)
                     }
                     RowDivider()
@@ -36,7 +37,7 @@ struct RefinementSettings: View {
             }
 
             if llm.kind != .none {
-            DisclosureGroup("Advanced") {
+            DisclosureGroup("Advanced", isExpanded: $showsAdvanced) {
                 SettingsCard {
                     if llm.kind != .anthropic && !llm.kind.isCLI && llm.kind != .appleIntelligence {
                     SettingRow(title: "Temperature") {
@@ -48,8 +49,8 @@ struct RefinementSettings: View {
                     RowDivider()
                     }
                     SettingRow(title: "Timeout", subtitle: llm.kind.isCLI
-                               ? "CLI providers wait at least 60 s to start a session; then the raw transcript is inserted"
-                               : "Then the raw transcript is inserted") {
+                               ? "60 s minimum for CLIs; then use raw text"
+                               : "Use raw text on timeout") {
                         SettingsNumberStepper(title: "Timeout", value: Binding(
                             get: { Int(settings.llm.timeoutSeconds) },
                             set: { settings.llm.timeoutSeconds = Double($0) }
@@ -87,11 +88,11 @@ struct RefinementSettings: View {
     }
 
     private var thinkingSubtitle: String {
-        if llm.kind == .gemini { return "Off requests no thinking when supported; Automatic uses the model default" }
+        if llm.kind == .gemini { return "Off where supported; Automatic uses model default" }
         if [.cerebras, .groq].contains(llm.kind), llm.model.contains("gpt-oss") {
-            return "This model requires reasoning; Off uses its lowest effort"
+            return "Reasoning required; Off uses minimum effort"
         }
-        return "Cleanup needs none; higher levels cost seconds per dictation"
+        return "Off is fastest for cleanup"
     }
 
     // MARK: - Provider rows
@@ -135,7 +136,7 @@ struct RefinementSettings: View {
                 .labelsHidden().frame(width: Theme.fieldWidth)
         }
         RowDivider()
-        SettingRow(title: "API key", subtitle: "Local servers usually need none") {
+        SettingRow(title: "API key", subtitle: "Usually optional locally") {
             APIKeyField(account: llm.keyRef)
         }
         RowDivider()
@@ -146,7 +147,7 @@ struct RefinementSettings: View {
 
     @ViewBuilder
     private var cloudRows: some View {
-        SettingRow(title: "\(llm.kind.title) API key", subtitle: llm.kind == .openRouter ? "Shared with OpenRouter speech recognition" : "Stored in your Keychain") {
+        SettingRow(title: "\(llm.kind.title) API key", subtitle: llm.kind == .openRouter ? "Shared with speech" : "Stored in Keychain") {
             APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL)
         }
         RowDivider()
@@ -182,7 +183,7 @@ struct RefinementSettings: View {
 
     private var cliSubtitle: String {
         guard let path = llm.cliExecutable else {
-            return "\(llm.kind.cliTool?.executableName ?? "CLI") not found. Install it, then press Locate Again."
+            return "Install \(llm.kind.cliTool?.executableName ?? "CLI"), then Locate Again"
         }
         return path
     }
@@ -208,7 +209,7 @@ struct RefinementSettings: View {
         let label = container.models.llmStatus.label
         switch container.models.llmStatus.state {
         case .loaded, .notLoaded, .loading:
-            return label + (container.settings.unloadLLMOnQuit ? " · unloads when Airdraft quits" : "")
+            return label + (container.settings.unloadLLMOnQuit ? " · unloads on quit" : "")
         default:
             return label
         }
@@ -283,14 +284,17 @@ struct APIKeyField: View {
                 Button("Save") { Task { await editor.save() } }
                     .buttonStyle(SoftButtonStyle()).fixedSize().disabled(!editor.canSave)
             }
-                if needsAccess {
+            if needsAccess || editor.message != nil {
+                HStack(spacing: Theme.controlSpacing) {
+                    if let message = editor.message {
+                        Text(message).supportingText()
+                            .frame(maxWidth: Theme.fieldWidth, alignment: .trailing)
+                    }
+                    if needsAccess {
                     Button("Allow Access") { Task { await editor.authorize() } }
                         .buttonStyle(SoftButtonStyle()).fixedSize().disabled(editor.isBusy)
+                    }
                 }
-            if let message = editor.message ?? (needsAccess ? "Your saved key needs access approval." : nil) {
-                Text(message).font(.system(size: 11.5)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: Theme.fieldWidth + 100, alignment: .trailing)
             }
         }
         .task(id: account) {
@@ -324,11 +328,11 @@ struct RefinementModelRow: View {
         llm.thinkingEffort.supported(in: availableEfforts) ?? .off
     }
     private var effortSubtitle: String {
-        if availableEfforts.isEmpty { return "This model does not offer thinking effort control" }
+        if availableEfforts.isEmpty { return "Not supported by this model" }
         if llm.thinkingEffort != selectedEffort {
-            return "This model uses \(selectedEffort.title.lowercased()) for the saved \(llm.thinkingEffort.title.lowercased()) setting"
+            return "Saved \(llm.thinkingEffort.title.lowercased()) maps to \(selectedEffort.title.lowercased())"
         }
-        return "Lower levels are faster; higher levels spend more tokens"
+        return "Lower is faster and uses fewer tokens"
     }
 
     var body: some View {
@@ -415,14 +419,14 @@ struct RefinementModelRow: View {
             guard key == taskKey, !Task.isCancelled else { return }
             models = ids
             cliModels = info
-            status = ids.isEmpty ? "No models listed; enter a model ID." : "\(ids.count) models from \(config.kind.isCLI ? "your CLI" : "the provider")"
+            status = ids.isEmpty ? "No models listed; enter a model ID." : ""
             if !config.kind.isCLI, container.settings.llm.model.isEmpty, let first = ids.first {
                 container.settings.llm.model = first
             }
         } catch {
             guard key == taskKey, !Task.isCancelled else { return }
             status = config.kind.isCLI
-                ? "Could not read CLI models. Use a suggestion or enter any model ID."
+                ? "Models unavailable; enter a model ID."
                 : Self.shortMessage(for: error)
         }
     }

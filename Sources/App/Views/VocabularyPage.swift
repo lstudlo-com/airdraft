@@ -44,7 +44,7 @@ struct VocabularyPage: View {
             }
 
             if container.dictionary.entries.isEmpty {
-                EmptyNote("Words you add are always spelled this way. A replacement turns a mis-hearing into the right word.")
+                EmptyNote("Add preferred spellings or replace misheard words.")
             } else if rows.isEmpty {
                 EmptyNote("No matches.")
             } else {
