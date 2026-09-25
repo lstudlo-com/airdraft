@@ -4,6 +4,9 @@ import AirdraftCore
 import SwiftUI
 
 enum Theme {
+    static let windowControlsInset: CGFloat = 16
+    static let titlebarHeight: CGFloat = 46
+    static let sidebarToggleLeading: CGFloat = 73
     static let sidebarWidth: CGFloat = 200
     static let pagePadding: CGFloat = 24
     static let cardPadding: CGFloat = 16
@@ -35,18 +38,28 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
-/// A tinted sidebar that keeps the native desktop blur visible.
+/// The upper half keeps native desktop blur; the lower half fades to an opaque base.
 struct SidebarBackground: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
+        let tint = Color(white: scheme == .dark ? 0.12 : 0.86)
+        let translucentTint = tint.opacity(reduceTransparency ? 1 : 0.70)
+
         ZStack {
             if !reduceTransparency {
                 VisualEffectView(material: .sidebar)
             }
-            Color(white: scheme == .dark ? 0.12 : 0.86)
-                .opacity(reduceTransparency ? 1 : 0.70)
+            LinearGradient(
+                stops: [
+                    .init(color: translucentTint, location: 0),
+                    .init(color: translucentTint, location: 0.5),
+                    .init(color: tint, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -58,14 +71,55 @@ struct TranslucentWindowView: NSViewRepresentable {
     final class BackingView: NSView {
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didResizeNotification, object: nil)
+            if let window {
+                NotificationCenter.default.addObserver(self, selector: #selector(windowDidResize),
+                                                      name: NSWindow.didResizeNotification, object: window)
+            }
+            configureWindow()
+        }
+
+        override func layout() {
+            super.layout()
+            positionWindowControls()
+        }
+
+        @objc private func windowDidResize(_ notification: Notification) {
+            positionWindowControls()
+        }
+
+        func configureWindow() {
             window?.isOpaque = false
             window?.backgroundColor = .clear
             window?.titlebarAppearsTransparent = true
+            if let zoom = window?.standardWindowButton(.zoomButton), !zoom.isHidden {
+                zoom.isHidden = true
+            }
+            window?.collectionBehavior.remove([.fullScreenPrimary, .fullScreenAuxiliary, .fullScreenAllowsTiling])
+            window?.collectionBehavior.insert([.fullScreenNone, .fullScreenDisallowsTiling])
+            positionWindowControls()
+        }
+
+        private func positionWindowControls() {
+            guard let window,
+                  let close = window.standardWindowButton(.closeButton),
+                  let minimize = window.standardWindowButton(.miniaturizeButton),
+                  let titlebar = close.superview?.superview else { return }
+
+            // Grow the native titlebar so inset buttons retain their full hit areas.
+            let spacing = minimize.frame.minX - close.frame.minX
+            var frame = titlebar.frame
+            frame.size.height = Theme.titlebarHeight
+            frame.origin.y = window.frame.height - frame.height
+            if titlebar.frame != frame { titlebar.frame = frame }
+            let y = frame.height - Theme.windowControlsInset - close.frame.height
+            close.setFrameOrigin(NSPoint(x: Theme.windowControlsInset, y: y))
+            minimize.setFrameOrigin(NSPoint(x: Theme.windowControlsInset + spacing, y: y))
         }
     }
 
     func makeNSView(context: Context) -> BackingView { BackingView() }
-    func updateNSView(_ view: BackingView, context: Context) {}
+    func updateNSView(_ view: BackingView, context: Context) { view.configureWindow() }
 }
 
 /// Rounded, softly filled container for a group of rows.

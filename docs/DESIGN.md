@@ -87,9 +87,10 @@ system appearance, including the accent shown in the live Save button.
 
 The main background is `NSColor.windowBackgroundColor`; the sidebar uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
-70%-opaque neutral fill, white level 0.86 in light mode and 0.12 in dark mode.
-The remaining 30% contribution comes from the already blurred material. Reduce
-Transparency removes the blur and makes the fill fully opaque. Apply this tint
+neutral fill, white level 0.86 in light mode and 0.12 in dark mode. Its opacity
+stays at 70% through the upper half, then increases continuously to 100% at the
+bottom edge. Reduce Transparency removes the blur and makes the entire fill
+fully opaque. Apply this tint
 to the background only; the logo, text and controls keep their opacity.
 Its content divider is 0.5 points wide
 with primary color at 0.06 opacity. Text uses `.primary` and `.secondary`.
@@ -131,7 +132,9 @@ full name.
 ## Layout
 
 `Theme.swift` owns the spacing tokens above. The window has a 200-point sidebar
-and a minimum size of 900 by 600 points. Navigation rows use
+and a minimum size of 900 by 600 points. Close and Minimize have 16-point top
+and leading insets in a 46-point titlebar, with the sidebar toggle aligned to
+their centers. Navigation rows use
 the documented component height and a 2-point gap. The sidebar separates daily
 destinations from Configuration and Models with space rather than headings.
 

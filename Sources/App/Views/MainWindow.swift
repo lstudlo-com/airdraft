@@ -72,6 +72,27 @@ struct MainWindowView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .overlay(alignment: .topLeading) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    container.navigation.sidebarCollapsed.toggle()
+                }
+            } label: {
+                Image(systemName: "sidebar.left")
+                    .font(.system(size: 14))
+                    .frame(width: 28, height: Theme.titlebarHeight)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusEffectDisabled()
+            .foregroundStyle(.secondary)
+            .padding(.leading, Theme.sidebarToggleLeading)
+            .help(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
+            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
+            .accessibilityIdentifier("sidebar.toggle")
+            .disabled(activeOverlay != nil)
+            .accessibilityHidden(activeOverlay != nil)
+        }
         .background(TranslucentWindowView())
         .ignoresSafeArea()
         .frame(minWidth: 900, minHeight: 600)
@@ -96,28 +117,7 @@ struct MainWindowView: View {
             }
         }
         .onExitCommand { activeOverlay = nil }
-        .overlay(alignment: .topLeading) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    container.navigation.sidebarCollapsed.toggle()
-                }
-            } label: {
-                Image(systemName: "sidebar.left")
-                    .font(.system(size: 14))
-                    .frame(width: 28, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .focusEffectDisabled()
-            .foregroundStyle(.secondary)
-            .padding(.leading, 88)
-            .offset(y: -38)
-            .help(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
-            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
-            .accessibilityIdentifier("sidebar.toggle")
-            .disabled(activeOverlay != nil)
-            .accessibilityHidden(activeOverlay != nil)
-        }
+
     }
 
     @ViewBuilder

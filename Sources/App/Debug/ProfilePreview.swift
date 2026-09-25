@@ -19,6 +19,7 @@ enum ProfilePreview {
 
     static func open(directory: URL) {
         let container = container(directory: directory)
+        container.startAppearanceUpdates()
         let host = NSHostingView(rootView: MainWindowView().environment(container))
         let frame = NSRect(x: 0, y: 0, width: 980, height: 660)
         let preview = NSWindow(contentRect: frame,

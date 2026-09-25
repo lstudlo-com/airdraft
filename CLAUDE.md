@@ -50,10 +50,13 @@ status table current.
 
 ## Rules
 
-- The sidebar background uses `SidebarBackground`: native blur under a 70%-opaque
-  neutral layer, using white levels 0.86 in light mode and 0.12 in dark mode.
-  Keep the blur visible. Reduce Transparency makes it
-  fully opaque. Tint the background only; keep sidebar content fully opaque.
+- The sidebar background uses `SidebarBackground`: native blur under a neutral
+  layer, using white levels 0.86 in light mode and 0.12 in dark mode. Keep the
+  upper half at 70% opacity, then fade smoothly to 100% at the bottom edge.
+  Reduce Transparency makes the entire background fully opaque. Tint the
+  background only; keep sidebar content fully opaque.
+- Inset native Close and Minimize buttons 16 points from the top and leading
+  edges; hide Zoom. Align the sidebar toggle with their centers in the 46-point titlebar.
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
   byte-for-byte replicas. Whenever documentation, Markdown, project behavior or
   workflows change, update affected guidance in both files in the same change;
@@ -177,6 +180,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Build: the same command with `build`. Do not pass `-derivedDataPath`: a build tree inside the
   repo duplicates Xcode's and is how the repo grew to 10 GB.
 - UI: `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
+- Interactive `--preview-profiles` windows must call `startAppearanceUpdates()` so
+  Auto, Light and Dark affect the window without starting hotkeys, models or the updater.
 - Pipeline: launch with `AIRDRAFT_SELFTEST=<wav>` (or `mic`, `lifecycle`, `window`), optionally
   `AIRDRAFT_SELFTEST_ASR=<ASRProviderKind raw value>[:model]` (e.g. `senseVoice`, `qwen3:<id>`), and read
   `/usr/bin/log show --predicate 'subsystem == "com.lightiichen.airdraft"'`.

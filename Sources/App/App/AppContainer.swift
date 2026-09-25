@@ -30,6 +30,7 @@ final class AppContainer {
     let navigation = Navigation()
     private let escapeHotkey = CarbonHotkey()
     private var started = false
+    @ObservationIgnored private var appearanceUpdatesStarted = false
     private var indicator: IndicatorPanelController?
 
     init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil) {
@@ -78,8 +79,7 @@ final class AppContainer {
         permissions.accessibilityDidChange = { [weak self] in self?.hotkeys.refreshPermissionState() }
         permissions.startMonitoring()
         registerHotkeys()
-        applyAppearance()
-        observeAppearance()
+        startAppearanceUpdates()
         observeWindows()
         pipeline.onLLMUsed = { [weak self] instance in self?.models.noteLLMUsed(instance) }
         pipeline.llmNeedsLoad = { [weak self] in await self?.models.llmNeedsLoad() ?? false }
@@ -122,6 +122,14 @@ final class AppContainer {
     /// Titled document-style windows; excludes the HUD panel and menu-bar extras.
     private nonisolated static func isAppWindow(_ window: NSWindow) -> Bool {
         !(window is NSPanel) && window.styleMask.contains(.titled)
+    }
+
+    /// Interactive previews share theme handling without starting dictation services.
+    func startAppearanceUpdates() {
+        guard !appearanceUpdatesStarted else { return }
+        appearanceUpdatesStarted = true
+        applyAppearance()
+        observeAppearance()
     }
 
     private func applyAppearance() {
