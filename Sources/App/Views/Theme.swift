@@ -7,8 +7,9 @@ enum Theme {
     static let sidebarWidth: CGFloat = 200
     static let pagePadding: CGFloat = 24
     static let cardPadding: CGFloat = 16
-    static let sectionSpacing: CGFloat = 20
-    static let sectionTitleSpacing: CGFloat = 8
+    static let sectionSpacing: CGFloat = 28
+    static let sectionTitleSpacing: CGFloat = 12
+    static let sectionTitleMinHeight: CGFloat = 32
     static let controlSpacing: CGFloat = 12
     static let cardRadius: CGFloat = 12
     static let contentMaxWidth: CGFloat = 860
@@ -122,6 +123,7 @@ struct SectionTitle<Trailing: View>: View {
             Spacer()
             trailing
         }
+        .frame(minHeight: Theme.sectionTitleMinHeight)
     }
 }
 

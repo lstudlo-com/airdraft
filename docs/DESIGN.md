@@ -25,12 +25,15 @@ rounded:
   editor: "8pt"
   card: "12pt"
 spacing:
-  sectionTitleSpacing: "8pt"
+  sectionTitleSpacing: "12pt"
   controlSpacing: "12pt"
   cardPadding: "16pt"
-  sectionSpacing: "20pt"
+  sectionSpacing: "28pt"
   pagePadding: "24pt"
 components:
+  section-title:
+    typography: "{typography.section}"
+    minHeight: "32pt"
   navigation-row:
     typography: "{typography.body}"
     rounded: "{rounded.navigation}"
@@ -150,6 +153,9 @@ mobile breakpoints into this macOS layout.
 `SettingsCard`. `cardPadding` applies equally on all four sides. Rows inside a
 settings card add no vertical padding. Use `sectionTitleSpacing` above content,
 `sectionSpacing` between sections and `controlSpacing` between card children.
+`SectionTitle` uses `sectionTitleMinHeight` for a 32-point minimum row height,
+with its title and trailing controls vertically centered. The 12-point content
+gap and 28-point section gap keep each heading closer to its own content.
 
 ## Elevation & Depth
 

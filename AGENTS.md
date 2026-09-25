@@ -65,6 +65,9 @@ status table current.
   Use `PageSection` and `SettingsCard` for settings sections, including Configuration
   and Models. The card owns the outer padding; rows inside it must not add another
   vertical inset. Use shared spacing tokens instead of page-specific values.
+  Section headings use a shared 32-point minimum row height, a 12-point gap to
+  their content and 28-point section spacing. Center titles and trailing controls
+  vertically within the row, including provider pickers.
   Page content must fill its available width after `Theme.pagePadding`; do not add
   a left-aligned maximum width that strands section controls far from the window's
   right edge. Section headings, their trailing controls and cards share one right
