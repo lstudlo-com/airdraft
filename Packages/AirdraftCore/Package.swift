@@ -5,7 +5,8 @@ let package = Package(
     name: "AirdraftCore",
     platforms: [.macOS("15.0")],
     products: [
-        .library(name: "AirdraftCore", targets: ["AirdraftCore"]),
+        // Keep engine dependencies out of the app preview's JIT linking work.
+        .library(name: "AirdraftCore", type: .dynamic, targets: ["AirdraftCore"]),
         .executable(name: "airdraft-cli", targets: ["airdraft-cli"]),
     ],
     dependencies: [

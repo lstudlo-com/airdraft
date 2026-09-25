@@ -1,3 +1,3 @@
 // The C API is used directly (see AirdraftCore's SherpaTranscriber). This target
-// packages the native archives into one dynamic library for the app and previews.
+// exists only to wire the binary libraries into SwiftPM's link graph.
 @_exported import SherpaOnnxC

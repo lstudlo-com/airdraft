@@ -138,9 +138,9 @@ configuration, then show the Canvas. Keep **Editor → Canvas → Use Legacy Pre
 Execution** off. Legacy preview builds can miss the installed Metal toolchain
 required by MLX on Xcode 27.
 
-`SherpaOnnxKit` wraps its native archives in a dynamic library so the normal
-preview linker does not encounter duplicate Sherpa symbols. Its linker anchor
-keeps the C API exported for the app. Preview declarations use sample data from
+`AirdraftCore` is a dynamic library, keeping the engine dependencies and native
+Sherpa archives out of the preview linker. This avoids duplicate native symbols
+and slow preview launches. Preview declarations use sample data from
 `Debug/PreviewData.swift`.
 
 ## Headless harness

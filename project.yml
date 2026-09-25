@@ -32,6 +32,7 @@ targets:
           - "*.entitlements"
     dependencies:
       - package: AirdraftCore
+        embed: true
       - package: Sparkle
     info:
       path: Sources/App/Info.plist

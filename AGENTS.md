@@ -187,10 +187,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   clone; git-ignored). Do not depend on the upstream sherpa-onnx package directly: its static
   `.framework` bundles get embedded by Xcode and break code signing. `SherpaTranscriber` calls
   the C API directly; do not re-add the 2,300-line upstream Swift wrapper.
-  Keep the `SherpaOnnx` product dynamic and retain its C API object with the linker anchor.
-  This keeps native archives out of Xcode's preview JIT linker, which reports duplicate
-  symbols when linking them directly. Use normal Canvas execution; legacy previews can
-  drop the installed Metal toolchain from dependency builds on Xcode 27.
+  Keep the `AirdraftCore` product dynamic and explicitly embedded in `project.yml` so its
+  engines stay out of Xcode's preview JIT linker. Linking them there causes duplicate Sherpa symbols
+  and can exceed the preview launch deadline. Use normal Canvas execution; legacy previews
+  can drop the installed Metal toolchain from dependency builds on Xcode 27.
 - speech-swift has no releases and is pinned to a revision in `Packages/AirdraftCore/Package.swift`.
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
