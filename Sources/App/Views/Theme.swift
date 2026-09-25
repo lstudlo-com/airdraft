@@ -18,6 +18,9 @@ enum Theme {
     static let sidebarBrandWidth: CGFloat = 744 * sidebarBrandHeight / 364
     static let sidebarCollapsedWidth = sidebarBrandWidth + 2 * (sidebarContentInset + sidebarBrandInset)
     static let pagePadding: CGFloat = 24
+    static let pageHeaderTopInset: CGFloat = 24
+    static let pageHeaderRowHeight: CGFloat = 32
+    static let pageHeaderBottomInset: CGFloat = 12
     // Align the collapsed toggle's symbol with the page title, outside the icon rail.
     static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
         - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
@@ -519,54 +522,111 @@ struct PageFilter<Selection: Hashable>: View {
     }
 }
 
-/// Page headings and actions share the titlebar row and stay visible while content scrolls.
+/// A fixed page heading above content that scrolls through a fading material.
 struct PageScaffold<Content: View, Accessory: View>: View {
     @Environment(AppContainer.self) private var container
     let page: Page
     @ViewBuilder var content: Content
     @ViewBuilder var accessory: Accessory
     var scrollsContent: Bool
+    var contentTopInset: CGFloat
 
-    init(_ page: Page, scrollsContent: Bool = true, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory) {
+    init(_ page: Page, scrollsContent: Bool = true, contentTopInset: CGFloat = Theme.pagePadding, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory) {
         self.page = page
         self.content = content()
         self.accessory = accessory()
         self.scrollsContent = scrollsContent
+        self.contentTopInset = contentTopInset
     }
 
-    init(_ page: Page, scrollsContent: Bool = true, @ViewBuilder content: () -> Content) where Accessory == EmptyView {
+    init(_ page: Page, scrollsContent: Bool = true, contentTopInset: CGFloat = Theme.pagePadding, @ViewBuilder content: () -> Content) where Accessory == EmptyView {
         self.page = page
         self.content = content()
         self.accessory = EmptyView()
         self.scrollsContent = scrollsContent
+        self.contentTopInset = contentTopInset
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: Theme.controlSpacing) {
-                Text(page.title)
-                    .font(.system(size: 20, weight: .semibold))
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: Theme.controlSpacing)
-                accessory
+        pageBody
+            .safeAreaInset(edge: .top, spacing: 0) {
+                header.background(alignment: .top) { PageHeaderBackdrop() }
             }
-            .padding(.leading, container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedHeaderInset : 0)
-            .padding(.horizontal, Theme.pagePadding)
-            .frame(height: Theme.titlebarHeight)
+    }
 
+    private var pageBody: some View {
+        Group {
             if scrollsContent {
                 ScrollView { pageContent }
+                    .pageScrollEdge()
             } else {
                 pageContent.frame(maxHeight: .infinity, alignment: .topLeading)
             }
         }
     }
+
+    private var header: some View {
+        HStack(spacing: Theme.controlSpacing) {
+            Text(page.title)
+                .font(.system(size: 20, weight: .semibold))
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: Theme.controlSpacing)
+            accessory
+        }
+        .padding(.leading, container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedHeaderInset : 0)
+        .padding(.horizontal, Theme.pagePadding)
+        .frame(height: Theme.pageHeaderRowHeight)
+        .padding(.top, Theme.pageHeaderTopInset)
+        .padding(.bottom, Theme.pageHeaderBottomInset)
+        .accessibilityIdentifier("page.header")
+    }
+
     private var pageContent: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
             content
         }
-        .padding(Theme.pagePadding)
+        .padding(.horizontal, Theme.pagePadding)
+        .padding(.bottom, Theme.pagePadding)
+        .padding(.top, contentTopInset)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+extension View {
+    /// The shared material owns the fade; suppress the system's hard scroll-edge separator.
+    @ViewBuilder func pageScrollEdge() -> some View {
+        if #available(macOS 26, *) {
+            scrollEdgeEffectHidden(true, for: .top)
+        } else {
+            self
+        }
+    }
+}
+
+/// Within-window blur fades into the page below the header, without a hard cutoff.
+private struct PageHeaderBackdrop: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        let headerHeight = Theme.pageHeaderTopInset + Theme.pageHeaderRowHeight + Theme.pageHeaderBottomInset
+        Group {
+            if reduceTransparency {
+                Color(nsColor: .windowBackgroundColor)
+                    .frame(height: headerHeight)
+            } else {
+                Rectangle()
+                    .fill(.regularMaterial)
+                    .frame(height: headerHeight + Theme.pagePadding)
+                    .mask {
+                        LinearGradient(stops: [.init(color: .black, location: 0),
+                                               .init(color: .black, location: 0.6),
+                                               .init(color: .clear, location: 1)],
+                                       startPoint: .top, endPoint: .bottom)
+                    }
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

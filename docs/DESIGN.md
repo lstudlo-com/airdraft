@@ -168,9 +168,14 @@ compact capsule treatment. The sidebar toggle sits at the
 window's top left, just after the macOS traffic lights. In the compact rail it
 moves into the content titlebar, entirely outside the rail. Its symbol aligns
 with the page title's leading inset and stays on the window-button centerline.
-A dedicated 46-point titlebar sits above page content in both states, so the
-toggle has its own space and page headers keep their vertical position when the
-sidebar changes width.
+The native window controls retain their 46-point titlebar. Page headings have
+a separate 32-point row, inset 24 points from the top with 12 points below.
+`PageScaffold` keeps this header fixed with `safeAreaInset`. A native material
+blurs the scrolling content beneath it, with a gradient mask that fades out
+below the header. Suppress the system's hard scroll-edge separator on macOS 26+.
+Only Reduce Transparency replaces the blur with a solid background.
+History puts its top content margin inside both scroll views so both columns
+can pass beneath the header. Header positions stay unchanged on sidebar collapse.
 The sidebar changes width with the existing 0.18-second
 ease-in-out animation.
 

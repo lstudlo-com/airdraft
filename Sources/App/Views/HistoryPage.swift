@@ -23,7 +23,7 @@ struct HistoryPage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        PageScaffold(.history, scrollsContent: false) {
+        PageScaffold(.history, scrollsContent: false, contentTopInset: 0) {
             if let errorMessage {
                 StorageNotice(message: errorMessage) { Task { await reload() } }
             }
@@ -32,6 +32,7 @@ struct HistoryPage: View {
             }
             if records.isEmpty {
                 EmptyNote(query.isEmpty ? "No dictations yet." : "No matches.")
+                    .padding(.top, Theme.pagePadding)
             } else {
                 HStack(alignment: .top, spacing: Theme.controlSpacing) {
                     timeline
@@ -69,6 +70,8 @@ struct HistoryPage: View {
                                 .padding(.vertical, Theme.controlSpacing)
                         }
                     }
+                    .pageScrollEdge()
+                    .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
                     .scrollPosition($entryScrollPosition)
                     .onScrollGeometryChange(for: Bool.self) { geometry in
                         geometry.contentOffset.y <= -geometry.contentInsets.top + 1
@@ -155,6 +158,8 @@ struct HistoryPage: View {
             }
             .scrollTargetLayout()
         }
+        .pageScrollEdge()
+        .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
         .scrollPosition($timelineScrollPosition)
         .scrollIndicators(.hidden)
         .onChange(of: currentRecordID) { _, id in

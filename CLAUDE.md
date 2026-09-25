@@ -136,9 +136,12 @@ status table current.
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges;
   align the sidebar toggle with their centers in the 46-point titlebar. Page
-  headings and actions occupy that same row and stay visible while content
-  scrolls. Do not add a blank titlebar spacer above the page header. Keep one
-  shared page inset below the header, and preserve vertical positions on collapse.
+  headings and actions use a separate 32-point row with 24 points above and
+  12 points below, inside one sticky header. Content scrolls beneath its gradual
+  material blur with a fading lower edge. Suppress native hard scroll-edge
+  separators; only Reduce Transparency gets an opaque header. Keep
+  the 24-point content inset inside scrolling content, including both History
+  columns, and preserve vertical positions on collapse.
   History has a compact 52-point timeline beside its independently scrolling
   cards. One time-and-tick button jumps to each entry; the current entry stays
   highlighted as the cards scroll. Returning the cards to the top also restores
@@ -286,6 +289,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
   `AIRDRAFT_RENDER_SIDEBAR_COLLAPSED=1` renders the compact icon rail; compare
   it with the expanded sidebar at the same window height.
+  `AIRDRAFT_RENDER_SAMPLE_DATA=1` uses isolated preview records. Verify the
+  header fade in a live window; bitmap captures do not reproduce backdrop blur.
   `AIRDRAFT_RENDER_VERIFY_NAVIGATION=1` with `--render-window history <dir>` checks
   bottom-to-top timeline synchronization, including an unchanged first active
   record, and pointer focus dismissal versus editing selection. Use enough
