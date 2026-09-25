@@ -146,6 +146,13 @@ status table current.
   cards. One time-and-tick button jumps to each entry; the current entry stays
   highlighted as the cards scroll. Returning the cards to the top also restores
   the timeline's first day heading, even when its first entry is already active.
+  History prepares grouping, formatted labels, text previews and audio availability
+  once per database page off the main actor. Keep timeline scroll state separate
+  from page data, and find the first visible record through the snapshot ID index.
+  Never scan or regroup all loaded records during scrolling or check files from
+  row bodies. Collapsed text uses bounded native layout with cached sizing, not
+  hidden full transcripts or geometry-to-state height feedback. Preserve full text
+  for Copy and expansion, and keep expansion/version state outside lazy rows.
   Keep day groups, search, lazy card loading
   and native card actions. The timeline follows the same filtered records.
   Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
@@ -293,7 +300,11 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   header fade in a live window; bitmap captures do not reproduce backdrop blur.
   `AIRDRAFT_RENDER_VERIFY_NAVIGATION=1` with `--render-window history <dir>` checks
   bottom-to-top timeline synchronization, including an unchanged first active
-  record, and pointer focus dismissal versus editing selection. Use enough
+  record, and pointer focus dismissal versus editing selection.
+  `AIRDRAFT_RENDER_HISTORY_COUNT=2000` uses an isolated large-history fixture and
+  checks pagination, search, native text sizing and scroll work. Combine it with
+  navigation verification to assert zero regrouping and bounded card updates
+  during scrolling; see `docs/history-performance.md`. Use enough
   history to overflow both columns; it does not modify records.
 - Interactive `--preview-profiles` windows must call `startAppearanceUpdates()` so
   Auto, Light and Dark affect the window without starting hotkeys, models or the updater.

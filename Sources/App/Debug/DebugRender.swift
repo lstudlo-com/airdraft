@@ -16,7 +16,25 @@ enum DebugRender {
         defer { defaults.removePersistentDomain(forName: suite) }
         let container: AppContainer
         let env = ProcessInfo.processInfo.environment
-        if env["AIRDRAFT_RENDER_AUDIO_HISTORY"] == "1" {
+        let fixtureDirectory = env["AIRDRAFT_RENDER_HISTORY_COUNT"] == nil ? nil :
+            FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-history-perf-\(UUID().uuidString)")
+        defer { if let fixtureDirectory { try? FileManager.default.removeItem(at: fixtureDirectory) } }
+        if let fixtureDirectory {
+            do { try HistoryVerification.run() }
+            catch { preconditionFailure("History verification failed: \(error)") }
+            container = AppContainer(settings: AppSettings(defaults: defaults), dataDirectory: fixtureDirectory)
+            let count = min(10_000, max(1, Int(env["AIRDRAFT_RENDER_HISTORY_COUNT"] ?? "") ?? 200))
+            let now = Date()
+            for index in 0..<count {
+                let phrase = index % 2 == 0 ? "A long dictation should scroll without blocking the interface. " :
+                    "這是一段用來驗證歷史記錄捲動效能的文字，包含中文、English 與 emoji 🎙️。"
+                let text = String(repeating: phrase, count: [1, 4, 20, 160][index % 4])
+                _ = try? container.history?.save(DictationRecord(createdAt: now.addingTimeInterval(-Double(index) * 3600),
+                    appName: "Notes", mode: "Clean", family: "general", rawTranscript: "um " + text,
+                    refinedText: text, finalText: text, asrEngine: "fixture", audioSeconds: 60,
+                    asrMs: 100, llmMs: 100, inserted: true))
+            }
+        } else if env["AIRDRAFT_RENDER_AUDIO_HISTORY"] == "1" {
             container = PreviewData.container
             container.settings.audioRetention = .week
             container.settings.livePreviewEnabled = env["AIRDRAFT_RENDER_PREVIEW"] == "1"
@@ -97,6 +115,7 @@ enum DebugRender {
                     window.makeKeyAndOrderFront(nil)
                     RunLoop.main.run(until: Date().addingTimeInterval(0.3))
                     verifyHistoryScrolling(in: host)
+                    if env["AIRDRAFT_RENDER_HISTORY_COUNT"] != nil { verifyHistoryPerformance(in: host) }
                     verifyPointerFocus()
                     window.orderOut(nil)
                 }
@@ -108,6 +127,29 @@ enum DebugRender {
                 }
             }
         }
+    }
+
+    private static func verifyHistoryPerformance(in host: NSView) {
+        func scrollViews(_ view: NSView) -> [NSScrollView] {
+            (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(scrollViews)
+        }
+        let cards = scrollViews(host).max { $0.frame.width < $1.frame.width }!
+        HistoryRenderMetrics.reset()
+        var times: [Double] = []
+        for step in 0..<180 {
+            let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1,
+                wheel1: step < 120 ? -60 : 60, wheel2: 0, wheel3: 0)!
+            event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+            let start = CFAbsoluteTimeGetCurrent()
+            cards.scrollWheel(with: NSEvent(cgEvent: event)!)
+            host.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(1.0 / 120))
+            times.append((CFAbsoluteTimeGetCurrent() - start) * 1000)
+        }
+        let sorted = times.sorted()
+        precondition(HistoryRenderMetrics.groupingPasses == 0, "Scrolling must not rebuild the history snapshot")
+        precondition(HistoryRenderMetrics.cardBodies < 180, "Timeline tracking invalidated unrelated cards")
+        print("HISTORY_PERF samples=\(times.count) p50_ms=\(sorted[sorted.count / 2]) p95_ms=\(sorted[sorted.count * 95 / 100]) max_ms=\(sorted.last!) grouping_passes=\(HistoryRenderMetrics.groupingPasses) grouped_records=\(HistoryRenderMetrics.groupedRecords) card_bodies=\(HistoryRenderMetrics.cardBodies)")
     }
 
     /// Exercise the real SwiftUI scroll views without synthetic global input or user-data writes.
@@ -215,5 +257,13 @@ enum DebugRender {
               let png = rep.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: url)
     }
+}
+
+@MainActor
+enum HistoryRenderMetrics {
+    static var groupingPasses = 0
+    static var groupedRecords = 0
+    static var cardBodies = 0
+    static func reset() { groupingPasses = 0; groupedRecords = 0; cardBodies = 0 }
 }
 #endif

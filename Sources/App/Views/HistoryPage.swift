@@ -1,26 +1,22 @@
 import AirdraftCore
 import SwiftUI
+import Observation
 
-/// Dictation cards grouped by day, with search and a compact timeline navigator.
-/// Each card shows the final text, can flip to the raw transcript, and has
-/// copy / details / delete actions.
+/// Database preparation and page actions stay independent of scroll position.
 struct HistoryPage: View {
     @Environment(AppContainer.self) private var container
     @State private var playback = HistoryPlayback()
     @State private var showReview = false
-    @State private var records: [DictationRecord] = []
+    @State private var snapshot = HistorySnapshot.empty
+    @State private var rowStates: [Int64: HistoryCardState] = [:]
+    @State private var scroll = HistoryScrollState()
     @State private var loadID = UUID()
     @State private var loading = false
     @State private var hasMore = false
     @State private var errorMessage: String?
-    private let pageSize = 200
+    private let pageSize = min(10_000, max(1, Int(RenderMode.value("HISTORY_COUNT") ?? "") ?? 200))
     @State private var query = ""
     @State private var confirmClear = false
-    @State private var currentRecordID: Int64?
-    @State private var entryScrollPosition = ScrollPosition(idType: Int64.self)
-    @State private var entriesAtTop = true
-    @State private var timelineScrollPosition = ScrollPosition(idType: Int64.self)
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         PageScaffold(.history, scrollsContent: false, contentTopInset: 0) {
@@ -30,76 +26,36 @@ struct HistoryPage: View {
             if let error = container.pipeline.historyStorageError {
                 StorageNotice(message: error) { Task { await container.pipeline.retryHistorySave(); await reload() } }
             }
-            if records.isEmpty {
+            if snapshot.entries.isEmpty {
                 EmptyNote(query.isEmpty ? "No dictations yet." : "No matches.")
                     .padding(.top, Theme.pagePadding)
             } else {
                 HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                    timeline
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
-                            ForEach(entries) { entry in
-                                VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-                                    if let heading = entry.heading {
-                                        SectionTitle(heading)
-                                            .padding(.top, entry.id == records.first?.id ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
-                                    }
-                                    HistoryCard(record: entry.record, canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory, playing: playback.recordID == entry.id,
-                                        onPlay: audioAvailable(entry.record) ? { play(entry.record) } : nil,
-                                        onRetranscribe: audioAvailable(entry.record) && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? {
-                                            playback.stop()
-                                            container.pipeline.retranscribe(entry.record)
-                                            showReview = true
-                                        } : nil) {
-                                        guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
-                                        do {
-                                            playback.stop()
-                                            try container.history?.delete(id: entry.id)
-                                            Task { await reload() }
-                                        } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
-                                    }
-                                    .accessibilityIdentifier("history.entry.\(entry.id)")
-                                }
-                                .id(entry.id)
-                            }
-                        }
-                        .scrollTargetLayout()
-                        if hasMore {
-                            Button(loading ? "Loading…" : "Load Older Dictations") { Task { await reload(append: true) } }
-                                .buttonStyle(SoftButtonStyle()).disabled(loading)
-                                .padding(.vertical, Theme.controlSpacing)
-                        }
-                    }
-                    .pageScrollEdge()
-                    .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
-                    .scrollPosition($entryScrollPosition)
-                    .onScrollGeometryChange(for: Bool.self) { geometry in
-                        geometry.contentOffset.y <= -geometry.contentInsets.top + 1
-                    } action: { _, atTop in
-                        entriesAtTop = atTop
-                        if atTop { currentRecordID = records.first?.id }
-                    }
-                    .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.01) { visibleIDs in
-                        let visible = Set(visibleIDs)
-                        if let first = records.first(where: { $0.id.map(visible.contains) ?? false }) {
-                            currentRecordID = first.id
-                        }
-                    }
-                    .accessibilityIdentifier("history.entries")
+                    HistoryTimeline(snapshot: snapshot, scroll: scroll)
+                    HistoryEntries(snapshot: snapshot, rowStates: rowStates, scroll: scroll, playback: playback,
+                                   showReview: $showReview, errorMessage: $errorMessage,
+                                   hasMore: hasMore, loading: loading,
+                                   reload: { Task { await reload() } },
+                                   loadMore: { Task { await reload(append: true) } })
                 }
                 .frame(maxHeight: .infinity)
             }
         } accessory: {
             SearchField(text: $query, placeholder: "Search history")
-            Button {
-                confirmClear = true
-            } label: { Image(systemName: "trash") }
-            .buttonStyle(SoftButtonStyle())
-            .help("Delete all history")
-            .accessibilityLabel("Delete all history")
-            .disabled((records.isEmpty && query.isEmpty) || container.pipeline.isBusy || container.pipeline.isSavingHistory)
+            Button { confirmClear = true } label: { Image(systemName: "trash") }
+                .buttonStyle(SoftButtonStyle())
+                .help("Delete all history")
+                .accessibilityLabel("Delete all history")
+                .disabled((snapshot.entries.isEmpty && query.isEmpty) || container.pipeline.isBusy || container.pipeline.isSavingHistory)
         }
-        .task(id: query) { await reload() }
+        .task(id: query) {
+            // Invalidate an older append/reload immediately, before the debounce.
+            loadID = UUID()
+            if !query.isEmpty {
+                do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
+            }
+            await reload()
+        }
         .onDisappear { playback.stop() }
         .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
         .onChange(of: container.pipeline.audioRevision) { _, _ in playback.stop(); Task { await reload() } }
@@ -108,6 +64,9 @@ struct HistoryPage: View {
             HistoryTranscriptionReview().environment(container)
         }
         .onChange(of: container.pipeline.lastOutcome) { _, _ in Task { await reload() } }
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in Task { await reload() } }
+        .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in Task { await reload() } }
+        .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in Task { await reload() } }
         .confirmationDialog("Delete every history entry?", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Delete All", role: .destructive) {
                 guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
@@ -120,36 +79,177 @@ struct HistoryPage: View {
         }
     }
 
-    private func audioAvailable(_ record: DictationRecord) -> Bool {
-        container.history?.audioURL(for: record) != nil
+    private func reload(append: Bool = false) async {
+        guard let history = container.history else { return }
+        if append && loading { return }
+        let token = UUID()
+        loadID = token
+        loading = true
+        defer { if loadID == token { loading = false } }
+        let query = query
+        let previous = append ? snapshot : .empty
+        let pageSize = pageSize
+        let prepare: @Sendable () throws -> (HistorySnapshot, Bool) = {
+            let found = try history.recent(limit: pageSize + 1, query: query, offset: previous.entries.count)
+            return (HistorySnapshot.prepare(Array(found.prefix(pageSize)), history: history, appendingTo: previous), found.count > pageSize)
+        }
+        do {
+            let result: (HistorySnapshot, Bool)
+            if RenderMode.isActive { result = try prepare() }
+            else { result = try await Task.detached(priority: .userInitiated, operation: prepare).value }
+            guard !Task.isCancelled, loadID == token else { return }
+            #if DEBUG
+            HistoryRenderMetrics.groupingPasses += 1
+            HistoryRenderMetrics.groupedRecords += result.0.entries.count
+            #endif
+            rowStates = Dictionary(uniqueKeysWithValues: result.0.entries.map { ($0.id, rowStates[$0.id] ?? HistoryCardState()) })
+            snapshot = result.0
+            hasMore = result.1
+            errorMessage = nil
+            if scroll.currentRecordID.flatMap({ snapshot.indexByID[$0] }) == nil {
+                scroll.currentRecordID = snapshot.entries.first?.id
+                scroll.entryPosition.scrollTo(edge: .top)
+            }
+        } catch {
+            guard loadID == token else { return }
+            errorMessage = "History could not be loaded. " + error.localizedDescription
+        }
+    }
+}
+
+@MainActor @Observable
+private final class HistoryScrollState {
+    var currentRecordID: Int64?
+    var entriesAtTop = true
+    var entryPosition = ScrollPosition(idType: Int64.self)
+}
+
+/// Survives lazy row eviction without keeping the row's view hierarchy alive.
+@MainActor @Observable
+final class HistoryCardState {
+    var showRaw = false
+    var expanded = false
+}
+
+private struct HistoryEntries: View {
+    let snapshot: HistorySnapshot
+    let rowStates: [Int64: HistoryCardState]
+    @Bindable var scroll: HistoryScrollState
+    let playback: HistoryPlayback
+    @Binding var showReview: Bool
+    @Binding var errorMessage: String?
+    let hasMore: Bool
+    let loading: Bool
+    let reload: () -> Void
+    let loadMore: () -> Void
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
+                ForEach(snapshot.entries) { entry in
+                    HistoryRecordRow(entry: entry, state: rowStates[entry.id]!, playback: playback,
+                                     isFirst: entry.id == snapshot.entries.first?.id,
+                                     showReview: $showReview, errorMessage: $errorMessage, reload: reload)
+                        .id(entry.id)
+                }
+            }
+            .scrollTargetLayout()
+            if hasMore {
+                Button(loading ? "Loading…" : "Load Older Dictations", action: loadMore)
+                    .buttonStyle(SoftButtonStyle()).disabled(loading)
+                    .padding(.vertical, Theme.controlSpacing)
+            }
+        }
+        .pageScrollEdge()
+        .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
+        .scrollPosition($scroll.entryPosition)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y <= -geometry.contentInsets.top + 1
+        } action: { _, atTop in
+            scroll.entriesAtTop = atTop
+            if atTop { scroll.currentRecordID = snapshot.entries.first?.id }
+        }
+        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.01) { visibleIDs in
+            if let id = snapshot.firstVisibleID(in: visibleIDs) { scroll.currentRecordID = id }
+        }
+        .accessibilityIdentifier("history.entries")
+    }
+}
+
+private struct HistoryRecordRow: View {
+    @Environment(AppContainer.self) private var container
+    let entry: HistoryEntry
+    let state: HistoryCardState
+    let playback: HistoryPlayback
+    let isFirst: Bool
+    @Binding var showReview: Bool
+    @Binding var errorMessage: String?
+    let reload: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+            if let heading = entry.heading {
+                SectionTitle(heading)
+                    .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
+            }
+            HistoryCard(entry: entry, state: state,
+                        canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
+                        playing: playback.recordID == entry.id,
+                        onPlay: entry.audioAvailable ? play : nil,
+                        onRetranscribe: entry.audioAvailable && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
+                        onDelete: delete)
+                .accessibilityIdentifier("history.entry.\(entry.id)")
+        }
     }
 
-    private func play(_ record: DictationRecord) {
+    private func play() {
         guard !container.pipeline.isBusy, let history = container.history else { return }
-        do { try playback.toggle(record, store: history) }
+        do { try playback.toggle(entry.record, store: history) }
         catch { errorMessage = "Recording could not be played. " + error.localizedDescription }
     }
 
-    private var timeline: some View {
+    private func retranscribe() {
+        guard !container.pipeline.isBusy, !container.pipeline.hasRecoverableRecording else { return }
+        playback.stop()
+        container.pipeline.retranscribe(entry.record)
+        showReview = true
+    }
+
+    private func delete() {
+        guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
+        do {
+            playback.stop()
+            try container.history?.delete(id: entry.id)
+            reload()
+        } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
+    }
+}
+
+private struct HistoryTimeline: View {
+    let snapshot: HistorySnapshot
+    let scroll: HistoryScrollState
+    @State private var position = ScrollPosition(idType: Int64.self)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(entries) { entry in
+                ForEach(snapshot.entries) { entry in
                     VStack(alignment: .leading, spacing: 0) {
-                        if let heading = entry.heading {
-                            Text(heading == "Today" || heading == "Yesterday" ? heading :
-                                 entry.record.createdAt.formatted(.dateTime.month(.abbreviated).day()))
+                        if let heading = entry.timelineHeading {
+                            Text(heading)
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, minHeight: Theme.sectionTitleMinHeight, alignment: .leading)
-                                .padding(.top, entry.id == records.first?.id ? 0 : Theme.controlSpacing)
+                                .padding(.top, entry.id == snapshot.entries.first?.id ? 0 : Theme.controlSpacing)
                                 .padding(.bottom, Theme.sectionTitleSpacing)
-                                .help(heading)
+                                .help(entry.heading ?? heading)
                         }
-                        HistoryTimelineButton(record: entry.record, selected: entry.id == currentRecordID) {
+                        HistoryTimelineButton(entry: entry, selected: entry.id == scroll.currentRecordID) {
                             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
-                                currentRecordID = entry.id
-                                entryScrollPosition.scrollTo(id: entry.id, anchor: .top)
+                                scroll.currentRecordID = entry.id
+                                scroll.entryPosition.scrollTo(id: entry.id, anchor: .top)
                             }
                         }
                     }
@@ -160,102 +260,27 @@ struct HistoryPage: View {
         }
         .pageScrollEdge()
         .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
-        .scrollPosition($timelineScrollPosition)
+        .scrollPosition($position)
         .scrollIndicators(.hidden)
-        .onChange(of: currentRecordID) { _, id in
-            if id == records.first?.id {
-                timelineScrollPosition.scrollTo(edge: .top)
-            } else if let id {
-                timelineScrollPosition.scrollTo(id: id)
-            }
+        .onChange(of: scroll.currentRecordID) { _, id in
+            if id == snapshot.entries.first?.id { position.scrollTo(edge: .top) }
+            else if let id { position.scrollTo(id: id) }
         }
-        .onChange(of: entriesAtTop) { _, atTop in
-            // The first card can already be active while its heading is still
-            // offscreen. Reaching the edge must restore the entire timeline.
-            if atTop { timelineScrollPosition.scrollTo(edge: .top) }
+        .onChange(of: scroll.entriesAtTop) { _, atTop in
+            if atTop { position.scrollTo(edge: .top) }
         }
         .frame(width: HistoryTimelineButton.columnWidth)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("History timeline")
         .accessibilityIdentifier("history.timeline")
     }
-
-    private struct Group {
-        let title: String
-        let records: [DictationRecord]
-    }
-
-    private struct Entry: Identifiable {
-        let id: Int64
-        let record: DictationRecord
-        let heading: String?
-    }
-
-    // Direct, stable row targets let scrolling track individual entries across day groups.
-    private var entries: [Entry] {
-        groups.flatMap { group in
-            group.records.enumerated().compactMap { index, record in
-                guard let id = record.id else { return nil }
-                return Entry(id: id, record: record, heading: index == 0 ? group.title : nil)
-            }
-        }
-    }
-
-    private var groups: [Group] {
-        let cal = Calendar.current
-        var order: [String] = []
-        var map: [String: [DictationRecord]] = [:]
-        for r in records {
-            let title: String
-            if cal.isDateInToday(r.createdAt) { title = "Today" }
-            else if cal.isDateInYesterday(r.createdAt) { title = "Yesterday" }
-            else { title = r.createdAt.formatted(date: .abbreviated, time: .omitted) }
-            if map[title] == nil { order.append(title) }
-            map[title, default: []].append(r)
-        }
-        return order.map { Group(title: $0, records: map[$0] ?? []) }
-    }
-
-    private func reload(append: Bool = false) async {
-        guard let history = container.history else { return }
-        if append && loading { return }
-        let token = UUID()
-        loadID = token
-        loading = true
-        defer { if loadID == token { loading = false } }
-        let query = query
-        let offset = append ? records.count : 0
-        let limit = pageSize + 1
-        do {
-            let found: [DictationRecord]
-            if RenderMode.isActive { found = try history.recent(limit: limit, query: query, offset: offset) }
-            else { found = try await Task.detached { try history.recent(limit: limit, query: query, offset: offset) }.value }
-            guard !Task.isCancelled, loadID == token else { return }
-            hasMore = found.count > pageSize
-            if append { records += found.prefix(pageSize) } else { records = Array(found.prefix(pageSize)) }
-            errorMessage = nil
-            resetTimelineIfNeeded()
-        } catch {
-            guard loadID == token else { return }
-            errorMessage = "History could not be loaded. " + error.localizedDescription
-        }
-    }
-
-    private func resetTimelineIfNeeded() {
-        if !records.contains(where: { $0.id == currentRecordID }) {
-            currentRecordID = records.first?.id
-            entryScrollPosition.scrollTo(edge: .top)
-        }
-    }
 }
 
-/// A short ruler tick per saved transcription; the entire row is the jump target.
 private struct HistoryTimelineButton: View {
     static let columnWidth: CGFloat = 52
     private static let rowHeight: CGFloat = 24
     private static let tickWidth: CGFloat = 10
-
-    let record: DictationRecord
+    let entry: HistoryEntry
     let selected: Bool
     let action: () -> Void
     @State private var hovering = false
@@ -263,7 +288,7 @@ private struct HistoryTimelineButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Text(record.createdAt.formatted(date: .omitted, time: .shortened))
+                Text(entry.time)
                     .font(.system(size: 10, weight: selected ? .semibold : .regular))
                     .monospacedDigit()
                     .lineLimit(1)
@@ -281,57 +306,40 @@ private struct HistoryTimelineButton: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .help("Jump to \(record.createdAt.formatted(date: .abbreviated, time: .standard))")
-        .accessibilityLabel("Jump to dictation, \(record.createdAt.formatted(date: .abbreviated, time: .standard))")
+        .help("Jump to \(entry.timestamp)")
+        .accessibilityLabel("Jump to dictation, \(entry.timestamp)")
         .accessibilityAddTraits(selected ? [.isSelected] : [])
-        .accessibilityIdentifier("history.timeline.\(record.id.map(String.init) ?? "unsaved")")
+        .accessibilityIdentifier("history.timeline.\(entry.id)")
     }
 }
 
 struct HistoryCard: View {
-    let record: DictationRecord
+    let entry: HistoryEntry
+    @Bindable var state: HistoryCardState
+    private var record: DictationRecord { entry.record }
     var canDelete = true
     var playing = false
     var onPlay: (() -> Void)? = nil
     var onRetranscribe: (() -> Void)? = nil
     let onDelete: () -> Void
-    @State private var showRaw = false
     @State private var showInfo = false
     @State private var copied = false
-    @State private var expanded = false
     @State private var confirmDelete = false
 
-    private var shownText: String {
-        (showRaw ? record.rawTranscript : record.finalText).trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+    private var content: HistoryTextContent { state.showRaw ? entry.rawText : entry.finalText }
+    private var shownText: String { content.full }
     private var wasRefined: Bool { record.rawTranscript != record.finalText }
-    @State private var fullTextHeight: CGFloat = 0
-    @State private var collapsedHeight: CGFloat = 0
-    private var isLong: Bool { expanded || fullTextHeight > collapsedHeight + 1 }
 
     var body: some View {
+        #if DEBUG
+        let _ = { HistoryRenderMetrics.cardBodies += 1 }()
+        #endif
         Card(spacing: Theme.controlSpacing) {
-            Text(shownText)
-                .font(.system(size: 14))
-                .lineSpacing(3)
-                .lineLimit(expanded ? nil : 6)
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { if !expanded { collapsedHeight = $0 } }
-                .background(alignment: .topLeading) {
-                    Text(shownText).font(.system(size: 14)).lineSpacing(3)
-                        .fixedSize(horizontal: false, vertical: true).hidden()
-                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fullTextHeight = $0 }
-                        .accessibilityHidden(true)
-                }
-                .textSelection(.enabled)
+            HistoryTranscript(content: content, expanded: $state.expanded)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if isLong {
-                Button(expanded ? "Show Less" : "Show More") { expanded.toggle() }
-                    .buttonStyle(.link)
-                    .font(.system(size: 12))
-            }
             HStack(spacing: 10) {
                 if wasRefined {
-                    Picker("Version", selection: $showRaw) {
+                    Picker("Version", selection: $state.showRaw) {
                         Text("Refined").tag(false)
                         Text("Original").tag(true)
                     }
@@ -340,7 +348,7 @@ struct HistoryCard: View {
                     .controlSize(.small)
                     .fixedSize()
                 }
-                Text(meta)
+                Text(entry.metadata)
                     .font(.system(size: 11.5))
                     .foregroundStyle(Color.primary.opacity(0.65))
                     .lineLimit(1)
@@ -390,17 +398,6 @@ struct HistoryCard: View {
         NSPasteboard.general.setString(shownText, forType: .string)
         copied = true
         Task { try? await Task.sleep(for: .seconds(1.2)); copied = false }
-    }
-
-    private var meta: String {
-        var parts = [record.createdAt.formatted(date: .omitted, time: .shortened)]
-        if let app = record.appName { parts.append(app) }
-        if record.outputDestination == TextOutputDestination.script.rawValue {
-            parts.append(record.outputSucceeded == true ? "Sent to script" : "Script failed")
-        }
-        parts.append(record.mode)
-        parts.append("\(String(format: "%.0f", record.audioSeconds)) s")
-        return parts.joined(separator: " · ")
     }
 
     private var details: some View {
