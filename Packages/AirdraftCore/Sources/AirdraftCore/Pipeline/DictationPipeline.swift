@@ -42,8 +42,12 @@ public final class DictationPipeline {
     public private(set) var hasRecoverableRecording = false
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
-    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?)?
-    private var unsavedHistory: [DictationRecord] = []
+    public private(set) var reviewOutcome: DictationOutcome?
+    public private(set) var audioStorageError: String?
+    public private(set) var audioRevision = 0
+    private var reviewGeneration: UUID?
+    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, reviewOnly: Bool)?
+    private var unsavedHistory: [(record: DictationRecord, samples: [Float]?)] = []
     private let historyDirectory: URL?
     public private(set) var historyStore: HistoryStore?
     public private(set) var lastOutcome: DictationOutcome?
@@ -72,6 +76,7 @@ public final class DictationPipeline {
     private let factory: EngineFactory
     private let recorder: any AudioRecording
     private let contextReader: AppContextReader
+    private let insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)?
     private let inserter: TextInserter
 
     private var generation = UUID()
@@ -101,6 +106,7 @@ public final class DictationPipeline {
         recorder: any AudioRecording = AudioRecorder(),
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
+        insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
         recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil,
         requestMicrophoneAccess: @escaping @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
     ) {
@@ -114,6 +120,7 @@ public final class DictationPipeline {
         self.recorder = recorder
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
+        self.insertText = insertText
         self.requestMicrophoneAccess = requestMicrophoneAccess
         self.recordingPreflight = recordingPreflight
 
@@ -281,6 +288,49 @@ public final class DictationPipeline {
         processingTask = Task { await process(samples: samples, seconds: seconds, context: context, target: nil, token: token) }
     }
 
+    /// Review old audio without insertion, clipboard changes, or duplicate history.
+    /// This delivery policy survives speech failures and explicit retries.
+    public func retranscribe(_ record: DictationRecord) {
+        guard !isBusy, !hasRecoverableRecording, let history else { return }
+        generation = UUID()
+        let token = generation
+        reviewGeneration = token
+        reviewOutcome = nil
+        lastIssue = nil
+        asrAtStart = nil
+        set(.transcribing)
+        processingTask = Task {
+            do {
+                let samples = try await Task.detached { try history.audioSamples(for: record) }.value
+                guard isCurrent(token) else { return }
+                await process(samples: samples, seconds: Double(samples.count) / AudioRecorder.sampleRate,
+                              context: .empty, target: nil, token: token, reviewOnly: true)
+            } catch {
+                guard isCurrent(token) else { return }
+                fail("Recording could not be opened. " + error.localizedDescription)
+            }
+        }
+    }
+
+    public func dismissReview() {
+        if reviewGeneration == generation {
+            cancel()
+            reviewOutcome = nil
+            reviewGeneration = nil
+            lastIssue = nil
+        }
+    }
+
+    public func pruneSavedAudio() async {
+        guard let history else { return }
+        let cutoff = settings.audioRetention.cutoff()
+        do {
+            try await Task.detached { try history.pruneAudio(olderThan: cutoff) }.value
+            audioStorageError = nil
+            audioRevision += 1
+        } catch { audioStorageError = "Saved audio could not be removed. " + error.localizedDescription }
+    }
+
     /// A CLI refiner takes seconds to start a session, so start it while the user
     /// is still speaking. Only the system prompt is needed for that, and it is
     /// already known: it does not depend on what is said.
@@ -341,15 +391,16 @@ public final class DictationPipeline {
         asrAtStart = nil
         generation = UUID()
         let token = generation
+        if recovery.reviewOnly { reviewGeneration = token }
         set(.transcribing)
         processingTask = Task {
             await process(samples: recovery.samples, seconds: recovery.seconds,
-                          context: recovery.context, target: recovery.target, token: token)
+                          context: recovery.context, target: recovery.target, token: token, reviewOnly: recovery.reviewOnly)
         }
     }
 
-    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?) {
-        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target)
+    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false) {
+        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target, reviewOnly)
         hasRecoverableRecording = true
     }
 
@@ -360,11 +411,13 @@ public final class DictationPipeline {
         do {
             if historyStore == nil, let historyDirectory { historyStore = try HistoryStore(directory: historyDirectory) }
             guard let historyStore else { return }
-            while let record = unsavedHistory.first {
-                _ = try await Task.detached { try historyStore.save(record) }.value
+            while let pending = unsavedHistory.first {
+                let audio = settings.audioRetention == .off ? nil : pending.samples
+                _ = try await Task.detached { try historyStore.save(pending.record, samples: audio) }.value
                 unsavedHistory.removeFirst()
             }
             historyStorageError = nil
+            await pruneSavedAudio()
         } catch {
             historyStorageError = "History could not be saved. Your unsaved dictations remain in memory. " + error.localizedDescription
         }
@@ -372,7 +425,7 @@ public final class DictationPipeline {
 
     // MARK: - Processing
 
-    private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID) async {
+    private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID, reviewOnly: Bool = false) async {
         guard isCurrent(token) else { return }
         let entries = dictionary.entries
         let asrConfig = asrAtStart ?? settings.asr
@@ -402,13 +455,14 @@ public final class DictationPipeline {
             transcript = try await factory.transcribe(samples, hints: hints, config: asrConfig)
         } catch {
             guard isCurrent(token) else { return }
-            retain(samples, context: context, target: target)
+            retain(samples, context: context, target: target, reviewOnly: reviewOnly)
             fail("Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.")
             return
         }
         guard isCurrent(token) else { return }
         recovery = nil
         hasRecoverableRecording = false
+        lastIssue = nil
         guard !transcript.isEmpty else {
             set(.idle)
             return
@@ -472,12 +526,22 @@ public final class DictationPipeline {
         let normalised = ChineseScriptConverter.convert(refined, to: asrConfig.chineseScript)
         let final = DictionaryPostProcessor.apply(normalised, entries: entries)
 
+        if reviewOnly {
+            reviewOutcome = DictationOutcome(raw: transcript.text, refined: refined, final: final,
+                asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason)
+            lastIssue = llmError.map { "Refinement failed; the original transcript is shown. " + $0 }
+            set(.idle)
+            return
+        }
+
         // 4. Insert
         set(.inserting)
         var notice: String?
         let inserted: Bool
         if insertionEnabled {
-            let result = await inserter.insert(final, method: settings.insertionMethod, target: target)
+            let result: InsertionResult
+            if let insertText { result = await insertText(final, settings.insertionMethod, target) }
+            else { result = await inserter.insert(final, method: settings.insertionMethod, target: target) }
             inserted = result.didInsert
             notice = result.notice
         } else {
@@ -509,7 +573,7 @@ public final class DictationPipeline {
             error: llmError
         )
         if history != nil || historyDirectory != nil {
-            unsavedHistory.append(record)
+            unsavedHistory.append((record, settings.audioRetention == .off ? nil : samples))
             await retryHistorySave()
         }
         guard isCurrent(token) else { return }
@@ -544,7 +608,7 @@ public final class DictationPipeline {
     private func fail(_ message: String) {
         lastIssue = message
         set(.failed(message))
-        if hasRecoverableRecording { onRecordingBlocked?() }
+        if hasRecoverableRecording && recovery?.reviewOnly != true { onRecordingBlocked?() }
         resetLater(after: 4)
     }
 

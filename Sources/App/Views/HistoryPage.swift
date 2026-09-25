@@ -6,6 +6,8 @@ import SwiftUI
 /// copy / details / delete actions.
 struct HistoryPage: View {
     @Environment(AppContainer.self) private var container
+    @State private var playback = HistoryPlayback()
+    @State private var showReview = false
     @State private var records: [DictationRecord] = []
     @State private var loadID = UUID()
     @State private var loading = false
@@ -16,6 +18,7 @@ struct HistoryPage: View {
     @State private var confirmClear = false
     @State private var currentRecordID: Int64?
     @State private var entryScrollPosition = ScrollPosition(idType: Int64.self)
+    @State private var entriesAtTop = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -39,8 +42,16 @@ struct HistoryPage: View {
                                         SectionTitle(heading)
                                             .padding(.top, entry.id == records.first?.id ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
                                     }
-                                    HistoryCard(record: entry.record) {
+                                    HistoryCard(record: entry.record, canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory, playing: playback.recordID == entry.id,
+                                        onPlay: audioAvailable(entry.record) ? { play(entry.record) } : nil,
+                                        onRetranscribe: audioAvailable(entry.record) && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? {
+                                            playback.stop()
+                                            container.pipeline.retranscribe(entry.record)
+                                            showReview = true
+                                        } : nil) {
+                                        guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
                                         do {
+                                            playback.stop()
                                             try container.history?.delete(id: entry.id)
                                             Task { await reload() }
                                         } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
@@ -58,6 +69,12 @@ struct HistoryPage: View {
                         }
                     }
                     .scrollPosition($entryScrollPosition)
+                    .onScrollGeometryChange(for: Bool.self) { geometry in
+                        geometry.contentOffset.y <= -geometry.contentInsets.top + 1
+                    } action: { _, atTop in
+                        entriesAtTop = atTop
+                        if atTop { currentRecordID = records.first?.id }
+                    }
                     .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.01) { visibleIDs in
                         let visible = Set(visibleIDs)
                         if let first = records.first(where: { $0.id.map(visible.contains) ?? false }) {
@@ -76,18 +93,37 @@ struct HistoryPage: View {
             .buttonStyle(SoftButtonStyle())
             .help("Delete all history")
             .accessibilityLabel("Delete all history")
-            .disabled(records.isEmpty && query.isEmpty)
+            .disabled((records.isEmpty && query.isEmpty) || container.pipeline.isBusy || container.pipeline.isSavingHistory)
         }
         .task(id: query) { await reload() }
+        .onDisappear { playback.stop() }
+        .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
+        .onChange(of: container.pipeline.audioRevision) { _, _ in playback.stop(); Task { await reload() } }
+        .onChange(of: container.settings.audioRetention) { _, _ in playback.stop(); Task { await reload() } }
+        .sheet(isPresented: $showReview, onDismiss: { container.pipeline.dismissReview() }) {
+            HistoryTranscriptionReview().environment(container)
+        }
         .onChange(of: container.pipeline.lastOutcome) { _, _ in Task { await reload() } }
         .confirmationDialog("Delete every history entry?", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Delete All", role: .destructive) {
+                guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
                 do {
+                    playback.stop()
                     try container.history?.deleteAll()
                     Task { await reload() }
                 } catch { errorMessage = "History could not be cleared. " + error.localizedDescription }
             }
         }
+    }
+
+    private func audioAvailable(_ record: DictationRecord) -> Bool {
+        container.history?.audioURL(for: record) != nil
+    }
+
+    private func play(_ record: DictationRecord) {
+        guard !container.pipeline.isBusy, let history = container.history else { return }
+        do { try playback.toggle(record, store: history) }
+        catch { errorMessage = "Recording could not be played. " + error.localizedDescription }
     }
 
     private var timeline: some View {
@@ -117,10 +153,20 @@ struct HistoryPage: View {
                         }
                     }
                 }
+                .id("history.timeline.top")
             }
             .scrollIndicators(.hidden)
             .onChange(of: currentRecordID) { _, id in
-                if let id { proxy.scrollTo(id) }
+                if id == records.first?.id {
+                    proxy.scrollTo("history.timeline.top", anchor: .top)
+                } else if let id {
+                    proxy.scrollTo(id)
+                }
+            }
+            .onChange(of: entriesAtTop) { _, atTop in
+                // The first card can already be active while its heading is still
+                // offscreen. Reaching the edge must restore the entire timeline.
+                if atTop { proxy.scrollTo("history.timeline.top", anchor: .top) }
             }
         }
         .frame(width: HistoryTimelineButton.columnWidth)
@@ -244,6 +290,10 @@ private struct HistoryTimelineButton: View {
 
 struct HistoryCard: View {
     let record: DictationRecord
+    var canDelete = true
+    var playing = false
+    var onPlay: (() -> Void)? = nil
+    var onRetranscribe: (() -> Void)? = nil
     let onDelete: () -> Void
     @State private var showRaw = false
     @State private var showInfo = false
@@ -296,6 +346,16 @@ struct HistoryCard: View {
                     .lineLimit(1)
                 Spacer()
                 HStack(spacing: 14) {
+                    if let onPlay {
+                        Button(action: onPlay) { Image(systemName: playing ? "stop.fill" : "play.fill") }
+                            .help(playing ? "Stop playback" : "Play recording")
+                            .accessibilityLabel(playing ? "Stop Playback" : "Play Recording")
+                    }
+                    if let onRetranscribe {
+                        Button(action: onRetranscribe) { Image(systemName: "arrow.clockwise") }
+                            .help("Retranscribe with the current model and profile")
+                            .accessibilityLabel("Retranscribe")
+                    }
                     Button(action: copy) { Image(systemName: copied ? "checkmark" : "doc.on.doc") }
                         .help("Copy")
                         .accessibilityLabel("Copy")
@@ -303,9 +363,11 @@ struct HistoryCard: View {
                         .help("Details")
                         .accessibilityLabel("Details")
                         .popover(isPresented: $showInfo, arrowEdge: .bottom) { details.padding(Theme.cardPadding).frame(width: 360) }
-                    Button { confirmDelete = true } label: { Image(systemName: "trash") }
-                        .help("Delete")
-                        .accessibilityLabel("Delete")
+                    if canDelete {
+                        Button { confirmDelete = true } label: { Image(systemName: "trash") }
+                            .help("Delete")
+                            .accessibilityLabel("Delete")
+                    }
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 13))
@@ -314,7 +376,9 @@ struct HistoryCard: View {
         }
         .contextMenu {
             Button("Copy", action: copy)
-            Button("Delete…", role: .destructive) { confirmDelete = true }
+            if let onPlay { Button(playing ? "Stop Playback" : "Play Recording", action: onPlay) }
+            if let onRetranscribe { Button("Retranscribe", action: onRetranscribe) }
+            if canDelete { Button("Delete…", role: .destructive) { confirmDelete = true } }
         }
         .confirmationDialog("Delete this dictation?", isPresented: $confirmDelete) {
             Button("Delete", role: .destructive, action: onDelete)

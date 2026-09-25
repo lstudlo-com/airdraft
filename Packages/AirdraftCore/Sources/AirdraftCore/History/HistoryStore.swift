@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import Darwin
 
 public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, FetchableRecord, MutablePersistableRecord {
     public static let databaseTableName = "dictation"
@@ -24,6 +25,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     public var llmMs: Int
     public var inserted: Bool
     public var error: String?
+    public var audioFilename: String?
 
     public init(
         id: Int64? = nil,
@@ -45,7 +47,8 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         asrMs: Int,
         llmMs: Int,
         inserted: Bool,
-        error: String? = nil
+        error: String? = nil,
+        audioFilename: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -67,6 +70,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         self.llmMs = llmMs
         self.inserted = inserted
         self.error = error
+        self.audioFilename = audioFilename
     }
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -77,15 +81,20 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
 /// SQLite history at ~/Library/Application Support/Transcribar/history.sqlite.
 public final class HistoryStore: Sendable {
     private let dbQueue: DatabaseQueue
+    private let audioDirectory: URL?
+    // GRDB serializes SQL; this also covers the corresponding sidecar operations.
+    private let audioLock = NSLock()
 
     public init(directory: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("history.sqlite")
+        audioDirectory = directory.appendingPathComponent("Recordings", isDirectory: true)
         dbQueue = try DatabaseQueue(path: url.path, configuration: Self.configuration)
         try migrate()
     }
 
     public init(inMemory: Bool) throws {
+        audioDirectory = nil
         dbQueue = try DatabaseQueue(configuration: Self.configuration)
         try migrate()
     }
@@ -93,6 +102,7 @@ public final class HistoryStore: Sendable {
     /// Deleted dictations are overwritten on disk, not left in free pages.
     private static var configuration: Configuration {
         var config = Configuration()
+        config.busyMode = .timeout(5)
         config.prepareDatabase { db in try db.execute(sql: "PRAGMA secure_delete = ON") }
         return config
     }
@@ -123,15 +133,77 @@ public final class HistoryStore: Sendable {
                 t.column("error", .text)
             }
         }
+        migrator.registerMigration("v2") { db in
+            try db.alter(table: DictationRecord.databaseTableName) { t in
+                t.add(column: "audioFilename", .text)
+            }
+        }
         try migrator.migrate(dbQueue)
     }
 
     @discardableResult
-    public func save(_ record: DictationRecord) throws -> DictationRecord {
-        try dbQueue.write { db in
+    public func save(_ record: DictationRecord, samples: [Float]? = nil) throws -> DictationRecord {
+        try audioLock.withLock {
             var r = record
-            try r.insert(db)
-            return r
+            // An insert may only attach audio created by this store, never a supplied path.
+            r.audioFilename = nil
+            var writtenURL: URL?
+            do {
+                return try dbQueue.write { db in
+                    // Take SQLite's writer lease before creating the file. Another store
+                    // pruning this directory must not mistake an in-flight save for an orphan.
+                    if let samples, !samples.isEmpty, audioDirectory != nil {
+                        writtenURL = try writeAudio(samples)
+                        r.audioFilename = writtenURL?.lastPathComponent
+                    }
+                    try r.insert(db)
+                    return r
+                }
+            } catch {
+                let saveError = error
+                if let writtenURL {
+                    do { try removeAudio(named: writtenURL.lastPathComponent) }
+                    catch { throw AudioStorageError.cleanupFailed(saveError, error) }
+                }
+                throw saveError
+            }
+        }
+    }
+
+    /// Only UUID-named regular files inside this store are exposed for playback.
+    public func audioURL(for record: DictationRecord) -> URL? {
+        audioLock.withLock { try? existingAudioURL(named: record.audioFilename) }
+    }
+
+    public func audioSamples(for record: DictationRecord) throws -> [Float] {
+        try audioLock.withLock {
+            guard let url = try existingAudioURL(named: record.audioFilename) else {
+                throw AudioStorageError.unavailable
+            }
+            return try AudioFile.load(path: url.path)
+        }
+    }
+
+    /// A nil cutoff removes all saved audio while retaining the text history.
+    /// Every pass also reconciles missing references and unfinished/orphaned writes.
+    public func pruneAudio(olderThan cutoff: Date?) throws {
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                let records = try DictationRecord.filter(Column("audioFilename") != nil).fetchAll(db)
+                var retained = Set<String>()
+                for record in records {
+                    let expired = cutoff.map { record.createdAt < $0 } ?? true
+                    if expired {
+                        try removeAudio(named: record.audioFilename)
+                    } else if try existingAudioURL(named: record.audioFilename) != nil,
+                              let filename = record.audioFilename {
+                        retained.insert(filename)
+                        continue
+                    }
+                    try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE id = ?", arguments: [record.id])
+                }
+                try removeOrphanAudio(retaining: retained)
+            }
         }
     }
 
@@ -164,16 +236,134 @@ public final class HistoryStore: Sendable {
     }
 
     public func delete(id: Int64) throws {
-        _ = try dbQueue.write { db in
-            try DictationRecord.deleteOne(db, key: id)
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                guard let record = try DictationRecord.fetchOne(db, key: id) else { return }
+                // Remove the file first. A failure leaves the row available for retry.
+                try removeAudio(named: record.audioFilename)
+                _ = try DictationRecord.deleteOne(db, key: id)
+            }
         }
     }
 
     public func deleteAll() throws {
-        _ = try dbQueue.write { db in
-            try DictationRecord.deleteAll(db)
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                for record in try DictationRecord.fetchAll(db) {
+                    try removeAudio(named: record.audioFilename)
+                }
+                try removeOrphanAudio(retaining: [])
+                _ = try DictationRecord.deleteAll(db)
+            }
+            try dbQueue.vacuum()
         }
-        try dbQueue.vacuum()
+    }
+
+    private enum AudioStorageError: LocalizedError {
+        case unavailable, unsafeLocation, invalidSamples
+        case cleanupFailed(Error, Error)
+
+        var errorDescription: String? {
+            switch self {
+            case .unavailable: return "This recording is no longer available."
+            case .unsafeLocation: return "The recording location is not a regular file or private folder."
+            case .invalidSamples: return "The recording contains invalid audio samples."
+            case let .cleanupFailed(original, cleanup):
+                return "\(original.localizedDescription) Audio cleanup also failed: \(cleanup.localizedDescription). Retry clearing saved audio."
+            }
+        }
+    }
+
+    private static func isAudioFilename(_ filename: String, extension suffix: String = "wav") -> Bool {
+        guard filename.hasSuffix(".\(suffix)") else { return false }
+        let stem = String(filename.dropLast(suffix.count + 1))
+        return stem.count == 36 && UUID(uuidString: stem)?.uuidString == stem.uppercased()
+    }
+
+    /// attributesOfItem uses lstat, so symbolic links are never accepted as audio.
+    private func attributes(at url: URL) throws -> [FileAttributeKey: Any]? {
+        do { return try FileManager.default.attributesOfItem(atPath: url.path) }
+        catch let error as CocoaError where error.code == .fileReadNoSuchFile { return nil }
+    }
+
+    private func checkedAudioDirectory(create: Bool = false) throws -> URL? {
+        guard let directory = audioDirectory else { return nil }
+        var info = try attributes(at: directory)
+        if info == nil, create {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
+                                                    attributes: [.posixPermissions: 0o700])
+            info = try attributes(at: directory)
+        }
+        guard let info else { return nil }
+        guard info[.type] as? FileAttributeType == .typeDirectory else {
+            throw AudioStorageError.unsafeLocation
+        }
+        if create {
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        }
+        return directory
+    }
+
+    private func existingAudioURL(named filename: String?) throws -> URL? {
+        guard let filename, Self.isAudioFilename(filename),
+              let directory = try checkedAudioDirectory() else { return nil }
+        let url = directory.appendingPathComponent(filename)
+        guard let info = try attributes(at: url),
+              info[.type] as? FileAttributeType == .typeRegular,
+              (info[.referenceCount] as? NSNumber)?.intValue == 1 else { return nil }
+        return url
+    }
+
+    private func writeAudio(_ samples: [Float]) throws -> URL {
+        guard samples.count <= (Int(UInt32.max) - 36) / 2, samples.allSatisfy(\.isFinite) else {
+            throw AudioStorageError.invalidSamples
+        }
+        guard let directory = try checkedAudioDirectory(create: true) else { throw AudioStorageError.unavailable }
+        let stem = UUID().uuidString
+        let temporary = directory.appendingPathComponent("\(stem).pending")
+        let destination = directory.appendingPathComponent("\(stem).wav")
+        let descriptor = open(temporary.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, S_IRUSR | S_IWUSR)
+        guard descriptor >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        do {
+            try handle.write(contentsOf: WAVEncoder.encode(samples: samples))
+            try handle.synchronize()
+            try handle.close()
+            // Same-directory rename publishes only a completely written WAV.
+            try FileManager.default.moveItem(at: temporary, to: destination)
+            return destination
+        } catch {
+            let writeError = error
+            try? handle.close()
+            do { try removeManagedFile(at: temporary) }
+            catch { throw AudioStorageError.cleanupFailed(writeError, error) }
+            throw writeError
+        }
+    }
+
+    private func removeAudio(named filename: String?) throws {
+        guard let filename, Self.isAudioFilename(filename),
+              let directory = try checkedAudioDirectory() else { return }
+        try removeManagedFile(at: directory.appendingPathComponent(filename))
+    }
+
+    private func removeManagedFile(at url: URL) throws {
+        guard let info = try attributes(at: url) else { return }
+        guard info[.type] as? FileAttributeType == .typeRegular else { throw AudioStorageError.unsafeLocation }
+        // Never use recursive FileManager deletion on an unverified path.
+        guard unlink(url.path) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+    }
+
+    private func removeOrphanAudio(retaining filenames: Set<String>) throws {
+        guard let directory = try checkedAudioDirectory() else { return }
+        for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+            let name = url.lastPathComponent
+            guard !filenames.contains(name),
+                  Self.isAudioFilename(name) || Self.isAudioFilename(name, extension: "pending") else { continue }
+            // Unexpected directories and links belong to neither our writer nor cleanup.
+            guard try attributes(at: url)?[.type] as? FileAttributeType == .typeRegular else { continue }
+            try removeManagedFile(at: url)
+        }
     }
 
     public func count() throws -> Int {

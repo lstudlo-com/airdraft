@@ -16,7 +16,14 @@ enum DebugRender {
         defer { defaults.removePersistentDomain(forName: suite) }
         let container: AppContainer
         let env = ProcessInfo.processInfo.environment
-        if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {
+        if env["AIRDRAFT_RENDER_AUDIO_HISTORY"] == "1" {
+            container = PreviewData.container
+            container.settings.audioRetention = .week
+            _ = try? container.history?.save(DictationRecord(mode: "Clean", family: "general",
+                rawTranscript: "um please send the report tomorrow", refinedText: "Please send the report tomorrow.",
+                finalText: "Please send the report tomorrow.", asrEngine: "preview", audioSeconds: 2,
+                asrMs: 100, llmMs: 100, inserted: true), samples: [Float](repeating: 0, count: 32_000))
+        } else if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {
             let settings = AppSettings(defaults: defaults)
             if let name = env["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) { settings.llm.select(kind) }
             if let name = env["AIRDRAFT_RENDER_ASR"], let kind = ASRProviderKind(rawValue: name) { settings.asr.select(kind) }

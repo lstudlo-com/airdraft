@@ -40,6 +40,30 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+/// Audio retention is independent of text history; Off also removes saved audio.
+public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiable {
+    case off, day, week, month, forever
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .off: return "Off"
+        case .day: return "1 day"
+        case .week: return "7 days"
+        case .month: return "30 days"
+        case .forever: return "Until deleted"
+        }
+    }
+    public func cutoff(now: Date = Date()) -> Date? {
+        switch self {
+        case .off: return nil
+        case .day: return now.addingTimeInterval(-86_400)
+        case .week: return now.addingTimeInterval(-7 * 86_400)
+        case .month: return now.addingTimeInterval(-30 * 86_400)
+        case .forever: return .distantPast
+        }
+    }
+}
+
 /// UserDefaults-backed settings. Secrets live in Keychain, not here.
 @MainActor
 @Observable
@@ -57,6 +81,7 @@ public final class AppSettings {
     /// Ask LM Studio to unload the LLM when the app quits.
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
+    public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
 
     private let defaults: UserDefaults
@@ -78,6 +103,7 @@ public final class AppSettings {
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 10
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
+        audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
     }
 

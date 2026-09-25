@@ -311,6 +311,17 @@ Public distribution additionally requires `scripts/verify-public-distribution.py
 on the final app and DMG. Do not relabel Apple Development builds as public-ready
 or change the pinned identity without the explicit migration review.
 
+## Saved recording history
+
+Audio retention is opt-in and independent of text history. `HistoryStore` owns
+private UUID WAV sidecars and their SQLite references, including deletion,
+retention and orphan cleanup. Preserve audio in pending-save recovery. Run cleanup
+at launch, hourly, after saves and after retention changes. Playback has one owner
+and stops when recording, deleting, leaving History or cleaning up audio.
+Retranscription uses a review-only pipeline policy, including explicit retries;
+it never inserts, runs delivery scripts, replaces the original entry or adds to
+history/statistics. Only the user's Copy action changes the clipboard.
+
 ## Recording and recovery invariants
 
 Check recording prerequisites before opening the microphone or prewarming a

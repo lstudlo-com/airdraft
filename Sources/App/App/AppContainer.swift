@@ -33,6 +33,7 @@ final class AppContainer {
     private var started = false
     @ObservationIgnored private var appearanceUpdatesStarted = false
     private var indicator: IndicatorPanelController?
+    private var audioCleanupTask: Task<Void, Never>?
 
     init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil) {
         hotkeys = HotkeyService(permissions: permissions)
@@ -101,6 +102,20 @@ final class AppContainer {
         pipeline.llmNeedsLoad = { [weak self] in await self?.models.llmNeedsLoad() ?? false }
         pipeline.loadLLM = { [weak self] in await self?.models.loadLLMIfNeeded() }
         models.start()
+        audioCleanupTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.pipeline.pruneSavedAudio()
+                do { try await Task.sleep(for: .seconds(3600)) } catch { return }
+            }
+        }
+        observeAudioRetention()
+    }
+
+    private func observeAudioRetention() {
+        observeChanges({ [weak self] in _ = self?.settings.audioRetention }) { [weak self] in
+            guard let self else { return }
+            Task { await self.pipeline.pruneSavedAudio() }
+        }
     }
 
     /// SwiftUI's window opener, captured by the menu-bar label so AppKit callbacks can use it.

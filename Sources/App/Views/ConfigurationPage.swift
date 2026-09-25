@@ -82,6 +82,23 @@ struct ConfigurationPage: View {
                 }
             }
 
+            PageSection("Audio history") {
+                SettingsCard {
+                    SettingRow(title: "Keep recordings", subtitle: "Save audio on this Mac for playback and retranscription. Off removes saved audio; text history stays.") {
+                        Picker("Keep recordings", selection: $settings.audioRetention) {
+                            ForEach(AudioRetention.allCases) { Text($0.title).tag($0) }
+                        }.settingsPicker(width: 160)
+                    }
+                    if let error = container.pipeline.audioStorageError {
+                        RowDivider()
+                        SettingRow(title: "Cleanup failed", subtitle: error) {
+                            Button("Retry") { Task { await container.pipeline.pruneSavedAudio() } }
+                                .buttonStyle(SoftButtonStyle())
+                        }
+                    }
+                }
+            }
+
             PageSection("Permissions") {
                 SettingsCard {
                     SettingRow(title: "Microphone", subtitle: micStatus) {
