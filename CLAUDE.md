@@ -56,7 +56,8 @@ status table current.
   caret, without visible lettering. Keep the waveform height pattern and use
   `NeumorphicSurface` with `outlineOnly` for its raised capsule rim. Keep the
   interior unfilled, with no recessed well, so the sidebar shows through directly.
-  The bars and caret stay raised and legible.
+  The bars and caret stay raised and legible. Use the prominent neutral material
+  for the brand rim and strokes in both appearances; keep its interior unfilled.
   Scale the original compact mark uniformly by 1.25: about 51 by 25 points
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
@@ -144,6 +145,9 @@ status table current.
   the timeline's first day heading, even when its first entry is already active.
   Keep day groups, search, lazy card loading
   and native card actions. The timeline follows the same filtered records.
+  Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
+  Keep light-mode bars visibly darker than the well, with raised highlights and
+  down-right shadows. Preserve bar heights, hover behavior and the colored caret.
   Home waveform entrance waits for initial history, then animates rendered scale
   once; never animate placeholder replacement or per-frame bar layout height.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,

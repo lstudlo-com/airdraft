@@ -5,8 +5,13 @@ import SwiftUI
 private struct NeumorphicPalette {
     let top, bottom, well, light, shade: Color
 
-    init(dark: Bool, translucent: Bool) {
-        if translucent {
+    init(dark: Bool, translucent: Bool, prominent: Bool) {
+        if prominent {
+            top = Color(white: dark ? 0.70 : 0.68)
+            bottom = Color(white: dark ? 0.46 : 0.44)
+            light = .white.opacity(dark ? 0.38 : 0.85)
+            shade = .black.opacity(dark ? 0.80 : 0.40)
+        } else if translucent {
             top = .white.opacity(dark ? 0.11 : 0.28)
             bottom = .white.opacity(dark ? 0.035 : 0.10)
             light = .white.opacity(dark ? 0.20 : 0.65)
@@ -29,6 +34,8 @@ struct NeumorphicSurface<S: InsettableShape>: View {
     var translucent = false
     /// A raised rim with an empty center, used by the sidebar brand.
     var outlineOnly = false
+    /// Stronger neutral faces and edges for the small sidebar brand.
+    var prominent = false
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -36,7 +43,7 @@ struct NeumorphicSurface<S: InsettableShape>: View {
 
     var body: some View {
         let glass = translucent && !reduceTransparency
-        let palette = NeumorphicPalette(dark: scheme == .dark, translucent: glass)
+        let palette = NeumorphicPalette(dark: scheme == .dark, translucent: glass, prominent: prominent)
         Group {
             if inset {
                 shape.fill(palette.well
@@ -56,8 +63,9 @@ struct NeumorphicSurface<S: InsettableShape>: View {
         }
         .overlay {
             shape.strokeBorder(LinearGradient(
-                colors: inset ? [palette.shade.opacity(0.3), palette.light] : [palette.light, palette.shade.opacity(0.25)],
-                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                colors: inset ? [palette.shade.opacity(0.3), palette.light]
+                    : [palette.light, palette.shade.opacity(prominent ? 0.65 : 0.25)],
+                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: prominent && outlineOnly ? 1 : 0.75)
             if contrast == .increased {
                 shape.strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
             }

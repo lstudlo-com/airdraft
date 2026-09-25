@@ -122,7 +122,9 @@ by 1.25 to about 51 by 25 points in a 30-point row.
 The capsule uses an outline-only `NeumorphicSurface`: a raised rim with no face
 fill or recessed well. The sidebar shows directly through its empty interior,
 including with Reduce Transparency. Raised neutral waveform bars and the caret
-catch light from the top left; increased contrast strengthens the edges. Keep the original leading alignment
+use the prominent neutral material: darker faces in light mode, brighter faces
+in dark mode, and a stronger one-point rim. They catch light from the top left;
+increased contrast strengthens the edges. Keep the original leading alignment
 and header spacing, with 54 points above and 20 points below the row.
 It has no hover, click or meter behavior.
 Expose it as one image named `Airdraft` to assistive technology.
@@ -205,7 +207,10 @@ in the icon's glowing caret. The bars are neumorphic pills, lit from the top lef
 and shadowed to the bottom right; height follows words, capped at 32 pt so the
 metrics lead. Bars are neutral at rest; only the hovered bar takes the icon's
 violet-to-cyan, and there is no left-to-right colour ramp. The well is pressed in
-with inner shade and light. The hero surface is grayscale; the caret and the
+with inner shade and light. The well is 60 pt tall with 24 pt minimum horizontal inner
+insets, bringing the waveform closer to all four edges without enlarging the
+bars. Light-mode bar faces use a darker silver gradient against the pale well.
+The hero surface is grayscale; the caret and the
 hovered bar are its only brand colour. With no history it shows the icon's
 five strokes and the shortcut. Bars magnify under the pointer and the caption
 names the hovered dictation. Entrance waits for initial history so animated

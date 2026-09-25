@@ -170,14 +170,14 @@ private struct SidebarBrandMark: View {
 
     var body: some View {
         ZStack {
-            NeumorphicSurface(shape: Capsule(), depth: 1, translucent: true, outlineOnly: true)
+            NeumorphicSurface(shape: Capsule(), depth: 1, translucent: true, outlineOnly: true, prominent: true)
 
             HStack(spacing: 30 * scale) {
                 ForEach(levels.indices, id: \.self) { index in
-                    NeumorphicSurface(shape: Capsule(), depth: 0.375)
+                    NeumorphicSurface(shape: Capsule(), depth: 0.375, prominent: true)
                         .frame(width: 38 * scale, height: 190 * levels[index] * scale)
                 }
-                NeumorphicSurface(shape: Capsule(), depth: 0.375)
+                NeumorphicSurface(shape: Capsule(), depth: 0.375, prominent: true)
                     .frame(width: 38 * scale, height: 208 * scale)
                     .padding(.leading, 20 * scale)
             }

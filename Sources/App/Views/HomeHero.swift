@@ -30,7 +30,8 @@ struct HomeHero: View {
 
     private static let caretWidth: CGFloat = 5
     private static let caretGap: CGFloat = 10
-    private static let wellHeight: CGFloat = 84
+    private static let wellHeight: CGFloat = 60
+    private static let wellHorizontalInset: CGFloat = 24
     /// The tallest bar: two thirds of the original hero's, so the metrics lead.
     private static let barMax: CGFloat = 32
     private static let caretHeight: CGFloat = 38
@@ -108,8 +109,8 @@ struct HomeHero: View {
         let startX: CGFloat
 
         init(size: CGSize, count: Int) {
-            // The capsule's rounded ends take roughly its height.
-            let inner = size.width - size.height * 1.1
+            // Leave room for the rounded ends while bringing the bars closer to the rim.
+            let inner = size.width - HomeHero.wellHorizontalInset * 2
             let available = inner - HomeHero.caretGap - HomeHero.caretWidth
             step = min(18, max(4, available / CGFloat(max(count, 1))))
             barWidth = min(7, max(3, step * 0.5))
@@ -304,11 +305,11 @@ private struct SoftPalette {
         } else {
             surfaceTop = Color(white: 0.955)
             surfaceBottom = Color(white: 0.9)
-            well = Color(white: 0.9)
-            raisedTop = Color(white: 0.97)
-            raisedBottom = Color(white: 0.8)
+            well = Color(white: 0.88)
+            raisedTop = Color(white: 0.82)
+            raisedBottom = Color(white: 0.56)
             light = .white
-            shade = .black.opacity(0.28)
+            shade = .black.opacity(0.32)
             rim = .white.opacity(0.9)
         }
     }
