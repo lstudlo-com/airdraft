@@ -10,6 +10,15 @@ local/remote engines, preset-driven setup, editable and resettable refinement
 profiles). Read it before touching UI, settings, or prompt handling, and keep its
 status table current.
 
+## External project resources
+
+- `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/` stores
+  miscellaneous files and resources related to Airdraft.
+- `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/competitor_analysis/repos/`
+  stores cloned repositories of competing products for reference and analysis.
+  Handy lives in `Handy/` from `https://github.com/cjpais/Handy`; VoiceInk lives in
+  `VoiceInk/` from `https://github.com/Beingpax/VoiceInk`.
+
 ## Structure
 
 - Moon is a small task runner around the existing Xcode layout. `.prototools` pins
