@@ -126,8 +126,8 @@ status table current.
   meter at each row's trailing edge. Omit decorative descriptions and a separate
   meter card; retain actionable permission and device errors. Monitor each device
   once, share its level with System Default, and stop previews when closed or dictating.
-  The microphone capsule rests recessed, becomes raised on hover, and has no
-  additional pressed treatment. Sidebar destination selection uses a raised
+  The microphone capsule stays recessed, with no hover or pressed treatment.
+  Sidebar destination selection uses a raised
   neumorphic surface with a translucent neutral fill that lets the sidebar blur
   show through. Its outer shadows exclude the face interior; Reduce Transparency
   restores the solid fill. The microphone capsule keeps its opaque material.

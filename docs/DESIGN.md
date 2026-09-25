@@ -248,8 +248,8 @@ same diagonal. `SurfaceShadows` draws outer shadows in a Canvas so live windows,
 Xcode previews and bitmap captures share one direction. Direct offset shadow
 modifiers invert vertically in AppKit bitmap capture on the current macOS;
 never compensate by reversing the live shadow or by changing only light mode.
-The microphone capsule rests recessed, becomes raised on hover, and keeps the
-same appearance when pressed. It dims while unavailable. Selected sidebar
+The microphone capsule stays recessed, with no hover or pressed treatment.
+It dims while unavailable. Selected sidebar
 destinations sit above the sidebar with a top-left highlight and an outer
 bottom-right shadow. Their translucent neutral fill transmits the sidebar's
 existing macOS blur; outer shadows exclude the face interior so they do not

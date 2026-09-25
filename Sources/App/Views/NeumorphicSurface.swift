@@ -84,16 +84,14 @@ struct MicrophoneButtonStyle: ButtonStyle {
     private struct CapsuleBody: View {
         let label: ButtonStyleConfiguration.Label
         @Environment(\.isEnabled) private var isEnabled
-        @State private var hovering = false
 
         var body: some View {
             label
                 .background {
-                    NeumorphicSurface(shape: Capsule(), inset: !hovering || !isEnabled, depth: 2.5)
+                    NeumorphicSurface(shape: Capsule(), inset: true, depth: 2.5)
                 }
                 .contentShape(Capsule())
                 .opacity(isEnabled ? 1 : 0.45)
-                .onHover { hovering = $0 }
         }
     }
 }
