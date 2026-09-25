@@ -216,6 +216,14 @@ status table current.
 
 ## Local releases
 
+Choose the display version before release preparation. Below 1.0, substantial
+features or broad UI/workflow redesigns increment the minor version and reset the
+patch; focused fixes increment the patch. Reserve an unchanged display version
+for rebuilds or packaging-only revisions. The Git-derived build number never
+substitutes for a product-version bump. Update `project.yml`, run XcodeGen and
+commit the regenerated `Sources/App/Info.plist`. See the version policy in
+`docs/updates.md`; the provider, recovery and interface overhaul is 0.2.0.
+
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push. The GitHub
 workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.

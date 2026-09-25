@@ -50,6 +50,26 @@ not install public Sparkle releases. See [Accessibility access](accessibility.md
 for migration and recovery steps when System Settings shows an enabled switch
 but the running app is untrusted.
 
+## Version policy
+
+Choose the display version from the product changes before preparing a release.
+While Airdraft is below 1.0:
+
+- Increment the minor version and reset the patch for substantial new features,
+  broad UI or workflow redesigns, or deliberately incompatible behavior.
+  The provider, recovery and interface overhaul is **0.2.0**, following 0.1.9.
+- Increment the patch for focused fixes and small refinements within that feature
+  set, such as 0.2.0 to 0.2.1.
+- Keep the display version only for rebuilds or packaging-only revisions with the
+  same product changes. A larger build number never substitutes for a feature
+  release's minor-version bump.
+
+`project.yml` owns `CFBundleShortVersionString`; run XcodeGen after changing it
+and commit the regenerated `Sources/App/Info.plist`. `CFBundleVersion` remains
+the increasing full Git commit count used by Sparkle. Version 1.0 is a separate
+product-readiness milestone. Version numbers do not imply notarization or change
+the signing and distribution requirements below.
+
 ## Automatic releases from this Mac
 
 Run once after cloning on the release Mac:
@@ -88,7 +108,8 @@ Every push to `origin/main` performs these steps:
 3. Use the complete Git commit count as the increasing `CFBundleVersion`.
    The display version comes from `project.yml`. For example, version `0.1.1`,
    build `3` produces tag `v0.1.1-build.3`. Each push gets a distinct build without
-   a generated version commit. Bump the display version when appropriate.
+   a generated build-number commit. Choose the display version using the version
+   policy above before preparing the release.
 4. Create the DMG, mount it read-only, and verify the bundled app’s signing
    identity again. Sign the archive and `appcast.xml` with Sparkle, and attach a
    SHA-256 manifest identifying the source commit and Apple signing identity.

@@ -12,10 +12,11 @@ interface ChangelogEntry {
 // Newest first. Add release dates and versions only when they are published.
 export const changelog: ChangelogEntry[] = [
   {
-    id: "unreleased",
-    title: "A clearer way to choose your models",
+    id: "0-2-0",
+    date: "2026-09-26",
+    title: "0.2.0: New speech controls and a refreshed interface",
     summary:
-      "In development. These changes are not part of a published release yet.",
+      "This personal-use build is signed with Apple Development and is not notarized. A supported, notarized public installer is not available yet.",
     changes: [
       {
         title: "Check your connection",
@@ -28,9 +29,14 @@ export const changelog: ChangelogEntry[] = [
           "Choose from each provider’s supported models, with pricing and available quality and speed information linked to official documentation. Unpublished metrics are clearly marked.",
       },
       {
-        title: "More consistent settings",
+        title: "A refreshed native interface",
         description:
-          "Local and cloud model lists share their layout and rating bars. Configuration, Models, and History use consistent section spacing.",
+          "A collapsible sidebar, live microphone meters, and a scrolling history timeline join consistent settings and model lists.",
+      },
+      {
+        title: "Safer recording and recovery",
+        description:
+          "Airdraft checks recording prerequisites before capture and keeps failed speech audio available to retry or discard. Refinement errors still preserve the raw transcript.",
       },
     ],
   },

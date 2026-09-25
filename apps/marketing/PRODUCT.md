@@ -26,9 +26,11 @@ a paid subscription.
   local engines kept in the root `CLAUDE.md`; update them together.
 - Both steps can stay local with local engines. Cloud speech receives audio; cloud refinement and the Claude Code / Codex CLIs receive the transcript. API keys live in the macOS Keychain. Local models download only when chosen on the Models page.
 - Built-in profiles are Clean, Concise, Summary and Verbatim; they are editable and resettable. The website's sample is authored text, not a live microphone or model benchmark.
-- There is currently no published binary release. The paid option will be a ready-to-run app
-  (no Xcode needed); its price and date are not announced. "Get Airdraft" actions lead to the
-  pricing page; source actions lead to the repository and its build instructions.
+- Version 0.2.0 is a personal-use release signed with Apple Development and is not
+  notarized. A supported, notarized public installer is not available yet. The paid
+  option will be a ready-to-run app (no Xcode needed); its price and date are not
+  announced. "Get Airdraft" actions lead to the pricing page; source actions lead
+  to the repository and its build instructions.
 - Airdraft is open source and donation-supported. `src/data/site.ts` controls optional content:
   the Buy Me a Coffee URL (pricing and support pages), the license (footer, only once a LICENSE
   file exists), and the paid plan (pricing page, only once it is real). Until set, donation
@@ -39,7 +41,9 @@ a paid subscription.
 - Support troubleshooting comes from the root README's First run and Known issues sections.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
-- Changelog entries distinguish unreleased development from dated public source history. Never invent a release version or publication date.
+- Changelog entries distinguish unreleased development, dated source history and
+  personal-use releases from supported public distribution. Never invent a release
+  version or publication date, or imply that a version number proves notarization.
 - Do not invent pricing, performance measurements, testimonials, usage counts, licensing, or a download URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.
 
