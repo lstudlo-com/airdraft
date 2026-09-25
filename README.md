@@ -7,7 +7,7 @@ Both engines are pluggable and switchable at runtime in Settings:
 
 | Stage | Local | Remote |
 |---|---|---|
-| Speech recognition | Qwen3-ASR 1.7B / 0.6B (MLX), FireRedASR2-AED and SenseVoice-small (sherpa-onnx), Cohere Transcribe 2B (MLX), Whisper Large v3 Turbo (Core ML), Apple SpeechAnalyzer (macOS 26) | OpenAI gpt-4o-transcribe, Groq whisper-large-v3-turbo, any OpenAI-compatible endpoint, ElevenLabs Scribe v2 |
+| Speech recognition | Qwen3-ASR 1.7B / 0.6B (MLX), FireRedASR2-AED and SenseVoice-small (sherpa-onnx), Cohere Transcribe 2B (MLX), Whisper Large v3 Turbo (Core ML), Apple SpeechAnalyzer (macOS 26) | Soniox v5, Groq Whisper v3 Turbo, ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3 |
 | Refinement | LM Studio / Ollama / llama-server / any OpenAI-compatible server; Claude Code and Codex CLIs on your own subscription | OpenAI, Anthropic, Google Gemini, OpenRouter — each through its own native API and key |
 
 The LLM is best-effort: a timeout or error inserts the raw transcript instead of blocking.
@@ -31,7 +31,7 @@ recording pill appears at the bottom centre of the screen.
   including Extra high and Max where available. A saved unsupported level
   uses the nearest lower supported level; Off uses the minimum when required.
 
-The ten engines and why each is kept are compared in `docs/model-atlas.html`.
+Local model research is recorded in `docs/model-atlas.html`. The five current cloud APIs, their purposes, pricing and contracts are documented in [Cloud transcription](docs/transcription-apis.md).
 
 ## Pipeline
 
@@ -157,12 +157,17 @@ cd Packages/AirdraftCore && swift build --product airdraft-cli
 ```
 
 Speech: `--whisper [VARIANT]` (default), `--qwen3 [ID]`, `--cohere [ID]`, `--sensevoice`, `--firered`,
-`--apple [LOCALE]`, `--elevenlabs [MODEL]`, or `--url/--model/--key` for an OpenAI-compatible API.
-Refinement: `--llm-url/--llm-model/--llm-key`, `--mode clean|concise|summary`,
+`--apple [LOCALE]`, `--elevenlabs [MODEL]`, or `--url/--model` for an OpenAI-compatible API.
+Refinement: `--llm-url/--llm-model`, `--mode clean|concise|summary`,
 `--family email|workChat|personalChat|document|code|terminal|general`, `--script traditional|simplified|auto`.
 Context: `--app`, `--window`, `--page-url`, `--before`, `--after`, `--selected` (edit mode), `--recent "a||b"`.
+Keys: set `AIRDRAFT_ASR_KEY` and `AIRDRAFT_LLM_KEY` rather than passing `--key`/`--llm-key`,
+which other processes and your shell history can see.
 
 ## Verification without a GUI
+
+Renders and self-tests exist only in Debug builds; Release builds ignore these
+arguments and variables.
 
 ```sh
 APP=$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -showBuildSettings | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2}')/airdraft.app/Contents/MacOS/airdraft
@@ -256,7 +261,7 @@ Sources/App/
 Packages/AirdraftCore/               Engine-agnostic core (SwiftPM)
   Sources/AirdraftCore/
     Audio/        AudioRecorder (16 kHz mono), AudioChunker, WAVEncoder, AudioFile
-    ASR/          Transcriber protocol and the eight engine implementations
+    ASR/          Local engines, five cloud APIs and custom endpoint support
     LLM/          Refiner protocol, PromptBuilder, profiles, LM Studio control,
                   OpenAI-compatible / Anthropic / Gemini / CLI (Claude Code, Codex) refiners
     Providers/    Configs and presets, EngineFactory, LocalModels, ModelDownloader, Keychain

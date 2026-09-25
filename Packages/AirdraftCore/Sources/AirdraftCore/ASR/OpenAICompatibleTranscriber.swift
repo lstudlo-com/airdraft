@@ -9,23 +9,28 @@ public struct OpenAICompatibleTranscriber: Transcriber {
     public let model: String
     public let apiKey: String?
     public let timeout: TimeInterval
+    private let http: TranscriptionHTTP
+    private let requiresKey: Bool
 
-    public init(baseURL: URL, model: String, apiKey: String?, timeout: TimeInterval = 30) {
+    public init(baseURL: URL, model: String, apiKey: String?, timeout: TimeInterval = 30, id: String? = nil, requiresKey: Bool = false, session: URLSession = .shared) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.timeout = timeout
-        self.id = "openai-compatible:\(baseURL.host ?? "?")/\(model)"
+        self.http = TranscriptionHTTP(session: session)
+        self.requiresKey = requiresKey
+        self.id = id ?? "openai-compatible:\(baseURL.host ?? "?")/\(model)"
     }
 
     public func prepare() async throws {}
 
-    public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+    func makeRequest(samples: [Float], hints: TranscriptionHints) throws -> URLRequest {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
-        let started = Date()
+        if requiresKey { _ = try TranscriptionHTTP.requireKey(apiKey, provider: "Groq") }
+        if baseURL.host == "api.groq.com" { try SpeechInputLimits.validate(sampleCount: samples.count, for: .groq) }
 
         var fields: [(String, String)] = [("model", model), ("response_format", "json")]
-        if let lang = hints.language { fields.append(("language", lang)) }
+        if let lang = hints.isoLanguage { fields.append(("language", lang)) }
         if let prompt = hints.promptText { fields.append(("prompt", prompt)) }
         let form = MultipartForm()
 
@@ -38,15 +43,13 @@ public struct OpenAICompatibleTranscriber: Transcriber {
         }
         request.httpBody = form.body(fields: fields, wav: WAVEncoder.encode(samples: samples))
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw TranscriberError.invalidResponse }
-        guard (200..<300).contains(http.statusCode) else {
-            throw TranscriberError.http(status: http.statusCode, body: String(decoding: data, as: UTF8.self))
-        }
+        return request
+    }
+
+    public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        let started = Date()
         struct Reply: Decodable { let text: String; let language: String? }
-        guard let reply = try? JSONDecoder().decode(Reply.self, from: data) else {
-            throw TranscriberError.invalidResponse
-        }
+        let reply = try await http.decode(Reply.self, from: makeRequest(samples: samples, hints: hints))
         let ms = Int(Date().timeIntervalSince(started) * 1000)
         return Transcript(
             text: reply.text.trimmingCharacters(in: .whitespacesAndNewlines),

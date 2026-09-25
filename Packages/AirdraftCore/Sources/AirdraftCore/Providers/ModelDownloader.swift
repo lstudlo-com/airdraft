@@ -20,22 +20,28 @@ public actor ModelDownloader {
         case listing(status: Int)
         case download(file: String, status: Int)
         case emptyListing
+        case alreadyInProgress
+        case incomplete
+        case unsafePath(String)
         public var errorDescription: String? {
             switch self {
             case .listing(let s): return "Could not list model files (HTTP \(s))."
             case .download(let f, let s): return "Download of \(f) failed (HTTP \(s))."
+            case .alreadyInProgress: return "This model is already downloading."
+            case .incomplete: return "The model download is incomplete. Retry to finish the missing files."
             case .emptyListing: return "The model folder is empty on Hugging Face."
+            case .unsafePath(let path): return "Refused to download \(path): it points outside the models folder."
             }
         }
     }
 
     public typealias ProgressHandler = @Sendable (Progress) -> Void
 
-    /// Keys of downloads in flight; a second request for the same model is ignored.
+    /// Keys of downloads in flight; a second request fails instead of claiming completion.
     private var active: Set<String> = []
 
     private func exclusive(_ key: String, _ work: () async throws -> Void) async throws {
-        guard !active.contains(key) else { return }
+        guard !active.contains(key) else { throw DownloadError.alreadyInProgress }
         active.insert(key)
         defer { active.remove(key) }
         try await work()
@@ -43,13 +49,32 @@ public actor ModelDownloader {
 
     /// Downloads whatever the engine `config` selects needs; no-op for engines without files.
     public func download(_ config: ASRConfig, progress: @escaping ProgressHandler) async throws {
+        try await exclusive("install:\(config.engineID)") {
+            let marker: URL?
+            if let folder = LocalModels.folder(for: config) {
+                let root = LocalModels.root.standardizedFileURL.resolvingSymlinksInPath().path + "/"
+                guard folder.standardizedFileURL.resolvingSymlinksInPath().path.hasPrefix(root) else {
+                    throw DownloadError.unsafePath(folder.path)
+                }
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                marker = folder.appendingPathComponent(LocalModels.incompleteMarker)
+                try Data().write(to: marker!, options: .atomic)
+            } else { marker = nil }
+            try await downloadFiles(config, progress: progress)
+            try Task.checkCancellation()
+            guard LocalModels.hasFiles(config) else { throw DownloadError.incomplete }
+            if let marker { try FileManager.default.removeItem(at: marker) }
+        }
+    }
+
+    private func downloadFiles(_ config: ASRConfig, progress: @escaping ProgressHandler) async throws {
         switch config.kind {
         case .whisperKit: try await downloadWhisper(variant: config.whisperModel, progress: progress)
         case .qwen3: try await downloadQwen3(modelId: config.qwen3Model, progress: progress)
         case .cohere: try await downloadCohere(modelId: config.cohereModel, progress: progress)
         case .fireRed: try await downloadSherpa(model: .fireRed, progress: progress)
         case .senseVoice: try await downloadSherpa(model: .senseVoice, progress: progress)
-        case .apple, .openAICompatible, .elevenLabs: return
+        case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return
         }
     }
 
@@ -95,13 +120,9 @@ public actor ModelDownloader {
             try? FileManager.default.removeItem(at: archive)
             try FileManager.default.moveItem(at: tmp, to: archive)
             defer { try? FileManager.default.removeItem(at: archive) }
-            let tar = Process()
-            tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-            tar.arguments = ["-xjf", archive.path, "-C", root.path]
-            try tar.run()
-            tar.waitUntilExit()
-            guard tar.terminationStatus == 0, LocalModels.hasSherpa(model) else {
-                throw DownloadError.download(file: model.folderName, status: Int(tar.terminationStatus))
+            let status = try await Self.unpack(archive, into: root)
+            guard status == 0, LocalModels.hasSherpa(model) else {
+                throw DownloadError.download(file: model.folderName, status: Int(status))
             }
         }
     }
@@ -116,6 +137,10 @@ public actor ModelDownloader {
             let total = max(1, modelFiles.reduce(Int64(0)) { $0 + ($1.size ?? 0) })
             var completed: Int64 = 0
             for entry in modelFiles {
+                // The listing comes from the network: never let a path leave the models folder.
+                guard !entry.path.hasPrefix("/"), !entry.path.split(separator: "/").contains("..") else {
+                    throw DownloadError.unsafePath(entry.path)
+                }
                 let dest = LocalModels.whisperKitRoot.appendingPathComponent(entry.path)
                 let name = (entry.path as NSString).lastPathComponent
                 progress(Progress(fraction: Double(completed) / Double(total), currentFile: name))
@@ -127,11 +152,25 @@ public actor ModelDownloader {
             }
 
             guard !LocalModels.hasWhisperTokenizer else { return }
-            let tokenizerNames = ["tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "vocab.json", "merges.txt", "added_tokens.json", "normalizer.json", "config.json", "generation_config.json"]
-            for name in tokenizerNames {
+            for name in LocalModels.whisperTokenizerFiles {
+                try Task.checkCancellation()
+                let file = LocalModels.whisperTokenizerFolder.appendingPathComponent(name)
+                let size = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.size] as? Int64 ?? 0
+                if size > 0 { continue }
                 progress(Progress(fraction: 1, currentFile: name))
                 try await download(repo: "openai/whisper-large-v3", path: name, to: LocalModels.whisperTokenizerFolder.appendingPathComponent(name))
             }
+        }
+    }
+
+    /// bsdtar refuses absolute and `..` member paths by default.
+    private static func unpack(_ archive: URL, into root: URL) async throws -> Int32 {
+        let tar = Process()
+        tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        tar.arguments = ["-xjf", archive.path, "-C", root.path]
+        return try await withCheckedThrowingContinuation { continuation in
+            tar.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
+            do { try tar.run() } catch { continuation.resume(throwing: error) }
         }
     }
 
@@ -162,7 +201,11 @@ public actor ModelDownloader {
             throw DownloadError.download(file: path, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
         }
         try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? FileManager.default.removeItem(at: dest)
-        try FileManager.default.moveItem(at: tmp, to: dest)
+        try Task.checkCancellation()
+        if FileManager.default.fileExists(atPath: dest.path) {
+            _ = try FileManager.default.replaceItemAt(dest, withItemAt: tmp)
+        } else {
+            try FileManager.default.moveItem(at: tmp, to: dest)
+        }
     }
 }

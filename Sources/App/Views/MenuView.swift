@@ -29,6 +29,14 @@ struct MenuView: View {
         if container.pipeline.state.isBusy {
             Button("Cancel") { container.pipeline.cancel() }
         }
+        if let issue = container.pipeline.lastIssue {
+            Text(issue)
+            Button("Show Recovery…") { container.navigation.page = .home; container.showMainWindow(openWindow) }
+        }
+        if container.pipeline.hasRecoverableRecording {
+            Button("Retry Transcription") { container.pipeline.retryRecording() }.disabled(container.pipeline.isBusy)
+            Button("Discard Recording") { container.pipeline.discardRecording() }.disabled(container.pipeline.isBusy)
+        }
         Divider()
 
         MicrophonePicker()
@@ -38,7 +46,7 @@ struct MenuView: View {
             set: { container.profiles.setActive($0) }
         )) {
             ForEach(container.profiles.profiles) { profile in
-                Label(profile.name, systemImage: profile.symbol).tag(profile.id)
+                Text(profile.name).tag(profile.id)
             }
         }
         Picker("Refinement", selection: Binding(
@@ -101,7 +109,8 @@ struct MenuView: View {
         case .whisperKit: return "WhisperKit"
         case .apple: return "Apple Speech"
         case .openAICompatible: return "Custom server"
-        case .elevenLabs: return "ElevenLabs"
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
+            return container.settings.asr.kind.preset?.name ?? "Cloud"
         }
     }
 
@@ -120,7 +129,7 @@ struct MenuView: View {
 
     private var llmSummary: String {
         guard container.settings.llm.kind != .none else { return "Refinement: Off" }
-        return "LLM: \(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
+        return "Refinement: \(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
     }
 
     private var llmDetail: String {
@@ -145,7 +154,8 @@ struct MenuView: View {
         case .transcribing: return "Transcribing…"
         case .refining: return "Refining…"
         case .inserting: return "Inserting…"
-        case .failed: return "Dictation failed"
+        // The HUD shows a failure only briefly; keep the reason readable here.
+        case .failed(let message): return "Failed: \(message.prefix(80))"
         case .notice(let message): return message
         }
     }

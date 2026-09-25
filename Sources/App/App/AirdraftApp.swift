@@ -12,6 +12,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if shutdownFinished { return .terminateNow }
         if !shutdownStarted {
+            let app = AppContainer.shared
+            if app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
+               app.dictionary.persistenceError != nil || app.profiles.persistenceError != nil ||
+               app.pipeline.isBusy || app.downloads.isBusy {
+                let alert = NSAlert()
+                alert.messageText = "Quit with unfinished work?"
+                alert.informativeText = "Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
+                alert.addButton(withTitle: "Keep Open")
+                alert.addButton(withTitle: "Quit and Discard")
+                guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
+                app.pipeline.cancel()
+                app.downloads.cancelAll()
+            }
             shutdownStarted = true
             Task { @MainActor [weak self] in
                 await AppContainer.shared.models.shutdown()
@@ -29,51 +42,62 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if runDebugEntryPoint() { return }
+        #endif
+        AppContainer.shared.start()
+        AppContainer.shared.updates.start()
+    }
+
+    #if DEBUG
+    /// Renders and self-tests. Returns true when one of them owns this launch.
+    @MainActor private func runDebugEntryPoint() -> Bool {
         // Debug aid: `airdraft --render-hud /path/out.png` writes the HUD as an
         // image and exits, so the design can be checked without screen recording.
         let args = CommandLine.arguments
         if let idx = args.firstIndex(of: "--preview-profiles"), idx + 1 < args.count {
             ProfilePreview.open(directory: URL(fileURLWithPath: args[idx + 1]))
-            return
+            return true
         }
         if let idx = args.firstIndex(of: "--render-profile-states"), idx + 1 < args.count {
             ProfilePreview.render(to: URL(fileURLWithPath: args[idx + 1]))
             NSApp.terminate(nil)
-            return
+            return true
         }
         if let idx = args.firstIndex(of: "--render-hud"), idx + 1 < args.count {
             DebugRender.renderHUD(to: URL(fileURLWithPath: args[idx + 1]))
             NSApp.terminate(nil)
-            return
+            return true
         }
         // `airdraft --render-window <page> <dir> [height]` writes <dir>/<page>-{dark,light}.png and exits.
         if let idx = args.firstIndex(of: "--render-window"), idx + 2 < args.count {
             let height = args.count > idx + 3 ? Double(args[idx + 3]) ?? 660 : 660
             DebugRender.renderWindow(pageName: args[idx + 1], toDirectory: URL(fileURLWithPath: args[idx + 2]), height: height)
             NSApp.terminate(nil)
-            return
+            return true
         }
         if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == "microphones" {
             MicrophoneSelfTest.run()
-            return
+            return true
+        }
+        if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == "connections" {
+            SelfTest.run(mode: "connections")
+            return true
         }
         if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST_ISOLATED"] == "1",
            let path = ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] {
             IsolatedPipelineSelfTest.run(path: path)
-            return
+            return true
         }
-        AppContainer.shared.start()
-        if ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] == nil {
-            AppContainer.shared.updates.start()
-        }
-
         // Self-test: AIRDRAFT_SELFTEST=mic records 3 s from the microphone;
         // AIRDRAFT_SELFTEST=<path.wav> feeds that file. Either way the HUD, the
         // engines, the dictionary and history run for real; insertion is skipped.
-        if let mode = ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] {
-            SelfTest.run(mode: mode)
-        }
+        guard let mode = ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST"] else { return false }
+        AppContainer.shared.start()
+        SelfTest.run(mode: mode)
+        return true
     }
+    #endif
 }
 
 @main
@@ -95,14 +119,30 @@ struct AirdraftApp: App {
                 .environment(container)
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentMinSize)
-        .defaultSize(width: 980, height: 660)
+        .windowResizability(.contentSize)
+        .defaultSize(width: Theme.windowWidth, height: 660)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { container.updates.checkForUpdates() }
                     .disabled(!container.updates.canCheckForUpdates)
             }
+            // Configuration is the app's settings, so ⌘, opens it.
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") { show(.configuration) }
+                    .keyboardShortcut(",")
+            }
+            CommandMenu("Go") {
+                ForEach(Array(Page.allCases.enumerated()), id: \.element) { index, page in
+                    Button(page.title) { show(page) }
+                        .keyboardShortcut(KeyEquivalent(Character(String(index + 1))))
+                }
+            }
         }
+    }
+
+    private func show(_ page: Page) {
+        container.navigation.page = page
+        container.showMainWindow()
     }
 }
 

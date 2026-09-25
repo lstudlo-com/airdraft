@@ -3,6 +3,8 @@ import Foundation
 public enum AppIdentity {
     public static let bundleID = "com.lstudlo.app.airdraft"
     public static let legacyBundleID = "com.lightiichen.transcribar"
+    /// Unified-log subsystem. Kept from the old identity so existing `log show` filters still work.
+    public static let logSubsystem = "com.lightiichen.airdraft"
     private static let migrationKey = "airdraft.legacyDefaultsImported"
 
     /// Copy once, preserving any values already saved under the new identity.

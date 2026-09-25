@@ -68,14 +68,22 @@ public enum TranscriberError: Error, LocalizedError {
     case invalidResponse
     case modelNotDownloaded
     case appleUnavailable
+    case missingAPIKey(String)
+    case timedOut
+    case providerFailure(String, String)
 
     public var errorDescription: String? {
         switch self {
         case .emptyAudio: return "No audio was captured."
-        case .http(let status, let body): return "Transcription API returned HTTP \(status): \(body.prefix(300))"
-        case .invalidResponse: return "Transcription API returned an unexpected response."
+        case .http(let status, let body):
+            let detail = ProviderErrorBody.summary(body).map { ": \($0)" } ?? "."
+            return "Speech provider returned HTTP \(status)\(detail)"
+        case .invalidResponse: return "The speech provider returned an unexpected response."
         case .modelNotDownloaded: return "Speech model is not downloaded. Download it on the Models page."
         case .appleUnavailable: return "Apple speech recognition needs macOS 26 or newer."
+        case .missingAPIKey(let provider): return "Add your \(provider) API key on the Models page."
+        case .timedOut: return "Transcription took too long. Please try again."
+        case .providerFailure(let provider, let message): return "\(provider): \(message.prefix(300))"
         }
     }
 }

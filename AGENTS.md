@@ -52,6 +52,11 @@ status table current.
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
   It is a static image, not a button or a live meter.
+  Collapsing the sidebar keeps an icon rail. Derive its width from the unchanged
+  brand width plus equal 20-point side insets. Center destination, microphone
+  and available account icons horizontally while preserving their expanded
+  vertical positions and row heights. Hide text, retain tooltips and accessible
+  names, and keep the titlebar toggle available to expand it again.
   The outlined `SidebarWordmark.imageset` SVG remains the website and installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
   keep its capsule strokes and lowercase lettering paths intact.
@@ -63,8 +68,6 @@ status table current.
   upper half at 70% opacity, then fade smoothly to 100% at the bottom edge.
   Reduce Transparency makes the entire background fully opaque. Tint the
   background only; keep sidebar content fully opaque.
-- Inset native Close and Minimize buttons 16 points from the top and leading
-  edges; hide Zoom. Align the sidebar toggle with their centers in the 46-point titlebar.
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
   byte-for-byte replicas. Whenever documentation, Markdown, project behavior or
   workflows change, update affected guidance in both files in the same change;
@@ -98,10 +101,44 @@ status table current.
   actions immediately beside their selector rather than separating them with a
   fixed-width invisible frame. Provider selection uses one compact picker, not
   a grid of decorative provider cards. Profile list rows use names without icons.
+  The sidebar microphone overlay contains device choices with a live ten-cell
+  meter at each row's trailing edge. Omit decorative descriptions and a separate
+  meter card; retain actionable permission and device errors. Monitor each device
+  once, share its level with System Default, and stop previews when closed or dictating.
+  The microphone capsule rests recessed, becomes raised on hover, and has no
+  additional pressed treatment. Sidebar destination selection uses a raised
+  neumorphic surface with a translucent neutral fill that lets the sidebar blur
+  show through. Its outer shadows exclude the face interior; Reduce Transparency
+  restores the solid fill. The microphone capsule keeps its opaque material.
+  Home summary fills use one solid color.
+  Keep the main window 784 points wide with resizable height (minimum 600 points).
+  Hide its green zoom/full-screen button; preserve Close and Minimize.
+  Inset the native window buttons 16 points from the top and leading edges;
+  align the sidebar toggle with their centers in the 46-point titlebar.
+  History has a compact 52-point timeline beside its independently scrolling
+  cards. One time-and-tick button jumps to each entry; the current entry stays
+  highlighted as the cards scroll. Keep day groups, search, lazy card loading
+  and native card actions. The timeline follows the same filtered records.
+  Home waveform entrance waits for initial history, then animates rendered scale
+  once; never animate placeholder replacement or per-frame bar layout height.
+  Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
+  `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
+  for every provider key instead of page-specific variants. Buttons and menu items
+  use title case; section headings use sentence case.
   Read the interface consistency rules in `docs/PRODUCT.md` and inspect light/dark
-  renders at minimum and wider window sizes, including lower sections. Check every
+  renders at the fixed 784-point width and minimum/taller heights, including lower sections. Check every
   page for the same alignment and input pattern. For a released UI fix, verify the app built
   from the committed release sources, not only the dirty workspace.
+- Extend Home's neumorphic material only to the sidebar brand capsule, selected sidebar destinations, the microphone capsule and per-device
+  meters, shortcut keycaps, appearance preview frames, Home summary tracks and the
+  recording HUD. Reuse `NeumorphicSurface` for neutral raised surfaces and inset
+  tracks. Light comes from the top left in both appearances: raised surfaces
+  highlight their top-left edge and cast shadows down-right; recessed surfaces
+  shade the inner top-left edge and light the inner bottom-right edge.
+  Use `SurfaceShadows` for outer shadows: AppKit bitmap capture can invert the
+  vertical offset of SwiftUI's direct shadow modifiers. Check the live window
+  as well as saved renders. Keep native selection/focus cues, card insets and live waveform contrast;
+  leave text lists, standard action buttons and model tables in their native style.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
@@ -131,7 +168,14 @@ status table current.
   `--bare` is not an option: it disables OAuth, which is the whole point.
   Claude Code is started while the user is still speaking (`CLIWarmPool`, streaming stdin), which
   hides its ~1.3 s session setup behind recording and ASR. Codex `exec` has no streaming input and
-  always runs cold.
+  always runs cold. Launch and read CLI processes only through `CLIProcess` / `PipeLineReader`
+  (output drained while running, wall-clock deadline, cancellation, SIGKILL fallback).
+- Each dictation owns a generation and cancellable release timer. Stale asynchronous
+  work must never change a newer session or insert text. Capture the local insertion
+  target independently of optional LLM context; require the same focused field and
+  selection before inserting, and never replay an uncertain Accessibility write.
+  Reject incomplete refinement responses and bound discovery, model loading and
+  compatibility retries by one end-to-end refinement deadline.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:
   LLM error or timeout still inserts the raw transcript.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
@@ -172,6 +216,9 @@ not provide that identity. Keep `scripts/release-signing.json` pinned. Certifica
 or team changes need an explicit migration review, not an automatic fallback.
 Verify the app inside the DMG and run the real updater identity checks. Do not
 claim that signing tests prove permission continuity on an untested second Mac.
+Keep `ENABLE_HARDENED_RUNTIME: YES`: an unsandboxed app holding Microphone and
+Accessibility access must not load injected code. Renders and self-tests compile
+only into Debug builds; never ship an environment- or argument-triggered path.
 
 The DMG installer uses `scripts/build-dmg.py` through `package-update.py`.
 Keep its locked `uv` dependencies, `scripts/dmg-layout.json` and the code-rendered
@@ -188,10 +235,22 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   works but builds a second ~6 GB tree in `Packages/AirdraftCore/.build`.
 - Build: the same command with `build`. Do not pass `-derivedDataPath`: a build tree inside the
   repo duplicates Xcode's and is how the repo grew to 10 GB.
-- UI: `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
+- Shadow direction: compile `Sources/App/Views/SurfaceShadows.swift` with
+  `scripts/verify-native-shadows.swift` using `xcrun swiftc`, then run the result.
+  It checks raised and inset directions in both appearances through NSHostingView
+  bitmap capture and ImageRenderer. `--legacy` reproduces the old outer-shadow failure.
+- UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
+  Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
+  `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to
+  see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
+  `AIRDRAFT_RENDER_SIDEBAR_COLLAPSED=1` renders the compact icon rail; compare
+  it with the expanded sidebar at the same window height.
 - Interactive `--preview-profiles` windows must call `startAppearanceUpdates()` so
   Auto, Light and Dark affect the window without starting hotkeys, models or the updater.
-- Pipeline: launch with `AIRDRAFT_SELFTEST=<wav>` (or `mic`, `lifecycle`, `window`), optionally
+- Xcode previews (`#Preview`, Debug only) are for fast iteration, not a substitute for the renders
+  above. Build them from `Debug/PreviewData.swift` (throwaway history, settings suite and data
+  directory); never from `AppContainer.shared`, which would read the user's real data.
+- Pipeline (Debug builds): launch with `AIRDRAFT_SELFTEST=<wav>` (or `mic`, `lifecycle`, `window`), optionally
   `AIRDRAFT_SELFTEST_ASR=<ASRProviderKind raw value>[:model]` (e.g. `senseVoice`, `qwen3:<id>`), and read
   `/usr/bin/log show --predicate 'subsystem == "com.lightiichen.airdraft"'`.
   Synthetic key events and screenshots from this shell do not work (no Accessibility /
@@ -230,5 +289,21 @@ Artifact signing checks require Hardened Runtime as well as the pinned identity.
 Public distribution additionally requires `scripts/verify-public-distribution.py`
 on the final app and DMG. Do not relabel Apple Development builds as public-ready
 or change the pinned identity without the explicit migration review.
+
+## Recording and recovery invariants
+
+Check recording prerequisites before opening the microphone or prewarming a
+refiner: permission, insertion access, selected device/channel, model installation
+and readiness, endpoint validity, and required speech/refinement credentials.
+Never prompt for a credential implicitly. A blocked attempt opens Home with an
+actionable reason, even when the HUD is hidden. Refinement Off and Verbatim do not
+require refinement credentials; unexpected refinement errors still preserve raw text.
+Recording callbacks, release timers and asynchronous results belong to their session.
+Keep failed speech audio in memory for explicit retry or discard, and warn before
+quitting with recoverable audio or unsaved changes. Saving failures must stay visible.
+Engine loading, inference and unloading share the factory lease. Downloads belong
+to `ModelDownloadStore`, survive page navigation, and cannot select incomplete files.
+A late download must not replace a newer provider choice. Release builds exclude
+sample account data. Overlay focus stays inside the modal and returns to its trigger.
 
 Microphone choices exclude hidden Core Audio devices and temporary `CADefaultDeviceAggregate` bridges created by audio engines; user-created aggregate inputs remain available.

@@ -42,6 +42,7 @@ struct MainWindowView: View {
     var profileSelection: UUID?
     var microphoneRenderLevel: Float?
     @State private var activeOverlay: WindowOverlay?
+    @FocusState private var overlayFocus: WindowOverlay?
 
     init(profileSelection: UUID? = nil, previewOverlay: WindowOverlay? = nil, microphoneRenderLevel: Float? = nil) {
         self.profileSelection = profileSelection
@@ -51,20 +52,18 @@ struct MainWindowView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            if !container.navigation.sidebarCollapsed {
-                SidebarView(
-                    openMicrophone: { activeOverlay = activeOverlay == .microphone ? nil : .microphone },
-                    openSettings: { activeOverlay = .settings }
-                )
-                    .frame(width: Theme.sidebarWidth)
-                    .background(SidebarBackground())
-                    .overlay(alignment: .trailing) {
-                        Rectangle()
-                            .fill(Color.primary.opacity(0.06))
-                            .frame(width: 0.5)
-                            .allowsHitTesting(false)
-                    }
-                    .transition(.move(edge: .leading))
+            SidebarView(
+                openMicrophone: { activeOverlay = activeOverlay == .microphone ? nil : .microphone },
+                openAccount: { activeOverlay = .account },
+                overlayFocus: $overlayFocus
+            )
+            .frame(width: container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedWidth : Theme.sidebarWidth)
+            .background(SidebarBackground())
+            .overlay(alignment: .trailing) {
+                Rectangle()
+                    .fill(Color.primary.opacity(0.06))
+                    .frame(width: 0.5)
+                    .allowsHitTesting(false)
             }
             ZStack {
                 Color(nsColor: .windowBackgroundColor)
@@ -72,6 +71,8 @@ struct MainWindowView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .disabled(activeOverlay != nil)
+        .accessibilityHidden(activeOverlay != nil)
         .overlay(alignment: .topLeading) {
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) {
@@ -80,32 +81,39 @@ struct MainWindowView: View {
             } label: {
                 Image(systemName: "sidebar.left")
                     .font(.system(size: 14))
-                    .frame(width: 28, height: Theme.titlebarHeight)
+                    .frame(width: Theme.sidebarToggleWidth, height: Theme.titlebarHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .focusEffectDisabled()
             .foregroundStyle(.secondary)
-            .padding(.leading, Theme.sidebarToggleLeading)
-            .help(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
-            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Show sidebar" : "Hide sidebar")
+            .padding(.leading, container.navigation.sidebarCollapsed
+                ? Theme.sidebarCollapsedWidth - Theme.sidebarContentInset - Theme.sidebarToggleWidth
+                : Theme.sidebarToggleLeading)
+            .help(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
+            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityIdentifier("sidebar.toggle")
             .disabled(activeOverlay != nil)
             .accessibilityHidden(activeOverlay != nil)
         }
         .background(TranslucentWindowView())
         .ignoresSafeArea()
-        .frame(minWidth: 900, minHeight: 600)
+        .frame(width: Theme.windowWidth)
+        .frame(minHeight: Theme.windowMinHeight, maxHeight: .infinity)
         .overlay {
             if let activeOverlay {
                 Group {
-                    if activeOverlay == .settings {
+                    if activeOverlay == .account {
                         Color.black.opacity(0.38)
+                            .ignoresSafeArea()
                             .onTapGesture { self.activeOverlay = nil }
-                        AccountSettingsOverlay { self.activeOverlay = nil }
+                            .accessibilityHidden(true)
+                        AccountOverlay { self.activeOverlay = nil }
                     } else {
                         Color.black.opacity(0.001)
+                            .ignoresSafeArea()
                             .onTapGesture { self.activeOverlay = nil }
+                            .accessibilityHidden(true)
                         MicrophoneSelectionOverlay(onClose: { self.activeOverlay = nil },
                                                    renderLevel: microphoneRenderLevel)
                             .padding(.leading, 16)
@@ -117,6 +125,14 @@ struct MainWindowView: View {
             }
         }
         .onExitCommand { activeOverlay = nil }
+        .onChange(of: activeOverlay) { previous, next in
+            if next != nil { overlayFocus = nil; return }
+            guard let previous else { return }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
+                if activeOverlay == nil { overlayFocus = previous }
+            }
+        }
 
     }
 
@@ -136,7 +152,7 @@ struct MainWindowView: View {
 /// An open capsule rim around the icon's raised waveform and caret.
 private struct SidebarBrandMark: View {
     // Scale the original compact mark uniformly to 1.25×.
-    private let scale: CGFloat = 25 / 364
+    private let scale = Theme.sidebarBrandHeight / 364
     private let levels: [CGFloat] = [0.36, 0.66, 1, 0.72, 0.48]
 
     var body: some View {
@@ -153,7 +169,7 @@ private struct SidebarBrandMark: View {
                     .padding(.leading, 20 * scale)
             }
         }
-        .frame(width: 744 * scale, height: 364 * scale)
+        .frame(width: Theme.sidebarBrandWidth, height: Theme.sidebarBrandHeight)
         .frame(height: 30)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Airdraft")
@@ -166,12 +182,16 @@ private struct SidebarBrandMark: View {
 struct SidebarView: View {
     @Environment(AppContainer.self) private var container
     let openMicrophone: () -> Void
-    let openSettings: () -> Void
+    let openAccount: () -> Void
+    var overlayFocus: FocusState<WindowOverlay?>.Binding
+    @State private var wordsDictated = 0
+
+    private var isCollapsed: Bool { container.navigation.sidebarCollapsed }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SidebarBrandMark()
-                .padding(.horizontal, 10)
+                .padding(.horizontal, Theme.sidebarBrandInset)
                 .padding(.top, 54)
                 .padding(.bottom, 20)
 
@@ -186,53 +206,76 @@ struct SidebarView: View {
                         .font(.system(size: 15))
                         .frame(width: 20)
                         .accessibilityHidden(true)
-                    Text(container.microphones.label(container.settings.microphone))
-                        .font(.system(size: 13))
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10))
-                        .frame(width: 12)
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
+                    if !isCollapsed {
+                        Text(container.microphones.label(container.settings.microphone))
+                            .font(.system(size: 13))
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 10))
+                            .frame(width: 12)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 14)
                 .frame(height: 38)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(MicrophoneButtonStyle())
             .frame(maxWidth: .infinity)
             .frame(height: 38)
-            .background(Capsule().fill(Color.primary.opacity(0.08)))
-            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
             .contentShape(Capsule())
             .padding(.horizontal, 4)
             .padding(.top, 8)
             .disabled(container.pipeline.state.isBusy)
             .help("Change microphone. Your choice is saved as the default.")
             .accessibilityLabel("Microphone: \(container.microphones.label(container.settings.microphone))")
+            .accessibilityIdentifier("sidebar.microphone")
+            .focusable()
+            .focused(overlayFocus, equals: .microphone)
             HStack(alignment: .center) {
-                Button(action: openSettings) {
-                    Image(systemName: "gearshape")
+                #if DEBUG
+                if isCollapsed { Spacer(minLength: 0) }
+                Button(action: openAccount) {
+                    Image(systemName: "person.crop.circle")
                         .font(.system(size: 15))
                         .frame(width: 30, height: 30)
                         .contentShape(RoundedRectangle(cornerRadius: 7))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .help("Settings")
-                .accessibilityLabel("Settings")
-                .accessibilityIdentifier("sidebar.settings")
-                Spacer(minLength: 2)
-                Text(footerLine)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .help("Account")
+                .accessibilityLabel("Account")
+                .accessibilityIdentifier("sidebar.account")
+                .focusable()
+                .focused(overlayFocus, equals: .account)
+                #endif
+                if isCollapsed {
+                    Spacer(minLength: 0)
+                    #if !DEBUG
+                    // Preserve the expanded footer's height when Release has no account button.
+                    footerLabel.hidden().accessibilityHidden(true)
+                    Spacer(minLength: 0)
+                    #endif
+                } else {
+                    Spacer(minLength: 2)
+                    footerLabel
+                }
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 6)
             .padding(.top, 8)
             .padding(.bottom, 14)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, Theme.sidebarContentInset)
+        .task(id: container.pipeline.lastOutcome) { await refreshWordCount() }
+    }
+
+    /// Counted off the main actor, once per dictation rather than on every redraw.
+    private func refreshWordCount() async {
+        guard let history = container.history else { return }
+        wordsDictated = await Task.detached { (try? history.stats().words) ?? 0 }.value
     }
 
     private func navigationGroup(_ pages: [Page]) -> some View {
@@ -244,24 +287,35 @@ struct SidebarView: View {
                             .font(.system(size: 15, weight: .regular))
                             .frame(width: 20)
                             .accessibilityHidden(true)
-                        Text(page.title)
-                            .font(.system(size: 13, weight: .regular))
-                        Spacer(minLength: 0)
+                        if !isCollapsed {
+                            Text(page.title)
+                                .font(.system(size: 13, weight: .regular))
+                            Spacer(minLength: 0)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
                     .padding(.horizontal, 10)
                     .frame(height: NavigationStyle.rowHeight)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page))
+                .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page, neumorphicSelection: true))
+                .help(page.title)
+                .accessibilityLabel(page.title)
                 .accessibilityAddTraits(container.navigation.page == page ? .isSelected : [])
                 .accessibilityIdentifier("sidebar.\(page.rawValue)")
             }
         }
     }
 
+    private var footerLabel: some View {
+        Text(footerLine)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+    }
+
     private var footerLine: String {
-        let stats = (try? container.history?.stats()) ?? nil
-        guard let stats, stats.words > 0 else { return "Ready to dictate" }
-        return "\(stats.words.formatted()) words dictated"
+        guard wordsDictated > 0 else { return "Ready to dictate" }
+        return "\(wordsDictated.formatted()) words dictated"
     }
 }

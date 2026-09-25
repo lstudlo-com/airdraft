@@ -1,3 +1,5 @@
+#if DEBUG
+// Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import Foundation
 import AirdraftCore
@@ -44,7 +46,28 @@ enum SelfTest {
             try? await Task.sleep(for: .seconds(1.5))
             let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
             log.notice("window: open policy=\(NSApp.activationPolicy().rawValue) frontmost=\(front, privacy: .public)")
-            NSApp.windows.first { $0.isVisible && $0.styleMask.contains(.titled) && !($0 is NSPanel) }?.close()
+            if let window = NSApp.windows.first(where: { $0.isVisible && $0.styleMask.contains(.titled) && !($0 is NSPanel) }) {
+                let fixedWidth = window.contentMinSize.width == Theme.windowWidth
+                    && window.contentMaxSize.width == Theme.windowWidth
+                let heightResizable = window.styleMask.contains(.resizable)
+                    && window.contentMaxSize.height > window.contentMinSize.height
+                let zoomHidden = window.standardWindowButton(.zoomButton)?.isHidden == true
+                let closeVisible = window.standardWindowButton(.closeButton)?.isHidden == false
+                let minimizeVisible = window.standardWindowButton(.miniaturizeButton)?.isHidden == false
+                let fullscreenDisabled = window.collectionBehavior.contains(.fullScreenNone)
+                let original = window.frame
+                window.setContentSize(NSSize(width: Theme.windowWidth, height: Theme.windowMinHeight + 120))
+                let taller = window.frame.height
+                window.setContentSize(NSSize(width: Theme.windowWidth, height: Theme.windowMinHeight))
+                let resizedHeight = window.frame.height < taller
+                let passed = fixedWidth && heightResizable && resizedHeight && zoomHidden
+                    && closeVisible && minimizeVisible && fullscreenDisabled
+                log.notice("window: fixedWidth=\(fixedWidth) heightResizable=\(heightResizable) resizedHeight=\(resizedHeight) zoomHidden=\(zoomHidden) closeVisible=\(closeVisible) minimizeVisible=\(minimizeVisible) fullscreenDisabled=\(fullscreenDisabled) \(passed ? "PASS" : "FAIL", privacy: .public)")
+                window.setFrame(original, display: true)
+                window.close()
+            } else {
+                log.error("window: FAIL no main window")
+            }
             try? await Task.sleep(for: .seconds(1))
             log.notice("window: closed policy=\(NSApp.activationPolicy().rawValue)")
             NSApp.terminate(nil)
@@ -79,10 +102,30 @@ enum SelfTest {
         }
     }
 
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "selftest")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "selftest")
 
     static func run(mode: String) {
         let container = AppContainer.shared
+        if mode == "connections" {
+            Task {
+                for preset in EndpointPreset.asr {
+                    guard let key = Keychain.get(preset.keyRef), !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        log.notice("connection-check: \(preset.name, privacy: .public) SKIP no saved key")
+                        continue
+                    }
+                    var config = container.settings.asr
+                    config.select(preset.kind)
+                    do {
+                        let result = try await SpeechConnectionChecker().check(config: config, apiKey: key)
+                        log.notice("connection-check: \(preset.name, privacy: .public) \(result.message, privacy: .public)")
+                    } catch {
+                        log.error("connection-check: \(preset.name, privacy: .public) \(error.localizedDescription, privacy: .public)")
+                    }
+                }
+                NSApp.terminate(nil)
+            }
+            return
+        }
         container.pipeline.insertionEnabled = false
 
         // AIRDRAFT_SELFTEST_ASR=<ASRProviderKind raw value>[:model or locale], e.g. qwen3:<modelId>,
@@ -91,14 +134,14 @@ enum SelfTest {
         if let engine = ProcessInfo.processInfo.environment["AIRDRAFT_SELFTEST_ASR"] {
             let parts = engine.split(separator: ":", maxSplits: 1).map(String.init)
             if let kind = ASRProviderKind(rawValue: parts[0]) {
-                container.settings.asr.kind = kind
+                container.settings.asr.select(kind)
                 if parts.count > 1 {
                     switch kind {
                     case .qwen3: container.settings.asr.qwen3Model = parts[1]
                     case .cohere: container.settings.asr.cohereModel = parts[1]
                     case .whisperKit: container.settings.asr.whisperModel = parts[1]
                     case .apple: container.settings.asr.appleLocale = parts[1]
-                    default: break
+                    default: container.settings.asr.selectModel(parts[1])
                     }
                 }
             }
@@ -150,3 +193,4 @@ enum SelfTest {
         }
     }
 }
+#endif

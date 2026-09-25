@@ -20,18 +20,19 @@ struct ProfileEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            HStack {
-                Toggle("Refine transcript", isOn: binding(\.usesLLM))
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .font(.system(size: 13, weight: .medium))
+            // Label on the left, switch at the trailing edge, as in every settings row.
+            HStack(spacing: Theme.controlSpacing) {
+                Text("Refine transcript").font(.system(size: 13, weight: .medium))
                 Spacer()
                 if current.id != container.profiles.activeProfileID {
-                    Button("Use profile") { container.profiles.setActive(current.id) }
+                    Button("Use Profile") { container.profiles.setActive(current.id) }
                         .controlSize(.small)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("profiles.activate")
                 }
+                Toggle("Refine transcript", isOn: binding(\.usesLLM))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
             if current.usesLLM {
                 ProfileTextEditor(title: "Profile instructions", text: binding(\.instructions), height: 200)
@@ -43,8 +44,7 @@ struct ProfileEditor: View {
                     )
                     .padding(.top, Theme.sectionTitleSpacing)
                 }
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
+                .settingsDisclosure()
             } else {
                 Text("Your transcript is inserted without AI refinement. Vocabulary replacements and script conversion still apply.")
                     .font(.system(size: 13))

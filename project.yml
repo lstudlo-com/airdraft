@@ -43,7 +43,7 @@ targets:
         CFBundleVersion: "1"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"
-        NSMicrophoneUsageDescription: "Airdraft 需要麥克風來進行語音聽寫。"
+        NSMicrophoneUsageDescription: "Airdraft uses the microphone to record what you dictate."
         NSHumanReadableCopyright: ""
         SUFeedURL: https://github.com/lstudlo-com/airdraft/releases/latest/download/appcast.xml
         SUPublicEDKey: "OfxXCWN57nT7jmfbzyk6meZT19SD10JU9Z6fyhBA6Nc="

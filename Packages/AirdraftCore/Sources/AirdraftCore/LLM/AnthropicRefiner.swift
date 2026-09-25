@@ -10,14 +10,16 @@ public struct AnthropicRefiner: Refiner {
     public let model: String
     public let apiKey: String?
     public let effort: ThinkingEffort
+    private let session: URLSession
     public let timeout: TimeInterval
 
-    public init(baseURL: URL, model: String, apiKey: String?, effort: ThinkingEffort = .off, timeout: TimeInterval = 20) {
+    public init(baseURL: URL, model: String, apiKey: String?, effort: ThinkingEffort = .off, timeout: TimeInterval = 20, session: URLSession = .shared) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.effort = effort
         self.timeout = timeout
+        self.session = session
         self.id = "anthropic:\(model)"
     }
 
@@ -70,8 +72,10 @@ public struct AnthropicRefiner: Refiner {
             struct Block: Decodable { let type: String; let text: String? }
             let content: [Block]
             let model: String?
+            let stop_reason: String?
         }
         guard let reply = try? JSONDecoder().decode(Reply.self, from: data) else { throw RefinerError.invalidResponse }
+        try CompletionReason.validate(reply.stop_reason, allowed: ["end_turn", "stop_sequence"])
         let text = PromptBuilder.sanitize(reply.content.compactMap { $0.type == "text" ? $0.text : nil }.joined())
         guard !text.isEmpty else { throw RefinerError.emptyOutput }
         return RefineResult(
@@ -81,12 +85,6 @@ public struct AnthropicRefiner: Refiner {
     }
 
     private func send(_ req: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        do {
-            let (data, response) = try await URLSession.shared.data(for: req)
-            guard let http = response as? HTTPURLResponse else { throw RefinerError.invalidResponse }
-            return (data, http)
-        } catch let error as URLError where error.code == .timedOut {
-            throw RefinerError.timeout
-        }
+        try await HTTPDeadline.data(for: req, session: session, timeoutError: RefinerError.timeout, invalidResponse: RefinerError.invalidResponse)
     }
 }

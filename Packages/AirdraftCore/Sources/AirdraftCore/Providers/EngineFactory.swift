@@ -9,11 +9,15 @@ public actor EngineFactory {
     /// Unload engines that have not been used for this long. 0 disables.
     private var idleUnloadMinutes = 10
     private var local: [String: any Transcriber] = [:]
+    private var operationTail: Task<Void, Never>?
     private var idleTask: Task<Void, Never>?
+    private let transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)?
     private let credentialReader: @Sendable (String) throws -> String?
 
     public init(status: EngineStatus,
-                credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) }) {
+                credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) },
+                transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil) {
+        self.transcriberBuilder = transcriberBuilder
         self.status = status
         self.credentialReader = credentialReader
         Task { await self.startIdleWatch() }
@@ -22,9 +26,13 @@ public actor EngineFactory {
     public func transcriber(for config: ASRConfig) -> any Transcriber {
         let id = config.engineID
         if let cached = local[id] { return cached }
-        let account = config.kind == .elevenLabs ? EndpointPreset.elevenLabsKeyRef : config.apiKeyRef
+        if let transcriberBuilder {
+            let engine = transcriberBuilder(config)
+            if config.kind.isLocal { local[id] = engine }
+            return engine
+        }
         let key: String?
-        do { key = config.kind.isLocal ? nil : try credentialReader(account) }
+        do { key = config.kind.isLocal ? nil : try credentialReader(config.keyRef) }
         catch { return CredentialFailureEngine(id: id, error: error) }
         let engine: any Transcriber
         switch config.kind {
@@ -33,10 +41,21 @@ public actor EngineFactory {
         case .cohere: engine = CohereTranscriber(modelId: config.cohereModel)
         case .fireRed: engine = SherpaTranscriber(model: .fireRed)
         case .senseVoice: engine = SherpaTranscriber(model: .senseVoice)
-        case .apple: engine = AppleSpeechTranscriber(locale: config.appleLocale)
+        case .apple: engine = AppleSpeechTranscriber(locale: config.effectiveAppleLocale)
+        case .openAI:
+            return OpenAITranscriber(model: config.speechModelID, apiKey: key)
+        case .openRouter:
+            return OpenRouterTranscriber(model: config.model, apiKey: key)
+        case .groq:
+            let url = URL(string: config.kind.preset?.baseURL ?? LLMProviderKind.groq.defaultBaseURL)!
+            return OpenAICompatibleTranscriber(baseURL: url, model: config.speechModelID,
+                                               apiKey: key, id: config.engineID, requiresKey: true)
         case .elevenLabs:
-            // Remote engines are cheap to build and pick up key changes this way.
-            return ElevenLabsTranscriber(modelId: config.elevenLabsModel, apiKey: key)
+            return ElevenLabsTranscriber(modelId: config.speechModelID, apiKey: key, id: config.engineID)
+        case .deepgram:
+            return DeepgramTranscriber(model: config.speechModelID, apiKey: key)
+        case .soniox:
+            return SonioxTranscriber(apiKey: key)
         case .openAICompatible:
             let url = URL(string: config.baseURL) ?? URL(string: "https://api.openai.com/v1")!
             return OpenAICompatibleTranscriber(baseURL: url, model: config.model, apiKey: key)
@@ -70,7 +89,8 @@ public actor EngineFactory {
                 temperature: config.temperature,
                 timeout: config.timeoutSeconds,
                 effort: config.thinkingEffort,
-                provider: config.kind
+                provider: config.kind,
+                openRouterRouting: config.openRouterRouting
             )
         case .anthropicMessages:
             return AnthropicRefiner(
@@ -97,8 +117,40 @@ public actor EngineFactory {
     /// Loads the engine for `config`, reports progress on `status`, and
     /// unloads every other cached engine so only one model sits in memory.
     public func prepare(_ config: ASRConfig) async throws {
+        try await serialize { try await self.prepareExclusive(config) }
+    }
+
+    /// Loading, inference and unloading share a lease. Actor isolation alone is
+    /// insufficient because each await allows another actor call to enter.
+    public func transcribe(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig) async throws -> Transcript {
+        try await serialize {
+            try await self.prepareExclusive(config)
+            let engine = await self.transcriber(for: config)
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            let result = try await engine.transcribe(samples: samples, hints: hints)
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            return result
+        }
+    }
+
+    private func serialize<Value: Sendable>(_ operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
+        let previous = operationTail
+        let task = Task {
+            await previous?.value
+            try Task.checkCancellation()
+            return try await operation()
+        }
+        operationTail = Task { _ = try? await task.value }
+        return try await withTaskCancellationHandler { try await task.value } onCancel: { task.cancel() }
+    }
+
+    private func prepareExclusive(_ config: ASRConfig) async throws {
+        try Task.checkCancellation()
         let engine = transcriber(for: config)
-        await unloadAll(except: engine.id)
+        await unloadAllExclusive(except: engine.id)
+        try Task.checkCancellation()
         if await engine.isReady() {
             await MainActor.run { status.set(engine.id, .ready) }
             return
@@ -106,8 +158,14 @@ public actor EngineFactory {
         await MainActor.run { status.set(engine.id, .loading) }
         do {
             try await engine.prepare()
+            try Task.checkCancellation()
             await MainActor.run { status.set(engine.id, .ready) }
         } catch {
+            await engine.unload()
+            if Task.isCancelled {
+                await MainActor.run { status.set(engine.id, .notLoaded) }
+                throw CancellationError()
+            }
             await MainActor.run { status.set(engine.id, .failed(error.localizedDescription)) }
             throw error
         }
@@ -118,6 +176,10 @@ public actor EngineFactory {
     }
 
     public func unloadAll(except keep: String? = nil) async {
+        _ = try? await serialize { await self.unloadAllExclusive(except: keep) }
+    }
+
+    private func unloadAllExclusive(except keep: String? = nil) async {
         for engine in local.values where engine.id != keep {
             await unload(engine)
         }
@@ -145,11 +207,14 @@ public actor EngineFactory {
 
     private func unloadIdle() async {
         guard idleUnloadMinutes > 0 else { return }
+        _ = try? await serialize { await self.unloadIdleExclusive() }
+    }
+
+    private func unloadIdleExclusive() async {
+        guard idleUnloadMinutes > 0 else { return }
         let cutoff = Date().addingTimeInterval(-Double(idleUnloadMinutes) * 60)
         let stale = await MainActor.run { status.lastUsedAt.filter { $0.value < cutoff }.map(\.key) }
-        for engine in local.values where stale.contains(engine.id) {
-            await unload(engine)
-        }
+        for engine in local.values where stale.contains(engine.id) { await unload(engine) }
     }
 }
 

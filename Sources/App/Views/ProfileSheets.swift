@@ -13,7 +13,7 @@ struct BaseSystemPromptEditor: View {
                 .font(.system(size: 13)).foregroundStyle(.secondary)
             ProfileTextEditor(title: "Base system prompt", text: $draft, height: 320, showsTitle: false)
             HStack {
-                Button("Restore defaults") { draft = PromptBuilder.defaultBaseRules }
+                Button("Restore Defaults") { draft = PromptBuilder.defaultBaseRules }
                     .disabled(draft == PromptBuilder.defaultBaseRules)
                 Spacer()
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)

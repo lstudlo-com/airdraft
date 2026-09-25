@@ -33,7 +33,7 @@ public struct RefineResult: Sendable, Equatable {
     public var engine: String
     public var latencyMs: Int
     public var promptVersion: String
-    /// Server-side instance id that answered (LM Studio reports it in `model`).
+    /// Server-side instance id, or the host selected by OpenRouter when reported.
     public var servedBy: String?
 
     public init(text: String, engine: String, latencyMs: Int, promptVersion: String, servedBy: String? = nil) {
@@ -53,15 +53,19 @@ public protocol Refiner: Sendable {
 public enum RefinerError: Error, LocalizedError {
     case http(status: Int, body: String)
     case invalidResponse
+    case incompleteOutput
     case emptyOutput
     case timeout
 
     public var errorDescription: String? {
         switch self {
-        case .http(let status, let body): return "LLM API returned HTTP \(status): \(body.prefix(300))"
-        case .invalidResponse: return "LLM API returned an unexpected response."
-        case .emptyOutput: return "LLM returned empty text."
-        case .timeout: return "LLM call timed out."
+        case .http(let status, let body):
+            let detail = ProviderErrorBody.summary(body).map { ": \($0)" } ?? "."
+            return "Refinement provider returned HTTP \(status)\(detail)"
+        case .invalidResponse: return "The refinement provider returned an unexpected response."
+        case .incompleteOutput: return "The refinement response was incomplete. The original transcript was kept."
+        case .emptyOutput: return "The refinement provider returned empty text."
+        case .timeout: return "Refinement timed out."
         }
     }
 }

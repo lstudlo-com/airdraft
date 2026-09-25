@@ -6,6 +6,14 @@ public enum LocalModels {
     /// True when the engine `config` selects can run now: its files are on disk,
     /// or it needs none (remote APIs, Apple Speech on macOS 26).
     public static func isInstalled(_ config: ASRConfig) -> Bool {
+        if let folder = folder(for: config),
+           FileManager.default.fileExists(atPath: folder.appendingPathComponent(incompleteMarker).path) { return false }
+        return hasFiles(config)
+    }
+
+    static let incompleteMarker = ".airdraft-download-incomplete"
+
+    static func hasFiles(_ config: ASRConfig) -> Bool {
         switch config.kind {
         case .whisperKit: return hasWhisper(config.whisperModel) && hasWhisperTokenizer
         case .qwen3: return hasQwen3(config.qwen3Model)
@@ -13,7 +21,7 @@ public enum LocalModels {
         case .fireRed: return hasSherpa(.fireRed)
         case .senseVoice: return hasSherpa(.senseVoice)
         case .apple: return AppleSpeechTranscriber.isAvailable
-        case .openAICompatible, .elevenLabs: return true
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return true
         }
     }
 
@@ -25,8 +33,19 @@ public enum LocalModels {
         case .cohere: return cohereFolder(for: config.cohereModel)
         case .fireRed: return sherpaFolder(for: .fireRed)
         case .senseVoice: return sherpaFolder(for: .senseVoice)
-        case .apple, .openAICompatible, .elevenLabs: return nil
+        case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return nil
         }
+    }
+
+    /// Deletes the downloaded files of the model `config` selects. Model ids come
+    /// from saved settings, so the folder must resolve inside `root`.
+    public static func remove(_ config: ASRConfig) throws {
+        guard let folder = folder(for: config) else { return }
+        let rootPath = root.standardizedFileURL.resolvingSymlinksInPath().path + "/"
+        guard folder.standardizedFileURL.resolvingSymlinksInPath().path.hasPrefix(rootPath) else {
+            throw CocoaError(.fileWriteNoPermission, userInfo: [NSFilePathErrorKey: folder.path])
+        }
+        try FileManager.default.removeItem(at: folder)
     }
 
     public static var root: URL { AppSettings.supportDirectory.appendingPathComponent("Models", isDirectory: true) }
@@ -45,7 +64,16 @@ public enum LocalModels {
     }
 
     public static var hasWhisperTokenizer: Bool {
-        FileManager.default.fileExists(atPath: whisperTokenizerFolder.appendingPathComponent("tokenizer.json").path)
+        hasWhisperTokenizer(at: whisperTokenizerFolder)
+    }
+
+    static let whisperTokenizerFiles = ["tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "vocab.json", "merges.txt", "added_tokens.json", "normalizer.json", "config.json", "generation_config.json"]
+
+    static func hasWhisperTokenizer(at folder: URL) -> Bool {
+        whisperTokenizerFiles.allSatisfy { name in
+            let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appendingPathComponent(name).path)
+            return (attributes?[.size] as? Int64 ?? 0) > 0
+        }
     }
 
     // MARK: Qwen3-ASR (speech-swift layout: <root>/qwen3-asr/<org>/<model>)

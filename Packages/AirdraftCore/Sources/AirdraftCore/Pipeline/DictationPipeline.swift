@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import os
 
 public enum PipelineState: Equatable, Sendable {
     case idle
@@ -37,6 +38,14 @@ public struct DictationOutcome: Sendable, Equatable {
 @Observable
 public final class DictationPipeline {
     public private(set) var state: PipelineState = .idle
+    public private(set) var lastIssue: String?
+    public private(set) var hasRecoverableRecording = false
+    public private(set) var historyStorageError: String?
+    public private(set) var isSavingHistory = false
+    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?)?
+    private var unsavedHistory: [DictationRecord] = []
+    private let historyDirectory: URL?
+    public private(set) var historyStore: HistoryStore?
     public private(set) var lastOutcome: DictationOutcome?
     /// Most recent input levels (0...1), oldest first. Drives the HUD waveform.
     public private(set) var levelHistory: [Float] = []
@@ -45,6 +54,7 @@ public final class DictationPipeline {
     public private(set) var lastRecordingDuration: TimeInterval = 0
 
     public var onStateChange: ((PipelineState) -> Void)?
+    public var onRecordingBlocked: (() -> Void)?
     public var onOutcome: ((DictationOutcome) -> Void)?
     /// Called with the LLM instance id that served a refinement.
     public var onLLMUsed: ((String) -> Void)?
@@ -58,18 +68,27 @@ public final class DictationPipeline {
     private let settings: AppSettings
     private let dictionary: DictionaryStore
     private let profiles: ProfileStore
-    private let history: HistoryStore?
+    private var history: HistoryStore? { historyStore }
     private let factory: EngineFactory
-    private let recorder: AudioRecorder
+    private let recorder: any AudioRecording
     private let contextReader: AppContextReader
     private let inserter: TextInserter
 
+    private var generation = UUID()
+    private var releaseTask: Task<Void, Never>?
+    private var warmTask: Task<Void, Never>?
+    private var insertionTargetAtStart: InsertionTarget?
     private var contextAtStart: AppContext = .empty
     private var processingTask: Task<Void, Never>?
+    /// Returns a failure or notice to idle; replaced whenever the state changes.
+    private var resetTask: Task<Void, Never>?
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "pipeline")
     private var autoStopTask: Task<Void, Never>?
     private var stopping = false
     private var recordingRequest: Task<Void, Never>?
     private var recordingRequestID = UUID()
+    private let recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)?
+    private var asrAtStart: ASRConfig?
     private let requestMicrophoneAccess: @Sendable () async -> Bool
 
     public init(
@@ -77,25 +96,33 @@ public final class DictationPipeline {
         dictionary: DictionaryStore,
         profiles: ProfileStore,
         history: HistoryStore?,
+        historyDirectory: URL? = nil,
         factory: EngineFactory,
-        recorder: AudioRecorder = AudioRecorder(),
+        recorder: any AudioRecording = AudioRecorder(),
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
+        recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil,
         requestMicrophoneAccess: @escaping @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
     ) {
         self.settings = settings
         self.dictionary = dictionary
         self.profiles = profiles
-        self.history = history
+        self.historyStore = history
+        self.historyDirectory = historyDirectory
+        if history == nil && historyDirectory != nil { historyStorageError = "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." }
         self.factory = factory
         self.recorder = recorder
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
         self.requestMicrophoneAccess = requestMicrophoneAccess
+        self.recordingPreflight = recordingPreflight
 
+    }
+
+    private func wireRecorder(for token: UUID) {
         recorder.levelHandler = { [weak self] level in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, self.isCurrent(token), self.isRecording else { return }
                 self.levelHistory.append(level)
                 if self.levelHistory.count > Self.levelHistoryLength {
                     self.levelHistory.removeFirst(self.levelHistory.count - Self.levelHistoryLength)
@@ -104,9 +131,13 @@ public final class DictationPipeline {
         }
         recorder.interruptionHandler = { [weak self] reason in
             Task { @MainActor in
-                guard let self, self.isRecording else { return }
+                guard let self, self.isCurrent(token), self.isRecording else { return }
+                let samples = self.recorder.stop()
+                let context = self.contextAtStart
+                let target = self.insertionTargetAtStart
                 self.cancel()
-                self.fail(reason.localizedDescription)
+                if !samples.isEmpty { self.retain(samples, context: context, target: target) }
+                self.fail(reason.localizedDescription + (samples.isEmpty ? "" : " Captured audio is kept for retry."))
             }
         }
     }
@@ -123,25 +154,59 @@ public final class DictationPipeline {
 
     public func startRecording() {
         guard !state.isBusy, recordingRequest == nil else { return }
+        guard !hasRecoverableRecording else {
+            fail("A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.")
+            return
+        }
         let token = UUID()
         recordingRequestID = token
+        generation = token
         recordingRequest = Task {
-            await beginRecording()
+            await beginRecording(token: token)
             if recordingRequestID == token { recordingRequest = nil }
         }
     }
 
-    private func beginRecording() async {
-        guard !Task.isCancelled else { return }
+    private func beginRecording(token: UUID) async {
+        guard isCurrent(token) else { return }
+        let asr = settings.asr
+        let llm = settings.llm
+        let microphone = settings.microphone
+        do {
+            if let recordingPreflight {
+                try await recordingPreflight(asr, llm, profiles.activeProfile.usesLLM, microphone, insertionEnabled)
+            } else {
+                try RecordingPrerequisites.check(asr: asr, llm: llm, refinementEnabled: profiles.activeProfile.usesLLM,
+                                                 microphone: microphone, insertionEnabled: insertionEnabled)
+                if asr.kind.isLocal {
+                    let engine = await factory.transcriber(for: asr)
+                    guard await engine.isReady() else {
+                        throw RecordingPrerequisiteError("Recording did not start. The speech model is not ready. Load it in Models and wait for Loaded before dictating.")
+                    }
+                }
+            }
+            guard isCurrent(token) else { return }
+            guard settings.asr == asr, settings.llm == llm, settings.microphone == microphone else {
+                throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
+            }
+        } catch {
+            guard isCurrent(token) else { return }
+            fail(error.localizedDescription)
+            onRecordingBlocked?()
+            return
+        }
         let granted = await requestMicrophoneAccess()
-        guard !Task.isCancelled else { return }
+        guard isCurrent(token) else { return }
         guard granted else {
             fail("Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.")
             return
         }
+        asrAtStart = asr
+        insertionTargetAtStart = inserter.captureTarget()
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
+        wireRecorder(for: token)
         do {
-            try recorder.start(microphone: settings.microphone)
+            try recorder.start(microphone: microphone)
         } catch {
             fail("Could not start recording: \(error.localizedDescription)")
             return
@@ -151,12 +216,12 @@ public final class DictationPipeline {
         set(.recording)
         prewarmRefiner(context: contextAtStart)
 
-        let limit = settings.maxRecordingSeconds
+        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: settings.asr.kind)
         autoStopTask?.cancel()
         autoStopTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(limit))
-            guard !Task.isCancelled else { return }
-            await MainActor.run { self?.finishRecording() }
+            guard let self, self.isCurrent(token) else { return }
+            self.finishRecording()
         }
     }
 
@@ -171,8 +236,10 @@ public final class DictationPipeline {
         }
         guard state == .recording, !stopping else { return }
         stopping = true
-        Task { @MainActor in
+        let token = generation
+        releaseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(Self.releaseGraceSeconds))
+            guard self.isCurrent(token) else { return }
             self.stopping = false
             self.finishRecording()
         }
@@ -181,6 +248,8 @@ public final class DictationPipeline {
     private func finishRecording() {
         guard state == .recording else { return }
         autoStopTask?.cancel()
+        releaseTask?.cancel()
+        stopping = false
         let samples = recorder.stop()
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
@@ -192,19 +261,24 @@ public final class DictationPipeline {
         }
         set(.transcribing)
         let ctx = contextAtStart
-        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx) }
+        let token = generation
+        let target = insertionTargetAtStart
+        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx, target: target, token: token) }
     }
 
     /// Runs 16 kHz mono samples through transcription, refinement, dictionary and
     /// history exactly like a recording would. Used by self-tests and the CLI.
     public func processSamples(_ samples: [Float], context: AppContext = .empty) {
         guard !isBusy else { return }
+        generation = UUID()
+        asrAtStart = nil
+        let token = generation
         prewarmRefiner(context: context)
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
         levelHistory = []
         set(.transcribing)
-        processingTask = Task { await process(samples: samples, seconds: seconds, context: context) }
+        processingTask = Task { await process(samples: samples, seconds: seconds, context: context, target: nil, token: token) }
     }
 
     /// A CLI refiner takes seconds to start a session, so start it while the user
@@ -223,14 +297,24 @@ public final class DictationPipeline {
             chineseScript: settings.asr.chineseScript
         )
         let systemPrompt = PromptBuilder.systemPrompt(for: request)
-        Task { [factory] in
+        warmTask?.cancel()
+        warmTask = Task { [factory] in
+            guard !Task.isCancelled else { return }
             guard var refiner = await factory.refiner(for: config) as? CLIRefiner else { return }
+            guard !Task.isCancelled else { return }
             refiner.warmSystemPrompt = systemPrompt
             await refiner.prewarm()
         }
     }
 
     public func cancel() {
+        // Once a write begins, finish recording its outcome before accepting a new session.
+        guard state != .inserting else { return }
+        generation = UUID()
+        recovery = nil
+        hasRecoverableRecording = false
+        releaseTask?.cancel()
+        warmTask?.cancel()
         recordingRequestID = UUID()
         recordingRequest?.cancel()
         recordingRequest = nil
@@ -242,42 +326,89 @@ public final class DictationPipeline {
         set(.idle)
     }
 
+    public func dismissIssue() { lastIssue = nil }
+
+    public func discardRecording() {
+        guard !isBusy else { return }
+        recovery = nil
+        hasRecoverableRecording = false
+        lastIssue = nil
+        set(.idle)
+    }
+
+    public func retryRecording() {
+        guard !isBusy, let recovery else { return }
+        asrAtStart = nil
+        generation = UUID()
+        let token = generation
+        set(.transcribing)
+        processingTask = Task {
+            await process(samples: recovery.samples, seconds: recovery.seconds,
+                          context: recovery.context, target: recovery.target, token: token)
+        }
+    }
+
+    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?) {
+        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target)
+        hasRecoverableRecording = true
+    }
+
+    public func retryHistorySave() async {
+        guard !isSavingHistory else { return }
+        isSavingHistory = true
+        defer { isSavingHistory = false }
+        do {
+            if historyStore == nil, let historyDirectory { historyStore = try HistoryStore(directory: historyDirectory) }
+            guard let historyStore else { return }
+            while let record = unsavedHistory.first {
+                _ = try await Task.detached { try historyStore.save(record) }.value
+                unsavedHistory.removeFirst()
+            }
+            historyStorageError = nil
+        } catch {
+            historyStorageError = "History could not be saved. Your unsaved dictations remain in memory. " + error.localizedDescription
+        }
+    }
+
     // MARK: - Processing
 
-    private func process(samples: [Float], seconds: Double, context: AppContext) async {
+    private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID) async {
+        guard isCurrent(token) else { return }
         let entries = dictionary.entries
-        let asrConfig = settings.asr
+        let asrConfig = asrAtStart ?? settings.asr
         let llmConfig = settings.llm
         let profile = profiles.activeProfile
         let baseRules = profiles.baseRules
         let family = AppFamily.classify(context)
         var context = context
-        if context.recentDictations.isEmpty {
+        if settings.useAppContext && context.recentDictations.isEmpty {
             context.recentDictations = (try? history?.recentFinals(appBundleId: context.bundleId)) ?? []
         }
 
         // 1. ASR
         let transcript: Transcript
         do {
+            try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
             let transcriber = await factory.transcriber(for: asrConfig)
-            if await !transcriber.isReady() {
-                set(.preparingModel)
-                try await factory.prepare(asrConfig)
-                guard !Task.isCancelled else { set(.idle); return }
-                set(.transcribing)
-            }
-            await factory.markUsed(transcriber.id)
+            guard isCurrent(token) else { return }
+            let ready = await transcriber.isReady()
+            guard isCurrent(token) else { return }
+            if !ready { set(.preparingModel) }
             let hints = TranscriptionHints(
                 language: asrConfig.language.isEmpty ? nil : asrConfig.language,
                 vocabulary: DictionaryPostProcessor.vocabulary(entries),
                 chineseScript: asrConfig.chineseScript
             )
-            transcript = try await transcriber.transcribe(samples: samples, hints: hints)
+            transcript = try await factory.transcribe(samples, hints: hints, config: asrConfig)
         } catch {
-            fail("Transcription failed: \(error.localizedDescription)")
+            guard isCurrent(token) else { return }
+            retain(samples, context: context, target: target)
+            fail("Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.")
             return
         }
-        guard !Task.isCancelled else { set(.idle); return }
+        guard isCurrent(token) else { return }
+        recovery = nil
+        hasRecoverableRecording = false
         guard !transcript.isEmpty else {
             set(.idle)
             return
@@ -296,11 +427,7 @@ public final class DictationPipeline {
             skipReason = "\(profile.name): no LLM"
         } else if wordCount < llmConfig.minWordsForLLM && !context.hasSelection {
             skipReason = "short utterance (\(wordCount) words)"
-        } else if let refiner = await factory.refiner(for: llmConfig) {
-            if let needs = llmNeedsLoad, await needs() {
-                set(.preparingModel)
-                await loadLLM?()
-            }
+        } else if llmConfig.kind != .none {
             set(.refining)
             let request = RefineRequest(
                 transcript: transcript.text,
@@ -312,7 +439,21 @@ public final class DictationPipeline {
                 chineseScript: asrConfig.chineseScript
             )
             do {
-                let result = try await refiner.refine(request)
+                let timeout = llmConfig.kind.isCLI ? max(60, llmConfig.timeoutSeconds) : llmConfig.timeoutSeconds
+                let result = try await OperationDeadline.run(seconds: timeout) { @MainActor [self] in
+                    guard isCurrent(token) else { throw CancellationError() }
+                    guard let refiner = await factory.refiner(for: llmConfig) else { throw RefinerError.invalidResponse }
+                    try Task.checkCancellation()
+                    if let needs = llmNeedsLoad, await needs() {
+                        try Task.checkCancellation()
+                        guard isCurrent(token) else { throw CancellationError() }
+                        await loadLLM?()
+                    }
+                    try Task.checkCancellation()
+                    guard isCurrent(token) else { throw CancellationError() }
+                    return try await refiner.refine(request)
+                }
+                guard isCurrent(token) else { return }
                 if let served = result.servedBy { onLLMUsed?(served) }
                 refined = result.text
                 llmMs = result.latencyMs
@@ -325,7 +466,7 @@ public final class DictationPipeline {
         } else {
             skipReason = "LLM off"
         }
-        guard !Task.isCancelled else { set(.idle); return }
+        guard isCurrent(token) else { return }
 
         // 3. Script normalisation, then the dictionary always has the last word.
         let normalised = ChineseScriptConverter.convert(refined, to: asrConfig.chineseScript)
@@ -336,7 +477,7 @@ public final class DictationPipeline {
         var notice: String?
         let inserted: Bool
         if insertionEnabled {
-            let result = await inserter.insert(final, method: settings.insertionMethod, target: context)
+            let result = await inserter.insert(final, method: settings.insertionMethod, target: target)
             inserted = result.didInsert
             notice = result.notice
         } else {
@@ -367,7 +508,11 @@ public final class DictationPipeline {
             inserted: inserted,
             error: llmError
         )
-        _ = try? history?.save(record)
+        if history != nil || historyDirectory != nil {
+            unsavedHistory.append(record)
+            await retryHistorySave()
+        }
+        guard isCurrent(token) else { return }
 
         let outcome = DictationOutcome(
             raw: transcript.text, refined: refined, final: final,
@@ -376,28 +521,39 @@ public final class DictationPipeline {
         lastOutcome = outcome
         onOutcome?(outcome)
         if let notice {
+            lastIssue = notice
             set(.notice(notice))
-            Task {
-                try? await Task.sleep(for: .seconds(3))
-                if case .notice = state { set(.idle) }
-            }
+            resetLater(after: 3)
         } else {
+            lastIssue = nil
             set(.idle)
         }
     }
 
     // MARK: - Helpers
 
+    private func isCurrent(_ token: UUID) -> Bool { generation == token && !Task.isCancelled }
+
     private func set(_ new: PipelineState) {
+        resetTask?.cancel()
+        resetTask = nil
         state = new
         onStateChange?(new)
     }
 
     private func fail(_ message: String) {
+        lastIssue = message
         set(.failed(message))
-        Task {
-            try? await Task.sleep(for: .seconds(4))
-            if case .failed = state { set(.idle) }
+        if hasRecoverableRecording { onRecordingBlocked?() }
+        resetLater(after: 4)
+    }
+
+    /// An earlier timer must not clear a newer failure or notice.
+    private func resetLater(after seconds: Double) {
+        resetTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
+            self?.set(.idle)
         }
     }
 

@@ -9,6 +9,7 @@ import os
 @MainActor
 @Observable
 final class AppUpdater: NSObject, SPUUpdaterDelegate {
+    // The updater fixture compiles this file independently of AirdraftCore.
     private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "updates")
 
     private(set) var isStarted = false

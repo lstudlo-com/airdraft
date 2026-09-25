@@ -1,3 +1,5 @@
+#if DEBUG
+// Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import AirdraftCore
 import os
@@ -7,7 +9,7 @@ import os
 enum IsolatedPipelineSelfTest {
     static func run(path: String) {
         Task {
-            let log = Logger(subsystem: "com.lightiichen.airdraft", category: "selftest")
+            let log = Logger(subsystem: AppIdentity.logSubsystem, category: "selftest")
             let suite = "airdraft.pipeline-selftest.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suite)!
             let directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
@@ -50,3 +52,4 @@ enum IsolatedPipelineSelfTest {
         }
     }
 }
+#endif

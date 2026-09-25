@@ -19,27 +19,39 @@ public struct InsertionResult: Sendable, Equatable {
     public var didInsert: Bool { method != .clipboardOnly }
 }
 
+/// Local insertion identity, never serialized or sent to a provider.
+@MainActor
+public struct InsertionTarget {
+    let processID: Int32
+    let bundleID: String?
+    let element: AXUIElement?
+    let selection: CFRange?
+}
+
 /// Puts text at the cursor of the app the user was dictating into.
 @MainActor
 public final class TextInserter {
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "insert")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "insert")
     /// How long the pasted text stays on the clipboard before the previous contents return.
     public var restoreDelay: TimeInterval = 1.0
 
     public init() {}
 
-    public func insert(_ text: String, method: InsertionMethod = .auto, target: AppContext = .empty) async -> InsertionResult {
+    public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil) async -> InsertionResult {
         guard !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
 
         // Dictated while airdraft itself was in front: there is nowhere sensible to type.
-        if let bundle = target.bundleId, bundle == Bundle.main.bundleIdentifier {
+        if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
             copyOnly(text)
             Self.log.notice("insert: target is airdraft, copied only")
             return InsertionResult(method: .clipboardOnly, notice: "Copied to clipboard")
         }
 
         // Bring the original app back if focus moved while we were transcribing.
-        await restoreFocus(to: target)
+        guard let target, await restoreFocus(to: target), !Task.isCancelled else {
+            copyOnly(text)
+            return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied; paste it where you want.")
+        }
 
         guard AXIsProcessTrusted() else {
             copyOnly(text)
@@ -47,12 +59,22 @@ public final class TextInserter {
             return InsertionResult(method: .clipboardOnly, notice: "Accessibility is off, text copied")
         }
 
-        if method == .auto, insertViaAccessibility(text) {
-            Self.log.notice("insert: accessibility ok app=\(target.appName ?? "?", privacy: .public)")
-            return InsertionResult(method: .accessibility, notice: nil)
+        if method == .auto {
+            switch insertViaAccessibility(text, target: target) {
+            case .inserted:
+                return InsertionResult(method: .accessibility, notice: nil)
+            case .uncertain:
+                copyOnly(text)
+                return InsertionResult(method: .clipboardOnly, notice: "Check the destination before pasting. Text copied; insertion could not be verified.")
+            case .notAttempted: break
+            }
+        }
+        // Focus can change during an AX request too. Revalidate before posting a paste.
+        guard matches(target), !Task.isCancelled else {
+            copyOnly(text)
+            return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
         let ok = await insertViaPaste(text)
-        Self.log.notice("insert: paste posted=\(ok, privacy: .public) app=\(target.appName ?? "?", privacy: .public)")
         return ok
             ? InsertionResult(method: .paste, notice: nil)
             : InsertionResult(method: .clipboardOnly, notice: "Couldn't paste, text copied")
@@ -60,53 +82,87 @@ public final class TextInserter {
 
     // MARK: - Focus
 
-    private func restoreFocus(to target: AppContext) async {
-        guard let pid = target.processID,
-              NSWorkspace.shared.frontmostApplication?.processIdentifier != pid,
-              let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else { return }
-        app.activate()
-        for _ in 0..<20 {
-            if NSWorkspace.shared.frontmostApplication?.processIdentifier == pid { break }
-            try? await Task.sleep(for: .milliseconds(25))
+    public func captureTarget() -> InsertionTarget? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let element = focusedElement(pid: app.processIdentifier)
+        return InsertionTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier,
+                               element: element, selection: element.flatMap(selection))
+    }
+
+    private func restoreFocus(to target: InsertionTarget) async -> Bool {
+        guard let app = NSRunningApplication(processIdentifier: target.processID), !app.isTerminated,
+              app.bundleIdentifier == target.bundleID else { return false }
+        if NSWorkspace.shared.frontmostApplication?.processIdentifier != target.processID {
+            guard app.activate() else { return false }
+            for _ in 0..<20 {
+                if NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processID { break }
+                do { try await Task.sleep(for: .milliseconds(25)) } catch { return false }
+            }
         }
-        try? await Task.sleep(for: .milliseconds(80))
-        Self.log.notice("insert: refocused \(target.appName ?? "?", privacy: .public)")
+        return matches(target)
+    }
+
+    private func matches(_ target: InsertionTarget) -> Bool {
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processID,
+              let original = target.element, let current = focusedElement(pid: target.processID),
+              CFEqual(original, current) else { return false }
+        if let range = target.selection {
+            guard let now = selection(current), now.location == range.location, now.length == range.length else { return false }
+        }
+        return true
+    }
+
+    private func focusedElement(pid: Int32) -> AXUIElement? {
+        guard AXIsProcessTrusted() else { return nil }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.3)
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+              let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else { return nil }
+        let element = ref as! AXUIElement
+        AXUIElementSetMessagingTimeout(element, 0.3)
+        return element
+    }
+
+    private func selection(_ element: AXUIElement) -> CFRange? {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &ref) == .success,
+              let ref, CFGetTypeID(ref) == AXValueGetTypeID() else { return nil }
+        var range = CFRange()
+        return AXValueGetValue(ref as! AXValue, .cfRange, &range) ? range : nil
     }
 
     // MARK: - Accessibility
 
-    private func insertViaAccessibility(_ text: String) -> Bool {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return false }
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        AXUIElementSetMessagingTimeout(appElement, 0.3)
+    private enum WriteResult { case notAttempted, inserted, uncertain }
 
-        var focusedRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focusedRef) == .success,
-              let focusedRef else { return false }
-        let focused = focusedRef as! AXUIElement
-
+    private func insertViaAccessibility(_ text: String, target: InsertionTarget) -> WriteResult {
+        guard matches(target), let focused = target.element else { return .notAttempted }
         var roleRef: CFTypeRef?
         AXUIElementCopyAttributeValue(focused, kAXRoleAttribute as CFString, &roleRef)
         let role = roleRef as? String ?? ""
-        // Web and Electron fields often report success without inserting; paste there.
-        guard role == kAXTextFieldRole || role == kAXTextAreaRole || role == kAXComboBoxRole else { return false }
-
+        guard role == kAXTextFieldRole || role == kAXTextAreaRole || role == kAXComboBoxRole else { return .notAttempted }
         var settable: DarwinBoolean = false
         guard AXUIElementIsAttributeSettable(focused, kAXSelectedTextAttribute as CFString, &settable) == .success,
-              settable.boolValue else { return false }
-
-        let before = valueLength(focused)
-        guard AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success else { return false }
-        // Verify the text actually landed; some apps accept the call and ignore it.
-        guard let before, let after = valueLength(focused) else { return false }
-        return after != before
+              settable.boolValue, let before = value(focused), let range = selection(focused),
+              let expected = Self.replacing(before, range: range, with: text) else { return .notAttempted }
+        // Once a write is attempted, an error or unchanged length is not permission to replay it.
+        guard AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success,
+              value(focused) == expected else { return .uncertain }
+        return .inserted
     }
 
-    private func valueLength(_ element: AXUIElement) -> Int? {
+    static func replacing(_ value: String, range: CFRange, with text: String) -> String? {
+        let original = value as NSString
+        guard range.location >= 0, range.length >= 0, range.location <= original.length,
+              range.length <= original.length - range.location else { return nil }
+        return original.replacingCharacters(in: NSRange(location: range.location, length: range.length), with: text)
+    }
+
+    private func value(_ element: AXUIElement) -> String? {
         var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXValueAttribute as CFString, &ref) == .success,
-              let s = ref as? String else { return nil }
-        return (s as NSString).length
+        guard AXUIElementCopyAttributeValue(element, kAXValueAttribute as CFString, &ref) == .success else { return nil }
+        return ref as? String
     }
 
     // MARK: - Paste
@@ -115,8 +171,13 @@ public final class TextInserter {
         let pasteboard = NSPasteboard.general
         let saved = snapshot(pasteboard)
 
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        // Only on the clipboard long enough to paste: keep it off other devices
+        // (Universal Clipboard) and out of clipboard-manager history.
+        pasteboard.prepareForNewContents(with: .currentHostOnly)
+        let item = NSPasteboardItem()
+        item.setString(text, forType: .string)
+        item.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
+        pasteboard.writeObjects([item])
         let ourChange = pasteboard.changeCount
 
         guard postCommandV() else { return false }

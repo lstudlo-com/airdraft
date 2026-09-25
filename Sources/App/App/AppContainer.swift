@@ -11,12 +11,12 @@ import os
 @Observable
 final class AppContainer {
     static let shared = AppContainer()
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "app")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "app")
 
     let settings: AppSettings
     let dictionary: DictionaryStore
     let profiles: ProfileStore
-    let history: HistoryStore?
+    var history: HistoryStore? { pipeline.historyStore }
     let engineStatus: EngineStatus
     let factory: EngineFactory
     let models: ModelLifecycle
@@ -24,6 +24,7 @@ final class AppContainer {
     let permissions = SystemPermissions()
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
+    let downloads = ModelDownloadStore()
     @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
         self?.pipeline.isBusy ?? false
     }
@@ -44,6 +45,7 @@ final class AppContainer {
         dictionary = DictionaryStore(directory: dir)
         profiles = ProfileStore(directory: dir)
 
+        let history: HistoryStore?
         do {
             history = try HistoryStore(directory: dir)
         } catch {
@@ -56,6 +58,7 @@ final class AppContainer {
             dictionary: dictionary,
             profiles: profiles,
             history: history,
+            historyDirectory: dir,
             factory: factory
         )
     }
@@ -68,9 +71,22 @@ final class AppContainer {
 
         let panel = IndicatorPanelController(pipeline: pipeline) { [weak self] in self?.settings.hudStyle ?? .classic }
         indicator = panel
+        pipeline.onRecordingBlocked = { [weak self] in
+            guard let self else { return }
+            self.permissions.refresh()
+            self.navigation.page = .home
+            self.showMainWindow()
+        }
         pipeline.onStateChange = { [weak panel, weak self] state in
-            AppContainer.log.notice("pipeline state: \(String(describing: state), privacy: .public)")
+            // Failure and notice text can quote provider responses; keep it out of the public log.
+            let (name, detail): (String, String) = switch state {
+            case .failed(let message): ("failed", message)
+            case .notice(let message): ("notice", message)
+            default: (String(describing: state), "")
+            }
+            AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")
             panel?.update(for: state)
+            self?.models.setDictationBusy(state.isBusy)
             // Esc cancels only while recording, so it never steals Esc elsewhere.
             if state == .recording { self?.escapeHotkey.register(.escape) } else { self?.escapeHotkey.unregister() }
         }
@@ -93,7 +109,7 @@ final class AppContainer {
     func showMainWindow(_ open: OpenWindowAction? = nil) {
         NSApp.setActivationPolicy(.regular)
         (open ?? openWindowAction)?(id: "main")
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
 
     /// A menu-bar (accessory) app has no menu bar of its own, so while a window is open
@@ -106,7 +122,7 @@ final class AppContainer {
             MainActor.assumeIsolated {
                 if NSApp.activationPolicy() != .regular {
                     NSApp.setActivationPolicy(.regular)
-                    NSApp.activate(ignoringOtherApps: true)
+                    NSApp.activate()
                 }
             }
         }
@@ -141,15 +157,7 @@ final class AppContainer {
     }
 
     private func observeAppearance() {
-        withObservationTracking {
-            _ = settings.appearance
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                self.applyAppearance()
-                self.observeAppearance()
-            }
-        }
+        observeChanges({ [weak self] in _ = self?.settings.appearance }) { [weak self] in self?.applyAppearance() }
     }
 
     func openAccessibilitySettings() {
@@ -188,14 +196,9 @@ final class AppContainer {
 
     /// Re-arms the monitor whenever Settings changes the hotkey.
     private func observeHotkeyChanges() {
-        withObservationTracking {
-            _ = settings.hotkey
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                self.hotkeys.apply(self.settings.hotkey)
-                self.observeHotkeyChanges()
-            }
+        observeChanges({ [weak self] in _ = self?.settings.hotkey }) { [weak self] in
+            guard let self else { return }
+            self.hotkeys.apply(self.settings.hotkey)
         }
     }
 }

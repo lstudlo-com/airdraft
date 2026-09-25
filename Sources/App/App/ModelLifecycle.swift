@@ -12,7 +12,7 @@ import os
 @MainActor
 @Observable
 final class ModelLifecycle {
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "models")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "models")
 
     let engineStatus: EngineStatus
     let llmStatus = LLMStatus()
@@ -21,6 +21,14 @@ final class ModelLifecycle {
     private let lmStudio = LMStudioControl()
     private var lastLLM: LLMConfig?
     private var lastASR: ASRConfig?
+    private var speechLoadTask: Task<Void, Never>?
+    private var llmGeneration = UUID()
+    private var dictationBusy = false
+
+    func setDictationBusy(_ busy: Bool) {
+        dictationBusy = busy
+        if !busy { handleSettingsChange() }
+    }
 
     init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus) {
         self.settings = settings
@@ -41,15 +49,19 @@ final class ModelLifecycle {
 
     /// Load the selected local speech engine now, so status is visible before the first dictation.
     func loadSpeechModel() {
+        guard !dictationBusy else { return }
+        speechLoadTask?.cancel()
         let config = settings.asr
         guard config.kind.isLocal else { return unloadSpeechModels() }
-        Task {
+        speechLoadTask = Task {
             do { try await factory.prepare(config) }
             catch { Self.log.error("speech load failed: \(error.localizedDescription, privacy: .public)") }
         }
     }
 
     func unloadSpeechModels() {
+        guard !dictationBusy else { return }
+        speechLoadTask?.cancel()
         Task { await factory.unloadAll() }
     }
 
@@ -72,7 +84,9 @@ final class ModelLifecycle {
             llmStatus.set(.remote)
             return
         }
-        switch await lmStudio.serverKind(baseURL: url) {
+        let server = await lmStudio.serverKind(baseURL: url)
+        guard config == settings.llm, !Task.isCancelled else { return }
+        switch server {
         case .unmanaged:
             llmStatus.set(.remote)
         case .unreachable:
@@ -81,8 +95,10 @@ final class ModelLifecycle {
             if case .loading = llmStatus.state { return }
             do {
                 let instances = try await lmStudio.instances(baseURL: url, modelKey: config.model)
+                guard config == settings.llm, !Task.isCancelled else { return }
                 llmStatus.set(instances.first.map { .loaded(instance: $0) } ?? .notLoaded)
             } catch {
+                guard config == settings.llm, !Task.isCancelled else { return }
                 llmStatus.set(.failed(error.localizedDescription))
             }
         }
@@ -103,26 +119,37 @@ final class ModelLifecycle {
 
     /// Loads the configured model in LM Studio unless an instance is already up.
     func loadLLMIfNeeded() async {
+        let token = UUID()
+        llmGeneration = token
         let config = settings.llm
         guard let url = await lmStudioURL(config) else { return await refreshLLMStatus() }
         if let existing = try? await lmStudio.instances(baseURL: url, modelKey: config.model).first {
+            guard !Task.isCancelled, token == llmGeneration, settings.llm == config else { return }
             llmStatus.markUsed(existing)
             llmStatus.set(.loaded(instance: existing))
             return
         }
         // Set the outcome directly: refreshLLMStatus leaves a `.loading` state alone.
+        guard !Task.isCancelled, token == llmGeneration, settings.llm == config else { return }
         llmStatus.set(.loading)
         do {
             let id = try await lmStudio.load(baseURL: url, modelKey: config.model)
+            guard !Task.isCancelled, token == llmGeneration, settings.llm == config else {
+                try? await lmStudio.unload(baseURL: url, instanceID: id)
+                return
+            }
             llmStatus.markUsed(id)
             llmStatus.set(.loaded(instance: id))
             Self.log.notice("LLM loaded instance=\(id, privacy: .public)")
         } catch {
-            llmStatus.set(.failed(error.localizedDescription))
+            guard token == llmGeneration, settings.llm == config else { return }
+            llmStatus.set(Task.isCancelled ? .notLoaded : .failed(error.localizedDescription))
         }
     }
 
     func unloadLLM() {
+        guard !dictationBusy else { return }
+        llmGeneration = UUID()
         Task {
             await unloadInstances(of: settings.llm, onlyUsedByApp: false)
             await refreshLLMStatus()
@@ -130,6 +157,9 @@ final class ModelLifecycle {
     }
 
     func noteLLMUsed(_ instance: String) {
+        // This set is used to unload LM Studio instances. Cloud provider names
+        // reported by OpenRouter are not local model instance IDs.
+        guard settings.llm.kind == .openAICompatible else { return }
         llmStatus.markUsed(instance)
         Task { await refreshLLMStatus() }
     }
@@ -148,41 +178,41 @@ final class ModelLifecycle {
 
     /// Frees everything the app is responsible for. Bounded so quitting never hangs.
     func shutdown() async {
-        await factory.unloadAll()
-        await CLIWarmPool.shared.shutdown()
+        speechLoadTask?.cancel()
+        llmGeneration = UUID()
+        do {
+            try await OperationDeadline.run(seconds: 5) { [self] in
+                await factory.unloadAll()
+                await CLIWarmPool.shared.shutdown()
+                await self.unloadUsedLLMOnQuit()
+            }
+        } catch {
+            Self.log.error("Model cleanup reached its deadline; allowing quit")
+        }
+    }
+
+    private func unloadUsedLLMOnQuit() async {
         guard settings.unloadLLMOnQuit,
               let url = URL(string: settings.llm.baseURL),
               !llmStatus.usedInstances.isEmpty else { return }
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-                for id in await self.llmStatus.usedInstances {
-                    try? await self.lmStudio.unload(baseURL: url, instanceID: id)
-                    Self.log.notice("quit: unloaded LLM instance=\(id, privacy: .public)")
-                }
-            }
-            group.addTask { try? await Task.sleep(for: .seconds(4)) }
-            await group.next()
-            group.cancelAll()
+        for id in llmStatus.usedInstances {
+            try? await lmStudio.unload(baseURL: url, instanceID: id)
         }
     }
 
     // MARK: Observation
 
     private func observe() {
-        withObservationTracking {
-            _ = settings.asr
-            _ = settings.llm
-            _ = settings.idleUnloadMinutes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                self.handleSettingsChange()
-                self.observe()
-            }
-        }
+        observeChanges({ [weak self] in
+            guard let self else { return }
+            _ = self.settings.asr
+            _ = self.settings.llm
+            _ = self.settings.idleUnloadMinutes
+        }) { [weak self] in self?.handleSettingsChange() }
     }
 
     private func handleSettingsChange() {
+        guard !dictationBusy else { return }
         Task { await factory.setIdleUnloadMinutes(settings.idleUnloadMinutes) }
 
         if settings.asr.engineID != lastASR?.engineID {

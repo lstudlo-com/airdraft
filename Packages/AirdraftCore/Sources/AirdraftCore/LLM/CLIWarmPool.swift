@@ -7,8 +7,8 @@ import os
 final class CLISession: @unchecked Sendable {
     let key: String
     private let process = Process()
-    private let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()
-    private let log = Logger(subsystem: "com.lightiichen.airdraft", category: "cli")
+    private let stdin = Pipe(), stdout = Pipe()
+    private let log = Logger(subsystem: AppIdentity.logSubsystem, category: "cli")
 
     init(key: String, executable: String, arguments: [String], environment: [String: String], workDir: URL) throws {
         self.key = key
@@ -18,7 +18,8 @@ final class CLISession: @unchecked Sendable {
         process.currentDirectoryURL = workDir
         process.standardInput = stdin
         process.standardOutput = stdout
-        process.standardError = stderr
+        // Never read, so a pipe here could fill and stall the session.
+        process.standardError = FileHandle.nullDevice
         try process.run()
     }
 
@@ -35,31 +36,20 @@ final class CLISession: @unchecked Sendable {
         stdin.fileHandleForWriting.write(line)
 
         let deadline = Date().addingTimeInterval(timeout)
-        var buffer = Data()
-        while Date() < deadline {
-            let chunk = stdout.fileHandleForReading.availableData
-            if chunk.isEmpty {
-                guard process.isRunning else { break }
-                continue
-            }
-            buffer.append(chunk)
-            while let newline = buffer.firstIndex(of: 0x0A) {
-                let lineData = buffer[buffer.startIndex..<newline]
-                buffer.removeSubrange(buffer.startIndex...newline)
-                guard let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
-                      object["type"] as? String == "result" else { continue }
-                stop()
-                if let result = object["result"] as? String { return result }
-                throw RefinerError.http(status: 0, body: String(describing: object).prefix(300).description)
-            }
+        var reader = PipeLineReader(handle: stdout.fileHandleForReading)
+        defer { stop() }
+        while let lineData = try reader.nextLine(until: deadline) {
+            guard let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
+                  object["type"] as? String == "result" else { continue }
+            if let result = object["result"] as? String { return result }
+            throw RefinerError.http(status: 0, body: String(describing: object).prefix(300).description)
         }
-        stop()
-        throw RefinerError.timeout
+        throw RefinerError.invalidResponse
     }
 
     func stop() {
         try? stdin.fileHandleForWriting.close()
-        if process.isRunning { process.terminate() }
+        CLIProcess.stop(process)
     }
 
     deinit { stop() }
@@ -73,7 +63,7 @@ public actor CLIWarmPool {
     /// A session waiting this long is stale (the user started recording and walked away).
     private let maxIdle: TimeInterval = 180
 
-    private let log = Logger(subsystem: "com.lightiichen.airdraft", category: "cli")
+    private let log = Logger(subsystem: AppIdentity.logSubsystem, category: "cli")
 
     func prewarm(key: String, make: () throws -> CLISession) {
         discardIfStale()

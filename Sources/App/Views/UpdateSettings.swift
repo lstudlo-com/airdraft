@@ -30,10 +30,9 @@ struct UpdateSettings: View {
                     .disabled(!updates.isStarted || !updates.automaticallyChecksForUpdates)
                 }
                 if let error = updates.startupError {
-                    Text(error).font(.caption).foregroundStyle(.secondary)
+                    EmptyNote(error)
                 } else if let checked = updates.lastCheckedAt {
-                    Text("Last checked \(checked.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.caption).foregroundStyle(.secondary)
+                    EmptyNote("Last checked \(checked.formatted(date: .abbreviated, time: .shortened))")
                 }
             }
         }

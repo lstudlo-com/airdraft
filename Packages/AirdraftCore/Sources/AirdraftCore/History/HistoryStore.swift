@@ -81,13 +81,20 @@ public final class HistoryStore: Sendable {
     public init(directory: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("history.sqlite")
-        dbQueue = try DatabaseQueue(path: url.path)
+        dbQueue = try DatabaseQueue(path: url.path, configuration: Self.configuration)
         try migrate()
     }
 
     public init(inMemory: Bool) throws {
-        dbQueue = try DatabaseQueue()
+        dbQueue = try DatabaseQueue(configuration: Self.configuration)
         try migrate()
+    }
+
+    /// Deleted dictations are overwritten on disk, not left in free pages.
+    private static var configuration: Configuration {
+        var config = Configuration()
+        config.prepareDatabase { db in try db.execute(sql: "PRAGMA secure_delete = ON") }
+        return config
     }
 
     private func migrate() throws {
@@ -128,9 +135,9 @@ public final class HistoryStore: Sendable {
         }
     }
 
-    public func recent(limit: Int = 200, query: String = "") throws -> [DictationRecord] {
+    public func recent(limit: Int = 200, query: String = "", offset: Int = 0) throws -> [DictationRecord] {
         try dbQueue.read { db in
-            var request = DictationRecord.order(Column("createdAt").desc).limit(limit)
+            var request = DictationRecord.order(Column("createdAt").desc, Column("id").desc).limit(limit, offset: max(0, offset))
             let q = query.trimmingCharacters(in: .whitespaces)
             if !q.isEmpty {
                 let pattern = "%\(q)%"
@@ -166,6 +173,7 @@ public final class HistoryStore: Sendable {
         _ = try dbQueue.write { db in
             try DictationRecord.deleteAll(db)
         }
+        try dbQueue.vacuum()
     }
 
     public func count() throws -> Int {
@@ -186,16 +194,103 @@ public final class HistoryStore: Sendable {
     /// Aggregates over all history, or over the last `days` days.
     public func stats(days: Int? = nil) throws -> Stats {
         try dbQueue.read { db in
-            var request = DictationRecord.all()
-            if let days {
-                let since = Date().addingTimeInterval(-Double(days) * 86_400)
-                request = request.filter(Column("createdAt") >= since)
-            }
-            let rows = try request.fetchAll(db)
-            let words = rows.reduce(0) { $0 + DictationPipeline.approximateWordCount($1.finalText) }
-            let seconds = rows.reduce(0.0) { $0 + $1.audioSeconds }
-            let apps = Set(rows.compactMap { $0.appBundleId ?? $0.appName }).count
-            return Stats(dictations: rows.count, words: words, audioSeconds: seconds, apps: apps)
+            let rows = try Self.rows(db, days: days, now: Date())
+            return Self.stats(rows)
         }
+    }
+
+    /// Everything the Home page summarises, computed locally from history.
+    public struct Overview: Sendable, Equatable {
+        /// One dictation, drawn as a bar in the Home waveform.
+        public struct Pulse: Sendable, Equatable {
+            public var date: Date
+            public var words: Int
+            public var wordsPerMinute: Int
+            public var appName: String?
+        }
+
+        public struct AppShare: Sendable, Equatable {
+            public var bundleId: String?
+            public var name: String
+            public var words: Int
+        }
+
+        public var stats: Stats
+        /// The most recent dictations in the period, oldest first.
+        public var pulses: [Pulse]
+        /// Apps ranked by words dictated in the period.
+        public var topApps: [AppShare]
+        /// Consecutive days with a dictation, ending today or yesterday, over all history.
+        public var streakDays: Int
+        /// Distinct days with a dictation in the period.
+        public var activeDays: Int
+        /// Words in the period's longest dictation.
+        public var longestWords: Int
+
+        public static let empty = Overview(stats: Stats(dictations: 0, words: 0, audioSeconds: 0, apps: 0),
+                                           pulses: [], topApps: [], streakDays: 0, activeDays: 0, longestWords: 0)
+    }
+
+    public func overview(days: Int? = nil, now: Date = Date(), calendar: Calendar = .current, calendarDay: Bool = false,
+                         pulseLimit: Int = 48, appLimit: Int = 3) throws -> Overview {
+        try dbQueue.read { db in
+            let rows = try Self.rows(db, days: days, now: now, since: calendarDay ? calendar.startOfDay(for: now) : nil)
+            let counted = rows.map { ($0, DictationPipeline.approximateWordCount($0.finalText)) }
+
+            let pulses = counted.suffix(pulseLimit).map { record, words in
+                Overview.Pulse(date: record.createdAt, words: words,
+                               wordsPerMinute: record.audioSeconds > 1 ? Int(Double(words) / (record.audioSeconds / 60)) : 0,
+                               appName: record.appName)
+            }
+
+            var shares: [String: Overview.AppShare] = [:]
+            for (record, words) in counted {
+                guard let key = record.appBundleId ?? record.appName else { continue }
+                shares[key, default: .init(bundleId: record.appBundleId, name: record.appName ?? key, words: 0)].words += words
+            }
+            let topApps = shares.values
+                .sorted { $0.words != $1.words ? $0.words > $1.words : $0.name < $1.name }
+                .prefix(appLimit)
+
+            let allDates = try Date.fetchAll(db, DictationRecord.select(Column("createdAt")))
+            let activeDays = Set(rows.map { calendar.startOfDay(for: $0.createdAt) }).count
+            return Overview(stats: Self.stats(rows), pulses: Array(pulses), topApps: Array(topApps),
+                            streakDays: Self.streak(allDates, now: now, calendar: calendar),
+                            activeDays: activeDays, longestWords: counted.map(\.1).max() ?? 0)
+        }
+    }
+
+    private static func rows(_ db: Database, days: Int?, now: Date, since: Date? = nil) throws -> [DictationRecord] {
+        var request = DictationRecord.order(Column("createdAt"))
+        if let since {
+            request = request.filter(Column("createdAt") >= since && Column("createdAt") <= now)
+        } else if let days {
+            request = request.filter(Column("createdAt") >= now.addingTimeInterval(-Double(days) * 86_400))
+        }
+        return try request.fetchAll(db)
+    }
+
+    private static func stats(_ rows: [DictationRecord]) -> Stats {
+        let words = rows.reduce(0) { $0 + DictationPipeline.approximateWordCount($1.finalText) }
+        let seconds = rows.reduce(0.0) { $0 + $1.audioSeconds }
+        let apps = Set(rows.compactMap { $0.appBundleId ?? $0.appName }).count
+        return Stats(dictations: rows.count, words: words, audioSeconds: seconds, apps: apps)
+    }
+
+    /// A streak survives until the end of the day after the last dictation.
+    static func streak(_ dates: [Date], now: Date, calendar: Calendar) -> Int {
+        let days = Set(dates.map { calendar.startOfDay(for: $0) })
+        var day = calendar.startOfDay(for: now)
+        if !days.contains(day) {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day), days.contains(yesterday) else { return 0 }
+            day = yesterday
+        }
+        var count = 0
+        while days.contains(day) {
+            count += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return count
     }
 }

@@ -2,36 +2,18 @@ import AppKit
 import AirdraftCore
 import SwiftUI
 
-/// The refinement section on the Models page: pick a provider, then only the
-/// rows that provider needs. Everything that is the same for all of them
-/// (temperature, timeout, thresholds) sits under Advanced.
+/// Provider selection lives in the Models section heading. Show only the
+/// settings required by the selected provider here.
 struct RefinementSettings: View {
     @Environment(AppContainer.self) private var container
     @State private var testResult = ""
     @State private var testTask: Task<Void, Never>?
     @State private var testID = UUID()
-    @State private var keyPresence: [String: Keychain.Presence] = [:]
-
     private var llm: LLMConfig { container.settings.llm }
 
     var body: some View {
         @Bindable var settings = container.settings
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-            Card {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
-                    ForEach(LLMProviderKind.allCases) { kind in
-                        ProviderTile(
-                            kind: kind,
-                            selected: llm.kind == kind,
-                            status: status(for: kind)
-                        ) {
-                            settings.llm.select(kind)
-                            testResult = ""
-                        }
-                    }
-                }
-            }
-
             SettingsCard {
                 switch llm.kind {
                 case .none:
@@ -47,47 +29,59 @@ struct RefinementSettings: View {
                 }
             }
 
+            if llm.kind != .none {
             DisclosureGroup("Advanced") {
                 SettingsCard {
+                    if llm.kind != .anthropic && !llm.kind.isCLI {
                     SettingRow(title: "Temperature") {
                         HStack {
-                            Slider(value: $settings.llm.temperature, in: 0...1, step: 0.1).frame(width: 160)
+                            Slider(value: $settings.llm.temperature, in: 0...1, step: 0.1).frame(width: 160).accessibilityLabel("Temperature")
                             Text(String(format: "%.1f", settings.llm.temperature)).monospacedDigit().frame(width: 28)
                         }
                     }
                     RowDivider()
-                    SettingRow(title: "Timeout", subtitle: "Then the raw transcript is inserted") {
-                        Stepper("\(Int(settings.llm.timeoutSeconds)) s", value: $settings.llm.timeoutSeconds, in: 3...120, step: 1).frame(width: 110)
+                    }
+                    SettingRow(title: "Timeout", subtitle: llm.kind.isCLI
+                               ? "CLI providers wait at least 60 s to start a session; then the raw transcript is inserted"
+                               : "Then the raw transcript is inserted") {
+                        SettingsNumberStepper(title: "Timeout", value: Binding(
+                            get: { Int(settings.llm.timeoutSeconds) },
+                            set: { settings.llm.timeoutSeconds = Double($0) }
+                        ), in: 3...120, unit: "s")
                     }
                     RowDivider()
-                    SettingRow(title: "Skip LLM under") {
-                        Stepper("\(settings.llm.minWordsForLLM) words", value: $settings.llm.minWordsForLLM, in: 0...20).frame(width: 120)
+                    SettingRow(title: "Skip refinement under") {
+                        SettingsNumberStepper(title: "Skip refinement under", value: $settings.llm.minWordsForLLM, in: 0...20, unit: "words")
                     }
                     if !llm.kind.isCLI {
                         RowDivider()
                         SettingRow(title: "Thinking effort", subtitle: thinkingSubtitle) {
-                            Picker("", selection: $settings.llm.thinkingEffort) {
-                                ForEach(ThinkingEffort.standard) { Text($0.title).tag($0) }
+                            Picker("Thinking effort", selection: Binding(
+                                get: { llm.kind == .gemini && settings.llm.thinkingEffort != .off ? .high : settings.llm.thinkingEffort },
+                                set: { settings.llm.thinkingEffort = $0 }
+                            )) {
+                                ForEach(llm.kind == .gemini ? [.off, .high] : ThinkingEffort.standard) {
+                                    Text(llm.kind == .gemini && $0 == .high ? "Automatic" : $0.title).tag($0)
+                                }
                             }
-                            .pickerStyle(.segmented).labelsHidden().frame(width: 260)
+                            .pickerStyle(.segmented).settingsPicker(width: 260)
                         }
                     }
                 }
                 .padding(.top, 8)
             }
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(.secondary)
+            .settingsDisclosure()
+            }
         }
-        .task { await refreshKeys() }
         .onChange(of: llm) { _, _ in cancelTest() }
         .onDisappear { cancelTest() }
         .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { note in
             if note.object as? String == llm.keyRef { cancelTest() }
-            Task { await refreshKeys() }
         }
     }
 
     private var thinkingSubtitle: String {
+        if llm.kind == .gemini { return "Off requests no thinking when supported; Automatic uses the model default" }
         if [.cerebras, .groq].contains(llm.kind), llm.model.contains("gpt-oss") {
             return "This model requires reasoning; Off uses its lowest effort"
         }
@@ -101,7 +95,7 @@ struct RefinementSettings: View {
         @Bindable var settings = container.settings
         SettingRow(title: "Model status", subtitle: statusSubtitle) {
             HStack(spacing: 8) {
-                statusDot
+                StatusDot(statusTone)
                 switch container.models.llmStatus.state {
                 case .loaded:
                     Button("Unload") { container.models.unloadLLM() }.buttonStyle(SoftButtonStyle())
@@ -116,7 +110,7 @@ struct RefinementSettings: View {
         }
         RowDivider()
         SettingRow(title: "Server") {
-            Picker("", selection: Binding<String>(
+            Picker("Server", selection: Binding<String>(
                 get: { EndpointPreset.llm.first { $0.baseURL == settings.llm.baseURL }?.name ?? "Custom" },
                 set: { name in
                     guard let p = EndpointPreset.llm.first(where: { $0.name == name }) else { return }
@@ -127,15 +121,16 @@ struct RefinementSettings: View {
             )) {
                 ForEach(EndpointPreset.llm) { Text($0.name).tag($0.name) }
             }
-            .labelsHidden().frame(width: 220)
+            .settingsPicker(width: Theme.fieldWidth)
         }
         RowDivider()
         SettingRow(title: "Base URL") {
-            TextField("", text: $settings.llm.baseURL).textFieldStyle(.roundedBorder).frame(width: 300)
+            TextField("Base URL", text: $settings.llm.baseURL).textFieldStyle(.roundedBorder)
+                .labelsHidden().frame(width: Theme.fieldWidth)
         }
         RowDivider()
         SettingRow(title: "API key", subtitle: "Local servers usually need none") {
-            APIKeyField(account: llm.keyRef, onSave: { Task { await refreshKeys() } })
+            APIKeyField(account: llm.keyRef)
         }
         RowDivider()
         RefinementModelRow()
@@ -145,16 +140,17 @@ struct RefinementSettings: View {
 
     @ViewBuilder
     private var cloudRows: some View {
-        SettingRow(title: "\(llm.kind.title) API key", subtitle: "Stored in your Keychain") {
-            APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL, onSave: { Task { await refreshKeys() } })
+        SettingRow(title: "\(llm.kind.title) API key", subtitle: llm.kind == .openRouter ? "Shared with OpenRouter speech recognition" : "Stored in your Keychain") {
+            APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL)
         }
         RowDivider()
         RefinementModelRow()
+        if llm.kind == .openRouter {
+            RowDivider()
+            OpenRouterProviderSettings()
+        }
         RowDivider()
         testRow
-        Text("Text is sent to \(llm.kind.title) for refinement. Audio is handled by your speech recognition provider.")
-            .font(.system(size: 11.5))
-            .foregroundStyle(.tertiary)
     }
 
     /// A CLI already installed and logged in on this Mac: nothing to configure but
@@ -163,8 +159,8 @@ struct RefinementSettings: View {
     private var cliRows: some View {
         SettingRow(title: "Command", subtitle: cliSubtitle) {
             HStack(spacing: 8) {
-                Circle().fill(llm.cliExecutable == nil ? Color.orange : Color.green).frame(width: 7, height: 7)
-                Button("Locate again") {
+                StatusDot(ok: llm.cliExecutable != nil)
+                Button("Locate Again") {
                     var config = container.settings.llm
                     config.cliPaths[config.kind.rawValue] = config.kind.cliTool?.locate() ?? ""
                     container.settings.llm = config
@@ -176,50 +172,30 @@ struct RefinementSettings: View {
         RefinementModelRow()
         RowDivider()
         testRow
-        Text("Runs on this Mac through your \(llm.kind == .claudeCode ? "Claude" : "ChatGPT") subscription: no API key, no per-token bill. Each call is a one-shot run with no tools and no project context.")
-            .font(.system(size: 11.5))
-            .foregroundStyle(.tertiary)
     }
 
     private var cliSubtitle: String {
         guard let path = llm.cliExecutable else {
-            return "\(llm.kind.cliTool?.executableName ?? "CLI") not found. Install it, then press Locate again."
+            return "\(llm.kind.cliTool?.executableName ?? "CLI") not found. Install it, then press Locate Again."
         }
         return path
     }
 
     private var testRow: some View {
         SettingRow(title: "Connection", subtitle: testResult.isEmpty ? nil : testResult) {
-            Button("Test") {
-                let token = UUID()
-                testID = token
-                testTask = Task { await test(token: token) }
-            }.buttonStyle(SoftButtonStyle()).disabled(testTask != nil)
-        }
-    }
-
-    // MARK: - Status
-
-    private func status(for kind: LLMProviderKind) -> String {
-        switch kind {
-        case .none: return "No LLM"
-        case .openAICompatible: return llm.kind == kind ? container.models.llmStatus.label : "LM Studio, Ollama"
-        case .claudeCode, .codex: return kind.cliTool?.locate() == nil ? "Not installed" : "Subscription"
-        default:
-            switch keyPresence[kind.keyRef] {
-            case .saved: return "Key saved"
-            case .unavailable: return "Key unavailable"
-            default: return "Add key"
+            if testTask != nil {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Button("Cancel") { cancelTest() }.buttonStyle(SoftButtonStyle())
+                }
+            } else {
+                Button("Test") {
+                    let token = UUID()
+                    testID = token
+                    testTask = Task { await test(token: token) }
+                }.buttonStyle(SoftButtonStyle())
             }
         }
-    }
-
-    private func refreshKeys() async {
-        guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
-        keyPresence = await Task.detached {
-            Dictionary(uniqueKeysWithValues: LLMProviderKind.allCases.filter { !$0.keyRef.isEmpty }
-                .map { ($0.keyRef, Keychain.presence($0.keyRef)) })
-        }.value
     }
 
     private var statusSubtitle: String {
@@ -232,16 +208,13 @@ struct RefinementSettings: View {
         }
     }
 
-    private var statusDot: some View {
-        let color: Color = {
-            switch container.models.llmStatus.state {
-            case .loaded: return .green
-            case .loading: return .yellow
-            case .failed, .unreachable: return .orange
-            default: return .secondary.opacity(0.5)
-            }
-        }()
-        return Circle().fill(color).frame(width: 7, height: 7)
+    private var statusTone: StatusDot.Tone {
+        switch container.models.llmStatus.state {
+        case .loaded: return .ok
+        case .loading: return .busy
+        case .failed, .unreachable: return .attention
+        default: return .inactive
+        }
     }
 
     private func cancelTest() {
@@ -253,7 +226,7 @@ struct RefinementSettings: View {
 
     private func test(token: UUID) async {
         let config = llm
-        testResult = "Testing…"
+        testResult = ""
         defer { if testID == token { testTask = nil } }
         let candidate = await container.factory.refiner(for: config)
         guard testID == token, !Task.isCancelled else { return }
@@ -270,72 +243,25 @@ struct RefinementSettings: View {
         do {
             let r = try await refiner.refine(req)
             guard testID == token, !Task.isCancelled else { return }
-            testResult = "OK in \(r.latencyMs) ms: \(r.text.prefix(60))"
+            let host = config.kind == .openRouter
+                ? " · " + (r.servedBy.map { "Served by \($0)" } ?? "Provider not reported")
+                : ""
+            testResult = "OK in \(r.latencyMs) ms\(host): \(r.text.prefix(60))"
         } catch {
             guard testID == token, !Task.isCancelled else { return }
-            testResult = "Failed: \(error.localizedDescription)"
+            testResult = "Failed. \(error.localizedDescription)"
         }
-    }
-}
-
-/// One provider choice: icon, name, and what it needs right now.
-struct ProviderTile: View {
-    let kind: LLMProviderKind
-    let selected: Bool
-    let status: String
-    let action: () -> Void
-    @State private var hovering = false
-
-    private var color: Color {
-        switch kind {
-        case .openAICompatible: return .indigo
-        case .openAI: return .green
-        case .anthropic: return .orange
-        case .gemini: return .blue
-        case .openRouter: return .purple
-        case .cerebras: return .orange
-        case .groq: return .pink
-        case .claudeCode: return .orange
-        case .codex: return .teal
-        case .none: return .gray
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            IconBadge(symbol: kind.symbol, color: color, size: 22)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(kind.shortTitle).font(.system(size: 12.5, weight: .semibold)).lineLimit(1)
-                Text(status).font(.system(size: 10.5)).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.85)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(selected ? Color.accentColor.opacity(0.12) : (hovering ? Color.primary.opacity(0.06) : Color.primary.opacity(0.035)))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(selected ? Color.accentColor : Color.primary.opacity(0.08), lineWidth: selected ? 1.5 : 0.5)
-        )
-        .contentShape(Rectangle())
-        .onHover { hovering = $0 }
-        .onTapGesture(perform: action)
-        .help("\(kind.title) — \(kind.subtitle)")
     }
 }
 
 struct APIKeyField: View {
     let account: String
     var console: URL? = nil
-    var onSave: (() -> Void)? = nil
     @State private var editor = CredentialEditor()
 
     private var needsAccess: Bool {
-        editor.needsAccess || (ProcessInfo.processInfo.arguments.contains("--render-window") &&
-            ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_KEYCHAIN"] == "locked")
+        editor.needsAccess || (RenderMode.isActive &&
+            RenderMode.value("KEYCHAIN") == "locked")
     }
 
     var body: some View {
@@ -343,26 +269,31 @@ struct APIKeyField: View {
         VStack(alignment: .trailing, spacing: Theme.controlSpacing) {
             HStack(spacing: 8) {
                 if let console {
-                    Button("Get a key") { NSWorkspace.shared.open(console) }
+                    Button("Get a Key") { NSWorkspace.shared.open(console) }
                         .buttonStyle(.link).font(.system(size: 12)).fixedSize()
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
-                    .textFieldStyle(.roundedBorder).frame(width: 200).disabled(editor.isBusy)
-                if needsAccess {
-                    Button("Allow access") { Task { await editor.authorize(); onSave?() } }
-                        .buttonStyle(SoftButtonStyle()).fixedSize().disabled(editor.isBusy)
-                }
-                Button("Save") { Task { await editor.save(); onSave?() } }
+                    .textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth).disabled(editor.isBusy)
+                Button("Save") { Task { await editor.save() } }
                     .buttonStyle(SoftButtonStyle()).fixedSize().disabled(!editor.canSave)
             }
+                if needsAccess {
+                    Button("Allow Access") { Task { await editor.authorize() } }
+                        .buttonStyle(SoftButtonStyle()).fixedSize().disabled(editor.isBusy)
+                }
             if let message = editor.message ?? (needsAccess ? "Your saved key needs access approval." : nil) {
                 Text(message).font(.system(size: 11.5)).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: Theme.fieldWidth + 100, alignment: .trailing)
             }
         }
         .task(id: account) {
-            guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
+            guard !RenderMode.isActive else { return }
             await editor.load(account: account)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { note in
+            guard note.object as? String == account, !editor.isBusy, !editor.canSave else { return }
+            Task { await editor.load(account: account) }
         }
         .onDisappear { editor.cancel() }
     }
@@ -401,7 +332,7 @@ struct RefinementModelRow: View {
                 HStack(spacing: 6) {
                     if models.isEmpty || customModel {
                         TextField("Model ID or alias", text: $settings.llm.model)
-                            .textFieldStyle(.roundedBorder).frame(width: 240)
+                            .textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth)
                             .accessibilityLabel("Model ID or alias")
                     } else {
                         Picker("Model", selection: $settings.llm.model) {
@@ -413,7 +344,7 @@ struct RefinementModelRow: View {
                                 Text("\(settings.llm.model) (custom)").tag(settings.llm.model)
                             }
                         }
-                        .labelsHidden().frame(width: 240)
+                        .settingsPicker(width: Theme.fieldWidth)
                     }
                     if !models.isEmpty {
                         Button { customModel.toggle() } label: {
@@ -423,13 +354,7 @@ struct RefinementModelRow: View {
                         .help(customModel ? "Choose from the model list" : "Use a model ID supported by the provider")
                         .accessibilityLabel(customModel ? "Choose a listed model" : "Enter a custom model")
                     }
-                    Button { refreshID = UUID() } label: {
-                        if loading { ProgressView().controlSize(.small) } else { Image(systemName: "arrow.clockwise") }
-                    }
-                    .buttonStyle(SoftButtonStyle())
-                    .disabled(loading)
-                    .help("Reload the model list from the provider")
-                    .accessibilityLabel("Reload models")
+                    RefreshButton(loading: loading, help: "Reload the model list from the provider") { refreshID = UUID() }
                 }
             }
             if tool != nil {
@@ -444,7 +369,7 @@ struct RefinementModelRow: View {
                         )) {
                             ForEach(availableEfforts) { Text($0.title).tag($0) }
                         }
-                        .labelsHidden().frame(width: 170)
+                        .settingsPicker(width: 170)
                     }
                 }
             }
@@ -463,7 +388,7 @@ struct RefinementModelRow: View {
     private var taskKey: String { "\(llm.kind.rawValue)|\(llm.baseURL)|\(llm.keyRef)|\(llm.cliExecutable ?? "")" }
 
     private func refresh() async {
-        guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
+        guard !RenderMode.isActive else { return }
         let key = taskKey
         let config = llm
         loading = true
@@ -497,7 +422,7 @@ struct RefinementModelRow: View {
     }
 
     /// Endpoints answer with a page of JSON; the row only has space for the point of it.
-    private static func shortMessage(for error: Error) -> String {
+    static func shortMessage(for error: Error) -> String {
         if let error = error as? Keychain.AccessError { return error.localizedDescription }
         if case RefinerError.http(let status, _) = error {
             switch status {
@@ -507,6 +432,7 @@ struct RefinementModelRow: View {
             default: return "Provider returned HTTP \(status); type the model id."
             }
         }
+        if error is RefinerError { return error.localizedDescription }
         return "Could not reach the provider; type the model id."
     }
 }

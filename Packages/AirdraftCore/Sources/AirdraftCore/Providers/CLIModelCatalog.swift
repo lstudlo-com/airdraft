@@ -154,10 +154,11 @@ private final class CatalogSession {
     private let directory: URL
     private let deadline: Date
     private let cancelled: OSAllocatedUnfairLock<Bool>
-    private var buffer = Data()
+    private var reader: PipeLineReader
 
     init(tool: CLIRefiner.Tool, executable: String, timeout: TimeInterval, cancelled: OSAllocatedUnfairLock<Bool>) throws {
         self.cancelled = cancelled
+        reader = PipeLineReader(handle: stdout.fileHandleForReading)
         deadline = Date().addingTimeInterval(timeout)
         directory = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-models-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -202,25 +203,12 @@ private final class CatalogSession {
 
     func receive() throws -> [String: Any] {
         while true {
-            try checkDeadline()
-            if let newline = buffer.firstIndex(of: 0x0A) {
-                let line = buffer.subdata(in: buffer.startIndex..<newline)
-                buffer.removeSubrange(buffer.startIndex...newline)
-                guard !line.isEmpty else { continue }
-                guard let object = try JSONSerialization.jsonObject(with: line) as? [String: Any] else { throw RefinerError.invalidResponse }
-                return object
-            }
-            var descriptor = pollfd(fd: stdout.fileHandleForReading.fileDescriptor, events: Int16(POLLIN), revents: 0)
-            let ready = poll(&descriptor, 1, 50)
-            if ready < 0 {
-                if errno == EINTR { continue }
+            guard let line = try reader.nextLine(until: deadline, cancelled: { cancelled.withLock { $0 } }) else {
                 throw RefinerError.invalidResponse
             }
-            guard ready > 0 else { continue }
-            let chunk = stdout.fileHandleForReading.availableData
-            guard !chunk.isEmpty else { throw RefinerError.invalidResponse }
-            buffer.append(chunk)
-            guard buffer.count <= 4_194_304 else { throw RefinerError.invalidResponse }
+            guard !line.isEmpty else { continue }
+            guard let object = try JSONSerialization.jsonObject(with: line) as? [String: Any] else { throw RefinerError.invalidResponse }
+            return object
         }
     }
 
@@ -232,13 +220,7 @@ private final class CatalogSession {
     func close() {
         try? stdin.fileHandleForWriting.close()
         try? stdout.fileHandleForReading.close()
-        if process.isRunning {
-            process.terminate()
-            let process = self.process
-            DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
-                if process.isRunning { kill(process.processIdentifier, SIGKILL) }
-            }
-        }
+        CLIProcess.stop(process)
         try? FileManager.default.removeItem(at: directory)
     }
 }

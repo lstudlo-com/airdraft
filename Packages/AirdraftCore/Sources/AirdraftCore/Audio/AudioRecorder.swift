@@ -28,9 +28,18 @@ public enum AudioRecorderError: Error, LocalizedError {
 
 /// Captures the selected input device and resamples to 16 kHz mono Float32,
 /// which is what every ASR engine here expects.
-public final class AudioRecorder: @unchecked Sendable {
+public protocol AudioRecording: AnyObject, Sendable {
+    var isRecording: Bool { get }
+    var levelHandler: (@Sendable (Float) -> Void)? { get set }
+    var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)? { get set }
+    func start(microphone: MicrophonePreference) throws
+    func stop() -> [Float]
+    func cancel()
+}
+
+public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     public static let sampleRate: Double = 16_000
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "recorder")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "recorder")
 
     private var engine: AVAudioEngine?
     private let notifications: NotificationCenter

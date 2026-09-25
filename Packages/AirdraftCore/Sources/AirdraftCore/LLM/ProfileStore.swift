@@ -12,6 +12,8 @@ public final class ProfileStore {
     public private(set) var baseRules: String = PromptBuilder.defaultBaseRules
     public private(set) var activeProfileID: UUID = RefinementProfile.cleanID
 
+    public private(set) var persistenceError: String?
+    private var unreadableOriginal = false
     private let fileURL: URL
 
     private struct Persisted: Codable {
@@ -121,8 +123,18 @@ public final class ProfileStore {
     // MARK: - Persistence
 
     private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
-              let p = try? JSONDecoder().decode(Persisted.self, from: data) else { return }
+        guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
+        let p: Persisted
+        do { p = try JSONDecoder().decode(Persisted.self, from: Data(contentsOf: fileURL)) }
+        catch {
+            if let backup = UnreadableFile.setAside(fileURL) {
+                persistenceError = "Profiles could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Defaults are shown until you restore your file."
+            } else {
+                unreadableOriginal = true
+                persistenceError = "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft."
+            }
+            return
+        }
         var loaded = p.profiles
         // Built-ins added in later versions appear even in older files.
         for d in RefinementProfile.defaults where !loaded.contains(where: { $0.id == d.id }) {
@@ -133,13 +145,24 @@ public final class ProfileStore {
         activeProfileID = loaded.contains(where: { $0.id == p.activeProfileID }) ? p.activeProfileID : RefinementProfile.cleanID
     }
 
-    private func save() {
+    public func retrySave() { save() }
+
+    @discardableResult
+    private func save() -> Bool {
+        guard !unreadableOriginal else { return false }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let p = Persisted(version: 1, baseRules: baseRules, profiles: profiles, activeProfileID: activeProfileID)
-        guard let data = try? encoder.encode(p) else { return }
-        try? FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? data.write(to: fileURL, options: .atomic)
+        do {
+            let data = try encoder.encode(p)
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: fileURL, options: .atomic)
+            persistenceError = nil
+            return true
+        } catch {
+            persistenceError = "Changes are not saved. Keep Airdraft open and retry after checking storage. " + error.localizedDescription
+            return false
+        }
     }
 
     private func uniqueName(_ base: String) -> String {

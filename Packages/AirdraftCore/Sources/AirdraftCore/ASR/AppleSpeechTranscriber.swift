@@ -18,7 +18,11 @@ public actor AppleSpeechTranscriber: Transcriber {
         return false
     }
 
-    public func isReady() async -> Bool { true }
+    public func isReady() async -> Bool {
+        guard #available(macOS 26, *) else { return false }
+        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeIdentifier), preset: .transcription)
+        return await AssetInventory.status(forModules: [transcriber]) == .installed
+    }
 
     public func prepare() async throws {
         guard #available(macOS 26, *) else { throw TranscriberError.appleUnavailable }
@@ -32,10 +36,9 @@ public actor AppleSpeechTranscriber: Transcriber {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
         guard #available(macOS 26, *) else { throw TranscriberError.appleUnavailable }
         let started = Date()
-        let localeId = hints.language.flatMap(Self.locale(forLanguage:)) ?? localeIdentifier
-        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeId), preset: .transcription)
-        if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
-            try await request.downloadAndInstall()
+        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeIdentifier), preset: .transcription)
+        guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
+            throw TranscriberError.providerFailure("Apple Speech", "Language assets are not installed. Open Models and load Apple Speech before retrying.")
         }
         let analyzer = SpeechAnalyzer(modules: [transcriber])
 

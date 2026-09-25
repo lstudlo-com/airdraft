@@ -9,7 +9,7 @@ import os
 /// reaches the frontmost app. Needs Accessibility; retries until granted.
 /// Main-thread only.
 final class EventTapHotkey {
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "hotkey")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hotkey")
     var hotkey: Hotkey = .controlOption { didSet { releaseHeldKey(reason: "shortcut changed") } }
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?

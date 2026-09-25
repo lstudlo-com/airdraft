@@ -11,6 +11,8 @@ public final class SystemPermissions {
     public private(set) var accessibilityGranted: Bool
     public private(set) var microphone: AVAuthorizationStatus
     @ObservationIgnored public var accessibilityDidChange: (() -> Void)?
+    /// Runs after every check, so other monitors can share this one timer.
+    @ObservationIgnored public var didRefresh: (() -> Void)?
     @ObservationIgnored private let checkAccessibility: () -> Bool
     @ObservationIgnored private let checkMicrophone: () -> AVAuthorizationStatus
     @ObservationIgnored private let promptAccessibility: () -> Void
@@ -39,6 +41,7 @@ public final class SystemPermissions {
         accessibilityGranted = granted
         microphone = checkMicrophone()
         if changed { accessibilityDidChange?() }
+        didRefresh?()
     }
 
     /// Apple's prompt is asynchronous; requesting access does not grant it.

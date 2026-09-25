@@ -65,7 +65,7 @@ final class IndicatorPanelController {
         }
     }
 
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "hud")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hud")
 
     /// `NSScreen.main` is nil for a menu-bar app with no key window, so use the
     /// screen under the mouse, then the first screen.
@@ -117,7 +117,7 @@ struct HUDSnapshot {
 struct IndicatorView: View {
     static func size(for style: HUDStyle) -> CGSize {
         switch style {
-        case .classic: return CGSize(width: 158, height: 34)
+        case .classic: return CGSize(width: 172, height: 34)
         case .mini: return CGSize(width: 108, height: 30)
         case .none: return .zero
         }
@@ -147,13 +147,15 @@ struct IndicatorView: View {
             } else if style == .mini {
                 WaveformBars(levels: levels, dimmed: state != .recording)
                     .frame(width: size.width - 28, height: 14)
+                    .background { HUDWaveformWell().padding(.horizontal, -5).padding(.vertical, -3) }
                     .padding(.horizontal, 14)
             } else {
                 HStack(spacing: 10) {
                     WaveformBars(levels: levels, dimmed: state != .recording)
                         .frame(width: 72, height: 16)
+                        .background { HUDWaveformWell().padding(.horizontal, -5).padding(.vertical, -3) }
                     ElapsedTime(pipeline: pipeline, snapshot: snapshot)
-                        .frame(width: 48, alignment: .leading)
+                        .frame(width: 62, alignment: .leading)
                 }
                 .padding(.horizontal, 14)
             }
@@ -161,13 +163,27 @@ struct IndicatorView: View {
         .frame(width: size.width, height: size.height)
         .background(
             RoundedRectangle(cornerRadius: size.height / 2, style: .continuous)
-                .fill(Color.black.opacity(0.86))
+                .fill(LinearGradient(colors: [Color(white: 0.17), Color(white: 0.10)],
+                                     startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
             RoundedRectangle(cornerRadius: size.height / 2, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.5)
+                .strokeBorder(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.04)],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
         )
         .environment(\.colorScheme, .dark)
+    }
+}
+
+/// A small, dark recess; live waveform bars keep their existing contrast.
+private struct HUDWaveformWell: View {
+    var body: some View {
+        Capsule()
+            .fill(Color(white: 0.08)
+                .shadow(.inner(color: .black.opacity(0.65), radius: 2, x: 1, y: 1.5))
+                .shadow(.inner(color: .white.opacity(0.10), radius: 2, x: -1, y: -1)))
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
 
@@ -248,7 +264,7 @@ struct ElapsedTime: View {
     private var caption: String? {
         switch state {
         case .preparingModel: return "Loading"
-        case .transcribing: return "Decoding"
+        case .transcribing: return "Transcribing"
         case .refining: return "Refining"
         case .inserting: return "Inserting"
         default: return nil

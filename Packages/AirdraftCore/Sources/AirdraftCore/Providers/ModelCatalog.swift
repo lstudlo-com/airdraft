@@ -3,6 +3,12 @@ import Foundation
 /// GET {baseURL}/models. Works for LM Studio, Ollama, OpenAI, Groq,
 /// OpenRouter, Gemini's OpenAI-compatible endpoint, and vLLM.
 public enum ModelCatalog {
+    /// Only verified file-transcription models belong in the built-in picker.
+    /// Generic /models lists also include realtime, translation and legacy models.
+    public static func transcriptionModels(for provider: ASRProviderKind) -> [String] {
+        SpeechModelInfo.models(for: provider).map(\.id)
+    }
+
     /// Models the configured refinement provider serves, in its own API shape.
     public static func refinementModels(for config: LLMConfig, timeout: TimeInterval = 10) async throws -> [String] {
         if let tool = config.kind.cliTool {

@@ -168,7 +168,7 @@ private final class RefinementURLProtocol: URLProtocol {
         let status = Self.statuses.isEmpty ? 500 : Self.statuses.removeFirst()
         let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        let reply = status == 200 ? #"{"choices":[{"message":{"content":"今天下午開會。","reasoning":"not the answer"}}]}"# : #"{"error":{"message":"test rejection"}}"#
+        let reply = status == 200 ? #"{"choices":[{"finish_reason":"stop","message":{"content":"今天下午開會。","reasoning":"not the answer"}}]}"# : #"{"error":{"message":"test rejection"}}"#
         client?.urlProtocol(self, didLoad: Data(reply.utf8))
         client?.urlProtocolDidFinishLoading(self)
     }

@@ -5,73 +5,20 @@ struct ProfilesPage: View {
     @Environment(AppContainer.self) private var container
     @State private var selection: UUID?
     @State private var editingProfileID: UUID?
+    @State private var nameDraft = ""
     @State private var presentedSheet: ProfileSheet?
     @State private var confirmation: ProfileConfirmation?
     @State private var showsBasePromptWarning = false
-
-    private static let symbols: [(String, String)] = [
-        ("sparkles", "Clean"), ("text.line.first.and.arrowtriangle.forward", "Concise"),
-        ("list.bullet", "List"), ("text.quote", "Quotation"), ("envelope", "Email"),
-        ("bubble.left", "Message"), ("doc.text", "Document"),
-        ("chevron.left.forwardslash.chevron.right", "Code"), ("globe", "Language"),
-        ("checklist", "Checklist")
-    ]
 
     init(selection: UUID? = nil) {
         _selection = State(initialValue: selection)
     }
 
     var body: some View {
-        PageScaffold(scrollsContent: false) {
-            HStack {
-                Spacer()
-                Button {
-                    let newProfile = container.profiles.addNew()
-                    selection = newProfile.id
-                    editingProfileID = newProfile.id
-                } label: {
-                    Label("New profile", systemImage: "plus")
-                }
-                .controlSize(.small)
-                .accessibilityIdentifier("profiles.new")
-                Menu {
-                    if let profile = selectedProfile {
-                        Button("Rename profile") { editingProfileID = profile.id }
-                        Menu {
-                            ForEach(Self.symbols, id: \.0) { symbol, name in
-                                Button {
-                                    setSymbol(symbol, for: profile.id)
-                                } label: {
-                                    Label(name, systemImage: symbol)
-                                }
-                            }
-                        } label: {
-                            Label("Change icon", systemImage: profile.symbol.isEmpty ? "text.alignleft" : profile.symbol)
-                        }
-                        Button("Duplicate profile") {
-                            selection = container.profiles.duplicate(id: profile.id)?.id
-                        }
-                        Button("Preview prompt…") { presentedSheet = .prompt(profile) }
-                            .disabled(!profile.usesLLM)
-                        if profile.isBuiltIn {
-                            Button("Reset profile…") { confirmation = .reset(profile) }
-                                .disabled(container.profiles.isDefault(profile))
-                        } else {
-                            Button("Delete profile…", role: .destructive) { confirmation = .delete(profile) }
-                        }
-                        Divider()
-                    }
-                    Button("Reset all profiles…", role: .destructive) { confirmation = .resetAll }
-                } label: {
-                    Image(systemName: "ellipsis").frame(width: 24, height: 24)
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .help("Profile actions")
-                .accessibilityLabel("Profile actions")
+        PageScaffold(.profiles, scrollsContent: false) {
+            if let error = container.profiles.persistenceError {
+                StorageNotice(message: error) { container.profiles.retrySave() }
             }
-
             PageSection("Base system prompt") {
                 SettingsCard {
                     HStack(spacing: Theme.controlSpacing) {
@@ -96,18 +43,31 @@ struct ProfilesPage: View {
                     VStack(spacing: 2) {
                         ForEach(container.profiles.profiles) { profile in
                             ProfileListRow(
-                                profile: profile,
-                                name: nameBinding(for: profile),
+                                name: profile.name,
+                                nameDraft: $nameDraft,
                                 active: profile.id == container.profiles.activeProfileID,
                                 selected: profile.id == selection,
                                 editing: profile.id == editingProfileID,
-                                action: { selection = profile.id },
+                                action: {
+                                    finishRenameIfNeeded()
+                                    selection = profile.id
+                                },
                                 finishRename: { finishRename(profile.id) }
                             )
+                            .contextMenu {
+                                profileActions(for: profile)
+                                Divider()
+                                Button("Use Profile") { container.profiles.setActive(profile.id) }
+                                    .disabled(profile.id == container.profiles.activeProfileID)
+                            }
                         }
                     }
                 }
-                .frame(width: 164)
+                .frame(width: 136)
+                .background {
+                    Color.clear.contentShape(Rectangle())
+                        .onTapGesture { finishRenameIfNeeded() }
+                }
                 Divider().opacity(0.4)
                 ScrollView {
                     if let profile = selectedProfile {
@@ -115,12 +75,43 @@ struct ProfilesPage: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .simultaneousGesture(TapGesture().onEnded { finishRenameIfNeeded() })
             }
             .frame(maxHeight: .infinity, alignment: .top)
+        } accessory: {
+            HStack(spacing: Theme.sectionTitleSpacing) {
+                Button {
+                    finishRenameIfNeeded()
+                    let newProfile = container.profiles.addNew()
+                    selection = newProfile.id
+                    beginRename(newProfile)
+                } label: {
+                    Label("New Profile", systemImage: "plus")
+                }
+                .buttonStyle(SoftButtonStyle())
+                .accessibilityIdentifier("profiles.new")
+                Menu {
+                    if let profile = selectedProfile {
+                        profileActions(for: profile)
+                        Divider()
+                    }
+                    Button("Reset All Profiles…", role: .destructive) { confirmation = .resetAll }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .frame(width: 16)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .softControlSurface()
+                .help("Profile actions")
+                .accessibilityLabel("Profile actions")
+            }
         }
         .onAppear {
             if selectedProfile == nil { selection = container.profiles.activeProfileID }
         }
+        .onDisappear { finishRenameIfNeeded() }
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .basePrompt: BaseSystemPromptEditor()
@@ -129,7 +120,7 @@ struct ProfilesPage: View {
         }
         .alert("Edit the base system prompt?", isPresented: $showsBasePromptWarning) {
             Button("Cancel", role: .cancel) {}
-            Button("Continue editing") { presentedSheet = .basePrompt }
+            Button("Continue Editing") { presentedSheet = .basePrompt }
         } message: {
             Text("Changes affect every profile that uses AI refinement. Removing core rules can reduce accuracy or make the AI answer your dictation instead of refining it. You can restore the default prompt at any time.")
         }
@@ -151,31 +142,48 @@ struct ProfilesPage: View {
         }
     }
 
+    /// Shared by the action menu and each row's context menu.
+    @ViewBuilder
+    private func profileActions(for profile: RefinementProfile) -> some View {
+        Button("Rename Profile") {
+            selection = profile.id
+            beginRename(profile)
+        }
+        Button("Duplicate Profile") {
+            selection = container.profiles.duplicate(id: profile.id)?.id
+        }
+        Button("Preview Prompt…") { presentedSheet = .prompt(profile) }
+            .disabled(!profile.usesLLM)
+        if profile.isBuiltIn {
+            Button("Reset Profile…") { confirmation = .reset(profile) }
+                .disabled(container.profiles.isDefault(profile))
+        } else {
+            Button("Delete Profile…", role: .destructive) { confirmation = .delete(profile) }
+        }
+    }
+
     private var selectedProfile: RefinementProfile? {
         container.profiles.profiles.first { $0.id == selection }
     }
 
-    private func nameBinding(for profile: RefinementProfile) -> Binding<String> {
-        Binding(
-            get: { container.profiles.profiles.first { $0.id == profile.id }?.name ?? profile.name },
-            set: { name in
-                guard var updated = container.profiles.profiles.first(where: { $0.id == profile.id }) else { return }
-                updated.name = name
-                container.profiles.update(updated)
-            }
-        )
+    private func beginRename(_ profile: RefinementProfile) {
+        finishRenameIfNeeded()
+        nameDraft = container.profiles.profiles.first(where: { $0.id == profile.id })?.name ?? profile.name
+        editingProfileID = profile.id
     }
 
-    private func setSymbol(_ symbol: String, for id: UUID) {
-        guard var updated = container.profiles.profiles.first(where: { $0.id == id }) else { return }
-        updated.symbol = symbol
-        container.profiles.update(updated)
+    private func finishRenameIfNeeded() {
+        guard let editingProfileID else { return }
+        finishRename(editingProfileID)
     }
 
     private func finishRename(_ id: UUID) {
-        if var profile = container.profiles.profiles.first(where: { $0.id == id }),
-           profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            profile.name = "Untitled profile"
+        guard editingProfileID == id else { return }
+        let name = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty,
+           var profile = container.profiles.profiles.first(where: { $0.id == id }),
+           profile.name != name {
+            profile.name = name
             container.profiles.update(profile)
         }
         editingProfileID = nil
@@ -224,9 +232,9 @@ private enum ProfileConfirmation {
 
     var actionTitle: String {
         switch self {
-        case .reset: "Reset profile"
-        case .delete: "Delete profile"
-        case .resetAll: "Reset all profiles"
+        case .reset: "Reset Profile"
+        case .delete: "Delete Profile"
+        case .resetAll: "Reset All Profiles"
         }
     }
 
@@ -240,8 +248,8 @@ private enum ProfileConfirmation {
 }
 
 private struct ProfileListRow: View {
-    let profile: RefinementProfile
-    @Binding var name: String
+    let name: String
+    @Binding var nameDraft: String
     let active: Bool
     let selected: Bool
     let editing: Bool
@@ -253,7 +261,7 @@ private struct ProfileListRow: View {
         Group {
             if editing {
                 row {
-                    TextField("Profile name", text: $name)
+                    TextField("Profile name", text: $nameDraft)
                         .textFieldStyle(.plain)
                         .focused($nameFocused)
                         .accessibilityLabel("Profile name")
@@ -283,10 +291,6 @@ private struct ProfileListRow: View {
 
     private func row<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         HStack(spacing: 9) {
-            Image(systemName: profile.symbol.isEmpty ? "text.alignleft" : profile.symbol)
-                .font(.system(size: 14))
-                .frame(width: 18)
-                .accessibilityHidden(true)
             content().font(.system(size: 13))
             Spacer(minLength: 2)
             if active {

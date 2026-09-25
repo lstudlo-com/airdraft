@@ -7,6 +7,8 @@ public enum HotkeyBehavior: String, Codable, CaseIterable, Sendable, Identifiabl
     /// Press to start, press again to stop.
     case toggle
     public var id: String { rawValue }
+    /// Verb for instructions shown next to the shortcut: "Hold ⌃ ⌥ and speak".
+    public var instructionVerb: String { self == .hold ? "Hold" : "Press" }
 }
 
 public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiable {

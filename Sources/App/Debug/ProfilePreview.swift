@@ -1,3 +1,5 @@
+#if DEBUG
+// Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import AirdraftCore
 import SwiftUI
@@ -21,7 +23,7 @@ enum ProfilePreview {
         let container = container(directory: directory)
         container.startAppearanceUpdates()
         let host = NSHostingView(rootView: MainWindowView().environment(container))
-        let frame = NSRect(x: 0, y: 0, width: 980, height: 660)
+        let frame = NSRect(x: 0, y: 0, width: Theme.windowWidth, height: 660)
         let preview = NSWindow(contentRect: frame,
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered, defer: false)
@@ -29,12 +31,13 @@ enum ProfilePreview {
         preview.titlebarAppearsTransparent = true
         preview.titleVisibility = .hidden
         preview.contentView = host
-        preview.minSize = NSSize(width: 900, height: 600)
+        preview.minSize = NSSize(width: Theme.windowWidth, height: Theme.windowMinHeight)
+        preview.maxSize = NSSize(width: Theme.windowWidth, height: .greatestFiniteMagnitude)
         window = preview
         NSApp.setActivationPolicy(.regular)
         preview.center()
         preview.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
 
     static func render(to directory: URL) {
@@ -47,13 +50,14 @@ enum ProfilePreview {
             symbol: "doc.text", task: "Turn the transcript into meeting notes.",
             instructions: "Keep the decisions, names, dates, and next steps. Use short paragraphs."
         ))
+        let width = Theme.windowWidth
         let cases: [(String, UUID, CGFloat, CGFloat)] = [
-            ("clean", RefinementProfile.cleanID, 980, 660),
-            ("compact", RefinementProfile.cleanID, 900, 600),
-            ("wide", RefinementProfile.cleanID, 1280, 800),
-            ("summary", RefinementProfile.summaryID, 980, 660),
-            ("verbatim", RefinementProfile.verbatimID, 900, 600),
-            ("custom", custom.id, 900, 600)
+            ("clean", RefinementProfile.cleanID, width, 660),
+            ("compact", RefinementProfile.cleanID, width, 600),
+            ("tall", RefinementProfile.cleanID, width, 1000),
+            ("summary", RefinementProfile.summaryID, width, 660),
+            ("verbatim", RefinementProfile.verbatimID, width, 600),
+            ("custom", custom.id, width, 600)
         ]
         for (name, id, width, height) in cases {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
@@ -75,3 +79,4 @@ enum ProfilePreview {
         }
     }
 }
+#endif

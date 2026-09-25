@@ -8,9 +8,20 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     case whisperKit
     case apple
     case openAICompatible
+    case openAI
+    case openRouter
+    case groq
     case elevenLabs
+    case deepgram
+    case soniox
     public var id: String { rawValue }
-    public var isLocal: Bool { self != .openAICompatible && self != .elevenLabs }
+    public var isLocal: Bool {
+        switch self {
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return false
+        default: return true
+        }
+    }
+    public var preset: EndpointPreset.Speech? { EndpointPreset.asr.first { $0.kind == self } }
 }
 
 /// Where refinement runs. Cloud providers are native: each speaks its own API
@@ -69,7 +80,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         }
     }
 
-    /// Fits the provider tiles.
+    /// Compact name for the menu bar.
     public var shortTitle: String {
         switch self {
         case .openAICompatible: return "Local"
@@ -82,36 +93,6 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .claudeCode: return "Claude Code"
         case .codex: return "Codex"
         case .none: return "Off"
-        }
-    }
-
-    /// Shown under the name on the provider tiles.
-    public var subtitle: String {
-        switch self {
-        case .openAICompatible: return "Stays on this Mac"
-        case .openAI: return "Cloud · your key"
-        case .anthropic: return "Cloud · your key"
-        case .gemini: return "Cloud · your key"
-        case .openRouter: return "Cloud · every model"
-        case .cerebras, .groq: return "Cloud · your key"
-        case .claudeCode: return "Your Claude subscription"
-        case .codex: return "Your ChatGPT subscription"
-        case .none: return "Raw transcript"
-        }
-    }
-
-    public var symbol: String {
-        switch self {
-        case .openAICompatible: return "desktopcomputer"
-        case .openAI: return "circle.hexagongrid"
-        case .anthropic: return "a.circle"
-        case .gemini: return "sparkle"
-        case .openRouter: return "arrow.triangle.branch"
-        case .cerebras: return "cpu"
-        case .groq: return "bolt"
-        case .claudeCode: return "terminal"
-        case .codex: return "terminal.fill"
-        case .none: return "nosign"
         }
     }
 
@@ -263,10 +244,12 @@ public struct ASRConfig: Codable, Sendable, Equatable {
     public var cohereModel: String
     /// BCP-47 locale for Apple speech recognition.
     public var appleLocale: String
-    /// ElevenLabs model id (scribe_v2 / scribe_v1).
+    /// Kept for compatibility with older Scribe settings.
     public var elevenLabsModel: String
     public var baseURL: String
     public var model: String
+    /// Last selected file-transcription model for each cloud provider.
+    public var modelByProvider: [String: String]
     /// ISO 639-1 or empty for auto-detect.
     public var language: String
     public var chineseScript: ChineseScript
@@ -281,7 +264,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         appleLocale: String = "zh-TW",
         elevenLabsModel: String = "scribe_v2",
         baseURL: String = "https://api.openai.com/v1",
-        model: String = "gpt-4o-mini-transcribe",
+        model: String = "gpt-transcribe",
+        modelByProvider: [String: String] = [:],
         language: String = "",
         chineseScript: ChineseScript = .traditional,
         apiKeyRef: String = "asr.openai"
@@ -294,6 +278,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         self.elevenLabsModel = elevenLabsModel
         self.baseURL = baseURL
         self.model = model
+        self.modelByProvider = modelByProvider
         self.language = language
         self.chineseScript = chineseScript
         self.apiKeyRef = apiKeyRef
@@ -301,7 +286,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
 
     // Older settings blobs lack the new keys; decode them leniently.
     private enum CodingKeys: String, CodingKey {
-        case kind, whisperModel, qwen3Model, cohereModel, appleLocale, elevenLabsModel, baseURL, model, language, chineseScript, apiKeyRef
+        case kind, whisperModel, qwen3Model, cohereModel, appleLocale, elevenLabsModel, baseURL, model, modelByProvider, language, chineseScript, apiKeyRef
     }
 
     public init(from decoder: Decoder) throws {
@@ -315,13 +300,32 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         elevenLabsModel = try c.decodeIfPresent(String.self, forKey: .elevenLabsModel) ?? defaults.elevenLabsModel
         baseURL = try c.decodeIfPresent(String.self, forKey: .baseURL) ?? defaults.baseURL
         model = try c.decodeIfPresent(String.self, forKey: .model) ?? defaults.model
+        modelByProvider = try c.decodeIfPresent([String: String].self, forKey: .modelByProvider) ?? [:]
         language = try c.decodeIfPresent(String.self, forKey: .language) ?? defaults.language
         chineseScript = try c.decodeIfPresent(ChineseScript.self, forKey: .chineseScript) ?? defaults.chineseScript
         apiKeyRef = try c.decodeIfPresent(String.self, forKey: .apiKeyRef) ?? defaults.apiKeyRef
+        // Migrate only the exact built-in endpoints and credentials. A custom
+        // server or key reference must never be redirected to a different service.
+        if kind == .openAICompatible {
+            let endpoint = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if endpoint == "https://api.openai.com/v1", apiKeyRef == "asr.openai" {
+                kind = .openAI
+            } else if endpoint == "https://api.groq.com/openai/v1", apiKeyRef == "asr.groq" {
+                kind = .groq
+            }
+        }
+        if kind == .elevenLabs, !ModelCatalog.transcriptionModels(for: kind).contains(model) {
+            model = elevenLabsModel
+        }
+        if kind.preset != nil, let current = selectedSpeechModel { selectModel(current.id) }
     }
 
     /// Identity of the engine this config selects. Equal to the `id` of the
     /// transcriber EngineFactory builds for it, so the UI can look up load state.
+    public var effectiveAppleLocale: String {
+        AppleSpeechTranscriber.locale(forLanguage: language) ?? appleLocale
+    }
+
     public var engineID: String {
         switch kind {
         case .whisperKit: return "whisperkit:\(whisperModel)"
@@ -329,9 +333,51 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .cohere: return "cohere-transcribe:\(cohereModel)"
         case .fireRed: return "sherpa-onnx:fireRed"
         case .senseVoice: return "sherpa-onnx:senseVoice"
-        case .apple: return "apple-speech:\(appleLocale)"
-        case .elevenLabs: return "elevenlabs:\(elevenLabsModel)"
+        case .apple: return "apple-speech:\(effectiveAppleLocale)"
+        case .elevenLabs: return "elevenlabs:\(speechModelID)"
+        case .openAI, .openRouter, .groq, .deepgram, .soniox:
+            return "\(kind.rawValue):\(speechModelID)"
         case .openAICompatible: return "openai-compatible:\(URL(string: baseURL)?.host ?? "?")/\(model)"
+        }
+    }
+
+    /// Built-in providers always use their own credential and endpoint.
+    public var keyRef: String { kind.preset?.keyRef ?? apiKeyRef }
+
+    /// The selected cloud model's id, falling back to the stored id if the catalogue no longer lists it.
+    public var speechModelID: String { selectedSpeechModel?.id ?? model }
+
+    public var selectedSpeechModel: SpeechModelInfo? {
+        let choices = SpeechModelInfo.models(for: kind)
+        if let choice = choices.first(where: { $0.id == model }) { return choice }
+        if kind == .openRouter, !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return OpenRouterSpeechCatalog.placeholder(id: model)
+        }
+        return choices.first
+    }
+
+    public mutating func selectModel(_ id: String) {
+        if kind == .openRouter {
+            let selected = id.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !selected.isEmpty else { return }
+            model = selected
+            modelByProvider[kind.rawValue] = selected
+            return
+        }
+        guard let choice = SpeechModelInfo.models(for: kind).first(where: { $0.id == id }) else { return }
+        model = choice.id
+        modelByProvider[kind.rawValue] = choice.id
+        if kind == .elevenLabs { elevenLabsModel = choice.id }
+    }
+
+    public mutating func select(_ provider: ASRProviderKind) {
+        if let current = selectedSpeechModel { modelByProvider[kind.rawValue] = current.id }
+        kind = provider
+        if let preset = provider.preset {
+            baseURL = preset.baseURL
+            model = modelByProvider[provider.rawValue] ?? preset.defaultModel
+            apiKeyRef = preset.keyRef
+            selectModel(speechModelID)
         }
     }
 
@@ -343,7 +389,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .cohere: return "Cohere Transcribe · \((cohereModel as NSString).lastPathComponent)"
         case .senseVoice: return "SenseVoice-small"
         case .apple: return "Apple Speech · \(appleLocale)"
-        case .elevenLabs: return "ElevenLabs · \(elevenLabsModel)"
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
+            return "\(kind.preset?.name ?? kind.rawValue) · \(selectedSpeechModel?.title ?? model)"
         case .openAICompatible: return "\(URL(string: baseURL)?.host ?? baseURL) · \(model)"
         }
     }
@@ -366,19 +413,26 @@ public struct LLMConfig: Codable, Sendable, Equatable {
     public var minWordsForLLM: Int
     public var thinkingEffort: ThinkingEffort
     public var effortByProvider: [String: ThinkingEffort]
+    public var openRouterRoutingByModel: [String: OpenRouterRouting]
+
+    public var openRouterRouting: OpenRouterRouting {
+        get { openRouterRoutingByModel[model] ?? OpenRouterRouting() }
+        set { openRouterRoutingByModel[model] = newValue }
+    }
 
     public init(
         kind: LLMProviderKind = .openAICompatible,
-        baseURL: String = "http://localhost:1234/v1",
-        model: String = "google/gemma-4-26b-a4b-qat",
+        baseURL: String = LLMProviderKind.openAICompatible.defaultBaseURL,
+        model: String = LLMProviderKind.openAICompatible.defaultModel,
         modelByProvider: [String: String] = [:],
         cliPaths: [String: String] = [:],
-        apiKeyRef: String = "llm.lmstudio",
+        apiKeyRef: String = LLMProviderKind.openAICompatible.keyRef,
         temperature: Double = 0.2,
         timeoutSeconds: Double = 20,
         minWordsForLLM: Int = 3,
         thinkingEffort: ThinkingEffort = .off,
-        effortByProvider: [String: ThinkingEffort] = [:]
+        effortByProvider: [String: ThinkingEffort] = [:],
+        openRouterRoutingByModel: [String: OpenRouterRouting] = [:]
     ) {
         self.kind = kind
         self.baseURL = baseURL
@@ -391,10 +445,12 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         self.minWordsForLLM = minWordsForLLM
         self.thinkingEffort = thinkingEffort
         self.effortByProvider = effortByProvider
+        self.openRouterRoutingByModel = openRouterRoutingByModel
     }
 
     private enum CodingKeys: String, CodingKey {
         case kind, baseURL, model, modelByProvider, cliPaths, apiKeyRef, temperature, timeoutSeconds, minWordsForLLM, thinkingEffort, effortByProvider
+        case openRouterRoutingByModel
         /// Removed setting, still read from older stored configs.
         case disableThinking
     }
@@ -412,6 +468,7 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         timeoutSeconds = try c.decodeIfPresent(Double.self, forKey: .timeoutSeconds) ?? d.timeoutSeconds
         minWordsForLLM = try c.decodeIfPresent(Int.self, forKey: .minWordsForLLM) ?? d.minWordsForLLM
         effortByProvider = try c.decodeIfPresent([String: ThinkingEffort].self, forKey: .effortByProvider) ?? [:]
+        openRouterRoutingByModel = try c.decodeIfPresent([String: OpenRouterRouting].self, forKey: .openRouterRoutingByModel) ?? [:]
         // Migrates the old on/off switch: thinking disabled becomes effort off.
         if let effort = try c.decodeIfPresent(ThinkingEffort.self, forKey: .thinkingEffort) {
             thinkingEffort = effort
@@ -469,6 +526,7 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         try c.encode(minWordsForLLM, forKey: .minWordsForLLM)
         try c.encode(thinkingEffort, forKey: .thinkingEffort)
         try c.encode(effortByProvider, forKey: .effortByProvider)
+        try c.encode(openRouterRoutingByModel, forKey: .openRouterRoutingByModel)
     }
 
     public var engineLabel: String {
@@ -491,17 +549,62 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
 
     /// Local / self-hosted servers for the OpenAI-compatible kind.
     public static let llm: [EndpointPreset] = [
-        .init(name: "LM Studio (local)", baseURL: "http://localhost:1234/v1", defaultModel: "google/gemma-4-26b-a4b-qat", keyRef: "llm.lmstudio"),
+        .init(name: "LM Studio (local)", baseURL: LLMProviderKind.openAICompatible.defaultBaseURL,
+              defaultModel: LLMProviderKind.openAICompatible.defaultModel, keyRef: LLMProviderKind.openAICompatible.keyRef),
         .init(name: "Ollama (local)", baseURL: "http://localhost:11434/v1", defaultModel: "qwen3:8b", keyRef: "llm.ollama"),
         .init(name: "Custom", baseURL: "http://localhost:8000/v1", defaultModel: "", keyRef: "llm.custom"),
     ]
 
-    public static let asr: [EndpointPreset] = [
-        .init(name: "OpenAI", baseURL: "https://api.openai.com/v1", defaultModel: "gpt-4o-transcribe", keyRef: "asr.openai"),
-        .init(name: "Groq", baseURL: "https://api.groq.com/openai/v1", defaultModel: "whisper-large-v3-turbo", keyRef: "asr.groq"),
-        .init(name: "Custom", baseURL: "http://localhost:8000/v1", defaultModel: "", keyRef: "asr.custom"),
+    /// Curated file-transcription APIs. OpenRouter rates vary by model and
+    /// billing unit; its preset deliberately does not quote an hourly price.
+    public struct Speech: Identifiable, Sendable, Equatable {
+        public var id: String { kind.rawValue }
+        public let kind: ASRProviderKind
+        public let name: String
+        public let modelTitle: String
+        public let baseURL: String
+        public var defaultModel: String { ModelCatalog.transcriptionModels(for: kind)[0] }
+        public let keyRef: String
+        public let purpose: String
+        public let detail: String
+        public let price: String
+        public let billingNote: String
+        public let consoleURL: URL
+        public let pricingURL: URL
+    }
+
+    public static let asr: [Speech] = [
+        .init(kind: .soniox, name: "Soniox", modelTitle: "v5", baseURL: "https://api.soniox.com/v1",
+              keyRef: "asr.soniox", purpose: "Value & mixed languages",
+              detail: "60+ languages, including Chinese and English in the same sentence.", price: "~$0.10/hr",
+              billingNote: "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable.",
+              consoleURL: URL(string: "https://console.soniox.com")!, pricingURL: URL(string: "https://soniox.com/pricing")!),
+        .init(kind: .groq, name: "Groq", modelTitle: "Whisper v3 Turbo", baseURL: "https://api.groq.com/openai/v1",
+              keyRef: "asr.groq", purpose: "Speed & lowest cost",
+              detail: "Fast inference for short dictation; trades some accuracy for speed.", price: "$0.04/hr",
+              billingNote: "10-second minimum billed per request. Inference speed does not include upload or network time.",
+              consoleURL: URL(string: "https://console.groq.com/keys")!, pricingURL: URL(string: "https://console.groq.com/docs/speech-to-text")!),
+        .init(kind: .elevenLabs, name: "ElevenLabs", modelTitle: "Scribe v2", baseURL: "https://api.elevenlabs.io/v1",
+              keyRef: "asr.elevenlabs", purpose: "Broad language coverage",
+              detail: "Quality-focused transcription across 90+ languages and varied accents.", price: "$0.22/hr",
+              billingNote: "Base API rate. Paid keyterm prompting and audio-event tags are off; your dictionary still applies after refinement.",
+              consoleURL: URL(string: "https://elevenlabs.io/app/developers/api-keys")!, pricingURL: URL(string: "https://elevenlabs.io/pricing/api")!),
+        .init(kind: .openAI, name: "OpenAI", modelTitle: "GPT-Transcribe", baseURL: "https://api.openai.com/v1",
+              keyRef: "asr.openai", purpose: "Names & technical vocabulary",
+              detail: "Uses your dictionary as keyword hints with the current transcription model.", price: "$0.27/hr",
+              billingNote: "$0.0045 per audio minute. Replaces the older GPT-4o transcription preset.",
+              consoleURL: URL(string: "https://platform.openai.com/api-keys")!, pricingURL: URL(string: "https://developers.openai.com/api/docs/pricing")!),
+        .init(kind: .openRouter, name: "OpenRouter", modelTitle: "Whisper 1", baseURL: "https://openrouter.ai/api/v1",
+              keyRef: "llm.openrouter", purpose: "Choose a hosted speech model",
+              detail: "Transcribes audio through OpenRouter's speech endpoint with a separate speech model choice.", price: "Varies by model",
+              billingNote: "Models have different billing units. Check the selected model's OpenRouter page before use.",
+              consoleURL: URL(string: "https://openrouter.ai/keys")!, pricingURL: URL(string: "https://openrouter.ai/models?output_modalities=transcription")!),
+        .init(kind: .deepgram, name: "Deepgram", modelTitle: "Nova-3", baseURL: "https://api.deepgram.com/v1",
+              keyRef: "asr.deepgram", purpose: "Noisy audio & formatting",
+              detail: "Smart punctuation, dates and numbers. Auto-detects the dominant language.", price: "$0.258/hr",
+              billingNote: "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off.",
+              consoleURL: URL(string: "https://console.deepgram.com")!, pricingURL: URL(string: "https://deepgram.com/pricing")!),
     ]
 
     public static let elevenLabsKeyRef = "asr.elevenlabs"
-    public static let elevenLabsModels = ["scribe_v2", "scribe_v1"]
 }

@@ -7,7 +7,7 @@ import os
 /// permission, delivers both press and release, and swallows the combo.
 /// Cannot express modifier-only keys or fn; those use the event tap.
 final class CarbonHotkey {
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "hotkey")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hotkey")
     private static var registry: [UInt32: CarbonHotkey] = [:]
     private static var nextID: UInt32 = 1
     private static var handlerInstalled = false

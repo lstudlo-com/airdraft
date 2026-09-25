@@ -135,36 +135,86 @@ renders it.
 Profiles use the name in the selection list as their only visible title. New
 profile and Rename profile open a focused inline `TextField` in that list. Short
 rows may truncate names, but their tooltip and accessibility label contain the
-full name.
+full name. The rows have no profile-specific icons. Return or moving focus away
+commits a non-empty name; an empty edit keeps the previous name.
 
 ## Layout
 
-`Theme.swift` owns the spacing tokens above. The window has a 200-point sidebar
-and a minimum size of 900 by 600 points. Close and Minimize have 16-point top
-and leading insets in a 46-point titlebar, with the sidebar toggle aligned to
-their centers. Navigation rows use
+`Theme.swift` owns the spacing tokens above. The window has a 200-point expanded
+sidebar and a fixed width of 784 points. The collapsed sidebar remains an icon
+rail, sized from the unchanged brand width plus its 20-point inset on each side,
+about 91 points total. Destination, microphone and available account icons are
+centered horizontally and keep the same vertical positions, row heights and
+group spacing as the expanded sidebar. Text and the microphone chevrons disappear;
+tooltips, accessible names and selection remain. The footer keeps its height even
+when Release omits the account button. Height resizes from a 600-point minimum.
+Close and Minimize have 16-point top and leading insets within a 46-point
+titlebar, with the sidebar toggle aligned to their centers. The green zoom/full-screen button is
+hidden and full-screen/tiling is disabled. Navigation rows use
 the documented component height and a 2-point gap. The sidebar separates daily
 destinations from Configuration and Models with space rather than headings.
 
-`PageScaffold` applies `pagePadding`, `sectionSpacing` and an 860-point maximum
-content width. It has no empty title row or divider. Search controls, where
-needed, appear at the top of the page content. The sidebar toggle sits at the
-window's top left, just after the macOS traffic lights, and remains there when
-the sidebar is collapsed. The sidebar moves with the existing 0.18-second
-ease-in-out transition.
+`PageScaffold` applies `pagePadding` and `sectionSpacing` across the available
+content width. Section headings, heading controls and cards share a right edge.
+Settings pickers use `.settingsPicker(width:)` so their visible control aligns
+with the card's trailing 16-point inset. Editable numeric settings use
+`SettingsNumberStepper` for direct entry and arrow adjustments. Every page has
+the same header row: its destination name on the
+left and page controls on the right. Profiles keeps New Profile and its action
+menu together in that right-side control group. Comparable actions use the shared
+compact capsule treatment. The sidebar toggle sits at the
+window's top left, just after the macOS traffic lights. In the compact rail it
+moves left enough to clear the divider while keeping the same centerline.
+Page headers keep their vertical position when the sidebar changes width.
+The sidebar changes width with the existing 0.18-second
+ease-in-out animation.
 
-The selected microphone sits in a padded capsule above the sidebar footer.
-The footer places a settings icon at the left and the word count at the right.
-The capsule opens a spacious anchored device overlay with a live input meter.
-The gear opens a centered Account and Subscription overlay with clearly labeled
-sample data. The sidebar uses native frosted material against a transparent
-window background.
+Speech and refinement providers use compact pickers in their section headings.
+A refresh action sits immediately beside the picker whose data it reloads.
+Supporting copy appears only for a choice, consequence, or actionable problem
+that the controls do not already explain. Do not repeat the provider name or
+announce that the model list is visible.
 
-Profiles uses a fixed 164-point list, a divider and a flexible editor. The list
+The selected microphone lives in a padded capsule at the bottom of the sidebar,
+above a footer with a left-aligned account button and right-aligned word count.
+The capsule opens an anchored device list with a checkmark for the selection and
+a ten-cell live level meter at the right of every row. Silence leaves all cells
+empty; increasing input fills one through ten cells. Each device has its own
+preview, and System Default shares the matching device's level. Keep the title
+and close button, but omit decorative descriptions, repeated section headings
+and a separate meter card. Permission actions and device errors appear only
+when needed. Previews stop when the overlay closes or dictation starts. The account button (a person symbol, so it cannot be mistaken for Configuration) opens a centered Account and
+Subscription overlay. Its content is labeled as sample data until account
+services exist. The sidebar uses `NSVisualEffectView`'s sidebar material against
+a transparent window background to retain the native frosted effect.
+
+Profiles uses a fixed 136-point list, a divider and a flexible editor. The list
 and editor scroll independently. Profile rows are 36 points high and reuse the
 navigation selection style. Keep the editor aligned with the selected row and
 its single action menu reachable at the minimum window size; do not introduce
 mobile breakpoints into this macOS layout.
+
+Home remains the most expressive page, and its hero always leads it. Average speed,
+words, apps used and time saved sit in one row of four equal-width,
+leading-aligned columns, with 26-point headline numbers. Beneath them the hero draws the app icon's pressed-in
+capsule from the user's own history: one raised bar per recent dictation, ending
+in the icon's glowing caret. The bars are neumorphic pills, lit from the top left
+and shadowed to the bottom right; height follows words, capped at 32 pt so the
+metrics lead. Bars are neutral at rest; only the hovered bar takes the icon's
+violet-to-cyan, and there is no left-to-right colour ramp. The well is pressed in
+with inner shade and light. The hero surface is grayscale; the caret and the
+hovered bar are its only brand colour. With no history it shows the icon's
+five strokes and the shortcut. Bars magnify under the pointer and the caption
+names the hovered dictation. Entrance waits for initial history so animated
+placeholder bars are never replaced mid-flight. Real bars enter once with a
+0.45-second scale animation and at most 0.12 seconds of stagger; their layout
+height stays fixed. Hover magnification also uses scale. Motion stops after
+entrance, hover or a new dictation; Reduce Motion removes it. Below the hero, one readiness card
+shows the active pipeline and expands to the setup checks, opening on its own when
+a check fails; it never moves above the hero. Summary ranks apps by words with
+their real icons and lists streak, dictations, active days and the longest
+dictation, all computed locally by `HistoryStore.overview`. Keep the brand
+colours inside Home; other pages stay neutral.
 
 **The Card Owns Its Insets Rule.** Settings sections use `PageSection` and
 `SettingsCard`. `cardPadding` applies equally on all four sides. Rows inside a
@@ -178,10 +228,35 @@ alignment; the row and trailing controls retain their shared edges.
 
 ## Elevation & Depth
 
-Sidebar material, subtle fills and dividers establish depth. Profiles has no
-shadowed editor container. Native menus and sheets retain system presentation.
-The existing keycap shadow belongs to the keycap component; it is not a general
-rule for panels or buttons.
+Home's top-left lighting extends to selected sidebar destinations, the sidebar
+microphone capsule, each device's ten-cell input meter, shortcut keycaps,
+appearance preview frames, Home's app-usage tracks and the recording HUD.
+`NeumorphicSurface` supplies the neutral raised and recessed material, scaled
+by depth to the component size; Increase Contrast adds an explicit edge.
+Light comes from the top left in both appearances. Raised faces have an upper-left
+highlight and cast their shadow down-right. Recesses shade the inner upper-left
+edge and catch light on the inner lower-right edge. The Home rim follows the
+same diagonal. `SurfaceShadows` draws outer shadows in a Canvas so live windows,
+Xcode previews and bitmap captures share one direction. Direct offset shadow
+modifiers invert vertically in AppKit bitmap capture on the current macOS;
+never compensate by reversing the live shadow or by changing only light mode.
+The microphone capsule rests recessed, becomes raised on hover, and keeps the
+same appearance when pressed. It dims while unavailable. Selected sidebar
+destinations sit above the sidebar with a top-left highlight and an outer
+bottom-right shadow. Their translucent neutral fill transmits the sidebar's
+existing macOS blur; outer shadows exclude the face interior so they do not
+cloud that blur. Reduce Transparency restores the solid selection fill, and
+Increase Contrast retains an explicit edge. Text and symbols stay opaque.
+The microphone capsule retains its opaque material; other list selection
+remains native.
+Preview frames stay recessed and retain an accent selection outline. Usage
+fills use solid violet without a gradient or highlight and remain proportional,
+with no fill for zero. The HUD keeps its existing
+size and bright live bars, with a dark inset waveform track and shallow rim.
+
+Sidebar material, subtle fills and dividers continue to separate ordinary
+content. Profiles has no shadowed editor container. Native menus, action
+buttons, text lists and sheets retain their existing presentation.
 
 ## Shapes
 
@@ -203,6 +278,20 @@ and a text label. Selection adds the accessibility selected trait. The active
 dictation profile has a separate checkmark; selecting a profile for editing does
 not activate it.
 
+### History timeline
+
+History keeps its title and search above two independently scrolling columns.
+A 52-point guide on the left groups compact timestamps and horizontal ticks by
+day. Its dates and times align with the History heading's leading edge. Each 24-point row is a button that jumps to its transcription; the active
+row uses a longer, stronger tick and emphasized time. The guide follows the
+current card without adding a second selection state. Day labels, search
+results and deletion use the same record list in both columns. Full dates and
+times remain available in tooltips and accessibility labels.
+
+The cards retain the remaining width after the shared 12-point gap, their
+16-point insets, lazy loading and native copy, details, version and delete
+controls. Empty results omit the guide. Jumps respect Reduce Motion.
+
 ### Profile editor
 
 The Profiles sidebar item uses `square.and.pencil`. A full-width Base system
@@ -215,13 +304,24 @@ instructions lead below it. The optional Task uses `DisclosureGroup` and opens w
 is present. Turning refinement off replaces those fields with a short
 explanation of the remaining transcript processing.
 
-Keep New profile and one action menu above the list and editor. The menu
-contains selected-profile rename, icon, duplicate, prompt preview and either
+Keep New Profile and one action menu together at the right of the page title. The menu
+contains selected-profile rename, duplicate, prompt preview and either
 built-in reset or custom-profile deletion, followed by Reset all profiles.
 The list checkmark identifies the active dictation profile;
-an inactive selection shows Use profile beside the refinement switch. Do not
+an inactive selection shows Use Profile beside the refinement switch, which sits at
+the trailing edge like every settings switch. Each profile row has a context menu
+with the same actions. Do not
 repeat the page or selected-profile name as an editor heading. Preserve native
 disabled and destructive states and the existing confirmations.
+
+### Shared controls
+
+`Theme.swift` holds one component per concept: `StatusDot` (ready, attention,
+in progress, off), `RefreshButton`, `EmptyNote`, `OverlayPanel` for the
+microphone and account panels, and `.settingsDisclosure()`, which styles only a
+disclosure header. Settings row titles use the field-label role (13 pt medium),
+below the 14 pt section headings. Every provider key is an `APIKeyField` row
+followed by a Connection row with Test and Cancel.
 
 ### Text fields and sheets
 
@@ -246,7 +346,10 @@ and [FocusState](https://developer.apple.com/documentation/swiftui/focusstate).
   configured Task fields, refinement-off profiles and the real sheets.
 - Do keep secondary actions labeled in menus, with help and accessibility labels
   on their icon-only triggers.
-- Don't add colored icon badges or a saturated selection fill to this sidebar.
+- Don't add profile icons, colored badges or a saturated selection fill to this sidebar.
+- Keep Home's brand colours and full hero treatment on Home. Use only the six
+  scoped tactile accents elsewhere; do not add continuous decorative motion.
+- Don't tint the hero's surface or return its metrics to the corners.
 - Don't wrap the Profiles editor in another card or move its primary instructions
   behind a disclosure control.
 - Don't generalize the open Profiles composition into a ban on settings cards,

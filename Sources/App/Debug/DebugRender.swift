@@ -1,3 +1,5 @@
+#if DEBUG
+// Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import AirdraftCore
 import SwiftUI
@@ -13,10 +15,17 @@ enum DebugRender {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let container: AppContainer
-        if let name = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) {
+        let env = ProcessInfo.processInfo.environment
+        if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {
             let settings = AppSettings(defaults: defaults)
-            settings.llm.select(kind)
+            if let name = env["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) { settings.llm.select(kind) }
+            if let name = env["AIRDRAFT_RENDER_ASR"], let kind = ASRProviderKind(rawValue: name) { settings.asr.select(kind) }
+            if let model = env["AIRDRAFT_RENDER_ASR_MODEL"] { settings.asr.selectModel(model) }
             if let model = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_MODEL"] { settings.llm.model = model }
+            if let provider = env["AIRDRAFT_RENDER_OPENROUTER_PROVIDER"] {
+                settings.llm.openRouterRouting = OpenRouterRouting(providerID: provider,
+                    allowFallbacks: env["AIRDRAFT_RENDER_OPENROUTER_FALLBACK"] == "1")
+            }
             if let effort = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_EFFORT"].flatMap(ThinkingEffort.init(rawValue:)) {
                 settings.llm.thinkingEffort = effort
             }
@@ -24,7 +33,14 @@ enum DebugRender {
         } else {
             container = AppContainer.shared
         }
-        let overlay = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_OVERLAY"]
+        container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
+        let previewEndpoints = env["AIRDRAFT_RENDER_OPENROUTER_DATA"].flatMap {
+            try? OpenRouterCatalog.decode(Data(contentsOf: URL(fileURLWithPath: $0)))
+        }
+        if env["AIRDRAFT_RENDER_BLOCKED"] == "1" {
+            container.pipeline.startRecording()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        }
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
@@ -32,14 +48,22 @@ enum DebugRender {
                 let root = Group {
                     if pageName == "permissions" {
                         AccessibilityPermissionHelp()
+                    } else if pageName == "refinement" {
+                        ScrollView {
+                            PageSection("Refinement") { RefinementSettings() }
+                                .padding(Theme.pagePadding)
+                        }
+                        .background(Color(nsColor: .windowBackgroundColor))
                     } else {
-                        MainWindowView(previewOverlay: overlay == "microphone" ? .microphone :
-                                       overlay == "settings" ? .settings : nil,
-                                       microphoneRenderLevel: overlay == "microphone" ? 0.42 : nil)
+                        MainWindowView(previewOverlay: env["AIRDRAFT_RENDER_OVERLAY"] == "microphone" ? .microphone :
+                                       ["account", "settings"].contains(env["AIRDRAFT_RENDER_OVERLAY"] ?? "") ? .account : nil,
+                                       microphoneRenderLevel: env["AIRDRAFT_RENDER_OVERLAY"] == "microphone"
+                                           ? Float(env["AIRDRAFT_RENDER_MIC_LEVEL"] ?? "") ?? 0.42 : nil)
                     }
-                }.environment(container)
+                }.environment(container).environment(\.openRouterPreviewEndpoints, previewEndpoints)
                 let host = NSHostingView(rootView: root)
-                let frame = NSRect(x: 0, y: 0, width: 980, height: height)
+                let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
+                let frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
                 host.frame = frame
                 let window = NSWindow(contentRect: frame, styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
                 window.titlebarAppearsTransparent = true
@@ -51,7 +75,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName == "permissions" ? "permissions" : page.rawValue
+                    let name = ["permissions", "refinement"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }
@@ -72,13 +96,15 @@ enum DebugRender {
             ("failed", HUDSnapshot(state: .failed("Microphone access denied"), levels: [], elapsed: 0)),
         ]
         var images: [NSImage] = []
-        for (_, snap) in states {
-            let content = IndicatorView(snapshot: snap)
-                .padding(12)
-                .background(Color(white: 0.93))
-            let renderer = ImageRenderer(content: content)
-            renderer.scale = 2
-            if let img = renderer.nsImage { images.append(img) }
+        for style in [HUDStyle.classic, .mini] {
+            for (_, snap) in states {
+                let content = IndicatorView(snapshot: snap, style: style)
+                    .padding(12)
+                    .background(Color(white: 0.93))
+                let renderer = ImageRenderer(content: content)
+                renderer.scale = 2
+                if let img = renderer.nsImage { images.append(img) }
+            }
         }
         let width = images.map(\.size.width).max() ?? 0
         let height = images.reduce(0) { $0 + $1.size.height }
@@ -95,3 +121,4 @@ enum DebugRender {
         try? png.write(to: url)
     }
 }
+#endif

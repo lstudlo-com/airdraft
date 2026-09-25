@@ -51,6 +51,7 @@ final class MicrophonePermissionTests: XCTestCase {
             let pipeline = DictationPipeline(settings: AppSettings(defaults: defaults),
                 dictionary: DictionaryStore(directory: directory), profiles: ProfileStore(directory: directory),
                 history: nil, factory: EngineFactory(status: EngineStatus()), recorder: recorder,
+                recordingPreflight: { _, _, _, _, _ in },
                 requestMicrophoneAccess: { await gate.wait() })
             pipeline.startRecording()
             pipeline.startRecording()

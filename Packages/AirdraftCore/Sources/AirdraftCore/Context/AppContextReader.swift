@@ -13,6 +13,13 @@ public final class AppContextReader {
 
     public init() {}
 
+    /// Password managers: their window titles and fields must never reach a refinement provider.
+    static let privateApps: Set<String> = [
+        "com.apple.Passwords", "com.apple.keychainaccess", "com.1password.1password",
+        "com.agilebits.onepassword7", "com.bitwarden.desktop", "com.dashlane.dashlanephonefinal",
+        "org.keepassxc.keepassxc", "com.lastpass.LastPass",
+    ]
+
     public static var isAccessibilityTrusted: Bool {
         AXIsProcessTrusted()
     }
@@ -30,7 +37,8 @@ public final class AppContextReader {
         ctx.appName = app.localizedName
         ctx.processID = app.processIdentifier
 
-        guard Self.isAccessibilityTrusted else { return ctx }
+        guard Self.isAccessibilityTrusted,
+              !Self.privateApps.contains(app.bundleIdentifier ?? "") else { return ctx }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(appElement, 0.3)
@@ -55,6 +63,10 @@ public final class AppContextReader {
         }
 
         let role: String? = attribute(focused, kAXRoleAttribute)
+        // Password fields: no selection or surrounding text, whatever the app reports.
+        if let subrole: String = attribute(focused, kAXSubroleAttribute), subrole == kAXSecureTextFieldSubrole {
+            return ctx
+        }
         if let sel: String = attribute(focused, kAXSelectedTextAttribute), !sel.isEmpty {
             ctx.selectedText = String(sel.prefix(maxSelectionChars))
         }

@@ -1,3 +1,5 @@
+#if DEBUG
+// Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import AVFoundation
 import AirdraftCore
@@ -8,9 +10,14 @@ import os
 enum MicrophoneSelfTest {
     static func run() {
         Task {
-            let log = Logger(subsystem: "com.lightiichen.airdraft", category: "microphone-test")
+            let log = Logger(subsystem: AppIdentity.logSubsystem, category: "microphone-test")
             guard await AudioRecorder.requestMicrophoneAccess() else {
                 log.error("microphone-test: FAIL permission denied")
+                NSApp.terminate(nil)
+                return
+            }
+            if ProcessInfo.processInfo.environment["AIRDRAFT_MICROPHONE_TEST_PREVIEWS"] == "1" {
+                await runLevelPreviews(log: log)
                 NSApp.terminate(nil)
                 return
             }
@@ -78,6 +85,46 @@ enum MicrophoneSelfTest {
         }
     }
 
+    private static func runLevelPreviews(log: Logger) async {
+        let devices = MicrophoneDevices.available()
+        let previews = MicrophoneLevelPreviews()
+        let defaultID = MicrophoneDevices.systemDefaultID
+        previews.synchronize(devices: devices, selection: .systemDefault, systemDefaultID: defaultID)
+        var observed: [String: Set<Int>] = [:]
+        var peaks: [String: Float] = [:]
+        // Exercise every live preview concurrently, including quiet devices.
+        for _ in 0..<30 {
+            try? await Task.sleep(for: .milliseconds(100))
+            for (uid, level) in previews.levels {
+                observed[uid, default: []].insert(MicrophoneLevelMeter.steps(for: level))
+                peaks[uid] = max(peaks[uid] ?? 0, level)
+            }
+        }
+        var failures = devices.isEmpty ? 1 : 0
+        for device in devices {
+            let received = previews.levels[device.uid] != nil
+            let passed = received && previews.errors[device.uid] == nil
+            if !passed { failures += 1 }
+            log.notice("microphone-preview-test: \(device.name, privacy: .public) received=\(received) peak=\(peaks[device.uid] ?? 0) steps=\(String(describing: observed[device.uid]?.sorted()), privacy: .public) error=\(previews.errors[device.uid] ?? "none", privacy: .public) \(passed ? "PASS" : "FAIL", privacy: .public)")
+        }
+        // Updating an unchanged selection must retain the active previews.
+        let before = previews.levels
+        previews.synchronize(devices: devices, selection: .systemDefault, systemDefaultID: defaultID)
+        if previews.levels != before { failures += 1 }
+        // Simulate a removed device without changing the Mac's input routing.
+        let remaining = Array(devices.dropLast())
+        previews.synchronize(devices: remaining, selection: .systemDefault, systemDefaultID: defaultID)
+        try? await Task.sleep(for: .milliseconds(200))
+        if let removed = devices.last, previews.levels[removed.uid] != nil { failures += 1 }
+        previews.stop()
+        try? await Task.sleep(for: .milliseconds(200))
+        if !previews.levels.isEmpty || !previews.errors.isEmpty { failures += 1 }
+        let boundaries: [(Float, Int)] = [(-1, 0), (0, 0), (0.01, 1), (0.1, 1), (0.11, 2),
+                                          (0.9, 9), (0.91, 10), (1, 10), (2, 10), (.nan, 0)]
+        if boundaries.contains(where: { MicrophoneLevelMeter.steps(for: $0.0) != $0.1 }) { failures += 1 }
+        log.notice("microphone-preview-test: complete devices=\(devices.count) failures=\(failures)")
+    }
+
     /// Read the actual Core Audio route instead of checking our own saved label.
     private static func route(_ route: AudioDeviceID?, contains device: AudioDeviceID) -> Bool {
         guard let route else { return false }
@@ -117,3 +164,4 @@ private final class CallbackCount: @unchecked Sendable {
     var value: Int { lock.lock(); defer { lock.unlock() }; return count }
     func increment() { lock.lock(); count += 1; lock.unlock() }
 }
+#endif

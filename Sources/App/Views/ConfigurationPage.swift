@@ -7,7 +7,7 @@ struct ConfigurationPage: View {
 
     var body: some View {
         @Bindable var settings = container.settings
-        PageScaffold {
+        PageScaffold(.configuration) {
             MicrophoneSettings()
 
             PageSection("Appearance") {
@@ -34,20 +34,19 @@ struct ConfigurationPage: View {
                 }
             }
 
-            PageSection("Keyboard Shortcuts") {
+            PageSection("Keyboard shortcuts") {
                 SettingsCard {
                     SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record, release when done" : "Press to start, press again to stop") {
                         HotkeyRecorderView()
                     }
                     RowDivider()
                     SettingRow(title: "Push to talk or toggle") {
-                        Picker("", selection: $settings.hotkeyBehavior) {
+                        Picker("Shortcut behavior", selection: $settings.hotkeyBehavior) {
                             Text("Hold to talk").tag(HotkeyBehavior.hold)
                             Text("Toggle").tag(HotkeyBehavior.toggle)
                         }
                         .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .frame(width: 200)
+                        .settingsPicker(width: 200)
                     }
                     RowDivider()
                     SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
@@ -56,24 +55,29 @@ struct ConfigurationPage: View {
                 }
             }
 
-            PageSection("Behaviour") {
+            PageSection("Behavior") {
                 SettingsCard {
                     SettingRow(title: "Insert text via") {
-                        Picker("", selection: $settings.insertionMethod) {
+                        Picker("Insert text via", selection: $settings.insertionMethod) {
                             Text("Accessibility, then paste").tag(InsertionMethod.auto)
                             Text("Always paste").tag(InsertionMethod.paste)
                         }
-                        .labelsHidden()
-                        .frame(width: 220)
+                        .settingsPicker(width: 220)
                     }
                     RowDivider()
-                    SettingRow(title: "Read app context", subtitle: "Window title, text near the cursor, selection") {
-                        Toggle("", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
+                    SettingRow(title: "Read app context",
+                               subtitle: "Sends the window title, nearby text and selection with the transcript to your refinement provider. Password fields and password managers are skipped.") {
+                        Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
                     }
                     RowDivider()
-                    SettingRow(title: "Maximum recording") {
-                        Stepper("\(settings.maxRecordingSeconds) s", value: $settings.maxRecordingSeconds, in: 10...1800, step: 10)
-                            .frame(width: 120)
+                    SettingRow(title: "Maximum recording", subtitle: settings.asr.kind == .groq ? "Groq recordings stop after 740 s to stay within its upload limit" : nil) {
+                        SettingsNumberStepper(
+                            title: "Maximum recording",
+                            value: $settings.maxRecordingSeconds,
+                            in: 10...1800,
+                            step: 10,
+                            unit: "s"
+                        )
                     }
                 }
             }
@@ -91,13 +95,13 @@ struct ConfigurationPage: View {
                             }
                                 .buttonStyle(SoftButtonStyle())
                         } else {
-                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            StatusDot(.ok)
                         }
                     }
                     RowDivider()
                     SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier-only shortcuts") {
                         if container.permissions.accessibilityGranted {
-                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            StatusDot(.ok)
                         } else {
                             AccessibilityPermissionActions()
                         }

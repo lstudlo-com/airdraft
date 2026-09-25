@@ -10,15 +10,17 @@ public struct GeminiRefiner: Refiner {
     public let model: String
     public let apiKey: String?
     public let temperature: Double
+    private let session: URLSession
     public let timeout: TimeInterval
     public let effort: ThinkingEffort
 
-    public init(baseURL: URL, model: String, apiKey: String?, temperature: Double = 0.2, timeout: TimeInterval = 20, effort: ThinkingEffort = .off) {
+    public init(baseURL: URL, model: String, apiKey: String?, temperature: Double = 0.2, timeout: TimeInterval = 20, effort: ThinkingEffort = .off, session: URLSession = .shared) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.temperature = temperature
         self.timeout = timeout
+        self.session = session
         self.effort = effort
         self.id = "gemini:\(model)"
     }
@@ -66,11 +68,13 @@ public struct GeminiRefiner: Refiner {
                     let parts: [Part]?
                 }
                 let content: Content?
+                let finishReason: String?
             }
             let candidates: [Candidate]?
             let modelVersion: String?
         }
         guard let reply = try? JSONDecoder().decode(Reply.self, from: data) else { throw RefinerError.invalidResponse }
+        try CompletionReason.validate(reply.candidates?.first?.finishReason, allowed: ["STOP"])
         let parts = reply.candidates?.first?.content?.parts?.compactMap(\.text) ?? []
         let text = PromptBuilder.sanitize(parts.joined())
         guard !text.isEmpty else { throw RefinerError.emptyOutput }
@@ -81,12 +85,6 @@ public struct GeminiRefiner: Refiner {
     }
 
     private func send(_ req: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        do {
-            let (data, response) = try await URLSession.shared.data(for: req)
-            guard let http = response as? HTTPURLResponse else { throw RefinerError.invalidResponse }
-            return (data, http)
-        } catch let error as URLError where error.code == .timedOut {
-            throw RefinerError.timeout
-        }
+        try await HTTPDeadline.data(for: req, session: session, timeoutError: RefinerError.timeout, invalidResponse: RefinerError.invalidResponse)
     }
 }

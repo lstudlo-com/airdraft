@@ -66,3 +66,50 @@ struct NeumorphicSurface<S: InsettableShape>: View {
         .allowsHitTesting(false)
     }
 }
+
+/// Used only by the sidebar microphone capsule, not every action button.
+struct MicrophoneButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        CapsuleBody(label: configuration.label)
+    }
+
+    private struct CapsuleBody: View {
+        let label: ButtonStyleConfiguration.Label
+        @Environment(\.isEnabled) private var isEnabled
+        @State private var hovering = false
+
+        var body: some View {
+            label
+                .background {
+                    NeumorphicSurface(shape: Capsule(), inset: !hovering || !isEnabled, depth: 2.5)
+                }
+                .contentShape(Capsule())
+                .opacity(isEnabled ? 1 : 0.45)
+                .onHover { hovering = $0 }
+        }
+    }
+}
+
+/// A shallow inset for Home's proportional app-usage bars.
+struct NeumorphicUsageTrack: View {
+    let fraction: Double
+
+    var body: some View {
+        GeometryReader { geometry in
+            let value = fraction.isFinite ? min(1, max(0, fraction)) : 0
+            let width = max(0, geometry.size.width - 2) * value
+            ZStack(alignment: .leading) {
+                NeumorphicSurface(shape: Capsule(), inset: true, depth: 1.2)
+                if value > 0 {
+                    Capsule()
+                        .fill(Brand.violet)
+                        .frame(width: width, height: 5)
+                        .padding(.horizontal, 1)
+                }
+            }
+            .clipShape(Capsule())
+        }
+        .frame(height: 8)
+        .accessibilityHidden(true)
+    }
+}

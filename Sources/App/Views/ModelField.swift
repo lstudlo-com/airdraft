@@ -20,19 +20,15 @@ struct ModelField: View {
         SettingRow(title: title, subtitle: status.isEmpty ? nil : status) {
             HStack(spacing: 6) {
                 if models.isEmpty {
-                    TextField("model id", text: $model).textFieldStyle(.roundedBorder).frame(width: 240)
+                    TextField("Model ID", text: $model).textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth)
                 } else {
-                    Picker("", selection: $model) {
+                    Picker(title, selection: $model) {
                         ForEach(models, id: \.self) { Text($0).tag($0) }
                         if !model.isEmpty, !models.contains(model) { Text("\(model) (not listed)").tag(model) }
                     }
-                    .labelsHidden().frame(width: 240)
+                    .settingsPicker(width: Theme.fieldWidth)
                 }
-                Button { refreshID = UUID() } label: {
-                    if loading { ProgressView().controlSize(.small) } else { Image(systemName: "arrow.clockwise") }
-                }
-                .buttonStyle(SoftButtonStyle())
-                .help("Reload the model list from the endpoint")
+                RefreshButton(loading: loading, help: "Reload the model list from the endpoint") { refreshID = UUID() }
             }
         }
         .task(id: "\(baseURL)|\(apiKeyRef)|\(refreshID)") { await refresh() }
@@ -42,7 +38,7 @@ struct ModelField: View {
     }
 
     private func refresh() async {
-        guard !ProcessInfo.processInfo.arguments.contains("--render-window") else { return }
+        guard !RenderMode.isActive else { return }
         let token = UUID()
         requestID = token
         models = []
@@ -66,7 +62,7 @@ struct ModelField: View {
         } catch {
             guard requestID == token, !Task.isCancelled else { return }
             models = []
-            status = "Could not list models; type the id. \(error.localizedDescription)"
+            status = RefinementModelRow.shortMessage(for: error)
         }
     }
 }

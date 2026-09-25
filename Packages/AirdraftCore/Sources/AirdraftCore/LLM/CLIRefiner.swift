@@ -175,7 +175,11 @@ public struct CLIRefiner: Refiner {
         let started = Date()
         let systemPrompt = PromptBuilder.systemPrompt(for: request)
         if supportsWarmStart, let session = await CLIWarmPool.shared.take(key: warmKey(systemPrompt: systemPrompt)) {
-            let raw = try session.send(PromptBuilder.userMessage(for: request), timeout: timeout)
+            let message = PromptBuilder.userMessage(for: request)
+            let timeout = self.timeout
+            let raw = try await withTaskCancellationHandler {
+                try await CLIProcess.blocking { try session.send(message, timeout: timeout) }
+            } onCancel: { session.stop() }
             let text = PromptBuilder.sanitize(raw)
             guard !text.isEmpty else { throw RefinerError.emptyOutput }
             return RefineResult(
@@ -235,50 +239,10 @@ public struct CLIRefiner: Refiner {
         process.arguments = arguments
         process.currentDirectoryURL = workDir
         process.environment = environment
-
-        let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()
-        process.standardInput = stdin
-        process.standardOutput = stdout
-        process.standardError = stderr
-
-        let timeout = self.timeout
-        return try await withCheckedThrowingContinuation { continuation in
-            let finished = OSAllocatedUnfairLock(initialState: false)
-            func finish(_ result: Result<String, Error>) {
-                let alreadyDone = finished.withLock { done -> Bool in
-                    if done { return true }
-                    done = true
-                    return false
-                }
-                guard !alreadyDone else { return }
-                continuation.resume(with: result)
-            }
-
-            process.terminationHandler = { proc in
-                let out = String(decoding: stdout.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-                let err = String(decoding: stderr.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-                if proc.terminationStatus == 0 {
-                    finish(.success(out))
-                } else {
-                    finish(.failure(RefinerError.http(status: Int(proc.terminationStatus), body: String((err + out).prefix(400)))))
-                }
-            }
-
-            do {
-                try process.run()
-            } catch {
-                finish(.failure(RefinerError.http(status: 127, body: "Could not run \(executable): \(error.localizedDescription)")))
-                return
-            }
-
-            stdin.fileHandleForWriting.write(Data(input.utf8))
-            try? stdin.fileHandleForWriting.close()
-
-            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
-                guard process.isRunning else { return }
-                process.terminate()
-                finish(.failure(RefinerError.timeout))
-            }
+        let output = try await CLIProcess.run(process, input: input, timeout: timeout)
+        guard output.status == 0 else {
+            throw RefinerError.http(status: Int(output.status), body: String((output.stderr + output.stdout).prefix(400)))
         }
+        return output.stdout
     }
 }

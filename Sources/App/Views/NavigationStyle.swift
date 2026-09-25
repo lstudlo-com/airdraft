@@ -15,22 +15,31 @@ enum NavigationStyle {
 /// Shared selection, hover and press treatment for navigation and profile rows.
 struct NavigationRowStyle: ButtonStyle {
     var selected = false
+    var neumorphicSelection = false
 
     func makeBody(configuration: Configuration) -> some View {
-        Row(configuration: configuration, selected: selected)
+        Row(configuration: configuration, selected: selected, neumorphicSelection: neumorphicSelection)
     }
 
     private struct Row: View {
         let configuration: ButtonStyleConfiguration
         let selected: Bool
+        let neumorphicSelection: Bool
         @State private var hovering = false
 
         var body: some View {
             configuration.label
                 .foregroundStyle(.primary)
                 .background {
-                    RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous)
-                        .fill(Color.primary.opacity(configuration.isPressed ? 0.14 : selected ? 0.09 : hovering ? 0.045 : 0))
+                    if selected && neumorphicSelection {
+                        NeumorphicSurface(
+                            shape: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous),
+                            inset: false, depth: 1.5, translucent: true
+                        )
+                    } else {
+                        RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous)
+                            .fill(Color.primary.opacity(configuration.isPressed ? 0.14 : selected ? 0.09 : hovering ? 0.045 : 0))
+                    }
                 }
                 .onHover { hovering = $0 }
         }

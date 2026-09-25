@@ -11,6 +11,7 @@ public struct OpenAICompatibleRefiner: Refiner {
     public let timeout: TimeInterval
     public let effort: ThinkingEffort
     public let provider: LLMProviderKind
+    public let openRouterRouting: OpenRouterRouting
     private let session: URLSession
 
     public init(
@@ -21,6 +22,7 @@ public struct OpenAICompatibleRefiner: Refiner {
         timeout: TimeInterval = 20,
         effort: ThinkingEffort = .off,
         provider: LLMProviderKind = .openAICompatible,
+        openRouterRouting: OpenRouterRouting = OpenRouterRouting(),
         session: URLSession = .shared
     ) {
         self.baseURL = baseURL
@@ -30,6 +32,7 @@ public struct OpenAICompatibleRefiner: Refiner {
         self.timeout = timeout
         self.effort = effort
         self.provider = provider
+        self.openRouterRouting = openRouterRouting
         self.session = session
         self.id = "openai-compatible:\(baseURL.host ?? "?")/\(model)"
     }
@@ -50,18 +53,41 @@ public struct OpenAICompatibleRefiner: Refiner {
             struct Choice: Decodable {
                 struct Message: Decodable { let content: String? }
                 let message: Message
+                let finish_reason: String?
+            }
+            struct RoutingMetadata: Decodable {
+                struct Endpoints: Decodable {
+                    struct Endpoint: Decodable {
+                        let provider: String?
+                        let selected: Bool?
+                    }
+                    let available: [Endpoint]?
+                }
+                let endpoints: Endpoints?
+
+                var selectedProvider: String? {
+                    endpoints?.available?.first { $0.selected == true }?.provider
+                }
             }
             let choices: [Choice]
             let model: String?
+            let openrouterMetadata: RoutingMetadata?
+
+            enum CodingKeys: String, CodingKey {
+                case choices, model
+                case openrouterMetadata = "openrouter_metadata"
+            }
         }
         guard let reply = try? JSONDecoder().decode(Reply.self, from: data),
               let content = reply.choices.first?.message.content else {
             throw RefinerError.invalidResponse
         }
+        try CompletionReason.validate(reply.choices.first?.finish_reason, allowed: ["stop"])
         let text = PromptBuilder.sanitize(content)
         guard !text.isEmpty else { throw RefinerError.emptyOutput }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
-        return RefineResult(text: text, engine: id, latencyMs: ms, promptVersion: PromptBuilder.version, servedBy: reply.model)
+        let servedBy = provider == .openRouter ? reply.openrouterMetadata?.selectedProvider : reply.model
+        return RefineResult(text: text, engine: id, latencyMs: ms, promptVersion: PromptBuilder.version, servedBy: servedBy)
     }
 
     func payload(for request: RefineRequest, minimal: Bool = false) -> [String: Any] {
@@ -72,9 +98,16 @@ public struct OpenAICompatibleRefiner: Refiner {
                 ["role": "user", "content": PromptBuilder.userMessage(for: request)],
             ],
         ]
+        // Provider restrictions are user intent, not optional compatibility fields.
+        // Keep them on the 400 retry so it cannot silently change hosts.
+        if provider == .openRouter { body["provider"] = openRouterRouting.preferences }
         guard !minimal else { return body }
         body["temperature"] = temperature
-        if provider == .cerebras || provider == .groq {
+        if provider == .openRouter {
+            body["reasoning"] = effort == .off
+                ? ["enabled": false]
+                : ["effort": effort.rawValue, "exclude": true]
+        } else if provider == .cerebras || provider == .groq {
             // These APIs do not accept local-server chat_template_kwargs.
             // Unknown models get the spec-core request and temperature only.
             let isOSS = provider == .cerebras ? model == "gpt-oss-120b"
@@ -104,6 +137,9 @@ public struct OpenAICompatibleRefiner: Refiner {
         req.httpMethod = "POST"
         req.timeoutInterval = timeout
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if provider == .openRouter {
+            req.setValue("enabled", forHTTPHeaderField: "X-OpenRouter-Metadata")
+        }
         if let apiKey, !apiKey.isEmpty {
             req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
@@ -112,15 +148,6 @@ public struct OpenAICompatibleRefiner: Refiner {
     }
 
     private func post(_ payload: [String: Any]) async throws -> (Data, HTTPURLResponse) {
-        let req = try makeRequest(payload)
-        let data: Data
-        let response: URLResponse
-        do {
-            (data, response) = try await session.data(for: req)
-        } catch let error as URLError where error.code == .timedOut {
-            throw RefinerError.timeout
-        }
-        guard let http = response as? HTTPURLResponse else { throw RefinerError.invalidResponse }
-        return (data, http)
+        try await HTTPDeadline.data(for: makeRequest(payload), session: session, timeoutError: RefinerError.timeout, invalidResponse: RefinerError.invalidResponse)
     }
 }

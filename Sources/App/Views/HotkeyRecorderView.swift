@@ -21,6 +21,7 @@ struct HotkeyRecorderView: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .help("Reset to \(Hotkey.controlOption.displayString)")
+                .accessibilityLabel("Reset shortcut to \(Hotkey.controlOption.displayString)")
             }
             if recording {
                 Text("Press a key or combination…  Esc cancels")
@@ -33,7 +34,7 @@ struct HotkeyRecorderView: View {
             } else {
                 KeyCaps(hotkey: container.settings.hotkey)
             }
-            Button(recording ? "Cancel" : "Record shortcut") {
+            Button(recording ? "Cancel" : "Record Shortcut") {
                 if recording { stop() } else { start() }
             }
             .buttonStyle(SoftButtonStyle())

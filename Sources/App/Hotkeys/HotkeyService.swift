@@ -12,7 +12,7 @@ import os
 final class HotkeyService {
     enum Backend: Equatable { case none, carbon, eventTap }
 
-    private static let log = Logger(subsystem: "com.lightiichen.airdraft", category: "hotkey")
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hotkey")
 
     private(set) var backend: Backend = .none
     private(set) var isActive = false
@@ -28,7 +28,6 @@ final class HotkeyService {
     private let carbon = CarbonHotkey()
     private let eventTap = EventTapHotkey()
     private let permissions: SystemPermissions
-    private var pollTimer: Timer?
     private(set) var hotkey: Hotkey = .controlOption
 
     init(permissions: SystemPermissions) {
@@ -37,14 +36,14 @@ final class HotkeyService {
         carbon.onRelease = { [weak self] in self?.release() }
         eventTap.onPress = { [weak self] in self?.press() }
         eventTap.onRelease = { [weak self] in self?.release() }
+        // The permission monitor's timer also checks the event tap's health.
+        permissions.didRefresh = { [weak self] in self?.refreshEventTapStatus() }
     }
 
     func apply(_ hotkey: Hotkey) {
         self.hotkey = hotkey
         carbon.unregister()
         eventTap.stop()
-        pollTimer?.invalidate()
-        pollTimer = nil
 
         if CarbonHotkey.canRegister(hotkey) {
             let ok = carbon.register(hotkey)
@@ -59,11 +58,6 @@ final class HotkeyService {
         eventTap.start()
         backend = .eventTap
         refreshEventTapStatus()
-        let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refreshEventTapStatus() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        pollTimer = timer
     }
 
     var needsAccessibility: Bool {

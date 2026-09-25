@@ -5,13 +5,25 @@ import SwiftUI
 /// it with. The list reads like "super whisper → Superwhisper".
 struct VocabularyPage: View {
     @Environment(AppContainer.self) private var container
+    @State private var removedEntry: DictionaryEntry?
     @State private var word = ""
     @State private var replacement = ""
     @State private var query = ""
     @FocusState private var focusWord: Bool
 
     var body: some View {
-        PageScaffold {
+        PageScaffold(.vocabulary) {
+            if let error = container.dictionary.persistenceError {
+                StorageNotice(message: error) { container.dictionary.retrySave() }
+            }
+            if let entry = removedEntry {
+                HStack {
+                    Text("Vocabulary removed").font(.system(size: 12.5)).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Undo") { container.dictionary.restore(entry); removedEntry = nil }.buttonStyle(SoftButtonStyle())
+                }
+            }
+            Card {
             HStack(spacing: 10) {
                 TextField("New word or mis-hearing", text: $word)
                     .textFieldStyle(.plain)
@@ -24,28 +36,26 @@ struct VocabularyPage: View {
                     .font(.system(size: 14))
                     .frame(width: 220)
                     .onSubmit(add)
-                Button(action: add) {
-                    HStack(spacing: 6) {
-                        Text("Add").font(.system(size: 12.5, weight: .medium))
-                        KeyCap(text: "↩")
-                    }
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(word.trimmingCharacters(in: .whitespaces).isEmpty ? .tertiary : .secondary)
-                .disabled(word.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button("Add", action: add)
+                    .buttonStyle(SoftButtonStyle())
+                    .disabled(word.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .help("Add (Return)")
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous).fill(Color.primary.opacity(0.05)))
-            .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous).strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5))
+            }
 
             if container.dictionary.entries.isEmpty {
-                Text("Words you add are always spelled this way. A replacement turns a mis-hearing into the right word.")
-                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                EmptyNote("Words you add are always spelled this way. A replacement turns a mis-hearing into the right word.")
+            } else if rows.isEmpty {
+                EmptyNote("No matches.")
             } else {
-                VStack(spacing: 0) {
-                    ForEach(rows, id: \.id) { row in
-                        VocabularyLine(row: row) { container.dictionary.remove(id: row.entryID) }
+                Card(padding: 0) {
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        if index > 0 { RowDivider() }
+                        VocabularyLine(row: row) {
+                            removedEntry = container.dictionary.entries.first { $0.id == row.entryID }
+                            if let alias = row.alias { container.dictionary.removeAlias(alias, from: row.entryID) }
+                            else { container.dictionary.remove(id: row.entryID) }
+                        }
                     }
                 }
             }
@@ -117,15 +127,16 @@ private struct VocabularyLine: View {
                 Text(row.term).font(.system(size: 14, weight: .medium))
             }
             Spacer()
-            if hovering {
-                Button(action: onDelete) { Image(systemName: "xmark.circle.fill") }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.tertiary)
-            }
+            Button(action: onDelete) { Image(systemName: "trash").font(.system(size: 13)) }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Remove")
+                .accessibilityLabel("Remove \(row.alias.map { "\($0) → " } ?? "")\(row.term)")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(hovering ? Color.primary.opacity(0.05) : .clear))
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 10)
+        .background(hovering ? Color.primary.opacity(0.03) : .clear)
         .onHover { hovering = $0 }
+        .contextMenu { Button("Remove", role: .destructive, action: onDelete) }
     }
 }

@@ -40,7 +40,7 @@ struct MicrophoneSettings: View {
         PageSection("Microphone") {
             SettingsCard {
                 SettingRow(title: "Default microphone", subtitle: "Saved for every recording and next launch") {
-                    MicrophonePicker().labelsHidden().frame(width: 230)
+                    MicrophonePicker().settingsPicker(width: 230)
                 }
                 let channelCount = store.selected(preference)?.inputChannelCount ?? 0
                 let selectedChannel = preference.channelIndex ?? 0
@@ -58,8 +58,7 @@ struct MicrophoneSettings: View {
                                 Text("Input \(selectedChannel + 1) · unavailable").tag(selectedChannel)
                             }
                         }
-                        .labelsHidden()
-                        .frame(width: 230)
+                        .settingsPicker(width: 230)
                         .disabled(container.pipeline.isBusy)
                     }
                 }
@@ -71,11 +70,6 @@ struct MicrophoneSettings: View {
                 }
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
-                Text(preference.uid == nil
-                     ? "Follows the input selected in macOS Sound settings."
-                     : "Uses this device even when macOS changes its default. If disconnected, reconnect it or select another microphone.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
