@@ -171,12 +171,13 @@ with the page title's leading inset and stays on the window-button centerline.
 The native window controls retain their 46-point titlebar. Page headings have
 a separate 32-point row, inset 24 points from the top with 12 points below.
 `PageScaffold` keeps this header fixed with `safeAreaInset`.
-`ProgressiveHeaderBlur` samples the live backdrop with a radius that increases
-continuously from zero at the bottom to 32 points at the top, across all 68 points
-of the header. Use a cubic ease-in rather than a linear ramp: the lower quarter
-reaches only 0.5 points of blur, halfway reaches 4 points, and the upper quarter
-reaches 13.5 points. Small text should soften while staying recognizable as it
-enters from below, before becoming heavily blurred higher up.
+`ProgressiveHeaderBlur` covers the 68-point header and the 24-point content
+inset below it, plus a 4-point outer feather. That feather joins the clear page
+to a light but visible 1-point blur at the bottom of the inset. From there,
+increase radius quadratically to 32 points at the very top. The effect is
+96 points tall without reserving additional layout space. Text entering the
+inset must visibly soften while its letter shapes remain identifiable; do not
+leave the lower text nearly sharp, as the previous cubic curve did.
 The radius mask drives the blur filter; it never changes the
 opacity of a material or adds a tint. Header labels and controls remain above
 the filtered layer and stay sharp. Suppress the system's hard scroll-edge separator

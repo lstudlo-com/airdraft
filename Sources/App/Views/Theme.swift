@@ -22,6 +22,8 @@ enum Theme {
     static let pageHeaderRowHeight: CGFloat = 32
     static let pageHeaderBottomInset: CGFloat = 12
     static let pageHeaderBlurRadius: CGFloat = 32
+    // Cover the content inset as well, with 4 pt to join the clear page smoothly.
+    static let pageHeaderBlurExtension: CGFloat = pagePadding + 4
     // Align the collapsed toggle's symbol with the page title, outside the icon rail.
     static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
         - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
@@ -604,8 +606,8 @@ extension View {
     }
 }
 
-/// Blur radius increases across the entire header, from zero at the bottom to
-/// the maximum at the top. Header labels and controls sit above the filtered layer.
+/// Blur starts in the content inset below the header and grows toward its top.
+/// Header labels and controls sit above the filtered layer.
 private struct PageHeaderBackdrop: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
@@ -617,7 +619,7 @@ private struct PageHeaderBackdrop: View {
                     .frame(height: headerHeight)
             } else {
                 ProgressiveHeaderBlur(maximumRadius: Theme.pageHeaderBlurRadius)
-                    .frame(height: headerHeight)
+                    .frame(height: headerHeight + Theme.pageHeaderBlurExtension)
             }
         }
         .allowsHitTesting(false)

@@ -18,7 +18,8 @@ private struct BlurFixture: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 24)
             .padding(.top, 6)
-            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 68)
+            // 68 pt header + 24 pt content inset + 4 pt outer feather.
+            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 96)
             Text("Models")
                 .font(.system(size: 20, weight: .semibold))
                 .padding(.leading, 24)
@@ -41,15 +42,17 @@ enum VerifyProgressiveHeader {
             let row = Int((Double(mask.height - 1) * (1 - progress)).rounded())
             return Double(alpha[row]) / 255 * 32
         }
-        precondition(radius(atProgress: 0.25) > 0 && radius(atProgress: 0.25) <= 0.75,
-                     "The first quarter must only soften small text, not obscure it")
-        precondition((3.5...4.5).contains(radius(atProgress: 0.5)),
-                     "Reserve strong blur for the upper half of the header")
+        precondition((0.9...1.25).contains(radius(atProgress: 4.0 / 96.0)),
+                     "The bottom of the content inset must already have a visible light blur")
+        precondition((2...3).contains(radius(atProgress: 0.25)),
+                     "The lower region must be visibly blurred without immediately obscuring the text")
+        precondition((7...9).contains(radius(atProgress: 0.5)),
+                     "Blur must keep increasing through the middle of the header")
         precondition(radius(atProgress: 0.75) > 12,
                      "The header must still build toward a strong blur at the top")
 
         let view = ProgressiveHeaderBlurView(maximumRadius: 32)
-        view.frame = NSRect(x: 0, y: 0, width: 614, height: 68)
+        view.frame = NSRect(x: 0, y: 0, width: 614, height: 96)
         view.layoutSubtreeIfNeeded()
         guard let backdrop = view.layer?.sublayers?.first,
               let filter = backdrop.filters?.first as? NSObject else {

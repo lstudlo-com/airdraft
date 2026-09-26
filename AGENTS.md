@@ -138,10 +138,11 @@ status table current.
   Inset the native window buttons 16 points from the top and leading edges;
   align the sidebar toggle with their centers in the 46-point titlebar. Page
   headings and actions use a separate 32-point row with 24 points above and
-  12 points below, inside one sticky header. Blur radius increases continuously
-  across the full header height, from zero at its bottom to 32 points at its top.
-  Ease in cubically: about 0.5 pt at one-quarter height and 4 pt halfway up,
-  so text remains recognizable as it enters the lower part of the header.
+  12 points below, inside one sticky header. Extend its backdrop blur through the
+  24-point content inset below it, plus a 4-point outer feather. Text at the
+  bottom of that inset must already be lightly but visibly blurred at about
+  1 pt radius; increase quadratically to 32 pt at the top. Do not leave a
+  nearly sharp lower region or obscure entering text immediately.
   Use `ProgressiveHeaderBlur`; never simulate this with material opacity, a tint
   gradient or a short edge fade. Keep header labels and controls sharp. The
   undocumented compositor filter is isolated and capability-checked, with a
@@ -306,7 +307,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable
-  near the bottom of the 68-point header, then progressively blur upward while
+  but visibly softened at the bottom of the content inset, then blur upward while
   its foreground label stays sharp. Do not judge onset using only broad stripes.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.

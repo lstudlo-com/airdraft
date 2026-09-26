@@ -30,12 +30,22 @@ final class ProgressiveHeaderBlurView: NSView {
 
     /// Alpha encodes radius, not the opacity of the displayed background.
     /// The first image row is the top of the header, the last is its bottom.
-    /// Ease in cubically so small text stays recognizable as it enters the blur.
+    /// A short outer feather reaches a visible 1 pt blur, then a quadratic ramp
+    /// builds toward 32 pt. Avoid the cubic curve's almost-clear lower region.
     static let radiusMask: CGImage = {
         let height = 256
         let bytes: [UInt8] = (0..<height).flatMap { row in
             let progress = Double(height - 1 - row) / Double(height - 1)
-            let alpha = UInt8((255 * progress * progress * progress).rounded())
+            let edgeFeather = 1.0 / 24.0
+            let entryRadius = 1.0 / 32.0
+            let radius: Double
+            if progress < edgeFeather {
+                radius = entryRadius * progress / edgeFeather
+            } else {
+                let ramp = (progress - edgeFeather) / (1 - edgeFeather)
+                radius = entryRadius + (1 - entryRadius) * ramp * ramp
+            }
+            let alpha = UInt8((255 * radius).rounded())
             return [alpha, alpha, alpha, alpha]
         }
         let provider = CGDataProvider(data: Data(bytes) as CFData)!
