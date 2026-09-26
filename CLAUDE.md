@@ -140,6 +140,8 @@ status table current.
   headings and actions use a separate 32-point row with 24 points above and
   12 points below, inside one sticky header. Blur radius increases continuously
   across the full header height, from zero at its bottom to 32 points at its top.
+  Ease in cubically: about 0.5 pt at one-quarter height and 4 pt halfway up,
+  so text remains recognizable as it enters the lower part of the header.
   Use `ProgressiveHeaderBlur`; never simulate this with material opacity, a tint
   gradient or a short edge fade. Keep header labels and controls sharp. The
   undocumented compositor filter is isolated and capability-checked, with a
@@ -303,8 +305,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   bitmap capture and ImageRenderer. `--legacy` reproduces the old outer-shadow failure.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
-  Use `--live` for the compositor fixture: broad stripes must progressively
-  soften across the whole header while its foreground label stays sharp.
+  Use `--live` for the compositor fixture: 13-point text must remain recognizable
+  near the bottom of the 68-point header, then progressively blur upward while
+  its foreground label stays sharp. Do not judge onset using only broad stripes.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to

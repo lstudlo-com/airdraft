@@ -30,10 +30,12 @@ final class ProgressiveHeaderBlurView: NSView {
 
     /// Alpha encodes radius, not the opacity of the displayed background.
     /// The first image row is the top of the header, the last is its bottom.
+    /// Ease in cubically so small text stays recognizable as it enters the blur.
     static let radiusMask: CGImage = {
         let height = 256
         let bytes: [UInt8] = (0..<height).flatMap { row in
-            let alpha = UInt8(255 - row)
+            let progress = Double(height - 1 - row) / Double(height - 1)
+            let alpha = UInt8((255 * progress * progress * progress).rounded())
             return [alpha, alpha, alpha, alpha]
         }
         let provider = CGDataProvider(data: Data(bytes) as CFData)!

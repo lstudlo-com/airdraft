@@ -173,7 +173,11 @@ a separate 32-point row, inset 24 points from the top with 12 points below.
 `PageScaffold` keeps this header fixed with `safeAreaInset`.
 `ProgressiveHeaderBlur` samples the live backdrop with a radius that increases
 continuously from zero at the bottom to 32 points at the top, across all 68 points
-of the header. The radius mask drives the blur filter; it never changes the
+of the header. Use a cubic ease-in rather than a linear ramp: the lower quarter
+reaches only 0.5 points of blur, halfway reaches 4 points, and the upper quarter
+reaches 13.5 points. Small text should soften while staying recognizable as it
+enters from below, before becoming heavily blurred higher up.
+The radius mask drives the blur filter; it never changes the
 opacity of a material or adds a tint. Header labels and controls remain above
 the filtered layer and stay sharp. Suppress the system's hard scroll-edge separator
 on macOS 26+. The implementation isolates the undocumented `CABackdropLayer` and

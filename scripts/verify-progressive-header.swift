@@ -6,17 +6,23 @@ import SwiftUI
 
 private struct BlurFixture: View {
     var body: some View {
-        ZStack(alignment: .top) {
-            HStack(spacing: 0) {
-                ForEach(0..<12) { index in
-                    Rectangle().fill(index.isMultiple(of: 2) ? Color.black : Color.white)
+        ZStack(alignment: .topLeading) {
+            Color(nsColor: .windowBackgroundColor)
+            VStack(alignment: .trailing, spacing: 0) {
+                ForEach(0..<16) { _ in
+                    Text("Qwen3-ASR  ·  Speech on this Mac")
+                        .font(.system(size: 13))
+                        .frame(height: 16)
                 }
             }
-            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 240)
-            Text("Sharp header")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(.red)
-                .padding(16)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing, 24)
+            .padding(.top, 6)
+            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 68)
+            Text("Models")
+                .font(.system(size: 20, weight: .semibold))
+                .padding(.leading, 24)
+                .padding(.top, 24)
         }
         .frame(width: 600, height: 300)
     }
@@ -30,7 +36,17 @@ enum VerifyProgressiveHeader {
         let data = mask.dataProvider!.data! as Data
         let alpha = (0..<mask.height).map { data[$0 * mask.bytesPerRow + 3] }
         precondition(alpha.first == 255 && alpha.last == 0, "Blur must be strongest at the top and clear at the bottom")
-        precondition(zip(alpha, alpha.dropFirst()).allSatisfy { $0 > $1 }, "Radius must change across the full height, without a flat section")
+        precondition(zip(alpha, alpha.dropFirst()).allSatisfy { $0 >= $1 }, "Blur must never become stronger toward the bottom")
+        func radius(atProgress progress: Double) -> Double {
+            let row = Int((Double(mask.height - 1) * (1 - progress)).rounded())
+            return Double(alpha[row]) / 255 * 32
+        }
+        precondition(radius(atProgress: 0.25) > 0 && radius(atProgress: 0.25) <= 0.75,
+                     "The first quarter must only soften small text, not obscure it")
+        precondition((3.5...4.5).contains(radius(atProgress: 0.5)),
+                     "Reserve strong blur for the upper half of the header")
+        precondition(radius(atProgress: 0.75) > 12,
+                     "The header must still build toward a strong blur at the top")
 
         let view = ProgressiveHeaderBlurView(maximumRadius: 32)
         view.frame = NSRect(x: 0, y: 0, width: 614, height: 68)
@@ -49,7 +65,7 @@ enum VerifyProgressiveHeader {
         view.layoutSubtreeIfNeeded()
         precondition(backdrop.frame == view.bounds)
         precondition((filter.value(forKey: "inputRadius") as? NSNumber)?.doubleValue == 20)
-        print("PASS: Full-height radius ramp, compositor availability, resize and pointer passthrough")
+        print("PASS: Gentle blur onset, full-height radius ramp, compositor availability, resize and pointer passthrough")
 
         guard CommandLine.arguments.contains("--live") else { return }
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 300),
