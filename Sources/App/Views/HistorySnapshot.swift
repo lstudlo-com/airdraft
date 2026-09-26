@@ -34,8 +34,8 @@ struct HistorySnapshot: Sendable {
             let finalText = HistoryTextContent(record.finalText)
             indexByID[id] = entries.count
             entries.append(HistoryEntry(id: id, record: record, heading: heading,
-                timelineHeading: heading.map {
-                    $0 == "Today" || $0 == "Yesterday" ? $0 : record.createdAt.formatted(.dateTime.month(.abbreviated).day())
+                timelineHeading: heading.map { _ in
+                    record.createdAt.formatted(.dateTime.month(.abbreviated).day())
                 }, time: time, timestamp: record.createdAt.formatted(date: .abbreviated, time: .standard),
                 metadata: metadata.joined(separator: " · "),
                 finalText: finalText, rawText: record.rawTranscript == record.finalText ? finalText : HistoryTextContent(record.rawTranscript),

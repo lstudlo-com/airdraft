@@ -151,7 +151,9 @@ status table current.
   the 24-point content inset inside scrolling content, including both History
   columns, and preserve vertical positions on collapse.
   History has a compact 52-point timeline beside its independently scrolling
-  cards. One time-and-tick button jumps to each entry; the current entry stays
+  cards. Timeline day headings always show calendar dates such as Sep 25;
+  reserve Today and Yesterday for the main card column. One time-and-tick button
+  jumps to each entry; the current entry stays
   highlighted as the cards scroll. Returning the cards to the top also restores
   the timeline's first day heading, even when its first entry is already active.
   History prepares grouping, formatted labels, text previews and audio availability

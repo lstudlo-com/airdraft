@@ -188,7 +188,9 @@ Verify live compositing after macOS upgrades. No screen capture, scroll snapshot
 or per-frame application rendering are used.
 Only Reduce Transparency replaces the blur with a solid background.
 History puts its top content margin inside both scroll views so both columns
-can pass beneath the header. Header positions stay unchanged on sidebar collapse.
+can pass beneath the header. Its timeline uses calendar-date headings such as
+Sep 25 for every day; only the main card column uses Today and Yesterday.
+Header positions stay unchanged on sidebar collapse.
 The sidebar changes width with the existing 0.18-second
 ease-in-out animation.
 
