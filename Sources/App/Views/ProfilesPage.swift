@@ -4,8 +4,7 @@ import SwiftUI
 struct ProfilesPage: View {
     @Environment(AppContainer.self) private var container
     @State private var selection: UUID?
-    @State private var editingProfileID: UUID?
-    @State private var nameDraft = ""
+    @State private var nameFocusRequest: UUID?
     @State private var presentedSheet: ProfileSheet?
     @State private var confirmation: ProfileConfirmation?
     @State private var showsBasePromptWarning = false
@@ -15,21 +14,22 @@ struct ProfilesPage: View {
     }
 
     var body: some View {
-        PageScaffold(.profiles, scrollsContent: false) {
+        PageScaffold(.profiles) {
             if let error = container.profiles.persistenceError {
                 StorageNotice(message: error) { container.profiles.retrySave() }
             }
+            if let profile = selectedProfile {
+                ProfileEditor(profile: profile, nameFocusRequest: $nameFocusRequest) {
+                    profilePicker
+                }
+                .id(profile.id)
+            }
             PageSection("Base system prompt") {
                 SettingsCard {
-                    HStack(spacing: Theme.controlSpacing) {
-                        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-                            Text(container.profiles.baseRulesAreDefault ? "Default prompt" : "Custom prompt")
-                                .font(.system(size: 13, weight: .medium))
-                            Text("Shared by all AI refinement profiles")
-                                .supportingText()
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        Spacer(minLength: 0)
+                    SettingRow(
+                        title: container.profiles.baseRulesAreDefault ? "Default prompt" : "Custom prompt",
+                        subtitle: "Shared by all AI refinement profiles"
+                    ) {
                         Button("Edit…") { showsBasePromptWarning = true }
                             .buttonStyle(SoftButtonStyle())
                             .accessibilityLabel("Edit base system prompt")
@@ -37,53 +37,12 @@ struct ProfilesPage: View {
                     }
                 }
             }
-            HStack(alignment: .top, spacing: Theme.pagePadding) {
-                ScrollView {
-                    VStack(spacing: 2) {
-                        ForEach(container.profiles.profiles) { profile in
-                            ProfileListRow(
-                                name: profile.name,
-                                nameDraft: $nameDraft,
-                                active: profile.id == container.profiles.activeProfileID,
-                                selected: profile.id == selection,
-                                editing: profile.id == editingProfileID,
-                                action: {
-                                    finishRenameIfNeeded()
-                                    selection = profile.id
-                                },
-                                finishRename: { finishRename(profile.id) }
-                            )
-                            .contextMenu {
-                                profileActions(for: profile)
-                                Divider()
-                                Button("Use Profile") { container.profiles.setActive(profile.id) }
-                                    .disabled(profile.id == container.profiles.activeProfileID)
-                            }
-                        }
-                    }
-                }
-                .frame(width: 136)
-                .background {
-                    Color.clear.contentShape(Rectangle())
-                        .onTapGesture { finishRenameIfNeeded() }
-                }
-                Divider().opacity(0.4)
-                ScrollView {
-                    if let profile = selectedProfile {
-                        ProfileEditor(profile: profile).id(profile.id)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .simultaneousGesture(TapGesture().onEnded { finishRenameIfNeeded() })
-            }
-            .frame(maxHeight: .infinity, alignment: .top)
         } accessory: {
             HStack(spacing: Theme.sectionTitleSpacing) {
                 Button {
-                    finishRenameIfNeeded()
                     let newProfile = container.profiles.addNew()
                     selection = newProfile.id
-                    beginRename(newProfile)
+                    nameFocusRequest = newProfile.id
                 } label: {
                     Label("New Profile", systemImage: "plus")
                 }
@@ -110,7 +69,6 @@ struct ProfilesPage: View {
         .onAppear {
             if selectedProfile == nil { selection = container.profiles.activeProfileID }
         }
-        .onDisappear { finishRenameIfNeeded() }
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .basePrompt: BaseSystemPromptEditor()
@@ -141,13 +99,24 @@ struct ProfilesPage: View {
         }
     }
 
-    /// Shared by the action menu and each row's context menu.
+    /// One compact selector replaces the former profile list; the name field,
+    /// dictation state and instructions below all follow it.
+    private var profilePicker: some View {
+        Picker("Profile", selection: Binding(
+            get: { selectedProfile?.id ?? container.profiles.activeProfileID },
+            set: { selection = $0 }
+        )) {
+            ForEach(container.profiles.profiles) { profile in
+                Text(profile.name.isEmpty ? "Untitled profile" : profile.name).tag(profile.id)
+            }
+        }
+        .settingsPicker(width: 200)
+        .accessibilityIdentifier("profiles.picker")
+    }
+
     @ViewBuilder
     private func profileActions(for profile: RefinementProfile) -> some View {
-        Button("Rename Profile") {
-            selection = profile.id
-            beginRename(profile)
-        }
+        Button("Rename Profile") { nameFocusRequest = profile.id }
         Button("Duplicate Profile") {
             selection = container.profiles.duplicate(id: profile.id)?.id
         }
@@ -165,29 +134,6 @@ struct ProfilesPage: View {
         container.profiles.profiles.first { $0.id == selection }
     }
 
-    private func beginRename(_ profile: RefinementProfile) {
-        finishRenameIfNeeded()
-        nameDraft = container.profiles.profiles.first(where: { $0.id == profile.id })?.name ?? profile.name
-        editingProfileID = profile.id
-    }
-
-    private func finishRenameIfNeeded() {
-        guard let editingProfileID else { return }
-        finishRename(editingProfileID)
-    }
-
-    private func finishRename(_ id: UUID) {
-        guard editingProfileID == id else { return }
-        let name = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !name.isEmpty,
-           var profile = container.profiles.profiles.first(where: { $0.id == id }),
-           profile.name != name {
-            profile.name = name
-            container.profiles.update(profile)
-        }
-        editingProfileID = nil
-    }
-
     private func perform(_ action: ProfileConfirmation) {
         switch action {
         case .reset(let profile):
@@ -199,7 +145,6 @@ struct ProfilesPage: View {
             container.profiles.resetAll()
             selection = container.profiles.activeProfileID
         }
-        editingProfileID = nil
         confirmation = nil
     }
 }
@@ -243,63 +188,5 @@ private enum ProfileConfirmation {
         case .delete: "This cannot be undone."
         case .resetAll: "Restores built-in profiles and the base system prompt. Profiles you created will be deleted."
         }
-    }
-}
-
-private struct ProfileListRow: View {
-    let name: String
-    @Binding var nameDraft: String
-    let active: Bool
-    let selected: Bool
-    let editing: Bool
-    let action: () -> Void
-    let finishRename: () -> Void
-    @FocusState private var nameFocused: Bool
-
-    var body: some View {
-        Group {
-            if editing {
-                row {
-                    TextField("Profile name", text: $nameDraft)
-                        .textFieldStyle(.plain)
-                        .focused($nameFocused)
-                        .accessibilityLabel("Profile name")
-                        .task {
-                            await Task.yield()
-                            nameFocused = true
-                        }
-                        .onSubmit { finishRename() }
-                        .onExitCommand { finishRename() }
-                        .onChange(of: nameFocused) { _, focused in
-                            if !focused { finishRename() }
-                        }
-                }
-                .background(Color.primary.opacity(0.09), in: RoundedRectangle(cornerRadius: 7))
-            } else {
-                Button(action: action) {
-                    row { Text(name.isEmpty ? "Untitled profile" : name).lineLimit(1) }
-                }
-                .buttonStyle(NavigationRowStyle(selected: selected))
-                .accessibilityLabel(name)
-                .accessibilityValue(active ? "Current dictation profile" : "")
-                .accessibilityAddTraits(selected ? .isSelected : [])
-                .help(active ? "\(name) · Current dictation profile" : name)
-            }
-        }
-    }
-
-    private func row<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        HStack(spacing: 9) {
-            content().font(.system(size: 13))
-            Spacer(minLength: 2)
-            if active {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 10)
-        .frame(height: 36)
-        .contentShape(Rectangle())
     }
 }

@@ -121,7 +121,8 @@ status table current.
   actionable error, unavailable state, permission, or cost. Put related heading
   actions immediately beside their selector rather than separating them with a
   fixed-width invisible frame. Provider selection uses one compact picker, not
-  a grid of decorative provider cards. Profile list rows use names without icons.
+  a grid of decorative provider cards. Profiles uses the same compact picker in its
+  Profile section heading instead of a profile list; names carry it, without icons.
   The sidebar microphone overlay contains device choices with a live ten-cell
   meter at each row's trailing edge. Omit decorative descriptions and a separate
   meter card; retain actionable permission and device errors. Monitor each device
@@ -247,7 +248,8 @@ status table current.
   instances the app used). Never return `.terminateLater` from the app delegate: it deadlocks.
 - LLM behaviours are `RefinementProfile`s in `ProfileStore`, never hard-coded modes.
   Built-ins have stable ids and must stay resettable to `RefinementProfile.defaults`.
-- Profiles exposes the shared base system prompt separately from profile instructions.
+- Profiles shows the selected profile's Name, Dictation and Refine transcript card,
+  then its instructions, with the shared base system prompt in a separate last section.
   Show a warning before opening its editor; keep edits in a draft until Save, with
   Cancel and Restore defaults. Use the existing `ProfileStore.baseRules` pipeline.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
