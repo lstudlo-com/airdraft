@@ -21,6 +21,7 @@ enum Theme {
     static let pageHeaderTopInset: CGFloat = 24
     static let pageHeaderRowHeight: CGFloat = 32
     static let pageHeaderBottomInset: CGFloat = 12
+    static let pageHeaderBlurRadius: CGFloat = 32
     // Align the collapsed toggle's symbol with the page title, outside the icon rail.
     static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
         - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
@@ -522,7 +523,7 @@ struct PageFilter<Selection: Hashable>: View {
     }
 }
 
-/// A fixed page heading above content that scrolls through a fading material.
+/// A fixed page heading above content that becomes more blurred toward the top.
 struct PageScaffold<Content: View, Accessory: View>: View {
     @Environment(AppContainer.self) private var container
     let page: Page
@@ -593,7 +594,7 @@ struct PageScaffold<Content: View, Accessory: View>: View {
 }
 
 extension View {
-    /// The shared material owns the fade; suppress the system's hard scroll-edge separator.
+    /// The shared blur owns the transition; suppress the system's hard scroll-edge separator.
     @ViewBuilder func pageScrollEdge() -> some View {
         if #available(macOS 26, *) {
             scrollEdgeEffectHidden(true, for: .top)
@@ -603,7 +604,8 @@ extension View {
     }
 }
 
-/// Within-window blur fades into the page below the header, without a hard cutoff.
+/// Blur radius increases across the entire header, from zero at the bottom to
+/// the maximum at the top. Header labels and controls sit above the filtered layer.
 private struct PageHeaderBackdrop: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
@@ -614,15 +616,8 @@ private struct PageHeaderBackdrop: View {
                 Color(nsColor: .windowBackgroundColor)
                     .frame(height: headerHeight)
             } else {
-                Rectangle()
-                    .fill(.regularMaterial)
-                    .frame(height: headerHeight + Theme.pagePadding)
-                    .mask {
-                        LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black, location: 0.6),
-                                               .init(color: .clear, location: 1)],
-                                       startPoint: .top, endPoint: .bottom)
-                    }
+                ProgressiveHeaderBlur(maximumRadius: Theme.pageHeaderBlurRadius)
+                    .frame(height: headerHeight)
             }
         }
         .allowsHitTesting(false)

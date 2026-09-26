@@ -170,9 +170,17 @@ moves into the content titlebar, entirely outside the rail. Its symbol aligns
 with the page title's leading inset and stays on the window-button centerline.
 The native window controls retain their 46-point titlebar. Page headings have
 a separate 32-point row, inset 24 points from the top with 12 points below.
-`PageScaffold` keeps this header fixed with `safeAreaInset`. A native material
-blurs the scrolling content beneath it, with a gradient mask that fades out
-below the header. Suppress the system's hard scroll-edge separator on macOS 26+.
+`PageScaffold` keeps this header fixed with `safeAreaInset`.
+`ProgressiveHeaderBlur` samples the live backdrop with a radius that increases
+continuously from zero at the bottom to 32 points at the top, across all 68 points
+of the header. The radius mask drives the blur filter; it never changes the
+opacity of a material or adds a tint. Header labels and controls remain above
+the filtered layer and stay sharp. Suppress the system's hard scroll-edge separator
+on macOS 26+. The implementation isolates the undocumented `CABackdropLayer` and
+`CAFilter` variable-blur APIs behind capability checks. If they are unavailable,
+use standard within-window header material; it does not provide variable radius.
+Verify live compositing after macOS upgrades. No screen capture, scroll snapshots
+or per-frame application rendering are used.
 Only Reduce Transparency replaces the blur with a solid background.
 History puts its top content margin inside both scroll views so both columns
 can pass beneath the header. Header positions stay unchanged on sidebar collapse.
