@@ -193,6 +193,14 @@ status table current.
   vertical offset of SwiftUI's direct shadow modifiers. Check the live window
   as well as saved renders. Keep native selection/focus cues, card insets and live waveform contrast;
   leave text lists, standard action buttons and model tables in their native style.
+- After successful text delivery, freeze the recording HUD's final processing
+  display and fade the capsule out over 0.5 seconds. Start at delivery, before
+  clipboard restoration and history saving; never return to the recording timer
+  or reopen it for a later success notice. New recording cancels the old fade.
+  Failed delivery retains the existing recovery notice behavior.
+  Size the capsule to its current timer or status label, with six-point outer
+  insets on every side of the waveform well. Do not reserve a fixed label width;
+  grow the native panel when the timer gains a digit and keep it centered.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.

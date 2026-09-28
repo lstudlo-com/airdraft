@@ -9,6 +9,13 @@ final class PipelineAutomationTests: XCTestCase {
         defer { fixture.cleanUp() }
         fixture.settings.asr.chineseScript = .traditional
         fixture.dictionary.add(DictionaryEntry(term: "Airdraft", aliases: ["floze"]))
+        var delivered = 0
+        fixture.pipeline.onOutputDelivered = {
+            delivered += 1
+            XCTAssertEqual(fixture.pipeline.state, .inserting)
+            XCTAssertEqual(try? fixture.history.count(), 0, "Delivery feedback must not wait for history")
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+        }
 
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
@@ -24,6 +31,7 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(record.outputSucceeded, true)
         XCTAssertFalse(record.inserted, "Script delivery is not insertion into the focused field")
         XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "漢語 Airdraft")
+        XCTAssertEqual(delivered, 1)
     }
 
     func testScriptDestinationAndPathAreSnapshottedWhileRecording() async throws {
@@ -45,6 +53,13 @@ final class PipelineAutomationTests: XCTestCase {
         let fixture = try Fixture()
         defer { fixture.cleanUp() }
         fixture.settings.outputDestination = .cursor
+        var delivered = 0
+        fixture.pipeline.onOutputDelivered = {
+            delivered += 1
+            XCTAssertEqual(fixture.pipeline.state, .inserting)
+            XCTAssertEqual(try? fixture.history.count(), 0)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+        }
         try await fixture.pipeline.startFromAutomation()
 
         fixture.settings.outputDestination = .script
@@ -58,11 +73,13 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(record.outputDestination, TextOutputDestination.cursor.rawValue)
         XCTAssertEqual(record.outputSucceeded, true)
         XCTAssertTrue(record.inserted)
+        XCTAssertEqual(delivered, 1)
     }
 
     func testScriptFailurePreservesFinalTextWithoutPasteOrDeliveryRetry() async throws {
         let fixture = try Fixture(scriptFails: true)
         defer { fixture.cleanUp() }
+        fixture.pipeline.onOutputDelivered = { XCTFail("Failed delivery must keep recovery feedback visible") }
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
         try await finished(fixture)
@@ -109,6 +126,7 @@ final class PipelineAutomationTests: XCTestCase {
     func testReviewOnlyRetranscriptionAndRecoveryNeverExecuteScript() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Reviewed words")]))
         defer { fixture.cleanUp() }
+        fixture.pipeline.onOutputDelivered = { XCTFail("Review-only text is not delivered") }
         let original = try fixture.saveOriginal()
         fixture.pipeline.retranscribe(original)
         try await waitUntil("Review speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
@@ -126,6 +144,7 @@ final class PipelineAutomationTests: XCTestCase {
         let fixture = try Fixture()
         defer { fixture.cleanUp() }
         fixture.pipeline.insertionEnabled = false
+        fixture.pipeline.onOutputDelivered = { XCTFail("Disabled output is not delivered") }
         fixture.pipeline.processSamples(Fixture.samples)
         try await finished(fixture)
 

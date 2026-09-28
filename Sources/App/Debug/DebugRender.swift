@@ -223,11 +223,21 @@ enum DebugRender {
         let states: [(String, HUDSnapshot)] = [
             ("recording", HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4)),
             ("transcribing", HUDSnapshot(state: .transcribing, levels: samples, elapsed: 7.4)),
+            ("refining", HUDSnapshot(state: .refining, levels: samples, elapsed: 7.4)),
+            ("inserting", HUDSnapshot(state: .inserting, levels: samples, elapsed: 7.4)),
             ("failed", HUDSnapshot(state: .failed("Microphone access denied"), levels: [], elapsed: 0)),
         ]
         var images: [NSImage] = []
+        var classicWidths: [String: CGFloat] = [:]
         for style in [HUDStyle.classic, .mini] {
-            for (_, snap) in states {
+            for (name, snap) in states {
+                let measured = NSHostingView(rootView: IndicatorView(snapshot: snap, style: style)).fittingSize
+                if name != "failed" {
+                    precondition(abs(measured.height - (style == .classic ? 34 : 32)) < 0.5,
+                                 "HUD waveform must retain equal six-point outer insets")
+                }
+                if style == .classic { classicWidths[name] = measured.width }
+                print("HUD \(style.rawValue) \(name): \(measured.width) x \(measured.height)")
                 let content = IndicatorView(snapshot: snap, style: style)
                     .padding(12)
                     .background(Color(white: 0.93))
@@ -236,6 +246,13 @@ enum DebugRender {
                 if let img = renderer.nsImage { images.append(img) }
             }
         }
+        precondition(classicWidths["recording"]! < classicWidths["transcribing"]! &&
+                     classicWidths["refining"]! < classicWidths["transcribing"]! &&
+                     classicWidths["inserting"]! < classicWidths["transcribing"]!,
+                     "HUD width must fit its current status, not reserve the longest label")
+        let longTimer = NSHostingView(rootView: IndicatorView(snapshot:
+            HUDSnapshot(state: .recording, levels: samples, elapsed: 600), style: .classic)).fittingSize
+        precondition(longTimer.width > classicWidths["recording"]!, "A longer timer must grow instead of clipping")
         let preview = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
             style: .classic, showPreview: true,
             sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")

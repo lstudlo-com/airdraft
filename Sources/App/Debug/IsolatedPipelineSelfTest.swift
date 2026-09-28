@@ -29,13 +29,16 @@ enum IsolatedPipelineSelfTest {
                 let pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
                     profiles: ProfileStore(directory: directory), history: history, factory: factory)
                 pipeline.insertionEnabled = false
+                var deliveryReported = false
+                pipeline.onOutputDelivered = { deliveryReported = true }
                 pipeline.processSamples(try AudioFile.load(path: path))
                 for _ in 0..<120 {
                     try await Task.sleep(for: .milliseconds(500))
                     if !pipeline.isBusy { break }
                 }
                 guard let outcome = pipeline.lastOutcome, !outcome.raw.isEmpty,
-                      outcome.llmSkippedReason == "LLM failed, inserted raw transcript",
+                      outcome.llmSkippedReason == "LLM failed, using raw transcript",
+                      !deliveryReported,
                       try history.recent(limit: 1).first?.finalText == outcome.final else {
                     log.error("isolated-pipeline: FAIL \(String(describing: pipeline.state), privacy: .public)")
                     pipeline.cancel()

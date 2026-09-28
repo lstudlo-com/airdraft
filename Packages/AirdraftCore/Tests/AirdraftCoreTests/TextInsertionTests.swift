@@ -167,16 +167,23 @@ final class TextInsertionTests: XCTestCase {
         let inserter = TextInserter()
         inserter.restoreDelay = 0.02
         var posts = 0
+        var deliveryEvents = 0
 
         let success = await inserter.insertViaPaste("Dictated 中文🙂", pasteboard: pasteboard, postPaste: {
             posts += 1
             XCTAssertEqual(pasteboard.string(forType: .string), "Dictated 中文🙂")
             XCTAssertNotNil(pasteboard.data(forType: .init("org.nspasteboard.TransientType")))
             return true
+        }, onDelivered: {
+            deliveryEvents += 1
+            XCTAssertEqual(posts, 1)
+            XCTAssertEqual(pasteboard.string(forType: .string), "Dictated 中文🙂",
+                           "Delivery feedback must precede clipboard restoration")
         })
 
         XCTAssertTrue(success)
         XCTAssertEqual(posts, 1)
+        XCTAssertEqual(deliveryEvents, 1)
         let restored = try XCTUnwrap(pasteboard.pasteboardItems)
         XCTAssertEqual(restored.count, 2)
         XCTAssertEqual(restored[0].string(forType: .string), "Original clipboard")
@@ -209,6 +216,8 @@ final class TextInsertionTests: XCTestCase {
         let success = await inserter.insertViaPaste("Recoverable text", pasteboard: pasteboard, postPaste: {
             posts += 1
             return false
+        }, onDelivered: {
+            XCTFail("Failed paste must not report delivery or dismiss the recovery HUD")
         })
 
         XCTAssertFalse(success)

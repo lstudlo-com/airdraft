@@ -116,47 +116,131 @@ import Foundation
 HUD_FIXTURE = r'''
 import AppKit
 import Foundation
+import Observation
 import SwiftUI
 
 enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hud" }
-enum HUDStyle { case classic, mini, none }
-enum PipelineState { case idle, recording, failed, notice }
+enum HUDStyle: String { case classic, mini, none }
+enum PipelineState: Equatable { case idle, recording, preparingModel, transcribing, refining, inserting, failed(String), notice(String) }
 
-@MainActor final class DictationPipeline {
-    var isRecording = true
+@MainActor @Observable final class DictationPipeline {
+    static let levelHistoryLength = 22
+    var state: PipelineState = .idle
+    var isRecording: Bool { state == .recording }
+    var recordingStartedAt: Date?
     var previewEnabledForRecording = false
+    var levelHistory: [Float] = [0.1, 0.2]
+    var lastRecordingDuration: TimeInterval = 7.4
+    var previewIssue: String?
+    var previewText = ""
 }
 
-struct RecordingHUDView: View {
-    let pipeline: DictationPipeline
-    let style: HUDStyle
-    let showPreview: Bool
-    var body: some View { Text("Airdraft native behavior verification") }
-    static func size(for style: HUDStyle, preview: Bool) -> CGSize { IndicatorView.size(for: style) }
-}
-
-struct IndicatorView {
-    static func size(for style: HUDStyle) -> CGSize { CGSize(width: 172, height: 34) }
+// Preview material is outside this fixture; the actual capsule and its layout
+// are compiled in full from IndicatorPanel.swift, without substituting its views.
+struct NeumorphicSurface<S: Shape>: View {
+    let shape: S
+    let depth: CGFloat
+    var body: some View { shape.fill(Color.gray) }
 }
 
 @main struct HUDVisibilityCheck {
     @MainActor static func main() {
         _ = NSApplication.shared
+        Task { @MainActor in
+            do { try await verify(); exit(0) }
+            catch { fatalError("HUD verification failed: \(error)") }
+        }
+        NSApp.run()
+    }
+
+    @MainActor static func verify() async throws {
         var style: HUDStyle = .classic
-        let controller = IndicatorPanelController(pipeline: DictationPipeline(), style: { style })
+        let pipeline = DictationPipeline()
+        let controller = IndicatorPanelController(pipeline: pipeline, style: { style })
+        func update(_ state: PipelineState) {
+            pipeline.state = state
+            controller.update(for: state)
+        }
         func visible() -> Bool { NSApp.windows.contains { $0 is NSPanel && $0.isVisible } }
-        controller.update(for: .recording)
+        update(.recording)
         precondition(visible(), "Classic HUD must be visible")
         style = .none
-        controller.update(for: .recording)
+        update(.recording)
         precondition(!visible(), "None must hide the active recording HUD immediately")
         style = .mini
-        controller.update(for: .recording)
+        update(.recording)
         precondition(visible(), "Mini must show after None")
         style = .none
-        controller.update(for: .notice)
+        update(.notice("Fixture notice"))
         precondition(!visible(), "None must also hide a pending notice HUD")
         print("PASS: real NSPanel Classic to None to Mini to None visibility")
+
+        for activeStyle in [HUDStyle.classic, .mini] {
+            style = activeStyle
+            update(.recording)
+            let active = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            let timerWidth = active.frame.width
+            update(.transcribing)
+            let transcribingWidth = active.frame.width
+            if style == .classic {
+                precondition(transcribingWidth > timerWidth, "The panel must grow for the longer current label")
+            }
+            update(.refining)
+            if style == .classic {
+                precondition(active.frame.width < transcribingWidth, "The panel must shrink again for Refining")
+            }
+            update(.inserting)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            let start = ContinuousClock.now
+            controller.deliveryCompleted()
+            let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
+            precondition(frozen.rootView.snapshot?.state == .inserting,
+                         "Completion must preserve Inserting instead of the old timer")
+            try await Task.sleep(for: .milliseconds(150))
+            precondition(panel.isVisible && panel.alphaValue > 0 && panel.alphaValue < 1,
+                         "Completion must fade immediately, not wait then disappear")
+            update(.idle)
+            controller.deliveryCompleted()
+            precondition(frozen.rootView.snapshot?.state == .inserting,
+                         "Idle must not replace the frozen final display")
+            while panel.isVisible && start.duration(to: .now) < .milliseconds(650) {
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            precondition(!panel.isVisible && start.duration(to: .now) < .milliseconds(650),
+                         "HUD must disappear within the 0.5-second fade plus scheduling tolerance")
+            print("PASS: \(activeStyle) fades from Inserting and is hidden at \(start.duration(to: .now))")
+            update(.notice("Refinement fallback remains on Home"))
+            precondition(!panel.isVisible, "Late success notices must not reopen the HUD")
+        }
+
+        style = .classic
+        update(.recording)
+        update(.inserting)
+        controller.deliveryCompleted()
+        try await Task.sleep(for: .milliseconds(100))
+        update(.recording)
+        let restarted = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+        precondition((restarted.contentView as! NSHostingView<RecordingHUDView>).rootView.snapshot == nil,
+                     "New recording must restore the live view")
+        try await Task.sleep(for: .milliseconds(550))
+        precondition(restarted.isVisible && restarted.alphaValue == 1,
+                     "An interrupted fade must not hide or dim the new recording")
+        let shortTimerWidth = restarted.frame.width
+        let center = restarted.frame.midX
+        pipeline.recordingStartedAt = Date().addingTimeInterval(-600)
+        try await Task.sleep(for: .milliseconds(250))
+        precondition(restarted.frame.width > shortTimerWidth && abs(restarted.frame.midX - center) < 0.5,
+                     "A new minute digit must resize the live panel without clipping or shifting its center")
+        print("PASS: live status widths and timer digit growth use intrinsic layout")
+        update(.idle)
+        try await Task.sleep(for: .milliseconds(600))
+        precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
+        update(.failed("Fixture failure"))
+        precondition(visible(), "A new recording failure must remain visible")
+        style = .none
+        update(.failed("Fixture failure"))
+        precondition(!visible(), "None must keep failure HUDs hidden")
+        print("PASS: repeated completion, late notices, interrupted fade, cancellation and failure visibility")
     }
 }
 '''
@@ -195,12 +279,8 @@ def verify(directory: Path, skip_hud: bool) -> None:
     if skip_hud:
         print("SKIP: HUD visibility, --skip-hud selected", flush=True)
     else:
-        hud = source("Sources/App/HUD/IndicatorPanel.swift")
-        boundary = "/// Preview remains nonactivating"
-        if boundary not in hud:
-            raise RuntimeError("HUD controller source boundary changed; update this verifier")
         run_suite(directory, "hud-visibility", {
-            "IndicatorPanelController.swift": hud.split(boundary, 1)[0],
+            "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
         }, HUD_FIXTURE)
 
 

@@ -1,10 +1,10 @@
 import AppKit
 import AirdraftCore
+import QuartzCore
 import SwiftUI
 import os
 
-/// Minimal always-on-top HUD: waveform bars on the left (3/5), elapsed time on
-/// the right (2/5). Never takes focus, so the target app keeps its cursor.
+/// Content-sized recording HUD. Never takes focus, so the target app keeps its cursor.
 @MainActor
 final class IndicatorPanelController {
     private let panel: NSPanel
@@ -13,13 +13,15 @@ final class IndicatorPanelController {
     private var hideTask: Task<Void, Never>?
     private var currentStyle: HUDStyle = .classic
     private var currentPreview = false
+    private var lastVisibleState: PipelineState = .idle
+    private var dismissalID: UUID?
+    private var contentID = UUID()
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle) {
         self.pipeline = pipeline
         self.styleProvider = style
-        let size = IndicatorView.size(for: .classic)
         panel = NSPanel(
-            contentRect: NSRect(origin: .zero, size: size),
+            contentRect: .zero,
             styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
             defer: true
@@ -31,31 +33,33 @@ final class IndicatorPanelController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: .classic, showPreview: false))
-        host.frame = NSRect(origin: .zero, size: size)
-        panel.contentView = host
+        applyStyle(.classic, preview: false)
     }
 
     private func applyStyle(_ style: HUDStyle, preview: Bool) {
-        guard style != currentStyle || preview != currentPreview else { return }
         currentStyle = style
         currentPreview = preview
-        let size = RecordingHUDView.size(for: style, preview: preview)
-        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: style, showPreview: preview))
-        host.frame = NSRect(origin: .zero, size: size)
+        let id = UUID()
+        contentID = id
+        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: style, showPreview: preview,
+            onSizeChange: { [weak self] size in
+                guard let self, self.contentID == id, self.dismissalID == nil else { return }
+                self.resize(to: size)
+            }))
+        host.frame = NSRect(origin: .zero, size: host.fittingSize)
         panel.contentView = host
     }
 
     func update(for state: PipelineState) {
-        hideTask?.cancel()
         switch state {
         case .idle:
-            hideTask = Task { [weak self] in
-                try? await Task.sleep(for: .milliseconds(500))
-                guard !Task.isCancelled else { return }
-                self?.panel.orderOut(nil)
-            }
+            dismiss()
         case .failed, .notice:
+            // Successful delivery already started the exit. Recovery details
+            // remain on Home; late notices must not reopen the capsule.
+            if case .notice = state, dismissalID != nil { return }
+            cancelDismissal()
+            lastVisibleState = state
             show()
             hideTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(3))
@@ -63,7 +67,52 @@ final class IndicatorPanelController {
                 self?.panel.orderOut(nil)
             }
         default:
+            if state == .inserting, dismissalID != nil { return }
+            cancelDismissal()
+            lastVisibleState = state
             show()
+        }
+    }
+
+    func deliveryCompleted() {
+        dismiss()
+    }
+
+    private func cancelDismissal() {
+        hideTask?.cancel()
+        dismissalID = nil
+        // Replaces an interrupted fade before showing a new recording.
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+            panel.animator().alphaValue = 1
+        }
+    }
+
+    private func dismiss() {
+        guard dismissalID == nil else { return }
+        hideTask?.cancel()
+        let id = UUID()
+        dismissalID = id
+        guard panel.isVisible else { return }
+
+        // The live pipeline can move to idle while the panel is fading. Freeze
+        // the final display so idle cannot bring back the recording timer.
+        let snapshot = HUDSnapshot(state: lastVisibleState, levels: pipeline.levelHistory,
+                                   elapsed: pipeline.lastRecordingDuration)
+        let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
+            showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
+        host.frame = NSRect(origin: .zero, size: panel.frame.size)
+        panel.contentView = host
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.5
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = 0
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.dismissalID == id else { return }
+                self.panel.orderOut(nil)
+            }
         }
     }
 
@@ -84,20 +133,21 @@ final class IndicatorPanelController {
         }
         let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
         applyStyle(style, preview: preview)
-        guard let screen = targetScreen else {
-            Self.log.error("no screen available for HUD")
-            return
-        }
-        let size = RecordingHUDView.size(for: style, preview: preview)
+        guard let content = panel.contentView else { return }
+        resize(to: content.fittingSize)
+        panel.orderFrontRegardless()
+        Self.log.notice("HUD shown at \(NSStringFromRect(self.panel.frame), privacy: .public) visible=\(self.panel.isVisible, privacy: .public)")
+    }
+
+    private func resize(to size: CGSize) {
+        guard size.width > 0, size.height > 0, let screen = targetScreen else { return }
         let frame = NSRect(
             x: screen.visibleFrame.midX - size.width / 2,
             y: screen.visibleFrame.minY + 18,
             width: size.width,
             height: size.height
         )
-        panel.setFrame(frame, display: true)
-        panel.orderFrontRegardless()
-        Self.log.notice("HUD shown at \(NSStringFromRect(frame), privacy: .public) visible=\(self.panel.isVisible, privacy: .public)")
+        if panel.frame != frame { panel.setFrame(frame, display: true) }
     }
 }
 
@@ -108,10 +158,7 @@ struct RecordingHUDView: View {
     var style: HUDStyle
     var showPreview: Bool
     var sampleText: String?
-
-    static func size(for style: HUDStyle, preview: Bool) -> CGSize {
-        preview ? CGSize(width: 360, height: 120) : IndicatorView.size(for: style)
-    }
+    var onSizeChange: ((CGSize) -> Void)?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -132,8 +179,8 @@ struct RecordingHUDView: View {
             if let pipeline { IndicatorView(pipeline: pipeline, style: style) }
             else if let snapshot { IndicatorView(snapshot: snapshot, style: style) }
         }
-        .frame(width: Self.size(for: style, preview: showPreview).width,
-               height: Self.size(for: style, preview: showPreview).height, alignment: .bottom)
+        .fixedSize()
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { onSizeChange?($0) }
     }
 }
 
@@ -154,16 +201,10 @@ struct HUDSnapshot {
     var elapsed: TimeInterval
 }
 
-/// Dark pill, always the same in light and dark mode. Classic shows waveform
-/// (3/5) plus elapsed time (2/5); Mini shows the waveform only.
+/// Dark pill with equal outer insets. Classic fits its current timer or status
+/// label; Mini shows only the waveform.
 struct IndicatorView: View {
-    static func size(for style: HUDStyle) -> CGSize {
-        switch style {
-        case .classic: return CGSize(width: 172, height: 34)
-        case .mini: return CGSize(width: 108, height: 30)
-        case .none: return .zero
-        }
-    }
+    static let contentInset: CGFloat = 6
 
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
@@ -171,8 +212,6 @@ struct IndicatorView: View {
 
     init(pipeline: DictationPipeline, style: HUDStyle = .classic) { self.pipeline = pipeline; self.style = style }
     init(snapshot: HUDSnapshot, style: HUDStyle = .classic) { self.snapshot = snapshot; self.style = style }
-
-    private var size: CGSize { Self.size(for: style) }
 
     private var state: PipelineState { snapshot?.state ?? pipeline?.state ?? .idle }
     private var levels: [Float] { snapshot?.levels ?? pipeline?.levelHistory ?? [] }
@@ -185,35 +224,38 @@ struct IndicatorView: View {
                     .foregroundStyle(Color.white.opacity(0.85))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 14)
+                    .frame(maxWidth: 160, minHeight: 22)
             } else if style == .mini {
-                WaveformBars(levels: levels, dimmed: state != .recording)
-                    .frame(width: size.width - 28, height: 14)
-                    .background { HUDWaveformWell().padding(.horizontal, -5).padding(.vertical, -3) }
-                    .padding(.horizontal, 14)
+                waveform(width: 80, height: 14)
             } else {
-                HStack(spacing: 10) {
-                    WaveformBars(levels: levels, dimmed: state != .recording)
-                        .frame(width: 72, height: 16)
-                        .background { HUDWaveformWell().padding(.horizontal, -5).padding(.vertical, -3) }
+                HStack(spacing: 8) {
+                    waveform(width: 72, height: 16)
                     ElapsedTime(pipeline: pipeline, snapshot: snapshot)
-                        .frame(width: 62, alignment: .leading)
+                        .fixedSize()
                 }
-                .padding(.horizontal, 14)
             }
         }
-        .frame(width: size.width, height: size.height)
+        .padding(Self.contentInset)
+        .fixedSize()
         .background(
-            RoundedRectangle(cornerRadius: size.height / 2, style: .continuous)
+            Capsule(style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.17), Color(white: 0.10)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: size.height / 2, style: .continuous)
+            Capsule(style: .continuous)
                 .strokeBorder(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.04)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
         )
         .environment(\.colorScheme, .dark)
+    }
+
+    private func waveform(width: CGFloat, height: CGFloat) -> some View {
+        WaveformBars(levels: levels, dimmed: state != .recording)
+            .frame(width: width, height: height)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 3)
+            .background { HUDWaveformWell() }
     }
 }
 

@@ -103,6 +103,7 @@ final class AppContainer {
 
         let panel = IndicatorPanelController(pipeline: pipeline) { [weak self] in self?.settings.hudStyle ?? .classic }
         indicator = panel
+        pipeline.onOutputDelivered = { [weak panel] in panel?.deliveryCompleted() }
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
             self.permissions.refresh()

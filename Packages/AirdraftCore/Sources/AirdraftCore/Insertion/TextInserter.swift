@@ -37,7 +37,8 @@ public final class TextInserter {
 
     public init() {}
 
-    public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil) async -> InsertionResult {
+    public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil,
+                       onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         guard !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
 
         // Dictated while airdraft itself was in front: there is nowhere sensible to type.
@@ -66,6 +67,7 @@ public final class TextInserter {
             guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
             switch result {
             case .inserted:
+                onDelivered?()
                 return InsertionResult(method: .accessibility, notice: nil)
             case .uncertain:
                 copyOnly(text)
@@ -78,7 +80,7 @@ public final class TextInserter {
             copyOnly(text)
             return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
-        let ok = await insertViaPaste(text)
+        let ok = await insertViaPaste(text, onDelivered: onDelivered)
         return ok
             ? InsertionResult(method: .paste, notice: nil)
             : InsertionResult(method: .clipboardOnly, notice: "Couldn't paste, text copied")
@@ -210,7 +212,7 @@ public final class TextInserter {
     // MARK: - Paste
 
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
-                        postPaste: (() -> Bool)? = nil) async -> Bool {
+                        postPaste: (() -> Bool)? = nil, onDelivered: (() -> Void)? = nil) async -> Bool {
         let saved = snapshot(pasteboard)
 
         // Only on the clipboard long enough to paste: keep it off other devices
@@ -223,6 +225,8 @@ public final class TextInserter {
         let ourChange = pasteboard.changeCount
 
         guard (postPaste ?? postCommandV)() else { return false }
+        // Delivery feedback must not wait for clipboard restoration.
+        onDelivered?()
         try? await Task.sleep(for: .seconds(restoreDelay))
         // Restore only if nobody replaced the clipboard in the meantime.
         if pasteboard.changeCount == ourChange {

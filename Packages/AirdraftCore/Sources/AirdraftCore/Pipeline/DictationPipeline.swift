@@ -73,6 +73,9 @@ public final class DictationPipeline {
     public var onStateChange: ((PipelineState) -> Void)?
     public var onRecordingBlocked: (() -> Void)?
     public var onOutcome: ((DictationOutcome) -> Void)?
+    /// Delivery feedback precedes clipboard restoration and history persistence.
+    /// Paste delivery means the command was posted, not that the editor acknowledged it.
+    public var onOutputDelivered: (() -> Void)?
     /// Called with the LLM instance id that served a refinement.
     public var onLLMUsed: ((String, LLMConfig) -> Void)?
     /// Returns true when the refinement model must be loaded before use.
@@ -667,12 +670,21 @@ public final class DictationPipeline {
         var deliveryError: String?
         var inserted = false
         var outputSucceeded = false
+        var reportedDelivery = false
+        let reportDelivery: () -> Void = { [weak self] in
+            guard let self, self.isCurrent(token), !reportedDelivery else { return }
+            reportedDelivery = true
+            self.onOutputDelivered?()
+        }
         if insertionEnabled {
             switch output.destination {
             case .cursor:
                 let result: InsertionResult
                 if let insertText { result = await insertText(final, output.insertionMethod, target) }
-                else { result = await inserter.insert(final, method: output.insertionMethod, target: target) }
+                else {
+                    result = await inserter.insert(final, method: output.insertionMethod, target: target,
+                                                   onDelivered: reportDelivery)
+                }
                 inserted = result.didInsert
                 outputSucceeded = result.didInsert
                 notice = result.notice
@@ -686,6 +698,7 @@ public final class DictationPipeline {
                 }
             }
         }
+        if outputSucceeded { reportDelivery() }
         if llmError != nil, notice == nil {
             notice = outputSucceeded
                 ? (output.destination == .script ? "Refinement unavailable; raw text sent to script." : "Refinement unavailable; raw text inserted.")
