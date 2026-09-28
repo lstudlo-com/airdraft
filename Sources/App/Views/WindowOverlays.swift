@@ -170,58 +170,8 @@ struct MicrophoneLevelMeter: View {
     }
 }
 
-// Account prototypes are excluded from production.
-#if DEBUG
-/// Account and subscription. Sample data until account services exist.
+// Retains the shared overlay entry used by Debug previews without fake billing data.
 struct AccountOverlay: View {
     let onClose: () -> Void
-
-    var body: some View {
-        OverlayPanel(title: "Account", width: 448, onClose: onClose) {
-            PageSection("Profile") {
-                SettingsCard {
-                    HStack(spacing: 12) {
-                        Text("LC")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 42, height: 42)
-                            .background(Color.accentColor, in: Circle())
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Light Chen")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text(verbatim: "light@example.com")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                }
-            }
-
-            PageSection("Subscription") {
-                SettingsCard {
-                    SettingRow(title: "Airdraft Pro") {
-                        PillTag(text: "ACTIVE")
-                    }
-                    RowDivider()
-                    SettingRow(title: "Billing") {
-                        Text("Monthly").foregroundStyle(.secondary)
-                    }
-                    RowDivider()
-                    SettingRow(title: "Next renewal") {
-                        Text("24 Oct 2026").foregroundStyle(.secondary)
-                    }
-                }
-            }
-
-            EmptyNote("Sample information: account and billing are not connected yet.")
-        }
-    }
+    var body: some View { LicenseView(onClose: onClose) }
 }
-
-#else
-struct AccountOverlay: View {
-    let onClose: () -> Void
-    var body: some View { EmptyView() }
-}
-#endif

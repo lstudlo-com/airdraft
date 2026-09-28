@@ -135,7 +135,7 @@ public final class AppSettings {
     /// Keep returning users' setup, including script destinations, recoverable
     /// even if the app quits during the exercise. New users keep the basic setup.
     public func beginOnboardingPractice() {
-        if hadExistingSetup, defaults.data(forKey: "onboarding.restore") == nil,
+        if (hadExistingSetup || onboarding.hasBeenDismissed), defaults.data(forKey: "onboarding.restore") == nil,
            let data = try? JSONEncoder().encode(PracticeSettings(llm: llm, output: outputDestination)) {
             defaults.set(data, forKey: "onboarding.restore")
         }

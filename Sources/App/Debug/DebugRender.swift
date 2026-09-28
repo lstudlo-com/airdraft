@@ -19,11 +19,18 @@ enum DebugRender {
         let fixtureDirectory = env["AIRDRAFT_RENDER_HISTORY_COUNT"] == nil ? nil :
             FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-history-perf-\(UUID().uuidString)")
         defer { if let fixtureDirectory { try? FileManager.default.removeItem(at: fixtureDirectory) } }
-        if pageName.hasPrefix("onboarding-") {
+        if pageName.hasPrefix("license-") {
+            container = LicensePreview.container(String(pageName.dropFirst("license-".count)))
+        } else if pageName.hasPrefix("onboarding-") {
             container = PreviewData.container
             if pageName == "onboarding-cloud" { container.settings.asr.select(.groq) }
             container.settings.onboarding.move(to: pageName == "onboarding-permissions" ? .permissions :
-                pageName == "onboarding-practice" ? .practice : .speech)
+                pageName.hasPrefix("onboarding-practice") ? .practice : .speech)
+            if pageName == "onboarding-practice-ready" {
+                container.engineStatus.setPreviewState(container.settings.asr.engineID, .ready)
+            } else if pageName == "onboarding-practice-failed" {
+                container.engineStatus.setPreviewState(container.settings.asr.engineID, .failed("The speech model could not be loaded. Check the downloaded files in Models."))
+            }
             container.settings.onboarding.present()
         } else if let fixtureDirectory {
             do { try HistoryVerification.run() }
@@ -84,7 +91,9 @@ enum DebugRender {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
                 container.navigation.page = page
                 let root = Group {
-                    if pageName == "permissions" {
+                    if pageName.hasPrefix("license-") {
+                        LicenseView().background(Color(nsColor: .windowBackgroundColor))
+                    } else if pageName == "permissions" {
                         AccessibilityPermissionHelp()
                     } else if pageName == "automation" {
                         ScrollView { AutomationSettings().padding(Theme.pagePadding) }
@@ -128,7 +137,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

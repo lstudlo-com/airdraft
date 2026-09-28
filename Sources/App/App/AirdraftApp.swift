@@ -155,6 +155,7 @@ struct AirdraftApp: App {
             CommandGroup(after: .appInfo) {
                 Button("Set Up Airdraft…") { container.showOnboarding() }
                     .disabled(container.pipeline.isBusy)
+                Button("License…") { container.showLicense() }
                 Button("Check for Updates…") { container.updates.checkForUpdates() }
                     .disabled(!container.updates.canCheckForUpdates)
             }

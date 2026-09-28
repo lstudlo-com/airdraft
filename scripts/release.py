@@ -16,6 +16,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 from release_signing import POLICY, inspect_app, inspect_dmg, preflight, validate_metadata
+from licensing import build_settings as licensing_settings, verify_app as verify_app_license
 
 REPO = "lstudlo-com/airdraft"
 ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
@@ -197,6 +198,7 @@ def prepare(commit):
         print(f"Verified existing release assets for {tag}; push may continue.", flush=True)
         return
     source = export_snapshot(commit)
+    license_settings = licensing_settings(source / "scripts/licensing-config.json")
     identity = preflight()
     project = re.sub(r'CFBundleVersion: "[0-9]+"', f'CFBundleVersion: "{build}"', project)
     (source / "project.yml").write_text(project + "\n")
@@ -212,10 +214,11 @@ def prepare(commit):
               "-packageAuthorizationProvider", "netrc",
               f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
     logged(common + ["-configuration", "Debug", "test"], source, output / "build.log")
-    logged(common + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
+    logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
     app = Path(settings["TARGET_BUILD_DIR"]) / settings["FULL_PRODUCT_NAME"]
+    verify_app_license(app, license_settings)
     derived = Path(settings["BUILD_DIR"]).parents[1]
     tools = derived / "SourcePackages/artifacts/sparkle/Sparkle/bin"
     signing = inspect_app(app)

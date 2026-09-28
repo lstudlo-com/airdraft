@@ -19,6 +19,7 @@ public final class OnboardingProgress {
     public private(set) var deliveredDuringPractice = false
     public var step: Step { saved.step }
     public var isComplete: Bool { saved.completed }
+    public var hasBeenDismissed: Bool { saved.dismissed }
     public var shouldPresentOnLaunch: Bool { !saved.dismissed && !saved.completed }
 
     public init(defaults: UserDefaults, existingSetup: Bool) {

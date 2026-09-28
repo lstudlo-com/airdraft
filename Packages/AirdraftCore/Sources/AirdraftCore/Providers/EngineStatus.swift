@@ -28,6 +28,10 @@ public final class EngineStatus {
 
     public func state(for engineID: String) -> EngineLoadState { states[engineID] ?? .notLoaded }
 
+    #if DEBUG
+    public func setPreviewState(_ id: String, _ state: EngineLoadState) { set(id, state) }
+    #endif
+
     func set(_ id: String, _ state: EngineLoadState) {
         states[id] = state
         if state == .ready { lastUsedAt[id] = Date() }

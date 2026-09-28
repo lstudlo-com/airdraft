@@ -32,6 +32,7 @@ final class AppContainer {
     let factory: EngineFactory
     let models: ModelLifecycle
     let pipeline: DictationPipeline
+    let license: LicenseStore
     let permissions = SystemPermissions()
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
@@ -48,11 +49,13 @@ final class AppContainer {
     private var indicator: IndicatorPanelController?
     private var audioCleanupTask: Task<Void, Never>?
 
-    init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil) {
+    init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil) {
         hotkeys = HotkeyService(permissions: permissions)
         let dir = dataDirectory ?? AppSettings.supportDirectory
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
+        let license = suppliedLicense ?? AppLicense.make(isolated: suppliedSettings != nil || RenderMode.isActive || RenderMode.excludesCredentials)
+        self.license = license
         engineStatus = EngineStatus()
         #if DEBUG
         if LocalE2E.isActive {
@@ -91,7 +94,8 @@ final class AppContainer {
             history: history,
             historyDirectory: dir,
             factory: factory,
-            recordingPreflight: recordingPreflight
+            recordingPreflight: recordingPreflight,
+            accessCheck: { try await license.requireAccess() }
         )
     }
 
@@ -99,6 +103,7 @@ final class AppContainer {
     func start() {
         guard !started, !shutdownStarted else { return }
         started = true
+        Task { await license.load(); await license.refresh() }
         Self.log.notice("start: accessibilityTrusted=\(AppContextReader.isAccessibilityTrusted, privacy: .public)")
 
         let panel = IndicatorPanelController(pipeline: pipeline) { [weak self] in self?.settings.hudStyle ?? .classic }
@@ -110,6 +115,7 @@ final class AppContainer {
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
             self.permissions.refresh()
+            if !self.license.access.allowsUse { self.license.isPresented = true }
             self.navigation.page = .home
             self.showMainWindow()
         }
@@ -204,6 +210,11 @@ final class AppContainer {
     func showOnboarding() {
         guard !pipeline.isBusy else { return }
         settings.onboarding.present()
+        showMainWindow()
+    }
+
+    func showLicense() {
+        license.isPresented = true
         showMainWindow()
     }
 

@@ -48,6 +48,10 @@ final class AppUpdater: NSObject, SPUUpdaterDelegate {
 
     /// Called only on a normal app launch, never by offscreen renders or self-tests.
     func start() {
+        guard Bundle.main.object(forInfoDictionaryKey: "AirdraftDistribution") as? String != "community" else {
+            startupError = "Self-built editions update from source. Official downloads use a separate paid license."
+            return
+        }
         guard Bundle.main.bundleIdentifier != "com.lstudlo.app.airdraft.debug" else {
             startupError = "Development builds do not install public releases."
             return

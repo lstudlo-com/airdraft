@@ -59,7 +59,8 @@ While Airdraft is below 1.0:
   broad UI or workflow redesigns, or deliberately incompatible behavior.
   The provider, recovery and interface overhaul is **0.2.0**, following 0.1.9.
   Apple Intelligence, saved audio, live transcription preview and dictation
-  automation form the next feature release, **0.3.0**.
+  automation form feature release **0.3.0**.
+  Guided onboarding and official-build licensing form **0.4.0**.
 - Increment the patch for focused fixes and small refinements within that feature
   set, such as 0.2.0 to 0.2.1.
 - Keep the display version only for rebuilds or packaging-only revisions with the
@@ -255,3 +256,9 @@ current Apple Development identity is intentionally rejected. Obtain Developer I
 and complete an explicit permission/Keychain migration review before changing
 `scripts/release-signing.json`; this check does not change the policy or submit
 anything to Apple. Existing personal builds remain labeled as such.
+
+## Official distribution configuration
+
+Source builds stay fully unlocked and update from source. Official release builds
+require the public Polar configuration in `scripts/licensing-config.json`; missing
+values stop preparation before signing. See [licensing.md](licensing.md).

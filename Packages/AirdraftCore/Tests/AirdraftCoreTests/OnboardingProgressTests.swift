@@ -2,6 +2,32 @@ import XCTest
 @testable import AirdraftCore
 
 @MainActor final class OnboardingProgressTests: XCTestCase {
+    func testReplayInSameLaunchPreservesNewlyConfiguredSettings() {
+        for completed in [false, true] {
+            let name = "OnboardingTests.\(UUID())"
+            let defaults = UserDefaults(suiteName: name)!
+            defer { defaults.removePersistentDomain(forName: name) }
+            let settings = AppSettings(defaults: defaults)
+            settings.onboarding.present()
+            if completed {
+                settings.onboarding.move(to: .practice)
+                settings.onboarding.noteDelivery()
+                XCTAssertTrue(settings.onboarding.complete())
+            } else { settings.onboarding.dismiss() }
+            settings.llm.select(.anthropic)
+            settings.outputDestination = .script
+            settings.onboarding.present()
+            settings.beginOnboardingPractice()
+            settings.endOnboardingPractice()
+            XCTAssertEqual(settings.llm.kind, .anthropic)
+            XCTAssertEqual(settings.outputDestination, .script)
+            settings.beginOnboardingPractice()
+            let restarted = AppSettings(defaults: defaults)
+            XCTAssertEqual(restarted.llm.kind, .anthropic)
+            XCTAssertEqual(restarted.outputDestination, .script)
+        }
+    }
+
     func testReturningUsersPracticeRestoresSettingsAfterRestart() {
         let name = "OnboardingTests.\(UUID())"
         let defaults = UserDefaults(suiteName: name)!

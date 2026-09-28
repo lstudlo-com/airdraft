@@ -299,6 +299,24 @@ insertion; restore returning users' refinement and output settings on exit and
 after restart. Never execute a saved script during practice. Use isolated preview
 containers for the `onboarding-*` Debug renders.
 
+## Official-build licensing
+
+Self-built editions are fully unlocked and do not install paid official Sparkle
+updates automatically. Official builds use a full-feature trial followed by a
+Polar license-key activation. Start the trial only on explicit user action,
+not during onboarding or model downloads. Gate new work through the pipeline's
+access check; never interrupt an active recording or lock history and recovery.
+Keep license receipt writes explicitly non-interactive (`allowInteraction: false`).
+Preserve activation IDs across key rotation; a rejected old key does not prove a
+remote device was removed. Show the same anonymous device label in the app and
+Polar portal. Keep license receipts in Keychain, use public customer-portal endpoints without
+merchant tokens, validate organization/benefit/activation, and preserve verified
+licenses during transient outages. Persist an uncertain activation before the
+request; require customer-portal recovery instead of automatically retrying.
+`release.py` requires `scripts/licensing-config.json` and verifies the embedded
+configuration. Empty merchant IDs/URLs intentionally block official release.
+See `docs/licensing.md`; mocks and renders do not verify an actual purchase.
+
 ## Local releases
 
 For an authorized end-to-end release request, use the project-local
@@ -314,6 +332,7 @@ substitutes for a product-version bump. Update `project.yml`, run XcodeGen and
 commit the regenerated `Sources/App/Info.plist`. See the version policy in
 `docs/updates.md`; the provider, recovery and interface overhaul is 0.2.0.
 Apple Intelligence, saved audio, live preview and dictation automation are 0.3.0.
+Guided onboarding and official-build licensing are 0.4.0.
 
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push. The GitHub

@@ -4,6 +4,53 @@ import XCTest
 
 @MainActor
 final class PipelineAutomationTests: XCTestCase {
+    func testAccessIsCheckedBeforeManualAndAutomationCaptureOrAudioProcessing() async throws {
+        var checks = 0
+        let fixture = try Fixture(accessCheck: { checks += 1; throw LicenseError.accessRequired })
+        defer { fixture.cleanUp() }
+        do { try await fixture.pipeline.startFromAutomation(); XCTFail("Must reject expired access") }
+        catch {}
+        XCTAssertFalse(fixture.recorder.isRecording)
+        fixture.pipeline.startRecording()
+        try await waitUntil("Manual access check") { checks == 2 }
+        XCTAssertFalse(fixture.recorder.isRecording)
+        fixture.pipeline.processSamples(Fixture.samples)
+        try await waitUntil("Audio access check") { checks == 3 }
+        XCTAssertTrue(fixture.probe.scripts.isEmpty)
+        XCTAssertEqual(try fixture.history.count(), 0)
+        let original = try fixture.saveOriginal()
+        fixture.pipeline.retranscribe(original)
+        try await waitUntil("History access check") { checks == 4 }
+        XCTAssertEqual(try fixture.history.count(), 1)
+    }
+
+    func testExpiryCannotInterruptAnAlreadyStartedRecording() async throws {
+        var allowed = true
+        let fixture = try Fixture(accessCheck: { if !allowed { throw LicenseError.accessRequired } })
+        defer { fixture.cleanUp() }
+        try await fixture.pipeline.startFromAutomation()
+        allowed = false
+        try fixture.pipeline.stopFromAutomation()
+        try await finished(fixture)
+        XCTAssertEqual(fixture.probe.scripts.count, 1)
+        XCTAssertEqual(try fixture.history.count(), 1)
+    }
+
+    func testCapturedAudioRemainsRecoverableAfterAccessExpires() async throws {
+        var allowed = true
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]),
+                                  accessCheck: { if !allowed { throw LicenseError.accessRequired } })
+        defer { fixture.cleanUp() }
+        try await fixture.pipeline.startFromAutomation()
+        try fixture.pipeline.stopFromAutomation()
+        try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
+        allowed = false
+        fixture.pipeline.retryRecording()
+        try await finished(fixture)
+        XCTAssertEqual(fixture.probe.scripts.count, 1)
+        XCTAssertEqual(try fixture.history.count(), 1)
+    }
+
     func testScriptReceivesOnlyFinalTextAfterChineseConversionAndDictionary() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.text("汉语 floze")]))
         defer { fixture.cleanUp() }
@@ -525,7 +572,7 @@ final class PipelineAutomationTests: XCTestCase {
         init(speech: AutomationSpeech = AutomationSpeech([.text("Final words")]), scriptFails: Bool = false,
              startupGate: AutomationStartupGate? = nil, deliveryGate: AutomationStartupGate? = nil,
              permissionGate: AutomationStartupGate? = nil, microphoneGranted: Bool = true, executeScript: Bool = false,
-             verbatim: Bool = false) throws {
+             verbatim: Bool = false, accessCheck: @escaping @MainActor () async throws -> Void = {}) throws {
             suite = "airdraft.pipeline-automation.\(UUID().uuidString)"
             directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -565,6 +612,7 @@ final class PipelineAutomationTests: XCTestCase {
                     await deliveryGate?.enter()
                 },
                 recordingPreflight: { _, _, _, _, _ in await startupGate?.enter() },
+                accessCheck: accessCheck,
                 requestMicrophoneAccess: { await permissionGate?.enter(); return microphoneGranted })
             pipeline.onRecordingBlocked = { probe.blockedRecordings += 1 }
         }

@@ -64,6 +64,10 @@ their complete layouts were not redesigned. The marketing site has a separate
 [design system](../apps/marketing/DESIGN.md). Release verification remains a
 separate gate; these workspace captures do not establish a published release.
 
+Onboarding and licensing were refreshed from the working tree on 2026-09-29.
+Their readable design record is maintained in the Airdraft Obsidian vault:
+[Onboarding and Licensing](obsidian://open?vault=Airdraft&file=Product%2FDesign%20System%2FOnboarding%20and%20Licensing).
+
 **Key Characteristics:**
 
 - System typography and appearance-aware colors.
@@ -145,11 +149,11 @@ commits a non-empty name; an empty edit keeps the previous name.
 `Theme.swift` owns the spacing tokens above. The window has a 170-point expanded
 sidebar and a fixed width of 784 points. The collapsed sidebar remains an icon
 rail, sized from the unchanged brand width plus its 20-point inset on each side,
-about 91 points total. Destination, microphone and available account icons are
+about 91 points total. Destination, microphone and license icons are
 centered horizontally and keep the same vertical positions, row heights and
 group spacing as the expanded sidebar. Text and the microphone chevrons disappear;
-tooltips, accessible names and selection remain. The footer keeps its height even
-when Release omits the account button. Height resizes from a 600-point minimum.
+tooltips, accessible names and selection remain. The footer keeps the license
+button in all builds. Height resizes from a 600-point minimum.
 Close and Minimize have 16-point top and leading insets within a 46-point
 titlebar, with the sidebar toggle aligned to their centers. The green zoom/full-screen button is
 hidden and full-screen/tiling is disabled. Navigation rows use
@@ -201,16 +205,17 @@ that the controls do not already explain. Do not repeat the provider name or
 announce that the model list is visible.
 
 The selected microphone lives in a padded capsule at the bottom of the sidebar,
-above a footer with a left-aligned account button and right-aligned word count.
+above a footer with a left-aligned license button and right-aligned word count.
 The capsule opens an anchored device list with a checkmark for the selection and
 a ten-cell live level meter at the right of every row. Silence leaves all cells
 empty; increasing input fills one through ten cells. Each device has its own
 preview, and System Default shares the matching device's level. Keep the title
 and close button, but omit decorative descriptions, repeated section headings
 and a separate meter card. Permission actions and device errors appear only
-when needed. Previews stop when the overlay closes or dictation starts. The account button (a person symbol, so it cannot be mistaken for Configuration) opens a centered Account and
-Subscription overlay. Its content is labeled as sample data until account
-services exist. The sidebar uses `NSVisualEffectView`'s sidebar material against
+when needed. Previews stop when the overlay closes or dictation starts. The license
+button uses `key.horizontal` and opens the native 540-by-500-point License sheet.
+It shows the self-built edition or actual official trial/license state; it does
+not display sample account data. The sidebar uses `NSVisualEffectView`'s sidebar material against
 a transparent window background to retain the native frosted effect.
 
 Profiles uses a fixed 136-point list, a divider and a flexible editor. The list
@@ -347,7 +352,7 @@ disabled and destructive states and the existing confirmations.
 
 `Theme.swift` holds one component per concept: `StatusDot` (ready, attention,
 in progress, off), `RefreshButton`, `EmptyNote`, `OverlayPanel` for the
-microphone and account panels, and `.settingsDisclosure()`, which styles only a
+microphone panel, and `.settingsDisclosure()`, which styles only a
 disclosure header. Settings row titles use the field-label role (13 pt medium),
 below the 14 pt section headings. Descriptions share `.supportingText()`: 11 pt
 regular in the native secondary color, with one short phrase where possible.
@@ -356,6 +361,21 @@ stay inside their details disclosure. Inline notices keep text and actions in
 one horizontal row, and every Home readiness row has a `RowDivider`.
 Every provider key is an `APIKeyField` row
 followed by a Connection row with Test and Cancel.
+
+### Onboarding and licensing
+
+Onboarding reuses the 784-point window, a fixed 170-point step rail and shared
+settings cards for Permissions, Speech and Try It. Header and footer actions
+stay outside its scrolling content. Set Up Later preserves progress; successful
+practice requires real pipeline delivery. Returning users' refinement and output
+settings are restored after practice.
+
+The License sheet keeps its title and Done action above scrolling content.
+An unfinished activation places its recovery message and portal actions directly
+after the anonymous device label, before ordinary trial and key-entry controls.
+The app and Polar use the same device label. Native controls, shared card insets
+and semantic colors remain unchanged. The vault topic linked above records
+states, inspected renders and the separate live-purchase and release gates.
 
 ### Text fields and sheets
 

@@ -109,6 +109,7 @@ public final class DictationPipeline {
     private var recordingRequest: Task<Void, Never>?
     private var recordingRequestID = UUID()
     private let recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)?
+    private let accessCheck: @MainActor () async throws -> Void
     private var asrAtStart: ASRConfig?
     private let requestMicrophoneAccess: @Sendable () async -> Bool
 
@@ -126,6 +127,7 @@ public final class DictationPipeline {
         insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
         sendScript: @escaping @Sendable (String, String) async throws -> Void = { try await ScriptDelivery.send(text: $0, to: $1) },
         recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil,
+        accessCheck: @escaping @MainActor () async throws -> Void = {},
         requestMicrophoneAccess: @escaping @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
     ) {
         self.settings = settings
@@ -143,6 +145,7 @@ public final class DictationPipeline {
         self.sendScript = sendScript
         self.requestMicrophoneAccess = requestMicrophoneAccess
         self.recordingPreflight = recordingPreflight
+        self.accessCheck = accessCheck
 
     }
 
@@ -279,6 +282,8 @@ public final class DictationPipeline {
         let output = selectedOutput()
         let needsInsertion = insertionEnabled && output.destination == .cursor
         do {
+            try await accessCheck()
+            guard isCurrent(token) else { return }
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError("Recording did not start. " + reason)
             }
@@ -396,12 +401,22 @@ public final class DictationPipeline {
         asrAtStart = nil
         outputAtStart = selectedOutput()
         let token = generation
-        prewarmRefiner(context: context)
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
         levelHistory = []
         set(.transcribing)
-        processingTask = Task { await process(samples: samples, seconds: seconds, context: context, target: nil, token: token) }
+        processingTask = Task {
+            do {
+                try await accessCheck()
+                guard isCurrent(token) else { return }
+                prewarmRefiner(context: context)
+                await process(samples: samples, seconds: seconds, context: context, target: nil, token: token)
+            } catch {
+                guard isCurrent(token) else { return }
+                fail(error.localizedDescription)
+                onRecordingBlocked?()
+            }
+        }
     }
 
     /// Review old audio without insertion, clipboard changes, or duplicate history.
@@ -417,6 +432,8 @@ public final class DictationPipeline {
         set(.transcribing)
         processingTask = Task {
             do {
+                try await accessCheck()
+                guard isCurrent(token) else { return }
                 let samples = try await Task.detached { try history.audioSamples(for: record) }.value
                 guard isCurrent(token) else { return }
                 await process(samples: samples, seconds: Double(samples.count) / AudioRecorder.sampleRate,
@@ -424,6 +441,7 @@ public final class DictationPipeline {
             } catch {
                 guard isCurrent(token) else { return }
                 fail("Recording could not be opened. " + error.localizedDescription)
+                if error is LicenseError { onRecordingBlocked?() }
             }
         }
     }

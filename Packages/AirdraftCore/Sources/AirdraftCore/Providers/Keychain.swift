@@ -38,8 +38,9 @@ public enum Keychain {
     public static func presence(_ account: String) -> Presence { store.presence(account) }
 
     @discardableResult
-    public static func set(_ value: String, for account: String) -> Bool {
-        let ok = value.isEmpty ? store.delete(account) : store.set(value, for: account)
+    public static func set(_ value: String, for account: String, allowInteraction: Bool = true) -> Bool {
+        let ok = value.isEmpty ? store.delete(account, allowInteraction: allowInteraction)
+            : store.set(value, for: account, allowInteraction: allowInteraction)
         if ok { changed(account) }
         return ok
     }
@@ -132,9 +133,9 @@ struct CredentialStore {
         return value
     }
 
-    func set(_ value: String, for account: String) -> Bool {
+    func set(_ value: String, for account: String, allowInteraction: Bool = true) -> Bool {
         guard !account.isEmpty else { return false }
-        return (try? Self.withInteraction(true) {
+        return (try? Self.withInteraction(allowInteraction) {
             let query = match(account, service: Keychain.service)
             let values = [kSecValueData as String: Data(value.utf8)]
             let status = update(query, values)
@@ -144,9 +145,9 @@ struct CredentialStore {
         }) ?? false
     }
 
-    func delete(_ account: String) -> Bool {
+    func delete(_ account: String, allowInteraction: Bool = true) -> Bool {
         guard !account.isEmpty else { return false }
-        return (try? Self.withInteraction(true) {
+        return (try? Self.withInteraction(allowInteraction) {
             // Remove legacy first. If approval is denied, keep the current key;
             // otherwise a later read could resurrect the old legacy credential.
             for service in [AppIdentity.legacyBundleID, Keychain.service] {

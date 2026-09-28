@@ -59,6 +59,23 @@ final class KeychainAccessTests: XCTestCase {
         XCTAssertFalse(store.set("replacement", for: "llm.example"))
     }
 
+    func testPassiveWritesNeverAllowInteractionForUpdateAddOrDelete() {
+        func assertNoInteraction() {
+            var allowed: DarwinBoolean = true
+            XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&allowed), errSecSuccess)
+            XCTAssertFalse(allowed.boolValue)
+        }
+        // All credential operations are injected. No real item is read or changed.
+        let store = CredentialStore(add: { _ in assertNoInteraction(); return errSecSuccess },
+            update: { _, _ in assertNoInteraction(); return errSecItemNotFound },
+            remove: { _ in assertNoInteraction(); return errSecSuccess })
+        XCTAssertTrue(store.set("receipt", for: "fixture", allowInteraction: false))
+        XCTAssertTrue(store.delete("fixture", allowInteraction: false))
+        let denied = CredentialStore(add: { _ in XCTFail("Must not add after denied update"); return errSecSuccess },
+            update: { _, _ in assertNoInteraction(); return errSecInteractionNotAllowed })
+        XCTAssertFalse(denied.set("receipt", for: "fixture", allowInteraction: false))
+    }
+
     func testFailedLegacyDeletePreservesCurrentKey() {
         var services: [String] = []
         let store = CredentialStore(remove: { query in

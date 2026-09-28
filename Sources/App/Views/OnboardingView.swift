@@ -197,7 +197,7 @@ struct OnboardingView: View {
             } else {
                 localModel
             }
-            Text(container.settings.hadExistingSetup
+            Text(container.settings.hadExistingSetup || progress.hasBeenDismissed
                  ? "Practice uses direct transcription and inserts at the cursor. Your refinement and output settings return when you leave."
                  : "Start with direct transcription. Add AI text refinement in Models later.")
                 .supportingText().fixedSize(horizontal: false, vertical: true)
@@ -241,6 +241,18 @@ struct OnboardingView: View {
 
     private var practice: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+            if !container.license.access.allowsUse {
+                SettingsCard {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Ready to try Airdraft?").font(.system(size: 13, weight: .medium))
+                            Text("Start your full-feature trial or activate your license.").supportingText()
+                        }
+                        Spacer()
+                        Button("Trial & License…") { container.showLicense() }.buttonStyle(.borderedProminent)
+                    }
+                }
+            }
             HStack(spacing: 10) {
                 Text(container.settings.hotkeyBehavior.instructionVerb).font(.system(size: 13))
                 KeyCaps(hotkey: container.settings.hotkey)
@@ -275,18 +287,30 @@ struct OnboardingView: View {
                 Text("This uses your real model and settings. Your result also appears in History.").supportingText()
             }
             if container.settings.asr.kind.isLocal {
-                HStack {
-                    Text(container.engineStatus.state(for: container.settings.asr.engineID) == .ready ? "Model is ready" : "Wait for the model to load before speaking.")
-                        .supportingText()
-                    Spacer()
-                    Button("Load Model") { container.models.loadSpeechModel() }
-                        .buttonStyle(SoftButtonStyle())
-                        .disabled(busy || container.engineStatus.state(for: container.settings.asr.engineID) == .loading)
-                }
+                modelReadiness
             }
             DictationRecovery()
             if let issue = container.pipeline.lastIssue {
                 Text(issue).supportingText().textSelection(.enabled)
+            }
+        }
+    }
+
+    @ViewBuilder private var modelReadiness: some View {
+        let state = container.engineStatus.state(for: container.settings.asr.engineID)
+        HStack {
+            switch state {
+            case .ready: Label("Model is ready", systemImage: "checkmark.circle").supportingText()
+            case .loading:
+                ProgressView().controlSize(.small)
+                Text("Loading the speech model…").supportingText()
+            case .failed(let message): Text(message).supportingText().textSelection(.enabled)
+            case .notLoaded: Text("Load the speech model to start speaking.").supportingText()
+            }
+            Spacer()
+            if state != .ready && state != .loading {
+                Button(state == .notLoaded ? "Load Model" : "Retry Loading") { container.models.loadSpeechModel() }
+                    .buttonStyle(SoftButtonStyle()).disabled(busy)
             }
         }
     }

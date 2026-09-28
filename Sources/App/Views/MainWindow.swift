@@ -52,6 +52,7 @@ struct MainWindowView: View {
     }
 
     var body: some View {
+        @Bindable var license = container.license
         Group {
             if container.settings.onboarding.isPresented {
                 OnboardingView()
@@ -60,13 +61,19 @@ struct MainWindowView: View {
                 mainContent
             }
         }
+        .sheet(isPresented: $license.isPresented) { LicenseView().environment(container) }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            guard !container.pipeline.isBusy, let verified = license.record?.grant?.verifiedAt,
+                  Date().timeIntervalSince(verified) >= 86_400 else { return }
+            Task { await license.refresh() }
+        }
     }
 
     private var mainContent: some View {
         HStack(spacing: 0) {
             SidebarView(
                 openMicrophone: { activeOverlay = activeOverlay == .microphone ? nil : .microphone },
-                openAccount: { activeOverlay = .account },
+                openAccount: { container.showLicense() },
                 overlayFocus: $overlayFocus
             )
             .frame(width: container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedWidth : Theme.sidebarWidth)
@@ -260,29 +267,22 @@ struct SidebarView: View {
             .focusable()
             .focused(overlayFocus, equals: .microphone)
             HStack(alignment: .center) {
-                #if DEBUG
                 if isCollapsed { Spacer(minLength: 0) }
                 Button(action: openAccount) {
-                    Image(systemName: "person.crop.circle")
+                    Image(systemName: "key.horizontal")
                         .font(.system(size: 15))
                         .frame(width: 30, height: 30)
                         .contentShape(RoundedRectangle(cornerRadius: 7))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .help("Account")
-                .accessibilityLabel("Account")
+                .help("License")
+                .accessibilityLabel("License")
                 .accessibilityIdentifier("sidebar.account")
                 .focusable()
                 .focused(overlayFocus, equals: .account)
-                #endif
                 if isCollapsed {
                     Spacer(minLength: 0)
-                    #if !DEBUG
-                    // Preserve the expanded footer's height when Release has no account button.
-                    footerLabel.hidden().accessibilityHidden(true)
-                    Spacer(minLength: 0)
-                    #endif
                 } else {
                     Spacer(minLength: 2)
                     footerLabel
