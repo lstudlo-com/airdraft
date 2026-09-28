@@ -14,6 +14,7 @@ import tempfile
 
 SUITES = """
 AudioRecorderTests AudioChunkerTests MicrophoneTests SpeechPreviewTests
+AppleSpeechTranscriberTests
 PipelinePreviewTests PipelineAutomationTests HistoryRetranscriptionTests
 AudioHistoryTests ScriptDeliveryTests HistoryStoreTests ProfileStoreTests
 DictionaryPostProcessorTests CLIProcessTests CLIModelCatalogTests
@@ -66,6 +67,7 @@ def main():
         env["TEST_RUNNER_AIRDRAFT_PARAKEET_TEST_MODEL_DIR"] = str(path)
     command = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
                "-configuration", "Debug", "-skipPackagePluginValidation", "-skipMacroValidation",
+               "-packageAuthorizationProvider", "netrc",
                "test", "-parallel-testing-enabled", "NO", "-resultBundlePath", str(result)]
     command += [f"-only-testing:AirdraftCoreTests/{name}" for name in SUITES + CASES]
     (output / "command.json").write_text(json.dumps(command, indent=2) + "\n")

@@ -209,6 +209,7 @@ def prepare(commit):
     run(xcodegen(), "generate", cwd=source)
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
               "-skipPackagePluginValidation", "-skipMacroValidation",
+              "-packageAuthorizationProvider", "netrc",
               f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
     logged(common + ["-configuration", "Debug", "test"], source, output / "build.log")
     logged(common + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")

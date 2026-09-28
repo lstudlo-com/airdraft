@@ -58,6 +58,8 @@ While Airdraft is below 1.0:
 - Increment the minor version and reset the patch for substantial new features,
   broad UI or workflow redesigns, or deliberately incompatible behavior.
   The provider, recovery and interface overhaul is **0.2.0**, following 0.1.9.
+  Apple Intelligence, saved audio, live transcription preview and dictation
+  automation form the next feature release, **0.3.0**.
 - Increment the patch for focused fixes and small refinements within that feature
   set, such as 0.2.0 to 0.2.1.
 - Keep the display version only for rebuilds or packaging-only revisions with the
@@ -126,6 +128,8 @@ hashes; the local Mac performs the actual code-signature checks.
 The DMG contains Airdraft and an Applications shortcut. It requires
 Apple Silicon and macOS 15 or later. Local models remain separate downloads.
 Build logs and artifacts are under `dist/releases/<tag>/`.
+Xcode resolves public dependencies with its `netrc` authorization provider so
+package downloads do not request Keychain access.
 
 A failed push leaves a draft, never a public release. Retrying reuses verified
 assets. A failed build blocks the push. The publisher refuses to publish a stale

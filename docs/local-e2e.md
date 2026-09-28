@@ -15,6 +15,8 @@ python3 -B scripts/test-release.py -v
 
 The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
+Package downloads use Xcode's `netrc` authorization provider to avoid Keychain
+prompts for the project's public dependencies.
 The Xcode process group has a 30-minute deadline; override with `--timeout` seconds
 when a clean toolchain build requires longer.
 Pass `--parakeet-model /absolute/path/to/installed/parakeet` to enable the real
@@ -124,3 +126,6 @@ SDK does not skip speech shorter than its default one-second tail clipping.
 
 The feature ledger and final measured results are in
 [`testing/2026-09-26-local-e2e.md`](testing/2026-09-26-local-e2e.md).
+
+The [2026-09-28 build and E2E validation](testing/2026-09-28-release-validation.md)
+records the Apple cancellation repair, current build checks and prompt release blocker.

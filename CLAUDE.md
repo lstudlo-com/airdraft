@@ -273,6 +273,7 @@ for rebuilds or packaging-only revisions. The Git-derived build number never
 substitutes for a product-version bump. Update `project.yml`, run XcodeGen and
 commit the regenerated `Sources/App/Info.plist`. See the version policy in
 `docs/updates.md`; the provider, recovery and interface overhaul is 0.2.0.
+Apple Intelligence, saved audio, live preview and dictation automation are 0.3.0.
 
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push. The GitHub
@@ -366,6 +367,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Check both sub-second speech and final words beyond 30 seconds after changes.
   Both synchronous and async audio chunk decoders check cancellation before and
   after each chunk, so cancelled recordings never continue into later windows.
+  Apple Speech cancellation must cancel its result collector and explicitly finish
+  the analyzer, so cancelled inference releases the engine lease without waiting
+  for final results from a stopped input sequence.
 
 ## Production gate evidence
 
@@ -436,9 +440,12 @@ Microphone choices exclude hidden Core Audio devices and temporary `CADefaultDev
 ## Credential-free E2E verification
 
 Use `scripts/test-local-e2e.py` for the explicit local-only test selection; the
-whole core suite also includes API credential tests. `LocalE2E` is Debug-only,
-uses a supplied data directory and optional `AIRDRAFT_E2E_MODEL_ROOT`, and injects
-a nil credential reader. GUI fixture bundles ending in `.e2e` must refuse startup
+whole core suite also includes API credential tests.
+E2E and release runners use `-packageAuthorizationProvider netrc` so public
+package downloads do not request Keychain access.
+`LocalE2E` is Debug-only, uses a supplied data directory and optional
+`AIRDRAFT_E2E_MODEL_ROOT`, and injects a nil credential reader.
+GUI fixture bundles ending in `.e2e` must refuse startup
 without `--e2e-local`, including automatic relaunch after a crash. Check the process
 before UI operations. Never use normal preferences/history as E2E fixtures.
 Use `scripts/verify-native-behaviors.py` and `scripts/verify-model-lifecycle.py`
