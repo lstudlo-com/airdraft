@@ -12,6 +12,15 @@ status table current.
 
 ## External project resources
 
+- The canonical market research and product knowledge base is the iCloud Obsidian
+  vault at `/Users/lightiichen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Airdraft/`.
+  Start at `Home.md`: `Research/` owns external evidence, `Strategy/` owns positioning
+  and business decisions, `Product/` owns readable product knowledge, and `Records/`
+  preserves dated studies, decisions, verification and source snapshots. Put new
+  research and product analysis there, not in Project Files or new repository reports.
+  Keep source code, tests and versioned build/release contracts in this repository;
+  update the affected vault topic when implementation changes. Record source dates
+  and commits, distinguish implemented/tested/released, and retain explicit corrections.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/` stores
   miscellaneous files and resources related to Airdraft.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/competitor_analysis/repos/`
