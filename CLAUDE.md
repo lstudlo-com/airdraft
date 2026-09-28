@@ -253,6 +253,10 @@ status table current.
 - Prompt changes bump `PromptBuilder.version` so history records stay comparable, and must be
   scored with `eval/run_correction_eval.py` on both `correction_cases.json` and the held-out
   `holdout_cases.json` (LM Studio running). Do not ship a prompt that loses a held-out case.
+  Clean profiles and coding destinations must still correct recognition errors,
+  including technical-name spelling and word boundaries. Preserve valid words and
+  literal identifiers, commands and paths. Also run `context_correction_cases.json`
+  when changing correction rules to check both corrections and literal preservation.
 - Quitting must go through `ModelLifecycle.shutdown()` (unloads speech engines and the LM Studio
   instances the app used). Never return `.terminateLater` from the app delegate: it deadlocks.
 - LLM behaviours are `RefinementProfile`s in `ProfileStore`, never hard-coded modes.
@@ -375,8 +379,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 
 Release preparation runs `scripts/test-prompt-gate.py` and `scripts/verify-prompt.py`
 against the committed export before packaging. Keep `eval/results/prompt-validation.json`
-bound to the current prompt assembly and both evaluation datasets; no per-case
-regressions are accepted. Rebuild the CLI before collecting fresh three-run reports.
+bound to the current prompt assembly and all three evaluation datasets; no per-case
+regressions are accepted, and every context-correction run must pass. Rebuild the CLI before collecting fresh three-run reports.
 Artifact signing checks require Hardened Runtime as well as the pinned identity.
 Public distribution additionally requires `scripts/verify-public-distribution.py`
 on the final app and DMG. Do not relabel Apple Development builds as public-ready

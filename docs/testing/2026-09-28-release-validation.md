@@ -1,8 +1,9 @@
 # Build and local E2E validation, 2026-09-28
 
 Debug and Apple Silicon Release builds pass. The local E2E suite passes after
-fixing an Apple Speech cancellation hang. The prompt release gate blocks
-publication because one held-out case scored below its recorded baseline.
+fixing an Apple Speech cancellation hang. The p13 prompt passes all 84 model checks and the release evidence gate.
+These are local preparation results; the pre-push hook separately builds and
+verifies the committed release artifact before publication.
 
 ## Results
 
@@ -16,8 +17,8 @@ publication because one held-out case scored below its recorded baseline.
 | Rendering | Inspected 48 renders: 6 pages, both appearances, 784-point width, 600/1000-point heights, expanded/collapsed sidebar |
 | Shared materials | 8 shadow checks and the header radius-mask/compositor-availability fixture passed |
 | Release artifact | arm64 app and core framework, pinned Apple Development identity, strict signature and Hardened Runtime checks passed; Debug/E2E entry-point strings absent |
-| Release tooling | 14 release tests and 5 prompt-gate tests passed |
-| Prompt p9 | Correction 30/30; holdout 30/36. `deploy-homophone` scored 0/3 against the recorded baseline's 1/3, so the production gate fails |
+| Release tooling | 14 release tests and 7 prompt-gate tests passed |
+| Prompt p13 | Correction 30/30, legacy holdout 36/36 and context preservation 18/18, each with three runs per case; no per-case regressions |
 
 The four skipped tests require installed subscription CLI integrations or the
 downloaded Parakeet model. Silence checks exit before model loading; they do not
@@ -37,18 +38,30 @@ were not verified in this run.
   The first build was waiting for Keychain authorization for public dependency
   archives. No `.netrc` file was present on this Mac. Xcode also needed a clean
   after recovery of the interrupted artifact download.
-- The feature release version is 0.3.0. Fresh p9 reports bind the current
-  dictionary implementation to both datasets and preserve all three runs.
+- The feature release version is 0.3.0. Prompt p13 fixes conflicting preservation
+  and correction instructions, distinguishes deployment from subordinate personnel,
+  restores framework spelling and preserves literal filename case and spaces.
+- Six added context cases cover valid words, framework spelling, a new homophone,
+  variables, commands and filenames. The release gate requires all their runs to
+  pass and rejects missing or stale evidence. Existing correction/holdout baselines
+  and scoring rules were retained.
+- The legacy holdout and new context cases were inspected during repair; these
+  results establish regression coverage, not accuracy on an unseen dataset. Saved
+  profile instructions and base rules are preserved; Restore defaults adopts the
+  revised defaults for an existing customized profile.
 
 ## Evidence
 
-Tracked reports are `eval/results/p9-20260928-correction.json`,
-`eval/results/p9-20260928-holdout.json` and `eval/results/prompt-validation.json`.
-`python3 scripts/verify-prompt.py` reproduces the held-out gate failure.
+The three `eval/results/p13-20260928-*.json` reports and
+`eval/results/prompt-validation.json` bind the final source, CLI and datasets.
+`python3 scripts/verify-prompt.py` passes. The earlier p9 reports remain available
+to reproduce the original regression; `p11-20260928-context.json` records the
+context baseline. Intermediate p10–p12 attempts are retained under the local
+evidence directory in `prompt-attempts/`.
 
 Local logs, xcresults, synthetic audio, runtime results, renders and signing proof
 are under `/tmp/airdraft-validation-20260928/`. The final core run is
-`local-e2e-cancellation-fixed/tests.xcresult`; runtime evidence is in `runtime/`,
+`local-e2e-p10/tests.xcresult`; runtime evidence is in `runtime/`,
 `runtime-fixed.log` and `runtime-summary.json`. The three cancellation result
 directories are `apple-cancel`, `apple-cancel-50ms` and `apple-cancel-150ms`.
 Temporary evidence can be removed by system cleanup.

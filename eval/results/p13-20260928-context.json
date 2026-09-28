@@ -1,0 +1,182 @@
+{
+  "label": "p13-20260928-context",
+  "prompt_version": "p13",
+  "default_rules_sha256": "d247bdebdb99e53658f49366566debaf98b84040e63c19e13c9375d67a089c11",
+  "assembly_sources": {
+    "LLM/PromptBuilder.swift": "0f49a10d4f0e315b91e9bea332dc241ccd9cbc1c65a4f05dc93a15c2e69c33c9",
+    "LLM/RefinementProfile.swift": "07200951e6bc625efdb30ffb2dd14b0769fe756c592988c3d8efe997303cf4c3",
+    "Context/AppFamily.swift": "6920638311b48ca0a062dd1a386d7269909ba09a860d77c111ee743f75a0b6cb",
+    "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
+  },
+  "cases_sha256": "b7522ba6d30b22feea95e4a6e513b7f3e60223e2c797b71d5eecd65dacc8c97d",
+  "cli_sha256": "51625f130133c4dba362bcb9a346a2a2c80159124c78471d06eb6d923c422552",
+  "cases": "context_correction_cases.json",
+  "model": "airdraft-release-eval-p10",
+  "runs": 3,
+  "total": 18,
+  "max": 18,
+  "results": [
+    {
+      "id": "keep-subordinate-noun",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我的部屬明天會提交報告，請提醒他確認日期。",
+          "seconds": 13.02,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我的部屬明天會提交報告，請提醒他確認日期。",
+          "seconds": 1.53,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我的部屬明天會提交報告，請提醒他確認日期。",
+          "seconds": 1.51,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "framework-word-boundaries",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
+          "seconds": 12.79,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
+          "seconds": 1.84,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
+          "seconds": 1.84,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "database-homophone",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
+          "seconds": 12.23,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
+          "seconds": 1.53,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
+          "seconds": 1.52,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "preserve-literal-identifier",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
+          "seconds": 12.63,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
+          "seconds": 2.0,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
+          "seconds": 1.99,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "preserve-command-and-path",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "git switch -c fix/login",
+          "seconds": 11.35,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "git switch -c fix/login",
+          "seconds": 2.88,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "git switch -c fix/login",
+          "seconds": 2.88,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "preserve-literal-file-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請保留 swift UI.txt 這個檔名，不要更名。",
+          "seconds": 3.81,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請保留 swift UI.txt 這個檔名，不要更名。",
+          "seconds": 1.73,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請保留 swift UI.txt 這個檔名，不要更名。",
+          "seconds": 1.73,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

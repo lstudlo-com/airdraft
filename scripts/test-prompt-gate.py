@@ -22,7 +22,7 @@ class PromptGateTests(unittest.TestCase):
         self.results = self.root / 'eval/results'
         self.results.mkdir(parents=True)
         self.manifest = {'prompt_version': 'test', 'datasets': {}}
-        for dataset in ['correction_cases.json', 'holdout_cases.json']:
+        for dataset in ['correction_cases.json', 'holdout_cases.json', 'context_correction_cases.json']:
             cases = [{'id': 'one', 'expect': ['complete'], 'forbid': ['partial']}]
             (self.root / 'eval' / dataset).write_text(json.dumps(cases))
             report = {'prompt_version': 'test', 'assembly_sources': {name: digest(self.sources/name) for name in names},
@@ -44,8 +44,8 @@ class PromptGateTests(unittest.TestCase):
     def write_manifest(self):
         (self.results/'prompt-validation.json').write_text(json.dumps(self.manifest))
 
-    def mutate_report(self, change):
-        entry = self.manifest['datasets']['holdout_cases.json']
+    def mutate_report(self, change, dataset='holdout_cases.json'):
+        entry = self.manifest['datasets'][dataset]
         path = self.results/entry['candidate']
         report = json.loads(path.read_text())
         change(report)
@@ -74,6 +74,19 @@ class PromptGateTests(unittest.TestCase):
     def test_changed_artifact_hash_is_rejected(self):
         (self.results/'candidate-holdout_cases.json').write_text('{}')
         with self.assertRaisesRegex(RuntimeError, 'Changed candidate'): verify(self.root)
+
+    def test_context_preservation_requires_every_run_to_pass(self):
+        def regress(report):
+            report['results'][0]['runs'][0].update(text='partial', ok=False)
+            report['results'][0]['passed'] = 2
+            report['total'] = 2
+        self.mutate_report(regress, 'context_correction_cases.json')
+        with self.assertRaisesRegex(RuntimeError, 'Context correction failed'): verify(self.root)
+
+    def test_missing_context_evidence_blocks_release(self):
+        del self.manifest['datasets']['context_correction_cases.json']
+        self.write_manifest()
+        with self.assertRaisesRegex(RuntimeError, 'Missing context_correction_cases'): verify(self.root)
 
 
 if __name__ == '__main__': unittest.main()

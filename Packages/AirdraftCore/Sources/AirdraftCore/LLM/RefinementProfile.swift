@@ -46,7 +46,7 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
             id: cleanID,
             name: "Clean",
             symbol: "sparkles",
-            instructions: "Keep the speaker's wording and length. Do not condense or rephrase beyond what the cleanup rules require.",
+            instructions: "Keep the speaker's wording and length while correcting recognition errors and applying cleanup. Do not condense or otherwise rephrase.",
             isBuiltIn: true
         ),
         RefinementProfile(

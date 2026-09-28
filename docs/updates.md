@@ -226,8 +226,10 @@ app release. See [installer design](installer/DESIGN.md).
 
 Before packaging a new release, `release.py` runs `scripts/verify-prompt.py` against
 its exported, committed sources. The evidence in `eval/results/prompt-validation.json`
-must bind both three-run correction and holdout evaluations to the current prompt
-version, base rules, assembly sources and datasets. Each case must match or improve
+must bind three-run correction, holdout and context-correction evaluations to the
+current prompt version, base rules, assembly sources and datasets. Every
+context-correction run must pass, including preservation of valid words and literal
+identifiers, commands and filenames. Each case must match or improve
 its recorded baseline. A higher total cannot conceal a regressed case. Rebuild the
 CLI and rerun `eval/run_correction_eval.py` after changing any bound source.
 

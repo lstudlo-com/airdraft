@@ -22,7 +22,7 @@ def verify(root):
     if manifest.get("prompt_version") != version: raise RuntimeError("Prompt version has no matching evaluation")
     expected_sources = {name: digest(source_root / name) for name in
                         ["LLM/PromptBuilder.swift", "LLM/RefinementProfile.swift", "Context/AppFamily.swift", "Dictionary/DictionaryPostProcessor.swift"]}
-    for dataset in ["correction_cases.json", "holdout_cases.json"]:
+    for dataset in ["correction_cases.json", "holdout_cases.json", "context_correction_cases.json"]:
         entry = manifest.get("datasets", {}).get(dataset)
         if not entry: raise RuntimeError(f"Missing {dataset} evaluation")
         reports = {}
@@ -54,6 +54,8 @@ def verify(root):
                       and not any(term in run["text"] for term in case["forbid"]) for run in row["runs"]]
             if [run["ok"] for run in row["runs"]] != scored or sum(scored) != row["passed"]:
                 raise RuntimeError("Evaluation scores do not match captured outputs")
+            if dataset == "context_correction_cases.json" and not all(scored):
+                raise RuntimeError(f"Context correction failed: {case['id']}")
             if sum(scored) / len(scored) < old[case["id"]]["passed"] / baseline["runs"]:
                 raise RuntimeError(f"Prompt regressed on {dataset}: {case['id']}")
             total += sum(scored)

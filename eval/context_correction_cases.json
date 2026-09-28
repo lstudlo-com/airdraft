@@ -1,0 +1,22 @@
+[
+  {"id": "keep-subordinate-noun", "family": "code", "app": "Cursor", "window": "team-notes.md",
+   "raw": "我的部屬明天會提交報告，請提醒他確認日期。",
+   "expect": ["部屬", "明天", "報告"], "forbid": ["部署"]},
+  {"id": "framework-word-boundaries", "family": "code", "app": "Xcode", "window": "BrowserView.swift",
+   "raw": "這個瀏覽器畫面用 web kit，設定視窗繼續用 app kit。",
+   "expect": ["WebKit", "AppKit"], "forbid": ["web kit", "app kit"]},
+  {"id": "database-homophone", "family": "code", "app": "Cursor", "window": "Database.swift",
+   "raw": "資料庫聯線逾時之後，先保留使用者還沒儲存的內容。",
+   "expect": ["連線", "保留", "內容"], "forbid": ["聯線"]},
+  {"id": "preserve-literal-identifier", "family": "code", "app": "Xcode", "window": "Config.swift",
+   "before": "let swift_ui = false\nlet legacy_mode = true",
+   "raw": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
+   "expect": ["swift_ui", "true", "legacy_mode"], "forbid": ["SwiftUI", "LegacyMode"]},
+  {"id": "preserve-command-and-path", "family": "terminal", "app": "Terminal", "window": "~/project",
+   "raw": "git switch -c fix/login",
+   "expect": ["git switch -c fix/login"], "forbid": ["checkout", "fix/login."]},
+  {"id": "preserve-literal-file-name", "family": "code", "app": "Cursor", "window": "notes",
+   "before": "Files: swift UI.txt, deployment-notes.md",
+   "raw": "請保留 swift UI.txt 這個檔名，不要更名。",
+   "expect": ["swift UI.txt", "不要更名"], "forbid": ["SwiftUI.txt"]}
+]

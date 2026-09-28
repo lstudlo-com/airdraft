@@ -87,7 +87,7 @@ public enum AppFamily: String, Codable, Sendable, CaseIterable {
         case .document:
             return "Destination: document or notes. Coherent paragraphs. Use bullet points or short headings only when the speech clearly has sections or multiple items."
         case .code:
-            return "Destination: code editor or AI coding tool. Preserve identifiers, file paths, commands, versions, and error text exactly as spoken. Use compact bullets for goal / constraints / expected output when the speech implies them. Never write code that was not spoken."
+            return "Destination: code editor or AI coding tool. Apply recognition corrections to the spoken prose and restore standard technical-name spelling, including word boundaries. Preserve literal identifiers, file paths and error text shown in context, and explicitly dictated command syntax and version numbers. Copy a context filename or identifier exactly, including lowercase letters and internal spaces, even when it contains a product name. Use compact bullets for goal / constraints / expected output when the speech implies them. Never write code that was not spoken."
         case .terminal:
             return "Destination: terminal or coding agent. Usually the speaker is writing a message or instruction, not a shell command; keep it as prose. Only when the speaker literally dictates a command, keep its flags and paths exactly. No markdown."
         case .general:
