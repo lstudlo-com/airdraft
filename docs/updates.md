@@ -74,6 +74,12 @@ the signing and distribution requirements below.
 
 ## Automatic releases from this Mac
 
+The project-local [`push-and-release` skill](../.agents/skills/push-and-release/SKILL.md)
+coordinates an authorized release through these scripts. It adds the test-and-repair
+loop, E2E verification of committed sources before pushing, and verification of the
+published DMG and live update feed. Invoke it with `$push-and-release`. Creating or
+editing the skill only changes the workflow instructions; it does not publish an app.
+
 Run once after cloning on the release Mac:
 
 ```sh

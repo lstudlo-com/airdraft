@@ -1,0 +1,4 @@
+interface:
+  display_name: "Push and release"
+  short_description: "驗證 Airdraft、修正測試失敗並完成提交、推送與發佈"
+  default_prompt: "使用 $push-and-release 完成 Airdraft 的測試與修正、commit、push、release，並驗證已發佈的安裝檔。"

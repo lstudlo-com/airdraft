@@ -291,6 +291,11 @@ status table current.
 
 ## Local releases
 
+For an authorized end-to-end release request, use the project-local
+`.agents/skills/push-and-release/SKILL.md`. It coordinates tests, scoped repairs,
+commits, committed-source E2E, push and published-artifact verification through
+the existing scripts. Creating, editing or inspecting the skill does not run a release.
+
 Choose the display version before release preparation. Below 1.0, substantial
 features or broad UI/workflow redesigns increment the minor version and reset the
 patch; focused fixes increment the patch. Reserve an unchanged display version
