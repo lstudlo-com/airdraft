@@ -60,13 +60,17 @@ public final class TextInserter {
         }
 
         if method == .auto {
-            switch insertViaAccessibility(text, target: target) {
+            let result = await insertViaAccessibility(text, target: target)
+            // Verification yields while the destination updates. Cancelled sessions
+            // must not replace the clipboard or fall through to a paste afterwards.
+            guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+            switch result {
             case .inserted:
                 return InsertionResult(method: .accessibility, notice: nil)
             case .uncertain:
                 copyOnly(text)
                 return InsertionResult(method: .clipboardOnly, notice: "Check the destination before pasting. Text copied; insertion could not be verified.")
-            case .notAttempted: break
+            case .notAttempted, .rejected: break
             }
         }
         // Focus can change during an AX request too. Revalidate before posting a paste.
@@ -137,9 +141,9 @@ public final class TextInserter {
 
     // MARK: - Accessibility
 
-    enum WriteResult: Equatable { case notAttempted, inserted, uncertain }
+    enum WriteResult: Equatable { case notAttempted, rejected, inserted, uncertain }
 
-    private func insertViaAccessibility(_ text: String, target: InsertionTarget) -> WriteResult {
+    private func insertViaAccessibility(_ text: String, target: InsertionTarget) async -> WriteResult {
         guard matches(target), let focused = target.element else { return .notAttempted }
         var roleRef: CFTypeRef?
         AXUIElementCopyAttributeValue(focused, kAXRoleAttribute as CFString, &roleRef)
@@ -150,17 +154,44 @@ public final class TextInserter {
               settable.boolValue, let before = value(focused), let range = selection(focused),
               Self.selectionMatches(target.selection, range),
               let expected = Self.replacing(before, range: range, with: text) else { return .notAttempted }
-        return Self.verifiedWrite(expected: expected, isCurrent: { matches(target) }, write: {
-            AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success
+        return await Self.verifiedWrite(before: before, expected: expected, isCurrent: { matches(target) }, write: {
+            let status = AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
+            if status != .success {
+                Self.log.notice("insert: Accessibility write returned \(status.rawValue, privacy: .public)")
+            }
+            return status
         }, read: { value(focused) })
     }
 
-    static func verifiedWrite(expected: String, isCurrent: () -> Bool,
-                              write: () -> Bool, read: () -> String?) -> WriteResult {
-        guard isCurrent() else { return .notAttempted }
-        // Once a write is attempted, an error or unchanged length is not permission to replay it.
-        guard write(), read() == expected else { return .uncertain }
-        return .inserted
+    static func verifiedWrite(before: String, expected: String, isCurrent: () -> Bool,
+                              write: () -> AXError, read: () -> String?,
+                              verificationTimeout: Duration = .milliseconds(500)) async -> WriteResult {
+        guard !Task.isCancelled, isCurrent() else { return .notAttempted }
+        switch write() {
+        case .success: break
+        case .attributeUnsupported, .notImplemented:
+            // The destination rejected this operation. Only allow the paste
+            // fallback while the original field, selection and value are intact.
+            return !Task.isCancelled && isCurrent() && read() == before ? .rejected : .uncertain
+        default:
+            // A timeout or transport error can arrive after the write took effect.
+            // Neither that error nor an unchanged value permits another insertion.
+            return .uncertain
+        }
+
+        // Some apps expose a cached AXValue that lags the accepted write. Read
+        // that same element until it catches up; never repeat the write itself.
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: verificationTimeout)
+        while !Task.isCancelled {
+            if read() == expected { return .inserted }
+            let now = clock.now
+            guard now < deadline else { break }
+            do {
+                try await clock.sleep(until: min(deadline, now.advanced(by: .milliseconds(25))))
+            } catch { break }
+        }
+        return .uncertain
     }
 
     static func replacing(_ value: String, range: CFRange, with text: String) -> String? {

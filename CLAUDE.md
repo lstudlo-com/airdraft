@@ -232,6 +232,10 @@ status table current.
   work must never change a newer session or insert text. Capture the local insertion
   target independently of optional LLM context; require the same focused field and
   selection before inserting, and never replay an uncertain Accessibility write.
+  Keep AX write error codes: only unsupported/not-implemented rejections with an
+  unchanged field, selection and value may fall back to paste. Verify accepted
+  writes with a bounded, cancellable read wait; never repeat the write or copy
+  to the clipboard after cancellation during verification.
   Reject incomplete refinement responses and bound discovery, model loading and
   compatibility retries by one end-to-end refinement deadline.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:

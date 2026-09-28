@@ -86,6 +86,32 @@ permission identity. Never use an identifier-only designated requirement to try
 to preserve grants; that would discard the signer binding. Never edit TCC.db or
 silently reset all permissions as part of an update.
 
+## Insertion warnings with permission granted
+
+"Check the destination before pasting" means Airdraft attempted an Accessibility
+write but could not verify the result. Permission can be granted while an editor
+does not support replacing selected text. For repeated failures, choose
+Configuration → Behavior → Insert text via → Always paste. This uses the editor's
+normal paste command and restores the previous clipboard after one second, unless
+another app or the user has since changed it. Destination checks still apply.
+
+Automatic insertion preserves the actual Accessibility error code. An
+`attributeUnsupported` or `notImplemented` rejection permits paste only while the
+original field, selection and value remain unchanged. Other errors, including
+messaging timeouts, remain uncertain and never trigger another insertion. See
+[Apple's write error definitions](https://developer.apple.com/documentation/applicationservices/1460434-axuielementsetattributevalue).
+
+Accepted writes are checked against the exact expected text. The verifier polls
+the captured element every 25 ms for up to 500 ms, with each Accessibility request
+also subject to the existing 300 ms messaging timeout. This accommodates delayed
+values such as [Chromium's cached accessibility tree](https://chromium.googlesource.com/chromium/src/+/main/docs/accessibility/overview.md).
+Cancellation stops verification without a second write, paste or clipboard copy.
+Diagnostics record failed write error codes without recording the dictated text.
+
+Regression tests cover rejection, changed destinations, delayed values, deadlines
+and cancellation. These fixtures do not establish insertion success in every app;
+the destination apps still need a real dictation check.
+
 ## Implementation and evidence
 
 `SystemPermissions` publishes live Accessibility and microphone state. It polls
