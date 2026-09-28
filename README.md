@@ -12,6 +12,13 @@ Both engines are pluggable and switchable at runtime in Settings:
 
 The LLM is best-effort: a timeout or error inserts the raw transcript instead of blocking.
 
+## License
+
+Unless a file states otherwise, original Airdraft code, documentation, and assets
+in this repository are licensed under [GPL-3.0-only](LICENSE). This means GPL
+version 3 specifically, without the "or later" option. Third-party dependencies,
+fonts, and downloaded model weights retain their own licenses.
+
 ## App
 
 Menu-bar app with a Superwhisper-style main window (Home, Profiles, Vocabulary,

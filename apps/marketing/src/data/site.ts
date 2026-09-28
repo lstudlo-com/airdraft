@@ -8,8 +8,11 @@ export const siteLinks = {
   buyMeACoffee: "",
 };
 
-// Shown only when a LICENSE file exists in the repository. Never guess a name.
-export const license: { name: string; url: string } | null = null;
+// Link to the repository's GPL-3.0-only license.
+export const license: { name: string; url: string } | null = {
+  name: "License",
+  url: `${repository}/blob/main/LICENSE`,
+};
 
 // The paid offering appears on the pricing page only once it is real. Every
 // field comes from the owner; do not invent a price, feature or date.
