@@ -74,6 +74,8 @@ public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiabl
 @MainActor
 @Observable
 public final class AppSettings {
+    public let hadExistingSetup: Bool
+    public let onboarding: OnboardingProgress
     public var asr: ASRConfig { didSet { persist("asr", asr) } }
     public var llm: LLMConfig { didSet { persist("llm", llm) } }
     public var hotkey: Hotkey { didSet { persist("hotkey", hotkey) } }
@@ -102,6 +104,9 @@ public final class AppSettings {
             AppIdentity.importLegacyDefaults(into: defaults,
                 legacy: defaults.persistentDomain(forName: AppIdentity.legacyBundleID) ?? [:])
         }
+        let existingSetup = defaults.dictionaryRepresentation().keys.contains { $0.hasPrefix("settings.") }
+        hadExistingSetup = existingSetup
+        onboarding = OnboardingProgress(defaults: defaults, existingSetup: existingSetup)
         asr = Self.load("asr", from: defaults) ?? ASRConfig()
         llm = Self.load("llm", from: defaults) ?? LLMConfig()
         hotkey = Self.load("hotkey", from: defaults) ?? .controlOption
@@ -119,6 +124,31 @@ public final class AppSettings {
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
+        endOnboardingPractice()
+    }
+
+    private struct PracticeSettings: Codable {
+        let llm: LLMConfig
+        let output: TextOutputDestination
+    }
+
+    /// Keep returning users' setup, including script destinations, recoverable
+    /// even if the app quits during the exercise. New users keep the basic setup.
+    public func beginOnboardingPractice() {
+        if hadExistingSetup, defaults.data(forKey: "onboarding.restore") == nil,
+           let data = try? JSONEncoder().encode(PracticeSettings(llm: llm, output: outputDestination)) {
+            defaults.set(data, forKey: "onboarding.restore")
+        }
+        llm.select(.none)
+        outputDestination = .cursor
+    }
+
+    public func endOnboardingPractice() {
+        guard let data = defaults.data(forKey: "onboarding.restore"),
+              let saved = try? JSONDecoder().decode(PracticeSettings.self, from: data) else { return }
+        llm = saved.llm
+        outputDestination = saved.output
+        defaults.removeObject(forKey: "onboarding.restore")
     }
 
     public nonisolated static var supportDirectory: URL {

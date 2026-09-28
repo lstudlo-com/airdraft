@@ -19,7 +19,13 @@ enum DebugRender {
         let fixtureDirectory = env["AIRDRAFT_RENDER_HISTORY_COUNT"] == nil ? nil :
             FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-history-perf-\(UUID().uuidString)")
         defer { if let fixtureDirectory { try? FileManager.default.removeItem(at: fixtureDirectory) } }
-        if let fixtureDirectory {
+        if pageName.hasPrefix("onboarding-") {
+            container = PreviewData.container
+            if pageName == "onboarding-cloud" { container.settings.asr.select(.groq) }
+            container.settings.onboarding.move(to: pageName == "onboarding-permissions" ? .permissions :
+                pageName == "onboarding-practice" ? .practice : .speech)
+            container.settings.onboarding.present()
+        } else if let fixtureDirectory {
             do { try HistoryVerification.run() }
             catch { preconditionFailure("History verification failed: \(error)") }
             container = AppContainer(settings: AppSettings(defaults: defaults), dataDirectory: fixtureDirectory)
@@ -122,7 +128,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

@@ -305,7 +305,7 @@ private struct CloudModelDetails: View {
 }
 
 /// The same key row as refinement, plus a connection test of the saved key.
-private struct SpeechKeyRows: View {
+struct SpeechKeyRows: View {
     let preset: EndpointPreset.Speech
     let config: ASRConfig
     @State private var message: String?

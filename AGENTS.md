@@ -289,6 +289,16 @@ status table current.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
 
+## First-run setup
+
+The optional, replayable onboarding uses the normal permissions, model downloader
+and dictation pipeline. Persist skip separately from successful practice; typed
+sample text must never mark a dictation complete. Existing setups do not open the
+flow automatically. Practice temporarily disables refinement and uses cursor
+insertion; restore returning users' refinement and output settings on exit and
+after restart. Never execute a saved script during practice. Use isolated preview
+containers for the `onboarding-*` Debug renders.
+
 ## Local releases
 
 For an authorized end-to-end release request, use the project-local

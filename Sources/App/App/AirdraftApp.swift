@@ -153,6 +153,8 @@ struct AirdraftApp: App {
         .defaultSize(width: Theme.windowWidth, height: 660)
         .commands {
             CommandGroup(after: .appInfo) {
+                Button("Set Up Airdraft…") { container.showOnboarding() }
+                    .disabled(container.pipeline.isBusy)
                 Button("Check for Updates…") { container.updates.checkForUpdates() }
                     .disabled(!container.updates.canCheckForUpdates)
             }
@@ -186,6 +188,10 @@ private struct MenuBarLabel: View {
         Image(systemName: container.menuIcon)
             .onAppear {
                 container.openWindowAction = openWindow
+                if !RenderMode.isActive, !RenderMode.excludesCredentials,
+                   container.settings.onboarding.shouldPresentOnLaunch {
+                    container.showOnboarding()
+                }
             }
     }
 }

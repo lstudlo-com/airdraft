@@ -103,7 +103,10 @@ final class AppContainer {
 
         let panel = IndicatorPanelController(pipeline: pipeline) { [weak self] in self?.settings.hudStyle ?? .classic }
         indicator = panel
-        pipeline.onOutputDelivered = { [weak panel] in panel?.deliveryCompleted() }
+        pipeline.onOutputDelivered = { [weak panel, weak self] in
+            panel?.deliveryCompleted()
+            self?.settings.onboarding.noteDelivery()
+        }
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
             self.permissions.refresh()
@@ -196,6 +199,12 @@ final class AppContainer {
         NSApp.setActivationPolicy(.regular)
         (open ?? openWindowAction)?(id: "main")
         NSApp.activate()
+    }
+
+    func showOnboarding() {
+        guard !pipeline.isBusy else { return }
+        settings.onboarding.present()
+        showMainWindow()
     }
 
     /// A menu-bar (accessory) app has no menu bar of its own, so while a window is open

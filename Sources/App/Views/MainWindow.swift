@@ -52,6 +52,17 @@ struct MainWindowView: View {
     }
 
     var body: some View {
+        Group {
+            if container.settings.onboarding.isPresented {
+                OnboardingView()
+                    .background(TranslucentWindowView(onPointerDown: {}))
+            } else {
+                mainContent
+            }
+        }
+    }
+
+    private var mainContent: some View {
         HStack(spacing: 0) {
             SidebarView(
                 openMicrophone: { activeOverlay = activeOverlay == .microphone ? nil : .microphone },
@@ -163,7 +174,7 @@ struct MainWindowView: View {
 }
 
 /// An open capsule rim around the icon's raised waveform and caret.
-private struct SidebarBrandMark: View {
+struct SidebarBrandMark: View {
     // Scale the original compact mark uniformly to 1.25×.
     private let scale = Theme.sidebarBrandHeight / 364
     private let levels: [CGFloat] = [0.36, 0.66, 1, 0.72, 0.48]
