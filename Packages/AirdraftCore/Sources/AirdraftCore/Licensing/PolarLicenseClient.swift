@@ -1,7 +1,22 @@
 import Foundation
 
+public enum PolarEnvironment: String, Sendable, CaseIterable {
+    case production, sandbox
+
+    public var apiURL: URL {
+        URL(string: self == .sandbox ? "https://sandbox-api.polar.sh" : "https://api.polar.sh")!
+    }
+
+    var checkoutHosts: Set<String> {
+        self == .sandbox ? ["sandbox.polar.sh"] : ["polar.sh", "buy.polar.sh"]
+    }
+
+    var portalHosts: Set<String> { self == .sandbox ? ["sandbox.polar.sh"] : ["polar.sh"] }
+}
+
 /// Public merchant identifiers only. Never put a Polar access token in a client.
 public struct PolarConfiguration: Equatable, Sendable {
+    public let environment: PolarEnvironment
     public let organizationID: UUID
     public let benefitIDs: Set<UUID>
     public let checkoutURL: URL
@@ -17,12 +32,26 @@ public struct PolarConfiguration: Equatable, Sendable {
         return unique
     }
 
-    public static func parseCheckoutURL(_ value: String) -> URL? {
-        publicURL(value, hosts: ["polar.sh", "buy.polar.sh"])
+    public static func parseCheckoutURL(_ value: String, environment: PolarEnvironment = .production) -> URL? {
+        publicURL(value, hosts: environment.checkoutHosts)
     }
 
-    public static func parsePortalURL(_ value: String) -> URL? {
-        publicURL(value, hosts: ["polar.sh"])
+    public static func parsePortalURL(_ value: String, environment: PolarEnvironment = .production) -> URL? {
+        publicURL(value, hosts: environment.portalHosts)
+    }
+
+    /// The app supplies its compile-time environment. A mismatched build must
+    /// fail closed rather than redirect a test key or purchase to production.
+    public static func from(info: [String: Any], environment: PolarEnvironment) -> Self? {
+        guard info["AirdraftPolarEnvironment"] as? String == environment.rawValue,
+              let org = (info["AirdraftPolarOrganization"] as? String).flatMap(UUID.init(uuidString:)),
+              org != UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
+              let benefits = (info["AirdraftPolarBenefits"] as? String).flatMap(parseBenefitIDs),
+              let checkout = (info["AirdraftCheckoutURL"] as? String).flatMap({ parseCheckoutURL($0, environment: environment) }),
+              let portal = (info["AirdraftCustomerPortalURL"] as? String).flatMap({ parsePortalURL($0, environment: environment) }),
+              let days = (info["AirdraftTrialDays"] as? String).flatMap(Int.init), (1...90).contains(days) else { return nil }
+        return Self(organizationID: org, benefitIDs: benefits, checkoutURL: checkout,
+                    portalURL: portal, trialDays: days, environment: environment)
     }
 
     private static func publicURL(_ value: String, hosts: Set<String>) -> URL? {
@@ -34,7 +63,9 @@ public struct PolarConfiguration: Equatable, Sendable {
         return url
     }
 
-    public init(organizationID: UUID, benefitIDs: Set<UUID>, checkoutURL: URL, portalURL: URL, trialDays: Int = 14) {
+    public init(organizationID: UUID, benefitIDs: Set<UUID>, checkoutURL: URL, portalURL: URL,
+                trialDays: Int = 14, environment: PolarEnvironment = .production) {
+        self.environment = environment
         self.organizationID = organizationID
         self.benefitIDs = benefitIDs
         self.checkoutURL = checkoutURL
@@ -155,7 +186,11 @@ public struct PolarLicenseClient: PolarLicensing {
     }
 
     private func request(_ operation: String, body: [String: Any]) async throws -> Data {
-        var request = URLRequest(url: URL(string: "https://api.polar.sh/v1/customer-portal/license-keys/\(operation)")!)
+        guard PolarConfiguration.parseCheckoutURL(config.checkoutURL.absoluteString, environment: config.environment) != nil,
+              PolarConfiguration.parsePortalURL(config.portalURL.absoluteString, environment: config.environment) != nil else {
+            throw LicenseError.notConfigured
+        }
+        var request = URLRequest(url: config.environment.apiURL.appendingPathComponent("v1/customer-portal/license-keys/\(operation)"))
         request.httpMethod = "POST"
         request.timeoutInterval = 15
         request.cachePolicy = .reloadIgnoringLocalCacheData

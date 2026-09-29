@@ -14,7 +14,8 @@ struct LicenseView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
             HStack {
-                Text("Airdraft License").font(.system(size: 20, weight: .semibold))
+                Text(license.configuration?.environment == .sandbox ? "Airdraft License · Sandbox" : "Airdraft License")
+                    .font(.system(size: 20, weight: .semibold))
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button("Done") { license.isPresented = false; onClose?() }.keyboardShortcut(.cancelAction)
@@ -62,7 +63,8 @@ struct LicenseView: View {
                                     .buttonStyle(.borderedProminent).controlSize(.large)
                             }
                             HStack {
-                                Link("Buy Airdraft", destination: config.checkoutURL).buttonStyle(SoftButtonStyle())
+                                Link(config.environment == .sandbox ? "Test Purchase" : "Buy Airdraft", destination: config.checkoutURL)
+                                    .buttonStyle(SoftButtonStyle())
                                 Link("Find My License", destination: config.portalURL).font(.system(size: 12))
                             }
                             keyEntry(replacement: false)
@@ -113,6 +115,9 @@ struct LicenseView: View {
     @ViewBuilder private var status: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(statusTitle).font(.system(size: 17, weight: .semibold))
+            if license.configuration?.environment == .sandbox {
+                Text("Test purchases only. No real payments.").supportingText()
+            }
             Text(statusDetail).font(.system(size: 13)).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if license.access == .licensed, let date = license.record?.grant?.expiresAt {

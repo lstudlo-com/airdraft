@@ -10,6 +10,8 @@
 	<string>$(AIRDRAFT_DISTRIBUTION)</string>
 	<key>AirdraftPolarBenefits</key>
 	<string>$(AIRDRAFT_POLAR_BENEFITS)</string>
+	<key>AirdraftPolarEnvironment</key>
+	<string>$(AIRDRAFT_POLAR_ENVIRONMENT)</string>
 	<key>AirdraftPolarOrganization</key>
 	<string>$(AIRDRAFT_POLAR_ORGANIZATION)</string>
 	<key>AirdraftTrialDays</key>

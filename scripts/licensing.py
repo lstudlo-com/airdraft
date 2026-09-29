@@ -6,8 +6,10 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 
-def build_settings(path: Path) -> list[str]:
+def build_settings(path: Path, *, environment: str = "production") -> list[str]:
     config = json.loads(path.read_text())
+    if environment not in {"production", "sandbox"} or config.get("environment") != environment:
+        raise RuntimeError(f"Expected {environment} Polar configuration in {path}")
     for name in ("organization_id",):
         try:
             if UUID(config[name]).int == 0:
@@ -25,7 +27,8 @@ def build_settings(path: Path) -> list[str]:
         raise RuntimeError(f"benefit_ids must be a nonempty list of distinct nonzero UUIDs in {path}")
     for name in ("checkout_url", "customer_portal_url"):
         url = urlparse(config.get(name, ""))
-        hosts = {"polar.sh", "buy.polar.sh"} if name == "checkout_url" else {"polar.sh"}
+        hosts = ({"sandbox.polar.sh"} if environment == "sandbox" else
+                 {"polar.sh", "buy.polar.sh"} if name == "checkout_url" else {"polar.sh"})
         if url.scheme != "https" or url.hostname not in hosts or url.username or url.password or url.port or not url.path.strip("/"):
             raise RuntimeError(f"{name} must use HTTPS and an approved Polar host: {', '.join(sorted(hosts))}")
         # These values become Xcode build settings; reject substitutions and controls.
@@ -33,7 +36,7 @@ def build_settings(path: Path) -> list[str]:
             raise RuntimeError(f"Unsupported characters in {name}")
     if type(config.get("trial_days")) is not int or not 1 <= config["trial_days"] <= 90:
         raise RuntimeError("trial_days must be an integer from 1 to 90")
-    return ["AIRDRAFT_DISTRIBUTION=official",
+    return ["AIRDRAFT_DISTRIBUTION=official", f"AIRDRAFT_POLAR_ENVIRONMENT={environment}",
             f"AIRDRAFT_POLAR_ORGANIZATION={config['organization_id']}",
             f"AIRDRAFT_POLAR_BENEFITS={','.join(str(value) for value in parsed)}",
             f"AIRDRAFT_CHECKOUT_URL={config['checkout_url']}",
@@ -44,7 +47,7 @@ def build_settings(path: Path) -> list[str]:
 def verify_app(app: Path, settings: list[str]) -> None:
     with (app / "Contents/Info.plist").open("rb") as source:
         info = plistlib.load(source)
-    keys = ["AirdraftDistribution", "AirdraftPolarOrganization", "AirdraftPolarBenefits",
+    keys = ["AirdraftDistribution", "AirdraftPolarEnvironment", "AirdraftPolarOrganization", "AirdraftPolarBenefits",
             "AirdraftCheckoutURL", "AirdraftCustomerPortalURL", "AirdraftTrialDays"]
     for key, setting in zip(keys, settings, strict=True):
         if info.get(key) != setting.split("=", 1)[1]:
@@ -52,5 +55,10 @@ def verify_app(app: Path, settings: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    for setting in build_settings(Path(__file__).with_name("licensing-config.json")):
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--environment", choices=["production", "sandbox"], default="production")
+    args = parser.parse_args()
+    filename = "licensing-sandbox.json" if args.environment == "sandbox" else "licensing-config.json"
+    for setting in build_settings(Path(__file__).with_name(filename), environment=args.environment):
         print(setting)

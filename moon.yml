@@ -40,6 +40,13 @@ tasks:
     toolchains: system
     deps: [generate]
 
+  build-sandbox:
+    description: Build the licensed Debug app against Polar Sandbox only.
+    command: python3 scripts/build-sandbox.py
+    toolchains: system
+    options:
+      runInCI: false
+
   release-setup:
     description: Install the local hook that builds a DMG on pushes to main.
     command: python3 scripts/release.py install-hook

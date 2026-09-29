@@ -42,6 +42,7 @@ targets:
         CFBundleShortVersionString: "0.4.0"
         CFBundleVersion: "1"
         AirdraftDistribution: "$(AIRDRAFT_DISTRIBUTION)"
+        AirdraftPolarEnvironment: "$(AIRDRAFT_POLAR_ENVIRONMENT)"
         AirdraftPolarOrganization: "$(AIRDRAFT_POLAR_ORGANIZATION)"
         AirdraftPolarBenefits: "$(AIRDRAFT_POLAR_BENEFITS)"
         AirdraftCheckoutURL: "$(AIRDRAFT_CHECKOUT_URL)"
@@ -74,6 +75,7 @@ targets:
         # Ordinary source builds are fully unlocked. Only the official release
         # workflow opts into licensing after validating public merchant config.
         AIRDRAFT_DISTRIBUTION: community
+        AIRDRAFT_POLAR_ENVIRONMENT: production
         AIRDRAFT_POLAR_ORGANIZATION: ""
         AIRDRAFT_POLAR_BENEFITS: ""
         AIRDRAFT_CHECKOUT_URL: ""
@@ -85,6 +87,7 @@ targets:
           # validates the certificate; it must not override signing with '-'.
           CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
         Debug:
+          AIRDRAFT_POLAR_ENVIRONMENT: sandbox
           PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.debug
           PRODUCT_NAME: Airdraft Debug
           AIRDRAFT_DISPLAY_NAME: Airdraft Debug

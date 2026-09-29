@@ -27,9 +27,15 @@ public protocol LicenseStorage: Sendable {
 }
 
 public struct KeychainLicenseStorage: LicenseStorage {
-    // Separate Debug and Release license receipts; provider keys keep their existing scope.
+    // Production keeps its existing account. Sandbox never reads or migrates
+    // production trials, pending activations or grants, even for the same bundle.
     private let account: String
-    public init(bundleID: String) { account = "license.\(bundleID).v1" }
+    public init(bundleID: String, environment: PolarEnvironment = .production) {
+        account = Self.accountName(bundleID: bundleID, environment: environment)
+    }
+    static func accountName(bundleID: String, environment: PolarEnvironment) -> String {
+        "license.\(bundleID)\(environment == .sandbox ? ".sandbox" : "").v1"
+    }
     public func read(allowInteraction: Bool) async throws -> LicenseRecord? {
         try await Task.detached {
             let value: String?

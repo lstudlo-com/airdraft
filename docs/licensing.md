@@ -3,7 +3,8 @@
 Source builds default to `AIRDRAFT_DISTRIBUTION=community` and remain fully usable.
 Self-built editions update from source; Sparkle does not replace them with a
 paid official build. The official release workflow sets `official`, embeds public Polar configuration,
-and verifies it in the built app. Missing official configuration blocks release
+and verifies it in the built app. Debug is restricted to Polar Sandbox; Release
+is restricted to production. Missing official configuration blocks release
 and never silently enables community access. No merchant token is used by the app.
 
 ## Merchant setup required before release
@@ -13,7 +14,7 @@ and never silently enables community access. No merchant token is used by the ap
 2. Attach a license-key benefit. Enable device activations and customer device
    management; choose the device limit. Do not enable usage metering. Set expiry
    only if the purchased usage rights actually expire.
-3. Fill `scripts/licensing-config.json`: organization UUID, a nonempty
+3. Fill `scripts/licensing-config.json`: `environment: production`, organization UUID, a nonempty
    `benefit_ids` array of distinct license-key benefit UUIDs, the shared hosted
    checkout URL, organization customer portal URL, and
    trial days. Checkout links accept HTTPS on `polar.sh` or `buy.polar.sh`;
@@ -22,19 +23,58 @@ and never silently enables community access. No merchant token is used by the ap
 4. Run `python3 scripts/licensing.py` and `python3 scripts/test-licensing.py`.
    The first command intentionally fails while IDs/URLs are empty. Public IDs
    and links may be committed; access tokens, license keys and payment data may not.
-5. Before public distribution, test an actual purchase, wrong-product key, device
+5. Before public distribution, exercise a completed Sandbox test-card purchase,
+   wrong-product key, device
    limit, key rotation, portal deactivation, refund/revocation, offline restart
    and Keychain denial using dedicated test purchases and a disposable user.
    Local fixture tests are not proof of merchant setup or successful payment.
+   Record Sandbox evidence separately from production configuration and payment processing.
 
 Merchant configuration was supplied on 2026-09-29. The live product, attached
 benefit and persistent checkout link were read back from Polar; the checked-in
 public settings identify the allowed plan benefits. Current pricing and
 policy are recorded in the Obsidian vault's `Strategy/Business Model` and
 `Records/Decisions/2026-09-29 Polar Merchant Setup`. This verifies configuration,
-not a completed purchase or production activation. The app currently targets
-the production API only; Sandbox purchases require an explicit environment
-configuration before testing with Sandbox keys.
+not a completed purchase or production activation. The sandbox integration below
+uses a separate account, organization, products, benefits and checkout.
+
+## Polar Sandbox
+
+[Polar's Sandbox guide](https://polar.sh/docs/integrate/sandbox) specifies
+`https://sandbox.polar.sh` for the dashboard and `https://sandbox-api.polar.sh`
+for the API. Production users, organization IDs, products, benefits, keys and
+merchant tokens do not transfer. Use Stripe's `4242 4242 4242 4242` test card,
+a future expiry and a test CVC. Never enter a real card for this verification.
+Sandbox customer emails only reach organization members, including their
+sub-addressing aliases.
+
+1. Sign in to Sandbox and create its own organization. Mirror the US$29 two-Mac
+   and US$49 five-Mac one-time products, with separate license-key benefits,
+   activation limits of 2 and 5, customer device management, no usage limit
+   and no expiration. Create a shared persistent Checkout Link.
+2. Fill `scripts/licensing-sandbox.json` with `environment: sandbox` and the
+   sandbox-only public IDs and URLs. Empty values deliberately block the test
+   build. Never borrow production settings to make it build.
+3. Run `moon run airdraft:build-sandbox`, or `python3 scripts/build-sandbox.py`
+   when Moon is unavailable. It validates the config, enables the official
+   license flow in a Debug build, and verifies the resulting Info.plist and
+   separate `.debug` bundle identity. Open the returned app path explicitly.
+   Normal source builds remain community editions without a paid gate or
+   Polar requests; changing the API environment does not change that business model.
+4. In its **Sandbox** license sheet, open **Test Purchase**, complete checkout,
+   enter the sandbox key and verify activation, restart, device limits and
+   deactivation. Test wrong-product keys, rotation and refund/revocation with
+   dedicated sandbox orders. Mocks and previews remain distinct from these checks.
+
+The app selects its environment with `#if DEBUG`, checks that embedded settings
+match, and rejects checkout/portal URLs from the other environment. Sandbox
+links currently accept only `sandbox.polar.sh`; production checkout additionally
+accepts `buy.polar.sh`. Network errors never fall back across environments.
+Sandbox Keychain receipt accounts include `.sandbox`; production keeps its
+existing account with no migration or reset. This separates trials, device IDs,
+pending requests and cached grants. Provider credentials retain their existing scope.
+The release script accepts only production configuration and verifies its
+embedded environment. No merchant token is required by the desktop client.
 
 The two-Mac and five-Mac plans have separate products and license-key benefits.
 The shared Checkout Link lets the buyer choose one product. Embed both allowed
@@ -89,7 +129,7 @@ Core tests cover state transitions and an intercepted HTTP transport; no actual
 purchase or production key is used. `PipelineAutomationTests` exercise access
 denial before capture and preservation of an active recording after expiry.
 `scripts/test-licensing.py` checks configuration and final Info.plist identity.
-Debug renders `license-{new,trial,expired,licensed,offline,revoked,pending,locked,community,unconfigured}`
+Debug renders `license-{new,sandbox,trial,expired,licensed,offline,revoked,pending,locked,community,unconfigured}`
 use isolated stores and a client that cannot contact Polar.
 
 API contracts checked 2026-09-29 against [Polar license-key benefits](https://polar.sh/docs/features/benefits/license-keys)

@@ -5,8 +5,11 @@ import Foundation
 @MainActor enum LicensePreview {
     static func container(_ scenario: String) -> AppContainer {
         let org = UUID(), benefit = UUID()
+        let environment: PolarEnvironment = scenario == "sandbox" ? .sandbox : .production
+        let host = environment == .sandbox ? "sandbox.polar.sh" : "polar.sh"
         let config = PolarConfiguration(organizationID: org, benefitIDs: [benefit],
-            checkoutURL: URL(string: "https://polar.sh/checkout/preview")!, portalURL: URL(string: "https://polar.sh/preview/portal")!)
+            checkoutURL: URL(string: "https://\(host)/checkout/preview")!,
+            portalURL: URL(string: "https://\(host)/preview/portal")!, environment: environment)
         let now = Date()
         var record = LicenseRecord()
         if scenario == "trial" || scenario == "expired" {

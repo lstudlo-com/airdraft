@@ -55,6 +55,42 @@ private actor LicenseFixtureClient: PolarLicensing {
 }
 
 @MainActor final class LicensingTests: XCTestCase {
+    func testBuildConfigurationCannotCrossPolarEnvironments() {
+        for environment in PolarEnvironment.allCases {
+            let host = environment == .sandbox ? "sandbox.polar.sh" : "polar.sh"
+            var info: [String: Any] = ["AirdraftPolarEnvironment": environment.rawValue,
+                "AirdraftPolarOrganization": organization.uuidString,
+                "AirdraftPolarBenefits": "\(benefit),\(fiveMacBenefit)",
+                "AirdraftCheckoutURL": "https://\(host)/checkout/test-only",
+                "AirdraftCustomerPortalURL": "https://\(host)/test-only/portal",
+                "AirdraftTrialDays": "14"]
+            XCTAssertEqual(PolarConfiguration.from(info: info, environment: environment)?.environment, environment)
+            let other: PolarEnvironment = environment == .sandbox ? .production : .sandbox
+            XCTAssertNil(PolarConfiguration.from(info: info, environment: other))
+            info["AirdraftPolarEnvironment"] = nil
+            XCTAssertNil(PolarConfiguration.from(info: info, environment: environment))
+            info["AirdraftPolarEnvironment"] = environment.rawValue
+            info["AirdraftCheckoutURL"] = "https://\(other == .sandbox ? "sandbox.polar.sh" : "buy.polar.sh")/checkout/test-only"
+            XCTAssertNil(PolarConfiguration.from(info: info, environment: environment))
+        }
+    }
+
+    func testSandboxURLsAndReceiptsAreIsolatedFromProduction() {
+        XCTAssertNotNil(PolarConfiguration.parseCheckoutURL("https://sandbox.polar.sh/checkout/test-only", environment: .sandbox))
+        XCTAssertNotNil(PolarConfiguration.parsePortalURL("https://sandbox.polar.sh/test-only/portal", environment: .sandbox))
+        for value in ["https://polar.sh/checkout/test-only", "https://buy.polar.sh/polar_cl_test-only",
+                      "https://sandbox.polar.sh.evil.test/a", "https://user@sandbox.polar.sh/a", "https://sandbox.polar.sh:443/a"] {
+            XCTAssertNil(PolarConfiguration.parseCheckoutURL(value, environment: .sandbox))
+            XCTAssertNil(PolarConfiguration.parsePortalURL(value, environment: .sandbox))
+        }
+        let bundle = "com.lstudlo.app.airdraft"
+        XCTAssertEqual(KeychainLicenseStorage.accountName(bundleID: bundle, environment: .production), "license.\(bundle).v1")
+        XCTAssertNotEqual(KeychainLicenseStorage.accountName(bundleID: bundle, environment: .production),
+                          KeychainLicenseStorage.accountName(bundleID: bundle, environment: .sandbox))
+        XCTAssertNotEqual(KeychainLicenseStorage.accountName(bundleID: bundle, environment: .sandbox),
+                          KeychainLicenseStorage.accountName(bundleID: bundle + ".debug", environment: .sandbox))
+    }
+
     func testBenefitAllowlistRejectsEmptyMalformedAndDuplicateConfiguration() {
         XCTAssertEqual(PolarConfiguration.parseBenefitIDs("\(benefit),\(fiveMacBenefit)"), [benefit, fiveMacBenefit])
         XCTAssertEqual(PolarConfiguration.parseBenefitIDs(benefit.uuidString), [benefit])
@@ -246,6 +282,54 @@ private actor LicenseFixtureClient: PolarLicensing {
 }
 
 final class PolarLicenseWireTests: XCTestCase {
+    func testEverySandboxOperationUsesOnlySandboxAndDoesNotFallBack() async throws {
+        let config = PolarConfiguration(organizationID: organization, benefitIDs: [benefit],
+            checkoutURL: URL(string: "https://sandbox.polar.sh/checkout/test-only")!,
+            portalURL: URL(string: "https://sandbox.polar.sh/test-only/portal")!, environment: .sandbox)
+        let transport = URLSessionConfiguration.ephemeral
+        transport.protocolClasses = [LicenseURLProtocol.self]
+        let session = URLSession(configuration: transport)
+        defer { session.invalidateAndCancel() }
+        let client = PolarLicenseClient(configuration: config, session: session)
+        let installation = UUID()
+        let receipt = "{\"id\":\"\(UUID())\",\"organization_id\":\"\(organization)\",\"benefit_id\":\"\(benefit)\",\"status\":\"granted\",\"expires_at\":null,\"activation\":{\"id\":\"\(activation)\"}}"
+        var operations: [String] = []
+        LicenseURLProtocol.handler = { request in
+            XCTAssertEqual(request.url?.scheme, "https")
+            XCTAssertEqual(request.url?.host, "sandbox-api.polar.sh")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+            let operation = request.url!.lastPathComponent
+            operations.append(operation)
+            switch operation {
+            case "activate": return (200, "{\"id\":\"\(activation)\",\"license_key\":\(receipt)}")
+            case "deactivate": return (204, "")
+            default: return (200, receipt)
+            }
+        }
+        _ = try await client.validate(key: "sandbox-fixture", activationID: activation, installationID: installation)
+        _ = try await client.activate(key: "sandbox-fixture", installationID: installation)
+        try await client.deactivate(key: "sandbox-fixture", activationID: activation)
+        XCTAssertEqual(operations, ["validate", "activate", "deactivate"])
+        var requests = 0
+        LicenseURLProtocol.handler = { request in
+            requests += 1
+            XCTAssertEqual(request.url?.host, "sandbox-api.polar.sh")
+            return (503, "")
+        }
+        do {
+            _ = try await client.validate(key: "sandbox-fixture", activationID: activation, installationID: installation)
+            XCTFail("Unavailable sandbox must not succeed")
+        } catch { XCTAssertEqual(error as? LicenseError, .unavailable) }
+        XCTAssertEqual(requests, 1)
+        let mixed = PolarConfiguration(organizationID: organization, benefitIDs: [benefit],
+            checkoutURL: licenseConfig.checkoutURL, portalURL: config.portalURL, environment: .sandbox)
+        do {
+            _ = try await PolarLicenseClient(configuration: mixed, session: session).activate(key: "fixture", installationID: installation)
+            XCTFail("Mixed environment must fail before making a request")
+        } catch { XCTAssertEqual(error as? LicenseError, .notConfigured) }
+        XCTAssertEqual(requests, 1)
+    }
+
     @MainActor func testBothPlansPersistTheirOwnBenefitAndRejectOtherProductsBeforeActivation() async throws {
         let config = PolarConfiguration(organizationID: organization, benefitIDs: [benefit, fiveMacBenefit],
             checkoutURL: licenseConfig.checkoutURL, portalURL: licenseConfig.portalURL)

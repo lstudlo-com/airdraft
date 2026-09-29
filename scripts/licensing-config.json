@@ -1,4 +1,5 @@
 {
+  "environment": "production",
   "organization_id": "1e13404f-97c8-4b19-bc97-cd7fdd1dd169",
   "benefit_ids": [
     "96d94dea-e6b7-4fc6-9656-6a0dc01744e1",

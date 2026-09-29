@@ -318,8 +318,17 @@ licenses during transient outages. Persist an uncertain activation before the
 request; require customer-portal recovery instead of automatically retrying.
 `release.py` requires `scripts/licensing-config.json` and verifies the embedded
 configuration. Empty merchant IDs/URLs intentionally block official release.
-Checkout links allow HTTPS on `polar.sh` and `buy.polar.sh`; customer portals
-allow only HTTPS on `polar.sh`. Keep runtime and build validation aligned.
+Debug selects Polar Sandbox at compile time; Release selects production.
+Never switch through launch arguments, preferences or a network-error fallback.
+`scripts/licensing-sandbox.json` owns separate sandbox merchant IDs and URLs;
+`moon run airdraft:build-sandbox` builds the official license flow as Debug.
+Ordinary source builds remain community editions. Sandbox receipts use a separate
+Keychain account; preserve the existing production account without migration.
+Production checkout links allow HTTPS on `polar.sh` and `buy.polar.sh`; its portals
+allow only `polar.sh`. Sandbox checkout and portal links allow only `sandbox.polar.sh`.
+Keep runtime and build validation aligned, verify the embedded environment, and
+never release a Sandbox artifact. Record completed sandbox checkout separately
+from production payment evidence; mocks do not prove either.
 The `benefit_ids` allowlist contains the two-Mac and five-Mac plan benefits.
 Validate membership before activation and persist the returned benefit ID;
 never accept an arbitrary benefit from the same organization.
