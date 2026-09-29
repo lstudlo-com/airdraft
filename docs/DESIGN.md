@@ -209,13 +209,19 @@ above a footer with a left-aligned license button and right-aligned word count.
 The capsule opens an anchored device list with a checkmark for the selection and
 a ten-cell live level meter at the right of every row. Silence leaves all cells
 empty; increasing input fills one through ten cells. Each device has its own
-preview, and System Default shares the matching device's level. Keep the title
-and close button, but omit decorative descriptions, repeated section headings
+preview, and System Default shares the matching device's level. The panel is
+compact: 336 points wide, an 8-point inset, a 28-point title row and 32-point
+rows on the same scale as the sidebar destinations, with a 15-point corner
+concentric to their 7-point selection. It aligns with the capsule's leading edge
+and sits 8 points above it. Six rows show before the list scrolls, and long
+device names truncate in the middle (most fit within about 175 points). Keep the
+title and close button, but omit decorative descriptions, repeated section headings
 and a separate meter card. Permission actions and device errors appear only
-when needed. Previews stop when the overlay closes or dictation starts. The license
-button uses `key.horizontal` and opens the native 540-by-500-point License sheet.
-It shows the self-built edition or actual official trial/license state; it does
-not display sample account data. The sidebar uses `NSVisualEffectView`'s sidebar material against
+when needed, directly beneath the list and aligned with the device names.
+Previews stop when the overlay closes or dictation starts. The license
+button uses `key.horizontal` and opens the native License sheet described under
+Onboarding and licensing. It shows the self-built edition or actual official
+trial/license state; it does not display sample account data. The sidebar uses `NSVisualEffectView`'s sidebar material against
 a transparent window background to retain the native frosted effect.
 
 Profiles uses a fixed 136-point list, a divider and a flexible editor. The list
@@ -370,12 +376,27 @@ stay outside its scrolling content. Set Up Later preserves progress; successful
 practice requires real pipeline delivery. Returning users' refinement and output
 settings are restored after practice.
 
-The License sheet keeps its title and Done action above scrolling content.
-An unfinished activation places its recovery message and portal actions directly
-after the anonymous device label, before ordinary trial and key-entry controls.
-The app and Polar use the same device label. Native controls, shared card insets
-and semantic colors remain unchanged. The vault topic linked above records
-states, inspected renders and the separate live-purchase and release gates.
+The License sheet opens with a masthead: the app icon at 56 points, the name
+Airdraft, and one state line made of the shared `StatusDot` and a short state
+(Licensed, Trial · 13 days left, Trial ended, Activation invalid), with Done at
+the trailing edge. A Sandbox build adds a `PillTag`, the Test Purchase action and
+its no-real-payments note. One 13-point sentence follows only when the state needs
+it. Each state has at most one prominent action (Start Trial, Buy Airdraft, Allow
+Access, Manage Devices during recovery, or Update Key for a revoked activation);
+every other control uses `SoftButtonStyle`. An activated Mac shows paired rows in
+one `SettingsCard`: This Mac with Manage Devices, Valid until when the license
+expires, Last checked with Check License, and License key with Update Key…, with
+Deactivate This Mac… beneath. Without an activation, the key field, its Find My
+License link and the Keychain note share one card, followed by the cloud-cost note.
+An unfinished activation places its recovery card, with the anonymous device label
+and portal actions, before trial, purchase and key entry, and disables key entry.
+The app and Polar use the same device label. Failures appear in an `InlineNotice`
+beneath the controls unless the state's own explanation already says the same.
+The sheet is 440 points wide and as tall as its content (about 130 points for a
+self-built edition to about 460 for an unfinished activation), scrolling only
+past 520 points. Native controls, shared card insets and semantic colors remain
+unchanged. The vault topic linked above records states, inspected renders and the
+separate live-purchase and release gates.
 
 ### Text fields and sheets
 

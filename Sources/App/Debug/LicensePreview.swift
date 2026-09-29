@@ -12,15 +12,17 @@ import Foundation
             portalURL: URL(string: "https://\(host)/preview/portal")!, environment: environment)
         let now = Date()
         var record = LicenseRecord()
-        if scenario == "trial" || scenario == "expired" {
+        // `trial-last` ends within the day; `licensed-expiry` carries a stated end date.
+        if ["trial", "trial-last", "expired"].contains(scenario) {
             record.trialStartedAt = now.addingTimeInterval(-86_400)
-            record.trialEndsAt = now.addingTimeInterval(scenario == "trial" ? 13 * 86_400 : -1)
+            record.trialEndsAt = now.addingTimeInterval(scenario == "trial" ? 13 * 86_400 : scenario == "trial-last" ? 5 * 3_600 : -1)
         }
         if scenario == "pending" { record.activationPending = true }
-        if scenario == "licensed" || scenario == "offline" || scenario == "revoked" {
-            let grant: [String: Any] = ["key": "preview-not-a-real-key", "activationID": UUID().uuidString,
+        if ["licensed", "licensed-expiry", "offline", "revoked"].contains(scenario) {
+            var grant: [String: Any] = ["key": "preview-not-a-real-key", "activationID": UUID().uuidString,
                 "organizationID": org.uuidString, "benefitID": benefit.uuidString,
-                "verifiedAt": now.timeIntervalSinceReferenceDate, "revoked": scenario == "revoked"]
+                "verifiedAt": now.addingTimeInterval(-3_600).timeIntervalSinceReferenceDate, "revoked": scenario == "revoked"]
+            if scenario == "licensed-expiry" { grant["expiresAt"] = now.addingTimeInterval(200 * 86_400).timeIntervalSinceReferenceDate }
             record.grant = try! JSONDecoder().decode(LicenseRecord.Grant.self, from: JSONSerialization.data(withJSONObject: grant))
         }
         let store = LicenseStore(distribution: scenario == "community" ? .community : .official,

@@ -36,6 +36,11 @@ enum Theme {
     static let sectionTitleLeadingInset: CGFloat = 4
     static let controlSpacing: CGFloat = 12
     static let cardRadius: CGFloat = 18
+    // Floating panels use the sidebar's scale: 32 pt rows inside a small inset, with a
+    // corner concentric to the 7 pt row selection.
+    static let overlayPadding: CGFloat = 8
+    static let overlayRowInset: CGFloat = 10
+    static let overlayRadius: CGFloat = NavigationStyle.cornerRadius + overlayPadding
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
@@ -759,30 +764,30 @@ struct SettingsDisclosureStyle: DisclosureGroupStyle {
     }
 }
 
-/// Chrome shared by the window's floating panels (microphone, account).
+/// Chrome shared by the window's floating panels. Compact by design: an 8 pt inset,
+/// a 28 pt heading row, and content that brings its own 32 pt rows.
 struct OverlayPanel<Content: View>: View {
     @FocusState private var closeFocused: Bool
     let title: String
-    var subtitle: String? = nil
     var width: CGFloat
     let onClose: () -> Void
     @ViewBuilder var content: Content
 
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: Theme.overlayRadius, style: .continuous)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.system(size: 17, weight: .semibold))
-                        .accessibilityAddTraits(.isHeader)
-                    if let subtitle {
-                        Text(subtitle).supportingText()
-                    }
-                }
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button(action: onClose) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .semibold))
-                        .frame(width: 26, height: 26)
+                        .font(.system(size: 10, weight: .semibold))
+                        .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -791,14 +796,18 @@ struct OverlayPanel<Content: View>: View {
                 .accessibilityLabel("Close \(title)")
                 .focused($closeFocused)
             }
+            // The title lines up with row text; the glyph, not its hit area, lines up with row trailing content.
+            .padding(.leading, Theme.overlayRowInset)
+            .padding(.trailing, Theme.overlayRowInset - 7)
+            .frame(height: NavigationStyle.rowHeight - 4)
             content
         }
-        .padding(Theme.pagePadding)
+        .padding(Theme.overlayPadding)
         .frame(width: width)
-        .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5))
+        .background(Color(nsColor: .windowBackgroundColor), in: shape)
+        .overlay(shape.strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5))
         .background {
-            SurfaceShadows(shape: RoundedRectangle(cornerRadius: 16, style: .continuous), shadows: [
+            SurfaceShadows(shape: shape, shadows: [
                 .init(color: .black.opacity(0.24), radius: 28, x: 6, y: 12),
             ])
         }

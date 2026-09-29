@@ -30,9 +30,22 @@ final class MicrophoneStore {
     }
 
     func refresh() {
+        #if DEBUG
+        if fixedForRender { return }
+        #endif
         devices = MicrophoneDevices.available()
         systemDefaultID = MicrophoneDevices.systemDefaultID
     }
+
+    #if DEBUG
+    /// Fixed devices for offscreen renders, so this Mac's hardware cannot replace them.
+    @ObservationIgnored private var fixedForRender = false
+    func useRenderDevices(_ devices: [Microphone], systemDefaultID: AudioDeviceID?) {
+        fixedForRender = true
+        self.devices = devices
+        self.systemDefaultID = systemDefaultID
+    }
+    #endif
 
     func selected(_ preference: MicrophonePreference) -> Microphone? {
         preference.resolve(in: devices, systemDefaultID: systemDefaultID)

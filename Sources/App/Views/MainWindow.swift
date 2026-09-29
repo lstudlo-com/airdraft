@@ -134,8 +134,9 @@ struct MainWindowView: View {
                             .accessibilityHidden(true)
                         MicrophoneSelectionOverlay(onClose: { self.activeOverlay = nil },
                                                    renderLevel: microphoneRenderLevel)
-                            .padding(.leading, 16)
-                            .padding(.bottom, 99)
+                            // Left edge with the capsule it belongs to; 8 pt above it (52 pt footer + 38 pt capsule).
+                            .padding(.leading, Theme.sidebarContentInset + 4)
+                            .padding(.bottom, 98)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                     }
                 }

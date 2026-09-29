@@ -9,6 +9,9 @@ enum WindowOverlay: Hashable {
 }
 
 struct MicrophoneSelectionOverlay: View {
+    /// Wide enough for common device names (up to about 175 pt) beside the ten-cell meter.
+    static let width: CGFloat = 336
+
     @Environment(AppContainer.self) private var container
     @State private var previews = MicrophoneLevelPreviews()
     @State private var isVisible = false
@@ -21,14 +24,33 @@ struct MicrophoneSelectionOverlay: View {
     private var systemDefault: Microphone? {
         container.microphones.devices.first { $0.id == container.microphones.systemDefaultID }
     }
-    private var choiceCount: Int {
-        container.microphones.devices.count + 1 + (preference.uid != nil && selected == nil ? 1 : 0)
+    private static let rowSpacing: CGFloat = 2
+    /// Row inset, checkmark column and its gap: where a device name starts.
+    private static let nameInset = Theme.overlayRowInset + 12 + 8
+    /// Six rows fit before the list scrolls; each row is as tall as a sidebar destination.
+    private static let listHeightCap = 6 * NavigationStyle.rowHeight + 5 * rowSpacing
+
+    private enum Note { case busy, allowAccess, openSettings, restricted }
+
+    /// Live state, or a fixed one while rendering so every note can be inspected.
+    private var note: Note? {
+        if let forced = RenderMode.value("MIC_NOTE") {
+            return ["busy": .busy, "allow": .allowAccess, "denied": .openSettings, "restricted": .restricted][forced]
+        }
+        guard renderLevel == nil else { return nil }
+        if isBusy { return .busy }
+        switch container.permissions.microphone {
+        case .notDetermined: return .allowAccess
+        case .denied: return .openSettings
+        case .restricted: return .restricted
+        default: return nil
+        }
     }
 
     var body: some View {
-        OverlayPanel(title: "Microphone", width: 400, onClose: onClose) {
+        OverlayPanel(title: "Microphone", width: Self.width, onClose: onClose) {
             ScrollView {
-                VStack(spacing: 2) {
+                VStack(spacing: Self.rowSpacing) {
                     choice(title: "System Default", device: systemDefault, selected: preference.uid == nil) {
                         choose(.systemDefault)
                     }
@@ -42,28 +64,34 @@ struct MicrophoneSelectionOverlay: View {
                     }
                 }
             }
-            .frame(maxHeight: min(CGFloat(choiceCount) * 40 + CGFloat(choiceCount - 1) * 2, 250))
+            .frame(maxHeight: Self.listHeightCap)
             .fixedSize(horizontal: false, vertical: true)
 
-            if renderLevel == nil {
-                if isBusy {
-                    EmptyNote("Finish dictation to change microphones.")
-                } else if container.permissions.microphone == .notDetermined {
-                    Button("Allow Microphone Access…") {
-                        Task {
-                            await container.permissions.requestMicrophone()
-                            synchronizePreviews()
+            if let note {
+                Group {
+                    switch note {
+                    case .busy:
+                        EmptyNote("Finish dictation to change microphones.")
+                    case .allowAccess:
+                        Button("Allow Microphone Access…") {
+                            Task {
+                                await container.permissions.requestMicrophone()
+                                synchronizePreviews()
+                            }
                         }
+                        .buttonStyle(SoftButtonStyle())
+                    case .openSettings:
+                        Button("Open Microphone Settings…") {
+                            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!)
+                        }
+                        .buttonStyle(SoftButtonStyle())
+                    case .restricted:
+                        EmptyNote("Microphone access is restricted by this Mac's settings.")
                     }
-                    .buttonStyle(SoftButtonStyle())
-                } else if container.permissions.microphone == .denied {
-                    Button("Open Microphone Settings…") {
-                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!)
-                    }
-                    .buttonStyle(SoftButtonStyle())
-                } else if container.permissions.microphone == .restricted {
-                    EmptyNote("Microphone access is restricted by this Mac's settings.")
                 }
+                .padding(.horizontal, Theme.overlayRowInset)
+                .padding(.top, 6)
+                .padding(.bottom, 2)
             }
         }
         .onAppear {
@@ -102,9 +130,9 @@ struct MicrophoneSelectionOverlay: View {
                         action: @escaping () -> Void) -> some View {
         let error = device.flatMap { previews.errors[$0.uid] }
         let level = device.map { renderLevel ?? previews.levels[$0.uid] ?? 0 } ?? 0
-        return VStack(alignment: .leading, spacing: 4) {
+        return VStack(alignment: .leading, spacing: 2) {
             Button(action: action) {
-                HStack(spacing: Theme.controlSpacing) {
+                HStack(spacing: 8) {
                     Image(systemName: "checkmark")
                         .font(.system(size: 10, weight: .semibold))
                         .opacity(selected ? 1 : 0)
@@ -113,12 +141,13 @@ struct MicrophoneSelectionOverlay: View {
                     Text(title)
                         .font(.system(size: 13))
                         .lineLimit(1)
-                    Spacer(minLength: Theme.controlSpacing)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 0)
                     MicrophoneLevelMeter(level: level)
                         .opacity(device == nil || error != nil ? 0.4 : 1)
                 }
-                .padding(.horizontal, Theme.sectionTitleSpacing)
-                .frame(height: 40)
+                .padding(.horizontal, Theme.overlayRowInset)
+                .frame(height: NavigationStyle.rowHeight)
                 .contentShape(Rectangle())
             }
             .buttonStyle(NavigationRowStyle(selected: selected))
@@ -129,11 +158,9 @@ struct MicrophoneSelectionOverlay: View {
             .accessibilityAddTraits(selected ? .isSelected : [])
 
             if let error {
-                EmptyNote(error)
-                    .padding(.horizontal, Theme.sectionTitleSpacing)
+                EmptyNote(error).padding(.leading, Self.nameInset).padding(.trailing, Theme.overlayRowInset)
             } else if device == nil {
-                EmptyNote("Unavailable")
-                    .padding(.horizontal, Theme.sectionTitleSpacing)
+                EmptyNote("Unavailable").padding(.leading, Self.nameInset).padding(.trailing, Theme.overlayRowInset)
             }
         }
     }
@@ -147,8 +174,9 @@ struct MicrophoneLevelMeter: View {
         return Int((min(1, max(0, level)) * 10).rounded(.up))
     }
 
+    /// Ten cells in a 22 pt well, which leaves a 5 pt margin inside a 32 pt row.
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 2.5) {
             ForEach(1...10, id: \.self) { step in
                 Capsule()
                     .fill(LinearGradient(
@@ -159,12 +187,12 @@ struct MicrophoneLevelMeter: View {
                     .overlay {
                         Capsule().strokeBorder(.white.opacity(step <= Self.steps(for: level) ? 0.18 : 0), lineWidth: 0.5)
                     }
-                    .frame(width: 6, height: 14)
+                    .frame(width: 5, height: 12)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background { NeumorphicSurface(shape: Capsule(), inset: true, depth: 1.8) }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5)
+        .background { NeumorphicSurface(shape: Capsule(), inset: true, depth: 1.5) }
         .fixedSize()
         .accessibilityHidden(true)
     }

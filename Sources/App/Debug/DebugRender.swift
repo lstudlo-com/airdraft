@@ -2,6 +2,7 @@
 // Offscreen renders and self-tests use the app's permissions, so they never ship in Release.
 import AppKit
 import AirdraftCore
+import CoreAudio
 import SwiftUI
 
 /// Offscreen rendering of UI pieces for verification.
@@ -81,6 +82,22 @@ enum DebugRender {
             container = AppContainer.shared
         }
         container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
+        // `many` overflows the list with long names, `missing` saves a device that is gone.
+        if let fixture = env["AIRDRAFT_RENDER_MIC_DEVICES"] {
+            let names = fixture == "many"
+                ? ["MacBook Pro Microphone", "Studio Display Microphone", "Scarlett 2i2 4th Gen USB",
+                   "AirPods Pro de Light", "Logitech BRIO Ultra HD Webcam", "Loopback Audio (Virtual)",
+                   "Elgato Wave:3 Microphone"]
+                : ["MacBook Pro Microphone"]
+            container.microphones.useRenderDevices(
+                names.enumerated().map { Microphone(id: AudioDeviceID(100 + $0.offset), uid: "render-\($0.offset)", name: $0.element) },
+                systemDefaultID: 100)
+            if fixture == "many" {
+                container.settings.microphone = MicrophonePreference(uid: "render-2", name: names[2])
+            } else if fixture == "missing" {
+                container.settings.microphone = MicrophonePreference(uid: "render-gone", name: "Yeti Nano")
+            }
+        }
         let previewEndpoints = env["AIRDRAFT_RENDER_OPENROUTER_DATA"].flatMap {
             try? OpenRouterCatalog.decode(Data(contentsOf: URL(fileURLWithPath: $0)))
         }
@@ -94,7 +111,10 @@ enum DebugRender {
                 container.navigation.page = page
                 let root = Group {
                     if pageName.hasPrefix("license-") {
-                        LicenseView().background(Color(nsColor: .windowBackgroundColor))
+                        // A sheet has no titlebar inset, and its window is active.
+                        LicenseView().ignoresSafeArea()
+                            .environment(\.controlActiveState, .key)
+                            .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "permissions" {
                         AccessibilityPermissionHelp()
                     } else if pageName == "automation" {
@@ -118,7 +138,12 @@ enum DebugRender {
                 }.environment(container).environment(\.openRouterPreviewEndpoints, previewEndpoints)
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
-                let frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
+                var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
+                if pageName.hasPrefix("license-") {
+                    // The sheet sizes to its content; render exactly that size.
+                    frame.size = host.fittingSize
+                    print("LICENSE_SIZE \(pageName) \(suffix) \(Int(frame.width)) x \(Int(frame.height))")
+                }
                 host.frame = frame
                 let window = NSWindow(contentRect: frame, styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
                 window.titlebarAppearsTransparent = true

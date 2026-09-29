@@ -134,7 +134,10 @@ status table current.
   Profile section heading instead of a profile list; names carry it, without icons.
   The sidebar microphone overlay contains device choices with a live ten-cell
   meter at each row's trailing edge. Omit decorative descriptions and a separate
-  meter card; retain actionable permission and device errors. Monitor each device
+  meter card; retain actionable permission and device errors. Keep it compact:
+  336 points wide with an 8-point inset, a 28-point title row and 32-point rows on
+  the sidebar's scale, aligned with the microphone capsule and 8 points above it.
+  Monitor each device
   once, share its level with System Default, and stop previews when closed or dictating.
   The microphone capsule stays recessed, with no hover or pressed treatment.
   Sidebar destination selection uses a raised
@@ -332,6 +335,12 @@ from production payment evidence; mocks do not prove either.
 The `benefit_ids` allowlist contains the two-Mac and five-Mac plan benefits.
 Validate membership before activation and persist the returned benefit ID;
 never accept an arbitrary benefit from the same organization.
+The License sheet leads with the app icon, name and one state line (`StatusDot`
+plus a short state), then at most one prominent action per state; everything
+else uses the shared soft capsule. It is 440 points wide and as tall as its
+content, scrolling only past 520 points. Put an unfinished activation's recovery
+before trial, purchase and key entry. Sandbox builds keep the Sandbox tag and
+Test Purchase. Limit copy to cost, privacy and recovery, and say each thing once.
 See `docs/licensing.md`; dashboard setup, mocks and renders do not verify an actual purchase.
 
 ## Local releases

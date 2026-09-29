@@ -129,7 +129,7 @@ Core tests cover state transitions and an intercepted HTTP transport; no actual
 purchase or production key is used. `PipelineAutomationTests` exercise access
 denial before capture and preservation of an active recording after expiry.
 `scripts/test-licensing.py` checks configuration and final Info.plist identity.
-Debug renders `license-{new,sandbox,trial,expired,licensed,offline,revoked,pending,locked,community,unconfigured}`
+Debug renders `license-{new,sandbox,trial,trial-last,expired,licensed,licensed-expiry,offline,revoked,pending,locked,community,unconfigured}`
 use isolated stores and a client that cannot contact Polar.
 
 API contracts checked 2026-09-29 against [Polar license-key benefits](https://polar.sh/docs/features/benefits/license-keys)
