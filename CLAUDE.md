@@ -137,8 +137,11 @@ status table current.
   meter card; retain actionable permission and device errors. Keep it compact:
   336 points wide with an 8-point inset, a 28-point title row and 32-point rows on
   the sidebar's scale, aligned with the microphone capsule and 8 points above it.
-  Monitor each device
-  once, share its level with System Default, and stop previews when closed or dictating.
+  Monitor each eligible device once and share its level with System Default.
+  Identify wired/wireless Continuity microphones by Core Audio transport type;
+  preview them only when selected, including when System Default resolves to them.
+  Opening the picker must not connect unselected iPhones. Stop their previews on
+  deselection, and stop all previews when closed or dictating.
   The microphone capsule stays recessed, with no hover or pressed treatment.
   Sidebar destination selection uses a raised
   neumorphic surface with a translucent neutral fill that lets the sidebar blur

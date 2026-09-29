@@ -6,12 +6,20 @@ public struct Microphone: Identifiable, Equatable, Sendable {
     public let uid: String
     public let name: String
     public let inputChannelCount: Int
+    public let transportType: UInt32
 
-    public init(id: AudioDeviceID, uid: String, name: String, inputChannelCount: Int = 1) {
+    public init(id: AudioDeviceID, uid: String, name: String, inputChannelCount: Int = 1,
+                transportType: UInt32 = kAudioDeviceTransportTypeUnknown) {
         self.id = id
         self.uid = uid
         self.name = name
         self.inputChannelCount = inputChannelCount
+        self.transportType = transportType
+    }
+
+    public var isContinuity: Bool {
+        transportType == kAudioDeviceTransportTypeContinuityCaptureWired ||
+        transportType == kAudioDeviceTransportTypeContinuityCaptureWireless
     }
 }
 
@@ -32,6 +40,13 @@ public struct MicrophonePreference: Codable, Equatable, Sendable {
     public func resolve(in devices: [Microphone], systemDefaultID: AudioDeviceID?) -> Microphone? {
         if let uid { return devices.first { $0.uid == uid } }
         return devices.first { $0.id == systemDefaultID }
+    }
+
+    /// Opening a level meter establishes a Continuity connection. Only the
+    /// selected input may do that, including a selected System Default alias.
+    public func levelPreviewDevices(in devices: [Microphone], systemDefaultID: AudioDeviceID?) -> [Microphone] {
+        let selectedUID = resolve(in: devices, systemDefaultID: systemDefaultID)?.uid
+        return devices.filter { !$0.isContinuity || $0.uid == selectedUID }
     }
 }
 
@@ -70,7 +85,8 @@ public enum MicrophoneDevices {
             // AVAudioEngine's private input bridge can appear during preview.
             // It disappears with its owner and is never a user-selectable input.
             guard !uid.hasPrefix("CADefaultDeviceAggregate-") && !name.hasPrefix("CADefaultDeviceAggregate-") else { return nil }
-            return Microphone(id: id, uid: uid, name: name, inputChannelCount: channels)
+            return Microphone(id: id, uid: uid, name: name, inputChannelCount: channels,
+                              transportType: transportType(id))
         }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
@@ -79,6 +95,16 @@ public enum MicrophoneDevices {
         var hidden: UInt32 = 0
         var size = UInt32(MemoryLayout<UInt32>.size)
         return AudioObjectGetPropertyData(id, &property, 0, nil, &size, &hidden) == noErr && hidden != 0
+    }
+
+    private static func transportType(_ id: AudioDeviceID) -> UInt32 {
+        var property = address(kAudioDevicePropertyTransportType)
+        var transport: UInt32 = kAudioDeviceTransportTypeUnknown
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(id, &property, 0, nil, &size, &transport) == noErr else {
+            return kAudioDeviceTransportTypeUnknown
+        }
+        return transport
     }
 
     public static func address(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {

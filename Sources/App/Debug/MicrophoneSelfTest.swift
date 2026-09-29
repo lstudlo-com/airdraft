@@ -89,10 +89,11 @@ enum MicrophoneSelfTest {
         let devices = MicrophoneDevices.available()
         let previews = MicrophoneLevelPreviews()
         let defaultID = MicrophoneDevices.systemDefaultID
+        let previewDevices = MicrophonePreference.systemDefault.levelPreviewDevices(in: devices, systemDefaultID: defaultID)
         previews.synchronize(devices: devices, selection: .systemDefault, systemDefaultID: defaultID)
         var observed: [String: Set<Int>] = [:]
         var peaks: [String: Float] = [:]
-        // Exercise every live preview concurrently, including quiet devices.
+        // Exercise eligible previews without waking unselected Continuity inputs.
         for _ in 0..<30 {
             try? await Task.sleep(for: .milliseconds(100))
             for (uid, level) in previews.levels {
@@ -100,8 +101,11 @@ enum MicrophoneSelfTest {
                 peaks[uid] = max(peaks[uid] ?? 0, level)
             }
         }
-        var failures = devices.isEmpty ? 1 : 0
-        for device in devices {
+        var failures = previewDevices.isEmpty ? 1 : 0
+        for device in devices where !previewDevices.contains(device) {
+            if previews.levels[device.uid] != nil || previews.errors[device.uid] != nil { failures += 1 }
+        }
+        for device in previewDevices {
             let received = previews.levels[device.uid] != nil
             let passed = received && previews.errors[device.uid] == nil
             if !passed { failures += 1 }

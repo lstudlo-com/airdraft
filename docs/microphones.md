@@ -3,6 +3,25 @@
 The selected input is stored by device UID. A missing selected device must fail
 visibly; never substitute a different microphone during a recording.
 
+## Picker previews
+
+Opening the sidebar picker starts level meters for ordinary inputs. Continuity
+microphones connect only when selected. This includes System Default when it
+resolves to that microphone. An unselected iPhone stays in the list with an idle
+meter; switching away stops its preview. Closing the picker or starting dictation
+stops all previews, and System Default shares its device's capture.
+
+Core Audio reports separate [wired](https://developer.apple.com/documentation/coreaudio/kaudiodevicetransporttypecontinuitycapturewired)
+and [wireless](https://developer.apple.com/documentation/coreaudio/kaudiodevicetransporttypecontinuitycapturewireless)
+Continuity transport types. Use those metadata values, never a device-name match,
+before creating a preview recorder. Previously, opening the picker synchronously
+opened every input on the main actor, including unselected iPhones. Their
+connection negotiation could stall the picker and show the iPhone microphone UI.
+
+`MicrophoneTests` covers both transports, explicit selection, System Default,
+deselection, unavailable inputs and reconnects. Physical iPhone prompt and
+connection timing checks remain separate from these automated tests.
+
 ## Input channels
 
 Multi-input devices show an Input channel picker in Configuration. The selection

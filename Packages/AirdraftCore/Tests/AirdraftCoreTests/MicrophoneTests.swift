@@ -1,9 +1,62 @@
 import XCTest
+import CoreAudio
 @testable import AirdraftCore
 
 final class MicrophoneTests: XCTestCase {
-    private let builtIn = Microphone(id: 1, uid: "built-in", name: "Mac microphone")
-    private let usb = Microphone(id: 2, uid: "usb-mic", name: "USB microphone")
+    private let builtIn = Microphone(id: 1, uid: "built-in", name: "Mac microphone",
+                                     transportType: kAudioDeviceTransportTypeBuiltIn)
+    private let usb = Microphone(id: 2, uid: "usb-mic", name: "USB microphone",
+                                 transportType: kAudioDeviceTransportTypeUSB)
+    // Device names are user-editable; identification must use the transport.
+    private let phone = Microphone(id: 3, uid: "phone", name: "Desk microphone",
+                                   transportType: kAudioDeviceTransportTypeContinuityCaptureWireless)
+    private let wiredPhone = Microphone(id: 4, uid: "wired-phone", name: "Other microphone",
+                                        transportType: kAudioDeviceTransportTypeContinuityCaptureWired)
+
+    func testOpeningDefaultPickerDoesNotPreviewUnselectedContinuityInputs() {
+        let devices = [builtIn, phone, usb, wiredPhone]
+        XCTAssertEqual(MicrophonePreference.systemDefault.levelPreviewDevices(in: devices, systemDefaultID: builtIn.id),
+                       [builtIn, usb])
+    }
+
+    func testSelectingContinuityInputPreviewsOnlyThatPhone() {
+        let devices = [builtIn, phone, usb, wiredPhone]
+        for (selected, expected) in [(phone, [builtIn, phone, usb]), (wiredPhone, [builtIn, usb, wiredPhone])] {
+            let preference = MicrophonePreference(uid: selected.uid, name: selected.name)
+            XCTAssertEqual(preference.levelPreviewDevices(in: devices, systemDefaultID: builtIn.id),
+                           expected)
+        }
+    }
+
+    func testSwitchingAwayFromPhoneRemovesItFromPreviews() {
+        let devices = [builtIn, phone, usb, wiredPhone]
+        let preference = MicrophonePreference(uid: usb.uid, name: usb.name)
+        XCTAssertEqual(preference.levelPreviewDevices(in: devices, systemDefaultID: phone.id), [builtIn, usb])
+    }
+
+    func testSystemDefaultPreviewsItsSelectedContinuityInputOnce() {
+        let devices = [builtIn, phone, usb, wiredPhone]
+        XCTAssertEqual(MicrophonePreference.systemDefault.levelPreviewDevices(in: devices, systemDefaultID: phone.id),
+                       [builtIn, phone, usb])
+        XCTAssertEqual(MicrophonePreference.systemDefault.levelPreviewDevices(in: devices, systemDefaultID: wiredPhone.id),
+                       [builtIn, usb, wiredPhone])
+    }
+
+    func testUnavailableSelectionDoesNotPreviewAnotherContinuityInput() {
+        let devices = [builtIn, usb, wiredPhone]
+        let preference = MicrophonePreference(uid: phone.uid, name: phone.name)
+        XCTAssertEqual(preference.levelPreviewDevices(in: devices, systemDefaultID: wiredPhone.id), [builtIn, usb])
+        XCTAssertEqual(MicrophonePreference.systemDefault.levelPreviewDevices(in: devices, systemDefaultID: nil),
+                       [builtIn, usb])
+    }
+
+    func testContinuityPreviewSelectionSurvivesDeviceIDChange() {
+        let reconnected = Microphone(id: 93, uid: phone.uid, name: phone.name,
+                                     transportType: phone.transportType)
+        let preference = MicrophonePreference(uid: phone.uid, name: phone.name)
+        XCTAssertEqual(preference.levelPreviewDevices(in: [builtIn, reconnected], systemDefaultID: builtIn.id),
+                       [builtIn, reconnected])
+    }
 
     func testPinnedDeviceIgnoresSystemDefaultAndSurvivesNewDeviceID() {
         let preference = MicrophonePreference(uid: usb.uid, name: usb.name)

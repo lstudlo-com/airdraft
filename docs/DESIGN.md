@@ -211,7 +211,10 @@ above a footer with a left-aligned license button and right-aligned word count.
 The capsule opens an anchored device list with a checkmark for the selection and
 a ten-cell live level meter at the right of every row. Silence leaves all cells
 empty; increasing input fills one through ten cells. Each device has its own
-preview, and System Default shares the matching device's level. The panel is
+preview, and System Default shares the matching device's level. Unselected
+Continuity microphones stay disconnected with idle meters until selected;
+System Default counts as selected when it resolves to that device. Switching
+away stops the Continuity preview. The panel is
 compact: 336 points wide, an 8-point inset, a 28-point title row and 32-point
 rows on the same scale as the sidebar destinations, with a 15-point corner
 concentric to their 7-point selection. It aligns with the capsule's leading edge

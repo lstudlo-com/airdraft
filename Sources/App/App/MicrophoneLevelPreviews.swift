@@ -1,7 +1,8 @@
 import AirdraftCore
 import Observation
 
-/// One capture per device. The system-default row shares its device's level.
+/// One capture per eligible device. Continuity inputs connect only when selected.
+/// The system-default row shares its device's level.
 @MainActor
 @Observable
 final class MicrophoneLevelPreviews {
@@ -17,11 +18,12 @@ final class MicrophoneLevelPreviews {
 
     func synchronize(devices: [Microphone], selection: MicrophonePreference, systemDefaultID: UInt32?) {
         let selected = selection.resolve(in: devices, systemDefaultID: systemDefaultID)
-        let available = Set(devices.map(\.uid))
+        let previewDevices = selection.levelPreviewDevices(in: devices, systemDefaultID: systemDefaultID)
+        let available = Set(previewDevices.map(\.uid))
         for uid in Array(sessions.keys) where !available.contains(uid) { stop(uid) }
         errors = errors.filter { available.contains($0.key) }
 
-        for device in devices {
+        for device in previewDevices {
             let channel = selected?.uid == device.uid ? selection.channelIndex ?? 0 : 0
             if let session = sessions[device.uid], session.device == device, session.channel == channel {
                 continue
