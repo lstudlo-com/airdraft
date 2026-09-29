@@ -183,30 +183,34 @@ struct MainWindowView: View {
 
 /// An open capsule rim around the icon's raised waveform and caret.
 struct SidebarBrandMark: View {
-    // Scale the original compact mark uniformly to 1.25×.
-    private let scale = Theme.sidebarBrandHeight / 364
+    /// The sidebar size unless another surface (the License sheet) scales the same mark up.
+    var height: CGFloat = Theme.sidebarBrandHeight
+    var identifier = "sidebar.wordmark"
+    private var scale: CGFloat { height / 364 }
+    /// Shadow depth follows size, so a larger mark keeps the sidebar's proportions.
+    private var depth: CGFloat { height / Theme.sidebarBrandHeight }
     private let levels: [CGFloat] = [0.36, 0.66, 1, 0.72, 0.48]
 
     var body: some View {
         ZStack {
-            NeumorphicSurface(shape: Capsule(), depth: 1, translucent: true, outlineOnly: true, prominent: true)
+            NeumorphicSurface(shape: Capsule(), depth: depth, translucent: true, outlineOnly: true, prominent: true)
 
             HStack(spacing: 30 * scale) {
                 ForEach(levels.indices, id: \.self) { index in
-                    NeumorphicSurface(shape: Capsule(), depth: 0.375, prominent: true)
+                    NeumorphicSurface(shape: Capsule(), depth: 0.375 * depth, prominent: true)
                         .frame(width: 38 * scale, height: 190 * levels[index] * scale)
                 }
-                NeumorphicSurface(shape: Capsule(), depth: 0.375, prominent: true)
+                NeumorphicSurface(shape: Capsule(), depth: 0.375 * depth, prominent: true)
                     .frame(width: 38 * scale, height: 208 * scale)
                     .padding(.leading, 20 * scale)
             }
         }
-        .frame(width: Theme.sidebarBrandWidth, height: Theme.sidebarBrandHeight)
-        .frame(height: 30)
+        .frame(width: 744 * scale, height: height)
+        .frame(height: max(30, height))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Airdraft")
         .accessibilityAddTraits(.isImage)
-        .accessibilityIdentifier("sidebar.wordmark")
+        .accessibilityIdentifier(identifier)
         .allowsHitTesting(false)
     }
 }

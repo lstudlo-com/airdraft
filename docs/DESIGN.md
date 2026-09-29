@@ -131,7 +131,9 @@ in dark mode, and a stronger one-point rim. They catch light from the top left;
 increased contrast strengthens the edges. Keep the original leading alignment
 and header spacing, with 54 points above and 20 points below the row.
 It has no hover, click or meter behavior.
-Expose it as one image named `Airdraft` to assistive technology.
+Expose it as one image named `Airdraft` to assistive technology. The License
+sheet masthead reuses the same view at 36 points through its `height`
+parameter; shadow depth scales with it, and the sidebar size is unchanged.
 
 The outlined `SidebarWordmark.imageset/wordmark.svg` remains the website and
 installer wordmark. Regenerate that asset with
@@ -376,10 +378,11 @@ stay outside its scrolling content. Set Up Later preserves progress; successful
 practice requires real pipeline delivery. Returning users' refinement and output
 settings are restored after practice.
 
-The License sheet opens with a masthead: the app icon at 56 points, the name
-Airdraft, and one state line made of the shared `StatusDot` and a short state
+The License sheet opens with a masthead: the sidebar brand mark at 36 points, the
+name Airdraft, and one state line made of the shared `StatusDot` and a short state
 (Licensed, Trial · 13 days left, Trial ended, Activation invalid), with Done at
-the trailing edge. A Sandbox build adds a `PillTag`, the Test Purchase action and
+the trailing edge. A self-built edition shows its name without a dot, since
+nothing about it can need attention. A Sandbox build adds a `PillTag`, the Test Purchase action and
 its no-real-payments note. One 13-point sentence follows only when the state needs
 it. Each state has at most one prominent action (Start Trial, Buy Airdraft, Allow
 Access, Manage Devices during recovery, or Update Key for a revoked activation);

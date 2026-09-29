@@ -198,7 +198,8 @@ status table current.
   renders at the fixed 784-point width and minimum/taller heights, including lower sections. Check every
   page for the same alignment and input pattern. For a released UI fix, verify the app built
   from the committed release sources, not only the dirty workspace.
-- Extend Home's neumorphic material only to the sidebar brand capsule, selected sidebar destinations, the microphone capsule and per-device
+- Extend Home's neumorphic material only to the sidebar brand capsule (reused in the
+  License sheet masthead), selected sidebar destinations, the microphone capsule and per-device
   meters, shortcut keycaps, appearance preview frames, Home summary tracks and the
   recording HUD. Reuse `NeumorphicSurface` for neutral raised surfaces and inset
   tracks. Light comes from the top left in both appearances: raised surfaces
@@ -336,8 +337,10 @@ from production payment evidence; mocks do not prove either.
 The `benefit_ids` allowlist contains the two-Mac and five-Mac plan benefits.
 Validate membership before activation and persist the returned benefit ID;
 never accept an arbitrary benefit from the same organization.
-The License sheet leads with the app icon, name and one state line (`StatusDot`
-plus a short state), then at most one prominent action per state; everything
+The License sheet leads with the sidebar's `SidebarBrandMark` at 36 points (its
+`height` parameter; the sidebar size is unchanged), the name and one state line (a
+`StatusDot` plus a short state, none for a self-built edition), then at most one
+prominent action per state; everything
 else uses the shared soft capsule. It is 440 points wide and as tall as its
 content, scrolling only past 520 points. Put an unfinished activation's recovery
 before trial, purchase and key entry. Sandbox builds keep the Sandbox tag and

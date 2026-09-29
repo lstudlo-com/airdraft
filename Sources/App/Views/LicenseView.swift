@@ -65,10 +65,7 @@ struct LicenseView: View {
     private func header(_ status: Status) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
-                    .interpolation(.high)
-                    .frame(width: 56, height: 56)
+                SidebarBrandMark(height: 36, identifier: "license.brand")
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 8) {
@@ -104,8 +101,8 @@ struct LicenseView: View {
             if license.isBusy {
                 ProgressView().controlSize(.mini).frame(width: 8, height: 8)
                     .accessibilityLabel("Updating license")
-            } else {
-                StatusDot(status.tone)
+            } else if let tone = status.tone {
+                StatusDot(tone)
             }
             Text(status.title).font(.system(size: 13, weight: .medium))
             if let qualifier = status.qualifier {
@@ -290,7 +287,8 @@ struct LicenseView: View {
     private struct Status {
         let title: String
         var qualifier: String? = nil
-        let tone: StatusDot.Tone
+        /// Nil when the state needs no indicator: a self-built edition has nothing to go wrong.
+        let tone: StatusDot.Tone?
         var detail: String? = nil
     }
 
@@ -305,7 +303,7 @@ struct LicenseView: View {
     private func baseStatus(now: Date) -> Status {
         switch license.access {
         case .community:
-            return Status(title: "Self-built edition", tone: .ok,
+            return Status(title: "Self-built edition", tone: nil,
                           detail: "Every feature is unlocked. This build needs no license.")
         case .loading:
             return Status(title: "Checking license…", tone: .busy)
