@@ -246,7 +246,10 @@ final class HistoryRetranscriptionTests: XCTestCase {
 
         func cleanUp() {
             pipeline.cancel()
-            try? FileManager.default.removeItem(at: directory)
+            do {
+                try history.close()
+                try FileManager.default.removeItem(at: directory)
+            } catch { XCTFail("Fixture cleanup failed: \(error)") }
             UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
         }
     }

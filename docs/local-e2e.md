@@ -11,10 +11,15 @@ python3 scripts/test-local-e2e.py --output /tmp/airdraft-local-tests
 python3 scripts/verify-native-behaviors.py
 python3 scripts/verify-model-lifecycle.py
 python3 -B scripts/test-release.py -v
+python3 -B scripts/test-licensing.py -v
+python3 -B scripts/test-prompt-gate.py -v
 ```
 
 The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
+`pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
+Onboarding, license state and public Polar endpoint fixtures are included; they
+use disposable storage and intercepted responses, without API keys or purchases.
 Package downloads use Xcode's `netrc` authorization provider to avoid Keychain
 prompts for the project's public dependencies.
 The Xcode process group has a 30-minute deadline; override with `--timeout` seconds
@@ -86,6 +91,17 @@ Optional refinement accepts only `codex`, `claudeCode`, `appleIntelligence` or
 `openAICompatible`; the last requires a loopback `--e2e-endpoint` and optional
 `--e2e-llm-model`. Subscription CLI login must already exist. Do not inspect auth
 files or perform login as part of credential-free verification.
+
+After building, run `python3 scripts/verify-local-e2e-errors.py --app "$APP"`
+to assert failure exits for invalid selectors, missing audio and an unwritable report.
+Every asynchronous action exits nonzero when verification fails, including a
+missing result write. Unknown profile and refiner selections are rejected.
+For transcription, `pipelineStatus` records successful text/history processing,
+while `refinementStatus` distinguishes actual refinement from raw-text fallback.
+A requested refiner's fallback fails the overall action; inspect both fields.
+Audio-file transcription and preview do not play sound. Speaker/microphone
+playback and History playback are separate, audible checks and may be omitted
+when silent testing is required.
 
 For automation, wait for the scenario's `ready-for-playback` file, then play the
 fixture through a speaker near the selected microphone. The receiver uses literal

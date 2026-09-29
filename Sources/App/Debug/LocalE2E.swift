@@ -106,14 +106,18 @@ enum LocalE2E {
                     report["status"] = "passed"
                 case "transcribe":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
-                    if let name = argument("--e2e-profile"),
-                       let profile = app.profiles.profiles.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) {
+                    if let name = argument("--e2e-profile") {
+                        guard let profile = app.profiles.profiles.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) else {
+                            throw E2EError.unknownAction
+                        }
                         app.profiles.setActive(profile.id)
                     }
                     app.settings.llm.select(.none)
-                    if let value = argument("--e2e-refiner"),
-                       let kind = LLMProviderKind(rawValue: value),
-                       [.appleIntelligence, .claudeCode, .codex, .openAICompatible].contains(kind) {
+                    if let value = argument("--e2e-refiner") {
+                        guard let kind = LLMProviderKind(rawValue: value),
+                              [.appleIntelligence, .claudeCode, .codex, .openAICompatible].contains(kind) else {
+                            throw E2EError.unknownAction
+                        }
                         app.settings.llm.select(kind)
                         app.settings.llm.minWordsForLLM = 0
                         if kind == .openAICompatible {
@@ -191,7 +195,12 @@ enum LocalE2E {
                         (outcome.llmSkippedReason == nil ? "passed" : "fallback")
                     report["audioSaved"] = record.audioFilename != nil
                     report["inserted"] = record.inserted
-                    report["status"] = "passed"
+                    report["pipelineStatus"] = "passed"
+                    let refinementPassed = report["refinementStatus"] as? String != "fallback"
+                    report["status"] = refinementPassed ? "passed" : "failed"
+                    if !refinementPassed {
+                        report["error"] = "Requested refinement did not complete. The pipeline preserved the original transcript."
+                    }
                 case "preview":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
                     let locale = argument("--e2e-locale") ?? "en-US"
@@ -272,9 +281,13 @@ enum LocalE2E {
                 let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
                 try data.write(to: directory.appendingPathComponent("result.json"), options: .atomic)
                 print(String(decoding: data, as: UTF8.self))
-            } catch { print("E2E result write failed: \(error)") }
-            await app.factory.unloadAll()
-            NSApp.terminate(nil)
+            } catch {
+                print("E2E result write failed: \(error)")
+                report["status"] = "failed"
+            }
+            app.beginShutdown()
+            await app.models.shutdown()
+            exit(report["status"] as? String == "passed" ? 0 : 1)
         }
         return true
     }

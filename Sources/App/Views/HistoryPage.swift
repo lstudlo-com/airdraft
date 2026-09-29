@@ -167,6 +167,12 @@ private final class HistoryVisibleRows {
         if ids != ordered { ids = ordered }
     }
 
+    func setVisible(_ id: Int64, _ visible: Bool, snapshot: HistorySnapshot) {
+        var next = Set(ids)
+        if visible { next.insert(id) } else { next.remove(id) }
+        update(Array(next), snapshot: snapshot)
+    }
+
     func paging(_ edge: Edge, from position: ScrollPosition) -> ScrollPosition {
         guard viewport.height > 0 else { return position }
         // macOS exposes Next/Previous Page as leading/trailing swipes.
@@ -466,6 +472,12 @@ private struct HistoryTimeline: View {
                         }
                     }
                     .id(entry.id)
+                    // The timeline's compact lazy targets can report an empty
+                    // aggregate after a programmatic jump on macOS. Track each
+                    // rendered row so VoiceOver still sees the visible times.
+                    .onScrollVisibilityChange(threshold: 0.0001) { visible in
+                        visibility.setVisible(entry.id, visible, snapshot: snapshot)
+                    }
                 }
             }
             .scrollTargetLayout()
@@ -475,9 +487,6 @@ private struct HistoryTimeline: View {
         .scrollPosition($position)
         .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { _, value in
             visibility.viewport = value
-        }
-        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.0001) { ids in
-            visibility.update(ids, snapshot: snapshot)
         }
         .accessibilityRepresentation {
             HistoryVisibleAccessibility(snapshot: snapshot, visibility: visibility) { entries in

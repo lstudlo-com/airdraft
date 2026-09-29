@@ -69,7 +69,12 @@ final class SilentRecordingTests: XCTestCase {
         func cleanup() {
             pipeline.cancel()
             UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
-            try? FileManager.default.removeItem(at: directory)
+            do {
+                try history.close()
+                try FileManager.default.removeItem(at: directory)
+            } catch {
+                XCTFail("Could not clean up silent-recording fixture: \(error)")
+            }
         }
     }
 }

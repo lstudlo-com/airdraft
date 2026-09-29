@@ -39,7 +39,21 @@ final class CLIWarmPoolTests: XCTestCase {
         do {
             _ = try await CLIProcess.blocking { try session.send("text", timeout: 2) }
             XCTFail("An error result must preserve the raw-transcript fallback")
-        } catch RefinerError.http(_, _) {}
+        } catch RefinerError.http(_, let body) {
+            XCTAssertEqual(body, "fixture failed")
+        }
+        try await waitForExit(session)
+    }
+
+    func testWarmErrorPreservesErrorsAfterLargeMetadata() async throws {
+        let metadata = String(repeating: "m", count: 800)
+        let session = try makeSession("read line; printf '%s\\n' '{\"type\":\"result\",\"is_error\":true,\"metadata\":\"\(metadata)\",\"errors\":[\"Subscription unavailable\"]}'")
+        do {
+            _ = try await CLIProcess.blocking { try session.send("text", timeout: 2) }
+            XCTFail("An error must not become dictation text")
+        } catch RefinerError.http(_, let body) {
+            XCTAssertEqual(body, "Subscription unavailable")
+        }
         try await waitForExit(session)
     }
 

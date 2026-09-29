@@ -53,8 +53,8 @@ Selected text turns the utterance into an edit instruction for that text.
 
 ## Requirements
 
-- macOS 15+, Apple Silicon (Qwen3-ASR runs on MLX). Xcode 16+ with the Metal
-  toolchain (built with Xcode 26). On the first Xcode build, accept the
+- macOS 15+, Apple Silicon (Qwen3-ASR runs on MLX). Xcode 26+ with the Metal
+  toolchain and Foundation Models SDK. On the first Xcode build, accept the
   "Trust & Enable" prompt for the mlx-swift build plug-in.
 - `brew install xcodegen`
 - For local refinement: LM Studio with the server running (`lms server start`)
@@ -79,6 +79,14 @@ each project's `moon.yml` defines its commands and dependencies. Xcode keeps
 its own incremental build cache in DerivedData. Moon caching is disabled for
 these tasks because the signed products live outside the repository; build
 and test also share a mutex so they cannot write to that build tree concurrently.
+
+With workspace dependencies installed, `pnpm build:app` builds the native app
+and `pnpm test:local` runs the credential-free regression suite. These commands
+resolve the workspace's pinned Moon without requiring a global installation.
+Project generation uses an installed XcodeGen or the existing
+`dist/tools/xcodegen/bin/xcodegen`; it does not download tools during a normal build.
+Public Swift packages use Xcode's `netrc` authorization provider to avoid
+Keychain authorization prompts.
 
 ### Microphone selection
 
@@ -177,18 +185,19 @@ Renders and self-tests exist only in Debug builds; Release builds ignore these
 arguments and variables.
 
 ```sh
-APP=$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -showBuildSettings | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2}')/airdraft.app/Contents/MacOS/airdraft
-$APP --render-hud out.png                 # HUD in recording / processing / error states
-$APP --render-window all ./render         # every page, dark and light, as PNG
-AIRDRAFT_SELFTEST=clip.wav AIRDRAFT_SELFTEST_ASR=senseVoice $APP   # any ASRProviderKind raw value[:model]
-AIRDRAFT_SELFTEST=mic $APP                     # 3 s from the microphone
-AIRDRAFT_SELFTEST=lifecycle $APP               # load/unload speech + LLM, quit must unload
-AIRDRAFT_SELFTEST=window $APP                  # open window = regular app with menu bar; close = menu-bar only
+APP="$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -packageAuthorizationProvider netrc -showBuildSettings | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2; exit}')/Airdraft Debug.app/Contents/MacOS/Airdraft Debug"
+"$APP" --e2e-local /tmp/airdraft-render --render-hud out.png
+"$APP" --e2e-local /tmp/airdraft-render --render-window all ./render
+"$APP" --e2e-local /tmp/airdraft-speech --e2e-action transcribe --e2e-audio /absolute/path/to/clip.wav --e2e-model apple
 /usr/bin/log show --last 5m --predicate 'subsystem == "com.lightiichen.airdraft"' --style compact
 ```
 
-The self-test drives the real pipeline (HUD, engines, dictionary, history) and
-skips only the final insertion. Logs are at notice level so `log show` sees them.
+These isolated commands use disposable app data and a nil credential reader.
+File transcription is silent and disables cursor insertion. Actions fail with
+a nonzero exit status and write `result.json`; a requested refiner that falls
+back to raw text fails verification even though the pipeline preserves the text.
+See [local verification](docs/local-e2e.md) for downloads, cancellation and live
+preview. Legacy `AIRDRAFT_SELFTEST` modes use normal app data and settings.
 
 CLI integration checks are opt-in. The wire harness sends requests to a local
 test server, checks that refinement instructions replace coding instructions,

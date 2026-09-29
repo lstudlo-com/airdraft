@@ -4,6 +4,8 @@
   "packageManager": "pnpm@10.34.5",
   "engines": { "node": ">=24.0.0 <27" },
   "scripts": {
+    "build:app": "moon run airdraft:build",
+    "test:local": "moon run airdraft:test-local",
     "dev:marketing": "moon run marketing:dev",
     "build:marketing": "moon run marketing:build",
     "check:marketing": "moon run marketing:check",

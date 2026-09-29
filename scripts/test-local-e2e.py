@@ -25,7 +25,7 @@ LocalRecordingPrerequisitesTests CLIWarmPoolTests LMStudioControlTests
 LocalModelCompletenessTests ParakeetTests AppSettingsTests LocalPersistenceTests
 TextInsertionTests AppContextTests PromptBuilderTests
 SilentRecordingTests
-EngineFactoryLeaseTests
+EngineFactoryLeaseTests OnboardingProgressTests LicensingTests PolarLicenseWireTests
 """.split()
 CASES = """
 AppIdentityTests/testDefaultsMigrationPreservesNewValuesAndRunsOnlyOnce

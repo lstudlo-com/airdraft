@@ -44,6 +44,14 @@ Timeline position lives separately from page data. Visibility lookup examines
 only reported visible IDs. Row expansion and transcript-version state survive
 lazy view eviction.
 
+The compact timeline tracks visibility per rendered row. On macOS 27, its
+aggregate target callback can become empty after a programmatic jump, exposing
+the first timestamp to accessibility even though the visual timeline is correct.
+The row callbacks keep the replacement accessibility tree current without scanning
+all loaded records. Live verification must inspect `history.timeline.<id>` after
+Scroll to Last Dictation and after returning to the first record; visual position
+alone does not verify those accessibility children.
+
 `HistoryTranscript` uses a selectable `NSTextField`. Collapsed text is limited
 to 2,048 graphemes and six lines; a seven-line probe determines whether to offer
 expansion. Copy and expansion retain the complete transcript. Width-dependent

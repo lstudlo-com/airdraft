@@ -19,24 +19,24 @@ tasks:
 
   generate:
     description: Generate the Xcode project from project.yml.
-    command: xcodegen generate
+    command: python3 scripts/generate-project.py
     toolchains: system
 
   build:
     description: Build the Airdraft macOS app.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation build
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc build
     toolchains: system
     deps: [generate]
 
   test:
     description: Run AirdraftCore tests in the app's Xcode build tree.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc test
     toolchains: system
     deps: [generate]
 
   build-release:
     description: Build an optimized Apple Silicon app for packaging.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Release -destination generic/platform=macOS ARCHS=arm64 -skipPackagePluginValidation -skipMacroValidation build
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Release -destination generic/platform=macOS ARCHS=arm64 -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc build
     toolchains: system
     deps: [generate]
 
@@ -46,6 +46,12 @@ tasks:
     toolchains: system
     options:
       runInCI: false
+
+  test-local:
+    description: Run local regressions without API keys or cloud-provider tests.
+    command: python3 scripts/test-local-e2e.py
+    toolchains: system
+    deps: [generate]
 
   release-setup:
     description: Install the local hook that builds a DMG on pushes to main.

@@ -25,6 +25,9 @@ a paid subscription.
   The pipeline lists on the homepage mirror `ASRProviderKind`, `LLMProviderKind` and the
   local engines kept in the root `CLAUDE.md`; update them together.
 - Both steps can stay local with local engines. Cloud speech receives audio; cloud refinement and the Claude Code / Codex CLIs receive the transcript. API keys live in the macOS Keychain. Local models download only when chosen on the Models page.
+- The local pipeline lists include Parakeet TDT v3 speech and Apple Intelligence
+  refinement. Parakeet supports European languages, not Chinese; Apple Intelligence
+  requires a supported Mac with macOS 26 or later and system availability.
 - Built-in profiles are Clean, Concise, Summary and Verbatim; they are editable and resettable. The website's sample is authored text, not a live microphone or model benchmark.
 - Version 0.2.0 is a personal-use release signed with Apple Development and is not
   notarized. A supported, notarized public installer is not available yet. The paid

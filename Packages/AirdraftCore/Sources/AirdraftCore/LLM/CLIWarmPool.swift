@@ -44,7 +44,8 @@ final class CLISession: @unchecked Sendable {
                   object["type"] as? String == "result" else { return false }
             guard object["is_error"] as? Bool != true,
                   let text = object["result"] as? String else {
-                throw RefinerError.http(status: 0, body: String(describing: object).prefix(300).description)
+                throw RefinerError.http(status: 0, body: CLIRefiner.claudeFailureMessage(
+                    lineData, fallback: String(describing: object)))
             }
             result = text
             return true

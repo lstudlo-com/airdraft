@@ -105,6 +105,12 @@ public final class HistoryStore: Sendable {
         try migrate()
     }
 
+    /// Release the database handle before a disposable fixture removes its files.
+    /// Call only after its pipeline work has been cancelled or completed.
+    func close() throws {
+        try dbQueue.close()
+    }
+
     /// Deleted dictations are overwritten on disk, not left in free pages.
     private static var configuration: Configuration {
         var config = Configuration()

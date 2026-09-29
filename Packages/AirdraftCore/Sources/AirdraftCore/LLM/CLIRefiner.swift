@@ -205,7 +205,7 @@ public struct CLIRefiner: Refiner {
             struct Reply: Decodable { let result: String?; let is_error: Bool? }
             guard let reply = try? JSONDecoder().decode(Reply.self, from: Data(output.utf8)), reply.is_error != true,
                   let result = reply.result else {
-                throw RefinerError.http(status: 0, body: String(output.prefix(300)))
+                throw RefinerError.http(status: 0, body: Self.claudeFailureMessage(Data(output.utf8), fallback: output))
             }
             raw = result
         case .codex:
@@ -241,9 +241,26 @@ public struct CLIRefiner: Refiner {
         process.environment = environment
         let output = try await CLIProcess.run(process, input: input, timeout: timeout)
         guard output.status == 0 else {
-            throw RefinerError.http(status: Int(output.status), body: String((output.stderr + output.stdout).prefix(400)))
+            let fallback = output.stderr + output.stdout
+            let details = tool == .claudeCode
+                ? Self.claudeFailureMessage(Data(output.stdout.utf8), fallback: fallback)
+                : String(fallback.prefix(400))
+            throw RefinerError.http(status: Int(output.status), body: details)
         }
         guard !output.stdoutTruncated else { throw RefinerError.invalidResponse }
         return output.stdout
+    }
+
+    /// Structured errors can put hundreds of characters of usage metadata before
+    /// the actual diagnostic. Preserve the same message in warm and cold runs.
+    static func claudeFailureMessage(_ data: Data, fallback: String) -> String {
+        struct FailureReply: Decodable { let result: String?; let errors: [String]? }
+        if let reply = try? JSONDecoder().decode(FailureReply.self, from: data) {
+            let message = reply.result?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !message.isEmpty { return String(message.prefix(400)) }
+            let errors = (reply.errors ?? []).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !errors.isEmpty { return String(errors.prefix(400)) }
+        }
+        return String(fallback.prefix(400))
     }
 }

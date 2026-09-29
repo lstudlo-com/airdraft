@@ -35,6 +35,10 @@ status table current.
   `prepare` (once after clone), `generate`, `build`, and `test`. Use
   `moon run airdraft:build` / `moon run airdraft:test` for routine validation.
   Keep Xcode tasks uncached in moon and serialized by the shared mutex.
+  `pnpm build:app` resolves the pinned local Moon binary; `pnpm test:local` runs
+  the credential-free regression allowlist through the same Xcode mutex. Project
+  generation uses installed XcodeGen or an existing `dist/tools/xcodegen` binary,
+  and fails with an installation hint when neither exists.
 - `project.yml` is the source of truth for the Xcode project. After changing it run
   `xcodegen generate`. `airdraft.xcodeproj` is generated and git-ignored.
 - `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.
@@ -177,7 +181,9 @@ status table current.
   Never scan or regroup all loaded records during scrolling or check files from
   row bodies. Keep accessibility scrolling independent of SwiftUI lazy-row identity
   traversal; its lightweight representation exposes visible rows, shares row actions
-  and provides first/last, page and record navigation. Exclude zero-visibility
+  and provides first/last, page and record navigation. Track timeline visibility
+  per rendered row so programmatic jumps expose the visible timestamps to
+  accessibility. Exclude zero-visibility
   prefetched rows from active-entry tracking, and reveal the real row before
   presenting Details or Delete. Collapsed text uses bounded native layout with cached sizing, not
   hidden full transcripts or geometry-to-state height feedback. Preserve full text
@@ -390,6 +396,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 
 ## Validation
 
+- Credential-free checks: `pnpm test:local` excludes API-key and cloud-provider
+  suites, including fake keys. It includes onboarding and isolated public licensing
+  fixtures. Run `python3 scripts/verify-local-e2e-errors.py --app <Debug.app>` after
+  changing the E2E harness: failed actions and failed report writes must exit nonzero.
 - Tests: `xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test`
   (runs `AirdraftCoreTests` inside the app's DerivedData). `cd Packages/AirdraftCore && swift test` also
   works but builds a second ~6 GB tree in `Packages/AirdraftCore/.build`.

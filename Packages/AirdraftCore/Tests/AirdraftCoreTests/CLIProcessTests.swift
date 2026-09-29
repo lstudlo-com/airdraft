@@ -87,6 +87,28 @@ final class CLIProcessTests: XCTestCase {
         XCTAssertLessThan(Date().timeIntervalSince(started), 2)
     }
 
+    func testClaudeFailureKeepsTheMessageAfterLargeMetadata() async throws {
+        let script = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-cli-failure-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: script) }
+        let json = try JSONSerialization.data(withJSONObject: [
+            "duration_api_ms": 0, "metadata": String(repeating: "x", count: 800),
+            "is_error": true, "result": "Subscription is unavailable. Sign in again."
+        ], options: [.sortedKeys])
+        let body = "#!/bin/sh\n/bin/cat >/dev/null\nprintf '%s' '\(String(decoding: json, as: UTF8.self))'\nexit 1\n"
+        try body.write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+        let refiner = CLIRefiner(tool: .claudeCode, executable: script.path, model: "", timeout: 2)
+        let request = RefineRequest(transcript: "Test transcript", profile: RefinementProfile.defaults[0],
+                                    context: .empty, family: .general, dictionary: [])
+        do {
+            _ = try await refiner.refine(request)
+            XCTFail("A failed CLI must never return text")
+        } catch RefinerError.http(let status, let message) {
+            XCTAssertEqual(status, 1)
+            XCTAssertEqual(message, "Subscription is unavailable. Sign in again.")
+        }
+    }
+
     private func makeProcess(_ path: String, _ arguments: [String] = []) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: path)

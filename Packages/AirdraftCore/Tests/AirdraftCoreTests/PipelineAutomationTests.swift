@@ -626,7 +626,11 @@ final class PipelineAutomationTests: XCTestCase {
 
         func cleanUp() {
             pipeline.cancel()
-            try? FileManager.default.removeItem(at: directory)
+            pipeline.onOutputDelivered = nil
+            do {
+                try history.close()
+                try FileManager.default.removeItem(at: directory)
+            } catch { XCTFail("Fixture cleanup failed: \(error)") }
             UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
         }
     }
