@@ -3,10 +3,19 @@ import Foundation
 /// Public merchant identifiers only. Never put a Polar access token in a client.
 public struct PolarConfiguration: Equatable, Sendable {
     public let organizationID: UUID
-    public let benefitID: UUID
+    public let benefitIDs: Set<UUID>
     public let checkoutURL: URL
     public let portalURL: URL
     public let trialDays: Int
+
+    public static func parseBenefitIDs(_ value: String) -> Set<UUID>? {
+        let entries = value.split(separator: ",", omittingEmptySubsequences: false)
+        let ids = entries.compactMap { UUID(uuidString: String($0)) }
+        let unique = Set(ids)
+        guard !ids.isEmpty, ids.count == entries.count, unique.count == ids.count,
+              !unique.contains(UUID(uuidString: "00000000-0000-0000-0000-000000000000")!) else { return nil }
+        return unique
+    }
 
     public static func parseCheckoutURL(_ value: String) -> URL? {
         publicURL(value, hosts: ["polar.sh", "buy.polar.sh"])
@@ -25,9 +34,9 @@ public struct PolarConfiguration: Equatable, Sendable {
         return url
     }
 
-    public init(organizationID: UUID, benefitID: UUID, checkoutURL: URL, portalURL: URL, trialDays: Int = 14) {
+    public init(organizationID: UUID, benefitIDs: Set<UUID>, checkoutURL: URL, portalURL: URL, trialDays: Int = 14) {
         self.organizationID = organizationID
-        self.benefitID = benefitID
+        self.benefitIDs = benefitIDs
         self.checkoutURL = checkoutURL
         self.portalURL = portalURL
         self.trialDays = trialDays
@@ -89,8 +98,9 @@ public struct PolarLicenseClient: PolarLicensing {
     }
 
     public func validate(key: String, activationID: UUID?, installationID: UUID) async throws -> PolarLicense {
-        var body: [String: Any] = ["key": key, "organization_id": config.organizationID.uuidString,
-            "benefit_id": config.benefitID.uuidString]
+        // Polar accepts one optional benefit filter. Validate the returned benefit
+        // against our full allowlist before LicenseStore can allocate a device.
+        var body: [String: Any] = ["key": key, "organization_id": config.organizationID.uuidString]
         if let activationID {
             body["activation_id"] = activationID.uuidString
             body["conditions"] = ["installation_id": installationID.uuidString]
@@ -123,7 +133,7 @@ public struct PolarLicenseClient: PolarLicensing {
     }
 
     private func check(_ license: PolarLicense) throws {
-        guard license.organizationID == config.organizationID, license.benefitID == config.benefitID,
+        guard license.organizationID == config.organizationID, config.benefitIDs.contains(license.benefitID),
               license.status == "granted", license.expiresAt.map({ $0 > Date() }) ?? true else {
             throw LicenseError.rejected
         }

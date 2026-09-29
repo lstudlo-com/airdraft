@@ -8,8 +8,8 @@
 	<string>$(AIRDRAFT_CUSTOMER_PORTAL_URL)</string>
 	<key>AirdraftDistribution</key>
 	<string>$(AIRDRAFT_DISTRIBUTION)</string>
-	<key>AirdraftPolarBenefit</key>
-	<string>$(AIRDRAFT_POLAR_BENEFIT)</string>
+	<key>AirdraftPolarBenefits</key>
+	<string>$(AIRDRAFT_POLAR_BENEFITS)</string>
 	<key>AirdraftPolarOrganization</key>
 	<string>$(AIRDRAFT_POLAR_ORGANIZATION)</string>
 	<key>AirdraftTrialDays</key>

@@ -3,8 +3,9 @@ import XCTest
 
 private let organization = UUID(uuidString: "11111111-1111-4111-8111-111111111111")!
 private let benefit = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
+private let fiveMacBenefit = UUID(uuidString: "55555555-5555-4555-8555-555555555555")!
 private let activation = UUID(uuidString: "33333333-3333-4333-8333-333333333333")!
-private let licenseConfig = PolarConfiguration(organizationID: organization, benefitID: benefit,
+private let licenseConfig = PolarConfiguration(organizationID: organization, benefitIDs: [benefit],
     checkoutURL: URL(string: "https://polar.sh/checkout/test-only")!, portalURL: URL(string: "https://polar.sh/test-only/portal")!)
 
 private actor MemoryLicenseStorage: LicenseStorage {
@@ -54,6 +55,24 @@ private actor LicenseFixtureClient: PolarLicensing {
 }
 
 @MainActor final class LicensingTests: XCTestCase {
+    func testBenefitAllowlistRejectsEmptyMalformedAndDuplicateConfiguration() {
+        XCTAssertEqual(PolarConfiguration.parseBenefitIDs("\(benefit),\(fiveMacBenefit)"), [benefit, fiveMacBenefit])
+        XCTAssertEqual(PolarConfiguration.parseBenefitIDs(benefit.uuidString), [benefit])
+        for value in ["", "bad", "\(benefit),", "\(benefit),bad", "\(benefit),\(benefit)",
+                      "00000000-0000-0000-0000-000000000000", "$(AIRDRAFT_POLAR_BENEFITS)"] {
+            XCTAssertNil(PolarConfiguration.parseBenefitIDs(value), value)
+        }
+    }
+
+    func testCachedLicenseFromAnUnlistedBenefitDoesNotUnlock() async {
+        var record = LicenseRecord()
+        record.grant = .init(key: "fixture", activationID: activation, organizationID: organization,
+                             benefitID: fiveMacBenefit, verifiedAt: Date())
+        let store = make(MemoryLicenseStorage(record))
+        await store.load()
+        XCTAssertFalse(store.access.allowsUse)
+    }
+
     func testPublicLinksAcceptPolarCheckoutHostWithoutBroadeningPortalHosts() {
         for value in ["https://buy.polar.sh/polar_cl_example", "https://polar.sh/checkout/test-only"] {
             XCTAssertEqual(PolarConfiguration.parseCheckoutURL(value)?.absoluteString, value)
@@ -227,6 +246,51 @@ private actor LicenseFixtureClient: PolarLicensing {
 }
 
 final class PolarLicenseWireTests: XCTestCase {
+    @MainActor func testBothPlansPersistTheirOwnBenefitAndRejectOtherProductsBeforeActivation() async throws {
+        let config = PolarConfiguration(organizationID: organization, benefitIDs: [benefit, fiveMacBenefit],
+            checkoutURL: licenseConfig.checkoutURL, portalURL: licenseConfig.portalURL)
+        let transport = URLSessionConfiguration.ephemeral
+        transport.protocolClasses = [LicenseURLProtocol.self]
+        let session = URLSession(configuration: transport)
+        defer { session.invalidateAndCancel() }
+        let client = PolarLicenseClient(configuration: config, session: session)
+        for issuedBenefit in [benefit, fiveMacBenefit, UUID()] {
+            var allocations = 0
+            let receipt = "{\"id\":\"\(UUID())\",\"organization_id\":\"\(organization)\",\"benefit_id\":\"\(issuedBenefit)\",\"status\":\"granted\",\"expires_at\":null,\"activation\":{\"id\":\"\(activation)\"}}"
+            LicenseURLProtocol.handler = { request in
+                let body = try! JSONSerialization.jsonObject(with: Self.body(request)) as! [String: Any]
+                XCTAssertNil(body["benefit_id"])
+                XCTAssertEqual(body["organization_id"] as? String, organization.uuidString)
+                if request.url?.lastPathComponent == "activate" {
+                    allocations += 1
+                    return (200, "{\"id\":\"\(activation)\",\"license_key\":\(receipt)}")
+                }
+                return (200, receipt)
+            }
+            let storage = MemoryLicenseStorage()
+            let store = LicenseStore(distribution: .official, configuration: config, storage: storage, client: client)
+            await store.load()
+            await store.activate("fixture-key")
+            if config.benefitIDs.contains(issuedBenefit) {
+                XCTAssertEqual(allocations, 1)
+                XCTAssertEqual(store.access, .licensed)
+                XCTAssertEqual(store.record?.grant?.benefitID, issuedBenefit)
+                LicenseURLProtocol.handler = { _ in (503, "") }
+                let restarted = LicenseStore(distribution: .official, configuration: config, storage: storage, client: client)
+                await restarted.load()
+                await restarted.refresh()
+                XCTAssertEqual(restarted.access, .licensed)
+                XCTAssertTrue(restarted.isOffline)
+                XCTAssertEqual(restarted.record?.grant?.benefitID, issuedBenefit)
+            } else {
+                XCTAssertEqual(allocations, 0)
+                XCTAssertNil(store.record?.grant)
+                XCTAssertEqual(store.record?.activationPending, false)
+                XCTAssertFalse(store.access.allowsUse)
+            }
+        }
+    }
+
     func testPublicEndpointShapesAndResponseValidation() async throws {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [LicenseURLProtocol.self]
@@ -242,7 +306,7 @@ final class PolarLicenseWireTests: XCTestCase {
             let data = Self.body(request)
             let body = try! JSONSerialization.jsonObject(with: data) as! [String: Any]
             XCTAssertEqual(body["activation_id"] as? String, activation.uuidString)
-            XCTAssertEqual(body["benefit_id"] as? String, benefit.uuidString)
+            XCTAssertNil(body["benefit_id"], "Check the returned benefit against the allowlist, not a single plan filter")
             XCTAssertEqual((body["conditions"] as? [String: String])?["installation_id"], installation.uuidString)
             XCTAssertNil(body["increment_usage"])
             return (200, receipt)
@@ -250,6 +314,7 @@ final class PolarLicenseWireTests: XCTestCase {
         _ = try await client.validate(key: "fixture", activationID: activation, installationID: installation)
         for (code, response, expected) in [(404, "", LicenseError.rejected), (500, "", .unavailable),
             (200, receipt.replacingOccurrences(of: benefit.uuidString, with: UUID().uuidString), .rejected),
+            (200, receipt.replacingOccurrences(of: organization.uuidString, with: UUID().uuidString), .rejected),
             (200, "{}", .invalidResponse),
             (200, receipt.replacingOccurrences(of: activation.uuidString, with: UUID().uuidString), .invalidResponse)] {
             LicenseURLProtocol.handler = { _ in (code, response) }

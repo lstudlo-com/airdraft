@@ -43,7 +43,7 @@ targets:
         CFBundleVersion: "1"
         AirdraftDistribution: "$(AIRDRAFT_DISTRIBUTION)"
         AirdraftPolarOrganization: "$(AIRDRAFT_POLAR_ORGANIZATION)"
-        AirdraftPolarBenefit: "$(AIRDRAFT_POLAR_BENEFIT)"
+        AirdraftPolarBenefits: "$(AIRDRAFT_POLAR_BENEFITS)"
         AirdraftCheckoutURL: "$(AIRDRAFT_CHECKOUT_URL)"
         AirdraftCustomerPortalURL: "$(AIRDRAFT_CUSTOMER_PORTAL_URL)"
         AirdraftTrialDays: "$(AIRDRAFT_TRIAL_DAYS)"
@@ -75,7 +75,7 @@ targets:
         # workflow opts into licensing after validating public merchant config.
         AIRDRAFT_DISTRIBUTION: community
         AIRDRAFT_POLAR_ORGANIZATION: ""
-        AIRDRAFT_POLAR_BENEFIT: ""
+        AIRDRAFT_POLAR_BENEFITS: ""
         AIRDRAFT_CHECKOUT_URL: ""
         AIRDRAFT_CUSTOMER_PORTAL_URL: ""
         AIRDRAFT_TRIAL_DAYS: "14"

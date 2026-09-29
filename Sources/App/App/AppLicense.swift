@@ -9,11 +9,11 @@ import Foundation
         let distribution: LicenseStore.Distribution = isolated || channel == "community" ? .community : .official
         let config: PolarConfiguration?
         if let org = (info["AirdraftPolarOrganization"] as? String).flatMap(UUID.init(uuidString:)),
-           let benefit = (info["AirdraftPolarBenefit"] as? String).flatMap(UUID.init(uuidString:)),
+           let benefits = (info["AirdraftPolarBenefits"] as? String).flatMap(PolarConfiguration.parseBenefitIDs),
            let checkout = (info["AirdraftCheckoutURL"] as? String).flatMap(PolarConfiguration.parseCheckoutURL),
            let portal = (info["AirdraftCustomerPortalURL"] as? String).flatMap(PolarConfiguration.parsePortalURL),
            let days = (info["AirdraftTrialDays"] as? String).flatMap(Int.init), (1...90).contains(days) {
-            config = PolarConfiguration(organizationID: org, benefitID: benefit, checkoutURL: checkout, portalURL: portal, trialDays: days)
+            config = PolarConfiguration(organizationID: org, benefitIDs: benefits, checkoutURL: checkout, portalURL: portal, trialDays: days)
         } else { config = nil }
         return LicenseStore(distribution: distribution, configuration: config,
             storage: KeychainLicenseStorage(bundleID: bundle.bundleIdentifier ?? AppIdentity.bundleID))

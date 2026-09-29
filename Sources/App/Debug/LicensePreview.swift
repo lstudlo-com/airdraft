@@ -5,7 +5,7 @@ import Foundation
 @MainActor enum LicensePreview {
     static func container(_ scenario: String) -> AppContainer {
         let org = UUID(), benefit = UUID()
-        let config = PolarConfiguration(organizationID: org, benefitID: benefit,
+        let config = PolarConfiguration(organizationID: org, benefitIDs: [benefit],
             checkoutURL: URL(string: "https://polar.sh/checkout/preview")!, portalURL: URL(string: "https://polar.sh/preview/portal")!)
         let now = Date()
         var record = LicenseRecord()

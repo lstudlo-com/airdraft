@@ -320,6 +320,9 @@ request; require customer-portal recovery instead of automatically retrying.
 configuration. Empty merchant IDs/URLs intentionally block official release.
 Checkout links allow HTTPS on `polar.sh` and `buy.polar.sh`; customer portals
 allow only HTTPS on `polar.sh`. Keep runtime and build validation aligned.
+The `benefit_ids` allowlist contains the two-Mac and five-Mac plan benefits.
+Validate membership before activation and persist the returned benefit ID;
+never accept an arbitrary benefit from the same organization.
 See `docs/licensing.md`; dashboard setup, mocks and renders do not verify an actual purchase.
 
 ## Local releases

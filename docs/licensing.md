@@ -13,8 +13,9 @@ and never silently enables community access. No merchant token is used by the ap
 2. Attach a license-key benefit. Enable device activations and customer device
    management; choose the device limit. Do not enable usage metering. Set expiry
    only if the purchased usage rights actually expire.
-3. Fill `scripts/licensing-config.json`: organization UUID, license-key benefit
-   UUID, the product's hosted checkout URL, organization customer portal URL, and
+3. Fill `scripts/licensing-config.json`: organization UUID, a nonempty
+   `benefit_ids` array of distinct license-key benefit UUIDs, the shared hosted
+   checkout URL, organization customer portal URL, and
    trial days. Checkout links accept HTTPS on `polar.sh` or `buy.polar.sh`;
    customer portals accept only HTTPS on `polar.sh`. User info, explicit ports,
    empty paths and build-setting substitutions are rejected.
@@ -28,12 +29,21 @@ and never silently enables community access. No merchant token is used by the ap
 
 Merchant configuration was supplied on 2026-09-29. The live product, attached
 benefit and persistent checkout link were read back from Polar; the checked-in
-public settings identify that product's license benefit. Current pricing and
+public settings identify the allowed plan benefits. Current pricing and
 policy are recorded in the Obsidian vault's `Strategy/Business Model` and
 `Records/Decisions/2026-09-29 Polar Merchant Setup`. This verifies configuration,
 not a completed purchase or production activation. The app currently targets
 the production API only; Sandbox purchases require an explicit environment
 configuration before testing with Sandbox keys.
+
+The two-Mac and five-Mac plans have separate products and license-key benefits.
+The shared Checkout Link lets the buyer choose one product. Embed both allowed
+benefits as `AirdraftPolarBenefits` through `AIRDRAFT_POLAR_BENEFITS`. The public
+validate request omits the optional single-benefit filter; the client checks the
+returned organization and benefit against its allowlist before allocating a
+device. Never accept every license in the organization. Persist the actual
+returned benefit so either plan stays valid after an offline restart. Device
+limits are enforced by Polar, not inferred from the key prefix or price.
 
 A perpetual license must not expire just to limit updates. Separate paid major
 upgrades would require a separate product/benefit or update-entitlement design;
@@ -83,8 +93,8 @@ Debug renders `license-{new,trial,expired,licensed,offline,revoked,pending,locke
 use isolated stores and a client that cannot contact Polar.
 
 API contracts checked 2026-09-29 against [Polar license-key benefits](https://polar.sh/docs/features/benefits/license-keys)
-and [customer-portal activation](https://polar.sh/docs/api-reference/2026-04/customer_portal/activate-license-key),
-[validation](https://polar.sh/docs/api-reference/2026-04/customer_portal/validate-license-key)
-and [deactivation](https://polar.sh/docs/api-reference/2026-04/customer_portal/deactivate-license-key).
+and [customer-portal activation](https://polar.sh/docs/api-reference/customer-portal/license-keys/activate),
+[validation](https://polar.sh/docs/api-reference/customer-portal/license-keys/validate)
+and [deactivation](https://polar.sh/docs/api-reference/customer-portal/license-keys/deactivate).
 Product policy and release status belong in the Obsidian vault's
 `Strategy/Business Model` and `Product/Features/Licensing` notes.

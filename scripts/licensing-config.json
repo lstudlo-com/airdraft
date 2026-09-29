@@ -1,6 +1,9 @@
 {
   "organization_id": "1e13404f-97c8-4b19-bc97-cd7fdd1dd169",
-  "benefit_id": "96d94dea-e6b7-4fc6-9656-6a0dc01744e1",
+  "benefit_ids": [
+    "96d94dea-e6b7-4fc6-9656-6a0dc01744e1",
+    "353d05ba-a5a7-427d-a6ab-e31d0deba380"
+  ],
   "checkout_url": "https://buy.polar.sh/polar_cl_7aJT1wBHboS8wTbtLd85DsN1eCnt6P9DaUYbG37tERB",
   "customer_portal_url": "https://polar.sh/lstudlo/portal",
   "trial_days": 14

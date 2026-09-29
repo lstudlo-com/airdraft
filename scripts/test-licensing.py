@@ -9,12 +9,14 @@ from licensing import build_settings, verify_app
 class LicensingBuildTests(unittest.TestCase):
     def config(self):
         return dict(organization_id="11111111-1111-4111-8111-111111111111",
-                    benefit_id="22222222-2222-4222-8222-222222222222",
+                    benefit_ids=["22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333"],
                     checkout_url="https://buy.polar.sh/polar_cl_test-only",
                     customer_portal_url="https://polar.sh/test-only/portal", trial_days=14)
 
     def test_missing_invalid_and_substituted_values_are_rejected(self):
-        cases = [dict(organization_id=""), dict(benefit_id="bad"), dict(trial_days=True), dict(trial_days=0),
+        cases = [dict(organization_id=""), dict(benefit_ids=[]), dict(benefit_ids="bad"),
+                 dict(benefit_ids=["bad"]), dict(benefit_ids=[None]), dict(benefit_ids=["00000000-0000-0000-0000-000000000000"]),
+                 dict(benefit_ids=[self.config()["benefit_ids"][0]] * 2), dict(trial_days=True), dict(trial_days=0),
                  dict(checkout_url="http://polar.sh/checkout/test"), dict(checkout_url="https://polar.sh.evil.test/a"),
                  dict(checkout_url="https://buy.polar.sh.evil.test/a"), dict(checkout_url="https://user@buy.polar.sh/a"),
                  dict(checkout_url="https://buy.polar.sh:443/a"), dict(checkout_url="https://sandbox.polar.sh/a"),
@@ -41,14 +43,19 @@ class LicensingBuildTests(unittest.TestCase):
             path.write_text(json.dumps(self.config()))
             settings = build_settings(path)
             self.assertIn("AIRDRAFT_DISTRIBUTION=official", settings)
+            self.assertIn("AIRDRAFT_POLAR_BENEFITS=" + ",".join(self.config()["benefit_ids"]), settings)
             app = root / "Fixture.app"
             (app / "Contents").mkdir(parents=True)
-            keys = ["AirdraftDistribution", "AirdraftPolarOrganization", "AirdraftPolarBenefit",
+            keys = ["AirdraftDistribution", "AirdraftPolarOrganization", "AirdraftPolarBenefits",
                     "AirdraftCheckoutURL", "AirdraftCustomerPortalURL", "AirdraftTrialDays"]
             info = dict(zip(keys, [x.split("=", 1)[1] for x in settings]))
             plist = app / "Contents/Info.plist"
             plist.write_bytes(plistlib.dumps(info))
             verify_app(app, settings)
+            info["AirdraftPolarBenefits"] = self.config()["benefit_ids"][0]
+            plist.write_bytes(plistlib.dumps(info))
+            with self.assertRaises(RuntimeError): verify_app(app, settings)
+            info["AirdraftPolarBenefits"] = ",".join(self.config()["benefit_ids"])
             info["AirdraftDistribution"] = "community"
             plist.write_bytes(plistlib.dumps(info))
             with self.assertRaises(RuntimeError): verify_app(app, settings)

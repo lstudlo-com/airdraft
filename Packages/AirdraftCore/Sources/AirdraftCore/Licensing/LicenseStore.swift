@@ -90,7 +90,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
         guard !storageBlocked, let record else { return .locked }
         let date = now()
         if let grant = record.grant,
-           grant.organizationID == configuration?.organizationID, grant.benefitID == configuration?.benefitID {
+           grant.organizationID == configuration?.organizationID, configuration?.benefitIDs.contains(grant.benefitID) == true {
             if grant.revoked { return .revoked }
             if grant.expiresAt.map({ date >= $0 }) ?? false { return .expired }
             return .licensed
@@ -147,7 +147,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
     public func activate(_ input: String) async {
         let key = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty, !isBusy, !storageBlocked, loaded, var next = record,
-              let client, let configuration else { return }
+              let client, configuration != nil else { return }
         guard next.grant == nil else {
             message = "Deactivate this Mac before replacing its license key."
             return
@@ -163,8 +163,8 @@ public struct KeychainLicenseStorage: LicenseStorage {
             next.activationPending = true
             try await save(next)
             let (activation, license) = try await client.activate(key: key, installationID: next.installationID)
-            next.grant = .init(key: key, activationID: activation, organizationID: configuration.organizationID,
-                               benefitID: configuration.benefitID, expiresAt: license.expiresAt, verifiedAt: now())
+            next.grant = .init(key: key, activationID: activation, organizationID: license.organizationID,
+                               benefitID: license.benefitID, expiresAt: license.expiresAt, verifiedAt: now())
             next.activationPending = false
             do { try await save(next) }
             catch {
@@ -206,6 +206,8 @@ public struct KeychainLicenseStorage: LicenseStorage {
         do {
             let license = try await client.validate(key: key, activationID: grant.activationID, installationID: next.installationID)
             grant.key = key
+            grant.organizationID = license.organizationID
+            grant.benefitID = license.benefitID
             grant.expiresAt = license.expiresAt
             grant.verifiedAt = now()
             grant.revoked = false
@@ -233,6 +235,8 @@ public struct KeychainLicenseStorage: LicenseStorage {
         defer { isBusy = false }
         do {
             let license = try await client.validate(key: grant.key, activationID: grant.activationID, installationID: next.installationID)
+            grant.organizationID = license.organizationID
+            grant.benefitID = license.benefitID
             grant.expiresAt = license.expiresAt
             grant.verifiedAt = now()
             grant.revoked = false
