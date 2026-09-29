@@ -8,6 +8,7 @@ enum HistoryVerification {
     static func run() throws {
         try verifySnapshots()
         verifyTextLayout()
+        verifyTextClipping()
     }
 
     private static func verifySnapshots() throws {
@@ -94,6 +95,52 @@ enum HistoryVerification {
         window.orderOut(nil)
         verifyHostedExpansion()
         print("PASS: Bounded multilingual text, six-line boundary, expansion, native selection and cache invalidation")
+    }
+
+    private static func verifyTextClipping() {
+        let paragraph = "長篇逐字稿包含中文、English、emoji 🎙️ 與多個段落。收合後，文字必須留在預覽區域內，讓展開、版本切換與操作按鈕保持可讀。"
+        let content = HistoryTextContent(String(repeating: paragraph + "\n\n", count: 40))
+        let view = HistoryTranscript.BackingView()
+        let canvas = NSView(frame: NSRect(x: 0, y: 0, width: 550, height: 400))
+        canvas.addSubview(view)
+        let window = NSWindow(contentRect: canvas.bounds, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = canvas
+        defer { window.orderOut(nil) }
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            window.appearance = NSAppearance(named: appearance)
+            window.makeKeyAndOrderFront(nil)
+            for width in [CGFloat(300), 430, 510] {
+                // Exercise initial display, collapse, and a transcript-version change.
+                for expanded in [false, true, false] {
+                    view.configure(content: content, expanded: expanded)
+                    let size = view.measure(width: width)
+                    view.frame = NSRect(x: 20, y: 20, width: width, height: size.height)
+                    view.layoutSubtreeIfNeeded()
+                    let field = view.textField
+                    let visible = field.visibleRect
+                    precondition(field.bounds.insetBy(dx: -0.5, dy: -0.5).contains(visible),
+                                 "Transcript drawing escaped its text area: \(visible) outside \(field.bounds)")
+                    precondition(field.frame.maxY + Theme.controlSpacing <= view.toggle.frame.minY,
+                                 "Transcript must leave the expansion control clear")
+                    if !expanded {
+                        field.selectText(nil)
+                        guard let editor = field.currentEditor() else {
+                            preconditionFailure("Long transcript must support native selection")
+                        }
+                        let selectionArea = editor.convert(editor.visibleRect, to: field)
+                        precondition(field.bounds.insetBy(dx: -0.5, dy: -0.5).contains(selectionArea),
+                                     "Native selection escaped the collapsed text area")
+                        window.makeFirstResponder(nil)
+                    }
+                }
+                view.configure(content: HistoryTextContent("Short original transcript."), expanded: false)
+                view.frame.size.height = view.measure(width: width).height
+                view.layoutSubtreeIfNeeded()
+                precondition(view.toggle.isHidden && view.textField.frame.height < 30,
+                             "Switching to a short version must reset the collapsed layout")
+            }
+        }
+        print("PASS: Transcript drawing and native selection stay clear of controls in both appearances")
     }
 
     private static func verifyHostedExpansion() {

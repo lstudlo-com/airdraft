@@ -41,7 +41,9 @@ enum DebugRender {
             for index in 0..<count {
                 let phrase = index % 2 == 0 ? "A long dictation should scroll without blocking the interface. " :
                     "這是一段用來驗證歷史記錄捲動效能的文字，包含中文、English 與 emoji 🎙️。"
-                let text = String(repeating: phrase, count: [1, 4, 20, 160][index % 4])
+                let text = index == 0
+                    ? String(repeating: "長篇逐字稿包含中文、English 與 emoji 🎙️。收合後只顯示前六行，文字不能蓋住 Show More、版本切換或下方的操作按鈕。\n\n", count: 40)
+                    : String(repeating: phrase, count: [1, 4, 20, 160][index % 4])
                 _ = try? container.history?.save(DictationRecord(createdAt: now.addingTimeInterval(-Double(index) * 3600),
                     appName: "Notes", mode: "Clean", family: "general", rawTranscript: "um " + text,
                     refinedText: text, finalText: text, asrEngine: "fixture", audioSeconds: 60,

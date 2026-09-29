@@ -48,7 +48,10 @@ lazy view eviction.
 to 2,048 graphemes and six lines; a seven-line probe determines whether to offer
 expansion. Copy and expansion retain the complete transcript. Width-dependent
 measurements are cached and returned in the first SwiftUI size proposal, without
-geometry-driven state updates. These use documented
+geometry-driven state updates. The text field explicitly clips drawing and native
+selection to its measured bounds, keeping long paragraphs out of Show More and
+the card's version picker and actions. A line limit alone does not establish that
+drawing boundary. These use documented
 [wrapping line limits](https://developer.apple.com/documentation/appkit/nstextfield/maximumnumberoflines)
 and [native view sizing](https://developer.apple.com/documentation/swiftui/nsviewrepresentable/sizethatfits(_:nsview:context:)).
 
@@ -75,6 +78,10 @@ Run the Debug executable with `AIRDRAFT_RENDER_HISTORY_COUNT=2000` and
 databases. Checks cover pagination across day boundaries, search, deletion,
 visible-ID lookup, multilingual text, six-line truncation, expansion and cache
 invalidation, real native selection and expansion after view recreation.
+Drawing-boundary checks cover initial display, expansion/collapse, transcript
+version changes and native selection at three widths in both appearances. The
+unclipped implementation fails this check because its visible drawing rectangle
+extends beyond the text field into the surrounding controls.
 The core suite completed 266 tests with four skips and zero failures. All pages
 were rendered at 784 × 600 and 784 × 1,000 in both appearances, with additional
 History checks in the collapsed sidebar. The live window check covers both scroll columns, bottom-to-top

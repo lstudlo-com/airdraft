@@ -47,6 +47,9 @@ struct HistoryTranscript: NSViewRepresentable {
                 field.cell?.truncatesLastVisibleLine = true
                 field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             }
+            // AppKit views no longer clip by default. Keep text and native
+            // selection inside the measured area, clear of the card controls.
+            textField.clipsToBounds = true
             textField.isSelectable = true
             probe.maximumNumberOfLines = 7
             toggle.isBordered = false

@@ -176,6 +176,9 @@ status table current.
   presenting Details or Delete. Collapsed text uses bounded native layout with cached sizing, not
   hidden full transcripts or geometry-to-state height feedback. Preserve full text
   for Copy and expansion, and keep expansion/version state outside lazy rows.
+  Explicitly clip the native transcript field to its measured bounds so long text
+  and selection cannot draw over Show More, the version picker or card actions.
+  Verify the drawing boundary as well as the six-line measurement.
   Keep day groups, search, lazy card loading
   and native card actions. The timeline follows the same filtered records. Refresh sidebar word totals after single/all history
   deletion and every completed save retry; reject stale asynchronous count results.
