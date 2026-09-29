@@ -82,5 +82,24 @@ class LicensingBuildTests(unittest.TestCase):
                 with self.subTest(field=field, url=url), self.assertRaises(RuntimeError):
                     build_settings(path, environment="sandbox")
 
+    def test_sandbox_persistent_checkout_route(self):
+        link = "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_test-only/redirect"
+        config = self.config() | dict(environment="sandbox", checkout_url=link,
+            customer_portal_url="https://sandbox.polar.sh/test-only/portal")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sandbox.json"
+            path.write_text(json.dumps(config))
+            self.assertIn(f"AIRDRAFT_CHECKOUT_URL={link}", build_settings(path, environment="sandbox"))
+            for change in [dict(environment="production"), dict(customer_portal_url=link),
+                           dict(checkout_url="https://sandbox-api.polar.sh/v1/customer-portal/license-keys/activate"),
+                           dict(checkout_url="https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_/redirect"),
+                           dict(checkout_url=link.replace("/redirect", "")),
+                           dict(checkout_url=link.replace("sandbox-api.polar.sh", "sandbox-api.polar.sh.evil.test")),
+                           dict(checkout_url=link.replace("https://", "https://user@")),
+                           dict(checkout_url=link.replace("polar.sh/", "polar.sh:443/"))]:
+                path.write_text(json.dumps(config | change))
+                with self.subTest(change=change), self.assertRaises(RuntimeError):
+                    build_settings(path, environment="sandbox")
+
 
 if __name__ == "__main__": unittest.main()

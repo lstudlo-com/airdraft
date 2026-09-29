@@ -8,7 +8,7 @@ public enum PolarEnvironment: String, Sendable, CaseIterable {
     }
 
     var checkoutHosts: Set<String> {
-        self == .sandbox ? ["sandbox.polar.sh"] : ["polar.sh", "buy.polar.sh"]
+        self == .sandbox ? ["sandbox.polar.sh", "sandbox-api.polar.sh"] : ["polar.sh", "buy.polar.sh"]
     }
 
     var portalHosts: Set<String> { self == .sandbox ? ["sandbox.polar.sh"] : ["polar.sh"] }
@@ -33,7 +33,14 @@ public struct PolarConfiguration: Equatable, Sendable {
     }
 
     public static func parseCheckoutURL(_ value: String, environment: PolarEnvironment = .production) -> URL? {
-        publicURL(value, hosts: environment.checkoutHosts)
+        guard let url = publicURL(value, hosts: environment.checkoutHosts) else { return nil }
+        // Sandbox's dashboard generates persistent links on its API host.
+        // Accept only the checkout redirect route, never arbitrary API URLs.
+        if url.host == "sandbox-api.polar.sh" {
+            guard url.path.range(of: #"^/v1/checkout-links/polar_cl_[A-Za-z0-9_-]+/redirect$"#,
+                                 options: .regularExpression) != nil else { return nil }
+        }
+        return url
     }
 
     public static func parsePortalURL(_ value: String, environment: PolarEnvironment = .production) -> URL? {

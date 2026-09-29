@@ -91,6 +91,21 @@ private actor LicenseFixtureClient: PolarLicensing {
                           KeychainLicenseStorage.accountName(bundleID: bundle + ".debug", environment: .sandbox))
     }
 
+    func testSandboxPersistentCheckoutAcceptsOnlyTheCheckoutRedirectRoute() {
+        let link = "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_test-only/redirect"
+        XCTAssertNotNil(PolarConfiguration.parseCheckoutURL(link, environment: .sandbox))
+        XCTAssertNil(PolarConfiguration.parseCheckoutURL(link, environment: .production))
+        XCTAssertNil(PolarConfiguration.parsePortalURL(link, environment: .sandbox))
+        for value in ["https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_/redirect",
+                      "https://sandbox-api.polar.sh/v1/customer-portal/license-keys/activate",
+                      "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_test-only",
+                      "https://sandbox-api.polar.sh.evil.test/v1/checkout-links/polar_cl_test/redirect",
+                      "https://user@sandbox-api.polar.sh/v1/checkout-links/polar_cl_test/redirect",
+                      "https://sandbox-api.polar.sh:443/v1/checkout-links/polar_cl_test/redirect"] {
+            XCTAssertNil(PolarConfiguration.parseCheckoutURL(value, environment: .sandbox), value)
+        }
+    }
+
     func testBenefitAllowlistRejectsEmptyMalformedAndDuplicateConfiguration() {
         XCTAssertEqual(PolarConfiguration.parseBenefitIDs("\(benefit),\(fiveMacBenefit)"), [benefit, fiveMacBenefit])
         XCTAssertEqual(PolarConfiguration.parseBenefitIDs(benefit.uuidString), [benefit])

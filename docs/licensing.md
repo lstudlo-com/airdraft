@@ -66,10 +66,26 @@ sub-addressing aliases.
    deactivation. Test wrong-product keys, rotation and refund/revocation with
    dedicated sandbox orders. Mocks and previews remain distinct from these checks.
 
+Sandbox merchant setup and test-card verification completed on 2026-09-29.
+Both plans issued keys that activated the Debug app. The two-device and
+five-device limits rejected the next activation; released slots were reusable.
+Rotation kept the app's existing device, portal removal invalidated it, and a
+full sandbox refund with **Revoke Benefits** invalidated the five-Mac license.
+The test device was then deactivated from the app. See the vault record
+`Records/Releases/2026-09-29 Polar Sandbox Purchase Verification` for artifact
+identity, test scope and remaining release gates. No real payment was made.
+
+Polar limits the public validate/activate/deactivate endpoints to three requests
+per second. Space automated sandbox probe requests by at least one second,
+honor `Retry-After` on 429, and inspect the portal after an uncertain mutation.
+Never blindly retry activation or infer successful cleanup from a failed response.
+A 429 must preserve a verified license, as other transient failures do.
+
 The app selects its environment with `#if DEBUG`, checks that embedded settings
-match, and rejects checkout/portal URLs from the other environment. Sandbox
-links currently accept only `sandbox.polar.sh`; production checkout additionally
-accepts `buy.polar.sh`. Network errors never fall back across environments.
+match, and rejects checkout/portal URLs from the other environment. Sandbox checkout accepts `sandbox.polar.sh` and the dashboard-generated
+`sandbox-api.polar.sh/v1/checkout-links/polar_cl_…/redirect` route. Other API
+paths are rejected; sandbox portals accept only `sandbox.polar.sh`. Production
+checkout additionally accepts `buy.polar.sh`. Network errors never fall back across environments.
 Sandbox Keychain receipt accounts include `.sandbox`; production keeps its
 existing account with no migration or reset. This separates trials, device IDs,
 pending requests and cached grants. Provider credentials retain their existing scope.

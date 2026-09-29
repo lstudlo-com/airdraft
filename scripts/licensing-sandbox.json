@@ -1,8 +1,11 @@
 {
   "environment": "sandbox",
-  "organization_id": "",
-  "benefit_ids": [],
-  "checkout_url": "",
-  "customer_portal_url": "",
+  "organization_id": "a3c8fc6a-9433-479c-b85a-d0cbbdb6ec8c",
+  "benefit_ids": [
+    "f001b3d2-8f5f-4193-aa5f-8ca2b4b822d5",
+    "21939b32-319b-45ba-80bd-8941294aa77e"
+  ],
+  "checkout_url": "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_Arlsdw6fmvOnxjh4zFftq07dCyHDjBXKUO5Sk0ZiL9Q/redirect",
+  "customer_portal_url": "https://sandbox.polar.sh/lstudlo/portal",
   "trial_days": 14
 }

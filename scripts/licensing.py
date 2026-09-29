@@ -1,6 +1,7 @@
 """Public official-build configuration. No merchant secrets belong here."""
 import json
 import plistlib
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 from uuid import UUID
@@ -27,10 +28,14 @@ def build_settings(path: Path, *, environment: str = "production") -> list[str]:
         raise RuntimeError(f"benefit_ids must be a nonempty list of distinct nonzero UUIDs in {path}")
     for name in ("checkout_url", "customer_portal_url"):
         url = urlparse(config.get(name, ""))
-        hosts = ({"sandbox.polar.sh"} if environment == "sandbox" else
+        hosts = ({"sandbox.polar.sh", "sandbox-api.polar.sh"} if environment == "sandbox" and name == "checkout_url" else
+                 {"sandbox.polar.sh"} if environment == "sandbox" else
                  {"polar.sh", "buy.polar.sh"} if name == "checkout_url" else {"polar.sh"})
         if url.scheme != "https" or url.hostname not in hosts or url.username or url.password or url.port or not url.path.strip("/"):
             raise RuntimeError(f"{name} must use HTTPS and an approved Polar host: {', '.join(sorted(hosts))}")
+        if url.hostname == "sandbox-api.polar.sh" and not re.fullmatch(
+                r"/v1/checkout-links/polar_cl_[A-Za-z0-9_-]+/redirect", url.path):
+            raise RuntimeError("Sandbox API checkout must use a persistent checkout-link redirect")
         # These values become Xcode build settings; reject substitutions and controls.
         if any(char in config[name] for char in "$\n\r\t"):
             raise RuntimeError(f"Unsupported characters in {name}")
