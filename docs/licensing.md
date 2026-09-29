@@ -15,8 +15,9 @@ and never silently enables community access. No merchant token is used by the ap
    only if the purchased usage rights actually expire.
 3. Fill `scripts/licensing-config.json`: organization UUID, license-key benefit
    UUID, the product's hosted checkout URL, organization customer portal URL, and
-   trial days. Both URLs must use `https://polar.sh`. The 14-day default is a
-   configurable implementation choice, not an established published policy.
+   trial days. Checkout links accept HTTPS on `polar.sh` or `buy.polar.sh`;
+   customer portals accept only HTTPS on `polar.sh`. User info, explicit ports,
+   empty paths and build-setting substitutions are rejected.
 4. Run `python3 scripts/licensing.py` and `python3 scripts/test-licensing.py`.
    The first command intentionally fails while IDs/URLs are empty. Public IDs
    and links may be committed; access tokens, license keys and payment data may not.
@@ -24,6 +25,19 @@ and never silently enables community access. No merchant token is used by the ap
    limit, key rotation, portal deactivation, refund/revocation, offline restart
    and Keychain denial using dedicated test purchases and a disposable user.
    Local fixture tests are not proof of merchant setup or successful payment.
+
+Merchant configuration was supplied on 2026-09-29. The live product, attached
+benefit and persistent checkout link were read back from Polar; the checked-in
+public settings identify that product's license benefit. Current pricing and
+policy are recorded in the Obsidian vault's `Strategy/Business Model` and
+`Records/Decisions/2026-09-29 Polar Merchant Setup`. This verifies configuration,
+not a completed purchase or production activation. The app currently targets
+the production API only; Sandbox purchases require an explicit environment
+configuration before testing with Sandbox keys.
+
+A perpetual license must not expire just to limit updates. Separate paid major
+upgrades would require a separate product/benefit or update-entitlement design;
+the current app has no update-expiry policy.
 
 ## Runtime contract
 

@@ -54,6 +54,21 @@ private actor LicenseFixtureClient: PolarLicensing {
 }
 
 @MainActor final class LicensingTests: XCTestCase {
+    func testPublicLinksAcceptPolarCheckoutHostWithoutBroadeningPortalHosts() {
+        for value in ["https://buy.polar.sh/polar_cl_example", "https://polar.sh/checkout/test-only"] {
+            XCTAssertEqual(PolarConfiguration.parseCheckoutURL(value)?.absoluteString, value)
+        }
+        XCTAssertNotNil(PolarConfiguration.parsePortalURL("https://polar.sh/airdraft/portal"))
+        XCTAssertNil(PolarConfiguration.parsePortalURL("https://buy.polar.sh/airdraft/portal"))
+        for value in ["http://buy.polar.sh/polar_cl_example", "https://buy.polar.sh.evil.test/link",
+                      "https://sandbox.polar.sh/link", "https://polar.sh@evil.test/link",
+                      "https://user@buy.polar.sh/link", "https://buy.polar.sh:443/link",
+                      "https://buy.polar.sh/", "https://polar.sh/$(TOKEN)", "https://polar.sh/a\nb"] {
+            XCTAssertNil(PolarConfiguration.parseCheckoutURL(value), value)
+            XCTAssertNil(PolarConfiguration.parsePortalURL(value), value)
+        }
+    }
+
     private func make(_ storage: MemoryLicenseStorage, client: LicenseFixtureClient = .init(), date: Date = Date()) -> LicenseStore {
         LicenseStore(distribution: .official, configuration: licenseConfig, storage: storage, client: client, now: { date })
     }

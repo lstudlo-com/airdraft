@@ -8,6 +8,23 @@ public struct PolarConfiguration: Equatable, Sendable {
     public let portalURL: URL
     public let trialDays: Int
 
+    public static func parseCheckoutURL(_ value: String) -> URL? {
+        publicURL(value, hosts: ["polar.sh", "buy.polar.sh"])
+    }
+
+    public static func parsePortalURL(_ value: String) -> URL? {
+        publicURL(value, hosts: ["polar.sh"])
+    }
+
+    private static func publicURL(_ value: String, hosts: Set<String>) -> URL? {
+        guard !value.contains(where: { "$\n\r\t".contains($0) }),
+              let url = URL(string: value), url.scheme == "https",
+              let host = url.host, hosts.contains(host),
+              url.user == nil, url.password == nil, url.port == nil,
+              !url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).isEmpty else { return nil }
+        return url
+    }
+
     public init(organizationID: UUID, benefitID: UUID, checkoutURL: URL, portalURL: URL, trialDays: Int = 14) {
         self.organizationID = organizationID
         self.benefitID = benefitID

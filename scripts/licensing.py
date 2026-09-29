@@ -16,8 +16,9 @@ def build_settings(path: Path) -> list[str]:
             raise RuntimeError(f"Configure Polar {name} in {path}. See docs/licensing.md.")
     for name in ("checkout_url", "customer_portal_url"):
         url = urlparse(config.get(name, ""))
-        if url.scheme != "https" or url.hostname != "polar.sh" or url.username or url.password or url.port or not url.path.strip("/"):
-            raise RuntimeError(f"{name} must be an organization-specific https://polar.sh URL")
+        hosts = {"polar.sh", "buy.polar.sh"} if name == "checkout_url" else {"polar.sh"}
+        if url.scheme != "https" or url.hostname not in hosts or url.username or url.password or url.port or not url.path.strip("/"):
+            raise RuntimeError(f"{name} must use HTTPS and an approved Polar host: {', '.join(sorted(hosts))}")
         # These values become Xcode build settings; reject substitutions and controls.
         if any(char in config[name] for char in "$\n\r\t"):
             raise RuntimeError(f"Unsupported characters in {name}")

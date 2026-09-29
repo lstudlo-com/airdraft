@@ -10,12 +10,15 @@ class LicensingBuildTests(unittest.TestCase):
     def config(self):
         return dict(organization_id="11111111-1111-4111-8111-111111111111",
                     benefit_id="22222222-2222-4222-8222-222222222222",
-                    checkout_url="https://polar.sh/checkout/test-only",
+                    checkout_url="https://buy.polar.sh/polar_cl_test-only",
                     customer_portal_url="https://polar.sh/test-only/portal", trial_days=14)
 
     def test_missing_invalid_and_substituted_values_are_rejected(self):
         cases = [dict(organization_id=""), dict(benefit_id="bad"), dict(trial_days=True), dict(trial_days=0),
                  dict(checkout_url="http://polar.sh/checkout/test"), dict(checkout_url="https://polar.sh.evil.test/a"),
+                 dict(checkout_url="https://buy.polar.sh.evil.test/a"), dict(checkout_url="https://user@buy.polar.sh/a"),
+                 dict(checkout_url="https://buy.polar.sh:443/a"), dict(checkout_url="https://sandbox.polar.sh/a"),
+                 dict(customer_portal_url="https://buy.polar.sh/test-only/portal"),
                  dict(checkout_url="https://polar.sh/$(TOKEN)"), dict(customer_portal_url="https://polar.sh")]
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"
@@ -23,6 +26,13 @@ class LicensingBuildTests(unittest.TestCase):
                 with self.subTest(change=change):
                     path.write_text(json.dumps(self.config() | change))
                     with self.assertRaises(RuntimeError): build_settings(path)
+
+    def test_both_official_checkout_hosts_are_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            for url in ["https://polar.sh/checkout/test-only", "https://buy.polar.sh/polar_cl_test-only"]:
+                path.write_text(json.dumps(self.config() | {"checkout_url": url}))
+                self.assertIn(f"AIRDRAFT_CHECKOUT_URL={url}", build_settings(path))
 
     def test_final_artifact_must_match_official_config(self):
         with tempfile.TemporaryDirectory() as directory:

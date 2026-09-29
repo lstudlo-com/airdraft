@@ -10,18 +10,12 @@ import Foundation
         let config: PolarConfiguration?
         if let org = (info["AirdraftPolarOrganization"] as? String).flatMap(UUID.init(uuidString:)),
            let benefit = (info["AirdraftPolarBenefit"] as? String).flatMap(UUID.init(uuidString:)),
-           let checkout = publicURL(info["AirdraftCheckoutURL"]),
-           let portal = publicURL(info["AirdraftCustomerPortalURL"]),
+           let checkout = (info["AirdraftCheckoutURL"] as? String).flatMap(PolarConfiguration.parseCheckoutURL),
+           let portal = (info["AirdraftCustomerPortalURL"] as? String).flatMap(PolarConfiguration.parsePortalURL),
            let days = (info["AirdraftTrialDays"] as? String).flatMap(Int.init), (1...90).contains(days) {
             config = PolarConfiguration(organizationID: org, benefitID: benefit, checkoutURL: checkout, portalURL: portal, trialDays: days)
         } else { config = nil }
         return LicenseStore(distribution: distribution, configuration: config,
             storage: KeychainLicenseStorage(bundleID: bundle.bundleIdentifier ?? AppIdentity.bundleID))
-    }
-
-    private static func publicURL(_ value: Any?) -> URL? {
-        guard let text = value as? String, let url = URL(string: text), url.scheme == "https",
-              url.host == "polar.sh", url.user == nil, url.password == nil else { return nil }
-        return url
     }
 }

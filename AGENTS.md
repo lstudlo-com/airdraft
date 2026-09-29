@@ -318,7 +318,9 @@ licenses during transient outages. Persist an uncertain activation before the
 request; require customer-portal recovery instead of automatically retrying.
 `release.py` requires `scripts/licensing-config.json` and verifies the embedded
 configuration. Empty merchant IDs/URLs intentionally block official release.
-See `docs/licensing.md`; mocks and renders do not verify an actual purchase.
+Checkout links allow HTTPS on `polar.sh` and `buy.polar.sh`; customer portals
+allow only HTTPS on `polar.sh`. Keep runtime and build validation aligned.
+See `docs/licensing.md`; dashboard setup, mocks and renders do not verify an actual purchase.
 
 ## Local releases
 
