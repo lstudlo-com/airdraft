@@ -11,6 +11,7 @@ python3 scripts/test-local-e2e.py --output "$EVIDENCE/core"
 python3 scripts/verify-native-behaviors.py
 python3 scripts/verify-model-lifecycle.py
 python3 -B scripts/test-release.py
+python3 -B scripts/test-insertion-regressions.py
 python3 -B scripts/test-prompt-gate.py
 python3 -B scripts/verify-prompt.py
 ```
@@ -23,6 +24,12 @@ core suite，跨身分 Keychain fixture 也排除；scope 與 exclusions 記在
 不得將此範圍描述為完整 credential 驗收。未指定時仍跑完整 suite。
 
 `test-local-e2e.py` 是無 API 憑證的核心測試選集。release prepare 在建立新成品時另跑完整核心 suite；重用成品會略過，依 skill 第 3 節補齊本次測試。兩者都不能代替 App 的實際流程。原生 fixture 的 HUD 會短暫出現，與其他 UI 操作錯開執行。
+
+本機 runner 與 release prepare 都會檢查實際 xcresult 的 34 個 mandatory
+insertion regressions，涵蓋 production capture／insert entry points 與關閉
+context 的 pipeline → History。任何 missing、skip 或 fail 都會阻止通過，
+不可只引用 xcodebuild exit 0。此 gate 適用於完整與 credential-free 範圍；
+證據為各次 core run 旁的 `insertion-regressions.json`。
 
 Moon 可用時採用既有 tasks。若 Moon 或 XcodeGen 不在 PATH，依 repo 現有工具與發佈腳本處理；可用 `dist/tools/xcodegen/bin/xcodegen generate` 與直接 `xcodebuild`。Xcode 指令保留 `-skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc`，序列化執行，不指定 `-derivedDataPath`。
 

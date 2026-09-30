@@ -272,6 +272,12 @@ status table current.
   its field and caret before recording. Accept one valid `AXSelectedTextRanges`
   entry when the singular attribute is unsupported; unknown selections never match.
   After app activation, wait briefly for the original field and selection to settle.
+  Keep `TextDeliveryRegressionTests` exercising production capture and insert
+  entry points through an injected OS boundary and disposable pasteboard. Cover
+  Auto and Always paste, rejected/ambiguous writes, web/native focus, changed
+  destinations, cancellation and context-off pipeline delivery through History.
+  Local and release core runs must pass `verify-insertion-regressions.py` against
+  their actual xcresult; mandatory insertion cases cannot be missing or skipped.
   Keep AX write error codes: only unsupported/not-implemented rejections with an
   unchanged field, selection and value may fall back to paste. Verify accepted
   writes with a bounded, cancellable read wait; never repeat the write or copy

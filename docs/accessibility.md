@@ -127,6 +127,19 @@ Regression tests cover rejection, changed destinations, delayed values, deadline
 and cancellation. These fixtures do not establish insertion success in every app;
 the destination apps still need a real dictation check.
 
+`TextDeliveryRegressionTests` also calls the production `captureTarget()` and
+`insert()` entry points together. Only the OS boundary is injected; focus matching,
+AX verification, fallback choice, clipboard restoration and delivery callbacks
+remain production code. A pipeline case with context disabled checks delivery
+and the resulting History record. Every fixture uses a private pasteboard.
+
+Both `pnpm test:local` and release preparation inspect their actual xcresult with
+`verify-insertion-regressions.py`. All 34 mandatory helper and delivery regressions
+must execute and pass; a missing suite, skipped case, failure or failing retry
+blocks the run even if Xcode exits successfully. The gate applies to full and
+credential-free release scopes. A contract update is required to rename or retire
+a mandatory case. Fault tests cover the gate's rejection behavior.
+
 ## Implementation and evidence
 
 `SystemPermissions` publishes live Accessibility and microphone state. It polls

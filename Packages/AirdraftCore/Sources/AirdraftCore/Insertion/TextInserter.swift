@@ -31,11 +31,72 @@ public struct InsertionTarget {
 /// Puts text at the cursor of the app the user was dictating into.
 @MainActor
 public final class TextInserter {
+    /// The OS boundary is injectable so regression tests execute capture,
+    /// validation and delivery together without touching real apps or clipboard.
+    @MainActor
+    struct Environment {
+        struct Application {
+            let processID: Int32
+            let bundleID: String?
+        }
+        var frontmostApplication: () -> Application?
+        var application: (Int32) -> Application?
+        var activate: (Int32) -> Bool
+        var isTrusted: () -> Bool
+        var applicationFocus: (Int32) -> AXUIElement?
+        var systemFocus: () -> AXUIElement?
+        var processID: (AXUIElement) -> Int32?
+        var readAttribute: (AXUIElement, CFString) -> (AXError, CFTypeRef?)
+        var isSettable: (AXUIElement, CFString) -> Bool
+        var writeAttribute: (AXUIElement, CFString, CFTypeRef) -> AXError
+        var enableWebAccessibility: (Int32) -> Bool
+        var postPaste: () -> Bool
+        var pasteboard: NSPasteboard
+
+        static var live: Environment {
+            Environment(frontmostApplication: {
+                NSWorkspace.shared.frontmostApplication.map { Application(processID: $0.processIdentifier, bundleID: $0.bundleIdentifier) }
+            }, application: { pid in
+                guard let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else { return nil }
+                return Application(processID: app.processIdentifier, bundleID: app.bundleIdentifier)
+            }, activate: { NSRunningApplication(processIdentifier: $0)?.activate() == true },
+            isTrusted: { AXIsProcessTrusted() }, applicationFocus: { copyFocus(in: AXUIElementCreateApplication($0)) },
+            systemFocus: { copyFocus(in: AXUIElementCreateSystemWide()) }, processID: { element in
+                var pid: pid_t = 0
+                return AXUIElementGetPid(element, &pid) == .success ? pid : nil
+            }, readAttribute: { element, attribute in
+                var ref: CFTypeRef?
+                let status = AXUIElementCopyAttributeValue(element, attribute, &ref)
+                return (status, ref)
+            }, isSettable: { element, attribute in
+                var settable: DarwinBoolean = false
+                return AXUIElementIsAttributeSettable(element, attribute, &settable) == .success && settable.boolValue
+            }, writeAttribute: { AXUIElementSetAttributeValue($0, $1, $2) }, enableWebAccessibility: { pid in
+                guard AXIsProcessTrusted() else { return false }
+                let app = AXUIElementCreateApplication(pid)
+                AXUIElementSetMessagingTimeout(app, 0.3)
+                return AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success
+            }, postPaste: { postCommandV() }, pasteboard: .general)
+        }
+
+        private static func copyFocus(in root: AXUIElement) -> AXUIElement? {
+            AXUIElementSetMessagingTimeout(root, 0.3)
+            var ref: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(root, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+                  let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else { return nil }
+            let element = ref as! AXUIElement
+            AXUIElementSetMessagingTimeout(element, 0.3)
+            return element
+        }
+    }
+
+    private let environment: Environment
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "insert")
     /// How long the pasted text stays on the clipboard before the previous contents return.
     public var restoreDelay: TimeInterval = 1.0
 
-    public init() {}
+    public init() { environment = .live }
+    init(environment: Environment) { self.environment = environment }
 
     public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil,
                        onDelivered: (() -> Void)? = nil) async -> InsertionResult {
@@ -49,7 +110,7 @@ public final class TextInserter {
         }
 
         // Bring the original app back if focus moved while we were transcribing.
-        guard AXIsProcessTrusted() else {
+        guard environment.isTrusted() else {
             copyOnly(text)
             Self.log.error("insert: Accessibility not granted, copied only")
             return InsertionResult(method: .clipboardOnly, notice: "Accessibility is off, text copied")
@@ -86,7 +147,8 @@ public final class TextInserter {
             copyOnly(text)
             return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
-        let ok = await insertViaPaste(text, onDelivered: onDelivered)
+        let ok = await insertViaPaste(text, pasteboard: environment.pasteboard,
+                                     postPaste: environment.postPaste, onDelivered: onDelivered)
         return ok
             ? InsertionResult(method: .paste, notice: nil)
             : InsertionResult(method: .clipboardOnly, notice: "Couldn't paste, text copied")
@@ -95,20 +157,17 @@ public final class TextInserter {
     // MARK: - Focus
 
     public func captureTarget() async -> InsertionTarget? {
-        guard !Task.isCancelled, let app = NSWorkspace.shared.frontmostApplication else { return nil }
-        return await Self.captureTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier,
-            isFrontmost: { NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier },
+        guard !Task.isCancelled, let app = environment.frontmostApplication() else { return nil }
+        return await Self.captureTarget(processID: app.processID, bundleID: app.bundleID,
+            isFrontmost: { self.environment.frontmostApplication()?.processID == app.processID },
             readFocus: {
-                let element = self.focusedElement(pid: app.processIdentifier)
+                let element = self.focusedElement(pid: app.processID)
                 return (element, element.flatMap(self.selection))
             }, enableWebAccessibility: {
-                guard AXIsProcessTrusted() else { return false }
-                let element = AXUIElementCreateApplication(app.processIdentifier)
-                AXUIElementSetMessagingTimeout(element, 0.3)
+                guard self.environment.isTrusted() else { return false }
                 // Electron documents this attribute for third-party assistive
                 // clients. Unsupported apps reject it without changing focus.
-                return AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString,
-                                                     kCFBooleanTrue) == .success
+                return self.environment.enableWebAccessibility(app.processID)
             })
     }
 
@@ -131,10 +190,9 @@ public final class TextInserter {
     }
 
     private func restoreFocus(to target: InsertionTarget) async -> Bool {
-        guard let app = NSRunningApplication(processIdentifier: target.processID), !app.isTerminated,
-              app.bundleIdentifier == target.bundleID else { return false }
-        if NSWorkspace.shared.frontmostApplication?.processIdentifier != target.processID {
-            guard app.activate() else { return false }
+        guard let app = environment.application(target.processID), app.bundleID == target.bundleID else { return false }
+        if environment.frontmostApplication()?.processID != target.processID {
+            guard environment.activate(target.processID) else { return false }
             // Being frontmost can precede the editor's focused-field update.
             return await Self.waitForMatch { self.matches(target) }
         }
@@ -155,7 +213,7 @@ public final class TextInserter {
     }
 
     private func matches(_ target: InsertionTarget) -> Bool {
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processID,
+        guard environment.frontmostApplication()?.processID == target.processID,
               let original = target.element, let current = focusedElement(pid: target.processID),
               CFEqual(original, current) else { return false }
         return Self.selectionMatches(target.selection, selection(current))
@@ -168,35 +226,23 @@ public final class TextInserter {
     }
 
     private func focusedElement(pid: Int32) -> AXUIElement? {
-        guard AXIsProcessTrusted() else { return nil }
-        let app = AXUIElementCreateApplication(pid)
-        let appFocus = focusedElement(in: app, pid: pid)
+        guard environment.isTrusted() else { return nil }
+        let appFocus = ownedFocus(environment.applicationFocus(pid), pid: pid)
         if let appFocus, selection(appFocus) != nil { return appFocus }
         // Some editors report a window at application level while the system
         // reports the actual editor. Never accept a system field from another PID.
-        let systemFocus = focusedElement(in: AXUIElementCreateSystemWide(), pid: pid)
+        let systemFocus = ownedFocus(environment.systemFocus(), pid: pid)
         if let systemFocus, selection(systemFocus) != nil { return systemFocus }
         return appFocus ?? systemFocus
     }
 
-    private func focusedElement(in root: AXUIElement, pid: Int32) -> AXUIElement? {
-        AXUIElementSetMessagingTimeout(root, 0.3)
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(root, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
-              let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else { return nil }
-        let element = ref as! AXUIElement
-        var owner: pid_t = 0
-        guard AXUIElementGetPid(element, &owner) == .success, owner == pid else { return nil }
-        AXUIElementSetMessagingTimeout(element, 0.3)
+    private func ownedFocus(_ element: AXUIElement?, pid: Int32) -> AXUIElement? {
+        guard let element, environment.processID(element) == pid else { return nil }
         return element
     }
 
     private func selection(_ element: AXUIElement) -> CFRange? {
-        Self.selection { attribute in
-            var ref: CFTypeRef?
-            let status = AXUIElementCopyAttributeValue(element, attribute, &ref)
-            return (status, ref)
-        }
+        Self.selection { environment.readAttribute(element, $0) }
     }
 
     static func selection(readAttribute: (CFString) -> (AXError, CFTypeRef?)) -> CFRange? {
@@ -224,17 +270,15 @@ public final class TextInserter {
 
     private func insertViaAccessibility(_ text: String, target: InsertionTarget) async -> WriteResult {
         guard matches(target), let focused = target.element else { return .notAttempted }
-        var roleRef: CFTypeRef?
-        AXUIElementCopyAttributeValue(focused, kAXRoleAttribute as CFString, &roleRef)
+        let (_, roleRef) = environment.readAttribute(focused, kAXRoleAttribute as CFString)
         let role = roleRef as? String ?? ""
         guard role == kAXTextFieldRole || role == kAXTextAreaRole || role == kAXComboBoxRole else { return .notAttempted }
-        var settable: DarwinBoolean = false
-        guard AXUIElementIsAttributeSettable(focused, kAXSelectedTextAttribute as CFString, &settable) == .success,
-              settable.boolValue, let before = value(focused), let range = selection(focused),
+        guard environment.isSettable(focused, kAXSelectedTextAttribute as CFString),
+              let before = value(focused), let range = selection(focused),
               Self.selectionMatches(target.selection, range),
               let expected = Self.replacing(before, range: range, with: text) else { return .notAttempted }
         return await Self.verifiedWrite(before: before, expected: expected, isCurrent: { matches(target) }, write: {
-            let status = AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
+            let status = environment.writeAttribute(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
             if status != .success {
                 Self.log.notice("insert: Accessibility write returned \(status.rawValue, privacy: .public)")
             }
@@ -281,8 +325,8 @@ public final class TextInserter {
     }
 
     private func value(_ element: AXUIElement) -> String? {
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXValueAttribute as CFString, &ref) == .success else { return nil }
+        let (status, ref) = environment.readAttribute(element, kAXValueAttribute as CFString)
+        guard status == .success else { return nil }
         return ref as? String
     }
 
@@ -301,7 +345,7 @@ public final class TextInserter {
         pasteboard.writeObjects([item])
         let ourChange = pasteboard.changeCount
 
-        guard (postPaste ?? postCommandV)() else { return false }
+        guard (postPaste ?? Self.postCommandV)() else { return false }
         // Delivery feedback must not wait for clipboard restoration.
         onDelivered?()
         try? await Task.sleep(for: .seconds(restoreDelay))
@@ -313,8 +357,8 @@ public final class TextInserter {
     }
 
     private func copyOnly(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        environment.pasteboard.clearContents()
+        environment.pasteboard.setString(text, forType: .string)
     }
 
     private func snapshot(_ pb: NSPasteboard) -> [[NSPasteboard.PasteboardType: Data]] {
@@ -338,7 +382,7 @@ public final class TextInserter {
         pb.writeObjects(restored)
     }
 
-    private func postCommandV() -> Bool {
+    private static func postCommandV() -> Bool {
         guard let source = CGEventSource(stateID: .hidSystemState) else { return false }
         let vKey = CGKeyCode(kVK_ANSI_V)
         guard let down = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: true),

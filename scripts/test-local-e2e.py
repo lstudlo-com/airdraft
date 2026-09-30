@@ -10,6 +10,7 @@ import os
 import signal
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 SUITES = """
@@ -23,7 +24,7 @@ HotkeyPressStateTests HotkeyBehaviorTests ControlOptionHotkeyTests
 SystemPermissionsTests MicrophonePermissionTests PipelineSafetyTests
 LocalRecordingPrerequisitesTests CLIWarmPoolTests LMStudioControlTests
 LocalModelCompletenessTests ParakeetTests AppSettingsTests LocalPersistenceTests
-TextInsertionTests AppContextTests PromptBuilderTests
+TextInsertionTests TextDeliveryRegressionTests AppContextTests PromptBuilderTests
 SilentRecordingTests
 EngineFactoryLeaseTests OnboardingProgressTests LicensingTests PolarLicenseWireTests
 """.split()
@@ -87,6 +88,10 @@ def main():
                 process.wait(timeout=5)
             code = 124
     print(f"xcodebuild exit: {code}; see {output / 'tests.log'}", flush=True)
+    if code == 0:
+        code = subprocess.run([sys.executable, str(root / 'scripts/verify-insertion-regressions.py'),
+                               str(result), '--report', str(output / 'insertion-regressions.json')],
+                              cwd=root, env=env).returncode
     return code
 
 

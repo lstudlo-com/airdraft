@@ -31,6 +31,7 @@ class ReleaseTests(unittest.TestCase):
         selection = release.core_test_selection(source, 'credential-free')
         self.assertIn('-only-testing:AirdraftCoreTests/OnboardingProgressTests', selection)
         self.assertIn('-only-testing:AirdraftCoreTests/CLIProcessTests', selection)
+        self.assertIn('-only-testing:AirdraftCoreTests/TextDeliveryRegressionTests', selection)
         self.assertNotIn('-only-testing:AirdraftCoreTests/AppIdentityTests', selection)
         self.assertFalse(any('CredentialTests' in name or 'RefinerWireTests' in name for name in selection))
         self.assertEqual(release.core_test_selection(source, 'full'), [])

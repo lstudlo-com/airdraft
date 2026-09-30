@@ -241,6 +241,7 @@ def prepare(commit, test_scope="full"):
     logged([sys.executable, source / "scripts/test-prompt-gate.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/verify-prompt.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
+    logged([sys.executable, source / "scripts/test-insertion-regressions.py"], source, output / "insertion.log")
     if test_scope == "full":
         logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
     else:
@@ -250,9 +251,13 @@ def prepare(commit, test_scope="full"):
               "-skipPackagePluginValidation", "-skipMacroValidation",
               "-packageAuthorizationProvider", "netrc",
               f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
-    logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO"] +
+    core_results = Path(tempfile.mkdtemp(prefix="core-tests-", dir=output)) / "tests.xcresult"
+    logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO",
+                     "-resultBundlePath", core_results] +
            core_test_selection(source, test_scope), source, output / "build.log",
            env=local_test_environment() if test_scope == "credential-free" else None)
+    logged([sys.executable, source / "scripts/verify-insertion-regressions.py", core_results,
+            "--report", core_results.parent / "insertion-regressions.json"], source, output / "insertion.log")
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")

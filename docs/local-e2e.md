@@ -18,6 +18,12 @@ python3 -B scripts/test-prompt-gate.py -v
 The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
+Before accepting a successful Xcode exit, it checks the actual xcresult with
+`verify-insertion-regressions.py`. All 34 mandatory insertion cases must be present
+and Passed, including the production capture-to-paste and context-off pipeline
+fixtures. Missing, skipped and failed cases stop validation. The JSON evidence is
+saved as `insertion-regressions.json`; release preparation runs the same gate for
+both test scopes before building the release artifact.
 Onboarding, license state and public Polar endpoint fixtures are included; they
 use disposable storage and intercepted responses, without API keys or purchases.
 Package downloads use Xcode's `netrc` authorization provider to avoid Keychain
