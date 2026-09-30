@@ -88,6 +88,21 @@ silently reset all permissions as part of an update.
 
 ## Insertion warnings with permission granted
 
+"Destination changed" means the captured app, field or selection no longer
+matches. "Couldn't verify the destination's cursor" means the editor did not
+expose a usable field or selection when recording began. Both preserve the text
+on the clipboard for manual paste.
+
+Target capture also checks system-wide focus, verifying that the field belongs
+to the original process, and accepts one valid `AXSelectedTextRanges` entry when
+the singular attribute is unsupported or has no value. Missing, malformed,
+multiple or changed selections cannot authorize insertion. If the editor is not
+exposed, capture requests [Electron's documented `AXManualAccessibility`
+attribute](https://github.com/electron/electron/blob/main/docs/tutorial/accessibility.md)
+and waits up to 500 ms for its field and caret. Reactivating the original app
+also waits for the original field and selection, rather than stopping as soon as
+the app becomes frontmost. Individual AX calls retain their 300 ms timeout.
+
 "Check the destination before pasting" means Airdraft attempted an Accessibility
 write but could not verify the result. Permission can be granted while an editor
 does not support replacing selected text. For repeated failures, choose

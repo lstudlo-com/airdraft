@@ -5,6 +5,109 @@ import XCTest
 
 @MainActor
 final class TextInsertionTests: XCTestCase {
+    func testEditorWithOnlySelectedTextRangesStillExposesItsCaret() throws {
+        var caret = CFRange(location: 7, length: 0)
+        let range = try XCTUnwrap(AXValueCreate(.cfRange, &caret))
+        let selection = TextInserter.selection { attribute in
+            if attribute as String == kAXSelectedTextRangesAttribute as String {
+                return (.success, [range] as CFArray)
+            }
+            return (.attributeUnsupported, nil)
+        }
+        XCTAssertTrue(TextInserter.selectionMatches(caret, selection),
+                      "An editor's supported selection must not be reported as a changed destination")
+    }
+
+    func testSelectionFallbackRejectsMultipleCaretsMalformedRangesAndTransportErrors() throws {
+        var caret = CFRange(location: 7, length: 0)
+        let valid = try XCTUnwrap(AXValueCreate(.cfRange, &caret))
+        var invalid = CFRange(location: Int.max, length: 1)
+        let overflow = try XCTUnwrap(AXValueCreate(.cfRange, &invalid))
+        let unusable: [CFTypeRef] = [[] as CFArray, [valid, valid] as CFArray, [overflow] as CFArray,
+                                    ["not a range"] as CFArray, "not an array" as CFString]
+        for ranges in unusable {
+            let result = TextInserter.selection { attribute in
+                attribute as String == kAXSelectedTextRangeAttribute as String
+                    ? (.attributeUnsupported, nil) : (.success, ranges)
+            }
+            XCTAssertNil(result)
+        }
+        for status: AXError in [.cannotComplete, .failure, .apiDisabled, .invalidUIElement] {
+            XCTAssertNil(TextInserter.selection { attribute in
+                XCTAssertEqual(attribute as String, kAXSelectedTextRangeAttribute as String,
+                               "A transport failure must not authorize insertion through a second attribute")
+                return (status, nil)
+            })
+        }
+    }
+
+    func testCaptureWaitsForTheWebEditorToExposeItsRealFieldAndCaret() async throws {
+        let field = AXUIElementCreateApplication(123)
+        let caret = CFRange(location: 7, length: 0)
+        var enabled = false
+        var reads = 0
+        let target = await TextInserter.captureTarget(processID: 123, bundleID: "test.editor", isFrontmost: { true },
+            readFocus: {
+                reads += 1
+                return enabled && reads >= 3 ? (field, caret) : (nil, nil)
+            }, enableWebAccessibility: {
+                enabled = true
+                return true
+            })
+        let captured = try XCTUnwrap(target)
+        XCTAssertTrue(enabled)
+        XCTAssertEqual(reads, 3)
+        XCTAssertTrue(CFEqual(try XCTUnwrap(captured.element), field))
+        XCTAssertTrue(TextInserter.selectionMatches(caret, captured.selection))
+    }
+
+    func testCaptureKeepsNativeSelectionAndDoesNotEnableWebAccessibility() async throws {
+        let field = AXUIElementCreateApplication(123)
+        let caret = CFRange(location: 2, length: 3)
+        let target = await TextInserter.captureTarget(processID: 123, bundleID: "test.editor", isFrontmost: { true },
+            readFocus: { (field, caret) }, enableWebAccessibility: {
+                XCTFail("Native text fields need no web accessibility changes")
+                return false
+            })
+        XCTAssertTrue(TextInserter.selectionMatches(caret, try XCTUnwrap(target).selection))
+    }
+
+    func testCaptureNeverSubstitutesAnotherAppOrAnUnknownSelection() async throws {
+        var frontmost = true
+        let target = await TextInserter.captureTarget(processID: 123, bundleID: "test.editor", isFrontmost: { frontmost },
+            readFocus: { (nil, nil) }, enableWebAccessibility: {
+                frontmost = false
+                return false
+            })
+        XCTAssertNil(target)
+
+        let unknown = await TextInserter.captureTarget(processID: 123, bundleID: "test.editor", isFrontmost: { true },
+            readFocus: { (AXUIElementCreateApplication(123), nil) }, enableWebAccessibility: { false })
+        XCTAssertFalse(TextInserter.selectionMatches(try XCTUnwrap(unknown).selection, nil))
+    }
+
+    func testFocusRestorationWaitsForTheFieldAndSelectionAfterAppActivation() async {
+        var reads = 0
+        let restored = await TextInserter.waitForMatch {
+            reads += 1
+            return reads == 3
+        }
+        XCTAssertTrue(restored)
+        XCTAssertEqual(reads, 3)
+        let changed = await TextInserter.waitForMatch(timeout: .milliseconds(25)) { false }
+        XCTAssertFalse(changed)
+
+        let cancelled = Task { @MainActor in
+            await TextInserter.waitForMatch {
+                XCTFail("Cancelled focus restoration must not inspect or authorize a destination")
+                return true
+            }
+        }
+        cancelled.cancel()
+        let result = await cancelled.value
+        XCTAssertFalse(result)
+    }
+
     func testUnknownAndChangedSelectionCannotAuthorizeInsertion() {
         let original = CFRange(location: 2, length: 3)
         XCTAssertTrue(TextInserter.selectionMatches(original, original))

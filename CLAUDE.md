@@ -265,6 +265,11 @@ status table current.
   work must never change a newer session or insert text. Capture the local insertion
   target independently of optional LLM context; require the same focused field and
   selection before inserting, and never replay an uncertain Accessibility write.
+  Read application and system-wide focus with matching process ownership. When
+  Electron has not exposed its editor, request `AXManualAccessibility` and await
+  its field and caret before recording. Accept one valid `AXSelectedTextRanges`
+  entry when the singular attribute is unsupported; unknown selections never match.
+  After app activation, wait briefly for the original field and selection to settle.
   Keep AX write error codes: only unsupported/not-implemented rejections with an
   unchanged field, selection and value may fall back to paste. Verify accepted
   writes with a bounded, cancellable read wait; never repeat the write or copy

@@ -39,7 +39,7 @@ public final class TextInserter {
 
     public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil,
                        onDelivered: (() -> Void)? = nil) async -> InsertionResult {
-        guard !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+        guard !Task.isCancelled, !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
 
         // Dictated while airdraft itself was in front: there is nowhere sensible to type.
         if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
@@ -49,15 +49,20 @@ public final class TextInserter {
         }
 
         // Bring the original app back if focus moved while we were transcribing.
-        guard let target, await restoreFocus(to: target), !Task.isCancelled else {
-            copyOnly(text)
-            return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied; paste it where you want.")
-        }
-
         guard AXIsProcessTrusted() else {
             copyOnly(text)
             Self.log.error("insert: Accessibility not granted, copied only")
             return InsertionResult(method: .clipboardOnly, notice: "Accessibility is off, text copied")
+        }
+        let restored = if let target { await restoreFocus(to: target) } else { false }
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+        guard restored, let target else {
+            copyOnly(text)
+            let unavailable = target?.element == nil || target?.selection == nil
+            Self.log.notice("insert: destination unavailable=\(unavailable, privacy: .public)")
+            return InsertionResult(method: .clipboardOnly, notice: unavailable
+                ? "Couldn't verify the destination's cursor. Text copied; paste it where you want."
+                : "Destination changed. Text copied; paste it where you want.")
         }
 
         if method == .auto {
@@ -76,7 +81,8 @@ public final class TextInserter {
             }
         }
         // Focus can change during an AX request too. Revalidate before posting a paste.
-        guard matches(target), !Task.isCancelled else {
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+        guard matches(target) else {
             copyOnly(text)
             return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
@@ -88,11 +94,40 @@ public final class TextInserter {
 
     // MARK: - Focus
 
-    public func captureTarget() -> InsertionTarget? {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
-        let element = focusedElement(pid: app.processIdentifier)
-        return InsertionTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier,
-                               element: element, selection: element.flatMap(selection))
+    public func captureTarget() async -> InsertionTarget? {
+        guard !Task.isCancelled, let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        return await Self.captureTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier,
+            isFrontmost: { NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier },
+            readFocus: {
+                let element = self.focusedElement(pid: app.processIdentifier)
+                return (element, element.flatMap(self.selection))
+            }, enableWebAccessibility: {
+                guard AXIsProcessTrusted() else { return false }
+                let element = AXUIElementCreateApplication(app.processIdentifier)
+                AXUIElementSetMessagingTimeout(element, 0.3)
+                // Electron documents this attribute for third-party assistive
+                // clients. Unsupported apps reject it without changing focus.
+                return AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString,
+                                                     kCFBooleanTrue) == .success
+            })
+    }
+
+    static func captureTarget(processID: Int32, bundleID: String?, isFrontmost: () -> Bool,
+                              readFocus: () -> (AXUIElement?, CFRange?),
+                              enableWebAccessibility: () -> Bool) async -> InsertionTarget? {
+        guard !Task.isCancelled, isFrontmost() else { return nil }
+        var (element, range) = readFocus()
+        if (element == nil || !selectionMatches(range, range)), enableWebAccessibility() {
+            // Creating the web accessibility tree is asynchronous. Capture its
+            // real field and caret before recording, never substitute nil == nil.
+            _ = await waitForMatch {
+                guard isFrontmost() else { return false }
+                (element, range) = readFocus()
+                return element != nil && selectionMatches(range, range)
+            }
+        }
+        guard !Task.isCancelled, isFrontmost() else { return nil }
+        return InsertionTarget(processID: processID, bundleID: bundleID, element: element, selection: range)
     }
 
     private func restoreFocus(to target: InsertionTarget) async -> Bool {
@@ -100,12 +135,23 @@ public final class TextInserter {
               app.bundleIdentifier == target.bundleID else { return false }
         if NSWorkspace.shared.frontmostApplication?.processIdentifier != target.processID {
             guard app.activate() else { return false }
-            for _ in 0..<20 {
-                if NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processID { break }
-                do { try await Task.sleep(for: .milliseconds(25)) } catch { return false }
-            }
+            // Being frontmost can precede the editor's focused-field update.
+            return await Self.waitForMatch { self.matches(target) }
         }
         return matches(target)
+    }
+
+    static func waitForMatch(timeout: Duration = .milliseconds(500), matches: () -> Bool) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while !Task.isCancelled {
+            if matches() { return true }
+            let now = clock.now
+            guard now < deadline else { return false }
+            do { try await clock.sleep(until: min(deadline, now.advanced(by: .milliseconds(25)))) }
+            catch { return false }
+        }
+        return false
     }
 
     private func matches(_ target: InsertionTarget) -> Bool {
@@ -124,21 +170,52 @@ public final class TextInserter {
     private func focusedElement(pid: Int32) -> AXUIElement? {
         guard AXIsProcessTrusted() else { return nil }
         let app = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(app, 0.3)
+        let appFocus = focusedElement(in: app, pid: pid)
+        if let appFocus, selection(appFocus) != nil { return appFocus }
+        // Some editors report a window at application level while the system
+        // reports the actual editor. Never accept a system field from another PID.
+        let systemFocus = focusedElement(in: AXUIElementCreateSystemWide(), pid: pid)
+        if let systemFocus, selection(systemFocus) != nil { return systemFocus }
+        return appFocus ?? systemFocus
+    }
+
+    private func focusedElement(in root: AXUIElement, pid: Int32) -> AXUIElement? {
+        AXUIElementSetMessagingTimeout(root, 0.3)
         var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+        guard AXUIElementCopyAttributeValue(root, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
               let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else { return nil }
         let element = ref as! AXUIElement
+        var owner: pid_t = 0
+        guard AXUIElementGetPid(element, &owner) == .success, owner == pid else { return nil }
         AXUIElementSetMessagingTimeout(element, 0.3)
         return element
     }
 
     private func selection(_ element: AXUIElement) -> CFRange? {
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &ref) == .success,
-              let ref, CFGetTypeID(ref) == AXValueGetTypeID() else { return nil }
+        Self.selection { attribute in
+            var ref: CFTypeRef?
+            let status = AXUIElementCopyAttributeValue(element, attribute, &ref)
+            return (status, ref)
+        }
+    }
+
+    static func selection(readAttribute: (CFString) -> (AXError, CFTypeRef?)) -> CFRange? {
+        let (status, ref) = readAttribute(kAXSelectedTextRangeAttribute as CFString)
+        if status == .success { return selectionRange(ref) }
+        guard status == .attributeUnsupported || status == .noValue else { return nil }
+        let (rangesStatus, rangesRef) = readAttribute(kAXSelectedTextRangesAttribute as CFString)
+        guard rangesStatus == .success, let rangesRef, CFGetTypeID(rangesRef) == CFArrayGetTypeID(),
+              let ranges = rangesRef as? [AnyObject], ranges.count == 1 else { return nil }
+        // Multiple carets would paste into more than the captured selection.
+        return selectionRange(ranges[0])
+    }
+
+    private static func selectionRange(_ ref: CFTypeRef?) -> CFRange? {
+        guard let ref, CFGetTypeID(ref) == AXValueGetTypeID(),
+              AXValueGetType(ref as! AXValue) == .cfRange else { return nil }
         var range = CFRange()
-        return AXValueGetValue(ref as! AXValue, .cfRange, &range) ? range : nil
+        guard AXValueGetValue(ref as! AXValue, .cfRange, &range), selectionMatches(range, range) else { return nil }
+        return range
     }
 
     // MARK: - Accessibility

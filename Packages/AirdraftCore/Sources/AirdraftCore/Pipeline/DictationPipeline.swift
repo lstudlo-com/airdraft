@@ -323,9 +323,17 @@ public final class DictationPipeline {
             onRecordingBlocked?()
             return
         }
+        let insertionTarget = needsInsertion ? await inserter.captureTarget() : nil
+        guard isCurrent(token) else { return }
+        guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+              settings.microphone == microphone, selectedOutput() == output else {
+            fail("Recording did not start because setup changed. Try your shortcut again.")
+            onRecordingBlocked?()
+            return
+        }
         asrAtStart = asr
         outputAtStart = output
-        insertionTargetAtStart = needsInsertion ? inserter.captureTarget() : nil
+        insertionTargetAtStart = insertionTarget
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
         wireRecorder(for: token)
         startPreview(for: token)
