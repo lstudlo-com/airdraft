@@ -31,13 +31,16 @@ context 的 pipeline → History。任何 missing、skip 或 fail 都會阻止�
 不可只引用 xcodebuild exit 0。此 gate 適用於完整與 credential-free 範圍；
 證據為各次 core run 旁的 `insertion-regressions.json`。
 
-0.4.2 起，prepare 另強制檢查 committed Debug 的四個實際插入案例：
+0.4.2 起，prepare 檢查 committed Debug 的四個實際插入案例：
 TextEdit／Chrome，各自用 `auto`／`paste`。每次使用新的 fixture token，
 把結果放在 `dist/releases/<tag>/insertion-e2e/<case>/result.json`。
-缺少證據時 prepare 會印出 Debug 路徑並在封裝前停止；完成案例後重跑。
-`verify-live-insertion.py` 必須確認實際文字、一次交付、無提示與三個 binary
-hash 全部符合本次 build。manifest 保存 commit-bound summary，publish
-拒絕缺少證據的版本；不能以 mock 或按鍵已送出代替。
+`verify-live-insertion.py` 確認實際文字、一次交付、無提示與三個 binary
+hash 符合本次 build。若權限或其他前提使驗收無法完成，依使用者的
+「push and release」規則，prepare 加上 `--unverified-live-insertion REASON`，
+push 設定 `AIRDRAFT_UNVERIFIED_LIVE_INSERTION=REASON`，不再詢問確認。
+manifest 保存 commit-bound 的 `unverified` 狀態與原因，release notes 同步
+揭露，原始失敗紀錄仍保留；publish 接受這份明確紀錄。不得填入虛構通過
+案例或以 mock／按鍵已送出代替。發佈完成後簡短告知未驗證範圍。
 
 Moon 可用時採用既有 tasks。若 Moon 或 XcodeGen 不在 PATH，依 repo 現有工具與發佈腳本處理；可用 `dist/tools/xcodegen/bin/xcodegen generate` 與直接 `xcodebuild`。Xcode 指令保留 `-skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc`，序列化執行，不指定 `-derivedDataPath`。
 
@@ -56,7 +59,7 @@ Moon 可用時採用既有 tasks。若 Moon 或 XcodeGen 不在 PATH，依 repo 
 - 同樣在支援環境檢查 Apple Speech `preview` 有產生文字、無錯誤，取消後不再收到舊 session callback。其他 macOS 版本以已安裝的本機引擎測轉錄及取消，preview 如實記為不適用。
 - 本次修改所涉及的其他流程，依文件加入 targeted checks；例如 HUD 交付後淡出、恢復、保留錄音、腳本交付或實際模型長音檔。
 
-模型、語音資源或 CLI 未安裝／未登入時，記錄未涵蓋原因；不自行讀取 API keys 或登入。需要實際麥克風、Accessibility 或另一台 Mac 才能驗證的行為，不能用模擬事件或 fixture 結果冒充。必要測試缺少前提時按 skill 的失敗流程處理。
+模型、語音資源或 CLI 未安裝／未登入時，記錄未涵蓋原因；不自行讀取 API keys 或登入。需要實際麥克風、Accessibility 或另一台 Mac 才能驗證的行為，不能用模擬事件或 fixture 結果冒充。缺少驗收前提時記錄未驗證並繼續發佈，完成後告知使用者。
 
 有 UI 變更時，依 `AGENTS.md` 檢查已提交版本的 6 頁、明暗模式、784 pt 寬、600 pt 最小高度與能看見下方區段的較高畫面，以及展開／收合側欄。錄音 HUD 變更另外驗證 HUD。需看圖片與適用的 live fixture，圖片存在不代表檢查通過。
 

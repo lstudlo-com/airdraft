@@ -151,7 +151,13 @@ def validate_manifest(manifest, commit, tag):
         required = [[app, method] for app in ('com.apple.TextEdit', 'com.google.Chrome')
                     for method in ('auto', 'paste')]
         hashes = evidence.get('binarySHA256', {})
-        if (not isinstance(hashes, dict) or evidence.get('status') != 'passed' or evidence.get('commit') != commit
+        if evidence.get('status') == 'unverified':
+            if (set(evidence) != {'status', 'commit', 'reason', 'releasePolicy'}
+                    or evidence.get('commit') != commit
+                    or evidence.get('releasePolicy') != 'report-unverified-after-release'
+                    or not isinstance(evidence.get('reason'), str) or not evidence['reason'].strip()):
+                raise RuntimeError('Unverified insertion evidence requires a commit-bound reason and release policy')
+        elif (not isinstance(hashes, dict) or evidence.get('status') != 'passed' or evidence.get('commit') != commit
                 or type(evidence.get('cases')) is not int or evidence['cases'] < 4
                 or any(case not in evidence.get('verifiedTargets', []) for case in required)
                 or set(hashes) != {'Airdraft Debug', 'Airdraft Debug.debug.dylib', 'AirdraftCore'}
@@ -226,7 +232,23 @@ def logged(args, source, log, *, env=None):
         raise RuntimeError(f"Local validation failed; see {log}")
 
 
-def prepare(commit, test_scope="full"):
+def live_insertion_evidence(source, output, debug_app, commit, unverified_reason=None):
+    if unverified_reason is not None and not unverified_reason.strip():
+        raise RuntimeError('Unverified live insertion requires a nonempty reason')
+    report = output / 'insertion-e2e.json'
+    try:
+        logged([sys.executable, source / 'scripts/verify-live-insertion.py', '--app', debug_app,
+                '--reports', output / 'insertion-e2e', '--report', report], source, output / 'insertion.log')
+    except RuntimeError:
+        if unverified_reason is None:
+            raise
+        print(f'Live insertion remains unverified: {unverified_reason}. Continuing the requested release.', flush=True)
+        return {'status': 'unverified', 'commit': commit, 'reason': unverified_reason.strip(),
+                'releasePolicy': 'report-unverified-after-release'}
+    return json.loads(report.read_text()) | {'commit': commit}
+
+
+def prepare(commit, test_scope="full", unverified_live_insertion=None):
     verification = verification_for(test_scope)
     if sys.platform != "darwin":
         raise RuntimeError("Release preparation requires the signing Mac")
@@ -277,10 +299,7 @@ def prepare(commit, test_scope="full"):
     debug = next(item['buildSettings'] for item in json.loads(raw) if item['target'] == 'airdraft')
     debug_app = Path(debug['TARGET_BUILD_DIR']) / debug['FULL_PRODUCT_NAME']
     print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
-    logged([sys.executable, source / 'scripts/verify-live-insertion.py', '--app', debug_app,
-            '--reports', output / 'insertion-e2e', '--report', output / 'insertion-e2e.json'],
-           source, output / 'insertion.log')
-    live_insertion = json.loads((output / 'insertion-e2e.json').read_text()) | {'commit': commit}
+    live_insertion = live_insertion_evidence(source, output, debug_app, commit, unverified_live_insertion)
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
@@ -306,6 +325,7 @@ def prepare(commit, test_scope="full"):
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
                 "signing": signing, "verification": verification, "liveInsertion": live_insertion,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
+    validate_manifest(manifest, commit, tag)
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)
     notes = output / "notes.md"
@@ -325,6 +345,10 @@ def prepare(commit, test_scope="full"):
             note.write("\nVerification excludes API-key/cloud and credential-storage tests, "
                        "including the cross-identity Keychain fixture. Signing, updater installation, "
                        "packaging and downloaded-artifact checks passed.\n")
+    if live_insertion['status'] == 'unverified':
+        with notes.open('a') as note:
+            note.write(f"\nLive insertion verification remains incomplete: {live_insertion['reason']} "
+                       "Published under the user's policy to report unverified checks after release.\n")
     # A draft creates no public tag. The workflow sets its final target after Git accepts the push.
     gh("release", "create", tag, archive, output / "appcast.xml", output / "release.json",
        "--repo", REPO, "--draft", "--target", "main", "--title", f"Airdraft {version} (build {build})",
@@ -384,6 +408,9 @@ def main():
     parser.add_argument("--test-scope", choices=TEST_SCOPES,
                         default=os.environ.get("AIRDRAFT_RELEASE_TEST_SCOPE", "full"),
                         help="Use credential-free only when API-key/credential testing is excluded")
+    parser.add_argument('--unverified-live-insertion', metavar='REASON',
+                        default=os.environ.get('AIRDRAFT_UNVERIFIED_LIVE_INSERTION'),
+                        help='Apply the user release policy: record incomplete live insertion checks and continue')
     args = parser.parse_args()
     verification_for(args.test_scope)
     if args.command == "install-hook":
@@ -409,7 +436,7 @@ def main():
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        prepare(commit, args.test_scope)
+        prepare(commit, args.test_scope, args.unverified_live_insertion)
 
 
 if __name__ == "__main__":

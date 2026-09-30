@@ -11,6 +11,7 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 
 - 這是 Airdraft 專案內的 skill。從 Git root 執行指令，確認 `origin` 指向 `lstudlo-com/airdraft`，標準發佈目標為 `origin/main`。其他分支的推送不會產生 release；目標不明時先釐清。
 - 使用者要求執行 `$push-and-release` 或完成 commit、push、release，已授權這些步驟及其必要修正，不逐步重問。保留使用者指定的測試範圍與排除項目。單純詢問流程、建立／修改 skill，或只要求 commit，不構成發佈授權。
+- 使用者說「push and release」就必須呼叫本 skill 並完成推送與公開發佈。除非使用者明確指定停止條件，不增設確認、驗收或環境前提作為 blocker。缺少權限、硬體、服務或其他未驗證項目，記錄原因並繼續；發佈完成後再簡短告知。可修正的失敗持續修正，不把失敗或缺少證據寫成通過。
 - 不加入無關工作區變更，不強制推送、不繞過 hook，也不改動簽章身分或使用者的實際資料。沿用已核准的個人使用簽章流程；Developer ID、公證或憑證遷移另需明確範圍。
 - 先讀 [AGENTS.md](../../../AGENTS.md)、[發佈契約](../../../docs/updates.md) 與 [本機 E2E](../../../docs/local-e2e.md)。修正 UI、設定或 prompt 前讀 `docs/PRODUCT.md`。以下步驟不取代這些契約。
 
@@ -28,15 +29,15 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 遇到失敗時持續處理：
 
 1. 保留失敗證據，查明是產品問題、測試問題還是環境前提缺失。
-2. 修正可在授權範圍內處理的根因。先重跑失敗案例，再跑修正影響到的檢查。新版本最後仍須通過完整發佈檢查。
+2. 修正可在授權範圍內處理的根因。先重跑失敗案例，再跑修正影響到的檢查。執行本次可完成的發佈檢查，保留尚未驗證項目的原因。
 3. 不刪除有效失敗案例、不降低標準、不跳過簽章檢查，不靠重複抽樣挑出一次成功。只有證據支持測試本身錯誤時才修正測試，並說明原因。
-4. 可處理的測試失敗不是交回使用者的終點。只有缺少必要的外部前提、授權或決策，且沒有範圍內的解法時，才清楚回報尚未完成的步驟與所需資訊。
+4. 可處理的失敗持續修正。缺少外部驗收前提時，使用有紀錄的未驗證狀態完成 release，不交回使用者等待確認。實際建置或上傳失敗仍須修復並重試，不能宣稱已發佈。
 
-測試失敗、環境缺失與選配測試略過要分開記錄。不能把略過當成通過，或在必要驗收缺失時宣稱全部完成。長工作期間提供簡短進度，說明已通過、正在處理與下一步。
+測試失敗、環境缺失與選配測試略過要分開記錄。不能把略過當成通過，或在驗收缺失時宣稱全部驗證通過。長工作期間提供簡短進度，說明已通過、正在處理與下一步。
 
 ## 3. 提交並驗證已提交版本
 
-1. 所需檢查通過後，更新受影響的文件與 Obsidian 主題。確認所有專案擁有的 `AGENTS.md`／`CLAUDE.md` 配對一致。
+1. 可執行的檢查與修正完成、未驗證項目記錄後，更新受影響的文件與 Obsidian 主題。確認所有專案擁有的 `AGENTS.md`／`CLAUDE.md` 配對一致。
 2. 檢查實際 staged diff，僅 stage 本次相關變更，建立 conventional commit。若工作已提交且內容正確，直接使用該提交，不製造空 commit。
 3. 記下完整的 `COMMIT` SHA。先明確執行準備流程，讓已提交版本的 E2E 有機會在公開發佈前完成：
 
@@ -56,7 +57,7 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 git push origin main
 ```
 
-- 正常通過 hook。它會重新驗證並重用上一節的 draft；不要使用 `--no-verify`、停用 hook 或略過 gate。
+- 正常通過 hook。它會重新驗證並重用上一節的 draft；不要使用 `--no-verify` 或停用 hook。未完成的 live insertion 驗收使用 `--unverified-live-insertion REASON`，讓 hook 和 manifest 保留真實狀態。
 - 推送失敗先核對遠端狀態。建置或驗證失敗回到修正流程；網路問題先確認提交是否已到遠端，再決定重試，避免重複建立版本。
 - 推送成功後，以完整 SHA 查詢 `Publish local macOS release` workflow，等待成功。`git push` 成功只代表程式碼已推送。
 
@@ -70,12 +71,12 @@ git push origin main
 
 ## 5. 發佈後驗證與回報
 
-全部完成下列檢查後才回報成功：
+完成推送與公開發佈後回報結果，並據實記錄下列檢查：
 
 - 遠端 main、release tag、`release.json` 與本次完整 SHA 一致；workflow 成功，release 為非 draft 且是預期的 latest。
 - 下載公開 release 的 DMG、`appcast.xml`、`release.json`，用 `scripts/release.py` 的 `download_and_verify()` 核對 SHA-256、feed 資訊及 DMG 內 App 簽章。詳見驗證細節的呼叫方式。
 - 從 App 實際設定的 `SUFeedURL` 取得線上 feed，確認它描述這次版本，且內容雜湊與已驗證的 feed 相同。
-- 已提交版本的必要 E2E 全部通過，選配略過與未涵蓋的硬體／外部服務驗收已據實記錄。
+- 已提交版本的 E2E 分別記錄通過、失敗與未驗證，選配略過及未涵蓋的硬體／外部服務驗收在發佈後告知使用者。
 
 驗證後更新 Obsidian 的發佈紀錄，寫明日期、commit、版本與證據，區分已實作、已測試及已發佈。
 

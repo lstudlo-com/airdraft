@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Release gates: push scope, source identity, and hostile/mismatched manifests."""
 import importlib.util
+import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -88,6 +90,40 @@ class ReleaseTests(unittest.TestCase):
                                       'appcast.xml': 'c' * 64}
                 with self.assertRaisesRegex(RuntimeError, 'version/build'):
                     release.validate_manifest(manifest, 'a' * 40, manifest['tag'])
+
+    def test_unverified_live_insertion_is_honest_and_commit_bound(self):
+        manifest = self.manifest() | {'version': '0.4.2', 'tag': 'v0.4.2-build.3',
+            'sha256': {'Airdraft-0.4.2-3-arm64.dmg': 'b' * 64, 'appcast.xml': 'c' * 64}}
+        evidence = {'status': 'unverified', 'commit': 'a' * 40,
+                    'reason': 'Debug Accessibility is unavailable.',
+                    'releasePolicy': 'report-unverified-after-release'}
+        release.validate_manifest(manifest | {'liveInsertion': evidence}, 'a' * 40, manifest['tag'])
+        for invalid in (evidence | {'reason': ''}, evidence | {'reason': ' '},
+                        evidence | {'commit': 'e' * 40}, evidence | {'releasePolicy': None},
+                        evidence | {'cases': 4}, evidence | {'verifiedTargets': [['com.apple.TextEdit', 'auto']]}):
+            with self.subTest(evidence=invalid), self.assertRaises(RuntimeError):
+                release.validate_manifest(manifest | {'liveInsertion': invalid}, 'a' * 40, manifest['tag'])
+
+    def test_live_insertion_policy_retains_failure_and_does_not_invent_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            report = output / 'insertion-e2e.json'
+            failure = {'status': 'failed', 'reason': 'Missing live editor receipts'}
+            report.write_text(json.dumps(failure))
+            with patch.object(release, 'logged', side_effect=RuntimeError('Fixture incomplete')):
+                with self.assertRaisesRegex(RuntimeError, 'Fixture incomplete'):
+                    release.live_insertion_evidence(output, output, output / 'Debug.app', 'a' * 40)
+                evidence = release.live_insertion_evidence(
+                    output, output, output / 'Debug.app', 'a' * 40, 'Debug Accessibility unavailable')
+            self.assertEqual(evidence['status'], 'unverified')
+            self.assertNotIn('cases', evidence)
+            self.assertEqual(json.loads(report.read_text()), failure)
+            passed = {'status': 'passed', 'cases': 4}
+            report.write_text(json.dumps(passed))
+            with patch.object(release, 'logged'):
+                self.assertEqual(release.live_insertion_evidence(
+                    output, output, output / 'Debug.app', 'a' * 40, 'Unused reason'),
+                    passed | {'commit': 'a' * 40})
 
     def test_manifest_rejects_boolean_build_numbers(self):
         manifest = self.manifest()

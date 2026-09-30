@@ -122,14 +122,16 @@ and no notice. Posting a key event alone is not a pass. A failed fixture restore
 its recovery clipboard text only while it still owns that clipboard change.
 Never use an existing user draft or reset permissions to run this check.
 
-Release preparation requires four live cases: TextEdit and Chrome, each with
+Release preparation checks four live cases: TextEdit and Chrome, each with
 `auto` and `paste`, using fresh fixture tokens. Run each candidate Debug action
 with `--e2e-local dist/releases/<tag>/insertion-e2e/<case>` (absolute path). The
 fixture writes hashes of its executable, core and UI library. Prepare prints the
-candidate Debug path and stops before packaging when evidence is absent or stale;
-run the cases and repeat prepare. `verify-live-insertion.py` validates the matrix
-against that build, and `release.json` carries its summary tied to the commit.
-Unit tests or posted key events cannot replace these live results.
+candidate Debug path. `verify-live-insertion.py` validates the matrix against that
+build, and `release.json` carries its summary tied to the commit. If live acceptance
+cannot be completed, the user's push-and-release policy applies: pass
+`--unverified-live-insertion REASON` to prepare and record the incomplete check
+instead of blocking publication. Report it after release. The original failed
+report remains intact. Unit tests or posted key events cannot replace live results.
 
 Before calling a locally reproduced bug fixed, verify the running build:
 

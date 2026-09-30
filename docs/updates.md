@@ -84,8 +84,12 @@ the signing and distribution requirements below.
 The project-local [`push-and-release` skill](../.agents/skills/push-and-release/SKILL.md)
 coordinates an authorized release through these scripts. It adds the test-and-repair
 loop, E2E verification of committed sources before pushing, and verification of the
-published DMG and live update feed. Invoke it with `$push-and-release`. Creating or
-editing the skill only changes the workflow instructions; it does not publish an app.
+published DMG and live update feed. Saying "push and release" invokes this skill
+and authorizes execution through publication without another approval request or
+verification blocker, unless the user explicitly specifies one. Record unavailable
+checks and their reasons, complete the release, then notify the user. Fix actionable
+failures and continue; never describe unverified or failed checks as passed.
+Creating or editing the skill alone does not publish an app.
 
 Run once after cloning on the release Mac:
 
@@ -161,6 +165,21 @@ Hardened Runtime, both actual updater installations, packaging and downloaded
 asset validation run in either scope. Updater fixtures use `--ephemeral-key` so
 they do not read the production Sparkle key; the final release archive and feed
 still use the existing production signing key.
+
+When live native/browser insertion acceptance cannot be completed, apply the
+user's release policy without requesting another confirmation:
+
+```sh
+python3 scripts/release.py prepare HEAD --unverified-live-insertion "Describe the missing check and reason"
+AIRDRAFT_UNVERIFIED_LIVE_INSERTION="Describe the missing check and reason" git push origin main
+```
+
+Combine these options with the selected test scope. The verifier still runs and
+retains its original failure report. `release.json` records `liveInsertion.status`
+as `unverified`, the exact commit, reason and `report-unverified-after-release`
+policy. Release notes disclose the gap. Publication accepts this explicit record;
+it does not count it as passed acceptance. Successful live evidence remains passed
+even when this option is supplied. Signing and artifact identity checks still run.
 
 A failed push leaves a draft, never a public release. Retrying reuses verified
 assets. A failed build blocks the push. The publisher refuses to publish a stale

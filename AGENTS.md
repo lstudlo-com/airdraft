@@ -381,6 +381,15 @@ For an authorized end-to-end release request, use the project-local
 commits, committed-source E2E, push and published-artifact verification through
 the existing scripts. Creating, editing or inspecting the skill does not run a release.
 
+When the user says "push and release", invoke that skill and execute through
+publication without another approval request or verification blocker unless the
+user explicitly specifies one. Missing permissions, hardware, services or other
+unverified checks do not suspend the release. Record their status and reason,
+complete the available work, then notify the user after pushing and releasing.
+Fix actionable failures and continue; never label failed or missing checks as passed.
+For incomplete live insertion acceptance, use `--unverified-live-insertion REASON`
+as documented in `docs/updates.md`, without asking for additional permission.
+
 Choose the display version before release preparation. Below 1.0, substantial
 features or broad UI/workflow redesigns increment the minor version and reset the
 patch; focused fixes increment the patch. Reserve an unchanged display version
