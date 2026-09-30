@@ -428,6 +428,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   On-disk Info.plist/build success cannot prove an old process loaded new code.
   Quit duplicate/stale copies normally, preserve recovery prompts, relaunch and
   compare loaded executable/core/UI UUIDs. A release does not update running Debug.
+  Debug may load Core from Xcode's adjacent PackageFrameworks directory; require
+  its loaded UUID to match the embedded framework instead of rejecting the path.
   Run the `LocalE2E insert` fixture against a disposable external editor field;
   require actual resulting text, not only a posted key event or simulated AX result.
   Missing Accessibility access blocks that live check and must remain explicit.

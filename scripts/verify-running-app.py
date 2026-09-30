@@ -35,6 +35,21 @@ def running_airdraft():
     return instances
 
 
+def matching_images(binary, app, images, *, debug):
+    paths = {binary, binary.resolve()}
+    if debug and binary.name == 'AirdraftCore':
+        # Xcode's Debug rpath can load its package product directly, rather
+        # than the identical embedded copy. It must still match the bundled
+        # Mach-O UUID below; never accept a similarly named unknown framework.
+        package = app.parent / 'PackageFrameworks/AirdraftCore.framework/AirdraftCore'
+        paths.update((package, package.resolve()))
+    expected = {str(path) for path in paths}
+    home = str(Path.home())
+    expected.update(path.replace(home + '/', str(Path.home().parent / '*') + '/', 1)
+                    for path in list(expected) if path.startswith(home + '/'))
+    return [(uuid.upper(), path) for uuid, path in images if path in expected]
+
+
 def verify(app, report):
     app = app.resolve(strict=True)
     info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
@@ -57,9 +72,11 @@ def verify(app, report):
     checks = []
     for binary in binaries:
         suffix = '/' + str(binary.resolve().relative_to(app))
-        loaded = {uuid.upper() for uuid, path in images if path.endswith(suffix)}
+        matches = matching_images(binary, app, images, debug=debug_library.exists())
+        loaded = {uuid for uuid, _ in matches}
         disk = set(re.findall(r'UUID: ([0-9A-Fa-f-]{36})', output('xcrun', 'dwarfdump', '--uuid', str(binary))))
         check = {'binary': suffix, 'loaded': sorted(loaded), 'disk': sorted(disk),
+                 'loadedPaths': sorted({path for _, path in matches}),
                  'matches': bool(loaded) and loaded <= disk}
         checks.append(check)
     report['binaries'] = checks

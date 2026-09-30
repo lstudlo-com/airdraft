@@ -139,6 +139,8 @@ python3 scripts/verify-running-app.py --app "$APP" --report /tmp/airdraft-runnin
 
 This requires one running Airdraft copy at the requested path and compares the
 loaded executable, core framework and Debug UI library UUIDs against that bundle.
+For Debug, the adjacent Xcode PackageFrameworks copy is also an allowed load path,
+but its loaded UUID must still match the embedded framework.
 Rebuilding a file or reading its Info.plist does not prove an old process loaded
 it. Quit obsolete copies normally, preserving recovery prompts, then relaunch
 the intended app and repeat. A published release does not update a running Debug
