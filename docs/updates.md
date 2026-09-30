@@ -138,6 +138,24 @@ Build logs and artifacts are under `dist/releases/<tag>/`.
 Xcode resolves public dependencies with its `netrc` authorization provider so
 package downloads do not request Keychain access.
 
+If a release request excludes API-key and credential tests, select that scope
+explicitly for both preparation and the push hook:
+
+```sh
+python3 scripts/release.py prepare HEAD --test-scope credential-free
+AIRDRAFT_RELEASE_TEST_SCOPE=credential-free git push origin main
+```
+
+This scope uses the committed local test allowlist and a minimal test environment;
+it omits cloud/credential tests and the cross-identity login-Keychain fixture.
+`release.json` and release notes record those exclusions. The default remains the
+full suite. An unknown scope fails, and a credential-free draft cannot be reused
+as evidence of full verification. Licensing configuration, pinned identity,
+Hardened Runtime, both actual updater installations, packaging and downloaded
+asset validation run in either scope. Updater fixtures use `--ephemeral-key` so
+they do not read the production Sparkle key; the final release archive and feed
+still use the existing production signing key.
+
 A failed push leaves a draft, never a public release. Retrying reuses verified
 assets. A failed build blocks the push. The publisher refuses to publish a stale
 commit after main moves. Feature branch and tag pushes do not build releases.

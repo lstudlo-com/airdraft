@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,32 @@ ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
 ROOT = Path(__file__).resolve().parents[1]
 ZERO = "0" * 40
 XCODEGEN_SHA256 = "4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806"
+TEST_SCOPES = ("full", "credential-free")
+
+
+def verification_for(scope):
+    if scope not in TEST_SCOPES:
+        raise RuntimeError(f"Unknown release test scope: {scope}")
+    return {"testScope": scope, "excluded":
+            ["api-key-cloud-tests", "credential-storage-tests", "cross-identity-keychain-fixture"]
+            if scope == "credential-free" else []}
+
+
+def core_test_selection(source, scope):
+    verification_for(scope)
+    if scope == "full":
+        return []
+    selection = runpy.run_path(str(source / "scripts/test-local-e2e.py"))
+    names = selection["SUITES"] + selection["CASES"]
+    if not names or any(not re.fullmatch(r"[A-Za-z0-9_/]+", name) for name in names):
+        raise RuntimeError("Invalid credential-free core test allowlist")
+    return [f"-only-testing:AirdraftCoreTests/{name}" for name in names]
+
+
+def local_test_environment():
+    names = ("HOME", "PATH", "TMPDIR", "USER", "LOGNAME", "LANG", "DEVELOPER_DIR",
+             "AIRDRAFT_PARAKEET_TEST_MODEL_DIR", "TEST_RUNNER_AIRDRAFT_PARAKEET_TEST_MODEL_DIR")
+    return {name: os.environ[name] for name in names if name in os.environ}
 
 
 def run(*args, cwd=ROOT, capture=False, **kwargs):
@@ -113,6 +140,10 @@ def validate_manifest(manifest, commit, tag):
         raise RuntimeError("Release must contain exactly the expected DMG and appcast hashes")
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in manifest["sha256"].values()):
         raise RuntimeError("Invalid asset checksum")
+    if "verification" in manifest:
+        verification = manifest["verification"]
+        if not isinstance(verification, dict) or verification != verification_for(verification.get("testScope")):
+            raise RuntimeError("Invalid release verification scope")
     return archive
 
 
@@ -172,16 +203,17 @@ def export_snapshot(commit):
     return destination
 
 
-def logged(args, source, log):
+def logged(args, source, log, *, env=None):
     print(f"Running {args[-1]}; log: {log}", flush=True)
     with log.open("a") as output:
-        result = subprocess.run([str(a) for a in args], cwd=source, stdout=output, stderr=subprocess.STDOUT)
+        result = subprocess.run([str(a) for a in args], cwd=source, env=env, stdout=output, stderr=subprocess.STDOUT)
     if result.returncode:
         print("\n".join(log.read_text(errors="replace").splitlines()[-70:]), file=sys.stderr)
         raise RuntimeError(f"Local validation failed; see {log}")
 
 
-def prepare(commit):
+def prepare(commit, test_scope="full"):
+    verification = verification_for(test_scope)
     if sys.platform != "darwin":
         raise RuntimeError("Release preparation requires the signing Mac")
     if run("git", "rev-parse", "--is-shallow-repository", capture=True) != "false":
@@ -194,7 +226,9 @@ def prepare(commit):
     existing = release_for(tag)
     if existing:
         with tempfile.TemporaryDirectory(prefix="airdraft-release-check-") as temporary:
-            download_and_verify(tag, commit, Path(temporary))
+            manifest = download_and_verify(tag, commit, Path(temporary))
+        if test_scope == "full" and manifest.get("verification", {}).get("testScope", "full") != "full":
+            raise RuntimeError("Existing assets used credential-free tests; cannot claim full verification")
         print(f"Verified existing release assets for {tag}; push may continue.", flush=True)
         return
     source = export_snapshot(commit)
@@ -207,13 +241,18 @@ def prepare(commit):
     logged([sys.executable, source / "scripts/test-prompt-gate.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/verify-prompt.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
-    logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
+    if test_scope == "full":
+        logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
+    else:
+        print("Credential-free scope: API-key/cloud and credential tests, including the Keychain fixture, are excluded.", flush=True)
     run(xcodegen(), "generate", cwd=source)
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
               "-skipPackagePluginValidation", "-skipMacroValidation",
               "-packageAuthorizationProvider", "netrc",
               f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
-    logged(common + ["-configuration", "Debug", "test"], source, output / "build.log")
+    logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO"] +
+           core_test_selection(source, test_scope), source, output / "build.log",
+           env=local_test_environment() if test_scope == "credential-free" else None)
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
@@ -222,10 +261,10 @@ def prepare(commit):
     derived = Path(settings["BUILD_DIR"]).parents[1]
     tools = derived / "SourcePackages/artifacts/sparkle/Sparkle/bin"
     signing = inspect_app(app)
-    logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent],
+    logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent, "--ephemeral-key"],
            source, output / "updater.log")
     logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent,
-            "--legacy-source"], source, output / "updater.log")
+            "--ephemeral-key", "--legacy-source"], source, output / "updater.log")
     # Package to a fresh directory, then replace only our generated local output.
     with tempfile.TemporaryDirectory(prefix="airdraft-package-", dir=output) as temporary:
         artifacts = Path(temporary)
@@ -237,7 +276,7 @@ def prepare(commit):
                 shutil.copy2(asset, output / asset.name)
     archive = output / f"Airdraft-{version}-{build}-arm64.dmg"
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
-                "signing": signing,
+                "signing": signing, "verification": verification,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)
@@ -253,6 +292,11 @@ def prepare(commit):
                      "Certificate-signed updates now preserve the designated requirement; "
                      "the release process rejects incompatible signing identities.\n\n"
                      f"Includes a signed Sparkle update feed. Built locally from `{commit}`.\n")
+    if test_scope == "credential-free":
+        with notes.open("a") as note:
+            note.write("\nVerification excludes API-key/cloud and credential-storage tests, "
+                       "including the cross-identity Keychain fixture. Signing, updater installation, "
+                       "packaging and downloaded-artifact checks passed.\n")
     # A draft creates no public tag. The workflow sets its final target after Git accepts the push.
     gh("release", "create", tag, archive, output / "appcast.xml", output / "release.json",
        "--repo", REPO, "--draft", "--target", "main", "--title", f"Airdraft {version} (build {build})",
@@ -309,7 +353,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["install-hook", "pre-push", "prepare", "publish"])
     parser.add_argument("arguments", nargs="*")
+    parser.add_argument("--test-scope", choices=TEST_SCOPES,
+                        default=os.environ.get("AIRDRAFT_RELEASE_TEST_SCOPE", "full"),
+                        help="Use credential-free only when API-key/credential testing is excluded")
     args = parser.parse_args()
+    verification_for(args.test_scope)
     if args.command == "install-hook":
         install_hook()
         return
@@ -333,7 +381,7 @@ def main():
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        prepare(commit)
+        prepare(commit, args.test_scope)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,34 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(release.version_for('CFBundleShortVersionString: "0.1.1"', 3), ('0.1.1', 'v0.1.1-build.3'))
         self.assertNotEqual(release.version_for('CFBundleShortVersionString: "0.1.1"', 4)[1], 'v0.1.1-build.3')
 
+    def test_credential_free_scope_uses_the_local_allowlist(self):
+        source = Path(__file__).resolve().parents[1]
+        selection = release.core_test_selection(source, 'credential-free')
+        self.assertIn('-only-testing:AirdraftCoreTests/OnboardingProgressTests', selection)
+        self.assertIn('-only-testing:AirdraftCoreTests/CLIProcessTests', selection)
+        self.assertNotIn('-only-testing:AirdraftCoreTests/AppIdentityTests', selection)
+        self.assertFalse(any('CredentialTests' in name or 'RefinerWireTests' in name for name in selection))
+        self.assertEqual(release.core_test_selection(source, 'full'), [])
+
+    def test_unknown_scope_never_expands_to_full_tests(self):
+        with self.assertRaisesRegex(RuntimeError, 'Unknown release test scope'):
+            release.core_test_selection(Path('.'), 'typo')
+
+    def test_local_test_environment_excludes_unrelated_settings(self):
+        with patch.dict(release.os.environ, {'HOME': '/fixture', 'PATH': '/bin',
+                                            'UNRELATED_SETTING': 'excluded'}, clear=True):
+            self.assertEqual(release.local_test_environment(), {'HOME': '/fixture', 'PATH': '/bin'})
+
+    def test_manifest_records_scope_and_exact_exclusions(self):
+        for scope in release.TEST_SCOPES:
+            manifest = self.manifest() | {'verification': release.verification_for(scope)}
+            release.validate_manifest(manifest, 'a' * 40, manifest['tag'])
+        for verification in [None, {}, {'testScope': 'typo'},
+                             {'testScope': 'credential-free', 'excluded': []}]:
+            manifest = self.manifest() | {'verification': verification}
+            with self.assertRaises(RuntimeError):
+                release.validate_manifest(manifest, 'a' * 40, manifest['tag'])
+
     def manifest(self):
         return {'commit': 'a' * 40, 'tag': 'v0.1.1-build.3', 'version': '0.1.1', 'build': 3,
                 'signing': dict(release_signing.POLICY),

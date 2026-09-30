@@ -373,6 +373,15 @@ commit the regenerated `Sources/App/Info.plist`. See the version policy in
 Apple Intelligence, saved audio, live preview and dictation automation are 0.3.0.
 Guided onboarding and official-build licensing are 0.4.0.
 
+When API-key or credential testing is explicitly excluded, prepare with
+`--test-scope credential-free` and push with
+`AIRDRAFT_RELEASE_TEST_SCOPE=credential-free`. The release records its exact test
+scope and exclusions in `release.json` and release notes. This replaces only
+credential/cloud tests and the cross-identity Keychain fixture with the local
+allowlist; signing, licensing configuration, updater installation, packaging and
+downloaded-artifact checks remain required. Updater fixtures use disposable
+Sparkle seeds through `--ephemeral-key`; packaging still uses the existing signing key.
+
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push. The GitHub
 workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.
