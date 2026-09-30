@@ -476,7 +476,10 @@ private struct HistoryTimeline: View {
                     // aggregate after a programmatic jump on macOS. Track each
                     // rendered row so VoiceOver still sees the visible times.
                     .onScrollVisibilityChange(threshold: 0.0001) { visible in
-                        visibility.setVisible(entry.id, visible, snapshot: snapshot)
+                        setVisible(entry.id, visible)
+                    }
+                    .onDisappear {
+                        setVisible(entry.id, false)
                     }
                 }
             }
@@ -526,6 +529,13 @@ private struct HistoryTimeline: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("History timeline")
         .accessibilityIdentifier("history.timeline")
+    }
+
+    private func setVisible(_ id: Int64, _ visible: Bool) {
+        visibility.setVisible(id, visible, snapshot: snapshot)
+        #if DEBUG
+        HistoryRenderMetrics.timelineVisibleIDs = Set(visibility.ids)
+        #endif
     }
 }
 

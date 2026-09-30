@@ -183,7 +183,9 @@ status table current.
   traversal; its lightweight representation exposes visible rows, shares row actions
   and provides first/last, page and record navigation. Track timeline visibility
   per rendered row so programmatic jumps expose the visible timestamps to
-  accessibility. Exclude zero-visibility
+  accessibility. Remove visibility when lazy rows disappear as well as when their
+  visibility callbacks change; returning to the top must not retain offscreen
+  timestamps. The navigation fixture asserts this cleanup. Exclude zero-visibility
   prefetched rows from active-entry tracking, and reveal the real row before
   presenting Details or Delete. Collapsed text uses bounded native layout with cached sizing, not
   hidden full transcripts or geometry-to-state height feedback. Preserve full text

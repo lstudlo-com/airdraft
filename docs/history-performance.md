@@ -44,6 +44,14 @@ Timeline position lives separately from page data. Visibility lookup examines
 only reported visible IDs. Row expansion and transcript-version state survive
 lazy view eviction.
 
+Timeline visibility is removed when a lazy row disappears as well as when its
+visibility callback changes. On macOS, a programmatic jump can evict a row without
+delivering its final offscreen callback; keeping that ID exposes stale timestamps
+to VoiceOver after returning to the top. The navigation fixture now asserts that
+lower timestamps disappear from the accessibility data after a return to the top,
+including when the first record was already active. A live accessibility check
+also verifies the actual exposed children.
+
 The compact timeline tracks visibility per rendered row. On macOS 27, its
 aggregate target callback can become empty after a programmatic jump, exposing
 the first timestamp to accessibility even though the visual timeline is correct.

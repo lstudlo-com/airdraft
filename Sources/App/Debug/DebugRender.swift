@@ -205,6 +205,13 @@ enum DebugRender {
         }
         precondition(views.count == 2, "History verification needs populated history and both scroll columns")
         let timeline = views[0], cards = views[1]
+        let initialTimelineIDs = HistoryRenderMetrics.timelineVisibleIDs
+        precondition(!initialTimelineIDs.isEmpty, "History must expose its visible timestamps")
+        func verifyReturnedTimeline() {
+            let visible = HistoryRenderMetrics.timelineVisibleIDs
+            precondition(!visible.isEmpty && visible.isSubset(of: initialTimelineIDs),
+                         "Returning to the top must remove offscreen timestamps from accessibility")
+        }
         func wheel(_ view: NSScrollView, delta: Int32) {
             // Deliver directly to the view. No global event posting or Accessibility grant.
             let cgEvent = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1,
@@ -222,9 +229,12 @@ enum DebugRender {
         scroll(cards, toBottom: true)
         precondition(cards.contentView.bounds.minY > 100, "History did not scroll down")
         precondition(timeline.contentView.bounds.minY > 0, "Timeline did not follow the lower cards")
+        precondition(HistoryRenderMetrics.timelineVisibleIDs.isDisjoint(with: initialTimelineIDs),
+                     "Lower timeline accessibility must exclude the initial timestamps")
         scroll(cards, toBottom: false)
         precondition(cards.contentView.bounds.minY <= 1 && timeline.contentView.bounds.minY <= 1,
                      "Returning cards to the top must restore the timeline day heading")
+        verifyReturnedTimeline()
 
         // The first card remains visible across this small movement. Its ID does not change.
         wheel(cards, delta: -10)
@@ -233,7 +243,9 @@ enum DebugRender {
         scroll(cards, toBottom: false)
         precondition(timeline.contentView.bounds.minY <= 1,
                      "Top-edge synchronization must work when the first record is already active")
+        verifyReturnedTimeline()
         print("PASS: History bottom-to-top and unchanged-first-record synchronization")
+        print("PASS: History accessibility removes evicted timeline timestamps")
     }
 
     private static func verifyPointerFocus() {
@@ -320,6 +332,7 @@ enum DebugRender {
 
 @MainActor
 enum HistoryRenderMetrics {
+    static var timelineVisibleIDs: Set<Int64> = []
     static var groupingPasses = 0
     static var groupedRecords = 0
     static var cardBodies = 0
