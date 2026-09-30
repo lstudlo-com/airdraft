@@ -132,7 +132,7 @@ increased contrast strengthens the edges. Keep the original leading alignment
 and header spacing, with 54 points above and 20 points below the row.
 It has no hover, click or meter behavior.
 Expose it as one image named `Airdraft` to assistive technology. The License
-sheet masthead reuses the same view at 36 points through its `height`
+sheet reuses the same view at 32 points through its `height`
 parameter; shadow depth scales with it, and the sidebar size is unchanged.
 
 The outlined `SidebarWordmark.imageset/wordmark.svg` remains the website and
@@ -381,28 +381,26 @@ stay outside its scrolling content. Set Up Later preserves progress; successful
 practice requires real pipeline delivery. Returning users' refinement and output
 settings are restored after practice.
 
-The License sheet opens with a masthead: the sidebar brand mark at 36 points, the
-name Airdraft, and one state line made of the shared `StatusDot` and a short state
-(Licensed, Trial · 13 days left, Trial ended, Activation invalid), with Done at
-the trailing edge. A self-built edition shows its name without a dot, since
-nothing about it can need attention. A Sandbox build adds a `PillTag`, the Test Purchase action and
-its no-real-payments note. One 13-point sentence follows only when the state needs
-it. Each state has at most one prominent action (Start Trial, Buy Airdraft, Allow
-Access, Manage Devices during recovery, or Update Key for a revoked activation);
-every other control uses `SoftButtonStyle`. An activated Mac shows paired rows in
-one `SettingsCard`: This Mac with Manage Devices, Valid until when the license
-expires, Last checked with Check License, and License key with Update Key…, with
-Deactivate This Mac… beneath. Without an activation, the key field, its Find My
-License link and the Keychain note share one card, followed by the cloud-cost note.
-An unfinished activation places its recovery card, with the anonymous device label
-and portal actions, before trial, purchase and key entry, and disables key entry.
-The app and Polar use the same device label. Failures appear in an `InlineNotice`
-beneath the controls unless the state's own explanation already says the same.
-The sheet is 440 points wide and as tall as its content (about 130 points for a
-self-built edition to about 460 for an unfinished activation), scrolling only
-past 520 points. Native controls, shared card insets and semantic colors remain
-unchanged. The vault topic linked above records states, inspected renders and the
-separate live-purchase and release gates.
+The License sheet is plain text on the sheet, with no cards, status dots, badges,
+helper lines or footnotes. Its top row holds the sidebar brand mark at 32 points
+(a Sandbox build adds a `PillTag`) and Done. Below it are one 17-point headline
+(Licensed, 13 days left in your trial, Your trial has ended) and one 13-point
+sentence in secondary color, then only the buttons that apply. Each state has at
+most one prominent action (Start Trial, Buy Airdraft, Allow Access, Manage Devices
+during recovery, or Update Key for a revoked activation); every other control uses
+`SoftButtonStyle`. A licensed Mac names itself in the sentence (`Airdraft ·
+XXXXXXXX`, the label Polar shows) and offers Check License, Manage Devices and
+Update Key…, with Deactivate This Mac… as quiet secondary text. Without an
+activation, a plain key field with Activate This Mac sits beneath the purchase
+buttons, with a Find My License link. An unfinished activation becomes the headline
+and sentence, with its portal actions before trial, purchase and key entry; key
+entry is disabled until it is resolved. A failure appears as one line of
+supporting text unless the state's own sentence already says the same. The sheet
+is 440 points wide and as tall as its content (about 140 points for a self-built
+edition to about 320 for an unfinished activation), scrolling only past 520
+points. Native controls and semantic colors remain unchanged. The vault topic
+linked above records states, inspected renders and the separate live-purchase and
+release gates.
 
 ### Text fields and sheets
 

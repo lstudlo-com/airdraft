@@ -2,10 +2,8 @@ import AirdraftCore
 import AppKit
 import SwiftUI
 
-/// The license sheet. It opens with the app's identity and current state, offers the
-/// one action that moves the customer forward, and keeps anything that manages an
-/// existing activation in paired rows beneath. Copy appears only where it changes a
-/// decision: cost, privacy and recovery.
+/// The license sheet: the brand mark, one headline, one sentence and the few buttons
+/// that apply. It is plain text on the sheet, with no cards, badges or status lights.
 struct LicenseView: View {
     var onClose: (() -> Void)? = nil
     @Environment(AppContainer.self) private var container
@@ -49,72 +47,62 @@ struct LicenseView: View {
     /// Re-read every minute so a trial's countdown and expiry stay true while the sheet is open.
     private var content: some View {
         TimelineView(.periodic(from: .now, by: 60)) { timeline in
-            let current = status(now: timeline.date)
-            VStack(alignment: .leading, spacing: Theme.pagePadding) {
-                header(current)
+            let summary = summary(now: timeline.date)
+            VStack(alignment: .leading, spacing: 20) {
+                topBar
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(summary.title)
+                        .font(.system(size: 17, weight: .semibold))
+                        .accessibilityAddTraits(.isHeader)
+                    if let detail = summary.detail {
+                        Text(detail)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    if isSandbox { Text("Test purchases only. No real payments.").supportingText() }
+                }
                 if license.distribution == .official, let config = license.configuration {
                     sections(config, now: timeline.date)
                         .disabled(license.isBusy || container.pipeline.isBusy)
                 }
-                notices
+                if container.pipeline.isBusy {
+                    Text("Finish dictation before changing your license.").supportingText()
+                }
+                if let message = visibleMessage {
+                    Text(message).supportingText().textSelection(.enabled)
+                }
             }
             .padding(Theme.pagePadding)
         }
     }
 
-    private func header(_ status: Status) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 14) {
-                SidebarBrandMark(height: 36, identifier: "license.brand")
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text("Airdraft")
-                            .font(.system(size: 17, weight: .semibold))
-                            .accessibilityLabel("Airdraft License")
-                            .accessibilityAddTraits(.isHeader)
-                        if isSandbox { PillTag(text: "SANDBOX") }
-                    }
-                    stateLine(status)
-                }
-                Spacer(minLength: Theme.controlSpacing)
-                Button("Done") { license.isPresented = false; onClose?() }
-                    .buttonStyle(SoftButtonStyle())
-                    .keyboardShortcut(.cancelAction)
-            }
-            if status.detail != nil || isSandbox {
-                VStack(alignment: .leading, spacing: 6) {
-                    if let detail = status.detail {
-                        Text(detail)
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if isSandbox { Text("Test purchases only. No real payments.").supportingText() }
-                }
-            }
-        }
-    }
-
-    private func stateLine(_ status: Status) -> some View {
-        HStack(spacing: 6) {
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            SidebarBrandMark(height: 32, identifier: "license.brand")
+                .accessibilityHidden(true)
+            if isSandbox { PillTag(text: "SANDBOX") }
+            Spacer(minLength: Theme.controlSpacing)
             if license.isBusy {
-                ProgressView().controlSize(.mini).frame(width: 8, height: 8)
-                    .accessibilityLabel("Updating license")
-            } else if let tone = status.tone {
-                StatusDot(tone)
+                ProgressView().controlSize(.small).accessibilityLabel("Updating license")
             }
-            Text(status.title).font(.system(size: 13, weight: .medium))
-            if let qualifier = status.qualifier {
-                Text("· \(qualifier)").font(.system(size: 13)).foregroundStyle(.secondary)
-            }
+            Button("Done") { license.isPresented = false; onClose?() }
+                .buttonStyle(SoftButtonStyle())
+                .keyboardShortcut(.cancelAction)
         }
     }
 
     /// What the customer can do now. Recovery of an unfinished activation always leads.
     @ViewBuilder
     private func sections(_ config: PolarConfiguration, now: Date) -> some View {
-        if isPending { recovery(config) }
+        if isPending {
+            HStack(spacing: 8) {
+                styled(Link("Manage Devices", destination: config.portalURL), prominent: true)
+                Button("I Removed It…") { confirmPending = true }
+                    .buttonStyle(SoftButtonStyle())
+            }
+        }
         switch license.access {
         case .community, .loading, .unconfigured:
             EmptyView()
@@ -122,28 +110,7 @@ struct LicenseView: View {
             Button("Allow Access") { Task { await license.load(allowInteraction: true); await license.refresh() } }
                 .buttonStyle(.borderedProminent)
         default:
-            if hasGrant { activation(config, now: now) } else { purchase(config) }
-        }
-    }
-
-    /// An activation whose outcome is unknown may hold a device slot; never retry automatically.
-    private func recovery(_ config: PolarConfiguration) -> some View {
-        SettingsCard {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    StatusDot(.attention)
-                    Text("Activation unfinished").font(.system(size: 13, weight: .medium))
-                }
-                Text("A previous attempt may have used a device slot. Remove “\(license.deviceLabel ?? "this Mac")” in your customer portal, then confirm here.")
-                    .supportingText()
-                    .textSelection(.enabled)
-                    .padding(.leading, 16)
-            }
-            HStack(spacing: 8) {
-                styled(Link("Manage Devices", destination: config.portalURL), prominent: true)
-                Button("I Removed It…") { confirmPending = true }
-                    .buttonStyle(SoftButtonStyle())
-            }
+            if hasGrant { activation(config) } else { purchase(config) }
         }
     }
 
@@ -151,7 +118,7 @@ struct LicenseView: View {
 
     private func purchase(_ config: PolarConfiguration) -> some View {
         let needsTrial = license.access == .needsTrial
-        return VStack(alignment: .leading, spacing: Theme.pagePadding) {
+        return VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 if needsTrial {
                     styled(Button("Start \(config.trialDays)-Day Trial") { Task { await license.startTrial() } },
@@ -160,75 +127,39 @@ struct LicenseView: View {
                 styled(Link(config.environment == .sandbox ? "Test Purchase" : "Buy Airdraft", destination: config.checkoutURL),
                        prominent: !isPending && (isTrialActive || license.access == .expired))
             }
-            VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-                SettingsCard {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("License key").font(.system(size: 13, weight: .medium))
-                            Spacer(minLength: Theme.controlSpacing)
-                            Link(destination: config.portalURL) {
-                                HStack(spacing: 3) {
-                                    Text("Find My License")
-                                    Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
-                                }
-                            }
-                            .font(.system(size: 12))
-                        }
-                        keyField(replacement: false, prominent: false)
-                        Text("Stored in Keychain after activation.").supportingText()
-                    }
-                }
-                Text("Cloud provider usage is billed separately. Local models run on your Mac.").supportingText()
+            VStack(alignment: .leading, spacing: 8) {
+                keyField(replacement: false, prominent: false)
+                Link("Find My License", destination: config.portalURL).font(.system(size: 12))
             }
         }
     }
 
     // MARK: Activated
 
-    private func activation(_ config: PolarConfiguration, now: Date) -> some View {
-        let grant = license.record?.grant
+    private func activation(_ config: PolarConfiguration) -> some View {
         let revoked = license.access == .revoked
-        return VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-            SettingsCard {
-                SettingRow(title: "This Mac", subtitle: license.deviceLabel) {
-                    styled(Link("Manage Devices", destination: config.portalURL), prominent: false)
-                }
-                .textSelection(.enabled)
-                if let end = grant?.expiresAt {
-                    RowDivider()
-                    SettingRow(title: end > now ? "Valid until" : "Expired",
-                               subtitle: end.formatted(date: .abbreviated, time: .omitted)) {}
-                }
-                if let verified = grant?.verifiedAt {
-                    RowDivider()
-                    SettingRow(title: "Last checked", subtitle: verified.formatted(date: .abbreviated, time: .shortened)) {
-                        Button("Check License") { Task { await license.refresh() } }
-                            .buttonStyle(SoftButtonStyle())
-                    }
-                }
+        return VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Button("Check License") { Task { await license.refresh() } }
+                styled(Link("Manage Devices", destination: config.portalURL), prominent: false)
                 if !revoked {
-                    RowDivider()
-                    SettingRow(title: "License key", subtitle: "Stored in Keychain") {
-                        Button(showReplacementKey ? "Cancel" : "Update Key…") {
-                            showReplacementKey.toggle()
-                            key = ""
-                        }
-                        .buttonStyle(SoftButtonStyle())
-                    }
-                }
-                if revoked || showReplacementKey {
-                    RowDivider()
-                    VStack(alignment: .leading, spacing: 8) {
-                        keyField(replacement: true, prominent: revoked)
-                        Text("Keeps this Mac’s existing device slot.").supportingText()
+                    Button(showReplacementKey ? "Cancel" : "Update Key…") {
+                        showReplacementKey.toggle()
+                        key = ""
                     }
                 }
             }
-            HStack(spacing: 8) {
+            .buttonStyle(SoftButtonStyle())
+            if revoked || showReplacementKey {
+                keyField(replacement: true, prominent: revoked)
+            }
+            HStack(spacing: 16) {
                 Button("Deactivate This Mac…") { confirmDeactivation = true }
                 if revoked { Button("I Removed This Device…") { confirmForget = true } }
             }
-            .buttonStyle(SoftButtonStyle())
+            .buttonStyle(.plain)
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -236,7 +167,7 @@ struct LicenseView: View {
 
     private func keyField(replacement: Bool, prominent: Bool) -> some View {
         HStack(spacing: 8) {
-            SecureField(replacement ? "Replacement license key" : "Paste your key", text: $key)
+            SecureField(replacement ? "New license key" : "License key", text: $key)
                 .textFieldStyle(.roundedBorder)
                 .accessibilityLabel("Airdraft license key")
                 .onSubmit { activate() }
@@ -253,15 +184,6 @@ struct LicenseView: View {
             control.buttonStyle(.borderedProminent)
         } else {
             control.buttonStyle(SoftButtonStyle())
-        }
-    }
-
-    @ViewBuilder private var notices: some View {
-        if container.pipeline.isBusy {
-            InlineNotice("Finish dictation before changing your license.") { EmptyView() }
-        }
-        if let message = visibleMessage {
-            InlineNotice(message) { EmptyView() }
         }
     }
 
@@ -282,55 +204,52 @@ struct LicenseView: View {
         }
     }
 
-    // MARK: State
+    // MARK: Words
 
-    private struct Status {
+    private struct Summary {
         let title: String
-        var qualifier: String? = nil
-        /// Nil when the state needs no indicator: a self-built edition has nothing to go wrong.
-        let tone: StatusDot.Tone?
         var detail: String? = nil
     }
 
-    private func status(now: Date) -> Status {
-        var status = baseStatus(now: now)
-        if isPending { status.detail = nil }
-        // The failure notice already says why; the detail only stands in when it is gone.
-        if license.isOffline, license.message != nil { status.detail = nil }
-        return status
-    }
-
-    private func baseStatus(now: Date) -> Status {
+    private func summary(now: Date) -> Summary {
+        let label = license.deviceLabel ?? "this Mac"
+        if isPending {
+            return Summary(title: "Activation unfinished",
+                           detail: "A previous attempt may have used a device slot. Remove “\(label)” in your customer portal, then confirm.")
+        }
         switch license.access {
         case .community:
-            return Status(title: "Self-built edition", tone: nil,
-                          detail: "Every feature is unlocked. This build needs no license.")
+            return Summary(title: "Self-built edition", detail: "Every feature is unlocked. This build needs no license.")
         case .loading:
-            return Status(title: "Checking license…", tone: .busy)
+            return Summary(title: "Checking license…")
         case .unconfigured:
-            return Status(title: "Not configured", tone: .attention,
-                          detail: "This build can’t start a trial or accept a purchase. Contact Airdraft support for a configured build.")
+            return Summary(title: "Not configured",
+                           detail: "This build can’t start a trial or accept a purchase. Contact Airdraft support for a configured build.")
         case .needsTrial:
-            return Status(title: "Not activated", tone: .inactive,
-                          detail: "Try every feature free for \(Self.days(license.configuration?.trialDays ?? 14)). No card required.")
+            return Summary(title: "Try every feature free for \(Self.days(license.configuration?.trialDays ?? 14))",
+                           detail: "No card required.")
         case .trial(let end):
-            return Status(title: "Trial", qualifier: Self.remaining(until: end, now: now), tone: .ok,
-                          detail: "Full access until \(end.formatted(date: .abbreviated, time: .shortened)). No automatic charge.")
+            return Summary(title: "\(Self.remaining(until: end, now: now)) left in your trial",
+                           detail: "Full access until \(end.formatted(date: .abbreviated, time: .shortened)). No automatic charge.")
         case .licensed:
-            return Status(title: "Licensed", qualifier: license.isOffline ? "Offline" : nil, tone: .ok,
-                          detail: license.isOffline ? "Using your last verified license." : nil)
+            let offline = license.isOffline && license.message == nil
+            return Summary(title: "Licensed", detail: [
+                "This Mac: \(label)",
+                license.record?.grant?.expiresAt.map { "Valid until \($0.formatted(date: .abbreviated, time: .omitted))." },
+                offline ? "Offline. Using your last verified license." : nil,
+            ].compactMap { $0 }.joined(separator: "\n"))
         case .expired:
-            return Status(title: hasGrant ? "License expired" : "Trial ended", tone: .attention,
-                          detail: "Buy or activate a license to keep dictating. Your history and settings stay available.")
+            return Summary(title: hasGrant ? "Your license has expired" : "Your trial has ended",
+                           detail: "Buy or activate a license to keep dictating. Your history and settings stay available.")
         case .revoked:
-            return Status(title: "Activation invalid", tone: .attention,
-                          detail: "If you rotated your key, enter the new one below. Otherwise check this Mac in your customer portal.")
+            return Summary(title: "This activation is no longer valid",
+                           detail: "If you rotated your key, enter the new one. Otherwise check “\(label)” in your customer portal.")
         case .locked:
-            return Status(title: "Keychain locked", tone: .attention,
-                          detail: "Allow access to read your saved license. A locked license never restarts your trial.")
+            return Summary(title: "Keychain access needed",
+                           detail: "Allow access to read your saved license. A locked license never restarts your trial.")
         case .clockChanged:
-            return Status(title: "Clock changed", tone: .attention,
-                          detail: "Correct your Mac’s date and time to continue the trial, or activate a license.")
+            return Summary(title: "Check your Mac’s date and time",
+                           detail: "Correct the clock to continue your trial, or activate a license.")
         }
     }
 
@@ -339,7 +258,7 @@ struct LicenseView: View {
     /// Whole days, rounded up, so a fresh 14-day trial reads 14.
     private static func remaining(until end: Date, now: Date) -> String {
         let seconds = end.timeIntervalSince(now)
-        guard seconds > 0 else { return "Ending now" }
-        return "\(days(Int((seconds / 86_400).rounded(.up)))) left"
+        guard seconds > 0 else { return "No time" }
+        return days(Int((seconds / 86_400).rounded(.up)))
     }
 }
