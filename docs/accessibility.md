@@ -59,6 +59,12 @@ running Airdraft copies. Copying is user initiated and uploads nothing.
 
 Debug now has its own UserDefaults domain and asks for its own permissions.
 The existing shared model/history directory and Keychain service are unchanged.
+Debug does not install official updates. Publishing or rebuilding while it is
+running leaves the old core and UI libraries in memory. For a repeated bug,
+run `scripts/verify-running-app.py --app <intended-app>` before treating an on-disk
+version or a successful build as proof of the running code. The read-only check
+rejects duplicate copies and mismatched loaded library UUIDs. Quit normally and
+relaunch the intended copy; verify its own Accessibility status after restart.
 Older debug copies with the release or legacy bundle ID must be quit and their
 stale Accessibility entries removed once. The app cannot transfer their grants.
 

@@ -25,6 +25,11 @@ def main():
         ("unknown-profile", "transcribe", ["--e2e-audio", "/unused.wav", "--e2e-profile", "not-a-profile"]),
         ("unknown-refiner", "transcribe", ["--e2e-audio", "/unused.wav", "--e2e-refiner", "not-a-refiner"]),
         ("unknown-action", "not-an-action", []),
+        ("insertion-missing-fixture", "insert", []),
+        ("insertion-invalid-token", "insert", ["--e2e-target-bundle", "com.apple.TextEdit",
+            "--e2e-insertion-token", "not-a-uuid", "--e2e-insertion-method", "auto"]),
+        ("insertion-invalid-method", "insert", ["--e2e-target-bundle", "com.apple.TextEdit",
+            "--e2e-insertion-token", "F0B51C04-E469-480E-A757-740A1952CD44", "--e2e-insertion-method", "invalid"]),
         ("missing-audio", "transcribe", []),
         ("unwritable-report", "inventory", []),
     ]

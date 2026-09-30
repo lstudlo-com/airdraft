@@ -418,6 +418,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 
 ## Validation
 
+- For a repeated insertion bug, verify the actual running build with
+  `scripts/verify-running-app.py --app <intended-app>` before claiming a fix.
+  On-disk Info.plist/build success cannot prove an old process loaded new code.
+  Quit duplicate/stale copies normally, preserve recovery prompts, relaunch and
+  compare loaded executable/core/UI UUIDs. A release does not update running Debug.
+  Run the `LocalE2E insert` fixture against a disposable external editor field;
+  require actual resulting text, not only a posted key event or simulated AX result.
+  Missing Accessibility access blocks that live check and must remain explicit.
 - Credential-free checks: `pnpm test:local` excludes API-key and cloud-provider
   suites, including fake keys. It includes onboarding and isolated public licensing
   fixtures. Run `python3 scripts/verify-local-e2e-errors.py --app <Debug.app>` after

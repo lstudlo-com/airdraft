@@ -90,6 +90,9 @@ enum LocalE2E {
                     app.settings.asr.language = String(locale.prefix(2))
                 }
                 switch action {
+                case "insert":
+                    report = try await InsertionE2E.run(bundleID: argument("--e2e-target-bundle"),
+                        token: argument("--e2e-insertion-token"), method: argument("--e2e-insertion-method"))
                 case "inventory":
                     report["models"] = ModelCatalogue.entries.map { entry in
                         let config = entry.config(from: app.settings.asr)

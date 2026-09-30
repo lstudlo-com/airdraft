@@ -77,6 +77,7 @@ Available `--e2e-action` values:
 | Action | Behavior |
 |---|---|
 | `inventory` | Local model installation paths and on-device refinement availability |
+| `insert` | Production capture/insertion against an explicitly prepared disposable field in another app; verifies the actual resulting field value |
 | `download` | Explicit anonymous installation of `--e2e-model` into the isolated root |
 | `transcribe` | Real pipeline, local ASR, dictionary/conversion, SQLite and retained WAV; insertion disabled |
 | `preview` | Real Apple Speech preview, provisional text and callback cancellation |
@@ -108,6 +109,32 @@ A requested refiner's fallback fails the overall action; inspect both fields.
 Audio-file transcription and preview do not play sound. Speaker/microphone
 playback and History playback are separate, audible checks and may be omitted
 when silent testing is required.
+
+For live insertion, first prepare a disposable field in the target app containing
+exactly `Airdraft insertion fixture <UPPERCASE-UUID>` with its caret at the end.
+Run `--e2e-action insert --e2e-target-bundle <bundle-id>
+--e2e-insertion-token <UUID> --e2e-insertion-method auto` and repeat in a fresh
+field with `paste`. The target must be frontmost and the Debug app must already
+have Accessibility access. Missing arguments, a different field value, a moved
+caret or a different app stop the fixture before delivery. The fixture requires
+the actual field value to match the expected insertion, one delivery callback
+and no notice. Posting a key event alone is not a pass. A failed fixture restores
+its recovery clipboard text only while it still owns that clipboard change.
+Never use an existing user draft or reset permissions to run this check.
+
+Before calling a locally reproduced bug fixed, verify the running build:
+
+```sh
+python3 scripts/verify-running-app.py --app "$APP" --report /tmp/airdraft-running-build.json
+```
+
+This requires one running Airdraft copy at the requested path and compares the
+loaded executable, core framework and Debug UI library UUIDs against that bundle.
+Rebuilding a file or reading its Info.plist does not prove an old process loaded
+it. Quit obsolete copies normally, preserving recovery prompts, then relaunch
+the intended app and repeat. A published release does not update a running Debug
+process. Permission and actual external-editor coverage must be reported separately
+from the controlled OS fixtures in the core suite.
 
 For automation, wait for the scenario's `ready-for-playback` file, then play the
 fixture through a speaker near the selected microphone. The receiver uses literal
