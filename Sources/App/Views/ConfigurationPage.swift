@@ -59,16 +59,6 @@ struct ConfigurationPage: View {
 
             PageSection("Behavior") {
                 SettingsCard {
-                    if settings.outputDestination == .cursor {
-                        SettingRow(title: "Insert text via") {
-                            Picker("Insert text via", selection: $settings.insertionMethod) {
-                                Text("Accessibility, then paste").tag(InsertionMethod.auto)
-                                Text("Always paste").tag(InsertionMethod.paste)
-                            }
-                            .settingsPicker(width: 220)
-                        }
-                        RowDivider()
-                    }
                     SettingRow(title: "Read app context",
                                subtitle: "Sends window title, nearby text and selection to AI. Skips password fields and managers.") {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)

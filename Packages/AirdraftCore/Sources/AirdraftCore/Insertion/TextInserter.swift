@@ -5,7 +5,7 @@ import Foundation
 import os
 
 public enum InsertionMethod: String, Codable, CaseIterable, Sendable, Identifiable {
-    /// Try Accessibility first, fall back to paste.
+    /// Legacy automatic setting; uses the same validated paste path as `paste`.
     case auto
     /// Always paste (clipboard is restored afterwards).
     case paste
@@ -47,8 +47,6 @@ public final class TextInserter {
         var systemFocus: () -> AXUIElement?
         var processID: (AXUIElement) -> Int32?
         var readAttribute: (AXUIElement, CFString) -> (AXError, CFTypeRef?)
-        var isSettable: (AXUIElement, CFString) -> Bool
-        var writeAttribute: (AXUIElement, CFString, CFTypeRef) -> AXError
         var enableWebAccessibility: (Int32) -> Bool
         var postPaste: () -> Bool
         var pasteboard: NSPasteboard
@@ -68,10 +66,7 @@ public final class TextInserter {
                 var ref: CFTypeRef?
                 let status = AXUIElementCopyAttributeValue(element, attribute, &ref)
                 return (status, ref)
-            }, isSettable: { element, attribute in
-                var settable: DarwinBoolean = false
-                return AXUIElementIsAttributeSettable(element, attribute, &settable) == .success && settable.boolValue
-            }, writeAttribute: { AXUIElementSetAttributeValue($0, $1, $2) }, enableWebAccessibility: { pid in
+            }, enableWebAccessibility: { pid in
                 guard AXIsProcessTrusted() else { return false }
                 let app = AXUIElementCreateApplication(pid)
                 AXUIElementSetMessagingTimeout(app, 0.3)
@@ -126,22 +121,11 @@ public final class TextInserter {
                 : "Destination changed. Text copied; paste it where you want.")
         }
 
-        if method == .auto {
-            let result = await insertViaAccessibility(text, target: target)
-            // Verification yields while the destination updates. Cancelled sessions
-            // must not replace the clipboard or fall through to a paste afterwards.
-            guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
-            switch result {
-            case .inserted:
-                onDelivered?()
-                return InsertionResult(method: .accessibility, notice: nil)
-            case .uncertain:
-                copyOnly(text)
-                return InsertionResult(method: .clipboardOnly, notice: "Check the destination before pasting. Text copied; insertion could not be verified.")
-            case .notAttempted, .rejected: break
-            }
-        }
-        // Focus can change during an AX request too. Revalidate before posting a paste.
+        // Both persisted settings use one paste operation. AXSelectedText can
+        // report writable and still fail or expose a stale value after a write.
+        // Probing it by writing made ordinary dictation impossible to recover
+        // safely: a subsequent paste could duplicate text. AX is read-only here.
+        // Revalidate immediately before changing the clipboard and posting ⌘V.
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard matches(target) else {
             copyOnly(text)
@@ -176,9 +160,11 @@ public final class TextInserter {
                               enableWebAccessibility: () -> Bool) async -> InsertionTarget? {
         guard !Task.isCancelled, isFrontmost() else { return nil }
         var (element, range) = readFocus()
-        if (element == nil || !selectionMatches(range, range)), enableWebAccessibility() {
-            // Creating the web accessibility tree is asynchronous. Capture its
-            // real field and caret before recording, never substitute nil == nil.
+        if element == nil || !selectionMatches(range, range) {
+            _ = enableWebAccessibility()
+            // Both native and web editors can publish focus asynchronously.
+            // An unsupported web attribute is not evidence that native focus
+            // cannot become ready. Never substitute nil == nil for a cursor.
             _ = await waitForMatch {
                 guard isFrontmost() else { return false }
                 (element, range) = readFocus()
@@ -193,10 +179,10 @@ public final class TextInserter {
         guard let app = environment.application(target.processID), app.bundleID == target.bundleID else { return false }
         if environment.frontmostApplication()?.processID != target.processID {
             guard environment.activate(target.processID) else { return false }
-            // Being frontmost can precede the editor's focused-field update.
-            return await Self.waitForMatch { self.matches(target) }
         }
-        return matches(target)
+        // AX focus can lag even while the same app remains frontmost. Require
+        // the original field and selection, allowing a bounded read-only wait.
+        return await Self.waitForMatch { self.matches(target) }
     }
 
     static func waitForMatch(timeout: Duration = .milliseconds(500), matches: () -> Bool) async -> Bool {
@@ -264,72 +250,6 @@ public final class TextInserter {
         return range
     }
 
-    // MARK: - Accessibility
-
-    enum WriteResult: Equatable { case notAttempted, rejected, inserted, uncertain }
-
-    private func insertViaAccessibility(_ text: String, target: InsertionTarget) async -> WriteResult {
-        guard matches(target), let focused = target.element else { return .notAttempted }
-        let (_, roleRef) = environment.readAttribute(focused, kAXRoleAttribute as CFString)
-        let role = roleRef as? String ?? ""
-        guard role == kAXTextFieldRole || role == kAXTextAreaRole || role == kAXComboBoxRole else { return .notAttempted }
-        guard environment.isSettable(focused, kAXSelectedTextAttribute as CFString),
-              let before = value(focused), let range = selection(focused),
-              Self.selectionMatches(target.selection, range),
-              let expected = Self.replacing(before, range: range, with: text) else { return .notAttempted }
-        return await Self.verifiedWrite(before: before, expected: expected, isCurrent: { matches(target) }, write: {
-            let status = environment.writeAttribute(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
-            if status != .success {
-                Self.log.notice("insert: Accessibility write returned \(status.rawValue, privacy: .public)")
-            }
-            return status
-        }, read: { value(focused) })
-    }
-
-    static func verifiedWrite(before: String, expected: String, isCurrent: () -> Bool,
-                              write: () -> AXError, read: () -> String?,
-                              verificationTimeout: Duration = .milliseconds(500)) async -> WriteResult {
-        guard !Task.isCancelled, isCurrent() else { return .notAttempted }
-        switch write() {
-        case .success: break
-        case .attributeUnsupported, .notImplemented:
-            // The destination rejected this operation. Only allow the paste
-            // fallback while the original field, selection and value are intact.
-            return !Task.isCancelled && isCurrent() && read() == before ? .rejected : .uncertain
-        default:
-            // A timeout or transport error can arrive after the write took effect.
-            // Neither that error nor an unchanged value permits another insertion.
-            return .uncertain
-        }
-
-        // Some apps expose a cached AXValue that lags the accepted write. Read
-        // that same element until it catches up; never repeat the write itself.
-        let clock = ContinuousClock()
-        let deadline = clock.now.advanced(by: verificationTimeout)
-        while !Task.isCancelled {
-            if read() == expected { return .inserted }
-            let now = clock.now
-            guard now < deadline else { break }
-            do {
-                try await clock.sleep(until: min(deadline, now.advanced(by: .milliseconds(25))))
-            } catch { break }
-        }
-        return .uncertain
-    }
-
-    static func replacing(_ value: String, range: CFRange, with text: String) -> String? {
-        let original = value as NSString
-        guard range.location >= 0, range.length >= 0, range.location <= original.length,
-              range.length <= original.length - range.location else { return nil }
-        return original.replacingCharacters(in: NSRange(location: range.location, length: range.length), with: text)
-    }
-
-    private func value(_ element: AXUIElement) -> String? {
-        let (status, ref) = environment.readAttribute(element, kAXValueAttribute as CFString)
-        guard status == .success else { return nil }
-        return ref as? String
-    }
-
     // MARK: - Paste
 
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
@@ -348,11 +268,18 @@ public final class TextInserter {
         guard (postPaste ?? Self.postCommandV)() else { return false }
         // Delivery feedback must not wait for clipboard restoration.
         onDelivered?()
-        try? await Task.sleep(for: .seconds(restoreDelay))
-        // Restore only if nobody replaced the clipboard in the meantime.
-        if pasteboard.changeCount == ourChange {
-            restore(pasteboard, items: saved)
-        }
+        // The receiving app handles the posted event asynchronously. Once it is
+        // posted, cancellation must not restore the old clipboard before that
+        // app reads it. This unstructured task owns the short restoration delay
+        // independently of the cancelled dictation; it never posts another key.
+        let delay = restoreDelay
+        await Task { @MainActor in
+            try? await Task.sleep(for: .seconds(delay))
+            // Restore only if nobody replaced the clipboard in the meantime.
+            if pasteboard.changeCount == ourChange {
+                self.restore(pasteboard, items: saved)
+            }
+        }.value
         return true
     }
 

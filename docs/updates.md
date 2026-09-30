@@ -50,6 +50,12 @@ not install public Sparkle releases. See [Accessibility access](accessibility.md
 for migration and recovery steps when System Settings shows an enabled switch
 but the running app is untrusted.
 
+From 0.4.2, release preparation also requires actual insertion into disposable
+TextEdit and Chrome fields from the committed Debug build, with both legacy
+insertion preferences. Missing, failed or stale binary evidence blocks packaging;
+publication requires its commit-bound summary in `release.json`. See
+[local verification](local-e2e.md) for the fixture and evidence paths.
+
 ## Version policy
 
 Choose the display version from the product changes before preparing a release.

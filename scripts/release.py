@@ -144,6 +144,20 @@ def validate_manifest(manifest, commit, tag):
         verification = manifest["verification"]
         if not isinstance(verification, dict) or verification != verification_for(verification.get("testScope")):
             raise RuntimeError("Invalid release verification scope")
+    if tuple(map(int, version.split('.'))) >= (0, 4, 2):
+        evidence = manifest.get('liveInsertion', {})
+        if not isinstance(evidence, dict):
+            raise RuntimeError('Release requires valid live insertion evidence')
+        required = [[app, method] for app in ('com.apple.TextEdit', 'com.google.Chrome')
+                    for method in ('auto', 'paste')]
+        hashes = evidence.get('binarySHA256', {})
+        if (not isinstance(hashes, dict) or evidence.get('status') != 'passed' or evidence.get('commit') != commit
+                or type(evidence.get('cases')) is not int or evidence['cases'] < 4
+                or any(case not in evidence.get('verifiedTargets', []) for case in required)
+                or set(hashes) != {'Airdraft Debug', 'Airdraft Debug.debug.dylib', 'AirdraftCore'}
+                or any(not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value)
+                       for value in hashes.values())):
+            raise RuntimeError('Release requires native/web insertion evidence from its committed Debug build')
     return archive
 
 
@@ -242,6 +256,7 @@ def prepare(commit, test_scope="full"):
     logged([sys.executable, source / "scripts/verify-prompt.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
     logged([sys.executable, source / "scripts/test-insertion-regressions.py"], source, output / "insertion.log")
+    logged([sys.executable, source / "scripts/test-live-insertion.py"], source, output / "insertion.log")
     if test_scope == "full":
         logged([sys.executable, source / "scripts/verify-keychain.py"], source, output / "keychain.log")
     else:
@@ -258,6 +273,14 @@ def prepare(commit, test_scope="full"):
            env=local_test_environment() if test_scope == "credential-free" else None)
     logged([sys.executable, source / "scripts/verify-insertion-regressions.py", core_results,
             "--report", core_results.parent / "insertion-regressions.json"], source, output / "insertion.log")
+    raw = run(*common, '-configuration', 'Debug', '-showBuildSettings', '-json', cwd=source, capture=True)
+    debug = next(item['buildSettings'] for item in json.loads(raw) if item['target'] == 'airdraft')
+    debug_app = Path(debug['TARGET_BUILD_DIR']) / debug['FULL_PRODUCT_NAME']
+    print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
+    logged([sys.executable, source / 'scripts/verify-live-insertion.py', '--app', debug_app,
+            '--reports', output / 'insertion-e2e', '--report', output / 'insertion-e2e.json'],
+           source, output / 'insertion.log')
+    live_insertion = json.loads((output / 'insertion-e2e.json').read_text()) | {'commit': commit}
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
@@ -281,7 +304,7 @@ def prepare(commit, test_scope="full"):
                 shutil.copy2(asset, output / asset.name)
     archive = output / f"Airdraft-{version}-{build}-arm64.dmg"
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
-                "signing": signing, "verification": verification,
+                "signing": signing, "verification": verification, "liveInsertion": live_insertion,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)

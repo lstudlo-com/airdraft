@@ -1,6 +1,7 @@
 #if DEBUG
 import AppKit
 import ApplicationServices
+import CryptoKit
 import AirdraftCore
 
 /// Exercises the real OS delivery boundary, only inside an explicitly prepared
@@ -15,6 +16,14 @@ import AirdraftCore
         guard let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier == bundleID else {
             throw Failure("The requested fixture app is not frontmost.")
         }
+        let bundle = Bundle.main.bundleURL
+        let executable = Bundle.main.executableURL!
+        let binaries = [executable,
+            bundle.appendingPathComponent("Contents/Frameworks/AirdraftCore.framework/AirdraftCore"),
+            executable.deletingLastPathComponent().appendingPathComponent(executable.lastPathComponent + ".debug.dylib")]
+        let hashes = try Dictionary(uniqueKeysWithValues: binaries.map { url in
+            (url.lastPathComponent, SHA256.hash(data: try Data(contentsOf: url)).map { String(format: "%02x", $0) }.joined())
+        })
         let marker = "Airdraft insertion fixture \(id.uuidString)"
         let text = " Delivery \(id.uuidString) succeeded."
         let inserter = TextInserter()
@@ -78,7 +87,7 @@ import AirdraftCore
                 "targetBundle": bundleID, "requestedMethod": method,
                 "reportedMethod": result.method.rawValue, "notice": result.notice ?? "",
                 "actualTextMatches": actualTextMatches, "deliveryCallbacks": delivered,
-                "fixtureToken": id.uuidString]
+                "fixtureToken": id.uuidString, "binarySHA256": hashes]
     }
 
     private static func value(_ field: AXUIElement) -> String? {

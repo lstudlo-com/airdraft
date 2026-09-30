@@ -25,11 +25,19 @@ core suite，跨身分 Keychain fixture 也排除；scope 與 exclusions 記在
 
 `test-local-e2e.py` 是無 API 憑證的核心測試選集。release prepare 在建立新成品時另跑完整核心 suite；重用成品會略過，依 skill 第 3 節補齊本次測試。兩者都不能代替 App 的實際流程。原生 fixture 的 HUD 會短暫出現，與其他 UI 操作錯開執行。
 
-本機 runner 與 release prepare 都會檢查實際 xcresult 的 34 個 mandatory
+本機 runner 與 release prepare 都會檢查實際 xcresult 的 27 個 mandatory
 insertion regressions，涵蓋 production capture／insert entry points 與關閉
 context 的 pipeline → History。任何 missing、skip 或 fail 都會阻止通過，
 不可只引用 xcodebuild exit 0。此 gate 適用於完整與 credential-free 範圍；
 證據為各次 core run 旁的 `insertion-regressions.json`。
+
+0.4.2 起，prepare 另強制檢查 committed Debug 的四個實際插入案例：
+TextEdit／Chrome，各自用 `auto`／`paste`。每次使用新的 fixture token，
+把結果放在 `dist/releases/<tag>/insertion-e2e/<case>/result.json`。
+缺少證據時 prepare 會印出 Debug 路徑並在封裝前停止；完成案例後重跑。
+`verify-live-insertion.py` 必須確認實際文字、一次交付、無提示與三個 binary
+hash 全部符合本次 build。manifest 保存 commit-bound summary，publish
+拒絕缺少證據的版本；不能以 mock 或按鍵已送出代替。
 
 Moon 可用時採用既有 tasks。若 Moon 或 XcodeGen 不在 PATH，依 repo 現有工具與發佈腳本處理；可用 `dist/tools/xcodegen/bin/xcodegen generate` 與直接 `xcodebuild`。Xcode 指令保留 `-skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc`，序列化執行，不指定 `-derivedDataPath`。
 

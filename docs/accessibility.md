@@ -105,46 +105,37 @@ the singular attribute is unsupported or has no value. Missing, malformed,
 multiple or changed selections cannot authorize insertion. If the editor is not
 exposed, capture requests [Electron's documented `AXManualAccessibility`
 attribute](https://github.com/electron/electron/blob/main/docs/tutorial/accessibility.md)
-and waits up to 500 ms for its field and caret. Reactivating the original app
-also waits for the original field and selection, rather than stopping as soon as
-the app becomes frontmost. Individual AX calls retain their 300 ms timeout.
+and waits up to 500 ms for its field and caret. Native editors get the same
+readiness wait even when they reject that web attribute. Before delivery, wait
+for the original field and selection even if the app is already frontmost.
+Individual AX calls retain their 300 ms timeout.
 
-"Check the destination before pasting" means Airdraft attempted an Accessibility
-write but could not verify the result. Permission can be granted while an editor
-does not support replacing selected text. For repeated failures, choose
-Configuration → Behavior → Insert text via → Always paste. This uses the editor's
-normal paste command and restores the previous clipboard after one second, unless
-another app or the user has since changed it. Destination checks still apply.
+Cursor insertion uses one normal paste command after checking the captured app,
+field and selection. Both old `auto` and `paste` preferences use this path;
+Configuration no longer offers an AX-write mode. Airdraft does not attempt an
+`AXSelectedText` write before pasting. Some editors advertise that attribute as
+writable but cannot verify a replacement; trying it first caused the repeated
+“Check the destination before pasting” recovery notice and blocked normal paste.
 
-Automatic insertion preserves the actual Accessibility error code. An
-`attributeUnsupported` or `notImplemented` rejection permits paste only while the
-original field, selection and value remain unchanged. Other errors, including
-messaging timeouts, remain uncertain and never trigger another insertion. See
-[Apple's write error definitions](https://developer.apple.com/documentation/applicationservices/1460434-axuielementsetattributevalue).
+The clipboard is restored after one second if its ownership has not changed.
+Once the paste event is posted, cancelling the dictation cannot shorten this
+delay: the receiving app still needs time to read the dictated text. There is
+never a second paste. Changed or unknown destinations still retain recovery text.
 
-Accepted writes are checked against the exact expected text. The verifier polls
-the captured element every 25 ms for up to 500 ms, with each Accessibility request
-also subject to the existing 300 ms messaging timeout. This accommodates delayed
-values such as [Chromium's cached accessibility tree](https://chromium.googlesource.com/chromium/src/+/main/docs/accessibility/overview.md).
-Cancellation stops verification without a second write, paste or clipboard copy.
-Diagnostics record failed write error codes without recording the dictated text.
+`TextDeliveryRegressionTests` calls production `captureTarget()` and `insert()`
+together through an injected OS boundary and private pasteboard. Cases cover
+both saved insertion preferences, unavailable AX values, native/web focus,
+changed destinations, cancellation and context-off pipeline delivery to History.
+The retired AX-write verifier and its tests were removed with that delivery path.
 
-Regression tests cover rejection, changed destinations, delayed values, deadlines
-and cancellation. These fixtures do not establish insertion success in every app;
-the destination apps still need a real dictation check.
-
-`TextDeliveryRegressionTests` also calls the production `captureTarget()` and
-`insert()` entry points together. Only the OS boundary is injected; focus matching,
-AX verification, fallback choice, clipboard restoration and delivery callbacks
-remain production code. A pipeline case with context disabled checks delivery
-and the resulting History record. Every fixture uses a private pasteboard.
-
-Both `pnpm test:local` and release preparation inspect their actual xcresult with
-`verify-insertion-regressions.py`. All 34 mandatory helper and delivery regressions
-must execute and pass; a missing suite, skipped case, failure or failing retry
-blocks the run even if Xcode exits successfully. The gate applies to full and
-credential-free release scopes. A contract update is required to rename or retire
-a mandatory case. Fault tests cover the gate's rejection behavior.
+Both `pnpm test:local` and release preparation inspect the actual xcresult with
+`verify-insertion-regressions.py`. All 27 current insertion cases must execute
+and pass; missing, skipped and failed cases block the run. From 0.4.2, release
+preparation also requires live TextEdit and Chrome insertion for both persisted
+preferences. `verify-live-insertion.py` requires the actual resulting text, one
+callback, no warning and binary hashes matching the exact committed Debug build.
+A new or changed build needs new evidence. The release manifest records this
+acceptance; publication rejects missing evidence. See `docs/local-e2e.md`.
 
 ## Implementation and evidence
 

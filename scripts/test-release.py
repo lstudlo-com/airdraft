@@ -65,6 +65,20 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             release.validate_manifest(self.manifest(), 'd' * 40, 'v0.1.1-build.3')
 
+    def test_new_releases_require_native_and_web_insertion_evidence(self):
+        manifest = self.manifest() | {'version': '0.4.2', 'tag': 'v0.4.2-build.3',
+            'sha256': {'Airdraft-0.4.2-3-arm64.dmg': 'b' * 64, 'appcast.xml': 'c' * 64}}
+        evidence = {'status': 'passed', 'commit': 'a' * 40, 'cases': 4,
+            'binarySHA256': {name: 'd' * 64 for name in ('Airdraft Debug', 'Airdraft Debug.debug.dylib', 'AirdraftCore')},
+            'verifiedTargets': [[app, method] for app in ('com.apple.TextEdit', 'com.google.Chrome')
+                                for method in ('auto', 'paste')]}
+        for invalid in ({}, evidence | {'commit': 'e' * 40}, evidence | {'status': 'failed'},
+                        evidence | {'verifiedTargets': []}, evidence | {'binarySHA256': {}},
+                        evidence | {'cases': True}):
+            with self.assertRaisesRegex(RuntimeError, 'insertion evidence'):
+                release.validate_manifest(manifest | {'liveInsertion': invalid}, 'a' * 40, manifest['tag'])
+        release.validate_manifest(manifest | {'liveInsertion': evidence}, 'a' * 40, manifest['tag'])
+
     def test_manifest_version_and_build_must_match_tag(self):
         for version, build in [('0.9.9', 3), ('0.1.1', 4)]:
             with self.subTest(version=version, build=build):

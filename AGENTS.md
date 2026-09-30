@@ -266,22 +266,27 @@ status table current.
 - Each dictation owns a generation and cancellable release timer. Stale asynchronous
   work must never change a newer session or insert text. Capture the local insertion
   target independently of optional LLM context; require the same focused field and
-  selection before inserting, and never replay an uncertain Accessibility write.
+  selection before inserting, then post exactly one paste. Never probe editor
+  compatibility with an AX text write; both saved insertion methods use paste.
   Read application and system-wide focus with matching process ownership. When
   Electron has not exposed its editor, request `AXManualAccessibility` and await
-  its field and caret before recording. Accept one valid `AXSelectedTextRanges`
+  its field and caret before recording. Wait for native focus too, even when the
+  web attribute is unsupported. Accept one valid `AXSelectedTextRanges`
   entry when the singular attribute is unsupported; unknown selections never match.
-  After app activation, wait briefly for the original field and selection to settle.
+  Wait briefly for the original field and selection to settle before delivery,
+  including when the same app is already frontmost.
   Keep `TextDeliveryRegressionTests` exercising production capture and insert
   entry points through an injected OS boundary and disposable pasteboard. Cover
-  Auto and Always paste, rejected/ambiguous writes, web/native focus, changed
+  both persisted insertion settings, unavailable AX values, web/native focus, changed
   destinations, cancellation and context-off pipeline delivery through History.
   Local and release core runs must pass `verify-insertion-regressions.py` against
   their actual xcresult; mandatory insertion cases cannot be missing or skipped.
-  Keep AX write error codes: only unsupported/not-implemented rejections with an
-  unchanged field, selection and value may fall back to paste. Verify accepted
-  writes with a bounded, cancellable read wait; never repeat the write or copy
-  to the clipboard after cancellation during verification.
+  Once paste is posted, its clipboard restoration delay must survive cancellation
+  so the receiving app can read the text. Never repeat a posted paste. Preserve
+  newer clipboard ownership. From 0.4.2, release preparation requires actual
+  TextEdit and Chrome delivery for both saved insertion preferences, with fixture
+  binary hashes matching the committed Debug build; publication requires the
+  commit-bound acceptance summary. See `docs/local-e2e.md`.
   Reject incomplete refinement responses and bound discovery, model loading and
   compatibility retries by one end-to-end refinement deadline.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:

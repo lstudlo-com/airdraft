@@ -119,145 +119,6 @@ final class TextInsertionTests: XCTestCase {
         XCTAssertFalse(TextInserter.selectionMatches(CFRange(location: -1, length: 0), CFRange(location: -1, length: 0)))
     }
 
-    func testUTF16ReplacementPreservesMultilingualTextAndRejectsInvalidRanges() {
-        let text = "A😀中文e\u{301}Z"
-        XCTAssertEqual(TextInserter.replacing(text, range: CFRange(location: 1, length: 2), with: "🙂"), "A🙂中文e\u{301}Z")
-        XCTAssertEqual(TextInserter.replacing(text, range: CFRange(location: 3, length: 2), with: "繁體"), "A😀繁體e\u{301}Z")
-        XCTAssertEqual(TextInserter.replacing(text, range: CFRange(location: 8, length: 0), with: "!"), text + "!")
-        XCTAssertEqual(TextInserter.replacing(text, range: CFRange(location: 0, length: 8), with: ""), "")
-        for range in [CFRange(location: -1, length: 0), CFRange(location: 0, length: -1),
-                      CFRange(location: Int.max, length: 1), CFRange(location: 1, length: Int.max)] {
-            XCTAssertNil(TextInserter.replacing(text, range: range, with: "invalid"))
-        }
-    }
-
-    func testFocusChangeBeforeAccessibilityWritePreventsTheWrite() async {
-        var writes = 0
-        let result = await TextInserter.verifiedWrite(before: "original", expected: "replacement", isCurrent: { false }, write: {
-            writes += 1
-            return .success
-        }, read: { XCTFail("An unattempted write must not be verified"); return nil })
-
-        XCTAssertEqual(result, .notAttempted)
-        XCTAssertEqual(writes, 0)
-    }
-
-    func testUncertainAccessibilityWriteIsNeverRepeated() async {
-        for response: AXError in [.cannotComplete, .failure, .invalidUIElement, .apiDisabled, .illegalArgument, .success] {
-            var writes = 0
-            let result = await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: { true }, write: {
-                writes += 1
-                return response
-            }, read: { "cat" }, verificationTimeout: .zero)
-
-            XCTAssertEqual(result, .uncertain)
-            XCTAssertEqual(writes, 1)
-        }
-        let inserted = await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: { true },
-            write: { .success }, read: { "dog" })
-        XCTAssertEqual(inserted, .inserted)
-    }
-
-    func testUnsupportedAccessibilityWriteAllowsPasteOnlyForAnUnchangedDestination() async {
-        for response: AXError in [.attributeUnsupported, .notImplemented] {
-            for unchangedFocus in [true, false] {
-                for value: String? in ["cat", "dog", "edited", nil] {
-                    var writes = 0
-                    let result = await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: {
-                        writes == 0 || unchangedFocus
-                    }, write: {
-                        writes += 1
-                        return response
-                    }, read: { value })
-
-                    XCTAssertEqual(result, unchangedFocus && value == "cat" ? .rejected : .uncertain)
-                    XCTAssertEqual(writes, 1)
-                }
-            }
-        }
-    }
-
-    func testAccessibilityVerificationWaitsForTheValueWithoutRepeatingTheWrite() async {
-        var writes = 0
-        var reads = 0
-        let result = await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: {
-            // An accepted replacement moves the caret. The old selection only
-            // authorizes the write; verification reads the captured element.
-            writes == 0
-        }, write: {
-            writes += 1
-            return .success
-        }, read: {
-            reads += 1
-            switch reads {
-            case 1: return "cat"
-            case 2: return nil
-            default: return "dog"
-            }
-        })
-
-        XCTAssertEqual(result, .inserted)
-        XCTAssertEqual(writes, 1)
-        XCTAssertEqual(reads, 3)
-    }
-
-    func testAccessibilityVerificationDeadlineKeepsAnUnchangedWriteUncertain() async {
-        let clock = ContinuousClock()
-        let start = clock.now
-        var writes = 0
-        var reads = 0
-        let result = await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: { true }, write: {
-            writes += 1
-            return .success
-        }, read: {
-            reads += 1
-            return "cat"
-        }, verificationTimeout: .milliseconds(50))
-
-        XCTAssertEqual(result, .uncertain)
-        XCTAssertEqual(writes, 1)
-        XCTAssertGreaterThan(reads, 1)
-        XCTAssertGreaterThanOrEqual(start.duration(to: clock.now), .milliseconds(50))
-        XCTAssertLessThan(start.duration(to: clock.now), .seconds(2))
-    }
-
-    func testCancelledAccessibilityWriteDoesNotTouchTheDestination() async {
-        let task = Task { @MainActor in
-            await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: { true }, write: {
-                XCTFail("Cancelled insertion must not write")
-                return .success
-            }, read: { XCTFail("Cancelled insertion must not read"); return nil })
-        }
-        task.cancel()
-
-        let result = await task.value
-        XCTAssertEqual(result, .notAttempted)
-    }
-
-    func testCancellationStopsPendingVerificationWithoutAnotherWrite() async {
-        let firstRead = expectation(description: "Accessibility value read")
-        var writes = 0
-        var reads = 0
-        let task = Task { @MainActor in
-            await TextInserter.verifiedWrite(before: "cat", expected: "dog", isCurrent: { true }, write: {
-                writes += 1
-                return .success
-            }, read: {
-                reads += 1
-                if reads == 1 { firstRead.fulfill() }
-                return "cat"
-            }, verificationTimeout: .seconds(5))
-        }
-        await fulfillment(of: [firstRead], timeout: 1)
-        task.cancel()
-        let readsAtCancellation = reads
-
-        let result = await task.value
-        XCTAssertEqual(result, .uncertain)
-        XCTAssertEqual(writes, 1)
-        XCTAssertEqual(reads, readsAtCancellation)
-    }
-
     func testPasteRestoresAllOriginalItemsAndFormats() async throws {
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }
@@ -326,6 +187,32 @@ final class TextInsertionTests: XCTestCase {
         XCTAssertFalse(success)
         XCTAssertEqual(posts, 1)
         XCTAssertEqual(pasteboard.string(forType: .string), "Recoverable text")
+    }
+
+    func testCancellationAfterPostingKeepsClipboardUntilReceiverCanRead() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("Old clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.restoreDelay = 0.15
+        let posted = expectation(description: "Paste posted")
+        var posts = 0
+        let task = Task { @MainActor in
+            await inserter.insertViaPaste("Dictation", pasteboard: pasteboard, postPaste: {
+                posts += 1
+                posted.fulfill()
+                return true
+            })
+        }
+        await fulfillment(of: [posted], timeout: 1)
+        task.cancel()
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertEqual(pasteboard.string(forType: .string), "Dictation",
+                       "Cancelling a posted paste must not replace the receiving app's input")
+        let succeeded = await task.value
+        XCTAssertTrue(succeeded)
+        XCTAssertEqual(posts, 1)
+        XCTAssertEqual(pasteboard.string(forType: .string), "Old clipboard")
     }
 
     func testEmptyClipboardIsRestoredAfterPaste() async {

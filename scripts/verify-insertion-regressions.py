@@ -8,41 +8,36 @@ import sys
 
 # Stable regression contract. Renaming or retiring a case requires an intentional
 # contract update; test discovery alone must not silently shrink this gate.
+# AX-write cases were retired with the AX text-write path. The gate now
+# covers one paste for both persisted settings plus cancellation during handoff.
 REQUIRED_TESTS = (
-    'TextDeliveryRegressionTests/testAcceptedAXWriteWaitsForTheValueAndReportsDeliveryOnce()',
     'TextDeliveryRegressionTests/testAlternateSelectionRangeStillDelivers()',
     'TextDeliveryRegressionTests/testAlwaysPasteCapturesAndDeliversToNativeEditor()',
-    'TextDeliveryRegressionTests/testAmbiguousAXWriteNeverPastesOrRepeatsTheWrite()',
     'TextDeliveryRegressionTests/testAppActivationWaitsForOriginalFieldBeforePaste()',
     'TextDeliveryRegressionTests/testApplicationWindowFallsBackToSystemEditorFocus()',
-    'TextDeliveryRegressionTests/testAutoPastesOnceAfterExplicitAXRejection()',
-    'TextDeliveryRegressionTests/testCancellationDuringAXVerificationNeverCopiesOrPastes()',
+    'TextDeliveryRegressionTests/testCancellationWhileRestoringFocusNeverCopiesOrPastes()',
     'TextDeliveryRegressionTests/testCancelledInsertionNeverChangesClipboardOrDestination()',
     'TextDeliveryRegressionTests/testChangedFieldOrSelectionPreservesRecoveryTextWithoutPasting()',
+    'TextDeliveryRegressionTests/testDefaultMethodDoesNotRequireAXValueOrWritableSelectedText()',
+    'TextDeliveryRegressionTests/testEveryPersistedMethodPastesExactlyOnceWithoutAXTextWrites()',
+    'TextDeliveryRegressionTests/testFrontmostEditorWaitsForTemporarilyUnavailableAXFocus()',
+    'TextDeliveryRegressionTests/testNativeEditorCaptureWaitsWhenWebAccessibilityIsUnsupported()',
     'TextDeliveryRegressionTests/testPermissionLossDoesNotDeliverText()',
     'TextDeliveryRegressionTests/testPipelineWithContextOffCapturesPastesAndSavesDeliveredHistory()',
-    'TextDeliveryRegressionTests/testRejectedWriteWithChangedDestinationNeverPastes()',
     'TextDeliveryRegressionTests/testUnknownSelectionAndForeignSystemFocusCannotAuthorizePaste()',
     'TextDeliveryRegressionTests/testWebEditorCaptureWaitsForItsFieldThenDelivers()',
-    'TextInsertionTests/testAccessibilityVerificationDeadlineKeepsAnUnchangedWriteUncertain()',
-    'TextInsertionTests/testAccessibilityVerificationWaitsForTheValueWithoutRepeatingTheWrite()',
-    'TextInsertionTests/testCancellationStopsPendingVerificationWithoutAnotherWrite()',
-    'TextInsertionTests/testCancelledAccessibilityWriteDoesNotTouchTheDestination()',
+    'TextInsertionTests/testCancellationAfterPostingKeepsClipboardUntilReceiverCanRead()',
     'TextInsertionTests/testCaptureKeepsNativeSelectionAndDoesNotEnableWebAccessibility()',
     'TextInsertionTests/testCaptureNeverSubstitutesAnotherAppOrAnUnknownSelection()',
     'TextInsertionTests/testCaptureWaitsForTheWebEditorToExposeItsRealFieldAndCaret()',
     'TextInsertionTests/testEditorWithOnlySelectedTextRangesStillExposesItsCaret()',
     'TextInsertionTests/testEmptyClipboardIsRestoredAfterPaste()',
     'TextInsertionTests/testFailedPasteKeepsTextAvailableWithoutRetry()',
-    'TextInsertionTests/testFocusChangeBeforeAccessibilityWritePreventsTheWrite()',
     'TextInsertionTests/testFocusRestorationWaitsForTheFieldAndSelectionAfterAppActivation()',
     'TextInsertionTests/testPasteDoesNotOverwriteNewClipboardOwnership()',
     'TextInsertionTests/testPasteRestoresAllOriginalItemsAndFormats()',
     'TextInsertionTests/testSelectionFallbackRejectsMultipleCaretsMalformedRangesAndTransportErrors()',
-    'TextInsertionTests/testUTF16ReplacementPreservesMultilingualTextAndRejectsInvalidRanges()',
-    'TextInsertionTests/testUncertainAccessibilityWriteIsNeverRepeated()',
     'TextInsertionTests/testUnknownAndChangedSelectionCannotAuthorizeInsertion()',
-    'TextInsertionTests/testUnsupportedAccessibilityWriteAllowsPasteOnlyForAnUnchangedDestination()',
 )
 
 

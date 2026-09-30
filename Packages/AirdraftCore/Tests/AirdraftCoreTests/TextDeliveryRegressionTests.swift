@@ -4,7 +4,7 @@ import XCTest
 @testable import AirdraftCore
 
 /// These tests call the production capture and insert entry points. Only OS
-/// reads, AX writes and the posted key event are replaced by a disposable editor.
+/// reads and the posted key event are replaced by a disposable editor.
 @MainActor
 final class TextDeliveryRegressionTests: XCTestCase {
     func testAlwaysPasteCapturesAndDeliversToNativeEditor() async throws {
@@ -18,74 +18,38 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertEqual(result.method, .paste)
         XCTAssertNil(result.notice)
         XCTAssertEqual(editor.pasted, [Editor.dictation])
-        XCTAssertEqual(editor.writes, 0)
         XCTAssertEqual(delivered, 1)
         XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
     }
 
-    func testAutoPastesOnceAfterExplicitAXRejection() async throws {
-        for error: AXError in [.attributeUnsupported, .notImplemented] {
+    func testEveryPersistedMethodPastesExactlyOnceWithoutAXTextWrites() async throws {
+        for method in InsertionMethod.allCases {
             let editor = Editor()
             defer { editor.close() }
-            editor.writeResult = error
             let inserter = editor.inserter()
             let captured = await inserter.captureTarget()
             let target = try XCTUnwrap(captured)
-            let result = await inserter.insert(Editor.dictation, target: target)
+            var delivered = 0
+            let result = await inserter.insert(Editor.dictation, method: method, target: target) { delivered += 1 }
             XCTAssertEqual(result.method, .paste)
             XCTAssertNil(result.notice)
-            XCTAssertEqual(editor.writes, 1)
             XCTAssertEqual(editor.pasted, [Editor.dictation])
+            XCTAssertEqual(delivered, 1)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
         }
     }
 
-    func testAmbiguousAXWriteNeverPastesOrRepeatsTheWrite() async throws {
-        for error: AXError in [.cannotComplete, .failure, .invalidUIElement, .apiDisabled] {
-            let editor = Editor()
-            defer { editor.close() }
-            editor.writeResult = error
-            let inserter = editor.inserter()
-            let captured = await inserter.captureTarget()
-            let target = try XCTUnwrap(captured)
-            let result = await inserter.insert(Editor.dictation, target: target)
-            XCTAssertFalse(result.didInsert)
-            XCTAssertEqual(editor.writes, 1)
-            XCTAssertTrue(editor.pasted.isEmpty)
-            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
-        }
-    }
-
-    func testRejectedWriteWithChangedDestinationNeverPastes() async throws {
+    func testDefaultMethodDoesNotRequireAXValueOrWritableSelectedText() async throws {
         let editor = Editor()
         defer { editor.close() }
-        editor.writeResult = .attributeUnsupported
-        editor.afterWrite = { editor.range = CFRange(location: 1, length: 0) }
+        editor.unreadableValue = true
         let inserter = editor.inserter()
         let captured = await inserter.captureTarget()
         let target = try XCTUnwrap(captured)
         let result = await inserter.insert(Editor.dictation, target: target)
-        XCTAssertFalse(result.didInsert)
-        XCTAssertEqual(editor.writes, 1)
-        XCTAssertTrue(editor.pasted.isEmpty)
-    }
-
-    func testAcceptedAXWriteWaitsForTheValueAndReportsDeliveryOnce() async throws {
-        let editor = Editor()
-        defer { editor.close() }
-        editor.writeResult = .success
-        editor.afterWrite = { editor.range = CFRange(location: Editor.dictation.utf16.count, length: 0) }
-        editor.valueAfterWrite = { reads in reads >= 3 ? Editor.dictation : "cat" }
-        let inserter = editor.inserter()
-        let captured = await inserter.captureTarget()
-        let target = try XCTUnwrap(captured)
-        var delivered = 0
-        let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
-        XCTAssertEqual(result.method, .accessibility)
-        XCTAssertEqual(editor.writes, 1)
-        XCTAssertEqual(editor.verificationReads, 3)
-        XCTAssertEqual(delivered, 1)
-        XCTAssertTrue(editor.pasted.isEmpty)
-        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
 
     func testAlternateSelectionRangeStillDelivers() async throws {
@@ -129,6 +93,35 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
 
+    func testNativeEditorCaptureWaitsWhenWebAccessibilityIsUnsupported() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.focusAvailable = false
+        editor.onFocusRead = { if editor.focusReads >= 3 { editor.focusAvailable = true } }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertFalse(editor.webEnabled)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testFrontmostEditorWaitsForTemporarilyUnavailableAXFocus() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.focusAvailable = false
+        editor.focusReads = 0
+        editor.onFocusRead = { if editor.focusReads >= 3 { editor.focusAvailable = true } }
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.activations, 0)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
     func testAppActivationWaitsForOriginalFieldBeforePaste() async throws {
         let editor = Editor()
         defer { editor.close() }
@@ -156,7 +149,6 @@ final class TextDeliveryRegressionTests: XCTestCase {
             else { editor.range = CFRange(location: 1, length: 0) }
             let result = await inserter.insert(Editor.dictation, target: target)
             XCTAssertFalse(result.didInsert)
-            XCTAssertEqual(editor.writes, 0)
             XCTAssertTrue(editor.pasted.isEmpty)
             XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
         }
@@ -172,7 +164,6 @@ final class TextDeliveryRegressionTests: XCTestCase {
             let target = await inserter.captureTarget()
             let result = await inserter.insert(Editor.dictation, method: .paste, target: target)
             XCTAssertFalse(result.didInsert)
-            XCTAssertEqual(editor.writes, 0)
             XCTAssertTrue(editor.pasted.isEmpty)
         }
     }
@@ -187,29 +178,26 @@ final class TextDeliveryRegressionTests: XCTestCase {
         task.cancel()
         let result = await task.value
         XCTAssertFalse(result.didInsert)
-        XCTAssertEqual(editor.writes, 0)
         XCTAssertTrue(editor.pasted.isEmpty)
         XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
     }
 
-    func testCancellationDuringAXVerificationNeverCopiesOrPastes() async throws {
+    func testCancellationWhileRestoringFocusNeverCopiesOrPastes() async throws {
         let editor = Editor()
         defer { editor.close() }
-        editor.writeResult = .success
-        let read = expectation(description: "AX verification pending")
-        editor.valueAfterWrite = { count in
-            if count == 1 { read.fulfill() }
-            return "cat"
-        }
         let inserter = editor.inserter()
         let captured = await inserter.captureTarget()
         let target = try XCTUnwrap(captured)
+        editor.frontmostPID = 999
+        editor.focusAvailable = false
+        let waiting = expectation(description: "Waiting for restored focus")
+        var first = true
+        editor.onFocusRead = { if first { first = false; waiting.fulfill() } }
         let task = Task { @MainActor in await inserter.insert(Editor.dictation, target: target) }
-        await fulfillment(of: [read], timeout: 1)
+        await fulfillment(of: [waiting], timeout: 1)
         task.cancel()
         let result = await task.value
         XCTAssertFalse(result.didInsert)
-        XCTAssertEqual(editor.writes, 1)
         XCTAssertTrue(editor.pasted.isEmpty)
         XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
     }
@@ -223,7 +211,6 @@ final class TextDeliveryRegressionTests: XCTestCase {
         editor.trusted = false
         let result = await inserter.insert(Editor.dictation, target: target)
         XCTAssertFalse(result.didInsert)
-        XCTAssertEqual(editor.writes, 0)
         XCTAssertTrue(editor.pasted.isEmpty)
         XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
     }
@@ -307,13 +294,9 @@ private final class Editor {
     var webEnabled = false
     var focusReads = 0
     var activations = 0
-    var writes = 0
-    var verificationReads = 0
+    var unreadableValue = false
     var pasted: [String] = []
-    var writeResult: AXError = .attributeUnsupported
-    var afterWrite: (() -> Void)?
     var onFocusRead: (() -> Void)?
-    var valueAfterWrite: ((Int) -> String)?
 
     init() {
         currentField = field
@@ -349,17 +332,10 @@ private final class Editor {
                       let value = AXValueCreate(.cfRange, &range) else { return (.attributeUnsupported, nil) }
                 return (.success, [value] as CFArray)
             case kAXValueAttribute as String:
-                if self.writes > 0 {
-                    self.verificationReads += 1
-                    return (.success, (self.valueAfterWrite?(self.verificationReads) ?? "cat") as CFString)
-                }
+                if self.unreadableValue { return (.attributeUnsupported, nil) }
                 return (.success, "cat" as CFString)
             default: return (.attributeUnsupported, nil)
             }
-        }, isSettable: { _, _ in true }, writeAttribute: { _, _, _ in
-            self.writes += 1
-            self.afterWrite?()
-            return self.writeResult
         }, enableWebAccessibility: { _ in
             self.webEnabled = self.canEnableWebAccessibility
             return self.webEnabled

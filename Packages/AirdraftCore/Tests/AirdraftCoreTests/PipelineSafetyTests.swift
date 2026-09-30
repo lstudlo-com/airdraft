@@ -104,12 +104,6 @@ final class PipelineSafetyTests: XCTestCase {
         XCTAssertNil(pipeline.lastIssue)
     }
 
-    func testReplacementVerificationUsesContentsAndUTF16Range() {
-        XCTAssertEqual(TextInserter.replacing("cat", range: CFRange(location: 0, length: 3), with: "dog"), "dog")
-        XCTAssertEqual(TextInserter.replacing("a😀b", range: CFRange(location: 1, length: 2), with: "x"), "axb")
-        XCTAssertNil(TextInserter.replacing("cat", range: CFRange(location: 2, length: 10), with: "dog"))
-    }
-
     func testDeadlineReturnsWithoutWaitingForUncooperativeWork() async throws {
         let start = Date()
         do {

@@ -19,7 +19,7 @@ The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
 Before accepting a successful Xcode exit, it checks the actual xcresult with
-`verify-insertion-regressions.py`. All 34 mandatory insertion cases must be present
+`verify-insertion-regressions.py`. All 27 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline
 fixtures. Missing, skipped and failed cases stop validation. The JSON evidence is
 saved as `insertion-regressions.json`; release preparation runs the same gate for
@@ -121,6 +121,15 @@ the actual field value to match the expected insertion, one delivery callback
 and no notice. Posting a key event alone is not a pass. A failed fixture restores
 its recovery clipboard text only while it still owns that clipboard change.
 Never use an existing user draft or reset permissions to run this check.
+
+Release preparation requires four live cases: TextEdit and Chrome, each with
+`auto` and `paste`, using fresh fixture tokens. Run each candidate Debug action
+with `--e2e-local dist/releases/<tag>/insertion-e2e/<case>` (absolute path). The
+fixture writes hashes of its executable, core and UI library. Prepare prints the
+candidate Debug path and stops before packaging when evidence is absent or stale;
+run the cases and repeat prepare. `verify-live-insertion.py` validates the matrix
+against that build, and `release.json` carries its summary tied to the commit.
+Unit tests or posted key events cannot replace these live results.
 
 Before calling a locally reproduced bug fixed, verify the running build:
 
