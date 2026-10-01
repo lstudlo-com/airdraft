@@ -8,29 +8,51 @@ Not a Printage company repository; the workspace `dev-guidelines` skill does not
 `docs/PRODUCT.md` lists the goals the mature app must meet (quality UI, independent
 local/remote engines, preset-driven setup, editable and resettable refinement
 profiles). Read it before touching UI, settings, or prompt handling, and keep its
-status table current.
+status table current. That table records implemented behavior only; release and
+verification status belong in the vault (see below).
 
 ## External project resources
 
 - The canonical market research and product knowledge base is the iCloud Obsidian
   vault at `/Users/lightiichen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Airdraft/`.
-  Start at `Home.md`: `Research/` owns external evidence, `Strategy/` owns positioning
-  and business decisions, `Product/` owns readable product knowledge, `Work/` tracks
-  issues and tasks, and `Records/` preserves dated studies, decisions, verification
-  and source snapshots. Put new research and product analysis there, not in Project
-  Files or new repository reports. Keep source code, tests and versioned build/release
-  contracts in this repository; update the affected vault topic when implementation
-  changes. Record source dates and commits, distinguish implemented/tested/released,
-  and retain explicit corrections.
-- `Work/` holds one `AD-###` note per tracked item, numbered from one shared sequence.
-  `type: issue` means behavior differs from the specification, documentation or
-  clear intent, such as bugs and regressions. `type: task` covers all other work:
-  features, adjustments, verification and migrations. Create one only for work that
-  spans commits or sessions, is user-reported, or leaves verification gaps at release.
-  Add `Refs: AD-###` to related commit messages. Rewrite `Product/`, `Strategy/` and
-  `Research/` topics in place to describe the current state; never append dated
-  update paragraphs to them. Append attempts and progress to the Work note and add
-  dated Records instead. See the vault's `Records/Decisions/Knowledge Architecture.md`.
+  Start at `Home.md`. The vault's `Knowledge Architecture.md` is the complete
+  specification for its folders, frontmatter, file names, language and write method.
+  `Research/` owns external evidence, `Strategy/` positioning and business decisions,
+  and `Product/` readable product knowledge; these describe the current state and are
+  rewritten in place, never extended with dated update paragraphs. `Work/` tracks
+  issues and tasks. `Records/` only gains dated releases, decisions, studies,
+  verification and evidence. Put new research and product analysis there, not in
+  Project Files or new repository reports. Record source dates and commits,
+  distinguish implemented/tested/released/verified, and retain explicit corrections.
+- The repository is authoritative for implementation contracts: code, tests, build
+  and release commands, this file and `docs/*.md`. When a vault topic disagrees,
+  fix the vault. The vault is authoritative for work status, release and verification
+  history, research and strategy; repository docs do not track release or acceptance
+  status.
+- Update the vault in the same task that causes the change:
+  - User-visible behavior, UI rules, limits or build/release contracts change:
+    rewrite the affected `Product/` topic and its `verified_on`/`source_commit`.
+    Refactors, tests and tooling without a behavior change need no vault update.
+  - A user-reported problem, work spanning commits or sessions, a release with
+    verification gaps, or committed but unstarted work: create or update a `Work/`
+    item. `type: issue` means behavior differs from the specification,
+    documentation or clear intent, such as bugs and regressions; `type: task` covers
+    features, adjustments, verification and migrations. Items share one `AD-###`
+    sequence (next number = highest existing + 1).
+  - Commits that advance an item end with a `Refs: AD-###` trailer; append a row to
+    the item's log instead of editing earlier rows.
+  - A release adds its `Records/Releases/` note and marks included items `released`;
+    the push-and-release skill does this.
+  - A user decision rewrites the `Strategy/` or `Product/` topic and adds a
+    `Records/Decisions/` note. Research rewrites `Research/` and adds a
+    `Records/Studies/` snapshot. A wrong vault claim is fixed in its topic with a
+    correction record.
+- Re-read a vault note immediately before editing it: other sessions and iCloud write
+  concurrently. Never move or rename vault files with a bare `mv`; update every link
+  in the same change (`obsidian move` waits on a dialog while automatic link updates
+  are off). After any vault write, `python3 scripts/check-vault.py` must report 0
+  errors. Changing the vault rules updates `Knowledge Architecture.md`, both guidance
+  files and `scripts/vault_check.py` together.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/` stores
   miscellaneous files and resources related to Airdraft.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/competitor_analysis/repos/`
@@ -475,6 +497,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 
 ## Validation
 
+- Vault: run `python3 scripts/check-vault.py` after writing to the Obsidian vault and
+  `python3 -B scripts/test-vault-check.py` after changing `scripts/vault_check.py`.
 - For a repeated insertion bug, verify the actual running build with
   `scripts/verify-running-app.py --app <intended-app>` before claiming a fix.
   On-disk Info.plist/build success cannot prove an old process loaded new code.

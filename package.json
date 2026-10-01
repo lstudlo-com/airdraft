@@ -9,7 +9,8 @@
     "dev:marketing": "moon run marketing:dev",
     "build:marketing": "moon run marketing:build",
     "check:marketing": "moon run marketing:check",
-    "preview:marketing": "moon run marketing:preview"
+    "preview:marketing": "moon run marketing:preview",
+    "check:vault": "python3 scripts/check-vault.py"
   },
   "devDependencies": { "@moonrepo/cli": "2.5.5" }
 }

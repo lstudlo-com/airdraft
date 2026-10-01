@@ -72,7 +72,7 @@ five-device limits rejected the next activation; released slots were reusable.
 Rotation kept the app's existing device, portal removal invalidated it, and a
 full sandbox refund with **Revoke Benefits** invalidated the five-Mac license.
 The test device was then deactivated from the app. See the vault record
-`Records/Releases/2026-09-29 Polar Sandbox Purchase Verification` for artifact
+`Records/Verification/2026-09-29 Polar Sandbox Purchase Verification` for artifact
 identity, test scope and remaining release gates. No real payment was made.
 
 Polar limits the public validate/activate/deactivate endpoints to three requests

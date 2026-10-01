@@ -21,6 +21,7 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 2. 比對已發布版本，依 `docs/updates.md` 選擇 display version。必要時修改 `project.yml`、執行 XcodeGen，並納入產生的 `Sources/App/Info.plist`。build number 由 Git commit count 決定。
 3. 確認 Xcode、原生 Vendor、`gh`、`uv`、固定簽章身分及 pre-push hook 可用。hook 已安裝就沿用；缺少時依 `docs/updates.md` 執行 release setup，不覆寫其他用途的 hook。
 4. 建立本次專用證據目錄，保留指令、log、xcresult、runtime JSON 與圖片。不要引用其他執行或其他 commit 的成功結果來代替本次驗證。
+5. 列出上次發佈以來的 commits 與其 `Refs: AD-###`，確認本次包含的 Obsidian Work 項目。
 
 ## 2. 測試與修正
 
@@ -37,7 +38,7 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 
 ## 3. 提交並驗證已提交版本
 
-1. 可執行的檢查與修正完成、未驗證項目記錄後，更新受影響的文件與 Obsidian 主題。確認所有專案擁有的 `AGENTS.md`／`CLAUDE.md` 配對一致。
+1. 可執行的檢查與修正完成、未驗證項目記錄後，更新受影響的文件。依 vault 的 `Knowledge Architecture.md` 改寫受影響的 Product 主題，不追加日期段落；在本次包含的 Work 項目紀錄表追加一列。確認所有專案擁有的 `AGENTS.md`／`CLAUDE.md` 配對一致。
 2. 檢查實際 staged diff，僅 stage 本次相關變更，建立 conventional commit。若工作已提交且內容正確，直接使用該提交，不製造空 commit。
 3. 記下完整的 `COMMIT` SHA。先明確執行準備流程，讓已提交版本的 E2E 有機會在公開發佈前完成：
 
@@ -78,6 +79,11 @@ git push origin main
 - 從 App 實際設定的 `SUFeedURL` 取得線上 feed，確認它描述這次版本，且內容雜湊與已驗證的 feed 相同。
 - 已提交版本的 E2E 分別記錄通過、失敗與未驗證，選配略過及未涵蓋的硬體／外部服務驗收在發佈後告知使用者。
 
-驗證後更新 Obsidian 的發佈紀錄，寫明日期、commit、版本與證據，區分已實作、已測試及已發佈。
+驗證後更新 Obsidian vault，規範見 vault 的 `Knowledge Architecture.md`：
+
+1. 新增 `Records/Releases/YYYY-MM-DD Release X.Y.Z Build N.md`。frontmatter 為 `type: release`、`status: published`、`date`、`version`、`build`、`source_commit`（完整 SHA）、`verification`（`verified`、`partial` 或 `none`）與 `items`（本次包含的 AD 編號）。正文寫 release 連結、包含項目、變更摘要、驗證結果（通過、失敗與未驗證分開，未驗證寫原因）及證據位置；調查過程留在 Work 筆記。
+2. 本次包含的 Work 項目改為 `status: released`，填 `released_in`，依實際驗收更新 `verification` 與 `gaps`，並在紀錄表追加一列。發佈時仍有驗收缺口、但沒有對應項目的，新建 task。
+3. Product 主題不寫發佈狀態或「最新版本」。
+4. 執行 `python3 scripts/check-vault.py`，錯誤必須是 0。
 
 最後簡短列出 release 連結、版本／build、commit、主要測試結果與必要的未涵蓋範圍。單有 build 成功、draft 上傳或 push 成功，都還沒完成上述流程。
