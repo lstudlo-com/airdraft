@@ -74,7 +74,7 @@ final class IndicatorPanelController {
     func update(for state: PipelineState) {
         switch state {
         case .idle:
-            if lastVisibleState.hudMessage != nil, dismissalID == nil {
+            if lastVisibleState.hudRequiresAttention, dismissalID == nil {
                 if styleProvider() != currentStyle { show() }
                 return
             }
@@ -230,8 +230,16 @@ extension PipelineState {
     /// Text the HUD shows instead of the waveform, if any.
     var hudMessage: String? {
         switch self {
-        case .failed(let m), .notice(let m): return m
+        case .failed(let m), .notice(let m, _): return m
         default: return nil
+        }
+    }
+
+    var hudRequiresAttention: Bool {
+        switch self {
+        case .failed: return true
+        case .notice(_, let requiresAttention): return requiresAttention
+        default: return false
         }
     }
 }

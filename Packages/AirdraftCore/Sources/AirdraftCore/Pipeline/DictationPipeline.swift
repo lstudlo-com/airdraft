@@ -12,7 +12,7 @@ public enum PipelineState: Equatable, Sendable {
     case inserting
     case failed(String)
     /// Finished, but something the user should know (LLM offline, text only copied).
-    case notice(String)
+    case notice(String, requiresAttention: Bool = true)
 
     public var isBusy: Bool {
         switch self {
@@ -705,6 +705,7 @@ public final class DictationPipeline {
         // or fall back to pasting when its completion is uncertain.
         set(.inserting)
         var notice: String?
+        var noticeRequiresAttention = true
         var deliveryError: String?
         var inserted = false
         var outputSucceeded = false
@@ -726,6 +727,7 @@ public final class DictationPipeline {
                 inserted = result.didInsert
                 outputSucceeded = result.didInsert
                 notice = result.notice
+                noticeRequiresAttention = result.noticeRequiresAttention
             case .script:
                 do {
                     try await sendScript(final, output.scriptPath)
@@ -781,7 +783,7 @@ public final class DictationPipeline {
         onOutcome?(outcome)
         if let notice {
             lastIssue = notice
-            set(.notice(notice))
+            set(.notice(notice, requiresAttention: noticeRequiresAttention))
             resetLater(after: 3)
         } else {
             lastIssue = nil

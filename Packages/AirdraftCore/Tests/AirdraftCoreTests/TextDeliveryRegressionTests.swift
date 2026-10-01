@@ -390,13 +390,31 @@ final class TextDeliveryRegressionTests: XCTestCase {
     }
 
     func testPipelineWithContextOffCapturesPastesAndSavesDeliveredHistory() async throws {
+        try await verifyPipelineDelivery()
+    }
+
+    func testCopyWithinAirdraftProducesTemporaryNoticeAndUndeliveredHistory() async throws {
+        try await verifyPipelineDelivery(copyWithinApp: true)
+    }
+
+    func testPermissionRecoveryCopyKeepsAttentionNoticeAndUndeliveredHistory() async throws {
+        try await verifyPipelineDelivery(permissionLost: true)
+    }
+
+    func testCopyWithinAirdraftAfterRefinementFailureStillProducesTemporaryNotice() async throws {
+        try await verifyPipelineDelivery(copyWithinApp: true, refinementFails: true)
+    }
+
+    private func verifyPipelineDelivery(copyWithinApp: Bool = false, permissionLost: Bool = false,
+                                        refinementFails: Bool = false) async throws {
         let editor = Editor()
         defer { editor.close() }
+        if copyWithinApp { editor.bundleID = try XCTUnwrap(Bundle.main.bundleIdentifier) }
         let suite = "airdraft.delivery-regression.\(UUID().uuidString)"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
         settings.asr = ASRConfig(kind: .parakeet)
-        settings.llm.select(.none)
+        settings.llm.select(refinementFails ? .appleIntelligence : .none)
         settings.useAppContext = false
         settings.livePreviewEnabled = false
         let history = try HistoryStore(directory: directory)
@@ -405,7 +423,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
             profiles: ProfileStore(directory: directory), history: history,
             factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Delivery regression tests must not read credentials"); return nil
-            }, transcriberBuilder: { _ in DeliverySpeech() }), recorder: recorder,
+            }, transcriberBuilder: { _ in DeliverySpeech() },
+               refinerBuilder: { _ in DeliveryFailingRefiner() }), recorder: recorder,
             inserter: editor.inserter(), recordingPreflight: { _, _, _, _, _ in }, requestMicrophoneAccess: { true })
         defer {
             pipeline.cancel()
@@ -418,16 +437,30 @@ final class TextDeliveryRegressionTests: XCTestCase {
         pipeline.startRecording()
         for _ in 0..<100 where !pipeline.isRecording { try await Task.sleep(for: .milliseconds(5)) }
         XCTAssertTrue(pipeline.isRecording)
+        if permissionLost { editor.trusted = false }
         pipeline.stopAndProcess()
         for _ in 0..<200 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
-        XCTAssertEqual(editor.pasted, [Editor.dictation])
-        XCTAssertEqual(delivered, 1)
-        XCTAssertNil(pipeline.lastIssue)
+        let copiedOnly = copyWithinApp || permissionLost
+        XCTAssertEqual(editor.pasted, copiedOnly ? [] : [Editor.dictation])
+        XCTAssertEqual(delivered, copiedOnly ? 0 : 1)
+        if copiedOnly {
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+            XCTAssertEqual(pipeline.state, .notice(copyWithinApp ? "Copied to clipboard" : "Accessibility is off, text copied",
+                                                  requiresAttention: !copyWithinApp))
+            try await Task.sleep(for: .milliseconds(3200))
+            XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three seconds")
+        } else {
+            XCTAssertNil(pipeline.lastIssue)
+        }
         let record = try XCTUnwrap(history.recent(limit: 1).first)
-        XCTAssertTrue(record.inserted)
-        XCTAssertEqual(record.outputSucceeded, true)
+        XCTAssertEqual(record.inserted, !copiedOnly)
+        XCTAssertEqual(record.outputSucceeded, !copiedOnly)
         XCTAssertEqual(record.rawTranscript, Editor.dictation)
         XCTAssertEqual(record.finalText, Editor.dictation)
+        if refinementFails {
+            XCTAssertEqual(record.error, RefinerError.timeout.localizedDescription)
+            XCTAssertEqual(pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
+        }
     }
 }
 
@@ -448,6 +481,11 @@ private struct DeliverySpeech: Transcriber {
     }
 }
 
+private struct DeliveryFailingRefiner: Refiner {
+    let id = "delivery-regression-refiner"
+    func refine(_ request: RefineRequest) async throws -> RefineResult { throw RefinerError.timeout }
+}
+
 @MainActor
 private final class Editor {
     static let dictation = "Dictated text 中文🙂"
@@ -463,6 +501,7 @@ private final class Editor {
     var systemField: AXUIElement?
     var focusedWindow: AXUIElement?
     var frontmostPID: Int32 = 101
+    var bundleID = "test.editor"
     var systemOwnerPID: Int32 = 101
     var range: CFRange? = CFRange(location: 0, length: 3)
     var trusted = true
@@ -487,7 +526,7 @@ private final class Editor {
     func close() { clipboard.releaseGlobally() }
 
     func inserter() -> TextInserter {
-        let app = TextInserter.Environment.Application(processID: 101, bundleID: "test.editor")
+        let app = TextInserter.Environment.Application(processID: 101, bundleID: bundleID)
         let environment = TextInserter.Environment(frontmostApplication: {
             .init(processID: self.frontmostPID, bundleID: self.frontmostPID == 101 ? app.bundleID : "test.other")
         }, application: { $0 == 101 ? app : nil }, activate: { _ in

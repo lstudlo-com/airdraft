@@ -261,7 +261,9 @@ verification status belong in the vault (see below).
   complete wrapping diagnostics, with Copy Message at the far right. Bound the
   panel to the current screen and scroll oversized diagnostics without truncation.
   Keep the diagnostic snapshot visible through the pipeline's idle reset until
-  the next operation. Copy must preserve all text without activating the panel;
+  the next operation. Informational confirmations such as Copied to clipboard
+  show for three seconds, then fade over 0.5 seconds; classify them at the delivery
+  source instead of comparing message text in the HUD. Copy must preserve all text without activating the panel;
   recording remains click-through. Reduce Motion disables spatial expansion.
   Size the capsule to its current timer or status label, with six-point outer
   insets on every side of the waveform well. Do not reserve a fixed label width;

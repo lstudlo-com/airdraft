@@ -16,6 +16,8 @@ public struct InsertionResult: Sendable, Equatable {
     public enum Method: String, Sendable { case accessibility, paste, clipboardOnly }
     public let method: Method
     public let notice: String?
+    /// Recovery messages stay readable; an intentional copy is only a confirmation.
+    public var noticeRequiresAttention = true
     public var didInsert: Bool { method != .clipboardOnly }
 }
 
@@ -109,7 +111,8 @@ public final class TextInserter {
         if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
             copyOnly(text)
             Self.log.notice("insert: target is airdraft, copied only")
-            return InsertionResult(method: .clipboardOnly, notice: "Copied to clipboard")
+            return InsertionResult(method: .clipboardOnly, notice: "Copied to clipboard",
+                                   noticeRequiresAttention: false)
         }
 
         // Bring the original app back if focus moved while we were transcribing.

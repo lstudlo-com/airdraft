@@ -123,7 +123,7 @@ final class AppContainer {
             // Failure and notice text can quote provider responses; keep it out of the public log.
             let (name, detail): (String, String) = switch state {
             case .failed(let message): ("failed", message)
-            case .notice(let message): ("notice", message)
+            case .notice(let message, _): ("notice", message)
             default: (String(describing: state), "")
             }
             AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")

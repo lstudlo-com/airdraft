@@ -301,7 +301,9 @@ recovery notices expand over 0.28 seconds into a rounded diagnostic panel with
 diagnostics remain visible through the pipeline's idle reset until the next
 operation; text scrolls only beyond the screen-bound height. Copy preserves all
 text without activating the panel. Recording remains click-through, and Reduce
-Motion disables spatial expansion.
+Motion disables spatial expansion. Informational confirmations such as Copied to
+clipboard show for three seconds and then fade over 0.5 seconds. Delivery metadata
+distinguishes these confirmations from persistent recovery messages.
 
 Sidebar material, subtle fills and dividers continue to separate ordinary
 content. Profiles has no shadowed editor container. Native menus, action

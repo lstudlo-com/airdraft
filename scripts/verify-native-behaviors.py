@@ -122,7 +122,6 @@ import SwiftUI
 
 enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hud" }
 enum HUDStyle: String { case classic, mini, none }
-enum PipelineState: Equatable { case idle, recording, preparingModel, transcribing, refining, inserting, failed(String), notice(String) }
 
 @MainActor @Observable final class DictationPipeline {
     static let levelHistoryLength = 22
@@ -241,6 +240,30 @@ struct NeumorphicSurface<S: Shape>: View {
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
 
+        for activeStyle in [HUDStyle.classic, .mini] {
+            style = activeStyle
+            update(.recording)
+            update(.inserting)
+            let confirmation = PipelineState.notice("Copied to clipboard", requiresAttention: false)
+            update(confirmation)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            try await Task.sleep(for: .milliseconds(300))
+            precondition(panel.isVisible && panel.alphaValue == 1,
+                         "Clipboard confirmation must be readable before the notice resets")
+            update(.idle)
+            let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
+            precondition(frozen.rootView.snapshot?.state == confirmation,
+                         "Dismissal must preserve the confirmation instead of restoring the timer")
+            try await Task.sleep(for: .milliseconds(150))
+            precondition(panel.isVisible && panel.alphaValue > 0 && panel.alphaValue < 1,
+                         "Clipboard confirmation must fade when its notice returns to idle")
+            try await Task.sleep(for: .milliseconds(450))
+            precondition(!panel.isVisible, "Copied to clipboard must disappear after the notice timeout")
+            update(.idle)
+            precondition(!panel.isVisible, "Later idle updates must not reopen the confirmation")
+            print("PASS: \(activeStyle) clipboard confirmation fades and stays hidden")
+        }
+
         let message = "Transcription failed: the server returned HTTP 429.\n" +
             "The selected speech model has reached its request limit. Please retry after 30 seconds.\n" +
             "Request ID: fixture-request-完整錯誤訊息-END"
@@ -304,6 +327,13 @@ struct NeumorphicSurface<S: Shape>: View {
         style = .classic
         update(.recording)
         update(.notice(message))
+        try await Task.sleep(for: .milliseconds(350))
+        update(.idle)
+        try await Task.sleep(for: .milliseconds(600))
+        precondition(visible(), "Recovery notices must remain readable after idle")
+        update(.recording)
+        update(.notice("Copied to clipboard", requiresAttention: false))
+        update(.idle)
         try await Task.sleep(for: .milliseconds(60))
         update(.recording)
         let resumed = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -383,6 +413,9 @@ def verify(directory: Path, skip_hud: bool) -> None:
     else:
         run_suite(directory, "hud-visibility", {
             "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
+            "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
+                "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
+            ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
         }, HUD_FIXTURE)
 
 

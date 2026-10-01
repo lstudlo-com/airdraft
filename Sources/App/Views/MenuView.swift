@@ -153,7 +153,7 @@ struct MenuView: View {
 
     private var statusMessage: String? {
         switch container.pipeline.state {
-        case .failed(let message), .notice(let message): return message
+        case .failed(let message), .notice(let message, _): return message
         default: return nil
         }
     }
@@ -172,7 +172,7 @@ struct MenuView: View {
         case .inserting: return "Inserting…"
         // The HUD shows a failure only briefly; the tooltip keeps its full reason.
         case .failed(let message): return "Failed: \(message)"
-        case .notice(let message): return message
+        case .notice(let message, _): return message
         }
     }
 }
