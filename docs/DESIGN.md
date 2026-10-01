@@ -137,12 +137,12 @@ The sidebar brand is a standalone neumorphic capsule without visible lettering.
 `SidebarBrandMark` in `MainWindow.swift` keeps the app icon's five waveform
 levels and separated caret, scaling the original compact mark proportionally
 by 1.25 to about 51 by 25 points in a 30-point row.
-The capsule uses an outline-only `NeumorphicSurface`: a raised rim with no face
-fill or recessed well. The sidebar shows directly through its empty interior,
-including with Reduce Transparency. Raised neutral waveform bars and the caret
-use the prominent neutral material: darker faces in light mode, brighter faces
-in dark mode, and a stronger one-point rim. They catch light from the top left;
-increased contrast strengthens the edges. Keep the original leading alignment
+The capsule is raised without an outline: its face is the sidebar itself, with
+no fill or edge stroke, lifted by soft, wide shadows that light the top left and
+shade the bottom right. A rim stroke or tight highlight would read as an outline.
+The waveform bars and caret are carved into it as grooves: a darker floor (0.80
+light, 0.12 dark), shaded inside the top-left edge and lit at the bottom right.
+Increased contrast adds explicit edges to the capsule and grooves. Keep the original leading alignment
 and header spacing, with 54 points above and 20 points below the row.
 It has no hover, click or meter behavior.
 Expose it as one image named `Airdraft` to assistive technology. The License

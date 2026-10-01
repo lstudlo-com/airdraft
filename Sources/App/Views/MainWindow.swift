@@ -174,7 +174,8 @@ struct MainWindowView: View {
     }
 }
 
-/// An open capsule rim around the icon's raised waveform and caret.
+/// A raised capsule, drawn by light and shade alone, with the icon's waveform and caret
+/// carved into it.
 struct SidebarBrandMark: View {
     /// The sidebar size unless another surface (the License sheet) scales the same mark up.
     var height: CGFloat = Theme.sidebarBrandHeight
@@ -183,17 +184,18 @@ struct SidebarBrandMark: View {
     /// Shadow depth follows size, so a larger mark keeps the sidebar's proportions.
     private var depth: CGFloat { height / Theme.sidebarBrandHeight }
     private let levels: [CGFloat] = [0.36, 0.66, 1, 0.72, 0.48]
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         ZStack {
-            NeumorphicSurface(shape: Capsule(), depth: depth, translucent: true, outlineOnly: true, prominent: true)
+            raisedBody
 
             HStack(spacing: 30 * scale) {
                 ForEach(levels.indices, id: \.self) { index in
-                    NeumorphicSurface(shape: Capsule(), depth: 0.375 * depth, prominent: true)
-                        .frame(width: 38 * scale, height: 190 * levels[index] * scale)
+                    groove.frame(width: 38 * scale, height: 190 * levels[index] * scale)
                 }
-                NeumorphicSurface(shape: Capsule(), depth: 0.375 * depth, prominent: true)
+                groove
                     .frame(width: 38 * scale, height: 208 * scale)
                     .padding(.leading, 20 * scale)
             }
@@ -205,6 +207,32 @@ struct SidebarBrandMark: View {
         .accessibilityAddTraits(.isImage)
         .accessibilityIdentifier(identifier)
         .allowsHitTesting(false)
+    }
+
+    /// The face is the sidebar itself, lifted by soft, wide shadows only: an edge stroke or a
+    /// tight highlight reads as an outline. Shadows stay outside the face.
+    private var raisedBody: some View {
+        let dark = scheme == .dark
+        return SurfaceShadows(shape: Capsule(), shadows: [
+            .init(color: .black.opacity(dark ? 0.55 : 0.2), radius: 2.6 * depth, x: 1.4 * depth, y: 2.2 * depth),
+            .init(color: .white.opacity(dark ? 0.09 : 0.95), radius: 2.6 * depth, x: -1.2 * depth, y: -1.6 * depth),
+        ], excludesInterior: true)
+        .overlay {
+            if contrast == .increased { Capsule().strokeBorder(Color.primary.opacity(0.5), lineWidth: 1) }
+        }
+    }
+
+    /// A stroke pressed into the capsule: a darker floor, shaded inside its top-left edge
+    /// and lit at the bottom right. Opaque, so SwiftUI's inner shadows keep full strength.
+    private var groove: some View {
+        let dark = scheme == .dark
+        return Capsule()
+            .fill(Color(white: dark ? 0.12 : 0.80)
+                .shadow(.inner(color: .black.opacity(dark ? 0.7 : 0.35), radius: 0.8 * depth, x: 0.6 * depth, y: 0.8 * depth))
+                .shadow(.inner(color: .white.opacity(dark ? 0.14 : 0.9), radius: 0.6 * depth, x: -0.5 * depth, y: -0.6 * depth)))
+            .overlay {
+                if contrast == .increased { Capsule().strokeBorder(Color.primary.opacity(0.5), lineWidth: 0.5) }
+            }
     }
 }
 

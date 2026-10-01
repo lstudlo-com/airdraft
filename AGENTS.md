@@ -97,12 +97,14 @@ verification status belong in the vault (see below).
   `apps/marketing/src/data/icon.ts`, which the website's 3D hero object is built from.
 
 - Native sidebar branding is `SidebarBrandMark` in `MainWindow.swift`: a compact
-  25-point-high neumorphic capsule with five raised waveform bars and a separate
-  caret, without visible lettering. Keep the waveform height pattern and use
-  `NeumorphicSurface` with `outlineOnly` for its raised capsule rim. Keep the
-  interior unfilled, with no recessed well, so the sidebar shows through directly.
-  The bars and caret stay raised and legible. Use the prominent neutral material
-  for the brand rim and strokes in both appearances; keep its interior unfilled.
+  25-point-high raised neumorphic capsule with five waveform bars and a separate
+  caret carved into it, without visible lettering. Keep the waveform height
+  pattern. The capsule face is the sidebar itself, unfilled, lifted only by soft,
+  wide `SurfaceShadows` (highlight up-left, shade down-right, excluded from the
+  face). Never give it an edge stroke or a tight highlight that reads as an
+  outline. The bars and caret are opaque grooves with a darker floor, inner shade
+  at the top-left edge and inner light at the bottom-right; never raise them.
+  Increase Contrast adds explicit edges.
   Scale the original compact mark uniformly by 1.25: about 51 by 25 points
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
