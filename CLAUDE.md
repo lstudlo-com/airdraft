@@ -134,8 +134,8 @@ verification status belong in the vault (see below).
   own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
   corners) and `Theme.islandBackground`: 0.86 white in light mode and 0.15 in
   dark mode. In both appearances the island must stay darker than the chrome and
-  at the Home hero's surface gray (light hero 0.88–0.84 around it; dark hero
-  0.20–0.16 just above it) so neumorphic elements rise from it. Keep it a mid-tone
+  at the Home hero's surface gray (light hero 0.87–0.85 around it; dark hero
+  0.19–0.17 just above it) so neumorphic elements rise from it. Keep it a mid-tone
   with room for both the white highlight and the shade; never brighten it toward
   white or darken it toward black. Separate it with a hairline edge only, no shadow or sidebar divider.
   The island clips its page,
@@ -248,7 +248,9 @@ verification status belong in the vault (see below).
   deletion and every completed save retry; reject stale asynchronous count results.
   Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
   The hero card itself is raised: `SurfaceShadows` casts a soft highlight up-left
-  and a shade down-right from the top-left light. Never leave it flat.
+  and a shade down-right from the top-left light. Never leave it flat. Keep its
+  surface gradient and top-left sheen subtle (a 0.02 gray ramp); the cast
+  shadows carry the depth, with a clearly darker light-mode shade.
   Keep light-mode bars visibly darker than the well, with raised highlights and
   down-right shadows. Preserve bar heights, hover behavior and the colored caret.
   Home waveform entrance waits for initial history, then animates rendered scale

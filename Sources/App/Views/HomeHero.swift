@@ -272,7 +272,7 @@ struct HomeHero: View {
     private var surface: some View {
         ZStack {
             LinearGradient(colors: [soft.surfaceTop, soft.surfaceBottom], startPoint: .topLeading, endPoint: .bottomTrailing)
-            RadialGradient(colors: [soft.light.opacity(0.5), soft.light.opacity(0)],
+            RadialGradient(colors: [soft.light.opacity(0.2), soft.light.opacity(0)],
                            center: UnitPoint(x: 0.15, y: 0), startRadius: 0, endRadius: 420)
         }
     }
@@ -280,7 +280,7 @@ struct HomeHero: View {
     /// The raised card catches the top-left light and casts its shade down-right.
     private var castShadows: some View {
         SurfaceShadows(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), shadows: [
-            .init(color: soft.shade.opacity(scheme == .dark ? 0.7 : 0.45), radius: 12, x: 7, y: 9),
+            .init(color: soft.shade.opacity(scheme == .dark ? 0.7 : 0.85), radius: 12, x: 7, y: 9),
             .init(color: soft.light, radius: 12, x: -6, y: -7),
         ])
     }
@@ -303,8 +303,9 @@ private struct SoftPalette {
 
     init(dark: Bool) {
         if dark {
-            surfaceTop = Color(white: 0.2)
-            surfaceBottom = Color(white: 0.16)
+            // A gentle ramp just above the 0.15 island; depth comes from the shadows.
+            surfaceTop = Color(white: 0.19)
+            surfaceBottom = Color(white: 0.17)
             well = Color(white: 0.14)
             raisedTop = Color(white: 0.34)
             raisedBottom = Color(white: 0.22)
@@ -313,8 +314,8 @@ private struct SoftPalette {
             rim = .white.opacity(0.16)
         } else {
             // Mid-tone on the 0.86 island, leaving the white highlight room to show.
-            surfaceTop = Color(white: 0.88)
-            surfaceBottom = Color(white: 0.84)
+            surfaceTop = Color(white: 0.87)
+            surfaceBottom = Color(white: 0.85)
             well = Color(white: 0.81)
             raisedTop = Color(white: 0.75)
             raisedBottom = Color(white: 0.50)

@@ -96,7 +96,7 @@ system appearance, including the accent shown in the live Save button.
 
 Pages sit on `Theme.islandBackground`: white level 0.86 in light mode and 0.15
 in dark mode. In both appearances the island stays darker than the chrome and at
-the Home hero's surface gray (0.88–0.84 light, around the base; 0.20–0.16 dark,
+the Home hero's surface gray (0.87–0.85 light, around the base; 0.19–0.17 dark,
 just above it), so the hero and other neumorphic elements rise softly from it
 instead of floating on white or near-black. The light mid-tone leaves the white
 highlight about 0.14 of headroom; the light hero's well (0.81) and bars
@@ -267,11 +267,11 @@ violet-to-cyan, and there is no left-to-right colour ramp. The well is pressed i
 with inner shade and light. The well is 60 pt tall with 24 pt minimum horizontal inner
 insets, bringing the waveform closer to all four edges without enlarging the
 bars. Light-mode bar faces use a darker silver gradient against the pale well.
-The hero surface is grayscale; the caret and the
-hovered bar are its only brand colour. The card is raised from the island: with
+The hero surface is grayscale with a deliberately faint 0.02 gray ramp and a
+20% top-left sheen; the caret and the hovered bar are its only brand colour. The card is raised from the island: with
 light from the top left, `SurfaceShadows` casts a 12-point highlight 6–7 points
 up-left (the palette's light color) and a 12-point shade 7–9 points down-right
-(its shade at 70% opacity in dark mode, 45% in light mode). With no history it shows the icon's
+(its shade at 70% opacity in dark mode, 85% in light mode). With no history it shows the icon's
 five strokes and the shortcut. Bars magnify under the pointer and the caption
 names the hovered dictation. Entrance waits for initial history so animated
 placeholder bars are never replaced mid-flight. Real bars enter once with a

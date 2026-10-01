@@ -50,8 +50,8 @@ enum Theme {
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
-    /// The page island is a mid-tone at the Home hero's surface gray (0.88–0.84 light,
-    /// 0.20–0.16 dark), so neumorphic surfaces rise from it, and below the chrome.
+    /// The page island is a mid-tone at the Home hero's surface gray (0.87–0.85 light,
+    /// 0.19–0.17 dark), so neumorphic surfaces rise from it, and below the chrome.
     static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
         NSColor(white: appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? 0.15 : 0.86, alpha: 1)
     })
