@@ -243,6 +243,8 @@ verification status belong in the vault (see below).
   and native card actions. The timeline follows the same filtered records. Refresh sidebar word totals after single/all history
   deletion and every completed save retry; reject stale asynchronous count results.
   Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
+  The hero card itself is raised: `SurfaceShadows` casts a soft highlight up-left
+  and a shade down-right from the top-left light. Never leave it flat.
   Keep light-mode bars visibly darker than the well, with raised highlights and
   down-right shadows. Preserve bar heights, hover behavior and the colored caret.
   Home waveform entrance waits for initial history, then animates rendered scale

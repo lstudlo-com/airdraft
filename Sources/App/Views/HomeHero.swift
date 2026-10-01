@@ -55,6 +55,7 @@ struct HomeHero: View {
         .background(surface)
         .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
         .overlay(border)
+        .background(castShadows)
         .task(id: isReady) {
             guard isReady, !grown else { return }
             // Give the loaded bars their own initial layout before revealing
@@ -274,6 +275,14 @@ struct HomeHero: View {
             RadialGradient(colors: [soft.light.opacity(0.5), soft.light.opacity(0)],
                            center: UnitPoint(x: 0.15, y: 0), startRadius: 0, endRadius: 420)
         }
+    }
+
+    /// The raised card catches the top-left light and casts its shade down-right.
+    private var castShadows: some View {
+        SurfaceShadows(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), shadows: [
+            .init(color: soft.shade.opacity(scheme == .dark ? 0.7 : 0.45), radius: 12, x: 7, y: 9),
+            .init(color: soft.light, radius: 12, x: -6, y: -7),
+        ])
     }
 
     private var border: some View {

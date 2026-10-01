@@ -266,7 +266,11 @@ with inner shade and light. The well is 60 pt tall with 24 pt minimum horizontal
 insets, bringing the waveform closer to all four edges without enlarging the
 bars. Light-mode bar faces use a darker silver gradient against the pale well.
 The hero surface is grayscale; the caret and the
-hovered bar are its only brand colour. With no history it shows the icon's
+hovered bar are its only brand colour. The card is raised from the island: with
+light from the top left, `SurfaceShadows` casts a 12-point highlight 6–7 points
+up-left (the palette's light color) and a 12-point shade 7–9 points down-right
+(its shade at 70% opacity in dark mode, 45% in light mode). The white light-mode
+island cannot show the highlight, so there the shade alone carries the depth. With no history it shows the icon's
 five strokes and the shortcut. Bars magnify under the pointer and the caption
 names the hovered dictation. Entrance waits for initial history so animated
 placeholder bars are never replaced mid-flight. Real bars enter once with a
