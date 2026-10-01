@@ -132,11 +132,12 @@ verification status belong in the vault (see below).
   including onboarding. It is inset by `Theme.islandInset` (the sidebar's 10-point
   content inset) from the top, trailing and bottom window edges; the sidebar's
   own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
-  corners) and `Theme.islandBackground`: 0.89 white in light mode and 0.15 in
+  corners) and `Theme.islandBackground`: 0.86 white in light mode and 0.15 in
   dark mode. In both appearances the island must stay darker than the chrome and
-  just below the Home hero's darkest gray (0.90 light, 0.16 dark) so neumorphic
-  elements rise from it; never brighten it toward white or darken it toward
-  black. Separate it with a hairline edge only, no shadow or sidebar divider.
+  at the Home hero's surface gray (light hero 0.88–0.84 around it; dark hero
+  0.20–0.16 just above it) so neumorphic elements rise from it. Keep it a mid-tone
+  with room for both the white highlight and the shade; never brighten it toward
+  white or darken it toward black. Separate it with a hairline edge only, no shadow or sidebar divider.
   The island clips its page,
   including the sticky header blur; the chrome must not bleed into that blur.
   The recording HUD is not part of this shell.

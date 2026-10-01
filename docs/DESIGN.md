@@ -94,11 +94,13 @@ system appearance, including the accent shown in the live Save button.
 
 ### Neutral
 
-Pages sit on `Theme.islandBackground`: white level 0.89 in light mode and 0.15
-in dark mode. In both appearances the island stays darker than the chrome and
-just below the Home hero's surface (0.955–0.90 light, 0.20–0.16 dark), so the
-hero and other neumorphic elements rise softly from it instead of floating on
-white or near-black, and their top-left highlights stay visible. The chrome is
+Pages sit on `Theme.islandBackground`: white level 0.86 in light mode and 0.15
+in dark mode. In both appearances the island stays darker than the chrome and at
+the Home hero's surface gray (0.88–0.84 light, around the base; 0.20–0.16 dark,
+just above it), so the hero and other neumorphic elements rise softly from it
+instead of floating on white or near-black. The light mid-tone leaves the white
+highlight about 0.14 of headroom; the light hero's well (0.81) and bars
+(0.75–0.50) step down from its surface in the same order. The chrome is
 therefore the lighter layer in both appearances. The window chrome, behind the sidebar and around the island, uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
 neutral fill, white level 0.95 in light mode and 0.21 in dark mode. Its opacity

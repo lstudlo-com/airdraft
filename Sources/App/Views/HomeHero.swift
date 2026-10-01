@@ -312,11 +312,12 @@ private struct SoftPalette {
             shade = .black.opacity(0.75)
             rim = .white.opacity(0.16)
         } else {
-            surfaceTop = Color(white: 0.955)
-            surfaceBottom = Color(white: 0.9)
-            well = Color(white: 0.88)
-            raisedTop = Color(white: 0.82)
-            raisedBottom = Color(white: 0.56)
+            // Mid-tone on the 0.86 island, leaving the white highlight room to show.
+            surfaceTop = Color(white: 0.88)
+            surfaceBottom = Color(white: 0.84)
+            well = Color(white: 0.81)
+            raisedTop = Color(white: 0.75)
+            raisedBottom = Color(white: 0.50)
             light = .white
             shade = .black.opacity(0.32)
             rim = .white.opacity(0.9)
