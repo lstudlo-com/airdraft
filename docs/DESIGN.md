@@ -94,21 +94,21 @@ system appearance, including the accent shown in the live Save button.
 
 ### Neutral
 
-Pages sit on `Theme.islandBackground`: `NSColor.windowBackgroundColor` in light
-mode and white level 0.15 in dark mode. The dark island stays darker than the
-chrome and just below the Home hero's 0.20–0.16 surface, so the hero and other
-neumorphic elements rise softly from it instead of floating on near-black. The
-dark chrome is therefore the lighter layer, as native macOS sidebars are. The window chrome, behind the sidebar and around the island, uses
+Pages sit on `Theme.islandBackground`: white level 0.89 in light mode and 0.15
+in dark mode. In both appearances the island stays darker than the chrome and
+just below the Home hero's surface (0.955–0.90 light, 0.20–0.16 dark), so the
+hero and other neumorphic elements rise softly from it instead of floating on
+white or near-black, and their top-left highlights stay visible. The chrome is
+therefore the lighter layer in both appearances. The window chrome, behind the sidebar and around the island, uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
-neutral fill, white level 0.86 in light mode and 0.21 in dark mode. Its opacity
+neutral fill, white level 0.95 in light mode and 0.21 in dark mode. Its opacity
 stays at 70% through the upper half, then increases continuously to 100% at the
 bottom edge. Reduce Transparency removes the blur and makes the entire fill
 fully opaque. Apply this tint
 to the background only; the logo, text and controls keep their opacity.
 The island has no divider beside the sidebar. Its 0.5-point edge uses primary
 color at 0.06 opacity in light mode, 0.08 in dark mode and 0.35 with Increase
-Contrast. Only the light island, which is brighter than its chrome, adds a
-3-point shadow at 6% black, 1 point down.
+Contrast. It casts no shadow, since it sits below the chrome.
 Text uses `.primary` and `.secondary`.
 `NavigationRowStyle` applies `Color.primary` at 0.09 opacity for selection,
 0.045 for hover and 0.14 for a press.
@@ -269,8 +269,7 @@ The hero surface is grayscale; the caret and the
 hovered bar are its only brand colour. The card is raised from the island: with
 light from the top left, `SurfaceShadows` casts a 12-point highlight 6–7 points
 up-left (the palette's light color) and a 12-point shade 7–9 points down-right
-(its shade at 70% opacity in dark mode, 45% in light mode). The white light-mode
-island cannot show the highlight, so there the shade alone carries the depth. With no history it shows the icon's
+(its shade at 70% opacity in dark mode, 45% in light mode). With no history it shows the icon's
 five strokes and the shortcut. Bars magnify under the pointer and the caption
 names the hovered dictation. Entrance waits for initial history so animated
 placeholder bars are never replaced mid-flight. Real bars enter once with a

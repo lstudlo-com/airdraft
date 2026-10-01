@@ -124,7 +124,7 @@ verification status belong in the vault (see below).
 
 - The window chrome uses `SidebarBackground` across the whole window, behind the
   sidebar and around the page island: native blur under a neutral
-  layer, using white levels 0.86 in light mode and 0.21 in dark mode. Keep the
+  layer, using white levels 0.95 in light mode and 0.21 in dark mode. Keep the
   upper half at 70% opacity, then fade smoothly to 100% at the bottom edge.
   Reduce Transparency makes the entire background fully opaque. Tint the
   background only; keep sidebar content fully opaque.
@@ -132,11 +132,11 @@ verification status belong in the vault (see below).
   including onboarding. It is inset by `Theme.islandInset` (the sidebar's 10-point
   content inset) from the top, trailing and bottom window edges; the sidebar's
   own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
-  corners) and `Theme.islandBackground`: the window background in light mode and
-  0.15 white in dark mode. The dark island must stay darker than the chrome and
-  just below the Home hero's darkest gray (0.16) so neumorphic elements rise from
-  it; never darken it toward black. Separate it with a hairline edge, a soft
-  light-mode shadow and no sidebar divider.
+  corners) and `Theme.islandBackground`: 0.89 white in light mode and 0.15 in
+  dark mode. In both appearances the island must stay darker than the chrome and
+  just below the Home hero's darkest gray (0.90 light, 0.16 dark) so neumorphic
+  elements rise from it; never brighten it toward white or darken it toward
+  black. Separate it with a hairline edge only, no shadow or sidebar divider.
   The island clips its page,
   including the sticky header blur; the chrome must not bleed into that blur.
   The recording HUD is not part of this shell.

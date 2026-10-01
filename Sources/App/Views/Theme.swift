@@ -50,12 +50,10 @@ enum Theme {
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
-    /// The page island: the light window background. In dark mode it sits just below the
-    /// Home hero's darkest gray, so neumorphic surfaces rise from it, and below the chrome.
+    /// The page island sits just below the Home hero's darkest gray in each appearance
+    /// (0.16 dark, 0.90 light), so neumorphic surfaces rise from it, and below the chrome.
     static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(white: 0.15, alpha: 1)
-            : .windowBackgroundColor
+        NSColor(white: appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? 0.15 : 0.89, alpha: 1)
     })
 }
 
@@ -85,8 +83,8 @@ struct SidebarBackground: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
-        // Dark chrome stays lighter than the island, which keeps the Home hero's gray.
-        let tint = Color(white: scheme == .dark ? 0.21 : 0.86)
+        // The chrome stays lighter than the island, which keeps the Home hero's gray.
+        let tint = Color(white: scheme == .dark ? 0.21 : 0.95)
         let translucentTint = tint.opacity(reduceTransparency ? 1 : 0.70)
 
         ZStack {
@@ -110,6 +108,7 @@ struct SidebarBackground: View {
 
 /// One rounded surface for page content, inset into the window chrome on its
 /// top, trailing and bottom edges. The sidebar's own inset is its leading gutter.
+/// It sits below the lighter chrome, so a hairline edge separates it without a shadow.
 private struct ContentIsland: ViewModifier {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -124,14 +123,6 @@ private struct ContentIsland: ViewModifier {
                 shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : scheme == .dark ? 0.08 : 0.06),
                                    lineWidth: 0.5)
                     .allowsHitTesting(false)
-            }
-            .background {
-                // The light island lifts off the chrome; the dark one sits below it.
-                if scheme == .light {
-                    SurfaceShadows(shape: shape, shadows: [
-                        .init(color: .black.opacity(0.06), radius: 3, y: 1),
-                    ])
-                }
             }
             .padding([.top, .bottom, .trailing], Theme.islandInset)
     }
