@@ -249,18 +249,97 @@ final class TextDeliveryRegressionTests: XCTestCase {
         }
     }
 
-    func testUnknownSelectionAndForeignSystemFocusCannotAuthorizePaste() async throws {
-        for foreignProcess in [false, true] {
+    func testForeignSystemFocusCannotAuthorizeCaretlessPaste() async throws {
+        for foreignAtCapture in [false, true] {
             let editor = Editor()
             defer { editor.close() }
-            if !foreignProcess { editor.range = nil }
-            if foreignProcess { editor.applicationReportsWindow = true; editor.systemOwnerPID = 999 }
+            editor.range = nil
+            if foreignAtCapture { editor.applicationReportsWindow = true; editor.systemOwnerPID = 999 }
             let inserter = editor.inserter()
             let target = await inserter.captureTarget()
+            if !foreignAtCapture { editor.systemField = editor.foreignField }
             let result = await inserter.insert(Editor.dictation, method: .paste, target: target)
             XCTAssertFalse(result.didInsert)
             XCTAssertTrue(editor.pasted.isEmpty)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
         }
+    }
+
+    /// Zed, Warp and other editors that draw their own text publish no caret:
+    /// no focused element, a container without selection attributes, or a
+    /// text role without a readable range. Each must still receive one paste.
+    func testCaretlessEditorPastesIntoItsFocusedWindow() async throws {
+        for shape in ["no focused element", "container", "text without range"] {
+            let editor = Editor()
+            defer { editor.close() }
+            switch shape {
+            case "no focused element": editor.focusAvailable = false
+            case "container": editor.applicationReportsWindow = true; editor.systemField = editor.window
+            default: editor.range = nil
+            }
+            let inserter = editor.inserter()
+            let started = ContinuousClock.now
+            let captured = await inserter.captureTarget()
+            let target = try XCTUnwrap(captured, shape)
+            XCTAssertLessThan(started.duration(to: .now), .milliseconds(1000),
+                              "\(shape): a caretless editor must not hold recording for the full capture deadline")
+            XCTAssertFalse(editor.webEnabled, shape)
+            XCTAssertNil(target.selection, shape)
+            var delivered = 0
+            let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
+            XCTAssertEqual(result.method, .paste, shape)
+            XCTAssertNil(result.notice, shape)
+            XCTAssertEqual(editor.activations, 0, shape)
+            XCTAssertEqual(editor.pasted, [Editor.dictation], shape)
+            XCTAssertEqual(delivered, 1, shape)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard, shape)
+        }
+    }
+
+    func testCaretlessEditorIsReactivatedBeforePaste() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.focusAvailable = false
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.frontmostPID = 999
+        editor.activationDelay = .milliseconds(100)
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(editor.activations, 1)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testCaretlessEditorRefusesAnotherWindow() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.focusAvailable = false
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.focusedWindow = editor.otherWindow
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertFalse(result.didInsert)
+        XCTAssertEqual(result.notice, "Destination changed. Text copied; paste it where you want.")
+        XCTAssertTrue(editor.pasted.isEmpty)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+    }
+
+    func testWebEditorStillWaitsForItsCaretAfterCaretlessSettleTime() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.focusAvailable = false
+        editor.canEnableWebAccessibility = true
+        let started = ContinuousClock.now
+        editor.onFocusRead = {
+            if editor.webEnabled, started.duration(to: .now) >= .milliseconds(400) { editor.focusAvailable = true }
+        }
+        let inserter = editor.inserter()
+        let captured = await inserter.captureTarget()
+        let target = try XCTUnwrap(captured)
+        XCTAssertNotNil(target.selection, "Electron editors publish their caret after the caretless settle time")
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
 
     func testCancelledInsertionNeverChangesClipboardOrDestination() async throws {
@@ -377,9 +456,12 @@ private final class Editor {
     let field = AXUIElementCreateApplication(101)
     let otherField = AXUIElementCreateApplication(102)
     let window = AXUIElementCreateApplication(103)
+    let mainWindow = AXUIElementCreateApplication(104)
+    let otherWindow = AXUIElementCreateApplication(105)
     let foreignField = AXUIElementCreateApplication(999)
     var currentField: AXUIElement
     var systemField: AXUIElement?
+    var focusedWindow: AXUIElement?
     var frontmostPID: Int32 = 101
     var systemOwnerPID: Int32 = 101
     var range: CFRange? = CFRange(location: 0, length: 3)
@@ -398,6 +480,7 @@ private final class Editor {
 
     init() {
         currentField = field
+        focusedWindow = mainWindow
         clipboard.setString(Self.previousClipboard, forType: .string)
     }
 
@@ -421,7 +504,8 @@ private final class Editor {
             self.onFocusRead?()
             guard self.focusAvailable else { return nil }
             return self.applicationReportsWindow ? self.window : self.currentField
-        }, systemFocus: { self.focusAvailable ? (self.systemField ?? self.currentField) : nil }, processID: { element in
+        }, systemFocus: { self.focusAvailable ? (self.systemField ?? self.currentField) : nil },
+        focusedWindow: { _ in self.focusedWindow }, processID: { element in
             if CFEqual(element, self.foreignField) { return 999 }
             return CFEqual(element, self.window) ? 101 : self.systemOwnerPID
         }, readAttribute: { element, attribute in

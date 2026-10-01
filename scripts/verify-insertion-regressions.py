@@ -10,6 +10,7 @@ import sys
 # contract update; test discovery alone must not silently shrink this gate.
 # AX-write cases were retired with the AX text-write path. The gate now
 # covers one paste for both persisted settings plus cancellation during handoff.
+# Caretless cases cover editors that draw their own text, such as Zed and Warp.
 REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testCaptureFollowsAppSwitchBeforeRecordingStarts()',
     'TextDeliveryRegressionTests/testCaptureUsesSystemEditorWhenApplicationFocusIsStaleAfterSwitch()',
@@ -31,7 +32,11 @@ REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testNativeEditorCaptureWaitsWhenWebAccessibilityIsUnsupported()',
     'TextDeliveryRegressionTests/testPermissionLossDoesNotDeliverText()',
     'TextDeliveryRegressionTests/testPipelineWithContextOffCapturesPastesAndSavesDeliveredHistory()',
-    'TextDeliveryRegressionTests/testUnknownSelectionAndForeignSystemFocusCannotAuthorizePaste()',
+    'TextDeliveryRegressionTests/testForeignSystemFocusCannotAuthorizeCaretlessPaste()',
+    'TextDeliveryRegressionTests/testCaretlessEditorPastesIntoItsFocusedWindow()',
+    'TextDeliveryRegressionTests/testCaretlessEditorIsReactivatedBeforePaste()',
+    'TextDeliveryRegressionTests/testCaretlessEditorRefusesAnotherWindow()',
+    'TextDeliveryRegressionTests/testWebEditorStillWaitsForItsCaretAfterCaretlessSettleTime()',
     'TextDeliveryRegressionTests/testWebEditorCaptureWaitsForItsFieldThenDelivers()',
     'TextInsertionTests/testCancellationAfterPostingKeepsClipboardUntilReceiverCanRead()',
     'TextInsertionTests/testCaptureKeepsNativeSelectionAndDoesNotEnableWebAccessibility()',

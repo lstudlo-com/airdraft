@@ -94,10 +94,22 @@ silently reset all permissions as part of an update.
 
 ## Insertion warnings with permission granted
 
-"Destination changed" means the captured app, field or selection no longer
-matches. "Couldn't verify the destination's cursor" means the editor did not
-expose a usable field or selection when recording began. Both preserve the text
-on the clipboard for manual paste.
+"Destination changed" means the captured app, window, field or selection no
+longer matches. "Couldn't identify the destination app" means no frontmost app
+could be captured when recording began. Both preserve the text on the clipboard
+for manual paste.
+
+Some editors draw their own text and expose no caret through Accessibility:
+Zed, Warp and other GPU-rendered terminals report no focused element, a
+container without selection attributes, or a text role without a readable
+range. Until October 2026 capture required a field and caret for every app, so
+these editors always got the old "Couldn't verify the destination's cursor"
+notice; waiting longer could not help because the caret never appears. Such
+destinations are now verified at the app level: the same process must be
+frontmost, keyboard focus must not belong to another process, and the focused
+window must match when the app reports one. Then they receive the same single
+paste. Capture logs `capture: app window` with the focused role, selection
+status, window availability and web attribute result, never field contents.
 
 Target capture also checks system-wide focus, verifying that the field belongs
 to the original process, and accepts one valid `AXSelectedTextRanges` entry when
@@ -105,13 +117,15 @@ the singular attribute is unsupported or has no value. Missing, malformed,
 multiple or changed selections cannot authorize insertion. If the editor is not
 exposed, capture requests [Electron's documented `AXManualAccessibility`
 attribute](https://github.com/electron/electron/blob/main/docs/tutorial/accessibility.md)
-and waits up to 500 ms for its field and caret. Native editors get the same
-readiness wait even when they reject that web attribute. Before delivery, wait
-for the original field and selection even if the app is already frontmost.
-Individual AX calls retain their 300 ms timeout.
+and keeps waiting, within the 1.5-second capture deadline, for its field and
+caret. Native editors also get a readiness wait when they reject that web
+attribute, but once their caretless focus stays unchanged for 250 ms capture
+accepts the app-level target so recording is not delayed. Before delivery, wait
+for the original destination even if the app is already frontmost. Individual
+AX calls retain their 300 ms timeout.
 
-Cursor insertion uses one normal paste command after checking the captured app,
-field and selection. Both old `auto` and `paste` preferences use this path;
+Cursor insertion uses one normal paste command after checking the captured app
+and, when the editor exposes them, its field and selection. Both old `auto` and `paste` preferences use this path;
 Configuration no longer offers an AX-write mode. Airdraft does not attempt an
 `AXSelectedText` write before pasting. Some editors advertise that attribute as
 writable but cannot verify a replacement; trying it first caused the repeated
@@ -129,7 +143,7 @@ changed destinations, cancellation and context-off pipeline delivery to History.
 The retired AX-write verifier and its tests were removed with that delivery path.
 
 Both `pnpm test:local` and release preparation inspect the actual xcresult with
-`verify-insertion-regressions.py`. All 27 current insertion cases must execute
+`verify-insertion-regressions.py`. All 38 current insertion cases must execute
 and pass; missing, skipped and failed cases block the run. From 0.4.2, release
 preparation also requires live TextEdit and Chrome insertion for both persisted
 preferences. `verify-live-insertion.py` requires the actual resulting text, one

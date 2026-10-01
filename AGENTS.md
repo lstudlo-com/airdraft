@@ -270,14 +270,19 @@ status table current.
   (output drained while running, wall-clock deadline, cancellation, SIGKILL fallback).
 - Each dictation owns a generation and cancellable release timer. Stale asynchronous
   work must never change a newer session or insert text. Capture the local insertion
-  target independently of optional LLM context; require the same focused field and
-  selection before inserting, then post exactly one paste. Never probe editor
+  target independently of optional LLM context. When the editor exposes a caret,
+  require the same focused field and selection before inserting, then post exactly
+  one paste. Editors that draw their own text (Zed, Warp, GPU terminals) never expose
+  a caret: verify the same process, its focused window and no foreign system focus
+  instead; a missing caret alone must not block paste. Never probe editor
   compatibility with an AX text write; both saved insertion methods use paste.
   Read application and system-wide focus with matching process ownership. When
   Electron has not exposed its editor, request `AXManualAccessibility` and await
   its field and caret before recording. Wait for native focus too, even when the
-  web attribute is unsupported. Accept one valid `AXSelectedTextRanges`
-  entry when the singular attribute is unsupported; unknown selections never match.
+  web attribute is unsupported, but accept the app-level target once such an app
+  keeps the same caretless focus for 250 ms. Accept one valid `AXSelectedTextRanges`
+  entry when the singular attribute is unsupported; unknown selections never match
+  a captured caret.
   Wait briefly for the original field and selection to settle before delivery,
   including when the same app is already frontmost. Before recording begins,
   follow an in-flight app switch within one 1.5-second capture deadline and require
@@ -287,8 +292,9 @@ status table current.
   activation to settle and retry transient final validation reads before posting.
   Keep `TextDeliveryRegressionTests` exercising production capture and insert
   entry points through an injected OS boundary and disposable pasteboard. Cover
-  both persisted insertion settings, unavailable AX values, web/native focus, changed
-  destinations, cancellation and context-off pipeline delivery through History.
+  both persisted insertion settings, unavailable AX values, caretless editors,
+  web/native focus, changed destinations, cancellation and context-off pipeline
+  delivery through History.
   Local and release core runs must pass `verify-insertion-regressions.py` against
   their actual xcresult; mandatory insertion cases cannot be missing or skipped.
   Once paste is posted, its clipboard restoration delay must survive cancellation

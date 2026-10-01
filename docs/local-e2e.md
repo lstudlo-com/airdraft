@@ -19,7 +19,7 @@ The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
 Before accepting a successful Xcode exit, it checks the actual xcresult with
-`verify-insertion-regressions.py`. All 34 mandatory insertion cases must be present
+`verify-insertion-regressions.py`. All 38 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline
 fixtures. Missing, skipped and failed cases stop validation. The JSON evidence is
 saved as `insertion-regressions.json`; release preparation runs the same gate for

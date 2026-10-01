@@ -20,12 +20,16 @@ public struct InsertionResult: Sendable, Equatable {
 }
 
 /// Local insertion identity, never serialized or sent to a provider.
+/// With `element` and `selection`, delivery requires that field and caret.
+/// Editors that draw their own text (Zed, Warp, other GPU terminals) expose
+/// no caret; their target is the process and its focused window instead.
 @MainActor
 public struct InsertionTarget {
     let processID: Int32
     let bundleID: String?
     let element: AXUIElement?
     let selection: CFRange?
+    var window: AXUIElement? = nil
 }
 
 /// Puts text at the cursor of the app the user was dictating into.
@@ -45,6 +49,7 @@ public final class TextInserter {
         var isTrusted: () -> Bool
         var applicationFocus: (Int32) -> AXUIElement?
         var systemFocus: () -> AXUIElement?
+        var focusedWindow: (Int32) -> AXUIElement?
         var processID: (AXUIElement) -> Int32?
         var readAttribute: (AXUIElement, CFString) -> (AXError, CFTypeRef?)
         var enableWebAccessibility: (Int32) -> Bool
@@ -59,7 +64,9 @@ public final class TextInserter {
                 return Application(processID: app.processIdentifier, bundleID: app.bundleIdentifier)
             }, activate: { NSRunningApplication(processIdentifier: $0)?.activate() == true },
             isTrusted: { AXIsProcessTrusted() }, applicationFocus: { copyFocus(in: AXUIElementCreateApplication($0)) },
-            systemFocus: { copyFocus(in: AXUIElementCreateSystemWide()) }, processID: { element in
+            systemFocus: { copyFocus(in: AXUIElementCreateSystemWide()) },
+            focusedWindow: { copyFocus(in: AXUIElementCreateApplication($0), attribute: kAXFocusedWindowAttribute) },
+            processID: { element in
                 var pid: pid_t = 0
                 return AXUIElementGetPid(element, &pid) == .success ? pid : nil
             }, readAttribute: { element, attribute in
@@ -74,10 +81,11 @@ public final class TextInserter {
             }, postPaste: { postCommandV() }, pasteboard: .general)
         }
 
-        private static func copyFocus(in root: AXUIElement) -> AXUIElement? {
+        private static func copyFocus(in root: AXUIElement,
+                                      attribute: String = kAXFocusedUIElementAttribute) -> AXUIElement? {
             AXUIElementSetMessagingTimeout(root, 0.3)
             var ref: CFTypeRef?
-            guard AXUIElementCopyAttributeValue(root, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+            guard AXUIElementCopyAttributeValue(root, attribute as CFString, &ref) == .success,
                   let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else { return nil }
             let element = ref as! AXUIElement
             AXUIElementSetMessagingTimeout(element, 0.3)
@@ -114,10 +122,9 @@ public final class TextInserter {
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard restored, let target else {
             copyOnly(text)
-            let unavailable = target?.element == nil || target?.selection == nil
-            Self.log.notice("insert: destination unavailable=\(unavailable, privacy: .public)")
-            return InsertionResult(method: .clipboardOnly, notice: unavailable
-                ? "Couldn't verify the destination's cursor. Text copied; paste it where you want."
+            Self.log.notice("insert: destination unavailable=\(target == nil, privacy: .public)")
+            return InsertionResult(method: .clipboardOnly, notice: target == nil
+                ? "Couldn't identify the destination app. Text copied; paste it where you want."
                 : "Destination changed. Text copied; paste it where you want.")
         }
 
@@ -130,9 +137,11 @@ public final class TextInserter {
         guard await Self.waitForMatch(matches: { self.matches(target) }) else {
             guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
             copyOnly(text)
+            Self.log.notice("insert: destination changed before paste")
             return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+        Self.log.notice("insert: paste verified by \(target.selection == nil ? "app window" : "field and caret", privacy: .public)")
         let ok = await insertViaPaste(text, pasteboard: environment.pasteboard,
                                      postPaste: environment.postPaste, onDelivered: onDelivered)
         return ok
@@ -149,17 +158,24 @@ public final class TextInserter {
         // of retaining the old app or discarding the destination altogether.
         while !Task.isCancelled, clock.now < deadline {
             if let app = environment.frontmostApplication() {
+                var webAccessibility: Bool?
                 let target = await Self.captureTarget(processID: app.processID, bundleID: app.bundleID,
                     timeout: clock.now.duration(to: deadline),
                     isFrontmost: { self.environment.frontmostApplication()?.processID == app.processID },
                     readFocus: {
                         let element = self.focusedElement(pid: app.processID)
                         return (element, element.flatMap(self.selection))
+                    }, readWindow: {
+                        self.environment.isTrusted() ? self.environment.focusedWindow(app.processID) : nil
                     }, enableWebAccessibility: {
                         guard self.environment.isTrusted() else { return false }
-                        return self.environment.enableWebAccessibility(app.processID)
+                        webAccessibility = self.environment.enableWebAccessibility(app.processID)
+                        return webAccessibility!
                     })
-                if let target { return target }
+                if let target {
+                    logCapture(target, webAccessibility: webAccessibility)
+                    return target
+                }
             }
             do { try await clock.sleep(until: min(deadline, clock.now.advanced(by: .milliseconds(25)))) }
             catch { return nil }
@@ -167,40 +183,68 @@ public final class TextInserter {
         return nil
     }
 
+    /// How long an app that rejected the web accessibility request must keep
+    /// the same caretless focus before capture accepts its app-level target.
+    static let caretlessSettleTime: Duration = .milliseconds(250)
+
     static func captureTarget(processID: Int32, bundleID: String?, timeout: Duration = .milliseconds(500),
                               isFrontmost: () -> Bool,
                               readFocus: () -> (AXUIElement?, CFRange?),
+                              readWindow: () -> AXUIElement? = { nil },
                               enableWebAccessibility: () -> Bool) async -> InsertionTarget? {
         guard !Task.isCancelled, isFrontmost() else { return nil }
         var element: AXUIElement?
         var range: CFRange?
         var stableSince: ContinuousClock.Instant?
-        var requestedWebAccessibility = false
-        let settled = await waitForMatch(timeout: timeout) {
+        var webAccessibility: Bool?
+        var caretSettled = false
+        _ = await waitForMatch(timeout: timeout) {
             // Stop this attempt promptly. The caller may follow the newly
             // frontmost app while still inside the shared capture deadline.
             guard isFrontmost() else { return true }
             let (next, selection) = readFocus()
-            let sameField = element != nil && next != nil && CFEqual(element!, next!)
-            if !sameField || !selectionMatches(range, selection) { stableSince = nil }
+            let sameField = (element == nil && next == nil) || (element != nil && next != nil && CFEqual(element!, next!))
+            let sameSelection = (range == nil && selection == nil) || selectionMatches(range, selection)
+            if !sameField || !sameSelection { stableSince = nil }
             element = next
             range = selection
-            guard next != nil, selectionMatches(selection, selection) else {
-                if !requestedWebAccessibility {
-                    requestedWebAccessibility = true
-                    _ = enableWebAccessibility()
-                }
-                return false
-            }
             let now = ContinuousClock.now
             if stableSince == nil { stableSince = now }
-            // AX and NSWorkspace can briefly expose the previous editor during
-            // activation. Yield the run loop and require a stable field/caret.
-            return stableSince!.duration(to: now) >= .milliseconds(50)
+            let stable = stableSince!.duration(to: now)
+            if next != nil, selectionMatches(selection, selection) {
+                // AX and NSWorkspace can briefly expose the previous editor during
+                // activation. Yield the run loop and require a stable field/caret.
+                caretSettled = stable >= .milliseconds(50)
+                return caretSettled
+            }
+            caretSettled = false
+            if webAccessibility == nil { webAccessibility = enableWebAccessibility() }
+            // Electron publishes its editor some time after accepting the request
+            // above, so it keeps the full wait. Editors that draw their own text
+            // never publish a caret; waiting for one only delays recording.
+            return webAccessibility == false && stable >= caretlessSettleTime
         }
         guard !Task.isCancelled, isFrontmost() else { return nil }
         return InsertionTarget(processID: processID, bundleID: bundleID,
-                               element: settled ? element : nil, selection: settled ? range : nil)
+                               element: caretSettled ? element : nil, selection: caretSettled ? range : nil,
+                               window: readWindow())
+    }
+
+    /// Records which verification a destination gets, so a caretless editor
+    /// can be diagnosed from the log. Contains no text or field values.
+    private func logCapture(_ target: InsertionTarget, webAccessibility: Bool?) {
+        guard target.selection == nil else {
+            Self.log.notice("capture: field and caret")
+            return
+        }
+        let focus = focusedElement(pid: target.processID)
+        let role = focus.flatMap { environment.readAttribute($0, kAXRoleAttribute as CFString).1 as? String } ?? "none"
+        let selectionStatus = focus.map { environment.readAttribute($0, kAXSelectedTextRangeAttribute as CFString).0.rawValue }
+        Self.log.notice("""
+            capture: app window app=\(target.bundleID ?? "?", privacy: .public) role=\(role, privacy: .public) \
+            selectionStatus=\(selectionStatus.map(String.init) ?? "none", privacy: .public) \
+            window=\(target.window != nil, privacy: .public) web=\(webAccessibility.map(String.init) ?? "none", privacy: .public)
+            """)
     }
 
     private func restoreFocus(to target: InsertionTarget) async -> Bool {
@@ -209,7 +253,7 @@ public final class TextInserter {
             guard environment.activate(target.processID) else { return false }
         }
         // AX focus can lag even while the same app remains frontmost. Require
-        // the original field and selection, allowing a bounded read-only wait.
+        // the original destination, allowing a bounded read-only wait.
         return await Self.waitForMatch(timeout: .milliseconds(1500)) { self.matches(target) }
     }
 
@@ -227,11 +271,25 @@ public final class TextInserter {
     }
 
     private func matches(_ target: InsertionTarget) -> Bool {
-        guard environment.frontmostApplication()?.processID == target.processID,
-              let original = target.element, let current = focusedElement(pid: target.processID),
-              CFEqual(original, current) else { return false }
-        return Self.selectionMatches(target.selection, selection(current)) &&
-            environment.frontmostApplication()?.processID == target.processID
+        guard environment.frontmostApplication()?.processID == target.processID else { return false }
+        let matched: Bool
+        if let original = target.element, let caret = target.selection {
+            guard let current = focusedElement(pid: target.processID), CFEqual(original, current) else { return false }
+            matched = Self.selectionMatches(caret, selection(current))
+        } else {
+            matched = applicationMatches(target)
+        }
+        return matched && environment.frontmostApplication()?.processID == target.processID
+    }
+
+    /// A caretless editor is verified by what it does expose: keyboard focus
+    /// stays in the same process and, when the app reports one, the same window.
+    private func applicationMatches(_ target: InsertionTarget) -> Bool {
+        guard environment.isTrusted() else { return false }
+        if let system = environment.systemFocus(), environment.processID(system) != target.processID { return false }
+        guard let window = target.window else { return true }
+        guard let current = environment.focusedWindow(target.processID) else { return false }
+        return CFEqual(window, current)
     }
 
     static func selectionMatches(_ expected: CFRange?, _ current: CFRange?) -> Bool {
