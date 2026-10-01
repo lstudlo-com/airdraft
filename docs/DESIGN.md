@@ -295,8 +295,14 @@ The microphone capsule retains its opaque material; other list selection
 remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
 fills use solid violet without a gradient or highlight and remain proportional,
-with no fill for zero. The HUD keeps its existing
-size and bright live bars, with a dark inset waveform track and shallow rim.
+with no fill for zero. The recording HUD fits its current timer or status and
+keeps bright live bars, a dark inset waveform track and shallow rim. Errors and
+recovery notices expand over 0.28 seconds into a rounded diagnostic panel with
+13-point wrapping text and a 28-point Copy Message icon at the far right. Full
+diagnostics remain visible through the pipeline's idle reset until the next
+operation; text scrolls only beyond the screen-bound height. Copy preserves all
+text without activating the panel. Recording remains click-through, and Reduce
+Motion disables spatial expansion.
 
 Sidebar material, subtle fills and dividers continue to separate ordinary
 content. Profiles has no shadowed editor container. Native menus, action

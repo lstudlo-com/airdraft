@@ -224,7 +224,12 @@ status table current.
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer
   or reopen it for a later success notice. New recording cancels the old fade.
-  Failed delivery retains the existing recovery notice behavior.
+  Failures and recovery notices expand the native panel over 0.28 seconds to show
+  complete wrapping diagnostics, with Copy Message at the far right. Bound the
+  panel to the current screen and scroll oversized diagnostics without truncation.
+  Keep the diagnostic snapshot visible through the pipeline's idle reset until
+  the next operation. Copy must preserve all text without activating the panel;
+  recording remains click-through. Reduce Motion disables spatial expansion.
   Size the capsule to its current timer or status label, with six-point outer
   insets on every side of the waveform well. Do not reserve a fixed label width;
   grow the native panel when the timer gains a digit and keep it centered.

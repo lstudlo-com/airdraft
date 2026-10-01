@@ -79,6 +79,7 @@ and keeps the installation instructions legible within Finder.
 | Production repairs | Local remediation adds recording prerequisites, session ownership, verified insertion targets, incomplete-response rejection, bounded refinement, audio retry, explicit storage failures, engine leases, persistent downloads, complete history pagination and calendar-day statistics. Known missing permissions, credentials, devices and models block capture before it starts. Core regression tests and render checks pass; public notarization and physical end-to-end acceptance remain separate release requirements. See `production-repairs.md`. |
 | Local verification | `pnpm build:app` and `pnpm test:local` use the pinned local Moon tool and shared Xcode mutex; generation accepts installed or existing bundled XcodeGen. The credential-free suite includes onboarding and isolated licensing contracts. Debug E2E reports failed refinement separately from successful raw-text recovery and exits nonzero on verification/report failures. Credential-free Debug E2E fixtures isolate preferences, history, audio and downloaded models. The allowlisted core suite, native behavior/lifecycle fixtures and disposable updater checks support repeated testing. Live and unavailable coverage remain explicit; see `local-e2e.md` and the [2026-09-26 audit](testing/2026-09-26-local-e2e.md). |
 | Installer | Implemented locally: a silver capsule installer with the shared outlined wordmark, real app and Applications icons, Retina background, and saved Finder positioning. Packaging verifies the image layout and signed app. The Finder preview uses an existing signed Release build; this change is not yet published. |
+| HUD diagnostics | Implemented locally on 2026-10-01: errors and recovery notices expand with animation to show complete wrapping text and a trailing Copy Message icon. Oversized diagnostics scroll within screen bounds. Messages remain readable through the pipeline's idle reset until the next operation; copying preserves the full diagnostic without taking focus. Reduce Motion disables spatial expansion. Publication remains separate. |
 
 ## Interface consistency
 
@@ -117,6 +118,11 @@ Standing requirement from Light, reaffirmed 2026-09-21:
 - Error notices place the message and action in one horizontal row. Short setup
   errors fit on one line; long diagnostics wrap beside the action. Separate every
   expanded Home readiness row with `RowDivider`, even without a trailing button.
+- HUD errors and recovery notices animate from the compact capsule into complete,
+  wrapping diagnostics with Copy Message at the far right. Keep the text visible
+  until the next operation, scroll only when it exceeds the screen-bound height,
+  and copy the entire diagnostic without moving focus. Recording stays click-through;
+  Reduce Motion presents the expanded message immediately.
 - Profiles uses one compact picker in its Profile section heading, like the
   provider pickers on Models, instead of a secondary list column. Names carry the
   picker; profile-specific icons add no useful distinction. The Name field commits

@@ -280,13 +280,16 @@ enum DebugRender {
             ("refining", HUDSnapshot(state: .refining, levels: samples, elapsed: 7.4)),
             ("inserting", HUDSnapshot(state: .inserting, levels: samples, elapsed: 7.4)),
             ("failed", HUDSnapshot(state: .failed("Microphone access denied"), levels: [], elapsed: 0)),
+            ("failed-long", HUDSnapshot(state: .failed("Transcription failed: the server returned HTTP 429.\nThe selected speech model has reached its request limit. Please retry after 30 seconds.\nRequest ID: fixture-request-END"), levels: [], elapsed: 0)),
+            ("failed-cjk", HUDSnapshot(state: .failed("聽寫失敗：無法連線至伺服器。請檢查網路後重試。\n完整原因：連線逾時，沒有收到辨識結果。"), levels: [], elapsed: 0)),
+            ("notice", HUDSnapshot(state: .notice("Text copied: the original destination is no longer focused. Return to the intended text field and paste the recovered transcript."), levels: [], elapsed: 0)),
         ]
         var images: [NSImage] = []
         var classicWidths: [String: CGFloat] = [:]
         for style in [HUDStyle.classic, .mini] {
             for (name, snap) in states {
                 let measured = NSHostingView(rootView: IndicatorView(snapshot: snap, style: style)).fittingSize
-                if name != "failed" {
+                if snap.state.hudMessage == nil {
                     precondition(abs(measured.height - (style == .classic ? 34 : 32)) < 0.5,
                                  "HUD waveform must retain equal six-point outer insets")
                 }

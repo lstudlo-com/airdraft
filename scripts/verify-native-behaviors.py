@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Compile and exercise native app behaviors without opening real app data.
 
-Uses the production hotkey backends, microphone selection and HUD controller.
-Core value types are compiled directly; only permissions and HUD content/pipeline
-are fixtures. No models, credentials, preferences, recordings or history are read.
+Uses the production hotkey backends, microphone selection and HUD controller/views.
+Core value types are compiled directly; permissions and the pipeline are fixtures.
+No models, credentials, preferences, recordings or history are read. Copy uses a
+disposable pasteboard, never the user's clipboard.
 The HUD check briefly shows its own nonactivating panel. Run it between UI tests,
 or use --skip-hud while another process owns the screen.
 """
@@ -155,8 +156,12 @@ struct NeumorphicSurface<S: Shape>: View {
 
     @MainActor static func verify() async throws {
         var style: HUDStyle = .classic
+        var reduceMotion = false
         let pipeline = DictationPipeline()
-        let controller = IndicatorPanelController(pipeline: pipeline, style: { style })
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        let controller = IndicatorPanelController(pipeline: pipeline, style: { style },
+            messagePasteboard: pasteboard, reduceMotion: { reduceMotion })
         func update(_ state: PipelineState) {
             pipeline.state = state
             controller.update(for: state)
@@ -235,11 +240,108 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.idle)
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
+
+        let message = "Transcription failed: the server returned HTTP 429.\n" +
+            "The selected speech model has reached its request limit. Please retry after 30 seconds.\n" +
+            "Request ID: fixture-request-完整錯誤訊息-END"
+        func clickCopy(_ host: NSView, in panel: NSWindow) {
+            let point = NSPoint(x: host.bounds.maxX - 28, y: host.isFlipped ? 28 : host.bounds.maxY - 28)
+            let location = host.convert(point, to: nil)
+            let down = NSEvent.mouseEvent(with: .leftMouseDown, location: location, modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: panel.windowNumber,
+                context: nil, eventNumber: 1, clickCount: 1, pressure: 1)!
+            let up = NSEvent.mouseEvent(with: .leftMouseUp, location: location, modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime + 0.01, windowNumber: panel.windowNumber,
+                context: nil, eventNumber: 2, clickCount: 1, pressure: 0)!
+            // Events stay inside this fixture application's queue and window.
+            // No Accessibility grant or global synthetic input is involved.
+            NSApp.postEvent(up, atStart: false)
+            panel.sendEvent(down)
+        }
+        func saveRender(_ view: NSView, name: String) {
+            view.layoutSubtreeIfNeeded()
+            let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            let path = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
+                .appendingPathComponent(name + ".png")
+            try! bitmap.representation(using: .png, properties: [:])!.write(to: path)
+        }
+        for activeStyle in [HUDStyle.classic, .mini] {
+            style = activeStyle
+            update(.recording)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            precondition(panel.ignoresMouseEvents, "Recording must stay click-through")
+            let compact = panel.frame
+            update(.failed(message))
+            let host = panel.contentView as! NSHostingView<RecordingHUDView>
+            let expanded = NSHostingView(rootView: host.rootView).fittingSize
+            try await Task.sleep(for: .milliseconds(60))
+            precondition(panel.frame.width > compact.width && panel.frame.width < expanded.width - 0.5,
+                         "An error must visibly expand through intermediate native panel frames")
+            try await Task.sleep(for: .milliseconds(300))
+            precondition(abs(panel.frame.width - expanded.width) < 0.5 && panel.frame.height > 80,
+                         "The error must finish expanding to fit all diagnostic lines")
+            precondition(abs(panel.frame.midX - compact.midX) <= 0.5 && abs(panel.frame.minY - compact.minY) < 0.5,
+                         "Expansion must keep the capsule centered and anchored above the screen edge: \(compact) to \(panel.frame)")
+            precondition(!panel.ignoresMouseEvents && !panel.canBecomeKey && !panel.canBecomeMain,
+                         "Messages must accept Copy without stealing destination focus")
+            for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+                host.appearance = NSAppearance(named: appearance)
+                saveRender(host, name: "error-\(activeStyle.rawValue)-\(appearance.rawValue)")
+            }
+            clickCopy(host, in: panel)
+            try await Task.sleep(for: .milliseconds(50))
+            precondition(pasteboard.string(forType: .string) == message,
+                         "Copy must preserve the entire message, newlines and Unicode")
+            update(.idle)
+            precondition(host.rootView.snapshot?.state == .failed(message) && panel.isVisible,
+                         "The pipeline's idle reset must not erase the visible diagnostic")
+            print("PASS: \(activeStyle) animated expansion, full multiline message and real Copy button")
+        }
+        try await Task.sleep(for: .milliseconds(3200))
+        precondition(visible(), "A diagnostic must remain readable beyond the old three-second timeout")
+
+        style = .classic
+        update(.recording)
+        update(.notice(message))
+        try await Task.sleep(for: .milliseconds(60))
+        update(.recording)
+        let resumed = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+        let resumedFrame = resumed.frame
+        try await Task.sleep(for: .milliseconds(350))
+        precondition(resumed.ignoresMouseEvents && resumed.frame == resumedFrame &&
+                     (resumed.contentView as! NSHostingView<RecordingHUDView>).rootView.snapshot == nil,
+                     "New recording must interrupt expansion and restore a compact click-through HUD")
+        reduceMotion = true
+        update(.failed(message))
+        let reducedHost = resumed.contentView as! NSHostingView<RecordingHUDView>
+        let reducedSize = NSHostingView(rootView: reducedHost.rootView).fittingSize
+        precondition(abs(resumed.frame.width - reducedSize.width) < 0.5,
+                     "Reduce Motion must present the complete diagnostic without spatial animation")
+        print("PASS: persistent diagnostic, notice interruption and Reduce Motion")
+
+        for (name, diagnostic, width, height) in [
+            ("cjk", "聽寫失敗：無法連線至伺服器。請檢查網路後重試。\n完整原因：連線逾時，沒有收到辨識結果。", 560.0, 420.0),
+            ("unbroken", String(repeating: "request_id_", count: 30) + "END", 320.0, 420.0),
+            ("scrollable", String(repeating: message + "\n", count: 12), 320.0, 180.0)
+        ] {
+            let host = NSHostingView(rootView: IndicatorView(snapshot:
+                HUDSnapshot(state: .failed(diagnostic), levels: [], elapsed: 0),
+                messageMaxWidth: width, messageMaxHeight: height, messagePasteboard: pasteboard))
+            host.frame = NSRect(origin: .zero, size: host.fittingSize)
+            precondition(host.frame.width <= width && host.frame.height <= height + 1,
+                         "Even long unbroken or multiline diagnostics must fit the available screen")
+            saveRender(host, name: name)
+            precondition(HUDMessageView.copy(diagnostic, to: pasteboard) && pasteboard.string(forType: .string) == diagnostic,
+                         "Scrollable diagnostics must copy all text, including offscreen lines")
+        }
+        print("PASS: CJK, unbroken diagnostics and bounded scrollable text with complete copying")
         update(.failed("Fixture failure"))
         precondition(visible(), "A new recording failure must remain visible")
+        update(.idle)
         style = .none
-        update(.failed("Fixture failure"))
-        precondition(!visible(), "None must keep failure HUDs hidden")
+        update(.idle)
+        precondition(!visible(), "None must hide a persistent diagnostic even after the pipeline resets to idle")
         print("PASS: repeated completion, late notices, interrupted fade, cancellation and failure visibility")
     }
 }
@@ -257,7 +359,7 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str)
     binary = suite / name
     subprocess.run(["xcrun", "swiftc", "-parse-as-library", *paths, "-o", str(binary)],
                    check=True, cwd=REPO, timeout=60)
-    result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=15)
+    result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=30)
     (suite / "result.txt").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise RuntimeError(f"{name} failed with exit {result.returncode}:\n{result.stdout}{result.stderr}")

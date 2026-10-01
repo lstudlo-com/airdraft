@@ -10,17 +10,23 @@ final class IndicatorPanelController {
     private let panel: NSPanel
     private let pipeline: DictationPipeline
     private let styleProvider: () -> HUDStyle
-    private var hideTask: Task<Void, Never>?
+    private let messagePasteboard: NSPasteboard
+    private let reduceMotion: () -> Bool
     private var currentStyle: HUDStyle = .classic
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
     private var dismissalID: UUID?
     private var contentID = UUID()
+    private var targetFrame: NSRect?
 
-    init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle) {
+    init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
+         messagePasteboard: NSPasteboard = .general,
+         reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }) {
         self.pipeline = pipeline
         self.styleProvider = style
-        panel = NSPanel(
+        self.messagePasteboard = messagePasteboard
+        self.reduceMotion = reduceMotion
+        panel = RecordingHUDPanel(
             contentRect: .zero,
             styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
@@ -33,26 +39,45 @@ final class IndicatorPanelController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        applyStyle(.classic, preview: false)
+        _ = applyStyle(.classic, preview: false)
     }
 
-    private func applyStyle(_ style: HUDStyle, preview: Bool) {
+    private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
         currentStyle = style
         currentPreview = preview
         let id = UUID()
         contentID = id
-        let host = NSHostingView(rootView: RecordingHUDView(pipeline: pipeline, style: style, showPreview: preview,
+        // Pipeline errors reset to idle on a timer. Keep the complete diagnostic
+        // readable until the next operation instead of restoring the waveform.
+        let messageSnapshot = lastVisibleState.hudMessage == nil ? nil :
+            HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
+        let bounds = targetScreen?.visibleFrame.size ?? CGSize(width: 800, height: 600)
+        let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
+            snapshot: messageSnapshot, style: style, showPreview: preview,
+            messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
+            messagePasteboard: messagePasteboard,
             onSizeChange: { [weak self] size in
                 guard let self, self.contentID == id, self.dismissalID == nil else { return }
-                self.resize(to: size)
+                self.resize(to: size, animated: messageSnapshot != nil)
             }))
-        host.frame = NSRect(origin: .zero, size: host.fittingSize)
+        host.wantsLayer = true
+        host.layer?.masksToBounds = true
+        // The panel owns resizing. Hosting-view minimum-size constraints would
+        // snap the window to its expanded size before AppKit can animate it.
+        let size = host.fittingSize
+        host.sizingOptions = []
+        host.frame = NSRect(origin: .zero, size: size)
         panel.contentView = host
+        return size
     }
 
     func update(for state: PipelineState) {
         switch state {
         case .idle:
+            if lastVisibleState.hudMessage != nil, dismissalID == nil {
+                if styleProvider() != currentStyle { show() }
+                return
+            }
             dismiss()
         case .failed, .notice:
             // Successful delivery already started the exit. Recovery details
@@ -61,11 +86,6 @@ final class IndicatorPanelController {
             cancelDismissal()
             lastVisibleState = state
             show()
-            hideTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(3))
-                guard !Task.isCancelled else { return }
-                self?.panel.orderOut(nil)
-            }
         default:
             if state == .inserting, dismissalID != nil { return }
             cancelDismissal()
@@ -79,7 +99,6 @@ final class IndicatorPanelController {
     }
 
     private func cancelDismissal() {
-        hideTask?.cancel()
         dismissalID = nil
         // Replaces an interrupted fade before showing a new recording.
         NSAnimationContext.runAnimationGroup { context in
@@ -90,7 +109,6 @@ final class IndicatorPanelController {
 
     private func dismiss() {
         guard dismissalID == nil else { return }
-        hideTask?.cancel()
         let id = UUID()
         dismissalID = id
         guard panel.isVisible else { return }
@@ -101,6 +119,7 @@ final class IndicatorPanelController {
                                    elapsed: pipeline.lastRecordingDuration)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
             showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
+        host.sizingOptions = []
         host.frame = NSRect(origin: .zero, size: panel.frame.size)
         panel.contentView = host
 
@@ -132,14 +151,21 @@ final class IndicatorPanelController {
             return
         }
         let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
-        applyStyle(style, preview: preview)
-        guard let content = panel.contentView else { return }
-        resize(to: content.fittingSize)
+        let message = lastVisibleState.hudMessage != nil
+        let wasVisible = panel.isVisible
+        let size = applyStyle(style, preview: preview)
+        panel.ignoresMouseEvents = !message
+        if message && !wasVisible {
+            let compact = NSHostingView(rootView: IndicatorView(snapshot:
+                HUDSnapshot(state: .recording, levels: [], elapsed: 0), style: style)).fittingSize
+            resize(to: compact)
+        }
         panel.orderFrontRegardless()
+        resize(to: size, animated: message)
         Self.log.notice("HUD shown at \(NSStringFromRect(self.panel.frame), privacy: .public) visible=\(self.panel.isVisible, privacy: .public)")
     }
 
-    private func resize(to size: CGSize) {
+    private func resize(to size: CGSize, animated: Bool = false) {
         guard size.width > 0, size.height > 0, let screen = targetScreen else { return }
         let frame = NSRect(
             x: screen.visibleFrame.midX - size.width / 2,
@@ -147,8 +173,20 @@ final class IndicatorPanelController {
             width: size.width,
             height: size.height
         )
-        if panel.frame != frame { panel.setFrame(frame, display: true) }
+        guard targetFrame != frame else { return }
+        targetFrame = frame
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = animated && !reduceMotion() ? 0.28 : 0
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 1, 0.3, 1)
+            panel.animator().setFrame(frame, display: true)
+        }
     }
+}
+
+/// Copying a diagnostic must not move focus away from the dictation target.
+private final class RecordingHUDPanel: NSPanel {
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
 }
 
 /// Preview remains nonactivating and separate from the final transcript.
@@ -158,6 +196,9 @@ struct RecordingHUDView: View {
     var style: HUDStyle
     var showPreview: Bool
     var sampleText: String?
+    var messageMaxWidth: CGFloat = 560
+    var messageMaxHeight: CGFloat = 420
+    var messagePasteboard: NSPasteboard = .general
     var onSizeChange: ((CGSize) -> Void)?
 
     var body: some View {
@@ -176,8 +217,9 @@ struct RecordingHUDView: View {
                     }
                     .environment(\.colorScheme, .dark)
             }
-            if let pipeline { IndicatorView(pipeline: pipeline, style: style) }
-            else if let snapshot { IndicatorView(snapshot: snapshot, style: style) }
+            IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style,
+                          messageMaxWidth: messageMaxWidth, messageMaxHeight: messageMaxHeight,
+                          messagePasteboard: messagePasteboard)
         }
         .fixedSize()
         .onGeometryChange(for: CGSize.self) { $0.size } action: { onSizeChange?($0) }
@@ -209,9 +251,20 @@ struct IndicatorView: View {
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
     var style: HUDStyle = .classic
+    var messageMaxWidth: CGFloat = 560
+    var messageMaxHeight: CGFloat = 420
+    var messagePasteboard: NSPasteboard = .general
 
-    init(pipeline: DictationPipeline, style: HUDStyle = .classic) { self.pipeline = pipeline; self.style = style }
-    init(snapshot: HUDSnapshot, style: HUDStyle = .classic) { self.snapshot = snapshot; self.style = style }
+    init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
+         messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
+         messagePasteboard: NSPasteboard = .general) {
+        self.pipeline = pipeline
+        self.snapshot = snapshot
+        self.style = style
+        self.messageMaxWidth = messageMaxWidth
+        self.messageMaxHeight = messageMaxHeight
+        self.messagePasteboard = messagePasteboard
+    }
 
     private var state: PipelineState { snapshot?.state ?? pipeline?.state ?? .idle }
     private var levels: [Float] { snapshot?.levels ?? pipeline?.levelHistory ?? [] }
@@ -219,12 +272,8 @@ struct IndicatorView: View {
     var body: some View {
         Group {
             if let message = state.hudMessage {
-                Text(message)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.85))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 160, minHeight: 22)
+                HUDMessageView(message: message, maxWidth: messageMaxWidth,
+                               maxHeight: messageMaxHeight, pasteboard: messagePasteboard)
             } else if style == .mini {
                 waveform(width: 80, height: 14)
             } else {
@@ -238,12 +287,12 @@ struct IndicatorView: View {
         .padding(Self.contentInset)
         .fixedSize()
         .background(
-            Capsule(style: .continuous)
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.17), Color(white: 0.10)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
-            Capsule(style: .continuous)
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
                 .strokeBorder(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.04)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
         )
@@ -256,6 +305,71 @@ struct IndicatorView: View {
             .padding(.horizontal, 5)
             .padding(.vertical, 3)
             .background { HUDWaveformWell() }
+    }
+}
+
+/// Full, wrapping diagnostics with a stationary copy action at the trailing edge.
+struct HUDMessageView: View {
+    let message: String
+    var maxWidth: CGFloat = 560
+    var maxHeight: CGFloat = 420
+    var pasteboard: NSPasteboard = .general
+    @State private var copied = false
+
+    private var textSize: CGSize {
+        let font = NSFont.systemFont(ofSize: 13)
+        let natural = (message as NSString).size(withAttributes: [.font: font]).width
+        let width = min(max(220, natural), max(1, maxWidth - 72))
+        let bounds = (message as NSString).boundingRect(
+            with: CGSize(width: width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [.font: font])
+        return CGSize(width: ceil(width), height: ceil(bounds.height) + 2)
+    }
+
+    var body: some View {
+        let size = textSize
+        let height = min(size.height, max(1, maxHeight - 28))
+        HStack(alignment: .top, spacing: 12) {
+            Group {
+                if size.height > height {
+                    ScrollView(.vertical) { messageText }
+                        .frame(height: height)
+                } else {
+                    messageText
+                }
+            }
+            .frame(width: size.width, alignment: .leading)
+            Button {
+                copied = Self.copy(message, to: pasteboard)
+            } label: {
+                Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(copied ? "Copied" : "Copy Message")
+            .accessibilityLabel(copied ? "Message Copied" : "Copy Message")
+            .accessibilityIdentifier("hud.copyMessage")
+        }
+        .foregroundStyle(Color.white.opacity(0.95))
+        .padding(8)
+        .onChange(of: message) { copied = false }
+    }
+
+    private var messageText: some View {
+        Text(verbatim: message)
+            .font(.system(size: 13))
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @discardableResult
+    static func copy(_ message: String, to pasteboard: NSPasteboard) -> Bool {
+        pasteboard.clearContents()
+        return pasteboard.setString(message, forType: .string)
     }
 }
 
