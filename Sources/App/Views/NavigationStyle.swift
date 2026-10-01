@@ -13,35 +13,81 @@ enum NavigationStyle {
 }
 
 /// Shared selection, hover and press treatment for navigation and profile rows.
+/// With `slidingSelection`, the selected row draws nothing: its container slides one
+/// `SidebarSelectionWell` between rows instead (see `View.sidebarSelectionWell`).
 struct NavigationRowStyle: ButtonStyle {
     var selected = false
-    var neumorphicSelection = false
+    var slidingSelection = false
 
     func makeBody(configuration: Configuration) -> some View {
-        Row(configuration: configuration, selected: selected, neumorphicSelection: neumorphicSelection)
+        Row(configuration: configuration, selected: selected, slidingSelection: slidingSelection)
     }
 
     private struct Row: View {
         let configuration: ButtonStyleConfiguration
         let selected: Bool
-        let neumorphicSelection: Bool
+        let slidingSelection: Bool
         @State private var hovering = false
 
         var body: some View {
             configuration.label
                 .foregroundStyle(.primary)
                 .background {
-                    if selected && neumorphicSelection {
-                        NeumorphicSurface(
-                            shape: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous),
-                            inset: true, depth: 2.5, translucent: true
-                        )
-                    } else {
+                    if !(selected && slidingSelection) {
                         RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous)
                             .fill(Color.primary.opacity(configuration.isPressed ? 0.14 : selected ? 0.09 : hovering ? 0.045 : 0))
                     }
                 }
                 .onHover { hovering = $0 }
         }
+    }
+}
+
+/// Row bounds published by sliding-selection rows, keyed by their identifier.
+struct SidebarSelectionAnchors<ID: Hashable>: PreferenceKey {
+    static var defaultValue: [ID: Anchor<CGRect>] { [:] }
+    static func reduce(value: inout [ID: Anchor<CGRect>], nextValue: () -> [ID: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
+}
+
+extension View {
+    /// Publishes this row's bounds so the container's selection well can travel to it.
+    func sidebarSelectionAnchor<ID: Hashable>(_ id: ID) -> some View {
+        anchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { [id: $0] }
+    }
+
+    /// Draws one recessed neumorphic well behind the selected row and slides it to a
+    /// newly selected row on a fast ease-out cubic curve, wherever the change came from.
+    func sidebarSelectionWell<ID: Hashable>(selection: ID) -> some View {
+        backgroundPreferenceValue(SidebarSelectionAnchors<ID>.self) { anchors in
+            SidebarSelectionWell(anchor: anchors[selection], selection: selection)
+        }
+    }
+}
+
+private struct SidebarSelectionWell<ID: Hashable>: View {
+    let anchor: Anchor<CGRect>?
+    let selection: ID
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Ease-out cubic: leaves at full speed and settles gently on the new row.
+    static var curve: Animation { .timingCurve(0.33, 1, 0.68, 1, duration: 0.24) }
+
+    var body: some View {
+        GeometryReader { proxy in
+            if let anchor {
+                let rect = proxy[anchor]
+                NeumorphicSurface(
+                    shape: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous),
+                    inset: true, depth: 2.5, translucent: true
+                )
+                .frame(width: rect.width, height: rect.height)
+                .offset(x: rect.minX, y: rect.minY)
+                .animation(reduceMotion ? nil : Self.curve, value: selection)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

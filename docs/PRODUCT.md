@@ -175,7 +175,8 @@ Standing requirement from Light, reaffirmed 2026-09-21:
   Selected sidebar page items are softer microphone wells: recessed translucent fills
   over the existing sidebar blur at the microphone capsule's 2.5-point depth, with
   inner top-left shading and bottom-right highlights at about two-thirds of its
-  strength. Reduce Transparency restores a solid fill.
+  strength. Reduce Transparency restores a solid fill. One well slides between
+  rows on a fast ease-out cubic curve when the page changes.
   The microphone capsule retains its opaque material. Light comes
   from the top left in both appearances. Raised faces cast down-right shadows;
   recessed tracks shade their inner top-left edge. Verify live and saved renders.

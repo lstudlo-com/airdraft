@@ -225,9 +225,13 @@ struct SidebarView: View {
                 .padding(.top, 54)
                 .padding(.bottom, 20)
 
-            navigationGroup([.home, .profiles, .vocabulary, .history])
-            navigationGroup([.configuration, .models])
-                .padding(.top, 16)
+            // One selection well spans both groups so it can slide between them.
+            VStack(alignment: .leading, spacing: 0) {
+                navigationGroup([.home, .profiles, .vocabulary, .history])
+                navigationGroup([.configuration, .models])
+                    .padding(.top, 16)
+            }
+            .sidebarSelectionWell(selection: container.navigation.page)
 
             Spacer(minLength: 20)
             Button(action: openMicrophone) {
@@ -331,7 +335,8 @@ struct SidebarView: View {
                     .frame(height: NavigationStyle.rowHeight)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page, neumorphicSelection: true))
+                .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page, slidingSelection: true))
+                .sidebarSelectionAnchor(page)
                 .help(page.title)
                 .accessibilityLabel(page.title)
                 .accessibilityAddTraits(container.navigation.page == page ? .isSelected : [])

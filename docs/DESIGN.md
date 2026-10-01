@@ -317,6 +317,9 @@ like the microphone well, while transmitting the sidebar's existing macOS blur.
 SwiftUI scales inner shadows by fill opacity, so these wells draw theirs through
 `SurfaceShadows` at full strength. Reduce Transparency restores the solid selection
 fill, and Increase Contrast retains an explicit edge. Text and symbols stay opaque.
+A single well serves both destination groups and slides to the newly selected row
+on a fast 0.24-second ease-out cubic curve, whether the page changed from the
+sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.
 The microphone capsule retains its opaque material; other list selection
 remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage

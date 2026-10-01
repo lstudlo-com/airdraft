@@ -200,7 +200,10 @@ verification status belong in the vault (see below).
   well, while the blur shows through. SwiftUI scales `.inner` shadows by fill
   opacity, so translucent wells draw them with `SurfaceShadows(inner: true)`.
   Reduce Transparency restores the solid fill. The microphone capsule keeps its
-  opaque material.
+  opaque material. One well serves both destination groups: rows publish their
+  bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
+  the selected row on a 0.24-second ease-out cubic curve, whatever changed the
+  page. Rows never draw their own selected well; Reduce Motion moves it instantly.
   Home summary fills use one solid color.
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
@@ -546,6 +549,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   It checks raised, inset and translucent inset directions in both appearances
   through NSHostingView bitmap capture and ImageRenderer, and keeps translucent
   inner shadows inside their shape. `--legacy` reproduces the old outer-shadow failure.
+- Sidebar selection: compile `NavigationStyle.swift`, `NeumorphicSurface.swift` and
+  `SurfaceShadows.swift` with `scripts/verify-sidebar-selection.swift`, then run it.
+  It captures its own window through the compositor and asserts that the well
+  passes through intermediate positions, across a group gap, and settles on the row.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable
