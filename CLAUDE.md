@@ -325,6 +325,16 @@ status table current.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:
   LLM error or timeout still inserts the raw transcript.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
+- Refinement output passes `RefinementFidelity` before delivery. A result that
+  repeats an earlier same-app dictation the new speech does not resemble, or that
+  changes the transcript's language without a profile TASK or selected text, is
+  discarded for the raw transcript and recorded as a refinement error. Prompts get
+  recent dictations only as `<recent_terms>` (names and technical terms), never
+  sentences: small models returned them instead of the new speech, and each copy
+  fed the next prompt. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
+  code so edited base rules keep it. Whisper prompts carry only the script
+  sentence; Whisper repeats bare dictionary terms on silence, so terms go only to
+  dedicated keyword or context fields.
 - Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
 - Passive credential access must never prompt. Badges use `Keychain.presence`;

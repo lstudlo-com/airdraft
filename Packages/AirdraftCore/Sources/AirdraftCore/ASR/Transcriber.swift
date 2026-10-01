@@ -15,15 +15,21 @@ public struct TranscriptionHints: Sendable {
 
     /// Whisper-style "initial prompt". A short sentence in the wanted script
     /// steers Whisper's Chinese output far more reliably than the language flag.
+    /// Whisper treats the prompt as preceding speech and repeats bare terms on
+    /// silence or trailing audio, so dictionary terms stay out of it; the LLM
+    /// and dictionary aliases apply them after transcription.
     public var promptText: String? {
-        var parts: [String] = []
         switch chineseScript {
-        case .traditional: parts.append("以下是繁體中文的內容。")
-        case .simplified: parts.append("以下是简体中文的内容。")
-        case .auto: break
+        case .traditional: return "以下是繁體中文的內容。"
+        case .simplified: return "以下是简体中文的内容。"
+        case .auto: return nil
         }
+    }
+
+    /// Context for engines with a dedicated hot-word context (Qwen3-ASR).
+    public var contextText: String? {
         let terms = vocabulary.filter { !$0.isEmpty }
-        if !terms.isEmpty { parts.append(terms.joined(separator: ", ")) }
+        let parts = [promptText, terms.isEmpty ? nil : terms.joined(separator: ", ")].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " ")
     }
 }

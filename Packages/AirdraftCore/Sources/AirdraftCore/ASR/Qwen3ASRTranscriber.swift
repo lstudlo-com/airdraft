@@ -32,7 +32,7 @@ public actor Qwen3ASRTranscriber: Transcriber {
         let started = Date()
         var options = Qwen3DecodingOptions()
         options.language = hints.language
-        options.context = hints.promptText
+        options.context = hints.contextText
         // 448 tokens per chunk can cut fast or English-heavy speech mid-sentence.
         options.maxTokens = 1024
         let text = try AudioChunker.transcribe(samples, maxSeconds: 25) {

@@ -12,12 +12,15 @@ public actor EngineFactory {
     private var operationTail: Task<Void, Never>?
     private var idleTask: Task<Void, Never>?
     private let transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)?
+    private let refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)?
     private let credentialReader: @Sendable (String) throws -> String?
 
     public init(status: EngineStatus,
                 credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) },
-                transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil) {
+                transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil,
+                refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)? = nil) {
         self.transcriberBuilder = transcriberBuilder
+        self.refinerBuilder = refinerBuilder
         self.status = status
         self.credentialReader = credentialReader
         Task { await self.startIdleWatch() }
@@ -69,6 +72,7 @@ public actor EngineFactory {
     /// in Settings takes effect on the next dictation.
     public func refiner(for config: LLMConfig) async -> (any Refiner)? {
         guard config.kind != .none else { return nil }
+        if let refinerBuilder { return refinerBuilder(config) }
         if config.kind == .appleIntelligence { return AppleIntelligenceRefiner(timeout: config.timeoutSeconds) }
         if let tool = config.kind.cliTool {
             guard let executable = config.cliExecutable else { return nil }

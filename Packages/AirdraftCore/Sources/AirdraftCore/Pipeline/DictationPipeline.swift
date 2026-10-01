@@ -630,6 +630,7 @@ public final class DictationPipeline {
         var promptVersion: String?
         var skipReason: String?
         var llmError: String?
+        var llmRejected = false
 
         let wordCount = Self.approximateWordCount(transcript.text)
         if !profile.usesLLM {
@@ -664,10 +665,21 @@ public final class DictationPipeline {
                 }
                 guard isCurrent(token) else { return }
                 if let served = result.servedBy { onLLMUsed?(served, llmConfig) }
-                refined = result.text
-                llmMs = result.latencyMs
-                llmEngine = result.engine
-                promptVersion = result.promptVersion
+                let allowsLanguageChange = !profile.task.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || context.hasSelection
+                if let violation = RefinementFidelity.violation(output: result.text, transcript: transcript.text,
+                                                                recentDictations: context.recentDictations,
+                                                                allowsLanguageChange: allowsLanguageChange) {
+                    Self.log.notice("refinement rejected: \(String(describing: violation), privacy: .public) engine=\(result.engine, privacy: .public)")
+                    llmError = violation.message
+                    llmRejected = true
+                    skipReason = "LLM output rejected, using raw transcript"
+                } else {
+                    refined = result.text
+                    llmMs = result.latencyMs
+                    llmEngine = result.engine
+                    promptVersion = result.promptVersion
+                }
             } catch {
                 llmError = error.localizedDescription
                 skipReason = "LLM failed, using raw transcript"
@@ -726,9 +738,10 @@ public final class DictationPipeline {
         }
         if outputSucceeded { reportDelivery() }
         if llmError != nil, notice == nil {
+            let reason = llmRejected ? "Refinement didn't match your speech" : "Refinement unavailable"
             notice = outputSucceeded
-                ? (output.destination == .script ? "Refinement unavailable; raw text sent to script." : "Refinement unavailable; raw text inserted.")
-                : "Refinement unavailable; raw text is available in History."
+                ? (output.destination == .script ? "\(reason); raw text sent to script." : "\(reason); raw text inserted.")
+                : "\(reason); raw text is available in History."
         }
 
         // 5. History

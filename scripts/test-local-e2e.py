@@ -25,7 +25,7 @@ SystemPermissionsTests MicrophonePermissionTests PipelineSafetyTests
 LocalRecordingPrerequisitesTests CLIWarmPoolTests LMStudioControlTests
 LocalModelCompletenessTests ParakeetTests AppSettingsTests LocalPersistenceTests
 TextInsertionTests TextDeliveryRegressionTests AppContextTests PromptBuilderTests
-SilentRecordingTests
+SilentRecordingTests RefinementFidelityTests
 EngineFactoryLeaseTests OnboardingProgressTests LicensingTests PolarLicenseWireTests
 """.split()
 CASES = """

@@ -1,0 +1,344 @@
+{
+  "label": "p14-20261001-holdout",
+  "prompt_version": "p14",
+  "default_rules_sha256": "53d3d743f2f2cb049c6a34437dc4eef71994d708ab0674bb1a8c30b7ad84a6ae",
+  "assembly_sources": {
+    "LLM/PromptBuilder.swift": "209374fab2429ad199cbf6dea751a30dcb9fc387164787b34f9a2b9dc0097c8b",
+    "LLM/RefinementProfile.swift": "07200951e6bc625efdb30ffb2dd14b0769fe756c592988c3d8efe997303cf4c3",
+    "Context/AppFamily.swift": "6920638311b48ca0a062dd1a386d7269909ba09a860d77c111ee743f75a0b6cb",
+    "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
+  },
+  "cases_sha256": "7090470bca5c65ef167331b7da682eb756bbe026c70766b8ce3113c710acd1e9",
+  "cli_sha256": "a3c1143e08c5824e49c592aba7455143a046a16b7d344f8a87147f2f6bf4b1cf",
+  "cases": "holdout_cases.json",
+  "model": "airdraft-release-eval-p14",
+  "runs": 3,
+  "total": 36,
+  "max": 36,
+  "results": [
+    {
+      "id": "deploy-homophone",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "等一下，我們先把新版本部署到 dev 環境，確認沒問題再上正式機。",
+          "seconds": 2.35,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "等一下我們先把新版本部署到 dev 環境，確認沒問題再上正式機。",
+          "seconds": 2.3,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "等一下，我們先把新版本部署到 dev 環境，確認沒問題再上正式機。",
+          "seconds": 2.38,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "reproduce-homophone",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個 bug 在我的手機上沒辦法重現，你那邊可以再試一次嗎？",
+          "seconds": 12.61,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個 bug 在我的手機上沒辦法重現，你那邊可以再試一次嗎？",
+          "seconds": 1.71,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個 bug 在我的手機上沒辦法重現，你那邊可以再試一次嗎？",
+          "seconds": 1.71,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "branch-homophone",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請幫我從 develop 開一個新的分支，名字叫 fix login。",
+          "seconds": 12.72,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請幫我從 develop 開一個新的分支，名字叫 fix login。",
+          "seconds": 1.5,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請幫我從 develop 開一個新的分支，名字叫 fix login。",
+          "seconds": 1.51,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "supabase-context",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把使用者的設定存到 Supabase 的 profiles 表裡面。",
+          "seconds": 2.07,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把使用者的設定存到 Supabase 的 profiles 表裡面。",
+          "seconds": 2.08,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "把使用者的設定存到 Supabase 的 profiles 表裡面。",
+          "seconds": 2.07,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "swiftui-term",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個畫面用 SwiftUI 的 Observable 重寫會比較乾淨。",
+          "seconds": 2.08,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個畫面用 SwiftUI 的 Observable 重寫會比較乾淨。",
+          "seconds": 2.08,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這個畫面用 SwiftUI 的 Observable 重寫會比較乾淨。",
+          "seconds": 2.09,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "lm-studio-term",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "LM Studio 的伺服器沒有開，所以 refine 的步驟都失敗了",
+          "seconds": 13.82,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "LM Studio 的伺服器沒有開，所以 refine 的步驟都失敗了",
+          "seconds": 1.65,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "LM Studio 的伺服器沒有開，所以 refine 的步驟都失敗了",
+          "seconds": 1.66,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "recent-dictation-term",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "昨天說的那個 FireRedASR2 模型，中文真的比較準。",
+          "seconds": 13.44,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "昨天說的那個 FireRedASR2 模型，中文真的比較準。",
+          "seconds": 1.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "昨天說的那個 FireRedASR2 模型，中文真的比較準。",
+          "seconds": 1.72,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "milliseconds-number",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "現在 API 的延遲大概 200 毫秒左右，比上週快了一倍",
+          "seconds": 13.98,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "現在 API 的延遲大概 200 毫秒左右，比上週快了一倍",
+          "seconds": 1.98,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "現在 API 的延遲大概 200 毫秒左右，比上週快了一倍",
+          "seconds": 2.0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "readme-term",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "記得順便更新專案的 README 檔案。",
+          "seconds": 1.92,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "記得順便更新專案的 README 檔案。",
+          "seconds": 1.83,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "記得順便更新專案的 README 檔案。",
+          "seconds": 1.78,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-change-business",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們下週二會跟客戶開會，討論新的報價方案。",
+          "seconds": 13.4,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們下週二會跟客戶開會，討論新的報價方案。",
+          "seconds": 1.57,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們下週二會跟客戶開會，討論新的報價方案。",
+          "seconds": 1.58,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-change-idiom",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這家店的咖啡很有質感，下次一起去。",
+          "seconds": 13.09,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這家店的咖啡很有質感，下次一起去。",
+          "seconds": 3.39,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "這家店的咖啡很有質感，下次一起去。",
+          "seconds": 3.54,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "keep-last-question-2",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我剛看了 log，發現 token 過期導致 request 一直被拒絕。我們是否應該在過期前自動 refresh？",
+          "seconds": 3.33,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我剛檢查 log，發現 token 過期導致 request 被拒絕。我們是否應在過期前自動 refresh？",
+          "seconds": 3.54,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "剛查 log 發現 token 過期導致 request 被拒絕，建議在過期前自動 refresh。",
+          "seconds": 3.37,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

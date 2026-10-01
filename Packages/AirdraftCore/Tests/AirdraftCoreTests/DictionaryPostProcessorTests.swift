@@ -54,8 +54,18 @@ final class DictionaryPostProcessorTests: XCTestCase {
 
     func testWhisperPromptLeadsWithScriptHint() {
         let hints = TranscriptionHints(vocabulary: ["Floze"], chineseScript: .traditional)
-        XCTAssertEqual(hints.promptText, "以下是繁體中文的內容。 Floze")
+        XCTAssertEqual(hints.contextText, "以下是繁體中文的內容。 Floze")
         XCTAssertNil(TranscriptionHints().promptText)
+        XCTAssertNil(TranscriptionHints().contextText)
+    }
+
+    /// Groq Whisper returned "floze" for short clips and appended it after long
+    /// recordings when the bare term was part of its prompt.
+    func testWhisperPromptOmitsDictionaryTerms() {
+        let hints = TranscriptionHints(vocabulary: ["floze"], chineseScript: .traditional)
+        XCTAssertEqual(hints.promptText, "以下是繁體中文的內容。")
+        XCTAssertNil(TranscriptionHints(vocabulary: ["floze"]).promptText)
+        XCTAssertEqual(TranscriptionHints(vocabulary: ["floze"]).contextText, "floze")
     }
 
     func testVocabularyAndCorrectionLines() {

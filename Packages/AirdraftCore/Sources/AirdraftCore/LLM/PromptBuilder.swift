@@ -3,7 +3,7 @@ import Foundation
 /// Assembles the system + user messages. Static sections come first so a
 /// local server can reuse its KV-cache prefix across calls.
 public enum PromptBuilder {
-    public static let version = "p13"
+    public static let version = "p14"
 
     public static let defaultBaseRules = """
     You are a dictation post-processor. The input is what a speech recogniser heard; the output must be what the speaker meant to type.
@@ -25,7 +25,7 @@ public enum PromptBuilder {
     - 專有名詞校對：產品、程式語言、框架名稱一律使用正式拼法與大小寫；辨識器多加的空格也要修正。例如 type script → TypeScript、java script → JavaScript。依上下文辨認完整名稱，不要把名稱拆成一般英文單字。
     - Literal text takes precedence over name normalization: copy identifiers, filenames and paths shown in context character for character, including their original case, spaces and punctuation. A filename or variable can deliberately contain a nonstandard spelling. Do not treat it as a product name.
     - Spoken numbers and versions become digits, keeping the spoken unit words: 三點八 Flash becomes 3.8 Flash; 兩百毫秒 becomes 200 毫秒.
-    - Evidence, strongest first: DICTIONARY terms, then <selected_text> and <text_near_cursor>, then <context> (app, window title, URL), then <recent_dictations>, then general knowledge of the topic.
+    - Evidence, strongest first: DICTIONARY terms, then <selected_text> and <text_near_cursor>, then <context> (app, window title, URL), then <recent_terms>, then general knowledge of the topic.
     - Replace a word, never delete it. If the intended word is uncertain, keep the transcribed word rather than guessing or removing it.
     - Do not change words that already make sense, even if another word would sound similar.
 
@@ -76,6 +76,15 @@ public enum PromptBuilder {
             break
         }
 
+        // Assembled here rather than in the editable base rules so edited rules
+        // keep it. Models answer in the language of their English instructions
+        // unless told otherwise; selected-text edits may ask for a translation.
+        if !request.context.hasSelection {
+            parts.append(task.isEmpty
+                ? "OUTPUT LANGUAGE: write in the language or languages spoken in <transcription>; mixed Chinese and English stays mixed. Never translate, even when the speaker mentions another language or asks how to say something in it."
+                : "OUTPUT LANGUAGE: unless the TASK names another language, write in the language or languages spoken in <transcription>.")
+        }
+
         parts.append(request.family.styleRules)
 
         if request.context.hasSelection {
@@ -107,15 +116,48 @@ public enum PromptBuilder {
             near += "\n</text_near_cursor>"
             parts.append(near)
         }
-        let recent = ctx.recentDictations.map { String($0.prefix(400)) }.filter { !$0.isEmpty }
+        let recent = recentTerms(ctx.recentDictations)
         if !recent.isEmpty {
-            parts.append("<recent_dictations>\n" + recent.joined(separator: "\n---\n") + "\n</recent_dictations>")
+            parts.append("<recent_terms>\n" + recent.joined(separator: ", ") + "\n</recent_terms>")
         }
         if ctx.hasSelection, let sel = ctx.selectedText {
             parts.append("<selected_text>\n\(String(sel.prefix(4000)))\n</selected_text>")
         }
         parts.append("<transcription>\n\(request.transcript)\n</transcription>")
         return parts.joined(separator: "\n\n")
+    }
+
+    /// Names and technical terms from recent dictations into the same app.
+    /// Whole sentences are never sent: small models returned an earlier
+    /// dictation instead of the new transcript, and each copy then became
+    /// context for the next dictation.
+    static func recentTerms(_ dictations: [String], limit: Int = 24) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: "[A-Za-z][A-Za-z0-9]*(?:[._+#-][A-Za-z0-9]+)*") else { return [] }
+        let sentenceEnds: Set<Character> = [".", "!", "?", "。", "！", "？", ":", "：", "\"", "“", "”"]
+        var terms: [String] = []
+        var seen: Set<String> = ["ok"]
+        // Newest first, so the limit keeps the latest vocabulary.
+        for text in dictations.reversed() {
+            let ns = text as NSString
+            for match in regex.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
+                let token = ns.substring(with: match.range)
+                guard (2...40).contains(token.count), !seen.contains(token.lowercased()) else { continue }
+                let technical = token.dropFirst().contains(where: \.isUppercase)
+                    || token.contains(where: \.isNumber) || token.contains(where: { "._+#".contains($0) })
+                var named = false
+                if token.first?.isUppercase == true {
+                    // A capital after other words marks a name; at a sentence start it does not.
+                    var i = match.range.location - 1
+                    while i >= 0, let scalar = UnicodeScalar(ns.character(at: i)), scalar.properties.isWhitespace { i -= 1 }
+                    named = i >= 0 && !sentenceEnds.contains(UnicodeScalar(ns.character(at: i)).map(Character.init) ?? " ")
+                }
+                guard technical || named else { continue }
+                seen.insert(token.lowercased())
+                terms.append(token)
+                if terms.count == limit { return terms }
+            }
+        }
+        return terms
     }
 
     /// Strip reasoning tags and code fences some local models emit.
