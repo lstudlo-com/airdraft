@@ -81,7 +81,7 @@ git push origin main
 
 驗證後更新 Obsidian vault，規範見 vault 的 `Knowledge Architecture.md`：
 
-1. 新增 `Records/Releases/YYYY-MM-DD Release X.Y.Z Build N.md`。frontmatter 為 `type: release`、`status: published`、`date`、`version`、`build`、`source_commit`（完整 SHA）、`verification`（`verified`、`partial` 或 `none`）與 `items`（本次包含的 AD 編號）。正文寫 release 連結、包含項目、變更摘要、驗證結果（通過、失敗與未驗證分開，未驗證寫原因）及證據位置；調查過程留在 Work 筆記。
+1. 新增 `Records/Releases/YYYY-MM-DD Release X.Y.Z Build N.md`。frontmatter 為 `type: release`、`status: published`、`date`、`version`、`build`、`source_commit`（完整 SHA）、`verification`（`verified`、`partial` 或 `none`）與 `items`（本次包含的 Work 項目，以 wikilink 列出）。正文寫 release 連結、包含項目、變更摘要、驗證結果（通過、失敗與未驗證分開，未驗證寫原因）及證據位置；調查過程留在 Work 筆記。
 2. 本次包含的 Work 項目改為 `status: released`，填 `released_in`，依實際驗收更新 `verification` 與 `gaps`，並在紀錄表追加一列。發佈時仍有驗收缺口、但沒有對應項目的，新建 task。
 3. Product 主題不寫發佈狀態或「最新版本」。
 4. 執行 `python3 scripts/check-vault.py`，錯誤必須是 0。
