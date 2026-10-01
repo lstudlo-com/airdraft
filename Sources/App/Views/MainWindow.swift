@@ -259,7 +259,7 @@ struct SidebarView: View {
             .buttonStyle(MicrophoneButtonStyle())
             .frame(maxWidth: .infinity)
             .frame(height: 38)
-            .contentShape(Capsule())
+            .contentShape(NavigationStyle.wellShape)
             .padding(.horizontal, 4)
             .padding(.top, 8)
             .disabled(container.pipeline.state.isBusy)

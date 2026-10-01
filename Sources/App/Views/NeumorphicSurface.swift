@@ -98,9 +98,9 @@ struct MicrophoneButtonStyle: ButtonStyle {
         var body: some View {
             label
                 .background {
-                    NeumorphicSurface(shape: Capsule(), inset: true, depth: 2.5)
+                    NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
                 }
-                .contentShape(Capsule())
+                .contentShape(NavigationStyle.wellShape)
                 .opacity(isEnabled ? 1 : 0.45)
         }
     }

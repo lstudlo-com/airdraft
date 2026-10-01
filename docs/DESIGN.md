@@ -309,19 +309,16 @@ Xcode previews and bitmap captures share one direction. Direct offset shadow
 modifiers invert vertically in AppKit bitmap capture on the current macOS;
 never compensate by reversing the live shadow or by changing only light mode.
 The microphone capsule stays recessed, with no hover or pressed treatment.
-It dims while unavailable. Selected sidebar destinations are a softer version of
-that well: the same recessed 2.5-point depth, with inner top-left shading and inner
-bottom-right highlights at about two-thirds of the microphone's strength. Their
-translucent fill lightens the sidebar in light mode and darkens it in dark mode,
-like the microphone well, while transmitting the sidebar's existing macOS blur.
-SwiftUI scales inner shadows by fill opacity, so these wells draw theirs through
-`SurfaceShadows` at full strength. Reduce Transparency restores the solid selection
-fill, and Increase Contrast retains an explicit edge. Text and symbols stay opaque.
+It dims while unavailable. Selected sidebar destinations replicate that well: the
+same opaque recessed material, 2.5-point depth, inner top-left shading and inner
+bottom-right highlight. Both wells share 12-point continuous corners
+(`NavigationStyle.wellShape`); the 38-point microphone stays taller than the
+32-point destination rows, so only the radius matches, not the height. Increase
+Contrast retains an explicit edge. Text and symbols stay opaque.
 A single well serves both destination groups and slides to the newly selected row
 on a fast 0.24-second ease-out cubic curve, whether the page changed from the
 sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.
-The microphone capsule retains its opaque material; other list selection
-remains native.
+Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
 fills use solid violet without a gradient or highlight and remain proportional,
 with no fill for zero. The recording HUD fits its current timer or status and

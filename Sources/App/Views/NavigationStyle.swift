@@ -10,6 +10,9 @@ import SwiftUI
 enum NavigationStyle {
     static let rowHeight: CGFloat = 32
     static let cornerRadius: CGFloat = 7
+    /// Shared by the selected destination well and the microphone well, whose heights differ.
+    static let wellRadius: CGFloat = 12
+    static var wellShape: RoundedRectangle { RoundedRectangle(cornerRadius: wellRadius, style: .continuous) }
 }
 
 /// Shared selection, hover and press treatment for navigation and profile rows.
@@ -34,7 +37,8 @@ struct NavigationRowStyle: ButtonStyle {
                 .foregroundStyle(.primary)
                 .background {
                     if !(selected && slidingSelection) {
-                        RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: slidingSelection ? NavigationStyle.wellRadius : NavigationStyle.cornerRadius,
+                                         style: .continuous)
                             .fill(Color.primary.opacity(configuration.isPressed ? 0.14 : selected ? 0.09 : hovering ? 0.045 : 0))
                     }
                 }
@@ -57,7 +61,7 @@ extension View {
         anchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { [id: $0] }
     }
 
-    /// Draws one recessed neumorphic well behind the selected row and slides it to a
+    /// Draws the microphone's recessed well behind the selected row and slides it to a
     /// newly selected row on a fast ease-out cubic curve, wherever the change came from.
     func sidebarSelectionWell<ID: Hashable>(selection: ID) -> some View {
         backgroundPreferenceValue(SidebarSelectionAnchors<ID>.self) { anchors in
@@ -78,10 +82,7 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
         GeometryReader { proxy in
             if let anchor {
                 let rect = proxy[anchor]
-                NeumorphicSurface(
-                    shape: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous),
-                    inset: true, depth: 2.5, translucent: true
-                )
+                NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
                 .frame(width: rect.width, height: rect.height)
                 .offset(x: rect.minX, y: rect.minY)
                 .animation(reduceMotion ? nil : Self.curve, value: selection)

@@ -193,14 +193,12 @@ verification status belong in the vault (see below).
   Opening the picker must not connect unselected iPhones. Stop their previews on
   deselection, and stop all previews when closed or dictating.
   The microphone capsule stays recessed, with no hover or pressed treatment.
-  Sidebar destination selection is a softer microphone well: the same recessed
-  2.5-point depth, with inner shadows at about two-thirds of its strength that
-  shade the top-left edge and highlight the bottom-right. Its translucent fill
-  lifts the sidebar in light mode and deepens it in dark mode, like the microphone
-  well, while the blur shows through. SwiftUI scales `.inner` shadows by fill
-  opacity, so translucent wells draw them with `SurfaceShadows(inner: true)`.
-  Reduce Transparency restores the solid fill. The microphone capsule keeps its
-  opaque material. One well serves both destination groups: rows publish their
+  Sidebar destination selection replicates the microphone well exactly: the same
+  opaque recessed material, 2.5-point depth, top-left inner shade and bottom-right
+  inner light. Both wells use `NavigationStyle.wellShape`, 12-point continuous
+  corners, so their radii match while the microphone stays taller (38 points)
+  than destination rows (32 points). Hover and press fills on destination rows use
+  the same radius. One well serves both destination groups: rows publish their
   bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
   the selected row on a 0.24-second ease-out cubic curve, whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
