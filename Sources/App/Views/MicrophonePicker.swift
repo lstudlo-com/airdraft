@@ -5,6 +5,8 @@ import SwiftUI
 struct MicrophonePicker: View {
     @Environment(AppContainer.self) private var container
     var title = "Microphone"
+    /// Device names come from hardware; the menu bar fits them to its width.
+    var fitsMenu = false
 
     var body: some View {
         let store = container.microphones
@@ -24,15 +26,17 @@ struct MicrophonePicker: View {
             }
         )) {
             Text("System default").tag("")
-            ForEach(store.devices) { device in Text(device.name).tag(device.uid) }
+            ForEach(store.devices) { device in Text(label(device.name)).tag(device.uid) }
             if let uid = preference.uid, store.selected(preference) == nil {
-                Text("\(preference.name) · unavailable").tag(uid)
+                Text(label("\(preference.name) · unavailable")).tag(uid)
             }
         }
         .disabled(container.pipeline.state.isBusy)
         .onAppear { store.refresh() }
         .help("Saved as Airdraft's default microphone. Finish dictation before switching.")
     }
+
+    private func label(_ name: String) -> String { fitsMenu ? MenuTitle.fit(name) : name }
 }
 
 struct MicrophoneSettings: View {

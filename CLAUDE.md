@@ -233,6 +233,11 @@ status table current.
   Size the capsule to its current timer or status label, with six-point outer
   insets on every side of the waveform well. Do not reserve a fixed label width;
   grow the native panel when the timer gains a digit and keep it centered.
+- Native menu items never wrap, so the widest title sets the menu-bar menu's
+  width. Keep that menu about 270 points wide: pass every dynamic title (status,
+  issues, notices, device, profile and provider names) through `MenuTitle.fit`,
+  which measures the menu font against a 190-point limit. Never show full
+  diagnostics in a menu item; keep them in tooltips and Home's recovery notice.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
