@@ -95,9 +95,10 @@ system appearance, including the accent shown in the live Save button.
 ### Neutral
 
 Pages sit on `Theme.islandBackground`: `NSColor.windowBackgroundColor` in light
-mode and white level 0.07 in dark mode. There `windowBackgroundColor` matches the
-chrome's tint, so the dark island sits below it, as macOS content areas sit below
-their sidebars. The window chrome, behind the sidebar and around the island, uses
+mode and white level 0.17 in dark mode. The dark value sits within the Home hero's
+0.20–0.16 surface, so the hero and other neumorphic elements rise softly from the
+same base instead of floating on near-black; it also sits just above the chrome's
+0.12 tint. The window chrome, behind the sidebar and around the island, uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
 neutral fill, white level 0.86 in light mode and 0.12 in dark mode. Its opacity
 stays at 70% through the upper half, then increases continuously to 100% at the
@@ -106,7 +107,8 @@ fully opaque. Apply this tint
 to the background only; the logo, text and controls keep their opacity.
 The island has no divider beside the sidebar. Its 0.5-point edge uses primary
 color at 0.06 opacity in light mode, 0.08 in dark mode and 0.35 with Increase
-Contrast; only the light island adds a 3-point shadow at 6% black, 1 point down.
+Contrast. A 3-point shadow, 1 point down, lifts it off the chrome: 6% black in
+light mode and 30% in dark mode.
 Text uses `.primary` and `.secondary`.
 `NavigationRowStyle` applies `Color.primary` at 0.09 opacity for selection,
 0.045 for hover and 0.14 for a press.

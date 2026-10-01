@@ -50,11 +50,11 @@ enum Theme {
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
-    /// The page island: the light window background, and darker than the chrome in dark
-    /// mode, where macOS content areas sit below the sidebar.
+    /// The page island: the light window background, and in dark mode the Home hero's
+    /// neutral gray (0.20–0.16), so neumorphic surfaces rise from the same base.
     static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(white: 0.07, alpha: 1)
+            ? NSColor(white: 0.17, alpha: 1)
             : .windowBackgroundColor
     })
 }
@@ -125,12 +125,10 @@ private struct ContentIsland: ViewModifier {
                     .allowsHitTesting(false)
             }
             .background {
-                // The light island lifts off the chrome; the dark one is already set below it.
-                if scheme == .light {
-                    SurfaceShadows(shape: shape, shadows: [
-                        .init(color: .black.opacity(0.06), radius: 3, y: 1),
-                    ])
-                }
+                // Both islands are lighter than the chrome and lift softly off it.
+                SurfaceShadows(shape: shape, shadows: [
+                    .init(color: .black.opacity(scheme == .dark ? 0.3 : 0.06), radius: 3, y: 1),
+                ])
             }
             .padding([.top, .bottom, .trailing], Theme.islandInset)
     }

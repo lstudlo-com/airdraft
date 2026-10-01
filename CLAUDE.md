@@ -133,8 +133,10 @@ verification status belong in the vault (see below).
   content inset) from the top, trailing and bottom window edges; the sidebar's
   own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
   corners) and `Theme.islandBackground`: the window background in light mode and
-  0.07 white in dark mode, below the chrome. Separate it with a hairline edge,
-  a soft light-mode shadow and no sidebar divider. The island clips its page,
+  0.17 white in dark mode, within the Home hero's 0.20–0.16 surface so neumorphic
+  elements rise from the same base. Never darken it toward black. Separate it
+  from the chrome with a hairline edge, a soft shadow and no sidebar divider.
+  The island clips its page,
   including the sticky header blur; the chrome must not bleed into that blur.
   The recording HUD is not part of this shell.
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
