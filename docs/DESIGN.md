@@ -308,11 +308,14 @@ Xcode previews and bitmap captures share one direction. Direct offset shadow
 modifiers invert vertically in AppKit bitmap capture on the current macOS;
 never compensate by reversing the live shadow or by changing only light mode.
 The microphone capsule stays recessed, with no hover or pressed treatment.
-It dims while unavailable. Selected sidebar destinations use the same recessed
-2.5-point depth, shading their inner top-left edge and highlighting their inner
-bottom-right edge. Their translucent neutral fill transmits the sidebar's existing
-macOS blur. Reduce Transparency restores the solid selection fill, and
-Increase Contrast retains an explicit edge. Text and symbols stay opaque.
+It dims while unavailable. Selected sidebar destinations are a softer version of
+that well: the same recessed 2.5-point depth, with inner top-left shading and inner
+bottom-right highlights at about two-thirds of the microphone's strength. Their
+translucent fill lightens the sidebar in light mode and darkens it in dark mode,
+like the microphone well, while transmitting the sidebar's existing macOS blur.
+SwiftUI scales inner shadows by fill opacity, so these wells draw theirs through
+`SurfaceShadows` at full strength. Reduce Transparency restores the solid selection
+fill, and Increase Contrast retains an explicit edge. Text and symbols stay opaque.
 The microphone capsule retains its opaque material; other list selection
 remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage

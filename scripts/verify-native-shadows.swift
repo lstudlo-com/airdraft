@@ -1,17 +1,29 @@
 // Compile with Sources/App/Views/SurfaceShadows.swift, then run the executable.
 // Checks both rendering paths: cacheDisplay previously inverted outer shadows.
+// The translucent inset checks SurfaceShadows' inner mode on a nearly clear fill.
 import AppKit
 import SwiftUI
 
+private enum Surface: String, CaseIterable {
+    case raised, inset, translucentInset = "translucent-inset"
+}
+
 private struct LightingFixture: View {
-    let inset: Bool
+    let surface: Surface
     let legacy: Bool
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             Color(white: 0.5)
             Group {
-                if inset {
+                if surface == .translucentInset {
+                    Rectangle().fill(Color.white.opacity(0.05)).overlay {
+                        SurfaceShadows(shape: Rectangle(), shadows: [
+                            .init(color: .red, radius: 1, x: 12, y: 12),
+                            .init(color: .blue, radius: 1, x: -12, y: -12),
+                        ], inner: true)
+                    }
+                } else if surface == .inset {
                     Rectangle().fill(Color(white: 0.5)
                         .shadow(.inner(color: .red, radius: 1, x: 12, y: 12))
                         .shadow(.inner(color: .blue, radius: 1, x: -12, y: -12)))
@@ -46,8 +58,8 @@ private enum VerifyNativeShadows {
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         var failures = 0
         for dark in [false, true] {
-            for inset in [false, true] {
-                let fixture = LightingFixture(inset: inset, legacy: CommandLine.arguments.contains("--legacy"))
+            for surface in Surface.allCases {
+                let fixture = LightingFixture(surface: surface, legacy: CommandLine.arguments.contains("--legacy"))
                     .environment(\.colorScheme, dark ? .dark : .light)
                 let host = NSHostingView(rootView: fixture)
                 host.frame = NSRect(x: 0, y: 0, width: 240, height: 220)
@@ -63,7 +75,7 @@ private enum VerifyNativeShadows {
                 renderer.scale = 2
                 let rendered = NSBitmapImageRep(cgImage: renderer.cgImage!)
                 for (method, bitmap) in [("hosting", cached), ("image-renderer", rendered)] {
-                    let name = "\(dark ? "dark" : "light")-\(inset ? "inset" : "raised")-\(method)"
+                    let name = "\(dark ? "dark" : "light")-\(surface.rawValue)-\(method)"
                     try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name).png"))
                     let scale = CGFloat(bitmap.pixelsWide) / 240
                     func red(at point: CGPoint) -> Bool {
@@ -75,12 +87,14 @@ private enum VerifyNativeShadows {
                         return color.blueComponent > color.redComponent + 0.25
                     }
                     // Raised: cast shadow below/right, highlight above/left.
-                    // Recessed: occlusion above/left, lit inner edge below/right.
-                    let correct = inset
-                        ? red(at: CGPoint(x: 120, y: 84)) && red(at: CGPoint(x: 84, y: 110))
-                            && blue(at: CGPoint(x: 120, y: 136)) && blue(at: CGPoint(x: 156, y: 110))
-                        : red(at: CGPoint(x: 120, y: 148)) && red(at: CGPoint(x: 168, y: 110))
+                    // Recessed: occlusion above/left, lit inner edge below/right, nothing outside.
+                    let recessed = red(at: CGPoint(x: 120, y: 84)) && red(at: CGPoint(x: 84, y: 110))
+                        && blue(at: CGPoint(x: 120, y: 136)) && blue(at: CGPoint(x: 156, y: 110))
+                    let contained = !red(at: CGPoint(x: 120, y: 72)) && !blue(at: CGPoint(x: 120, y: 148))
+                    let correct = surface == .raised
+                        ? red(at: CGPoint(x: 120, y: 148)) && red(at: CGPoint(x: 168, y: 110))
                             && blue(at: CGPoint(x: 120, y: 72)) && blue(at: CGPoint(x: 72, y: 110))
+                        : recessed && (surface == .inset || contained)
                     print("\(correct ? "PASS" : "FAIL") \(name)")
                     if !correct { failures += 1 }
                 }

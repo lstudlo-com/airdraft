@@ -12,17 +12,20 @@ private struct NeumorphicPalette {
             light = .white.opacity(dark ? 0.38 : 0.85)
             shade = .black.opacity(dark ? 0.80 : 0.40)
         } else if translucent {
+            // A softer microphone well: the same light and shade, about two-thirds as strong.
             top = .white.opacity(dark ? 0.11 : 0.28)
             bottom = .white.opacity(dark ? 0.035 : 0.10)
-            light = .white.opacity(dark ? 0.20 : 0.65)
-            shade = .black.opacity(dark ? 0.28 : 0.12)
+            light = .white.opacity(dark ? 0.07 : 0.80)
+            shade = .black.opacity(dark ? 0.42 : 0.18)
         } else {
             top = Color(white: dark ? 0.34 : 0.97)
             bottom = Color(white: dark ? 0.22 : 0.80)
             light = .white.opacity(dark ? 0.09 : 1)
             shade = .black.opacity(dark ? 0.75 : 0.28)
         }
-        well = translucent ? .black.opacity(dark ? 0.12 : 0.06) : Color(white: dark ? 0.14 : 0.90)
+        // Translucent wells move toward the microphone's opaque well: lighter in light mode, darker in dark.
+        well = translucent ? (dark ? Color.black.opacity(0.22) : Color.white.opacity(0.22))
+            : Color(white: dark ? 0.14 : 0.90)
     }
 }
 
@@ -45,7 +48,14 @@ struct NeumorphicSurface<S: InsettableShape>: View {
         let glass = translucent && !reduceTransparency
         let palette = NeumorphicPalette(dark: scheme == .dark, translucent: glass, prominent: prominent)
         Group {
-            if inset {
+            if inset && glass {
+                shape.fill(palette.well).overlay {
+                    SurfaceShadows(shape: shape, shadows: [
+                        .init(color: palette.shade, radius: depth * 1.5, x: depth, y: depth),
+                        .init(color: palette.light, radius: depth * 1.5, x: -depth, y: -depth),
+                    ], inner: true)
+                }
+            } else if inset {
                 shape.fill(palette.well
                     .shadow(.inner(color: palette.shade, radius: depth * 1.5, x: depth, y: depth))
                     .shadow(.inner(color: palette.light, radius: depth * 1.5, x: -depth, y: -depth)))

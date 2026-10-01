@@ -192,11 +192,14 @@ verification status belong in the vault (see below).
   Opening the picker must not connect unselected iPhones. Stop their previews on
   deselection, and stop all previews when closed or dictating.
   The microphone capsule stays recessed, with no hover or pressed treatment.
-  Sidebar destination selection uses a recessed
-  neumorphic surface with the microphone capsule's 2.5-point depth. Its translucent
-  neutral fill lets the sidebar blur show through; inner shadows shade the top-left
-  edge and highlight the bottom-right. Reduce Transparency restores the solid fill.
-  The microphone capsule keeps its opaque material.
+  Sidebar destination selection is a softer microphone well: the same recessed
+  2.5-point depth, with inner shadows at about two-thirds of its strength that
+  shade the top-left edge and highlight the bottom-right. Its translucent fill
+  lifts the sidebar in light mode and deepens it in dark mode, like the microphone
+  well, while the blur shows through. SwiftUI scales `.inner` shadows by fill
+  opacity, so translucent wells draw them with `SurfaceShadows(inner: true)`.
+  Reduce Transparency restores the solid fill. The microphone capsule keeps its
+  opaque material.
   Home summary fills use one solid color.
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
@@ -537,8 +540,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   repo duplicates Xcode's and is how the repo grew to 10 GB.
 - Shadow direction: compile `Sources/App/Views/SurfaceShadows.swift` with
   `scripts/verify-native-shadows.swift` using `xcrun swiftc`, then run the result.
-  It checks raised and inset directions in both appearances through NSHostingView
-  bitmap capture and ImageRenderer. `--legacy` reproduces the old outer-shadow failure.
+  It checks raised, inset and translucent inset directions in both appearances
+  through NSHostingView bitmap capture and ImageRenderer, and keeps translucent
+  inner shadows inside their shape. `--legacy` reproduces the old outer-shadow failure.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable
