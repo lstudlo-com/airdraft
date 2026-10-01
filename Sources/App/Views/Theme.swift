@@ -50,11 +50,11 @@ enum Theme {
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
-    /// The page island: the light window background, and in dark mode the Home hero's
-    /// neutral gray (0.20–0.16), so neumorphic surfaces rise from the same base.
+    /// The page island: the light window background. In dark mode it sits just below the
+    /// Home hero's darkest gray, so neumorphic surfaces rise from it, and below the chrome.
     static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(white: 0.17, alpha: 1)
+            ? NSColor(white: 0.15, alpha: 1)
             : .windowBackgroundColor
     })
 }
@@ -85,7 +85,8 @@ struct SidebarBackground: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
-        let tint = Color(white: scheme == .dark ? 0.12 : 0.86)
+        // Dark chrome stays lighter than the island, which keeps the Home hero's gray.
+        let tint = Color(white: scheme == .dark ? 0.21 : 0.86)
         let translucentTint = tint.opacity(reduceTransparency ? 1 : 0.70)
 
         ZStack {
@@ -125,10 +126,12 @@ private struct ContentIsland: ViewModifier {
                     .allowsHitTesting(false)
             }
             .background {
-                // Both islands are lighter than the chrome and lift softly off it.
-                SurfaceShadows(shape: shape, shadows: [
-                    .init(color: .black.opacity(scheme == .dark ? 0.3 : 0.06), radius: 3, y: 1),
-                ])
+                // The light island lifts off the chrome; the dark one sits below it.
+                if scheme == .light {
+                    SurfaceShadows(shape: shape, shadows: [
+                        .init(color: .black.opacity(0.06), radius: 3, y: 1),
+                    ])
+                }
             }
             .padding([.top, .bottom, .trailing], Theme.islandInset)
     }
