@@ -15,12 +15,22 @@ status table current.
 - The canonical market research and product knowledge base is the iCloud Obsidian
   vault at `/Users/lightiichen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Airdraft/`.
   Start at `Home.md`: `Research/` owns external evidence, `Strategy/` owns positioning
-  and business decisions, `Product/` owns readable product knowledge, and `Records/`
-  preserves dated studies, decisions, verification and source snapshots. Put new
-  research and product analysis there, not in Project Files or new repository reports.
-  Keep source code, tests and versioned build/release contracts in this repository;
-  update the affected vault topic when implementation changes. Record source dates
-  and commits, distinguish implemented/tested/released, and retain explicit corrections.
+  and business decisions, `Product/` owns readable product knowledge, `Work/` tracks
+  issues and tasks, and `Records/` preserves dated studies, decisions, verification
+  and source snapshots. Put new research and product analysis there, not in Project
+  Files or new repository reports. Keep source code, tests and versioned build/release
+  contracts in this repository; update the affected vault topic when implementation
+  changes. Record source dates and commits, distinguish implemented/tested/released,
+  and retain explicit corrections.
+- `Work/` holds one `AD-###` note per tracked item, numbered from one shared sequence.
+  `type: issue` means behavior differs from the specification, documentation or
+  clear intent, such as bugs and regressions. `type: task` covers all other work:
+  features, adjustments, verification and migrations. Create one only for work that
+  spans commits or sessions, is user-reported, or leaves verification gaps at release.
+  Add `Refs: AD-###` to related commit messages. Rewrite `Product/`, `Strategy/` and
+  `Research/` topics in place to describe the current state; never append dated
+  update paragraphs to them. Append attempts and progress to the Work note and add
+  dated Records instead. See the vault's `Records/Decisions/Knowledge Architecture.md`.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/` stores
   miscellaneous files and resources related to Airdraft.
 - `/Users/lightiichen/Desktop/Project Files/Production Projects/Airdraft/competitor_analysis/repos/`
