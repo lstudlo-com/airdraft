@@ -147,10 +147,11 @@ status table current.
   Opening the picker must not connect unselected iPhones. Stop their previews on
   deselection, and stop all previews when closed or dictating.
   The microphone capsule stays recessed, with no hover or pressed treatment.
-  Sidebar destination selection uses a raised
-  neumorphic surface with a translucent neutral fill that lets the sidebar blur
-  show through. Its outer shadows exclude the face interior; Reduce Transparency
-  restores the solid fill. The microphone capsule keeps its opaque material.
+  Sidebar destination selection uses a recessed
+  neumorphic surface with the microphone capsule's 2.5-point depth. Its translucent
+  neutral fill lets the sidebar blur show through; inner shadows shade the top-left
+  edge and highlight the bottom-right. Reduce Transparency restores the solid fill.
+  The microphone capsule keeps its opaque material.
   Home summary fills use one solid color.
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.

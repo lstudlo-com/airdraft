@@ -34,7 +34,7 @@ struct NavigationRowStyle: ButtonStyle {
                     if selected && neumorphicSelection {
                         NeumorphicSurface(
                             shape: RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous),
-                            inset: false, depth: 1.5, translucent: true
+                            inset: true, depth: 2.5, translucent: true
                         )
                     } else {
                         RoundedRectangle(cornerRadius: NavigationStyle.cornerRadius, style: .continuous)
