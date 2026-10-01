@@ -11,6 +11,13 @@ import sys
 # AX-write cases were retired with the AX text-write path. The gate now
 # covers one paste for both persisted settings plus cancellation during handoff.
 REQUIRED_TESTS = (
+    'TextDeliveryRegressionTests/testCaptureFollowsAppSwitchBeforeRecordingStarts()',
+    'TextDeliveryRegressionTests/testCaptureUsesSystemEditorWhenApplicationFocusIsStaleAfterSwitch()',
+    'TextDeliveryRegressionTests/testRestorationUsesSystemEditorWhileApplicationFocusIsStale()',
+    'TextDeliveryRegressionTests/testTransientFocusLossAtFinalValidationRetriesBeforePostingPaste()',
+    'TextDeliveryRegressionTests/testCaptureWaitsForInitiallyValidButUnsettledEditor()',
+    'TextDeliveryRegressionTests/testSlowAppActivationKeepsOriginalDestinationAndPastesOnce()',
+    'TextDeliveryRegressionTests/testForeignSystemFocusCannotUseCachedApplicationEditor()',
     'TextDeliveryRegressionTests/testAlternateSelectionRangeStillDelivers()',
     'TextDeliveryRegressionTests/testAlwaysPasteCapturesAndDeliversToNativeEditor()',
     'TextDeliveryRegressionTests/testAppActivationWaitsForOriginalFieldBeforePaste()',

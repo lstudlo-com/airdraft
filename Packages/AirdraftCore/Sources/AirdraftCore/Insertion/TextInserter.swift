@@ -127,10 +127,12 @@ public final class TextInserter {
         // safely: a subsequent paste could duplicate text. AX is read-only here.
         // Revalidate immediately before changing the clipboard and posting ⌘V.
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
-        guard matches(target) else {
+        guard await Self.waitForMatch(matches: { self.matches(target) }) else {
+            guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
             copyOnly(text)
             return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
         }
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         let ok = await insertViaPaste(text, pasteboard: environment.pasteboard,
                                      postPaste: environment.postPaste, onDelivered: onDelivered)
         return ok
@@ -141,38 +143,64 @@ public final class TextInserter {
     // MARK: - Focus
 
     public func captureTarget() async -> InsertionTarget? {
-        guard !Task.isCancelled, let app = environment.frontmostApplication() else { return nil }
-        return await Self.captureTarget(processID: app.processID, bundleID: app.bundleID,
-            isFrontmost: { self.environment.frontmostApplication()?.processID == app.processID },
-            readFocus: {
-                let element = self.focusedElement(pid: app.processID)
-                return (element, element.flatMap(self.selection))
-            }, enableWebAccessibility: {
-                guard self.environment.isTrusted() else { return false }
-                // Electron documents this attribute for third-party assistive
-                // clients. Unsupported apps reject it without changing focus.
-                return self.environment.enableWebAccessibility(app.processID)
-            })
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .milliseconds(1500))
+        // Recording has not begun yet. Follow an in-flight app switch instead
+        // of retaining the old app or discarding the destination altogether.
+        while !Task.isCancelled, clock.now < deadline {
+            if let app = environment.frontmostApplication() {
+                let target = await Self.captureTarget(processID: app.processID, bundleID: app.bundleID,
+                    timeout: clock.now.duration(to: deadline),
+                    isFrontmost: { self.environment.frontmostApplication()?.processID == app.processID },
+                    readFocus: {
+                        let element = self.focusedElement(pid: app.processID)
+                        return (element, element.flatMap(self.selection))
+                    }, enableWebAccessibility: {
+                        guard self.environment.isTrusted() else { return false }
+                        return self.environment.enableWebAccessibility(app.processID)
+                    })
+                if let target { return target }
+            }
+            do { try await clock.sleep(until: min(deadline, clock.now.advanced(by: .milliseconds(25)))) }
+            catch { return nil }
+        }
+        return nil
     }
 
-    static func captureTarget(processID: Int32, bundleID: String?, isFrontmost: () -> Bool,
+    static func captureTarget(processID: Int32, bundleID: String?, timeout: Duration = .milliseconds(500),
+                              isFrontmost: () -> Bool,
                               readFocus: () -> (AXUIElement?, CFRange?),
                               enableWebAccessibility: () -> Bool) async -> InsertionTarget? {
         guard !Task.isCancelled, isFrontmost() else { return nil }
-        var (element, range) = readFocus()
-        if element == nil || !selectionMatches(range, range) {
-            _ = enableWebAccessibility()
-            // Both native and web editors can publish focus asynchronously.
-            // An unsupported web attribute is not evidence that native focus
-            // cannot become ready. Never substitute nil == nil for a cursor.
-            _ = await waitForMatch {
-                guard isFrontmost() else { return false }
-                (element, range) = readFocus()
-                return element != nil && selectionMatches(range, range)
+        var element: AXUIElement?
+        var range: CFRange?
+        var stableSince: ContinuousClock.Instant?
+        var requestedWebAccessibility = false
+        let settled = await waitForMatch(timeout: timeout) {
+            // Stop this attempt promptly. The caller may follow the newly
+            // frontmost app while still inside the shared capture deadline.
+            guard isFrontmost() else { return true }
+            let (next, selection) = readFocus()
+            let sameField = element != nil && next != nil && CFEqual(element!, next!)
+            if !sameField || !selectionMatches(range, selection) { stableSince = nil }
+            element = next
+            range = selection
+            guard next != nil, selectionMatches(selection, selection) else {
+                if !requestedWebAccessibility {
+                    requestedWebAccessibility = true
+                    _ = enableWebAccessibility()
+                }
+                return false
             }
+            let now = ContinuousClock.now
+            if stableSince == nil { stableSince = now }
+            // AX and NSWorkspace can briefly expose the previous editor during
+            // activation. Yield the run loop and require a stable field/caret.
+            return stableSince!.duration(to: now) >= .milliseconds(50)
         }
         guard !Task.isCancelled, isFrontmost() else { return nil }
-        return InsertionTarget(processID: processID, bundleID: bundleID, element: element, selection: range)
+        return InsertionTarget(processID: processID, bundleID: bundleID,
+                               element: settled ? element : nil, selection: settled ? range : nil)
     }
 
     private func restoreFocus(to target: InsertionTarget) async -> Bool {
@@ -182,7 +210,7 @@ public final class TextInserter {
         }
         // AX focus can lag even while the same app remains frontmost. Require
         // the original field and selection, allowing a bounded read-only wait.
-        return await Self.waitForMatch { self.matches(target) }
+        return await Self.waitForMatch(timeout: .milliseconds(1500)) { self.matches(target) }
     }
 
     static func waitForMatch(timeout: Duration = .milliseconds(500), matches: () -> Bool) async -> Bool {
@@ -202,7 +230,8 @@ public final class TextInserter {
         guard environment.frontmostApplication()?.processID == target.processID,
               let original = target.element, let current = focusedElement(pid: target.processID),
               CFEqual(original, current) else { return false }
-        return Self.selectionMatches(target.selection, selection(current))
+        return Self.selectionMatches(target.selection, selection(current)) &&
+            environment.frontmostApplication()?.processID == target.processID
     }
 
     static func selectionMatches(_ expected: CFRange?, _ current: CFRange?) -> Bool {
@@ -214,11 +243,13 @@ public final class TextInserter {
     private func focusedElement(pid: Int32) -> AXUIElement? {
         guard environment.isTrusted() else { return nil }
         let appFocus = ownedFocus(environment.applicationFocus(pid), pid: pid)
-        if let appFocus, selection(appFocus) != nil { return appFocus }
-        // Some editors report a window at application level while the system
-        // reports the actual editor. Never accept a system field from another PID.
-        let systemFocus = ownedFocus(environment.systemFocus(), pid: pid)
+        // Keyboard events go to system focus. The application's own cached AX
+        // field can still describe its previous editor while activation settles.
+        let rawSystemFocus = environment.systemFocus()
+        let systemFocus = ownedFocus(rawSystemFocus, pid: pid)
+        if rawSystemFocus != nil, systemFocus == nil { return nil }
         if let systemFocus, selection(systemFocus) != nil { return systemFocus }
+        if let appFocus, selection(appFocus) != nil { return appFocus }
         return appFocus ?? systemFocus
     }
 

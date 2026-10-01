@@ -138,6 +138,101 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
 
+    func testCaptureFollowsAppSwitchBeforeRecordingStarts() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.frontmostPID = 999
+        editor.onFocusRead = { editor.frontmostPID = 101 }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        XCTAssertEqual(target?.processID, 101)
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(editor.activations, 0)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testCaptureUsesSystemEditorWhenApplicationFocusIsStaleAfterSwitch() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.systemField = editor.otherField
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.currentField = editor.otherField // The app's cached focus finally catches up.
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testRestorationUsesSystemEditorWhileApplicationFocusIsStale() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.frontmostPID = 999
+        editor.systemField = editor.field
+        editor.currentField = editor.otherField
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.activations, 1)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testTransientFocusLossAtFinalValidationRetriesBeforePostingPaste() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.focusReads = 0
+        editor.onFocusRead = { editor.focusAvailable = editor.focusReads != 2 }
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertNil(result.notice)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testCaptureWaitsForInitiallyValidButUnsettledEditor() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let switchTask = Task { @MainActor in
+            try await Task.sleep(for: .milliseconds(20))
+            editor.currentField = editor.otherField
+        }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        try await switchTask.value
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testSlowAppActivationKeepsOriginalDestinationAndPastesOnce() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.frontmostPID = 999
+        editor.activationDelay = .milliseconds(650)
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(editor.activations, 1)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+    }
+
+    func testForeignSystemFocusCannotUseCachedApplicationEditor() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        editor.systemField = editor.foreignField
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertFalse(result.didInsert)
+        XCTAssertTrue(editor.pasted.isEmpty)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+    }
+
     func testChangedFieldOrSelectionPreservesRecoveryTextWithoutPasting() async throws {
         for changeField in [false, true] {
             let editor = Editor()
@@ -282,7 +377,9 @@ private final class Editor {
     let field = AXUIElementCreateApplication(101)
     let otherField = AXUIElementCreateApplication(102)
     let window = AXUIElementCreateApplication(103)
+    let foreignField = AXUIElementCreateApplication(999)
     var currentField: AXUIElement
+    var systemField: AXUIElement?
     var frontmostPID: Int32 = 101
     var systemOwnerPID: Int32 = 101
     var range: CFRange? = CFRange(location: 0, length: 3)
@@ -294,6 +391,7 @@ private final class Editor {
     var webEnabled = false
     var focusReads = 0
     var activations = 0
+    var activationDelay: Duration?
     var unreadableValue = false
     var pasted: [String] = []
     var onFocusRead: (() -> Void)?
@@ -311,15 +409,21 @@ private final class Editor {
             .init(processID: self.frontmostPID, bundleID: self.frontmostPID == 101 ? app.bundleID : "test.other")
         }, application: { $0 == 101 ? app : nil }, activate: { _ in
             self.activations += 1
-            self.frontmostPID = 101
+            if let delay = self.activationDelay {
+                Task { @MainActor in
+                    try? await Task.sleep(for: delay)
+                    self.frontmostPID = 101
+                }
+            } else { self.frontmostPID = 101 }
             return true
         }, isTrusted: { self.trusted }, applicationFocus: { _ in
             self.focusReads += 1
             self.onFocusRead?()
             guard self.focusAvailable else { return nil }
             return self.applicationReportsWindow ? self.window : self.currentField
-        }, systemFocus: { self.focusAvailable ? self.currentField : nil }, processID: { element in
-            CFEqual(element, self.window) ? 101 : self.systemOwnerPID
+        }, systemFocus: { self.focusAvailable ? (self.systemField ?? self.currentField) : nil }, processID: { element in
+            if CFEqual(element, self.foreignField) { return 999 }
+            return CFEqual(element, self.window) ? 101 : self.systemOwnerPID
         }, readAttribute: { element, attribute in
             guard !CFEqual(element, self.window) else { return (.attributeUnsupported, nil) }
             switch attribute as String {

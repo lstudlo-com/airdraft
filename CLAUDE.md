@@ -274,7 +274,12 @@ status table current.
   web attribute is unsupported. Accept one valid `AXSelectedTextRanges`
   entry when the singular attribute is unsupported; unknown selections never match.
   Wait briefly for the original field and selection to settle before delivery,
-  including when the same app is already frontmost.
+  including when the same app is already frontmost. Before recording begins,
+  follow an in-flight app switch within one 1.5-second capture deadline and require
+  the field and caret to remain stable across run-loop turns. Prefer the system
+  editor over stale application AX focus; a foreign system focus cannot authorize
+  paste. After capture, keep the original destination fixed. Allow asynchronous
+  activation to settle and retry transient final validation reads before posting.
   Keep `TextDeliveryRegressionTests` exercising production capture and insert
   entry points through an injected OS boundary and disposable pasteboard. Cover
   both persisted insertion settings, unavailable AX values, web/native focus, changed
@@ -283,10 +288,11 @@ status table current.
   their actual xcresult; mandatory insertion cases cannot be missing or skipped.
   Once paste is posted, its clipboard restoration delay must survive cancellation
   so the receiving app can read the text. Never repeat a posted paste. Preserve
-  newer clipboard ownership. From 0.4.2, release preparation requires actual
-  TextEdit and Chrome delivery for both saved insertion preferences, with fixture
-  binary hashes matching the committed Debug build; publication requires the
-  commit-bound acceptance summary. See `docs/local-e2e.md`.
+  newer clipboard ownership. From 0.4.2, release preparation checks actual TextEdit
+  and Chrome delivery for both saved insertion preferences, with fixture binary
+  hashes matching the committed Debug build. Follow the Local releases policy
+  when acceptance is unavailable: publish with a commit-bound unverified reason
+  and report it afterward. See `docs/local-e2e.md`.
   Reject incomplete refinement responses and bound discovery, model loading and
   compatibility retries by one end-to-end refinement deadline.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:

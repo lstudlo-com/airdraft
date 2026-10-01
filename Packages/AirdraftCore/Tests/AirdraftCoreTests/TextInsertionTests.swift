@@ -56,7 +56,7 @@ final class TextInsertionTests: XCTestCase {
             })
         let captured = try XCTUnwrap(target)
         XCTAssertTrue(enabled)
-        XCTAssertEqual(reads, 3)
+        XCTAssertGreaterThanOrEqual(reads, 5, "The newly exposed editor must remain stable across run-loop turns")
         XCTAssertTrue(CFEqual(try XCTUnwrap(captured.element), field))
         XCTAssertTrue(TextInserter.selectionMatches(caret, captured.selection))
     }
