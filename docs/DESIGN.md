@@ -24,7 +24,9 @@ rounded:
   navigation: "7pt"
   editor: "8pt"
   card: "18pt"
+  island: "12pt"
 spacing:
+  islandInset: "10pt"
   sectionTitleSpacing: "12pt"
   controlSpacing: "12pt"
   cardPadding: "16pt"
@@ -46,6 +48,9 @@ components:
   settings-card:
     rounded: "{rounded.card}"
     padding: "{spacing.cardPadding}"
+  content-island:
+    rounded: "{rounded.island}"
+    inset: "{spacing.islandInset}"
 ---
 
 # Design System: Airdraft native macOS
@@ -89,15 +94,20 @@ system appearance, including the accent shown in the live Save button.
 
 ### Neutral
 
-The main background is `NSColor.windowBackgroundColor`; the sidebar uses
+Pages sit on `Theme.islandBackground`: `NSColor.windowBackgroundColor` in light
+mode and white level 0.07 in dark mode. There `windowBackgroundColor` matches the
+chrome's tint, so the dark island sits below it, as macOS content areas sit below
+their sidebars. The window chrome, behind the sidebar and around the island, uses
 `SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
 neutral fill, white level 0.86 in light mode and 0.12 in dark mode. Its opacity
 stays at 70% through the upper half, then increases continuously to 100% at the
 bottom edge. Reduce Transparency removes the blur and makes the entire fill
 fully opaque. Apply this tint
 to the background only; the logo, text and controls keep their opacity.
-Its content divider is 0.5 points wide
-with primary color at 0.06 opacity. Text uses `.primary` and `.secondary`.
+The island has no divider beside the sidebar. Its 0.5-point edge uses primary
+color at 0.06 opacity in light mode, 0.08 in dark mode and 0.35 with Increase
+Contrast; only the light island adds a 3-point shadow at 6% black, 1 point down.
+Text uses `.primary` and `.secondary`.
 `NavigationRowStyle` applies `Color.primary` at 0.09 opacity for selection,
 0.045 for hover and 0.14 for a press.
 
@@ -149,7 +159,12 @@ commits a non-empty name; an empty edit keeps the previous name.
 ## Layout
 
 `Theme.swift` owns the spacing tokens above. The window has a 170-point expanded
-sidebar and a fixed width of 784 points. The collapsed sidebar remains an icon
+sidebar and a fixed width of 784 points. Every page, including onboarding, renders
+inside one rounded content island (`.contentIsland()`), inset 10 points from the
+window's top, trailing and bottom edges. The gutter repeats the sidebar's content
+inset, which also forms the island's leading gutter, so the selected row sits
+centered between the window edge and the island. Window controls, the sidebar and
+its toggle stay on the chrome; the recording HUD is a separate panel. The collapsed sidebar remains an icon
 rail, sized from the unchanged brand width plus its 20-point inset on each side,
 about 91 points total. Destination, microphone and license icons are
 centered horizontally and keep the same vertical positions, row heights and
@@ -171,12 +186,14 @@ the same header row: its destination name on the
 left and page controls on the right. Profiles keeps New Profile and its action
 menu together in that right-side control group. Comparable actions use the shared
 compact capsule treatment. The sidebar toggle sits at the
-window's top left, just after the macOS traffic lights. In the compact rail it
-moves into the content titlebar, entirely outside the rail. Its symbol aligns
-with the page title's leading inset and stays on the window-button centerline.
+window's top left, just after the macOS traffic lights. The compact rail is too
+narrow for both, so the toggle moves into the island's heading row, entirely
+outside the rail. Its symbol aligns with the page title's leading inset and its
+center with the heading row.
 The native window controls retain their 46-point titlebar. Page headings have
-a separate 32-point row, inset 24 points from the top with 12 points below.
-`PageScaffold` keeps this header fixed with `safeAreaInset`.
+a separate 32-point row, inset 24 points from the island's top with 12 points below.
+`PageScaffold` keeps this header fixed with `safeAreaInset`. The island clips the
+header and its blur to its rounded top; the blur never samples the chrome.
 `ProgressiveHeaderBlur` covers the 68-point header and the 24-point content
 inset below it, plus a 4-point outer feather. That feather joins the clear page
 to a light but visible 1-point blur at the bottom of the inset. From there,
@@ -226,7 +243,7 @@ when needed, directly beneath the list and aligned with the device names.
 Previews stop when the overlay closes or dictation starts. The license
 button uses `key.horizontal` and opens the native License sheet described under
 Onboarding and licensing. It shows the self-built edition or actual official
-trial/license state; it does not display sample account data. The sidebar uses `NSVisualEffectView`'s sidebar material against
+trial/license state; it does not display sample account data. The window chrome uses `NSVisualEffectView`'s sidebar material against
 a transparent window background to retain the native frosted effect.
 
 Profiles uses a fixed 136-point list, a divider and a flexible editor. The list
@@ -315,6 +332,9 @@ The Auto theme thumbnail clips its dark half to its actual layout bounds so the
 diagonal split reaches the bottom and trailing edges without exposing the light base.
 
 Use the navigation, editor and card radii for their respective components.
+The content island uses `Theme.islandRadius` for 12-point continuous corners.
+With the window's 16-point corner and the 10-point gutter, a concentric corner
+would be 6 points; 12 keeps the island's corners visibly soft.
 Shared cards use `Theme.cardRadius` for 18-point continuous corners and a half-point border. Editable text
 areas have a half-point resting border that becomes a 1.5-point accent border
 when focused. Keep these text-area boundaries even though the surrounding

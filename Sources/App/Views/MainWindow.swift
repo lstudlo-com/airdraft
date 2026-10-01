@@ -77,22 +77,12 @@ struct MainWindowView: View {
                 overlayFocus: $overlayFocus
             )
             .frame(width: container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedWidth : Theme.sidebarWidth)
-            .background(SidebarBackground())
-            .overlay(alignment: .trailing) {
-                Rectangle()
-                    .fill(Color.primary.opacity(0.06))
-                    .frame(width: 0.5)
-                    .allowsHitTesting(false)
-            }
-            ZStack {
-                Color(nsColor: .windowBackgroundColor)
-                page
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            page.contentIsland()
         }
         .disabled(activeOverlay != nil)
         .accessibilityHidden(activeOverlay != nil)
         .overlay(alignment: .topLeading) {
+            let collapsed = container.navigation.sidebarCollapsed
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) {
                     container.navigation.sidebarCollapsed.toggle()
@@ -100,20 +90,23 @@ struct MainWindowView: View {
             } label: {
                 Image(systemName: "sidebar.left")
                     .font(.system(size: Theme.sidebarToggleSymbolSize))
-                    .frame(width: Theme.sidebarToggleWidth, height: Theme.titlebarHeight)
+                    // Expanded, it shares the titlebar with the window buttons; collapsed,
+                    // the island's heading row, since the rail is too narrow for both.
+                    .frame(width: Theme.sidebarToggleWidth,
+                           height: collapsed ? Theme.pageHeaderRowHeight : Theme.titlebarHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
-            .padding(.leading, container.navigation.sidebarCollapsed
-                ? Theme.sidebarCollapsedToggleLeading
-                : Theme.sidebarToggleLeading)
-            .help(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
-            .accessibilityLabel(container.navigation.sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar")
+            .padding(.leading, collapsed ? Theme.sidebarCollapsedToggleLeading : Theme.sidebarToggleLeading)
+            .padding(.top, collapsed ? Theme.sidebarCollapsedToggleTop : 0)
+            .help(collapsed ? "Expand Sidebar" : "Collapse Sidebar")
+            .accessibilityLabel(collapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityIdentifier("sidebar.toggle")
             .disabled(activeOverlay != nil)
             .accessibilityHidden(activeOverlay != nil)
         }
+        .background(SidebarBackground())
         .background(TranslucentWindowView(onPointerDown: clearOverlayFocus))
         .ignoresSafeArea()
         .frame(width: Theme.windowWidth)

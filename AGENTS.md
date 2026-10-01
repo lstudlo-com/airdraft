@@ -113,8 +113,8 @@ verification status belong in the vault (see below).
   and available account icons horizontally while preserving their expanded
   vertical positions and row heights. Hide text, retain tooltips and accessible
   names, and keep the titlebar toggle available to expand it again. In the collapsed
-  state, place the toggle outside the rail in the content titlebar, with its symbol
-  aligned to the page leading inset and its center aligned to the window buttons.
+  state, place the toggle outside the rail in the page island's heading row, with
+  its symbol aligned to the page leading inset and its center on the heading row.
   Inset the page heading beside the collapsed toggle so their hit areas stay separate.
   The outlined `SidebarWordmark.imageset` SVG remains the website and installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
@@ -122,11 +122,21 @@ verification status belong in the vault (see below).
 
 ## Rules
 
-- The sidebar background uses `SidebarBackground`: native blur under a neutral
+- The window chrome uses `SidebarBackground` across the whole window, behind the
+  sidebar and around the page island: native blur under a neutral
   layer, using white levels 0.86 in light mode and 0.12 in dark mode. Keep the
   upper half at 70% opacity, then fade smoothly to 100% at the bottom edge.
   Reduce Transparency makes the entire background fully opaque. Tint the
   background only; keep sidebar content fully opaque.
+- Pages render on one rounded content island through `.contentIsland()`,
+  including onboarding. It is inset by `Theme.islandInset` (the sidebar's 10-point
+  content inset) from the top, trailing and bottom window edges; the sidebar's
+  own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
+  corners) and `Theme.islandBackground`: the window background in light mode and
+  0.07 white in dark mode, below the chrome. Separate it with a hairline edge,
+  a soft light-mode shadow and no sidebar divider. The island clips its page,
+  including the sticky header blur; the chrome must not bleed into that blur.
+  The recording HUD is not part of this shell.
 - Keep every project-owned `AGENTS.md` and its same-directory `CLAUDE.md` as
   byte-for-byte replicas. Whenever documentation, Markdown, project behavior or
   workflows change, update affected guidance in both files in the same change;
@@ -189,8 +199,8 @@ verification status belong in the vault (see below).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges;
   align the sidebar toggle with their centers in the 46-point titlebar. Page
-  headings and actions use a separate 32-point row with 24 points above and
-  12 points below, inside one sticky header. Extend its backdrop blur through the
+  headings and actions use a separate 32-point row with 24 points above it inside
+  the island and 12 points below, inside one sticky header. Extend its backdrop blur through the
   24-point content inset below it, plus a 4-point outer feather. Text at the
   bottom of that inset must already be lightly but visibly blurred at about
   1 pt radius; increase quadratically to 32 pt at the top. Do not leave a
@@ -529,6 +539,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Use `--live` for the compositor fixture: 13-point text must remain recognizable
   but visibly softened at the bottom of the content inset, then blur upward while
   its foreground label stays sharp. Do not judge onset using only broad stripes.
+  `--island <png>` captures the fixture's own window through the compositor, which
+  needs no Screen Recording access, and asserts the island clip, chrome-free blur
+  and sharp content below the header; look at the saved PNG as well.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to

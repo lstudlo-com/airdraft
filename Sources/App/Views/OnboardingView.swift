@@ -45,7 +45,7 @@ struct OnboardingView: View {
             rail
             VStack(alignment: .leading, spacing: 0) {
                 header
-                    .padding(.top, Theme.titlebarHeight + Theme.pageHeaderTopInset)
+                    .padding(.top, Theme.pageHeaderTopInset)
                     .padding(.bottom, Theme.sectionSpacing)
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
@@ -61,8 +61,9 @@ struct OnboardingView: View {
                 footer.padding(.vertical, Theme.pagePadding)
             }
             .padding(.horizontal, Theme.pagePadding)
-            .background(Color(nsColor: .windowBackgroundColor))
+            .contentIsland()
         }
+        .background(SidebarBackground())
         .frame(width: Theme.windowWidth)
         .frame(minHeight: Theme.windowMinHeight, maxHeight: .infinity)
         .ignoresSafeArea()
@@ -115,7 +116,6 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, Theme.sidebarContentInset)
         .frame(width: Theme.sidebarWidth, alignment: .leading)
-        .background(SidebarBackground())
     }
 
     private var header: some View {

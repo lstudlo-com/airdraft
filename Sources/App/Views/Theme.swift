@@ -17,6 +17,10 @@ enum Theme {
     static let sidebarBrandHeight: CGFloat = 25
     static let sidebarBrandWidth: CGFloat = 744 * sidebarBrandHeight / 364
     static let sidebarCollapsedWidth = sidebarBrandWidth + 2 * (sidebarContentInset + sidebarBrandInset)
+    // Pages sit on one rounded island in the window chrome. Its gutter repeats the
+    // sidebar's inset, so the selected row is centred between the window edge and the island.
+    static let islandInset: CGFloat = sidebarContentInset
+    static let islandRadius: CGFloat = 12
     static let pagePadding: CGFloat = 24
     static let pageHeaderTopInset: CGFloat = 24
     static let pageHeaderRowHeight: CGFloat = 32
@@ -24,9 +28,11 @@ enum Theme {
     static let pageHeaderBlurRadius: CGFloat = 32
     // Cover the content inset as well, with 4 pt to join the clear page smoothly.
     static let pageHeaderBlurExtension: CGFloat = pagePadding + 4
-    // Align the collapsed toggle's symbol with the page title, outside the icon rail.
+    // The collapsed toggle leaves the icon rail for the island's heading row, with its
+    // symbol on the page title's leading inset.
     static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
         - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
+    static let sidebarCollapsedToggleTop = islandInset + pageHeaderTopInset
     static let sidebarCollapsedHeaderInset = (sidebarToggleWidth + sidebarToggleSymbolSize) / 2
         + controlSpacing
     static let cardPadding: CGFloat = 16
@@ -44,6 +50,13 @@ enum Theme {
     static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
+    /// The page island: the light window background, and darker than the chrome in dark
+    /// mode, where macOS content areas sit below the sidebar.
+    static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(white: 0.07, alpha: 1)
+            : .windowBackgroundColor
+    })
 }
 
 /// Window-level blur behind the sidebar.
@@ -65,6 +78,7 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
+/// The window chrome behind the sidebar and around the page island.
 /// The upper half keeps native desktop blur; the lower half fades to an opaque base.
 struct SidebarBackground: View {
     @Environment(\.colorScheme) private var scheme
@@ -90,6 +104,41 @@ struct SidebarBackground: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+}
+
+/// One rounded surface for page content, inset into the window chrome on its
+/// top, trailing and bottom edges. The sidebar's own inset is its leading gutter.
+private struct ContentIsland: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.islandRadius, style: .continuous)
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Theme.islandBackground)
+            .clipShape(shape)
+            .overlay {
+                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : scheme == .dark ? 0.08 : 0.06),
+                                   lineWidth: 0.5)
+                    .allowsHitTesting(false)
+            }
+            .background {
+                // The light island lifts off the chrome; the dark one is already set below it.
+                if scheme == .light {
+                    SurfaceShadows(shape: shape, shadows: [
+                        .init(color: .black.opacity(0.06), radius: 3, y: 1),
+                    ])
+                }
+            }
+            .padding([.top, .bottom, .trailing], Theme.islandInset)
+    }
+}
+
+extension View {
+    func contentIsland() -> some View {
+        modifier(ContentIsland())
     }
 }
 
@@ -620,7 +669,7 @@ private struct PageHeaderBackdrop: View {
         let headerHeight = Theme.pageHeaderTopInset + Theme.pageHeaderRowHeight + Theme.pageHeaderBottomInset
         Group {
             if reduceTransparency {
-                Color(nsColor: .windowBackgroundColor)
+                Theme.islandBackground
                     .frame(height: headerHeight)
             } else {
                 ProgressiveHeaderBlur(maximumRadius: Theme.pageHeaderBlurRadius)
