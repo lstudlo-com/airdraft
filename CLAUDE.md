@@ -97,7 +97,7 @@ verification status belong in the vault (see below).
   `apps/marketing/src/data/icon.ts`, which the website's 3D hero object is built from.
 
 - Native sidebar branding is `SidebarBrandMark` in `MainWindow.swift`: a compact
-  25-point-high raised neumorphic capsule with five waveform bars and a separate
+  28-point-high raised neumorphic capsule with five waveform bars and a separate
   caret carved into it, without visible lettering. Keep the waveform height
   pattern. The capsule face is the sidebar itself, unfilled, lifted only by soft,
   wide `SurfaceShadows` (highlight up-left, shade down-right, excluded from the
@@ -105,7 +105,7 @@ verification status belong in the vault (see below).
   outline. The bars and caret are opaque grooves with a darker floor, inner shade
   at the top-left edge and inner light at the bottom-right; never raise them.
   Increase Contrast adds explicit edges.
-  Scale the original compact mark uniformly by 1.25: about 51 by 25 points
+  Scale the original compact mark uniformly by 1.4: about 57 by 28 points
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
   It is a static image, not a button or a live meter.
@@ -204,7 +204,10 @@ verification status belong in the vault (see below).
   bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
   the selected row on a 0.24-second ease-out cubic curve, whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
-  Home summary fills use one solid color.
+  Home summary fills use one solid neutral gray, raised inside their inset track
+  with a top-left highlight and down-right shade; never a brand hue.
+  Sidebar destination, microphone and account symbols use
+  `Theme.sidebarIconSize` (13 points).
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges;
@@ -255,7 +258,10 @@ verification status belong in the vault (see below).
   surface gradient and top-left sheen subtle (a 0.02 gray ramp); the cast
   shadows carry the depth, with a clearly darker light-mode shade.
   Keep light-mode bars visibly darker than the well, with raised highlights and
-  down-right shadows. Preserve bar heights, hover behavior and the colored caret.
+  down-right shadows. Preserve bar heights and hover behavior. The caret and the
+  hovered bar are neutral gray, a step darker in light mode and brighter in dark
+  mode than the bars, raised with the same lighting; never violet, cyan or a glow.
+  The hero card's edge highlight stays faint; its cast shadows carry the depth.
   Home waveform entrance waits for initial history, then animates rendered scale
   once; never animate placeholder replacement or per-frame bar layout height.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,

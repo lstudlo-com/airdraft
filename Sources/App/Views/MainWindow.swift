@@ -265,7 +265,7 @@ struct SidebarView: View {
             Button(action: openMicrophone) {
                 HStack(spacing: 10) {
                     Image(systemName: "mic")
-                        .font(.system(size: 15))
+                        .font(.system(size: Theme.sidebarIconSize))
                         .frame(width: 20)
                         .accessibilityHidden(true)
                     if !isCollapsed {
@@ -300,7 +300,7 @@ struct SidebarView: View {
                 if isCollapsed { Spacer(minLength: 0) }
                 Button(action: openAccount) {
                     Image(systemName: "key.horizontal")
-                        .font(.system(size: 15))
+                        .font(.system(size: Theme.sidebarIconSize))
                         .frame(width: 30, height: 30)
                         .contentShape(RoundedRectangle(cornerRadius: 7))
                 }
@@ -349,7 +349,7 @@ struct SidebarView: View {
                 Button { container.navigation.page = page } label: {
                     HStack(spacing: 10) {
                         Image(systemName: page.symbol)
-                            .font(.system(size: 15, weight: .regular))
+                            .font(.system(size: Theme.sidebarIconSize, weight: .regular))
                             .frame(width: 20)
                             .accessibilityHidden(true)
                         if !isCollapsed {

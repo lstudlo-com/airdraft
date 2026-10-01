@@ -75,9 +75,11 @@ struct MicrophoneButtonStyle: ButtonStyle {
     }
 }
 
-/// A shallow inset for Home's proportional app-usage bars.
+/// A shallow inset for Home's proportional app-usage bars, holding a raised gray fill
+/// in the hero bars' tones.
 struct NeumorphicUsageTrack: View {
     let fraction: Double
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         GeometryReader { geometry in
@@ -86,8 +88,15 @@ struct NeumorphicUsageTrack: View {
             ZStack(alignment: .leading) {
                 NeumorphicSurface(shape: Capsule(), inset: true, depth: 1.2)
                 if value > 0 {
+                    let dark = scheme == .dark
                     Capsule()
-                        .fill(Brand.violet)
+                        .fill(Color(white: dark ? 0.32 : 0.62))
+                        .background {
+                            SurfaceShadows(shape: Capsule(), shadows: [
+                                .init(color: .black.opacity(dark ? 0.6 : 0.25), radius: 1, x: 0.5, y: 0.8),
+                                .init(color: .white.opacity(dark ? 0.1 : 0.9), radius: 1, x: -0.4, y: -0.5),
+                            ])
+                        }
                         .frame(width: width, height: 5)
                         .padding(.horizontal, 1)
                 }

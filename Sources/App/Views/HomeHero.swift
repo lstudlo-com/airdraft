@@ -1,16 +1,6 @@
 import AirdraftCore
 import SwiftUI
 
-/// The app icon's waveform and caret colours.
-enum Brand {
-    static let violet = Color(red: 0.420, green: 0.478, blue: 1.000)   // #6B7AFF
-    static let cyan = Color(red: 0.231, green: 0.765, blue: 0.957)     // #3BC3F4
-
-    static var gradient: LinearGradient {
-        LinearGradient(colors: [violet, cyan], startPoint: .top, endPoint: .bottom)
-    }
-}
-
 /// Home's centrepiece: the four headline metrics in one row above the icon's
 /// pressed-in capsule, drawn from the user's own dictations.
 struct HomeHero: View {
@@ -171,8 +161,8 @@ struct HomeHero: View {
     }
 
     /// A raised pill standing in the pressed well: lit from the top left,
-    /// shadowed to the bottom right, as in the app icon. Bars stay neutral;
-    /// only the hovered one takes the icon's violet-to-cyan.
+    /// shadowed to the bottom right, as in the app icon. Every bar stays gray;
+    /// the hovered one deepens toward the caret's tone.
     private func barView(_ bar: Bar, index: Int, layout: Layout, hovered: Bool) -> some View {
         let magnify: CGFloat = {
             guard let pointer, !reduceMotion, bar.pulse != nil else { return 1 }
@@ -183,8 +173,8 @@ struct HomeHero: View {
         let height = Self.barMax * bar.height
         let hoverScale = min(Self.caretHeight / height, magnify)
         return Capsule()
-            .fill(LinearGradient(colors: [soft.raisedTop.mix(with: Brand.violet, by: tint),
-                                          soft.raisedBottom.mix(with: Brand.cyan, by: tint)],
+            .fill(LinearGradient(colors: [soft.raisedTop.mix(with: soft.caretTop, by: tint),
+                                          soft.raisedBottom.mix(with: soft.caretBottom, by: tint)],
                                  startPoint: .topLeading, endPoint: .bottomTrailing))
             .overlay(
                 Capsule().strokeBorder(LinearGradient(colors: [soft.rim, soft.rim.opacity(0)],
@@ -205,11 +195,21 @@ struct HomeHero: View {
             .transition(.identity)
     }
 
+    /// A raised gray pill, a step stronger than the bars, lit from the top left.
+    /// A new dictation lifts it briefly; it never takes a colour or a glow.
     private var caret: some View {
-        RoundedRectangle(cornerRadius: Self.caretWidth / 2, style: .continuous)
-            .fill(Brand.gradient)
+        let shape = RoundedRectangle(cornerRadius: Self.caretWidth / 2, style: .continuous)
+        return shape
+            .fill(LinearGradient(colors: [soft.caretTop, soft.caretBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .overlay(shape.strokeBorder(LinearGradient(colors: [soft.rim, soft.rim.opacity(0)],
+                                                       startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75))
+            .background {
+                SurfaceShadows(shape: shape, shadows: [
+                    .init(color: soft.shade, radius: 2.5 + 2 * flare, x: 1.5 + flare, y: 2.5 + 1.5 * flare),
+                    .init(color: soft.light, radius: 2 + flare, x: -1, y: -1.5),
+                ])
+            }
             .frame(width: Self.caretWidth, height: Self.caretHeight)
-            .shadow(color: Brand.violet.opacity(0.45 + 0.4 * flare), radius: 8 + 12 * flare)
             .scaleEffect(y: 1 + 0.08 * flare)
     }
 
@@ -287,11 +287,12 @@ struct HomeHero: View {
 
     private var border: some View {
         RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-            .strokeBorder(LinearGradient(colors: [soft.rim, soft.rim.opacity(0)],
+            // A faint edge: the cast shadows carry the card's depth.
+            .strokeBorder(LinearGradient(colors: [soft.rim.opacity(0.3), soft.rim.opacity(0)],
                                          startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.07), lineWidth: 0.5)
+                    .strokeBorder(Color.primary.opacity(0.035), lineWidth: 0.5)
             )
     }
 }
@@ -299,7 +300,7 @@ struct HomeHero: View {
 /// Neutral soft-UI colours: one surface, a pressed well, raised bars, and the
 /// light and shade that give them depth.
 private struct SoftPalette {
-    let surfaceTop, surfaceBottom, well, raisedTop, raisedBottom, light, shade, rim: Color
+    let surfaceTop, surfaceBottom, well, raisedTop, raisedBottom, caretTop, caretBottom, light, shade, rim: Color
 
     init(dark: Bool) {
         if dark {
@@ -309,6 +310,8 @@ private struct SoftPalette {
             well = Color(white: 0.14)
             raisedTop = Color(white: 0.34)
             raisedBottom = Color(white: 0.22)
+            caretTop = Color(white: 0.62)
+            caretBottom = Color(white: 0.42)
             light = .white.opacity(0.09)
             shade = .black.opacity(0.75)
             rim = .white.opacity(0.16)
@@ -319,6 +322,8 @@ private struct SoftPalette {
             well = Color(white: 0.81)
             raisedTop = Color(white: 0.75)
             raisedBottom = Color(white: 0.50)
+            caretTop = Color(white: 0.48)
+            caretBottom = Color(white: 0.26)
             light = .white
             shade = .black.opacity(0.32)
             rim = .white.opacity(0.9)

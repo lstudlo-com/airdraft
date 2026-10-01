@@ -136,7 +136,7 @@ be replaced with a web display font.
 The sidebar brand is a standalone neumorphic capsule without visible lettering.
 `SidebarBrandMark` in `MainWindow.swift` keeps the app icon's five waveform
 levels and separated caret, scaling the original compact mark proportionally
-by 1.25 to about 51 by 25 points in a 30-point row.
+by 1.4 to about 57 by 28 points in a 30-point row.
 The capsule is raised without an outline: its face is the sidebar itself, with
 no fill or edge stroke, lifted by soft, wide shadows that light the top left and
 shade the bottom right. A rim stroke or tight highlight would read as an outline.
@@ -260,15 +260,16 @@ Home remains the most expressive page, and its hero always leads it. Average spe
 words, apps used and time saved sit in one row of four equal-width,
 leading-aligned columns, with 26-point headline numbers. Beneath them the hero draws the app icon's pressed-in
 capsule from the user's own history: one raised bar per recent dictation, ending
-in the icon's glowing caret. The bars are neumorphic pills, lit from the top left
+in a raised gray caret. The bars are neumorphic pills, lit from the top left
 and shadowed to the bottom right; height follows words, capped at 32 pt so the
-metrics lead. Bars are neutral at rest; only the hovered bar takes the icon's
-violet-to-cyan, and there is no left-to-right colour ramp. The well is pressed in
+metrics lead. Everything is grayscale: the caret is a raised pill a step darker in light
+mode and brighter in dark mode than the bars, the hovered bar deepens toward
+it, and a new dictation lifts the caret's shadow instead of a coloured glow. The well is pressed in
 with inner shade and light. The well is 60 pt tall with 24 pt minimum horizontal inner
 insets, bringing the waveform closer to all four edges without enlarging the
 bars. Light-mode bar faces use a darker silver gradient against the pale well.
 The hero surface is grayscale with a deliberately faint 0.02 gray ramp and a
-20% top-left sheen; the caret and the hovered bar are its only brand colour. The card is raised from the island: with
+20% top-left sheen, and its edge highlight is faint (30% of the rim colour). The card is raised from the island: with
 light from the top left, `SurfaceShadows` casts a 12-point highlight 6–7 points
 up-left (the palette's light color) and a 12-point shade 7–9 points down-right
 (its shade at 70% opacity in dark mode, 85% in light mode). With no history it shows the icon's
@@ -320,8 +321,8 @@ on a fast 0.24-second ease-out cubic curve, whether the page changed from the
 sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.
 Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
-fills use solid violet without a gradient or highlight and remain proportional,
-with no fill for zero. The recording HUD fits its current timer or status and
+fills are raised solid gray pills inside their inset tracks (0.62 light, 0.32
+dark), lit from the top left, and remain proportional, with no fill for zero. The recording HUD fits its current timer or status and
 keeps bright live bars, a dark inset waveform track and shallow rim. Errors and
 recovery notices expand over 0.28 seconds into a rounded diagnostic panel with
 13-point wrapping text and a 28-point Copy Message icon at the far right. Full
@@ -469,7 +470,7 @@ and [FocusState](https://developer.apple.com/documentation/swiftui/focusstate).
 - Do keep secondary actions labeled in menus, with help and accessibility labels
   on their icon-only triggers.
 - Don't add profile icons, colored badges or a saturated selection fill to this sidebar.
-- Keep Home's brand colours and full hero treatment on Home. Use only the six
+- Keep Home's full hero treatment on Home, in grayscale; no brand hues. Use only the six
   scoped tactile accents elsewhere; do not add continuous decorative motion.
 - Don't tint the hero's surface or return its metrics to the corners.
 - Don't wrap the Profiles editor in another card or move its primary instructions

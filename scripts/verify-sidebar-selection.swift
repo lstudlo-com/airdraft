@@ -7,9 +7,6 @@
 import AppKit
 import SwiftUI
 
-/// NeumorphicSurface's meter accent references the app's brand colour.
-enum Brand { static let violet = Color.purple }
-
 @MainActor private final class Selection: ObservableObject {
     @Published var row = 0
 }

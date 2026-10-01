@@ -14,7 +14,9 @@ enum Theme {
     static let sidebarWidth: CGFloat = 170
     static let sidebarContentInset: CGFloat = 10
     static let sidebarBrandInset: CGFloat = 10
-    static let sidebarBrandHeight: CGFloat = 25
+    static let sidebarBrandHeight: CGFloat = 28
+    /// Destination, microphone and account symbols in the sidebar.
+    static let sidebarIconSize: CGFloat = 13
     static let sidebarBrandWidth: CGFloat = 744 * sidebarBrandHeight / 364
     static let sidebarCollapsedWidth = sidebarBrandWidth + 2 * (sidebarContentInset + sidebarBrandInset)
     // Pages sit on one rounded island in the window chrome. Its gutter repeats the
