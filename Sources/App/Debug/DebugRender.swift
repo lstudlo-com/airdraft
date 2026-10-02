@@ -258,10 +258,10 @@ enum DebugRender {
         defer { window.orderOut(nil) }
         precondition(window.makeFirstResponder(editor))
         editor.setSelectedRange(NSRange(location: 5, length: 4))
-        TranslucentWindowView.BackingView.dismissFocus(in: window, at: editor.convert(NSPoint(x: 30, y: 30), to: nil))
+        WindowChromeView.BackingView.dismissFocus(in: window, at: editor.convert(NSPoint(x: 30, y: 30), to: nil))
         precondition(window.firstResponder === editor && editor.selectedRange() == NSRange(location: 5, length: 4),
                      "Clicking within the editor must preserve focus and selection")
-        TranslucentWindowView.BackingView.dismissFocus(in: window, at: NSPoint(x: 350, y: 250))
+        WindowChromeView.BackingView.dismissFocus(in: window, at: NSPoint(x: 350, y: 250))
         precondition(window.firstResponder !== editor, "Clicking elsewhere must clear editor focus")
         print("PASS: Pointer focus dismissal preserves active-editor selection")
     }

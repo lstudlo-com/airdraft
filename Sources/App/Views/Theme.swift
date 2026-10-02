@@ -57,54 +57,20 @@ enum Theme {
     static let islandBackground = Color(nsColor: NSColor(name: "airdraft.island") { appearance in
         NSColor(white: appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? 0.15 : 0.86, alpha: 1)
     })
+    /// The opaque window chrome behind the sidebar and around the island, lighter than the island.
+    static let chromeNSColor = NSColor(name: "airdraft.chrome") { appearance in
+        NSColor(white: appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? 0.21 : 0.95, alpha: 1)
+    }
+    static let chromeBackground = Color(nsColor: chromeNSColor)
 }
 
-/// Window-level blur behind the sidebar.
-struct VisualEffectView: NSViewRepresentable {
-    var material: NSVisualEffectView.Material
-    var blending: NSVisualEffectView.BlendingMode = .behindWindow
-
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = blending
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        view.material = material
-        view.blendingMode = blending
-    }
-}
-
-/// The window chrome behind the sidebar and around the page island.
-/// The upper half keeps native desktop blur; the lower half fades to an opaque base.
+/// The window chrome behind the sidebar and around the page island: one opaque color,
+/// with no desktop blur, lighter than the island, which keeps the Home hero's gray.
 struct SidebarBackground: View {
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     var body: some View {
-        // The chrome stays lighter than the island, which keeps the Home hero's gray.
-        let tint = Color(white: scheme == .dark ? 0.21 : 0.95)
-        let translucentTint = tint.opacity(reduceTransparency ? 1 : 0.70)
-
-        ZStack {
-            if !reduceTransparency {
-                VisualEffectView(material: .sidebar)
-            }
-            LinearGradient(
-                stops: [
-                    .init(color: translucentTint, location: 0),
-                    .init(color: translucentTint, location: 0.5),
-                    .init(color: tint, location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        Theme.chromeBackground
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
 
@@ -136,8 +102,9 @@ extension View {
     }
 }
 
-/// Let the sidebar material sample the desktop behind the window.
-struct TranslucentWindowView: NSViewRepresentable {
+/// Configures the opaque main window: chrome background, inset window buttons, no zoom or
+/// full screen, and pointer focus dismissal.
+struct WindowChromeView: NSViewRepresentable {
     var onPointerDown: () -> Void = {}
 
     final class BackingView: NSView {
@@ -188,8 +155,8 @@ struct TranslucentWindowView: NSViewRepresentable {
         }
 
         func configureWindow() {
-            window?.isOpaque = false
-            window?.backgroundColor = .clear
+            window?.isOpaque = true
+            window?.backgroundColor = Theme.chromeNSColor
             window?.titlebarAppearsTransparent = true
             if let zoom = window?.standardWindowButton(.zoomButton), !zoom.isHidden {
                 zoom.isHidden = true

@@ -106,12 +106,9 @@ instead of floating on white or near-black. The light mid-tone leaves the white
 highlight about 0.14 of headroom; the light hero's well (0.81) and bars
 (0.75–0.50) step down from its surface in the same order. The chrome is
 therefore the lighter layer in both appearances. The window chrome, behind the sidebar and around the island, uses
-`SidebarBackground`, with `NSVisualEffectView.Material.sidebar` beneath a
-neutral fill, white level 0.95 in light mode and 0.21 in dark mode. Its opacity
-stays at 70% through the upper half, then increases continuously to 100% at the
-bottom edge. Reduce Transparency removes the blur and makes the entire fill
-fully opaque. Apply this tint
-to the background only; the logo, text and controls keep their opacity.
+`SidebarBackground`: one fully opaque neutral color, white level 0.95 in light
+mode and 0.21 in dark mode, with no translucency or desktop blur. The window
+itself is opaque with the same background color.
 The island has no divider beside the sidebar. Its 0.5-point edge uses primary
 color at 0.06 opacity in light mode, 0.08 in dark mode and 0.35 with Increase
 Contrast. It casts no shadow, since it sits below the chrome.
@@ -251,8 +248,7 @@ when needed, directly beneath the list and aligned with the device names.
 Previews stop when the overlay closes or dictation starts. The license
 button uses `key.horizontal` and opens the native License sheet described under
 Onboarding and licensing. It shows the self-built edition or actual official
-trial/license state; it does not display sample account data. The window chrome uses `NSVisualEffectView`'s sidebar material against
-a transparent window background to retain the native frosted effect.
+trial/license state; it does not display sample account data. The window chrome is a solid opaque color; nothing behind the window shows through.
 
 Profiles uses a fixed 136-point list, a divider and a flexible editor. The list
 and editor scroll independently. Profile rows are 36 points high and reuse the

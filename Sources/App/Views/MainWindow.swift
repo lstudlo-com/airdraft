@@ -56,7 +56,7 @@ struct MainWindowView: View {
         Group {
             if container.settings.onboarding.isPresented {
                 OnboardingView()
-                    .background(TranslucentWindowView(onPointerDown: {}))
+                    .background(WindowChromeView(onPointerDown: {}))
             } else {
                 mainContent
             }
@@ -107,7 +107,7 @@ struct MainWindowView: View {
             .accessibilityHidden(activeOverlay != nil)
         }
         .background(SidebarBackground())
-        .background(TranslucentWindowView(onPointerDown: clearOverlayFocus))
+        .background(WindowChromeView(onPointerDown: clearOverlayFocus))
         .ignoresSafeArea()
         .frame(width: Theme.windowWidth)
         .frame(minHeight: Theme.windowMinHeight, maxHeight: .infinity)
