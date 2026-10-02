@@ -322,8 +322,9 @@ The microphone capsule stays recessed, with no hover or pressed treatment.
 It dims while unavailable. Selected sidebar destinations replicate that well: the
 same opaque recessed material, 2.5-point depth, inner top-left shading and inner
 bottom-right highlight. Both wells share 12-point continuous corners
-(`NavigationStyle.wellShape`); the 38-point microphone stays taller than the
-32-point destination rows, so only the radius matches, not the height. Increase
+(`NavigationStyle.wellShape`). Destinations and the microphone capsule share
+one size: 38 points high, inset 4 points from the sidebar content edges, with the
+same 32-point icon island, 13-point symbol and label start. Increase
 Contrast retains an explicit edge. Text and symbols stay opaque.
 Inside the well, the selected icon rests on a flat raised island, like a switch
 knob on its track: a rounded square concentric with the well (9-point corners) that

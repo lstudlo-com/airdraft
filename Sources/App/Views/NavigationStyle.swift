@@ -19,13 +19,17 @@ enum SelectionMotion {
 enum NavigationStyle {
     static let rowHeight: CGFloat = 32
     static let cornerRadius: CGFloat = 7
-    /// Shared by the selected destination well and the microphone well, whose heights differ.
+    /// Shared by the selected destination well and the microphone well.
     static let wellRadius: CGFloat = 12
+    /// Sidebar destinations and the microphone capsule share one size: 38 points high,
+    /// inset 4 points from the sidebar content edges.
+    static let destinationHeight: CGFloat = 38
+    static let destinationInset: CGFloat = 4
     /// The icon island touches the well's top, bottom and leading edges with this margin,
     /// like a switch knob in its track.
     static let iconIslandInset: CGFloat = 3
-    /// The square icon island in a destination row; the row's icon frame matches it.
-    static let rowIconIslandSize = rowHeight - 2 * iconIslandInset
+    /// The square icon island in a destination or the microphone; their icon frames match it.
+    static let iconIslandSize = destinationHeight - 2 * iconIslandInset
     /// Concentric with the well: its corners are the well's, less the inset.
     static var iconIslandShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: wellRadius - iconIslandInset, style: .continuous)

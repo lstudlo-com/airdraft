@@ -13,7 +13,7 @@ import SwiftUI
 
 private struct SelectionFixture: View {
     static let size = CGSize(width: 220, height: 300)
-    static let rowTops: [CGFloat] = [20, 54, 88, 136] // 32 pt rows, 2 pt spacing, then a 16 pt group gap
+    static let rowTops: [CGFloat] = [20, 60, 100, 154] // 38 pt rows, 2 pt spacing, then a 16 pt group gap
     @ObservedObject var selection: Selection
 
     var body: some View {
@@ -38,12 +38,12 @@ private struct SelectionFixture: View {
                 Button {} label: {
                     HStack(spacing: 0) {
                         // Stands in for the row icon, so the icon island has an anchor to follow.
-                        Color.clear.frame(width: NavigationStyle.rowIconIslandSize, height: 16).sidebarSelectionIconAnchor(row)
+                        Color.clear.frame(width: NavigationStyle.iconIslandSize, height: 16).sidebarSelectionIconAnchor(row)
                         Spacer(minLength: 0)
                     }
                     .padding(.leading, NavigationStyle.iconIslandInset)
                     .frame(maxWidth: .infinity)
-                    .frame(height: NavigationStyle.rowHeight)
+                    .frame(height: NavigationStyle.destinationHeight)
                 }
                     .buttonStyle(NavigationRowStyle(selected: selection.row == row, slidingSelection: true))
                     .sidebarSelectionAnchor(row)
@@ -71,7 +71,7 @@ enum VerifySidebarSelection {
         }
         let capture = unsafeBitCast(symbol, to: Capture.self)
         var frame = 0
-        let iconX = 20 + NavigationStyle.iconIslandInset + NavigationStyle.rowIconIslandSize / 2
+        let iconX = 20 + NavigationStyle.iconIslandInset + NavigationStyle.iconIslandSize / 2
         /// Whether each capture shows the flat island face, lighter than its well, on row 3's icon.
         var islandOnTarget: [Bool] = []
         /// The vertical centre of the pixels that differ from the background along the row centre line.
@@ -89,7 +89,7 @@ enum VerifySidebarSelection {
             func shade(_ x: CGFloat, _ y: CGFloat) -> CGFloat {
                 bitmap.colorAt(x: Int(x * scale), y: Int(y * scale))!.usingColorSpace(.genericGray)!.whiteComponent
             }
-            let targetY = SelectionFixture.rowTops[3] + NavigationStyle.rowHeight / 2
+            let targetY = SelectionFixture.rowTops[3] + NavigationStyle.destinationHeight / 2
             islandOnTarget.append(shade(iconX, targetY) - shade(150, targetY) > 0.03)
             let background = bitmap.colorAt(x: 4, y: 4)!.usingColorSpace(.genericGray)!.whiteComponent
             let rows = (0..<image.height).filter { y in
@@ -99,7 +99,7 @@ enum VerifySidebarSelection {
             guard let first = rows.first, let last = rows.last else { return nil }
             return CGFloat(first + last) / 2 / scale
         }
-        func center(ofRow row: Int) -> CGFloat { SelectionFixture.rowTops[row] + NavigationStyle.rowHeight / 2 }
+        func center(ofRow row: Int) -> CGFloat { SelectionFixture.rowTops[row] + NavigationStyle.destinationHeight / 2 }
 
         guard let start = wellCenter() else { preconditionFailure("No selection well was drawn") }
         precondition(abs(start - center(ofRow: 0)) < 2, "The well must start on the selected row (\(start))")
@@ -148,7 +148,7 @@ enum VerifySidebarSelection {
         precondition(abs(white(iconX, center(ofRow: 0)) - white(150, center(ofRow: 0))) < 0.02,
                      "The island must leave the previously selected row")
         // Its shade stays inside the well: just outside the well's bottom edge is plain background.
-        precondition(abs(white(iconX, SelectionFixture.rowTops[3] + NavigationStyle.rowHeight + 0.5) - white(4, 4)) < 0.02,
+        precondition(abs(white(iconX, SelectionFixture.rowTops[3] + NavigationStyle.destinationHeight + 0.5) - white(4, 4)) < 0.02,
                      "The island's shade must not leak outside the well")
         print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
     }

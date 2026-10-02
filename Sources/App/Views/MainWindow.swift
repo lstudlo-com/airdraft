@@ -275,7 +275,6 @@ struct SidebarView: View {
     @State private var wordCountRefresh = UUID()
 
     private var isCollapsed: Bool { container.navigation.sidebarCollapsed }
-    private static let micIconIslandSize: CGFloat = 38 - 2 * NavigationStyle.iconIslandInset
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -294,11 +293,11 @@ struct SidebarView: View {
 
             Spacer(minLength: 20)
             Button(action: openMicrophone) {
-                // The microphone always rests on its own island in the well, carved like a selection;
-                // the island touches the well's edges and the label keeps its 44-point start.
+                // The microphone always rests on its own island in the well, carved like a selection,
+                // with the same size, island and label start as the destinations above.
                 HStack(spacing: 9) {
                     SidebarIcon(symbol: "mic", selected: true)
-                        .frame(width: Self.micIconIslandSize, height: Self.micIconIslandSize)
+                        .frame(width: NavigationStyle.iconIslandSize, height: NavigationStyle.iconIslandSize)
                         .background { SoftWellIsland() }
                     if !isCollapsed {
                         Text(container.microphones.label(container.settings.microphone))
@@ -315,13 +314,13 @@ struct SidebarView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.leading, isCollapsed ? 0 : NavigationStyle.iconIslandInset)
                 .padding(.trailing, isCollapsed ? 0 : 14)
-                .frame(height: 38)
+                .frame(height: NavigationStyle.destinationHeight)
             }
             .buttonStyle(MicrophoneButtonStyle())
             .frame(maxWidth: .infinity)
-            .frame(height: 38)
+            .frame(height: NavigationStyle.destinationHeight)
             .contentShape(NavigationStyle.wellShape)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, NavigationStyle.destinationInset)
             .padding(.top, 8)
             .disabled(container.pipeline.state.isBusy)
             .help("Change microphone. Your choice is saved as the default.")
@@ -380,26 +379,28 @@ struct SidebarView: View {
         VStack(spacing: 2) {
             ForEach(pages) { page in
                 Button { container.navigation.page = page } label: {
-                    // The icon frame matches the island that touches the well's edges; labels keep
-                    // their 40-point start.
-                    HStack(spacing: 11) {
+                    // Same size, island and label start as the microphone capsule below.
+                    HStack(spacing: 9) {
                         SidebarIcon(symbol: page.symbol, selected: container.navigation.page == page)
-                            .frame(width: NavigationStyle.rowIconIslandSize)
+                            .frame(width: NavigationStyle.iconIslandSize)
                             .sidebarSelectionIconAnchor(page)
                         if !isCollapsed {
                             Text(page.title)
                                 .font(.system(size: 13, weight: .regular))
+                                .lineLimit(1)
                             Spacer(minLength: 0)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
-                    .padding(.leading, isCollapsed ? 10 : NavigationStyle.iconIslandInset)
-                    .padding(.trailing, 10)
-                    .frame(height: NavigationStyle.rowHeight)
+                    .padding(.leading, isCollapsed ? 0 : NavigationStyle.iconIslandInset)
+                    // Destinations have no trailing chevron, so their titles keep that space.
+                    .padding(.trailing, isCollapsed ? 0 : 6)
+                    .frame(height: NavigationStyle.destinationHeight)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(NavigationRowStyle(selected: container.navigation.page == page, slidingSelection: true))
                 .sidebarSelectionAnchor(page)
+                .padding(.horizontal, NavigationStyle.destinationInset)
                 .help(page.title)
                 .accessibilityLabel(page.title)
                 .accessibilityAddTraits(container.navigation.page == page ? .isSelected : [])

@@ -201,9 +201,13 @@ verification status belong in the vault (see below).
   Sidebar destination selection replicates the microphone well exactly: the same
   opaque recessed material, 2.5-point depth, top-left inner shade and bottom-right
   inner light. Both wells use `NavigationStyle.wellShape`, 12-point continuous
-  corners, so their radii match while the microphone stays taller (38 points)
-  than destination rows (32 points). Hover and press fills on destination rows use
-  the same radius. One well serves both destination groups: rows publish their
+  corners. Destinations and the microphone capsule are standardized: the same
+  38-point height (`NavigationStyle.destinationHeight`), the same 4-point inset
+  from the sidebar content edges (`NavigationStyle.destinationInset`), so the same
+  width, the same 32-point icon island (`NavigationStyle.iconIslandSize`), 13-point
+  symbol and 44-point label start. Destinations have no chevron, so their trailing
+  padding is 6 points and titles stay on one line. Hover and press fills on
+  destination rows use the same radius. One well serves both destination groups: rows publish their
   bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
   the selected row on a 0.36-second ease-in-out curve (`SelectionMotion.curve`,
   cubic-bezier 0.65, 0, 0.35, 1), whatever changed the
@@ -214,14 +218,13 @@ verification status belong in the vault (see below).
   that touches the well's top, bottom and leading edges 3 points in
   (`NavigationStyle.iconIslandInset`). Its highlight and shade stay clipped inside
   the well, never leaking out. Rows publish their icon bounds with
-  `.sidebarSelectionIconAnchor`; the icon frame equals the island's side and labels
-  keep their 40-point start. The well and island animate independently: the well
+  `.sidebarSelectionIconAnchor`; the icon frame equals the island's side. The well and island animate independently: the well
   moves first and the island follows on the same curve 300 ms later
   (`SelectionMotion.islandCurve`), visible only inside the moving well. The selected
   symbol is carved deep into the island (`SidebarIcon`): a dark glyph with a shade rim
   up-left and a highlight rim down-right, appearing as the island arrives. The
   microphone capsule's icon always rests on the same island in its well, carved the
-  same way, with the label keeping its 44-point start.
+  same way.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
   Sidebar destination, microphone and account symbols use
