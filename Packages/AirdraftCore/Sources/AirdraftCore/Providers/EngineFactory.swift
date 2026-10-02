@@ -7,7 +7,7 @@ public actor EngineFactory {
     /// Observable load states, for the UI.
     public let status: EngineStatus
     /// Unload engines that have not been used for this long. 0 disables.
-    private var idleUnloadMinutes = 10
+    private var idleUnloadMinutes = 30
     private var local: [String: any Transcriber] = [:]
     private var operationTail: Task<Void, Never>?
     private var idleTask: Task<Void, Never>?

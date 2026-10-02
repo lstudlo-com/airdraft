@@ -272,7 +272,9 @@ struct ModelRow: View {
                     Circle().fill(Color.green).frame(width: 6, height: 6)
                     Text("In memory").font(.system(size: 11.5)).foregroundStyle(.secondary)
                 }
-                .help("Loaded in RAM. Unloads after \(container.settings.idleUnloadMinutes) idle minutes, when you switch models, or when the app quits.")
+                .help(container.settings.idleUnloadMinutes == 0
+                    ? "Loaded in RAM. Stays loaded until you unload it, switch models, or quit the app."
+                    : "Loaded in RAM. Unloads after \(container.settings.idleUnloadMinutes) idle minutes, when you switch models, or when the app quits.")
             case .loading:
                 HStack(spacing: 5) {
                     ProgressView().controlSize(.mini)

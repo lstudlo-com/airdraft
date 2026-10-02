@@ -292,11 +292,24 @@ public final class DictationPipeline {
             } else {
                 try RecordingPrerequisites.check(asr: asr, llm: llm, refinementEnabled: profile.usesLLM,
                                                  microphone: microphone, insertionEnabled: needsInsertion)
-                if asr.kind.isLocal {
-                    let engine = await factory.transcriber(for: asr)
-                    guard await engine.isReady() else {
-                        throw RecordingPrerequisiteError("Recording did not start. The speech model is not ready. Load it in Models and wait for Loaded before dictating.")
-                    }
+            }
+            guard isCurrent(token) else { return }
+            guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+                  settings.microphone == microphone, selectedOutput() == output else {
+                throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
+            }
+            if asr.kind.isLocal {
+                let engine = await factory.transcriber(for: asr)
+                let ready = await engine.isReady()
+                guard isCurrent(token) else { return }
+                if !ready {
+                    set(.preparingModel)
+                    // Join any startup/UI load through the factory's load lease.
+                    try await factory.prepare(asr)
+                } else {
+                    // Capture can begin while cancelled inference winds down.
+                    // A ready model needs only its idle timestamp refreshed.
+                    await factory.markUsed(engine.id)
                 }
             }
             guard isCurrent(token) else { return }

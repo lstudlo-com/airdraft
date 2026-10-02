@@ -247,16 +247,24 @@ struct NeumorphicSurface<S: Shape>: View {
             let confirmation = PipelineState.notice("Copied to clipboard", requiresAttention: false)
             update(confirmation)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
-            try await Task.sleep(for: .milliseconds(300))
-            precondition(panel.isVisible && panel.alphaValue == 1,
-                         "Clipboard confirmation must be readable before the notice resets")
+            let shown = ContinuousClock.now
+            try await Task.sleep(for: .seconds(3))
             update(.idle)
+            precondition(panel.isVisible && panel.alphaValue == 1,
+                         "Pipeline idle must not shorten the five-second message lifetime")
+            try await Task.sleep(for: .milliseconds(1700))
+            // A settings observation must not restart the original deadline.
+            update(.idle)
+            precondition(panel.isVisible && panel.alphaValue == 1,
+                         "Messages must stay fully visible before five seconds")
+            while shown.duration(to: .now) < .milliseconds(5150) {
+                try await Task.sleep(for: .milliseconds(10))
+            }
             let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
             precondition(frozen.rootView.snapshot?.state == confirmation,
                          "Dismissal must preserve the confirmation instead of restoring the timer")
-            try await Task.sleep(for: .milliseconds(150))
             precondition(panel.isVisible && panel.alphaValue > 0 && panel.alphaValue < 1,
-                         "Clipboard confirmation must fade when its notice returns to idle")
+                         "Clipboard confirmation must start fading at five seconds")
             try await Task.sleep(for: .milliseconds(450))
             precondition(!panel.isVisible, "Copied to clipboard must disappear after the notice timeout")
             update(.idle)
@@ -323,6 +331,10 @@ struct NeumorphicSurface<S: Shape>: View {
         }
         try await Task.sleep(for: .milliseconds(3200))
         precondition(visible(), "A diagnostic must remain readable beyond the old three-second timeout")
+        try await Task.sleep(for: .seconds(2))
+        precondition(!visible(), "Failures must disappear after five seconds plus the fade")
+        update(.idle)
+        precondition(!visible(), "Idle must not reopen an expired failure")
 
         style = .classic
         update(.recording)
@@ -331,6 +343,8 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.idle)
         try await Task.sleep(for: .milliseconds(600))
         precondition(visible(), "Recovery notices must remain readable after idle")
+        try await Task.sleep(for: .milliseconds(4700))
+        precondition(!visible(), "Recovery notices must also expire after five seconds plus the fade")
         update(.recording)
         update(.notice("Copied to clipboard", requiresAttention: false))
         update(.idle)
@@ -348,7 +362,27 @@ struct NeumorphicSurface<S: Shape>: View {
         let reducedSize = NSHostingView(rootView: reducedHost.rootView).fittingSize
         precondition(abs(resumed.frame.width - reducedSize.width) < 0.5,
                      "Reduce Motion must present the complete diagnostic without spatial animation")
-        print("PASS: persistent diagnostic, notice interruption and Reduce Motion")
+        print("PASS: five-second diagnostics, notice interruption and Reduce Motion")
+
+        try await Task.sleep(for: .seconds(4))
+        controller.update(for: pipeline.state, isStateChange: false)
+        update(.failed(message))
+        try await Task.sleep(for: .milliseconds(1700))
+        precondition(visible(), "A repeated failure must receive its own full message lifetime")
+        update(.recording)
+        try await Task.sleep(for: .seconds(4))
+        precondition(visible(), "A cancelled message timeout must not hide a new recording")
+        for activeStyle in [HUDStyle.classic, .mini] {
+            style = activeStyle
+            update(.recording)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            let recordingWidth = panel.frame.width
+            update(.preparingModel)
+            precondition(panel.ignoresMouseEvents && (activeStyle != .mini || panel.frame.width > recordingWidth),
+                         "Both HUD styles must show the loading label without taking focus")
+            saveRender(panel.contentView!, name: "loading-\(activeStyle.rawValue)")
+        }
+        print("PASS: replacement deadlines, new recording cancellation and loading in both HUD styles")
 
         for (name, diagnostic, width, height) in [
             ("cjk", "聽寫失敗：無法連線至伺服器。請檢查網路後重試。\n完整原因：連線逾時，沒有收到辨識結果。", 560.0, 420.0),
@@ -389,7 +423,7 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str)
     binary = suite / name
     subprocess.run(["xcrun", "swiftc", "-parse-as-library", *paths, "-o", str(binary)],
                    check=True, cwd=REPO, timeout=60)
-    result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=30)
+    result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60)
     (suite / "result.txt").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise RuntimeError(f"{name} failed with exit {result.returncode}:\n{result.stdout}{result.stderr}")

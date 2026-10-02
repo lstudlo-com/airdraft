@@ -301,10 +301,11 @@ verification status belong in the vault (see below).
   Failures and recovery notices expand the native panel over 0.28 seconds to show
   complete wrapping diagnostics, with Copy Message at the far right. Bound the
   panel to the current screen and scroll oversized diagnostics without truncation.
-  Keep the diagnostic snapshot visible through the pipeline's idle reset until
-  the next operation. Informational confirmations such as Copied to clipboard
-  show for three seconds, then fade over 0.5 seconds; classify them at the delivery
-  source instead of comparing message text in the HUD. Copy must preserve all text without activating the panel;
+  All error, recovery and informational messages show for five seconds from
+  presentation, then fade over 0.5 seconds. Keep their snapshot through the
+  pipeline's earlier idle reset without restarting the deadline. A new operation
+  cancels the old timer; expired messages must not reopen on idle or style changes.
+  Keep recovery details on Home and in History where applicable. Copy must preserve all text without activating the panel;
   recording remains click-through. Reduce Motion disables spatial expansion.
   Size the capsule to its current timer or status label, with six-point outer
   insets on every side of the waveform well. Do not reserve a fixed label width;
@@ -320,6 +321,12 @@ verification status belong in the vault (see below).
 - `ASRConfig.engineID` must equal the `id` of the transcriber `EngineFactory` builds for it
   (`EngineFactoryTests` checks this); the UI looks up load state by it.
 - Local engines load only from `LocalModels` folders and never download on their own.
+  Starting dictation automatically loads an installed but unloaded speech model,
+  showing Loading in both Classic and Mini HUDs before opening the microphone.
+  Join an existing load through `EngineFactory`; cancellation or changed setup
+  must not start stale recording. Missing model files still require installation.
+  Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable
+  5, 10, 30 minutes and Never; preserve explicitly saved choices.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in
   `ModelCatalogue`; installed, loaded, download and delete all derive from each entry's `select`.
 - Refinement providers are native, not shims: `LLMProviderKind` carries the endpoint, Keychain

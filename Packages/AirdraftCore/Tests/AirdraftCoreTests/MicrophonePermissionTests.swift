@@ -50,7 +50,9 @@ final class MicrophonePermissionTests: XCTestCase {
             let recorder = AudioRecorder()
             let pipeline = DictationPipeline(settings: AppSettings(defaults: defaults),
                 dictionary: DictionaryStore(directory: directory), profiles: ProfileStore(directory: directory),
-                history: nil, factory: EngineFactory(status: EngineStatus()), recorder: recorder,
+                history: nil, factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in
+                    XCTFail("Permission tests must not read credentials"); return nil
+                }, transcriberBuilder: { PermissionSpeech(id: $0.engineID) }), recorder: recorder,
                 recordingPreflight: { _, _, _, _, _ in },
                 requestMicrophoneAccess: { await gate.wait() })
             pipeline.startRecording()
@@ -65,6 +67,16 @@ final class MicrophonePermissionTests: XCTestCase {
             let calls = await gate.calls
             XCTAssertEqual(calls, 1)
         }
+    }
+}
+
+private struct PermissionSpeech: Transcriber {
+    let id: String
+    func isReady() async -> Bool { true }
+    func prepare() async throws { XCTFail("The permission fixture is already loaded") }
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        XCTFail("Cancelled permission requests must never transcribe")
+        throw CancellationError()
     }
 }
 

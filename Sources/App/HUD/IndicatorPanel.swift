@@ -15,6 +15,7 @@ final class IndicatorPanelController {
     private var currentStyle: HUDStyle = .classic
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
+    private var messageTimeoutTask: Task<Void, Never>?
     private var dismissalID: UUID?
     private var contentID = UUID()
     private var targetFrame: NSRect?
@@ -47,8 +48,8 @@ final class IndicatorPanelController {
         currentPreview = preview
         let id = UUID()
         contentID = id
-        // Pipeline errors reset to idle on a timer. Keep the complete diagnostic
-        // readable until the next operation instead of restoring the waveform.
+        // Pipeline errors reset to idle before the HUD timeout. Keep the complete
+        // message readable for its five seconds instead of restoring the waveform.
         let messageSnapshot = lastVisibleState.hudMessage == nil ? nil :
             HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
         let bounds = targetScreen?.visibleFrame.size ?? CGSize(width: 800, height: 600)
@@ -71,10 +72,10 @@ final class IndicatorPanelController {
         return size
     }
 
-    func update(for state: PipelineState) {
+    func update(for state: PipelineState, isStateChange: Bool = true) {
         switch state {
         case .idle:
-            if lastVisibleState.hudRequiresAttention, dismissalID == nil {
+            if messageTimeoutTask != nil, dismissalID == nil {
                 if styleProvider() != currentStyle { show() }
                 return
             }
@@ -83,9 +84,21 @@ final class IndicatorPanelController {
             // Successful delivery already started the exit. Recovery details
             // remain on Home; late notices must not reopen the capsule.
             if case .notice = state, dismissalID != nil { return }
+            // Appearance changes must neither restart the deadline nor reopen
+            // a message that has already timed out.
+            if !isStateChange {
+                if dismissalID == nil { show() }
+                return
+            }
             cancelDismissal()
             lastVisibleState = state
             show()
+            messageTimeoutTask = Task { [weak self] in
+                do { try await Task.sleep(for: .seconds(5)) }
+                catch { return }
+                guard !Task.isCancelled else { return }
+                self?.dismiss()
+            }
         default:
             if state == .inserting, dismissalID != nil { return }
             cancelDismissal()
@@ -99,6 +112,8 @@ final class IndicatorPanelController {
     }
 
     private func cancelDismissal() {
+        messageTimeoutTask?.cancel()
+        messageTimeoutTask = nil
         dismissalID = nil
         // Replaces an interrupted fade before showing a new recording.
         NSAnimationContext.runAnimationGroup { context in
@@ -108,6 +123,8 @@ final class IndicatorPanelController {
     }
 
     private func dismiss() {
+        messageTimeoutTask?.cancel()
+        messageTimeoutTask = nil
         guard dismissalID == nil else { return }
         let id = UUID()
         dismissalID = id
@@ -234,14 +251,6 @@ extension PipelineState {
         default: return nil
         }
     }
-
-    var hudRequiresAttention: Bool {
-        switch self {
-        case .failed: return true
-        case .notice(_, let requiresAttention): return requiresAttention
-        default: return false
-        }
-    }
 }
 
 /// Everything the HUD needs, decoupled from the pipeline so it can be rendered offscreen.
@@ -282,7 +291,7 @@ struct IndicatorView: View {
             if let message = state.hudMessage {
                 HUDMessageView(message: message, maxWidth: messageMaxWidth,
                                maxHeight: messageMaxHeight, pasteboard: messagePasteboard)
-            } else if style == .mini {
+            } else if style == .mini && state != .preparingModel {
                 waveform(width: 80, height: 14)
             } else {
                 HStack(spacing: 8) {

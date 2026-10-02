@@ -3,6 +3,20 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testIdleUnloadDefaultsToThirtyMinutesAndPreservesUserChoices() throws {
+        try withDefaults { defaults in
+            XCTAssertEqual(AppSettings(defaults: defaults).idleUnloadMinutes, 30)
+            // Existing installations without an explicit choice get the new default.
+            let settings = AppSettings(defaults: defaults)
+            settings.appearance = .dark
+            XCTAssertEqual(AppSettings(defaults: defaults).idleUnloadMinutes, 30)
+            for minutes in [5, 10, 30, 0] {
+                settings.idleUnloadMinutes = minutes
+                XCTAssertEqual(AppSettings(defaults: defaults).idleUnloadMinutes, minutes)
+            }
+        }
+    }
+
     func testEveryGeneralSettingSurvivesReload() throws {
         try withDefaults { defaults in
             let settings = AppSettings(defaults: defaults)

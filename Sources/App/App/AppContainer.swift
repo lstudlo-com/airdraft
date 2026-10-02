@@ -187,7 +187,7 @@ final class AppContainer {
             if !self.settings.livePreviewEnabled || self.settings.hudStyle == .none {
                 self.pipeline.disableLivePreview()
             }
-            self.indicator?.update(for: self.pipeline.state)
+            self.indicator?.update(for: self.pipeline.state, isStateChange: false)
         }
     }
 

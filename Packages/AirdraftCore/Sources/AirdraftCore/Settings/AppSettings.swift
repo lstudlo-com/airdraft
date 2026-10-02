@@ -117,7 +117,7 @@ public final class AppSettings {
         useAppContext = Self.load("useAppContext", from: defaults) ?? true
         maxRecordingSeconds = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         appearance = Self.load("appearance", from: defaults) ?? .auto
-        idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 10
+        idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
