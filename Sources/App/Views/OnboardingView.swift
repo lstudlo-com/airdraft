@@ -229,9 +229,7 @@ struct OnboardingView: View {
                 }
             }
             if let current = download?.progress {
-                ProgressView(value: current.fraction)
-                    .accessibilityLabel("Model download")
-                Text(current.currentFile).supportingText().lineLimit(2)
+                ModelDownloadProgress(progress: current)
             }
             if let error = download?.error { Text(error).supportingText().textSelection(.enabled) }
         }

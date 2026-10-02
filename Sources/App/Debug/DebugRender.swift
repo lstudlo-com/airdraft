@@ -82,6 +82,19 @@ enum DebugRender {
             container = AppContainer.shared
         }
         container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
+        if let stage = env["AIRDRAFT_RENDER_DOWNLOAD"] {
+            let progress: ModelDownloader.Progress
+            switch stage {
+            case "preparing": progress = .init(fraction: nil, currentFile: "Preparing download…")
+            case "unknown": progress = .init(fraction: nil, currentFile: "model.safetensors", receivedBytes: 12_345_678)
+            case "unpacking": progress = .init(fraction: nil, currentFile: "Unpacking…")
+            default: progress = .init(fraction: 0.123, currentFile: "AudioEncoder.mlmodelc/weights/weight.bin",
+                                      receivedBytes: 123_000_000, totalBytes: 1_000_000_000)
+            }
+            for entry in ModelCatalogue.entries where entry.isDownloadable {
+                container.downloads.setPreviewProgress(progress, for: entry.config(from: container.settings.asr))
+            }
+        }
         // `many` overflows the list with long names, `missing` saves a device that is gone.
         if let fixture = env["AIRDRAFT_RENDER_MIC_DEVICES"] {
             let names = fixture == "many"
@@ -152,6 +165,12 @@ enum DebugRender {
                 window.layoutIfNeeded()
                 host.layoutSubtreeIfNeeded()
                 RunLoop.main.run(until: Date().addingTimeInterval(container.settings.llm.kind.isCLI && page == .models ? 3 : 0.3))
+                if env["AIRDRAFT_RENDER_LIVE"] == suffix {
+                    window.center()
+                    window.makeKeyAndOrderFront(nil)
+                    RunLoop.main.run(until: Date().addingTimeInterval(45))
+                    window.orderOut(nil)
+                }
                 if env["AIRDRAFT_RENDER_VERIFY_NAVIGATION"] == "1", page == .history {
                     // Visibility callbacks require an onscreen window.
                     window.makeKeyAndOrderFront(nil)

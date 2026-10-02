@@ -329,6 +329,10 @@ verification status belong in the vault (see below).
   5, 10, 30 minutes and Never; preserve explicitly saved choices.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in
   `ModelCatalogue`; installed, loaded, download and delete all derive from each entry's `select`.
+  Model downloads report received bytes during each file, and Whisper includes tokenizer
+  files in its byte total. Preparing, verification and unpacking use an indeterminate
+  indicator; never assign made-up percentages to these stages. Models and onboarding
+  share the progress view. Keep callbacks ordered and bound pending UI updates.
 - Refinement providers are native, not shims: `LLMProviderKind` carries the endpoint, Keychain
   key ref, default model and `wire` (OpenAI chat, Anthropic messages, Gemini generateContent),
   and `EngineFactory.refiner` switches on the wire. A new provider is a new case plus, for a new

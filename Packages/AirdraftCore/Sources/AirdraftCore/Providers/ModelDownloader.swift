@@ -9,11 +9,31 @@ public actor ModelDownloader {
     public static let shared = ModelDownloader()
 
     public struct Progress: Sendable, Equatable {
-        public var fraction: Double
+        /// Nil means the current stage has no measurable total, never an invented zero percent.
+        public var fraction: Double?
         public var currentFile: String
-        public init(fraction: Double, currentFile: String) {
-            self.fraction = min(1, max(0, fraction))
+        public var receivedBytes: Int64?
+        public var totalBytes: Int64?
+        public init(fraction: Double?, currentFile: String, receivedBytes: Int64? = nil, totalBytes: Int64? = nil) {
+            self.fraction = fraction.flatMap { $0.isFinite ? min(1, max(0, $0)) : nil }
             self.currentFile = currentFile
+            self.receivedBytes = receivedBytes
+            self.totalBytes = totalBytes
+        }
+
+        public var detail: String {
+            var parts: [String] = []
+            if let fraction {
+                // Do not round an unfinished transfer up to 100%.
+                parts.append(String(format: "%.1f%%", floor(fraction * 1_000) / 10))
+            }
+            if let receivedBytes {
+                let received = ByteCountFormatter.string(fromByteCount: receivedBytes, countStyle: .file)
+                if let totalBytes {
+                    parts.append("\(received) of \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")
+                } else { parts.append("\(received) received") }
+            }
+            return parts.joined(separator: " · ")
         }
     }
 
@@ -79,7 +99,7 @@ public actor ModelDownloader {
         case .senseVoice: try await downloadSherpa(model: .senseVoice, progress: progress)
         case .parakeet: try await downloadSherpa(model: .parakeet, progress: progress)
         case .apple:
-            progress(Progress(fraction: 0, currentFile: "Installing language"))
+            progress(Progress(fraction: nil, currentFile: "Installing language…"))
             try await AppleSpeechTranscriber(locale: config.effectiveAppleLocale).prepare()
             progress(Progress(fraction: 1, currentFile: "Language installed"))
         case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return
@@ -89,12 +109,15 @@ public actor ModelDownloader {
     /// Qwen3-ASR weights through speech-swift's own anonymous downloader.
     public func downloadQwen3(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("qwen3:\(modelId)") {
-            progress(Progress(fraction: 0, currentFile: "weights"))
+            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
             _ = try await Qwen3ASRModel.fromPretrained(
                 modelId: modelId,
                 cacheDir: LocalModels.qwen3Folder(for: modelId),
                 offlineMode: false,
-                progressHandler: { fraction, stage in progress(Progress(fraction: fraction, currentFile: stage)) }
+                progressHandler: { fraction, stage in
+                    progress(Progress(fraction: fraction > 0 && fraction < 0.8 ? fraction / 0.8 : nil,
+                                      currentFile: stage))
+                }
             )
         }
     }
@@ -102,12 +125,15 @@ public actor ModelDownloader {
     /// Cohere Transcribe weights through speech-swift's own anonymous downloader.
     public func downloadCohere(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("cohere:\(modelId)") {
-            progress(Progress(fraction: 0, currentFile: "weights"))
+            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
             _ = try await CohereTranscribeModel.fromPretrained(
                 modelId,
                 cacheDir: LocalModels.cohereFolder(for: modelId),
                 offlineMode: false,
-                progressHandler: { fraction in progress(Progress(fraction: fraction, currentFile: "weights")) }
+                progressHandler: { fraction in
+                    progress(Progress(fraction: fraction > 0 && fraction < 1 ? fraction : nil,
+                                      currentFile: fraction >= 1 ? "Preparing model…" : "Downloading weights…"))
+                }
             )
         }
     }
@@ -115,18 +141,21 @@ public actor ModelDownloader {
     /// Fetches a sherpa-onnx release archive (.tar.bz2) and unpacks it with /usr/bin/tar.
     public func downloadSherpa(model: SherpaTranscriber.Model, progress: @escaping ProgressHandler) async throws {
         try await exclusive("sherpa:\(model.rawValue)") {
-            progress(Progress(fraction: 0, currentFile: model.folderName + ".tar.bz2"))
-            let (tmp, response) = try await URLSession.shared.download(from: model.archiveURL)
+            progress(Progress(fraction: nil, currentFile: "Connecting…"))
+            let (tmp, response) = try await ModelDownloadTransfer.download(from: model.archiveURL) { received, total in
+                progress(Progress(fraction: total.map { Double(received) / Double($0) },
+                                  currentFile: model.folderName + ".tar.bz2", receivedBytes: received, totalBytes: total))
+            }
             defer { try? FileManager.default.removeItem(at: tmp) }
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
                 throw DownloadError.download(file: model.folderName, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
             }
             try Task.checkCancellation()
             if let checksum = model.archiveSHA256 {
-                progress(Progress(fraction: 0.75, currentFile: "Verifying archive"))
+                progress(Progress(fraction: nil, currentFile: "Verifying archive…"))
                 try Self.verifySHA256(of: tmp, expected: checksum)
             }
-            progress(Progress(fraction: 0.8, currentFile: "unpacking"))
+            progress(Progress(fraction: nil, currentFile: "Unpacking…"))
             let root = LocalModels.sherpaRoot
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
             let archive = root.appendingPathComponent(model.folderName + ".tar.bz2")
@@ -156,36 +185,19 @@ public actor ModelDownloader {
     /// A WhisperKit variant plus the shared tokenizer files, from the Hub's public file API.
     public func downloadWhisper(variant: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("whisper:\(variant)") {
+            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
             let repo = "argmaxinc/whisperkit-coreml"
             let modelFiles = try await listFiles(repo: repo, path: "openai_whisper-\(variant)")
             guard !modelFiles.isEmpty else { throw DownloadError.emptyListing }
-
-            let total = max(1, modelFiles.reduce(Int64(0)) { $0 + ($1.size ?? 0) })
-            var completed: Int64 = 0
-            for entry in modelFiles {
-                // The listing comes from the network: never let a path leave the models folder.
-                guard !entry.path.hasPrefix("/"), !entry.path.split(separator: "/").contains("..") else {
-                    throw DownloadError.unsafePath(entry.path)
-                }
-                let dest = LocalModels.whisperKitRoot.appendingPathComponent(entry.path)
-                let name = (entry.path as NSString).lastPathComponent
-                progress(Progress(fraction: Double(completed) / Double(total), currentFile: name))
-                let existing = (try? FileManager.default.attributesOfItem(atPath: dest.path))?[.size] as? Int64
-                if existing == nil || existing != entry.size {
-                    try await download(repo: repo, path: entry.path, to: dest)
-                }
-                completed += entry.size ?? 0
+            var files = try modelFiles.map { try transferFile($0, repo: repo, root: LocalModels.whisperKitRoot) }
+            if !LocalModels.hasWhisperTokenizer {
+                let tokenizerRepo = "openai/whisper-large-v3"
+                let tokenizerFiles = try await listFiles(repo: tokenizerRepo, path: "")
+                    .filter { LocalModels.whisperTokenizerFiles.contains($0.path) }
+                guard tokenizerFiles.count == LocalModels.whisperTokenizerFiles.count else { throw DownloadError.emptyListing }
+                files += try tokenizerFiles.map { try transferFile($0, repo: tokenizerRepo, root: LocalModels.whisperTokenizerFolder) }
             }
-
-            guard !LocalModels.hasWhisperTokenizer else { return }
-            for name in LocalModels.whisperTokenizerFiles {
-                try Task.checkCancellation()
-                let file = LocalModels.whisperTokenizerFolder.appendingPathComponent(name)
-                let size = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.size] as? Int64 ?? 0
-                if size > 0 { continue }
-                progress(Progress(fraction: 1, currentFile: name))
-                try await download(repo: "openai/whisper-large-v3", path: name, to: LocalModels.whisperTokenizerFolder.appendingPathComponent(name))
-            }
+            try await ModelDownloadTransfer.install(files, progress: progress)
         }
     }
 
@@ -215,20 +227,15 @@ public actor ModelDownloader {
         return try JSONDecoder().decode([TreeEntry].self, from: data).filter { $0.type == "file" }
     }
 
-    private func download(repo: String, path: String, to dest: URL) async throws {
-        let encoded = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
+    private func transferFile(_ entry: TreeEntry, repo: String, root: URL) throws -> ModelDownloadTransfer.File {
+        guard !entry.path.isEmpty, !entry.path.hasPrefix("/"), !entry.path.split(separator: "/").contains("..") else {
+            throw DownloadError.unsafePath(entry.path)
+        }
+        let destination = root.appendingPathComponent(entry.path)
+        guard destination.standardizedFileURL.resolvingSymlinksInPath().path.hasPrefix(
+            root.standardizedFileURL.resolvingSymlinksInPath().path + "/") else { throw DownloadError.unsafePath(entry.path) }
+        let encoded = entry.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? entry.path
         let url = URL(string: "https://huggingface.co/\(repo)/resolve/main/\(encoded)")!
-        let (tmp, response) = try await URLSession.shared.download(from: url)
-        defer { try? FileManager.default.removeItem(at: tmp) }
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            throw DownloadError.download(file: path, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
-        }
-        try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try Task.checkCancellation()
-        if FileManager.default.fileExists(atPath: dest.path) {
-            _ = try FileManager.default.replaceItemAt(dest, withItemAt: tmp)
-        } else {
-            try FileManager.default.moveItem(at: tmp, to: dest)
-        }
+        return .init(url: url, destination: destination, size: entry.size)
     }
 }

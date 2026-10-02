@@ -245,11 +245,7 @@ struct ModelRow: View {
                 actions
             }
             if let progress {
-                HStack(spacing: 8) {
-                    ProgressView(value: progress.fraction).frame(width: 220)
-                    Text("\(Int(progress.fraction * 100))% \(progress.currentFile)").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                .padding(.leading, 56)
+                ModelDownloadProgress(progress: progress).padding(.leading, 56)
             }
             if let error = error ?? downloadError {
                 Text(error).font(.system(size: 11.5)).foregroundStyle(.orange).padding(.leading, 56)
@@ -260,7 +256,7 @@ struct ModelRow: View {
         .onHover { hovering = $0 }
         .help(entry.note)
         .onAppear { installed = LocalModels.isInstalled(entryConfig) }
-        .onChange(of: container.downloads.jobs[entryConfig.engineID]) { _, _ in installed = LocalModels.isInstalled(entryConfig) }
+        .onChange(of: progress != nil) { _, _ in installed = LocalModels.isInstalled(entryConfig) }
     }
 
     @ViewBuilder

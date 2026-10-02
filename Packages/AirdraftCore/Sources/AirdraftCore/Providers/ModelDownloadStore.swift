@@ -27,21 +27,34 @@ public final class ModelDownloadStore {
 
     public var isBusy: Bool { !tasks.isEmpty }
 
+    #if DEBUG
+    /// Isolated UI render data; does not start a transfer or change installed files.
+    public func setPreviewProgress(_ progress: ModelDownloader.Progress, for config: ASRConfig) {
+        guard tasks[config.engineID] == nil else { return }
+        jobs[config.engineID] = Job(progress: progress, token: UUID())
+    }
+    #endif
+
     public func start(_ config: ASRConfig, onComplete: @escaping @MainActor () -> Void = {}) {
         let id = config.engineID
         guard tasks[id] == nil else { return }
         let token = UUID()
-        jobs[id] = Job(progress: .init(fraction: 0, currentFile: "Starting…"), token: token)
-        tasks[id] = Task {
-            defer { tasks[id] = nil }
-            do {
-                try await download(config) { [weak self] progress in
-                    Task { @MainActor in
-                        guard let self, self.jobs[id]?.token == token,
-                              self.tasks[id] != nil, self.jobs[id]?.cancelling == false else { return }
-                        self.jobs[id]?.progress = progress
-                    }
+        jobs[id] = Job(progress: .init(fraction: nil, currentFile: "Preparing download…"), token: token)
+        tasks[id] = Task { [self] in
+            // Keep callback order and bound pending UI work when the network is fast.
+            let (updates, continuation) = AsyncStream<ModelDownloader.Progress>.makeStream(bufferingPolicy: .bufferingNewest(1))
+            let receiver = Task { @MainActor [weak self] in
+                for await progress in updates {
+                    guard let self, self.jobs[id]?.token == token,
+                          self.tasks[id] != nil, self.jobs[id]?.cancelling == false else { continue }
+                    self.jobs[id]?.progress = progress
                 }
+            }
+            defer { continuation.finish(); receiver.cancel(); tasks[id] = nil }
+            do {
+                try await download(config) { continuation.yield($0) }
+                continuation.finish()
+                await receiver.value
                 try Task.checkCancellation()
                 guard installed(config) else { throw ModelDownloader.DownloadError.incomplete }
                 jobs[id] = Job(progress: nil, token: token)

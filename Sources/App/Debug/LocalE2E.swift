@@ -103,7 +103,7 @@ enum LocalE2E {
                     report["status"] = "passed"
                 case "download":
                     try await ModelDownloader.shared.download(app.settings.asr) { progress in
-                        print("E2E download \(Int(progress.fraction * 100))% \(progress.currentFile)")
+                        print("E2E download \(progress.detail) \(progress.currentFile)")
                     }
                     guard LocalModels.isInstalled(app.settings.asr) else { throw E2EError.missingModel }
                     report["status"] = "passed"
