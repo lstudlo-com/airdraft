@@ -119,6 +119,7 @@ Standing requirement from Light, reaffirmed 2026-09-21:
 - Error notices place the message and action in one horizontal row. Short setup
   errors fit on one line; long diagnostics wrap beside the action. Separate every
   expanded Home readiness row with `RowDivider`, even without a trailing button.
+  Separators inside cards are engraved neumorphic grooves, not flat hairlines.
 - HUD errors and recovery notices animate from the compact capsule into complete,
   wrapping diagnostics with Copy Message at the far right. All errors, recovery
   notices and informational confirmations show for five seconds, then fade over

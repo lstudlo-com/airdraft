@@ -415,7 +415,10 @@ below the 14 pt section headings. Descriptions share `.supportingText()`: 11 pt
 regular in the native secondary color, with one short phrase where possible.
 Privacy and recovery instructions remain explicit; longer model explanations
 stay inside their details disclosure. Inline notices keep text and actions in
-one horizontal row, and every Home readiness row has a `RowDivider`.
+one horizontal row, and every Home readiness row has a `RowDivider`. Separators
+inside cards are engraved: a 1-point shade line (black 13% light, 42% dark) over
+a 1-point highlight (white 85% light, 9% dark), lit from the top left like the
+cards; Increase Contrast deepens the shade line.
 Every provider key is an `APIKeyField` row
 followed by a Connection row with Test and Cancel.
 

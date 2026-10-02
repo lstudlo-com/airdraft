@@ -387,8 +387,23 @@ extension View {
     }
 }
 
+/// A separator engraved into the raised card: a shade line under the top-left light with
+/// a highlight line just below it, like the cards' own light and shade.
 struct RowDivider: View {
-    var body: some View { Divider().opacity(0.45) }
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        let dark = scheme == .dark
+        let increased = contrast == .increased
+        VStack(spacing: 0) {
+            Rectangle().fill(Color.black.opacity(increased ? (dark ? 0.7 : 0.35) : (dark ? 0.42 : 0.13)))
+            Rectangle().fill(Color.white.opacity(dark ? 0.09 : 0.85))
+        }
+        .frame(height: 2)
+        .frame(maxWidth: .infinity)
+        .accessibilityHidden(true)
+    }
 }
 
 struct KeyCap: View {

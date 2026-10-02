@@ -165,7 +165,9 @@ verification status belong in the vault (see below).
   Remove redundant descriptions and place longer explanations in existing details
   disclosures. Error notices keep the message and action in one horizontal row;
   long diagnostics may wrap beside the action. Separate every Home readiness row
-  with `RowDivider`, including rows without a trailing action.
+  with `RowDivider`, including rows without a trailing action. `RowDivider` is the
+  only separator inside cards: an engraved groove, a shade line with a highlight
+  line just below it from the same top-left light, never a flat hairline.
   Section headings use a shared 32-point minimum row height, a 12-point gap to
   their content and 28-point section spacing. Center titles and trailing controls
   vertically within the row, including provider pickers. Inset only the heading
