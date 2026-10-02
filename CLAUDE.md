@@ -114,10 +114,11 @@ verification status belong in the vault (see below).
   brand width plus equal 20-point side insets. Center destination, microphone
   and available account icons horizontally while preserving their expanded
   vertical positions and row heights. Hide text, retain tooltips and accessible
-  names, and keep the titlebar toggle available to expand it again. In the collapsed
-  state, place the toggle outside the rail in the page island's heading row, with
-  its symbol aligned to the page leading inset and its center on the heading row.
-  Inset the page heading beside the collapsed toggle so their hit areas stay separate.
+  names, and keep the sidebar toggle available to expand it again. In both sidebar
+  states, place the toggle outside the sidebar in the page island's heading row, with
+  its symbol aligned to the page leading inset and its center on the heading row;
+  it never moves into the titlebar. Always inset the page heading beside the toggle
+  so their hit areas stay separate.
   The outlined `SidebarWordmark.imageset` SVG remains the website and installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
   keep its capsule strokes and lowercase lettering paths intact.
@@ -218,8 +219,8 @@ verification status belong in the vault (see below).
   `Theme.sidebarIconSize` (13 points).
   Keep the main window 784 points wide with resizable height (minimum 600 points).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
-  Inset the native window buttons 16 points from the top and leading edges;
-  align the sidebar toggle with their centers in the 46-point titlebar. Page
+  Inset the native window buttons 16 points from the top and leading edges
+  in the 46-point titlebar. Page
   headings and actions use a separate 32-point row with 24 points above it inside
   the island and 12 points below, inside one sticky header. Extend its backdrop blur through the
   24-point content inset below it, plus a 4-point outer feather. Text at the

@@ -8,7 +8,6 @@ enum Theme {
     static let windowMinHeight: CGFloat = 600
     static let windowControlsInset: CGFloat = 16
     static let titlebarHeight: CGFloat = 46
-    static let sidebarToggleLeading: CGFloat = 73
     static let sidebarToggleWidth: CGFloat = 28
     static let sidebarToggleSymbolSize: CGFloat = 14
     static let sidebarWidth: CGFloat = 170
@@ -30,12 +29,13 @@ enum Theme {
     static let pageHeaderBlurRadius: CGFloat = 32
     // Cover the content inset as well, with 4 pt to join the clear page smoothly.
     static let pageHeaderBlurExtension: CGFloat = pagePadding + 4
-    // The collapsed toggle leaves the icon rail for the island's heading row, with its
-    // symbol on the page title's leading inset.
-    static let sidebarCollapsedToggleLeading = sidebarCollapsedWidth + pagePadding
-        - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
-    static let sidebarCollapsedToggleTop = islandInset + pageHeaderTopInset
-    static let sidebarCollapsedHeaderInset = (sidebarToggleWidth + sidebarToggleSymbolSize) / 2
+    // The sidebar toggle sits in the island's heading row whether the sidebar is expanded
+    // or collapsed, with its symbol on the page title's leading inset.
+    static func sidebarToggleLeading(sidebarWidth: CGFloat) -> CGFloat {
+        sidebarWidth + pagePadding - (sidebarToggleWidth - sidebarToggleSymbolSize) / 2
+    }
+    static let sidebarToggleTop = islandInset + pageHeaderTopInset
+    static let pageHeaderToggleInset = (sidebarToggleWidth + sidebarToggleSymbolSize) / 2
         + controlSpacing
     static let cardPadding: CGFloat = 16
     static let sectionSpacing: CGFloat = 28
@@ -646,7 +646,7 @@ struct PageScaffold<Content: View, Accessory: View>: View {
             Spacer(minLength: Theme.controlSpacing)
             accessory
         }
-        .padding(.leading, container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedHeaderInset : 0)
+        .padding(.leading, Theme.pageHeaderToggleInset)
         .padding(.horizontal, Theme.pagePadding)
         .frame(height: Theme.pageHeaderRowHeight)
         .padding(.top, Theme.pageHeaderTopInset)
