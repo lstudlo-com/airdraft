@@ -250,10 +250,13 @@ struct SidebarIcon: View {
         ZStack {
             glyph.foregroundStyle(.primary)
                 .opacity(selected ? 0 : 1)
+            // Engraved: the lower-right rim catches the light, the upper-left rim falls in shade.
             ZStack {
-                glyph.foregroundStyle(Color.white.opacity(dark ? 0.16 : 0.9))
-                    .offset(x: 0.5, y: 0.75)
-                glyph.foregroundStyle(Color(white: dark ? 0.07 : 0.32))
+                glyph.foregroundStyle(Color.white.opacity(dark ? 0.24 : 1))
+                    .offset(x: 0.8, y: 1)
+                glyph.foregroundStyle(Color.black.opacity(dark ? 0.6 : 0.35))
+                    .offset(x: -0.5, y: -0.6)
+                glyph.foregroundStyle(Color(white: dark ? 0.05 : 0.24))
             }
             .opacity(selected ? 1 : 0)
         }
@@ -271,6 +274,7 @@ struct SidebarView: View {
     @State private var wordCountRefresh = UUID()
 
     private var isCollapsed: Bool { container.navigation.sidebarCollapsed }
+    private static let micDiscDiameter: CGFloat = 38 - 2 * NavigationStyle.discInset
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -289,11 +293,12 @@ struct SidebarView: View {
 
             Spacer(minLength: 20)
             Button(action: openMicrophone) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic")
-                        .font(.system(size: Theme.sidebarIconSize))
-                        .frame(width: 20)
-                        .accessibilityHidden(true)
+                // The microphone always rests on its own disc in the well, carved like a selection;
+                // the disc touches the well's edges and the label keeps its 44-point start.
+                HStack(spacing: 9) {
+                    SidebarIcon(symbol: "mic", selected: true)
+                        .frame(width: Self.micDiscDiameter, height: Self.micDiscDiameter)
+                        .background { SoftWellDisc() }
                     if !isCollapsed {
                         Text(container.microphones.label(container.settings.microphone))
                             .font(.system(size: 13))
@@ -307,7 +312,8 @@ struct SidebarView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 14)
+                .padding(.leading, isCollapsed ? 0 : NavigationStyle.discInset)
+                .padding(.trailing, isCollapsed ? 0 : 14)
                 .frame(height: 38)
             }
             .buttonStyle(MicrophoneButtonStyle())
@@ -373,9 +379,11 @@ struct SidebarView: View {
         VStack(spacing: 2) {
             ForEach(pages) { page in
                 Button { container.navigation.page = page } label: {
-                    HStack(spacing: 10) {
+                    // The icon frame matches the disc that touches the well's edges; labels keep
+                    // their 40-point start.
+                    HStack(spacing: 11) {
                         SidebarIcon(symbol: page.symbol, selected: container.navigation.page == page)
-                            .frame(width: 20)
+                            .frame(width: NavigationStyle.rowDiscDiameter)
                             .sidebarSelectionIconAnchor(page)
                         if !isCollapsed {
                             Text(page.title)
@@ -384,7 +392,8 @@ struct SidebarView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
-                    .padding(.horizontal, 10)
+                    .padding(.leading, isCollapsed ? 10 : NavigationStyle.discInset)
+                    .padding(.trailing, 10)
                     .frame(height: NavigationStyle.rowHeight)
                     .contentShape(Rectangle())
                 }

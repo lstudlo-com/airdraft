@@ -18,6 +18,10 @@ enum NavigationStyle {
     static let cornerRadius: CGFloat = 7
     /// Shared by the selected destination well and the microphone well, whose heights differ.
     static let wellRadius: CGFloat = 12
+    /// The icon disc touches the well's top and bottom with this margin, like a switch knob.
+    static let discInset: CGFloat = 3
+    /// The disc diameter in a destination row; the row's icon frame matches it.
+    static let rowDiscDiameter = rowHeight - 2 * discInset
     static var wellShape: RoundedRectangle { RoundedRectangle(cornerRadius: wellRadius, style: .continuous) }
 }
 
@@ -94,11 +98,6 @@ extension View {
     }
 }
 
-enum SidebarIconDisc {
-    /// Leaves a 5-point margin of well around the disc in a 32-point row.
-    static let diameter: CGFloat = 22
-}
-
 private struct SidebarSelectionWell<ID: Hashable>: View {
     let anchor: SidebarSelectionAnchor?
     let selection: ID
@@ -106,21 +105,24 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
 
     var body: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .topLeading) {
-                if let row = anchor?.row {
-                    let rect = proxy[row]
+            if let row = anchor?.row {
+                let rect = proxy[row]
+                let diameter = rect.height - 2 * NavigationStyle.discInset
+                ZStack(alignment: .topLeading) {
                     NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
-                        .frame(width: rect.width, height: rect.height)
-                        .offset(x: rect.minX, y: rect.minY)
+                    if let icon = anchor?.icon {
+                        let center = proxy[icon]
+                        SoftWellDisc()
+                            .frame(width: diameter, height: diameter)
+                            .offset(x: center.midX - rect.minX - diameter / 2, y: center.midY - rect.minY - diameter / 2)
+                    }
                 }
-                if let icon = anchor?.icon {
-                    let rect = proxy[icon]
-                    NeumorphicSurface(shape: Circle(), depth: 1.5)
-                        .frame(width: SidebarIconDisc.diameter, height: SidebarIconDisc.diameter)
-                        .offset(x: rect.midX - SidebarIconDisc.diameter / 2, y: rect.midY - SidebarIconDisc.diameter / 2)
-                }
+                .frame(width: rect.width, height: rect.height)
+                // The disc is an object inside the well: its light and shade stay within it.
+                .clipShape(NavigationStyle.wellShape)
+                .offset(x: rect.minX, y: rect.minY)
+                .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
             }
-            .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

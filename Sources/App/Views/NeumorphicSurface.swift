@@ -54,6 +54,31 @@ struct NeumorphicSurface<S: InsettableShape>: View {
     }
 }
 
+/// A flat raised disc resting in a recessed well, like a switch knob on its track. Its
+/// highlight (up-left) and shade (down-right) fall inside the well: the well that holds it
+/// must clip it.
+struct SoftWellDisc: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        let dark = scheme == .dark
+        Circle()
+            .fill(Color(white: dark ? 0.23 : 0.95))
+            .background {
+                SurfaceShadows(shape: Circle(), shadows: [
+                    .init(color: .black.opacity(dark ? 0.7 : 0.3), radius: 2.5, x: 1.5, y: 2),
+                    .init(color: .white.opacity(dark ? 0.1 : 1), radius: 2.5, x: -1.5, y: -2),
+                ])
+            }
+            .overlay {
+                if contrast == .increased { Circle().strokeBorder(Color.primary.opacity(0.5), lineWidth: 1) }
+            }
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+    }
+}
+
 /// Used only by the sidebar microphone capsule, not every action button.
 struct MicrophoneButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -69,6 +94,8 @@ struct MicrophoneButtonStyle: ButtonStyle {
                 .background {
                     NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
                 }
+                // Keeps the icon disc's light and shade inside the well.
+                .clipShape(NavigationStyle.wellShape)
                 .contentShape(NavigationStyle.wellShape)
                 .opacity(isEnabled ? 1 : 0.45)
         }

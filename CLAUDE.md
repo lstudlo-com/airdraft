@@ -208,11 +208,16 @@ verification status belong in the vault (see below).
   the selected row on a 0.36-second ease-in-out curve (`SelectionMotion.curve`,
   cubic-bezier 0.65, 0, 0.35, 1), whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
-  Inside the well, the selected icon floats on its own raised 22-point disc, like a
-  switch knob on its track: rows publish their icon bounds with
-  `.sidebarSelectionIconAnchor`, and the disc travels with the well on the same
-  curve. The selected symbol is carved into that disc (`SidebarIcon`): a darker
-  glyph with a highlight offset down-right from the top-left light.
+  Inside the well, the selected icon rests on a flat raised disc built like a
+  switch knob on its track (`SoftWellDisc`): a solid face that touches the well's
+  top, bottom and leading edges 3 points in (`NavigationStyle.discInset`), with its
+  highlight and shade clipped inside the well, never leaking out. Rows publish their
+  icon bounds with `.sidebarSelectionIconAnchor`; the icon frame equals the disc
+  diameter and labels keep their 40-point start. The disc travels with the well on
+  the same curve. The selected symbol is carved deep into the disc (`SidebarIcon`):
+  a dark glyph with a shade rim up-left and a highlight rim down-right. The
+  microphone capsule's icon always rests on the same disc in its well, carved the
+  same way, with the label keeping its 44-point start.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
   Sidebar destination, microphone and account symbols use
@@ -290,7 +295,8 @@ verification status belong in the vault (see below).
   `.softField()` with an accent ring while editing; menu pickers use `SoftPicker`;
   segmented choices use `SoftSegmentedPicker` (a raised thumb sliding on an inset
   track with `SelectionMotion.curve`); switches use `.toggleStyle(.softSwitch)`, whose
-  on state fills the inset track with the system accent; sliders use `SoftSlider`;
+  on state fills the inset track with the system accent. Objects inside a track or
+  well (thumbs, knobs, icon discs) keep their light and shade clipped inside it; sliders use `SoftSlider`;
   steppers use raised minus and plus buttons beside the typed value. Keep
   `.borderedProminent` for the single primary action and native link buttons. The
   menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
@@ -301,7 +307,9 @@ verification status belong in the vault (see below).
   vertical offset of SwiftUI's direct shadow modifiers. Check the live window
   as well as saved renders. Keep selection/focus cues, card insets and live waveform
   contrast. Model table rows and text lists stay inside their raised cards without
-  extra per-row depth.
+  extra per-row depth. Scroll views must not clip raised cards' light and shade:
+  History's card column extends into the timeline gap and the page's trailing and
+  bottom margins, with matching content margins that keep the cards in place.
 - After successful text delivery, freeze the recording HUD's final processing
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer
@@ -591,7 +599,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   `SurfaceShadows.swift` with `scripts/verify-sidebar-selection.swift`, then run it.
   It captures its own window through the compositor and asserts that the well
   passes through intermediate positions, across a group gap, and settles on the row,
-  with the raised icon disc on the new row's icon and gone from the old one.
+  with the icon disc on the new row's icon, gone from the old one and its shade
+  clipped inside the well.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable

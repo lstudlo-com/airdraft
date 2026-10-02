@@ -324,9 +324,12 @@ bottom-right highlight. Both wells share 12-point continuous corners
 (`NavigationStyle.wellShape`); the 38-point microphone stays taller than the
 32-point destination rows, so only the radius matches, not the height. Increase
 Contrast retains an explicit edge. Text and symbols stay opaque.
-Inside the well, the selected icon floats on a raised 22-point disc, like a switch
-knob on its track, and its symbol is carved into the disc: a darker glyph with a
-highlight just below and to the right. The disc travels with the well.
+Inside the well, the selected icon rests on a flat raised disc, like a switch knob
+on its track: it touches the well's top, bottom and leading edges 3 points in, and
+its light and shade stay clipped inside the well. The symbol is carved deep into
+the disc, with a shade rim up-left and a highlight rim down-right. The disc travels
+with the well, and the microphone capsule's icon rests on the same disc. Segmented
+thumbs and switch knobs likewise keep their light and shade inside their tracks.
 A single well serves both destination groups and slides to the newly selected row
 on a 0.36-second ease-in-out curve that eases away, glides and settles, whether the page changed from the
 sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.

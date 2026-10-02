@@ -240,6 +240,8 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
         .padding(2)
         .frame(width: width, height: small ? 22 : SoftControl.height)
         .background { SoftInsetTrack(shape: Capsule()) }
+        // The thumb is an object inside the track: its light and shade stay within it.
+        .clipShape(Capsule())
         .opacity(isEnabled ? 1 : 0.5)
         .fixedSize(horizontal: width == nil, vertical: false)
         .accessibilityElement(children: .contain)
@@ -279,6 +281,8 @@ struct SoftSwitchStyle: ToggleStyle {
                         .padding(2)
                 }
                 .frame(width: 38, height: 22)
+                // The knob's light and shade stay inside its track.
+                .clipShape(Capsule())
                 .contentShape(Capsule())
             }
             .buttonStyle(.plain)

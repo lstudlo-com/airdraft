@@ -241,6 +241,12 @@ private struct HistoryEntries: View {
         }
         .pageScrollEdge()
         .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
+        // Extend the scroll view into the gap beside the timeline and the page's trailing and
+        // bottom margins, then pad the cards back, so their light and shade are never clipped.
+        .contentMargins(.leading, Theme.controlSpacing, for: .scrollContent)
+        .contentMargins([.trailing, .bottom], Theme.pagePadding, for: .scrollContent)
+        .padding(.leading, -Theme.controlSpacing)
+        .padding([.trailing, .bottom], -Theme.pagePadding)
         .scrollPosition($scroll.entryPosition)
         .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { _, value in
             visibility.viewport = value

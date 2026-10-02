@@ -38,10 +38,10 @@ private struct SelectionFixture: View {
                 Button {} label: {
                     HStack(spacing: 0) {
                         // Stands in for the row icon, so the raised disc has an anchor to follow.
-                        Color.clear.frame(width: 20, height: 16).sidebarSelectionIconAnchor(row)
+                        Color.clear.frame(width: NavigationStyle.rowDiscDiameter, height: 16).sidebarSelectionIconAnchor(row)
                         Spacer(minLength: 0)
                     }
-                    .padding(.leading, 10)
+                    .padding(.leading, NavigationStyle.discInset)
                     .frame(maxWidth: .infinity)
                     .frame(height: NavigationStyle.rowHeight)
                 }
@@ -128,12 +128,15 @@ enum VerifySidebarSelection {
         func white(_ x: CGFloat, _ y: CGFloat) -> CGFloat {
             bitmap.colorAt(x: Int(x * scale), y: Int(y * scale))!.usingColorSpace(.genericGray)!.whiteComponent
         }
-        // A raised disc is lit at its top left and darker at its bottom right; the well is flat.
-        func relief(_ x: CGFloat, _ y: CGFloat) -> CGFloat { white(x - 5, y - 5) - white(x + 5, y + 5) }
-        let iconX: CGFloat = 20 + 10 + 10
-        precondition(relief(iconX, center(ofRow: 3)) > 0.05 && abs(relief(150, center(ofRow: 3))) < 0.02,
-                     "A raised disc must float in the well under the selected icon")
-        precondition(abs(relief(iconX, center(ofRow: 0))) < 0.02, "The disc must leave the previously selected row")
+        // The flat disc face is lighter than the well around it and leaves the old row.
+        let iconX = 20 + NavigationStyle.discInset + NavigationStyle.rowDiscDiameter / 2
+        precondition(white(iconX, center(ofRow: 3)) - white(150, center(ofRow: 3)) > 0.03,
+                     "A raised disc must rest in the well under the selected icon")
+        precondition(abs(white(iconX, center(ofRow: 0)) - white(150, center(ofRow: 0))) < 0.02,
+                     "The disc must leave the previously selected row")
+        // Its shade stays inside the well: just outside the well's bottom edge is plain background.
+        precondition(abs(white(iconX, SelectionFixture.rowTops[3] + NavigationStyle.rowHeight + 0.5) - white(4, 4)) < 0.02,
+                     "The disc's shade must not leak outside the well")
         print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
     }
 }
