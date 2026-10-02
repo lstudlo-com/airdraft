@@ -98,13 +98,14 @@ system appearance, including the accent shown in the live Save button.
 
 ### Neutral
 
-Pages sit on `Theme.islandBackground`: white level 0.86 in light mode and 0.15
+Pages sit on `Theme.islandBackground`: white level 0.90 in light mode and 0.15
 in dark mode. In both appearances the island stays darker than the chrome and at
-the Home hero's surface gray (0.87–0.85 light, around the base; 0.19–0.17 dark,
+the Home hero's surface gray (0.91–0.89 light, around the base; 0.19–0.17 dark,
 just above it), so the hero and other neumorphic elements rise softly from it
 instead of floating on white or near-black. The light mid-tone leaves the white
-highlight about 0.14 of headroom; the light hero's well (0.81) and bars
-(0.75–0.50) step down from its surface in the same order. The chrome is
+highlight about 0.10 of headroom; the light hero's well (0.85) and bars
+(0.79–0.54) step down from its surface in the same order. Light cards (0.91–0.89),
+controls (0.93–0.89) and inset tracks (0.85) follow the same step. The chrome is
 therefore the lighter layer in both appearances. The window chrome, behind the sidebar and around the island, uses
 `SidebarBackground`: one fully opaque neutral color, white level 0.95 in light
 mode and 0.21 in dark mode, with no translucency or desktop blur. The window
@@ -324,18 +325,20 @@ bottom-right highlight. Both wells share 12-point continuous corners
 (`NavigationStyle.wellShape`); the 38-point microphone stays taller than the
 32-point destination rows, so only the radius matches, not the height. Increase
 Contrast retains an explicit edge. Text and symbols stay opaque.
-Inside the well, the selected icon rests on a flat raised disc, like a switch knob
-on its track: it touches the well's top, bottom and leading edges 3 points in, and
-its light and shade stay clipped inside the well. The symbol is carved deep into
-the disc, with a shade rim up-left and a highlight rim down-right. The disc travels
-with the well, and the microphone capsule's icon rests on the same disc. Segmented
+Inside the well, the selected icon rests on a flat raised island, like a switch
+knob on its track: a rounded square concentric with the well (9-point corners) that
+touches its top, bottom and leading edges 3 points in, with its light and shade
+clipped inside the well. The symbol is carved deep into the island, with a shade
+rim up-left and a highlight rim down-right. The well moves first and the island
+follows 300 ms later on the same curve, sliding into the new well; the microphone
+capsule's icon rests on the same island. Segmented
 thumbs and switch knobs likewise keep their light and shade inside their tracks.
 A single well serves both destination groups and slides to the newly selected row
 on a 0.36-second ease-in-out curve that eases away, glides and settles, whether the page changed from the
 sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.
 Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
-fills are raised solid gray pills inside their inset tracks (0.62 light, 0.32
+fills are raised solid gray pills inside their inset tracks (0.66 light, 0.32
 dark), lit from the top left, and remain proportional, with no fill for zero. The recording HUD fits its current timer or status and
 keeps bright live bars, a dark inset waveform track and shallow rim. Errors and
 recovery notices expand over 0.28 seconds into a rounded diagnostic panel with

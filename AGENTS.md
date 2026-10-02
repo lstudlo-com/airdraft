@@ -135,9 +135,9 @@ verification status belong in the vault (see below).
   including onboarding. It is inset by `Theme.islandInset` (the sidebar's 10-point
   content inset) from the top, trailing and bottom window edges; the sidebar's
   own inset is its leading gutter. Use `Theme.islandRadius` (12-point continuous
-  corners) and `Theme.islandBackground`: 0.86 white in light mode and 0.15 in
+  corners) and `Theme.islandBackground`: 0.90 white in light mode and 0.15 in
   dark mode. In both appearances the island must stay darker than the chrome and
-  at the Home hero's surface gray (light hero 0.87–0.85 around it; dark hero
+  at the Home hero's surface gray (light hero 0.91–0.89 around it; dark hero
   0.19–0.17 just above it) so neumorphic elements rise from it. Keep it a mid-tone
   with room for both the white highlight and the shade; never brighten it toward
   white or darken it toward black. Separate it with a hairline edge only, no shadow or sidebar divider.
@@ -208,15 +208,19 @@ verification status belong in the vault (see below).
   the selected row on a 0.36-second ease-in-out curve (`SelectionMotion.curve`,
   cubic-bezier 0.65, 0, 0.35, 1), whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
-  Inside the well, the selected icon rests on a flat raised disc built like a
-  switch knob on its track (`SoftWellDisc`): a solid face that touches the well's
-  top, bottom and leading edges 3 points in (`NavigationStyle.discInset`), with its
-  highlight and shade clipped inside the well, never leaking out. Rows publish their
-  icon bounds with `.sidebarSelectionIconAnchor`; the icon frame equals the disc
-  diameter and labels keep their 40-point start. The disc travels with the well on
-  the same curve. The selected symbol is carved deep into the disc (`SidebarIcon`):
-  a dark glyph with a shade rim up-left and a highlight rim down-right. The
-  microphone capsule's icon always rests on the same disc in its well, carved the
+  Inside the well, the selected icon rests on a flat raised island built like a
+  switch knob on its track (`SoftWellIsland`): a solid square face whose corners
+  follow the well's, concentric at 9 points (`NavigationStyle.iconIslandShape`), and
+  that touches the well's top, bottom and leading edges 3 points in
+  (`NavigationStyle.iconIslandInset`). Its highlight and shade stay clipped inside
+  the well, never leaking out. Rows publish their icon bounds with
+  `.sidebarSelectionIconAnchor`; the icon frame equals the island's side and labels
+  keep their 40-point start. The well and island animate independently: the well
+  moves first and the island follows on the same curve 300 ms later
+  (`SelectionMotion.islandCurve`), visible only inside the moving well. The selected
+  symbol is carved deep into the island (`SidebarIcon`): a dark glyph with a shade rim
+  up-left and a highlight rim down-right, appearing as the island arrives. The
+  microphone capsule's icon always rests on the same island in its well, carved the
   same way, with the label keeping its 44-point start.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
@@ -296,7 +300,7 @@ verification status belong in the vault (see below).
   segmented choices use `SoftSegmentedPicker` (a raised thumb sliding on an inset
   track with `SelectionMotion.curve`); switches use `.toggleStyle(.softSwitch)`, whose
   on state fills the inset track with the system accent. Objects inside a track or
-  well (thumbs, knobs, icon discs) keep their light and shade clipped inside it; sliders use `SoftSlider`;
+  well (thumbs, knobs, icon islands) keep their light and shade clipped inside it; sliders use `SoftSlider`;
   steppers use raised minus and plus buttons beside the typed value. Keep
   `.borderedProminent` for the single primary action and native link buttons. The
   menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
@@ -599,8 +603,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   `SurfaceShadows.swift` with `scripts/verify-sidebar-selection.swift`, then run it.
   It captures its own window through the compositor and asserts that the well
   passes through intermediate positions, across a group gap, and settles on the row,
-  with the icon disc on the new row's icon, gone from the old one and its shade
-  clipped inside the well.
+  with the icon island absent when the well settles, then on the new row's icon,
+  gone from the old one and its shade clipped inside the well.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable

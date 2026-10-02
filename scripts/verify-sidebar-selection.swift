@@ -37,11 +37,11 @@ private struct SelectionFixture: View {
             ForEach(rows, id: \.self) { row in
                 Button {} label: {
                     HStack(spacing: 0) {
-                        // Stands in for the row icon, so the raised disc has an anchor to follow.
-                        Color.clear.frame(width: NavigationStyle.rowDiscDiameter, height: 16).sidebarSelectionIconAnchor(row)
+                        // Stands in for the row icon, so the icon island has an anchor to follow.
+                        Color.clear.frame(width: NavigationStyle.rowIconIslandSize, height: 16).sidebarSelectionIconAnchor(row)
                         Spacer(minLength: 0)
                     }
-                    .padding(.leading, NavigationStyle.discInset)
+                    .padding(.leading, NavigationStyle.iconIslandInset)
                     .frame(maxWidth: .infinity)
                     .frame(height: NavigationStyle.rowHeight)
                 }
@@ -71,6 +71,9 @@ enum VerifySidebarSelection {
         }
         let capture = unsafeBitCast(symbol, to: Capture.self)
         var frame = 0
+        let iconX = 20 + NavigationStyle.iconIslandInset + NavigationStyle.rowIconIslandSize / 2
+        /// Whether each capture shows the flat island face, lighter than its well, on row 3's icon.
+        var islandOnTarget: [Bool] = []
         /// The vertical centre of the pixels that differ from the background along the row centre line.
         func wellCenter() -> CGFloat? {
             guard let image = capture(.null, 1 << 3, UInt32(window.windowNumber), 1 << 0)?.takeRetainedValue() else {
@@ -83,6 +86,11 @@ enum VerifySidebarSelection {
             }
             frame += 1
             let scale = CGFloat(image.width) / SelectionFixture.size.width
+            func shade(_ x: CGFloat, _ y: CGFloat) -> CGFloat {
+                bitmap.colorAt(x: Int(x * scale), y: Int(y * scale))!.usingColorSpace(.genericGray)!.whiteComponent
+            }
+            let targetY = SelectionFixture.rowTops[3] + NavigationStyle.rowHeight / 2
+            islandOnTarget.append(shade(iconX, targetY) - shade(150, targetY) > 0.03)
             let background = bitmap.colorAt(x: 4, y: 4)!.usingColorSpace(.genericGray)!.whiteComponent
             let rows = (0..<image.height).filter { y in
                 let white = bitmap.colorAt(x: Int(110 * scale), y: y)!.usingColorSpace(.genericGray)!.whiteComponent
@@ -102,7 +110,7 @@ enum VerifySidebarSelection {
             RunLoop.main.run(until: Date().addingTimeInterval(0.03))
             if let y = wellCenter() { samples.append(y) }
         }
-        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.6))
         guard let end = wellCenter() else { preconditionFailure("The well disappeared after the change") }
         print("Well centre: start \(start), samples \(samples.map { Int($0.rounded()) }), end \(end)")
 
@@ -119,7 +127,13 @@ enum VerifySidebarSelection {
         }
         precondition(steps[firstMove] < fastest * 0.75, "The motion must ease in (steps \(steps.map { Int($0.rounded()) }))")
         precondition(steps.count > 9 && between.count >= 4, "The motion must last long enough to read as a glide")
-        // The icon disc travels with the well and settles on the new row's icon.
+        // The island follows 300 ms behind the well: absent when the well settles, present at the end.
+        guard let settled = samples.firstIndex(where: { abs($0 - center(ofRow: 3)) < 1 }) else {
+            preconditionFailure("The well never settled")
+        }
+        precondition(!islandOnTarget[settled + 1], "The icon island must arrive after its well, not with it")
+        precondition(islandOnTarget.last == true, "The icon island must follow the well to the new row")
+        // The icon island settles on the new row's icon.
         guard let image = capture(.null, 1 << 3, UInt32(window.windowNumber), 1 << 0)?.takeRetainedValue() else {
             preconditionFailure("The compositor capture is unavailable")
         }
@@ -128,15 +142,14 @@ enum VerifySidebarSelection {
         func white(_ x: CGFloat, _ y: CGFloat) -> CGFloat {
             bitmap.colorAt(x: Int(x * scale), y: Int(y * scale))!.usingColorSpace(.genericGray)!.whiteComponent
         }
-        // The flat disc face is lighter than the well around it and leaves the old row.
-        let iconX = 20 + NavigationStyle.discInset + NavigationStyle.rowDiscDiameter / 2
+        // The flat island face is lighter than the well around it and leaves the old row.
         precondition(white(iconX, center(ofRow: 3)) - white(150, center(ofRow: 3)) > 0.03,
-                     "A raised disc must rest in the well under the selected icon")
+                     "A raised island must rest in the well under the selected icon")
         precondition(abs(white(iconX, center(ofRow: 0)) - white(150, center(ofRow: 0))) < 0.02,
-                     "The disc must leave the previously selected row")
+                     "The island must leave the previously selected row")
         // Its shade stays inside the well: just outside the well's bottom edge is plain background.
         precondition(abs(white(iconX, SelectionFixture.rowTops[3] + NavigationStyle.rowHeight + 0.5) - white(4, 4)) < 0.02,
-                     "The disc's shade must not leak outside the well")
+                     "The island's shade must not leak outside the well")
         print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
     }
 }

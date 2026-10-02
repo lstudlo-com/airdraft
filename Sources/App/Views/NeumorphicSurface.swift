@@ -54,25 +54,27 @@ struct NeumorphicSurface<S: InsettableShape>: View {
     }
 }
 
-/// A flat raised disc resting in a recessed well, like a switch knob on its track. Its
-/// highlight (up-left) and shade (down-right) fall inside the well: the well that holds it
-/// must clip it.
-struct SoftWellDisc: View {
+/// A flat raised island resting in a recessed well, like a switch knob on its track. Its
+/// corners follow the well's, inset by `NavigationStyle.iconIslandInset`, as a knob is
+/// concentric with its capsule track. Its highlight (up-left) and shade (down-right) fall
+/// inside the well: the well that holds it must clip it.
+struct SoftWellIsland: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         let dark = scheme == .dark
-        Circle()
+        let shape = NavigationStyle.iconIslandShape
+        shape
             .fill(Color(white: dark ? 0.23 : 0.95))
             .background {
-                SurfaceShadows(shape: Circle(), shadows: [
+                SurfaceShadows(shape: shape, shadows: [
                     .init(color: .black.opacity(dark ? 0.7 : 0.3), radius: 2.5, x: 1.5, y: 2),
                     .init(color: .white.opacity(dark ? 0.1 : 1), radius: 2.5, x: -1.5, y: -2),
                 ])
             }
             .overlay {
-                if contrast == .increased { Circle().strokeBorder(Color.primary.opacity(0.5), lineWidth: 1) }
+                if contrast == .increased { shape.strokeBorder(Color.primary.opacity(0.5), lineWidth: 1) }
             }
             .accessibilityHidden(true)
             .allowsHitTesting(false)
@@ -117,7 +119,7 @@ struct NeumorphicUsageTrack: View {
                 if value > 0 {
                     let dark = scheme == .dark
                     Capsule()
-                        .fill(Color(white: dark ? 0.32 : 0.62))
+                        .fill(Color(white: dark ? 0.32 : 0.66))
                         .background {
                             SurfaceShadows(shape: Capsule(), shadows: [
                                 .init(color: .black.opacity(dark ? 0.6 : 0.25), radius: 1, x: 0.5, y: 0.8),

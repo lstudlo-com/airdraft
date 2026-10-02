@@ -35,15 +35,15 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
         let light = Color.white.opacity(dark ? 0.09 : 1)
         // Faces sit at the island's mid-tone, like the hero; controls a touch lighter on top.
         let faces: [CGFloat] = switch (elevation, dark) {
-        case (.card, false): [0.87, 0.85]
+        case (.card, false): [0.91, 0.89]
         case (.card, true): [0.19, 0.17]
-        case (.control, false): [0.89, 0.85]
+        case (.control, false): [0.93, 0.89]
         case (.control, true): [0.215, 0.18]
         }
         let rim = Color.white.opacity(dark ? 0.048 : 0.27)
         Group {
             if pressed {
-                shape.fill(Color(white: dark ? 0.15 : 0.83)
+                shape.fill(Color(white: dark ? 0.15 : 0.87)
                     .shadow(.inner(color: shade, radius: 12 * spread, x: 7 * spread, y: 9 * spread))
                     .shadow(.inner(color: light, radius: 12 * spread, x: -6 * spread, y: -7 * spread)))
             } else {
@@ -77,7 +77,7 @@ struct SoftInsetTrack<S: InsettableShape>: View {
 
     var body: some View {
         let dark = scheme == .dark
-        shape.fill(Color(white: dark ? 0.14 : 0.81)
+        shape.fill(Color(white: dark ? 0.14 : 0.85)
             .shadow(.inner(color: .black.opacity(dark ? 0.6 : 0.3), radius: 2.5, x: 1.5, y: 2))
             .shadow(.inner(color: .white.opacity(dark ? 0.08 : 0.9), radius: 2.5, x: -1.5, y: -2)))
             .overlay {

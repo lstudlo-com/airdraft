@@ -236,7 +236,7 @@ struct SidebarBrandMark: View {
     }
 }
 
-/// A sidebar symbol. Selected, it is carved into its raised disc: a darker floor with a
+/// A sidebar symbol. Selected, it is carved into its raised island: a darker floor with a
 /// highlight along its lower-right edge from the top-left light.
 struct SidebarIcon: View {
     let symbol: String
@@ -260,7 +260,8 @@ struct SidebarIcon: View {
             }
             .opacity(selected ? 1 : 0)
         }
-        .animation(reduceMotion ? nil : SelectionMotion.curve, value: selected)
+        // The carving appears as the island arrives; leaving, it returns to plain at once.
+        .animation(reduceMotion ? nil : selected ? SelectionMotion.islandCurve : SelectionMotion.curve, value: selected)
         .accessibilityHidden(true)
     }
 }
@@ -274,7 +275,7 @@ struct SidebarView: View {
     @State private var wordCountRefresh = UUID()
 
     private var isCollapsed: Bool { container.navigation.sidebarCollapsed }
-    private static let micDiscDiameter: CGFloat = 38 - 2 * NavigationStyle.discInset
+    private static let micIconIslandSize: CGFloat = 38 - 2 * NavigationStyle.iconIslandInset
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -293,12 +294,12 @@ struct SidebarView: View {
 
             Spacer(minLength: 20)
             Button(action: openMicrophone) {
-                // The microphone always rests on its own disc in the well, carved like a selection;
-                // the disc touches the well's edges and the label keeps its 44-point start.
+                // The microphone always rests on its own island in the well, carved like a selection;
+                // the island touches the well's edges and the label keeps its 44-point start.
                 HStack(spacing: 9) {
                     SidebarIcon(symbol: "mic", selected: true)
-                        .frame(width: Self.micDiscDiameter, height: Self.micDiscDiameter)
-                        .background { SoftWellDisc() }
+                        .frame(width: Self.micIconIslandSize, height: Self.micIconIslandSize)
+                        .background { SoftWellIsland() }
                     if !isCollapsed {
                         Text(container.microphones.label(container.settings.microphone))
                             .font(.system(size: 13))
@@ -312,7 +313,7 @@ struct SidebarView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.leading, isCollapsed ? 0 : NavigationStyle.discInset)
+                .padding(.leading, isCollapsed ? 0 : NavigationStyle.iconIslandInset)
                 .padding(.trailing, isCollapsed ? 0 : 14)
                 .frame(height: 38)
             }
@@ -379,11 +380,11 @@ struct SidebarView: View {
         VStack(spacing: 2) {
             ForEach(pages) { page in
                 Button { container.navigation.page = page } label: {
-                    // The icon frame matches the disc that touches the well's edges; labels keep
+                    // The icon frame matches the island that touches the well's edges; labels keep
                     // their 40-point start.
                     HStack(spacing: 11) {
                         SidebarIcon(symbol: page.symbol, selected: container.navigation.page == page)
-                            .frame(width: NavigationStyle.rowDiscDiameter)
+                            .frame(width: NavigationStyle.rowIconIslandSize)
                             .sidebarSelectionIconAnchor(page)
                         if !isCollapsed {
                             Text(page.title)
@@ -392,7 +393,7 @@ struct SidebarView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: isCollapsed ? .center : .leading)
-                    .padding(.leading, isCollapsed ? 10 : NavigationStyle.discInset)
+                    .padding(.leading, isCollapsed ? 10 : NavigationStyle.iconIslandInset)
                     .padding(.trailing, 10)
                     .frame(height: NavigationStyle.rowHeight)
                     .contentShape(Rectangle())

@@ -11,6 +11,9 @@ import SwiftUI
 enum SelectionMotion {
     /// A pronounced ease-in-out S-curve: eases away from the old choice, glides, then settles.
     static let curve = Animation.timingCurve(0.65, 0, 0.35, 1, duration: 0.36)
+    /// The sidebar's icon island moves on the same curve 300 ms after its well.
+    static let islandDelay: TimeInterval = 0.3
+    static let islandCurve = curve.delay(islandDelay)
 }
 
 enum NavigationStyle {
@@ -18,10 +21,15 @@ enum NavigationStyle {
     static let cornerRadius: CGFloat = 7
     /// Shared by the selected destination well and the microphone well, whose heights differ.
     static let wellRadius: CGFloat = 12
-    /// The icon disc touches the well's top and bottom with this margin, like a switch knob.
-    static let discInset: CGFloat = 3
-    /// The disc diameter in a destination row; the row's icon frame matches it.
-    static let rowDiscDiameter = rowHeight - 2 * discInset
+    /// The icon island touches the well's top, bottom and leading edges with this margin,
+    /// like a switch knob in its track.
+    static let iconIslandInset: CGFloat = 3
+    /// The square icon island in a destination row; the row's icon frame matches it.
+    static let rowIconIslandSize = rowHeight - 2 * iconIslandInset
+    /// Concentric with the well: its corners are the well's, less the inset.
+    static var iconIslandShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: wellRadius - iconIslandInset, style: .continuous)
+    }
     static var wellShape: RoundedRectangle { RoundedRectangle(cornerRadius: wellRadius, style: .continuous) }
 }
 
@@ -57,7 +65,7 @@ struct NavigationRowStyle: ButtonStyle {
     }
 }
 
-/// Where a sliding-selection row and its icon sit, so the well and its icon disc can travel.
+/// Where a sliding-selection row and its icon sit, so the well and its icon island can travel.
 struct SidebarSelectionAnchor {
     var row: Anchor<CGRect>?
     var icon: Anchor<CGRect>?
@@ -81,15 +89,15 @@ extension View {
         }
     }
 
-    /// Publishes the row icon's bounds so the raised icon disc can float beneath it.
+    /// Publishes the row icon's bounds so the icon island can rest beneath it.
     func sidebarSelectionIconAnchor<ID: Hashable>(_ id: ID) -> some View {
         transformAnchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { value, anchor in
             value[id, default: SidebarSelectionAnchor()].icon = anchor
         }
     }
 
-    /// Draws the microphone's recessed well behind the selected row, with a raised disc
-    /// floating in it under the icon like a switch knob on its track, and slides both to a
+    /// Draws the microphone's recessed well behind the selected row, with a flat raised
+    /// island in it under the icon like a switch knob on its track, and slides both to a
     /// newly selected row on `SelectionMotion.curve`, wherever the change came from.
     func sidebarSelectionWell<ID: Hashable>(selection: ID) -> some View {
         backgroundPreferenceValue(SidebarSelectionAnchors<ID>.self) { anchors in
@@ -107,21 +115,28 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
         GeometryReader { proxy in
             if let row = anchor?.row {
                 let rect = proxy[row]
-                let diameter = rect.height - 2 * NavigationStyle.discInset
+                let side = rect.height - 2 * NavigationStyle.iconIslandInset
                 ZStack(alignment: .topLeading) {
                     NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
+                        .frame(width: rect.width, height: rect.height)
+                        .offset(x: rect.minX, y: rect.minY)
+                        .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
                     if let icon = anchor?.icon {
                         let center = proxy[icon]
-                        SoftWellDisc()
-                            .frame(width: diameter, height: diameter)
-                            .offset(x: center.midX - rect.minX - diameter / 2, y: center.midY - rect.minY - diameter / 2)
+                        // The island follows the well after a pause, and is only ever visible
+                        // inside the moving well: its light and shade never leave it.
+                        SoftWellIsland()
+                            .frame(width: side, height: side)
+                            .offset(x: center.midX - side / 2, y: center.midY - side / 2)
+                            .animation(reduceMotion ? nil : SelectionMotion.islandCurve, value: selection)
+                            .mask(alignment: .topLeading) {
+                                NavigationStyle.wellShape
+                                    .frame(width: rect.width, height: rect.height)
+                                    .offset(x: rect.minX, y: rect.minY)
+                                    .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
+                            }
                     }
                 }
-                .frame(width: rect.width, height: rect.height)
-                // The disc is an object inside the well: its light and shade stay within it.
-                .clipShape(NavigationStyle.wellShape)
-                .offset(x: rect.minX, y: rect.minY)
-                .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
             }
         }
         .allowsHitTesting(false)
