@@ -35,7 +35,16 @@ private struct SelectionFixture: View {
     private func group(_ rows: [Int]) -> some View {
         VStack(spacing: 2) {
             ForEach(rows, id: \.self) { row in
-                Button {} label: { Color.clear.frame(maxWidth: .infinity).frame(height: NavigationStyle.rowHeight) }
+                Button {} label: {
+                    HStack(spacing: 0) {
+                        // Stands in for the row icon, so the raised disc has an anchor to follow.
+                        Color.clear.frame(width: 20, height: 16).sidebarSelectionIconAnchor(row)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.leading, 10)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: NavigationStyle.rowHeight)
+                }
                     .buttonStyle(NavigationRowStyle(selected: selection.row == row, slidingSelection: true))
                     .sidebarSelectionAnchor(row)
             }
@@ -110,6 +119,21 @@ enum VerifySidebarSelection {
         }
         precondition(steps[firstMove] < fastest * 0.75, "The motion must ease in (steps \(steps.map { Int($0.rounded()) }))")
         precondition(steps.count > 9 && between.count >= 4, "The motion must last long enough to read as a glide")
+        // The icon disc travels with the well and settles on the new row's icon.
+        guard let image = capture(.null, 1 << 3, UInt32(window.windowNumber), 1 << 0)?.takeRetainedValue() else {
+            preconditionFailure("The compositor capture is unavailable")
+        }
+        let bitmap = NSBitmapImageRep(cgImage: image)
+        let scale = CGFloat(image.width) / SelectionFixture.size.width
+        func white(_ x: CGFloat, _ y: CGFloat) -> CGFloat {
+            bitmap.colorAt(x: Int(x * scale), y: Int(y * scale))!.usingColorSpace(.genericGray)!.whiteComponent
+        }
+        // A raised disc is lit at its top left and darker at its bottom right; the well is flat.
+        func relief(_ x: CGFloat, _ y: CGFloat) -> CGFloat { white(x - 5, y - 5) - white(x + 5, y + 5) }
+        let iconX: CGFloat = 20 + 10 + 10
+        precondition(relief(iconX, center(ofRow: 3)) > 0.05 && abs(relief(150, center(ofRow: 3))) < 0.02,
+                     "A raised disc must float in the well under the selected icon")
+        precondition(abs(relief(iconX, center(ofRow: 0))) < 0.02, "The disc must leave the previously selected row")
         print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
     }
 }

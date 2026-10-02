@@ -180,7 +180,9 @@ Standing requirement from Light, reaffirmed 2026-09-21:
   Selected sidebar page items replicate the microphone well: the same opaque
   recessed material at 2.5-point depth, with 12-point continuous corners shared by
   both wells; the microphone stays taller than the 32-point rows. One well slides
-  between rows on a 0.36-second ease-in-out curve when the page changes. Light comes
+  between rows on a 0.36-second ease-in-out curve when the page changes. The
+  selected icon floats on its own raised disc in the well, carved into it, and the
+  disc travels with the well. Light comes
   from the top left in both appearances. Raised faces cast down-right shadows;
   recessed tracks shade their inner top-left edge. Verify live and saved renders.
 - History keeps a compact 52-point timeline beside the scrolling transcription

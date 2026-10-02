@@ -53,22 +53,40 @@ struct NavigationRowStyle: ButtonStyle {
     }
 }
 
-/// Row bounds published by sliding-selection rows, keyed by their identifier.
+/// Where a sliding-selection row and its icon sit, so the well and its icon disc can travel.
+struct SidebarSelectionAnchor {
+    var row: Anchor<CGRect>?
+    var icon: Anchor<CGRect>?
+}
+
+/// Row and icon bounds published by sliding-selection rows, keyed by their identifier.
 struct SidebarSelectionAnchors<ID: Hashable>: PreferenceKey {
-    static var defaultValue: [ID: Anchor<CGRect>] { [:] }
-    static func reduce(value: inout [ID: Anchor<CGRect>], nextValue: () -> [ID: Anchor<CGRect>]) {
-        value.merge(nextValue()) { $1 }
+    static var defaultValue: [ID: SidebarSelectionAnchor] { [:] }
+    static func reduce(value: inout [ID: SidebarSelectionAnchor], nextValue: () -> [ID: SidebarSelectionAnchor]) {
+        value.merge(nextValue()) { old, new in
+            SidebarSelectionAnchor(row: new.row ?? old.row, icon: new.icon ?? old.icon)
+        }
     }
 }
 
 extension View {
     /// Publishes this row's bounds so the container's selection well can travel to it.
     func sidebarSelectionAnchor<ID: Hashable>(_ id: ID) -> some View {
-        anchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { [id: $0] }
+        transformAnchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { value, anchor in
+            value[id, default: SidebarSelectionAnchor()].row = anchor
+        }
     }
 
-    /// Draws the microphone's recessed well behind the selected row and slides it to a
-    /// newly selected row on a fast ease-out cubic curve, wherever the change came from.
+    /// Publishes the row icon's bounds so the raised icon disc can float beneath it.
+    func sidebarSelectionIconAnchor<ID: Hashable>(_ id: ID) -> some View {
+        transformAnchorPreference(key: SidebarSelectionAnchors<ID>.self, value: .bounds) { value, anchor in
+            value[id, default: SidebarSelectionAnchor()].icon = anchor
+        }
+    }
+
+    /// Draws the microphone's recessed well behind the selected row, with a raised disc
+    /// floating in it under the icon like a switch knob on its track, and slides both to a
+    /// newly selected row on `SelectionMotion.curve`, wherever the change came from.
     func sidebarSelectionWell<ID: Hashable>(selection: ID) -> some View {
         backgroundPreferenceValue(SidebarSelectionAnchors<ID>.self) { anchors in
             SidebarSelectionWell(anchor: anchors[selection], selection: selection)
@@ -76,21 +94,33 @@ extension View {
     }
 }
 
+enum SidebarIconDisc {
+    /// Leaves a 5-point margin of well around the disc in a 32-point row.
+    static let diameter: CGFloat = 22
+}
+
 private struct SidebarSelectionWell<ID: Hashable>: View {
-    let anchor: Anchor<CGRect>?
+    let anchor: SidebarSelectionAnchor?
     let selection: ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-
     var body: some View {
         GeometryReader { proxy in
-            if let anchor {
-                let rect = proxy[anchor]
-                NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
-                .frame(width: rect.width, height: rect.height)
-                .offset(x: rect.minX, y: rect.minY)
-                .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
+            ZStack(alignment: .topLeading) {
+                if let row = anchor?.row {
+                    let rect = proxy[row]
+                    NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
+                        .frame(width: rect.width, height: rect.height)
+                        .offset(x: rect.minX, y: rect.minY)
+                }
+                if let icon = anchor?.icon {
+                    let rect = proxy[icon]
+                    NeumorphicSurface(shape: Circle(), depth: 1.5)
+                        .frame(width: SidebarIconDisc.diameter, height: SidebarIconDisc.diameter)
+                        .offset(x: rect.midX - SidebarIconDisc.diameter / 2, y: rect.midY - SidebarIconDisc.diameter / 2)
+                }
             }
+            .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

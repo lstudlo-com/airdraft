@@ -207,6 +207,11 @@ verification status belong in the vault (see below).
   the selected row on a 0.36-second ease-in-out curve (`SelectionMotion.curve`,
   cubic-bezier 0.65, 0, 0.35, 1), whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
+  Inside the well, the selected icon floats on its own raised 22-point disc, like a
+  switch knob on its track: rows publish their icon bounds with
+  `.sidebarSelectionIconAnchor`, and the disc travels with the well on the same
+  curve. The selected symbol is carved into that disc (`SidebarIcon`): a darker
+  glyph with a highlight offset down-right from the top-left light.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
   Sidebar destination, microphone and account symbols use
@@ -584,7 +589,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Sidebar selection: compile `NavigationStyle.swift`, `NeumorphicSurface.swift` and
   `SurfaceShadows.swift` with `scripts/verify-sidebar-selection.swift`, then run it.
   It captures its own window through the compositor and asserts that the well
-  passes through intermediate positions, across a group gap, and settles on the row.
+  passes through intermediate positions, across a group gap, and settles on the row,
+  with the raised icon disc on the new row's icon and gone from the old one.
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable

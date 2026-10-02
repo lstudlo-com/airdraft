@@ -90,16 +90,16 @@ struct MainWindowView: View {
             } label: {
                 Image(systemName: "sidebar.left")
                     .font(.system(size: Theme.sidebarToggleSymbolSize))
-                    // Expanded, it shares the titlebar with the window buttons; collapsed,
-                    // the island's heading row, since the rail is too narrow for both.
-                    .frame(width: Theme.sidebarToggleWidth,
-                           height: collapsed ? Theme.pageHeaderRowHeight : Theme.titlebarHeight)
+                    // Always in the island's heading row, beside the page title; it follows
+                    // the island's leading edge as the sidebar expands or collapses.
+                    .frame(width: Theme.sidebarToggleWidth, height: Theme.pageHeaderRowHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
-            .padding(.leading, collapsed ? Theme.sidebarCollapsedToggleLeading : Theme.sidebarToggleLeading)
-            .padding(.top, collapsed ? Theme.sidebarCollapsedToggleTop : 0)
+            .padding(.leading, Theme.sidebarToggleLeading(
+                sidebarWidth: collapsed ? Theme.sidebarCollapsedWidth : Theme.sidebarWidth))
+            .padding(.top, Theme.sidebarToggleTop)
             .help(collapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityLabel(collapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityIdentifier("sidebar.toggle")
@@ -236,6 +236,32 @@ struct SidebarBrandMark: View {
     }
 }
 
+/// A sidebar symbol. Selected, it is carved into its raised disc: a darker floor with a
+/// highlight along its lower-right edge from the top-left light.
+struct SidebarIcon: View {
+    let symbol: String
+    let selected: Bool
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let dark = scheme == .dark
+        let glyph = Image(systemName: symbol).font(.system(size: Theme.sidebarIconSize, weight: .regular))
+        ZStack {
+            glyph.foregroundStyle(.primary)
+                .opacity(selected ? 0 : 1)
+            ZStack {
+                glyph.foregroundStyle(Color.white.opacity(dark ? 0.16 : 0.9))
+                    .offset(x: 0.5, y: 0.75)
+                glyph.foregroundStyle(Color(white: dark ? 0.07 : 0.32))
+            }
+            .opacity(selected ? 1 : 0)
+        }
+        .animation(reduceMotion ? nil : SelectionMotion.curve, value: selected)
+        .accessibilityHidden(true)
+    }
+}
+
 struct SidebarView: View {
     @Environment(AppContainer.self) private var container
     let openMicrophone: () -> Void
@@ -348,10 +374,9 @@ struct SidebarView: View {
             ForEach(pages) { page in
                 Button { container.navigation.page = page } label: {
                     HStack(spacing: 10) {
-                        Image(systemName: page.symbol)
-                            .font(.system(size: Theme.sidebarIconSize, weight: .regular))
+                        SidebarIcon(symbol: page.symbol, selected: container.navigation.page == page)
                             .frame(width: 20)
-                            .accessibilityHidden(true)
+                            .sidebarSelectionIconAnchor(page)
                         if !isCollapsed {
                             Text(page.title)
                                 .font(.system(size: 13, weight: .regular))
