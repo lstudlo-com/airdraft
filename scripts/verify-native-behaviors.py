@@ -297,6 +297,9 @@ struct NeumorphicSurface<S: Shape>: View {
                 .appendingPathComponent(name + ".png")
             try! bitmap.representation(using: .png, properties: [:])!.write(to: path)
         }
+        // The last failure's start: its five-second deadline and fade count from here,
+        // not from the end of the checks below, whose duration varies by machine.
+        var failedAt = Date()
         for activeStyle in [HUDStyle.classic, .mini] {
             style = activeStyle
             update(.recording)
@@ -304,6 +307,7 @@ struct NeumorphicSurface<S: Shape>: View {
             precondition(panel.ignoresMouseEvents, "Recording must stay click-through")
             let compact = panel.frame
             update(.failed(message))
+            failedAt = Date()
             let host = panel.contentView as! NSHostingView<RecordingHUDView>
             let expanded = NSHostingView(rootView: host.rootView).fittingSize
             try await Task.sleep(for: .milliseconds(60))
@@ -329,9 +333,14 @@ struct NeumorphicSurface<S: Shape>: View {
                          "The pipeline's idle reset must not erase the visible diagnostic")
             print("PASS: \(activeStyle) animated expansion, full multiline message and real Copy button")
         }
-        try await Task.sleep(for: .milliseconds(3200))
+        func sleep(untilSecondsAfterFailure seconds: Double) async throws {
+            let remaining = seconds - Date().timeIntervalSince(failedAt)
+            if remaining > 0 { try await Task.sleep(for: .seconds(remaining)) }
+        }
+        try await sleep(untilSecondsAfterFailure: 4.5)
         precondition(visible(), "A diagnostic must remain readable beyond the old three-second timeout")
-        try await Task.sleep(for: .seconds(2))
+        // Five seconds, the 0.5-second fade, then a margin for the fade's completion handler.
+        try await sleep(untilSecondsAfterFailure: 5.9)
         precondition(!visible(), "Failures must disappear after five seconds plus the fade")
         update(.idle)
         precondition(!visible(), "Idle must not reopen an expired failure")
