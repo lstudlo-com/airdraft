@@ -48,6 +48,10 @@ components:
   settings-card:
     rounded: "{rounded.card}"
     padding: "{spacing.cardPadding}"
+    elevation: "raised, half the hero's shadow spread"
+  soft-control:
+    height: "28pt"
+    elevation: "raised, a quarter of the hero's shadow spread"
   content-island:
     rounded: "{rounded.island}"
     inset: "{spacing.islandInset}"
@@ -60,7 +64,7 @@ components:
 **Creative North Star: "Codex-inspired native workspace"**
 
 Airdraft uses compact navigation, monochrome SF Symbols, quiet selection and
-native controls. The user chose the Codex reference for the sidebar and Profiles
+raised neumorphic cards and controls lit from the top left. The user chose the Codex reference for the sidebar and Profiles
 editor. The editor gives instructions room and places secondary actions in menus.
 
 This record describes the built sidebar, Profiles page and its sheets as inspected
@@ -183,7 +187,7 @@ destinations from Configuration and Models with space rather than headings.
 
 `PageScaffold` applies `pagePadding` and `sectionSpacing` across the available
 content width. Section headings, heading controls and cards share a right edge.
-Settings pickers use `.settingsPicker(width:)` so their visible control aligns
+Settings pickers use `SoftPicker`, a raised capsule whose visible edge aligns
 with the card's trailing 16-point inset. Editable numeric settings use
 `SettingsNumberStepper` for direct entry and arrow adjustments. Every page has
 the same header row: its destination name on the
@@ -297,9 +301,17 @@ alignment; the row and trailing controls retain their shared edges.
 
 ## Elevation & Depth
 
-Home's top-left lighting extends to selected sidebar destinations, the sidebar
-microphone capsule, each device's ten-cell input meter, shortcut keycaps,
-appearance preview frames, Home's app-usage tracks and the recording HUD.
+Home's top-left lighting extends across the window. Every page card is raised
+with the hero's highlight and shade at full strength and half its spread; buttons,
+text fields and editors, menu pickers, segmented controls, switches, sliders and
+stepper buttons are raised at a quarter of the spread (`SoftRaisedSurface` in
+`SoftControls.swift`). Pressed buttons sink into an inset well; segmented controls,
+switches and sliders sit in inset tracks; a switch's on state fills its track with
+the system accent; editing fields show an accent ring. The single primary action
+keeps the native prominent button. The same lighting covers selected sidebar
+destinations, the sidebar microphone capsule, each device's ten-cell input meter,
+shortcut keycaps, appearance preview frames, Home's app-usage tracks and the
+recording HUD.
 `NeumorphicSurface` supplies the neutral raised and recessed material, scaled
 by depth to the component size; Increase Contrast adds an explicit edge.
 Light comes from the top left in both appearances. Raised faces have an upper-left
@@ -317,7 +329,7 @@ bottom-right highlight. Both wells share 12-point continuous corners
 32-point destination rows, so only the radius matches, not the height. Increase
 Contrast retains an explicit edge. Text and symbols stay opaque.
 A single well serves both destination groups and slides to the newly selected row
-on a fast 0.24-second ease-out cubic curve, whether the page changed from the
+on a 0.36-second ease-in-out curve that eases away, glides and settles, whether the page changed from the
 sidebar, a Home action or the menu bar; Reduce Motion moves it without animation.
 Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
@@ -470,8 +482,9 @@ and [FocusState](https://developer.apple.com/documentation/swiftui/focusstate).
 - Do keep secondary actions labeled in menus, with help and accessibility labels
   on their icon-only triggers.
 - Don't add profile icons, colored badges or a saturated selection fill to this sidebar.
-- Keep Home's full hero treatment on Home, in grayscale; no brand hues. Use only the six
-  scoped tactile accents elsewhere; do not add continuous decorative motion.
+- Keep Home's full hero treatment on Home, in grayscale; no brand hues. Other cards and
+  controls use the smaller raised spread, never the hero's; do not add continuous
+  decorative motion.
 - Don't tint the hero's surface or return its metrics to the corners.
 - Don't wrap the Profiles editor in another card or move its primary instructions
   behind a disclosure control.

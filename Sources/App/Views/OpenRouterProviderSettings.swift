@@ -48,7 +48,7 @@ struct OpenRouterProviderSettings: View {
         Group {
             SettingRow(title: "Inference provider", subtitle: "Saved per model") {
                 HStack(spacing: Theme.sectionTitleSpacing) {
-                    Picker("Inference provider", selection: $settings.llm.openRouterRouting.providerID) {
+                    SoftPicker("Inference provider", selection: $settings.llm.openRouterRouting.providerID, width: 240) {
                         Text("Automatic").tag("")
                         ForEach(listedEndpoints) { endpoint in
                             Text(providerTitle(endpoint)).tag(endpoint.id)
@@ -57,7 +57,6 @@ struct OpenRouterProviderSettings: View {
                             Text("\(routing.providerID) (saved)").tag(routing.providerID)
                         }
                     }
-                    .settingsPicker(width: 240)
                     RefreshButton(loading: loading, help: "Reload providers and their current performance and prices",
                                   disabled: model.isEmpty) { refreshID = UUID() }
                 }
@@ -69,7 +68,7 @@ struct OpenRouterProviderSettings: View {
                             ? "Other hosts may cost more"
                             : "Use raw text if this host fails") {
                     Toggle("Allow other providers as fallback", isOn: $settings.llm.openRouterRouting.allowFallbacks)
-                        .labelsHidden().toggleStyle(.switch)
+                        .labelsHidden().toggleStyle(.softSwitch)
                 }
                 if model.hasSuffix(":nitro") || model.hasSuffix(":floor") {
                     Text("Automatic preserves speed or price sorting.")

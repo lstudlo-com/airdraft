@@ -173,8 +173,8 @@ verification status belong in the vault (see below).
   Page content must fill its available width after `Theme.pagePadding`; do not add
   a left-aligned maximum width that strands section controls far from the window's
   right edge. Section headings, their trailing controls and cards share one right
-  edge. Use `.settingsPicker(width:)` for native pickers in settings rows or section
-  headings so the visible picker aligns with that edge. Numeric settings with a
+  edge. Use `SoftPicker(title, selection:, width:)` for menu pickers in settings rows or
+  section headings so the visible capsule aligns with that edge. Numeric settings with a
   stepper must also support direct keyboard entry through `SettingsNumberStepper`.
   Keep settings copy purposeful: do not add descriptions that merely restate the
   selected provider, that a list is showing models, or other facts already obvious
@@ -202,7 +202,8 @@ verification status belong in the vault (see below).
   than destination rows (32 points). Hover and press fills on destination rows use
   the same radius. One well serves both destination groups: rows publish their
   bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
-  the selected row on a 0.24-second ease-out cubic curve, whatever changed the
+  the selected row on a 0.36-second ease-in-out curve (`SelectionMotion.curve`,
+  cubic-bezier 0.65, 0, 0.35, 1), whatever changed the
   page. Rows never draw their own selected well; Reduce Motion moves it instantly.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
@@ -272,17 +273,27 @@ verification status belong in the vault (see below).
   renders at the fixed 784-point width and minimum/taller heights, including lower sections. Check every
   page for the same alignment and input pattern. For a released UI fix, verify the app built
   from the committed release sources, not only the dirty workspace.
-- Extend Home's neumorphic material only to the sidebar brand capsule (reused in the
-  License sheet), selected sidebar destinations, the microphone capsule and per-device
-  meters, shortcut keycaps, appearance preview frames, Home summary tracks and the
-  recording HUD. Reuse `NeumorphicSurface` for neutral raised surfaces and inset
-  tracks. Light comes from the top left in both appearances: raised surfaces
+- Neumorphism covers the whole window. Page cards and controls use
+  `SoftRaisedSurface` from `SoftControls.swift`: the Home hero's light and shade at
+  full strength (white highlight up-left, shade down-right), with a smaller spread,
+  half for `Card` sections and a quarter for controls. Never lower their contrast to
+  make them subtle; shrink the spread instead. Controls are raised: `SoftButtonStyle`
+  and `SoftIconButtonStyle` sink into an inset well while pressed; text fields use
+  `.softField()` with an accent ring while editing; menu pickers use `SoftPicker`;
+  segmented choices use `SoftSegmentedPicker` (a raised thumb sliding on an inset
+  track with `SelectionMotion.curve`); switches use `.toggleStyle(.softSwitch)`, whose
+  on state fills the inset track with the system accent; sliders use `SoftSlider`;
+  steppers use raised minus and plus buttons beside the typed value. Keep
+  `.borderedProminent` for the single primary action and native link buttons. The
+  menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
+  keycaps, meters, preview frames and Home tracks. Light comes from the top left in both appearances: raised surfaces
   highlight their top-left edge and cast shadows down-right; recessed surfaces
   shade the inner top-left edge and light the inner bottom-right edge.
   Use `SurfaceShadows` for outer shadows: AppKit bitmap capture can invert the
   vertical offset of SwiftUI's direct shadow modifiers. Check the live window
-  as well as saved renders. Keep native selection/focus cues, card insets and live waveform contrast;
-  leave text lists, standard action buttons and model tables in their native style.
+  as well as saved renders. Keep selection/focus cues, card insets and live waveform
+  contrast. Model table rows and text lists stay inside their raised cards without
+  extra per-row depth.
 - After successful text delivery, freeze the recording HUD's final processing
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer

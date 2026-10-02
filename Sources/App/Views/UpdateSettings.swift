@@ -17,7 +17,7 @@ struct UpdateSettings: View {
                         get: { updates.automaticallyChecksForUpdates },
                         set: { updates.setAutomaticChecks($0) }
                     ))
-                    .labelsHidden().toggleStyle(.switch)
+                    .labelsHidden().toggleStyle(.softSwitch)
                     .disabled(!updates.isStarted)
                 }
                 RowDivider()
@@ -26,7 +26,7 @@ struct UpdateSettings: View {
                         get: { updates.automaticallyDownloadsUpdates },
                         set: { updates.setAutomaticDownloads($0) }
                     ))
-                    .labelsHidden().toggleStyle(.switch)
+                    .labelsHidden().toggleStyle(.softSwitch)
                     .disabled(!updates.isStarted || !updates.automaticallyChecksForUpdates)
                 }
                 if let error = updates.startupError {

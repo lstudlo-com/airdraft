@@ -82,40 +82,35 @@ struct ModelsPage: View {
             PageSection("Speech options") {
                 SettingsCard {
                     SettingRow(title: "Language") {
-                        Picker("Language", selection: $settings.asr.language) {
+                        SoftPicker("Language", selection: $settings.asr.language, width: 200) {
                             ForEach(SpeechLanguage.choices(including: settings.asr.language), id: \.code) { Text($0.name).tag($0.code) }
                         }
-                        .settingsPicker(width: 200)
                     }
                     RowDivider()
                     SettingRow(title: "Chinese script") {
-                        Picker("Chinese script", selection: $settings.asr.chineseScript) {
-                            ForEach(ChineseScript.allCases) { Text($0.title).tag($0) }
-                        }
-                        .pickerStyle(.segmented).settingsPicker(width: 240)
+                        SoftSegmentedPicker("Chinese script", selection: $settings.asr.chineseScript,
+                                            options: ChineseScript.allCases.map { ($0, $0.title) }, width: 240)
                     }
                     if settings.asr.kind == .apple {
                         RowDivider()
                         SettingRow(title: "Apple Speech locale", subtitle: "Language must be selected manually") {
-                            Picker("Apple Speech locale", selection: $settings.asr.appleLocale) {
+                            SoftPicker("Apple Speech locale", selection: $settings.asr.appleLocale, width: 200) {
                                 ForEach(SpeechLanguage.appleLocales(including: settings.asr.appleLocale), id: \.code) { Text($0.name).tag($0.code) }
                             }
-                            .settingsPicker(width: 200)
                         }
                     }
                 }
             }
 
             PageSection("Refinement", trailing: {
-                Picker("Refinement provider", selection: Binding(
+                SoftPicker("Refinement provider", selection: Binding(
                     get: { settings.llm.kind },
                     set: { settings.llm.select($0) }
-                )) {
+                ), width: 200) {
                     ForEach(LLMProviderKind.allCases.filter { !RenderMode.excludesCredentials || !$0.requiresKey }) { kind in
                         Text(kind.title).tag(kind)
                     }
                 }
-                .settingsPicker(width: 200)
             }) {
                 RefinementSettings()
             }
@@ -125,18 +120,17 @@ struct ModelsPage: View {
             PageSection("Memory") {
                 SettingsCard {
                     SettingRow(title: "Unload idle speech model", subtitle: "Frees memory between dictations") {
-                        Picker("Unload idle speech model", selection: $settings.idleUnloadMinutes) {
+                        SoftPicker("Unload idle speech model", selection: $settings.idleUnloadMinutes, width: 140) {
                             Text("After 5 min").tag(5)
                             Text("After 10 min").tag(10)
                             Text("After 30 min").tag(30)
                             Text("Never").tag(0)
                         }
-                        .settingsPicker(width: 140)
                     }
                     if settings.llm.kind == .openAICompatible {
                         RowDivider()
                         SettingRow(title: "Unload LM Studio model on quit") {
-                            Toggle("Unload LM Studio model when quitting", isOn: $settings.unloadLLMOnQuit).labelsHidden().toggleStyle(.switch)
+                            Toggle("Unload LM Studio model when quitting", isOn: $settings.unloadLLMOnQuit).labelsHidden().toggleStyle(.softSwitch)
                         }
                     }
                 }
@@ -169,13 +163,12 @@ struct ModelsPage: View {
         let selected = models.first(where: { $0.id == config.model }) ?? config.selectedSpeechModel ?? models[0]
         return PageSection("Cloud speech", trailing: {
             HStack(spacing: Theme.sectionTitleSpacing) {
-                Picker("Transcription provider", selection: Binding(
+                SoftPicker("Transcription provider", selection: Binding(
                     get: { cloudPreset.kind },
                     set: { container.settings.asr.select($0) }
-                )) {
+                ), width: 200) {
                     ForEach(EndpointPreset.asr) { Text($0.name).tag($0.kind) }
                 }
-                .settingsPicker(width: 200)
                 if preset.kind == .openRouter {
                     RefreshButton(loading: openRouterLoading, help: "Refresh OpenRouter speech models") {
                         openRouterRefreshID = UUID()
@@ -257,7 +250,7 @@ struct ModelsPage: View {
                     }
                     RowDivider()
                     SettingRow(title: "Endpoint") {
-                        TextField("Endpoint", text: $settings.asr.baseURL).textFieldStyle(.roundedBorder)
+                        TextField("Endpoint", text: $settings.asr.baseURL).softField()
                             .labelsHidden().frame(width: Theme.fieldWidth)
                     }
                     RowDivider()

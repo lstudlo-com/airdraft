@@ -372,10 +372,7 @@ private struct HistoryRecordRow: View {
                     state.expanded.toggle()
                 }
             if entry.record.rawTranscript != entry.record.finalText {
-                Picker("Version", selection: $state.showRaw) {
-                    Text("Refined").tag(false)
-                    Text("Original").tag(true)
-                }.pickerStyle(.segmented)
+                SoftSegmentedPicker("Version", selection: $state.showRaw, options: [(false, "Refined"), (true, "Original")])
             }
             Text(entry.metadata)
             if entry.audioAvailable {
@@ -599,14 +596,8 @@ struct HistoryCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 10) {
                 if wasRefined {
-                    Picker("Version", selection: $state.showRaw) {
-                        Text("Refined").tag(false)
-                        Text("Original").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .controlSize(.small)
-                    .fixedSize()
+                    SoftSegmentedPicker("Version", selection: $state.showRaw,
+                                        options: [(false, "Refined"), (true, "Original")], small: true)
                 }
                 Text(entry.metadata)
                     .font(.system(size: 11.5))

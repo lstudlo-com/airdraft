@@ -39,7 +39,9 @@ struct AccessibilityPermissionHelp: View {
                     .font(.system(size: 13))
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
+                    .background {
+                        SoftRaisedSurface(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), elevation: .card)
+                    }
 
                     if !installation.otherCopies.isEmpty {
                         Text("Another copy is running. Quit it before changing permissions:\n" + installation.otherCopies.joined(separator: "\n"))

@@ -42,7 +42,7 @@ struct RefinementSettings: View {
                     if llm.kind != .anthropic && !llm.kind.isCLI && llm.kind != .appleIntelligence {
                     SettingRow(title: "Temperature") {
                         HStack {
-                            Slider(value: $settings.llm.temperature, in: 0...1, step: 0.1).frame(width: 160).accessibilityLabel("Temperature")
+                            SoftSlider(title: "Temperature", value: $settings.llm.temperature, range: 0...1, step: 0.1).frame(width: 160)
                             Text(String(format: "%.1f", settings.llm.temperature)).monospacedDigit().frame(width: 28)
                         }
                     }
@@ -63,15 +63,12 @@ struct RefinementSettings: View {
                     if !llm.kind.isCLI && llm.kind != .appleIntelligence {
                         RowDivider()
                         SettingRow(title: "Thinking effort", subtitle: thinkingSubtitle) {
-                            Picker("Thinking effort", selection: Binding(
+                            SoftSegmentedPicker("Thinking effort", selection: Binding(
                                 get: { llm.kind == .gemini && settings.llm.thinkingEffort != .off ? .high : settings.llm.thinkingEffort },
                                 set: { settings.llm.thinkingEffort = $0 }
-                            )) {
-                                ForEach(llm.kind == .gemini ? [.off, .high] : ThinkingEffort.standard) {
-                                    Text(llm.kind == .gemini && $0 == .high ? "Automatic" : $0.title).tag($0)
-                                }
-                            }
-                            .pickerStyle(.segmented).settingsPicker(width: 260)
+                            ), options: (llm.kind == .gemini ? [ThinkingEffort.off, .high] : ThinkingEffort.standard).map {
+                                ($0, llm.kind == .gemini && $0 == .high ? "Automatic" : $0.title)
+                            }, width: 260)
                         }
                     }
                 }
@@ -117,7 +114,7 @@ struct RefinementSettings: View {
         }
         RowDivider()
         SettingRow(title: "Server") {
-            Picker("Server", selection: Binding<String>(
+            SoftPicker("Server", selection: Binding<String>(
                 get: { EndpointPreset.llm.first { $0.baseURL == settings.llm.baseURL }?.name ?? "Custom" },
                 set: { name in
                     guard let p = EndpointPreset.llm.first(where: { $0.name == name }) else { return }
@@ -125,14 +122,13 @@ struct RefinementSettings: View {
                     settings.llm.model = p.defaultModel
                     settings.llm.apiKeyRef = p.keyRef
                 }
-            )) {
+            ), width: Theme.fieldWidth) {
                 ForEach(EndpointPreset.llm) { Text($0.name).tag($0.name) }
             }
-            .settingsPicker(width: Theme.fieldWidth)
         }
         RowDivider()
         SettingRow(title: "Base URL") {
-            TextField("Base URL", text: $settings.llm.baseURL).textFieldStyle(.roundedBorder)
+            TextField("Base URL", text: $settings.llm.baseURL).softField()
                 .labelsHidden().frame(width: Theme.fieldWidth)
         }
         RowDivider()
@@ -281,7 +277,7 @@ struct APIKeyField: View {
                         .buttonStyle(.link).font(.system(size: 12)).fixedSize()
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
-                    .textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth).disabled(editor.isBusy)
+                    .softField().frame(width: Theme.fieldWidth).disabled(editor.isBusy)
                 Button("Save") {
                     guard !RenderMode.excludesCredentials else { return }
                     Task { await editor.save() }
@@ -351,10 +347,10 @@ struct RefinementModelRow: View {
                 HStack(spacing: 6) {
                     if models.isEmpty || customModel {
                         TextField("Model ID or alias", text: $settings.llm.model)
-                            .textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth)
+                            .softField().frame(width: Theme.fieldWidth)
                             .accessibilityLabel("Model ID or alias")
                     } else {
-                        Picker("Model", selection: $settings.llm.model) {
+                        SoftPicker("Model", selection: $settings.llm.model, width: Theme.fieldWidth) {
                             if tool != nil { Text("CLI default").tag("") }
                             ForEach(models, id: \.self) { id in
                                 Text(modelTitle(id)).tag(id)
@@ -363,7 +359,6 @@ struct RefinementModelRow: View {
                                 Text("\(settings.llm.model) (custom)").tag(settings.llm.model)
                             }
                         }
-                        .settingsPicker(width: Theme.fieldWidth)
                     }
                     if !models.isEmpty {
                         Button { customModel.toggle() } label: {
@@ -382,13 +377,12 @@ struct RefinementModelRow: View {
                     if availableEfforts.isEmpty {
                         Text("Not supported").foregroundStyle(.secondary)
                     } else {
-                        Picker("Thinking effort", selection: Binding(
+                        SoftPicker("Thinking effort", selection: Binding(
                             get: { selectedEffort },
                             set: { settings.llm.thinkingEffort = $0 }
-                        )) {
+                        ), width: 170) {
                             ForEach(availableEfforts) { Text($0.title).tag($0) }
                         }
-                        .settingsPicker(width: 170)
                     }
                 }
             }

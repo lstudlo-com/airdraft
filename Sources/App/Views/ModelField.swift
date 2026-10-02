@@ -20,13 +20,12 @@ struct ModelField: View {
         SettingRow(title: title, subtitle: status.isEmpty ? nil : status) {
             HStack(spacing: 6) {
                 if models.isEmpty {
-                    TextField("Model ID", text: $model).textFieldStyle(.roundedBorder).frame(width: Theme.fieldWidth)
+                    TextField("Model ID", text: $model).softField().frame(width: Theme.fieldWidth)
                 } else {
-                    Picker(title, selection: $model) {
+                    SoftPicker(title, selection: $model, width: Theme.fieldWidth) {
                         ForEach(models, id: \.self) { Text($0).tag($0) }
                         if !model.isEmpty, !models.contains(model) { Text("\(model) (not listed)").tag(model) }
                     }
-                    .settingsPicker(width: Theme.fieldWidth)
                 }
                 RefreshButton(loading: loading, help: "Reload the model list from the endpoint") { refreshID = UUID() }
             }

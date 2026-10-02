@@ -55,10 +55,7 @@ struct HistoryTranscriptionReview: View {
             Text("Current model and profile · original unchanged")
                 .supportingText()
             if container.pipeline.reviewOutcome != nil {
-                Picker("Version", selection: $showRaw) {
-                    Text("Refined").tag(false)
-                    Text("Raw").tag(true)
-                }.pickerStyle(.segmented).fixedSize()
+                SoftSegmentedPicker("Version", selection: $showRaw, options: [(false, "Refined"), (true, "Raw")])
                 ScrollView {
                     Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                 }.frame(minHeight: 120, maxHeight: .infinity)

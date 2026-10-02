@@ -168,7 +168,7 @@ struct LicenseView: View {
     private func keyField(replacement: Bool, prominent: Bool) -> some View {
         HStack(spacing: 8) {
             SecureField(replacement ? "New license key" : "License key", text: $key)
-                .textFieldStyle(.roundedBorder)
+                .softField()
                 .accessibilityLabel("Airdraft license key")
                 .onSubmit { activate() }
                 .disabled(isPending)

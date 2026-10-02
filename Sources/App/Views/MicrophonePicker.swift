@@ -7,11 +7,25 @@ struct MicrophonePicker: View {
     var title = "Microphone"
     /// Device names come from hardware; the menu bar fits them to its width.
     var fitsMenu = false
+    /// Pages show the raised soft picker at this width; the menu bar keeps the native menu.
+    var width: CGFloat? = nil
 
     var body: some View {
+        Group {
+            if let width {
+                SoftPicker(title, selection: selection, width: width) { choices }
+            } else {
+                Picker(title, selection: selection) { choices }
+            }
+        }
+        .disabled(container.pipeline.state.isBusy)
+        .onAppear { container.microphones.refresh() }
+        .help("Saved as Airdraft's default microphone. Finish dictation before switching.")
+    }
+
+    private var selection: Binding<String> {
         let store = container.microphones
-        let preference = container.settings.microphone
-        Picker(title, selection: Binding(
+        return Binding(
             get: { container.settings.microphone.uid ?? "" },
             set: { uid in
                 let next: MicrophonePreference
@@ -24,16 +38,17 @@ struct MicrophonePicker: View {
                 }
                 container.settings.microphone = store.selection(next, preservingChannelFrom: container.settings.microphone)
             }
-        )) {
-            Text("System default").tag("")
-            ForEach(store.devices) { device in Text(label(device.name)).tag(device.uid) }
-            if let uid = preference.uid, store.selected(preference) == nil {
-                Text(label("\(preference.name) · unavailable")).tag(uid)
-            }
+        )
+    }
+
+    @ViewBuilder private var choices: some View {
+        let store = container.microphones
+        let preference = container.settings.microphone
+        Text("System default").tag("")
+        ForEach(store.devices) { device in Text(label(device.name)).tag(device.uid) }
+        if let uid = preference.uid, store.selected(preference) == nil {
+            Text(label("\(preference.name) · unavailable")).tag(uid)
         }
-        .disabled(container.pipeline.state.isBusy)
-        .onAppear { store.refresh() }
-        .help("Saved as Airdraft's default microphone. Finish dictation before switching.")
     }
 
     private func label(_ name: String) -> String { fitsMenu ? MenuTitle.fit(name) : name }
@@ -48,17 +63,17 @@ struct MicrophoneSettings: View {
         PageSection("Microphone") {
             SettingsCard {
                 SettingRow(title: "Default microphone") {
-                    MicrophonePicker().settingsPicker(width: 230)
+                    MicrophonePicker(width: 230)
                 }
                 let channelCount = store.selected(preference)?.inputChannelCount ?? 0
                 let selectedChannel = preference.channelIndex ?? 0
                 if channelCount > 1 || selectedChannel != 0 {
                     RowDivider()
                     SettingRow(title: "Input channel", subtitle: "Your microphone’s physical input") {
-                        Picker("Input channel", selection: Binding(
+                        SoftPicker("Input channel", selection: Binding(
                             get: { container.settings.microphone.channelIndex ?? 0 },
                             set: { container.settings.microphone.channelIndex = $0 }
-                        )) {
+                        ), width: 230) {
                             ForEach(0..<channelCount, id: \.self) { channel in
                                 Text("Input \(channel + 1)").tag(channel)
                             }
@@ -66,7 +81,6 @@ struct MicrophoneSettings: View {
                                 Text("Input \(selectedChannel + 1) · unavailable").tag(selectedChannel)
                             }
                         }
-                        .settingsPicker(width: 230)
                         .disabled(container.pipeline.isBusy)
                     }
                 }

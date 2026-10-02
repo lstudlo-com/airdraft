@@ -16,11 +16,11 @@ struct SpeechPreviewSettings: View {
         PageSection("Live preview") {
             SettingsCard {
                 SettingRow(title: "Apple Speech language", subtitle: "Preview only") {
-                    Picker("Preview language", selection: $settings.livePreviewLocale) {
+                    SoftPicker("Preview language", selection: $settings.livePreviewLocale, width: 200) {
                         ForEach(SpeechLanguage.appleLocales(including: settings.livePreviewLocale), id: \.code) {
                             Text($0.name).tag($0.code)
                         }
-                    }.settingsPicker(width: 200)
+                    }
                 }
                 RowDivider()
                 SettingRow(title: "Language assets", subtitle: job?.error ?? reason ?? "Ready") {

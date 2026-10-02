@@ -148,17 +148,17 @@ struct OnboardingView: View {
             PageSection("Your microphone") {
                 SettingsCard {
                     SettingRow(title: "Input") {
-                        Picker("Microphone", selection: Binding(
+                        SoftPicker("Microphone", selection: Binding(
                             get: { container.settings.microphone.uid ?? "" },
                             set: { uid in
                                 let device = container.microphones.devices.first { $0.uid == uid }
                                 let choice = device.map { MicrophonePreference(uid: $0.uid, name: $0.name) } ?? .systemDefault
                                 container.settings.microphone = container.microphones.selection(choice, preservingChannelFrom: container.settings.microphone)
                             }
-                        )) {
+                        ), width: 240) {
                             Text("System Default").tag("")
                             ForEach(container.microphones.devices) { Text($0.name).tag($0.uid) }
-                        }.settingsPicker(width: 240)
+                        }
                     }
                 }
             }
@@ -174,10 +174,8 @@ struct OnboardingView: View {
 
     private var speech: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            Picker("Speech processing", selection: $useCloud) {
-                Text("On This Mac").tag(false)
-                Text("My API Key").tag(true)
-            }.pickerStyle(.segmented).disabled(busy)
+            SoftSegmentedPicker("Speech processing", selection: $useCloud,
+                                options: [(false, "On This Mac"), (true, "My API Key")]).disabled(busy)
             Text(useCloud ? "Audio goes to your chosen provider. Its usage charges are separate from Airdraft."
                  : "Speech is processed on this Mac. Download a model once to use it offline.")
                 .font(.system(size: 13)).foregroundStyle(.secondary)
@@ -186,9 +184,9 @@ struct OnboardingView: View {
             if useCloud {
                 SettingsCard {
                     SettingRow(title: "Provider") {
-                        Picker("Provider", selection: $cloudChoice) {
+                        SoftPicker("Provider", selection: $cloudChoice, width: 180) {
                             ForEach(EndpointPreset.asr) { Text($0.name).tag($0.kind) }
-                        }.settingsPicker(width: 180)
+                        }
                     }
                     RowDivider()
                     SpeechKeyRows(preset: preset, config: speechConfig)
@@ -207,9 +205,9 @@ struct OnboardingView: View {
     private var localModel: some View {
         SettingsCard {
             SettingRow(title: "Speech model") {
-                Picker("Speech model", selection: $localChoice) {
+                SoftPicker("Speech model", selection: $localChoice, width: 225) {
                     ForEach(ModelCatalogue.entries.filter { $0.isDownloadable }) { Text($0.title).tag($0.id) }
-                }.settingsPicker(width: 225)
+                }
             }
             RowDivider()
             HStack(alignment: .top) {
@@ -264,10 +262,13 @@ struct OnboardingView: View {
                 .scrollContentBackground(.hidden)
                 .padding(Theme.cardPadding)
                 .frame(minHeight: 160, idealHeight: 180)
-                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+                .background {
+                    SoftRaisedSurface(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), elevation: .card)
+                }
                 .overlay {
-                    RoundedRectangle(cornerRadius: Theme.cardRadius)
-                        .strokeBorder(practiceFocused ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: practiceFocused ? 1.5 : 0.5)
+                    RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                        .strokeBorder(Color.accentColor, lineWidth: 1.5)
+                        .opacity(practiceFocused ? 1 : 0)
                         .allowsHitTesting(false)
                 }
                 .overlay(alignment: .topLeading) {

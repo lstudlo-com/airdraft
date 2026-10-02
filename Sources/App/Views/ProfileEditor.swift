@@ -32,7 +32,7 @@ struct ProfileEditor<Chooser: View>: View {
             SettingsCard {
                 SettingRow(title: "Name") {
                     TextField("Profile name", text: $nameDraft)
-                        .textFieldStyle(.roundedBorder)
+                        .softField()
                         .labelsHidden()
                         .frame(width: Theme.fieldWidth)
                         .focused($nameFocused)
@@ -70,7 +70,7 @@ struct ProfileEditor<Chooser: View>: View {
                 ) {
                     Toggle("Refine transcript", isOn: binding(\.usesLLM))
                         .labelsHidden()
-                        .toggleStyle(.switch)
+                        .toggleStyle(.softSwitch)
                 }
             }
             .onAppear {
@@ -162,10 +162,12 @@ struct ProfileTextEditor: View {
             }
             .foregroundStyle(.primary)
             .frame(height: height)
-            .background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 8))
+            .background { SoftRaisedSurface(shape: SoftControl.fieldShape) }
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(focused ? Color.accentColor : Color.primary.opacity(0.13), lineWidth: focused ? 1.5 : 0.5)
+                SoftControl.fieldShape
+                    .strokeBorder(Color.accentColor, lineWidth: 1.5)
+                    .opacity(focused ? 1 : 0)
+                    .allowsHitTesting(false)
             }
         }
     }

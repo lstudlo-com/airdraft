@@ -11,9 +11,9 @@ struct AutomationSettings: View {
         PageSection("Output and automation") {
             SettingsCard {
                 SettingRow(title: "Final text") {
-                    Picker("Final text", selection: $settings.outputDestination) {
+                    SoftPicker("Final text", selection: $settings.outputDestination, width: 180) {
                         ForEach(TextOutputDestination.allCases) { Text($0.title).tag($0) }
-                    }.settingsPicker(width: 180)
+                    }
                 }
                 if settings.outputDestination == .script {
                     RowDivider()

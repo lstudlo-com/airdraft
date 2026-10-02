@@ -41,12 +41,8 @@ struct ConfigurationPage: View {
                     }
                     RowDivider()
                     SettingRow(title: "Push to talk or toggle") {
-                        Picker("Shortcut behavior", selection: $settings.hotkeyBehavior) {
-                            Text("Hold to talk").tag(HotkeyBehavior.hold)
-                            Text("Toggle").tag(HotkeyBehavior.toggle)
-                        }
-                        .pickerStyle(.segmented)
-                        .settingsPicker(width: 200)
+                        SoftSegmentedPicker("Shortcut behavior", selection: $settings.hotkeyBehavior,
+                                            options: [(.hold, "Hold to talk"), (.toggle, "Toggle")], width: 200)
                     }
                     RowDivider()
                     SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
@@ -61,7 +57,7 @@ struct ConfigurationPage: View {
                 SettingsCard {
                     SettingRow(title: "Read app context",
                                subtitle: "Sends window title, nearby text and selection to AI. Skips password fields and managers.") {
-                        Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.switch)
+                        Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.softSwitch)
                     }
                     RowDivider()
                     SettingRow(title: "Maximum recording", subtitle: settings.asr.kind == .groq ? "Groq upload limit: 740 s" : nil) {
@@ -79,7 +75,7 @@ struct ConfigurationPage: View {
             PageSection("Live preview") {
                 SettingsCard {
                     SettingRow(title: "Show text while speaking", subtitle: "On-device Apple Speech; final model unchanged") {
-                        Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.switch)
+                        Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
                     if settings.livePreviewEnabled {
                         RowDivider()
@@ -93,9 +89,9 @@ struct ConfigurationPage: View {
             PageSection("Audio history") {
                 SettingsCard {
                     SettingRow(title: "Keep recordings", subtitle: "Local playback and retry. Off deletes audio, keeps text.") {
-                        Picker("Keep recordings", selection: $settings.audioRetention) {
+                        SoftPicker("Keep recordings", selection: $settings.audioRetention, width: 160) {
                             ForEach(AudioRetention.allCases) { Text($0.title).tag($0) }
-                        }.settingsPicker(width: 160)
+                        }
                     }
                     if let error = container.pipeline.audioStorageError {
                         RowDivider()

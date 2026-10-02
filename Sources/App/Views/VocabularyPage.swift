@@ -26,14 +26,11 @@ struct VocabularyPage: View {
             Card {
             HStack(spacing: 10) {
                 TextField("New word or mis-hearing", text: $word)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 14))
                     .focused($focusWord)
+                    .softField(focused: focusWord)
                     .onSubmit(add)
-                Divider().frame(height: 18).opacity(0.5)
                 TextField("Replace with…", text: $replacement)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 14))
+                    .softField()
                     .frame(width: 220)
                     .onSubmit(add)
                 Button("Add", action: add)

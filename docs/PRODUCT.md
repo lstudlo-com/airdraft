@@ -99,7 +99,7 @@ Standing requirement from Light, reaffirmed 2026-09-21:
   margin. Section headings, heading controls and cards end on the same right edge.
   Inside a card, the visible edge of each trailing control ends at its 16 pt inset;
   a fixed-width invisible picker frame must not make the control look indented.
-  Native settings pickers use `.settingsPicker(width:)` for this alignment.
+  Settings pickers use the raised `SoftPicker` capsule for this alignment.
 - Numeric settings that have stepper arrows also accept typed values. Use
   `SettingsNumberStepper` to keep keyboard entry, bounds and arrow behavior
   consistent across pages.
@@ -167,15 +167,18 @@ Standing requirement from Light, reaffirmed 2026-09-21:
   in the island's heading row, with its symbol aligned to the page leading inset
   and its center on the heading's centerline. Page content starts below the shared
   sticky page header in both sidebar states.
-- Keep neumorphic depth scoped to the sidebar brand capsule, selected sidebar destinations, the microphone capsule and meters, shortcut
-  keycaps, appearance preview frames, Home summary tracks and the recording HUD.
-  Reuse `NeumorphicSurface` for raised and inset neutral materials; retain clear
+- Neumorphism covers every page: cards are raised with the Home hero's light and
+  shade at half its spread, and buttons, fields, editors, pickers, segmented
+  controls, switches, sliders and steppers are raised at a quarter, all lit from
+  the top left; the single primary action stays a native prominent button. The
+  sidebar brand, wells, meters, keycaps, preview frames, Home tracks and the HUD keep
+  their own neumorphic materials; retain clear
   selection, keyboard focus, disabled states and live audio contrast. The brand
   capsule keeps its interior unfilled, with outer shadows excluded from that area.
   Selected sidebar page items replicate the microphone well: the same opaque
   recessed material at 2.5-point depth, with 12-point continuous corners shared by
   both wells; the microphone stays taller than the 32-point rows. One well slides
-  between rows on a fast ease-out cubic curve when the page changes. Light comes
+  between rows on a 0.36-second ease-in-out curve when the page changes. Light comes
   from the top left in both appearances. Raised faces cast down-right shadows;
   recessed tracks shade their inner top-left edge. Verify live and saved renders.
 - History keeps a compact 52-point timeline beside the scrolling transcription

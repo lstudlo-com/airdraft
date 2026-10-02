@@ -224,7 +224,7 @@ struct TranslucentWindowView: NSViewRepresentable {
     }
 }
 
-/// Rounded, softly filled container for a group of rows.
+/// A section card raised from the island like the Home hero, at half its spread.
 struct Card<Content: View>: View {
     var padding: CGFloat = Theme.cardPadding
     var spacing: CGFloat = 0
@@ -234,15 +234,10 @@ struct Card<Content: View>: View {
         VStack(alignment: .leading, spacing: spacing) { content }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .fill(Color.primary.opacity(0.05))
-            )
             .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
-            )
+            .background {
+                SoftRaisedSurface(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), elevation: .card)
+            }
     }
 }
 
@@ -315,6 +310,7 @@ struct SectionTitle<Trailing: View>: View {
 
 extension View {
     /// Keep the visible edge of a native picker at the settings card's trailing inset.
+    /// Pages use `SoftPicker`; this remains for native pickers outside the page cards.
     func settingsPicker(width: CGFloat) -> some View {
         labelsHidden().frame(width: width, alignment: .trailing)
     }
@@ -343,23 +339,18 @@ struct SettingsNumberStepper: View {
     var body: some View {
         HStack(spacing: 6) {
             TextField(title, text: $draft)
-                .textFieldStyle(.roundedBorder)
                 .multilineTextAlignment(.trailing)
-                .frame(width: 54)
                 .focused($isEditing)
+                .softField(focused: isEditing)
+                .frame(width: 60)
                 .onSubmit(commit)
                 .accessibilityLabel(title)
             Text(unit)
                 .foregroundStyle(.secondary)
-            Stepper(title, value: Binding(
-                get: { value },
-                set: { newValue in
-                    value = newValue
-                    draft = String(newValue)
-                }
-            ), in: range, step: step)
-                .labelsHidden()
-                .accessibilityLabel("Adjust \(title)")
+            HStack(spacing: 4) {
+                stepButton("minus", label: "Decrease \(title)", by: -step)
+                stepButton("plus", label: "Increase \(title)", by: step)
+            }
         }
         .onChange(of: value) { _, newValue in
             if !isEditing { draft = String(newValue) }
@@ -367,6 +358,25 @@ struct SettingsNumberStepper: View {
         .onChange(of: isEditing) { _, editing in
             if !editing { commit() }
         }
+    }
+
+    /// Raised round buttons replace the native stepper arrows.
+    private func stepButton(_ symbol: String, label: String, by delta: Int) -> some View {
+        Button {
+            set(value + delta)
+        } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .semibold))
+                .frame(width: 24, height: 24)
+        }
+        .buttonStyle(SoftIconButtonStyle())
+        .disabled(delta < 0 ? value <= range.lowerBound : value >= range.upperBound)
+        .accessibilityLabel(label)
+    }
+
+    private func set(_ newValue: Int) {
+        value = min(max(newValue, range.lowerBound), range.upperBound)
+        draft = String(value)
     }
 
     private func commit() {
@@ -505,12 +515,43 @@ struct ChoiceTile<Preview: View>: View {
     }
 }
 
+/// A raised capsule that sinks into an inset well while pressed.
 struct SoftButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 12.5, weight: .medium))
-            .softControlSurface(pressed: configuration.isPressed)
-            .foregroundStyle(.primary)
+        SoftButtonBody(configuration: configuration)
+    }
+
+    private struct SoftButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 12.5, weight: .medium))
+                .softControlSurface(pressed: configuration.isPressed)
+                .foregroundStyle(.primary)
+                .opacity(isEnabled ? 1 : 0.5)
+        }
+    }
+}
+
+/// A round raised button for a single symbol, such as the stepper's minus and plus.
+struct SoftIconButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SoftIconBody(configuration: configuration)
+    }
+
+    private struct SoftIconBody: View {
+        let configuration: ButtonStyleConfiguration
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(.primary)
+                .background { SoftRaisedSurface(shape: Circle(), pressed: configuration.isPressed) }
+                .contentShape(Circle())
+                .opacity(isEnabled ? 1 : 0.4)
+        }
     }
 }
 
@@ -520,9 +561,8 @@ private struct SoftControlSurface: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(.horizontal, 12)
-            .frame(minHeight: 28)
-            .background(Capsule().fill(Color.primary.opacity(pressed ? 0.16 : 0.08)))
-            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+            .frame(minHeight: SoftControl.height)
+            .background { SoftRaisedSurface(shape: Capsule(), pressed: pressed) }
             .contentShape(Capsule())
     }
 }
@@ -708,8 +748,8 @@ struct SearchField: View {
             TextField(placeholder, text: $text).textFieldStyle(.plain).font(.system(size: 13))
         }
         .padding(.horizontal, 9)
-        .padding(.vertical, 5)
-        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.primary.opacity(0.07)))
+        .frame(height: SoftControl.height)
+        .background { SoftRaisedSurface(shape: Capsule()) }
         .frame(width: 220)
     }
 }

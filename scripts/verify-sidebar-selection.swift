@@ -89,7 +89,7 @@ enum VerifySidebarSelection {
 
         selection.row = 3
         var samples: [CGFloat] = []
-        for _ in 0..<12 {
+        for _ in 0..<16 {
             RunLoop.main.run(until: Date().addingTimeInterval(0.03))
             if let y = wellCenter() { samples.append(y) }
         }
@@ -102,10 +102,14 @@ enum VerifySidebarSelection {
         let between = samples.filter { $0 > start + travel * 0.1 && $0 < end - travel * 0.1 }
         precondition(between.count >= 2, "The well must pass through intermediate positions, not toggle")
         precondition(zip(samples, samples.dropFirst()).allSatisfy { $1 >= $0 - 0.5 }, "The well must move in one direction")
-        // Ease-out cubic: most of the distance is covered in the first half of the motion.
-        if let early = samples.first(where: { $0 > start + 1 }) {
-            precondition(early - start > travel * 0.15, "The motion must leave quickly (first moving sample \(early))")
+        // Ease-in-out S-curve: gentle first and last steps around a faster middle.
+        let path = [start] + samples
+        let steps = zip(path, path.dropFirst()).map { $1 - $0 }
+        guard let firstMove = steps.firstIndex(where: { $0 > 0.5 }), let fastest = steps.max() else {
+            preconditionFailure("The well never moved")
         }
+        precondition(steps[firstMove] < fastest * 0.75, "The motion must ease in (steps \(steps.map { Int($0.rounded()) }))")
+        precondition(steps.count > 9 && between.count >= 4, "The motion must last long enough to read as a glide")
         print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
     }
 }

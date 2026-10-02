@@ -102,15 +102,14 @@ struct ProfilesPage: View {
     /// One compact selector replaces the former profile list; the name field,
     /// dictation state and instructions below all follow it.
     private var profilePicker: some View {
-        Picker("Profile", selection: Binding(
+        SoftPicker("Profile", selection: Binding(
             get: { selectedProfile?.id ?? container.profiles.activeProfileID },
             set: { selection = $0 }
-        )) {
+        ), width: 200) {
             ForEach(container.profiles.profiles) { profile in
                 Text(profile.name.isEmpty ? "Untitled profile" : profile.name).tag(profile.id)
             }
         }
-        .settingsPicker(width: 200)
         .accessibilityIdentifier("profiles.picker")
     }
 

@@ -7,6 +7,12 @@ import SwiftUI
 // FORM: User-pinned native macOS direction; code-led, seed 43724242 (brief overrides assignment).
 // FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review,
 // the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+/// Motion shared by sliding selections: the sidebar well and segmented controls.
+enum SelectionMotion {
+    /// A pronounced ease-in-out S-curve: eases away from the old choice, glides, then settles.
+    static let curve = Animation.timingCurve(0.65, 0, 0.35, 1, duration: 0.36)
+}
+
 enum NavigationStyle {
     static let rowHeight: CGFloat = 32
     static let cornerRadius: CGFloat = 7
@@ -75,8 +81,6 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
     let selection: ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// Ease-out cubic: leaves at full speed and settles gently on the new row.
-    static var curve: Animation { .timingCurve(0.33, 1, 0.68, 1, duration: 0.24) }
 
     var body: some View {
         GeometryReader { proxy in
@@ -85,7 +89,7 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
                 NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
                 .frame(width: rect.width, height: rect.height)
                 .offset(x: rect.minX, y: rect.minY)
-                .animation(reduceMotion ? nil : Self.curve, value: selection)
+                .animation(reduceMotion ? nil : SelectionMotion.curve, value: selection)
             }
         }
         .allowsHitTesting(false)
