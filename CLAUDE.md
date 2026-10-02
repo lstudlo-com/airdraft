@@ -109,7 +109,7 @@ verification status belong in the vault (see below).
   in a 30-point row. Retain its leading alignment, outer spacing and the
   accessible name Airdraft.
   It is a static image, not a button or a live meter.
-  The expanded sidebar is 170 points wide.
+  The expanded sidebar is 180 points wide.
   Collapsing the sidebar keeps an icon rail. Derive its width from the unchanged
   brand width plus equal 20-point side insets. Center destination, microphone
   and available account icons horizontally while preserving their expanded
@@ -197,15 +197,18 @@ verification status belong in the vault (see below).
   preview them only when selected, including when System Default resolves to them.
   Opening the picker must not connect unselected iPhones. Stop their previews on
   deselection, and stop all previews when closed or dictating.
-  The microphone capsule stays recessed, with no hover or pressed treatment.
-  Sidebar destination selection replicates the microphone well exactly: the same
-  opaque recessed material, 2.5-point depth, top-left inner shade and bottom-right
-  inner light. Both wells use `NavigationStyle.wellShape`, 12-point continuous
-  corners. Destinations and the microphone capsule are standardized: the same
-  38-point height (`NavigationStyle.destinationHeight`), the same 4-point inset
-  from the sidebar content edges (`NavigationStyle.destinationInset`), so the same
-  width, the same 32-point icon island (`NavigationStyle.iconIslandSize`), 13-point
-  symbol and 44-point label start. Destinations have no chevron, so their trailing
+  Sidebar destination selection is an opaque recessed well: 2.5-point depth,
+  top-left inner shade and bottom-right inner light. The microphone button is its
+  deliberate inverse, so a control never reads as a selected page: a raised
+  38-point button (`NavigationStyle.microphoneHeight`) in the sidebar's tone with
+  top-left light and down-right shade, its symbol in a recessed 32-point socket
+  (`MicrophoneIconSocket`), plain rather than carved, with a trailing chevron;
+  pressing sinks it into a well. Both use `NavigationStyle.wellShape`, 12-point
+  continuous corners, and the same 4-point inset from the sidebar content edges
+  (`NavigationStyle.destinationInset`), so the same width. Destinations are
+  34 points high (`NavigationStyle.destinationHeight`) with a 28-point icon island.
+  Destination and microphone labels share a 44-point start
+  (`NavigationStyle.labelStart`). Destinations have no chevron, so their trailing
   padding is 6 points and titles stay on one line. Hover and press fills on
   destination rows use the same radius. One well serves both destination groups: rows publish their
   bounds with `.sidebarSelectionAnchor`, and `.sidebarSelectionWell` slides it to
@@ -222,9 +225,7 @@ verification status belong in the vault (see below).
   moves first and the island follows on the same curve 300 ms later
   (`SelectionMotion.islandCurve`), visible only inside the moving well. The selected
   symbol is carved deep into the island (`SidebarIcon`): a dark glyph with a shade rim
-  up-left and a highlight rim down-right, appearing as the island arrives. The
-  microphone capsule's icon always rests on the same island in its well, carved the
-  same way.
+  up-left and a highlight rim down-right, appearing as the island arrives.
   Home summary fills use one solid neutral gray, raised inside their inset track
   with a top-left highlight and down-right shade; never a brand hue.
   Sidebar destination, microphone and account symbols use

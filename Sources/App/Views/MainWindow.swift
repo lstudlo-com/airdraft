@@ -293,12 +293,14 @@ struct SidebarView: View {
 
             Spacer(minLength: 20)
             Button(action: openMicrophone) {
-                // The microphone always rests on its own island in the well, carved like a selection,
-                // with the same size, island and label start as the destinations above.
-                HStack(spacing: 9) {
-                    SidebarIcon(symbol: "mic", selected: true)
-                        .frame(width: NavigationStyle.iconIslandSize, height: NavigationStyle.iconIslandSize)
-                        .background { SoftWellIsland() }
+                // A raised control with its symbol in a recessed socket: the inverse of a selected
+                // destination, so it never reads as a page. Labels share the destinations' start.
+                HStack(spacing: NavigationStyle.labelStart - NavigationStyle.iconIslandInset - NavigationStyle.microphoneSocketSize) {
+                    Image(systemName: "mic")
+                        .font(.system(size: Theme.sidebarIconSize))
+                        .frame(width: NavigationStyle.microphoneSocketSize, height: NavigationStyle.microphoneSocketSize)
+                        .background { MicrophoneIconSocket() }
+                        .accessibilityHidden(true)
                     if !isCollapsed {
                         Text(container.microphones.label(container.settings.microphone))
                             .font(.system(size: 13))
@@ -314,11 +316,11 @@ struct SidebarView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.leading, isCollapsed ? 0 : NavigationStyle.iconIslandInset)
                 .padding(.trailing, isCollapsed ? 0 : 14)
-                .frame(height: NavigationStyle.destinationHeight)
+                .frame(height: NavigationStyle.microphoneHeight)
             }
             .buttonStyle(MicrophoneButtonStyle())
             .frame(maxWidth: .infinity)
-            .frame(height: NavigationStyle.destinationHeight)
+            .frame(height: NavigationStyle.microphoneHeight)
             .contentShape(NavigationStyle.wellShape)
             .padding(.horizontal, NavigationStyle.destinationInset)
             .padding(.top, 8)
@@ -379,8 +381,8 @@ struct SidebarView: View {
         VStack(spacing: 2) {
             ForEach(pages) { page in
                 Button { container.navigation.page = page } label: {
-                    // Same size, island and label start as the microphone capsule below.
-                    HStack(spacing: 9) {
+                    // Same width and label start as the microphone button below.
+                    HStack(spacing: NavigationStyle.labelStart - NavigationStyle.iconIslandInset - NavigationStyle.iconIslandSize) {
                         SidebarIcon(symbol: page.symbol, selected: container.navigation.page == page)
                             .frame(width: NavigationStyle.iconIslandSize)
                             .sidebarSelectionIconAnchor(page)

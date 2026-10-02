@@ -82,25 +82,53 @@ struct SoftWellIsland: View {
 }
 
 /// Used only by the sidebar microphone capsule, not every action button.
+///
+/// It inverts the destination selection so a control never reads as a selected page: the
+/// selection is a recessed track holding a raised icon island; the microphone is a raised
+/// button holding a recessed icon socket. Pressing sinks it into a well.
 struct MicrophoneButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        CapsuleBody(label: configuration.label)
+        MicrophoneBody(configuration: configuration)
     }
 
-    private struct CapsuleBody: View {
-        let label: ButtonStyleConfiguration.Label
+    private struct MicrophoneBody: View {
+        let configuration: ButtonStyleConfiguration
         @Environment(\.isEnabled) private var isEnabled
+        @Environment(\.colorScheme) private var scheme
+        @Environment(\.colorSchemeContrast) private var contrast
 
         var body: some View {
-            label
+            let shape = NavigationStyle.wellShape
+            let dark = scheme == .dark
+            configuration.label
                 .background {
-                    NeumorphicSurface(shape: NavigationStyle.wellShape, inset: true, depth: 2.5)
+                    if configuration.isPressed {
+                        NeumorphicSurface(shape: shape, inset: true, depth: 2.5)
+                    } else {
+                        // The sidebar's own tone, lifted by its light and shade like the brand capsule.
+                        shape.fill(LinearGradient(colors: [Color(white: dark ? 0.235 : 0.965), Color(white: dark ? 0.205 : 0.935)],
+                                                  startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .background {
+                                SurfaceShadows(shape: shape, shadows: [
+                                    .init(color: .black.opacity(dark ? 0.55 : 0.22), radius: 4, x: 2, y: 3),
+                                    .init(color: .white.opacity(dark ? 0.09 : 1), radius: 4, x: -2, y: -2.5),
+                                ])
+                            }
+                            .overlay {
+                                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.5 : 0.04), lineWidth: 0.5)
+                            }
+                    }
                 }
-                // Keeps the icon disc's light and shade inside the well.
-                .clipShape(NavigationStyle.wellShape)
-                .contentShape(NavigationStyle.wellShape)
+                .contentShape(shape)
                 .opacity(isEnabled ? 1 : 0.45)
         }
+    }
+}
+
+/// The recessed socket holding the microphone symbol, concentric with its button.
+struct MicrophoneIconSocket: View {
+    var body: some View {
+        NeumorphicSurface(shape: NavigationStyle.iconIslandShape, inset: true, depth: 1.5)
     }
 }
 

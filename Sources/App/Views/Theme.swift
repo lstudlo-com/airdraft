@@ -10,7 +10,7 @@ enum Theme {
     static let titlebarHeight: CGFloat = 46
     static let sidebarToggleWidth: CGFloat = 28
     static let sidebarToggleSymbolSize: CGFloat = 14
-    static let sidebarWidth: CGFloat = 170
+    static let sidebarWidth: CGFloat = 180
     static let sidebarContentInset: CGFloat = 10
     static let sidebarBrandInset: CGFloat = 10
     static let sidebarBrandHeight: CGFloat = 28

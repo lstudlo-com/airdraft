@@ -13,7 +13,7 @@ import SwiftUI
 
 private struct SelectionFixture: View {
     static let size = CGSize(width: 220, height: 300)
-    static let rowTops: [CGFloat] = [20, 60, 100, 154] // 38 pt rows, 2 pt spacing, then a 16 pt group gap
+    static let rowTops: [CGFloat] = [20, 56, 92, 142] // 34 pt rows, 2 pt spacing, then a 16 pt group gap
     @ObservedObject var selection: Selection
 
     var body: some View {

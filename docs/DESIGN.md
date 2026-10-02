@@ -164,7 +164,7 @@ commits a non-empty name; an empty edit keeps the previous name.
 
 ## Layout
 
-`Theme.swift` owns the spacing tokens above. The window has a 170-point expanded
+`Theme.swift` owns the spacing tokens above. The window has a 180-point expanded
 sidebar and a fixed width of 784 points. Every page, including onboarding, renders
 inside one rounded content island (`.contentIsland()`), inset 10 points from the
 window's top, trailing and bottom edges. The gutter repeats the sidebar's content
@@ -318,21 +318,20 @@ same diagonal. `SurfaceShadows` draws outer shadows in a Canvas so live windows,
 Xcode previews and bitmap captures share one direction. Direct offset shadow
 modifiers invert vertically in AppKit bitmap capture on the current macOS;
 never compensate by reversing the live shadow or by changing only light mode.
-The microphone capsule stays recessed, with no hover or pressed treatment.
-It dims while unavailable. Selected sidebar destinations replicate that well: the
-same opaque recessed material, 2.5-point depth, inner top-left shading and inner
-bottom-right highlight. Both wells share 12-point continuous corners
-(`NavigationStyle.wellShape`). Destinations and the microphone capsule share
-one size: 38 points high, inset 4 points from the sidebar content edges, with the
-same 32-point icon island, 13-point symbol and label start. Increase
+Selected sidebar destinations are an opaque recessed well: 2.5-point depth,
+inner top-left shading and inner bottom-right highlight, 34 points high. The
+microphone button inverts it, so the control never reads as a selected page: a
+raised 38-point button in the sidebar's tone with a recessed socket for its plain
+symbol and a trailing chevron; it sinks into a well while pressed and dims while
+unavailable. Both share 12-point continuous corners (`NavigationStyle.wellShape`),
+the same width and a 44-point label start. Increase
 Contrast retains an explicit edge. Text and symbols stay opaque.
 Inside the well, the selected icon rests on a flat raised island, like a switch
 knob on its track: a rounded square concentric with the well (9-point corners) that
 touches its top, bottom and leading edges 3 points in, with its light and shade
 clipped inside the well. The symbol is carved deep into the island, with a shade
 rim up-left and a highlight rim down-right. The well moves first and the island
-follows 300 ms later on the same curve, sliding into the new well; the microphone
-capsule's icon rests on the same island. Segmented
+follows 300 ms later on the same curve, sliding into the new well. Segmented
 thumbs and switch knobs likewise keep their light and shade inside their tracks.
 A single well serves both destination groups and slides to the newly selected row
 on a 0.36-second ease-in-out curve that eases away, glides and settles, whether the page changed from the
@@ -434,7 +433,7 @@ followed by a Connection row with Test and Cancel.
 
 ### Onboarding and licensing
 
-Onboarding reuses the 784-point window, a fixed 170-point step rail and shared
+Onboarding reuses the 784-point window, a fixed 180-point step rail and shared
 settings cards for Permissions, Speech and Try It. Header and footer actions
 stay outside its scrolling content. Set Up Later preserves progress; successful
 practice requires real pipeline delivery. Returning users' refinement and output
