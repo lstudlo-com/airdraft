@@ -53,16 +53,27 @@ final class DictionaryPostProcessorTests: XCTestCase {
     }
 
     func testWhisperPromptLeadsWithScriptHint() {
-        let hints = TranscriptionHints(vocabulary: ["Floze"], chineseScript: .traditional)
+        let hints = TranscriptionHints(language: "zh", vocabulary: ["Floze"], chineseScript: .traditional)
         XCTAssertEqual(hints.contextText, "以下是繁體中文的內容。 Floze")
+        XCTAssertEqual(TranscriptionHints(language: "zh-TW", chineseScript: .simplified).promptText, "以下是简体中文的内容。")
         XCTAssertNil(TranscriptionHints().promptText)
         XCTAssertNil(TranscriptionHints().contextText)
+    }
+
+    /// Groq Whisper transcribed 33 s of English speech as a Chinese translation
+    /// when auto-detect received the Traditional Chinese script prompt.
+    func testScriptHintRequiresChineseLanguage() {
+        for language in [nil, "", "en", "ja"] {
+            let hints = TranscriptionHints(language: language, vocabulary: ["Floze"], chineseScript: .traditional)
+            XCTAssertNil(hints.promptText, "language \(language ?? "nil")")
+            XCTAssertEqual(hints.contextText, "Floze")
+        }
     }
 
     /// Groq Whisper returned "floze" for short clips and appended it after long
     /// recordings when the bare term was part of its prompt.
     func testWhisperPromptOmitsDictionaryTerms() {
-        let hints = TranscriptionHints(vocabulary: ["floze"], chineseScript: .traditional)
+        let hints = TranscriptionHints(language: "zh", vocabulary: ["floze"], chineseScript: .traditional)
         XCTAssertEqual(hints.promptText, "以下是繁體中文的內容。")
         XCTAssertNil(TranscriptionHints(vocabulary: ["floze"]).promptText)
         XCTAssertEqual(TranscriptionHints(vocabulary: ["floze"]).contextText, "floze")

@@ -399,7 +399,9 @@ verification status belong in the vault (see below).
   fed the next prompt. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
   code so edited base rules keep it. Whisper prompts carry only the script
   sentence; Whisper repeats bare dictionary terms on silence, so terms go only to
-  dedicated keyword or context fields.
+  dedicated keyword or context fields. Send that sentence only when Chinese is the
+  selected speech language: under auto-detect it pulled English speech into a
+  Chinese translation. `ChineseScriptConverter` still normalises the script.
 - Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
 - Passive credential access must never prompt. Badges use `Keychain.presence`;

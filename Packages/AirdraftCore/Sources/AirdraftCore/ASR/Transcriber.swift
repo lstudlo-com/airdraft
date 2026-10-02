@@ -18,7 +18,13 @@ public struct TranscriptionHints: Sendable {
     /// Whisper treats the prompt as preceding speech and repeats bare terms on
     /// silence or trailing audio, so dictionary terms stay out of it; the LLM
     /// and dictionary aliases apply them after transcription.
+    /// Only sent when Chinese is the selected language: with auto-detect a
+    /// Chinese prompt pulls detection to Chinese and Whisper translates English
+    /// speech. `ChineseScriptConverter` still normalises the script afterwards.
     public var promptText: String? {
+        guard let code = language?.trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: "-").first?.lowercased(),
+              code == "zh" || code == "yue" else { return nil }
         switch chineseScript {
         case .traditional: return "以下是繁體中文的內容。"
         case .simplified: return "以下是简体中文的内容。"
