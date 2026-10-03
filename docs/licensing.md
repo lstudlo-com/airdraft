@@ -48,9 +48,9 @@ a future expiry and a test CVC. Never enter a real card for this verification.
 Sandbox customer emails only reach organization members, including their
 sub-addressing aliases.
 
-1. Sign in to Sandbox and create its own organization. Mirror the US$29 two-Mac
-   and US$49 five-Mac one-time products, with separate license-key benefits,
-   activation limits of 2 and 5, customer device management, no usage limit
+1. Sign in to Sandbox and create its own organization. Mirror the current plans
+   recorded in the vault's `Strategy/Business Model`, with separate license-key
+   benefits, matching activation limits, customer device management, no usage limit
    and no expiration. Create a shared persistent Checkout Link.
 2. Fill `scripts/licensing-sandbox.json` with `environment: sandbox` and the
    sandbox-only public IDs and URLs. Empty values deliberately block the test
@@ -92,7 +92,7 @@ pending requests and cached grants. Provider credentials retain their existing s
 The release script accepts only production configuration and verifies its
 embedded environment. No merchant token is required by the desktop client.
 
-The two-Mac and five-Mac plans have separate products and license-key benefits.
+The two plans have separate products and license-key benefits.
 The shared Checkout Link lets the buyer choose one product. Embed both allowed
 benefits as `AirdraftPolarBenefits` through `AIRDRAFT_POLAR_BENEFITS`. The public
 validate request omits the optional single-benefit filter; the client checks the

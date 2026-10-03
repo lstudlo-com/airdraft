@@ -551,7 +551,7 @@ allow only `polar.sh`. Sandbox portals allow only `sandbox.polar.sh`; checkout a
 Keep runtime and build validation aligned, verify the embedded environment, and
 never release a Sandbox artifact. Record completed sandbox checkout separately
 from production payment evidence; mocks do not prove either.
-The `benefit_ids` allowlist contains the two-Mac and five-Mac plan benefits.
+The `benefit_ids` allowlist contains the two configured plan benefits; Polar owns their device limits.
 Validate membership before activation and persist the returned benefit ID;
 never accept an arbitrary benefit from the same organization.
 The License sheet is plain text: the sidebar's `SidebarBrandMark` at 32 points
