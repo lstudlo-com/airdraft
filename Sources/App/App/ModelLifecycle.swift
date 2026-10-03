@@ -18,6 +18,8 @@ final class ModelLifecycle {
     let llmStatus = LLMStatus()
     private let factory: EngineFactory
     private let settings: AppSettings
+    private let profiles: ProfileStore?
+    private var speechConfig: ASRConfig { profiles?.activeProfile.speechConfig(default: settings.asr) ?? settings.asr }
     private let lmStudio = LMStudioControl()
     private var lastLLM: LLMConfig?
     private var lastASR: ASRConfig?
@@ -34,14 +36,15 @@ final class ModelLifecycle {
         if !busy { handleSettingsChange() }
     }
 
-    init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus) {
+    init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus, profiles: ProfileStore? = nil) {
         self.settings = settings
         self.factory = factory
         self.engineStatus = engineStatus
+        self.profiles = profiles
     }
 
     func start() {
-        lastASR = settings.asr
+        lastASR = speechConfig
         lastLLM = settings.llm
         Task { await factory.setIdleUnloadMinutes(settings.idleUnloadMinutes) }
         Task { await refreshLLMStatus() }
@@ -55,7 +58,7 @@ final class ModelLifecycle {
     func loadSpeechModel() {
         guard !dictationBusy else { return }
         speechLoadTask?.cancel()
-        let config = settings.asr
+        let config = speechConfig
         guard config.kind.isLocal else { return unloadSpeechModels() }
         speechLoadTask = Task {
             do { try await factory.prepare(config) }
@@ -291,7 +294,7 @@ final class ModelLifecycle {
     private func observe() {
         observeChanges({ [weak self] in
             guard let self else { return }
-            _ = self.settings.asr
+            _ = self.speechConfig
             _ = self.settings.llm
             _ = self.settings.idleUnloadMinutes
         }) { [weak self] in self?.handleSettingsChange() }
@@ -301,10 +304,10 @@ final class ModelLifecycle {
         guard !dictationBusy else { return }
         Task { await factory.setIdleUnloadMinutes(settings.idleUnloadMinutes) }
 
-        if settings.asr.engineID != lastASR?.engineID {
+        if speechConfig.engineID != lastASR?.engineID {
             loadSpeechModel()
         }
-        lastASR = settings.asr
+        lastASR = speechConfig
 
         let previous = lastLLM
         lastLLM = settings.llm

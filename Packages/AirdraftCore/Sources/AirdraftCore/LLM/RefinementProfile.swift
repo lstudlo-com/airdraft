@@ -16,6 +16,8 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
     /// Profile-specific rules, appended after the shared base rules.
     public var instructions: String
     public var isBuiltIn: Bool
+    /// Nil follows the app's speech selection. Older profile files omit this key.
+    public var speechModel: ProfileSpeechModel?
 
     public init(
         id: UUID = UUID(),
@@ -24,7 +26,8 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         usesLLM: Bool = true,
         task: String = "",
         instructions: String,
-        isBuiltIn: Bool = false
+        isBuiltIn: Bool = false,
+        speechModel: ProfileSpeechModel? = nil
     ) {
         self.id = id
         self.name = name
@@ -33,6 +36,11 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         self.task = task
         self.instructions = instructions
         self.isBuiltIn = isBuiltIn
+        self.speechModel = speechModel
+    }
+
+    public func speechConfig(default appDefault: ASRConfig) -> ASRConfig {
+        speechModel?.applying(to: appDefault) ?? appDefault
     }
 
     // Stable ids so the active selection survives resets and upgrades.

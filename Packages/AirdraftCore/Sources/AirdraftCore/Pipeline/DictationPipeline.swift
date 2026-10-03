@@ -111,6 +111,8 @@ public final class DictationPipeline {
     private let recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)?
     private let accessCheck: @MainActor () async throws -> Void
     private var asrAtStart: ASRConfig?
+    private var profileAtStart: RefinementProfile?
+    public var speechConfig: ASRConfig { profiles.activeProfile.speechConfig(default: settings.asr) }
     private let requestMicrophoneAccess: @Sendable () async -> Bool
 
     public init(
@@ -275,7 +277,7 @@ public final class DictationPipeline {
 
     private func beginRecording(token: UUID) async {
         guard isCurrent(token) else { return }
-        let asr = settings.asr
+        let asr = speechConfig
         let llm = settings.llm
         let profile = profiles.activeProfile
         let microphone = settings.microphone
@@ -284,6 +286,9 @@ public final class DictationPipeline {
         do {
             try await accessCheck()
             guard isCurrent(token) else { return }
+            if let reason = profile.speechModel?.unavailableReason {
+                throw RecordingPrerequisiteError(reason)
+            }
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError("Recording did not start. " + reason)
             }
@@ -294,7 +299,7 @@ public final class DictationPipeline {
                                                  microphone: microphone, insertionEnabled: needsInsertion)
             }
             guard isCurrent(token) else { return }
-            guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+            guard speechConfig == asr, settings.llm == llm, profiles.activeProfile == profile,
                   settings.microphone == microphone, selectedOutput() == output else {
                 throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
             }
@@ -313,7 +318,7 @@ public final class DictationPipeline {
                 }
             }
             guard isCurrent(token) else { return }
-            guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+            guard speechConfig == asr, settings.llm == llm, profiles.activeProfile == profile,
                   settings.microphone == microphone, selectedOutput() == output else {
                 throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
             }
@@ -330,7 +335,7 @@ public final class DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+        guard speechConfig == asr, settings.llm == llm, profiles.activeProfile == profile,
               settings.microphone == microphone, selectedOutput() == output else {
             fail("Recording did not start because setup changed. Try your shortcut again.")
             onRecordingBlocked?()
@@ -338,13 +343,14 @@ public final class DictationPipeline {
         }
         let insertionTarget = needsInsertion ? await inserter.captureTarget() : nil
         guard isCurrent(token) else { return }
-        guard settings.asr == asr, settings.llm == llm, profiles.activeProfile == profile,
+        guard speechConfig == asr, settings.llm == llm, profiles.activeProfile == profile,
               settings.microphone == microphone, selectedOutput() == output else {
             fail("Recording did not start because setup changed. Try your shortcut again.")
             onRecordingBlocked?()
             return
         }
         asrAtStart = asr
+        profileAtStart = profile
         outputAtStart = output
         insertionTargetAtStart = insertionTarget
         contextAtStart = settings.useAppContext ? contextReader.read() : .empty
@@ -363,7 +369,7 @@ public final class DictationPipeline {
         set(.recording)
         prewarmRefiner(context: contextAtStart)
 
-        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: settings.asr.kind)
+        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
         autoStopTask?.cancel()
         autoStopTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(limit))
@@ -419,7 +425,8 @@ public final class DictationPipeline {
     public func processSamples(_ samples: [Float], context: AppContext = .empty) {
         guard !isBusy else { return }
         generation = UUID()
-        asrAtStart = nil
+        asrAtStart = speechConfig
+        profileAtStart = profiles.activeProfile
         outputAtStart = selectedOutput()
         let token = generation
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
@@ -449,7 +456,8 @@ public final class DictationPipeline {
         reviewGeneration = token
         reviewOutcome = nil
         lastIssue = nil
-        asrAtStart = nil
+        asrAtStart = speechConfig
+        profileAtStart = profiles.activeProfile
         set(.transcribing)
         processingTask = Task {
             do {
@@ -491,15 +499,16 @@ public final class DictationPipeline {
     /// already known: it does not depend on what is said.
     private func prewarmRefiner(context: AppContext) {
         let config = settings.llm
-        guard profiles.activeProfile.usesLLM, config.kind.cliTool != nil else { return }
+        let profile = profileAtStart ?? profiles.activeProfile
+        guard profile.usesLLM, config.kind.cliTool != nil else { return }
         let request = RefineRequest(
             transcript: "",
-            profile: profiles.activeProfile,
+            profile: profile,
             baseRules: profiles.baseRules,
             context: context,
             family: AppFamily.classify(context),
             dictionary: dictionary.entries,
-            chineseScript: settings.asr.chineseScript
+            chineseScript: (asrAtStart ?? speechConfig).chineseScript
         )
         let systemPrompt = PromptBuilder.systemPrompt(for: request)
         warmTask?.cancel()
@@ -544,7 +553,8 @@ public final class DictationPipeline {
 
     public func retryRecording() {
         guard !isBusy, let recovery else { return }
-        asrAtStart = nil
+        asrAtStart = speechConfig
+        profileAtStart = profiles.activeProfile
         generation = UUID()
         let token = generation
         outputAtStart = recovery.output
@@ -596,9 +606,9 @@ public final class DictationPipeline {
         }
         let output = outputAtStart ?? selectedOutput()
         let entries = dictionary.entries
-        let asrConfig = asrAtStart ?? settings.asr
+        let asrConfig = asrAtStart ?? speechConfig
         let llmConfig = settings.llm
-        let profile = profiles.activeProfile
+        let profile = profileAtStart ?? profiles.activeProfile
         let baseRules = profiles.baseRules
         let family = AppFamily.classify(context)
         var context = context
@@ -609,6 +619,9 @@ public final class DictationPipeline {
         // 1. ASR
         let transcript: Transcript
         do {
+            if let reason = profile.speechModel?.unavailableReason {
+                throw RecordingPrerequisiteError(reason)
+            }
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
             let transcriber = await factory.transcriber(for: asrConfig)
             guard isCurrent(token) else { return }

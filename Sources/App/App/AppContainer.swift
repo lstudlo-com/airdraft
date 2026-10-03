@@ -27,6 +27,7 @@ final class AppContainer {
     let settings: AppSettings
     let dictionary: DictionaryStore
     let profiles: ProfileStore
+    var speechConfig: ASRConfig { profiles.activeProfile.speechConfig(default: settings.asr) }
     var history: HistoryStore? { pipeline.historyStore }
     let engineStatus: EngineStatus
     let factory: EngineFactory
@@ -66,9 +67,9 @@ final class AppContainer {
         #else
         factory = EngineFactory(status: engineStatus)
         #endif
-        models = ModelLifecycle(settings: settings, factory: factory, engineStatus: engineStatus)
         dictionary = DictionaryStore(directory: dir)
         profiles = ProfileStore(directory: dir)
+        models = ModelLifecycle(settings: settings, factory: factory, engineStatus: engineStatus, profiles: profiles)
 
         let history: HistoryStore?
         do {

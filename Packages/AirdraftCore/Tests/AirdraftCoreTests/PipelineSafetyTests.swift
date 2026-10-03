@@ -171,3 +171,110 @@ private actor RecoveringSpeech: Transcriber {
         return Transcript(text: "Recovered words", engine: id, latencyMs: 0)
     }
 }
+
+extension PipelineSafetyTests {
+    func testBoundProfileDrivesPreflightCaptureAndHistoryAcrossProfileSwitch() async throws {
+        let fixture = try ProfilePipelineFixture()
+        defer { fixture.cleanUp() }
+        var checked: ASRConfig?
+        let pipeline = fixture.pipeline(preflight: { config in checked = config })
+        defer { pipeline.cancel() }
+        try await pipeline.startFromAutomation()
+        XCTAssertEqual(checked?.kind, .senseVoice)
+        fixture.profiles.setActive(RefinementProfile.conciseID)
+        pipeline.stopAndProcess()
+        for _ in 0..<400 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
+        let record = try XCTUnwrap(fixture.history.recent().first)
+        XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
+        XCTAssertEqual(record.mode, "Bound profile")
+        XCTAssertEqual(fixture.settings.asr.kind, .parakeet)
+        XCTAssertEqual(pipeline.speechConfig.kind, .parakeet)
+    }
+
+    func testBoundProfileMissingModelBlocksBeforeMicrophone() async throws {
+        let fixture = try ProfilePipelineFixture()
+        defer { fixture.cleanUp() }
+        let pipeline = fixture.pipeline(preflight: { config in
+            XCTAssertEqual(config.kind, .senseVoice)
+            throw RecordingPrerequisiteError("The profile speech model is not installed.")
+        })
+        defer { pipeline.cancel() }
+        do { try await pipeline.startFromAutomation(); XCTFail("Missing model must block capture") }
+        catch { XCTAssertTrue(error.localizedDescription.contains("not installed")) }
+        XCTAssertFalse(fixture.recorder.isRecording)
+        XCTAssertEqual(try fixture.history.count(), 0)
+    }
+
+    func testChangingProfileDuringPreflightCannotStartStaleRecording() async throws {
+        let fixture = try ProfilePipelineFixture()
+        defer { fixture.cleanUp() }
+        let pipeline = fixture.pipeline(preflight: { _ in
+            fixture.profiles.setActive(RefinementProfile.cleanID)
+        })
+        defer { pipeline.cancel() }
+        do { try await pipeline.startFromAutomation(); XCTFail("Changed profile must reject capture") }
+        catch { XCTAssertTrue(error.localizedDescription.contains("setup changed")) }
+        XCTAssertFalse(fixture.recorder.isRecording)
+    }
+
+    func testProcessSamplesSnapshotsBindingBeforeAsyncWork() async throws {
+        let fixture = try ProfilePipelineFixture()
+        defer { fixture.cleanUp() }
+        let pipeline = fixture.pipeline()
+        defer { pipeline.cancel() }
+        pipeline.processSamples([Float](repeating: 0.1, count: 16000))
+        fixture.profiles.setActive(RefinementProfile.cleanID)
+        for _ in 0..<400 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
+        let record = try XCTUnwrap(fixture.history.recent().first)
+        XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
+        XCTAssertEqual(record.mode, "Bound profile")
+    }
+}
+
+@MainActor
+private final class ProfilePipelineFixture {
+    let suite = "airdraft.profile-pipeline.\(UUID().uuidString)"
+    let directory: URL
+    let settings: AppSettings
+    let profiles: ProfileStore
+    let history: HistoryStore
+    let recorder = TestRecorder()
+
+    init() throws {
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
+        settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
+        settings.asr = ASRConfig(kind: .parakeet)
+        settings.llm = LLMConfig(kind: .none)
+        settings.useAppContext = false
+        settings.livePreviewEnabled = false
+        profiles = ProfileStore(directory: directory)
+        let profile = profiles.add(RefinementProfile(name: "Bound profile", usesLLM: false, instructions: "",
+            speechModel: ProfileSpeechModel(config: ASRConfig(kind: .senseVoice))))
+        profiles.setActive(profile.id)
+        history = try HistoryStore(directory: directory)
+    }
+
+    func pipeline(preflight: @escaping @MainActor (ASRConfig) throws -> Void = { _ in }) -> DictationPipeline {
+        let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
+            XCTFail("Profile fixtures must not read credentials"); return nil
+        }, transcriberBuilder: { ProfileSpeechFixture(id: $0.engineID) })
+        let pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
+            profiles: profiles, history: history, factory: factory, recorder: recorder,
+            recordingPreflight: { asr, _, _, _, _ in try preflight(asr) }, requestMicrophoneAccess: { true })
+        pipeline.insertionEnabled = false
+        return pipeline
+    }
+
+    func cleanUp() {
+        UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+        try? FileManager.default.removeItem(at: directory)
+    }
+}
+
+private struct ProfileSpeechFixture: Transcriber {
+    let id: String
+    func prepare() async throws {}
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        Transcript(text: "Profile speech test", engine: id, latencyMs: 0)
+    }
+}

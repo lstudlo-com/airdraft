@@ -63,7 +63,7 @@ struct MenuView: View {
         // The section supplies its own separators.
         Section("Models") {
             Text(MenuTitle.fit("\(speechProviderLabel) · \(speechStateLabel)"))
-                .help("Speech: \(settings.asr.engineLabel) · \(fullSpeechStateLabel)")
+                .help("Speech: \(container.speechConfig.engineLabel) · \(fullSpeechStateLabel)")
             Text(MenuTitle.fit(llmSummary))
                 .help("Refinement: \(llmDetail)")
             if canUnloadModels {
@@ -84,9 +84,9 @@ struct MenuView: View {
     }
 
     private var speechStateLabel: String {
-        if container.settings.asr.kind == .apple { return "Built in" }
-        guard container.settings.asr.kind.isLocal else { return "Cloud" }
-        switch container.engineStatus.state(for: container.settings.asr.engineID) {
+        if container.speechConfig.kind == .apple { return "Built in" }
+        guard container.speechConfig.kind.isLocal else { return "Cloud" }
+        switch container.engineStatus.state(for: container.speechConfig.engineID) {
         case .notLoaded: return "Not loaded"
         case .loading: return "Loading…"
         case .ready: return "Loaded"
@@ -95,20 +95,20 @@ struct MenuView: View {
     }
 
     private var fullSpeechStateLabel: String {
-        if container.settings.asr.kind == .apple { return "Built in" }
-        guard container.settings.asr.kind.isLocal else { return "Cloud" }
-        return container.engineStatus.state(for: container.settings.asr.engineID).label
+        if container.speechConfig.kind == .apple { return "Built in" }
+        guard container.speechConfig.kind.isLocal else { return "Cloud" }
+        return container.engineStatus.state(for: container.speechConfig.engineID).label
     }
 
     private var canUnloadModels: Bool {
-        let asr = container.settings.asr
+        let asr = container.speechConfig
         let speechLoaded = asr.kind.isLocal && asr.kind != .apple
             && container.engineStatus.state(for: asr.engineID) == .ready
         return speechLoaded || container.models.llmStatus.isLoaded
     }
 
     private var speechProviderLabel: String {
-        switch container.settings.asr.kind {
+        switch container.speechConfig.kind {
         case .qwen3: return "Qwen3-ASR"
         case .fireRed: return "FireRedASR2"
         case .cohere: return "Cohere"
@@ -118,7 +118,7 @@ struct MenuView: View {
         case .apple: return "Apple Speech"
         case .openAICompatible: return "Custom server"
         case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
-            return container.settings.asr.kind.preset?.name ?? "Cloud"
+            return container.speechConfig.kind.preset?.name ?? "Cloud"
         }
     }
 

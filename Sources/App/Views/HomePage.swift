@@ -59,7 +59,7 @@ struct HomePage: View {
                        options: Period.allCases.map { ($0, $0.title) })
         }
         .task(id: period) { await reload() }
-        .task(id: container.settings.asr.keyRef) { await refreshSpeechKey() }
+        .task(id: container.speechConfig.keyRef) { await refreshSpeechKey() }
         .task(id: container.settings.llm.keyRef) { await refreshRefinementKey() }
         .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { _ in
             Task {
@@ -85,7 +85,7 @@ struct HomePage: View {
 
     private var pipelineSummary: String {
         let llm = container.settings.llm
-        let speech = container.settings.asr.engineLabel
+        let speech = container.speechConfig.engineLabel
         guard llm.kind != .none else { return "\(speech) · no refinement" }
         return "\(speech) → \(llm.engineLabel) · \(container.profiles.activeProfile.name)"
     }
@@ -177,12 +177,15 @@ struct HomePage: View {
         RowDivider()
         HealthRow(ok: speechReady, title: "Speech", detail: speechDetail) {
             if !speechReady {
-                if container.settings.asr.kind.isLocal, LocalModels.isInstalled(container.settings.asr) {
+                if container.profiles.activeProfile.speechModel?.unavailableReason != nil {
+                    Button("Profiles") { container.navigation.page = .profiles }
+                        .buttonStyle(SoftButtonStyle())
+                } else if container.speechConfig.kind.isLocal, LocalModels.isInstalled(container.speechConfig) {
                     Button("Load Model") { container.models.loadSpeechModel() }
                         .buttonStyle(SoftButtonStyle())
-                        .disabled(container.pipeline.isBusy || container.engineStatus.state(for: container.settings.asr.engineID) == .loading)
+                        .disabled(container.pipeline.isBusy || container.engineStatus.state(for: container.speechConfig.engineID) == .loading)
                 } else {
-                    Button(container.settings.asr.kind.isLocal ? "Get Model" : "API Key Settings") {
+                    Button(container.speechConfig.kind.isLocal ? "Get Model" : "API Key Settings") {
                         container.navigation.page = .models
                     }.buttonStyle(SoftButtonStyle())
                 }
@@ -246,7 +249,8 @@ struct HomePage: View {
     }
 
     private var speechDetail: String {
-        let asr = container.settings.asr
+        if let reason = container.profiles.activeProfile.speechModel?.unavailableReason { return reason }
+        let asr = container.speechConfig
         if !asr.kind.isLocal {
             guard asr.kind.preset != nil else { return "Custom endpoint" }
             return speechKeyPresent ? "API key saved" : "API key missing or locked"
@@ -256,16 +260,17 @@ struct HomePage: View {
     }
 
     private var speechReady: Bool {
-        let asr = container.settings.asr
+        if container.profiles.activeProfile.speechModel?.unavailableReason != nil { return false }
+        let asr = container.speechConfig
         if !asr.kind.isLocal { return !(asr.kind.preset != nil) || speechKeyPresent }
         return LocalModels.isInstalled(asr) && container.engineStatus.state(for: asr.engineID) == .ready
     }
 
     private func refreshSpeechKey() async {
         guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
-        let account = container.settings.asr.keyRef
+        let account = container.speechConfig.keyRef
         let present = await Task.detached { Keychain.presence(account) == .saved }.value
-        guard account == container.settings.asr.keyRef, !Task.isCancelled else { return }
+        guard account == container.speechConfig.keyRef, !Task.isCancelled else { return }
         speechKeyPresent = present
     }
 

@@ -224,6 +224,9 @@ struct ModelRow: View {
     private var downloadError: String? { container.downloads.jobs[entryConfig.engineID]?.error }
 
     private var entryConfig: ASRConfig { entry.config(from: container.settings.asr) }
+    private var isSelectedForUse: Bool {
+        entry.isSelected(container.settings.asr) || entry.isSelected(container.speechConfig)
+    }
 
     var body: some View {
         @Bindable var settings = container.settings
@@ -335,9 +338,9 @@ struct ModelRow: View {
             Button { confirmDelete = true } label: { Image(systemName: "trash").font(.system(size: 13)) }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
-            .help(entry.isSelected(container.settings.asr) ? "Choose another model before deleting this one" : "Delete downloaded files")
+            .help(isSelectedForUse ? "Choose another model in Models or the active profile before deleting this one" : "Delete downloaded files")
             .accessibilityLabel("Delete \(entry.title)")
-            .disabled(entry.isSelected(container.settings.asr) || container.pipeline.isBusy || container.engineStatus.state(for: entryConfig.engineID) == .loading)
+            .disabled(isSelectedForUse || container.pipeline.isBusy || container.engineStatus.state(for: entryConfig.engineID) == .loading)
             .confirmationDialog("Delete \(entry.title)?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete", role: .destructive) { deleteFiles() }
             } message: {
@@ -354,6 +357,8 @@ struct ModelRow: View {
     }
 
     private func deleteFiles() {
+        guard !isSelectedForUse, !container.pipeline.isBusy,
+              container.engineStatus.state(for: entryConfig.engineID) != .loading else { return }
         do {
             try LocalModels.remove(entryConfig)
             error = nil
@@ -366,11 +371,15 @@ struct ModelRow: View {
     private func download() {
         let config = entryConfig
         let originalSelection = container.settings.asr
+        let followedAppDefault = container.profiles.activeProfile.speechModel == nil
         error = nil
         container.downloads.start(config) {
             // Completing a background download must not override a newer choice.
-            if container.settings.asr == originalSelection {
+            if followedAppDefault, container.profiles.activeProfile.speechModel == nil,
+               container.settings.asr == originalSelection {
                 entry.select(&container.settings.asr)
+            }
+            if container.speechConfig.engineID == config.engineID {
                 container.models.loadSpeechModel()
             }
         }

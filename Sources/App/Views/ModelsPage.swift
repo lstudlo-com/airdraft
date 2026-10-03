@@ -79,6 +79,15 @@ struct ModelsPage: View {
     var body: some View {
         @Bindable var settings = container.settings
         PageScaffold(.models) {
+            if container.profiles.activeProfile.speechModel != nil {
+                SettingsCard {
+                    SettingRow(title: "\(container.profiles.activeProfile.name) uses its own speech model",
+                               subtitle: "Selections here change the app default.") {
+                        Button("Profiles") { container.navigation.page = .profiles }
+                            .buttonStyle(SoftButtonStyle())
+                    }
+                }
+            }
             if filter != .cloud {
                 PageSection("Speech on this Mac", trailing: {
                     SoftPicker("Local speech provider", selection: $localProvider, width: 160) {
@@ -118,7 +127,7 @@ struct ModelsPage: View {
                         SoftSegmentedPicker("Chinese script", selection: $settings.asr.chineseScript,
                                             options: ChineseScript.allCases.map { ($0, $0.title) }, width: 240)
                     }
-                    if settings.asr.kind == .apple {
+                    if settings.asr.kind == .apple || container.speechConfig.kind == .apple {
                         RowDivider()
                         SettingRow(title: "Apple Speech locale", subtitle: "Language must be selected manually") {
                             SoftPicker("Apple Speech locale", selection: $settings.asr.appleLocale, width: 200) {

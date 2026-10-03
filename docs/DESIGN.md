@@ -414,25 +414,40 @@ controls. Empty results omit the guide. Jumps respect Reduce Motion.
 
 ### Profile editor
 
-The Profiles sidebar item uses `square.and.pencil`. A full-width Base system
-prompt section sits above the list and editor, using `PageSection` and
-`SettingsCard`. It shows whether the saved prompt is default or custom. Edit
-opens a warning about effects on all AI-refined profiles before the draft editor.
+The Profiles sidebar item uses `square.and.pencil`. The editor is one scrolling
+column in the shared 784-point window. A 200-point `SoftPicker` in the Profile
+section heading chooses the profile to edit, using names without icons.
 
-The selected profile's settings begin with Refine transcript. Profile
-instructions lead below it. The optional Task uses `DisclosureGroup` and opens when a stored task
-is present. Turning refinement off replaces those fields with a short
-explanation of the remaining transcript processing.
+The Profile card contains Name, Dictation and Refine transcript rows, separated
+by `RowDivider`. Name commits on Return or focus loss; an empty edit restores the
+saved name. Dictation shows In Use for the active profile or Use Profile for an
+inactive selection. Choosing a profile to edit does not activate it.
 
-Keep New Profile and one action menu together at the right of the page title. The menu
-contains selected-profile rename, duplicate, prompt preview and either
-built-in reset or custom-profile deletion, followed by Reset all profiles.
-The list checkmark identifies the active dictation profile;
-an inactive selection shows Use Profile beside the refinement switch, which sits at
-the trailing edge like every settings switch. Each profile row has a context menu
-with the same actions. Do not
-repeat the page or selected-profile name as an editor heading. Preserve native
-disabled and destructive states and the existing confirmations.
+Speech model follows the Profile card and stays visible with refinement off.
+Its 240-point `SoftPicker` offers Use App Default, local models, cloud models
+and saved selections outside the catalogue. Use App Default follows the choice
+in Models; an explicit selection binds that speech recognition model to the
+profile. The next row names the resolved model and shows an unavailable-model
+reason, a required download, local processing or the cloud audio destination,
+with a Models button for setup. Language and script settings remain shared.
+When the active profile has a binding, Models explains that selections there
+change the app default and provides a Profiles button. Keep Apple Speech locale
+available for a bound Apple model; protect the default and active bound model
+from deletion. Downloads preserve the default while a profile override is active.
+
+Instructions follows Speech model when refinement is on. Its optional Task uses
+`DisclosureGroup` and opens when a stored task is present. Turning refinement
+off hides both fields and adds the short vocabulary and script-conversion note
+under Refine transcript. The shared Base system prompt section comes last. It
+shows Default prompt or Custom prompt, and Edit warns about effects on all
+AI-refined profiles before opening the draft editor.
+
+Use `PageSection`, `SettingsCard` and the existing neumorphic controls throughout.
+Cards own their equal 16-point insets and 18-point continuous corners; do not add
+another container around the whole editor. Keep New Profile and one action menu
+together at the right of the page title. The menu contains rename, duplicate,
+prompt preview, built-in reset or custom-profile deletion, and Reset All Profiles.
+Preserve native disabled and destructive states and the existing confirmations.
 
 ### Shared controls
 

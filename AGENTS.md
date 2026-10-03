@@ -196,6 +196,19 @@ verification status belong in the vault (see below).
   13-point model names and 11-point secondary text, with equal 16-point row insets.
   Profiles uses the same compact picker in its
   Profile section heading instead of a profile list; names carry it, without icons.
+  Each profile may bind a speech model; nil means Use App Default. Store only the
+  provider/model selection and custom-server endpoint/key reference, never key values
+  or copies of shared language/script settings. Resolve the active profile for
+  preflight, loading, recording limits, transcription and Home/menu status without
+  overwriting `AppSettings.asr`. Capture the profile and resolved speech config at
+  recording start; changes apply to the next recording, and explicit retry resolves
+  the current profile again. Keep Speech model visible with refinement off, preserve
+  bindings on duplication, and clear them on reset. Models edits the app default
+  and shows when the active profile overrides it. Missing models or credentials
+  require setup; never silently fall back to another speech model.
+  Keep Apple Speech locale available for an active Apple binding. Protect both
+  the app default and active profile model from deletion. Downloads must not
+  change the app default while a profile override is active.
   The sidebar microphone overlay contains device choices with a live ten-cell
   meter at each row's trailing edge. Omit decorative descriptions and a separate
   meter card; retain actionable permission and device errors. Keep it compact:

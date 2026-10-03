@@ -13,6 +13,7 @@ enum ProfilePreview {
         let suite = "airdraft.profile-preview.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         let settings = AppSettings(defaults: defaults)
+        settings.asr = ASRConfig(kind: .apple, appleLocale: "en-US", language: "en")
         defaults.removePersistentDomain(forName: suite)
         let container = AppContainer(settings: settings, dataDirectory: directory)
         container.navigation.page = .profiles
@@ -50,6 +51,16 @@ enum ProfilePreview {
             symbol: "doc.text", task: "Turn the transcript into meeting notes.",
             instructions: "Keep the decisions, names, dates, and next steps. Use short paragraphs."
         ))
+        let bound = container.profiles.add(RefinementProfile(
+            name: "Local notes", instructions: "Keep decisions and next steps.",
+            speechModel: ProfileSpeechModel(config: ASRConfig(kind: .qwen3))
+        ))
+        var cloudConfig = ASRConfig()
+        cloudConfig.select(.groq)
+        let cloud = container.profiles.add(RefinementProfile(
+            name: "Cloud notes", instructions: "Keep decisions and next steps.",
+            speechModel: ProfileSpeechModel(config: cloudConfig)
+        ))
         let width = Theme.windowWidth
         let cases: [(String, UUID, CGFloat, CGFloat)] = [
             ("clean", RefinementProfile.cleanID, width, 660),
@@ -57,7 +68,9 @@ enum ProfilePreview {
             ("tall", RefinementProfile.cleanID, width, 1000),
             ("summary", RefinementProfile.summaryID, width, 660),
             ("verbatim", RefinementProfile.verbatimID, width, 600),
-            ("custom", custom.id, width, 600)
+            ("custom", custom.id, width, 600),
+            ("bound-local", bound.id, width, 1000),
+            ("bound-cloud", cloud.id, width, 660)
         ]
         for (name, id, width, height) in cases {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {

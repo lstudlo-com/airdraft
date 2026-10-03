@@ -88,6 +88,8 @@ struct ProfileEditor<Chooser: View>: View {
             .onChange(of: nameFocusRequest) { _, _ in focusNameIfRequested() }
         }
 
+        ProfileSpeechSettings(selection: binding(\.speechModel))
+
         if current.usesLLM {
             PageSection("Instructions") {
                 ProfileTextEditor(title: "Profile instructions", text: binding(\.instructions), height: 180, showsTitle: false)

@@ -85,3 +85,94 @@ final class ProfileStoreTests: XCTestCase {
         XCTAssertNil(store.duplicate(id: UUID()))
     }
 }
+
+extension ProfileStoreTests {
+    func testLegacyProfilesInheritAppDefaultWithoutLosingEdits() throws {
+        let dir = tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ProfileStore(directory: dir)
+        var profile = store.activeProfile
+        profile.name = "My cleanup"
+        profile.instructions = "Keep my wording."
+        store.update(profile)
+        let url = dir.appendingPathComponent("profiles.json")
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        var profiles = try XCTUnwrap(json["profiles"] as? [[String: Any]])
+        for index in profiles.indices { profiles[index].removeValue(forKey: "speechModel") }
+        json["profiles"] = profiles
+        try JSONSerialization.data(withJSONObject: json).write(to: url)
+        let restored = ProfileStore(directory: dir)
+        XCTAssertNil(restored.persistenceError)
+        XCTAssertEqual(restored.activeProfile, profile)
+        let appDefault = ASRConfig(kind: .senseVoice, language: "zh")
+        XCTAssertEqual(restored.activeProfile.speechConfig(default: appDefault), appDefault)
+    }
+
+    func testBindingPersistsCopiesAndResetsWithoutChangingDefault() throws {
+        let dir = tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ProfileStore(directory: dir)
+        let appDefault = ASRConfig(kind: .parakeet)
+        var profile = store.activeProfile
+        profile.speechModel = ProfileSpeechModel(config: ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"))
+        store.update(profile)
+        XCTAssertEqual(ProfileStore(directory: dir).activeProfile.speechModel, profile.speechModel)
+        XCTAssertEqual(store.duplicate(id: profile.id)?.speechModel, profile.speechModel)
+        XCTAssertEqual(store.addNew().speechModel, profile.speechModel)
+        XCTAssertEqual(store.activeProfile.speechConfig(default: appDefault).kind, .qwen3)
+        store.setActive(RefinementProfile.verbatimID)
+        XCTAssertEqual(store.activeProfile.speechConfig(default: appDefault), appDefault)
+        store.setActive(profile.id)
+        profile.speechModel = nil
+        store.update(profile)
+        XCTAssertEqual(ProfileStore(directory: dir).activeProfile.speechConfig(default: appDefault), appDefault)
+        profile.speechModel = ProfileSpeechModel(config: ASRConfig(kind: .apple))
+        store.update(profile)
+        store.resetProfile(id: profile.id)
+        XCTAssertNil(store.activeProfile.speechModel)
+        XCTAssertTrue(store.isDefault(store.activeProfile))
+    }
+
+    func testBindingChangesOnlyModelAndProviderNotLanguageOrScript() {
+        let binding = ProfileSpeechModel(config: ASRConfig(kind: .qwen3, qwen3Model: "profile-model", language: "en", chineseScript: .simplified))
+        let appDefault = ASRConfig(kind: .parakeet, language: "zh", chineseScript: .traditional)
+        let effective = binding.applying(to: appDefault)
+        XCTAssertEqual(effective.kind, .qwen3)
+        XCTAssertEqual(effective.qwen3Model, "profile-model")
+        XCTAssertEqual(effective.language, "zh")
+        XCTAssertEqual(effective.chineseScript, .traditional)
+        XCTAssertEqual(appDefault.kind, .parakeet)
+    }
+
+    func testCloudBindingUsesItsProviderEndpointAndSharedCredentialReference() {
+        var cloud = ASRConfig()
+        cloud.select(.groq)
+        let binding = ProfileSpeechModel(config: cloud)
+        let effective = binding.applying(to: ASRConfig(kind: .parakeet, baseURL: "http://localhost:1234/v1", apiKeyRef: "custom"))
+        XCTAssertEqual(effective.kind, .groq)
+        XCTAssertEqual(effective.baseURL, cloud.baseURL)
+        XCTAssertEqual(effective.keyRef, cloud.keyRef)
+        XCTAssertEqual(effective.speechModelID, cloud.speechModelID)
+        XCTAssertNil(binding.unavailableReason)
+        XCTAssertNil(binding.apiKeyRef)
+    }
+
+    func testCustomServerBindingRetainsEndpointWithoutCopyingCredentials() throws {
+        let source = ASRConfig(kind: .openAICompatible, baseURL: "http://localhost:9000/v1", model: "local-speech", apiKeyRef: "asr.my-server")
+        let binding = ProfileSpeechModel(config: source)
+        let restored = try JSONDecoder().decode(ProfileSpeechModel.self, from: JSONEncoder().encode(binding))
+        let effective = restored.applying(to: ASRConfig(kind: .apple, language: "en"))
+        XCTAssertEqual(effective.baseURL, source.baseURL)
+        XCTAssertEqual(effective.model, source.model)
+        XCTAssertEqual(effective.keyRef, source.keyRef)
+        XCTAssertEqual(effective.language, "en")
+    }
+
+    func testRetiredCloudBindingIsReportedRatherThanReplaced() {
+        let binding = ProfileSpeechModel(config: ASRConfig(kind: .groq, model: "retired-speech-model"))
+        XCTAssertNotNil(binding.unavailableReason)
+        let openRouter = ProfileSpeechModel(config: ASRConfig(kind: .openRouter, model: "custom/new-speech"))
+        XCTAssertNil(openRouter.unavailableReason)
+        XCTAssertEqual(openRouter.applying(to: ASRConfig()).speechModelID, "custom/new-speech")
+    }
+}

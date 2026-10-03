@@ -49,8 +49,16 @@ struct LLMConfig: Equatable {
     var unloadLLMOnQuit = true
 }
 @MainActor final class EngineStatus {}
+struct RefinementProfile {
+    var override: ASRConfig?
+    func speechConfig(default appDefault: ASRConfig) -> ASRConfig { override ?? appDefault }
+}
+@MainActor @Observable final class ProfileStore {
+    var activeProfile = RefinementProfile()
+}
 actor EngineFactory {
-    func prepare(_ config: ASRConfig) async throws {}
+    var prepared: [String] = []
+    func prepare(_ config: ASRConfig) async throws { prepared.append(config.engineID) }
     func unloadAll() async {}
     func setIdleUnloadMinutes(_ minutes: Int) async {}
 }
@@ -137,6 +145,28 @@ func require(_ condition: @autoclosure () -> Bool, _ message: String) throws {
     @MainActor static func main() async {
         var failures = 0
         let checks: [(String, @MainActor () async throws -> Void)] = [
+            ("profile speech selection loads after recording and restores app default", {
+                let settings = AppSettings()
+                let profiles = ProfileStore()
+                profiles.activeProfile.override = ASRConfig(engineID: "profile-speech")
+                let factory = EngineFactory()
+                let lifecycle = ModelLifecycle(settings: settings, factory: factory, engineStatus: EngineStatus(), profiles: profiles)
+                lifecycle.start()
+                for _ in 0..<50 { await Task.yield() }
+                var loaded = await factory.prepared
+                try require(loaded == ["profile-speech"], "Startup did not use the profile model")
+                lifecycle.setDictationBusy(true)
+                profiles.activeProfile.override = nil
+                lifecycle.loadSpeechModel()
+                for _ in 0..<50 { await Task.yield() }
+                loaded = await factory.prepared
+                try require(loaded == ["profile-speech"], "Profile switch interrupted recording")
+                lifecycle.setDictationBusy(false)
+                for _ in 0..<50 { await Task.yield() }
+                loaded = await factory.prepared
+                try require(loaded == ["profile-speech", "fixture-speech"], "Opt-out did not restore the app default")
+                await lifecycle.shutdown()
+            }),
             ("in-flight refinement keeps original endpoint", {
                 let (settings, lifecycle) = fixture()
                 let original = settings.llm

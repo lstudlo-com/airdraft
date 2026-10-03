@@ -2,7 +2,7 @@
 version: 1
 slug: "sources-app-views-profilespage-swift"
 primary_target: "Sources/App/Views/ProfilesPage.swift"
-related_targets: ["Sources/App/Views/ProfileEditor.swift","Sources/App/Views/ProfileSheets.swift","Sources/App/Views/MainWindow.swift","Sources/App/Views/NavigationStyle.swift"]
+related_targets: ["Sources/App/Views/ProfileEditor.swift","Sources/App/Views/ProfileSpeechSettings.swift","Sources/App/Views/ProfileSheets.swift","Sources/App/Views/ModelsPage.swift","Sources/App/Views/MainWindow.swift","Sources/App/Views/NavigationStyle.swift"]
 ---
 
 # Profiles editor
@@ -11,43 +11,46 @@ Mode: Operate. Platform: native macOS SwiftUI.
 
 ## Direction
 
-The user pinned a Codex-inspired native direction: compact monochrome navigation,
-quiet selection, an open list/detail editor and secondary actions in native menus.
-The task is to choose a profile, edit its behavior and return to dictation.
+Keep the incumbent native neumorphic design, compact monochrome navigation and
+secondary actions in native menus. The task is to choose a profile, edit its
+dictation behavior and optional speech model, then return to dictation.
 
 ## Built composition
 
-The shared 200-point sidebar remains the window frame. The sidebar
-toggle sits beside the macOS traffic lights even when the sidebar is hidden.
-The microphone picker sits above the dictation word count at the bottom of the
-sidebar. The content begins without an empty title row. Profiles has a visible New
-profile action and one action menu. Below, a 164-point scrolling list sits
-beside the independently scrolling editor.
-Instructions are immediately visible. Task is a disclosure control that opens
-when configured. Refinement-off profiles show an explanation instead of those
-fields.
+The shared 784-point window contains one scrolling editor. New Profile and the
+action menu sit at the right of its heading. A compact 200-point profile picker
+sits in the Profile section heading, followed by a card with Name, Dictation
+and Refine transcript rows. Dictation shows In Use or Use Profile. Editing
+selection stays separate from activation.
 
-The list name is the only profile title and becomes an inline rename field.
-Icon selection and secondary actions share the page menu. Editing selection
-and active dictation profile remain separate; a checkmark identifies the active
-profile. The selected profile exposes Use profile when inactive. The right
-editor starts with Refine transcript, without repeated page or profile titles.
+Speech model comes next. Its 240-point picker offers Use App Default and local,
+cloud or saved speech recognition models. The readout names the resolved model,
+explains missing downloads or unavailable selections, and identifies where cloud
+audio is sent. Models opens setup. Use App Default inherits the global Models
+choice; language and script settings remain shared. An active binding adds a
+Models notice explaining that selections there edit the app default.
+
+Instructions follows, with an optional Task disclosure that opens when configured.
+Refinement off hides these fields, retains Speech model, and explains that
+vocabulary and script conversion still apply. The shared Base system prompt is
+last. Use the existing PageSection, SettingsCard, RowDivider and soft controls,
+with 16-point card insets and 18-point corners.
 
 ## Actions and recovery
 
-Keep rename, icon selection, duplicate, prompt preview, built-in reset,
-custom-profile deletion, Shared rules and Reset all profiles in one menu.
-Shared rules use Save, Cancel and Restore defaults in a sheet. Reset and delete
-retain confirmations, and built-ins remain undeletable. Keep disabled menu states,
-keyboard focus and accessible labels.
+The action menu contains rename, duplicate, prompt preview, built-in reset or
+custom-profile deletion, and Reset All Profiles. Name commits on Return or focus
+loss; an empty edit restores the saved name. Base system prompt has its own Edit
+button and warning. Preserve confirmations, disabled states, keyboard focus and
+accessible labels.
 
 ## Scope and evidence
 
-The native design rules are in docs/DESIGN.md. Other pages keep their own layouts
-and inherit shared spacing components; the marketing site remains separate.
-No new raster assets are included.
+The native design rules are in docs/DESIGN.md. This extension adds the profile
+speech-model choice and the related Models notice within that design.
 
-The review set covers clean, compact, wide, summary, verbatim and custom
-profiles in light and dark appearances. Live checks cover the single action
-menu, inline rename, new profile, prompt preview, sidebar toggle and microphone
-picker. Committed-release and DMG inspection remain separate release gates.
+Reference captures are in `.impeccable/review/profile-speech/states/`, including
+local and cloud bindings, refinement off, and light and dark appearances.
+`live-bound.png` and `live-models-override.png` in the parent folder show the
+active binding and its Models notice. Release and verification history belong
+in the vault.

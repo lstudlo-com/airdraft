@@ -65,7 +65,8 @@ public final class ProfileStore {
             symbol: base.symbol,
             usesLLM: true,
             task: base.task,
-            instructions: base.instructions
+            instructions: base.instructions,
+            speechModel: base.speechModel
         ))
     }
 
@@ -75,7 +76,8 @@ public final class ProfileStore {
         guard let source = profiles.first(where: { $0.id == id }) else { return nil }
         return add(RefinementProfile(
             name: uniqueName("\(source.name) copy"), symbol: source.symbol,
-            usesLLM: source.usesLLM, task: source.task, instructions: source.instructions
+            usesLLM: source.usesLLM, task: source.task, instructions: source.instructions,
+            speechModel: source.speechModel
         ))
     }
 
