@@ -23,12 +23,12 @@ enum Theme {
     static let islandInset: CGFloat = sidebarContentInset
     static let islandRadius: CGFloat = 12
     static let pagePadding: CGFloat = 24
-    static let pageHeaderTopInset: CGFloat = 24
+    static let pageHeaderTopInset: CGFloat = 16
     static let pageHeaderRowHeight: CGFloat = 32
     static let pageHeaderBottomInset: CGFloat = 12
     static let pageHeaderBlurRadius: CGFloat = 32
-    // Cover the content inset as well, with 4 pt to join the clear page smoothly.
-    static let pageHeaderBlurExtension: CGFloat = pagePadding + 4
+    // Center the heading row in the full blur, including its 4 pt outer feather.
+    static let pageHeaderBlurExtension = pageHeaderTopInset - pageHeaderBottomInset
     // The sidebar toggle sits in the island's heading row whether the sidebar is expanded
     // or collapsed, with its symbol on the page title's leading inset.
     static func sidebarToggleLeading(sidebarWidth: CGFloat) -> CGFloat {

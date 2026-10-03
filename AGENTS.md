@@ -234,11 +234,11 @@ verification status belong in the vault (see below).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges
   in the 46-point titlebar. Page
-  headings and actions use a separate 32-point row with 24 points above it inside
-  the island and 12 points below, inside one sticky header. Extend its backdrop blur through the
-  24-point content inset below it, plus a 4-point outer feather. Text at the
-  bottom of that inset must already be lightly but visibly blurred at about
-  1 pt radius; increase quadratically to 32 pt at the top. Do not leave a
+  headings and actions use a separate 32-point row with 16 points above it inside
+  the island and 12 points below, inside one 60-point sticky header. Its backdrop
+  blur includes a 4-point outer feather for a total height of 64 points, centered
+  on the heading row. Text at the bottom of the header must already be lightly
+  but visibly blurred at about 1 pt radius; increase quadratically to 32 pt at the top. Do not leave a
   nearly sharp lower region or obscure entering text immediately.
   Use `ProgressiveHeaderBlur`; never simulate this with material opacity, a tint
   gradient or a short edge fade. Keep header labels and controls sharp. The
@@ -615,7 +615,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Header blur: compile `Sources/App/Views/ProgressiveHeaderBlur.swift` with
   `scripts/verify-progressive-header.swift` using `xcrun swiftc`, then run it.
   Use `--live` for the compositor fixture: 13-point text must remain recognizable
-  but visibly softened at the bottom of the content inset, then blur upward while
+  but visibly softened at the bottom of the header, then blur upward while
   its foreground label stays sharp. Do not judge onset using only broad stripes.
   `--island <png>` captures the fixture's own window through the compositor, which
   needs no Screen Recording access, and asserts the island clip, chrome-free blur

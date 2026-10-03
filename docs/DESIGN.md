@@ -197,16 +197,16 @@ narrow for both, so the toggle moves into the island's heading row, entirely
 outside the rail. Its symbol aligns with the page title's leading inset and its
 center with the heading row.
 The native window controls retain their 46-point titlebar. Page headings have
-a separate 32-point row, inset 24 points from the island's top with 12 points below.
+a separate 32-point row, inset 16 points from the island's top with 12 points below.
 `PageScaffold` keeps this header fixed with `safeAreaInset`. The island clips the
 header and its blur to its rounded top; the blur never samples the chrome.
-`ProgressiveHeaderBlur` covers the 68-point header and the 24-point content
-inset below it, plus a 4-point outer feather. That feather joins the clear page
-to a light but visible 1-point blur at the bottom of the inset. From there,
-increase radius quadratically to 32 points at the very top. The effect is
-96 points tall without reserving additional layout space. Text entering the
-inset must visibly soften while its letter shapes remain identifiable; do not
-leave the lower text nearly sharp, as the previous cubic curve did.
+`ProgressiveHeaderBlur` covers the 60-point header plus a 4-point outer feather.
+The 64-point blur is centered on the heading row, whose center is 32 points
+from the island's top. The feather joins the clear page to a visible 1-point
+blur at the bottom of the header. From there, the radius increases quadratically
+to 32 points at the top. Text entering the header must soften while its letter
+shapes remain identifiable. The 24-point scroll-content inset remains below
+the header; the blur no longer covers that whole inset.
 The radius mask drives the blur filter; it never changes the
 opacity of a material or adds a tint. Header labels and controls remain above
 the filtered layer and stay sharp. Suppress the system's hard scroll-edge separator
