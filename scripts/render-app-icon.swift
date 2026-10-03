@@ -5,21 +5,23 @@
 import AppKit
 import SwiftUI
 
-// Soft-UI palette: one cool base colour, a light and a dark shadow, one accent.
-let base = Color(red: 0.902, green: 0.918, blue: 0.945)          // #E6EAF1
-let baseTop = Color(red: 0.945, green: 0.957, blue: 0.976)       // #F1F4F9
-let baseBottom = Color(red: 0.863, green: 0.882, blue: 0.914)     // #DCE1E9
+// Soft-UI palette: the app window's neutral grays (Theme, HomeHero), lit from the
+// top left. No hue: the bars and caret are raised gray pills, as on Home.
+let base = Color(white: 0.91)
+let baseTop = Color(white: 0.96)
+let baseBottom = Color(white: 0.85)
 let lightShadow = Color.white
-let darkShadow = Color(red: 0.639, green: 0.690, blue: 0.776)     // #A3B0C6
-let contact = Color(red: 0.373, green: 0.424, blue: 0.529)        // #5F6C87
-let accentTop = Color(red: 0.420, green: 0.478, blue: 1.000)      // #6B7AFF
-let accentBottom = Color(red: 0.231, green: 0.765, blue: 0.957)   // #3BC3F4
+let darkShadow = Color(white: 0.58)
+let contact = Color(white: 0.36)
+let barTop = Color(white: 0.79)        // HomeHero raisedTop
+let barBottom = Color(white: 0.54)     // HomeHero raisedBottom
+let caretTop = Color(white: 0.40)      // a step darker than Home's caret,
+let caretBottom = Color(white: 0.18)   // so it still reads at 16 px
 
 struct Icon: View {
     // macOS icon grid: 824 pt body inside a 1024 pt canvas.
     let side = CGFloat(824)
     let levels: [CGFloat] = [0.36, 0.66, 1.0, 0.72, 0.48]
-    let neutral = Color(red: 0.682, green: 0.725, blue: 0.800)    // #AEB9CC
 
     var body: some View {
         let squircle = RoundedRectangle(cornerRadius: 185, style: .continuous)
@@ -46,8 +48,8 @@ struct Icon: View {
                     .strokeBorder(LinearGradient(colors: [lightShadow.opacity(0.9), lightShadow.opacity(0)],
                                                  startPoint: .top, endPoint: .center), lineWidth: 4))
                 .frame(width: 744, height: 364)
-                .shadow(color: darkShadow.opacity(0.55), radius: 20, y: 18)
-                .shadow(color: contact.opacity(0.35), radius: 2, y: 3)
+                .shadow(color: darkShadow.opacity(0.55), radius: 20, x: 10, y: 18)
+                .shadow(color: contact.opacity(0.35), radius: 2, x: 2, y: 3)
 
             // Pressed track inside the pill.
             Capsule(style: .continuous)
@@ -55,19 +57,27 @@ struct Icon: View {
                           .shadow(.inner(color: lightShadow, radius: 14, x: -10, y: -10)))
                 .frame(width: 650, height: 270)
 
-            // Waveform bars warming from neutral to the accent, then the caret where text lands.
+            // Waveform bars raised from the track floor, then the caret where text lands:
+            // light up-left, shade down-right, like Home's waveform.
             HStack(alignment: .center, spacing: 30) {
-                ForEach(Array(levels.enumerated()), id: \.offset) { i, level in
-                    let t = Double(i + 1) / Double(levels.count + 1)
+                ForEach(Array(levels.enumerated()), id: \.offset) { _, level in
                     Capsule(style: .continuous)
-                        .fill(LinearGradient(colors: [mix(neutral, accentTop, t * 0.85), mix(neutral, accentBottom, t * 0.85)], startPoint: .top, endPoint: .bottom))
+                        .fill(LinearGradient(colors: [barTop, barBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .overlay(Capsule(style: .continuous)
+                            .strokeBorder(LinearGradient(colors: [.white.opacity(0.9), .white.opacity(0)],
+                                                         startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
                         .frame(width: 38, height: 190 * level)
-                        .shadow(color: darkShadow.opacity(0.2), radius: 4, x: 2, y: 3)
+                        .shadow(color: .black.opacity(0.32), radius: 7, x: 5, y: 8)
+                        .shadow(color: .white, radius: 6, x: -4, y: -5)
                 }
                 Capsule(style: .continuous)
-                    .fill(LinearGradient(colors: [accentTop, accentBottom], startPoint: .top, endPoint: .bottom))
+                    .fill(LinearGradient(colors: [caretTop, caretBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(Capsule(style: .continuous)
+                        .strokeBorder(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0)],
+                                                     startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
                     .frame(width: 38, height: 208)
-                    .shadow(color: accentTop.opacity(0.6), radius: 22)
+                    .shadow(color: .black.opacity(0.38), radius: 8, x: 6, y: 9)
+                    .shadow(color: .white, radius: 6, x: -4, y: -5)
                     .padding(.leading, 20)
             }
             }
@@ -79,12 +89,6 @@ struct Icon: View {
         .shadow(color: .black.opacity(0.25), radius: 20, y: 14)
         .frame(width: 1024, height: 1024)
     }
-}
-
-func mix(_ a: Color, _ b: Color, _ t: Double) -> Color {
-    let ca = NSColor(a).usingColorSpace(.sRGB)!, cb = NSColor(b).usingColorSpace(.sRGB)!
-    func lerp(_ x: CGFloat, _ y: CGFloat) -> Double { Double(x + (y - x) * CGFloat(t)) }
-    return Color(red: lerp(ca.redComponent, cb.redComponent), green: lerp(ca.greenComponent, cb.greenComponent), blue: lerp(ca.blueComponent, cb.blueComponent))
 }
 
 @MainActor func master(_ icon: Icon) -> CGImage {
