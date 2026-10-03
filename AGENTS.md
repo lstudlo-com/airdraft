@@ -356,7 +356,10 @@ verification status belong in the vault (see below).
   Model downloads report received bytes during each file, and Whisper includes tokenizer
   files in its byte total. Preparing, verification and unpacking use an indeterminate
   indicator; never assign made-up percentages to these stages. Models and onboarding
-  share the progress view. Keep callbacks ordered and bound pending UI updates.
+  share the progress view. Before data arrives, show activity without zero percent;
+  positive progress below 0.1% reads <0.1%. Interpolate the measured percentage
+  and bar together over 0.2 seconds, without extrapolating during network pauses;
+  Reduce Motion updates directly. Keep callbacks ordered and bound pending UI updates.
 - Refinement providers are native, not shims: `LLMProviderKind` carries the endpoint, Keychain
   key ref, default model and `wire` (OpenAI chat, Anthropic messages, Gemini generateContent),
   and `EngineFactory.refiner` switches on the wire. A new provider is a new case plus, for a new
@@ -617,6 +620,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   `--island <png>` captures the fixture's own window through the compositor, which
   needs no Screen Recording access, and asserts the island clip, chrome-free blur
   and sharp content below the header; look at the saved PNG as well.
+- Download progress: `python3 scripts/verify-download-progress.py --output <dir>`
+  checks live fill interpolation, paused transfers, stage changes and the Reduce
+  Motion branch in both appearances, using the production view in a disposable window.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to

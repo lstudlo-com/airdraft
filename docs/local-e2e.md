@@ -10,6 +10,7 @@ including tests that use fake API keys. It does not discover, read or enter API 
 python3 scripts/test-local-e2e.py --output /tmp/airdraft-local-tests
 python3 scripts/verify-native-behaviors.py
 python3 scripts/verify-model-lifecycle.py
+python3 scripts/verify-download-progress.py --output /tmp/airdraft-download-progress
 python3 -B scripts/test-release.py -v
 python3 -B scripts/test-licensing.py -v
 python3 -B scripts/test-prompt-gate.py -v
@@ -39,6 +40,13 @@ microphone selection helper and HUD controller against small fixture dependencie
 `verify-model-lifecycle.py` compiles the real lifecycle source with controllable
 local-server responses. These are targeted native regression checks, not substitutes
 for live UI or hardware acceptance.
+
+`verify-download-progress.py` compiles the shared SwiftUI download view and its
+production progress value into a disposable window. Compositor captures verify
+intermediate fill positions, network pauses, stage changes and both appearances.
+It injects the read-only Reduce Motion input to check that branch without changing
+system preferences. It does not download a model; `ModelDownloadProgressTests`
+separately exercise actual loopback transfers, byte counts and cancellation.
 
 ## Isolated Debug app
 

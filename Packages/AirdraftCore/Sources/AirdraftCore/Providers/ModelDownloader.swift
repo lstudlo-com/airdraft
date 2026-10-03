@@ -23,11 +23,12 @@ public actor ModelDownloader {
 
         public var detail: String {
             var parts: [String] = []
-            if let fraction {
-                // Do not round an unfinished transfer up to 100%.
-                parts.append(String(format: "%.1f%%", floor(fraction * 1_000) / 10))
+            if let fraction, fraction > 0 {
+                // Tiny files can arrive well before the first weights chunk. Keep that
+                // progress visible, and never round an unfinished transfer up to 100%.
+                parts.append(fraction < 0.001 ? "<0.1%" : String(format: "%.1f%%", floor(fraction * 1_000) / 10))
             }
-            if let receivedBytes {
+            if let receivedBytes, receivedBytes > 0 {
                 let received = ByteCountFormatter.string(fromByteCount: receivedBytes, countStyle: .file)
                 if let totalBytes {
                     parts.append("\(received) of \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")

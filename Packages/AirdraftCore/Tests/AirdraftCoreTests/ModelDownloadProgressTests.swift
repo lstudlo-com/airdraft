@@ -114,6 +114,18 @@ final class ModelDownloadProgressTests: XCTestCase {
         XCTAssertNil(ModelDownloader.Progress(fraction: .nan, currentFile: "weights").fraction)
     }
 
+    func testStartupAndTinyTransfersNeverLookStuckAtZero() {
+        XCTAssertEqual(ModelDownloader.Progress(fraction: 0, currentFile: "Connecting…",
+                                               receivedBytes: 0, totalBytes: 1_000_000_000).detail, "")
+        let tiny = ModelDownloader.Progress(fraction: 0.0000005, currentFile: "config.json",
+                                             receivedBytes: 500, totalBytes: 1_000_000_000)
+        XCTAssertTrue(tiny.detail.hasPrefix("<0.1%"))
+        XCTAssertTrue(tiny.detail.contains("500"), "Received bytes remain visible before 0.1%")
+        XCTAssertEqual(ModelDownloader.Progress(fraction: 0.000999, currentFile: "weights").detail, "<0.1%")
+        XCTAssertEqual(ModelDownloader.Progress(fraction: 0.001, currentFile: "weights").detail, "0.1%")
+        XCTAssertEqual(ModelDownloader.Progress(fraction: 1, currentFile: "weights").detail, "100.0%")
+    }
+
     private func scratch() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-transfer-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
