@@ -2,30 +2,36 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import LicenseCard from "../components/LicenseCard.astro";
 import Button from "../components/ui/Button.astro";
 import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
-import { paidPlan, siteLinks } from "../data/site";
+import { siteLinks } from "../data/site";
 import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
+
+// One primary key per page: the license once checkout is open, until then the
+// source build, which is the path available today.
+const onSale = Boolean(siteLinks.checkout);
 ---
 
 <Layout
   title="Pricing — Airdraft"
-  description="Airdraft is free to build from source. Cloud providers bill you directly, only if you use them."
+  description="Airdraft is free to build from source. The ready-to-run app is a one-time license: $29 for one Mac or $49 for up to three."
 >
   <SiteHeader />
-  <main id="main" class="island">
+  <main id="main" class="island subpage">
     <Section
       level={1}
       first
       title="Pricing"
-      intro="Airdraft is free to build from source. Cloud providers bill you directly, only if you use them."
+      intro="Free to build from source, or a one-time license for the ready-to-run app. Cloud providers bill you directly, only if you use them."
     >
       <div class="plans">
         <Surface as="article" class="plan">
           <h2>Open source</h2>
           <p class="plan-price">$0</p>
+          <p class="plan-description">Build it yourself with Xcode.</p>
           <ul class="plan-features">
             <li>Every feature in the app</li>
             <li>Local speech and refinement models</li>
@@ -33,68 +39,20 @@ import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
             <li>Updates by pulling the repository</li>
           </ul>
           <Button
-            href={siteLinks.source}
-            variant="primary"
+            href={siteLinks.build}
+            variant={onSale ? "secondary" : "primary"}
             icon="external"
             class="plan-action"
           >
-            View on GitHub
+            Build instructions
           </Button>
         </Surface>
 
-        <Surface as="article" class="plan">
-          <h2>Supporter</h2>
-          <p class="plan-price">Any amount</p>
-          <ul class="plan-features">
-            <li>Pays for time spent on Airdraft</li>
-            <li>Unlocks nothing extra</li>
-          </ul>
-          {siteLinks.buyMeACoffee ? (
-            <Button
-              href={siteLinks.buyMeACoffee}
-              icon="external"
-              class="plan-action"
-            >
-              Buy me a coffee
-            </Button>
-          ) : (
-            <Button disabled class="plan-action">
-              Donations not set up yet
-            </Button>
-          )}
-        </Surface>
-
-        {paidPlan ? (
-          <Surface as="article" class="plan">
-            <h2>{paidPlan.name}</h2>
-            <p class="plan-price">
-              {paidPlan.price}
-              {paidPlan.period && <span> / {paidPlan.period}</span>}
-            </p>
-            <p class="plan-description">{paidPlan.description}</p>
-            <ul class="plan-features">
-              {paidPlan.features.map((feature) => (
-                <li>{feature}</li>
-              ))}
-            </ul>
-            <Button href={paidPlan.url} icon="right" class="plan-action">
-              {paidPlan.action}
-            </Button>
-          </Surface>
-        ) : (
-          <Surface as="article" variant="well" class="plan plan-pending">
-            <h2>Ready-to-run app</h2>
-            <p class="plan-price">Not announced</p>
-            <p class="plan-description">
-              The paid option: install it like any Mac app, no Xcode needed.
-              Price and date will be announced in the changelog.
-            </p>
-            <Button href="/changelog/" variant="quiet" icon="right">
-              Changelog
-            </Button>
-          </Surface>
-        )}
+        <LicenseCard context="plan" name="plan-macs" />
       </div>
+      <p class="table-note">
+        Prices in US dollars, before applicable tax. Checkout shows the total.
+      </p>
     </Section>
 
     <Section
@@ -133,8 +91,26 @@ import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
       </p>
     </Section>
 
-    <Section id="pricing-questions" title="Questions" width="narrow">
+    <Section id="pricing-questions" title="Questions">
       <div class="question-list panel">
+        <Disclosure summary="What’s the difference between the licenses?">
+          <p>
+            Only how many Macs can use the license at the same time. To move it
+            to another Mac, deactivate the old one.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Is it a subscription?">
+          <p>
+            No. A license is a one-time purchase and doesn’t expire. Updates to
+            the version you buy are included.
+          </p>
+        </Disclosure>
+        <Disclosure summary="Can I try it first?">
+          <p>
+            Yes. The ready-to-run app has a 14-day trial with every feature. It
+            starts when you choose to start it, not when you install the app.
+          </p>
+        </Disclosure>
         <Disclosure summary="Is the open-source build limited?">
           <p>No. There are no locked features.</p>
         </Disclosure>

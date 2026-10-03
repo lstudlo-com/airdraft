@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import Arrow from "../components/Arrow.astro";
+import Section from "../components/ui/Section.astro";
 import { changelog } from "../data/changelog";
 
 const formatDate = (date: string) =>
@@ -20,11 +21,13 @@ const formatDate = (date: string) =>
 >
   <SiteHeader />
   <!-- Read mode: dated, source-grounded entries on the page island. -->
-  <main id="main" class="island">
-    <div class="changelog wrap">
-      <div class="changelog-intro">
-        <h1>Changelog</h1>
-      </div>
+  <main id="main" class="island subpage">
+    <Section
+      level={1}
+      first
+      title="Changelog"
+      intro="Changes to Airdraft, newest first. Unreleased work is marked."
+    >
       <div class="changelog-entries">
         {changelog.map((entry) => (
           <article class="changelog-entry" aria-labelledby={entry.id}>
@@ -57,7 +60,7 @@ const formatDate = (date: string) =>
           </article>
         ))}
       </div>
-    </div>
+    </Section>
   </main>
   <SiteFooter />
 </Layout>

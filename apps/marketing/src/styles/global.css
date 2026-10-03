@@ -134,7 +134,7 @@
     --step-1: 1.0625rem;
     --step-2: 1.25rem;
     --step-3: 1.625rem;
-    --step-4: clamp(2rem, 1.35rem + 2.3vw, 2.875rem);
+    --step-4: clamp(1.875rem, 1.4rem + 1.6vw, 2.5rem);
     --step-5: clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem);
 
     --radius-island: 22px;
@@ -456,26 +456,56 @@
     align-items: center;
     min-height: 44px;
   }
-  /* The logo: the app's outlined wordmark (ui/Brand.astro), in ink. Its
-     waveform strokes stretch with the shared voice. */
-  .brand-lockup {
+  /* The mark (ui/Brand.astro): SidebarBrandMark from the app. The capsule's
+     face is the chrome itself; outer shadows lift it (CSS never paints an
+     outer box-shadow inside the box, like the app's excludesInterior). The
+     strokes are opaque grooves: a darker floor, shaded inside the top-left
+     edge and lit inside the bottom right. Units are the icon's 364-point
+     capsule height. */
+  .brand-mark {
+    --u: calc(var(--mark-h) / 364);
+    --mark-shade: rgb(0 0 0 / 0.2);
+    --mark-light: rgb(255 255 255 / 0.95);
+    --mark-floor: #cccccc; /* white 0.80 */
+    --mark-floor-shade: rgb(0 0 0 / 0.35);
+    --mark-floor-light: rgb(255 255 255 / 0.9);
     display: inline-flex;
+    justify-content: center;
     align-items: center;
-    color: var(--ink);
+    gap: calc(30 * var(--u));
+    width: calc(744 * var(--u));
+    height: var(--mark-h);
+    border-radius: 999px;
+    box-shadow:
+      calc(1.4px * var(--mark-d)) calc(2.2px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-shade),
+      calc(-1.2px * var(--mark-d)) calc(-1.6px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-light);
   }
-  .brand-wordmark {
-    display: block;
-    width: auto;
-    height: 26px;
-    overflow: visible;
+  .brand-groove {
+    flex: none;
+    width: calc(38 * var(--u));
+    height: calc(190 * var(--level) * var(--u));
+    border-radius: 999px;
+    background: var(--mark-floor);
+    box-shadow:
+      inset calc(0.6px * var(--mark-d)) calc(0.8px * var(--mark-d))
+        calc(1.6px * var(--mark-d)) var(--mark-floor-shade),
+      inset calc(-0.5px * var(--mark-d)) calc(-0.6px * var(--mark-d))
+        calc(1.2px * var(--mark-d)) var(--mark-floor-light);
   }
-  .brand-bar {
-    transform-box: fill-box;
-    transform-origin: center;
-    transform: scaleY(calc(1 + var(--gain, 0) * 0.9));
+  .brand-caret {
+    height: calc(208 * var(--u));
+    margin-left: calc(20 * var(--u));
   }
-  .brand-lockup-sm .brand-wordmark {
-    height: 22px;
+  @media (prefers-color-scheme: dark) {
+    .brand-mark {
+      --mark-shade: rgb(0 0 0 / 0.55);
+      --mark-light: rgb(255 255 255 / 0.09);
+      --mark-floor: #1f1f1f; /* white 0.12 */
+      --mark-floor-shade: rgb(0 0 0 / 0.7);
+      --mark-floor-light: rgb(255 255 255 / 0.14);
+    }
   }
   .site-header nav {
     display: flex;
@@ -821,7 +851,7 @@
     overflow: clip;
     list-style: none;
   }
-  .segmented > :is(li, button):not(.segmented-thumb) {
+  .segmented > :is(li, button, label):not(.segmented-thumb) {
     position: relative;
     z-index: 1;
     display: grid;
@@ -837,14 +867,34 @@
     white-space: nowrap;
     transition: color 200ms ease;
   }
-  .segmented > button:hover {
+  .segmented > :is(button, label):hover {
     color: var(--ink);
   }
-  .segmented > :is(.is-selected, [aria-pressed="true"]):not(.segmented-thumb) {
+  .segmented > label {
+    cursor: pointer;
+  }
+  /* Radio segments: the input stays focusable and drives the choice; the
+     label draws the segment and its focus ring (inside the clipped track). */
+  .segmented input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .segmented > label:has(input:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+  .segmented
+    > :is(.is-selected, [aria-pressed="true"], :has(input:checked)):not(
+      .segmented-thumb
+    ) {
     color: var(--ink);
     font-weight: 600;
   }
-  .segmented:not(.has-thumb) > :is(.is-selected, [aria-pressed="true"]),
+  .segmented:not(.has-thumb)
+    > :is(.is-selected, [aria-pressed="true"], :has(input:checked)),
   .segmented-thumb {
     background: var(--fill-control);
     box-shadow:
@@ -991,6 +1041,25 @@
   }
   .section-heading + * {
     margin-top: 44px;
+  }
+  /* Every subpage opens with the same title block (Section level 1): one
+     size, one top inset, the full content width. Sections below it are a
+     step smaller and closer together, so the page title leads. */
+  .page-title {
+    font-size: var(--step-4);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .subpage .section-space {
+    margin-top: 104px;
+  }
+  .subpage .section-space .section-heading h2 {
+    font-size: var(--step-3);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+  .subpage .section-heading + * {
+    margin-top: 32px;
   }
   .actions {
     display: flex;
@@ -1630,7 +1699,7 @@
      sits in the middle, raised higher and holding the page's primary key. */
   .offers {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
     align-items: center;
     gap: 24px;
   }
@@ -1651,7 +1720,8 @@
     line-height: 1.05;
     letter-spacing: -0.025em;
   }
-  .offer-price span {
+  :is(.offer-price, .plan-price) > .price-unit {
+    margin-left: 0.15em;
     font-size: var(--step-0);
     font-weight: 400;
     letter-spacing: 0;
@@ -1671,6 +1741,58 @@
     min-height: 340px;
     padding: 34px;
     box-shadow: var(--edge), var(--raise-hero);
+  }
+
+  /* The license card (LicenseCard.astro): a title with the Mac choice beside
+     it, then the chosen license's price and use. Only the chosen license's
+     lines show; switching slides the new one up into place. */
+  .plan-featured {
+    box-shadow: var(--edge), var(--raise-hero);
+  }
+  /* Every plan's title row is as tall as the license's Mac choice, so the
+     prices of side-by-side cards line up. */
+  .plan > h2,
+  .offer > h3,
+  .license-head {
+    min-height: 38px;
+  }
+  .plan > h2,
+  .offer > h3 {
+    display: flex;
+    align-items: center;
+  }
+  .license-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px 16px;
+  }
+  .license-swap {
+    display: inline-grid;
+  }
+  .offer-note .license-swap {
+    display: grid;
+  }
+  .license-swap > [data-plan] {
+    grid-area: 1 / 1;
+    transition:
+      opacity 260ms ease,
+      translate 480ms var(--ease-out);
+  }
+  .license:has(input[value="one-mac"]:checked)
+    .license-swap
+    > :not([data-plan="one-mac"]),
+  .license:has(input[value="three-macs"]:checked)
+    .license-swap
+    > :not([data-plan="three-macs"]) {
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 0.35em;
+    transition:
+      opacity 140ms ease,
+      translate 140ms ease,
+      visibility 0s linear 140ms;
   }
 
   /* Questions: rows inside a raised card, divided by grooves. */
@@ -1741,7 +1863,7 @@
   /* Pricing */
   .plans {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
     gap: 24px;
   }
   .plan {
@@ -1761,11 +1883,7 @@
     line-height: 1.2;
     letter-spacing: -0.015em;
   }
-  .plan-price span {
-    font-size: var(--step-0);
-    font-weight: 400;
-    color: var(--muted);
-  }
+
   .plan-description {
     margin-top: 10px;
     font-size: var(--step-0);
@@ -1940,17 +2058,8 @@
   }
 
   /* Changelog */
-  .changelog {
-    max-width: 960px;
-    padding-top: 56px;
-  }
-  .changelog-intro h1 {
-    font-size: var(--step-4);
-    line-height: 1.1;
-  }
   .changelog-entries {
     position: relative;
-    margin-top: 40px;
   }
   /* A pressed groove runs down the date column; each entry is a raised stud. */
   .changelog-entries::before {
@@ -2250,9 +2359,6 @@
     .footer-links {
       justify-content: flex-start;
     }
-    .changelog {
-      padding-top: 32px;
-    }
     .changelog-entry {
       grid-template-columns: minmax(0, 1fr);
       gap: 12px;
@@ -2274,9 +2380,6 @@
     }
   }
   @media (max-width: 420px) {
-    .site-header .brand-wordmark {
-      height: 23px;
-    }
     .hero-actions .key,
     .offer .key {
       width: 100%;
@@ -2293,6 +2396,8 @@
     .key,
     .segmented,
     .wave,
+    .brand-mark,
+    .brand-groove,
     kbd,
     .art-field,
     .art-output,

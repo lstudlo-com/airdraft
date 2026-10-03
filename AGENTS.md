@@ -122,7 +122,9 @@ verification status belong in the vault (see below).
   its symbol aligned to the page leading inset and its center on the heading row;
   it never moves into the titlebar. Always inset the page heading beside the toggle
   so their hit areas stay separate.
-  The outlined `SidebarWordmark.imageset` SVG remains the website and installer
+  The website uses this mark too, without lettering: `apps/marketing/src/components/ui/Brand.astro`
+  translates `SidebarBrandMark` value for value (34 px header, 28 px footer); change
+  both together. The outlined `SidebarWordmark.imageset` SVG remains the installer
   wordmark. Regenerate that asset with `swift scripts/render-sidebar-wordmark.swift`;
   keep its capsule strokes and lowercase lettering paths intact.
 

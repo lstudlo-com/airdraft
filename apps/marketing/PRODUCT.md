@@ -2,10 +2,10 @@
 
 ## Intent
 
-Help an individual Mac user understand Airdraft, trust it, and reach the real
-build instructions. As an open-source project funded by donations and, later, a
-paid service, the site must also make the source, the license and the ways to
-support the project easy to find once they exist.
+Help an individual Mac user understand Airdraft, trust it, and choose how to get
+it: build the open source for free, or buy a one-time license for the official
+ready-to-run app. The site must make the source, the license terms and both
+paths easy to find (vault: `Strategy/Business Model`).
 This is a marketing surface, separate from the native app's settings UI.
 The initial deployment at `airdraft.app` must stay private behind Cloudflare
 Access, restricted to the owner's L Studio Google identity.
@@ -29,17 +29,26 @@ a paid subscription.
   refinement. Parakeet supports European languages, not Chinese; Apple Intelligence
   requires a supported Mac with macOS 26 or later and system availability.
 - Built-in profiles are Clean, Concise, Summary and Verbatim; they are editable and resettable. The website's sample is authored text, not a live microphone or model benchmark.
-- Version 0.2.0 is a personal-use release signed with Apple Development and is not
-  notarized. A supported, notarized public installer is not available yet. The paid
-  option will be a ready-to-run app (no Xcode needed); its price and date are not
-  announced. "Get Airdraft" actions lead to the pricing page; source actions lead
-  to the repository and its build instructions.
-- Airdraft is open source and donation-supported. `src/data/site.ts` controls optional content:
-  the Buy Me a Coffee URL (pricing and support pages), the license (footer, only once a LICENSE
-  file exists), and the paid plan (pricing page, only once it is real). Until set, donation
-  actions show a disabled "Not set up yet" key and the paid plan reads "Not announced".
-- Pricing may state only: the open-source build is $0 with no locked features; donations
-  unlock nothing; cloud providers bill users directly. Cloud speech prices come from the app's
+- Releases so far are personal-use builds signed with Apple Development and not
+  notarized. A supported, notarized public installer is not available yet.
+  "Get Airdraft" actions lead to the pricing page; source actions lead to the
+  repository and its build instructions.
+- The official ready-to-run app (no Xcode needed) is sold as a one-time license
+  for personal use: **$29 for one Mac, $49 for up to three Macs**, in US dollars
+  before applicable tax. Both licenses have every feature and differ only in how
+  many Macs can be active at once; a Mac can be deactivated to move the license.
+  Licenses don't expire, updates to the purchased version are included, and the
+  app offers a 14-day full-feature trial the user starts. `licenses` and
+  `licenseIncludes` in `src/data/site.ts` carry these facts; change them only with
+  the Polar products. Self-built editions stay complete and free.
+- Purchase is not open yet (the merchant account is in test mode). License actions
+  read "Not on sale yet" and stay disabled until `siteLinks.checkout` holds the
+  production checkout link from `scripts/licensing-config.json`.
+- `src/data/site.ts` also controls optional content: the Buy Me a Coffee URL
+  (support page) and the license link (footer). Until set, donation actions show a
+  disabled "Not set up yet" key.
+- Pricing may state only: the open-source build is $0 with no locked features; the
+  license terms above; donations unlock nothing; cloud providers bill users directly. Cloud speech prices come from the app's
   model catalogue (`src/data/pricing.ts`), dated, one default model per provider.
 - Support troubleshooting comes from the root README's First run and Known issues sections.
 - History is local, searchable, grouped by day, and flips between refined and original text.
@@ -47,7 +56,8 @@ a paid subscription.
 - Changelog entries distinguish unreleased development, dated source history and
   personal-use releases from supported public distribution. Never invent a release
   version or publication date, or imply that a version number proves notarization.
-- Do not invent pricing, performance measurements, testimonials, usage counts, licensing, or a download URL.
+- Do not invent prices, discounts, dates, performance measurements, testimonials,
+  usage counts, licensing terms, or a download or checkout URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.
 
 ## Design brief
@@ -66,11 +76,14 @@ source; macOS 15+ on Apple silicon), and Home's waveform card from the app
 Nothing else shows until the visitor scrolls. The headline says transcription,
 not dictation: Airdraft records live but transcribes and refines after release.
 The shortcut is shown in the hero caption and the bento. The close must state
-availability plainly and offer every path: build free, the paid app, donate.
+availability plainly and offer both paths: build free, or the license (one card
+with a 1 Mac / 3 Macs choice). Donations live on the support page.
 Every line of copy must inform a decision or explain the product; no taglines,
 no narration, no restating a heading. Build pages from `src/components/ui/`.
-The logo is the app's outlined wordmark. Both waveforms, the logo's and the
-hero's, respond to the visitor. Scroll motion tells the dictation story (speak, refine, insert) but
+The logo is the app sidebar's neumorphic mark (`SidebarBrandMark`): a raised
+capsule with carved waveform grooves and a caret, without lettering. The hero's
+waveform responds to the visitor. Pricing, Support and Changelog open with the
+same page title block: one size, one top inset and the full content width. Scroll motion tells the dictation story (speak, refine, insert) but
 the page reads fully without it. Bento tiles are one graphic and one line.
 
 ## Delivery

@@ -1,12 +1,13 @@
 // SoftSegmentedPicker's sliding thumb: one raised face moves between the
 // choices on SelectionMotion.curve (CSS), wherever the selection change came
-// from (a click, preview.ts or a bento loop). The selected item is the one
-// with `.is-selected` or `aria-pressed="true"`. Without JavaScript the
-// selected item draws its own face instead.
+// from (a click, preview.ts, a bento loop or a radio input). The selected
+// item has `.is-selected`, `aria-pressed="true"` or a checked radio. Without
+// JavaScript the selected item draws its own face instead.
 
 const isSelected = (item: Element) =>
   item.classList.contains("is-selected") ||
-  item.getAttribute("aria-pressed") === "true";
+  item.getAttribute("aria-pressed") === "true" ||
+  Boolean(item.querySelector("input:checked"));
 
 for (const track of document.querySelectorAll<HTMLElement>(
   ".segmented:not(.has-thumb)",
@@ -32,6 +33,7 @@ for (const track of document.querySelectorAll<HTMLElement>(
   };
 
   place(true);
+  track.addEventListener("change", () => place(false));
   new MutationObserver(() => place(false)).observe(track, {
     subtree: true,
     attributes: true,

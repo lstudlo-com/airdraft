@@ -1,54 +1,34 @@
 ---
-// The app's own outlined wordmark: capsule, waveform and caret as strokes, then
-// "airdraft" as outlined lettering. Read straight from the asset catalogue so
-// the website and the app never drift; regenerate it with
-// scripts/render-sidebar-wordmark.swift.
-import wordmark from "../../../../../Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg?raw";
-
 /**
- * The Airdraft logo. Drawn in the current text colour. The waveform strokes
- * listen to the shared voice (src/scripts/voice.ts) and lift a little when the
- * visitor moves, scrolls, or hovers the logo; the caret stays still.
+ * The Airdraft mark: the app sidebar's `SidebarBrandMark`
+ * (Sources/App/Views/MainWindow.swift), translated value for value. A capsule
+ * whose face is the surface it sits on, lifted only by a soft shade down-right
+ * and light up-left (outer shadows never paint inside the face), with five
+ * waveform strokes and a separate caret carved into it as grooves. No
+ * lettering, as in the app. Static: it is a mark, not a meter.
+ *
+ * Geometry is in the icon's 364-point capsule height: bars 38 wide, 190 × level
+ * tall, 30 apart; the caret is 208 tall with 20 more space before it. `size`
+ * sets the height: `md` 34px in the header, `sm` 28px (the sidebar's own size)
+ * in the footer. Shadow depth scales with the height, as in the app.
  */
 interface Props {
   size?: "md" | "sm";
 }
 
 const { size = "md" } = Astro.props;
-
-// Split the waveform path into one path per stroke so each bar can move.
-const svg = wordmark
-  .replace(/<title>[\s\S]*?<\/title>\s*/, "")
-  .replace(/<!--[\s\S]*?-->\s*/g, "")
-  .replace(/ width="[\d.]+" height="[\d.]+"/, "")
-  .replace(
-    "<svg ",
-    `<svg class="brand-wordmark" aria-hidden="true" focusable="false" data-waveform data-voice="1" `,
-  )
-  .replaceAll('"#000"', '"currentColor"')
-  .replace(/<path d="(M[^"]+)"\/>/, (_, data: string) => {
-    const strokes = data.trim().split(/\s(?=M)/);
-    return strokes
-      .map((stroke, index) =>
-        index < strokes.length - 1
-          ? `<path class="brand-bar" d="${stroke}" data-bar data-index="${index}" data-base="0"/>`
-          : `<path class="brand-caret" d="${stroke}"/>`,
-      )
-      .join("");
-  });
+const height = size === "md" ? 34 : 28;
+const levels = [0.36, 0.66, 1, 0.72, 0.48];
 ---
 
 <span
-  class:list={["brand-lockup", size === "sm" && "brand-lockup-sm"]}
-  data-brand
+  class="brand-mark"
+  style={`--mark-h: ${height}px; --mark-d: ${(height / 28).toFixed(3)};`}
+  role="img"
+  aria-label="Airdraft"
 >
-  <Fragment set:html={svg} />
+  {levels.map((level) => (
+    <span class="brand-groove" style={`--level: ${level}`} />
+  ))}
+  <span class="brand-groove brand-caret"></span>
 </span>
-
-<script>
-  import { pulse } from "../../scripts/voice";
-
-  for (const brand of document.querySelectorAll<HTMLElement>("[data-brand]")) {
-    brand.addEventListener("pointerenter", () => pulse(0.7));
-  }
-</script>

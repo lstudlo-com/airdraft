@@ -3,7 +3,7 @@
 //   headings  and bento tiles rise into place as they enter
 //   bento     each tile's graphic plays a short loop while it is on screen
 //   pipeline  on desktop the section pins and flies six cards through 3D
-//             space; on narrow screens the cards tip up into place
+//             space; on narrow screens the cards rise into place
 //
 // Every element's resting state in CSS is its final state, so the page reads
 // the same without JavaScript. With reduced motion none of this runs.
@@ -52,15 +52,13 @@ function reveals() {
       scrollTrigger: { trigger: target, start: "top 88%" },
     });
   }
+  // Flat rises only: a lit card never tips through perspective.
   all("[data-offer]").forEach((offer, index) => {
     gsap.from(offer, {
-      y: 60,
-      rotateX: -16,
+      y: 40,
       autoAlpha: 0,
-      transformPerspective: 1000,
-      transformOrigin: "50% 100%",
-      duration: 1,
-      delay: index * 0.1,
+      duration: 0.9,
+      delay: index * 0.08,
       ease: "power3.out",
       scrollTrigger: { trigger: offer, start: "top 92%" },
     });
@@ -388,16 +386,13 @@ function pipeline(fine: boolean) {
   };
 }
 
-/** Narrow screens: the stacked cards tip up into place as they arrive. */
+/** Narrow screens: the stacked cards rise into place as they arrive. */
 function sceneReveals() {
   for (const card of all("[data-scene-card]")) {
     gsap.from(card, {
-      y: 56,
-      rotateX: -24,
+      y: 48,
       autoAlpha: 0,
-      transformPerspective: 900,
-      transformOrigin: "50% 100%",
-      duration: 1,
+      duration: 0.9,
       ease: "power3.out",
       scrollTrigger: { trigger: card, start: "top 92%" },
     });

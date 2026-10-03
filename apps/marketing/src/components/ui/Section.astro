@@ -1,7 +1,9 @@
 ---
 /**
  * A page section: a heading, an optional one-line intro, then content.
- * `level={1}` with `first` makes it a page header (no section gap above).
+ * `level={1}` with `first` makes it a page header (no section gap above): every
+ * subpage (Pricing, Support, Changelog) opens with one, so their titles share
+ * one size, one top inset and the same content width.
  */
 interface Props {
   id?: string;
@@ -44,7 +46,9 @@ const Heading = level === 1 ? "h1" : "h2";
   aria-labelledby={headingId}
 >
   <div class="section-heading">
-    <Heading id={headingId}>{title}</Heading>
+    <Heading id={headingId} class:list={[level === 1 && "page-title"]}>
+      {title}
+    </Heading>
     {intro && <p>{intro}</p>}
   </div>
   <slot />

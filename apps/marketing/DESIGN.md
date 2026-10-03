@@ -53,7 +53,7 @@ typography:
     letterSpacing: "-0.025em"
   headline:
     fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
-    fontSize: "clamp(2rem, 1.35rem + 2.3vw, 2.875rem)"
+    fontSize: "clamp(1.875rem, 1.4rem + 1.6vw, 2.5rem)"
     fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "-0.02em"
@@ -251,15 +251,15 @@ self-hosted as the fallback for other systems and is only downloaded where the
 system face is missing. Keycaps, the HUD timer and numbers in the app's rounded
 style use `ui-rounded` where available.
 
-| Step        | Size                                      | Use                                                       |
-| ----------- | ----------------------------------------- | --------------------------------------------------------- |
-| display     | `clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem)` | Hero only                                                 |
-| headline    | `clamp(2rem, 1.35rem + 2.3vw, 2.875rem)`  | Section, changelog and 404 headings                       |
-| entry-title | `1.625rem`                                | Changelog entries, scene titles                           |
-| title       | `1.25rem`                                 | Tile, plan and card titles                                |
-| lead        | `1.0625rem`                               | Intros, sample text, disclosure summaries                 |
-| body        | `0.9375rem`                               | Paragraphs, actions                                       |
-| label       | `0.8125rem`                               | Field labels, chips, metadata. The floor: nothing smaller |
+| Step        | Size                                      | Use                                                         |
+| ----------- | ----------------------------------------- | ----------------------------------------------------------- |
+| display     | `clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem)` | Hero only                                                   |
+| headline    | `clamp(1.875rem, 1.4rem + 1.6vw, 2.5rem)` | Homepage sections; every subpage title (`.page-title`); 404 |
+| entry-title | `1.625rem`                                | Subpage sections, changelog entries, scene titles           |
+| title       | `1.25rem`                                 | Tile, plan and card titles                                  |
+| lead        | `1.0625rem`                               | Intros, sample text, disclosure summaries                   |
+| body        | `0.9375rem`                               | Paragraphs, actions                                         |
+| label       | `0.8125rem`                               | Field labels, chips, metadata. The floor: nothing smaller   |
 
 Headings are semibold (600) with light negative tracking; actions are medium
 (500), the primary key semibold. Headings balance; paragraphs use
@@ -273,10 +273,16 @@ page's `<main>` is `.island`, inset `12px` from the window edges (`6px` on
 phones), with `22px` corners, a 1px hairline edge and no shadow. The island
 clips its content (`overflow: clip`, which keeps `position: sticky` working).
 
-Content width inside the island is `min(1120px, 100% - 2 × gutter)`. Sections
-come from the `Section` component and the spacing tokens; `first` sections take
-`56px` of top padding instead of the section gap, and `narrow` sections cap at
-`800px`. The sample is capped at `1040px`, the changelog at `960px`.
+Content width inside the island is `min(1120px, 100% - 2 × gutter)`, the same
+as the header, so content lines up with the mark. Sections come from the
+`Section` component and the spacing tokens; `first` sections take `56px` of top
+padding instead of the section gap. The sample is capped at `1040px`.
+
+Subpages (Pricing, Support, Changelog) are `main.island.subpage` and open with
+the same title block: `Section level={1} first` with a one-line intro, the
+headline step for the title (`.page-title`), and the full content width; no
+subpage narrows its content. Their later sections are `104px` apart with
+`entry-title` headings, a step below the page title.
 
 The homepage bento is a three-column grid with `24px` gaps and seven tiles in
 a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider story
@@ -287,7 +293,7 @@ pins for about 4.9 viewport heights on screens at least `1000px` wide and
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks; the hero waveform drops its 12 oldest bars. |
 | `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, provider scenes, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                         |
-| `560px`   | The header shows only the logo, GitHub and Get Airdraft.                                                                                                                                                        |
+| `560px`   | The header shows only the mark, GitHub and Get Airdraft.                                                                                                                                                        |
 | `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                             |
 
 ## Elevation & Depth
@@ -349,13 +355,20 @@ makes it speak.
 
 ### Brand (`ui/Brand.astro`)
 
-The logo is the app's own outlined wordmark, read at build time from
-`Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg` (generated
-by `scripts/render-sidebar-wordmark.swift`, outlined SF Pro): the capsule,
-waveform and caret as round-capped strokes, then lowercase "airdraft". It is
-drawn in ink, `26px` tall in the header (`23px` below `420px`) and `22px` in the
-footer. The component splits the waveform path into one stroke per bar so the
-bars can move; the artwork itself is never redrawn on the web.
+The mark is the app sidebar's `SidebarBrandMark` (`MainWindow.swift`),
+translated value for value, with no lettering, as in the app. The capsule's face
+is the chrome it sits on, lifted only by a soft shade down-right and light
+up-left (light: black 20% and white 95%; dark: black 55% and white 9%; radius
+2.6 at 28px). Outer box-shadows never paint inside the box, which matches the
+app's `excludesInterior`. Never give it an edge stroke or fill. Five waveform
+strokes (levels `0.36, 0.66, 1, 0.72, 0.48`) and a separate caret are carved in
+as opaque grooves: white 0.80 (dark 0.12), shaded inside the top-left edge and
+lit inside the bottom right. Geometry uses the icon's 364-point capsule height:
+bars `38` wide, `190 × level` tall, `30` apart; the caret `208` tall with `20`
+more before it. Shadows scale with height. It is `34px` tall in the header and
+`28px` (the sidebar's own size) in the footer, a static mark inside the home
+link, whose accessible name is "Airdraft". Increase Contrast adds edges. The
+outlined `SidebarWordmark` SVG remains the installer's wordmark only.
 
 ### Button (`ui/Button.astro`)
 
@@ -438,20 +451,30 @@ colour. The current card's wheel turns as the visitor scrolls; a finished card
 flies past to the lower left. A three-part stepper (Speech, Refinement,
 Insertion) fills like Home's usage tracks: a raised gray fill in a shallow
 inset. The pointer tilts the deck. Elsewhere, and with reduced motion, copy and
-cards stack; on phones the cards tip up into place.
+cards stack; on phones the cards rise into place.
 
-### Get Airdraft (`GetAirdraft.astro`)
+### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
-The homepage close: three offers side by side. Build it yourself (Free, build
-instructions), the ready-to-run app in the middle (raised with the hero spread,
-the page's one primary key, "See pricing" until `paidPlan` is set), and Support
-the project (donation, disabled until configured).
+The homepage close: two offers side by side. Build it yourself (Free, build
+instructions) and the ready-to-run app's license card, raised with the hero
+spread and holding the page's one primary key ("See pricing").
+
+The license card is shared with the pricing page. Its title sits beside a
+segmented **1 Mac | 3 Macs** choice; below it, only the chosen license's price
+("one-time") and use show, and switching slides the new line up into place.
+Both licenses have the same features, so one card shows them once. The choice
+is a native radio group and CSS `:has()` picks the visible lines, so it works
+without JavaScript; `segmented.ts` adds the sliding thumb. On the pricing page
+it lists `licenseIncludes` and its action is the purchase: disabled "Not on
+sale yet" until `siteLinks.checkout` is set, then the page's primary key.
+Prices, Mac counts and inclusions come from `src/data/site.ts`. Every plan's
+title row is the choice's height (`38px`), so side-by-side prices line up.
 
 ### Motion (`src/scripts/story.ts`, GSAP + ScrollTrigger)
 
 One `gsap.matchMedia` context, off entirely with reduced motion:
 
-- Section headings, the sample and bento tiles rise `36–48px` and fade in as they enter; the offers tip up from `-16°`.
+- Section headings, the sample, bento tiles and the offers rise `36–48px` and fade in as they enter. Cards rise flat: they never tip through perspective.
 - Bento loops play only while their tile is visible.
 - The provider story pins on desktop and moves its cards (see above).
 
@@ -467,16 +490,16 @@ pricing questions and support troubleshooting. Answers may include `code`.
 
 ### Header, footer, pricing, support, changelog
 
-The header sits on the chrome: the Brand logo, then Pricing, Support and
+The header sits on the chrome: the Brand mark, then Pricing, Support and
 Changelog as capsule links (the current page sits in a recessed well, like the
 app's sidebar selection), the GitHub icon key and the primary "Get Airdraft" key.
-On phones only the logo, GitHub and Get Airdraft remain. The footer sits on the
+On phones only the mark, GitHub and Get Airdraft remain. The footer sits on the
 chrome below the island.
 
-Pricing shows three plans: Open source (`$0`, the one primary key), Supporter
-(donation; disabled until a URL exists), and the paid plan from
-`src/data/site.ts` (a recessed well reading "Not announced" until it is set).
-A raised panel lists cloud speech list prices from `src/data/pricing.ts`, dated.
+Pricing shows two plans: Open source (`$0`, build instructions, the page's
+primary key until checkout opens) and the license card. A note gives the
+currency and tax basis, a raised panel lists cloud speech list prices from
+`src/data/pricing.ts`, dated, then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
 project. The changelog runs a pressed groove down the date column with a raised
 stud per entry; Unreleased is a recessed chip.

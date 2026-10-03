@@ -1,0 +1,99 @@
+---
+import Button from "./ui/Button.astro";
+import Surface from "./ui/Surface.astro";
+import { licenseIncludes, licenses, siteLinks } from "../data/site";
+
+/**
+ * The ready-to-run app's license, as one raised card: a segmented choice of
+ * how many Macs (SoftSegmentedPicker), then that license's price and use. Both
+ * licenses have the same features, so the card shows them once.
+ *
+ * The choice is a native radio group, and CSS `:has()` shows the chosen
+ * license's price, so it works without JavaScript; src/scripts/segmented.ts
+ * only adds the sliding thumb. `context="offer"` is the homepage close (one
+ * line and "See pricing"); `context="plan"` is the pricing page (the feature
+ * list and the purchase action, disabled until `siteLinks.checkout` is set).
+ */
+interface Props {
+  context: "offer" | "plan";
+  name: string;
+}
+
+const { context, name } = Astro.props;
+const Heading = context === "plan" ? "h2" : "h3";
+const onSale = Boolean(siteLinks.checkout);
+---
+
+<Surface
+  as="article"
+  class:list={[
+    "license",
+    context,
+    context === "offer" ? "offer-featured" : "plan-featured",
+  ]}
+  data-offer={context === "offer" ? "" : undefined}
+>
+  <div class="license-head">
+    <Heading>Ready-to-run app</Heading>
+    <div class="segmented" role="radiogroup" aria-label="Number of Macs">
+      {licenses.map((plan, index) => (
+        <label>
+          <input
+            type="radio"
+            name={name}
+            value={plan.id}
+            checked={index === 0}
+          />
+          {plan.name}
+        </label>
+      ))}
+    </div>
+  </div>
+  <p class:list={[context === "offer" ? "offer-price" : "plan-price"]}>
+    <span class="license-swap">
+      {licenses.map((plan) => (
+        <span data-plan={plan.id}>{plan.price}</span>
+      ))}
+    </span>
+    <span class="price-unit">one-time</span>
+  </p>
+  <p class:list={[context === "offer" ? "offer-note" : "plan-description"]}>
+    <span class="license-swap">
+      {licenses.map((plan) => (
+        <span data-plan={plan.id}>Personal use on {plan.macs}.</span>
+      ))}
+    </span>
+    {context === "offer" && " Every feature, with a 14-day trial first."}
+  </p>
+  {context === "plan" && (
+    <ul class="plan-features">
+      {licenseIncludes.map((feature) => (
+        <li>{feature}</li>
+      ))}
+    </ul>
+  )}
+  {context === "offer" ? (
+    <Button
+      href="/pricing/"
+      variant="primary"
+      size="lg"
+      icon="right"
+      class="offer-action"
+    >
+      See pricing
+    </Button>
+  ) : onSale ? (
+    <Button
+      href={siteLinks.checkout}
+      variant="primary"
+      icon="external"
+      class="plan-action"
+    >
+      Buy a license
+    </Button>
+  ) : (
+    <Button disabled class="plan-action">
+      Not on sale yet
+    </Button>
+  )}
+</Surface>

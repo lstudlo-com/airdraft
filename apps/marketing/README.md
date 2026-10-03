@@ -116,16 +116,19 @@ and immutable caching for Astro's hashed assets.
   entries newest first and keep unpublished changes explicitly marked as unreleased.
   `design.astro` is an unlinked, `noindex` component reference at `/design/`,
   excluded from the sitemap.
-- `src/components/ui/` holds the reusable components: `Button`, `Section`,
-  `Surface`, `Chips`, `Keys`, `Hud`, `Waveform`, `BentoTile` and `Disclosure`.
+- `src/components/ui/` holds the reusable components: `Brand`, `Button`,
+  `Section`, `Surface`, `Chips`, `Keys`, `Hud`, `Waveform`, `BentoTile` and
+  `Disclosure`.
   Use them for new pages;
   DESIGN.md documents their props.
 - `SiteHeader.astro` and `SiteFooter.astro` are shared by every page.
   `src/data/site.ts` owns the GitHub, build-instruction and issue destinations,
-  plus three optional values that stay hidden or disabled until they are real:
-  the Buy Me a Coffee URL, the license (add it only after a LICENSE file exists),
-  and the paid plan. `src/data/pricing.ts` copies cloud speech list prices from the
-  app's model catalogue; update both together.
+  the two licenses (`licenses`, `licenseIncludes`: $29 for one Mac, $49 for up to
+  three; change them only with the Polar products), and optional values that stay
+  disabled until they are real: the production checkout link (`checkout`, from
+  `scripts/licensing-config.json` once payments are live), the Buy Me a Coffee
+  URL and the license link. `src/data/pricing.ts` copies cloud speech list prices
+  from the app's model catalogue; update both together.
 - `src/components/DictationPreview.astro` and `src/scripts/preview.ts` implement
   an explicitly labelled sample that plays once when it scrolls into view. Its HUD
   copies the app's `IndicatorPanel` states (timer, Decoding, Refining). It does not
@@ -141,23 +144,23 @@ and immutable caching for Astro's hashed assets.
   bars are decorative, not data. `src/scripts/waveform.ts` copies the app's hover
   magnification and `src/scripts/segmented.ts` slides every segmented picker's
   thumb.
-- The logo (`ui/Brand.astro`) reads the app's outlined wordmark straight from
-  `Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg`; regenerate
-  that with `swift scripts/render-sidebar-wordmark.swift`, never edit it here.
+- The mark (`ui/Brand.astro`) is the app sidebar's `SidebarBrandMark`
+  (`Sources/App/Views/MainWindow.swift`) in CSS: a raised capsule with carved
+  grooves and no lettering. Change it together with the Swift view.
 - `uv run apps/marketing/scripts/render-brand.py` writes neutral capsule SVGs to
   `public/brand/` (`airdraft-mark.svg`, and `airdraft-logo.svg` with the app
   wordmark's lettering) for use outside the site. They are not the site's logo.
 - `scripts/render-app-icon.swift` writes the website's `airdraft-icon.png` and
   `favicon.png` along with the app's icon set.
-- Motion: `src/scripts/voice.ts` lifts the hero's and the logo's waveforms with
-  pointer and scroll speed; `src/scripts/story.ts` runs the homepage's scroll story
+- Motion: `src/scripts/voice.ts` lifts the hero's waveform with pointer and scroll
+  speed; `src/scripts/story.ts` runs the homepage's scroll story
   with GSAP and ScrollTrigger (`gsap` is a dependency under GSAP's no-charge
   standard license). Both do nothing with reduced motion, and every element's
   resting CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider
   section is `PipelineStory.astro` (six scenes, a 3D card flight on desktop); the
-  homepage close is `GetAirdraft.astro`, which reads `paidPlan` and the donation URL
-  from `src/data/site.ts`.
+  homepage close is `GetAirdraft.astro`: the source build beside `LicenseCard.astro`,
+  which the pricing page shares.
 - Text uses SF Pro through the system font stack on Apple devices. Inter is
   self-hosted through `@fontsource-variable/inter` as the fallback elsewhere, under
   its included SIL Open Font License, copied to `public/fonts/inter-OFL.txt`; it is
@@ -174,7 +177,9 @@ and immutable caching for Astro's hashed assets.
 Check the homepage, pricing, support, changelog, `/design/` and the custom 404 in the
 browser at desktop and mobile sizes, in both light and dark appearance.
 Exercise the autoplay, Run again, Stop mid-run, all three profile buttons (the
-thumb must land on the selected one), the hero waveform's hover, the FAQ,
+thumb must land on the selected one), the license card's 1 Mac / 3 Macs choice
+(pointer and arrow keys, with and without JavaScript), the hero waveform's hover,
+the FAQ,
 and anchor links; check keyboard focus and reduced motion (no autoplay, immediate
 result). The static example and navigation
 remain useful with JavaScript disabled.

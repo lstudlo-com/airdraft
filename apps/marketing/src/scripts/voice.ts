@@ -1,5 +1,5 @@
 // A shared "voice" for every waveform on the page ([data-waveform]): the hero's
-// waveform well and the logo's strokes. Each bar ([data-bar]) gets `--gain`
+// waveform well and its live recording bar. Each bar ([data-bar]) gets `--gain`
 // (0–1). Moving the pointer or scrolling is treated as speaking: the faster
 // the movement, the louder the voice, and the bars rise and fall with it. The
 // loop runs only while the voice is audible and a waveform is on screen; with
