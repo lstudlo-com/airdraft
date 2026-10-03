@@ -224,6 +224,14 @@ The sidebar changes width with the existing 0.18-second
 ease-in-out animation.
 
 Speech and refinement providers use compact pickers in their section headings.
+Both speech pickers default to All and only filter their tables; selecting a row
+changes the active provider and model. `ModelTable` fixes its column header above
+a scrollable body capped at `Theme.modelTableMaxHeight` (300 pt). Short results
+shrink to their measured height. Rows retain equal 16-point insets, with 13-point
+model names and 11-point secondary text. Local rows show language coverage;
+cloud rows identify the hosting provider, even when several hosts offer the same
+model. Brand icons use the model's mark or its creator's logo, bundled locally;
+see [brand asset sources](model-brand-assets.md).
 A refresh action sits immediately beside the picker whose data it reloads.
 Supporting copy appears only for a choice, consequence, or actionable problem
 that the controls do not already explain. Do not repeat the provider name or

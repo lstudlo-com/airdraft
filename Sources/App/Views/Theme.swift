@@ -38,6 +38,7 @@ enum Theme {
     static let pageHeaderToggleInset = (sidebarToggleWidth + sidebarToggleSymbolSize) / 2
         + controlSpacing
     static let cardPadding: CGFloat = 16
+    static let modelTableMaxHeight: CGFloat = 300
     static let sectionSpacing: CGFloat = 28
     static let sectionTitleSpacing: CGFloat = 12
     static let sectionTitleMinHeight: CGFloat = 32

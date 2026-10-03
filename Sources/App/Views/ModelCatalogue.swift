@@ -8,8 +8,8 @@ struct ModelEntry: Identifiable {
     let id: String
     let title: String
     let vendor: String
-    let color: Color
-    let symbol: String
+    let provider: String
+    let brand: ModelBrand
     let tags: [String]
     let speed: Int      // 1...5 relative rating; 0 means unrated
     let accuracy: Int   // 1...5 relative rating; 0 means unrated
@@ -36,42 +36,42 @@ struct ModelEntry: Identifiable {
 enum ModelCatalogue {
     static let entries: [ModelEntry] = [
         ModelEntry(
-            id: "qwen3:1.7b", title: "Qwen3-ASR 1.7B", vendor: "Alibaba · MLX", color: .purple, symbol: "waveform",
+            id: "qwen3:1.7b", title: "Qwen3-ASR 1.7B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "2.3 GB"),
             note: "Best for mixed Chinese and English."
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
-            id: "qwen3:0.6b", title: "Qwen3-ASR 0.6B", vendor: "Alibaba · MLX", color: .purple, symbol: "waveform",
+            id: "qwen3:0.6b", title: "Qwen3-ASR 0.6B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: "680 MB"),
             note: "Low memory, very fast."
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(
-            id: "sherpa:fireRed", title: "FireRedASR2", vendor: "FireRed · ONNX", color: .red, symbol: "waveform",
+            id: "sherpa:fireRed", title: "FireRedASR2", vendor: "FireRed · ONNX", provider: "FireRed", brand: .fireRed,
             tags: ["ZH", "EN"], speed: 3, accuracy: 5, storage: .download(sizeLabel: SherpaTranscriber.Model.fireRed.sizeLabel),
             note: "Best Mandarin accuracy, 20+ dialects."
         ) { $0.kind = .fireRed },
         ModelEntry(
-            id: "cohere", title: "Cohere Transcribe", vendor: "Cohere · MLX", color: .green, symbol: "waveform",
+            id: "cohere", title: "Cohere Transcribe", vendor: "Cohere · MLX", provider: "Cohere", brand: .cohere,
             tags: ["EN", "ZH", "+12"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "1.6 GB"),
             note: "Best open English model."
         ) { $0.kind = .cohere; $0.cohereModel = "aufklarer/Cohere-Transcribe-2B-MLX-5bit" },
         ModelEntry(
-            id: "sherpa:senseVoice", title: "SenseVoice", vendor: "FunAudioLLM · ONNX", color: .teal, symbol: "waveform",
+            id: "sherpa:senseVoice", title: "SenseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
             note: "Fastest."
         ) { $0.kind = .senseVoice },
         ModelEntry(
-            id: "sherpa:parakeet", title: "Parakeet TDT v3", vendor: "NVIDIA · ONNX", color: .green, symbol: "waveform",
+            id: "sherpa:parakeet", title: "Parakeet TDT v3", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
             tags: ["EN", "+24"], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
             note: "25 European languages. Does not support Chinese."
         ) { $0.kind = .parakeet },
         ModelEntry(
-            id: "whisper:turbo", title: "Whisper v3 Turbo", vendor: "OpenAI · Core ML", color: .gray, symbol: "waveform",
+            id: "whisper:turbo", title: "Whisper v3 Turbo", vendor: "OpenAI · Core ML", provider: "OpenAI", brand: .openAI,
             tags: ["99 languages"], speed: 3, accuracy: 3, storage: .download(sizeLabel: "1.5 GB"),
             note: "Runs on the Neural Engine."
         ) { $0.kind = .whisperKit; $0.whisperModel = "large-v3-v20240930_turbo" },
         ModelEntry(
-            id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", color: .gray, symbol: "apple.logo",
+            id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
             tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
             note: "macOS manages language assets."
         ) { $0.kind = .apple },
@@ -87,12 +87,33 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
     @ViewBuilder var accessory: Accessory
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: Theme.controlSpacing) {
             identity.frame(maxWidth: .infinity, alignment: .leading)
-            speed.frame(width: 72, alignment: .leading)
-            accuracy.frame(width: 72, alignment: .leading)
-            cost.frame(width: 88, alignment: .leading)
+            speed.frame(width: 56, alignment: .leading)
+            accuracy.frame(width: 64, alignment: .leading)
+            cost.frame(width: 76, alignment: .leading)
             accessory.frame(width: 20)
+        }
+    }
+}
+
+/// Keep headings visible while the measured row content scrolls within one cap.
+/// Short and empty results use only the space they need.
+struct ModelTable<Rows: View>: View {
+    let cost: String
+    @ViewBuilder var rows: Rows
+    @State private var contentHeight = Theme.modelTableMaxHeight
+
+    var body: some View {
+        Card(padding: 0) {
+            ModelTableHeader(cost: cost)
+            RowDivider()
+            ScrollView(.vertical) {
+                VStack(spacing: 0) { rows }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+            }
+            .frame(height: min(contentHeight, Theme.modelTableMaxHeight))
+            .scrollBounceBehavior(.basedOnSize)
         }
     }
 }
@@ -147,13 +168,14 @@ struct CloudModelRow: View {
             container.settings.asr.selectModel(model.id)
         } label: {
             ModelComparisonColumns {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 14))
                         .foregroundStyle(selected ? Color.accentColor : .secondary)
+                    ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(model.title).font(.system(size: 14, weight: .medium))
-                        Text(model.quality).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                        Text(model.title).font(.system(size: 13, weight: .medium))
+                        Text(preset.name).supportingText()
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -177,7 +199,7 @@ struct CloudModelRow: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .accessibilityLabel("\(model.title), \(model.quality), speed: \(model.speed), \(model.price)")
+        .accessibilityLabel("\(model.title), hosted by \(preset.name), \(model.quality), speed: \(model.speed), \(model.price)")
         .accessibilityValue(selected ? "Selected" : "Not selected")
         .help(model.qualityDetail + " " + model.speedDetail)
     }
@@ -212,17 +234,14 @@ struct ModelRow: View {
                     guard installed else { return }
                     entry.select(&settings.asr)
                 } label: {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 14))
                             .foregroundStyle(selected ? Color.accentColor : Color.secondary.opacity(installed ? 0.6 : 0.3))
-                        IconBadge(symbol: entry.symbol, color: entry.color, size: 22)
+                        ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.title).font(.system(size: 14, weight: .medium))
-                            Text(entry.vendor).font(.system(size: 11.5)).foregroundStyle(.secondary)
-                            HStack(spacing: 4) {
-                                ForEach(entry.tags, id: \.self) { PillTag(text: $0) }
-                            }
+                            Text(entry.title).font(.system(size: 13, weight: .medium))
+                            Text(entry.tags.joined(separator: " · ")).supportingText()
                             loadStateLabel
                         }
                         .fixedSize(horizontal: false, vertical: true)
@@ -230,9 +249,9 @@ struct ModelRow: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Use \(entry.title)")
+                .accessibilityLabel("Use \(entry.title), \(entry.provider), \(entry.tags.joined(separator: ", "))")
                 .accessibilityValue(selected ? "Selected" : "Not selected")
-                .help(installed ? "Use this model" : "Download first")
+                .help("\(entry.vendor). \(entry.note) \(installed ? "Use this model" : "Download first")")
             } speed: {
                 ModelMetric(title: "Speed", fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? "\(entry.speed) / 5" : "Not rated",
                             detail: entry.speed > 0 ? "Airdraft's relative guidance for local models. Actual speed depends on your Mac." : "Not benchmarked in Airdraft.")
@@ -288,9 +307,9 @@ struct ModelRow: View {
     private var storageLabel: some View {
         switch entry.storage {
         case .download(let size):
-            Text(installed ? size : "—").font(.system(size: 12.5)).foregroundStyle(.secondary).monospacedDigit()
+            Text(size).font(.system(size: 12)).foregroundStyle(.secondary).monospacedDigit()
         case .builtIn:
-            Text("built in").font(.system(size: 12.5)).foregroundStyle(.secondary)
+            Text("Built in").font(.system(size: 12)).foregroundStyle(.secondary)
         }
     }
 

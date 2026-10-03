@@ -185,7 +185,16 @@ verification status belong in the vault (see below).
   actionable error, unavailable state, permission, or cost. Put related heading
   actions immediately beside their selector rather than separating them with a
   fixed-width invisible frame. Provider selection uses one compact picker, not
-  a grid of decorative provider cards. Profiles uses the same compact picker in its
+  a grid of decorative provider cards. Both speech tables default to All providers;
+  their heading pickers filter browsing without changing the active speech config.
+  Only choosing a model selects its provider. Keep table headers fixed and cap the
+  scrolling rows at `Theme.modelTableMaxHeight` (300 pt); short lists shrink to fit.
+  Use the model's official brand icon, falling back to its creator's company logo,
+  never a color-coded waveform. Show the hosting provider beneath cloud models so
+  the same model on different services stays distinguishable. Bundle brand assets
+  locally and document their sources in `docs/model-brand-assets.md`. Keep compact
+  13-point model names and 11-point secondary text, with equal 16-point row insets.
+  Profiles uses the same compact picker in its
   Profile section heading instead of a profile list; names carry it, without icons.
   The sidebar microphone overlay contains device choices with a live ten-cell
   meter at each row's trailing edge. Omit decorative descriptions and a separate

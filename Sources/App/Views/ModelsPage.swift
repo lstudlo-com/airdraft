@@ -5,6 +5,8 @@ struct ModelsPage: View {
     @Environment(AppContainer.self) private var container
     @State private var query = ""
     @State private var filter: Filter = .all
+    @State private var localProvider: String?
+    @State private var cloudProvider: ASRProviderKind?
     @State private var initialized = false
     @State private var openRouterModels: [SpeechModelInfo] = []
     @State private var openRouterLoading = false
@@ -24,11 +26,32 @@ struct ModelsPage: View {
     }
 
     private var localModels: [ModelEntry] {
-        ModelCatalogue.entries.filter { matches([$0.title, $0.vendor, $0.note]) }
+        ModelCatalogue.entries.filter {
+            (localProvider == nil || $0.provider == localProvider) &&
+                matches([$0.title, $0.provider, $0.vendor, $0.note] + $0.tags)
+        }
     }
 
-    private var cloudPreset: EndpointPreset.Speech {
-        container.settings.asr.kind.preset ?? EndpointPreset.asr[0]
+    private var localProviders: [String] {
+        Array(Set(ModelCatalogue.entries.map(\.provider))).sorted()
+    }
+
+    private struct CloudEntry: Identifiable {
+        let preset: EndpointPreset.Speech
+        let model: SpeechModelInfo
+        var id: String { "\(preset.id)/\(model.id)" }
+    }
+
+    private var visibleCloudModels: [CloudEntry] {
+        EndpointPreset.asr.filter { cloudProvider == nil || $0.kind == cloudProvider }.flatMap { preset in
+            speechModels(for: preset).filter {
+                matches([preset.name, $0.id, $0.title, $0.quality, $0.qualityDetail])
+            }.map { CloudEntry(preset: preset, model: $0) }
+        }
+    }
+
+    private var showsOpenRouter: Bool {
+        cloudProvider == nil || cloudProvider == .openRouter
     }
 
     private var selectedOpenRouterModelMissing: Bool {
@@ -57,10 +80,13 @@ struct ModelsPage: View {
         @Bindable var settings = container.settings
         PageScaffold(.models) {
             if filter != .cloud {
-                PageSection("Speech on this Mac") {
-                    Card(padding: 0) {
-                        ModelTableHeader(cost: "Storage")
-                        RowDivider()
+                PageSection("Speech on this Mac", trailing: {
+                    SoftPicker("Local speech provider", selection: $localProvider, width: 160) {
+                        Text("All").tag(String?.none)
+                        ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
+                    }
+                }) {
+                    ModelTable(cost: "Storage") {
                         if localModels.isEmpty {
                             EmptyNote("No local models match your search.")
                                 .padding(Theme.cardPadding)
@@ -70,6 +96,7 @@ struct ModelsPage: View {
                             ModelRow(entry: entry)
                         }
                     }
+                    .id("\(localProvider ?? "all")|\(query)")
                     EmptyNote("Relative ratings; results vary by Mac, language and audio.")
                 }
             }
@@ -143,11 +170,14 @@ struct ModelsPage: View {
         }
         .onAppear {
             if !initialized {
-                filter = RenderMode.excludesCredentials ? .local : (settings.asr.kind.preset == nil ? .all : .cloud)
+                filter = RenderMode.excludesCredentials ? .local : .all
                 if RenderMode.isActive,
                    let value = RenderMode.value("FILTER").flatMap(Filter.init(rawValue:)) {
                     filter = value
                 }
+                localProvider = RenderMode.value("LOCAL_PROVIDER")
+                cloudProvider = RenderMode.value("CLOUD_PROVIDER").flatMap(ASRProviderKind.init(rawValue:))
+                query = RenderMode.value("MODEL_QUERY") ?? ""
                 initialized = true
             }
             Task { await container.models.refreshLLMStatus() }
@@ -155,29 +185,22 @@ struct ModelsPage: View {
     }
 
     private var cloudModels: some View {
-        let preset = cloudPreset
-        let models = speechModels(for: preset)
-        let visible = models.filter { matches([preset.name, $0.id, $0.title, $0.quality, $0.qualityDetail]) }
-        var config = container.settings.asr
-        config.select(preset.kind)
-        let selected = models.first(where: { $0.id == config.model }) ?? config.selectedSpeechModel ?? models[0]
+        let visible = visibleCloudModels
         return PageSection("Cloud speech", trailing: {
             HStack(spacing: Theme.sectionTitleSpacing) {
-                SoftPicker("Transcription provider", selection: Binding(
-                    get: { cloudPreset.kind },
-                    set: { container.settings.asr.select($0) }
-                ), width: 200) {
-                    ForEach(EndpointPreset.asr) { Text($0.name).tag($0.kind) }
-                }
-                if preset.kind == .openRouter {
+                if showsOpenRouter {
                     RefreshButton(loading: openRouterLoading, help: "Refresh OpenRouter speech models") {
                         openRouterRefreshID = UUID()
                     }
                 }
+                SoftPicker("Cloud speech provider", selection: $cloudProvider, width: 160) {
+                    Text("All").tag(ASRProviderKind?.none)
+                    ForEach(EndpointPreset.asr) { Text($0.name).tag(Optional($0.kind)) }
+                }
             }
         }) {
             VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-                if preset.kind == .openRouter,
+                if showsOpenRouter,
                    openRouterCatalogError != nil || openRouterLoading || selectedOpenRouterModelMissing {
                     VStack(alignment: .leading, spacing: 4) {
                         if let openRouterCatalogError {
@@ -194,28 +217,37 @@ struct ModelsPage: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                Card(padding: 0) {
-                    ModelTableHeader(cost: preset.kind == .openRouter ? "Pricing" : "Price / hour")
-                    RowDivider()
+                ModelTable(cost: "Pricing") {
                     if visible.isEmpty {
-                        EmptyNote("No \(preset.name) models match your search.")
+                        EmptyNote("No cloud models match your search.")
                             .padding(Theme.cardPadding)
                     }
-                    ForEach(Array(visible.enumerated()), id: \.element.id) { index, model in
+                    ForEach(Array(visible.enumerated()), id: \.element.id) { index, entry in
                         if index > 0 { RowDivider() }
-                        CloudModelRow(preset: preset, model: model)
+                        CloudModelRow(preset: entry.preset, model: entry.model)
                     }
                 }
-                CloudModelDetails(preset: preset, model: selected)
-                SettingsCard {
-                    SpeechKeyRows(preset: preset, config: config)
+                .id("\(cloudProvider?.rawValue ?? "all")|\(query)")
+                if let preset = cloudProvider?.preset ?? container.settings.asr.kind.preset {
+                    cloudSettings(for: preset)
                 }
-                .id(preset.id)
             }
         }
-        .task(id: "\(preset.kind.rawValue)|\(openRouterRefreshID)") {
-            if preset.kind == .openRouter { await refreshOpenRouterModels() }
+        .task(id: "\(showsOpenRouter)|\(openRouterRefreshID)") {
+            if showsOpenRouter { await refreshOpenRouterModels() }
         }
+    }
+
+    private func cloudSettings(for preset: EndpointPreset.Speech) -> some View {
+        var config = container.settings.asr
+        // Inspect the browsed provider's saved setup without selecting it.
+        config.select(preset.kind)
+        let selected = speechModels(for: preset).first { $0.id == config.model } ?? config.selectedSpeechModel
+        return VStack(spacing: Theme.sectionTitleSpacing) {
+            if let selected { CloudModelDetails(preset: preset, model: selected) }
+            SettingsCard { SpeechKeyRows(preset: preset, config: config) }
+        }
+        .id(preset.id)
     }
 
     private func refreshOpenRouterModels() async {
