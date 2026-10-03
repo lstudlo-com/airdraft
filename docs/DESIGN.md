@@ -267,7 +267,7 @@ mobile breakpoints into this macOS layout.
 
 Home remains the most expressive page, and its hero always leads it. Average speed,
 words, apps used and time saved sit in one row of four equal-width,
-leading-aligned columns, with 26-point headline numbers. Beneath them the hero draws the app icon's pressed-in
+leading-aligned columns, with 23-point headline numbers. Beneath them the hero draws the app icon's pressed-in
 capsule from the user's own history: one raised bar per recent dictation, ending
 in a raised gray caret. The bars are neumorphic pills, lit from the top left
 and shadowed to the bottom right; height follows words, capped at 32 pt so the
@@ -282,12 +282,24 @@ The hero surface is grayscale with a deliberately faint 0.02 gray ramp and a
 light from the top left, `SurfaceShadows` casts a 12-point highlight 6–7 points
 up-left (the palette's light color) and a 12-point shade 7–9 points down-right
 (its shade at 70% opacity in dark mode, 85% in light mode). With no history it shows the icon's
-five strokes and the shortcut. Bars magnify under the pointer and the caption
+five decorative strokes and the shortcut. Bars magnify under the pointer and the caption
 names the hovered dictation. Entrance waits for initial history so animated
 placeholder bars are never replaced mid-flight. Real bars enter once with a
 0.45-second scale animation and at most 0.12 seconds of stagger; their layout
-height stays fixed. Hover magnification also uses scale. Motion stops after
-entrance, hover or a new dictation; Reduce Motion removes it. Below the hero, one readiness card
+height stays fixed. Hover magnification also uses scale.
+
+Each real bar is a native button keyed by its saved record ID, with keyboard and
+accessibility activation. Activating it opens that dictation's delivered text
+below a `RowDivider` inside the hero; activating it again hides the text. Another
+bar switches records and resets text expansion. The selected bar keeps a neutral
+highlight and a small dot while retaining hover magnification. The inline text
+uses History's selectable six-line preview with Show More and Copy for the complete
+saved `finalText`. Close or Escape hides the transcript and returns focus to the
+selected bar. Changing the period or removing the selected record from the
+overview clears selection. Opening and closing use a smooth 0.25-second transition.
+Motion stops after each interaction; Reduce Motion removes it.
+
+Below the hero, one readiness card
 shows the active pipeline and expands to the setup checks, opening on its own when
 a check fails; it never moves above the hero. Summary ranks apps by words with
 their real icons and lists streak, dictations, active days and the longest

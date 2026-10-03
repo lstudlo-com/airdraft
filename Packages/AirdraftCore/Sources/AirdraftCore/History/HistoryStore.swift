@@ -410,11 +410,13 @@ public final class HistoryStore: Sendable {
     /// Everything the Home page summarises, computed locally from history.
     public struct Overview: Sendable, Equatable {
         /// One dictation, drawn as a bar in the Home waveform.
-        public struct Pulse: Sendable, Equatable {
+        public struct Pulse: Sendable, Equatable, Identifiable {
+            public var id: Int64
             public var date: Date
             public var words: Int
             public var wordsPerMinute: Int
             public var appName: String?
+            public var finalText: String
         }
 
         public struct AppShare: Sendable, Equatable {
@@ -445,10 +447,11 @@ public final class HistoryStore: Sendable {
             let rows = try Self.rows(db, days: days, now: now, since: calendarDay ? calendar.startOfDay(for: now) : nil)
             let counted = rows.map { ($0, DictationPipeline.approximateWordCount($0.finalText)) }
 
-            let pulses = counted.suffix(pulseLimit).map { record, words in
-                Overview.Pulse(date: record.createdAt, words: words,
+            let pulses = counted.suffix(pulseLimit).compactMap { record, words -> Overview.Pulse? in
+                guard let id = record.id else { return nil }
+                return Overview.Pulse(id: id, date: record.createdAt, words: words,
                                wordsPerMinute: record.audioSeconds > 1 ? Int(Double(words) / (record.audioSeconds / 60)) : 0,
-                               appName: record.appName)
+                               appName: record.appName, finalText: record.finalText)
             }
 
             var shares: [String: Overview.AppShare] = [:]
@@ -469,7 +472,7 @@ public final class HistoryStore: Sendable {
     }
 
     private static func rows(_ db: Database, days: Int?, now: Date, since: Date? = nil) throws -> [DictationRecord] {
-        var request = DictationRecord.order(Column("createdAt"))
+        var request = DictationRecord.order(Column("createdAt"), Column("id"))
         if let since {
             request = request.filter(Column("createdAt") >= since && Column("createdAt") <= now)
         } else if let days {

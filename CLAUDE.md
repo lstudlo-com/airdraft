@@ -295,6 +295,13 @@ verification status belong in the vault (see below).
   The hero card's edge highlight stays faint; its cast shadows carry the depth.
   Home waveform entrance waits for initial history, then animates rendered scale
   once; never animate placeholder replacement or per-frame bar layout height.
+  Each real waveform bar is a keyboard-accessible button keyed by its saved
+  record ID. Clicking toggles that dictation's delivered text inside the hero;
+  another bar switches it, and Close or Escape dismisses it. Keep the selected
+  bar highlighted with a small dot while retaining hover magnification. Reuse
+  History's selectable six-line transcript with Show More and full-text Copy.
+  Clear selection when the period changes or the record leaves the overview.
+  Empty-state strokes are decorative. The four headline values use 23-point type.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. Buttons and menu items

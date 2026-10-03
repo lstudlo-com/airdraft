@@ -1,4 +1,5 @@
 import AirdraftCore
+import AppKit
 import SwiftUI
 
 /// Home's centrepiece: the four headline metrics in one row above the icon's
@@ -15,6 +16,8 @@ struct HomeHero: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pointer: CGFloat?
     @State private var hoveredIndex: Int?
+    @State private var selectedID = RenderMode.value("HERO_SELECTED_ID").flatMap(Int64.init)
+    @FocusState private var focusedPulseID: Int64?
     @State private var grown = RenderMode.isActive
     @State private var flare = 0.0
 
@@ -39,6 +42,11 @@ struct HomeHero: View {
                 waveform
                 caption.frame(height: 20)
             }
+            if let selectedPulse {
+                HomeHeroTranscript(pulse: selectedPulse) { closeTranscript() }
+                    .id(selectedPulse.id)
+                    .transition(.opacity)
+            }
         }
         .padding(Theme.pagePadding)
         .frame(maxWidth: .infinity)
@@ -46,6 +54,21 @@ struct HomeHero: View {
         .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
         .overlay(border)
         .background(castShadows)
+        .onChange(of: periodTitle) { _, _ in
+            select(nil)
+            hoveredIndex = nil
+            pointer = nil
+        }
+        .onChange(of: overview.pulses.map(\.id)) { _, ids in
+            hoveredIndex = nil
+            pointer = nil
+            if let selectedID, !ids.contains(selectedID) { select(nil) }
+        }
+        .onKeyPress(.escape) {
+            guard selectedID != nil else { return .ignored }
+            closeTranscript()
+            return .handled
+        }
         .task(id: isReady) {
             guard isReady, !grown else { return }
             // Give the loaded bars their own initial layout before revealing
@@ -63,6 +86,19 @@ struct HomeHero: View {
     }
 
     private var stats: HistoryStore.Stats { overview.stats }
+
+    private var selectedPulse: HistoryStore.Overview.Pulse? {
+        overview.pulses.first { $0.id == selectedID }
+    }
+
+    private func select(_ id: Int64?) {
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { selectedID = id }
+    }
+
+    private func closeTranscript() {
+        focusedPulseID = selectedID
+        select(nil)
+    }
 
     private var saved: (value: String, unit: String) {
         let minutes = stats.minutesSaved
@@ -90,7 +126,7 @@ struct HomeHero: View {
         let most = Double(pulses.map(\.words).max() ?? 1)
         return pulses.map { pulse in
             let share = most > 0 ? sqrt(Double(pulse.words) / most) : 0
-            return Bar(id: "\(pulse.date.timeIntervalSinceReferenceDate)", height: 0.26 + 0.74 * share, pulse: pulse)
+            return Bar(id: "record-\(pulse.id)", height: 0.26 + 0.74 * share, pulse: pulse)
         }
     }
 
@@ -124,10 +160,35 @@ struct HomeHero: View {
             let hovered = hoveredIndex.flatMap { bars.indices.contains($0) ? $0 : nil }
             HStack(spacing: 0) {
                 ForEach(Array(bars.enumerated()), id: \.element.id) { index, bar in
-                    barView(bar, index: index, layout: layout, hovered: hovered == index)
+                    if let pulse = bar.pulse {
+                        let selected = pulse.id == selectedID
+                        Button { select(selected ? nil : pulse.id) } label: {
+                            barView(bar, index: index, layout: layout, hovered: hovered == index || selected)
+                                .frame(height: Self.wellHeight)
+                                .contentShape(Rectangle())
+                                .overlay(alignment: .bottom) {
+                                    if selected {
+                                        Circle().fill(.primary.opacity(0.65))
+                                            .frame(width: 3, height: 3)
+                                            .padding(.bottom, 6)
+                                    }
+                                }
+                        }
+                        .buttonStyle(.plain)
+                        .focused($focusedPulseID, equals: pulse.id)
+                        .accessibilityLabel("\(pulse.appName ?? "Unknown app"), \(pulse.date.formatted(date: .abbreviated, time: .shortened))")
+                        .accessibilityValue("\(pulse.words) words, \(pulse.wordsPerMinute) WPM, \(selected ? "expanded" : "collapsed")")
+                        .accessibilityHint(selected ? "Hide this dictation's text" : "Show this dictation's text")
+                        .accessibilityAddTraits(selected ? .isSelected : [])
+                        .accessibilityIdentifier("home.dictation.\(pulse.id)")
+                    } else {
+                        barView(bar, index: index, layout: layout, hovered: false)
+                            .accessibilityHidden(true)
+                    }
                 }
                 caret
                     .padding(.leading, Self.caretGap)
+                    .accessibilityHidden(true)
             }
             .opacity(isReady ? 1 : 0)
             .frame(width: geo.size.width, height: geo.size.height)
@@ -155,7 +216,7 @@ struct HomeHero: View {
             }
         }
         .frame(height: Self.wellHeight)
-        .accessibilityElement(children: .ignore)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("Dictation activity")
         .accessibilityValue(defaultCaption)
     }
@@ -239,8 +300,9 @@ struct HomeHero: View {
 
     @ViewBuilder private var caption: some View {
         let bars = self.bars
+        let pulse = hoveredIndex.flatMap { bars.indices.contains($0) ? bars[$0].pulse : nil } ?? selectedPulse
         Group {
-            if let index = hoveredIndex, bars.indices.contains(index), let pulse = bars[index].pulse {
+            if let pulse {
                 HStack(spacing: 6) {
                     Text(pulse.appName ?? "Unknown app").foregroundStyle(.primary)
                     Text("·")
@@ -259,7 +321,7 @@ struct HomeHero: View {
                     Text("and speak. Each dictation adds a bar.")
                 }
             } else {
-                Text(defaultCaption)
+                Text("\(defaultCaption) · Click a bar to read")
             }
         }
         .font(.system(size: 12).monospacedDigit())
@@ -294,6 +356,69 @@ struct HomeHero: View {
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.035), lineWidth: 0.5)
             )
+    }
+}
+
+/// The selected dictation stays part of the hero, with the same bounded,
+/// selectable text used in History. Changing bars resets expansion and Copy.
+private struct HomeHeroTranscript: View {
+    let pulse: HistoryStore.Overview.Pulse
+    let onClose: () -> Void
+    private let content: HistoryTextContent
+    @State private var expanded = false
+    @State private var copied = false
+
+    init(pulse: HistoryStore.Overview.Pulse, onClose: @escaping () -> Void) {
+        self.pulse = pulse
+        self.onClose = onClose
+        content = HistoryTextContent(pulse.finalText)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+            RowDivider()
+            HStack(spacing: Theme.controlSpacing) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(pulse.appName ?? "Unknown app")
+                        .font(.system(size: 13, weight: .medium))
+                        .lineLimit(1)
+                    Text(pulse.date, format: .dateTime.month(.abbreviated).day().hour().minute())
+                        .supportingText()
+                }
+                Spacer(minLength: Theme.controlSpacing)
+                Button {
+                    NSPasteboard.general.clearContents()
+                    copied = NSPasteboard.general.setString(pulse.finalText, forType: .string)
+                } label: {
+                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                }
+                .buttonStyle(SoftIconButtonStyle())
+                .disabled(content.full.isEmpty)
+                .help(copied ? "Copied" : "Copy Text")
+                .accessibilityLabel(copied ? "Copied" : "Copy Text")
+                .accessibilityIdentifier("home.dictation.copy")
+                Button(action: onClose) { Image(systemName: "xmark") }
+                    .buttonStyle(SoftIconButtonStyle())
+                    .keyboardShortcut(.cancelAction)
+                    .help("Close Transcript")
+                    .accessibilityLabel("Close Transcript")
+                    .accessibilityIdentifier("home.dictation.close")
+            }
+            if content.full.isEmpty {
+                EmptyNote("No text was saved for this dictation.")
+            } else {
+                HistoryTranscript(content: content, expanded: $expanded)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Dictation transcript")
+        .accessibilityIdentifier("home.dictation.transcript")
+        .task(id: copied) {
+            guard copied else { return }
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            copied = false
+        }
     }
 }
 
@@ -341,7 +466,7 @@ struct HeroMetric: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
-                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .font(.system(size: 23, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .lineLimit(1)

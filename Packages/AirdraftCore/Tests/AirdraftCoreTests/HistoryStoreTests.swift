@@ -66,6 +66,29 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(HistoryStore.streak([], now: now, calendar: calendar), 0)
     }
 
+    func testWaveformKeepsRecordIdentityAndCompleteDeliveredText() throws {
+        let store = try HistoryStore(inMemory: true)
+        let date = Date(timeIntervalSince1970: 1_790_000_000)
+        let texts = ["First dictation.", String(repeating: "保留完整文字 🎙️\n", count: 300), "Final dictation."]
+        let saved = try texts.map { text in
+            try store.save(DictationRecord(createdAt: date, appName: "Notes", mode: "Clean", family: "document",
+                rawTranscript: "unrefined source", refinedText: "before final processing", finalText: text,
+                asrEngine: "test", audioSeconds: 3, asrMs: 1, llmMs: 1, inserted: true))
+        }
+
+        let overview = try store.overview(now: date, pulseLimit: 2)
+        XCTAssertEqual(overview.pulses.map(\.id), saved.suffix(2).compactMap(\.id),
+                       "Equal timestamps must still identify distinct, consistently ordered bars")
+        XCTAssertEqual(overview.pulses.map(\.finalText), Array(texts.suffix(2)),
+                       "The hero shows complete delivered text, not raw or intermediate refinement")
+        try store.delete(id: XCTUnwrap(saved[1].id))
+        let refreshed = try store.overview(now: date, pulseLimit: 2)
+        XCTAssertEqual(refreshed.pulses.map(\.id), [saved[0], saved[2]].compactMap(\.id))
+        XCTAssertEqual(refreshed.pulses.last?.finalText, texts.last)
+        try store.deleteAll()
+        XCTAssertEqual(try store.overview(now: date), .empty)
+    }
+
     func testWavEncoderHeader() {
         let data = WAVEncoder.encode(samples: [0, 0.5, -0.5], sampleRate: 16_000)
         XCTAssertEqual(data.count, 44 + 6)
