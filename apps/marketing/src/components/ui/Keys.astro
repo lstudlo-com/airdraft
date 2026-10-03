@@ -1,5 +1,8 @@
 ---
-/** Keycaps for a shortcut, e.g. `keys={["⌃", "⌥"]} label="Control Option"`. */
+/**
+ * Keycaps for a shortcut, e.g. `keys={["⌃", "⌥"]} label="Control Option"`.
+ * Modifier keycaps sink while the visitor holds that key (src/scripts/keys.ts).
+ */
 interface Props {
   keys: string[];
   label: string;
@@ -7,10 +10,23 @@ interface Props {
 }
 
 const { keys, label, size = "md" } = Astro.props;
+// The KeyboardEvent.key each glyph stands for (src/scripts/keys.ts).
+const names: Record<string, string> = {
+  "⌃": "Control",
+  "⌥": "Alt",
+  "⌘": "Meta",
+  "⇧": "Shift",
+};
 ---
 
 <span class:list={["keys", size !== "md" && `keys-${size}`]} aria-label={label}>
   {keys.map((key) => (
-    <kbd aria-hidden="true">{key}</kbd>
+    <kbd aria-hidden="true" data-key={names[key]}>
+      {key}
+    </kbd>
   ))}
 </span>
+
+<script>
+  import "../../scripts/keys";
+</script>

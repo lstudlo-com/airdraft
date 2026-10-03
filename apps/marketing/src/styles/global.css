@@ -103,6 +103,8 @@
     --sink-chip:
       inset 1px 1.5px 3px var(--shade-soft), inset -1px -1.5px 3px var(--light);
     --press: inset 3px 4px 8px var(--shade), inset -2.5px -3px 8px var(--light);
+    --press-small:
+      inset 1px 1.5px 3px var(--shade), inset -1px -1px 3px var(--light);
     /* RowDivider: a shade line with a highlight line just below it. */
     --groove:
       inset 0 1px 0 var(--groove-shade), inset 0 2px 0 var(--groove-light);
@@ -155,6 +157,8 @@
     font-family: var(--font);
     color: var(--ink);
     background: var(--chrome);
+    /* Lets disclosures animate to their natural height. */
+    interpolate-size: allow-keywords;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -213,7 +217,8 @@
 
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 32px;
+    /* Anchors land below the sticky header. */
+    scroll-padding-top: calc(var(--header) + 24px);
   }
   body {
     min-width: 320px;
@@ -412,6 +417,17 @@
     color: var(--ink);
     font: 500 var(--step--1) / 1 var(--font-rounded);
   }
+  kbd {
+    transition:
+      background 120ms ease,
+      box-shadow 120ms ease,
+      translate 120ms ease;
+  }
+  kbd.is-down {
+    translate: 0.5px 1px;
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
   .keys-lg {
     gap: 10px;
   }
@@ -445,11 +461,81 @@
 @layer components {
   /* Header and footer sit on the chrome, outside the island. */
   .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .site-header-inner {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
     min-height: var(--header);
     gap: 24px;
+  }
+  /* ProgressiveHeaderBlur: the blur covers the header plus a 4px feather.
+     Each layer blurs more and reaches less far down: 1px at the feather's
+     edge, rising quadratically to 32px at the top. */
+  .header-blur {
+    position: absolute;
+    inset: 0 0 auto;
+    height: calc(var(--header) + 4px);
+    pointer-events: none;
+  }
+  .header-blur i {
+    position: absolute;
+    inset: 0;
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black var(--solid),
+      transparent var(--clear)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black var(--solid),
+      transparent var(--clear)
+    );
+  }
+  .header-blur i:nth-child(1) {
+    --blur: 1px;
+    --solid: 93.8%;
+    --clear: 100%;
+  }
+  .header-blur i:nth-child(2) {
+    --blur: 2px;
+    --solid: 76.9%;
+    --clear: 93.8%;
+  }
+  .header-blur i:nth-child(3) {
+    --blur: 4px;
+    --solid: 64.6%;
+    --clear: 76.9%;
+  }
+  .header-blur i:nth-child(4) {
+    --blur: 8px;
+    --solid: 49.2%;
+    --clear: 64.6%;
+  }
+  .header-blur i:nth-child(5) {
+    --blur: 16px;
+    --solid: 28.5%;
+    --clear: 49.2%;
+  }
+  .header-blur i:nth-child(6) {
+    --blur: 32px;
+    --solid: 0%;
+    --clear: 28.5%;
+  }
+  /* Only Reduce Transparency gets an opaque header, as in the app. */
+  @media (prefers-reduced-transparency: reduce) {
+    .header-blur {
+      background: var(--chrome);
+    }
+    .header-blur i {
+      display: none;
+    }
   }
   .brand {
     display: inline-flex;
@@ -649,13 +735,58 @@
       var(--raise-hero);
     animation: rise 900ms var(--ease-out) both;
   }
+  /* The caption and the recording pill share one place under the well: while
+     a dictation records (src/scripts/dictate.ts) the pill rises in its stead. */
+  .hero-status {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    margin-top: 12px;
+  }
+  .hero-status > * {
+    grid-area: 1 / 1;
+  }
+  .hero-caption {
+    transition: opacity 200ms ease;
+  }
+  .hero-hud {
+    opacity: 0;
+    translate: 0 6px;
+    scale: 0.96;
+    pointer-events: none;
+    transition:
+      opacity 200ms ease,
+      translate 420ms var(--ease-out),
+      scale 420ms var(--ease-out);
+  }
+  .hero-card:is(.is-recording, .is-refining) .hero-hud {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  .hero-card:is(.is-recording, .is-refining) .hero-caption {
+    opacity: 0;
+  }
+  .hero-card.is-refining .hud-bars span {
+    opacity: 0.3;
+  }
+  /* The caption's keycaps can be held like the real shortcut. */
+  .hero-caption kbd {
+    cursor: pointer;
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  .hero-card.is-recording .hero-caption kbd {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
   .hero-caption {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 16px;
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
     color: var(--muted);
@@ -682,6 +813,10 @@
     border-radius: 999px;
     background: var(--well);
     box-shadow: var(--sink-hero);
+    /* Press and hold to dictate; a touch that scrolls cancels. */
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
   .wave-bar {
     display: block;
@@ -689,7 +824,37 @@
     width: var(--bar-w);
     height: calc(var(--h) * var(--bar-max));
     transform: scaleY(var(--magnify, 1));
-    transition: transform 280ms cubic-bezier(0.3, 1.35, 0.6, 1);
+    transition:
+      transform 280ms cubic-bezier(0.3, 1.35, 0.6, 1),
+      height 480ms var(--ease-out),
+      width 360ms var(--ease-select),
+      margin 360ms var(--ease-select),
+      opacity 240ms ease;
+  }
+  /* A dictation in progress: the bar enters at the caret and follows the
+     level; the oldest bar folds away to make room. */
+  .wave-bar.is-live {
+    animation: bar-enter 360ms var(--ease-select) both;
+  }
+  .wave-bar.is-live i {
+    transform: scaleY(var(--live, 0.15));
+    animation: none;
+    transition: transform 90ms linear;
+  }
+  .wave-bar.is-settling i {
+    transition: transform 480ms var(--ease-out);
+  }
+  .wave-bar.is-leaving {
+    width: 0;
+    margin-right: calc(-1 * var(--bar-gap));
+    opacity: 0;
+  }
+  @keyframes bar-enter {
+    from {
+      width: 0;
+      margin-left: calc(-1 * var(--bar-gap));
+      opacity: 0;
+    }
   }
   .wave-bar i {
     display: block;
@@ -719,11 +884,25 @@
     height: 60px;
     margin-left: 6px;
     border-radius: 4px;
+    transform-origin: center;
     background: var(--fill-caret);
     box-shadow:
       inset 0.75px 0.75px 0 color-mix(in srgb, var(--rim), var(--light) 40%),
       1.5px 2.5px 5px var(--shade-deep),
       -1px -1.5px 4px var(--light);
+  }
+  /* A new dictation lifts the caret briefly (HomeHero's flare). */
+  .wave-caret.is-flare {
+    animation: caret-flare 900ms var(--ease-out);
+  }
+  @keyframes caret-flare {
+    30% {
+      scale: 1 1.08;
+      box-shadow:
+        inset 0.75px 0.75px 0 color-mix(in srgb, var(--rim), var(--light) 40%),
+        3.5px 5px 9px var(--shade-deep),
+        -2px -2.5px 6px var(--light);
+    }
   }
   @keyframes bar-grow {
     from {
@@ -1027,9 +1206,6 @@
   .section-first {
     padding-top: 56px;
   }
-  .section-narrow {
-    max-width: 800px;
-  }
   .section-heading {
     max-width: 44rem;
   }
@@ -1196,7 +1372,8 @@
       box-shadow 180ms var(--ease-out),
       background 180ms ease;
   }
-  .keys.is-pressed kbd {
+  .keys.is-pressed kbd,
+  .keys-xl kbd.is-down {
     transform: translate(1px, 2px);
     background: var(--pressed);
     box-shadow: var(--press);
@@ -1357,11 +1534,10 @@
   }
 
   /* Pipeline story (PipelineStory.astro). Copy and card pairs stack by
-     default. On desktop src/scripts/story.ts pins the section and flies the
-     cards through 3D space: it sets --t (the current scene, fractional) on
-     the deck, and every card derives its place from --q, its distance from
-     the current scene: ahead (q > 0) queued toward the upper right and
-     sinking into the island, done (q < 0) flying past to the lower left. */
+     default. On desktop src/scripts/story.ts pins the section: the copy
+     changes on the left, and on the right one raised card stays in place
+     while its scenes cross-fade inside it (.is-active, .is-past) and the
+     selection well steps through each scene's providers (--sel). */
   .story-sticky {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
@@ -1373,9 +1549,7 @@
     grid-row: 1;
     margin-bottom: 8px;
   }
-  .story-stages,
-  .card-edge,
-  .wheel-band {
+  .story-stages {
     display: none;
   }
   .scene-copies,
@@ -1434,18 +1608,79 @@
     box-shadow: var(--sink-chip);
     color: var(--ink);
   }
-  .wheel {
-    margin-top: 12px;
+  /* A settings table: rows divided by grooves, the chosen one resting in the
+     sidebar's recessed selection well (2.5pt depth, 12pt corners), with a
+     raised check island inside it, clipped to the well's light. */
+  .choices {
+    --row-h: 46px;
+    --sel: 0;
+    position: relative;
+    margin-top: 16px;
+  }
+  .choices ul {
+    position: relative;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
-  .wheel li {
-    padding-block: 10px;
+  .choices li {
+    display: flex;
+    align-items: center;
+    height: var(--row-h);
+    padding: 0 52px 0 16px;
     font-size: var(--step-1);
     font-weight: 500;
+    color: var(--muted);
+    transition: color 280ms ease;
   }
-  .wheel li + li {
+  .choices li + li {
     box-shadow: var(--groove);
+  }
+  .choices li.is-selected {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* The rows on both sides of the well lose their groove: the well is the
+     division there. */
+  .choices li.is-selected,
+  .choices li.is-selected + li {
+    box-shadow: none;
+  }
+  .choice-well,
+  .choice-island {
+    position: absolute;
+    top: 0;
+    transition: transform 360ms var(--ease-select);
+  }
+  .choice-well {
+    right: 0;
+    left: 0;
+    height: var(--row-h);
+    border-radius: 12px;
+    background: var(--well-soft);
+    box-shadow:
+      inset 2.5px 2.5px 5px var(--shade-soft),
+      inset -2.5px -2.5px 5px var(--light);
+    transform: translateY(calc(var(--sel) * var(--row-h)));
+  }
+  .choice-island {
+    right: 9px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-top: calc((var(--row-h) - 28px) / 2);
+    border-radius: 9px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1.5px 2px 3px var(--shade),
+      -1px -1.5px 3px var(--light);
+    color: var(--ink);
+    transform: translateY(calc(var(--sel) * var(--row-h)));
+    /* It follows the well 300ms later, as the sidebar's icon island does. */
+    transition-delay: 300ms;
   }
   .fix-field {
     margin-top: 18px;
@@ -1498,6 +1733,8 @@
     align-content: center;
     row-gap: 48px;
     height: 100vh;
+    /* Clear the sticky header. */
+    padding-top: var(--header);
   }
   .story.is-pinned .story-head {
     position: relative;
@@ -1565,136 +1802,51 @@
     translate: 0 0;
     transition-delay: 120ms;
   }
+  /* One raised card stays in place on the right; only its contents change. */
   .story.is-pinned .flight {
-    position: absolute;
-    inset: 0;
     display: block;
-    perspective: 1500px;
-    perspective-origin: 66% 50%;
-    pointer-events: none;
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
   .story.is-pinned .deck {
-    position: absolute;
-    top: 58%;
-    left: 66%;
+    position: relative;
     display: block;
-    transform-style: preserve-3d;
-    transform: rotateX(calc(var(--py, 0) * 1deg))
-      rotateY(calc(var(--px, 0) * 1deg));
+    width: min(100%, 480px);
+    height: 476px;
+    margin-inline: auto;
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow: var(--edge), var(--raise-hero);
   }
   .story.is-pinned .scene-card {
-    --q: calc(var(--i) - var(--t, 0) + 1 - var(--enter, 1));
-    --a: max(var(--q), calc(var(--q) * -1));
-    --arc: sin(clamp(-1, var(--q), 1) * 180deg);
-    /* Cards ahead wait in the distance and sink into the island (opaque, so
-       they still hide the cards behind them); a finished card flies past the
-       camera and fades. */
-    --fog: clamp(0, calc((var(--q) - 0.1) * 0.36), 1);
-    --mix: calc(var(--fog) * 100%);
-    --settle: min(1, calc(0.7 + var(--a) * 0.5));
-    position: absolute;
-    top: -172px;
-    left: -215px;
-    width: 430px;
-    height: 344px;
-    transform-style: preserve-3d;
-    transform: translate3d(
-        calc(var(--q) * 330px),
-        calc(var(--q) * -225px - max(var(--arc), calc(var(--arc) * -1)) * 64px),
-        calc(var(--q) * -540px)
-      )
-      rotateY(calc(var(--settle) * -24deg)) rotateX(calc(var(--settle) * 13deg))
-      rotateZ(calc(var(--settle) * -3deg));
-    opacity: clamp(0, calc(1 + var(--q) * 2.6), 1);
-  }
-  .story.is-pinned .scene-card.is-away {
-    visibility: hidden;
-  }
-  /* Solid slab edges, a step darker than the face. */
-  .story.is-pinned .card-edge {
     position: absolute;
     inset: 0;
-    display: block;
-    border-radius: var(--radius-card);
-    background: color-mix(
-      in oklab,
-      var(--island) var(--mix),
-      color-mix(in srgb, var(--face-bottom), black 18%)
-    );
-    transform: translateZ(var(--z));
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 12px;
+    transition:
+      opacity 240ms ease,
+      translate 480ms var(--ease-out),
+      visibility 0s linear 480ms;
+  }
+  .story.is-pinned .scene-card.is-past {
+    translate: 0 -12px;
+  }
+  .story.is-pinned .scene-card.is-active {
+    visibility: visible;
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 320ms ease 120ms,
+      translate 520ms var(--ease-out) 120ms,
+      visibility 0s;
   }
   .story.is-pinned .card-face {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--island) var(--mix), var(--face-top)),
-      color-mix(in oklab, var(--island) var(--mix), var(--face-bottom))
-    );
-    box-shadow:
-      inset 1px 1px 0 color-mix(in srgb, var(--rim), transparent var(--mix)),
-      0 34px 60px -32px rgb(0 0 0 / calc(0.4 - var(--fog) * 0.4));
-  }
-  .story.is-pinned .card-face > * {
-    opacity: calc(1 - var(--fog) * 1.4);
-  }
-  .story.is-pinned .wheel-window {
-    position: relative;
-    flex: 1;
-    margin-top: 12px;
-    mask-image: linear-gradient(transparent, black 22%, black 78%, transparent);
-  }
-  .story.is-pinned .wheel-band {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    left: 0;
-    display: block;
-    height: 50px;
-    margin-top: -25px;
-    border-radius: 999px;
-    background: var(--well);
-    box-shadow: var(--sink-track);
-  }
-  .story.is-pinned .wheel {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-  }
-  /* A picker wheel: --w (on the card) is the name in the band; the others
-     curve away above and below it. */
-  .story.is-pinned .wheel li {
-    --d: calc(var(--n) - var(--w, 0));
-    --ad: max(var(--d), calc(var(--d) * -1));
-    --angle: clamp(-80deg, calc(var(--d) * 23deg), 80deg);
-    position: absolute;
-    top: 50%;
-    right: 18px;
-    left: 18px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    margin-top: -25px;
-    padding: 0;
+    height: 100%;
+    padding: 26px 28px;
+    background: none;
     box-shadow: none;
-    font-size: var(--step-2);
-    font-weight: 600;
-    color: color-mix(
-      in oklab,
-      var(--ink) calc(clamp(0, 1 - var(--ad), 1) * 100%),
-      var(--muted)
-    );
-    opacity: clamp(0, calc(1 - var(--ad) * 0.27), 1);
-    transform: translateY(calc(sin(var(--angle)) * 112px))
-      scaleY(cos(var(--angle)));
   }
-  .story.is-pinned .fix-field {
-    margin-block: auto;
-  }
-
   /* The close (GetAirdraft.astro): three ways to get Airdraft. The paid app
      sits in the middle, raised higher and holding the page's primary key. */
   .offers {
@@ -1801,6 +1953,18 @@
   }
   details + details {
     box-shadow: var(--groove);
+  }
+  /* Answers open and close smoothly where the browser can animate to auto;
+     elsewhere they toggle at once. */
+  details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 380ms var(--ease-out),
+      content-visibility 380ms allow-discrete;
+  }
+  details[open]::details-content {
+    block-size: auto;
   }
   summary {
     display: flex;
@@ -2198,7 +2362,7 @@
       --island-inset: 6px;
       --radius-island: 18px;
     }
-    .site-header {
+    .site-header-inner {
       gap: 12px;
     }
     .site-header nav {

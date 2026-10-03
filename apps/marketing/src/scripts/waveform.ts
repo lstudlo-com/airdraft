@@ -9,24 +9,28 @@ for (const wave of document.querySelectorAll<HTMLElement>(
   "[data-magnify]:not([data-magnify-ready])",
 )) {
   wave.dataset.magnifyReady = "";
-  const bars = [...wave.querySelectorAll<HTMLElement>(".wave-bar")];
-  const caps = bars.map(
-    (bar) => Number(bar.style.getPropertyValue("--cap")) || 1.5,
-  );
   let pointer: number | null = null;
   let frame = 0;
 
   const render = () => {
     frame = 0;
+    // Bars come and go (src/scripts/dictate.ts), so read them each time.
+    const bars = [
+      ...wave.querySelectorAll<HTMLElement>(".wave-bar:not(.is-leaving)"),
+    ];
     const shown = bars
-      .map((bar, index) => ({ bar, index, rect: bar.getBoundingClientRect() }))
+      .map((bar) => ({
+        bar,
+        cap: Number(bar.style.getPropertyValue("--cap")) || 1.5,
+        rect: bar.getBoundingClientRect(),
+      }))
       .filter(({ rect }) => rect.width > 0);
     const step =
       shown.length > 1
         ? shown[1].rect.left - shown[0].rect.left
         : (shown[0]?.rect.width ?? 1);
     let hovered: HTMLElement | null = null;
-    for (const { bar, index, rect } of shown) {
+    for (const { bar, cap, rect } of shown) {
       if (pointer === null) {
         bar.style.removeProperty("--magnify");
         continue;
@@ -36,10 +40,7 @@ for (const wave of document.querySelectorAll<HTMLElement>(
       if (still.matches) continue;
       const distance = (center - pointer) / (step * 2.4);
       const magnify = 1 + 0.28 * Math.exp(-distance * distance);
-      bar.style.setProperty(
-        "--magnify",
-        Math.min(caps[index], magnify).toFixed(3),
-      );
+      bar.style.setProperty("--magnify", Math.min(cap, magnify).toFixed(3));
     }
     for (const bar of bars) bar.classList.toggle("is-hovered", bar === hovered);
   };

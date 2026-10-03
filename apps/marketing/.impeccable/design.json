@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-03T20:18:15Z",
+  "generatedAt": "2026-10-03T20:29:47Z",
   "title": "Design System: Airdraft website",
   "extensions": {
     "colorMeta": {
@@ -809,7 +809,32 @@
       {
         "name": "story-pin",
         "value": "4.9 viewport heights, scrub 0.7",
-        "purpose": "Provider story on desktop."
+        "purpose": "Provider story on desktop: one fixed card; scenes cross-fade (12px rise)."
+      },
+      {
+        "name": "selection-well",
+        "value": "SelectionMotion.curve 360ms; island +300ms",
+        "purpose": "The provider rows' selection well steps row by row; its check island follows."
+      },
+      {
+        "name": "dictation",
+        "value": "live bar 90ms level; Refining 650ms; caret flare 900ms",
+        "purpose": "Hold ⌃⌥ or press the hero waveform: a pretend dictation adds a bar (dictate.ts)."
+      },
+      {
+        "name": "header-blur",
+        "value": "6 backdrop layers 1–32px, quadratic ramp, 4px feather",
+        "purpose": "The sticky header's progressive blur (ProgressiveHeaderBlur)."
+      },
+      {
+        "name": "keycap-mirror",
+        "value": "120ms",
+        "purpose": "⌃ and ⌥ keycaps sink while the visitor holds those keys (keys.ts)."
+      },
+      {
+        "name": "disclosure",
+        "value": "380ms block-size ease-out",
+        "purpose": "Answers ease open and closed where interpolate-size is supported."
       },
       {
         "name": "reduced-motion",
@@ -988,7 +1013,7 @@
       "Don't lower a shadow's contrast to make it subtle; shrink its spread.",
       "Don't use wide, low-contrast ambient shadows or blooming white halos.",
       "Don't divide content with flat hairlines; use the groove or space.",
-      "Don't tilt or rotate a lit object in a way that contradicts its fixed light (the provider story's slabs are the one deliberate 3D motion).",
+      "Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide.",
       "Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.",
       "Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.",
       "Don't hand-roll a key or section; extend the component instead.",

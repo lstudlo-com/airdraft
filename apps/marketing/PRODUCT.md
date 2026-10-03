@@ -72,7 +72,9 @@ and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
 The first viewport is the hero alone, at every window size: the positioning
 headline, the "Get Airdraft", source and sample actions, two quiet facts (open
 source; macOS 15+ on Apple silicon), and Home's waveform card from the app
-(decorative bars, no metrics, the app's first-run caption); no paragraph.
+(decorative bars, no metrics, the app's first-run caption); no paragraph. The
+caption works: holding ⌃⌥ or pressing the waveform plays a pretend dictation
+that adds a bar, without recording anything.
 Nothing else shows until the visitor scrolls. The headline says transcription,
 not dictation: Airdraft records live but transcribes and refines after release.
 The shortcut is shown in the hero caption and the bento. The close must state
@@ -84,7 +86,9 @@ The logo is the app sidebar's neumorphic mark (`SidebarBrandMark`): a raised
 capsule with carved waveform grooves and a caret, without lettering. The hero's
 waveform responds to the visitor. Pricing, Support and Changelog open with the
 same page title block: one size, one top inset and the full content width. Scroll motion tells the dictation story (speak, refine, insert) but
-the page reads fully without it. Bento tiles are one graphic and one line.
+the page reads fully without it. Motion stays physical: objects rise from and
+sink into the surface and selections slide; nothing tilts or flies through
+perspective. Bento tiles are one graphic and one line.
 
 ## Delivery
 

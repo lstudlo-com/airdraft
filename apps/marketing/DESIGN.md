@@ -306,9 +306,9 @@ r ≈ CSS blur 2r).
 - `--raise-control`: a quarter. Keys, fields, the inserted-text card, art cards.
 - `--raise-small`: keycaps, disclosure buttons, segmented thumbs, changelog studs.
 - `--edge`: the 1px top-left rim plus a 0.5px hairline, on every raised face.
-- `--sink-hero`: Home's waveform well. `--sink-track`: segmented and wheel tracks. `--sink-soft`: art wells and the waiting result. `--sink-chip`: chips, sockets, the current nav link, disabled keys.
+- `--sink-hero`: Home's waveform well. `--sink-track`: segmented tracks. `--sink-soft`: art wells and the waiting result. `--sink-chip`: chips, sockets, the current nav link, disabled keys. The provider rows' selection well uses the sidebar's own 2.5px inset.
 - `--press`: a key while pressed; it sinks into a well (`--pressed` face).
-- `--groove`: RowDivider, between disclosure, price-table, fund-list and wheel rows, and the bento privacy flow.
+- `--groove`: RowDivider, between disclosure, price-table, fund-list and provider rows, and the bento privacy flow.
 
 Objects inside a track or well (segmented thumbs, stage fills) keep their light
 and shade clipped inside it. Elevation is declared once per element: a shadow,
@@ -344,14 +344,24 @@ caret's tone (`src/scripts/waveform.ts`). They also rise with the shared voice.
 Narrow screens hide the oldest (leftmost) bars so the newest stay beside the
 caret. With reduced motion the bars are static; only the hover tone changes.
 
+The caption works (`src/scripts/dictate.ts`). Holding ⌃⌥ while the card is on
+screen, or pressing and holding the well or the caption's keycaps, plays a
+pretend dictation: the caption gives way to the recording pill (timer and
+meter), a live bar enters at the caret and follows a synthetic speech envelope,
+and the oldest bar folds away. On release the pill shows Refining, then the bar
+settles at the height the app would give that length (`0.26 + 0.74 × √share`,
+six seconds being a full bar) and the caret lifts once (HomeHero's flare).
+Nothing is recorded. Holds under 0.3 s, a third key (so VoiceOver's ⌃⌥ commands
+never add a bar), a touch that turns into a scroll, or the card leaving the
+screen cancel it; eight seconds stop it. With reduced motion the live bar holds
+one level and nothing animates.
+
 ### Voice (`src/scripts/voice.ts`)
 
 Every `[data-waveform]` listens to one shared "voice": pointer speed and scroll
-speed raise it, it decays when still. Each `[data-bar]` gets `--gain` (0–1):
-the hero's bars stretch up to 40%; the logo's waveform strokes up to 90% while
-its caret stays still. The loop runs only while the voice is audible and a
-waveform is on screen, and not at all with reduced motion. Hovering the logo
-makes it speak.
+speed raise it, it decays when still. Each `[data-bar]` gets `--gain` (0–1),
+and the hero's bars stretch up to 40%. The loop runs only while the voice is
+audible and a waveform is on screen, and not at all with reduced motion.
 
 ### Brand (`ui/Brand.astro`)
 
@@ -397,10 +407,10 @@ bento's profile and history graphics.
 
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
-- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `width="narrow"`. Owns the heading id and spacing.
+- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: recessed capsules. `.chip-muted` and `.chip-strong` (raised) show a before → after pair.
-- `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles.
+- `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page.
 - `.tag`: a small recessed label.
 - `.status-dot` with `data-tone` `ok` (default), `attention`, `busy` or `inactive`: the only colour on the site.
 
@@ -438,20 +448,21 @@ screen (`data-art`); without JavaScript they show their final frame.
 "You choose where each step runs" as six scenes: speech on this Mac, speech in
 the cloud, refinement on this Mac, in the cloud, on your subscription, then
 insertion at the cursor. Each scene is an eyebrow (the step), a short title and
-one line on what leaves the Mac, beside one raised card. A card holds a single
-choice: provider names on a picker wheel whose current name sits in a recessed
-track; the last card shows a vocabulary fix in a raised field. The card's symbol
-sits in a recessed socket.
+one line on what leaves the Mac, beside one raised card. The card's symbol sits
+in a recessed socket, and it holds a single choice laid out like the app's
+settings tables: provider rows divided by grooves, the chosen row resting in the
+sidebar's recessed selection well (12px corners, 2.5px depth) with a raised
+check island inside it. The last card shows a vocabulary fix in a raised field.
 
-On desktop the section pins and the cards are solid slabs (six edge layers a
-step darker than the face) moving through 3D space. One variable, `--t` on the
-deck, drives everything: each card's distance `--q` from the current scene sets
-its place on a diagonal, its tilt, and how far it has sunk into the island
-colour. The current card's wheel turns as the visitor scrolls; a finished card
-flies past to the lower left. A three-part stepper (Speech, Refinement,
-Insertion) fills like Home's usage tracks: a raised gray fill in a shallow
-inset. The pointer tilts the deck. Elsewhere, and with reduced motion, copy and
-cards stack; on phones the cards rise into place.
+On desktop the section pins and one raised card (hero spread) stays in place;
+nothing tilts or flies. Scenes cross-fade inside it: the next rises `12px` into
+place as the last one sinks away. While a scene holds, scrolling steps the
+selection well row by row through its providers on `SelectionMotion.curve`, and
+the check island follows 300ms later, as the sidebar's icon island follows its
+well. A three-part stepper (Speech, Refinement, Insertion) fills like Home's
+usage tracks: a raised gray fill in a shallow inset. Elsewhere, and with reduced
+motion, copy and cards stack with the first provider selected; on phones the
+cards rise into place.
 
 ### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
@@ -476,25 +487,37 @@ One `gsap.matchMedia` context, off entirely with reduced motion:
 
 - Section headings, the sample, bento tiles and the offers rise `36–48px` and fade in as they enter. Cards rise flat: they never tip through perspective.
 - Bento loops play only while their tile is visible.
-- The provider story pins on desktop and moves its cards (see above).
+- The provider story pins on desktop; its selection well steps through the providers (see above).
 
 The hero card rises once on load (CSS) and its bars grow; it never tilts,
 because its light is fixed at the top left. Resting CSS is always the final
-state, so nothing depends on the script to be readable.
+state, so nothing depends on the script to be readable. Interaction motion
+outside GSAP: the hero's dictation (`dictate.ts`), hover magnification
+(`waveform.ts`), the segmented thumb (`segmented.ts`), keycaps that follow the
+keyboard (`keys.ts`), the license swap and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
 
 Native `details`/`summary` rows inside a raised panel, divided by grooves. The
-plus sits in a small raised round button and turns 45° when open. Used for
-pricing questions and support troubleshooting. Answers may include `code`.
+plus sits in a small raised round button and turns 45° when open, and the answer
+eases open and closed (`::details-content` with `interpolate-size`; browsers
+without it toggle at once). Used for pricing questions and support
+troubleshooting. Answers may include `code`.
 
 ### Header, footer, pricing, support, changelog
 
-The header sits on the chrome: the Brand mark, then Pricing, Support and
-Changelog as capsule links (the current page sits in a recessed well, like the
-app's sidebar selection), the GitHub icon key and the primary "Get Airdraft" key.
-On phones only the mark, GitHub and Get Airdraft remain. The footer sits on the
-chrome below the island.
+The header sits on the chrome and stays at the top as the page scrolls: the
+Brand mark, then Pricing, Support and Changelog as capsule links (the current
+page sits in a recessed well, like the app's sidebar selection), the GitHub
+icon key and the primary "Get Airdraft" key. On phones only the mark, GitHub
+and Get Airdraft remain. Behind it is the app's progressive header blur
+(`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
+32px), each masked to the band where the app's radius ramp reaches it, so
+content is lightly blurred at the header's bottom edge (plus a 4px feather)
+and fully blurred at the top, while labels and controls stay sharp. Never
+simulate it with a tint or an opacity fade; only Reduce Transparency gets an
+opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
+sits on the chrome below the island.
 
 Pricing shows two plans: Open source (`$0`, build instructions, the page's
 primary key until checkout opens) and the license card. A note gives the
@@ -520,7 +543,7 @@ stud per entry; Unreleased is a recessed chip.
 - Don't lower a shadow's contrast to make it subtle; shrink its spread.
 - Don't use wide, low-contrast ambient shadows or blooming white halos.
 - Don't divide content with flat hairlines; use the groove or space.
-- Don't tilt or rotate a lit object in a way that contradicts its fixed light (the provider story's slabs are the one deliberate 3D motion).
+- Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide.
 - Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.
 - Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.
 - Don't hand-roll a key or section; extend the component instead.

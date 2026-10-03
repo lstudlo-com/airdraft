@@ -1,4 +1,5 @@
 ---
+import Hud from "./ui/Hud.astro";
 import Keys from "./ui/Keys.astro";
 import Waveform from "./ui/Waveform.astro";
 
@@ -6,7 +7,9 @@ import Waveform from "./ui/Waveform.astro";
  * The hero object: Home's hero card from the app, without its metrics (the
  * site never shows usage counts). In the app each bar is one dictation; here
  * the forty bars are decorative and their heights are a fixed pattern, not
- * data. The caption is the app's own first-run instruction.
+ * data. The caption is the app's own first-run instruction, and it works:
+ * holding ⌃⌥ (or pressing and holding the waveform) plays a pretend
+ * dictation that adds a bar (src/scripts/dictate.ts).
  */
 const count = 40;
 const levels = Array.from({ length: count }, (_, index) => {
@@ -19,10 +22,17 @@ const levels = Array.from({ length: count }, (_, index) => {
 });
 ---
 
-<div class="hero-card">
+<div class="hero-card" data-dictate>
   <Waveform levels={levels} />
-  <p class="hero-caption">
-    Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
-    dictation adds a bar.
-  </p>
+  <div class="hero-status">
+    <p class="hero-caption">
+      Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
+      dictation adds a bar.
+    </p>
+    <Hud class="hero-hud" />
+  </div>
 </div>
+
+<script>
+  import "../scripts/dictate";
+</script>

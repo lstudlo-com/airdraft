@@ -2,13 +2,15 @@
 /**
  * "You choose where each step runs": the dictation pipeline as six short
  * scenes. Each scene is one line of copy and one card, and each card holds a
- * single choice: the engines that can run that step in that place.
+ * single choice: the engines that can run that step in that place, listed
+ * like a settings table with the app's recessed selection well on one row.
  *
  * Without JavaScript, on narrow screens and with reduced motion, copy and card
- * pairs stack. On desktop, src/scripts/story.ts pins the section and flies the
- * cards through 3D space as the visitor scrolls: the steps ahead wait in a
- * queue receding to the upper right; each card hops forward, its picker wheel
- * turns through the names, then it flies past to the lower left.
+ * pairs stack. On desktop, src/scripts/story.ts pins the section and keeps one
+ * raised card in place: scenes cross-fade inside it, and as the visitor
+ * scrolls the selection well steps row by row through the providers on the
+ * app's selection curve, with a raised check island following it, as the
+ * sidebar's icon island follows its well. Nothing tilts or flies.
  *
  * Provider lists mirror ASRProviderKind, LLMProviderKind and the local engines
  * in the root CLAUDE.md; update them together.
@@ -99,7 +101,6 @@ const icons: Record<Place, string> = {
   plan: "M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1ZM7.5 9.5l3 2.5-3 2.5M12.5 14.5h4",
   cursor: "M9 4.5h6M9 19.5h6M12 4.5v15",
 };
-const edges = 6;
 ---
 
 <section
@@ -151,13 +152,6 @@ const edges = 6;
             aria-labelledby={`scene-${index}`}
             style={`--i: ${index}; --row: ${index + 2}; --order: ${index * 2 + 2}; --count: ${scene.items?.length ?? 1}`}
           >
-            {Array.from({ length: edges }, (_, edge) => (
-              <span
-                class="card-edge"
-                style={`--z: ${(-(edge + 1) * 2.2).toFixed(1)}px`}
-                aria-hidden="true"
-              />
-            ))}
             <div class="card-face">
               <div class="card-head">
                 <span class="card-icon" aria-hidden="true">
@@ -174,11 +168,24 @@ const edges = 6;
                 <span>{scene.label}</span>
               </div>
               {scene.items ? (
-                <div class="wheel-window">
-                  <span class="wheel-band" aria-hidden="true" />
-                  <ul class="wheel">
+                <div class="choices">
+                  <span class="choice-well" aria-hidden="true" />
+                  <span class="choice-island" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="m5 12.5 4.5 4.5L19 7.5"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <ul>
                     {scene.items.map((item, position) => (
-                      <li style={`--n: ${position}`}>{item}</li>
+                      <li class:list={[position === 0 && "is-selected"]}>
+                        {item}
+                      </li>
                     ))}
                   </ul>
                 </div>

@@ -2,8 +2,9 @@
 //
 //   headings  and bento tiles rise into place as they enter
 //   bento     each tile's graphic plays a short loop while it is on screen
-//   pipeline  on desktop the section pins and flies six cards through 3D
-//             space; on narrow screens the cards rise into place
+//   pipeline  on desktop the section pins: one card stays in place while
+//             its scenes cross-fade and a selection well steps through each
+//             scene's providers; on narrow screens the cards rise into place
 //
 // Every element's resting state in CSS is its final state, so the page reads
 // the same without JavaScript. With reduced motion none of this runs.
@@ -245,15 +246,14 @@ function bento() {
   }
 }
 
-/** Desktop: pin the pipeline and fly its cards through 3D space. Each scene
- *  holds while its picker wheel turns through the names (or the vocabulary
- *  fix plays), then the card flies past to the lower left as the next one
- *  hops forward from the queue in the upper right. The pointer tilts the
- *  whole deck. */
-function pipeline(fine: boolean) {
+/** Desktop: pin the pipeline. One raised card stays in place on the right;
+ *  each scene holds while its selection well steps row by row through the
+ *  providers (or the vocabulary fix plays), then the next scene cross-fades
+ *  in. The well moves on the app's selection curve (CSS) whenever the
+ *  scrubbed position reaches a new row, and its check island follows. */
+function pipeline() {
   const story = one("[data-story]");
-  const deck = one("[data-deck]", story ?? document);
-  if (!story || !deck) return;
+  if (!story) return;
   const cards = all("[data-scene-card]", story);
   const copies = all("[data-scene-copy]", story);
   const stages = all("[data-stage]", story).map((stage) => ({
@@ -261,6 +261,15 @@ function pipeline(fine: boolean) {
     fill: one("[data-stage-fill]", stage),
     range: JSON.parse(stage.dataset.range ?? "[0,0]") as [number, number],
   }));
+  const lists = cards.map((card) => {
+    const list = one(".choices", card);
+    return {
+      list,
+      rows: list ? all("li", list) : [],
+      position: { w: 0 },
+      selected: 0,
+    };
+  });
   const hold = 1.1;
   const move = 1;
   story.style.setProperty(
@@ -273,10 +282,6 @@ function pipeline(fine: boolean) {
   let active = -1;
   const render = () => {
     const t = state.t;
-    deck.style.setProperty("--t", t.toFixed(4));
-    cards.forEach((card, index) => {
-      card.classList.toggle("is-away", t - index > 1 || index - t > 3.4);
-    });
     for (const stage of stages) {
       const [first, last] = stage.range;
       const progress = gsap.utils.clamp(
@@ -286,9 +291,23 @@ function pipeline(fine: boolean) {
       );
       if (stage.fill) stage.fill.style.transform = `scaleX(${progress})`;
     }
+    for (const entry of lists) {
+      if (!entry.list) continue;
+      const selected = Math.round(entry.position.w);
+      if (selected === entry.selected) continue;
+      entry.selected = selected;
+      entry.list.style.setProperty("--sel", String(selected));
+      entry.rows.forEach((row, index) =>
+        row.classList.toggle("is-selected", index === selected),
+      );
+    }
     const current = Math.round(t);
     if (current === active) return;
     active = current;
+    cards.forEach((card, index) => {
+      card.classList.toggle("is-active", index === current);
+      card.classList.toggle("is-past", index < current);
+    });
     copies.forEach((copy, index) =>
       copy.classList.toggle("is-active", index === current),
     );
@@ -300,26 +319,9 @@ function pipeline(fine: boolean) {
     );
   };
 
-  gsap.set(cards, { "--w": 0 });
   const fix = cards.find((card) => one(".fix", card));
   if (fix) gsap.set(fix, { "--fix": 0 });
   render();
-
-  // The queue flies forward as the section scrolls into view.
-  gsap.fromTo(
-    deck,
-    { "--enter": 0 },
-    {
-      "--enter": 1,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: story,
-        start: "top 80%",
-        end: "top top",
-        scrub: 0.6,
-      },
-    },
-  );
 
   const timeline = gsap.timeline({
     onUpdate: render,
@@ -331,11 +333,15 @@ function pipeline(fine: boolean) {
     },
   });
   cards.forEach((card, index) => {
-    const count = Number(card.style.getPropertyValue("--count")) || 1;
+    const { list, rows, position } = lists[index];
     if (card === fix) {
       timeline.to(card, { "--fix": 1, duration: hold, ease: "none" });
-    } else {
-      timeline.to(card, { "--w": count - 1, duration: hold, ease: "none" });
+    } else if (list) {
+      timeline.to(position, {
+        w: Math.max(0, rows.length - 1),
+        duration: hold,
+        ease: "none",
+      });
     }
     if (index < cards.length - 1) {
       timeline.to(state, {
@@ -347,41 +353,23 @@ function pipeline(fine: boolean) {
   });
   ScrollTrigger.refresh();
 
-  let leave: (() => void) | undefined;
-  if (fine) {
-    const turn = gsap.quickTo(deck, "--px", { duration: 1.2, ease: "power3" });
-    const tilt = gsap.quickTo(deck, "--py", { duration: 1.2, ease: "power3" });
-    const sticky = one(".story-sticky", story)!;
-    const onMove = (event: PointerEvent) => {
-      const bounds = sticky.getBoundingClientRect();
-      turn(((event.clientX - bounds.left) / bounds.width - 0.5) * 14);
-      tilt(-((event.clientY - bounds.top) / bounds.height - 0.5) * 10);
-    };
-    const onLeave = () => {
-      turn(0);
-      tilt(0);
-    };
-    story.addEventListener("pointermove", onMove);
-    story.addEventListener("pointerleave", onLeave);
-    leave = () => {
-      story.removeEventListener("pointermove", onMove);
-      story.removeEventListener("pointerleave", onLeave);
-    };
-  }
-
   return () => {
-    leave?.();
     story.classList.remove("is-pinned");
     story.style.removeProperty("--units");
-    deck.style.removeProperty("--t");
     for (const element of [
       ...cards,
       ...copies,
-      ...stages.map((s) => s.element),
+      ...stages.map((stage) => stage.element),
     ]) {
-      element.classList.remove("is-active", "is-away");
+      element.classList.remove("is-active", "is-past");
     }
-    gsap.set([deck, ...cards], { clearProps: "all" });
+    for (const { list, rows } of lists) {
+      list?.style.removeProperty("--sel");
+      rows.forEach((row, index) =>
+        row.classList.toggle("is-selected", index === 0),
+      );
+    }
+    gsap.set(cards, { clearProps: "all" });
     stages.forEach(({ fill }) => fill?.style.removeProperty("transform"));
   };
 }
@@ -404,15 +392,11 @@ media.add(
   {
     motion: "(prefers-reduced-motion: no-preference)",
     desktop: "(min-width: 1000px) and (min-height: 700px)",
-    fine: "(hover: hover) and (pointer: fine)",
   },
   (context) => {
-    const { motion, desktop, fine } = context.conditions as Record<
-      string,
-      boolean
-    >;
+    const { motion, desktop } = context.conditions as Record<string, boolean>;
     if (!motion) return;
-    const cleanups = [desktop ? pipeline(fine) : sceneReveals()];
+    const cleanups = [desktop ? pipeline() : sceneReveals()];
     reveals();
     bento();
     return () => cleanups.forEach((cleanup) => cleanup?.());

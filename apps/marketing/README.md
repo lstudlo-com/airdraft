@@ -141,9 +141,14 @@ and immutable caching for Astro's hashed assets.
   on any colour with a hue; the app's three status-dot colours are the only
   exception.
 - The hero is Home's waveform card (`HeroCard.astro`, `ui/Waveform.astro`); its
-  bars are decorative, not data. `src/scripts/waveform.ts` copies the app's hover
-  magnification and `src/scripts/segmented.ts` slides every segmented picker's
-  thumb.
+  bars are decorative, not data. `src/scripts/dictate.ts` makes its caption work:
+  holding ⌃⌥ (or pressing and holding the waveform) plays a pretend dictation
+  that adds a bar; nothing is recorded. `src/scripts/waveform.ts` copies the
+  app's hover magnification, `src/scripts/segmented.ts` slides every segmented
+  picker's thumb, and `src/scripts/keys.ts` sinks ⌃ and ⌥ keycaps while the
+  visitor holds those keys.
+- The sticky header (`SiteHeader.astro`) draws the app's progressive header blur
+  with six stacked `backdrop-filter` layers; see DESIGN.md.
 - The mark (`ui/Brand.astro`) is the app sidebar's `SidebarBrandMark`
   (`Sources/App/Views/MainWindow.swift`) in CSS: a raised capsule with carved
   grooves and no lettering. Change it together with the Swift view.
@@ -158,7 +163,8 @@ and immutable caching for Astro's hashed assets.
   standard license). Both do nothing with reduced motion, and every element's
   resting CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider
-  section is `PipelineStory.astro` (six scenes, a 3D card flight on desktop); the
+  section is `PipelineStory.astro` (six scenes; on desktop one pinned card whose
+  selection well steps through each scene's providers); the
   homepage close is `GetAirdraft.astro`: the source build beside `LicenseCard.astro`,
   which the pricing page shares.
 - Text uses SF Pro through the system font stack on Apple devices. Inter is
@@ -179,7 +185,9 @@ browser at desktop and mobile sizes, in both light and dark appearance.
 Exercise the autoplay, Run again, Stop mid-run, all three profile buttons (the
 thumb must land on the selected one), the license card's 1 Mac / 3 Macs choice
 (pointer and arrow keys, with and without JavaScript), the hero waveform's hover,
-the FAQ,
+the hero's hold-to-dictate (⌃⌥ and press-and-hold; a third key cancels), the
+sticky header's blur over scrolled content, the provider story's selection well,
+the FAQ's open and close,
 and anchor links; check keyboard focus and reduced motion (no autoplay, immediate
 result). The static example and navigation
 remain useful with JavaScript disabled.
