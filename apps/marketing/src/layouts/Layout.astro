@@ -1,5 +1,7 @@
 ---
-import "@fontsource-variable/manrope";
+// SF Pro comes from the system on Apple devices; Inter is only downloaded where
+// the system face is missing.
+import "@fontsource-variable/inter";
 import "../styles/global.css";
 
 interface Props {
@@ -26,8 +28,17 @@ const socialImage = Astro.site
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#e6eaf1" />
-    <meta name="color-scheme" content="light" />
+    <meta
+      name="theme-color"
+      content="#f2f2f2"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#363636"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta name="color-scheme" content="light dark" />
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
@@ -40,7 +51,7 @@ const socialImage = Astro.site
     {socialImage && (
       <meta
         property="og:image:alt"
-        content="Airdraft’s silver app icon with a blue waveform and text caret"
+        content="Airdraft’s gray app icon: a raised capsule holding a waveform and a text caret"
       />
     )}
     <meta name="twitter:card" content="summary" />
@@ -52,15 +63,18 @@ const socialImage = Astro.site
   <body>
     <!--
     THESIS: Speech becomes tidy text at the cursor with one held shortcut.
-    OWN-WORLD: The app icon's silver body, pressed track, waveform and caret supply every surface on the page.
+    OWN-WORLD: The app window's own material: neutral gray chrome around a rounded island, raised cards and keys, pressed wells.
     STORY: See it run, choose where each stage runs, learn what leaves the Mac, then get the source.
-    FIRST VIEWPORT: A plain promise, the real shortcut, and a sample that plays itself with the app's HUD.
-    FORM: Refined silver neumorphism. Layered light from the upper left; filled blue key for the one primary action.
+    FIRST VIEWPORT: A plain promise, the actions, and Home's waveform card from the app.
+    FORM: Achromatic neumorphism lit from the top left, in light and dark; one graphite key for the primary action.
     FINISH: No invented release, price, license or measurement. Visible focus, reduced motion, useful without JavaScript.
     -->
     <a class="skip-link" href="#main">
       Skip to content
     </a>
     <slot />
+    <script>
+      import "../scripts/segmented";
+    </script>
   </body>
 </html>

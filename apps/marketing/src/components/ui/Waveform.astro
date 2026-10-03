@@ -1,0 +1,45 @@
+---
+/**
+ * Home's waveform (HomeHero.swift): raised gray bars standing in a pressed
+ * capsule well, ending in the caret where text lands. Decorative.
+ *
+ * `levels` (0–1) set each bar's resting height. The bars respond to the shared
+ * voice (src/scripts/voice.ts) and, like the app, grow around the pointer and
+ * deepen toward the caret's tone under it (src/scripts/waveform.ts). Neither
+ * runs with reduced motion. On narrow screens the oldest (leftmost) bars are
+ * hidden so the newest stay beside the caret.
+ */
+interface Props {
+  levels: number[];
+  class?: string;
+}
+
+const { levels, class: className } = Astro.props;
+// Bar and caret heights in px; keep in step with .wave in global.css.
+const barMax = 48;
+const caret = 60;
+---
+
+<div
+  class:list={["wave", className]}
+  aria-hidden="true"
+  data-waveform
+  data-magnify
+>
+  {levels.map((level, index) => (
+    <span
+      class="wave-bar"
+      style={`--h: ${level.toFixed(3)}; --i: ${index}; --cap: ${(caret / (barMax * level)).toFixed(3)}`}
+      data-bar
+      data-index={index}
+    >
+      <i />
+    </span>
+  ))}
+  <span class="wave-caret"></span>
+</div>
+
+<script>
+  import "../../scripts/voice";
+  import "../../scripts/waveform";
+</script>

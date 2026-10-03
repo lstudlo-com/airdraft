@@ -52,21 +52,25 @@ a paid subscription.
 
 ## Design brief
 
-Refined silver neumorphism, taken directly from the app icon's material, light,
-and caret. Raised keys and recessed wells explain the interaction; one filled
-blue key marks the primary action. Keep readable contrast, a 13px text floor,
-visible keyboard focus, reduced-motion behavior, and useful content without
-JavaScript. The first viewport is the hero alone, at every window size: the 3D
-object, the positioning headline, the "Get Airdraft", source and sample actions,
-and two quiet facts (open source; macOS 15+ on Apple silicon); no paragraph.
+The app window's own neumorphism, translated value for value from the native
+views: neutral gray chrome around a rounded mid-tone island, raised cards and
+capsule keys, pressed wells, light from the top left in light and dark mode. No
+hue anywhere except the app's status dots; one graphite key marks the primary
+action. Raised keys and recessed wells explain the interaction. Keep readable
+contrast, a 13px text floor, visible keyboard focus, reduced-motion behavior,
+and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
+The first viewport is the hero alone, at every window size: the positioning
+headline, the "Get Airdraft", source and sample actions, two quiet facts (open
+source; macOS 15+ on Apple silicon), and Home's waveform card from the app
+(decorative bars, no metrics, the app's first-run caption); no paragraph.
 Nothing else shows until the visitor scrolls. The headline says transcription,
 not dictation: Airdraft records live but transcribes and refines after release.
-The shortcut is shown in the bento and sample. The close must state
+The shortcut is shown in the hero caption and the bento. The close must state
 availability plainly and offer every path: build free, the paid app, donate.
 Every line of copy must inform a decision or explain the product; no taglines,
 no narration, no restating a heading. Build pages from `src/components/ui/`.
-The logo is the app's outlined wordmark; the hero shows the icon as a real 3D
-object. Both waveforms respond to the visitor. Scroll motion tells the dictation story (speak, refine, insert) but
+The logo is the app's outlined wordmark. Both waveforms, the logo's and the
+hero's, respond to the visitor. Scroll motion tells the dictation story (speak, refine, insert) but
 the page reads fully without it. Bento tiles are one graphic and one line.
 
 ## Delivery

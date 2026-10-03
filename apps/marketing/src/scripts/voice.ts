@@ -1,22 +1,17 @@
-// A shared "voice" for every waveform on the page ([data-waveform]): the 3D
-// capsules use `--lift` (px); the flat logo uses `--gain` (0–1).
-// Moving the pointer or scrolling is treated as speaking: the faster the
-// movement, the louder the voice, and the bars rise and fall with it. Bars in a
-// waveform marked [data-follow] also lean toward the pointer. The loop runs
-// only while the voice is audible and a waveform is on screen; with reduced
-// motion nothing moves.
+// A shared "voice" for every waveform on the page ([data-waveform]): the hero's
+// waveform well and the logo's strokes. Each bar ([data-bar]) gets `--gain`
+// (0–1). Moving the pointer or scrolling is treated as speaking: the faster
+// the movement, the louder the voice, and the bars rise and fall with it. The
+// loop runs only while the voice is audible and a waveform is on screen; with
+// reduced motion nothing moves.
 
 interface Bar {
   element: HTMLElement;
-  base: number;
   index: number;
 }
 
 interface Waveform {
-  element: HTMLElement;
   bars: Bar[];
-  voice: number;
-  follow: boolean;
   visible: boolean;
 }
 
@@ -25,7 +20,6 @@ const waveforms: Waveform[] = [];
 let energy = 0;
 let level = 0;
 let frame = 0;
-let pointerX = -1;
 let last = { x: 0, y: 0, time: 0 };
 let lastScroll = window.scrollY;
 
@@ -35,14 +29,10 @@ function register() {
   )) {
     element.dataset.voiceReady = "";
     const waveform: Waveform = {
-      element,
-      voice: Number(element.dataset.voice ?? 0),
-      follow: "follow" in element.dataset,
       visible: true,
       bars: [...element.querySelectorAll<HTMLElement>("[data-bar]")].map(
         (bar) => ({
           element: bar,
-          base: Number(bar.dataset.base ?? 0),
           index: Number(bar.dataset.index ?? 0),
         }),
       ),
@@ -67,24 +57,10 @@ function tick(time: number) {
 
   for (const waveform of waveforms) {
     if (!waveform.visible) continue;
-    const bounds =
-      waveform.follow && pointerX >= 0
-        ? waveform.element.getBoundingClientRect()
-        : null;
-    const count = waveform.bars.length;
     for (const bar of waveform.bars) {
       const wobble =
         0.5 + 0.5 * Math.sin(seconds * (6 + bar.index * 1.7) + bar.index * 2.1);
-      let focus = 1;
-      if (bounds) {
-        const barX = bounds.left + ((bar.index + 0.5) / count) * bounds.width;
-        focus = Math.max(0.25, 1 - Math.abs(pointerX - barX) / bounds.width);
-      }
-      const gain = level * (0.3 + 0.7 * wobble) * focus;
-      bar.element.style.setProperty(
-        "--lift",
-        `${(bar.base + waveform.voice * gain).toFixed(2)}px`,
-      );
+      const gain = level * (0.3 + 0.7 * wobble);
       bar.element.style.setProperty("--gain", gain.toFixed(3));
     }
   }
@@ -94,7 +70,6 @@ function tick(time: number) {
     energy = 0;
     for (const waveform of waveforms) {
       for (const bar of waveform.bars) {
-        bar.element.style.setProperty("--lift", `${bar.base}px`);
         bar.element.style.setProperty("--gain", "0");
       }
     }
@@ -112,7 +87,6 @@ window.addEventListener(
     const elapsed = Math.max(event.timeStamp - last.time, 8);
     const distance = Math.hypot(event.clientX - last.x, event.clientY - last.y);
     last = { x: event.clientX, y: event.clientY, time: event.timeStamp };
-    pointerX = event.clientX;
     speak(Math.min(0.35, (distance / elapsed) * 0.08));
   },
   { passive: true },
@@ -127,10 +101,6 @@ window.addEventListener(
   },
   { passive: true },
 );
-
-document.addEventListener("pointerleave", () => {
-  pointerX = -1;
-});
 
 // A short burst, e.g. when the logo is hovered.
 export function pulse(amount = 0.6) {

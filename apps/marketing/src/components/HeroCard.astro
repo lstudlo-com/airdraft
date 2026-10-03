@@ -1,0 +1,28 @@
+---
+import Keys from "./ui/Keys.astro";
+import Waveform from "./ui/Waveform.astro";
+
+/**
+ * The hero object: Home's hero card from the app, without its metrics (the
+ * site never shows usage counts). In the app each bar is one dictation; here
+ * the forty bars are decorative and their heights are a fixed pattern, not
+ * data. The caption is the app's own first-run instruction.
+ */
+const count = 40;
+const levels = Array.from({ length: count }, (_, index) => {
+  // A deterministic spread of dictation lengths, shaped like the app's
+  // 0.26 + 0.74 × √share mapping.
+  const noise = Math.abs(Math.sin((index + 1) * 12.9898) * 43758.5453) % 1;
+  const swell = 0.5 + 0.5 * Math.sin(index * 0.45);
+  const share = Math.min(1, 0.15 + 0.55 * noise + 0.3 * swell);
+  return 0.26 + 0.74 * Math.sqrt(share);
+});
+---
+
+<div class="hero-card">
+  <Waveform levels={levels} />
+  <p class="hero-caption">
+    Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
+    dictation adds a bar.
+  </p>
+</div>

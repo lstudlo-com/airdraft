@@ -93,8 +93,11 @@ verification status belong in the vault (see below).
   sheet (current icon first, with 64, 32 and 16 px sizes) to a scratch directory without touching the
   asset catalogue; port the chosen variant into `render-app-icon.swift`. The icon script also
   writes the website's `airdraft-icon.png` and `favicon.png`. After changing the icon, run
-  `uv run apps/marketing/scripts/render-brand.py` (coloured capsule SVGs) and update
-  `apps/marketing/src/data/icon.ts`, which the website's 3D hero object is built from.
+  `uv run apps/marketing/scripts/render-brand.py` (brand capsule SVGs). The icon and the
+  website use the app window's neutral grays only: no blue, violet or cyan anywhere.
+  The website's tokens in `apps/marketing/src/styles/global.css` translate `Theme`,
+  `SoftControls`, `NeumorphicSurface` and `HomeHero` values for light and dark; when
+  those change, update the website and its `DESIGN.md` in the same change.
 
 - Native sidebar branding is `SidebarBrandMark` in `MainWindow.swift`: a compact
   28-point-high raised neumorphic capsule with five waveform bars and a separate

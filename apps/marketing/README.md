@@ -117,7 +117,8 @@ and immutable caching for Astro's hashed assets.
   `design.astro` is an unlinked, `noindex` component reference at `/design/`,
   excluded from the sitemap.
 - `src/components/ui/` holds the reusable components: `Button`, `Section`,
-  `Surface`, `Chips`, `Keys`, `Hud` and `Disclosure`. Use them for new pages;
+  `Surface`, `Chips`, `Keys`, `Hud`, `Waveform`, `BentoTile` and `Disclosure`.
+  Use them for new pages;
   DESIGN.md documents their props.
 - `SiteHeader.astro` and `SiteFooter.astro` are shared by every page.
   `src/data/site.ts` owns the GitHub, build-instruction and issue destinations,
@@ -125,37 +126,44 @@ and immutable caching for Astro's hashed assets.
   the Buy Me a Coffee URL, the license (add it only after a LICENSE file exists),
   and the paid plan. `src/data/pricing.ts` copies cloud speech list prices from the
   app's model catalogue; update both together.
-- `src/styles/global.css` owns shared design tokens.
 - `src/components/DictationPreview.astro` and `src/scripts/preview.ts` implement
   an explicitly labelled sample that plays once when it scrolls into view. Its HUD
   copies the app's `IndicatorPanel` states (timer, Decoding, Refining). It does not
   record audio, call an API, or imply measured timing.
 - The homepage's provider lists mirror the app's provider enums. Update them when
   an engine is added or removed.
-- `src/data/icon.ts` mirrors the app icon's geometry from
-  `scripts/render-app-icon.swift`; update both together. `ui/Capsule3D.astro`
-  builds the capsule from it in CSS 3D for the hero object (`HeroPlateau.astro`).
+- `src/styles/global.css` translates the app window's material value for value
+  (`Theme`, `SoftControls`, `NeumorphicSurface`, `HomeHero`, `IndicatorPanel`) for
+  light and dark mode. `scripts/check-neutral.mjs` runs in `pnpm check` and fails
+  on any colour with a hue; the app's three status-dot colours are the only
+  exception.
+- The hero is Home's waveform card (`HeroCard.astro`, `ui/Waveform.astro`); its
+  bars are decorative, not data. `src/scripts/waveform.ts` copies the app's hover
+  magnification and `src/scripts/segmented.ts` slides every segmented picker's
+  thumb.
 - The logo (`ui/Brand.astro`) reads the app's outlined wordmark straight from
   `Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg`; regenerate
   that with `swift scripts/render-sidebar-wordmark.swift`, never edit it here.
-- `uv run apps/marketing/scripts/render-brand.py` writes coloured capsule SVGs to
-  `public/brand/` (`airdraft-mark.svg`, and `airdraft-logo.svg` with a Manrope
-  wordmark) for use outside the site. They are not the site's logo.
+- `uv run apps/marketing/scripts/render-brand.py` writes neutral capsule SVGs to
+  `public/brand/` (`airdraft-mark.svg`, and `airdraft-logo.svg` with the app
+  wordmark's lettering) for use outside the site. They are not the site's logo.
 - `scripts/render-app-icon.swift` writes the website's `airdraft-icon.png` and
   `favicon.png` along with the app's icon set.
-- Motion: `src/scripts/voice.ts` drives every 3D waveform from pointer and scroll
-  speed; `src/scripts/story.ts` runs the homepage's scroll story with GSAP and
-  ScrollTrigger (`gsap` is a dependency under GSAP's no-charge standard license).
-  Both do nothing with reduced motion, and every element's resting CSS is its final
-  state.
+- Motion: `src/scripts/voice.ts` lifts the hero's and the logo's waveforms with
+  pointer and scroll speed; `src/scripts/story.ts` runs the homepage's scroll story
+  with GSAP and ScrollTrigger (`gsap` is a dependency under GSAP's no-charge
+  standard license). Both do nothing with reduced motion, and every element's
+  resting CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider
   section is `PipelineStory.astro` (six scenes, a 3D card flight on desktop); the
   homepage close is `GetAirdraft.astro`, which reads `paidPlan` and the donation URL
   from `src/data/site.ts`.
-- Manrope is self-hosted through `@fontsource-variable/manrope` under its included
-  SIL Open Font License, copied to `public/fonts/manrope-OFL.txt`. No third-party
-  font requests or analytics are included in the site code. Cloudflare can inject
-  its own browser metrics according to the zone's settings.
+- Text uses SF Pro through the system font stack on Apple devices. Inter is
+  self-hosted through `@fontsource-variable/inter` as the fallback elsewhere, under
+  its included SIL Open Font License, copied to `public/fonts/inter-OFL.txt`; it is
+  only downloaded where the system face is missing. No third-party font requests
+  or analytics are included in the site code. Cloudflare can inject its own
+  browser metrics according to the zone's settings.
 - The GitHub action is intentional: no binary release or product license has
   been invented. Change the CTA only after a real distribution URL is available.
 - Do not publish app window renders made from a personal profile: `--render-window`
@@ -164,8 +172,9 @@ and immutable caching for Astro's hashed assets.
 ## UI verification
 
 Check the homepage, pricing, support, changelog, `/design/` and the custom 404 in the
-browser at desktop and mobile sizes.
-Exercise the autoplay, Run again, Stop mid-run, all three profile buttons, the FAQ,
+browser at desktop and mobile sizes, in both light and dark appearance.
+Exercise the autoplay, Run again, Stop mid-run, all three profile buttons (the
+thumb must land on the selected one), the hero waveform's hover, the FAQ,
 and anchor links; check keyboard focus and reduced motion (no autoplay, immediate
 result). The static example and navigation
 remain useful with JavaScript disabled.

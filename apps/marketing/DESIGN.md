@@ -1,445 +1,506 @@
 ---
 name: Airdraft website
-description: The app icon's silver body, pressed track and caret, built out into a page.
+description: The app window's neutral neumorphism, built out into a page.
 colors:
-  surface: "#e6eaf1"
-  surface-highlight: "#f1f4f9"
-  surface-shade: "#dce1e9"
-  panel-mid: "#e8ecf2"
-  well-deep: "#d9dee7"
-  well-shallow: "#e3e7ee"
-  key-face: "#f5f7fa"
-  key-face-shade: "#e2e7ee"
-  key-face-hover: "#f9fafc"
-  key-face-hover-shade: "#e6eaf0"
-  result-card: "#f6f8fb"
-  result-card-shade: "#eceff4"
-  ink: "#263146"
-  muted: "#505c73"
-  quiet: "#5f6a80"
-  accent: "#3b4bd0"
-  key-blue: "#5462ef"
-  key-blue-deep: "#4150da"
-  key-blue-hover: "#5d6bf5"
-  key-blue-hover-deep: "#4655e0"
-  glow-violet: "#6b7aff"
-  glow-cyan: "#3bc3f4"
-  hud-top: "#2b303a"
-  hud: "#1f232b"
-  white: "#ffffff"
-  scrollbar: "#b3bccb"
-  wall-lit: "#e8ecf1"
-  wall-shaded: "#8f9bb1"
+  chrome: "#f2f2f2"
+  island: "#e6e6e6"
+  face-top: "#e8e8e8"
+  face-bottom: "#e3e3e3"
+  control-top: "#ededed"
+  control-bottom: "#e3e3e3"
+  control-hover-top: "#f2f2f2"
+  pressed: "#dedede"
+  well: "#d9d9d9"
+  well-soft: "#e3e3e3"
+  bar-top: "#c9c9c9"
+  bar-bottom: "#8a8a8a"
+  caret-top: "#858585"
+  caret-bottom: "#4d4d4d"
+  cap-top: "#f7f7f7"
+  cap-bottom: "#cccccc"
+  key-top: "#2b2b2b"
+  key-bottom: "#1a1a1a"
+  ink: "#222222"
+  muted: "#5c5c5c"
+  quiet: "#666666"
+  hud-top: "#2b2b2b"
+  hud-bottom: "#1a1a1a"
+  hud-well: "#141414"
+  status-ok: "#34c759"
+  status-attention: "#ff9500"
+  status-busy: "#ffcc00"
+  dark-chrome: "#363636"
+  dark-island: "#262626"
+  dark-face-top: "#303030"
+  dark-face-bottom: "#2b2b2b"
+  dark-control-top: "#373737"
+  dark-control-bottom: "#2e2e2e"
+  dark-well: "#242424"
+  dark-bar-top: "#575757"
+  dark-bar-bottom: "#383838"
+  dark-caret-top: "#9e9e9e"
+  dark-caret-bottom: "#6b6b6b"
+  dark-key-top: "#ebebeb"
+  dark-key-bottom: "#cccccc"
+  dark-ink: "#dedede"
+  dark-muted: "#a3a3a3"
 typography:
   display:
-    fontFamily: '"Manrope Variable", sans-serif'
-    fontSize: "clamp(2.25rem, 1.2rem + 4.6vw, 4.5rem)"
-    fontWeight: 650
-    lineHeight: 1.04
-    letterSpacing: "-0.035em"
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
+    fontSize: "clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem)"
+    fontWeight: 600
+    lineHeight: 1.05
+    letterSpacing: "-0.025em"
   headline:
-    fontFamily: '"Manrope Variable", sans-serif'
-    fontSize: "clamp(2.125rem, 1.3rem + 2.6vw, 3.125rem)"
-    fontWeight: 650
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
+    fontSize: "clamp(2rem, 1.35rem + 2.3vw, 2.875rem)"
+    fontWeight: 600
     lineHeight: 1.1
-    letterSpacing: "-0.03em"
+    letterSpacing: "-0.02em"
   entry-title:
-    fontFamily: '"Manrope Variable", sans-serif'
-    fontSize: "1.75rem"
-    fontWeight: 650
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
+    fontSize: "1.625rem"
+    fontWeight: 600
     lineHeight: 1.25
-    letterSpacing: "-0.02em"
+    letterSpacing: "-0.015em"
   title:
-    fontFamily: '"Manrope Variable", sans-serif'
-    fontSize: "1.375rem"
-    fontWeight: 650
-    lineHeight: 1.25
-    letterSpacing: "-0.02em"
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "-0.01em"
   lead:
-    fontFamily: '"Manrope Variable", sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
     fontSize: "1.0625rem"
     fontWeight: 400
-    lineHeight: 1.7
+    lineHeight: 1.6
   body:
-    fontFamily: '"Manrope Variable", sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
     fontSize: "0.9375rem"
     fontWeight: 400
-    lineHeight: 1.65
+    lineHeight: 1.6
   label:
-    fontFamily: '"Manrope Variable", sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
     fontSize: "0.8125rem"
-    fontWeight: 650
+    fontWeight: 600
     lineHeight: 1.4
   action:
-    fontFamily: '"Manrope Variable", sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", sans-serif'
     fontSize: "0.9375rem"
-    fontWeight: 700
+    fontWeight: 500
     lineHeight: 1.2
-    letterSpacing: "-0.01em"
-  keycap:
-    fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "0.9375rem"
+  rounded:
+    fontFamily: 'ui-rounded, "SF Pro Rounded", -apple-system, sans-serif'
+    fontSize: "0.8125rem"
     fontWeight: 500
     lineHeight: 1
 rounded:
-  panel: "20px"
-  well: "14px"
-  key: "12px"
-  chip: "8px"
-  keycap: "6px"
-  mark: "2px"
+  island: "22px"
+  card: "18px"
+  well: "12px"
+  field: "10px"
+  cap: "7px"
   pill: "999px"
-  stud: "50%"
 spacing:
+  island-inset: "12px"
+  island-inset-mobile: "6px"
   gutter: "48px"
   gutter-tablet: "32px"
   gutter-mobile: "20px"
-  section: "152px"
-  section-tablet: "128px"
+  section: "144px"
+  section-tablet: "120px"
   section-mobile: "96px"
-  panel: "28px"
-  panel-mobile: "18px"
-  well: "22px"
-  source: "36px"
+  card: "28px"
+  card-mobile: "22px"
 components:
   key-primary:
-    backgroundColor: "{colors.key-blue}"
-    textColor: "{colors.white}"
+    backgroundColor: "{colors.key-bottom}"
+    textColor: "#ffffff"
     typography: "{typography.action}"
-    rounded: "{rounded.key}"
+    rounded: "{rounded.pill}"
     padding: "0 24px"
-    height: "52px"
-  key-primary-hover:
-    backgroundColor: "{colors.key-blue-hover}"
-    textColor: "{colors.white}"
+    height: "48px"
   key:
-    backgroundColor: "{colors.key-face}"
+    backgroundColor: "{colors.control-top}"
     textColor: "{colors.ink}"
     typography: "{typography.action}"
-    rounded: "{rounded.key}"
+    rounded: "{rounded.pill}"
     padding: "0 20px"
-    height: "48px"
-  key-hover:
-    backgroundColor: "{colors.key-face-hover}"
-    textColor: "{colors.accent}"
+    height: "44px"
   panel:
-    backgroundColor: "{colors.panel-mid}"
+    backgroundColor: "{colors.face-top}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
-    padding: "{spacing.panel}"
+    rounded: "{rounded.card}"
+    padding: "{spacing.card}"
   well:
-    backgroundColor: "{colors.well-deep}"
+    backgroundColor: "{colors.well-soft}"
     textColor: "{colors.ink}"
     rounded: "{rounded.well}"
-    padding: "{spacing.well}"
-  chip:
-    backgroundColor: "{colors.well-deep}"
-    textColor: "{colors.ink}"
-    typography: "{typography.label}"
-    rounded: "{rounded.chip}"
-    padding: "6px 10px"
-  profile-selected:
-    backgroundColor: "{colors.key-face}"
-    textColor: "{colors.accent}"
-    typography: "{typography.label}"
-    rounded: "{rounded.chip}"
-    padding: "0 14px"
-    height: "34px"
-  hud:
-    backgroundColor: "{colors.hud}"
-    textColor: "{colors.white}"
+  segmented:
+    backgroundColor: "{colors.well}"
+    textColor: "{colors.muted}"
     typography: "{typography.label}"
     rounded: "{rounded.pill}"
-    padding: "0 16px 0 14px"
-    height: "40px"
+    padding: "3px"
+    height: "38px"
+  chip:
+    backgroundColor: "{colors.well-soft}"
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    padding: "6px 12px"
+  hud:
+    backgroundColor: "{colors.hud-bottom}"
+    textColor: "#ffffff"
+    typography: "{typography.rounded}"
+    rounded: "20px"
+    padding: "6px 14px 6px 6px"
 ---
 
 # Design System: Airdraft website
 
 ## Overview
 
-**Creative North Star: "The icon, built out into a page"**
+**Creative North Star: "The app window, not the icon"**
 
-Every surface on the site comes from the app icon rendered by
-`scripts/render-app-icon.swift`: a silver body lit from the upper left, a raised
-pill with a pressed track inside it, a waveform warming from gray to violet, and
-a glowing caret where text lands. The page reuses those objects literally. Panels
-are the body, wells are the track, keys are the pill, and the violet-to-cyan
-gradient appears only where the icon uses it: the caret and waveform.
+The website uses the native app's own material, translated value for value from
+`Sources/App/Views` (`Theme`, `SoftControls`, `NeumorphicSurface`,
+`SurfaceShadows`, `HomeHero`, `IndicatorPanel`). A visitor who opens Airdraft
+after the site should recognise every surface: the light gray chrome around a
+rounded mid-tone island, raised cards and capsule keys, pressed wells, Home's
+waveform, the graphite recording pill.
 
-Depth carries meaning. What you said sits in a well; what Airdraft inserts is
-pressed in while it waits and lifts out once it is typed. The one filled blue key
-on each screen is the one action that matters. The HUD in the sample is a copy of
-the app's own recording indicator, not an illustration.
+It is neumorphism of a specific kind: hardware-like and crisp. Light comes from
+the top left in both appearances. Raised surfaces carry a full-strength white
+highlight up-left and a clearly darker shade down-right, with a **small spread**;
+recessed surfaces reverse them inside the edge. Contrast stays at full strength
+at every elevation; only the spread shrinks. It is never the hazy,
+low-contrast, wide-shadow variant.
 
-This covers `apps/marketing`. Tokens live in `src/styles/global.css`; the sidecar
-`.impeccable/design.json` carries shadows, motion, breakpoints and component
-previews.
+There is **no hue**. Every colour is a neutral gray, as in the app. The only
+exceptions are the three status dots (green, orange, yellow), which mean the
+same thing they mean in the app. `scripts/check-neutral.mjs` enforces this in
+`pnpm check`.
+
+Tokens live in `src/styles/global.css`; the sidecar `.impeccable/design.json`
+carries shadows, motion, breakpoints and component previews.
 
 **Key Characteristics:**
 
-- One light source, upper left, on every raised and recessed surface.
-- Layered shadows: a top-edge highlight, a contact shadow, a key shadow and an ambient shadow. Never the symmetric twin-shadow recipe.
-- Curved fills: raised surfaces are lighter at the top, wells darker at the top.
-- A single filled blue key for the primary action; everything else is silver.
-- Engraved grooves, never flat hairlines, to divide content.
+- One light source, top left, on every raised and recessed surface, in light and dark.
+- The page is the app window: `--chrome` around a rounded `--island`; everything sits on the island.
+- Raised: a 1px top-left rim, a shade cast down-right and a white highlight cast up-left.
+- Recessed: inner shade at the top left, inner light at the bottom right.
+- One graphite key for the primary action; everything else is a gray capsule.
+- Engraved grooves (a shade line over a highlight line), never flat hairlines, to divide rows.
+- Light and dark follow the system appearance, like the app's Auto theme.
 
 ## Colors
 
-The palette is the icon's: cool silver, slate ink, and one violet-blue.
+All values are the app's `Color(white:)` levels.
 
-### Primary
+### Surfaces
 
-- **Deep violet-blue** (#3b4bd0): links, selected profile, current page, focus rings. 5.2:1 on the deepest well, 6.1:1 on the highlight.
-- **Key blue** (#5462ef → #4150da): the filled primary key, top to bottom. White label text.
-- **Icon glow** (#6b7aff → #3bc3f4): the caret only. Never text, never a fill larger than a mark.
+| Token                                | Light            | Dark             | App source                                    |
+| ------------------------------------ | ---------------- | ---------------- | --------------------------------------------- |
+| `--chrome`                           | `#f2f2f2` (0.95) | `#363636` (0.21) | `Theme.chromeBackground`                      |
+| `--island`                           | `#e6e6e6` (0.90) | `#262626` (0.15) | `Theme.islandBackground`                      |
+| `--face-top` / `--face-bottom`       | 0.91 / 0.89      | 0.19 / 0.17      | `SoftRaisedSurface` cards, `HomeHero` surface |
+| `--control-top` / `--control-bottom` | 0.93 / 0.89      | 0.215 / 0.18     | `SoftRaisedSurface` controls                  |
+| `--pressed`                          | 0.87             | 0.15             | pressed controls                              |
+| `--well`                             | 0.85             | 0.14             | Home's waveform well, `SoftInsetTrack`        |
+| `--well-soft`                        | 0.89             | 0.14             | shallow `NeumorphicSurface` wells, chips      |
+| `--bar-*`                            | 0.79 → 0.54      | 0.34 → 0.22      | Home's raised waveform bars                   |
+| `--caret-*`                          | 0.52 → 0.30      | 0.62 → 0.42      | Home's caret                                  |
+| `--cap-*`                            | 0.97 → 0.80      | 0.34 → 0.22      | `KeyCap`                                      |
 
-### Neutral
+Gradients run from the top-left corner to the bottom right (`135deg`).
 
-- **Icon silver** (#e6eaf1): the page. Panels fade from **highlight** (#f1f4f9) through **panel mid** (#e8ecf2) to **shade** (#dce1e9).
-- **Well** (#d9dee7 → #e3e7ee): recessed surfaces, chips and the profile track.
-- **Key face** (#f5f7fa → #e2e7ee): silver keys, keycaps, the selected profile and the changelog studs.
-- **Result card** (#f6f8fb → #eceff4): the inserted text once it has lifted.
-- **Slate ink** (#263146): headings and primary text. **Muted slate** (#505c73): supporting text, 4.7:1 or better on every surface. **Quiet slate** (#5f6a80): only the hero's facts line, at 4.5:1 on the page.
-- **HUD** (#2b303a → #1f232b): the recording indicator, matching the app's dark capsule.
-- **Walls** (#e8ecf1 lit → #8f9bb1 shaded): the hero object's sides, mixed by the direction each one faces.
-- Shadows use the shade `rgb(112 126 156 / α)`; highlights use white at varying opacity.
+### Text
+
+- **Ink** (`#222222` / `#dedede`): headings and primary text.
+- **Muted** (`#5c5c5c` / `#a3a3a3`): supporting text; 5.3:1 or better on the island in both appearances.
+- **Quiet** (`#666666` / `#9a9a9a`): only the hero's facts line, 4.6:1 or better.
+
+The app's secondary label colour is lighter; the site darkens it to meet WCAG AA.
+
+### Primary key
+
+Graphite, like the recording pill: `#2b2b2b → #1a1a1a` with white text in light
+mode. On the dark island a graphite key would read as a hole, so dark mode
+inverts it to the high-contrast light key (`#ebebeb → #cccccc`, dark text).
+Either way it is the one achromatic key with the most contrast on the screen.
+
+### Light and shade
+
+| Token                               | Light                 | Dark                 |
+| ----------------------------------- | --------------------- | -------------------- |
+| `--light`                           | white                 | white 9%             |
+| `--shade`                           | black 27%             | black 52.5%          |
+| `--shade-deep` (wells, bars)        | black 32%             | black 75%            |
+| `--rim` (top-left edge)             | white 27%             | white 4.8%           |
+| `--groove-shade` / `--groove-light` | black 13% / white 85% | black 42% / white 9% |
+
+Selection is a neutral gray; focus is a 2px ink outline. Never a hue.
 
 ## Typography
 
-Manrope Variable, self-hosted. Seven sizes and nothing else:
+SF Pro, through the system stack (`-apple-system, BlinkMacSystemFont`), so Mac
+visitors read the app's own face, with SF's optical sizes. Inter Variable is
+self-hosted as the fallback for other systems and is only downloaded where the
+system face is missing. Keycaps, the HUD timer and numbers in the app's rounded
+style use `ui-rounded` where available.
 
-| Step        | Size                                        | Use                                                        |
-| ----------- | ------------------------------------------- | ---------------------------------------------------------- |
-| display     | `clamp(2.25rem, 1.2rem + 4.6vw, 4.5rem)`    | Hero only                                                  |
-| headline    | `clamp(2.125rem, 1.3rem + 2.6vw, 3.125rem)` | Section headings, changelog and 404 titles                 |
-| entry-title | `1.75rem`                                   | Changelog entries                                          |
-| title       | `1.375rem`                                  | Stage, panel and feature titles                            |
-| lead        | `1.0625rem`                                 | Hero and section intros, sample text, disclosure summaries |
-| body        | `0.9375rem`                                 | Paragraphs, actions                                        |
-| label       | `0.8125rem`                                 | Field labels, chips, metadata. The floor: nothing smaller  |
+| Step        | Size                                      | Use                                                       |
+| ----------- | ----------------------------------------- | --------------------------------------------------------- |
+| display     | `clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem)` | Hero only                                                 |
+| headline    | `clamp(2rem, 1.35rem + 2.3vw, 2.875rem)`  | Section, changelog and 404 headings                       |
+| entry-title | `1.625rem`                                | Changelog entries, scene titles                           |
+| title       | `1.25rem`                                 | Tile, plan and card titles                                |
+| lead        | `1.0625rem`                               | Intros, sample text, disclosure summaries                 |
+| body        | `0.9375rem`                               | Paragraphs, actions                                       |
+| label       | `0.8125rem`                               | Field labels, chips, metadata. The floor: nothing smaller |
 
-Tracking is `-0.035em` for display, `-0.03em` for headlines, `-0.02em` for
-titles. Headings balance; paragraphs use `text-wrap: pretty`. Headings are plain
-statements without trailing full stops, except the hero line.
-
-Keycaps use the system face, because Manrope has no ⌃ or ⌥ glyphs.
+Headings are semibold (600) with light negative tracking; actions are medium
+(500), the primary key semibold. Headings balance; paragraphs use
+`text-wrap: pretty`. Headings are plain statements without trailing full stops,
+except the hero line.
 
 ## Layout
 
-Content width is `min(1120px, 100% - 2 × gutter)`. Sections come from the
-`Section` component and the spacing tokens; `first` sections (page headers)
-take `56px` of top padding instead of the section gap, and `narrow` sections
-cap at `800px`. The sample is capped at `1040px`, the changelog at `960px`.
+The page is the app window. The header and footer sit on `--chrome`; every
+page's `<main>` is `.island`, inset `12px` from the window edges (`6px` on
+phones), with `22px` corners, a 1px hairline edge and no shadow. The island
+clips its content (`overflow: clip`, which keeps `position: sticky` working).
 
-The homepage bento is a three-column grid with `20px` gaps and seven tiles in
+Content width inside the island is `min(1120px, 100% - 2 × gutter)`. Sections
+come from the `Section` component and the spacing tokens; `first` sections take
+`56px` of top padding instead of the section gap, and `narrow` sections cap at
+`800px`. The sample is capped at `1040px`, the changelog at `960px`.
+
+The homepage bento is a three-column grid with `24px` gaps and seven tiles in
 a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider story
 pins for about 4.9 viewport heights on screens at least `1000px` wide and
 `700px` tall; everywhere else it stacks.
 
-| Max width | Changes                                                                                                                                                                                               |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `1000px`  | Gutter `32px`, section `128px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks.                                   |
-| `700px`   | Gutter `20px`, section `96px`; sample, bento, provider scenes, footer and changelog stack; the hero object scales to 66%; the price table folds the model under the provider; the HUD shows ten bars. |
-| `560px`   | The header hides Changelog (it stays in the footer).                                                                                                                                                  |
-| `420px`   | Hero and build keys go full width; the header wordmark is `24px` tall and nav gaps tighten to `14px`.                                                                                                 |
+| Max width | Changes                                                                                                                                                                                                         |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks; the hero waveform drops its 12 oldest bars. |
+| `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, provider scenes, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                         |
+| `560px`   | The header shows only the logo, GitHub and Get Airdraft.                                                                                                                                                        |
+| `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                             |
 
 ## Elevation & Depth
 
-Exact values live in `:root` and the sidecar.
+Exact values live in `:root`. They translate `SurfaceShadows` (SwiftUI radius
+r ≈ CSS blur 2r).
 
-- `--lift-panel`: panels. A white top edge, a 1–2px contact shadow, a 14px key shadow and a 36px ambient shadow pulled in with negative spread, plus a tight white counter-light. The white never blooms outside the panel.
-- `--lift-card`: the inserted-text card once lifted.
-- `--lift-key`: silver keys, the selected profile, studs, and the strong vocabulary chip.
-- `--press`: a key while pressed, together with a 1px downward move.
-- `--sink`: wells. `--sink-chip`: chips and the profile track.
-- `--groove`: an engraved line (shade over white) between disclosure rows, privacy rows, price-table rows, support items and the footer.
+- `--raise-hero`: `7px 9px 24px` shade, `-6px -7px 24px` light. The hero card and the featured offer.
+- `--raise-card`: half the spread. Panels, bento tiles, pricing plans, scene cards.
+- `--raise-control`: a quarter. Keys, fields, the inserted-text card, art cards.
+- `--raise-small`: keycaps, disclosure buttons, segmented thumbs, changelog studs.
+- `--edge`: the 1px top-left rim plus a 0.5px hairline, on every raised face.
+- `--sink-hero`: Home's waveform well. `--sink-track`: segmented and wheel tracks. `--sink-soft`: art wells and the waiting result. `--sink-chip`: chips, sockets, the current nav link, disabled keys.
+- `--press`: a key while pressed; it sinks into a well (`--pressed` face).
+- `--groove`: RowDivider, between disclosure, price-table, fund-list and wheel rows, and the bento privacy flow.
 
-Elevation is declared once per element: a shadow, never a border plus a shadow.
+Objects inside a track or well (segmented thumbs, stage fills) keep their light
+and shade clipped inside it. Elevation is declared once per element: a shadow,
+never a border plus a shadow. Increase Contrast (`prefers-contrast: more`) adds
+explicit edges, as in the app.
 
 ## Shapes
 
-Panels `20px`, wells `14px`, keys and the profile track `12px`, chips and
-profile buttons `8px`, keycaps `6px`. The HUD is a full pill. Carets and
-waveform bars use `2px`. Changelog studs are circles.
+Island `22px`, cards `18px` (`Theme.cardRadius`), wells `12px`, fields `10px`,
+keycaps `7px` (large keycaps `12–18px`). Keys, chips, segmented pickers, the
+waveform well and the nav selection are capsules. The HUD is a `20px` rounded
+rectangle, as in the app.
 
 ## Components
 
 Reusable components live in `src/components/ui/`. Build new pages from them;
 `/design/` (unlinked, `noindex`, excluded from the sitemap) shows each one in
-every state.
+every state and the palette in the current appearance.
 
-### Hero object (`HeroPlateau.astro`, `ui/Capsule3D.astro`)
+### Hero card (`HeroCard.astro`, `ui/Waveform.astro`)
 
-The hero is the app icon rebuilt as a solid, not a picture: real CSS 3D
-geometry from `src/data/icon.ts`, which mirrors `scripts/render-app-icon.swift`.
+Home's hero card from the app, without its metrics (the site never shows usage
+counts): a raised card with a faint top-left sheen holding the waveform well,
+then the app's own first-run caption, "Hold ⌃⌥ and speak. Each dictation adds a
+bar." The forty bars are decorative; their heights are a fixed pattern shaped
+like the app's `0.26 + 0.74 × √share` mapping, not data.
 
-- **Body.** A `300px` face; its walls are 44 real faces around the rounded
-  outline (4 sides, 10 facets per corner), `480px` deep, fading to transparent
-  along an eased gradient. Back faces are culled. Each wall's shade comes from
-  `cos(facing + twist)`, so the side facing the upper-left light stays lit as
-  the object turns.
-- **Capsule** (`Capsule3D`). A raised ring whose groove is
-  an actual opening, a floor with contact shading, and bars that stand up from
-  the floor: each bar is a stack of slices whose height is `--lift`.
-- **Pose.** Twisted 30° clockwise and tilted 54° away in a `1500px`
-  perspective. `--tp`/`--xp` (pointer) and `--ts`/`--xs` (scroll) add to the
-  twist and tilt, in unitless degrees.
-- **Stage.** The hero stage is exactly one screen below the header (`100svh`, grows only if the group cannot fit) and centres the object and copy, so the next section is always below the fold. The object is `660px` tall (`560px` at 82% scale on desktop windows under `820px` tall), pulled up `94px` and overlapped `280px` by the hero copy, with a final
-  mask from 72% down. It rises into place on load.
+`Waveform` is the well: `104px` tall (`84px` on phones), raised gray bars up to
+`48px`, and a `60px` graphite caret. Bars grow from 12% on load. Like the app,
+the bars near the pointer grow by up to 28% on a Gaussian two and a half bars
+wide, never past the caret, and the bar under the pointer deepens toward the
+caret's tone (`src/scripts/waveform.ts`). They also rise with the shared voice.
+Narrow screens hide the oldest (leftmost) bars so the newest stay beside the
+caret. With reduced motion the bars are static; only the hover tone changes.
 
 ### Voice (`src/scripts/voice.ts`)
 
 Every `[data-waveform]` listens to one shared "voice": pointer speed and scroll
-speed raise it, it decays when still. Bars rise with it (the hero by up to
-`22px`); the logo's waveform strokes stretch up to 90% with it (`--gain`)
-while its caret stays still; the hero's bars also lean toward the pointer. The
-loop runs only while the voice is audible and a waveform is on screen, and not
-at all with reduced motion. Hovering the logo makes it speak.
+speed raise it, it decays when still. Each `[data-bar]` gets `--gain` (0–1):
+the hero's bars stretch up to 40%; the logo's waveform strokes up to 90% while
+its caret stays still. The loop runs only while the voice is audible and a
+waveform is on screen, and not at all with reduced motion. Hovering the logo
+makes it speak.
 
 ### Brand (`ui/Brand.astro`)
 
 The logo is the app's own outlined wordmark, read at build time from
 `Sources/App/Assets.xcassets/SidebarWordmark.imageset/wordmark.svg` (generated
-by `scripts/render-sidebar-wordmark.swift`): the capsule, waveform and caret as
-round-capped strokes, then lowercase "airdraft" as outlined lettering. It is
-drawn in `currentColor`, ink by default and accent on hover, `27px` tall in the
-header (`24px` below `420px`) and `22px` in the footer. The component splits the
-waveform path into one stroke per bar so the bars can move; the artwork itself
-is never redrawn on the web. The link carries the accessible name.
+by `scripts/render-sidebar-wordmark.swift`, outlined SF Pro): the capsule,
+waveform and caret as round-capped strokes, then lowercase "airdraft". It is
+drawn in ink, `26px` tall in the header (`23px` below `420px`) and `22px` in the
+footer. The component splits the waveform path into one stroke per bar so the
+bars can move; the artwork itself is never redrawn on the web.
 
 ### Button (`ui/Button.astro`)
 
-The site's keys. Renders `<a>` with `href`, otherwise `<button>`.
+The site's keys (`SoftButtonStyle`). Renders `<a>` with `href`, otherwise `<button>`.
 
-| Prop                 | Values                                    | Notes                                                                                                       |
-| -------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `variant`            | `primary`, `secondary` (default), `quiet` | One `primary` in view at a time. `quiet` is an inline text action.                                          |
-| `size`               | `md` (48px), `lg` (52px)                  | `lg` for hero and closing actions.                                                                          |
-| `icon`               | `none`, `right`, `down`, `external`       | Trailing arrow.                                                                                             |
-| `iconOnly` + `label` |                                           | 44px square; `label` is the accessible name and tooltip. Put the SVG in `slot="icon"`.                      |
-| `disabled`           |                                           | Renders a pressed-in, non-interactive `<span aria-disabled>`; use it for actions that aren't available yet. |
+| Prop                 | Values                                    | Notes                                                                                  |
+| -------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| `variant`            | `primary`, `secondary` (default), `quiet` | One `primary` in view at a time. `quiet` is an inline text action.                     |
+| `size`               | `md` (44px), `lg` (48px)                  | `lg` for hero and closing actions.                                                     |
+| `icon`               | `none`, `right`, `down`, `external`       | Trailing arrow.                                                                        |
+| `iconOnly` + `label` |                                           | 44px circle; `label` is the accessible name and tooltip. Put the SVG in `slot="icon"`. |
+| `disabled`           |                                           | Renders a pressed-in, non-interactive `<span aria-disabled>`.                          |
 
-Hover lightens the fill; pressing moves the key down 1px and swaps its shadow
-for `--press`. Focus shows the 2px accent ring.
+Keys are raised capsules. Hover lightens the top of the face; pressing sinks the
+key into a well. Focus shows the 2px ink ring.
 
-### Section, Surface, Chips, Keys, Tag
+### Segmented picker (`.segmented`, `src/scripts/segmented.ts`)
+
+`SoftSegmentedPicker`: raised segments on a recessed capsule track. One raised
+thumb slides to the selected item (`.is-selected` or `aria-pressed="true"`) on
+`SelectionMotion.curve` (`cubic-bezier(0.65, 0, 0.35, 1)`, 360ms), whatever
+changed the selection; its light and shade stay clipped inside the track.
+Without JavaScript the selected item draws its own face. The selected label is
+ink and semibold; the others are muted. Used for the sample's profiles and the
+bento's profile and history graphics.
+
+### Section, Surface, Chips, Keys, Tag, StatusDot
 
 - `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `width="narrow"`. Owns the heading id and spacing.
-- `Surface`: `variant="panel"` (raised) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel.
-- `Chips`: recessed, non-interactive names in ink. `.chip-muted` and `.chip-strong` show a before → after pair.
-- `Keys`: keycaps in the system face; `size="lg"` for feature tiles.
+- `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
+- `Chips`: recessed capsules. `.chip-muted` and `.chip-strong` (raised) show a before → after pair.
+- `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles.
 - `.tag`: a small recessed label.
+- `.status-dot` with `data-tone` `ok` (default), `attention`, `busy` or `inactive`: the only colour on the site.
 
 ### Hud (`ui/Hud.astro`) and the dictation sample
 
-`Hud` is the app's recording pill: white bars and a timer or state. Pass
-`levels` for a still frame. The sample animates it.
+`Hud` is the app's recording pill (`IndicatorPanel`): a graphite rounded
+rectangle with a white top-left rim, holding a small dark inset well of white
+bars, then a timer or state in the rounded face. It stays dark in both
+appearances, as in the app. Pass `levels` for a still frame.
 
-The sample pairs a recessed "What you said" well with a "What Airdraft
-inserts" card, above Run sample, the HUD and a status line that speaks only
-while running. It plays once when mostly on screen: words light up, the HUD
-counts, then shows Decoding and Refining, fillers are struck one at a time, and
-the result card lifts as the text is typed with the icon's caret. Profile
-buttons re-run only the refinement; Stop jumps to the result. Without
-JavaScript the Clean result shows; reduced motion shows it immediately and
-never autoplays. It has no visible heading or badge; its accessible name is
-"Sample dictation", and its field labels ("What you said", "What Airdraft
-inserts") carry it.
+The sample (`DictationPreview.astro`) is a raised panel: a recessed "What you
+said" well and a "What Airdraft inserts" card that waits pressed in and rises
+once typed, above Run sample, the HUD and a status line that speaks only while
+running. It plays once when mostly on screen: words light up, the HUD counts,
+then shows Decoding and Refining, fillers are struck one at a time, and the text
+is typed with an ink caret. Profile buttons re-run only the refinement; Stop
+jumps to the result. Without JavaScript the Clean result shows; reduced motion
+shows it immediately and never autoplays. Its accessible name is "Sample
+dictation".
 
 ### Bento (`ui/BentoTile.astro`)
 
-Every tile has the same anatomy and nothing else: a recessed well `232px` tall
-(`210px` on phones) holding one large graphic, a title at the title step, and
-one line of body text. Tiles are the same panel with the same padding; only the
-span differs (`wide` spans two columns). The graphics are built from the
-system's own parts, never icons: a text field and HUD, big keycaps, the profile
-picker, a vocabulary correction, a history card deck, the refinement fallback,
-and a "This Mac" boundary. Each plays a short loop while on screen
-(`data-art`); without JavaScript they show their final frame.
+Every tile has the same anatomy: a recessed well `232px` tall (`210px` on
+phones) holding one large graphic, a title, and one line of text. Tiles are the
+same raised panel; only the span differs (`wide` spans two columns). The
+graphics are built from the app's own parts, never icons: a raised text field
+and the recording pill, big keycaps that sink when pressed, a segmented profile
+picker, a vocabulary correction, a history card deck, a refinement status chip
+with its status dot (yellow while refining, orange when it fails), and a "This
+Mac" boundary whose signal runs along grooves. Each plays a short loop while on
+screen (`data-art`); without JavaScript they show their final frame.
 
 ### Provider story (`PipelineStory.astro`)
 
 "You choose where each step runs" as six scenes: speech on this Mac, speech in
 the cloud, refinement on this Mac, in the cloud, on your subscription, then
 insertion at the cursor. Each scene is an eyebrow (the step), a short title and
-one line on what leaves the Mac, beside one card. A card holds a single choice:
-provider names only, no model details, on a picker wheel with a recessed
-selection band; the last card shows a vocabulary fix in a text field.
+one line on what leaves the Mac, beside one raised card. A card holds a single
+choice: provider names on a picker wheel whose current name sits in a recessed
+track; the last card shows a vocabulary fix in a raised field. The card's symbol
+sits in a recessed socket.
 
-On desktop the section pins and the cards are solid slabs (six stacked edge
-layers) flying through 3D space. One variable, `--t` on the deck, drives
-everything: each card's distance `--q` from the current scene sets its place
-on a diagonal, its tilt, and its fog. The steps ahead queue toward the upper
-right and sink into the page colour; the current card hops forward, its wheel
-turns through the names as the visitor scrolls; a finished card flies past to
-the lower left. A three-part stepper (Speech, Refinement, Insertion) fills as
-the scenes pass, and the pointer tilts the whole deck. Elsewhere, and with
-reduced motion, copy and card pairs stack with plain lists; on phones the cards
-tip up into place.
+On desktop the section pins and the cards are solid slabs (six edge layers a
+step darker than the face) moving through 3D space. One variable, `--t` on the
+deck, drives everything: each card's distance `--q` from the current scene sets
+its place on a diagonal, its tilt, and how far it has sunk into the island
+colour. The current card's wheel turns as the visitor scrolls; a finished card
+flies past to the lower left. A three-part stepper (Speech, Refinement,
+Insertion) fills like Home's usage tracks: a raised gray fill in a shallow
+inset. The pointer tilts the deck. Elsewhere, and with reduced motion, copy and
+cards stack; on phones the cards tip up into place.
 
 ### Get Airdraft (`GetAirdraft.astro`)
 
 The homepage close: three offers side by side. Build it yourself (Free, build
-instructions), the ready-to-run app in the middle (raised, the page's one
-primary key, "See pricing" until `paidPlan` is set), and Support the project
-(donation, disabled until configured). Prices are set at the display step.
+instructions), the ready-to-run app in the middle (raised with the hero spread,
+the page's one primary key, "See pricing" until `paidPlan` is set), and Support
+the project (donation, disabled until configured).
 
 ### Motion (`src/scripts/story.ts`, GSAP + ScrollTrigger)
 
 One `gsap.matchMedia` context, off entirely with reduced motion:
 
-- Hero: the object tilts toward the pointer (quickTo, 1s), and over the first
-  `900px` of scroll orbits (+22° twist, +14° tilt), sinks `220px` and shrinks to
-  88% while the copy rises `50px`: parallax.
-- Section headings, the sample and bento tiles rise `36–48px` and fade in as
-  they enter; the offers tip up from `-16°`.
+- Section headings, the sample and bento tiles rise `36–48px` and fade in as they enter; the offers tip up from `-16°`.
 - Bento loops play only while their tile is visible.
-- The provider story pins on desktop and flies its cards (see above).
+- The provider story pins on desktop and moves its cards (see above).
 
-Resting CSS is always the final state, so nothing depends on the script to be
-readable.
+The hero card rises once on load (CSS) and its bars grow; it never tilts,
+because its light is fixed at the top left. Resting CSS is always the final
+state, so nothing depends on the script to be readable.
 
 ### Disclosure (`ui/Disclosure.astro`)
 
-Native `details`/`summary` rows inside a well, divided by grooves. Used for
+Native `details`/`summary` rows inside a raised panel, divided by grooves. The
+plus sits in a small raised round button and turns 45° when open. Used for
 pricing questions and support troubleshooting. Answers may include `code`.
 
-### Pricing and support pages
+### Header, footer, pricing, support, changelog
+
+The header sits on the chrome: the Brand logo, then Pricing, Support and
+Changelog as capsule links (the current page sits in a recessed well, like the
+app's sidebar selection), the GitHub icon key and the primary "Get Airdraft" key.
+On phones only the logo, GitHub and Get Airdraft remain. The footer sits on the
+chrome below the island.
 
 Pricing shows three plans: Open source (`$0`, the one primary key), Supporter
 (donation; disabled until a URL exists), and the paid plan from
-`src/data/site.ts` (a well reading "Not announced" until it is set). A well
-table lists cloud speech list prices from `src/data/pricing.ts`, dated.
+`src/data/site.ts` (a recessed well reading "Not announced" until it is set).
+A raised panel lists cloud speech list prices from `src/data/pricing.ts`, dated.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
-project; donation stays disabled until configured.
-
-### Header, footer, changelog
-
-The header starts with the Brand logo, then Pricing, Support, Changelog, the
-GitHub icon key and a primary "Get Airdraft" key to the pricing page. On phones
-only the logo, GitHub and Get Airdraft remain. The footer lists GitHub, build instructions, pricing,
-support, changelog, privacy and an optional license above a groove. The
-changelog runs a pressed groove down the date column with a raised stud per
-entry; Unreleased is an accent chip.
+project. The changelog runs a pressed groove down the date column with a raised
+stud per entry; Unreleased is a recessed chip.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- Do take new colors, light and shapes from the icon renderer.
-- Do keep exactly one filled blue key in view at a time.
+- Do take every value from the app's views (`Theme`, `SoftControls`, `NeumorphicSurface`, `HomeHero`, `IndicatorPanel`) and say which in a comment.
+- Do keep light at the top left in both appearances, and check both.
+- Do keep exactly one primary key in view at a time.
 - Do use the seven type steps and the `0.8125rem` floor.
 - Do keep sample, pricing, license and download claims factual. Hide anything unconfirmed.
 
 ### Don't:
 
-- Don't use the symmetric `9px 9px 24px` twin-shadow recipe, or a 1px border under a soft shadow.
-- Don't color non-interactive text blue.
+- Don't introduce a hue: no blue, violet or cyan text, fills, glows, gradients, focus rings or selection. Status dots are the only colour. `pnpm check` fails otherwise.
+- Don't lower a shadow's contrast to make it subtle; shrink its spread.
+- Don't use wide, low-contrast ambient shadows or blooming white halos.
 - Don't divide content with flat hairlines; use the groove or space.
-- Don't repeat a two-tone headline pattern or add eyebrow labels above headings.
+- Don't tilt or rotate a lit object in a way that contradicts its fixed light (the provider story's slabs are the one deliberate 3D motion).
+- Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.
 - Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.
 - Don't hand-roll a key or section; extend the component instead.
-- Don't put more than one line of text in a bento tile, or a graphic that isn't built from the system's parts.
+- Don't put more than one line of text in a bento tile, or a graphic that isn't built from the app's parts.
 - Don't animate anything that has no resting state in CSS, or ignore reduced motion.
-- Don't publish app renders that contain personal profiles, device names or usage counts.
+- Don't publish app renders that contain personal profiles, device names, history or usage counts.

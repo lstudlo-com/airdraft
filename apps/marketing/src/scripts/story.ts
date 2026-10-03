@@ -1,7 +1,5 @@
 // Scroll storytelling for the homepage, built on GSAP and ScrollTrigger.
 //
-//   hero      the 3D icon tilts toward the pointer; on scroll it orbits,
-//             sinks and falls behind the headline (parallax)
 //   headings  and bento tiles rise into place as they enter
 //   bento     each tile's graphic plays a short loop while it is on screen
 //   pipeline  on desktop the section pins and flies six cards through 3D
@@ -37,49 +35,6 @@ function words(paragraph: HTMLElement) {
   );
   if (caret) paragraph.append(caret);
   return all<HTMLElement>("span:not(.caret)", paragraph);
-}
-
-function hero(fine: boolean) {
-  const section = one("[data-hero]");
-  const plateau = one("[data-plateau]");
-  if (!section || !plateau) return;
-  gsap.set(plateau, { "--tp": 0, "--xp": 0, "--ts": 0, "--xs": 0 });
-
-  // Orbit and sink as the hero scrolls away; the copy moves a little faster.
-  gsap
-    .timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=900",
-        scrub: 0.8,
-      },
-    })
-    .to(
-      plateau,
-      { "--ts": 22, "--xs": 14, y: 220, scale: 0.88, ease: "none" },
-      0,
-    )
-    .to(one("[data-hero-copy]"), { y: -50, ease: "none" }, 0);
-
-  if (!fine) return;
-  const twist = gsap.quickTo(plateau, "--tp", { duration: 1, ease: "power3" });
-  const tilt = gsap.quickTo(plateau, "--xp", { duration: 1, ease: "power3" });
-  const move = (event: PointerEvent) => {
-    const bounds = section.getBoundingClientRect();
-    twist(((event.clientX - bounds.left) / bounds.width - 0.5) * 12);
-    tilt(-((event.clientY - bounds.top) / bounds.height - 0.5) * 10);
-  };
-  const leave = () => {
-    twist(0);
-    tilt(0);
-  };
-  section.addEventListener("pointermove", move);
-  section.addEventListener("pointerleave", leave);
-  return () => {
-    section.removeEventListener("pointermove", move);
-    section.removeEventListener("pointerleave", leave);
-  };
 }
 
 function reveals() {
@@ -187,7 +142,7 @@ const arts: Record<
   profiles(art, timeline) {
     const holder = one(".art-profiles", art)!;
     const outputs: string[] = JSON.parse(holder.dataset.outputs ?? "[]");
-    const items = all("li", art);
+    const items = all("li:not(.segmented-thumb)", art);
     const output = one("[data-output]", art)!;
     [1, 2, 3, 0].forEach((index) => {
       timeline
@@ -226,7 +181,7 @@ const arts: Record<
   history(art, timeline) {
     const deck = one(".art-deck", art)!;
     const texts: string[] = JSON.parse(deck.dataset.texts ?? "[]");
-    const items = all(".art-toggle li", art);
+    const items = all(".art-toggle li:not(.segmented-thumb)", art);
     const text = one("[data-history]", art)!;
     const flip = (index: number) => () => {
       items.forEach((item, position) =>
@@ -247,17 +202,21 @@ const arts: Record<
   },
   fallback(art, timeline) {
     const status = one("[data-status]", art)!;
+    const dot = one(".status-dot", art)!;
+    const chip = status.parentElement!;
     const typed = words(one("[data-typed]", art)!);
     timeline
       .set(typed, { display: "none" })
       .call(() => {
         status.textContent = "Refining…";
+        dot.dataset.tone = "busy";
       })
       .to({}, { duration: 1.3 })
       .call(() => {
         status.textContent = "Refinement failed";
+        dot.dataset.tone = "attention";
       })
-      .to(status, { x: -3, duration: 0.05, repeat: 5, yoyo: true })
+      .to(chip, { x: -3, duration: 0.05, repeat: 5, yoyo: true })
       .to(typed, { display: "inline", duration: 0, stagger: 0.08 }, "+=0.2")
       .to({}, { duration: 2 })
       .to(typed, { autoAlpha: 0, duration: 0.35 })
@@ -458,7 +417,7 @@ media.add(
       boolean
     >;
     if (!motion) return;
-    const cleanups = [hero(fine), desktop ? pipeline(fine) : sceneReveals()];
+    const cleanups = [desktop ? pipeline(fine) : sceneReveals()];
     reveals();
     bento();
     return () => cleanups.forEach((cleanup) => cleanup?.());

@@ -15,7 +15,7 @@ import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
   description="Airdraft is free to build from source. Cloud providers bill you directly, only if you use them."
 >
   <SiteHeader />
-  <main id="main">
+  <main id="main" class="island">
     <Section
       level={1}
       first
@@ -102,7 +102,7 @@ import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
       title="What cloud speech costs"
       intro="Local models cost nothing to run. Cloud providers charge per audio hour on your own account."
     >
-      <Surface variant="well" class="price-table-wrap">
+      <Surface class="price-table-wrap">
         <table class="price-table">
           <thead>
             <tr>
@@ -134,7 +134,7 @@ import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
     </Section>
 
     <Section id="pricing-questions" title="Questions" width="narrow">
-      <div class="question-list well">
+      <div class="question-list panel">
         <Disclosure summary="Is the open-source build limited?">
           <p>No. There are no locked features.</p>
         </Disclosure>

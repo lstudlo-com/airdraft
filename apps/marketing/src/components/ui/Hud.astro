@@ -1,7 +1,8 @@
 ---
 /**
- * The app's recording indicator (IndicatorPanel): white waveform bars, then a
- * timer or a state such as Decoding or Refining. Decorative, so hidden from
+ * The app's recording pill (IndicatorPanel): a graphite capsule holding a small
+ * dark well of white waveform bars, then a timer or a state such as Decoding
+ * or Refining. Always dark, as in the app. Decorative, so hidden from
  * assistive technology. Pass `levels` (0–1) for a still frame.
  */
 interface Props {
@@ -18,10 +19,12 @@ const {
 ---
 
 <div class:list={["hud", className]} aria-hidden="true" data-hud>
-  <span class="hud-bars">
-    {levels.map((level) => (
-      <span style={`--level: ${level}`} />
-    ))}
+  <span class="hud-well">
+    <span class="hud-bars">
+      {levels.map((level) => (
+        <span style={`--level: ${level}`} />
+      ))}
+    </span>
   </span>
   <span class="hud-label" data-hud-label>
     {label}

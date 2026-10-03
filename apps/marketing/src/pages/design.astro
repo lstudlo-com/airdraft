@@ -8,16 +8,47 @@ import Hud from "../components/ui/Hud.astro";
 import Keys from "../components/ui/Keys.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
+import Waveform from "../components/ui/Waveform.astro";
+
+// The app window's grays (global.css :root). Each swatch follows the current
+// appearance.
+const swatches = [
+  ["Chrome", "--chrome"],
+  ["Island", "--island"],
+  ["Card face", "--face-top"],
+  ["Control face", "--control-top"],
+  ["Well", "--well"],
+  ["Bar", "--bar-bottom"],
+  ["Caret", "--caret-bottom"],
+  ["Primary key", "--key-bottom"],
+  ["Ink", "--ink"],
+  ["Muted", "--muted"],
+];
+const levels = [
+  0.4, 0.62, 0.9, 0.55, 0.75, 1, 0.68, 0.48, 0.82, 0.58, 0.36, 0.7,
+];
 ---
 
 <Layout title="Components — Airdraft" noindex>
-  <main id="main">
+  <main id="main" class="island">
     <Section
       level={1}
       first
       title="Components"
-      intro="Everything in src/components/ui, in each state."
+      intro="Everything in src/components/ui, in each state. Switch the system appearance to see dark mode."
     >
+      <div class="ds-group">
+        <h2>Material</h2>
+        <ul class="ds-swatches">
+          {swatches.map(([name, token]) => (
+            <li>
+              <span style={`--swatch: var(${token})`} />
+              {name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div class="ds-group">
         <h2>Button</h2>
         <div class="ds-row">
@@ -68,12 +99,53 @@ import Surface from "../components/ui/Surface.astro";
       </div>
 
       <div class="ds-group">
-        <h2>Chips, keys, tag</h2>
+        <h2>Chips, keys, tag, status</h2>
         <div class="ds-row">
           <Chips items={["Qwen3-ASR", "Soniox", "LM Studio"]} />
+          <span class="chip-strong">Cupertino</span>
           <Keys keys={["⌃", "⌥"]} label="Control Option" />
           <Keys keys={["⌃", "⌥"]} label="Control Option" size="lg" />
           <span class="tag">Sample</span>
+          <span class="chip-muted">
+            <span class="status-dot"></span>Ready
+          </span>
+          <span class="chip-muted">
+            <span class="status-dot" data-tone="attention"></span>Needs setup
+          </span>
+          <span class="chip-muted">
+            <span class="status-dot" data-tone="busy"></span>Checking…
+          </span>
+          <span class="chip-muted">
+            <span class="status-dot" data-tone="inactive"></span>Off
+          </span>
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>Segmented picker</h2>
+        <div class="ds-row">
+          <div class="segmented" role="group" aria-label="Profile">
+            <button type="button" aria-pressed="true">
+              Clean
+            </button>
+            <button type="button" aria-pressed="false">
+              Concise
+            </button>
+            <button type="button" aria-pressed="false">
+              Summary
+            </button>
+          </div>
+          <ul class="segmented" aria-label="Static example">
+            <li>Refined</li>
+            <li class="is-selected">Original</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ds-group">
+        <h2>Waveform</h2>
+        <div class="hero-card ds-wave">
+          <Waveform levels={levels} />
         </div>
       </div>
 
@@ -93,7 +165,7 @@ import Surface from "../components/ui/Surface.astro";
 
       <div class="ds-group">
         <h2>Disclosure</h2>
-        <div class="question-list well">
+        <div class="question-list panel">
           <Disclosure summary="A question" open>
             <p>The answer, in one or two sentences.</p>
           </Disclosure>
@@ -105,3 +177,16 @@ import Surface from "../components/ui/Surface.astro";
     </Section>
   </main>
 </Layout>
+
+<script>
+  // Clicking a segment selects it; the thumb follows (src/scripts/segmented.ts).
+  for (const button of document.querySelectorAll<HTMLButtonElement>(
+    ".segmented > button",
+  )) {
+    button.addEventListener("click", () => {
+      for (const sibling of button.parentElement!.querySelectorAll("button")) {
+        sibling.setAttribute("aria-pressed", String(sibling === button));
+      }
+    });
+  }
+</script>

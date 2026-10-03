@@ -1,382 +1,637 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T19:16:31Z",
+  "generatedAt": "2026-10-03T19:46:14Z",
   "title": "Design System: Airdraft website",
   "extensions": {
     "colorMeta": {
-      "surface": {
+      "chrome": {
         "role": "neutral",
-        "displayName": "Icon silver",
-        "canonical": "oklch(93.6% 0.0104 261.79)",
+        "displayName": "Window chrome",
+        "canonical": "oklch(96.1% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0104 261.79)",
-          "oklch(26% 0.0104 261.79)",
-          "oklch(38% 0.0104 261.79)",
-          "oklch(49% 0.0104 261.79)",
-          "oklch(61% 0.0104 261.79)",
-          "oklch(72% 0.0104 261.79)",
-          "oklch(84% 0.0104 261.79)",
-          "oklch(95% 0.0104 261.79)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "surface-highlight": {
+      "island": {
         "role": "neutral",
-        "displayName": "Silver highlight",
-        "canonical": "oklch(96.6% 0.0074 260.73)",
+        "displayName": "Page island",
+        "canonical": "oklch(92.5% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0074 260.73)",
-          "oklch(26% 0.0074 260.73)",
-          "oklch(38% 0.0074 260.73)",
-          "oklch(49% 0.0074 260.73)",
-          "oklch(61% 0.0074 260.73)",
-          "oklch(72% 0.0074 260.73)",
-          "oklch(84% 0.0074 260.73)",
-          "oklch(95% 0.0074 260.73)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "surface-shade": {
+      "face-top": {
         "role": "neutral",
-        "displayName": "Silver shade",
-        "canonical": "oklch(90.8% 0.0122 259.82)",
+        "displayName": "Card face, top",
+        "canonical": "oklch(93.1% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0122 259.82)",
-          "oklch(26% 0.0122 259.82)",
-          "oklch(38% 0.0122 259.82)",
-          "oklch(49% 0.0122 259.82)",
-          "oklch(61% 0.0122 259.82)",
-          "oklch(72% 0.0122 259.82)",
-          "oklch(84% 0.0122 259.82)",
-          "oklch(95% 0.0122 259.82)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "panel-mid": {
+      "face-bottom": {
         "role": "neutral",
-        "displayName": "Panel silver",
-        "canonical": "oklch(94.2% 0.0092 258.34)",
+        "displayName": "Card face, bottom",
+        "canonical": "oklch(91.6% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0092 258.34)",
-          "oklch(26% 0.0092 258.34)",
-          "oklch(38% 0.0092 258.34)",
-          "oklch(49% 0.0092 258.34)",
-          "oklch(61% 0.0092 258.34)",
-          "oklch(72% 0.0092 258.34)",
-          "oklch(84% 0.0092 258.34)",
-          "oklch(95% 0.0092 258.34)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "well-deep": {
+      "control-top": {
         "role": "neutral",
-        "displayName": "Well deep",
-        "canonical": "oklch(89.9% 0.0134 262.38)",
+        "displayName": "Control face, top",
+        "canonical": "oklch(94.6% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0134 262.38)",
-          "oklch(26% 0.0134 262.38)",
-          "oklch(38% 0.0134 262.38)",
-          "oklch(49% 0.0134 262.38)",
-          "oklch(61% 0.0134 262.38)",
-          "oklch(72% 0.0134 262.38)",
-          "oklch(84% 0.0134 262.38)",
-          "oklch(95% 0.0134 262.38)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "well-shallow": {
+      "control-bottom": {
         "role": "neutral",
-        "displayName": "Well shallow",
-        "canonical": "oklch(92.7% 0.0104 261.79)",
+        "displayName": "Control face, bottom",
+        "canonical": "oklch(91.6% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0104 261.79)",
-          "oklch(26% 0.0104 261.79)",
-          "oklch(38% 0.0104 261.79)",
-          "oklch(49% 0.0104 261.79)",
-          "oklch(61% 0.0104 261.79)",
-          "oklch(72% 0.0104 261.79)",
-          "oklch(84% 0.0104 261.79)",
-          "oklch(95% 0.0104 261.79)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "key-face": {
+      "control-hover-top": {
         "role": "neutral",
-        "displayName": "Key face",
-        "canonical": "oklch(97.5% 0.0045 258.32)",
+        "displayName": "Control hover, top",
+        "canonical": "oklch(96.1% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0045 258.32)",
-          "oklch(26% 0.0045 258.32)",
-          "oklch(38% 0.0045 258.32)",
-          "oklch(49% 0.0045 258.32)",
-          "oklch(61% 0.0045 258.32)",
-          "oklch(72% 0.0045 258.32)",
-          "oklch(84% 0.0045 258.32)",
-          "oklch(95% 0.0045 258.32)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "key-face-shade": {
+      "pressed": {
         "role": "neutral",
-        "displayName": "Key face shade",
-        "canonical": "oklch(92.6% 0.0109 256.70)",
+        "displayName": "Pressed control",
+        "canonical": "oklch(90.1% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0109 256.70)",
-          "oklch(26% 0.0109 256.70)",
-          "oklch(38% 0.0109 256.70)",
-          "oklch(49% 0.0109 256.70)",
-          "oklch(61% 0.0109 256.70)",
-          "oklch(72% 0.0109 256.70)",
-          "oklch(84% 0.0109 256.70)",
-          "oklch(95% 0.0109 256.70)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "key-face-hover": {
+      "well": {
         "role": "neutral",
-        "displayName": "Key face, hover",
-        "canonical": "oklch(98.5% 0.0029 264.54)",
+        "displayName": "Waveform well",
+        "canonical": "oklch(88.5% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0029 264.54)",
-          "oklch(26% 0.0029 264.54)",
-          "oklch(38% 0.0029 264.54)",
-          "oklch(49% 0.0029 264.54)",
-          "oklch(61% 0.0029 264.54)",
-          "oklch(72% 0.0029 264.54)",
-          "oklch(84% 0.0029 264.54)",
-          "oklch(95% 0.0029 264.54)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "key-face-hover-shade": {
+      "well-soft": {
         "role": "neutral",
-        "displayName": "Key face shade, hover",
-        "canonical": "oklch(93.6% 0.0092 258.34)",
+        "displayName": "Shallow well",
+        "canonical": "oklch(91.6% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0092 258.34)",
-          "oklch(26% 0.0092 258.34)",
-          "oklch(38% 0.0092 258.34)",
-          "oklch(49% 0.0092 258.34)",
-          "oklch(61% 0.0092 258.34)",
-          "oklch(72% 0.0092 258.34)",
-          "oklch(84% 0.0092 258.34)",
-          "oklch(95% 0.0092 258.34)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "result-card": {
+      "bar-top": {
         "role": "neutral",
-        "displayName": "Result card",
-        "canonical": "oklch(97.8% 0.0045 258.32)",
+        "displayName": "Waveform bar, top",
+        "canonical": "oklch(83.6% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0045 258.32)",
-          "oklch(26% 0.0045 258.32)",
-          "oklch(38% 0.0045 258.32)",
-          "oklch(49% 0.0045 258.32)",
-          "oklch(61% 0.0045 258.32)",
-          "oklch(72% 0.0045 258.32)",
-          "oklch(84% 0.0045 258.32)",
-          "oklch(95% 0.0045 258.32)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "result-card-shade": {
+      "bar-bottom": {
         "role": "neutral",
-        "displayName": "Result card shade",
-        "canonical": "oklch(95.1% 0.0074 260.73)",
+        "displayName": "Waveform bar, bottom",
+        "canonical": "oklch(63.3% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0074 260.73)",
-          "oklch(26% 0.0074 260.73)",
-          "oklch(38% 0.0074 260.73)",
-          "oklch(49% 0.0074 260.73)",
-          "oklch(61% 0.0074 260.73)",
-          "oklch(72% 0.0074 260.73)",
-          "oklch(84% 0.0074 260.73)",
-          "oklch(95% 0.0074 260.73)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "caret-top": {
+        "role": "neutral",
+        "displayName": "Caret, top",
+        "canonical": "oklch(61.7% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "caret-bottom": {
+        "role": "neutral",
+        "displayName": "Caret, bottom",
+        "canonical": "oklch(42.0% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "cap-top": {
+        "role": "neutral",
+        "displayName": "Keycap, top",
+        "canonical": "oklch(97.6% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "cap-bottom": {
+        "role": "neutral",
+        "displayName": "Keycap, bottom",
+        "canonical": "oklch(84.5% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "key-top": {
+        "role": "primary",
+        "displayName": "Graphite key, top",
+        "canonical": "oklch(28.9% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "key-bottom": {
+        "role": "primary",
+        "displayName": "Graphite key, bottom",
+        "canonical": "oklch(21.8% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "ink": {
         "role": "neutral",
-        "displayName": "Slate ink",
-        "canonical": "oklch(31.3% 0.0408 262.90)",
+        "displayName": "Ink",
+        "canonical": "oklch(25.2% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0408 262.90)",
-          "oklch(26% 0.0408 262.90)",
-          "oklch(38% 0.0408 262.90)",
-          "oklch(49% 0.0408 262.90)",
-          "oklch(61% 0.0408 262.90)",
-          "oklch(72% 0.0408 262.90)",
-          "oklch(84% 0.0408 262.90)",
-          "oklch(95% 0.0408 262.90)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "muted": {
         "role": "neutral",
-        "displayName": "Muted slate",
-        "canonical": "oklch(47.4% 0.0403 263.30)",
+        "displayName": "Muted ink",
+        "canonical": "oklch(47.5% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0403 263.30)",
-          "oklch(26% 0.0403 263.30)",
-          "oklch(38% 0.0403 263.30)",
-          "oklch(49% 0.0403 263.30)",
-          "oklch(61% 0.0403 263.30)",
-          "oklch(72% 0.0403 263.30)",
-          "oklch(84% 0.0403 263.30)",
-          "oklch(95% 0.0403 263.30)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "accent": {
-        "role": "primary",
-        "displayName": "Deep violet-blue",
-        "canonical": "oklch(48.7% 0.2033 271.20)",
+      "quiet": {
+        "role": "neutral",
+        "displayName": "Quiet ink",
+        "canonical": "oklch(51.0% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.2033 271.20)",
-          "oklch(26% 0.2033 271.20)",
-          "oklch(38% 0.2033 271.20)",
-          "oklch(49% 0.2033 271.20)",
-          "oklch(61% 0.2033 271.20)",
-          "oklch(72% 0.2033 271.20)",
-          "oklch(84% 0.2033 271.20)",
-          "oklch(95% 0.2033 271.20)"
-        ]
-      },
-      "key-blue": {
-        "role": "primary",
-        "displayName": "Key blue",
-        "canonical": "oklch(56.7% 0.2098 273.36)",
-        "tonalRamp": [
-          "oklch(15% 0.2098 273.36)",
-          "oklch(26% 0.2098 273.36)",
-          "oklch(38% 0.2098 273.36)",
-          "oklch(49% 0.2098 273.36)",
-          "oklch(61% 0.2098 273.36)",
-          "oklch(72% 0.2098 273.36)",
-          "oklch(84% 0.2098 273.36)",
-          "oklch(95% 0.2098 273.36)"
-        ]
-      },
-      "key-blue-deep": {
-        "role": "primary",
-        "displayName": "Key blue, deep",
-        "canonical": "oklch(50.8% 0.2088 271.79)",
-        "tonalRamp": [
-          "oklch(15% 0.2088 271.79)",
-          "oklch(26% 0.2088 271.79)",
-          "oklch(38% 0.2088 271.79)",
-          "oklch(49% 0.2088 271.79)",
-          "oklch(61% 0.2088 271.79)",
-          "oklch(72% 0.2088 271.79)",
-          "oklch(84% 0.2088 271.79)",
-          "oklch(95% 0.2088 271.79)"
-        ]
-      },
-      "key-blue-hover": {
-        "role": "primary",
-        "displayName": "Key blue, hover",
-        "canonical": "oklch(59.3% 0.2045 273.99)",
-        "tonalRamp": [
-          "oklch(15% 0.2045 273.99)",
-          "oklch(26% 0.2045 273.99)",
-          "oklch(38% 0.2045 273.99)",
-          "oklch(49% 0.2045 273.99)",
-          "oklch(61% 0.2045 273.99)",
-          "oklch(72% 0.2045 273.99)",
-          "oklch(84% 0.2045 273.99)",
-          "oklch(95% 0.2045 273.99)"
-        ]
-      },
-      "key-blue-hover-deep": {
-        "role": "primary",
-        "displayName": "Key blue deep, hover",
-        "canonical": "oklch(52.4% 0.2094 272.17)",
-        "tonalRamp": [
-          "oklch(15% 0.2094 272.17)",
-          "oklch(26% 0.2094 272.17)",
-          "oklch(38% 0.2094 272.17)",
-          "oklch(49% 0.2094 272.17)",
-          "oklch(61% 0.2094 272.17)",
-          "oklch(72% 0.2094 272.17)",
-          "oklch(84% 0.2094 272.17)",
-          "oklch(95% 0.2094 272.17)"
-        ]
-      },
-      "glow-violet": {
-        "role": "primary",
-        "displayName": "Icon glow violet",
-        "canonical": "oklch(63.6% 0.1958 274.57)",
-        "tonalRamp": [
-          "oklch(15% 0.1958 274.57)",
-          "oklch(26% 0.1958 274.57)",
-          "oklch(38% 0.1958 274.57)",
-          "oklch(49% 0.1958 274.57)",
-          "oklch(61% 0.1958 274.57)",
-          "oklch(72% 0.1958 274.57)",
-          "oklch(84% 0.1958 274.57)",
-          "oklch(95% 0.1958 274.57)"
-        ]
-      },
-      "glow-cyan": {
-        "role": "primary",
-        "displayName": "Icon glow cyan",
-        "canonical": "oklch(76.6% 0.1323 227.14)",
-        "tonalRamp": [
-          "oklch(15% 0.1323 227.14)",
-          "oklch(26% 0.1323 227.14)",
-          "oklch(38% 0.1323 227.14)",
-          "oklch(49% 0.1323 227.14)",
-          "oklch(61% 0.1323 227.14)",
-          "oklch(72% 0.1323 227.14)",
-          "oklch(84% 0.1323 227.14)",
-          "oklch(95% 0.1323 227.14)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "hud-top": {
         "role": "neutral",
-        "displayName": "HUD top",
-        "canonical": "oklch(30.9% 0.0193 264.24)",
+        "displayName": "Recording pill, top",
+        "canonical": "oklch(28.9% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0193 264.24)",
-          "oklch(26% 0.0193 264.24)",
-          "oklch(38% 0.0193 264.24)",
-          "oklch(49% 0.0193 264.24)",
-          "oklch(61% 0.0193 264.24)",
-          "oklch(72% 0.0193 264.24)",
-          "oklch(84% 0.0193 264.24)",
-          "oklch(95% 0.0193 264.24)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "hud": {
+      "hud-bottom": {
         "role": "neutral",
-        "displayName": "HUD",
-        "canonical": "oklch(25.6% 0.0162 264.23)",
+        "displayName": "Recording pill, bottom",
+        "canonical": "oklch(21.8% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0162 264.23)",
-          "oklch(26% 0.0162 264.23)",
-          "oklch(38% 0.0162 264.23)",
-          "oklch(49% 0.0162 264.23)",
-          "oklch(61% 0.0162 264.23)",
-          "oklch(72% 0.0162 264.23)",
-          "oklch(84% 0.0162 264.23)",
-          "oklch(95% 0.0162 264.23)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "white": {
+      "hud-well": {
         "role": "neutral",
-        "displayName": "White",
-        "canonical": "oklch(100.0% 0.0000 89.88)",
+        "displayName": "Recording pill well",
+        "canonical": "oklch(19.1% 0.0000 0.00)",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88)",
-          "oklch(26% 0.0000 89.88)",
-          "oklch(38% 0.0000 89.88)",
-          "oklch(49% 0.0000 89.88)",
-          "oklch(61% 0.0000 89.88)",
-          "oklch(72% 0.0000 89.88)",
-          "oklch(84% 0.0000 89.88)",
-          "oklch(95% 0.0000 89.88)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
-      "scrollbar": {
-        "role": "neutral",
-        "displayName": "Scrollbar thumb",
-        "canonical": "oklch(79.3% 0.0235 260.72)",
+      "status-ok": {
+        "role": "status",
+        "displayName": "Status: ready",
+        "canonical": "oklch(73.0% 0.1944 147.44)",
         "tonalRamp": [
-          "oklch(15% 0.0235 260.72)",
-          "oklch(26% 0.0235 260.72)",
-          "oklch(38% 0.0235 260.72)",
-          "oklch(49% 0.0235 260.72)",
-          "oklch(61% 0.0235 260.72)",
-          "oklch(72% 0.0235 260.72)",
-          "oklch(84% 0.0235 260.72)",
-          "oklch(95% 0.0235 260.72)"
+          "oklch(15% 0.1944 147.44)",
+          "oklch(26% 0.1944 147.44)",
+          "oklch(38% 0.1944 147.44)",
+          "oklch(49% 0.1944 147.44)",
+          "oklch(61% 0.1944 147.44)",
+          "oklch(72% 0.1944 147.44)",
+          "oklch(84% 0.1944 147.44)",
+          "oklch(95% 0.1944 147.44)"
+        ]
+      },
+      "status-attention": {
+        "role": "status",
+        "displayName": "Status: needs attention",
+        "canonical": "oklch(76.5% 0.1752 62.57)",
+        "tonalRamp": [
+          "oklch(15% 0.1752 62.57)",
+          "oklch(26% 0.1752 62.57)",
+          "oklch(38% 0.1752 62.57)",
+          "oklch(49% 0.1752 62.57)",
+          "oklch(61% 0.1752 62.57)",
+          "oklch(72% 0.1752 62.57)",
+          "oklch(84% 0.1752 62.57)",
+          "oklch(95% 0.1752 62.57)"
+        ]
+      },
+      "status-busy": {
+        "role": "status",
+        "displayName": "Status: busy",
+        "canonical": "oklch(86.5% 0.1768 90.38)",
+        "tonalRamp": [
+          "oklch(15% 0.1768 90.38)",
+          "oklch(26% 0.1768 90.38)",
+          "oklch(38% 0.1768 90.38)",
+          "oklch(49% 0.1768 90.38)",
+          "oklch(61% 0.1768 90.38)",
+          "oklch(72% 0.1768 90.38)",
+          "oklch(84% 0.1768 90.38)",
+          "oklch(95% 0.1768 90.38)"
+        ]
+      },
+      "dark-chrome": {
+        "role": "neutral",
+        "displayName": "Window chrome (dark)",
+        "canonical": "oklch(33.3% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-island": {
+        "role": "neutral",
+        "displayName": "Page island (dark)",
+        "canonical": "oklch(26.9% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-face-top": {
+        "role": "neutral",
+        "displayName": "Card face, top (dark)",
+        "canonical": "oklch(30.9% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-face-bottom": {
+        "role": "neutral",
+        "displayName": "Card face, bottom (dark)",
+        "canonical": "oklch(28.9% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-control-top": {
+        "role": "neutral",
+        "displayName": "Control face, top (dark)",
+        "canonical": "oklch(33.7% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-control-bottom": {
+        "role": "neutral",
+        "displayName": "Control face, bottom (dark)",
+        "canonical": "oklch(30.1% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-well": {
+        "role": "neutral",
+        "displayName": "Waveform well (dark)",
+        "canonical": "oklch(26.0% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-bar-top": {
+        "role": "neutral",
+        "displayName": "Waveform bar, top (dark)",
+        "canonical": "oklch(45.7% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-bar-bottom": {
+        "role": "neutral",
+        "displayName": "Waveform bar, bottom (dark)",
+        "canonical": "oklch(34.1% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-caret-top": {
+        "role": "neutral",
+        "displayName": "Caret, top (dark)",
+        "canonical": "oklch(69.9% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-caret-bottom": {
+        "role": "neutral",
+        "displayName": "Caret, bottom (dark)",
+        "canonical": "oklch(52.8% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-key-top": {
+        "role": "primary",
+        "displayName": "Graphite key, top (dark)",
+        "canonical": "oklch(94.0% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-key-bottom": {
+        "role": "primary",
+        "displayName": "Graphite key, bottom (dark)",
+        "canonical": "oklch(84.5% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Ink (dark)",
+        "canonical": "oklch(90.1% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Muted ink (dark)",
+        "canonical": "oklch(71.5% 0.0000 0.00)",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       }
     },
@@ -391,19 +646,19 @@
       },
       "entry-title": {
         "displayName": "Entry title",
-        "purpose": "Changelog entry headings."
+        "purpose": "Changelog entries and provider scene titles."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Stage, panel and feature titles."
+        "purpose": "Tile, plan and card titles."
       },
       "lead": {
         "displayName": "Lead",
-        "purpose": "Intros, sample text and FAQ questions."
+        "purpose": "Intros, sample text and disclosure summaries."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Paragraphs and actions."
+        "purpose": "Paragraphs."
       },
       "label": {
         "displayName": "Label",
@@ -413,58 +668,103 @@
         "displayName": "Action",
         "purpose": "Key labels."
       },
-      "keycap": {
-        "displayName": "Keycap",
-        "purpose": "⌃ ⌥ glyphs, which Manrope lacks."
+      "rounded": {
+        "displayName": "Rounded",
+        "purpose": "Keycaps and the recording pill's timer (ui-rounded, as in the app)."
       }
     },
     "shadows": [
       {
-        "name": "lift-panel",
-        "value": "inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(112 126 156 / 0.18), 0 14px 28px -14px rgb(112 126 156 / 0.45), 0 36px 72px -36px rgb(112 126 156 / 0.5), -12px -12px 28px -18px rgb(255 255 255)",
-        "purpose": "Panels: top-edge highlight, contact, key and ambient shadows, tight white counter-light."
+        "name": "edge",
+        "value": "inset 1px 1px 0 rgb(255 255 255 / 0.27), inset 0 0 0 0.5px rgb(0 0 0 / 0.035)",
+        "purpose": "The top-left rim and hairline on every raised face (SoftRaisedSurface)."
       },
       {
-        "name": "lift-card",
-        "value": "inset 0 1px 0 rgb(255 255 255), 0 1px 2px rgb(112 126 156 / 0.22), 0 10px 22px -12px rgb(112 126 156 / 0.55)",
-        "purpose": "The inserted-text card once it lifts."
+        "name": "raise-hero",
+        "value": "7px 9px 24px rgb(0 0 0 / 0.27), -6px -7px 24px rgb(255 255 255)",
+        "purpose": "Home's hero card: the hero card and the featured offer."
       },
       {
-        "name": "lift-key",
-        "value": "inset 0 1px 0 rgb(255 255 255), 0 1px 1px rgb(112 126 156 / 0.3), 0 5px 12px -4px rgb(112 126 156 / 0.5), -4px -4px 10px -6px rgb(255 255 255)",
-        "purpose": "Silver keys, selected profile, studs, strong chip."
+        "name": "raise-card",
+        "value": "4px 5px 14px rgb(0 0 0 / 0.27), -3.5px -4px 14px rgb(255 255 255)",
+        "purpose": "Panels, bento tiles, plans and scene cards: half the hero's spread."
       },
       {
-        "name": "press",
-        "value": "inset 0 2px 4px rgb(112 126 156 / 0.38), inset 0 -1px 0 rgb(255 255 255 / 0.8)",
-        "purpose": "A key while pressed (with a 1px downward move)."
+        "name": "raise-control",
+        "value": "2.5px 3px 8px rgb(0 0 0 / 0.27), -2px -2.5px 8px rgb(255 255 255)",
+        "purpose": "Keys, fields and small cards: a quarter of the spread."
       },
       {
-        "name": "sink",
-        "value": "inset 0 2px 3px rgb(112 126 156 / 0.3), inset 0 12px 20px -14px rgb(112 126 156 / 0.45), inset 0 -1px 0 rgb(255 255 255 / 0.9)",
-        "purpose": "Wells: spoken text, privacy, questions, support, waiting result card."
+        "name": "raise-small",
+        "value": "1.5px 2px 4px rgb(0 0 0 / 0.27), -1px -1.5px 4px rgb(255 255 255)",
+        "purpose": "Keycaps, disclosure buttons, segmented thumbs, studs."
+      },
+      {
+        "name": "sink-hero",
+        "value": "inset 4px 5px 12px rgb(0 0 0 / 0.32), inset -4px -5px 12px rgb(255 255 255)",
+        "purpose": "Home's waveform well."
+      },
+      {
+        "name": "sink-track",
+        "value": "inset 1.5px 2px 5px rgb(0 0 0 / 0.3), inset -1.5px -2px 5px rgb(255 255 255 / 0.9)",
+        "purpose": "Segmented and wheel tracks (SoftInsetTrack)."
+      },
+      {
+        "name": "sink-soft",
+        "value": "inset 2px 2.5px 5px rgb(0 0 0 / 0.22), inset -2px -2.5px 5px rgb(255 255 255)",
+        "purpose": "Art wells and the waiting result card."
       },
       {
         "name": "sink-chip",
-        "value": "inset 0 1px 2px rgb(112 126 156 / 0.34), inset 0 -1px 0 rgb(255 255 255 / 0.85)",
-        "purpose": "Chips and the profile track."
+        "value": "inset 1px 1.5px 3px rgb(0 0 0 / 0.22), inset -1px -1.5px 3px rgb(255 255 255)",
+        "purpose": "Chips, sockets, the current nav link, disabled keys."
+      },
+      {
+        "name": "press",
+        "value": "inset 3px 4px 8px rgb(0 0 0 / 0.27), inset -2.5px -3px 8px rgb(255 255 255)",
+        "purpose": "A key while pressed: it sinks into a well."
       },
       {
         "name": "groove",
-        "value": "inset 0 1px 0 rgb(112 126 156 / 0.26), inset 0 2px 0 rgb(255 255 255 / 0.9)",
-        "purpose": "Engraved divider between rows, features and the footer."
+        "value": "inset 0 1px 0 rgb(0 0 0 / 0.13), inset 0 2px 0 rgb(255 255 255 / 0.85)",
+        "purpose": "RowDivider: a shade line over a highlight line between rows."
       }
     ],
     "motion": [
       {
         "name": "ease-out",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Key presses, card lift, strike-through, disclosure rotation."
+        "purpose": "Key presses, card rise, strike-through, disclosure rotation."
+      },
+      {
+        "name": "selection",
+        "value": "cubic-bezier(0.65, 0, 0.35, 1), 360ms",
+        "purpose": "SelectionMotion.curve: the segmented thumb slides between choices."
       },
       {
         "name": "key-press",
-        "value": "180ms release, 60ms press",
-        "purpose": "Keys move 1px and swap to the pressed shadow."
+        "value": "160ms release, 60ms press",
+        "purpose": "Keys sink into a well while pressed."
+      },
+      {
+        "name": "hero-rise",
+        "value": "900ms ease-out, 24px",
+        "purpose": "The hero card rises once on load."
+      },
+      {
+        "name": "bar-grow",
+        "value": "450ms ease-out from scaleY 0.12, 3ms stagger up to 120ms",
+        "purpose": "Hero bars grow on load, as in the app."
+      },
+      {
+        "name": "magnify",
+        "value": "1 + 0.28 × exp(−d²), d in 2.4 bars; 280ms spring",
+        "purpose": "Bars near the pointer grow, capped at the caret (waveform.ts)."
+      },
+      {
+        "name": "voice",
+        "value": "energy += pointer or scroll speed; ×0.93 per frame",
+        "purpose": "Hero and logo bars rise with visitor movement (voice.ts)."
       },
       {
         "name": "card-lift",
@@ -492,26 +792,6 @@
         "purpose": "Caret after typing; paused while typing."
       },
       {
-        "name": "reduced-motion",
-        "value": "none",
-        "purpose": "No autoplay; result shown immediately; transitions off."
-      },
-      {
-        "name": "voice",
-        "value": "energy += pointer or scroll speed; ×0.93 per frame",
-        "purpose": "3D waveform bars rise with visitor movement (voice.ts)."
-      },
-      {
-        "name": "hero-pointer",
-        "value": "quickTo 1s power3, ±6° twist, ±5° tilt",
-        "purpose": "The hero object leans toward the pointer."
-      },
-      {
-        "name": "hero-orbit",
-        "value": "scrub 0.8 over 900px: +22° twist, +14° tilt, y 220px, scale 0.88",
-        "purpose": "Parallax as the hero scrolls away."
-      },
-      {
         "name": "reveal",
         "value": "y 36–48px, 0.9s power3.out, start top 88–90%",
         "purpose": "Headings, sample, tiles and offers enter."
@@ -523,8 +803,13 @@
       },
       {
         "name": "story-pin",
-        "value": "340vh track, 3 steps, panel swap 0.8s with 12–14° rotateX",
+        "value": "4.9 viewport heights, scrub 0.7",
         "purpose": "Provider story on desktop."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "none",
+        "purpose": "No autoplay; result shown immediately; bars static; transitions off."
       }
     ],
     "breakpoints": [
@@ -533,12 +818,12 @@
         "value": "1000px"
       },
       {
-        "name": "stack",
-        "value": "900px"
-      },
-      {
         "name": "mobile",
         "value": "700px"
+      },
+      {
+        "name": "compact-nav",
+        "value": "560px"
       },
       {
         "name": "narrow",
@@ -551,116 +836,129 @@
       "name": "Brand",
       "kind": "nav",
       "refersTo": "brand",
-      "description": "The logo: the app's outlined wordmark (SidebarWordmark.imageset), in ink; accent on hover.",
+      "description": "The logo: the app's outlined wordmark (SidebarWordmark.imageset, outlined SF Pro), in ink.",
       "html": "<a class=\"ds-brand\" href=\"#\" aria-label=\"Airdraft home\"><svg class=\"ds-wordmark\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 108 24\">\n  <g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9752\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n    <rect x=\"0.9876\" y=\"2.9876\" width=\"38.9039\" height=\"18.0248\" rx=\"9.0124\"/>\n    <path d=\"M10.5495 11.1085 V12.8915 M14.2857 9.5425 V14.4575 M18.022 7.7678 V16.2322 M21.7582 9.2294 V14.7706 M25.4945 10.4821 V13.5179 M30.3297 7.2733 V16.7267\"/>\n  </g>\n  <path fill=\"currentColor\" d=\"M52.0367 18.8797 Q51.1315 18.8797 50.4169 18.5312 Q49.7023 18.1826 49.2907 17.5422 Q48.8791 16.9018 48.8791 16.0359 L48.8791 16.0183 Q48.8791 15.1669 49.2943 14.5579 Q49.7094 13.9489 50.5058 13.6015 Q51.3022 13.2542 52.4375 13.1893 L55.9598 12.9772 L55.9598 14.324 L52.6943 14.533 Q51.7144 14.5893 51.251 14.9462 Q50.7876 15.3031 50.7876 15.941 L50.7876 15.9586 Q50.7876 16.6142 51.2863 16.9827 Q51.785 17.3512 52.5532 17.3512 Q53.264 17.3512 53.8185 17.0671 Q54.373 16.783 54.6916 16.2948 Q55.0102 15.8067 55.0102 15.1921 L55.0102 12.2018 Q55.0102 11.4145 54.5217 10.9965 Q54.0332 10.5784 53.0733 10.5784 Q52.2776 10.5784 51.7733 10.86 Q51.2689 11.1416 51.0981 11.6524 L51.0874 11.6843 L49.2506 11.6843 L49.2594 11.6187 Q49.3725 10.8324 49.8839 10.2453 Q50.3952 9.6582 51.2316 9.3296 Q52.068 9.0009 53.1551 9.0009 Q54.3586 9.0009 55.1961 9.3827 Q56.0337 9.7645 56.4706 10.4803 Q56.9075 11.1961 56.9075 12.1948 L56.9075 18.7174 L55.0102 18.7174 L55.0102 17.3588 L54.8679 17.3588 Q54.5906 17.8394 54.1695 18.1816 Q53.7484 18.5238 53.2112 18.7017 Q52.6741 18.8797 52.0367 18.8797 Z M59.1517 18.7174 L59.1517 9.1825 L61.0614 9.1825 L61.0614 18.7174 Z M60.1135 7.4928 Q59.6261 7.4928 59.2727 7.1434 Q58.9194 6.7939 58.9194 6.307 Q58.9194 5.8113 59.2727 5.4655 Q59.6261 5.1196 60.1135 5.1196 Q60.6096 5.1196 60.9586 5.4655 Q61.3075 5.8113 61.3075 6.307 Q61.3075 6.7939 60.9586 7.1434 Q60.6096 7.4928 60.1135 7.4928 Z M63.3578 18.7174 L63.3578 9.1825 L65.2673 9.1825 L65.2673 10.6321 L65.4096 10.6321 Q65.6659 9.8664 66.306 9.4429 Q66.9462 9.0195 67.8904 9.0195 Q68.1249 9.0195 68.3514 9.0454 Q68.5779 9.0713 68.718 9.1031 L68.718 10.8645 Q68.4694 10.8112 68.2203 10.7834 Q67.9712 10.7556 67.6982 10.7556 Q66.9745 10.7556 66.4272 11.0357 Q65.8799 11.3158 65.5736 11.8237 Q65.2673 12.3317 65.2673 13.0228 L65.2673 18.7174 Z M73.2976 18.8804 Q72.1001 18.8804 71.2094 18.2764 Q70.3188 17.6724 69.8319 16.5652 Q69.3451 15.4579 69.3451 13.9584 L69.3451 13.9412 Q69.3451 12.4317 69.8298 11.3279 Q70.3145 10.2241 71.2008 9.6218 Q72.087 9.0195 73.2967 9.0195 Q73.9521 9.0195 74.5239 9.2262 Q75.0958 9.433 75.5365 9.8062 Q75.9773 10.1795 76.2283 10.6986 L76.3706 10.6986 L76.3706 5.457 L78.2801 5.457 L78.2801 18.7174 L76.3706 18.7174 L76.3706 17.2077 L76.2283 17.2077 Q75.953 17.7329 75.5217 18.1055 Q75.0905 18.4782 74.5284 18.6793 Q73.9662 18.8804 73.2976 18.8804 Z M73.8391 17.2433 Q74.6308 17.2433 75.2062 16.8452 Q75.7816 16.4471 76.0915 15.7093 Q76.4013 14.9715 76.4013 13.9599 L76.4013 13.9427 Q76.4013 12.9228 76.0905 12.1886 Q75.7797 11.4543 75.2044 11.0555 Q74.6292 10.6566 73.8391 10.6566 Q73.0491 10.6566 72.4767 11.0525 Q71.9044 11.4484 71.5987 12.1824 Q71.293 12.9165 71.293 13.9412 L71.293 13.9584 Q71.293 14.9776 71.5986 15.7154 Q71.9042 16.4532 72.4759 16.8483 Q73.0475 17.2433 73.8391 17.2433 Z M80.6323 18.7174 L80.6323 9.1825 L82.5419 9.1825 L82.5419 10.6321 L82.6841 10.6321 Q82.9404 9.8664 83.5805 9.4429 Q84.2207 9.0195 85.165 9.0195 Q85.3994 9.0195 85.6259 9.0454 Q85.8525 9.0713 85.9925 9.1031 L85.9925 10.8645 Q85.744 10.8112 85.4948 10.7834 Q85.2457 10.7556 84.9727 10.7556 Q84.249 10.7556 83.7017 11.0357 Q83.1545 11.3158 82.8482 11.8237 Q82.5419 12.3317 82.5419 13.0228 L82.5419 18.7174 Z M89.896 18.8797 Q88.9907 18.8797 88.2761 18.5312 Q87.5615 18.1826 87.1499 17.5422 Q86.7384 16.9018 86.7384 16.0359 L86.7384 16.0183 Q86.7384 15.1669 87.1535 14.5579 Q87.5687 13.9489 88.365 13.6015 Q89.1614 13.2542 90.2967 13.1893 L93.8191 12.9772 L93.8191 14.324 L90.5535 14.533 Q89.5737 14.5893 89.1102 14.9462 Q88.6468 15.3031 88.6468 15.941 L88.6468 15.9586 Q88.6468 16.6142 89.1455 16.9827 Q89.6443 17.3512 90.4125 17.3512 Q91.1233 17.3512 91.6778 17.0671 Q92.2322 16.783 92.5508 16.2948 Q92.8694 15.8067 92.8694 15.1921 L92.8694 12.2018 Q92.8694 11.4145 92.3809 10.9965 Q91.8925 10.5784 90.9325 10.5784 Q90.1369 10.5784 89.6325 10.86 Q89.1282 11.1416 88.9573 11.6524 L88.9466 11.6843 L87.1098 11.6843 L87.1186 11.6187 Q87.2318 10.8324 87.7431 10.2453 Q88.2545 9.6582 89.0909 9.3296 Q89.9273 9.0009 91.0144 9.0009 Q92.2178 9.0009 93.0554 9.3827 Q93.8929 9.7645 94.3299 10.4803 Q94.7668 11.1961 94.7668 12.1948 L94.7668 18.7174 L92.8694 18.7174 L92.8694 17.3588 L92.7272 17.3588 Q92.4499 17.8394 92.0288 18.1816 Q91.6076 18.5238 91.0705 18.7017 Q90.5333 18.8797 89.896 18.8797 Z M97.6481 18.7174 L97.6481 10.6931 L96.0914 10.6931 L96.0914 9.1825 L97.6481 9.1825 L97.6481 8.1847 Q97.6481 7.2317 97.9699 6.6061 Q98.2917 5.9804 98.9486 5.6718 Q99.6054 5.3632 100.5978 5.3632 Q100.9195 5.3632 101.1973 5.3868 Q101.4752 5.4103 101.724 5.4537 L101.724 6.8546 Q101.5912 6.8302 101.4026 6.8198 Q101.214 6.8094 100.996 6.8094 Q100.2131 6.8094 99.8754 7.1801 Q99.5377 7.5507 99.5377 8.2746 L99.5377 9.1825 L101.6416 9.1825 L101.6416 10.6931 L99.5576 10.6931 L99.5576 18.7174 Z M106.9316 18.7804 Q105.3705 18.7804 104.6735 18.1802 Q103.9764 17.58 103.9764 16.2066 L103.9764 10.6931 L102.4913 10.6931 L102.4913 9.1825 L103.9764 9.1825 L103.9764 6.7817 L105.9291 6.7817 L105.9291 9.1825 L107.9615 9.1825 L107.9615 10.6931 L105.9291 10.6931 L105.9291 15.7603 Q105.9291 16.5247 106.2381 16.863 Q106.5472 17.2014 107.2485 17.2014 Q107.4638 17.2014 107.6143 17.1917 Q107.7647 17.1819 107.9615 17.1646 L107.9615 18.6855 Q107.7381 18.7233 107.4759 18.7519 Q107.2138 18.7804 106.9316 18.7804 Z\"/>\n</svg></a>",
-      "css": ".ds-brand{display:inline-flex;align-items:center;color:#263146;text-decoration:none;transition:color .2s}.ds-brand:hover{color:#3b4bd0}.ds-wordmark{display:block;height:27px;width:auto}.ds-brand:focus-visible{outline:2px solid #3b4bd0;outline-offset:3px;border-radius:6px}"
+      "css": ".ds-brand{display:inline-flex;align-items:center;color:#222;text-decoration:none}.ds-wordmark{display:block;height:26px;width:auto}.ds-brand:focus-visible{outline:2px solid #222;outline-offset:3px}"
     },
     {
       "name": "Primary key",
       "kind": "button",
       "refersTo": "key-primary",
-      "description": "The one filled action per screen; leads to the source repository.",
-      "html": "<a class=\"ds-key-primary\" href=\"#\">View source on GitHub <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" style=\"rotate:-45deg\"><path d=\"M5 12h14m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
-      "css": ".ds-key-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 20px;border:0;border-radius:12px;font-family:\"Manrope Variable\",sans-serif;font-size:.9375rem;font-weight:700;letter-spacing:-.01em;text-decoration:none;cursor:pointer;transition:box-shadow 180ms cubic-bezier(.16,1,.3,1),transform 180ms cubic-bezier(.16,1,.3,1);min-height:52px;padding:0 24px;color:#fff;background:linear-gradient(180deg,#5462ef,#4150da);box-shadow:inset 0 1px 0 rgb(255 255 255/.28),inset 0 -1px 0 rgb(24 32 120/.3),0 1px 1px rgb(40 52 150/.35),0 10px 22px -8px rgb(70 84 225/.6)}.ds-key-primary:hover{background:linear-gradient(180deg,#5d6bf5,#4655e0)}.ds-key-primary:active{transform:translateY(1px);box-shadow:inset 0 2px 5px rgb(20 28 110/.45)}.ds-key-primary:focus-visible{outline:2px solid #3b4bd0;outline-offset:3px}"
+      "description": "The one primary action per screen: graphite, like the recording pill (light key in dark mode).",
+      "html": "<a class=\"ds-key-primary\" href=\"#\">Get Airdraft <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
+      "css": ".ds-key-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;font-size:.9375rem;font-weight:600;text-decoration:none;color:rgb(255 255 255 / .95);background:linear-gradient(135deg,#2b2b2b,#1a1a1a);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .2),2.5px 3px 8px rgb(0 0 0 / .27),-2px -2.5px 8px #fff}.ds-key-primary:hover{background:linear-gradient(135deg,#363636,#222)}.ds-key-primary:active{background:#1a1a1a;box-shadow:inset 2px 3px 6px rgb(0 0 0 / .55)}.ds-key-primary:focus-visible{outline:2px solid #222;outline-offset:3px}"
     },
     {
-      "name": "Silver key",
+      "name": "Key",
       "kind": "button",
       "refersTo": "key",
-      "description": "Secondary actions, Run sample, and the header's GitHub icon key.",
+      "description": "SoftButtonStyle: a raised gray capsule that sinks into a well while pressed.",
       "html": "<a class=\"ds-key\" href=\"#\">Build instructions <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" style=\"rotate:-45deg\"><path d=\"M5 12h14m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
-      "css": ".ds-key{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 20px;border:0;border-radius:12px;font-family:\"Manrope Variable\",sans-serif;font-size:.9375rem;font-weight:700;letter-spacing:-.01em;text-decoration:none;cursor:pointer;transition:box-shadow 180ms cubic-bezier(.16,1,.3,1),transform 180ms cubic-bezier(.16,1,.3,1);color:#263146;background:linear-gradient(180deg,#f5f7fa,#e2e7ee);box-shadow:inset 0 1px 0 rgb(255 255 255), 0 1px 1px rgb(112 126 156 / 0.3), 0 5px 12px -4px rgb(112 126 156 / 0.5), -4px -4px 10px -6px rgb(255 255 255)}.ds-key:hover{color:#3b4bd0;background:linear-gradient(180deg,#f9fafc,#e6eaf0)}.ds-key:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgb(112 126 156 / 0.38), inset 0 -1px 0 rgb(255 255 255 / 0.8)}.ds-key:focus-visible{outline:2px solid #3b4bd0;outline-offset:3px}"
+      "css": ".ds-key{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;font-size:.9375rem;font-weight:500;text-decoration:none;color:#222;background:linear-gradient(135deg,#ededed,#e3e3e3);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .27),inset 0 0 0 .5px rgb(0 0 0 / .035),2.5px 3px 8px rgb(0 0 0 / .27),-2px -2.5px 8px #fff}.ds-key:hover{background:linear-gradient(135deg,#f2f2f2,#e3e3e3)}.ds-key:active{background:#dedede;box-shadow:inset 3px 4px 8px rgb(0 0 0 / .27),inset -2.5px -3px 8px #fff}.ds-key:focus-visible{outline:2px solid #222;outline-offset:3px}"
     },
     {
       "name": "Raised panel",
       "kind": "card",
       "refersTo": "panel",
-      "description": "The icon body: sample, pipeline stages and requirements.",
-      "html": "<article class=\"ds-panel\"><h3>Speech to text</h3><p>On this Mac</p></article>",
-      "css": ".ds-panel{font-family:\"Manrope Variable\",sans-serif;width:280px;padding:28px;border-radius:20px;color:#263146;background:linear-gradient(165deg,#f1f4f9 0%,#e8ecf2 55%,#dce1e9 100%);box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(112 126 156 / 0.18), 0 14px 28px -14px rgb(112 126 156 / 0.45), 0 36px 72px -36px rgb(112 126 156 / 0.5), -12px -12px 28px -18px rgb(255 255 255)}.ds-panel h3{margin:0;font-size:1.375rem;font-weight:650;letter-spacing:-.02em}.ds-panel p{margin:18px 0 0;font-size:.8125rem;font-weight:650;color:#505c73}"
+      "description": "SoftRaisedSurface at card elevation: tiles, plans, lists and tables.",
+      "html": "<div class=\"ds-panel\">Panel</div>",
+      "css": ".ds-panel{padding:28px;border-radius:18px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;color:#222;background:linear-gradient(135deg,#e8e8e8,#e3e3e3);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .27),inset 0 0 0 .5px rgb(0 0 0 / .035),4px 5px 14px rgb(0 0 0 / .27),-3.5px -4px 14px #fff}"
     },
     {
       "name": "Well",
       "kind": "card",
       "refersTo": "well",
-      "description": "The icon's pressed track: spoken text, privacy, questions, support.",
-      "html": "<div class=\"ds-well\"><span>What you said</span><p>“Um, let Maya know I’ll send the draft tomorrow morning.”</p></div>",
-      "css": ".ds-well{font-family:\"Manrope Variable\",sans-serif;width:320px;padding:22px;border-radius:14px;color:#263146;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 2px 3px rgb(112 126 156 / 0.3), inset 0 12px 20px -14px rgb(112 126 156 / 0.45), inset 0 -1px 0 rgb(255 255 255 / 0.9)}.ds-well span{font-size:.8125rem;font-weight:650;color:#505c73}.ds-well p{margin:10px 0 0;font-size:1.0625rem;font-weight:500;line-height:1.7}"
+      "description": "A recessed surface: art wells, the waiting result, unavailable plans.",
+      "html": "<div class=\"ds-well\">Well</div>",
+      "css": ".ds-well{padding:28px;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;color:#222;background:#e3e3e3;box-shadow:inset 2px 2.5px 5px rgb(0 0 0 / .22),inset -2px -2.5px 5px #fff}"
     },
     {
-      "name": "Provider chip",
+      "name": "Waveform",
+      "kind": "custom",
+      "refersTo": "waveform",
+      "description": "Home's waveform: raised gray bars in a pressed capsule well, ending in the graphite caret.",
+      "html": "<div class=\"ds-wave\"><i style=\"height:20px\"></i><i style=\"height:30px\"></i><i style=\"height:44px\"></i><i style=\"height:28px\"></i><i style=\"height:36px\"></i><i style=\"height:48px\"></i><i style=\"height:32px\"></i><i style=\"height:24px\"></i><i style=\"height:40px\"></i><i style=\"height:26px\"></i><b></b></div>",
+      "css": ".ds-wave{display:flex;align-items:center;justify-content:center;gap:10px;height:104px;padding:0 40px;border-radius:999px;background:#d9d9d9;box-shadow:inset 4px 5px 12px rgb(0 0 0 / .32),inset -4px -5px 12px #fff}.ds-wave i{width:7px;border-radius:999px;background:linear-gradient(135deg,#c9c9c9,#8a8a8a);box-shadow:1.5px 2.5px 5px rgb(0 0 0 / .32),-1px -1.5px 4px #fff}.ds-wave b{width:8px;height:60px;margin-left:6px;border-radius:4px;background:linear-gradient(135deg,#858585,#4d4d4d);box-shadow:1.5px 2.5px 5px rgb(0 0 0 / .32),-1px -1.5px 4px #fff}"
+    },
+    {
+      "name": "Segmented picker",
+      "kind": "custom",
+      "refersTo": "segmented",
+      "description": "SoftSegmentedPicker: a raised thumb on a recessed capsule track.",
+      "html": "<div class=\"ds-seg\"><span class=\"on\">Clean</span><span>Concise</span><span>Summary</span></div>",
+      "css": ".ds-seg{display:inline-flex;padding:3px;border-radius:999px;background:#d9d9d9;box-shadow:inset 1.5px 2px 5px rgb(0 0 0 / .3),inset -1.5px -2px 5px rgb(255 255 255 / .9);font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;font-size:.8125rem}.ds-seg span{display:grid;place-items:center;min-height:32px;padding:0 14px;border-radius:999px;color:#5c5c5c}.ds-seg .on{color:#222;font-weight:600;background:linear-gradient(135deg,#ededed,#e3e3e3);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .27),1.5px 2px 4px rgb(0 0 0 / .27),-1px -1.5px 4px #fff}"
+    },
+    {
+      "name": "Chip",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Recessed, non-interactive provider and requirement names.",
-      "html": "<span class=\"ds-chip\">Qwen3-ASR</span> <span class=\"ds-chip\">Whisper Large v3 Turbo</span>",
-      "css": ".ds-chip{font-family:\"Manrope Variable\",sans-serif;display:inline-block;padding:6px 10px;border-radius:8px;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 1px 2px rgb(112 126 156 / 0.34), inset 0 -1px 0 rgb(255 255 255 / 0.85);font-size:.8125rem;font-weight:600;color:#263146}"
-    },
-    {
-      "name": "Profile picker",
-      "kind": "custom",
-      "refersTo": "profile-selected",
-      "description": "Recessed track with a raised selected profile.",
-      "html": "<div class=\"ds-picker\" role=\"group\"><button aria-pressed=\"true\">Clean</button><button aria-pressed=\"false\">Concise</button><button aria-pressed=\"false\">Summary</button></div>",
-      "css": ".ds-picker{display:inline-flex;gap:2px;padding:4px;border-radius:12px;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 1px 2px rgb(112 126 156 / 0.34), inset 0 -1px 0 rgb(255 255 255 / 0.85)}.ds-picker button{font-family:\"Manrope Variable\",sans-serif;min-height:34px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:#505c73;font-size:.8125rem;font-weight:650;cursor:pointer}.ds-picker button:hover{color:#263146}.ds-picker button[aria-pressed=true]{color:#3b4bd0;background:linear-gradient(180deg,#f5f7fa,#e2e7ee);box-shadow:inset 0 1px 0 #fff,0 1px 2px rgb(112 126 156/.35),0 3px 6px -2px rgb(112 126 156/.4)}.ds-picker button:focus-visible{outline:2px solid #3b4bd0;outline-offset:3px}"
+      "description": "Recessed, non-interactive names; with a status dot for state.",
+      "html": "<span class=\"ds-chip\"><i></i>Refinement failed</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;font-size:.8125rem;font-weight:500;color:#5c5c5c;background:#e3e3e3;box-shadow:inset 1px 1.5px 3px rgb(0 0 0 / .22),inset -1px -1.5px 3px #fff}.ds-chip i{width:8px;height:8px;border-radius:50%;background:#ff9500}"
     },
     {
       "name": "Recording HUD",
       "kind": "custom",
       "refersTo": "hud",
-      "description": "Copy of the app's IndicatorPanel: waveform, then timer, Decoding or Refining.",
-      "html": "<div class=\"ds-hud\"><span class=\"ds-hud-bars\"><i style=\"transform:scaleY(0.3)\"></i><i style=\"transform:scaleY(0.6)\"></i><i style=\"transform:scaleY(0.9)\"></i><i style=\"transform:scaleY(0.5)\"></i><i style=\"transform:scaleY(1)\"></i><i style=\"transform:scaleY(0.7)\"></i><i style=\"transform:scaleY(0.4)\"></i><i style=\"transform:scaleY(0.8)\"></i><i style=\"transform:scaleY(0.55)\"></i><i style=\"transform:scaleY(0.3)\"></i></span><span>0:03.5</span></div>",
-      "css": ".ds-hud{font-family:\"Manrope Variable\",sans-serif;display:inline-flex;align-items:center;gap:12px;height:40px;padding:0 16px 0 14px;border-radius:999px;color:#fff;background:linear-gradient(180deg,#2b303a,#1f232b);box-shadow:inset 0 1px 0 rgb(255 255 255/.1),0 8px 18px -8px rgb(20 24 34/.55);font-size:.8125rem;font-weight:650;font-variant-numeric:tabular-nums}.ds-hud-bars{display:flex;align-items:center;gap:3px;height:22px}.ds-hud-bars i{display:block;width:3px;height:22px;border-radius:2px;background:#fff}"
+      "description": "The app's recording pill (IndicatorPanel): graphite, with a dark inset well of white bars and a rounded timer.",
+      "html": "<div class=\"ds-hud\"><span class=\"ds-hud-well\"><i style=\"height:6px\"></i><i style=\"height:12px\"></i><i style=\"height:18px\"></i><i style=\"height:10px\"></i><i style=\"height:20px\"></i><i style=\"height:14px\"></i><i style=\"height:8px\"></i><i style=\"height:16px\"></i><i style=\"height:11px\"></i><i style=\"height:5px\"></i></span><span>0:03.5</span></div>",
+      "css": ".ds-hud{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:20px;color:rgb(255 255 255 / .95);background:linear-gradient(135deg,#2b2b2b,#1a1a1a);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .2),2px 3px 8px rgb(0 0 0 / .3);font:500 .9375rem/1 ui-rounded,-apple-system,sans-serif;font-variant-numeric:tabular-nums}.ds-hud-well{display:flex;align-items:center;gap:2.5px;height:28px;padding:0 8px;border-radius:999px;background:#141414;box-shadow:inset 1px 1.5px 3px rgb(0 0 0 / .65),inset -1px -1px 3px rgb(255 255 255 / .1)}.ds-hud-well i{width:3px;border-radius:2px;background:rgb(255 255 255 / .92)}"
     },
     {
       "name": "Keycap",
       "kind": "custom",
-      "description": "Shortcut glyphs in the system face.",
-      "html": "<span class=\"ds-keys\"><kbd>⌃</kbd><kbd>⌥</kbd></span>",
-      "css": ".ds-keys{display:inline-flex;gap:4px}.ds-keys kbd{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 6px;border-radius:6px;background:linear-gradient(180deg,#f5f7fa,#e2e7ee);box-shadow:inset 0 1px 0 #fff,0 1px 1px rgb(112 126 156/.4),0 2px 4px -1px rgb(112 126 156/.45);color:#263146;font:500 .9375rem/1 -apple-system,BlinkMacSystemFont,sans-serif}"
+      "description": "KeyCap: raised, lit from the top left, in the rounded system face.",
+      "html": "<kbd class=\"ds-kbd\">⌃</kbd> <kbd class=\"ds-kbd\">⌥</kbd>",
+      "css": ".ds-kbd{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 7px;border-radius:7px;background:linear-gradient(135deg,#f7f7f7,#ccc);box-shadow:inset .75px .75px 0 rgb(255 255 255 / .27),1.5px 2px 4px rgb(0 0 0 / .27),-1px -1.5px 4px #fff;color:#222;font:500 .8125rem/1 ui-rounded,-apple-system,sans-serif}"
     },
     {
       "name": "Disabled key",
       "kind": "button",
       "refersTo": "key",
-      "description": "An action that isn't available yet: pressed in, muted, not focusable.",
-      "html": "<span class=\"ds-key-disabled\" aria-disabled=\"true\">Not set up yet</span>",
-      "css": ".ds-key-disabled{font-family:\"Manrope Variable\",sans-serif;display:inline-flex;align-items:center;min-height:48px;padding:0 20px;border-radius:12px;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 1px 2px rgb(112 126 156/.34),inset 0 -1px 0 rgb(255 255 255/.85);color:#505c73;font-size:.9375rem;font-weight:700;cursor:not-allowed}"
-    },
-    {
-      "name": "Tag",
-      "kind": "chip",
-      "description": "Small recessed label, such as Sample.",
-      "html": "<span class=\"ds-tag\">Sample</span>",
-      "css": ".ds-tag{font-family:\"Manrope Variable\",sans-serif;display:inline-block;padding:3px 8px;border-radius:8px;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 1px 2px rgb(112 126 156/.34),inset 0 -1px 0 rgb(255 255 255/.85);color:#505c73;font-size:.8125rem;font-weight:600}"
+      "description": "An action that isn't available yet: pressed in and muted.",
+      "html": "<span class=\"ds-key-off\" aria-disabled=\"true\">Donations not set up yet</span>",
+      "css": ".ds-key-off{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;font-size:.9375rem;font-weight:500;color:#5c5c5c;background:#e3e3e3;box-shadow:inset 1px 1.5px 3px rgb(0 0 0 / .22),inset -1px -1.5px 3px #fff;cursor:not-allowed}"
     },
     {
       "name": "Disclosure",
       "kind": "custom",
-      "description": "Question rows in a well, divided by grooves.",
-      "html": "<div class=\"ds-q\"><details open><summary>Is the open-source build limited?</summary><p>No. There are no locked features.</p></details><details><summary>Do I need an API key?</summary><p>Only for cloud providers.</p></details></div>",
-      "css": ".ds-q{font-family:\"Manrope Variable\",sans-serif;width:420px;padding:4px 24px;border-radius:14px;background:linear-gradient(180deg,#d9dee7,#e3e7ee);box-shadow:inset 0 2px 3px rgb(112 126 156/.3),inset 0 -1px 0 rgb(255 255 255/.9);color:#263146}.ds-q details+details{box-shadow:inset 0 1px 0 rgb(112 126 156/.26),inset 0 2px 0 rgb(255 255 255/.9)}.ds-q summary{padding:16px 0;font-size:1.0625rem;font-weight:650;cursor:pointer;list-style:none}.ds-q summary:hover{color:#3b4bd0}.ds-q p{margin:0 0 16px;font-size:.9375rem;line-height:1.7;color:#505c73}"
+      "description": "Question rows inside a raised panel, divided by grooves; the plus sits in a small raised button.",
+      "html": "<div class=\"ds-disc\"><details open><summary>A question <span>+</span></summary><p>The answer, in one or two sentences.</p></details><details><summary>Another question <span>+</span></summary></details></div>",
+      "css": ".ds-disc{padding:4px 24px;border-radius:18px;font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Inter Variable\",sans-serif;color:#222;background:linear-gradient(135deg,#e8e8e8,#e3e3e3);box-shadow:inset 1px 1px 0 rgb(255 255 255 / .27),inset 0 0 0 .5px rgb(0 0 0 / .035),4px 5px 14px rgb(0 0 0 / .27),-3.5px -4px 14px #fff}.ds-disc details+details{box-shadow:inset 0 1px 0 rgb(0 0 0 / .13),inset 0 2px 0 rgb(255 255 255 / .85)}.ds-disc summary{display:flex;justify-content:space-between;align-items:center;min-height:64px;font-size:1.0625rem;font-weight:500;list-style:none;cursor:pointer}.ds-disc summary span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#5c5c5c;background:linear-gradient(135deg,#ededed,#e3e3e3);box-shadow:1.5px 2px 4px rgb(0 0 0 / .27),-1px -1.5px 4px #fff}.ds-disc p{padding-bottom:22px;color:#5c5c5c}"
     }
   ],
   "narrative": {
-    "northStar": "The icon, built out into a page",
-    "overview": "Every surface on the site comes from the app icon rendered by\n`scripts/render-app-icon.swift`: a silver body lit from the upper left, a raised\npill with a pressed track inside it, a waveform warming from gray to violet, and\na glowing caret where text lands. The page reuses those objects literally. Panels\nare the body, wells are the track, keys are the pill, and the violet-to-cyan\ngradient appears only where the icon uses it: the caret and waveform.\n\nDepth carries meaning. What you said sits in a well; what Airdraft inserts is\npressed in while it waits and lifts out once it is typed. The one filled blue key\non each screen is the one action that matters. The HUD in the sample is a copy of\nthe app's own recording indicator, not an illustration.\n\nThis covers `apps/marketing`. Tokens live in `src/styles/global.css`; the sidecar\n`.impeccable/design.json` carries shadows, motion, breakpoints and component\npreviews.",
+    "northStar": "The app window, not the icon",
+    "overview": "The website uses the native app's own material, translated value for value from\n`Sources/App/Views` (`Theme`, `SoftControls`, `NeumorphicSurface`,\n`SurfaceShadows`, `HomeHero`, `IndicatorPanel`). A visitor who opens Airdraft\nafter the site should recognise every surface: the light gray chrome around a\nrounded mid-tone island, raised cards and capsule keys, pressed wells, Home's\nwaveform, the graphite recording pill.\n\nIt is neumorphism of a specific kind: hardware-like and crisp. Light comes from\nthe top left in both appearances. Raised surfaces carry a full-strength white\nhighlight up-left and a clearly darker shade down-right, with a **small spread**;\nrecessed surfaces reverse them inside the edge. Contrast stays at full strength\nat every elevation; only the spread shrinks. It is never the hazy,\nlow-contrast, wide-shadow variant.\n\nThere is **no hue**. Every colour is a neutral gray, as in the app. The only\nexceptions are the three status dots (green, orange, yellow), which mean the\nsame thing they mean in the app. `scripts/check-neutral.mjs` enforces this in\n`pnpm check`.\n\nTokens live in `src/styles/global.css`; the sidecar `.impeccable/design.json`\ncarries shadows, motion, breakpoints and component previews.",
     "keyCharacteristics": [
-      "One light source, upper left, on every raised and recessed surface.",
-      "Layered shadows: a top-edge highlight, a contact shadow, a key shadow and an ambient shadow. Never the symmetric twin-shadow recipe.",
-      "Curved fills: raised surfaces are lighter at the top, wells darker at the top.",
-      "A single filled blue key for the primary action; everything else is silver.",
-      "Engraved grooves, never flat hairlines, to divide content."
+      "One light source, top left, on every raised and recessed surface, in light and dark.",
+      "The page is the app window: `--chrome` around a rounded `--island`; everything sits on the island.",
+      "Raised: a 1px top-left rim, a shade cast down-right and a white highlight cast up-left.",
+      "Recessed: inner shade at the top left, inner light at the bottom right.",
+      "One graphite key for the primary action; everything else is a gray capsule.",
+      "Engraved grooves (a shade line over a highlight line), never flat hairlines, to divide rows.",
+      "Light and dark follow the system appearance, like the app's Auto theme."
     ],
     "rules": [
       {
         "name": "The one-light rule",
-        "body": "Every raised and recessed surface is lit from the upper left, as in the icon.",
+        "body": "Every raised and recessed surface is lit from the top left, in light and dark, as in the app.",
         "section": "elevation"
       },
       {
-        "name": "The one-key rule",
-        "body": "Exactly one filled blue key in view; everything else is silver.",
+        "name": "The no-hue rule",
+        "body": "Neutral grays only; the app's status dots are the one exception. pnpm check enforces it.",
         "section": "colors"
+      },
+      {
+        "name": "The one-key rule",
+        "body": "Exactly one graphite primary key in view; everything else is a gray capsule.",
+        "section": "colors"
+      },
+      {
+        "name": "The spread rule",
+        "body": "Elevations differ by spread, never by contrast.",
+        "section": "elevation"
       },
       {
         "name": "The 13px floor",
@@ -674,21 +972,24 @@
       }
     ],
     "dos": [
-      "Do take new colors, light and shapes from the icon renderer.",
-      "Do keep exactly one filled blue key in view at a time.",
+      "Do take every value from the app's views (`Theme`, `SoftControls`, `NeumorphicSurface`, `HomeHero`, `IndicatorPanel`) and say which in a comment.",
+      "Do keep light at the top left in both appearances, and check both.",
+      "Do keep exactly one primary key in view at a time.",
       "Do use the seven type steps and the `0.8125rem` floor.",
       "Do keep sample, pricing, license and download claims factual. Hide anything unconfirmed."
     ],
     "donts": [
-      "Don't use the symmetric `9px 9px 24px` twin-shadow recipe, or a 1px border under a soft shadow.",
-      "Don't color non-interactive text blue.",
+      "Don't introduce a hue: no blue, violet or cyan text, fills, glows, gradients, focus rings or selection. Status dots are the only colour. `pnpm check` fails otherwise.",
+      "Don't lower a shadow's contrast to make it subtle; shrink its spread.",
+      "Don't use wide, low-contrast ambient shadows or blooming white halos.",
       "Don't divide content with flat hairlines; use the groove or space.",
-      "Don't repeat a two-tone headline pattern or add eyebrow labels above headings.",
-      "Don't publish app renders that contain personal profiles, device names or usage counts.",
+      "Don't tilt or rotate a lit object in a way that contradicts its fixed light (the provider story's slabs are the one deliberate 3D motion).",
+      "Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.",
       "Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.",
       "Don't hand-roll a key or section; extend the component instead.",
-      "Don't put more than one line of text in a bento tile, or a graphic that isn't built from the system's parts.",
-      "Don't animate anything that has no resting state in CSS, or ignore reduced motion."
+      "Don't put more than one line of text in a bento tile, or a graphic that isn't built from the app's parts.",
+      "Don't animate anything that has no resting state in CSS, or ignore reduced motion.",
+      "Don't publish app renders that contain personal profiles, device names, history or usage counts."
     ]
   }
 }

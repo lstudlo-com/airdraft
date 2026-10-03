@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Arrow from "../components/Arrow.astro";
 import DictationPreview from "../components/DictationPreview.astro";
 import GetAirdraft from "../components/GetAirdraft.astro";
-import HeroPlateau from "../components/HeroPlateau.astro";
+import HeroCard from "../components/HeroCard.astro";
 import PipelineStory from "../components/PipelineStory.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
@@ -29,12 +29,11 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 <Layout>
   <SiteHeader />
 
-  <main id="main">
+  <main id="main" class="island">
     <section class="hero wrap" aria-labelledby="hero-heading" data-hero>
-      <!-- Exactly one screen tall at every size: the first view is the object
-           and the copy, nothing else. -->
+      <!-- Exactly one screen tall at every size: the first view is the copy
+           and Home's waveform card, nothing else. -->
       <div class="hero-stage">
-        <HeroPlateau />
         <div class="hero-copy" data-hero-copy>
           <h1 id="hero-heading">
             <span>The Mac transcription app</span> <span>you own.</span>
@@ -55,6 +54,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
             <li>macOS 15+ on Apple silicon</li>
           </ul>
         </div>
+        <HeroCard />
       </div>
 
       <DictationPreview />
@@ -93,7 +93,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           caption="Four built in. Rewrite any of them."
         >
           <div class="art-profiles" data-outputs={JSON.stringify(outputs)}>
-            <ul class="profile-picker">
+            <ul class="segmented">
               {profiles.map((profile, index) => (
                 <li class:list={[index === 0 && "is-selected"]}>{profile}</li>
               ))}
@@ -132,7 +132,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
             <span class="art-card art-card-back"></span>
             <span class="art-card art-card-mid"></span>
             <div class="art-card art-card-front">
-              <ul class="profile-picker art-toggle">
+              <ul class="segmented art-toggle">
                 <li class="is-selected">Refined</li>
                 <li>Original</li>
               </ul>
@@ -147,8 +147,9 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           caption="If cleanup fails, the raw text goes in."
         >
           <div class="art-fallback">
-            <span class="chip-muted" data-status>
-              Refinement failed
+            <span class="chip-muted">
+              <span class="status-dot" data-tone="attention"></span>
+              <span data-status>Refinement failed</span>
             </span>
             <div class="art-field">
               <p data-typed>
