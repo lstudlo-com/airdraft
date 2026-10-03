@@ -3,7 +3,7 @@ name: Airdraft native macOS
 description: Compact navigation and an open profile editor with restrained native controls.
 typography:
   title:
-    fontSize: "20pt"
+    fontSize: "18pt"
     fontWeight: 600
   section:
     fontSize: "14pt"

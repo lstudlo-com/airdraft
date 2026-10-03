@@ -256,7 +256,8 @@ verification status belong in the vault (see below).
   Hide its green zoom/full-screen button; preserve Close and Minimize.
   Inset the native window buttons 16 points from the top and leading edges
   in the 46-point titlebar. Page
-  headings and actions use a separate 32-point row with 16 points above it inside
+  titles use 18-point semibold type. Headings and actions use a separate
+  32-point row with 16 points above it inside
   the island and 12 points below, inside one 60-point sticky header. Its backdrop
   blur includes a 4-point outer feather for a total height of 64 points, centered
   on the heading row. Text at the bottom of the header must already be lightly

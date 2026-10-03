@@ -642,7 +642,7 @@ struct PageScaffold<Content: View, Accessory: View>: View {
     private var header: some View {
         HStack(spacing: Theme.controlSpacing) {
             Text(page.title)
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: Theme.controlSpacing)
             accessory

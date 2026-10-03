@@ -23,7 +23,7 @@ private struct BlurFixture: View {
             // 60 pt header + 4 pt outer feather, centered on the heading row.
             ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 64)
             Text("Models")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .padding(.leading, 24)
                 .frame(height: 32)
                 .padding(.top, 16)
@@ -53,7 +53,7 @@ private struct IslandFixture: View {
             }
             .safeAreaInset(edge: .top, spacing: 0) {
                 Text("Models")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 24)
                     .frame(height: 32)
