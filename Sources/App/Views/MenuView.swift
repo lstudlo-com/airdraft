@@ -6,12 +6,16 @@ struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        @Bindable var settings = container.settings
-
-        Text(MenuTitle.fit(statusLine))
-            .help(statusDetail)
+        Button(MenuTitle.fit(dictationTitle)) { container.pipeline.toggle() }
+            .badge(container.pipeline.state.isBusy ? nil : Text(container.settings.hotkey.displayString))
+            .help(shortcutHelp)
+            .disabled(container.pipeline.state.isBusy && !container.pipeline.isRecording)
+        if container.pipeline.state.isBusy {
+            Button("Cancel Dictation") { container.pipeline.cancel() }
+        }
+        recoveryMenu
         if !container.hotkeys.isActive {
-            Button("Shortcut unavailable…") {
+            Button("Set Up Shortcut…") {
                 if container.hotkeys.needsAccessibility {
                     container.openAccessibilitySettings()
                 } else {
@@ -21,66 +25,118 @@ struct MenuView: View {
             }
             .help(container.hotkeys.statusText)
         }
+        Button("History…") { show(.history) }
+        Button("Settings…") { show(.configuration) }
+            .keyboardShortcut(",")
         Divider()
 
-        Button(container.pipeline.isRecording ? "Stop & Transcribe" : "Start Dictation") {
-            container.pipeline.toggle()
-        }
-        if container.pipeline.state.isBusy {
-            Button("Cancel") { container.pipeline.cancel() }
-        }
-        if let issue = container.pipeline.lastIssue {
-            if issue != statusMessage {
-                Text(MenuTitle.fit(issue)).help(issue)
-            }
-            Button("Show Recovery…") { container.navigation.page = .home; container.showMainWindow(openWindow) }
-        }
-        if container.pipeline.hasRecoverableRecording {
-            Button("Retry Transcription") { container.pipeline.retryRecording() }.disabled(container.pipeline.isBusy)
-            Button("Discard Recording") { container.pipeline.discardRecording() }.disabled(container.pipeline.isBusy)
-        }
-        Divider()
+        MicrophonePicker(title: MenuTitle.fit("Microphone: \(microphoneLabel)"), fitsMenu: true)
 
-        MicrophonePicker(fitsMenu: true)
-
-        Picker("Profile", selection: Binding(
+        Picker(MenuTitle.fit("Profile: \(container.profiles.activeProfile.name)"), selection: Binding(
             get: { container.profiles.activeProfileID },
             set: { container.profiles.setActive($0) }
         )) {
             ForEach(container.profiles.profiles) { profile in
-                Text(MenuTitle.fit(profile.name)).tag(profile.id)
+                Text(MenuTitle.fit(profile.name)).help(profile.name).tag(profile.id)
             }
         }
-        Picker("Refinement", selection: Binding(
-            get: { container.settings.llm.kind },
-            set: { container.settings.llm.select($0) }
-        )) {
-            ForEach(LLMProviderKind.allCases.filter { !RenderMode.excludesCredentials || !$0.requiresKey }) {
-                Text(MenuTitle.fit($0.title)).tag($0)
+        .help("Profile: \(container.profiles.activeProfile.name). Changes apply to the next dictation.")
+
+        Menu(MenuTitle.fit("Refinement: \(refinementLabel)")) {
+            if !container.profiles.activeProfile.usesLLM {
+                Text("Off for this profile")
+                Button("Profile Settings…") { show(.profiles) }
+                Divider()
+            } else if refinementUnavailable {
+                Text("Refinement unavailable").help(llmDetail)
+                Text("Dictation will use raw text")
+                Divider()
             }
+            Picker("Provider", selection: Binding(
+                get: { container.settings.llm.kind },
+                set: { container.settings.llm.select($0) }
+            )) {
+                ForEach(LLMProviderKind.allCases.filter { !RenderMode.excludesCredentials || !$0.requiresKey }) {
+                    Text(MenuTitle.fit($0.title)).help($0.title).tag($0)
+                }
+            }
+            .pickerStyle(.inline)
+            .labelsHidden()
+            Divider()
+            Button("Refinement Settings…") { show(.models) }
         }
-        // The header names the group, so the rows need no "Speech:" prefixes.
-        // The section supplies its own separators.
-        Section("Models") {
-            Text(MenuTitle.fit("\(speechProviderLabel) · \(speechStateLabel)"))
+        .help(llmDetail)
+
+        Menu("Models") {
+            Text(MenuTitle.fit("Speech: \(speechProviderLabel) · \(speechStateLabel)"))
                 .help("Speech: \(container.speechConfig.engineLabel) · \(fullSpeechStateLabel)")
-            Text(MenuTitle.fit(llmSummary))
+            Text(MenuTitle.fit("Refinement: \(llmSummary)"))
                 .help("Refinement: \(llmDetail)")
+            Divider()
+            Button("Manage Models…") { show(.models) }
             if canUnloadModels {
                 Button("Unload Models") {
                     container.models.unloadSpeechModels()
                     container.models.unloadLLM()
                 }
+                .disabled(container.pipeline.isBusy)
             }
         }
+        Divider()
 
-        Button("Open Airdraft…") { container.showMainWindow(openWindow) }
-        Button("History…") { container.navigation.page = .history; container.showMainWindow(openWindow) }
         Button("Check for Updates…") { container.updates.checkForUpdates() }
             .disabled(!container.updates.canCheckForUpdates)
-        Divider()
         Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
+    }
+
+    private func show(_ page: Page) {
+        container.navigation.page = page
+        container.showMainWindow(openWindow)
+    }
+
+    @ViewBuilder private var recoveryMenu: some View {
+        if container.pipeline.hasRecoverableRecording {
+            Menu("Recover Last Dictation") {
+                Button("Review Last Dictation…") { show(.home) }
+                    .help(container.pipeline.lastIssue ?? "Review the saved recording.")
+                Divider()
+                Button("Retry Transcription") { container.pipeline.retryRecording() }
+                    .disabled(container.pipeline.isBusy)
+                Button("Discard Recording") { container.pipeline.discardRecording() }
+                    .disabled(container.pipeline.isBusy)
+            }
+        } else if let issue = container.pipeline.lastIssue {
+            Button("Review Last Dictation…") { show(.home) }.help(issue)
+        }
+    }
+
+    private var microphoneLabel: String {
+        let preference = container.settings.microphone
+        guard preference.uid != nil else { return "Default" }
+        return container.microphones.selected(preference) == nil ? "Unavailable" : preference.name
+    }
+
+    private var refinementLabel: String {
+        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return "Off" }
+        return refinementUnavailable ? "Unavailable" : container.settings.llm.kind.shortTitle
+    }
+
+    /// Current provider health is independent of an earlier dictation's issue.
+    private var refinementUnavailable: Bool {
+        let kind = container.settings.llm.kind
+        if kind == .appleIntelligence {
+            return AppleIntelligenceRefiner.unavailableReason != nil
+        }
+        if kind.isCLI {
+            if case .ready("CLI not found") = container.models.llmStatus.state { return true }
+            return false
+        }
+        guard kind == .openAICompatible else { return false }
+        switch container.models.llmStatus.state {
+        case .unreachable, .failed: return true
+        default: return false
+        }
     }
 
     private var speechStateLabel: String {
@@ -126,6 +182,9 @@ struct MenuView: View {
         if container.settings.llm.kind == .appleIntelligence {
             return AppleIntelligenceRefiner.unavailableReason == nil ? "On-device" : "Unavailable"
         }
+        if container.settings.llm.kind != .openAICompatible && !container.settings.llm.kind.isCLI {
+            return "Cloud"
+        }
         switch container.models.llmStatus.state {
         case .unknown: return "Checking…"
         case .remote: return "Cloud"
@@ -139,11 +198,12 @@ struct MenuView: View {
     }
 
     private var llmSummary: String {
-        guard container.settings.llm.kind != .none else { return "Refinement off" }
+        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return "Off" }
         return "\(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
     }
 
     private var llmDetail: String {
+        guard container.profiles.activeProfile.usesLLM else { return "Raw transcript; refinement is off for this profile." }
         guard container.settings.llm.kind != .none else { return "Raw transcript without refinement" }
         if container.settings.llm.kind == .appleIntelligence {
             return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device"
@@ -151,28 +211,19 @@ struct MenuView: View {
         return "\(container.settings.llm.engineLabel) · \(container.models.llmStatus.label)"
     }
 
-    private var statusMessage: String? {
-        switch container.pipeline.state {
-        case .failed(let message), .notice(let message, _): return message
-        default: return nil
-        }
+    private var shortcutHelp: String {
+        let verb = container.settings.hotkeyBehavior == .hold ? "Hold" : "Press"
+        return "\(verb) \(container.settings.hotkey.displayString) to dictate."
     }
 
-    private var statusDetail: String { statusMessage ?? statusLine }
-
-    private var statusLine: String {
+    private var dictationTitle: String {
         switch container.pipeline.state {
-        case .idle:
-            let verb = container.settings.hotkeyBehavior == .hold ? "Hold" : "Press"
-            return "\(verb) \(container.settings.hotkey.displayString) to dictate"
-        case .recording: return "Listening…"
-        case .preparingModel: return "Loading speech model…"
+        case .idle, .failed, .notice: return "Start Dictation"
+        case .recording: return "Stop & Transcribe"
+        case .preparingModel: return "Loading Speech Model…"
         case .transcribing: return "Transcribing…"
         case .refining: return "Refining…"
         case .inserting: return "Inserting…"
-        // The HUD shows a failure only briefly; the tooltip keeps its full reason.
-        case .failed(let message): return "Failed: \(message)"
-        case .notice(let message, _): return message
         }
     }
 }

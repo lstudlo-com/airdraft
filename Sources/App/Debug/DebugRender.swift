@@ -10,6 +10,10 @@ import SwiftUI
 enum DebugRender {
     /// Renders the main window for one page in dark and light appearance.
     static func renderWindow(pageName: String, toDirectory dir: URL, height: CGFloat = 660) {
+        if pageName == "menu" {
+            MenuVerification.run(to: dir)
+            return
+        }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         // Verify CLI settings without changing the user's persisted configuration.
         let suite = "airdraft.render.\(UUID().uuidString)"

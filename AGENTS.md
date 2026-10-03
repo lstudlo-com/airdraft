@@ -369,6 +369,15 @@ verification status belong in the vault (see below).
   issues, notices, device, profile and provider names) through `MenuTitle.fit`,
   which measures the menu font against a 190-point limit. Never show full
   diagnostics in a menu item; keep them in tooltips and Home's recovery notice.
+  Keep three groups: recording/History/Settings, current microphone/profile/refinement
+  choices plus Models, then app commands. Show current choices in submenu titles.
+  Do not add a permanent status header; display the shortcut as a native badge on
+  the recording action without registering another shortcut. Processing replaces
+  that action with a disabled stage label and keeps Cancel available. Put model
+  status and maintenance inside Models, label Speech and Refinement explicitly,
+  and use the active profile's speech binding and refinement opt-out. Only current
+  provider health marks Refinement unavailable; keep prior issues in Review Last
+  Dictation and retained audio in Recover Last Dictation with retry/discard.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
@@ -653,6 +662,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Download progress: `python3 scripts/verify-download-progress.py --output <dir>`
   checks live fill interpolation, paused transfers, stage changes and the Reduce
   Motion branch in both appearances, using the production view in a disposable window.
+- Menu (Debug): `airdraft --e2e-local <disposable-dir> --render-window menu <out>`
+  verifies the production native menu, provider/profile state, width fitting,
+  processing and retained-recording actions; captures light/dark menu windows.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to

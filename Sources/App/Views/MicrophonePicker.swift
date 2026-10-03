@@ -20,7 +20,7 @@ struct MicrophonePicker: View {
         }
         .disabled(container.pipeline.state.isBusy)
         .onAppear { container.microphones.refresh() }
-        .help("Saved as Airdraft's default microphone. Finish dictation before switching.")
+        .help("\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish dictation before switching.")
     }
 
     private var selection: Binding<String> {
@@ -44,10 +44,10 @@ struct MicrophonePicker: View {
     @ViewBuilder private var choices: some View {
         let store = container.microphones
         let preference = container.settings.microphone
-        Text("System default").tag("")
-        ForEach(store.devices) { device in Text(label(device.name)).tag(device.uid) }
+        Text("System Default").tag("")
+        ForEach(store.devices) { device in Text(label(device.name)).help(device.name).tag(device.uid) }
         if let uid = preference.uid, store.selected(preference) == nil {
-            Text(label("\(preference.name) · unavailable")).tag(uid)
+            Text(label("\(preference.name) · unavailable")).help("\(preference.name) · unavailable").tag(uid)
         }
     }
 

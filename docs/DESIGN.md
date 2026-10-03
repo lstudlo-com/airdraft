@@ -397,6 +397,19 @@ and a text label. Selection adds the accessibility selected trait. The active
 dictation profile has a separate checkmark; selecting a profile for editing does
 not activate it.
 
+### Menu bar menu
+
+Keep the native menu compact and group it in this order: recording, History and
+Settings; current microphone, profile and refinement choices plus Models; app
+commands. The recording row shows a native shortcut badge, with no duplicate
+shortcut handler or permanent status header. While processing, its disabled title
+names the stage and Cancel remains available. Recovery and shortcut setup appear
+only when needed. Models contains role-labeled states, Manage Models and conditional
+Unload Models. The active profile determines speech status and refinement off.
+Current refinement failures appear on its submenu title, with raw-transcript
+fallback explained inside. Prior dictation issues remain separate. Fit dynamic
+titles through `MenuTitle.fit` and preserve full details in tooltips and Home.
+
 ### History timeline
 
 History keeps its title and search above two independently scrolling columns.
