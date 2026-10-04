@@ -1,3 +1,5 @@
+import { captureWebsiteEvent } from "./analytics";
+
 type Profile = "clean" | "concise" | "summary";
 
 const examples: Record<Profile, string> = {
@@ -198,6 +200,11 @@ function setup(preview: HTMLElement) {
       finish();
       return;
     }
+    captureWebsiteEvent("demo_started", {
+      demo: "sample",
+      profile: selected,
+      placement: "sample",
+    });
     if (reducedMotion.matches) {
       hasRun = true;
       finish();
@@ -209,6 +216,10 @@ function setup(preview: HTMLElement) {
   profiles.forEach((button) => {
     button.addEventListener("click", () => {
       selected = button.dataset.profile as Profile;
+      captureWebsiteEvent("demo_profile_selected", {
+        profile: selected,
+        placement: "sample",
+      });
       profiles.forEach((profile) =>
         profile.setAttribute("aria-pressed", String(profile === button)),
       );

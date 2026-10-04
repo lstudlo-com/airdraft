@@ -98,6 +98,12 @@ verification status belong in the vault (see below).
   sitemap membership, links, feeds and social previews. Keep `_redirects` aligned
   with canonical HTML routes. IndexNow defaults to a dry run; submission is a
   separate explicit command after publication, never a build side effect.
+  Website analytics follow `apps/marketing/ANALYTICS.md`: consent before SDK
+  loading, explicit production configuration, anonymous event allowlists, no
+  native dictation data or replay, and privacy-page revocation. Keep event names,
+  dashboard definitions and consent/data-filter regressions aligned. Website
+  clicks measure intent, not installs or revenue.
+
 - The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.

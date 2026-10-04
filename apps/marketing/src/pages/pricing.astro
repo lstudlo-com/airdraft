@@ -78,6 +78,7 @@ const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workl
             {onSale ? (
               <Button
                 href={siteLinks.checkout}
+                data-analytics-plan={plan.id}
                 variant={index === 0 ? "primary" : "secondary"}
                 icon="external"
                 class="plan-action"

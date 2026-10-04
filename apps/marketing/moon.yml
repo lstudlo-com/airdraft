@@ -31,6 +31,10 @@ tasks:
       - $SITE_URL
       - $GOOGLE_SITE_VERIFICATION
       - $BING_SITE_VERIFICATION
+      - $PUBLIC_POSTHOG_ENABLED
+      - $PUBLIC_POSTHOG_KEY
+      - $PUBLIC_POSTHOG_HOST
+      - .env*
     outputs:
       - dist
 

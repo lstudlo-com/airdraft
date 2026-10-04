@@ -29,6 +29,7 @@ const { name } = Astro.props;
             type="radio"
             name={name}
             value={plan.id}
+            data-analytics-plan={plan.id}
             checked={index === 0}
           />
           {plan.name}

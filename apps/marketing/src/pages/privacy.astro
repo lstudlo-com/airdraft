@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Section from "../components/ui/Section.astro";
+import Button from "../components/ui/Button.astro";
+import "../styles/guides.css";
+---
+
+<Layout
+  title="Privacy | Airdraft"
+  description="How Airdraft handles dictation data and optional website analytics, and how to change your analytics choice."
+>
+  <SiteHeader />
+  <main id="main" class="island subpage">
+    <Section
+      level={1}
+      first
+      title="Privacy"
+      intro="Your dictation and your visit to this website are separate."
+    >
+      <article
+        class="guide-article privacy-article"
+        aria-label="Privacy details"
+      >
+        <h2>Dictation on your Mac</h2>
+        <p>
+          Local speech and refinement models process dictation on your Mac.
+          Cloud speech providers receive your audio. Cloud refinement providers
+          receive your transcript and any context you enable. Your provider keys
+          are stored in the macOS Keychain.
+        </p>
+        <p>
+          This website analytics integration does not collect data from the
+          Airdraft Mac app. The website's interactive samples use authored text
+          and never record your microphone.
+        </p>
+        <h2>Optional website analytics</h2>
+        <p>
+          When website analytics are enabled, we ask before loading PostHog. If
+          you allow it, PostHog receives page visits, selected button actions,
+          browser and device type, performance measurements, referral domains
+          and campaign labels. A random browser identifier connects those events
+          across visits.
+        </p>
+        <p>
+          We do not enable session recordings, capture typed text or create
+          identified person profiles. We remove URL queries and fragments,
+          referral paths, advertising click identifiers and unrecognized event
+          properties before sending events. Campaign labels must not contain
+          personal information. We configure PostHog to discard IP addresses and
+          disable location enrichment; the service still receives the network
+          connection.
+        </p>
+        <p>
+          PostHog uses browser storage after you allow analytics. We also store
+          your allow or decline choice on this browser for 180 days. Declining
+          sends no website analytics to PostHog. Turning analytics off stops
+          future collection and clears the SDK's stored analytics state; it does
+          not delete events already received.
+        </p>
+        <p>
+          We honor Global Privacy Control and Do Not Track signals by keeping
+          analytics off. Analytics choices apply to this website and browser
+          only. JavaScript must be enabled to change the choice or collect
+          analytics.
+        </p>
+        <p>
+          Cloudflare hosts the website and handles network requests and access
+          controls separately. Following GitHub or payment links takes you to
+          those services, under their own privacy practices.
+        </p>
+        <p>
+          Read{" "}
+          <a href="https://posthog.com/privacy">PostHog's privacy notice</a> for
+          its service practices.
+        </p>
+        <h2 id="analytics">Your analytics choice</h2>
+        <p class="analytics-status" data-analytics-status aria-live="polite">
+          Website analytics are off unless you allow them with JavaScript
+          enabled.
+        </p>
+        <div class="analytics-actions analytics-settings">
+          <Button data-analytics-choice="denied">Turn Analytics Off</Button>
+          <Button data-analytics-choice="granted">Allow Analytics</Button>
+        </div>
+      </article>
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

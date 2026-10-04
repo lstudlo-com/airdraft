@@ -1,0 +1,55 @@
+@layer components {
+  .analytics-notice {
+    position: fixed;
+    z-index: 100;
+    inset: auto 20px 20px;
+    width: min(680px, calc(100% - 40px));
+    margin-inline: auto;
+    padding: 24px;
+    background: var(--island);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+  }
+  .analytics-notice[hidden] {
+    display: none;
+  }
+  .analytics-notice h2 {
+    font-size: 1.25rem;
+  }
+  .analytics-notice p {
+    margin-top: 8px;
+    color: var(--muted);
+  }
+  .analytics-notice a {
+    text-decoration: underline;
+  }
+  .analytics-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .analytics-settings {
+    margin-top: 24px;
+  }
+  .privacy-article h2 {
+    font-size: var(--step-2);
+  }
+  .privacy-article p a {
+    text-decoration: underline;
+  }
+  .analytics-status {
+    margin-top: 12px;
+    color: var(--muted);
+  }
+  @media (max-width: 420px) {
+    .analytics-notice {
+      inset-inline: 12px;
+      width: calc(100% - 24px);
+      padding: 20px;
+    }
+    .analytics-actions > * {
+      flex: 1;
+    }
+  }
+}

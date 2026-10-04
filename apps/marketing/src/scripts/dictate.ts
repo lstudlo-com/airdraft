@@ -10,6 +10,8 @@
 // third key cancels a keyboard hold, so VoiceOver's ⌃⌥ commands never add a
 // bar. With reduced motion the live bar holds one level and nothing animates.
 
+import { captureWebsiteEvent } from "./analytics";
+
 type State = "idle" | "recording" | "refining";
 
 const card = document.querySelector<HTMLElement>("[data-dictate]");
@@ -57,6 +59,10 @@ function setup(card: HTMLElement) {
 
   function start() {
     if (state !== "idle") return;
+    captureWebsiteEvent("demo_started", {
+      demo: "waveform",
+      placement: "hero",
+    });
     state = "recording";
     started = performance.now();
     lastMeter = 0;

@@ -666,3 +666,11 @@ already running when the preference changes.
 - Don't put more than one line of text in a bento tile, or a graphic that isn't built from the app's parts.
 - Don't animate anything that has no resting state in CSS, or ignore reduced motion.
 - Don't publish app renders that contain personal profiles, device names, history or usage counts.
+
+## Analytics consent
+
+The optional analytics notice reuses the neutral panel and Button components.
+Allow and Decline have equal visual weight. Keep it readable and scrollable on
+small screens, with a link to the privacy page. It stays hidden without
+JavaScript or when collection is disabled. Privacy uses the shared subpage
+layout and lets visitors turn analytics off.

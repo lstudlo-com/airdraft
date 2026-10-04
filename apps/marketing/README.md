@@ -171,8 +171,10 @@ and immutable caching for Astro's hashed assets.
   self-hosted through `@fontsource-variable/inter` as the fallback elsewhere, under
   its included SIL Open Font License, copied to `public/fonts/inter-OFL.txt`; it is
   only downloaded where the system face is missing. No third-party font requests
-  or analytics are included in the site code. Cloudflare can inject its own
-  browser metrics according to the zone's settings.
+  are included. Optional PostHog website analytics
+  require consent and an explicit production build configuration; see
+  [ANALYTICS.md](ANALYTICS.md). Cloudflare can inject its own browser metrics
+  according to the zone's settings.
 - The GitHub action is intentional: no binary release or product license has
   been invented. Change the CTA only after a real distribution URL is available.
 - Do not publish app window renders made from a personal profile: `--render-window`

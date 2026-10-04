@@ -4,6 +4,7 @@
 import "@fontsource-variable/inter";
 import "../styles/global.css";
 import "../styles/motion.css";
+import Analytics from "../components/Analytics.astro";
 import {
   canonicalURL,
   defaultDescription,
@@ -121,6 +122,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       Skip to content
     </a>
     <slot />
+    <Analytics />
     <script>
       import "../scripts/segmented";
       import "../scripts/island";

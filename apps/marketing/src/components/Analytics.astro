@@ -1,0 +1,45 @@
+---
+import Button from "./ui/Button.astro";
+import "../styles/analytics.css";
+
+if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
+  if (
+    !/^phc_[a-zA-Z0-9]+$/.test(import.meta.env.PUBLIC_POSTHOG_KEY?.trim() || "")
+  ) {
+    throw new Error(
+      "PostHog requires a public phc_ project token when enabled.",
+    );
+  }
+  if (
+    !["https://us.i.posthog.com", "https://eu.i.posthog.com"].includes(
+      import.meta.env.PUBLIC_POSTHOG_HOST?.trim() || "",
+    )
+  ) {
+    throw new Error(
+      "PUBLIC_POSTHOG_HOST must be the US or EU PostHog ingestion origin.",
+    );
+  }
+}
+---
+
+<aside
+  class="analytics-notice panel"
+  aria-labelledby="analytics-title"
+  data-analytics-notice
+  hidden
+>
+  <div>
+    <h2 id="analytics-title">Optional website analytics</h2>
+    <p>
+      Help us understand visits and which features interest people. No
+      recordings or typed text. <a href="/privacy/">Privacy details</a>
+    </p>
+  </div>
+  <div class="analytics-actions">
+    <Button data-analytics-choice="denied">Decline</Button>
+    <Button data-analytics-choice="granted">Allow Analytics</Button>
+  </div>
+</aside>
+<script>
+  import "../scripts/analytics";
+</script>

@@ -134,3 +134,12 @@ An independent Moon project at `apps/marketing`, using Astro and Cloudflare Work
 Use a shared pnpm workspace and lockfile. Avoid changing the native app's build layout.
 Deploy to the `lstudlo` Cloudflare account and bind `airdraft.app` only after
 Cloudflare Access is configured. Keep Worker development and preview URLs disabled.
+
+## Website analytics
+
+PostHog measures consented website visits, acquisition, performance and explicit
+pricing/source/build/demo/plan/checkout intent. Keep native dictation data outside
+this integration. Collection is disabled until configured and allowed, honors
+GPC/DNT, and never enables replay, autocapture, text capture or person profiles.
+The privacy page explains the data and provides revocation. Clicks do not prove
+installs or purchases. See `ANALYTICS.md` for event and deployment contracts.
