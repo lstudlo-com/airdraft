@@ -524,7 +524,11 @@ and Get Airdraft remain. Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
 32px), each masked to the band where the app's radius ramp reaches it, so
 content is lightly blurred at the header's bottom edge (plus a 4px feather)
-and fully blurred at the top, while labels and controls stay sharp. Never
+and fully blurred at the top, while labels and controls stay sharp. The blur
+is drawn 1.25 times the header's height plus feather, so it reaches further
+down the page without moving the header's row. At the top of the page it is
+hidden; it fades in (`240ms`) once the island has filled the window
+(`.is-blurred`, set by `island.ts`), and stays shown without JavaScript. Never
 simulate it with a tint or an opacity fade; only Reduce Transparency gets an
 opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.

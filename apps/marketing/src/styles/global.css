@@ -495,14 +495,27 @@
   .site-header-inner > .brand {
     justify-self: start;
   }
-  /* ProgressiveHeaderBlur: the blur covers the header plus a 4px feather.
-     Each layer blurs more and reaches less far down: 1px at the feather's
-     edge, rising quadratically to 32px at the top. */
+  /* ProgressiveHeaderBlur: the blur covers the header plus a 4px feather,
+     drawn 1.25 times as tall so it reaches further down the page; the
+     header's own row is unchanged. Each layer blurs more and reaches less far
+     down: 1px at the feather's edge, rising quadratically to 32px at the top.
+     While the island is still filling the window (src/scripts/island.ts)
+     there is nothing to blur, so it fades in only once the island is full. */
   .header-blur {
     position: absolute;
     inset: 0 0 auto;
-    height: calc(var(--header) + 4px);
+    height: calc((var(--header) + 4px) * 1.25);
     pointer-events: none;
+    transition:
+      opacity 240ms ease,
+      visibility 0s;
+  }
+  .js .site-header:not(.is-blurred) .header-blur {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 240ms ease,
+      visibility 0s linear 240ms;
   }
   .header-blur i {
     position: absolute;

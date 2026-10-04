@@ -8,10 +8,14 @@
  *
  * It follows the scroll position directly, without its own timing. Without
  * JavaScript the island stays inset.
+ *
+ * The header's progressive blur appears only once the island has filled the
+ * window (`.is-blurred`); at the top of the page there is nothing under it.
  */
 const RANGE = 120;
 
 const island = document.querySelector<HTMLElement>("main.island");
+const header = document.querySelector<HTMLElement>(".site-header");
 
 if (island) {
   let frame = 0;
@@ -22,6 +26,7 @@ if (island) {
   const update = () => {
     frame = 0;
     const opening = clamp(window.scrollY / RANGE);
+    header?.classList.toggle("is-blurred", opening === 1);
     const closing = clamp(
       (island.getBoundingClientRect().bottom - window.innerHeight) / RANGE,
     );
