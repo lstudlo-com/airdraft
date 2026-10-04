@@ -495,16 +495,15 @@
   .site-header-inner > .brand {
     justify-self: start;
   }
-  /* ProgressiveHeaderBlur: the blur covers the header plus a 4px feather,
-     drawn 1.25 times as tall so it reaches further down the page; the
-     header's own row is unchanged. Each layer blurs more and reaches less far
+  /* ProgressiveHeaderBlur: the blur covers the header and reaches 100px
+     down the page, past the header's own row, which is unchanged. Each layer blurs more and reaches less far
      down: 1px at the feather's edge, rising quadratically to 32px at the top.
      While the island is still filling the window (src/scripts/island.ts)
      there is nothing to blur, so it fades in only once the island is full. */
   .header-blur {
     position: absolute;
     inset: 0 0 auto;
-    height: calc((var(--header) + 4px) * 1.25);
+    height: 100px;
     pointer-events: none;
     transition:
       opacity 240ms ease,
@@ -578,7 +577,8 @@
     min-height: 44px;
   }
   /* The mark (ui/Brand.astro): SidebarBrandMark from the app. The capsule's
-     face is the chrome itself; outer shadows lift it (CSS never paints an
+     face is the chrome itself, painted opaque so content scrolling under the
+     sticky header never shows through it; outer shadows lift it (CSS never paints an
      outer box-shadow inside the box, like the app's excludesInterior). The
      strokes are opaque grooves: a darker floor, shaded inside the top-left
      edge and lit inside the bottom right. Units are the icon's 364-point
@@ -597,6 +597,7 @@
     width: calc(744 * var(--u));
     height: var(--mark-h);
     border-radius: 999px;
+    background: var(--chrome);
     box-shadow:
       calc(1.4px * var(--mark-d)) calc(2.2px * var(--mark-d))
         calc(5.2px * var(--mark-d)) var(--mark-shade),

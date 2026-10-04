@@ -378,10 +378,12 @@ audible and a waveform is on screen, and not at all with reduced motion.
 
 The mark is the app sidebar's `SidebarBrandMark` (`MainWindow.swift`),
 translated value for value, with no lettering, as in the app. The capsule's face
-is the chrome it sits on, lifted only by a soft shade down-right and light
+is the chrome, painted opaque in `--chrome` so page content scrolling under the
+sticky header never shows through it, and lifted only by a soft shade down-right and light
 up-left (light: black 20% and white 95%; dark: black 55% and white 9%; radius
 2.6 at 28px). Outer box-shadows never paint inside the box, which matches the
-app's `excludesInterior`. Never give it an edge stroke or fill. Five waveform
+app's `excludesInterior`. Never give it an edge stroke, a translucent face or
+any fill other than `--chrome`. Five waveform
 strokes (levels `0.36, 0.66, 1, 0.72, 0.48`) and a separate caret are carved in
 as opaque grooves: white 0.80 (dark 0.12), shaded inside the top-left edge and
 lit inside the bottom right. Geometry uses the icon's 364-point capsule height:
@@ -523,10 +525,9 @@ GitHub icon key and the primary "Get Airdraft" key at the end. On phones only th
 and Get Airdraft remain. Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
 32px), each masked to the band where the app's radius ramp reaches it, so
-content is lightly blurred at the header's bottom edge (plus a 4px feather)
-and fully blurred at the top, while labels and controls stay sharp. The blur
-is drawn 1.25 times the header's height plus feather, so it reaches further
-down the page without moving the header's row. At the top of the page it is
+content is lightly blurred at its bottom edge and fully blurred at the top,
+while labels and controls stay sharp. The blur is `100px` tall at every width,
+reaching past the header's row (`72px`, `64px` on phones) without moving it. At the top of the page it is
 hidden; it fades in (`240ms`) once the island has filled the window
 (`.is-blurred`, set by `island.ts`), and stays shown without JavaScript. Never
 simulate it with a tint or an opacity fade; only Reduce Transparency gets an
