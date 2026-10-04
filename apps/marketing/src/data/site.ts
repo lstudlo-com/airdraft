@@ -24,14 +24,29 @@ export const license: { name: string; url: string } | null = {
 // applicable tax. Change them only when the owner changes the Polar products.
 export interface License {
   id: string;
+  /** The homepage's segmented choice. */
   name: string;
+  /** The pricing page's plan title. */
+  title: string;
   price: string;
   macs: string;
 }
 
 export const licenses: License[] = [
-  { id: "one-mac", name: "1 Mac", price: "$29", macs: "one Mac" },
-  { id: "three-macs", name: "3 Macs", price: "$49", macs: "up to three Macs" },
+  {
+    id: "one-mac",
+    name: "1 Mac",
+    title: "One Mac",
+    price: "$29",
+    macs: "one Mac",
+  },
+  {
+    id: "three-macs",
+    name: "3 Macs",
+    title: "Three Macs",
+    price: "$49",
+    macs: "up to three Macs",
+  },
 ];
 
 // What every license includes, in the order the pricing page lists it.

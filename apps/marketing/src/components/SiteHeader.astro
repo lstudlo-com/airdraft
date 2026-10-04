@@ -28,7 +28,9 @@ const links = [
     <a class="brand" href="/" aria-label="Airdraft home">
       <Brand />
     </a>
-    <nav aria-label="Main navigation">
+    <!-- The links sit at the window's true centre, not halfway between the
+         mark and the keys: the row is a grid with equal outer columns. -->
+    <nav class="header-links" aria-label="Main navigation">
       {links.map((link) => (
         <a
           class:list={["nav-link", link.hideOnPhone && "nav-link-wide"]}
@@ -40,6 +42,8 @@ const links = [
           {link.label}
         </a>
       ))}
+    </nav>
+    <div class="header-actions">
       <Button href={siteLinks.source} iconOnly label="Airdraft on GitHub">
         <svg
           slot="icon"
@@ -55,6 +59,6 @@ const links = [
       <Button href="/pricing/" variant="primary" class="nav-cta">
         Get Airdraft
       </Button>
-    </nav>
+    </div>
   </div>
 </header>

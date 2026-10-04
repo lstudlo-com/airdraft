@@ -2,16 +2,15 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import LicenseCard from "../components/LicenseCard.astro";
 import Button from "../components/ui/Button.astro";
 import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
-import { siteLinks } from "../data/site";
+import { licenseIncludes, licenses, siteLinks } from "../data/site";
 import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
 
-// One primary key per page: the license once checkout is open, until then the
-// source build, which is the path available today.
+// One primary key per page: the one-Mac license once checkout is open, until
+// then the source build, which is the path available today.
 const onSale = Boolean(siteLinks.checkout);
 ---
 
@@ -48,7 +47,35 @@ const onSale = Boolean(siteLinks.checkout);
           </Button>
         </Surface>
 
-        <LicenseCard context="plan" name="plan-macs" />
+        {licenses.map((plan, index) => (
+          <Surface as="article" class="plan">
+            <h2>{plan.title}</h2>
+            <p class="plan-price">
+              {plan.price}
+              <span class="price-unit">one-time</span>
+            </p>
+            <p class="plan-description">Personal use on {plan.macs}.</p>
+            <ul class="plan-features">
+              {licenseIncludes.map((feature) => (
+                <li>{feature}</li>
+              ))}
+            </ul>
+            {onSale ? (
+              <Button
+                href={siteLinks.checkout}
+                variant={index === 0 ? "primary" : "secondary"}
+                icon="external"
+                class="plan-action"
+              >
+                Buy for {plan.macs}
+              </Button>
+            ) : (
+              <Button disabled class="plan-action">
+                Not on sale yet
+              </Button>
+            )}
+          </Surface>
+        ))}
       </div>
       <p class="table-note">
         Prices in US dollars, before applicable tax. Checkout shows the total.

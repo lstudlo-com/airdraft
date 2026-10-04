@@ -273,16 +273,27 @@ page's `<main>` is `.island`, inset `12px` from the window edges (`6px` on
 phones), with `22px` corners, a 1px hairline edge and no shadow. The island
 clips its content (`overflow: clip`, which keeps `position: sticky` working).
 
+Scrolling fills the window with the island: over the first `120px` of scroll
+its inset, corners and hairline shrink to nothing, so it runs edge to edge
+under the header; over the last `120px` before its bottom edge enters the
+window they return, so the footer sits on the chrome below an inset island
+again. `src/scripts/island.ts` sets `--island-fill` (0 inset, 1 full) from the
+scroll position; it has no timing of its own. The island's box always spans the
+window with matching inline padding, and the inset is a `clip-path`, so
+content never reflows while it moves. Without JavaScript it stays inset.
+
 Content width inside the island is `min(1120px, 100% - 2 × gutter)`, the same
 as the header, so content lines up with the mark. Sections come from the
 `Section` component and the spacing tokens; `first` sections take `56px` of top
-padding instead of the section gap. The sample is capped at `1040px`.
+padding instead of the section gap (subpages excepted, below). The sample is capped at `1040px`.
 
 Subpages (Pricing, Support, Changelog) are `main.island.subpage` and open with
 the same title block: `Section level={1} first` with a one-line intro, the
 headline step for the title (`.page-title`), and the full content width; no
-subpage narrows its content. Their later sections are `104px` apart with
-`entry-title` headings, a step below the page title.
+subpage narrows its content. The title sits one section gap (`144px`, `120px`,
+`96px`) below the island's top edge, further than the later sections sit from
+each other (`0.72` of the gap: `104px` on desktop), which use `entry-title`
+headings, a step below the page title.
 
 The homepage bento is a three-column grid with `24px` gaps and seven tiles in
 a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider story
@@ -470,16 +481,14 @@ The homepage close: two offers side by side. Build it yourself (Free, build
 instructions) and the ready-to-run app's license card, raised with the hero
 spread and holding the page's one primary key ("See pricing").
 
-The license card is shared with the pricing page. Its title sits beside a
-segmented **1 Mac | 3 Macs** choice; below it, only the chosen license's price
-("one-time") and use show, and switching slides the new line up into place.
-Both licenses have the same features, so one card shows them once. The choice
-is a native radio group and CSS `:has()` picks the visible lines, so it works
-without JavaScript; `segmented.ts` adds the sliding thumb. On the pricing page
-it lists `licenseIncludes` and its action is the purchase: disabled "Not on
-sale yet" until `siteLinks.checkout` is set, then the page's primary key.
-Prices, Mac counts and inclusions come from `src/data/site.ts`. Every plan's
-title row is the choice's height (`38px`), so side-by-side prices line up.
+The license card's title sits beside a segmented **1 Mac | 3 Macs** choice;
+below it, only the chosen license's price ("one-time") and use show, and
+switching slides the new line up into place. The choice is a native radio
+group and CSS `:has()` picks the visible lines, so it works without
+JavaScript; `segmented.ts` adds the sliding thumb. The Build it yourself title
+row is the choice's height (`38px`), so the side-by-side prices line up. The
+pricing page lists each license as its own plan instead.
+Prices, Mac counts and inclusions come from `src/data/site.ts`.
 
 ### Motion (`src/scripts/story.ts`, GSAP + ScrollTrigger)
 
@@ -493,7 +502,7 @@ The hero card rises once on load (CSS) and its bars grow; it never tilts,
 because its light is fixed at the top left. Resting CSS is always the final
 state, so nothing depends on the script to be readable. Interaction motion
 outside GSAP: the hero's dictation (`dictate.ts`), hover magnification
-(`waveform.ts`), the segmented thumb (`segmented.ts`), keycaps that follow the
+(`waveform.ts`), the island fill (`island.ts`), the segmented thumb (`segmented.ts`), keycaps that follow the
 keyboard (`keys.ts`), the license swap and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
@@ -506,10 +515,11 @@ troubleshooting. Answers may include `code`.
 
 ### Header, footer, pricing, support, changelog
 
-The header sits on the chrome and stays at the top as the page scrolls: the
-Brand mark, then Pricing, Support and Changelog as capsule links (the current
-page sits in a recessed well, like the app's sidebar selection), the GitHub
-icon key and the primary "Get Airdraft" key. On phones only the mark, GitHub
+The header sits on the chrome and stays at the top as the page scrolls. It is
+a three-column grid with equal outer columns: the Brand mark at the start; at
+the window's true centre, Pricing, Support and Changelog as capsule links (the
+current page sits in a recessed well, like the app's sidebar selection); the
+GitHub icon key and the primary "Get Airdraft" key at the end. On phones only the mark, GitHub
 and Get Airdraft remain. Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
 32px), each masked to the band where the app's radius ramp reaches it, so
@@ -519,8 +529,11 @@ simulate it with a tint or an opacity fade; only Reduce Transparency gets an
 opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.
 
-Pricing shows two plans: Open source (`$0`, build instructions, the page's
-primary key until checkout opens) and the license card. A note gives the
+Pricing shows three equal plans in a row: Open source (`$0`, build
+instructions, the page's primary key until checkout opens), One Mac (`$29`) and
+Three Macs (`$49`). The license plans list `licenseIncludes`; their action is
+the purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set,
+then One Mac holds the page's primary key. A note gives the
 currency and tax basis, a raised panel lists cloud speech list prices from
 `src/data/pricing.ts`, dated, then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
