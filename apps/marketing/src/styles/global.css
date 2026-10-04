@@ -1267,7 +1267,7 @@
     letter-spacing: -0.02em;
   }
   .subpage .section-first {
-    padding-top: var(--section);
+    padding-top: calc(var(--section) * 0.75);
   }
   .subpage .section-space {
     margin-top: calc(var(--section) * 0.72);

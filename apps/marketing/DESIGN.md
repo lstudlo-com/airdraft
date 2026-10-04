@@ -290,9 +290,9 @@ padding instead of the section gap (subpages excepted, below). The sample is cap
 Subpages (Pricing, Support, Changelog) are `main.island.subpage` and open with
 the same title block: `Section level={1} first` with a one-line intro, the
 headline step for the title (`.page-title`), and the full content width; no
-subpage narrows its content. The title sits one section gap (`144px`, `120px`,
-`96px`) below the island's top edge, further than the later sections sit from
-each other (`0.72` of the gap: `104px` on desktop), which use `entry-title`
+subpage narrows its content. The title sits `0.75` of a section gap (`108px`,
+`90px`, `72px`) below the island's top edge, a little further than the later
+sections sit from each other (`0.72` of the gap: `104px` on desktop), which use `entry-title`
 headings, a step below the page title.
 
 The homepage bento is a three-column grid with `24px` gaps and seven tiles in
