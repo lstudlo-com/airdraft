@@ -1,0 +1,285 @@
+/* Scroll motion: depth, rise and sink, told by the scroll position.
+
+   One rule, from the app's material: motion follows height. Raised objects
+   sit closer to the visitor, so they lead the scroll a little; the contents of
+   recessed wells sit further away, so they lag. Objects rise from the surface
+   as they arrive (scale up, shadow grows from nothing) and sink back into it
+   as they leave (scale down, shadow flattens). Light stays at the top left;
+   nothing tilts or flies through perspective.
+
+   Everything here is a CSS scroll timeline, so it moves in the same frame as
+   the scroll and never jitters. Translate, scale and opacity run in their own
+   animations, apart from shadows, so the browser can composite them. Browsers
+   without scroll timelines, and reduced motion, keep the static page; there
+   story.ts runs its entrance rises instead. The pinned provider story is
+   scrubbed by GSAP (story.ts) and its deck depth is styled at the end. The
+   changelog's reading rail lives with the changelog (changelog.css). */
+
+@layer motion {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      /* Shared keyframes. Each names only its start; the end is the element's
+         own resting style, shadows included. */
+      @keyframes motion-rise {
+        from {
+          opacity: 0;
+          translate: 0 var(--rise-y, 40px);
+          scale: var(--rise-scale, 0.94);
+        }
+      }
+      @keyframes motion-lift {
+        from {
+          box-shadow: var(--edge);
+        }
+      }
+      @keyframes motion-fade-up {
+        from {
+          opacity: 0;
+          translate: 0 var(--rise-y, 28px);
+        }
+      }
+      /* Parallax by height: --depth-range px either way across the view. */
+      @keyframes motion-lead {
+        from {
+          transform: translateY(var(--depth-range, 10px));
+        }
+        to {
+          transform: translateY(calc(-1 * var(--depth-range, 10px)));
+        }
+      }
+      @keyframes motion-lag {
+        from {
+          translate: 0 calc(-1 * var(--depth-range, 8px));
+        }
+        to {
+          translate: 0 var(--depth-range, 8px);
+        }
+      }
+
+      /* Section headings rise as they enter; text never zooms. */
+      .section-heading:not(.story-intro) {
+        animation: motion-fade-up linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+
+      /* 1. Hero exit. The copy lags the scroll a little and fades before it
+         can reach the card below it; Home's card sinks back into the island
+         as it leaves. */
+      .hero-stage {
+        view-timeline: --hero-stage block;
+      }
+      @keyframes hero-drift {
+        to {
+          opacity: 0;
+          translate: 0 70px;
+        }
+      }
+      @keyframes hero-sink {
+        to {
+          scale: 0.94;
+        }
+      }
+      @keyframes hero-flatten {
+        to {
+          box-shadow:
+            inset 1px 1px 0 color-mix(in srgb, var(--rim), transparent 30%),
+            inset 0 0 0 0.5px var(--hairline),
+            0 0 0 transparent,
+            0 0 0 transparent;
+        }
+      }
+      .hero-copy {
+        animation: hero-drift linear both;
+        animation-timeline: --hero-stage;
+        animation-range: exit 0% exit 50%;
+      }
+      .hero-card {
+        /* Keeps its one-time rise on load (global.css). */
+        animation:
+          rise 900ms var(--ease-out) both,
+          hero-sink linear both,
+          hero-flatten linear both;
+        animation-timeline: auto, --hero-stage, --hero-stage;
+        animation-range:
+          normal,
+          exit 0% exit 90%,
+          exit 0% exit 90%;
+      }
+
+      /* 2. The sample rises from the surface as it reaches the middle of the
+         window. The spoken words, inside a recessed well, lag; the raised
+         result card leads. */
+      .preview {
+        --rise-y: 56px;
+        --rise-scale: 0.92;
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry 0% cover 45%,
+          entry 0% cover 45%;
+      }
+      .preview .spoken > * {
+        --depth-range: 6px;
+        animation: motion-lag linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+      .preview .written {
+        --depth-range: 6px;
+        animation: motion-lead linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+
+      /* 3. Bento. Tiles rise as they enter, left to right within a row on
+         desktop. Each graphic lags inside its well; wide tiles, the larger
+         raised faces, lead the narrow ones slightly. */
+      .bento .tile {
+        --rise-y: 48px;
+        --stagger: calc(var(--col, 0) * 8%);
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry var(--stagger) cover calc(32% + var(--stagger)),
+          entry var(--stagger) cover calc(32% + var(--stagger));
+      }
+      .bento .tile-wide {
+        --depth-range: 10px;
+        animation:
+          motion-rise linear both,
+          motion-lift linear both,
+          motion-lead linear both;
+        animation-timeline: view(), view(), view();
+        animation-range:
+          entry var(--stagger) cover calc(32% + var(--stagger)),
+          entry var(--stagger) cover calc(32% + var(--stagger)),
+          cover 0% cover 100%;
+      }
+      /* The well clips its graphic (overflow: hidden), which would make it
+         the graphic's scroller; the graphic follows the tile's timeline. */
+      .bento .tile {
+        view-timeline: --tile block;
+      }
+      .bento .tile-art > * {
+        --depth-range: 10px;
+        animation: motion-lag linear both;
+        animation-timeline: --tile;
+        animation-range: cover 0% cover 100%;
+      }
+      @media (min-width: 1001px) {
+        /* wide + narrow, three narrow, narrow + wide */
+        .bento .tile:is(:nth-child(2), :nth-child(4), :nth-child(7)) {
+          --col: 1;
+        }
+        .bento .tile:nth-child(5) {
+          --col: 2;
+        }
+      }
+
+      /* 5. The close. Both offers rise as the island settles back to its
+         inset; the license, the featured offer, rises furthest and leads. */
+      .offers > .offer {
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry 0% cover 40%,
+          entry 0% cover 40%;
+      }
+      .offers > .offer-featured {
+        --rise-y: 72px;
+        --rise-scale: 0.92;
+        --depth-range: 10px;
+        animation:
+          motion-rise linear both,
+          motion-lift linear both,
+          motion-lead linear both;
+        animation-timeline: view(), view(), view();
+        animation-range:
+          entry 0% cover 40%,
+          entry 0% cover 40%,
+          cover 0% cover 100%;
+      }
+
+      /* 6. Pricing. Plans rise left to right; the cost comparison's rows
+         rise in turn and each three-year bar fills to its share. */
+      .plans > .plan {
+        --stagger: calc(var(--col, 0) * 8%);
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry var(--stagger) cover calc(30% + var(--stagger)),
+          entry var(--stagger) cover calc(30% + var(--stagger));
+      }
+      @media (min-width: 1001px) {
+        .plans > .plan:nth-child(2) {
+          --col: 1;
+        }
+        .plans > .plan:nth-child(3) {
+          --col: 2;
+        }
+      }
+      /* The table scrolls sideways in its wrapper, which would make the
+         wrapper the rows' scroller; they follow the wrapper's own view
+         timeline instead, each row a step later. */
+      .price-table-wrap:has(.cost-table) {
+        view-timeline: --cost-table block;
+      }
+      .cost-table tbody tr {
+        --rise-y: 16px;
+        --step: calc(8% + var(--row, 0) * 15%);
+        animation: motion-fade-up linear both;
+        animation-timeline: --cost-table;
+        animation-range: entry var(--step) entry calc(var(--step) + 22%);
+      }
+      @keyframes cost-fill {
+        from {
+          scale: 0 1;
+        }
+      }
+      .cost-bar b {
+        animation: cost-fill linear both;
+        animation-timeline: --cost-table;
+        animation-range: entry calc(var(--step) + 10%) entry
+          calc(var(--step) + 45%);
+      }
+      .cost-table tbody tr:nth-child(2) {
+        --row: 1;
+      }
+      .cost-table tbody tr:nth-child(3) {
+        --row: 2;
+      }
+      .cost-table tbody tr:nth-child(4) {
+        --row: 3;
+      }
+      .cost-table tbody tr:nth-child(5) {
+        --row: 4;
+      }
+      .cost-table tbody tr:nth-child(n + 6) {
+        --row: 5;
+      }
+    }
+  }
+
+  /* 4. The pinned provider story (story.ts). --deck-depth runs from 0 (the
+     card at rest) to 1 (sunk flat into the island): the card rises out of
+     the island as the story begins and dips briefly between scenes. GSAP
+     scales it alongside; this is its shadow. */
+  .story.is-pinned .deck {
+    --deck-k: calc(1 - var(--deck-depth, 0));
+    box-shadow:
+      var(--edge),
+      calc(7px * var(--deck-k)) calc(9px * var(--deck-k))
+        calc(24px * var(--deck-k)) var(--shade),
+      calc(-6px * var(--deck-k)) calc(-7px * var(--deck-k))
+        calc(24px * var(--deck-k)) var(--light);
+  }
+}

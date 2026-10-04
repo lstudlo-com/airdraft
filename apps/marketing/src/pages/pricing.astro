@@ -7,6 +7,7 @@ import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
 import { licenseIncludes, licenses, siteLinks } from "../data/site";
+import "../styles/pricing.css";
 import {
   costRows,
   formatUSD,
@@ -21,6 +22,9 @@ import {
 const onSale = Boolean(siteLinks.checkout);
 
 const n = (value: number) => value.toLocaleString("en-US");
+// Each setup's three-year total as a share of the most expensive, for the
+// bar under it.
+const mostInThreeYears = Math.max(...costRows.map((row) => totalAfter(row, 3)));
 const costIntro = `The license costs less than two months of Wispr Flow or one month of Typeless at their monthly prices. Below, the same ${n(workloadSummary.dictationsPerMonth)} dictations a month, priced each way.`;
 const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workload.dictationsPerDay} a workday of ${workload.secondsPerDictation} seconds each, about ${workloadSummary.audioHoursPerMonth} hours of speech a month. Refinement budgets ${n(workload.inputTokens)} tokens in and ${workload.outputTokens} out per dictation. List prices, ${pricesCheckedOn}, before tax; Groq bills at least 10 seconds per request. The open-source build makes the one-time cost $0.`;
 ---
@@ -123,7 +127,16 @@ const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workl
                 <td class="cost-optional">{formatUSD(row.oneTime)}</td>
                 <td class="cost-optional">{formatUSD(row.monthly)}</td>
                 <td>{formatUSD(totalAfter(row, 1))}</td>
-                <td>{formatUSD(totalAfter(row, 3))}</td>
+                <td>
+                  {formatUSD(totalAfter(row, 3))}
+                  <span
+                    class="cost-bar"
+                    style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
+                    aria-hidden="true"
+                  >
+                    <b />
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

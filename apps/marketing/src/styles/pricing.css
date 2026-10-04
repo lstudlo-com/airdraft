@@ -1,0 +1,27 @@
+/* Pricing page additions. */
+@layer components {
+  /* Each three-year total over a NeumorphicUsageTrack: a shallow inset
+     holding a raised gray fill, at its share of the most expensive setup.
+     motion.css fills it as its row arrives. */
+  .cost-bar {
+    display: block;
+    width: 120px;
+    height: 8px;
+    margin: 8px 0 2px auto;
+    padding: 1.5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--well);
+    box-shadow: var(--sink-chip);
+  }
+  .cost-bar b {
+    display: block;
+    width: calc(var(--share) * 100%);
+    min-width: 5px;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--fill-bar);
+    box-shadow: 0.5px 0.8px 1px var(--shade);
+    transform-origin: left;
+  }
+}

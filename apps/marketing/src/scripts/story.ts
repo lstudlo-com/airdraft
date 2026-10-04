@@ -1,6 +1,7 @@
 // Scroll storytelling for the homepage, built on GSAP and ScrollTrigger.
 //
-//   headings  and bento tiles rise into place as they enter
+//   headings  and bento tiles rise into place as they enter, where the
+//             browser has no scroll timelines (motion.css does it elsewhere)
 //   bento     each tile's graphic plays a short loop while it is on screen
 //   pipeline  on desktop the section pins: one card stays in place while
 //             its scenes cross-fade and a selection well steps through each
@@ -275,11 +276,14 @@ function pipeline() {
       selected: 0,
     };
   });
+  const deck = one("[data-deck]", story);
+  const steps = all(".story-stages li", story);
+  const intro = 0.9;
   const hold = 1.1;
   const move = 1;
   story.style.setProperty(
     "--units",
-    String(cards.length * hold + (cards.length - 1) * move),
+    String(intro + cards.length * hold + (cards.length - 1) * move),
   );
   story.classList.add("is-pinned");
 
@@ -337,6 +341,31 @@ function pipeline() {
       scrub: 0.7,
     },
   });
+  // The story opens with its three steps rising in turn, then the card rises
+  // out of the island with the first scene: it grows to full size while
+  // --deck-depth (motion.css) lifts its shadow from flat to raised.
+  timeline.from(steps, {
+    autoAlpha: 0,
+    y: 12,
+    duration: 0.3,
+    stagger: 0.2,
+    ease: "power2.out",
+  });
+  if (deck) {
+    timeline.fromTo(
+      deck,
+      { "--deck-depth": 1, scale: 0.94, autoAlpha: 0, y: 40 },
+      {
+        "--deck-depth": 0,
+        scale: 1,
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+      },
+      intro - 0.6,
+    );
+  }
   cards.forEach((card, index) => {
     const { list, rows, position } = lists[index];
     if (card === fix) {
@@ -354,6 +383,21 @@ function pipeline() {
         duration: move,
         ease: "power2.inOut",
       });
+      // The card dips into the island and rises again between scenes.
+      if (deck) {
+        timeline.to(
+          deck,
+          {
+            "--deck-depth": 0.45,
+            scale: 0.973,
+            duration: move / 2,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: 1,
+          },
+          "<",
+        );
+      }
     }
   });
   ScrollTrigger.refresh();
@@ -375,6 +419,8 @@ function pipeline() {
       );
     }
     gsap.set(cards, { clearProps: "all" });
+    if (deck) gsap.set(deck, { clearProps: "all" });
+    gsap.set(steps, { clearProps: "all" });
     stages.forEach(({ fill }) => fill?.style.removeProperty("transform"));
   };
 }
@@ -402,7 +448,8 @@ media.add(
     const { motion, desktop } = context.conditions as Record<string, boolean>;
     if (!motion) return;
     const cleanups = [desktop ? pipeline() : sceneReveals()];
-    reveals();
+    // motion.css raises these from the scroll position where it can.
+    if (!CSS.supports("animation-timeline: view()")) reveals();
     bento();
     return () => cleanups.forEach((cleanup) => cleanup?.());
   },

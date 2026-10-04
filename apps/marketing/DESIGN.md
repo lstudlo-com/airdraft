@@ -507,20 +507,49 @@ row is the choice's height (`38px`), so the side-by-side prices line up. The
 pricing page lists each license as its own plan instead.
 Prices, Mac counts and inclusions come from `src/data/site.ts`.
 
-### Motion (`src/scripts/story.ts`, GSAP + ScrollTrigger)
+### Motion
 
-One `gsap.matchMedia` context, off entirely with reduced motion:
+Motion follows height, as the material does. Raised objects sit closer to the
+visitor, so they lead the scroll a little; the contents of recessed wells sit
+further away, so they lag. Objects rise from the surface as they arrive (they
+grow from `0.92–0.94` while their shadow grows from nothing) and sink back into
+it as they leave (they shrink while their shadow flattens). Light stays at the
+top left; nothing tilts or flies through perspective, and text fades and moves
+but never zooms.
 
-- Section headings, the sample, bento tiles and the offers rise `36–48px` and fade in as they enter. Cards rise flat: they never tip through perspective.
-- Bento loops play only while their tile is visible.
-- The provider story pins on desktop; its selection well steps through the providers (see above).
+**Scroll timelines (`src/styles/motion.css`).** Where the browser supports
+CSS scroll timelines and motion is allowed, every scroll-linked effect is a
+`view()` or named view timeline, so it moves in the same frame as the scroll and
+never jitters; never move content from a scroll listener. Transforms and
+opacity run apart from shadows so the browser can composite them. An element
+inside a scroll container (`overflow: hidden` or `auto` included) would take
+that container as its scroller, so its timeline comes from an ancestor
+outside it (`--tile`, `--cost-table`).
 
-The hero card rises once on load (CSS) and its bars grow; it never tilts,
-because its light is fixed at the top left. Resting CSS is always the final
-state, so nothing depends on the script to be readable. Interaction motion
-outside GSAP: the hero's dictation (`dictate.ts`), hover magnification
-(`waveform.ts`), the island fill (`island.ts`), the segmented thumb (`segmented.ts`), keycaps that follow the
-keyboard (`keys.ts`), the license swap and disclosures (CSS).
+| Where            | Motion                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Section headings | Fade up `28px` as they enter.                                                                                                                                                            |
+| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                       |
+| Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
+| Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
+| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`) and leads `±10px`.                                                                 |
+| Pricing          | Plans rise left to right; cost rows fade up in turn; each three-year bar fills to its share.                                                                                             |
+
+**GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
+entirely with reduced motion. Bento loops play only while their tile is
+visible. The provider story pins on desktop: its three steps rise in turn,
+then the card rises out of the island (`--deck-depth` lifts its shadow while
+GSAP scales it from `0.94`); the selection well steps through each scene's
+providers, and between scenes the card dips to `0.973` and rises again. In
+browsers without scroll timelines, GSAP gives headings, the sample, tiles and
+offers a one-time `36–48px` rise instead; with reduced motion nothing moves.
+
+The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
+the final state, so nothing depends on motion to be readable. Interaction
+motion: the hero's dictation (`dictate.ts`), hover magnification
+(`waveform.ts`), the island fill (`island.ts`), the segmented thumb
+(`segmented.ts`), keycaps that follow the keyboard (`keys.ts`), the license
+swap and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
 
@@ -558,7 +587,8 @@ then One Mac holds the page's primary key. A note gives the
 currency and tax basis. "What a year of dictation costs" follows: a raised
 table from `src/data/pricing.ts` (setup, one-time, per month, first year, three
 years; phones keep only the yearly columns), Airdraft rows in ink and the
-subscriptions muted, a note with the workload, token budget and price date, then
+subscriptions muted, each three-year total over a usage track filled to its
+share of the most expensive setup (`src/styles/pricing.css`), a note with the workload, token budget and price date, then
 a raised three-column list of what each setup takes, divided by vertical grooves
 and stacked under `700px`. Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the

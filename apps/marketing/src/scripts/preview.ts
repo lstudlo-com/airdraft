@@ -228,7 +228,8 @@ function setup(preview: HTMLElement) {
   play.hidden = false;
   picker.hidden = false;
 
-  // Play once, the first time most of the sample is on screen.
+  // Play once, the first time the sample reaches the middle of the window,
+  // where motion.css has finished raising it.
   if (reducedMotion.matches || !("IntersectionObserver" in window)) {
     finish();
     return;
@@ -236,18 +237,18 @@ function setup(preview: HTMLElement) {
   preview.dataset.state = "idle";
   renderPlaceholder();
   setLevels(0.14);
-  // A tall sample on a phone can never be 55% visible, so also accept it
-  // filling most of the viewport.
+  // Its centre (or, for a sample taller than the window, the centre of the
+  // part that fits) must be at or above 60% of the window's height.
   observer = new IntersectionObserver(
     (entries) => {
-      const seen = entries.some(
-        (entry) =>
-          entry.intersectionRatio >= 0.55 ||
-          entry.intersectionRect.height >= window.innerHeight * 0.5,
-      );
+      const seen = entries.some((entry) => {
+        const { top, height } = entry.boundingClientRect;
+        const centre = top + Math.min(height, window.innerHeight) / 2;
+        return entry.isIntersecting && centre <= window.innerHeight * 0.6;
+      });
       if (seen) run();
     },
-    { threshold: Array.from({ length: 11 }, (_, index) => index / 10) },
+    { threshold: Array.from({ length: 21 }, (_, index) => index / 20) },
   );
   observer.observe(preview);
 }
