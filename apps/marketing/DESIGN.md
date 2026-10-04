@@ -303,10 +303,11 @@ as the header, so content lines up with the mark. Sections come from the
 padding instead of the section gap (subpages excepted, below). The sample is capped at `1040px`.
 
 Subpages (Pricing, Support, Changelog) are `main.island.subpage` and open with
-the same title block: `Section level={1} first` with a one-line intro, the
-headline step for the title (`.page-title`), and the full content width; no
-subpage narrows its content. The title sits `0.75` of a section gap (`108px`,
-`90px`, `72px`) below the island's top edge, a little further than the later
+the same title block: `Section level={1} first`, the headline step for the title
+(`.page-title`), and the full content width. An intro is optional; Changelog
+opens with its title alone. No subpage narrows its content. The title sits
+`0.75` of a section gap (`108px`, `90px`, `72px`) below the island's top edge,
+a little further than the later
 sections sit from each other (`0.72` of the gap: `104px` on desktop), which use `entry-title`
 headings, a step below the page title.
 
@@ -559,7 +560,7 @@ eases open and closed (`::details-content` with `interpolate-size`; browsers
 without it toggle at once). Used for pricing questions and support
 troubleshooting. Answers may include `code`.
 
-### Header, footer, pricing, support, changelog
+### Header, footer, pricing, support
 
 The header sits on the chrome and stays at the top as the page scrolls. It is
 a three-column grid with equal outer columns: the Brand mark at the start; at
@@ -592,8 +593,37 @@ share of the most expensive setup (`src/styles/pricing.css`), a note with the wo
 a raised three-column list of what each setup takes, divided by vertical grooves
 and stacked under `700px`. Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
-project. The changelog runs a pressed groove down the date column with a raised
-stud per entry; Unreleased is a recessed chip.
+project.
+
+### Changelog
+
+The release timeline has one entry per product version and an initial source
+build. Version, date and the latest-release chip sit above each raised `Surface`
+card. Its linked title leads straight into described change items, separated by
+the shared groove, followed by a release or source link. Neither the page title
+nor release titles have summary paragraphs. Cards use the shared card radius,
+padding and neutral materials; descriptions stay within `70ch`.
+
+A release-family navigator sits beside the timeline in a recessed track. It is
+`160px` wide with a `64px` column gap, narrowing to `140px` with a `32px` gap
+below `1000px`. On desktop it sticks `124px` from the top. Below `700px` it
+becomes an inline seven-column row above the timeline, with dates hidden. A
+raised thumb follows the current family on the established `360ms`
+`cubic-bezier(0.65, 0, 0.35, 1)` selection curve; links retain visible keyboard
+focus and `aria-current` identifies the selected family.
+
+A thin recessed rail fills with reading progress. Each entry has a raised stud;
+the current entry's stud turns to the ink color and sinks into its socket.
+Version links and linked release titles land below the shared header and move
+focus to the entry. The timeline uses `36px` of leading space and `64px` between
+entries, reduced to `24px` and `40px` on phones.
+
+`src/scripts/changelog.ts` reveals each card once as it enters view. The card
+rises `18px` over `650ms`; its title and change rows rise `8px` and fade from
+`0.35` opacity over `480ms`, staggered by `55ms`, using the existing ease-out
+curve. Resting CSS keeps every entry readable without JavaScript. Reduce Motion
+removes reveals, thumb transitions and smooth scrolling, including animations
+already running when the preference changes.
 
 ## Do's and Don'ts
 

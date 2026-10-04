@@ -86,6 +86,12 @@ verification status belong in the vault (see below).
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
   require those checks and desktop/mobile browser verification, not Xcode tests.
+  Keep the changelog current with published app releases: one entry per product
+  version, dated from GitHub publication in Asia/Taipei, with a release/source link.
+  Group rebuilds under their version and verify changes against the tagged sources.
+  The page and each release use a title followed by described change items, without
+  a title summary. Preserve the version navigator, reduced-motion behavior and
+  readable content without JavaScript.
 - The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.

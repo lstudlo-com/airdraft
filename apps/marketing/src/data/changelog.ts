@@ -1,71 +1,534 @@
-import { siteLinks } from "./site";
-
-interface ChangelogEntry {
+export interface ChangelogEntry {
   id: string;
-  date?: string;
+  date: string;
+  version?: string;
   title: string;
-  summary: string;
   changes: { title: string; description: string }[];
-  source?: { label: string; url: string };
+  source: { label: string; url: string };
 }
 
-// Newest first. Add release dates and versions only when they are published.
+// Newest first, one entry per product version. Rebuilds share an entry.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-04.
+// Descriptions: published notes and commits between the corresponding tags.
+// These are personal-use Apple Development builds, not notarized distribution.
+// Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-6-0",
+    version: "0.6.0",
+    date: "2026-10-04",
+    title: "A speech model for every profile",
+    changes: [
+      {
+        title: "Choose speech per profile",
+        description:
+          "Bind a speech model to a writing profile, or keep using the app default. Switching profiles applies that choice to the next recording.",
+      },
+      {
+        title: "Read a dictation from Home",
+        description:
+          "Click a waveform bar to open its transcript. Expand long text, copy it, or switch to another dictation without leaving Home.",
+      },
+      {
+        title: "Find models more easily",
+        description:
+          "Browse speech models by provider, with brand icons and hosting labels. Browsing a filter leaves your active model unchanged.",
+      },
+      {
+        title: "Clearer progress and controls",
+        description:
+          "Download bars and percentages move together. Shorter page headers leave more room for content, and the menu groups model controls and recovery actions.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.6.0-build.139",
+    },
+  },
+  {
+    id: "0-5-1",
+    version: "0.5.1",
+    date: "2026-10-03",
+    title: "Models ready when you are",
+    changes: [
+      {
+        title: "Start after an idle break",
+        description:
+          "Beginning a dictation reloads an installed speech model automatically. Idle unloading defaults to 30 minutes, with 5, 10, 30 minutes and Never available.",
+      },
+      {
+        title: "Watch real download progress",
+        description:
+          "Model downloads report incoming bytes throughout each file. Preparing and unpacking show activity instead of an invented percentage.",
+      },
+      {
+        title: "Messages leave on their own",
+        description:
+          "Errors, recovery notices and confirmations stay for five seconds, then fade. Recovery details remain available on Home and in History where applicable.",
+      },
+      {
+        title: "A more precise sidebar",
+        description:
+          "A raised icon follows the sliding selection well. The microphone button, page toggle and card shadows keep consistent placement and depth.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.5.1-build.130",
+    },
+  },
+  {
+    id: "0-5-0",
+    version: "0.5.0",
+    date: "2026-10-02",
+    title: "The app takes a new shape",
+    changes: [
+      {
+        title: "One material across the window",
+        description:
+          "Rounded page islands, raised cards and controls, recessed selections and a neutral Home waveform share the same light and shadow in both appearances.",
+      },
+      {
+        title: "Navigation moves with you",
+        description:
+          "The selected sidebar well slides between pages. The carved brand mark and opaque window chrome complete the new interface.",
+      },
+      {
+        title: "Keep English in English",
+        description:
+          "Chinese script hints are sent only when Chinese is selected, avoiding unwanted translation during automatic speech-language detection.",
+      },
+      {
+        title: "Quieter clipboard confirmations",
+        description:
+          "Clipboard confirmations dismiss automatically. The following 0.5.1 release extends timed dismissal to all HUD messages.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.5.0-build.119",
+    },
+  },
+  {
+    id: "0-4-6",
+    version: "0.4.6",
+    date: "2026-10-01",
+    title: "Keep the words you just said",
+    changes: [
+      {
+        title: "Keep past dictations out of new ones",
+        description:
+          "Refinement separates context from the current transcript and checks fidelity to reduce reused sentences and unintended translation.",
+      },
+      {
+        title: "A compact menu and clearer selection",
+        description:
+          "Long dynamic menu titles fit within the menu width, while the active sidebar destination sits in a deeper recessed well.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.6-build.100",
+    },
+  },
+  {
+    id: "0-4-5",
+    version: "0.4.5",
+    date: "2026-10-01",
+    title: "Support editors without an exposed caret",
+    changes: [
+      {
+        title: "Paste through the focused app",
+        description:
+          "Editors that do not expose an accessible text caret can use the app-window paste path, while changed destinations still trigger recovery.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.5-build.95",
+    },
+  },
+  {
+    id: "0-4-4",
+    version: "0.4.4",
+    date: "2026-10-01",
+    title: "Read the whole error",
+    changes: [
+      {
+        title: "Make room for diagnostics",
+        description:
+          "The recording capsule expands to show complete error and recovery messages. Oversized messages scroll within the screen.",
+      },
+      {
+        title: "Copy the full message",
+        description:
+          "A trailing Copy Message action copies the diagnostic without taking focus from the app you were using.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.4-build.93",
+    },
+  },
+  {
+    id: "0-4-3",
+    version: "0.4.3",
+    date: "2026-10-01",
+    title: "Follow you between apps",
+    changes: [
+      {
+        title: "Wait for the destination to settle",
+        description:
+          "Airdraft waits for the selected app, text field and caret when an app switch is in progress. Transient focus reads can settle before delivery.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.3-build.91",
+    },
+  },
+  {
+    id: "0-4-2",
+    version: "0.4.2",
+    date: "2026-09-30",
+    title: "A single, safer paste path",
+    changes: [
+      {
+        title: "Avoid conflicting insertion attempts",
+        description:
+          "Text delivery uses one normal paste path instead of a speculative Accessibility write followed by paste.",
+      },
+      {
+        title: "Preserve text during cancellation",
+        description:
+          "If cancellation happens after delivery begins, the dictated text remains on the clipboard long enough for the destination to read it.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.2-build.90",
+    },
+  },
+  {
+    id: "0-4-1",
+    version: "0.4.1",
+    date: "2026-09-30",
+    title: "More reliable everyday dictation",
+    changes: [
+      {
+        title: "Leave unselected iPhones disconnected",
+        description:
+          "Opening the microphone picker previews a Continuity microphone only when it is selected, including through System Default.",
+      },
+      {
+        title: "Follow History with accessibility",
+        description:
+          "Visible timestamps follow timeline navigation, and offscreen entries leave the accessibility representation when you return to the top.",
+      },
+      {
+        title: "Recover focus and provider failures",
+        description:
+          "Insertion waits for editor focus and selection. Claude failures preserve the original transcript with an actionable diagnostic; the License sheet uses fewer controls.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.1-build.86",
+    },
+  },
+  {
+    id: "0-4-0",
+    version: "0.4.0",
+    date: "2026-09-30",
+    title: "A guided first dictation",
+    changes: [
+      {
+        title: "Set up by doing",
+        description:
+          "Optional onboarding walks through permissions and speech setup, then lets you try a real dictation.",
+      },
+      {
+        title: "Trial and activate the official build",
+        description:
+          "Official builds add a user-started, full-feature 14-day trial and license activation. Self-built editions remain fully unlocked.",
+      },
+      {
+        title: "Keep long text inside History",
+        description:
+          "Long transcripts and text selections stay within their cards. The recording capsule fits its label and fades after successful delivery.",
+      },
+      {
+        title: "An explicit open-source license",
+        description:
+          "The repository adopts GPL-3.0-only, with the license linked from the website.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.4.0-build.79",
+    },
+  },
+  {
+    id: "0-3-0",
+    version: "0.3.0",
+    date: "2026-09-28",
+    title: "Local intelligence, replay and automation",
+    changes: [
+      {
+        title: "Refine with Apple Intelligence",
+        description:
+          "On supported Macs running macOS 26 or later, an on-device Foundation Models session cleans up each dictation. Unavailable or failed refinement preserves the raw transcript.",
+      },
+      {
+        title: "More ways to hear and review speech",
+        description:
+          "Parakeet TDT v3 joins local speech recognition. Optional live transcription previews show provisional words while recording.",
+      },
+      {
+        title: "Save and replay audio",
+        description:
+          "Opt in to retaining dictation audio, replay it from History, and retry transcription from the saved recording.",
+      },
+      {
+        title: "Connect dictation to your workflow",
+        description:
+          "Start and stop through Shortcuts, and send delivered text to a configured script.",
+      },
+      {
+        title: "Better text fidelity and History",
+        description:
+          "Refinement corrects terms while preserving literal text. History bounds work during scrolling, adds calendar dates to its timeline, and gains progressive header blur.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.3.0-build.65",
+    },
+  },
+  {
     id: "0-2-0",
+    version: "0.2.0",
     date: "2026-09-26",
-    title: "0.2.0: New speech controls and a refreshed interface",
-    summary:
-      "This personal-use build is signed with Apple Development and is not notarized. A supported, notarized public installer is not available yet.",
+    title: "New speech controls and a refreshed interface",
     changes: [
       {
         title: "Check your connection",
         description:
-          "Test API access from the key field for Soniox, Groq, ElevenLabs, OpenAI, and Deepgram before you dictate.",
+          "Test API access for Soniox, Groq, ElevenLabs, OpenAI and Deepgram before you dictate. OpenRouter adds model and provider controls.",
       },
       {
         title: "Compare supported speech models",
         description:
-          "Choose from each provider’s supported models, with pricing and available quality and speed information linked to official documentation. Unpublished metrics are clearly marked.",
+          "Browse provider models with pricing and available quality and speed information linked to official documentation. Unpublished metrics stay marked.",
       },
       {
         title: "A refreshed native interface",
         description:
-          "A collapsible sidebar, live microphone meters, and a scrolling history timeline join consistent settings and model lists.",
+          "A collapsible sidebar, live microphone meters and a scrolling History timeline join consistent settings and model lists.",
       },
       {
-        title: "Safer recording and recovery",
+        title: "Recover interrupted work",
         description:
-          "Airdraft checks recording prerequisites before capture and keeps failed speech audio available to retry or discard. Refinement errors still preserve the raw transcript.",
+          "Recording prerequisites are checked before capture. Failed speech audio stays available to retry or discard, and refinement errors preserve the raw transcript.",
+      },
+      {
+        title: "A version for the feature release",
+        description:
+          "This release carries the same feature set as 0.1.9 build 44 under a new minor version. Its installer uses Apple Development signing and is not notarized.",
       },
     ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.2.0-build.46",
+    },
+  },
+  {
+    id: "0-1-9",
+    version: "0.1.9",
+    date: "2026-09-26",
+    title: "Desktop controls take shape",
+    changes: [
+      {
+        title: "Choose and preview a microphone",
+        description:
+          "The microphone overlay adds a live input-level preview. Sidebar and profile controls become more compact across this series of builds.",
+      },
+      {
+        title: "Edit the shared refinement rules",
+        description:
+          "Base prompt editing joins profile customization, so shared instructions can be saved or restored.",
+      },
+      {
+        title: "A website and branded installer",
+        description:
+          "The Astro website and a custom drag-to-Applications disk image join the project. Later builds in this series lead into the 0.2.0 feature release.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.9-build.44",
+    },
+  },
+  {
+    id: "0-1-8",
+    version: "0.1.8",
+    date: "2026-09-23",
+    title: "Make writing profiles your own",
+    changes: [
+      {
+        title: "Edit, duplicate and reset",
+        description:
+          "Profiles gain an open editor, inline renaming and duplication, including Verbatim behavior. Shared rules offer Save, Cancel and Restore Defaults.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.8-build.12",
+    },
+  },
+  {
+    id: "0-1-7",
+    version: "0.1.7",
+    date: "2026-09-23",
+    title: "Fewer interruptions during setup",
+    changes: [
+      {
+        title: "Ask for key access deliberately",
+        description:
+          "Page navigation and background checks stop requesting Keychain approval. Protected keys get an explicit access action, and denied reads preserve saved credentials.",
+      },
+      {
+        title: "Capture the selected input channel",
+        description:
+          "Microphone capture uses the chosen channel. Releasing the shortcut while permission is pending prevents a delayed recording from starting.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.7-build.10",
+    },
+  },
+  {
+    id: "0-1-6",
+    version: "0.1.6",
+    date: "2026-09-22",
+    title: "More refinement providers",
+    changes: [
+      {
+        title: "Use Cerebras or Groq",
+        description:
+          "Choose Cerebras or Groq for text refinement independently of your speech-recognition provider.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.6-build.8",
+    },
+  },
+  {
+    id: "0-1-5",
+    version: "0.1.5",
+    date: "2026-09-21",
+    title: "A stable identity for updates",
+    changes: [
+      {
+        title: "Keep signing consistent",
+        description:
+          "Certificate-signed releases replace the earlier ad-hoc identity. The update process checks signing continuity; upgrading from older builds may require granting permissions again.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.5-build.7",
+    },
+  },
+  {
+    id: "0-1-4",
+    version: "0.1.4",
+    date: "2026-09-21",
+    title: "Recover microphone interruptions",
+    changes: [
+      {
+        title: "Resume a disrupted input",
+        description:
+          "Microphone capture recovers from input interruptions, alongside more consistent spacing across settings.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.4-build.6",
+    },
+  },
+  {
+    id: "0-1-3",
+    version: "0.1.3",
+    date: "2026-09-21",
+    title: "Separate development and installed apps",
+    changes: [
+      {
+        title: "Recognize the right app",
+        description:
+          "Development and installed builds use separate identities, with refreshed permission state so access checks apply to the intended app.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.3-build.5",
+    },
+  },
+  {
+    id: "0-1-2",
+    version: "0.1.2",
+    date: "2026-09-21",
+    title: "Respect the system microphone",
+    changes: [
+      {
+        title: "Preserve the selected route",
+        description:
+          "Capture keeps the system microphone route instead of unexpectedly replacing the input you chose.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.2-build.4",
+    },
+  },
+  {
+    id: "0-1-1",
+    version: "0.1.1",
+    date: "2026-09-21",
+    title: "The first packaged builds",
+    changes: [
+      {
+        title: "Remember your microphone choice",
+        description:
+          "Microphone defaults become part of setup, and locally built releases arrive as a DMG with a signed Sparkle update feed.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.1.1-build.3",
+    },
   },
   {
     id: "initial-source",
     date: "2026-09-18",
     title: "Airdraft is on GitHub",
-    summary:
-      "The macOS app is available to build from source. A packaged download is not available yet.",
     changes: [
       {
-        title: "Speak into the app you’re using",
+        title: "Speak into the app you use",
         description:
-          "Hold your shortcut, speak, and release to insert text at the cursor. Airdraft stays in your menu bar between thoughts.",
+          "Hold a shortcut, speak and release to insert text at the cursor. Airdraft stays in the menu bar between recordings.",
       },
       {
         title: "Choose each step independently",
         description:
-          "Use local or cloud speech recognition and choose your refinement provider separately. If refinement fails, Airdraft keeps your raw transcript.",
-      },
-      {
-        title: "Make it sound like you",
-        description:
-          "Edit and reset writing profiles, add names and specialist terms to your vocabulary, and revisit previous dictations in History.",
+          "Use local or cloud speech recognition and choose refinement separately. Editable writing profiles, vocabulary corrections and local History are part of the source build.",
       },
     ],
     source: {
-      label: "View initial source",
-      url: `${siteLinks.source}/commit/16a392ed2dd2d4d7ec4a86eb23d5be74ae0bb31c`,
+      label: "Initial source",
+      url: "https://github.com/lstudlo-com/airdraft/commit/16a392ed2dd2d4d7ec4a86eb23d5be74ae0bb31c",
     },
   },
 ];

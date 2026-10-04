@@ -63,6 +63,12 @@ a paid subscription.
 - Changelog entries distinguish unreleased development, dated source history and
   personal-use releases from supported public distribution. Never invent a release
   version or publication date, or imply that a version number proves notarization.
+  Keep one entry per published product version, grouping rebuilds, with dates in
+  Asia/Taipei and links to the published release or original source. Review the
+  commits between tags when release notes omit the user-facing changes.
+  The page title and release titles have no summary paragraphs: each release
+  goes straight into change items with their own descriptions. A version navigator
+  follows reading position, and scroll motion respects Reduce Motion.
 - Do not invent prices, discounts, dates, performance measurements, testimonials,
   usage counts, licensing terms, or a download or checkout URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.

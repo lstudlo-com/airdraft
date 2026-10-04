@@ -4,63 +4,107 @@ import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import Arrow from "../components/Arrow.astro";
 import Section from "../components/ui/Section.astro";
+import Surface from "../components/ui/Surface.astro";
 import { changelog } from "../data/changelog";
+import "../styles/changelog.css";
 
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat("en", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${date}T00:00:00Z`));
+const shortDate = (date: string) =>
+  new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00Z`));
+
+// Navigate by release family; patch releases remain readable in the timeline.
+const series = (version?: string) =>
+  version?.split(".").slice(0, 2).join(".") ?? "Source";
+const milestones = changelog.filter(
+  (entry, index) =>
+    index === 0 ||
+    series(entry.version) !== series(changelog[index - 1].version),
+);
 ---
 
 <Layout
   title="Changelog — Airdraft"
-  description="Changes to Airdraft, newest first. Unreleased work is marked as unreleased."
+  description="Airdraft release history, from the first source build to speech models per profile, local intelligence and a new native interface."
 >
   <SiteHeader />
-  <!-- Read mode: dated, source-grounded entries on the page island. -->
   <main id="main" class="island subpage">
-    <Section
-      level={1}
-      first
-      title="Changelog"
-      intro="Changes to Airdraft, newest first. Unreleased work is marked."
-    >
-      <div class="changelog-entries">
-        {changelog.map((entry) => (
-          <article class="changelog-entry" aria-labelledby={entry.id}>
-            <div class="entry-meta">
-              {entry.date ? (
+    <Section level={1} first title="Changelog">
+      <div class="release-layout" data-changelog>
+        <nav class="release-nav" aria-label="Release versions">
+          <div class="release-nav-links">
+            <span class="release-nav-thumb" aria-hidden="true"></span>
+            {milestones.map((entry) => (
+              <a href={`#${entry.id}`} data-release-link>
+                <span>{series(entry.version)}</span>
+                <span class="release-nav-date">{shortDate(entry.date)}</span>
+              </a>
+            ))}
+          </div>
+        </nav>
+        <div class="release-timeline">
+          <div class="release-track" aria-hidden="true">
+            <span></span>
+          </div>
+          {changelog.map((entry, index) => (
+            <article
+              class="release-entry"
+              aria-labelledby={`${entry.id}-title`}
+              id={entry.id}
+              tabindex="-1"
+              data-release
+            >
+              <span class="release-stud" aria-hidden="true"></span>
+              <div class="release-meta">
+                <span class="release-version">{entry.version ?? "Source"}</span>
                 <time datetime={entry.date}>{formatDate(entry.date)}</time>
-              ) : (
-                <span class="unreleased-label">Unreleased</span>
-              )}
-            </div>
-            <div class="entry-content">
-              <h2 id={entry.id}>
-                <a href={`#${entry.id}`}>{entry.title}</a>
-              </h2>
-              <p class="entry-summary">{entry.summary}</p>
-              <ul class="change-list">
-                {entry.changes.map((change) => (
-                  <li>
-                    <h3>{change.title}</h3>
-                    <p>{change.description}</p>
-                  </li>
-                ))}
-              </ul>
-              {entry.source && (
-                <a class="text-link entry-source" href={entry.source.url}>
+                {index === 0 && <span class="tag">Latest release</span>}
+              </div>
+              <Surface class="release-card">
+                <h2 id={`${entry.id}-title`}>
+                  <a href={`#${entry.id}`}>{entry.title}</a>
+                </h2>
+                <ul class="release-changes">
+                  {entry.changes.map((change) => (
+                    <li>
+                      <h3>{change.title}</h3>
+                      <p>{change.description}</p>
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  class="text-link release-source"
+                  href={entry.source.url}
+                  aria-label={`${entry.source.label} for ${entry.version ?? "the first source build"}`}
+                >
                   {entry.source.label} <Arrow direction="external" />
                 </a>
-              )}
-            </div>
-          </article>
-        ))}
+              </Surface>
+            </article>
+          ))}
+          <p class="release-availability">
+            Published installers are personal-use builds signed with Apple
+            Development, without notarization. See{" "}
+            <a class="text-link" href="/support/">
+              installation guidance
+            </a>
+            .
+          </p>
+        </div>
       </div>
     </Section>
   </main>
   <SiteFooter />
+  <script>
+    import "../scripts/changelog";
+  </script>
 </Layout>
