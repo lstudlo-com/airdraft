@@ -277,15 +277,18 @@ Scrolling fills the window with the island. Over the first `160px` of scroll
 its inset, corners and hairline shrink to nothing and it grows up behind the
 header, so it runs edge to edge; over the last `120px` before its bottom edge
 enters the window they return, so the footer sits on the chrome below an inset
-island again. The first scroll goes into the expansion: content moves only
-`32px` while the island opens (it holds `128px` of space above the content and
-starts translated up by that much), and the header blur appears once the
-island is full, before content reaches the header.
+island again. The first scroll goes into the expansion: the island holds
+`160px` of space above the content and starts translated up by that much.
+Over the first `320px` the content's speed rises from still to the scroll's
+own speed along smoothstep (3p² − 2p³), so it moves `30px` while the island
+opens and `160px` in all, and its speed never jumps. The header blur appears
+once the island is full, before content reaches the header.
 
 The opening and the hold are a CSS scroll timeline (`.island-scroll`), never a
 scroll listener: a script runs a frame behind the compositor's scroll, so
-content it repositions jitters. The translate is composited with the scroll
-and is zero past the first `160px`, so `position: sticky` and the story's
+content it repositions jitters. The translate's and clip's curves are sampled
+into `linear()` easings. The translate is composited with the scroll and is
+zero past the first `320px`, so `position: sticky` and the story's
 ScrollTrigger (which measures that settled layout) are unaffected.
 `src/scripts/island.ts` sets `.island-scroll` only where scroll timelines exist
 and motion is allowed; elsewhere it opens the island itself without a hold and

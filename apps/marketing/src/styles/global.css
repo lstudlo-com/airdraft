@@ -1,10 +1,15 @@
 @layer reset, base, components, responsive;
 
-/* Registered so the island's scroll timeline interpolates it (.island). */
+/* Registered so the island's scroll timeline interpolates them (.island). */
 @property --island-open {
   syntax: "<number>";
   inherits: true;
   initial-value: 0;
+}
+@property --island-lift {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
 }
 
 @layer reset {
@@ -310,28 +315,38 @@
      at the top of the page and the clip hides the header's band until the
      island fills. */
   .site-header + .island {
+    --island-lift: var(--island-hold);
     --island-y: calc(
-      (var(--header) + var(--island-hold)) * (1 - var(--island-fill))
+      var(--header) * (1 - var(--island-fill)) + var(--island-lift)
     );
     margin-top: calc(-1 * var(--header));
     padding-top: calc(var(--header) + var(--island-hold));
   }
   /* Where the browser drives animations from the scroll position, the first
-     160px of scroll go into the expansion: the island holds 128px of space
-     above its content and starts translated up by that much, then slides
-     down as it opens, so content moves only 32px until the island is full.
-     The translate is composited with the scroll itself, so nothing lags or
-     jitters; past the first scroll it is zero and the layout is static.
+     scroll goes into the expansion. The island holds 160px of space above
+     its content and starts translated up by that much. Over the first 320px
+     the translate returns to zero so that the content's speed rises from
+     still to the scroll's own speed along smoothstep (3p² − 2p³): it moves
+     30px while the island opens (the first 160px) and 160px in all, and
+     never changes speed abruptly. --island-lift keeps the clip's top edge on
+     the window's top edge meanwhile. Both curves are sampled into linear()
+     easings: the translate's progress is 2(p − p³ + p⁴/2), the lift's
+     2p³ − p⁴. The translate is composited with the scroll itself, so nothing
+     lags or jitters; past 320px it is zero and the layout is static.
      island.ts sets .island-scroll only where scroll timelines exist and
      motion is allowed; elsewhere it sets --island-open itself, unheld. */
   .island-scroll .site-header + .island {
-    --island-hold: 128px;
+    --island-hold: 160px;
+    --ease-hold: linear(0.0000 0.00%, 0.1245 6.25%, 0.2463 12.50%, 0.3631 18.75%, 0.4727 25.00%, 0.5735 31.25%, 0.6643 37.50%, 0.7442 43.75%, 0.8125 50.00%, 0.8692 56.25%, 0.9143 62.50%, 0.9485 68.75%, 0.9727 75.00%, 0.9881 81.25%, 0.9963 87.50%, 0.9995 93.75%, 1.0000 100.00%);
+    --ease-lift: linear(0.0000 0.00%, 0.0005 6.25%, 0.0037 12.50%, 0.0119 18.75%, 0.0273 25.00%, 0.0515 31.25%, 0.0857 37.50%, 0.1308 43.75%, 0.1875 50.00%, 0.2558 56.25%, 0.3357 62.50%, 0.4265 68.75%, 0.5273 75.00%, 0.6369 81.25%, 0.7537 87.50%, 0.8755 93.75%, 1.0000 100.00%);
     animation:
-      island-hold linear both,
+      island-hold var(--ease-hold) both,
+      island-lift var(--ease-lift) both,
       island-open linear both;
-    animation-timeline: scroll(root), scroll(root);
+    animation-timeline: scroll(root), scroll(root), scroll(root);
     animation-range:
-      0px 160px,
+      0px 320px,
+      0px 320px,
       0px 160px;
   }
   /* Scroll-linked scripts measure the settled layout (story.ts). */
@@ -344,6 +359,14 @@
     }
     to {
       transform: none;
+    }
+  }
+  @keyframes island-lift {
+    from {
+      --island-lift: var(--island-hold);
+    }
+    to {
+      --island-lift: calc(2 * var(--island-hold));
     }
   }
   @keyframes island-open {

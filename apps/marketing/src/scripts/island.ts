@@ -6,9 +6,9 @@
  * - `--island-open`, 0 to 1 over the first `OPEN` pixels of scroll. Where the
  *   browser has scroll timelines and motion is allowed, CSS drives it with
  *   `.island-scroll`, together with the hold that keeps content almost still
- *   while the island opens; both follow the scroll in the same frame, which a
- *   script cannot do without the content jittering. Elsewhere this script
- *   sets it, without a hold.
+ *   while the island opens and then eases it up to the scroll's speed; both
+ *   follow the scroll in the same frame, which a script cannot do without
+ *   the content jittering. Elsewhere this script sets it, without a hold.
  * - `--island-close`, 1 to 0 over the last `CLOSE` pixels before the island's
  *   bottom edge enters the window. Only the clip changes there, so a script
  *   that follows a frame later is enough.
