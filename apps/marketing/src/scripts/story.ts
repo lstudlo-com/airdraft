@@ -10,8 +10,13 @@
 // the same without JavaScript. With reduced motion none of this runs.
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { settleIsland } from "./island";
 
 gsap.registerPlugin(ScrollTrigger);
+// Trigger positions are measured with the page island fully held, the
+// layout everywhere past the first scroll (src/scripts/island.ts).
+ScrollTrigger.addEventListener("refreshInit", () => settleIsland(true));
+ScrollTrigger.addEventListener("refresh", () => settleIsland(false));
 
 const all = <T extends Element = HTMLElement>(
   selector: string,

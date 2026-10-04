@@ -273,14 +273,26 @@ page's `<main>` is `.island`, inset `12px` from the window edges (`6px` on
 phones), with `22px` corners, a 1px hairline edge and no shadow. The island
 clips its content (`overflow: clip`, which keeps `position: sticky` working).
 
-Scrolling fills the window with the island: over the first `120px` of scroll
-its inset, corners and hairline shrink to nothing, so it runs edge to edge
-under the header; over the last `120px` before its bottom edge enters the
-window they return, so the footer sits on the chrome below an inset island
-again. `src/scripts/island.ts` sets `--island-fill` (0 inset, 1 full) from the
-scroll position; it has no timing of its own. The island's box always spans the
-window with matching inline padding, and the inset is a `clip-path`, so
-content never reflows while it moves. Without JavaScript it stays inset.
+Scrolling fills the window with the island. Over the first `160px` of scroll
+its inset, corners and hairline shrink to nothing and it grows up behind the
+header, so it runs edge to edge; over the last `120px` before its bottom edge
+enters the window they return, so the footer sits on the chrome below an inset
+island again. The first scroll goes into the expansion: content moves only
+`32px` while the island opens (it holds `128px` of space above the content and
+starts translated up by that much), and the header blur appears once the
+island is full, before content reaches the header.
+
+The opening and the hold are a CSS scroll timeline (`.island-scroll`), never a
+scroll listener: a script runs a frame behind the compositor's scroll, so
+content it repositions jitters. The translate is composited with the scroll
+and is zero past the first `160px`, so `position: sticky` and the story's
+ScrollTrigger (which measures that settled layout) are unaffected.
+`src/scripts/island.ts` sets `.island-scroll` only where scroll timelines exist
+and motion is allowed; elsewhere it opens the island itself without a hold and
+shows the blur as soon as the page scrolls. The closing only changes the clip,
+so the script drives it. The island's box always spans the window with
+matching padding and the inset is a `clip-path`, so content never reflows.
+Without JavaScript it stays inset.
 
 Content width inside the island is `min(1120px, 100% - 2 × gutter)`, the same
 as the header, so content lines up with the mark. Sections come from the
@@ -529,7 +541,8 @@ content is lightly blurred at its bottom edge and fully blurred at the top,
 while labels and controls stay sharp. The blur is `100px` tall at every width,
 reaching past the header's row (`72px`, `64px` on phones) without moving it. At the top of the page it is
 hidden; it fades in (`240ms`) once the island has filled the window
-(`.is-blurred`, set by `island.ts`), and stays shown without JavaScript. Never
+(`.is-blurred`, set by `island.ts`; see Layout), and stays shown without
+JavaScript. Never
 simulate it with a tint or an opacity fade; only Reduce Transparency gets an
 opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.

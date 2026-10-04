@@ -283,28 +283,82 @@
 
   /* The page island: every page renders on one rounded mid-tone surface
      inset from the chrome, so raised objects show both light and shade. */
-  /* Scrolling fills the window with it: src/scripts/island.ts moves
-     --island-fill from 0 (inset, rounded) to 1 (edge to edge, square) and
-     back before the footer. The box always spans the window and the inset is
-     a clip, with matching padding, so content never reflows as it moves. */
+  /* Scrolling fills the window with it and returns it before the footer
+     (src/scripts/island.ts). --island-fill is the lesser of --island-open
+     (0 to 1 over the first scroll) and --island-close (1 to 0 as the
+     island's end nears the footer): 0 is inset and rounded, 1 is edge to
+     edge and square. The box always spans the window with matching padding,
+     and the inset is a clip, so content never reflows as it moves. */
   .island {
-    --island-fill: 0;
+    --island-open: 0;
+    --island-close: 1;
+    --island-fill: min(var(--island-open), var(--island-close));
+    --island-hold: 0px;
     --island-x: calc(var(--island-inset) * (1 - var(--island-fill)));
+    --island-y: 0px;
     --island-r: calc(var(--radius-island) * (1 - var(--island-fill)));
     position: relative;
     padding-inline: var(--island-inset);
     padding-bottom: var(--section);
     background: var(--island);
-    clip-path: inset(0 var(--island-x) round var(--island-r));
+    clip-path: inset(var(--island-y) var(--island-x) 0 round var(--island-r));
     /* Clips the pipeline's flying cards to the island without breaking
        position: sticky. */
     overflow: clip;
+  }
+  /* Below the header, the island also reaches up behind it: its box starts
+     at the top of the page and the clip hides the header's band until the
+     island fills. */
+  .site-header + .island {
+    --island-y: calc(
+      (var(--header) + var(--island-hold)) * (1 - var(--island-fill))
+    );
+    margin-top: calc(-1 * var(--header));
+    padding-top: calc(var(--header) + var(--island-hold));
+  }
+  /* Where the browser drives animations from the scroll position, the first
+     160px of scroll go into the expansion: the island holds 128px of space
+     above its content and starts translated up by that much, then slides
+     down as it opens, so content moves only 32px until the island is full.
+     The translate is composited with the scroll itself, so nothing lags or
+     jitters; past the first scroll it is zero and the layout is static.
+     island.ts sets .island-scroll only where scroll timelines exist and
+     motion is allowed; elsewhere it sets --island-open itself, unheld. */
+  .island-scroll .site-header + .island {
+    --island-hold: 128px;
+    animation:
+      island-hold linear both,
+      island-open linear both;
+    animation-timeline: scroll(root), scroll(root);
+    animation-range:
+      0px 160px,
+      0px 160px;
+  }
+  /* Scroll-linked scripts measure the settled layout (story.ts). */
+  .island-scroll.island-measure .site-header + .island {
+    animation: none;
+  }
+  @keyframes island-hold {
+    from {
+      transform: translateY(calc(-1 * var(--island-hold)));
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes island-open {
+    from {
+      --island-open: 0;
+    }
+    to {
+      --island-open: 1;
+    }
   }
   /* The hairline edge, inside the clip; it fades as the island fills. */
   .island::after {
     content: "";
     position: absolute;
-    inset: 0 var(--island-x);
+    inset: var(--island-y) var(--island-x) 0;
     border-radius: var(--island-r);
     box-shadow: inset 0 0 0 1px var(--island-edge);
     opacity: calc(1 - var(--island-fill));
