@@ -92,6 +92,12 @@ verification status belong in the vault (see below).
   The page and each release use a title followed by described change items, without
   a title summary. Preserve the version navigator, reduced-motion behavior and
   readable content without JavaScript.
+  Search contracts live in `apps/marketing/SEARCH.md`. Keep factual guide content,
+  metadata and structured data aligned; never invent sale availability, reviews or
+  ranking claims. Marketing builds validate generated crawlability, canonical URLs,
+  sitemap membership, links, feeds and social previews. Keep `_redirects` aligned
+  with canonical HTML routes. IndexNow defaults to a dry run; submission is a
+  separate explicit command after publication, never a build side effect.
 - The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
   ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
   rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.

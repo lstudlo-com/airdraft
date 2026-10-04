@@ -1,0 +1,34 @@
+---
+import Button from "./ui/Button.astro";
+import Surface from "./ui/Surface.astro";
+import { guides } from "../data/guides";
+import "../styles/guides.css";
+
+interface Props {
+  exclude?: string;
+  headingLevel?: 2 | 3;
+}
+
+const { exclude, headingLevel = 3 } = Astro.props;
+const Heading = headingLevel === 2 ? "h2" : "h3";
+const entries = guides.filter((guide) => guide.slug !== exclude);
+---
+
+<ul class="guide-links">
+  {entries.map((guide) => (
+    <Surface as="li" class="guide-link-card">
+      <Heading>
+        <a href={guide.href}>{guide.title}</a>
+      </Heading>
+      <p>{guide.summary}</p>
+      <Button
+        href={guide.href}
+        variant="quiet"
+        icon="right"
+        aria-label={`Read guide: ${guide.title}`}
+      >
+        Read Guide
+      </Button>
+    </Surface>
+  ))}
+</ul>

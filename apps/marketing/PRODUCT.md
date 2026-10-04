@@ -103,6 +103,31 @@ the page reads fully without it. Motion stays physical: objects rise from and
 sink into the surface and selections slide; nothing tilts or flies through
 perspective. Bento tiles are one graphic and one line.
 
+## Search and product guides
+
+The homepage links to a guide hub and three distinct guides: offline setup,
+local/cloud data flow, and the free source build versus official app. Keep their
+answers in static HTML, with descriptive internal links, visible breadcrumbs and
+semantic comparison tables. The first viewport remains the hero alone.
+Cloud refinement can receive enabled app context as well as transcript and
+instructions; some speech providers receive language and vocabulary hints.
+Local processing claims apply to the selected models, not downloads, updates or
+licensing traffic. Guides must retain these boundaries and active-profile overrides.
+
+`SEARCH.md` owns the search implementation contract and console/submission commands.
+The shared layout emits canonical URLs, site/application/page entities and a
+1200×630 sharing image, plus breadcrumbs where visible. Do not invent reviews,
+ratings or purchasable offers. Preserve current crawler access, sitemap exclusions
+and snippet eligibility. `llms.txt` is an optional navigation directory, not a
+Google ranking signal. The changelog feed uses the existing release data.
+
+Builds run `scripts/check-search.py` with Python 3 (standard library only).
+The check enforces sitemap/canonical parity, internal links, crawler permissions,
+metadata, structured data, feed targets and social-image dimensions. HTTP preview
+checks also verify response headers, canonical redirects, assets and real 404s.
+IndexNow submission is explicit, defaults to a no-network dry run, and checks the
+published key and HTML before sending. It does not run during build or deployment.
+
 ## Delivery
 
 An independent Moon project at `apps/marketing`, using Astro and Cloudflare Workers static assets.

@@ -1,0 +1,53 @@
+---
+import Layout from "./Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import GuideLinks from "../components/GuideLinks.astro";
+import Section from "../components/ui/Section.astro";
+import type { Guide } from "../data/guides";
+import "../styles/guides.css";
+
+interface Props {
+  guide: Guide;
+  intro: string;
+}
+
+const { guide, intro } = Astro.props;
+const breadcrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Guides", path: "/guides/" },
+  { name: guide.title, path: guide.href },
+];
+---
+
+<Layout
+  title={`${guide.title} | Airdraft`}
+  description={guide.description}
+  breadcrumbs={breadcrumbs}
+>
+  <SiteHeader />
+  <main id="main" class="island subpage">
+    <Section level={1} first title={guide.title} intro={intro}>
+      <nav class="guide-breadcrumbs" aria-label="Breadcrumb">
+        <ol>
+          {breadcrumbs.map((item, index) => (
+            <li>
+              {index === breadcrumbs.length - 1 ? (
+                <span aria-current="page">{item.name}</span>
+              ) : (
+                <a href={item.path}>{item.name}</a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <article class="guide-article" aria-label={guide.title}>
+        <slot />
+      </article>
+    </Section>
+    <Section title="Related guides">
+      <GuideLinks exclude={guide.slug} />
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

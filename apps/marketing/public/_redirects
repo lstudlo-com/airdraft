@@ -1,0 +1,16 @@
+# Permanent aliases for canonical HTML routes; keep assets and missing URLs intact.
+/index.html / 301
+/pricing /pricing/ 301
+/pricing/index.html /pricing/ 301
+/support /support/ 301
+/support/index.html /support/ 301
+/changelog /changelog/ 301
+/changelog/index.html /changelog/ 301
+/guides /guides/ 301
+/guides/index.html /guides/ 301
+/guides/offline-dictation-on-mac /guides/offline-dictation-on-mac/ 301
+/guides/offline-dictation-on-mac/index.html /guides/offline-dictation-on-mac/ 301
+/guides/local-vs-cloud-dictation /guides/local-vs-cloud-dictation/ 301
+/guides/local-vs-cloud-dictation/index.html /guides/local-vs-cloud-dictation/ 301
+/guides/free-source-or-official-app /guides/free-source-or-official-app/ 301
+/guides/free-source-or-official-app/index.html /guides/free-source-or-official-app/ 301

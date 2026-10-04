@@ -801,7 +801,7 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 4px 24px;
-    max-width: 640px;
+    max-width: 760px;
   }
   .footer-links a {
     display: flex;

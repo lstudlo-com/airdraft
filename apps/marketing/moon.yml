@@ -20,6 +20,7 @@ tasks:
     inputs:
       - src/**/*
       - public/**/*
+      - scripts/**/*
       - astro.config.mjs
       - tsconfig.json
       - package.json
@@ -28,6 +29,8 @@ tasks:
       - /package.json
       - /.prototools
       - $SITE_URL
+      - $GOOGLE_SITE_VERIFICATION
+      - $BING_SITE_VERIFICATION
     outputs:
       - dist
 

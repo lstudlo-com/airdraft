@@ -1,0 +1,124 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+import Surface from "../../components/ui/Surface.astro";
+import Button from "../../components/ui/Button.astro";
+import { guides } from "../../data/guides";
+import { siteLinks } from "../../data/site";
+
+const guide = guides.find(
+  (entry) => entry.slug === "offline-dictation-on-mac",
+)!;
+---
+
+<GuideLayout
+  guide={guide}
+  intro="For offline speech-to-text, install a local speech model and use local refinement or turn refinement off. These choices keep dictation processing on your Mac after the required models are installed."
+>
+  <Surface class="guide-section">
+    <h2 id="requirements">What you need</h2>
+    <ul>
+      <li>An Apple silicon Mac running macOS 15 or later.</li>
+      <li>
+        Airdraft installed, with Microphone and Accessibility permissions.
+      </li>
+      <li>An internet connection for the initial model downloads.</li>
+    </ul>
+    <p>
+      Apple SpeechAnalyzer and Apple Intelligence need macOS 26 or later. Apple
+      Intelligence also needs to be available on your Mac. Other local speech
+      models do not require Apple Intelligence.
+    </p>
+    <p>
+      Start with the <a href={siteLinks.build}>source build instructions</a>.
+      The <a href="/pricing/">pricing page</a> lists current official-app
+      availability.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="setup">Set up your first local dictation</h2>
+    <ol class="guide-steps">
+      <li>
+        <h3>Allow recording and text insertion</h3>
+        <p>
+          Grant Microphone when prompted. Enable Airdraft in System Settings →
+          Privacy &amp; Security → Accessibility so it can insert text.
+        </p>
+      </li>
+      <li>
+        <h3>Download and select a local speech model</h3>
+        <p>
+          Open Models and choose a local model that supports your language.
+          Airdraft downloads models only when you request them. An installed
+          model loads automatically when you start dictating.
+        </p>
+      </li>
+      <li>
+        <h3>Choose local cleanup, or skip it</h3>
+        <p>
+          In Models → Refinement, choose Apple Intelligence on a supported
+          system, or connect LM Studio or Ollama running locally on this Mac.
+          For speech-to-text without AI cleanup, turn off Refine transcript for
+          your active profile in Profiles.
+        </p>
+      </li>
+      <li>
+        <h3>Check the active profile</h3>
+        <p>
+          A profile can have its own speech model. In Profiles → Speech model,
+          choose a local model or Use App Default to follow Models. A cloud
+          speech binding would still send audio to that provider.
+        </p>
+      </li>
+      <li>
+        <h3>Hold, speak, release</h3>
+        <p>
+          Put your cursor in a text field. Hold Control + Option, speak, then
+          release. Airdraft transcribes and refines after recording stops, then
+          inserts the result. You can change the shortcut in Configuration.
+        </p>
+      </li>
+    </ol>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="languages">Which model should I choose?</h2>
+    <p>
+      Language support belongs to the model. Parakeet TDT v3 supports English
+      and 24 other European languages, but not Mandarin or Cantonese. For mixed
+      Chinese and English, Airdraft's setup instructions recommend Qwen3-ASR
+      1.7B. Choose your output script under Models → Speech options → Chinese
+      script.
+    </p>
+    <p>
+      Local processing uses your Mac's memory and compute. Model loading and
+      transcription time vary with the model and hardware; the website's
+      interactive sample is an illustration, not a speed test.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="offline-scope">What does offline cover?</h2>
+    <p>
+      Local speech and local refinement do not need a cloud model to process
+      your dictation. Initial downloads, app updates and official-app licensing
+      are separate network activities. A custom endpoint on another computer is
+      not processing on this Mac.
+    </p>
+    <p>
+      Read{" "}
+      <a href="/guides/local-vs-cloud-dictation/">
+        what each model choice sends
+      </a>{" "}
+      before mixing local and cloud engines.
+    </p>
+    <div class="guide-actions">
+      <Button href="/support/" icon="right">
+        Troubleshoot Setup
+      </Button>
+      <Button href={siteLinks.build} variant="quiet" icon="external">
+        Source Build Instructions
+      </Button>
+    </div>
+  </Surface>
+</GuideLayout>

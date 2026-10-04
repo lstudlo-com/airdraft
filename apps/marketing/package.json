@@ -8,9 +8,11 @@
   },
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "build": "astro build",
+    "build": "astro build && python3 scripts/check-search.py",
     "check": "astro check && prettier --check . && node scripts/check-neutral.mjs",
     "format": "prettier --write .",
+    "search:check": "python3 scripts/check-search.py",
+    "search:submit": "python3 scripts/check-search.py && node scripts/indexnow.mjs",
     "preview": "wrangler dev --ip 127.0.0.1",
     "deploy": "pnpm run build && wrangler deploy",
     "deploy:check": "pnpm run build && wrangler deploy --dry-run",

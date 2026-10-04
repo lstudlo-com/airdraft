@@ -7,6 +7,7 @@ import HeroCard from "../components/HeroCard.astro";
 import PipelineStory from "../components/PipelineStory.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import GuideLinks from "../components/GuideLinks.astro";
 import BentoTile from "../components/ui/BentoTile.astro";
 import Button from "../components/ui/Button.astro";
 import Hud from "../components/ui/Hud.astro";
@@ -59,6 +60,14 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
       <DictationPreview />
     </section>
+
+    <Section
+      id="guides"
+      title="Choose your dictation setup"
+      intro="Keep speech and cleanup on your Mac, mix in cloud models, or start with the free source build."
+    >
+      <GuideLinks />
+    </Section>
 
     <Section id="features" title="What Airdraft handles for you">
       <div class="bento">

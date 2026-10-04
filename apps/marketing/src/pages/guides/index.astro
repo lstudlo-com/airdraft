@@ -1,0 +1,45 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import GuideLinks from "../../components/GuideLinks.astro";
+import Section from "../../components/ui/Section.astro";
+import Button from "../../components/ui/Button.astro";
+import "../../styles/guides.css";
+---
+
+<Layout
+  title="Mac dictation setup and model guides | Airdraft"
+  description="Practical Airdraft guides for offline Mac dictation, local and cloud models, privacy, and choosing between the free source build and official app."
+  breadcrumbs={[
+    { name: "Home", path: "/" },
+    { name: "Guides", path: "/guides/" },
+  ]}
+>
+  <SiteHeader />
+  <main id="main" class="island subpage">
+    <Section
+      level={1}
+      first
+      title="Dictation guides"
+      intro="Airdraft is an open-source Mac dictation app. Hold a shortcut, speak, then release to transcribe, optionally refine, and insert text at your cursor. Start with the setup that fits your Mac and your data."
+    >
+      <GuideLinks headingLevel={2} />
+      <p class="guide-hub-note">
+        Already set up and something is wrong?{" "}
+        <a href="/support/">
+          Check permissions, shortcuts and common problems.
+        </a>
+      </p>
+      <div class="guide-actions">
+        <Button href="/pricing/" variant="quiet" icon="right">
+          Compare Pricing
+        </Button>
+        <Button href="/changelog/" variant="quiet" icon="right">
+          See What Changed
+        </Button>
+      </div>
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

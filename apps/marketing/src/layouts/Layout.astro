@@ -4,23 +4,41 @@
 import "@fontsource-variable/inter";
 import "../styles/global.css";
 import "../styles/motion.css";
+import {
+  canonicalURL,
+  defaultDescription,
+  defaultTitle,
+  pageStructuredData,
+  serializeStructuredData,
+  siteName,
+  socialImageAlt,
+  type Breadcrumb,
+} from "../lib/seo";
 
 interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  breadcrumbs?: Breadcrumb[];
 }
 const {
-  title = "Airdraft — Open-source dictation for the Mac",
-  description = "Hold a shortcut, speak, and let go: Airdraft cleans up what you said and inserts it at your cursor. Open source, with local or cloud models for each step.",
+  title = defaultTitle,
+  description = defaultDescription,
   noindex = false,
+  breadcrumbs = [],
 } = Astro.props;
-const canonical = Astro.site
-  ? new URL(Astro.url.pathname, Astro.site)
-  : undefined;
+const canonical =
+  Astro.site && !noindex
+    ? canonicalURL(Astro.url.pathname, Astro.site)
+    : undefined;
 const socialImage = Astro.site
-  ? new URL("/airdraft-icon.png", Astro.site)
+  ? new URL("/social-card.png", Astro.site)
   : undefined;
+const structuredData = canonical
+  ? pageStructuredData({ canonical, title, description, breadcrumbs })
+  : undefined;
+const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION?.trim();
+const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
 ---
 
 <!doctype html>
@@ -40,22 +58,51 @@ const socialImage = Astro.site
       media="(prefers-color-scheme: dark)"
     />
     <meta name="color-scheme" content="light dark" />
-    {noindex && <meta name="robots" content="noindex" />}
+    <meta
+      name="robots"
+      content={noindex ? "noindex" : "max-image-preview:large"}
+    />
     {canonical && <link rel="canonical" href={canonical} />}
+    {googleVerification && (
+      <meta name="google-site-verification" content={googleVerification} />
+    )}
+    {bingVerification && (
+      <meta name="msvalidate.01" content={bingVerification} />
+    )}
     <link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
     <link rel="apple-touch-icon" href="/airdraft-icon.png" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Airdraft releases"
+      href="/changelog.xml"
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
     {socialImage && <meta property="og:image" content={socialImage} />}
     {socialImage && (
-      <meta
-        property="og:image:alt"
-        content="Airdraft’s gray app icon: a raised capsule holding a waveform and a text caret"
-      />
+      <>
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={socialImageAlt} />
+      </>
     )}
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && <meta name="twitter:image" content={socialImage} />}
+    {socialImage && <meta name="twitter:image:alt" content={socialImageAlt} />}
+    {structuredData && (
+      <script
+        type="application/ld+json"
+        set:html={serializeStructuredData(structuredData)}
+      ></script>
+    )}
     <title>{title}</title>
     <script is:inline>
       document.documentElement.classList.add("js");

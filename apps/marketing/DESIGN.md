@@ -595,6 +595,24 @@ and stacked under `700px`. Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
 project.
 
+### Product guides and sharing
+
+The homepage links to three guides after the hero/sample, using `GuideLinks`:
+offline setup, local/cloud data flow, and source build versus official app. The
+hub uses H2 card titles; related cards inside a titled section use H3. `GuideLayout`
+reuses the subpage title, Section, Surface and Button, followed by visible wrapping
+breadcrumbs and readable answer sections. Tables keep real headers and captions;
+on phones they scroll inside a keyboard-focusable region without widening the page.
+Cards retain the shared neutral materials and 28px padding (22px on phones).
+Footer and Support links keep the guides reachable without changing the header.
+The footer also links the release RSS feed, with a 760px link group to avoid an
+isolated final link at desktop widths.
+
+The shared 1200×630 social card uses the existing app icon, neutral chrome and
+island, and factual product copy. Regenerate it from the repository root with
+`swift apps/marketing/scripts/render-social-card.swift`. It contains no personal
+app data, price or unverified availability claim.
+
 ### Changelog
 
 The release timeline has one entry per product version and an initial source

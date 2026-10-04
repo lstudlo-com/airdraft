@@ -1,0 +1,143 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+import Surface from "../../components/ui/Surface.astro";
+import Button from "../../components/ui/Button.astro";
+import { guides } from "../../data/guides";
+import { siteLinks } from "../../data/site";
+
+const guide = guides.find(
+  (entry) => entry.slug === "local-vs-cloud-dictation",
+)!;
+---
+
+<GuideLayout
+  guide={guide}
+  intro="Airdraft chooses speech recognition and text refinement independently. Local speech keeps audio on your Mac. Cloud refinement sends text and its prompt to the provider you select, even when speech recognition is local."
+>
+  <Surface class="guide-section">
+    <h2 id="data-flow">What leaves your Mac?</h2>
+    <div
+      class="guide-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Compare local and cloud data flow"
+    >
+      <table class="guide-table">
+        <caption>Dictation processing with each combination</caption>
+        <thead>
+          <tr>
+            <th scope="col">Speech</th>
+            <th scope="col">Refinement</th>
+            <th scope="col">Sent to model providers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Local</th>
+            <td>Local or off</td>
+            <td>No audio or transcript is sent to a cloud model.</td>
+          </tr>
+          <tr>
+            <th scope="row">Local</th>
+            <td>Cloud</td>
+            <td>The transcript and refinement prompt. Audio stays local.</td>
+          </tr>
+          <tr>
+            <th scope="row">Cloud</th>
+            <td>Local or off</td>
+            <td>Audio goes to your speech provider for transcription.</td>
+          </tr>
+          <tr>
+            <th scope="row">Cloud</th>
+            <td>Cloud</td>
+            <td>
+              Audio goes to the speech provider; text and its prompt go to the
+              refinement provider.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Some speech providers also receive your language selection and vocabulary
+      terms to guide transcription.
+    </p>
+    <p>
+      Here, local means the model runs on this Mac. The table covers model
+      processing, not downloads, software updates or license requests.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="refinement-context">What is in the refinement prompt?</h2>
+    <p>
+      Refinement uses the transcript, profile instructions and vocabulary. With
+      Read app context enabled, available context can also include the active
+      app, window title, URL, selected text, text near the cursor and terms from
+      recent dictations in the same app.
+    </p>
+    <p>
+      Turn off Read app context in Configuration if you do not want that context
+      included. With a cloud refiner, the prompt is sent to that provider.
+      Claude Code and Codex refinement also use an external service; running a
+      command on your Mac does not make its model local.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="choose">Which setup fits my needs?</h2>
+    <dl class="guide-decisions">
+      <div>
+        <dt>Keep dictation processing on this Mac</dt>
+        <dd>
+          Choose a local speech model and local refinement, or turn refinement
+          off. Install the required models first. Follow the{" "}
+          <a href="/guides/offline-dictation-on-mac/">offline setup guide</a>.
+        </dd>
+      </div>
+      <div>
+        <dt>Keep audio local and use a cloud text model</dt>
+        <dd>
+          Combine local speech with cloud refinement. This shares the transcript
+          and its prompt while keeping the recording out of the cloud speech
+          service.
+        </dd>
+      </div>
+      <div>
+        <dt>Avoid local model downloads</dt>
+        <dd>
+          Choose cloud speech and cloud refinement. You need connectivity and
+          the providers' required credentials; their usage charges are separate
+          from Airdraft's license.
+        </dd>
+      </div>
+    </dl>
+    <p>
+      Check your active profile's speech model too. A profile can override the
+      app default shown in Models. Changing the default does not replace that
+      profile's selection.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="storage">Where are keys and history stored?</h2>
+    <p>
+      Provider API keys are stored in the macOS Keychain. Dictation history is
+      local and searchable. Audio history is opt-in, with retention choices of
+      1, 7 or 30 days, or until deleted. Turning audio retention off removes
+      saved audio while keeping the text history.
+    </p>
+    <p>
+      Cloud providers apply their own data policies and billing. A local copy in
+      History does not undo a request already sent to a provider.
+    </p>
+    <div class="guide-actions">
+      <Button href="/pricing/#provider-costs" icon="right">
+        Compare Setup Costs
+      </Button>
+      <Button href={siteLinks.source} variant="quiet" icon="external">
+        Inspect the Source
+      </Button>
+    </div>
+  </Surface>
+</GuideLayout>

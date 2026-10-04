@@ -1,0 +1,131 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+import Surface from "../../components/ui/Surface.astro";
+import Button from "../../components/ui/Button.astro";
+import { guides } from "../../data/guides";
+import { licenses, siteLinks } from "../../data/site";
+
+const guide = guides.find(
+  (entry) => entry.slug === "free-source-or-official-app",
+)!;
+const onSale = Boolean(siteLinks.checkout);
+---
+
+<GuideLayout
+  guide={guide}
+  intro="The source build is free and includes every feature. The official app is the ready-to-run option with a one-time personal license. Choose based on whether you want to maintain a source build or install the official app."
+>
+  <Surface class="guide-section">
+    <h2 id="availability">What can I get now?</h2>
+    {onSale ? (
+      <p>
+        You can build Airdraft from source or choose an official-app license on
+        the <a href="/pricing/">pricing page</a>.
+      </p>
+    ) : (
+      <p>
+        The <a href={siteLinks.build}>source build</a> is available now. The
+        official app is not on sale yet. Existing personal-use release builds
+        are signed with Apple Development and are not notarized; they are not a
+        supported public installer.
+      </p>
+    )}
+    <p>
+      Both paths require an Apple silicon Mac with macOS 15 or later. Apple
+      SpeechAnalyzer and Apple Intelligence require macOS 26 or later.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="compare">How do the two options differ?</h2>
+    <div
+      class="guide-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Compare the source build and official app"
+    >
+      <table class="guide-table">
+        <caption>Source build and official-app license</caption>
+        <thead>
+          <tr>
+            <th scope="col">Choice</th>
+            <th scope="col">Free source build</th>
+            <th scope="col">Official app</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Price</th>
+            <td>$0</td>
+            <td>
+              {licenses
+                .map((plan) => `${plan.price} for ${plan.macs}`)
+                .join("; ")}
+              . One-time, in US dollars before tax.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Features</th>
+            <td>Every feature, with no locked tier.</td>
+            <td>The same features, ready to run.</td>
+          </tr>
+          <tr>
+            <th scope="row">Setup</th>
+            <td>Build with Xcode using the repository instructions.</td>
+            <td>No Xcode or build step.</td>
+          </tr>
+          <tr>
+            <th scope="row">Updates</th>
+            <td>Pull source changes and rebuild.</td>
+            <td>Updates to the version you buy are included.</td>
+          </tr>
+          <tr>
+            <th scope="row">Trial</th>
+            <td>No trial limit.</td>
+            <td>A 14-day full-feature trial, started when you choose.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="license">Is the official app a subscription?</h2>
+    <p>
+      No. The personal license is a one-time purchase and does not expire. The
+      plans differ only in how many Macs can be active at once. You can
+      deactivate a Mac to move the license to another one.
+    </p>
+    <p>
+      The source is licensed under{" "}
+      <a href={`${siteLinks.source}/blob/main/LICENSE`}>GPL-3.0-only</a>. The
+      repository's license covers the source; the official app's purchase terms
+      describe its personal license.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="model-costs">Do I also pay for models?</h2>
+    <p>
+      Local speech and local refinement do not incur cloud API usage charges.
+      Cloud providers bill you directly when you use their services. Your
+      Airdraft purchase does not include those charges, and choosing the free
+      source build does not remove them.
+    </p>
+    <p>
+      See the{" "}
+      <a href="/pricing/#provider-costs">
+        dated cost comparison and workload assumptions
+      </a>
+      , or choose a <a href="/guides/offline-dictation-on-mac/">local setup</a>.
+    </p>
+    <div class="guide-actions">
+      <Button href={siteLinks.build} icon="external">
+        Build from Source
+      </Button>
+      <Button href="/pricing/" variant="quiet" icon="right">
+        View Pricing
+      </Button>
+    </div>
+  </Surface>
+</GuideLayout>
