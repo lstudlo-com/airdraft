@@ -1,5 +1,12 @@
 @layer reset, base, components, responsive;
 
+/* Registered so the island's scroll timeline interpolates it (.island). */
+@property --island-open {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 @layer reset {
   *,
   *::before,
@@ -2166,6 +2173,52 @@
     font-size: var(--step--1);
     color: var(--muted);
   }
+  /* The cost comparison: subscriptions sit below a groove like the rest, in
+     muted type, so the Airdraft rows carry the ink. */
+  .cost-detail {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--muted);
+    white-space: normal;
+  }
+  .cost-table tbody th {
+    white-space: normal;
+  }
+  .cost-table td:not(.cost-optional) {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .cost-table tbody .cost-subscription :is(th, td) {
+    color: var(--muted);
+  }
+  .setup-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 28px;
+    padding: 0;
+    list-style: none;
+  }
+  .setup-list li {
+    padding: 24px 28px;
+  }
+  /* RowDivider turned on its side: shade on the left, light just after it. */
+  .setup-list li + li {
+    box-shadow:
+      inset 1px 0 0 var(--groove-shade),
+      inset 2px 0 0 var(--groove-light);
+  }
+  .setup-list h3 {
+    font-size: var(--step-1);
+    letter-spacing: 0;
+  }
+  .setup-list p {
+    margin-top: 6px;
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--muted);
+  }
 
   /* Support */
   .support-actions {
@@ -2533,6 +2586,18 @@
     }
     .price-table :is(th, td) {
       white-space: normal;
+    }
+    .cost-optional {
+      display: none;
+    }
+    .setup-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .setup-list li {
+      padding: 20px 22px;
+    }
+    .setup-list li + li {
+      box-shadow: var(--groove);
     }
     .question-list {
       padding: 4px 18px;

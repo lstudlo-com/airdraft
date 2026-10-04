@@ -7,11 +7,22 @@ import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
 import { licenseIncludes, licenses, siteLinks } from "../data/site";
-import { catalogueDate, cloudSpeechPrices } from "../data/pricing";
+import {
+  costRows,
+  formatUSD,
+  pricesCheckedOn,
+  totalAfter,
+  workload,
+  workloadSummary,
+} from "../data/pricing";
 
 // One primary key per page: the one-Mac license once checkout is open, until
 // then the source build, which is the path available today.
 const onSale = Boolean(siteLinks.checkout);
+
+const n = (value: number) => value.toLocaleString("en-US");
+const costIntro = `The license costs less than two months of Wispr Flow or one month of Typeless at their monthly prices. Below, the same ${n(workloadSummary.dictationsPerMonth)} dictations a month, priced each way.`;
+const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workload.dictationsPerDay} a workday of ${workload.secondsPerDictation} seconds each, about ${workloadSummary.audioHoursPerMonth} hours of speech a month. Refinement budgets ${n(workload.inputTokens)} tokens in and ${workload.outputTokens} out per dictation. List prices, ${pricesCheckedOn}, before tax; Groq bills at least 10 seconds per request. The open-source build makes the one-time cost $0.`;
 ---
 
 <Layout
@@ -84,38 +95,66 @@ const onSale = Boolean(siteLinks.checkout);
 
     <Section
       id="provider-costs"
-      title="What cloud speech costs"
-      intro="Local models cost nothing to run. Cloud providers charge per audio hour on your own account."
+      title="What a year of dictation costs"
+      intro={costIntro}
     >
       <Surface class="price-table-wrap">
-        <table class="price-table">
+        <table class="price-table cost-table">
           <thead>
             <tr>
-              <th scope="col">Provider</th>
-              <th scope="col" class="price-model-cell">
-                Default model
+              <th scope="col">Setup</th>
+              <th scope="col" class="cost-optional">
+                One-time
               </th>
-              <th scope="col">Per audio hour</th>
+              <th scope="col" class="cost-optional">
+                Per month
+              </th>
+              <th scope="col">First year</th>
+              <th scope="col">Three years</th>
             </tr>
           </thead>
           <tbody>
-            {cloudSpeechPrices.map((row) => (
-              <tr>
+            {costRows.map((row) => (
+              <tr class:list={[!row.airdraft && "cost-subscription"]}>
                 <th scope="row">
-                  {row.provider}
-                  <span class="price-model">{row.model}</span>
+                  {row.name}
+                  <span class="cost-detail">{row.detail}</span>
                 </th>
-                <td class="price-model-cell">{row.model}</td>
-                <td>{row.price}</td>
+                <td class="cost-optional">{formatUSD(row.oneTime)}</td>
+                <td class="cost-optional">{formatUSD(row.monthly)}</td>
+                <td>{formatUSD(totalAfter(row, 1))}</td>
+                <td>{formatUSD(totalAfter(row, 3))}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </Surface>
-      <p class="table-note">
-        List prices from Airdraft’s model catalogue, {catalogueDate}. Check the
-        provider before you rely on them.
-      </p>
+      <p class="table-note">{costNote}</p>
+
+      <Surface as="ul" class="setup-list" aria-label="What each setup takes">
+        <li>
+          <h3>All local</h3>
+          <p>
+            Download Parakeet (487 MB) on the Models page. Refine with Apple
+            Intelligence on macOS 26, no download, or an LM Studio model of a
+            few gigabytes. Nothing leaves your Mac.
+          </p>
+        </li>
+        <li>
+          <h3>Local speech and Cerebras</h3>
+          <p>
+            The same download plus a Cerebras API key. Audio stays on your Mac;
+            the transcript goes to Cerebras.
+          </p>
+        </li>
+        <li>
+          <h3>Groq and Cerebras</h3>
+          <p>
+            Nothing to download: a Groq key and a Cerebras key, kept in the
+            Keychain. Audio goes to Groq, the transcript to Cerebras.
+          </p>
+        </li>
+      </Surface>
     </Section>
 
     <Section id="pricing-questions" title="Questions">

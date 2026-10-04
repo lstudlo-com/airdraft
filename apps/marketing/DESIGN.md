@@ -539,8 +539,12 @@ instructions, the page's primary key until checkout opens), One Mac (`$29`) and
 Three Macs (`$49`). The license plans list `licenseIncludes`; their action is
 the purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set,
 then One Mac holds the page's primary key. A note gives the
-currency and tax basis, a raised panel lists cloud speech list prices from
-`src/data/pricing.ts`, dated, then the questions.
+currency and tax basis. "What a year of dictation costs" follows: a raised
+table from `src/data/pricing.ts` (setup, one-time, per month, first year, three
+years; phones keep only the yearly columns), Airdraft rows in ink and the
+subscriptions muted, a note with the workload, token budget and price date, then
+a raised three-column list of what each setup takes, divided by vertical grooves
+and stacked under `700px`. Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
 project. The changelog runs a pressed groove down the date column with a raised
 stud per entry; Unreleased is a recessed chip.

@@ -48,8 +48,15 @@ a paid subscription.
   (support page) and the license link (footer). Until set, donation actions show a
   disabled "Not set up yet" key.
 - Pricing may state only: the open-source build is $0 with no locked features; the
-  license terms above; donations unlock nothing; cloud providers bill users directly. Cloud speech prices come from the app's
-  model catalogue (`src/data/pricing.ts`), dated, one default model per provider.
+  license terms above; donations unlock nothing; cloud providers bill users directly;
+  and a dated cost comparison. That comparison prices one stated workload (dictations,
+  seconds, token budget) for three Airdraft setups (all local; Parakeet with Cerebras
+  `qwen-3.8-27b`; Groq Whisper Large v3 Turbo with Cerebras) against Wispr Flow Pro
+  and Typeless Pro. `src/data/pricing.ts` holds the workload and list prices and
+  derives every total; change inputs there, never the totals. Groq's rate comes from
+  the app's model catalogue; Cerebras, Wispr Flow and Typeless from their pricing
+  pages, rechecked whenever the date changes. Show the assumptions beneath the table
+  and say what leaves the Mac for each cloud setup.
 - Support troubleshooting comes from the root README's First run and Known issues sections.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
