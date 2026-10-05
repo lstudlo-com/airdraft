@@ -208,7 +208,8 @@
       }
 
       /* 5. The close. Both offers rise as the island settles back to its
-         inset; the license, the featured offer, rises furthest and leads. */
+         inset; the license, the featured offer, rises furthest. Neither
+         leads, so the cards settle level with each other. */
       .offers > .offer {
         animation:
           motion-rise linear both,
@@ -221,16 +222,6 @@
       .offers > .offer-featured {
         --rise-y: 72px;
         --rise-scale: 0.92;
-        --depth-range: 10px;
-        animation:
-          motion-rise linear both,
-          motion-lift linear both,
-          motion-lead linear both;
-        animation-timeline: view(), view(), view();
-        animation-range:
-          entry 0% cover 40%,
-          entry 0% cover 40%,
-          cover 0% cover 100%;
       }
 
       /* 6. Pricing. Plans rise left to right; the cost comparison's rows

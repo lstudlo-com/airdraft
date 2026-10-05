@@ -7,7 +7,9 @@ import { siteLinks } from "../data/site";
 /**
  * The close: the two ways to get Airdraft, side by side. Build it yourself
  * for free, or a one-time license for the ready-to-run app (LicenseCard,
- * shared with the pricing page; prices come from src/data/site.ts).
+ * shared with the pricing page; prices come from src/data/site.ts). Both
+ * cards have the same four rows (title, price, note, action), which share
+ * the grid's tracks so they line up across the cards.
  */
 ---
 
@@ -25,14 +27,18 @@ import { siteLinks } from "../data/site";
 
   <div class="offers">
     <Surface as="article" class="offer" data-offer="">
-      <h3>Build it yourself</h3>
+      <div class="offer-head">
+        <h3>Build it yourself</h3>
+      </div>
       <p class="offer-price">Free</p>
       <p class="offer-note">
         Every feature. Needs Xcode on an Apple silicon Mac.
       </p>
-      <Button href={siteLinks.build} icon="external" class="offer-action">
-        Build instructions
-      </Button>
+      <div class="offer-foot">
+        <Button href={siteLinks.build} size="lg" icon="external">
+          Build instructions
+        </Button>
+      </div>
     </Surface>
 
     <LicenseCard name="offer-macs" />

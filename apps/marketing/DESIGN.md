@@ -531,16 +531,19 @@ sentence). The board rises as it arrives and its columns follow left to right.
 
 ### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
-The homepage close: two offers side by side. Build it yourself (Free, build
-instructions) and the ready-to-run app's license card, raised with the hero
-spread and holding the page's one primary key ("See pricing").
+The homepage close: two equal offers side by side, Build it yourself first
+(Free, build instructions), then the ready-to-run app's license card, raised
+with the hero spread and holding the page's one primary key ("See pricing").
+Both cards have the same rows (title, price, note, then the action below a
+groove) as subgrid rows of one shared grid, so titles, prices, notes and keys
+line up across the cards; both keys are the large size.
 
 The license card's title sits beside a segmented **1 Mac | 3 Macs** choice;
 below it, only the chosen license's price ("one-time") and use show, and
 switching slides the new line up into place. The choice is a native radio
 group and CSS `:has()` picks the visible lines, so it works without
-JavaScript; `segmented.ts` adds the sliding thumb. The Build it yourself title
-row is the choice's height (`38px`), so the side-by-side prices line up. The
+JavaScript; `segmented.ts` adds the sliding thumb. Every title row is the
+choice's height (`38px`). Under `1000px` the cards stack (max `560px`). The
 pricing page lists each license as its own plan instead.
 Prices, Mac counts and inclusions come from `src/data/site.ts`.
 
@@ -570,7 +573,7 @@ outside it (`--tile`, `--cost-table`).
 | Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
 | Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
 | Provider board   | Rises from `0.94` and `56px` below until `40%` covered; its columns then fade up `18px` left to right (`6%` of the range apart).                                                         |
-| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`) and leads `±10px`.                                                                 |
+| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                                              |
 | Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
@@ -662,10 +665,10 @@ opaque header, in the tint's colour. Anchors land below it (`scroll-padding-top`
 sits on the chrome below the island.
 
 Pricing keeps its copy to labels, prices and short checks; details belong in
-the questions. Two plans share a row (`src/styles/pricing.css`): the
-ready-to-run app leads, wider and raised like the homepage's license offer,
-with One Mac (`$29`) and Three Macs (`$49`) side by side, divided by a vertical
-groove, each a muted label, price and action; the Open source card mirrors one
+the questions. Two plans share a row (`src/styles/pricing.css`): the free
+Open source card comes first, on the left, then the ready-to-run app, wider
+and raised like the homepage's license offer, with One Mac (`$29`) and Three
+Macs (`$49`) side by side, divided by a vertical groove, each a muted label, price and action; the Open source card mirrors one
 license (`$0`, build instructions), so prices, keys and lists line up. A groove
 separates each card's short checklist (`licenseIncludes`, `sourceIncludes`),
 each item checked in a small recessed socket. License actions are the

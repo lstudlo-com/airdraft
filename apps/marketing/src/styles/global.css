@@ -2174,26 +2174,41 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     opacity: var(--swap);
     translate: 0 calc((1 - var(--swap)) * 8px);
   }
-  /* The close (GetAirdraft.astro): three ways to get Airdraft. The paid app
-     sits in the middle, raised higher and holding the page's primary key. */
+  /* The close (GetAirdraft.astro): two equal cards. Each card's title,
+     price, note and action rows are subgrid rows of one shared grid, so they
+     line up across the cards whatever either holds. The license is raised
+     with the hero's spread and holds the page's primary key. */
   .offers {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-    align-items: center;
-    gap: 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0 28px;
   }
   .offer {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    padding: 32px;
+  }
+  .offer-featured {
+    box-shadow: var(--edge), var(--raise-hero);
+  }
+  /* Each title row is as tall as the license's Mac choice. */
+  .offer-head {
     display: flex;
-    flex-direction: column;
-    min-height: 300px;
-    padding: 28px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px 16px;
+    min-height: 38px;
   }
   .offer h3 {
     font-size: var(--step-1);
     letter-spacing: 0;
   }
   .offer-price {
-    margin-top: 12px;
+    margin-top: 18px;
     font-size: var(--step-4);
     font-weight: 600;
     line-height: 1.05;
@@ -2207,41 +2222,21 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--muted);
   }
   .offer-note {
-    margin: 12px 0 28px;
+    margin-top: 12px;
     font-size: var(--step-0);
     line-height: 1.55;
     color: var(--muted);
   }
-  .offer-action {
-    align-self: flex-start;
-    margin-top: auto;
-  }
-  .offer-featured {
-    min-height: 340px;
-    padding: 34px;
-    box-shadow: var(--edge), var(--raise-hero);
+  /* The action sits below a groove, at the card's foot. */
+  .offer-foot {
+    margin-top: 28px;
+    padding-top: 24px;
+    box-shadow: var(--groove);
   }
 
   /* The license card (LicenseCard.astro): a title with the Mac choice beside
      it, then the chosen license's price and use. Only the chosen license's
      lines show; switching slides the new one up into place. */
-  /* Each offer's title row is as tall as the license's Mac choice, so the
-     prices of side-by-side cards line up. */
-  .offer > h3,
-  .license-head {
-    min-height: 38px;
-  }
-  .offer > h3 {
-    display: flex;
-    align-items: center;
-  }
-  .license-head {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px 16px;
-  }
   .license-swap {
     display: inline-grid;
   }
@@ -2464,11 +2459,16 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
     .offers {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      row-gap: 24px;
       max-width: 560px;
     }
-    .offer,
-    .offer-featured {
-      min-height: 0;
+    .offer {
+      display: flex;
+      flex-direction: column;
+    }
+    .offer-foot {
+      margin-top: 24px;
     }
     /* The hero's oldest bars leave first, so the newest stay by the caret. */
     .hero .wave-bar:nth-child(-n + 12) {

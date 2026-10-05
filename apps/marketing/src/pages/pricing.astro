@@ -52,6 +52,29 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
       intro="Build it free, or buy the ready-to-run app once."
     >
       <div class="plans">
+        <Surface as="article" class="plan plan-source">
+          <h2>Open source</h2>
+          <div class="tier">
+            <h3>Build it yourself</h3>
+            <p class="plan-price">$0</p>
+            <Button
+              href={siteLinks.build}
+              variant={onSale ? "secondary" : "primary"}
+              icon="external"
+            >
+              Build instructions
+            </Button>
+          </div>
+          <ul class="plan-includes" aria-label="The source build includes">
+            {sourceIncludes.map((feature) => (
+              <li>
+                <Check />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </Surface>
+
         <Surface as="article" class="plan plan-app">
           <h2>Ready-to-run app</h2>
           <div class="tiers">
@@ -79,29 +102,6 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
           </div>
           <ul class="plan-includes" aria-label="Every license includes">
             {licenseIncludes.map((feature) => (
-              <li>
-                <Check />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </Surface>
-
-        <Surface as="article" class="plan plan-source">
-          <h2>Open source</h2>
-          <div class="tier">
-            <h3>Build it yourself</h3>
-            <p class="plan-price">$0</p>
-            <Button
-              href={siteLinks.build}
-              variant={onSale ? "secondary" : "primary"}
-              icon="external"
-            >
-              Build instructions
-            </Button>
-          </div>
-          <ul class="plan-includes" aria-label="The source build includes">
-            {sourceIncludes.map((feature) => (
               <li>
                 <Check />
                 {feature}

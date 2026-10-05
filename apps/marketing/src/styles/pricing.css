@@ -1,11 +1,11 @@
 /* Pricing page. */
 @layer components {
-  /* Two plans: the ready-to-run app leads, raised like the homepage's
-     license offer, with both licenses side by side inside it; the source
-     build is a plain card beside it. */
+  /* Two plans: the free source build first, as a plain card, then the
+     ready-to-run app, wider and raised like the homepage's license offer,
+     with both licenses side by side inside it. */
   .plans {
     display: grid;
-    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
     gap: 28px;
   }
   .plan {
