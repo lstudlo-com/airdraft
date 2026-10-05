@@ -701,7 +701,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     content: "";
     position: absolute;
     inset: 0;
-    background: color-mix(in srgb, var(--chrome) 80%, transparent);
+    background: color-mix(in srgb, var(--chrome) 65%, transparent);
     -webkit-mask-image: linear-gradient(
       to bottom,
       black calc(100% - 100px),

@@ -625,7 +625,7 @@ plus `100px` (`440ms`, `--ease-out`; closing `320ms` on `SelectionMotion.curve`)
 The blur's stops are measured up from its bottom edge, so above the rows it
 is the full `32px` blur and the same `100px` fade sits only at its end; at
 `100px` they are the app's ramp. It shows even before the island is full.
-Unlike the header's own blur, the menu's carries colour: an 80% `--chrome`
+Unlike the header's own blur, the menu's carries colour: a 65% `--chrome`
 tint that fades with it over the last `100px`, so the rows keep their contrast
 whatever passes under them (white content in dark mode, the graphite key in
 light). The rows are ink, never muted, for the same reason. The
