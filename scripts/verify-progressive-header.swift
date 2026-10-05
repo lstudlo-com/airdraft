@@ -20,8 +20,8 @@ private struct BlurFixture: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 24)
             .padding(.top, 6)
-            // 60 pt header + 4 pt outer feather, centered on the heading row.
-            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 64)
+            // 80 pt blur; the 60 pt header and heading position stay unchanged.
+            ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 80)
             Text("Models")
                 .font(.system(size: 18, weight: .semibold))
                 .padding(.leading, 24)
@@ -59,7 +59,7 @@ private struct IslandFixture: View {
                     .frame(height: 32)
                     .padding(.top, 16)
                     .padding(.bottom, 12)
-                    .background(alignment: .top) { ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 64) }
+                    .background(alignment: .top) { ProgressiveHeaderBlur(maximumRadius: 32).frame(height: 80) }
             }
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -151,8 +151,8 @@ enum VerifyProgressiveHeader {
             let row = Int((Double(mask.height - 1) * (1 - progress)).rounded())
             return Double(alpha[row]) / 255 * 32
         }
-        precondition((0.9...1.25).contains(radius(atProgress: 4.0 / 64.0)),
-                     "The bottom of the header must already have a visible light blur")
+        precondition((0.9...1.25).contains(radius(atProgress: 5.0 / 80.0)),
+                     "The inner edge of the 5 pt feather must have a visible light blur")
         precondition((2...3).contains(radius(atProgress: 0.25)),
                      "The lower region must be visibly blurred without immediately obscuring the text")
         precondition((7...9).contains(radius(atProgress: 0.5)),
@@ -161,7 +161,7 @@ enum VerifyProgressiveHeader {
                      "The header must still build toward a strong blur at the top")
 
         let view = ProgressiveHeaderBlurView(maximumRadius: 32)
-        view.frame = NSRect(x: 0, y: 0, width: 614, height: 64)
+        view.frame = NSRect(x: 0, y: 0, width: 614, height: 80)
         view.layoutSubtreeIfNeeded()
         guard let backdrop = view.layer?.sublayers?.first,
               let filter = backdrop.filters?.first as? NSObject else {

@@ -287,9 +287,9 @@ verification status belong in the vault (see below).
   titles use 18-point semibold type. Headings and actions use a separate
   32-point row with 16 points above it inside
   the island and 12 points below, inside one 60-point sticky header. Its backdrop
-  blur includes a 4-point outer feather for a total height of 64 points, centered
-  on the heading row. Text at the bottom of the header must already be lightly
-  but visibly blurred at about 1 pt radius; increase quadratically to 32 pt at the top. Do not leave a
+  blur is 80 points tall, extending 20 points below the header without moving
+  the heading row or controls. The bottom 5 points feather into a visible 1 pt
+  blur; increase quadratically to 32 pt at the top. Do not leave a
   nearly sharp lower region or obscure entering text immediately.
   Use `ProgressiveHeaderBlur`; never simulate this with material opacity, a tint
   gradient or a short edge fade. Keep header labels and controls sharp. The

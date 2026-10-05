@@ -36,7 +36,7 @@ final class ProgressiveHeaderBlurView: NSView {
         let height = 256
         let bytes: [UInt8] = (0..<height).flatMap { row in
             let progress = Double(height - 1 - row) / Double(height - 1)
-            let edgeFeather = 4.0 / 64.0
+            let edgeFeather = 5.0 / 80.0
             let entryRadius = 1.0 / 32.0
             let radius: Double
             if progress < edgeFeather {

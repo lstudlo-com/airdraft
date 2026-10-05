@@ -27,8 +27,8 @@ enum Theme {
     static let pageHeaderRowHeight: CGFloat = 32
     static let pageHeaderBottomInset: CGFloat = 12
     static let pageHeaderBlurRadius: CGFloat = 32
-    // Center the heading row in the full blur, including its 4 pt outer feather.
-    static let pageHeaderBlurExtension = pageHeaderTopInset - pageHeaderBottomInset
+    // Extend the original 64 pt blur to 80 pt without moving the 60 pt header.
+    static let pageHeaderBlurExtension: CGFloat = 20
     // The sidebar toggle sits in the island's heading row whether the sidebar is expanded
     // or collapsed, with its symbol on the page title's leading inset.
     static func sidebarToggleLeading(sidebarWidth: CGFloat) -> CGFloat {

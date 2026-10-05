@@ -200,10 +200,11 @@ The native window controls retain their 46-point titlebar. Page headings have
 a separate 32-point row, inset 16 points from the island's top with 12 points below.
 `PageScaffold` keeps this header fixed with `safeAreaInset`. The island clips the
 header and its blur to its rounded top; the blur never samples the chrome.
-`ProgressiveHeaderBlur` covers the 60-point header plus a 4-point outer feather.
-The 64-point blur is centered on the heading row, whose center is 32 points
-from the island's top. The feather joins the clear page to a visible 1-point
-blur at the bottom of the header. From there, the radius increases quadratically
+`ProgressiveHeaderBlur` covers 80 points, extending 20 points below the
+60-point header. This is 125% of the original 64-point blur. The heading row
+and controls stay in place, with their center 32 points from the island's top.
+The bottom 5-point feather joins the clear page to a visible 1-point blur.
+From there, the radius increases quadratically
 to 32 points at the top. Text entering the header must soften while its letter
 shapes remain identifiable. The 24-point scroll-content inset remains below
 the header; the blur no longer covers that whole inset.
