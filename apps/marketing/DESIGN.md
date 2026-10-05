@@ -609,7 +609,10 @@ changes at once. Layout's `pagereveal` script marks a move between two linked
 pages `nav-slide`, where the moving group draws the well itself so it keeps its
 shape; arriving from or leaving for another page fades it. Reduced motion and
 browsers without cross-document view transitions change pages instantly. The
-GitHub icon key and the primary "Get Airdraft" key at the end.
+GitHub icon key and the primary "Get Airdraft" key at the end. The header's
+keys (GitHub, Get Airdraft and the phone menu key) stand exactly as tall as the
+brand capsule, `34px`, with a transparent margin that keeps a `44px` touch
+target.
 
 On phones (`560px` and below) the links and the GitHub key fold into a menu:
 the header keeps the mark, Get Airdraft and a round menu key with two strokes.
@@ -618,7 +621,11 @@ progressive blur down the full width, from `100px` to the header plus the rows
 plus `100px` (`440ms`, `--ease-out`; closing `320ms` on `SelectionMotion.curve`).
 The blur's stops are measured up from its bottom edge, so above the rows it
 is the full `32px` blur and the same `100px` fade sits only at its end; at
-`100px` they are the app's ramp. It shows even before the island is full. The
+`100px` they are the app's ramp. It shows even before the island is full.
+Unlike the header's own blur, the menu's carries colour: an 80% `--chrome`
+tint that fades with it over the last `100px`, so the rows keep their contrast
+whatever passes under them (white content in dark mode, the graphite key in
+light). The rows are ink, never muted, for the same reason. The
 rows sit on it below the header row, aligned with the mark, each `44px` with
 `12px` corners like the app's sidebar destinations: Pricing, Support and
 Changelog, the current page resting in the `--sink-chip` well, then a groove
@@ -643,7 +650,8 @@ reaching past the header's row (`72px`, `64px` on phones) without moving it. At 
 hidden; it fades in (`240ms`) once the island has filled the window
 (`.is-blurred`, set by `island.ts`; see Layout), and stays shown without
 JavaScript. Never
-simulate it with a tint or an opacity fade; only Reduce Transparency gets an
+simulate it with a tint or an opacity fade (the phone menu adds its tint on top
+of the blur, never in place of it); only Reduce Transparency gets an
 opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.
 

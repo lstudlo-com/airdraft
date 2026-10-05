@@ -694,6 +694,30 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .site-header:has(.site-menu:popover-open) .header-blur i {
     opacity: 1;
   }
+  /* The menu's blur carries the chrome's colour so its rows keep their
+     contrast whatever passes under them: white content in dark mode, black
+     in light. It fades out with the blur over the last 100px. */
+  .header-blur::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--chrome) 80%, transparent);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 100px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 100px),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+  .site-header:has(.site-menu:popover-open) .header-blur::after {
+    opacity: 1;
+  }
   .header-blur i {
     position: absolute;
     inset: 0;
@@ -878,13 +902,24 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     box-shadow: var(--sink-chip);
     view-transition-name: nav-well;
   }
+  /* The header's keys stand as tall as the brand capsule (34px); a
+     transparent margin keeps a 44px touch target. */
+  .site-header .key {
+    position: relative;
+    min-height: 34px;
+  }
+  .site-header .key::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+  }
   .site-header .key-icon {
+    width: 34px;
     margin-left: 10px;
   }
   .nav-cta {
-    min-height: 40px;
     margin-left: 6px;
-    padding-inline: 18px;
+    padding-inline: 16px;
   }
   /* Phones: the menu key replaces GitHub at the end of the header. While
      its menu is open it stays sunk into a well, like the app's microphone
@@ -899,15 +934,15 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .menu-glyph {
     position: relative;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
   .menu-glyph i {
     position: absolute;
-    top: calc(50% - 0.85px);
+    top: calc(50% - 0.8px);
     left: 1px;
-    width: 16px;
-    height: 1.7px;
+    width: 14px;
+    height: 1.6px;
     border-radius: 999px;
     background: currentColor;
     transition:
@@ -915,10 +950,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       rotate 280ms var(--ease-select);
   }
   .menu-glyph i:first-child {
-    translate: 0 -3.5px;
+    translate: 0 -3px;
   }
   .menu-glyph i:last-child {
-    translate: 0 3.5px;
+    translate: 0 3px;
   }
   .site-header:has(.site-menu:popover-open) .menu-glyph i:first-child {
     translate: 0;
@@ -989,12 +1024,11 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     gap: 10px;
     padding: 0 14px;
     border-radius: var(--radius-well);
-    color: var(--muted);
+    color: var(--ink);
     font-size: var(--step-1);
     font-weight: 500;
   }
   .menu-link:hover {
-    color: var(--ink);
     background: rgb(128 128 128 / 0.1);
   }
   .menu-link:active {
@@ -1002,7 +1036,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     box-shadow: var(--press-small);
   }
   .menu-link[aria-current="page"] {
-    color: var(--ink);
     background: var(--well-soft);
     box-shadow: var(--sink-chip);
   }
