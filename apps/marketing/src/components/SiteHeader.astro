@@ -78,10 +78,11 @@ const githubPath =
       <Button href="/pricing/" variant="primary" class="nav-cta">
         Get Airdraft
       </Button>
-      <!-- Phones: the links and GitHub fold into a menu, like the app's
-           microphone overlay. The key stays sunk while the menu is open and
-           its two strokes cross. A native popover, so it opens, dismisses on
-           Escape or an outside tap, and returns focus without JavaScript. -->
+      <!-- Phones: the links and GitHub fold into a menu that pulls the
+           header's blur down over them. The key stays sunk while it is open
+           and its two strokes cross. A native popover, so it opens,
+           dismisses on Escape or an outside tap, and returns focus without
+           JavaScript. -->
       <Button iconOnly label="Menu" class="menu-key" popovertarget="site-menu">
         <span slot="icon" class="menu-glyph" aria-hidden="true">
           <i></i>
@@ -95,13 +96,14 @@ const githubPath =
       <a
         class="menu-link"
         href={link.href}
+        style={`--i: ${index}`}
         aria-current={index === current ? "page" : undefined}
       >
         {link.label}
       </a>
     ))}
-    <span class="menu-groove" aria-hidden="true"></span>
-    <a class="menu-link" href={siteLinks.source}>
+    <span class="menu-groove" style="--i: 3" aria-hidden="true"></span>
+    <a class="menu-link" href={siteLinks.source} style="--i: 4">
       <svg
         width="18"
         height="18"

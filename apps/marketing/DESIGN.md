@@ -320,7 +320,7 @@ pins for about 4.9 viewport heights on screens at least `1000px` wide and
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks; the hero waveform drops its 12 oldest bars. |
 | `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, provider scenes, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                         |
-| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the menu.                                                                                                              |
+| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the blur the menu pulls down.                                                                                          |
 | `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                             |
 
 ## Elevation & Depth
@@ -612,19 +612,28 @@ GitHub icon key and the primary "Get Airdraft" key at the end.
 
 On phones (`560px` and below) the links and the GitHub key fold into a menu:
 the header keeps the mark, Get Airdraft and a round menu key with two strokes.
-The menu is the app's `OverlayPanel`: a raised card hung `8px` below the key
-with its trailing edge on the key's, an `8px` inset, `20px` corners concentric
-with `12px`-radius `44px` rows, and the panel's deep drop shadow (black 0.24,
-`6px 12px 56px`) over `--raise-card`. Pricing, Support and Changelog come first,
-the current page resting in the `--sink-chip` well; a groove separates "Source
-on GitHub" with its external arrow. While it is open the key stays sunk
-(`--press`), like the app's microphone button under its overlay, and its strokes
-cross into a close mark on `SelectionMotion.curve`. The panel grows from the key
-(`0.94` to full scale, `6px` drop, `220ms` `--ease-out`) and falls back into it
-(`140ms`). It is a native `popover`, so it works without JavaScript: the key
-toggles it, Escape and an outside tap dismiss it and return focus, and the links
-follow the key in reading and Tab order. Browsers without popovers keep the
-GitHub key and rely on the footer's links. Behind it is the app's progressive header blur
+The menu is not a dropdown panel. Opening it pulls the header's own
+progressive blur down the full width, from `100px` to the header plus the rows
+plus `100px` (`440ms`, `--ease-out`; closing `320ms` on `SelectionMotion.curve`).
+The blur's stops are measured up from its bottom edge, so above the rows it
+is the full `32px` blur and the same `100px` fade sits only at its end; at
+`100px` they are the app's ramp. It shows even before the island is full. The
+rows sit on it below the header row, aligned with the mark, each `44px` with
+`12px` corners like the app's sidebar destinations: Pricing, Support and
+Changelog, the current page resting in the `--sink-chip` well, then a groove
+and "Source on GitHub" with its external arrow. Fixed row heights give the blur
+its reach (`--menu-h`) without measuring. The rows follow the blur down one
+after another (`35ms` apart) and fade at once on closing. While the menu is
+open the key stays sunk (`--press`), like the app's microphone button under its
+overlay, and its strokes cross into a close mark. The blur fades through its
+layers' opacity, never the container's: a translucent ancestor becomes their
+backdrop root and draws a flat panel instead of a blur. The menu is a native
+`popover`, so it works without JavaScript: the key toggles it, Escape and an
+outside tap dismiss it and return focus, and the links follow the key in
+reading and Tab order. Browsers without popovers keep the GitHub key and rely
+on the footer's links.
+
+Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
 32px), each masked to the band where the app's radius ramp reaches it, so
 content is lightly blurred at its bottom edge and fully blurred at the top,

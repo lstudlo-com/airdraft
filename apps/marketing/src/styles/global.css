@@ -667,19 +667,37 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     height: 100px;
     pointer-events: none;
     transition:
-      opacity 240ms ease,
-      visibility 0s;
+      visibility 0s,
+      height 320ms var(--ease-select);
   }
   .js .site-header:not(.is-blurred) .header-blur {
-    opacity: 0;
     visibility: hidden;
     transition:
-      opacity 240ms ease,
-      visibility 0s linear 240ms;
+      visibility 0s linear 240ms,
+      height 320ms var(--ease-select);
+  }
+  /* The fade belongs to each blurring layer, never the container: an
+     ancestor below full opacity becomes the layers' backdrop root, so they
+     would draw a flat panel instead of blurring the page until it settled. */
+  .js .site-header:not(.is-blurred) .header-blur i {
+    opacity: 0;
+  }
+  /* The phone menu pulls the same blur down over its rows, shown even
+     before the island is full; the fade stays at its bottom edge. */
+  .site-header:has(.site-menu:popover-open) .header-blur {
+    height: calc(var(--header) + var(--menu-h) + 100px);
+    visibility: visible;
+    transition:
+      visibility 0s,
+      height 440ms var(--ease-out);
+  }
+  .site-header:has(.site-menu:popover-open) .header-blur i {
+    opacity: 1;
   }
   .header-blur i {
     position: absolute;
     inset: 0;
+    transition: opacity 240ms ease;
     -webkit-backdrop-filter: blur(var(--blur));
     backdrop-filter: blur(var(--blur));
     -webkit-mask-image: linear-gradient(
@@ -693,35 +711,38 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       transparent var(--clear)
     );
   }
+  /* Stops are measured up from the bottom edge, so a taller blur (the
+     phone menu) keeps the full 32px blur above and the same 100px fade at
+     its end. At 100px tall they are the app's ramp. */
   .header-blur i:nth-child(1) {
     --blur: 1px;
-    --solid: 93.8%;
+    --solid: calc(100% - 6.2px);
     --clear: 100%;
   }
   .header-blur i:nth-child(2) {
     --blur: 2px;
-    --solid: 76.9%;
-    --clear: 93.8%;
+    --solid: calc(100% - 23.1px);
+    --clear: calc(100% - 6.2px);
   }
   .header-blur i:nth-child(3) {
     --blur: 4px;
-    --solid: 64.6%;
-    --clear: 76.9%;
+    --solid: calc(100% - 35.4px);
+    --clear: calc(100% - 23.1px);
   }
   .header-blur i:nth-child(4) {
     --blur: 8px;
-    --solid: 49.2%;
-    --clear: 64.6%;
+    --solid: calc(100% - 50.8px);
+    --clear: calc(100% - 35.4px);
   }
   .header-blur i:nth-child(5) {
     --blur: 16px;
-    --solid: 28.5%;
-    --clear: 49.2%;
+    --solid: calc(100% - 71.5px);
+    --clear: calc(100% - 50.8px);
   }
   .header-blur i:nth-child(6) {
     --blur: 32px;
-    --solid: 0%;
-    --clear: 28.5%;
+    --solid: calc(100% - 100px);
+    --clear: calc(100% - 71.5px);
   }
   /* Only Reduce Transparency gets an opaque header, as in the app. */
   @media (prefers-reduced-transparency: reduce) {
@@ -907,67 +928,70 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     translate: 0;
     rotate: -45deg;
   }
-  /* The menu is the app's OverlayPanel: hung 8px below the key, its
-     trailing edge on the key's, an 8px inset and corners concentric with
-     the 12px wells, floating on the panel's deep drop shadow (black 0.24,
-     radius 28, offset 6/12) over the raised card's light and shade. The
-     current page rests in the nav's recessed well and a groove sets the
-     source apart. It grows from the key and falls back into it. */
+  /* The phone menu is not a panel: the header's own progressive blur grows
+     down the full width to hold the rows (above), and the rows sit on it
+     below the header row, aligned with the mark. Like the app's sidebar
+     destinations they are 12px wells, the current page resting in the
+     recessed one; a groove sets the source apart. Rows have fixed heights so
+     the blur's reach (--menu-h) is known without measuring. They follow the
+     blur down, one after another, and fade at once on closing. */
+  .site-header {
+    --menu-h: 214px;
+  }
   .site-menu {
-    inset: auto;
-    top: calc(var(--header) / 2 + 30px);
-    right: var(--gutter);
-    width: min(280px, 100vw - 2 * var(--gutter));
+    inset: var(--header) 0 auto;
+    width: 100%;
+    height: var(--menu-h);
+    max-width: none;
     margin: 0;
-    padding: 8px;
+    padding: 4px var(--gutter) 0;
+    overflow: visible;
     border: 0;
-    border-radius: calc(var(--radius-well) + 8px);
-    background: var(--fill-card);
+    background: none;
     color: var(--ink);
-    box-shadow:
-      var(--edge),
-      var(--raise-card),
-      6px 12px 56px rgb(0 0 0 / 0.24);
-    transform-origin: calc(100% - 22px) -30px;
-    opacity: 0;
-    scale: 0.94;
-    translate: 0 -6px;
     transition:
-      opacity 140ms ease,
-      scale 140ms ease,
-      translate 140ms ease,
-      display 140ms allow-discrete,
-      overlay 140ms allow-discrete;
+      display 160ms allow-discrete,
+      overlay 160ms allow-discrete;
   }
   .site-menu:popover-open {
     display: grid;
-    gap: 2px;
+    grid-template-rows: repeat(3, 44px) 14px 44px;
+    align-content: start;
+    gap: 4px;
+  }
+  .site-menu > * {
+    opacity: 0;
+    translate: 0 -10px;
+    transition:
+      opacity 120ms ease,
+      translate 160ms ease,
+      color 160ms ease,
+      background 160ms ease;
+  }
+  .site-menu:popover-open > * {
     opacity: 1;
-    scale: 1;
     translate: 0;
-    transition-duration: 220ms;
-    transition-timing-function: var(--ease-out);
+    transition:
+      opacity 240ms ease calc(80ms + var(--i) * 35ms),
+      translate 400ms var(--ease-out) calc(80ms + var(--i) * 35ms),
+      color 160ms ease,
+      background 160ms ease;
   }
   @starting-style {
-    .site-menu:popover-open {
+    .site-menu:popover-open > * {
       opacity: 0;
-      scale: 0.94;
-      translate: 0 -6px;
+      translate: 0 -10px;
     }
   }
   .menu-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 44px;
-    padding: 0 12px;
+    padding: 0 14px;
     border-radius: var(--radius-well);
     color: var(--muted);
-    font-size: var(--step-0);
+    font-size: var(--step-1);
     font-weight: 500;
-    transition:
-      color 160ms ease,
-      background 160ms ease;
   }
   .menu-link:hover {
     color: var(--ink);
@@ -987,8 +1011,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--quiet);
   }
   .menu-groove {
+    align-self: center;
     height: 2px;
-    margin: 4px 12px;
+    margin-inline: 14px;
     box-shadow: var(--groove);
   }
   .site-footer {
@@ -2721,7 +2746,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .wave,
     .brand-mark,
     .brand-groove,
-    .site-menu,
     kbd,
     .art-field,
     .art-output,
