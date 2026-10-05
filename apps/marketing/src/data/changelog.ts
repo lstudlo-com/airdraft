@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-6-2",
+    version: "0.6.2",
+    date: "2026-10-05",
+    title: "Speech languages follow each model",
+    changes: [
+      {
+        title: "Choose a supported language",
+        description:
+          "Language choices now follow the active speech model, including profile overrides. Unsupported combinations stop before recording with an explanation. Parakeet does not support Chinese.",
+      },
+      {
+        title: "Set the language for Cohere",
+        description:
+          "The local Cohere Transcribe model now requires a language choice. Auto Detect is unavailable in this runtime because it can turn Chinese speech into incorrect English output.",
+      },
+      {
+        title: "Apply language choices consistently",
+        description:
+          "SenseVoice receives the chosen language, Qwen uses the expected language names, and Apple Speech shows available system locales. Switching models preserves your shared preference.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.6.2-build.168",
+    },
+  },
+  {
     id: "0-6-1",
     version: "0.6.1",
     date: "2026-10-05",
