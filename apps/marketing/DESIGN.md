@@ -255,7 +255,7 @@ style use `ui-rounded` where available.
 | ----------- | ----------------------------------------- | ----------------------------------------------------------- |
 | display     | `clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem)` | Hero only                                                   |
 | headline    | `clamp(1.875rem, 1.4rem + 1.6vw, 2.5rem)` | Homepage sections; every subpage title (`.page-title`); 404 |
-| entry-title | `1.625rem`                                | Subpage sections, changelog entries, scene titles           |
+| entry-title | `1.625rem`                                | Subpage sections, changelog entries                         |
 | title       | `1.25rem`                                 | Tile, plan and card titles                                  |
 | lead        | `1.0625rem`                               | Intros, sample text, disclosure summaries                   |
 | body        | `0.9375rem`                               | Paragraphs, actions                                         |
@@ -288,8 +288,8 @@ The opening and the hold are a CSS scroll timeline (`.island-scroll`), never a
 scroll listener: a script runs a frame behind the compositor's scroll, so
 content it repositions jitters. The translate's and clip's curves are sampled
 into `linear()` easings. The translate is composited with the scroll and is
-zero past the first `320px`, so `position: sticky` and the story's
-ScrollTrigger (which measures that settled layout) are unaffected.
+zero past the first `320px`, so `position: sticky` and ScrollTrigger (which
+measures that settled layout) are unaffected.
 `src/scripts/island.ts` sets `.island-scroll` only where scroll timelines exist
 and motion is allowed; elsewhere it opens the island itself without a hold and
 shows the blur as soon as the page scrolls. The closing only changes the clip,
@@ -312,16 +312,15 @@ sections sit from each other (`0.72` of the gap: `104px` on desktop), which use 
 headings, a step below the page title.
 
 The homepage bento is a three-column grid with `24px` gaps and seven tiles in
-a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider story
-pins for about 4.9 viewport heights on screens at least `1000px` wide and
-`700px` tall; everywhere else it stacks.
+a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider board
+never pins: it is about one viewport tall on desktop and stacks below `1000px`.
 
-| Max width | Changes                                                                                                                                                                                                         |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks; the hero waveform drops its 12 oldest bars. |
-| `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, provider scenes, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                         |
-| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the blur the menu pulls down.                                                                                          |
-| `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                             |
+| Max width | Changes                                                                                                                                                                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider board stacks its three columns; the hero waveform drops its 12 oldest bars. |
+| `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                                                            |
+| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the blur the menu pulls down.                                                                                                            |
+| `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                                               |
 
 ## Elevation & Depth
 
@@ -329,7 +328,7 @@ Exact values live in `:root`. They translate `SurfaceShadows` (SwiftUI radius
 r ≈ CSS blur 2r).
 
 - `--raise-hero`: `7px 9px 24px` shade, `-6px -7px 24px` light. The hero card, the featured offer and the ready-to-run pricing plan.
-- `--raise-card`: half the spread. Panels, bento tiles, the Open source pricing plan, scene cards.
+- `--raise-card`: half the spread. Panels, bento tiles, the Open source pricing plan, the provider board.
 - `--raise-control`: a quarter. Keys, fields, the inserted-text card, art cards.
 - `--raise-small`: keycaps, disclosure buttons, segmented thumbs, changelog studs.
 - `--edge`: the 1px top-left rim plus a 0.5px hairline, on every raised face.
@@ -506,26 +505,29 @@ with its status dot (yellow while refining, orange when it fails), and a "This
 Mac" boundary whose signal runs along grooves. Each plays a short loop while on
 screen (`data-art`); without JavaScript they show their final frame.
 
-### Provider story (`PipelineStory.astro`)
+### Provider board (`PipelineStory.astro`)
 
-"You choose where each step runs" as six scenes: speech on this Mac, speech in
-the cloud, refinement on this Mac, in the cloud, on your subscription, then
-insertion at the cursor. Each scene is an eyebrow (the step), a short title and
-one line on what leaves the Mac, beside one raised card. The card's symbol sits
-in a recessed socket, and it holds a single choice laid out like the app's
-settings tables: provider rows divided by grooves, the chosen row resting in the
+"You choose where each step runs" as one raised card in three columns, in the
+order dictation runs: Speech, Refinement, Insertion. Engraved vertical grooves
+(`RowDivider` on its side) divide the columns, and a small raised chevron sits
+on each groove level with the headings. Below `1000px` the columns stack, the
+grooves lie flat and the chevrons point down. The section never pins.
+
+Speech and Refinement each carry a segmented choice of where they run (This
+Mac | Cloud, and This Mac | Cloud | Subscription). The choice swaps that
+column's one line on what leaves the Mac and its provider table, laid out like
+the app's settings tables: rows divided by grooves, the first resting in the
 sidebar's recessed selection well (12px corners, 2.5px depth) with a raised
-check island inside it. The last card shows a vocabulary fix in a raised field.
+check island inside it. Every choice is visible at once, so the columns read as
+independent. Each choice's alternatives share one grid cell, so a column keeps
+the height of its longest list and switching never moves the page. The choices
+are native radio groups and CSS `:has()` swaps the columns, as on the license
+card; `segmented.ts` adds the sliding thumb.
 
-On desktop the section pins and one raised card (hero spread) stays in place;
-nothing tilts or flies. Scenes cross-fade inside it: the next rises `12px` into
-place as the last one sinks away. While a scene holds, scrolling steps the
-selection well row by row through its providers on `SelectionMotion.curve`, and
-the check island follows 300ms later, as the sidebar's icon island follows its
-well. A three-part stepper (Speech, Refinement, Insertion) fills like Home's
-usage tracks: a raised gray fill in a shallow inset. Elsewhere, and with reduced
-motion, copy and cards stack with the first provider selected; on phones the
-cards rise into place.
+Insertion has no choice: "At your cursor" sits at the pickers' height, then a
+raised field where the vocabulary fix strikes "cooper tino" and brings in
+"Cupertino" (a `data-art` loop while on screen; its resting frame is the fixed
+sentence). The board rises as it arrives and its columns follow left to right.
 
 ### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
@@ -567,24 +569,23 @@ outside it (`--tile`, `--cost-table`).
 | Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                       |
 | Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
 | Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
+| Provider board   | Rises from `0.94` and `56px` below until `40%` covered; its columns then fade up `18px` left to right (`6%` of the range apart).                                                         |
 | Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`) and leads `±10px`.                                                                 |
 | Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. Bento loops play only while their tile is
-visible. The provider story pins on desktop: its three steps rise in turn,
-then the card rises out of the island (`--deck-depth` lifts its shadow while
-GSAP scales it from `0.94`); the selection well steps through each scene's
-providers, and between scenes the card dips to `0.973` and rises again. In
-browsers without scroll timelines, GSAP gives headings, the sample, tiles and
-offers a one-time `36–48px` rise instead; with reduced motion nothing moves.
+visible, as does the provider board's vocabulary fix. In browsers without
+scroll timelines, GSAP gives headings, the sample, the provider board, tiles
+and offers a one-time `36–48px` rise instead; with reduced motion nothing
+moves.
 
 The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
 the final state, so nothing depends on motion to be readable. Interaction
 motion: the hero's dictation (`dictate.ts`), hover magnification
 (`waveform.ts`), the island fill (`island.ts`), the segmented thumb
 (`segmented.ts`), keycaps that follow the keyboard (`keys.ts`), the license
-swap and disclosures (CSS).
+and provider board swaps and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
 

@@ -158,13 +158,13 @@ and immutable caching for Astro's hashed assets.
 - `scripts/render-app-icon.swift` writes the website's `airdraft-icon.png` and
   `favicon.png` along with the app's icon set.
 - Motion: `src/scripts/voice.ts` lifts the hero's waveform with pointer and scroll
-  speed; `src/scripts/story.ts` runs the homepage's scroll story
+  speed; `src/scripts/story.ts` runs the homepage's entrance rises and graphic loops
   with GSAP and ScrollTrigger (`gsap` is a dependency under GSAP's no-charge
   standard license). Both do nothing with reduced motion, and every element's
   resting CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider
-  section is `PipelineStory.astro` (six scenes; on desktop one pinned card whose
-  selection well steps through each scene's providers); the
+  section is `PipelineStory.astro` (one board: Speech, Refinement and Insertion
+  columns, each with its own place choice and provider table); the
   homepage close is `GetAirdraft.astro`: the source build beside `LicenseCard.astro`,
   which the pricing page shares.
 - Text uses SF Pro through the system font stack on Apple devices. Inter is
@@ -188,7 +188,7 @@ Exercise the autoplay, Run again, Stop mid-run, all three profile buttons (the
 thumb must land on the selected one), the license card's 1 Mac / 3 Macs choice
 (pointer and arrow keys, with and without JavaScript), the hero waveform's hover,
 the hero's hold-to-dictate (⌃⌥ and press-and-hold; a third key cancels), the
-sticky header's blur over scrolled content, the provider story's selection well,
+sticky header's blur over scrolled content, the provider board's choices (pointer, arrow keys, without JavaScript),
 the FAQ's open and close,
 and anchor links; check keyboard focus and reduced motion (no autoplay, immediate
 result). The static example and navigation

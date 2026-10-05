@@ -11,9 +11,8 @@
    the scroll and never jitters. Translate, scale and opacity run in their own
    animations, apart from shadows, so the browser can composite them. Browsers
    without scroll timelines, and reduced motion, keep the static page; there
-   story.ts runs its entrance rises instead. The pinned provider story is
-   scrubbed by GSAP (story.ts) and its deck depth is styled at the end. The
-   changelog's reading rail lives with the changelog (changelog.css). */
+   story.ts runs its entrance rises instead. The changelog's reading rail
+   lives with the changelog (changelog.css). */
 
 @layer motion {
   @supports (animation-timeline: view()) {
@@ -57,7 +56,7 @@
       }
 
       /* Section headings rise as they enter; text never zooms. */
-      .section-heading:not(.story-intro) {
+      .section-heading {
         animation: motion-fade-up linear both;
         animation-timeline: view();
         animation-range: entry 0% entry 100%;
@@ -181,6 +180,33 @@
         }
       }
 
+      /* 4. The pipeline board rises as it arrives, then its columns follow
+         left to right, in the order dictation runs through them. */
+      .pipeline {
+        --rise-y: 56px;
+        --rise-scale: 0.94;
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry 0% cover 40%,
+          entry 0% cover 40%;
+      }
+      .pipeline > .pipe-stage {
+        --rise-y: 18px;
+        animation: motion-fade-up linear both;
+        animation-timeline: view();
+        animation-range: entry calc(20% + var(--step, 0%)) cover
+          calc(40% + var(--step, 0%));
+      }
+      .pipeline > .pipe-stage:nth-child(2) {
+        --step: 6%;
+      }
+      .pipeline > .pipe-stage:nth-child(3) {
+        --step: 12%;
+      }
+
       /* 5. The close. Both offers rise as the island settles back to its
          inset; the license, the featured offer, rises furthest and leads. */
       .offers > .offer {
@@ -250,19 +276,5 @@
           calc(var(--step) + 45%);
       }
     }
-  }
-
-  /* 4. The pinned provider story (story.ts). --deck-depth runs from 0 (the
-     card at rest) to 1 (sunk flat into the island): the card rises out of
-     the island as the story begins and dips briefly between scenes. GSAP
-     scales it alongside; this is its shadow. */
-  .story.is-pinned .deck {
-    --deck-k: calc(1 - var(--deck-depth, 0));
-    box-shadow:
-      var(--edge),
-      calc(7px * var(--deck-k)) calc(9px * var(--deck-k))
-        calc(24px * var(--deck-k)) var(--shade),
-      calc(-6px * var(--deck-k)) calc(-7px * var(--deck-k))
-        calc(24px * var(--deck-k)) var(--light);
   }
 }

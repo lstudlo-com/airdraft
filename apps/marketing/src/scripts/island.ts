@@ -61,7 +61,7 @@ if (island) {
 
   addEventListener("scroll", schedule, { passive: true });
   addEventListener("resize", schedule);
-  // Content below the fold (fonts, the pinned story) can change the
+  // Content below the fold (fonts, late images) can change the
   // island's height without a scroll.
   new ResizeObserver(schedule).observe(island);
   update();

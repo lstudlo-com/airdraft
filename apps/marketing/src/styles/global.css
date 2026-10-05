@@ -1924,144 +1924,142 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     border-top: 2px dashed color-mix(in srgb, var(--muted), transparent 50%);
   }
 
-  /* Pipeline story (PipelineStory.astro). Copy and card pairs stack by
-     default. On desktop src/scripts/story.ts pins the section: the copy
-     changes on the left, and on the right one raised card stays in place
-     while its scenes cross-fade inside it (.is-active, .is-past) and the
-     selection well steps through each scene's providers (--sel). */
-  .story-sticky {
+  /* Pipeline board (PipelineStory.astro): one raised card split into three
+     columns by engraved vertical grooves, with a small raised chevron on each
+     groove for the direction of flow. Speech and Refinement swap their line
+     and table with their segmented choice (`:has()`, as the license card
+     does); the tables sit in one grid cell, so a column keeps the height of
+     its longest choice and nothing below it moves. */
+  .pipeline {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
-    gap: 40px 56px;
-    align-items: center;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 8px;
   }
-  .story-head {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    margin-bottom: 8px;
+  .pipe-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+    padding: 22px 20px 18px;
   }
-  .story-stages {
-    display: none;
+  /* RowDivider turned on its side: shade on the left, highlight just right. */
+  .pipe-stage + .pipe-stage {
+    box-shadow:
+      inset 1px 0 0 var(--groove-shade),
+      inset 2px 0 0 var(--groove-light);
   }
-  .scene-copies,
-  .flight,
-  .deck {
-    display: contents;
+  .pipe-stage h3 {
+    font-size: var(--step-2);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
-  .scene-copy {
-    grid-column: 1;
-    grid-row: var(--row);
-    list-style: none;
+  .pipe-stage .segmented > label {
+    padding: 0 12px;
   }
-  .scene-card {
-    grid-column: 2;
-    grid-row: var(--row);
-  }
-  .scene-eyebrow {
-    font-size: var(--step--1);
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .scene-copy h3 {
-    margin-top: 6px;
-    font-size: var(--step-3);
-    line-height: 1.15;
-    letter-spacing: -0.015em;
-  }
-  .scene-copy h3 + p {
-    max-width: 32ch;
-    margin-top: 10px;
-    font-size: var(--step-1);
-    line-height: 1.55;
-    color: var(--muted);
-  }
-  .card-face {
-    padding: 22px 24px 24px;
-    border-radius: var(--radius-card);
-    background: var(--fill-card);
-    box-shadow: var(--edge), var(--raise-card);
-  }
-  .card-head {
+  /* Insertion has no choice to make; its place sits where the others' picker
+     does, at the picker's height. */
+  .pipe-fixed {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: var(--step-0);
+    min-height: 38px;
+    font-size: var(--step--1);
     font-weight: 600;
   }
-  /* A recessed socket holding the symbol (MicrophoneIconSocket). */
-  .card-icon {
+  .pipe-line {
+    min-height: 2lh;
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .pipe-swap {
+    display: grid;
+    align-self: stretch;
+  }
+  .pipe-option {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-area: 1 / 1;
+    transition:
+      opacity 260ms ease,
+      translate 480ms var(--ease-out);
+  }
+  .pipe-stage:has(input[value="mac"]:checked)
+    .pipe-option:not([data-place="mac"]),
+  .pipe-stage:has(input[value="cloud"]:checked)
+    .pipe-option:not([data-place="cloud"]),
+  .pipe-stage:has(input[value="plan"]:checked)
+    .pipe-option:not([data-place="plan"]) {
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 8px;
+    transition:
+      opacity 140ms ease,
+      translate 140ms ease,
+      visibility 0s linear 140ms;
+  }
+  /* Sits on the groove before its column, level with the heading. */
+  .pipe-arrow {
+    position: absolute;
+    top: 21px;
+    left: 1px;
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: var(--well-soft);
-    box-shadow: var(--sink-chip);
-    color: var(--ink);
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-small);
+    color: var(--muted);
+    translate: -50% 0;
   }
   /* A settings table: rows divided by grooves, the chosen one resting in the
      sidebar's recessed selection well (2.5pt depth, 12pt corners), with a
-     raised check island inside it, clipped to the well's light. */
+     raised check island inside it. */
   .choices {
-    --row-h: 46px;
-    --sel: 0;
-    position: relative;
-    margin-top: 16px;
-  }
-  .choices ul {
-    position: relative;
-    margin: 0;
+    --row-h: 40px;
+    margin: 0 -6px;
     padding: 0;
     list-style: none;
   }
   .choices li {
+    position: relative;
     display: flex;
     align-items: center;
     height: var(--row-h);
-    padding: 0 52px 0 16px;
-    font-size: var(--step-1);
+    padding: 0 44px 0 12px;
+    font-size: var(--step-0);
     font-weight: 500;
     color: var(--muted);
-    transition: color 280ms ease;
+    white-space: nowrap;
   }
   .choices li + li {
     box-shadow: var(--groove);
   }
   .choices li.is-selected {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  /* The rows on both sides of the well lose their groove: the well is the
-     division there. */
-  .choices li.is-selected,
-  .choices li.is-selected + li {
-    box-shadow: none;
-  }
-  .choice-well,
-  .choice-island {
-    position: absolute;
-    top: 0;
-    transition: transform 360ms var(--ease-select);
-  }
-  .choice-well {
-    right: 0;
-    left: 0;
-    height: var(--row-h);
     border-radius: 12px;
     background: var(--well-soft);
     box-shadow:
       inset 2.5px 2.5px 5px var(--shade-soft),
       inset -2.5px -2.5px 5px var(--light);
-    transform: translateY(calc(var(--sel) * var(--row-h)));
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* The row below the well loses its groove: the well is the division. */
+  .choices li.is-selected + li {
+    box-shadow: none;
   }
   .choice-island {
-    right: 9px;
-    z-index: 1;
+    position: absolute;
+    top: 6px;
+    right: 6px;
     display: grid;
     place-items: center;
     width: 28px;
     height: 28px;
-    margin-top: calc((var(--row-h) - 28px) / 2);
     border-radius: 9px;
     background: var(--fill-control);
     box-shadow:
@@ -2069,24 +2067,21 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       1.5px 2px 3px var(--shade),
       -1px -1.5px 3px var(--light);
     color: var(--ink);
-    transform: translateY(calc(var(--sel) * var(--row-h)));
-    /* It follows the well 300ms later, as the sidebar's icon island does. */
-    transition-delay: 300ms;
   }
   .fix-field {
-    margin-top: 18px;
-    padding: 18px 20px;
+    align-self: stretch;
+    padding: 16px 18px;
     border-radius: var(--radius-field);
     background: var(--fill-control);
     box-shadow: var(--edge), var(--raise-control);
   }
   .fix-field p {
-    font-size: var(--step-2);
+    font-size: var(--step-1);
     font-weight: 500;
     line-height: 1.5;
   }
   /* --fix runs 0 to 1: strike the heard words, fade them, then bring in
-     the fix. */
+     the fix. Its resting value is the fixed sentence. */
   .fix {
     --strike: clamp(0, calc(var(--fix, 1) * 2.5), 1);
     --out: clamp(0, calc(var(--fix, 1) * 5 - 2), 1);
@@ -2112,131 +2107,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     font-weight: 600;
     opacity: var(--swap);
     translate: 0 calc((1 - var(--swap)) * 8px);
-  }
-  .story.is-pinned {
-    height: calc(100vh + var(--units, 10) * 34vh);
-  }
-  .story.is-pinned .story-sticky {
-    position: sticky;
-    top: 0;
-    grid-template-columns: minmax(0, 390px) minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    align-content: center;
-    row-gap: 48px;
-    height: 100vh;
-    /* Clear the sticky header. */
-    padding-top: var(--header);
-  }
-  .story.is-pinned .story-head {
-    position: relative;
-    z-index: 1;
-    grid-column: 1;
-    margin: 0;
-  }
-  .story.is-pinned .story-stages {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 36px;
-    padding: 0;
-    list-style: none;
-  }
-  .story-stages li {
-    display: grid;
-    gap: 10px;
-    font-size: var(--step--1);
-    font-weight: 500;
-    color: var(--muted);
-    transition: color 300ms ease;
-  }
-  .story-stages li.is-active {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  /* NeumorphicUsageTrack: a shallow inset holding a raised gray fill. */
-  .story-stages i {
-    display: block;
-    height: 8px;
-    padding: 1.5px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: var(--well);
-    box-shadow: var(--sink-chip);
-  }
-  .story-stages b {
-    display: block;
-    height: 100%;
-    border-radius: 999px;
-    background: var(--fill-bar);
-    box-shadow: 0.5px 0.8px 1px var(--shade);
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-  .story.is-pinned .scene-copies {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-column: 1;
-    grid-row: 2;
-    padding: 0;
-  }
-  .story.is-pinned .scene-copy {
-    grid-area: 1 / 1;
-    opacity: 0;
-    translate: 0 20px;
-    transition:
-      opacity 300ms ease,
-      translate 600ms var(--ease-out);
-  }
-  .story.is-pinned .scene-copy.is-active {
-    opacity: 1;
-    translate: 0 0;
-    transition-delay: 120ms;
-  }
-  /* One raised card stays in place on the right; only its contents change. */
-  .story.is-pinned .flight {
-    display: block;
-    grid-column: 2;
-    grid-row: 1 / span 2;
-  }
-  .story.is-pinned .deck {
-    position: relative;
-    display: block;
-    width: min(100%, 480px);
-    height: 476px;
-    margin-inline: auto;
-    border-radius: var(--radius-card);
-    background: var(--fill-card);
-    box-shadow: var(--edge), var(--raise-hero);
-  }
-  .story.is-pinned .scene-card {
-    position: absolute;
-    inset: 0;
-    visibility: hidden;
-    opacity: 0;
-    translate: 0 12px;
-    transition:
-      opacity 240ms ease,
-      translate 480ms var(--ease-out),
-      visibility 0s linear 480ms;
-  }
-  .story.is-pinned .scene-card.is-past {
-    translate: 0 -12px;
-  }
-  .story.is-pinned .scene-card.is-active {
-    visibility: visible;
-    opacity: 1;
-    translate: 0 0;
-    transition:
-      opacity 320ms ease 120ms,
-      translate 520ms var(--ease-out) 120ms,
-      visibility 0s;
-  }
-  .story.is-pinned .card-face {
-    height: 100%;
-    padding: 26px 28px;
-    background: none;
-    box-shadow: none;
   }
   /* The close (GetAirdraft.astro): three ways to get Airdraft. The paid app
      sits in the middle, raised higher and holding the page's primary key. */
@@ -2538,6 +2408,22 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .hero .wave-bar:nth-child(-n + 12) {
       display: none;
     }
+    /* The pipeline stacks: its grooves lie flat and the arrows point down. */
+    .pipeline {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pipe-stage + .pipe-stage {
+      box-shadow: var(--groove);
+    }
+    .pipe-line {
+      min-height: 0;
+    }
+    .pipe-arrow {
+      top: 1px;
+      left: 50%;
+      translate: -50% -50%;
+      rotate: 90deg;
+    }
   }
   @media (max-width: 700px) {
     :root {
@@ -2649,20 +2535,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .art-mac {
       width: 100%;
     }
-    .story-sticky {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 20px;
+    .pipe-stage {
+      padding: 22px 16px 18px;
     }
-    .scene-copy,
-    .scene-card {
-      grid-column: 1;
-      grid-row: auto;
-      order: var(--order);
-    }
-    .scene-copy:not(:first-child) {
-      margin-top: 36px;
-    }
-    .card-face,
     .fund-panel,
     .offer {
       padding: 22px;
@@ -2739,7 +2614,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   /* Increase Contrast adds explicit edges, as in the app. */
   @media (prefers-contrast: more) {
     .panel,
-    .card-face,
+    .fix-field,
     .hero-card,
     .key,
     .segmented,

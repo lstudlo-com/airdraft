@@ -2,10 +2,8 @@
 //
 //   headings  and bento tiles rise into place as they enter, where the
 //             browser has no scroll timelines (motion.css does it elsewhere)
-//   bento     each tile's graphic plays a short loop while it is on screen
-//   pipeline  on desktop the section pins: one card stays in place while
-//             its scenes cross-fade and a selection well steps through each
-//             scene's providers; on narrow screens the cards rise into place
+//   bento     each tile's graphic plays a short loop while it is on screen,
+//             as does the pipeline board's vocabulary fix
 //
 // Every element's resting state in CSS is its final state, so the page reads
 // the same without JavaScript. With reduced motion none of this runs.
@@ -46,7 +44,7 @@ function words(paragraph: HTMLElement) {
 
 function reveals() {
   const targets = [
-    ...all(".section-heading:not(.story-intro)"),
+    ...all(".section-heading"),
     ...all("[data-reveal]"),
     ...all("[data-preview]"),
   ];
@@ -227,6 +225,19 @@ const arts: Record<
       .to(typed, { autoAlpha: 0, duration: 0.35 })
       .set(typed, { display: "none", autoAlpha: 1 });
   },
+  fix(art, timeline) {
+    // The heard words are struck out and the dictionary's spelling rises in.
+    const fix = one(".fix", art)!;
+    const sentence = one("p", art)!;
+    timeline
+      .set(fix, { "--fix": 0 })
+      .to({}, { duration: 1 })
+      .to(fix, { "--fix": 1, duration: 1.3, ease: "none" })
+      .to({}, { duration: 2.6 })
+      .to(sentence, { autoAlpha: 0, duration: 0.3 })
+      .set(fix, { "--fix": 0 })
+      .to(sentence, { autoAlpha: 1, duration: 0.3 });
+  },
   privacy(art, timeline) {
     // A signal travels from the microphone to the caret without leaving the Mac.
     all("[data-dot]", art).forEach((dot, index) => {
@@ -252,205 +263,9 @@ function bento() {
   }
 }
 
-/** Desktop: pin the pipeline. One raised card stays in place on the right;
- *  each scene holds while its selection well steps row by row through the
- *  providers (or the vocabulary fix plays), then the next scene cross-fades
- *  in. The well moves on the app's selection curve (CSS) whenever the
- *  scrubbed position reaches a new row, and its check island follows. */
-function pipeline() {
-  const story = one("[data-story]");
-  if (!story) return;
-  const cards = all("[data-scene-card]", story);
-  const copies = all("[data-scene-copy]", story);
-  const stages = all("[data-stage]", story).map((stage) => ({
-    element: stage,
-    fill: one("[data-stage-fill]", stage),
-    range: JSON.parse(stage.dataset.range ?? "[0,0]") as [number, number],
-  }));
-  const lists = cards.map((card) => {
-    const list = one(".choices", card);
-    return {
-      list,
-      rows: list ? all("li", list) : [],
-      position: { w: 0 },
-      selected: 0,
-    };
-  });
-  const deck = one("[data-deck]", story);
-  const steps = all(".story-stages li", story);
-  const intro = 0.9;
-  const hold = 1.1;
-  const move = 1;
-  story.style.setProperty(
-    "--units",
-    String(intro + cards.length * hold + (cards.length - 1) * move),
-  );
-  story.classList.add("is-pinned");
-
-  const state = { t: 0 };
-  let active = -1;
-  const render = () => {
-    const t = state.t;
-    for (const stage of stages) {
-      const [first, last] = stage.range;
-      const progress = gsap.utils.clamp(
-        0,
-        1,
-        (t - first + 1) / (last - first + 1),
-      );
-      if (stage.fill) stage.fill.style.transform = `scaleX(${progress})`;
-    }
-    for (const entry of lists) {
-      if (!entry.list) continue;
-      const selected = Math.round(entry.position.w);
-      if (selected === entry.selected) continue;
-      entry.selected = selected;
-      entry.list.style.setProperty("--sel", String(selected));
-      entry.rows.forEach((row, index) =>
-        row.classList.toggle("is-selected", index === selected),
-      );
-    }
-    const current = Math.round(t);
-    if (current === active) return;
-    active = current;
-    cards.forEach((card, index) => {
-      card.classList.toggle("is-active", index === current);
-      card.classList.toggle("is-past", index < current);
-    });
-    copies.forEach((copy, index) =>
-      copy.classList.toggle("is-active", index === current),
-    );
-    stages.forEach(({ element, range }) =>
-      element.classList.toggle(
-        "is-active",
-        current >= range[0] && current <= range[1],
-      ),
-    );
-  };
-
-  const fix = cards.find((card) => one(".fix", card));
-  if (fix) gsap.set(fix, { "--fix": 0 });
-  render();
-
-  const timeline = gsap.timeline({
-    onUpdate: render,
-    scrollTrigger: {
-      trigger: story,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: 0.7,
-    },
-  });
-  // The story opens with its three steps rising in turn, then the card rises
-  // out of the island with the first scene: it grows to full size while
-  // --deck-depth (motion.css) lifts its shadow from flat to raised.
-  timeline.from(steps, {
-    autoAlpha: 0,
-    y: 12,
-    duration: 0.3,
-    stagger: 0.2,
-    ease: "power2.out",
-  });
-  if (deck) {
-    timeline.fromTo(
-      deck,
-      { "--deck-depth": 1, scale: 0.94, autoAlpha: 0, y: 40 },
-      {
-        "--deck-depth": 0,
-        scale: 1,
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out",
-      },
-      intro - 0.6,
-    );
-  }
-  cards.forEach((card, index) => {
-    const { list, rows, position } = lists[index];
-    if (card === fix) {
-      timeline.to(card, { "--fix": 1, duration: hold, ease: "none" });
-    } else if (list) {
-      timeline.to(position, {
-        w: Math.max(0, rows.length - 1),
-        duration: hold,
-        ease: "none",
-      });
-    }
-    if (index < cards.length - 1) {
-      timeline.to(state, {
-        t: index + 1,
-        duration: move,
-        ease: "power2.inOut",
-      });
-      // The card dips into the island and rises again between scenes.
-      if (deck) {
-        timeline.to(
-          deck,
-          {
-            "--deck-depth": 0.45,
-            scale: 0.973,
-            duration: move / 2,
-            ease: "sine.inOut",
-            yoyo: true,
-            repeat: 1,
-          },
-          "<",
-        );
-      }
-    }
-  });
-  ScrollTrigger.refresh();
-
-  return () => {
-    story.classList.remove("is-pinned");
-    story.style.removeProperty("--units");
-    for (const element of [
-      ...cards,
-      ...copies,
-      ...stages.map((stage) => stage.element),
-    ]) {
-      element.classList.remove("is-active", "is-past");
-    }
-    for (const { list, rows } of lists) {
-      list?.style.removeProperty("--sel");
-      rows.forEach((row, index) =>
-        row.classList.toggle("is-selected", index === 0),
-      );
-    }
-    gsap.set(cards, { clearProps: "all" });
-    if (deck) gsap.set(deck, { clearProps: "all" });
-    gsap.set(steps, { clearProps: "all" });
-    stages.forEach(({ fill }) => fill?.style.removeProperty("transform"));
-  };
-}
-
-/** Narrow screens: the stacked cards rise into place as they arrive. */
-function sceneReveals() {
-  for (const card of all("[data-scene-card]")) {
-    gsap.from(card, {
-      y: 48,
-      autoAlpha: 0,
-      duration: 0.9,
-      ease: "power3.out",
-      scrollTrigger: { trigger: card, start: "top 92%" },
-    });
-  }
-}
-
 const media = gsap.matchMedia();
-media.add(
-  {
-    motion: "(prefers-reduced-motion: no-preference)",
-    desktop: "(min-width: 1000px) and (min-height: 700px)",
-  },
-  (context) => {
-    const { motion, desktop } = context.conditions as Record<string, boolean>;
-    if (!motion) return;
-    const cleanups = [desktop ? pipeline() : sceneReveals()];
-    // motion.css raises these from the scroll position where it can.
-    if (!CSS.supports("animation-timeline: view()")) reveals();
-    bento();
-    return () => cleanups.forEach((cleanup) => cleanup?.());
-  },
-);
+media.add("(prefers-reduced-motion: no-preference)", () => {
+  // motion.css raises these from the scroll position where it can.
+  if (!CSS.supports("animation-timeline: view()")) reveals();
+  bento();
+});
