@@ -446,6 +446,7 @@ def verify(directory: Path, skip_hud: bool) -> None:
         "EventTapHotkey.swift": source("Sources/App/Hotkeys/EventTapHotkey.swift"),
         "Hotkey.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/Hotkey.swift"),
         "HotkeyPressState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyPressState.swift"),
+        "HotkeyTriggerState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyTriggerState.swift"),
     }, HOTKEY_FIXTURE)
     run_suite(directory, "microphone-selection", {
         "MicrophoneStore.swift": source("Sources/App/App/MicrophoneStore.swift"),
