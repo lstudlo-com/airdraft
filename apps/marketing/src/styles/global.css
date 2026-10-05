@@ -865,6 +865,132 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     margin-left: 6px;
     padding-inline: 18px;
   }
+  /* Phones: the menu key replaces GitHub at the end of the header. While
+     its menu is open it stays sunk into a well, like the app's microphone
+     button while its overlay is up, and its two strokes cross. */
+  .site-header .menu-key {
+    display: none;
+    margin-left: 6px;
+  }
+  .site-header:has(.site-menu:popover-open) .menu-key {
+    background: var(--pressed);
+    box-shadow: var(--press);
+  }
+  .menu-glyph {
+    position: relative;
+    width: 18px;
+    height: 18px;
+  }
+  .menu-glyph i {
+    position: absolute;
+    top: calc(50% - 0.85px);
+    left: 1px;
+    width: 16px;
+    height: 1.7px;
+    border-radius: 999px;
+    background: currentColor;
+    transition:
+      translate 280ms var(--ease-select),
+      rotate 280ms var(--ease-select);
+  }
+  .menu-glyph i:first-child {
+    translate: 0 -3.5px;
+  }
+  .menu-glyph i:last-child {
+    translate: 0 3.5px;
+  }
+  .site-header:has(.site-menu:popover-open) .menu-glyph i:first-child {
+    translate: 0;
+    rotate: 45deg;
+  }
+  .site-header:has(.site-menu:popover-open) .menu-glyph i:last-child {
+    translate: 0;
+    rotate: -45deg;
+  }
+  /* The menu is the app's OverlayPanel: hung 8px below the key, its
+     trailing edge on the key's, an 8px inset and corners concentric with
+     the 12px wells, floating on the panel's deep drop shadow (black 0.24,
+     radius 28, offset 6/12) over the raised card's light and shade. The
+     current page rests in the nav's recessed well and a groove sets the
+     source apart. It grows from the key and falls back into it. */
+  .site-menu {
+    inset: auto;
+    top: calc(var(--header) / 2 + 30px);
+    right: var(--gutter);
+    width: min(280px, 100vw - 2 * var(--gutter));
+    margin: 0;
+    padding: 8px;
+    border: 0;
+    border-radius: calc(var(--radius-well) + 8px);
+    background: var(--fill-card);
+    color: var(--ink);
+    box-shadow:
+      var(--edge),
+      var(--raise-card),
+      6px 12px 56px rgb(0 0 0 / 0.24);
+    transform-origin: calc(100% - 22px) -30px;
+    opacity: 0;
+    scale: 0.94;
+    translate: 0 -6px;
+    transition:
+      opacity 140ms ease,
+      scale 140ms ease,
+      translate 140ms ease,
+      display 140ms allow-discrete,
+      overlay 140ms allow-discrete;
+  }
+  .site-menu:popover-open {
+    display: grid;
+    gap: 2px;
+    opacity: 1;
+    scale: 1;
+    translate: 0;
+    transition-duration: 220ms;
+    transition-timing-function: var(--ease-out);
+  }
+  @starting-style {
+    .site-menu:popover-open {
+      opacity: 0;
+      scale: 0.94;
+      translate: 0 -6px;
+    }
+  }
+  .menu-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--radius-well);
+    color: var(--muted);
+    font-size: var(--step-0);
+    font-weight: 500;
+    transition:
+      color 160ms ease,
+      background 160ms ease;
+  }
+  .menu-link:hover {
+    color: var(--ink);
+    background: rgb(128 128 128 / 0.1);
+  }
+  .menu-link:active {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
+  .menu-link[aria-current="page"] {
+    color: var(--ink);
+    background: var(--well-soft);
+    box-shadow: var(--sink-chip);
+  }
+  .menu-link .arrow {
+    margin-left: auto;
+    color: var(--quiet);
+  }
+  .menu-groove {
+    height: 2px;
+    margin: 4px 12px;
+    box-shadow: var(--groove);
+  }
   .site-footer {
     display: flex;
     justify-content: space-between;
@@ -2543,12 +2669,37 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
   }
   @media (max-width: 560px) {
-    .nav-link-wide,
-    .nav-well {
+    .site-header-inner {
+      grid-template-columns: 1fr auto;
+    }
+    .header-links {
       display: none;
     }
     .nav-cta {
       padding-inline: 14px;
+    }
+  }
+  /* The menu key appears only where the links are folded away and the
+     browser has popovers; elsewhere GitHub keeps its key and the footer
+     carries the links. */
+  @supports selector(:popover-open) {
+    @media (max-width: 560px) {
+      .site-header .header-source {
+        display: none;
+      }
+      .site-header .menu-key {
+        display: inline-flex;
+      }
+    }
+  }
+  @media (min-width: 561px) {
+    .site-menu {
+      display: none;
+    }
+  }
+  @supports not selector(:popover-open) {
+    .site-menu {
+      display: none;
     }
   }
   @media (max-width: 420px) {
@@ -2570,6 +2721,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .wave,
     .brand-mark,
     .brand-groove,
+    .site-menu,
     kbd,
     .art-field,
     .art-output,

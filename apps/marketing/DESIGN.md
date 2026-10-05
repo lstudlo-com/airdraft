@@ -320,7 +320,7 @@ pins for about 4.9 viewport heights on screens at least `1000px` wide and
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider story stacks; the hero waveform drops its 12 oldest bars. |
 | `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, provider scenes, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                         |
-| `560px`   | The header shows only the mark, GitHub and Get Airdraft.                                                                                                                                                        |
+| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the menu.                                                                                                              |
 | `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                             |
 
 ## Elevation & Depth
@@ -608,8 +608,23 @@ changes at once. Layout's `pagereveal` script marks a move between two linked
 pages `nav-slide`, where the moving group draws the well itself so it keeps its
 shape; arriving from or leaving for another page fades it. Reduced motion and
 browsers without cross-document view transitions change pages instantly. The
-GitHub icon key and the primary "Get Airdraft" key at the end. On phones only the mark, GitHub
-and Get Airdraft remain. Behind it is the app's progressive header blur
+GitHub icon key and the primary "Get Airdraft" key at the end.
+
+On phones (`560px` and below) the links and the GitHub key fold into a menu:
+the header keeps the mark, Get Airdraft and a round menu key with two strokes.
+The menu is the app's `OverlayPanel`: a raised card hung `8px` below the key
+with its trailing edge on the key's, an `8px` inset, `20px` corners concentric
+with `12px`-radius `44px` rows, and the panel's deep drop shadow (black 0.24,
+`6px 12px 56px`) over `--raise-card`. Pricing, Support and Changelog come first,
+the current page resting in the `--sink-chip` well; a groove separates "Source
+on GitHub" with its external arrow. While it is open the key stays sunk
+(`--press`), like the app's microphone button under its overlay, and its strokes
+cross into a close mark on `SelectionMotion.curve`. The panel grows from the key
+(`0.94` to full scale, `6px` drop, `220ms` `--ease-out`) and falls back into it
+(`140ms`). It is a native `popover`, so it works without JavaScript: the key
+toggles it, Escape and an outside tap dismiss it and return focus, and the links
+follow the key in reading and Tab order. Browsers without popovers keep the
+GitHub key and rely on the footer's links. Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
 32px), each masked to the band where the app's radius ramp reaches it, so
 content is lightly blurred at its bottom edge and fully blurred at the top,

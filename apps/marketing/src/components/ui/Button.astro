@@ -8,6 +8,7 @@ import Arrow from "../Arrow.astro";
  * Renders an `<a>` with `href`, otherwise a `<button>`. A disabled link renders
  * as a non-interactive `<span aria-disabled="true">`.
  * Icon-only keys need `label`, which becomes the accessible name and tooltip.
+ * `popovertarget` makes a `<button>` open and close a native popover.
  */
 interface Props {
   href?: string;
@@ -20,6 +21,7 @@ interface Props {
   type?: "button" | "submit" | "reset";
   id?: string;
   hidden?: boolean;
+  popovertarget?: string;
   class?: string;
   [data: `data-${string}`]: string | boolean | undefined;
   [aria: `aria-${string}`]: string | boolean | undefined;
