@@ -489,6 +489,9 @@ verification status belong in the vault (see below).
   compatibility retries by one end-to-end refinement deadline.
 - The LLM is best-effort. Any change to `DictationPipeline` must keep the fallback:
   LLM error or timeout still inserts the raw transcript.
+- Read app context defaults to off when no choice is saved; preserve saved on/off
+  choices. Reading context can turn dictation into selected-text editing, so it
+  requires opt-in. Cursor insertion remains independent of this setting.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
 - Refinement output passes `RefinementFidelity` before delivery. A result that
   repeats an earlier same-app dictation the new speech does not resemble, or that

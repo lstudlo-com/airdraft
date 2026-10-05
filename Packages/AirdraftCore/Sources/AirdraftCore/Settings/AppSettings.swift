@@ -114,7 +114,7 @@ public final class AppSettings {
         insertionMethod = Self.load("insertionMethod", from: defaults) ?? .auto
         outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
         outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""
-        useAppContext = Self.load("useAppContext", from: defaults) ?? true
+        useAppContext = Self.load("useAppContext", from: defaults) ?? false
         maxRecordingSeconds = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         appearance = Self.load("appearance", from: defaults) ?? .auto
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
