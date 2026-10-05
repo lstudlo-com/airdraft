@@ -26,6 +26,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     public var inserted: Bool
     public var error: String?
     public var audioFilename: String?
+    public var recordingID: String?
     public var outputDestination: String?
     public var outputSucceeded: Bool?
 
@@ -51,6 +52,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         inserted: Bool,
         error: String? = nil,
         audioFilename: String? = nil,
+        recordingID: String? = nil,
         outputDestination: String? = nil,
         outputSucceeded: Bool? = nil
     ) {
@@ -75,6 +77,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         self.inserted = inserted
         self.error = error
         self.audioFilename = audioFilename
+        self.recordingID = recordingID
         self.outputDestination = outputDestination
         self.outputSucceeded = outputSucceeded
     }
@@ -156,6 +159,30 @@ public final class HistoryStore: Sendable {
                 t.add(column: "outputSucceeded", .boolean)
             }
         }
+        migrator.registerMigration("v4-recording-assets") { [self] db in
+            try db.create(table: RecordingAsset.databaseTableName) { t in
+                t.primaryKey("id", .text)
+                t.column("createdAt", .datetime).notNull().indexed()
+                t.column("filename", .text).notNull().unique()
+                t.column("duration", .double).notNull()
+                t.column("source", .text).notNull()
+            }
+            try db.alter(table: DictationRecord.databaseTableName) { t in
+                t.add(column: "recordingID", .text).references(RecordingAsset.databaseTableName, onDelete: .setNull).indexed()
+            }
+            // Adopt existing sidecars in place. Invalid or missing paths never
+            // become assets; the text remains available with no audio attached.
+            for record in try DictationRecord.fetchAll(db) where record.audioFilename != nil {
+                if let url = try existingAudioURL(named: record.audioFilename) {
+                    let asset = RecordingAsset(filename: url.lastPathComponent, createdAt: record.createdAt,
+                                               duration: record.audioSeconds)
+                    try asset.insert(db, onConflict: .ignore)
+                    try db.execute(sql: "UPDATE dictation SET recordingID = ? WHERE id = ?", arguments: [asset.id, record.id])
+                } else {
+                    try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE id = ?", arguments: [record.id])
+                }
+            }
+        }
         try migrator.migrate(dbQueue)
     }
 
@@ -165,6 +192,7 @@ public final class HistoryStore: Sendable {
             var r = record
             // An insert may only attach audio created by this store, never a supplied path.
             r.audioFilename = nil
+            r.recordingID = nil
             var writtenURL: URL?
             do {
                 return try dbQueue.write { db in
@@ -173,6 +201,11 @@ public final class HistoryStore: Sendable {
                     if let samples, !samples.isEmpty, audioDirectory != nil {
                         writtenURL = try writeAudio(samples)
                         r.audioFilename = writtenURL?.lastPathComponent
+                        if let filename = r.audioFilename {
+                            let asset = RecordingAsset(filename: filename, createdAt: r.createdAt, duration: r.audioSeconds)
+                            try asset.insert(db)
+                            r.recordingID = asset.id
+                        }
                     }
                     try r.insert(db)
                     return r
@@ -202,24 +235,24 @@ public final class HistoryStore: Sendable {
         }
     }
 
-    /// A nil cutoff removes all saved audio while retaining the text history.
+    /// A nil cutoff removes saved dictation audio while retaining text history.
+    /// Explicit media imports and meetings have independent retention.
     /// Every pass also reconciles missing references and unfinished/orphaned writes.
     public func pruneAudio(olderThan cutoff: Date?) throws {
         try audioLock.withLock {
             try dbQueue.write { db in
-                let records = try DictationRecord.filter(Column("audioFilename") != nil).fetchAll(db)
                 var retained = Set<String>()
-                for record in records {
-                    let expired = cutoff.map { record.createdAt < $0 } ?? true
+                for asset in try RecordingAsset.fetchAll(db) {
+                    let expired = asset.source == .dictation && (cutoff.map { asset.createdAt < $0 } ?? true)
                     if expired {
-                        try removeAudio(named: record.audioFilename)
-                    } else if try existingAudioURL(named: record.audioFilename) != nil,
-                              let filename = record.audioFilename {
-                        retained.insert(filename)
+                        try removeAudio(named: asset.filename)
+                    } else if try existingAudioURL(named: asset.filename) != nil {
+                        retained.insert(asset.filename)
                         continue
                     }
-                    try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE id = ?", arguments: [record.id])
+                    try detachAndDelete(asset, in: db)
                 }
+                try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE recordingID IS NULL")
                 try removeOrphanAudio(retaining: retained)
             }
         }
@@ -257,9 +290,17 @@ public final class HistoryStore: Sendable {
         try audioLock.withLock {
             try dbQueue.write { db in
                 guard let record = try DictationRecord.fetchOne(db, key: id) else { return }
+                // A migrated sidecar may be referenced by more than one old row.
+                let shared = try record.recordingID.map { assetID in
+                    try DictationRecord.filter(Column("recordingID") == assetID).fetchCount(db) > 1
+                } ?? false
                 // Remove the file first. A failure leaves the row available for retry.
-                try removeAudio(named: record.audioFilename)
+                if !shared { try removeAudio(named: record.audioFilename) }
                 _ = try DictationRecord.deleteOne(db, key: id)
+                if let assetID = record.recordingID,
+                   try DictationRecord.filter(Column("recordingID") == assetID).fetchCount(db) == 0 {
+                    _ = try RecordingAsset.deleteOne(db, key: assetID)
+                }
             }
         }
     }
@@ -267,13 +308,134 @@ public final class HistoryStore: Sendable {
     public func deleteAll() throws {
         try audioLock.withLock {
             try dbQueue.write { db in
-                for record in try DictationRecord.fetchAll(db) {
-                    try removeAudio(named: record.audioFilename)
+                for asset in try RecordingAsset.fetchAll(db) {
+                    try removeAudio(named: asset.filename)
                 }
                 try removeOrphanAudio(retaining: [])
                 _ = try DictationRecord.deleteAll(db)
+                _ = try RecordingAsset.deleteAll(db)
             }
             try dbQueue.vacuum()
+        }
+    }
+
+    /// Removes transcript text and app context, retaining only independent audio metadata.
+    public func deleteHistoryKeepingAudio() throws {
+        try audioLock.withLock {
+            try dbQueue.write { db in _ = try DictationRecord.deleteAll(db) }
+            try dbQueue.vacuum()
+        }
+    }
+
+    public func deleteAllAudio() throws {
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                for asset in try RecordingAsset.fetchAll(db) {
+                    try removeAudio(named: asset.filename)
+                    try detachAndDelete(asset, in: db)
+                }
+                try db.execute(sql: "UPDATE dictation SET audioFilename = NULL, recordingID = NULL")
+                try removeOrphanAudio(retaining: [])
+            }
+        }
+    }
+
+    public func deleteRecording(id: String) throws {
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                guard let asset = try RecordingAsset.fetchOne(db, key: id) else { return }
+                try removeAudio(named: asset.filename)
+                try detachAndDelete(asset, in: db)
+            }
+        }
+    }
+
+    private func detachAndDelete(_ asset: RecordingAsset, in db: Database) throws {
+        try db.execute(sql: "UPDATE dictation SET audioFilename = NULL, recordingID = NULL WHERE recordingID = ?",
+                       arguments: [asset.id])
+        _ = try RecordingAsset.deleteOne(db, key: asset.id)
+    }
+
+    public func audioURL(for asset: RecordingAsset) -> URL? {
+        audioLock.withLock { try? dbQueue.read { db in
+            guard let stored = try RecordingAsset.fetchOne(db, key: asset.id), stored.filename == asset.filename else { return nil }
+            return try existingAudioURL(named: stored.filename)
+        } }
+    }
+
+    public func recording(id: String) throws -> RecordingAsset? {
+        try dbQueue.read { db in try RecordingAsset.fetchOne(db, key: id) }
+    }
+
+    /// Copies the stored bytes under the same writer lease as deletion. The
+    /// destination is published only after a complete copy; the source is never moved.
+    public func exportRecording(id: String, to destination: URL, replacing: Bool = false) throws {
+        try audioLock.withLock {
+            try dbQueue.write { db in
+                guard destination.isFileURL,
+                      let asset = try RecordingAsset.fetchOne(db, key: id),
+                      let source = try existingAudioURL(named: asset.filename),
+                      let directory = audioDirectory else { throw AudioStorageError.unavailable }
+                let target = destination.standardizedFileURL.resolvingSymlinksInPath()
+                let managed = directory.standardizedFileURL.resolvingSymlinksInPath().path
+                guard target.path != managed, !target.path.hasPrefix(managed + "/") else {
+                    throw AudioStorageError.unsafeLocation
+                }
+                let temporary = target.deletingLastPathComponent().appendingPathComponent(".Airdraft-\(UUID().uuidString).pending")
+                do {
+                    try FileManager.default.copyItem(at: source, to: temporary)
+                    let handle = try FileHandle(forWritingTo: temporary)
+                    defer { try? handle.close() }
+                    try handle.synchronize()
+                    if replacing {
+                        guard rename(temporary.path, target.path) == 0 else {
+                            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+                        }
+                    } else {
+                        try FileManager.default.moveItem(at: temporary, to: target)
+                    }
+                } catch {
+                    let exportError = error
+                    do { try removeManagedFile(at: temporary) }
+                    catch { throw AudioStorageError.cleanupFailed(exportError, error) }
+                    throw exportError
+                }
+            }
+        }
+    }
+
+    /// Filters before paging and resolves availability off the UI thread.
+    public func recordings(limit: Int = 200, query: String = "", offset: Int = 0) throws -> RecordingPage {
+        try audioLock.withLock {
+            try dbQueue.read { db in
+                let pageSize = max(1, min(limit, 500))
+                let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+                var scan = max(0, offset)
+                var entries: [RecordingPage.Entry] = []
+                let filter = query.isEmpty ? "" : """
+                    WHERE a.id LIKE ? OR EXISTS (
+                        SELECT 1 FROM dictation d WHERE d.recordingID = a.id AND
+                        (d.rawTranscript LIKE ? OR d.finalText LIKE ? OR d.appName LIKE ?))
+                    """
+                while entries.count < pageSize {
+                    let pattern = "%\(query)%"
+                    var arguments: StatementArguments = query.isEmpty ? [] : [pattern, pattern, pattern, pattern]
+                    arguments += [pageSize, scan]
+                    let batch = try RecordingAsset.fetchAll(db, sql: """
+                        SELECT a.* FROM recordingAsset a \(filter)
+                        ORDER BY a.createdAt DESC, a.id DESC LIMIT ? OFFSET ?
+                        """, arguments: arguments)
+                    for asset in batch {
+                        scan += 1
+                        guard try existingAudioURL(named: asset.filename) != nil else { continue }
+                        let dictation = try DictationRecord.filter(Column("recordingID") == asset.id).fetchOne(db)
+                        entries.append(.init(asset: asset, dictation: dictation))
+                        if entries.count == pageSize { return RecordingPage(entries: entries, nextOffset: scan) }
+                    }
+                    if batch.count < pageSize { return RecordingPage(entries: entries, nextOffset: nil) }
+                }
+                return RecordingPage(entries: entries, nextOffset: nil)
+            }
         }
     }
 

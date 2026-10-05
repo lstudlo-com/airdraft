@@ -253,4 +253,147 @@ final class AudioHistoryTests: XCTestCase {
         XCTAssertEqual(try store.count(), 0)
         XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
     }
+
+    func testHistoryOnlyDeletionKeepsIndependentRecordingsAndErasesSearchContext() throws {
+        let store = try HistoryStore(directory: directory)
+        let saved = try store.save(record(), samples: [0, 0.5])
+        let id = try XCTUnwrap(saved.recordingID)
+        let originalURL = try XCTUnwrap(store.audioURL(for: saved))
+        let originalBytes = try Data(contentsOf: originalURL)
+        try store.deleteHistoryKeepingAudio()
+        XCTAssertEqual(try store.count(), 0)
+        XCTAssertEqual(try store.stats().words, 0)
+        XCTAssertTrue(try store.recordings(query: "original").entries.isEmpty)
+        let entry = try XCTUnwrap(store.recordings().entries.first)
+        XCTAssertEqual(entry.asset.id, id)
+        XCTAssertNil(entry.dictation)
+        XCTAssertEqual(store.audioURL(for: entry.asset), originalURL)
+        try store.pruneAudio(olderThan: .distantPast)
+        XCTAssertEqual(try Data(contentsOf: originalURL), originalBytes, "Detached assets are not orphans")
+        try store.deleteAll()
+        XCTAssertTrue(try store.recordings().entries.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: originalURL.path))
+    }
+
+    func testAudioOnlyDeletionPreservesTextAndIsIdempotent() throws {
+        let store = try HistoryStore(directory: directory)
+        let saved = try store.save(record(), samples: [0, 0.5])
+        let id = try XCTUnwrap(saved.recordingID)
+        try store.deleteRecording(id: id)
+        try store.deleteRecording(id: id)
+        let text = try XCTUnwrap(store.recent().first)
+        XCTAssertEqual(text.finalText, saved.finalText)
+        XCTAssertNil(text.recordingID)
+        XCTAssertNil(text.audioFilename)
+        XCTAssertNil(try store.recording(id: id))
+        _ = try store.save(record(), samples: [0.25])
+        try store.deleteAllAudio()
+        try store.deleteAllAudio()
+        XCTAssertEqual(try store.count(), 2)
+        XCTAssertTrue(try store.recordings().entries.isEmpty)
+        XCTAssertTrue(try files().isEmpty)
+    }
+
+    func testDetachedAudioStillExpiresAndImportsUseIndependentRetention() throws {
+        let store = try HistoryStore(directory: directory)
+        let old = try store.save(record(date: .distantPast), samples: [0.5])
+        let imported = try store.save(record(), samples: [0.25])
+        let database = try DatabaseQueue(path: directory.appendingPathComponent("history.sqlite").path)
+        try database.write { db in
+            try db.execute(sql: "UPDATE recordingAsset SET source = 'imported' WHERE id = ?", arguments: [imported.recordingID])
+        }
+        try store.deleteHistoryKeepingAudio()
+        try store.pruneAudio(olderThan: nil)
+        XCTAssertNil(try store.recording(id: XCTUnwrap(old.recordingID)))
+        XCTAssertNotNil(try store.recording(id: XCTUnwrap(imported.recordingID)))
+        XCTAssertNotNil(store.audioURL(for: imported))
+        try store.deleteAllAudio()
+        XCTAssertNil(store.audioURL(for: imported))
+    }
+
+    func testRecordingPaginationScansPastMissingFilesAndFiltersBeforePaging() throws {
+        let store = try HistoryStore(directory: directory)
+        for index in 0..<12 {
+            var input = record(date: Date(timeIntervalSince1970: Double(index)))
+            input.finalText = index.isMultiple(of: 2) ? "match" : "different"
+            let saved = try store.save(input, samples: [0.25])
+            if index >= 7 { try FileManager.default.removeItem(at: XCTUnwrap(store.audioURL(for: saved))) }
+        }
+        let first = try store.recordings(limit: 2, query: "match")
+        XCTAssertEqual(first.entries.map { $0.asset.createdAt.timeIntervalSince1970 }, [6, 4])
+        let second = try store.recordings(limit: 2, query: "match", offset: XCTUnwrap(first.nextOffset))
+        XCTAssertEqual(second.entries.map { $0.asset.createdAt.timeIntervalSince1970 }, [2, 0])
+        let last = try store.recordings(limit: 2, query: "match", offset: XCTUnwrap(second.nextOffset))
+        XCTAssertTrue(last.entries.isEmpty)
+        XCTAssertNil(last.nextOffset)
+        XCTAssertEqual(Set((first.entries + second.entries).map(\.id)).count, 4)
+    }
+
+    func testExportIsByteIdenticalAndFailuresDoNotChangeSource() throws {
+        let store = try HistoryStore(directory: directory)
+        let saved = try store.save(record(), samples: [-0.25, 0, 0.75])
+        let id = try XCTUnwrap(saved.recordingID)
+        let source = try XCTUnwrap(store.audioURL(for: saved))
+        let bytes = try Data(contentsOf: source)
+        let exported = directory.appendingPathComponent("export.wav")
+        try store.exportRecording(id: id, to: exported)
+        XCTAssertEqual(try Data(contentsOf: exported), bytes)
+        XCTAssertThrowsError(try store.exportRecording(id: id, to: exported))
+        try Data([42]).write(to: exported)
+        try store.exportRecording(id: id, to: exported, replacing: true)
+        XCTAssertEqual(try Data(contentsOf: exported), bytes)
+        XCTAssertThrowsError(try store.exportRecording(id: id, to: source, replacing: true))
+        XCTAssertThrowsError(try store.exportRecording(id: id, to: recordings.appendingPathComponent("copy.wav")))
+        XCTAssertThrowsError(try store.exportRecording(id: id, to: directory.appendingPathComponent("missing/export.wav")))
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: directory.path).contains { $0.hasSuffix(".pending") })
+        try store.deleteAll()
+        XCTAssertEqual(try Data(contentsOf: exported), bytes, "Exported copies are user-owned")
+    }
+
+    func testV3MigrationAdoptsExistingSidecarsWithoutCopying() throws {
+        try FileManager.default.createDirectory(at: recordings, withIntermediateDirectories: false)
+        let filename = "\(UUID().uuidString).wav"
+        let bytes = WAVEncoder.encode(samples: [0, 0.5])
+        try bytes.write(to: recordings.appendingPathComponent(filename))
+        do {
+            let database = try DatabaseQueue(path: directory.appendingPathComponent("history.sqlite").path)
+            try database.write { db in
+                try db.execute(sql: """
+                    CREATE TABLE grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY);
+                    INSERT INTO grdb_migrations VALUES ('v1'), ('v2'), ('v3');
+                    CREATE TABLE dictation (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, createdAt DATETIME NOT NULL,
+                        appBundleId TEXT, appName TEXT, windowTitle TEXT, url TEXT,
+                        mode TEXT NOT NULL, family TEXT NOT NULL, rawTranscript TEXT NOT NULL,
+                        refinedText TEXT NOT NULL, finalText TEXT NOT NULL, language TEXT,
+                        asrEngine TEXT NOT NULL, llmEngine TEXT, promptVersion TEXT,
+                        audioSeconds DOUBLE NOT NULL, asrMs INTEGER NOT NULL,
+                        llmMs INTEGER NOT NULL, inserted BOOLEAN NOT NULL, error TEXT,
+                        audioFilename TEXT, outputDestination TEXT, outputSucceeded BOOLEAN
+                    );
+                    """)
+                for name in [filename, "\(UUID().uuidString).wav", "../outside.wav"] {
+                    try db.execute(sql: """
+                        INSERT INTO dictation (createdAt, mode, family, rawTranscript, refinedText,
+                        finalText, asrEngine, audioSeconds, asrMs, llmMs, inserted, audioFilename)
+                        VALUES ('2026-09-01 12:00:00.000', 'clean', 'document', 'old', 'Old.',
+                                'Old.', 'legacy', 0.5, 1, 1, 1, ?)
+                        """, arguments: [name])
+                }
+            }
+        }
+        let store = try HistoryStore(directory: directory)
+        XCTAssertEqual(try store.count(), 3)
+        let page = try store.recordings()
+        XCTAssertEqual(page.entries.count, 1)
+        let entry = try XCTUnwrap(page.entries.first)
+        XCTAssertEqual(entry.asset.id, String(filename.dropLast(4)))
+        XCTAssertEqual(entry.dictation?.audioFilename, filename)
+        XCTAssertEqual(try store.recent().filter { $0.recordingID == nil && $0.audioFilename == nil }.count, 2)
+        XCTAssertEqual(try files(), [filename])
+        XCTAssertEqual(try Data(contentsOf: recordings.appendingPathComponent(filename)), bytes)
+        let reopened = try HistoryStore(directory: directory)
+        XCTAssertEqual(try reopened.recordings().entries.first?.asset, entry.asset)
+    }
 }

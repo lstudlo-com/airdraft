@@ -818,7 +818,12 @@ nonfatal; preview text never reaches history, refinement, clipboard or scripts.
 
 Audio retention is opt-in and independent of text history. `HistoryStore` owns
 private UUID WAV sidecars and their SQLite references, including deletion,
-retention and orphan cleanup. Preserve audio in pending-save recovery. Run cleanup
+retention and orphan cleanup. Audio assets have an independent lifetime: deleting
+text must not orphan or remove retained recordings. Keep asset metadata free of
+transcripts and app context, and clear links when audio is deleted. Recording
+queries filter before pagination and count missing files in continuation offsets.
+Export stored bytes under the deletion writer lease; exported copies are user-owned.
+See `docs/recording-storage.md`. Preserve audio in pending-save recovery. Run cleanup
 at launch, hourly, after saves and after retention changes. Playback has one owner
 and stops when recording, deleting, leaving History or cleaning up audio.
 Retranscription uses a review-only pipeline policy, including explicit retries;
