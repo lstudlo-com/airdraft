@@ -118,12 +118,20 @@ final class TranscriberWireTests: XCTestCase {
     }
 
     func testDeepgramMultilingualAndWhisperUseTheirOwnOptions() throws {
-        let multi = try DeepgramTranscriber(model: "nova-3-multilingual", apiKey: "key").makeRequest(samples: samples, hints: hints)
-        let query = URLComponents(url: multi.url!, resolvingAgainstBaseURL: false)!.queryItems!
-        XCTAssertTrue(query.contains(URLQueryItem(name: "model", value: "nova-3")))
-        XCTAssertTrue(query.contains(URLQueryItem(name: "language", value: "multi")))
-        XCTAssertFalse(query.contains { $0.name == "detect_language" })
-        XCTAssertEqual(query.filter { $0.name == "language" }.count, 1)
+        let multilingual = DeepgramTranscriber(model: "nova-3-multilingual", apiKey: "key")
+        // Nova-3's multi mode supports a narrower language set than its fixed-language mode.
+        for language in [nil, "en"] as [String?] {
+            let multi = try multilingual.makeRequest(samples: samples, hints: .init(language: language))
+            let query = URLComponents(url: multi.url!, resolvingAgainstBaseURL: false)!.queryItems!
+            XCTAssertTrue(query.contains(URLQueryItem(name: "model", value: "nova-3")))
+            XCTAssertTrue(query.contains(URLQueryItem(name: "language", value: "multi")))
+            XCTAssertFalse(query.contains { $0.name == "detect_language" })
+            XCTAssertEqual(query.filter { $0.name == "language" }.count, 1)
+        }
+        XCTAssertThrowsError(try multilingual.makeRequest(samples: samples, hints: hints)) { error in
+            XCTAssertEqual(error as? SpeechLanguageError,
+                           .unsupportedLanguage(language: "zh", model: "Deepgram Nova-3 Multilingual"))
+        }
         let whisper = DeepgramTranscriber(model: "whisper-large", apiKey: "key")
         let auto = try whisper.makeRequest(samples: samples, hints: .init()).url!.absoluteString
         XCTAssertTrue(auto.contains("model=whisper-large"))

@@ -37,7 +37,7 @@ export const changelog: ChangelogEntry[] = [
     ],
     source: {
       label: "Release notes",
-      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.6.2-build.168",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.6.2-build.169",
     },
   },
   {
