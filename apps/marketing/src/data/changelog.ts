@@ -8,11 +8,33 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-04.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-05.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-6-1",
+    version: "0.6.1",
+    date: "2026-10-05",
+    title: "App context is now opt-in",
+    changes: [
+      {
+        title: "Choose when to share app context",
+        description:
+          "Read app context now defaults to off when no preference is saved. Existing choices are preserved, and cursor insertion continues to work independently.",
+      },
+      {
+        title: "A neutral app icon",
+        description:
+          "The app icon now uses the same neutral grays, raised waveform and graphite caret as the app window.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.6.1-build.157",
+    },
+  },
   {
     id: "0-6-0",
     version: "0.6.0",
