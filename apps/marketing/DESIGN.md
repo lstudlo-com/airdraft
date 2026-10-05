@@ -328,8 +328,8 @@ pins for about 4.9 viewport heights on screens at least `1000px` wide and
 Exact values live in `:root`. They translate `SurfaceShadows` (SwiftUI radius
 r ≈ CSS blur 2r).
 
-- `--raise-hero`: `7px 9px 24px` shade, `-6px -7px 24px` light. The hero card and the featured offer.
-- `--raise-card`: half the spread. Panels, bento tiles, pricing plans, scene cards.
+- `--raise-hero`: `7px 9px 24px` shade, `-6px -7px 24px` light. The hero card, the featured offer and the ready-to-run pricing plan.
+- `--raise-card`: half the spread. Panels, bento tiles, the Open source pricing plan, scene cards.
 - `--raise-control`: a quarter. Keys, fields, the inserted-text card, art cards.
 - `--raise-small`: keycaps, disclosure buttons, segmented thumbs, changelog studs.
 - `--edge`: the 1px top-left rim plus a 0.5px hairline, on every raised face.
@@ -534,7 +534,7 @@ outside it (`--tile`, `--cost-table`).
 | Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
 | Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
 | Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`) and leads `±10px`.                                                                 |
-| Pricing          | Plans rise left to right; cost rows fade up in turn; each three-year bar fills to its share.                                                                                             |
+| Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. Bento loops play only while their tile is
@@ -565,7 +565,15 @@ troubleshooting. Answers may include `code`.
 The header sits on the chrome and stays at the top as the page scrolls. It is
 a three-column grid with equal outer columns: the Brand mark at the start; at
 the window's true centre, Pricing, Support and Changelog as capsule links (the
-current page sits in a recessed well, like the app's sidebar selection); the
+current page sits in a recessed well, like the app's sidebar selection). The
+well is one element in its link's grid cell. Moving between these pages, a
+cross-document view transition slides it to the new link on
+`SelectionMotion.curve` (`360ms`, `--ease-select`) while the labels crossfade
+above it; only the header's links and well take part, so the rest of the page
+changes at once. Layout's `pagereveal` script marks a move between two linked
+pages `nav-slide`, where the moving group draws the well itself so it keeps its
+shape; arriving from or leaving for another page fades it. Reduced motion and
+browsers without cross-document view transitions change pages instantly. The
 GitHub icon key and the primary "Get Airdraft" key at the end. On phones only the mark, GitHub
 and Get Airdraft remain. Behind it is the app's progressive header blur
 (`ProgressiveHeaderBlur.swift`): six stacked `backdrop-filter` layers (1 to
@@ -580,18 +588,24 @@ simulate it with a tint or an opacity fade; only Reduce Transparency gets an
 opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.
 
-Pricing shows three equal plans in a row: Open source (`$0`, build
-instructions, the page's primary key until checkout opens), One Mac (`$29`) and
-Three Macs (`$49`). The license plans list `licenseIncludes`; their action is
-the purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set,
-then One Mac holds the page's primary key. A note gives the
-currency and tax basis. "What a year of dictation costs" follows: a raised
-table from `src/data/pricing.ts` (setup, one-time, per month, first year, three
-years; phones keep only the yearly columns), Airdraft rows in ink and the
-subscriptions muted, each three-year total over a usage track filled to its
-share of the most expensive setup (`src/styles/pricing.css`), a note with the workload, token budget and price date, then
-a raised three-column list of what each setup takes, divided by vertical grooves
-and stacked under `700px`. Then the questions.
+Pricing keeps its copy to labels, prices and short checks; details belong in
+the questions. Two plans share a row (`src/styles/pricing.css`): the
+ready-to-run app leads, wider and raised like the homepage's license offer,
+with One Mac (`$29`) and Three Macs (`$49`) side by side, divided by a vertical
+groove, each a muted label, price and action; the Open source card mirrors one
+license (`$0`, build instructions), so prices, keys and lists line up. A groove
+separates each card's short checklist (`licenseIncludes`, `sourceIncludes`),
+each item checked in a small recessed socket. License actions are the
+purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set; until
+then build instructions hold the page's primary key, after that One Mac. Plans
+stack under `1000px` (max `560px`) and licenses stack under `520px`. A note
+gives the currency and tax basis. "What a year of dictation costs" follows: a
+raised table from `src/data/pricing.ts` (setup, per month, first year, three
+years; phones drop per month), Airdraft's setups and the muted subscriptions
+under small group labels, each setup saying what leaves the Mac, each
+three-year total over a usage track filled to its share of the most expensive
+setup, then one note with the workload, models, token budget and price date.
+Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
 project.
 

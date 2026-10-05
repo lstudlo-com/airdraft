@@ -1,5 +1,174 @@
-/* Pricing page additions. */
+/* Pricing page. */
 @layer components {
+  /* Two plans: the ready-to-run app leads, raised like the homepage's
+     license offer, with both licenses side by side inside it; the source
+     build is a plain card beside it. */
+  .plans {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+  .plan {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+  }
+  .plan-app {
+    box-shadow: var(--edge), var(--raise-hero);
+  }
+  .plan h2 {
+    font-size: var(--step-2);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .plan-price {
+    font-size: var(--step-4);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .plan-price > .price-unit {
+    margin-left: 6px;
+    font-size: var(--step-0);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+
+  /* The licenses, divided by RowDivider turned on its side. */
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 24px;
+  }
+  .tier {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-right: 28px;
+  }
+  .tier + .tier {
+    padding-left: 28px;
+    padding-right: 0;
+    box-shadow:
+      inset 1px 0 0 var(--groove-shade),
+      inset 2px 0 0 var(--groove-light);
+  }
+  .tier h3 {
+    font-size: var(--step-0);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .tier .plan-price {
+    margin: 6px 0 22px;
+  }
+
+  /* What every license includes: two short columns below a groove, each
+     item marked by a check in a small recessed socket. */
+  .plan-includes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 28px;
+    margin: 30px 0 0;
+    padding: 26px 0 0;
+    box-shadow: var(--groove);
+    list-style: none;
+  }
+  .plan-includes li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--step-0);
+    line-height: 1.4;
+  }
+  .plan-includes .check {
+    flex: none;
+    box-sizing: content-box;
+    padding: 4px;
+    border-radius: 50%;
+    background: var(--well-soft);
+    box-shadow: var(--sink-chip);
+    color: var(--muted);
+  }
+
+  /* The source build mirrors one license, so prices, keys and lists line
+     up across the cards; its list sits at the bottom like the licenses'. */
+  .plan-source .tier {
+    margin-top: 24px;
+    padding: 0;
+  }
+  .plan-source .plan-includes {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: auto;
+  }
+  .plan-source .tier {
+    margin-bottom: 30px;
+  }
+  .pricing-note {
+    max-width: 78ch;
+    margin-top: 16px;
+    font-size: var(--step--1);
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  /* The cost comparison: Airdraft's setups, then the subscriptions in
+     muted type, each group under a small label. */
+  .cost-table-wrap {
+    padding: 6px 24px 10px;
+    overflow-x: auto;
+  }
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step-0);
+    font-variant-numeric: tabular-nums;
+  }
+  .cost-table :is(th, td) {
+    padding: 14px 16px 14px 0;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .cost-table :is(th, td):last-child {
+    padding-right: 0;
+    text-align: right;
+  }
+  .cost-table thead th {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .cost-table tbody tr:not(.cost-group) :is(th, td) {
+    box-shadow: var(--groove);
+  }
+  .cost-table tbody th {
+    font-weight: 500;
+    white-space: normal;
+  }
+  .cost-table td {
+    font-weight: 500;
+  }
+  .cost-table .cost-group th {
+    padding: 22px 0 8px;
+    font-size: var(--step--1);
+    font-weight: 600;
+    text-align: left;
+    color: var(--muted);
+  }
+  .cost-table td.cost-optional,
+  .cost-subscription :is(th, td) {
+    color: var(--muted);
+  }
+  .cost-detail {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--muted);
+  }
+
   /* Each three-year total over a NeumorphicUsageTrack: a shallow inset
      holding a raised gray fill, at its share of the most expensive setup.
      motion.css fills it as its row arrives. */
@@ -23,5 +192,46 @@
     background: var(--fill-bar);
     box-shadow: 0.5px 0.8px 1px var(--shade);
     transform-origin: left;
+  }
+}
+
+@layer responsive {
+  @media (max-width: 1000px) {
+    .plans {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 560px;
+    }
+  }
+  @media (max-width: 700px) {
+    .plan {
+      padding: 22px;
+    }
+    .cost-table-wrap {
+      padding-inline: 18px;
+    }
+    .cost-table :is(th, td) {
+      white-space: normal;
+    }
+    .cost-optional {
+      display: none;
+    }
+  }
+  @media (max-width: 520px) {
+    .tiers,
+    .plan-includes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .tier,
+    .tier + .tier {
+      padding: 0;
+    }
+    .tier + .tier {
+      margin-top: 22px;
+      padding-top: 22px;
+      box-shadow: var(--groove);
+    }
+    .tier .plan-price {
+      margin-bottom: 18px;
+    }
   }
 }

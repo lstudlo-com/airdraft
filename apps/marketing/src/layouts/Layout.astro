@@ -107,6 +107,27 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
     <title>{title}</title>
     <script is:inline>
       document.documentElement.classList.add("js");
+      // Between two pages linked in the header, the selection well slides
+      // instead of fading (see the view transition in global.css). This must
+      // run before the first render, where "pagereveal" fires.
+      addEventListener("pagereveal", (event) => {
+        if (!event.viewTransition) return;
+        const linked = ["/pricing", "/support", "/changelog"];
+        const page = (url) => {
+          try {
+            return new URL(url).pathname.replace(/\/$/, "");
+          } catch {
+            return "";
+          }
+        };
+        const from = page(
+          window.navigation?.activation?.from?.url ?? document.referrer,
+        );
+        const to = page(location.href);
+        if (from !== to && linked.includes(from) && linked.includes(to)) {
+          event.viewTransition.types.add("nav-slide");
+        }
+      });
     </script>
   </head>
   <body>

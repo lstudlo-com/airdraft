@@ -208,7 +208,8 @@
       }
 
       /* 6. Pricing. Plans rise left to right; the cost comparison's rows
-         rise in turn and each three-year bar fills to its share. */
+         rise in turn (each row's --row is set in pricing.astro) and each
+         three-year bar fills to its share. */
       .plans > .plan {
         --stagger: calc(var(--col, 0) * 8%);
         animation:
@@ -223,19 +224,16 @@
         .plans > .plan:nth-child(2) {
           --col: 1;
         }
-        .plans > .plan:nth-child(3) {
-          --col: 2;
-        }
       }
       /* The table scrolls sideways in its wrapper, which would make the
          wrapper the rows' scroller; they follow the wrapper's own view
          timeline instead, each row a step later. */
-      .price-table-wrap:has(.cost-table) {
+      .cost-table-wrap {
         view-timeline: --cost-table block;
       }
       .cost-table tbody tr {
         --rise-y: 16px;
-        --step: calc(8% + var(--row, 0) * 15%);
+        --step: calc(8% + var(--row, 0) * 13%);
         animation: motion-fade-up linear both;
         animation-timeline: --cost-table;
         animation-range: entry var(--step) entry calc(var(--step) + 22%);
@@ -250,21 +248,6 @@
         animation-timeline: --cost-table;
         animation-range: entry calc(var(--step) + 10%) entry
           calc(var(--step) + 45%);
-      }
-      .cost-table tbody tr:nth-child(2) {
-        --row: 1;
-      }
-      .cost-table tbody tr:nth-child(3) {
-        --row: 2;
-      }
-      .cost-table tbody tr:nth-child(4) {
-        --row: 3;
-      }
-      .cost-table tbody tr:nth-child(5) {
-        --row: 4;
-      }
-      .cost-table tbody tr:nth-child(n + 6) {
-        --row: 5;
       }
     }
   }

@@ -9,6 +9,9 @@ const links = [
   { href: "/support/", label: "Support", hideOnPhone: true },
   { href: "/changelog/", label: "Changelog", hideOnPhone: true },
 ];
+const current = links.findIndex(
+  (link) => path === link.href.replace(/\/$/, ""),
+);
 ---
 
 <!-- Sticky, with the app's progressive header blur behind it: six stacked
@@ -29,15 +32,23 @@ const links = [
       <Brand />
     </a>
     <!-- The links sit at the window's true centre, not halfway between the
-         mark and the keys: the row is a grid with equal outer columns. -->
+         mark and the keys: the row is a grid with equal outer columns.
+         The current page's recessed well is one element in the links' grid
+         cell, so a cross-document view transition slides it to the next
+         page's link (global.css, Layout.astro), like the app's sidebar. -->
     <nav class="header-links" aria-label="Main navigation">
-      {links.map((link) => (
+      {current >= 0 && (
+        <span
+          class="nav-well"
+          style={`--well-column: ${current + 1}`}
+          aria-hidden="true"
+        />
+      )}
+      {links.map((link, index) => (
         <a
           class:list={["nav-link", link.hideOnPhone && "nav-link-wide"]}
           href={link.href}
-          aria-current={
-            path === link.href.replace(/\/$/, "") ? "page" : undefined
-          }
+          aria-current={index === current ? "page" : undefined}
         >
           {link.label}
         </a>

@@ -6,7 +6,13 @@ import Button from "../components/ui/Button.astro";
 import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
-import { licenseIncludes, licenses, siteLinks } from "../data/site";
+import Check from "../components/Check.astro";
+import {
+  licenseIncludes,
+  licenses,
+  siteLinks,
+  sourceIncludes,
+} from "../data/site";
 import "../styles/pricing.css";
 import {
   costRows,
@@ -25,8 +31,12 @@ const n = (value: number) => value.toLocaleString("en-US");
 // Each setup's three-year total as a share of the most expensive, for the
 // bar under it.
 const mostInThreeYears = Math.max(...costRows.map((row) => totalAfter(row, 3)));
-const costIntro = `The license costs less than two months of Wispr Flow or one month of Typeless at their monthly prices. Below, the same ${n(workloadSummary.dictationsPerMonth)} dictations a month, priced each way.`;
-const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workload.dictationsPerDay} a workday of ${workload.secondsPerDictation} seconds each, about ${workloadSummary.audioHoursPerMonth} hours of speech a month. Refinement budgets ${n(workload.inputTokens)} tokens in and ${workload.outputTokens} out per dictation. List prices, ${pricesCheckedOn}, before tax; Groq bills at least 10 seconds per request. The open-source build makes the one-time cost $0.`;
+const costGroups = [
+  { label: "Airdraft", rows: costRows.filter((row) => row.airdraft) },
+  { label: "Subscriptions", rows: costRows.filter((row) => !row.airdraft) },
+];
+// Row order across both groups, for the rows' staggered entrance (motion.css).
+const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
 ---
 
 <Layout
@@ -39,78 +49,80 @@ const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workl
       level={1}
       first
       title="Pricing"
-      intro="Free to build from source, or a one-time license for the ready-to-run app. Cloud providers bill you directly, only if you use them."
+      intro="Build it free, or buy the ready-to-run app once."
     >
       <div class="plans">
-        <Surface as="article" class="plan">
-          <h2>Open source</h2>
-          <p class="plan-price">$0</p>
-          <p class="plan-description">Build it yourself with Xcode.</p>
-          <ul class="plan-features">
-            <li>Every feature in the app</li>
-            <li>Local speech and refinement models</li>
-            <li>Your own API keys for cloud providers</li>
-            <li>Updates by pulling the repository</li>
+        <Surface as="article" class="plan plan-app">
+          <h2>Ready-to-run app</h2>
+          <div class="tiers">
+            {licenses.map((plan, index) => (
+              <div class="tier">
+                <h3>{plan.title}</h3>
+                <p class="plan-price">
+                  {plan.price}
+                  <span class="price-unit">one-time</span>
+                </p>
+                {onSale ? (
+                  <Button
+                    href={siteLinks.checkout}
+                    data-analytics-plan={plan.id}
+                    variant={index === 0 ? "primary" : "secondary"}
+                    icon="external"
+                  >
+                    Buy for {plan.macs}
+                  </Button>
+                ) : (
+                  <Button disabled>Not on sale yet</Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <ul class="plan-includes" aria-label="Every license includes">
+            {licenseIncludes.map((feature) => (
+              <li>
+                <Check />
+                {feature}
+              </li>
+            ))}
           </ul>
-          <Button
-            href={siteLinks.build}
-            variant={onSale ? "secondary" : "primary"}
-            icon="external"
-            class="plan-action"
-          >
-            Build instructions
-          </Button>
         </Surface>
 
-        {licenses.map((plan, index) => (
-          <Surface as="article" class="plan">
-            <h2>{plan.title}</h2>
-            <p class="plan-price">
-              {plan.price}
-              <span class="price-unit">one-time</span>
-            </p>
-            <p class="plan-description">Personal use on {plan.macs}.</p>
-            <ul class="plan-features">
-              {licenseIncludes.map((feature) => (
-                <li>{feature}</li>
-              ))}
-            </ul>
-            {onSale ? (
-              <Button
-                href={siteLinks.checkout}
-                data-analytics-plan={plan.id}
-                variant={index === 0 ? "primary" : "secondary"}
-                icon="external"
-                class="plan-action"
-              >
-                Buy for {plan.macs}
-              </Button>
-            ) : (
-              <Button disabled class="plan-action">
-                Not on sale yet
-              </Button>
-            )}
-          </Surface>
-        ))}
+        <Surface as="article" class="plan plan-source">
+          <h2>Open source</h2>
+          <div class="tier">
+            <h3>Build it yourself</h3>
+            <p class="plan-price">$0</p>
+            <Button
+              href={siteLinks.build}
+              variant={onSale ? "secondary" : "primary"}
+              icon="external"
+            >
+              Build instructions
+            </Button>
+          </div>
+          <ul class="plan-includes" aria-label="The source build includes">
+            {sourceIncludes.map((feature) => (
+              <li>
+                <Check />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </Surface>
       </div>
-      <p class="table-note">
-        Prices in US dollars, before applicable tax. Checkout shows the total.
-      </p>
+      <p class="pricing-note">US dollars, before tax.</p>
     </Section>
 
     <Section
       id="provider-costs"
       title="What a year of dictation costs"
-      intro={costIntro}
+      intro={`The same ${n(workloadSummary.dictationsPerMonth)} dictations a month, five ways.`}
     >
-      <Surface class="price-table-wrap">
-        <table class="price-table cost-table">
+      <Surface class="cost-table-wrap">
+        <table class="cost-table">
           <thead>
             <tr>
               <th scope="col">Setup</th>
-              <th scope="col" class="cost-optional">
-                One-time
-              </th>
               <th scope="col" class="cost-optional">
                 Per month
               </th>
@@ -118,92 +130,79 @@ const costNote = `${n(workloadSummary.dictationsPerMonth)} dictations is ${workl
               <th scope="col">Three years</th>
             </tr>
           </thead>
-          <tbody>
-            {costRows.map((row) => (
-              <tr class:list={[!row.airdraft && "cost-subscription"]}>
-                <th scope="row">
-                  {row.name}
-                  <span class="cost-detail">{row.detail}</span>
+          {costGroups.map((group) => (
+            <tbody
+              class:list={[
+                group.rows[0]?.airdraft === false && "cost-subscription",
+              ]}
+            >
+              <tr
+                class="cost-group"
+                style={`--row: ${rowIndex(group.rows[0])}`}
+              >
+                <th scope="colgroup" colspan="4">
+                  {group.label}
                 </th>
-                <td class="cost-optional">{formatUSD(row.oneTime)}</td>
-                <td class="cost-optional">{formatUSD(row.monthly)}</td>
-                <td>{formatUSD(totalAfter(row, 1))}</td>
-                <td>
-                  {formatUSD(totalAfter(row, 3))}
-                  <span
-                    class="cost-bar"
-                    style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
-                    aria-hidden="true"
-                  >
-                    <b />
-                  </span>
-                </td>
               </tr>
-            ))}
-          </tbody>
+              {group.rows.map((row) => (
+                <tr style={`--row: ${rowIndex(row)}`}>
+                  <th scope="row">
+                    {row.name}
+                    <span class="cost-detail">{row.detail}</span>
+                  </th>
+                  <td class="cost-optional">{formatUSD(row.monthly)}</td>
+                  <td>{formatUSD(totalAfter(row, 1))}</td>
+                  <td>
+                    {formatUSD(totalAfter(row, 3))}
+                    <span
+                      class="cost-bar"
+                      style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
+                      aria-hidden="true"
+                    >
+                      <b />
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          ))}
         </table>
       </Surface>
-      <p class="table-note">{costNote}</p>
-
-      <Surface as="ul" class="setup-list" aria-label="What each setup takes">
-        <li>
-          <h3>All local</h3>
-          <p>
-            Download Parakeet (487 MB) on the Models page. Refine with Apple
-            Intelligence on macOS 26, no download, or an LM Studio model of a
-            few gigabytes. Nothing leaves your Mac.
-          </p>
-        </li>
-        <li>
-          <h3>Local speech and Cerebras</h3>
-          <p>
-            The same download plus a Cerebras API key. Audio stays on your Mac;
-            the transcript goes to Cerebras.
-          </p>
-        </li>
-        <li>
-          <h3>Groq and Cerebras</h3>
-          <p>
-            Nothing to download: a Groq key and a Cerebras key, kept in the
-            Keychain. Audio goes to Groq, the transcript to Cerebras.
-          </p>
-        </li>
-      </Surface>
+      <p class="pricing-note">
+        {workload.dictationsPerDay} dictations a workday,{" "}
+        {workload.secondsPerDictation} seconds each, with the one-Mac license.
+        Speech: Parakeet or Groq Whisper Large v3 Turbo. Refinement: Apple
+        Intelligence, LM Studio or Qwen 3.8 27B on Cerebras (
+        {n(workload.inputTokens)} tokens in, {workload.outputTokens} out). List
+        prices, {pricesCheckedOn}.
+      </p>
     </Section>
 
     <Section id="pricing-questions" title="Questions">
       <div class="question-list panel">
-        <Disclosure summary="What’s the difference between the licenses?">
-          <p>
-            Only how many Macs can use the license at the same time. To move it
-            to another Mac, deactivate the old one.
-          </p>
-        </Disclosure>
         <Disclosure summary="Is it a subscription?">
           <p>
             No. A license is a one-time purchase and doesn’t expire. Updates to
             the version you buy are included.
           </p>
         </Disclosure>
+        <Disclosure summary="What’s the difference between the licenses?">
+          <p>
+            Only how many Macs can use it at once. To move a license, deactivate
+            the old Mac.
+          </p>
+        </Disclosure>
         <Disclosure summary="Can I try it first?">
           <p>
-            Yes. The ready-to-run app has a 14-day trial with every feature. It
-            starts when you choose to start it, not when you install the app.
+            Yes. The app has a 14-day trial with every feature, starting when
+            you choose, not when you install.
           </p>
         </Disclosure>
-        <Disclosure summary="Is the open-source build limited?">
-          <p>No. There are no locked features.</p>
-        </Disclosure>
-        <Disclosure summary="What does refinement cost?">
+        <Disclosure summary="What do cloud providers cost?">
           <p>
-            Local refinement through LM Studio or Ollama is free. Cloud
-            refinement is billed per token by the provider you pick. Claude Code
-            and Codex use your existing subscription.
-          </p>
-        </Disclosure>
-        <Disclosure summary="Do I need an API key?">
-          <p>
-            Only for cloud providers. Keys are stored in the macOS Keychain.
+            They bill you directly, per use, with your own API key kept in the
+            Keychain. Local models are free; Claude Code and Codex use your
+            existing subscription.
           </p>
         </Disclosure>
       </div>

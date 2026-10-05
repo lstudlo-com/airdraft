@@ -52,38 +52,39 @@ export type CostRow = {
   airdraft: boolean;
 };
 
+// Airdraft rows say what leaves the Mac; the models are in the page's note.
 export const costRows: CostRow[] = [
   {
-    name: "Airdraft, all local",
-    detail: "Parakeet speech, Apple Intelligence or LM Studio refinement",
+    name: "All local",
+    detail: "Nothing leaves your Mac",
     oneTime: license,
     monthly: 0,
     airdraft: true,
   },
   {
-    name: "Airdraft, local speech and Cerebras",
-    detail: "Parakeet speech, Qwen 3.8 27B on Cerebras",
+    name: "Local speech + Cerebras",
+    detail: "Transcripts go to Cerebras",
     oneTime: license,
     monthly: cerebrasPerMonth,
     airdraft: true,
   },
   {
-    name: "Airdraft, Groq and Cerebras",
-    detail: "Whisper Large v3 Turbo on Groq, Qwen 3.8 27B on Cerebras",
+    name: "Groq + Cerebras",
+    detail: "Audio to Groq, transcripts to Cerebras",
     oneTime: license,
     monthly: groqPerMonth + cerebrasPerMonth,
     airdraft: true,
   },
   {
     name: "Wispr Flow Pro",
-    detail: "Billed yearly; $15 a month without a yearly plan",
+    detail: "Billed yearly",
     oneTime: 0,
     monthly: 12,
     airdraft: false,
   },
   {
     name: "Typeless Pro",
-    detail: "Billed yearly; $30 a month without a yearly plan",
+    detail: "Billed yearly",
     oneTime: 0,
     monthly: 12,
     airdraft: false,

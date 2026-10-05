@@ -49,11 +49,17 @@ export const licenses: License[] = [
   },
 ];
 
-// What every license includes, in the order the pricing page lists it.
+// What every license includes, in the order the pricing page lists it. Keep
+// each to a few words: the pricing questions carry the details.
 export const licenseIncludes = [
-  "Every feature, ready to run",
-  "No Xcode or build step",
-  "14-day full-feature trial in the app",
+  "Every feature, no Xcode",
+  "14-day full-feature trial",
   "Updates to the version you buy",
-  "Deactivate a Mac yourself to move it",
+  "Move it between Macs yourself",
+];
+
+// The source build's counterpart, beside the licenses on the pricing page.
+export const sourceIncludes = [
+  "Every feature, no locks",
+  "Needs Xcode to build",
 ];

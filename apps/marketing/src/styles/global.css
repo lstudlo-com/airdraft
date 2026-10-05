@@ -12,6 +12,47 @@
   initial-value: 0px;
 }
 
+/* Moving between pages, the header's selection well slides from the old
+   page's link to the new one on the sidebar's SelectionMotion.curve (0.36s),
+   like the app's sidebar. Only the header's links and well take part: the
+   rest of the page changes at once. Layout.astro marks a move between two
+   linked pages `nav-slide`, where the moving group itself draws the well so
+   it keeps its shape while it changes width; arriving from or leaving for an
+   unlinked page fades it in or out. Without support, or with reduced
+   motion, pages change without a transition. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+:root {
+  view-transition-name: none;
+}
+::view-transition-group(nav-well),
+::view-transition-group(nav-link-1),
+::view-transition-group(nav-link-2),
+::view-transition-group(nav-link-3),
+::view-transition-old(nav-well),
+::view-transition-new(nav-well),
+::view-transition-old(nav-link-1),
+::view-transition-new(nav-link-1),
+::view-transition-old(nav-link-2),
+::view-transition-new(nav-link-2),
+::view-transition-old(nav-link-3),
+::view-transition-new(nav-link-3) {
+  animation-duration: 360ms;
+  animation-timing-function: var(--ease-select);
+}
+html:active-view-transition-type(nav-slide)::view-transition-group(nav-well) {
+  border-radius: 999px;
+  background: var(--island);
+  box-shadow: var(--sink-chip);
+}
+html:active-view-transition-type(nav-slide)::view-transition-old(nav-well),
+html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
+  display: none;
+}
+
 @layer reset {
   *,
   *::before,
@@ -775,11 +816,46 @@
     color: var(--ink);
     background: rgb(128 128 128 / 0.1);
   }
+  /* The links share one grid row so the current page's well can sit in its
+     link's cell, behind the label. */
+  .header-links {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: 6px;
+  }
+  .header-links > * {
+    grid-row: 1;
+  }
+  .header-links > a:nth-of-type(1) {
+    grid-column: 1;
+    view-transition-name: nav-link-1;
+  }
+  .header-links > a:nth-of-type(2) {
+    grid-column: 2;
+    view-transition-name: nav-link-2;
+  }
+  .header-links > a:nth-of-type(3) {
+    grid-column: 3;
+    view-transition-name: nav-link-3;
+  }
+  .nav-link {
+    position: relative;
+    z-index: 1;
+  }
   /* The current page sits in the sidebar's recessed selection well. */
   .nav-link[aria-current="page"] {
     color: var(--ink);
+  }
+  .nav-link[aria-current="page"]:hover {
+    background: transparent;
+  }
+  .nav-well {
+    grid-column: var(--well-column);
+    align-self: stretch;
+    border-radius: 999px;
     background: var(--island);
     box-shadow: var(--sink-chip);
+    view-transition-name: nav-well;
   }
   .site-header .key-icon {
     margin-left: 10px;
@@ -2036,7 +2112,7 @@
     line-height: 1.05;
     letter-spacing: -0.025em;
   }
-  :is(.offer-price, .plan-price) > .price-unit {
+  .offer-price > .price-unit {
     margin-left: 0.15em;
     font-size: var(--step-0);
     font-weight: 400;
@@ -2183,156 +2259,6 @@
     overflow-wrap: anywhere;
   }
 
-  /* Pricing */
-  .plans {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-  }
-  .plan {
-    display: flex;
-    flex-direction: column;
-    padding: 28px;
-  }
-  .plan h2 {
-    font-size: var(--step-2);
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-  }
-  .plan-price {
-    margin-top: 10px;
-    font-size: var(--step-3);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.015em;
-  }
-
-  .plan-description {
-    margin-top: 10px;
-    font-size: var(--step-0);
-    color: var(--muted);
-  }
-  .plan-features {
-    display: grid;
-    gap: 10px;
-    margin: 20px 0 28px;
-    padding: 0;
-    list-style: none;
-  }
-  .plan-features li {
-    position: relative;
-    padding-left: 18px;
-    font-size: var(--step-0);
-    line-height: 1.5;
-  }
-  .plan-features li::before {
-    content: "";
-    position: absolute;
-    top: 0.6em;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-  .plan-action {
-    align-self: flex-start;
-    margin-top: auto;
-  }
-  .price-table-wrap {
-    padding: 6px 24px;
-    overflow-x: auto;
-  }
-  .price-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step-0);
-    font-variant-numeric: tabular-nums;
-  }
-  .price-table th,
-  .price-table td {
-    padding: 14px 16px 14px 0;
-    text-align: left;
-    white-space: nowrap;
-  }
-  .price-table thead th {
-    font-size: var(--step--1);
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .price-table tbody th,
-  .price-table tbody td {
-    box-shadow: var(--groove);
-  }
-  .price-table tbody th {
-    font-weight: 500;
-  }
-  .price-table td {
-    color: var(--muted);
-  }
-  .price-table :is(th, td):last-child {
-    padding-right: 0;
-    text-align: right;
-  }
-  .price-model {
-    display: none;
-  }
-  .price-table tbody td:last-child {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .table-note {
-    margin-top: 14px;
-    font-size: var(--step--1);
-    color: var(--muted);
-  }
-  /* The cost comparison: subscriptions sit below a groove like the rest, in
-     muted type, so the Airdraft rows carry the ink. */
-  .cost-detail {
-    display: block;
-    margin-top: 2px;
-    font-size: var(--step--1);
-    font-weight: 400;
-    color: var(--muted);
-    white-space: normal;
-  }
-  .cost-table tbody th {
-    white-space: normal;
-  }
-  .cost-table td:not(.cost-optional) {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .cost-table tbody .cost-subscription :is(th, td) {
-    color: var(--muted);
-  }
-  .setup-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 28px;
-    padding: 0;
-    list-style: none;
-  }
-  .setup-list li {
-    padding: 24px 28px;
-  }
-  /* RowDivider turned on its side: shade on the left, light just after it. */
-  .setup-list li + li {
-    box-shadow:
-      inset 1px 0 0 var(--groove-shade),
-      inset 2px 0 0 var(--groove-light);
-  }
-  .setup-list h3 {
-    font-size: var(--step-1);
-    letter-spacing: 0;
-  }
-  .setup-list p {
-    margin-top: 6px;
-    font-size: var(--step-0);
-    line-height: 1.5;
-    color: var(--muted);
-  }
-
   /* Support */
   .support-actions {
     display: flex;
@@ -2449,7 +2375,6 @@
     .bento {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .plans,
     .offers {
       grid-template-columns: minmax(0, 1fr);
       max-width: 560px;
@@ -2587,38 +2512,9 @@
       margin-top: 36px;
     }
     .card-face,
-    .plan,
     .fund-panel,
     .offer {
       padding: 22px;
-    }
-    .price-table-wrap {
-      padding-inline: 18px;
-    }
-    .price-model-cell {
-      display: none;
-    }
-    .price-model {
-      display: block;
-      margin-top: 2px;
-      font-size: var(--step--1);
-      font-weight: 400;
-      color: var(--muted);
-    }
-    .price-table :is(th, td) {
-      white-space: normal;
-    }
-    .cost-optional {
-      display: none;
-    }
-    .setup-list {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .setup-list li {
-      padding: 20px 22px;
-    }
-    .setup-list li + li {
-      box-shadow: var(--groove);
     }
     .question-list {
       padding: 4px 18px;
@@ -2647,7 +2543,8 @@
     }
   }
   @media (max-width: 560px) {
-    .nav-link-wide {
+    .nav-link-wide,
+    .nav-well {
       display: none;
     }
     .nav-cta {
