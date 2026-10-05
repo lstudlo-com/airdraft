@@ -88,6 +88,9 @@ verification status belong in the vault (see below).
   require those checks and desktop/mobile browser verification, not Xcode tests.
   Keep the hero waveform card 84px below its facts line, or 60px at viewport
   widths of 700px or less.
+  The homepage's interface section shows the real Configuration window; regenerate
+  `public/app/` with `apps/marketing/scripts/render-app-window.sh` from a Debug
+  build (isolated empty data, grayscale) when that page, the sidebar or materials change.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
   Group rebuilds under their version and verify changes against the tagged sources.

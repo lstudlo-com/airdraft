@@ -1,0 +1,472 @@
+/* The interface section (components/InterfaceShowcase.astro): the real app
+   window with its materials called out, then three live specimens. */
+
+/* The compare divider's position, animatable on the scroll timeline. */
+@property --split {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@layer components {
+  /* A centered plate: the heading sits over the window it describes. */
+  .interface .section-heading {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .interface .section-heading + .showcase {
+    margin-top: 72px;
+  }
+  .showcase {
+    margin: 0;
+  }
+  /* The window's own box: callouts are placed in its coordinates. */
+  .showcase-frame {
+    position: relative;
+    width: min(100%, 784px);
+    margin-inline: auto;
+  }
+
+  /* The window, at its fixed 784-point width. Both appearances are stacked;
+     the dark one shows right of the divider. It rises off the island like
+     the Home hero card, light up-left and shade down-right. */
+  .app-window {
+    position: relative;
+    container-type: inline-size;
+    border-radius: 16px;
+    background: var(--chrome);
+    box-shadow: var(--raise-hero);
+    overflow: clip;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .js .app-window {
+    cursor: ew-resize;
+  }
+  /* Once, as the window comes into view, the divider sweeps from the right
+     edge to the middle on SelectionMotion.curve, a smooth cubic, so the dark
+     appearance slides across (src/scripts/interface.ts). Dragging follows
+     the pointer directly. */
+  .app-window.awaits-sweep {
+    --split: 100%;
+  }
+  .app-window.is-sweeping {
+    transition: --split 1200ms var(--ease-select);
+  }
+  /* The window's edge: a top-left rim and a hairline, above both faces. */
+  .app-window::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      inset 0 0 0 0.5px rgb(0 0 0 / 0.14);
+    pointer-events: none;
+  }
+  .window-face {
+    position: absolute;
+    inset: 0;
+  }
+  .window-face img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    -webkit-user-drag: none;
+  }
+  .window-dark {
+    clip-path: inset(0 0 0 var(--split));
+  }
+  /* Close and minimize, as an inactive window draws them; 16 points from
+     the top and leading edges, as in the app. Each face keeps its own
+     appearance, whatever the page's. */
+  .window-buttons {
+    position: absolute;
+    top: calc(16 / 784 * 100cqw);
+    left: calc(16 / 784 * 100cqw);
+    display: flex;
+    gap: calc(8 / 784 * 100cqw);
+  }
+  .window-buttons i {
+    width: calc(13 / 784 * 100cqw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #d4d4d4;
+    box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.12);
+  }
+  .window-dark .window-buttons i {
+    background: #555555;
+    box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.08);
+  }
+
+  /* The divider: a groove (shade left, light right) with a raised round
+     key on it, the page's own control. */
+  .window-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--split);
+    z-index: 2;
+    width: 2px;
+    margin-left: -1px;
+    background: linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.32) 0 1px,
+      rgb(255 255 255 / 0.85) 1px 2px
+    );
+    pointer-events: none;
+  }
+  .window-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-control);
+    color: var(--ink);
+    translate: -50% -50%;
+    transition:
+      box-shadow 160ms var(--ease-out),
+      background 160ms ease;
+  }
+  .app-window.is-dragging .window-knob {
+    background: var(--pressed);
+    box-shadow: var(--press);
+  }
+  .app-window:has(.window-range:focus-visible) .window-knob {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  /* Keyboard access to the divider; the pointer drags the window itself
+     (src/scripts/interface.ts). */
+  .window-range {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Callouts: each names a material at its place in the window, joined to
+     it by a leader ending in a graphite stud ringed with the chrome, which
+     reads on both appearances. Wide windows only. */
+  .callouts {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+  }
+  .callout {
+    position: absolute;
+    top: var(--y);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    translate: 0 -50%;
+  }
+  .callout-left {
+    right: calc(100% - var(--x));
+    width: calc(var(--x) + 200px);
+  }
+  .callout-right {
+    left: var(--x);
+    flex-direction: row-reverse;
+    width: calc(100% - var(--x) + 200px);
+  }
+  .callout-text {
+    flex: none;
+    width: 168px;
+    font-size: var(--step--1);
+    line-height: 1.4;
+  }
+  .callout-left .callout-text {
+    text-align: right;
+  }
+  .callout-text b {
+    display: block;
+    font-weight: 600;
+  }
+  .callout-text span {
+    display: block;
+    color: var(--muted);
+  }
+  .callout-line {
+    flex: 1;
+    min-width: 12px;
+    height: 1px;
+    margin-inline: 10px 0;
+    background: color-mix(in srgb, var(--ink), transparent 55%);
+  }
+  .callout-right .callout-line {
+    margin-inline: 0 10px;
+  }
+  .callout-stud {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-right: -4.5px;
+    border-radius: 50%;
+    background: var(--key-bottom);
+    box-shadow:
+      0 0 0 2.5px var(--chrome),
+      1px 2px 4px rgb(0 0 0 / 0.35);
+  }
+  .callout-right .callout-stud {
+    margin-right: 0;
+    margin-left: -4.5px;
+  }
+  .showcase figcaption {
+    margin-top: 32px;
+    font-size: var(--step--1);
+    color: var(--muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+  html:not(.js) .js-only {
+    display: none;
+  }
+
+  /* Specimens: three tiles of the bento. */
+  .specimens {
+    margin-top: 72px;
+  }
+
+  /* SidebarIcon selection (NavigationStyle), at 1.18 × the app's size: a
+     34-point row, a 12-point well and a 28-point icon island inset 3. The
+     well slides on SelectionMotion.curve; the island follows 300 ms later
+     (SelectionMotion.islandCurve) and shows only inside the well. */
+  .spec-sidebar {
+    --row: 40px;
+    position: relative;
+    display: grid;
+    width: 224px;
+  }
+  .spec-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: var(--row);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: var(--step-0);
+    text-align: left;
+    cursor: pointer;
+  }
+  .spec-row svg {
+    flex: none;
+    width: 34px;
+    margin-left: 3px;
+    transition: color 200ms ease 300ms;
+  }
+  .spec-row span {
+    margin-left: 15px;
+    transition: color 200ms ease;
+  }
+  .spec-row.is-selected {
+    color: var(--ink);
+  }
+  .spec-row:hover span {
+    color: var(--ink);
+  }
+  .spec-well {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--row);
+    border-radius: 14px;
+    background: var(--well);
+    box-shadow: var(--sink-track);
+    overflow: clip;
+    transition: transform 360ms var(--ease-select);
+  }
+  .spec-island {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1.5px 2px 4px var(--shade),
+      -1px -1.5px 4px var(--light);
+    transition: transform 360ms var(--ease-select) 300ms;
+  }
+
+  /* .toggleStyle(.softSwitch): a raised knob on a pressed track; on fills
+     the track with the primary key's graphite (the Graphite accent). */
+  .spec-controls {
+    display: grid;
+    justify-items: center;
+    gap: 28px;
+  }
+  .spec-switch {
+    position: relative;
+    width: 64px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--well);
+    box-shadow: var(--sink-track);
+    cursor: pointer;
+    transition: background 360ms var(--ease-select);
+  }
+  .spec-switch.is-on {
+    background: var(--key-bottom);
+    box-shadow:
+      inset 1.5px 2px 5px rgb(0 0 0 / 0.45),
+      inset -1px -1px 3px var(--light-soft);
+  }
+  .spec-switch span {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--fill-cap);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1.5px 2px 4px var(--shade),
+      -1px -1.5px 4px var(--light);
+    transition: transform 360ms var(--ease-select);
+  }
+  .spec-switch.is-on span {
+    transform: translateX(28px);
+  }
+  .spec-controls .segmented > li {
+    cursor: pointer;
+  }
+  .spec-press kbd {
+    cursor: pointer;
+  }
+}
+
+@layer responsive {
+  /* Callouts need 200px gutters beside the window. */
+  @media (max-width: 1279px) {
+    .callouts {
+      display: none;
+    }
+  }
+  @media (max-width: 1000px) {
+    .specimens {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .spec-sidebar {
+      width: 100%;
+      max-width: 224px;
+    }
+  }
+  @media (max-width: 860px) {
+    .specimens {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 700px) {
+    .app-window {
+      border-radius: 12px;
+      box-shadow: var(--raise-card);
+    }
+    .window-knob {
+      width: 38px;
+      height: 38px;
+    }
+    .interface .section-heading + .showcase {
+      margin-top: 48px;
+    }
+    .showcase figcaption {
+      margin-top: 22px;
+    }
+    .specimens {
+      margin-top: 48px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spec-well,
+    .spec-island,
+    .spec-row svg,
+    .spec-switch,
+    .spec-switch span {
+      transition: none;
+    }
+  }
+}
+
+@layer motion {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      /* The window rises out of the island as it arrives, its shadow
+         growing from nothing; the divider sweeps in from the right so the
+         dark appearance slides across; then the callouts draw out to their
+         places, top to bottom. */
+      @keyframes showcase-rise {
+        from {
+          opacity: 0;
+          translate: 0 40px;
+          scale: 0.96;
+        }
+      }
+      @keyframes showcase-lift {
+        from {
+          box-shadow: none;
+        }
+      }
+      @keyframes callout-left {
+        from {
+          opacity: 0;
+          translate: 16px -50%;
+        }
+      }
+      @keyframes callout-right {
+        from {
+          opacity: 0;
+          translate: -16px -50%;
+        }
+      }
+      .showcase-frame {
+        view-timeline: --showcase block;
+      }
+      .app-window {
+        animation:
+          showcase-rise linear both,
+          showcase-lift linear both;
+        animation-timeline: --showcase, --showcase;
+        animation-range:
+          entry 0% cover 35%,
+          entry 0% cover 35%;
+      }
+      .callout {
+        --at: calc(30% + var(--i) * 2.5%);
+        animation: callout-left linear both;
+        animation-timeline: --showcase;
+        animation-range: cover var(--at) cover calc(var(--at) + 12%);
+      }
+      .callout-right {
+        animation-name: callout-right;
+      }
+      @media (min-width: 1001px) {
+        .bento.specimens .tile:nth-child(3) {
+          --col: 2;
+        }
+      }
+    }
+  }
+}

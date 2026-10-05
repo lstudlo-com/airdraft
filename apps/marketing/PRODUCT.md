@@ -72,6 +72,8 @@ a paid subscription.
 - Do not invent prices, discounts, dates, performance measurements, testimonials,
   usage counts, licensing terms, or a download or checkout URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.
+  The homepage's interface section uses the Configuration page rendered by
+  `scripts/render-app-window.sh` from an isolated empty data directory.
 
 ## Design brief
 

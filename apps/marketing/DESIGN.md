@@ -463,6 +463,37 @@ jumps to the result. Without JavaScript the Clean result shows; reduced motion
 shows it immediately and never autoplays. Its accessible name is "Sample
 dictation".
 
+### Interface section (`InterfaceShowcase.astro`)
+
+"An interface you’ll love to open" follows the sample and precedes the guides.
+Its heading and one-line intro are centered over the window, `72px` above it
+(`48px` on phones). It shows the real app: the Configuration page rendered from a Debug build by
+`scripts/render-app-window.sh` (an isolated empty data directory, so no
+history, usage count or personal setting; grayscale, as the app looks with the
+Graphite accent) in `public/app/`. Re-render it when the Configuration page,
+sidebar or materials change. The window is `784px` wide at most, `16px`
+corners (`12px` on phones), raised with the hero's spread, with an inactive
+window's gray close and minimize buttons 16 points in. Both appearances are
+stacked; a groove divider with a raised round key compares them. Dragging the
+window or the keyboard on its range input moves it; without JavaScript it rests
+at half. On wide windows (from `1280px`) six callouts name the materials at
+their places in the window (carved mark, pressed well, raised button, raised
+card, engraved divider, sliding choice), joined by a leader ending in a
+graphite stud ringed with the chrome. The window rises with the scroll and the
+callouts draw out after it. Once, when the window is half in view, the divider
+sweeps from the right edge to the middle over `1200ms` on the selection curve
+(a smooth cubic, never linear); dragging follows the pointer directly and
+reduced motion rests it at half.
+
+Below it, three bento tiles are live specimens (`src/scripts/interface.ts`):
+large keycaps that sink on the pointer or the visitor's ⌃⌥; the sidebar
+selection at 1.18× the app's size (`40px` rows, `14px` well, `34px` icon
+island with `11px` corners), whose well slides on the selection curve while
+the island follows `300ms` later inside it; a soft switch whose on state fills
+the track with the primary key's graphite, above a segmented picker. Each plays
+a loop while on screen until the visitor touches it; reduced motion never
+loops and moves them instantly.
+
 ### Bento (`ui/BentoTile.astro`)
 
 Every tile has the same anatomy: a recessed well `232px` tall (`210px` on
@@ -614,7 +645,7 @@ project.
 
 ### Product guides and sharing
 
-The homepage links to three guides after the hero/sample, using `GuideLinks`:
+The homepage links to three guides after the hero, sample and interface section, using `GuideLinks`:
 offline setup, local/cloud data flow, and source build versus official app. The
 hub uses H2 card titles; related cards inside a titled section use H3. `GuideLayout`
 reuses the subpage title, Section, Surface and Button, followed by visible wrapping
