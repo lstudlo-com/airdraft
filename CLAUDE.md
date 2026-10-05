@@ -815,6 +815,12 @@ history/statistics. Only the user's Copy action changes the clipboard.
 
 ## Recording and recovery invariants
 
+Microphone dictation has a hard 600-second maximum. Keep Configuration and persisted
+settings within `SpeechInputLimits.recordingSecondsRange` (10–600 seconds), with the
+300-second default and shorter user choices preserved. Clamp older saved values.
+The recording timer stops capture and processes once at the effective limit;
+shorter provider limits still apply. Imported audio keeps its provider input limits.
+
 Check recording prerequisites before opening the microphone or prewarming a
 refiner: permission, insertion access, selected device/channel, model installation
 and readiness, endpoint validity, and required speech/refinement credentials.

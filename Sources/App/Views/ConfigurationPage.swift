@@ -60,11 +60,11 @@ struct ConfigurationPage: View {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.softSwitch)
                     }
                     RowDivider()
-                    SettingRow(title: "Maximum recording", subtitle: container.speechConfig.kind == .groq ? "Groq upload limit: 740 s" : nil) {
+                    SettingRow(title: "Maximum recording", subtitle: "Auto-stops and transcribes; 10 min maximum") {
                         SettingsNumberStepper(
                             title: "Maximum recording",
                             value: $settings.maxRecordingSeconds,
-                            in: 10...1800,
+                            in: SpeechInputLimits.recordingSecondsRange,
                             step: 10,
                             unit: "s"
                         )

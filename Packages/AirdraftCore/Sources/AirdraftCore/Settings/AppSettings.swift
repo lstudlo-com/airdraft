@@ -84,7 +84,16 @@ public final class AppSettings {
     public var outputDestination: TextOutputDestination { didSet { persist("outputDestination", outputDestination) } }
     public var outputScriptPath: String { didSet { persist("outputScriptPath", outputScriptPath) } }
     public var useAppContext: Bool { didSet { persist("useAppContext", useAppContext) } }
-    public var maxRecordingSeconds: Int { didSet { persist("maxRecordingSeconds", maxRecordingSeconds) } }
+    public var maxRecordingSeconds: Int {
+        didSet {
+            let clamped = SpeechInputLimits.clampedRecordingSeconds(maxRecordingSeconds)
+            if maxRecordingSeconds != clamped {
+                maxRecordingSeconds = clamped
+                return
+            }
+            persist("maxRecordingSeconds", maxRecordingSeconds)
+        }
+    }
     public var appearance: AppearanceMode { didSet { persist("appearance", appearance) } }
     /// Unload local speech models after this many idle minutes. 0 = keep loaded.
     public var idleUnloadMinutes: Int { didSet { persist("idleUnloadMinutes", idleUnloadMinutes) } }
@@ -115,7 +124,8 @@ public final class AppSettings {
         outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
         outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""
         useAppContext = Self.load("useAppContext", from: defaults) ?? false
-        maxRecordingSeconds = Self.load("maxRecordingSeconds", from: defaults) ?? 300
+        let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? 300
+        maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
         appearance = Self.load("appearance", from: defaults) ?? .auto
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
@@ -124,6 +134,9 @@ public final class AppSettings {
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
+        if maxRecordingSeconds != savedRecordingSeconds {
+            persist("maxRecordingSeconds", maxRecordingSeconds)
+        }
         endOnboardingPractice()
     }
 

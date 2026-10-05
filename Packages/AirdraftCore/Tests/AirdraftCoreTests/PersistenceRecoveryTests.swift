@@ -67,10 +67,14 @@ final class PersistenceRecoveryTests: XCTestCase {
         XCTAssertEqual(overview.stats.dictations, 1)
     }
 
-    func testGroqLimitIsAppliedBeforeUploadWithoutChangingOtherProviders() {
-        XCTAssertEqual(SpeechInputLimits.recordingSeconds(1800, for: .groq), 740)
-        XCTAssertEqual(SpeechInputLimits.recordingSeconds(300, for: .groq), 300)
-        XCTAssertEqual(SpeechInputLimits.recordingSeconds(1800, for: .apple), 1800)
+    func testRecordingCeilingAppliesToEveryProviderWithoutLimitingImportedAudio() {
+        for kind in ASRProviderKind.allCases {
+            XCTAssertEqual(SpeechInputLimits.maximumRecordingSeconds(for: kind), 600, "\(kind)")
+            XCTAssertEqual(SpeechInputLimits.recordingSeconds(1800, for: kind), 600, "\(kind)")
+            XCTAssertEqual(SpeechInputLimits.recordingSeconds(300, for: kind), 300, "\(kind)")
+            XCTAssertEqual(SpeechInputLimits.recordingSeconds(0, for: kind), 10, "\(kind)")
+            XCTAssertNoThrow(try SpeechInputLimits.validate(sampleCount: 11_200_000, for: kind), "\(kind)")
+        }
         XCTAssertThrowsError(try SpeechInputLimits.validate(sampleCount: 12_000_001, for: .groq))
     }
 

@@ -3,6 +3,29 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testRecordingLimitClampsSavedValuesAndPersistsMigration() throws {
+        try withDefaults { defaults in
+            XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, 300)
+            for (saved, expected) in [(1_800, 600), (601, 600), (600, 600), (300, 300), (10, 10), (0, 10)] {
+                defaults.set(try JSONEncoder().encode(saved), forKey: "settings.maxRecordingSeconds")
+                XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, expected)
+                let data = try XCTUnwrap(defaults.data(forKey: "settings.maxRecordingSeconds"))
+                XCTAssertEqual(try JSONDecoder().decode(Int.self, from: data), expected)
+            }
+        }
+    }
+
+    func testRecordingLimitClampsProgrammaticChangesBeforeReload() throws {
+        try withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+            for (requested, expected) in [(Int.max, 600), (600, 600), (120, 120), (Int.min, 10)] {
+                settings.maxRecordingSeconds = requested
+                XCTAssertEqual(settings.maxRecordingSeconds, expected)
+                XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, expected)
+            }
+        }
+    }
+
     func testIdleUnloadDefaultsToThirtyMinutesAndPreservesUserChoices() throws {
         try withDefaults { defaults in
             XCTAssertEqual(AppSettings(defaults: defaults).idleUnloadMinutes, 30)
@@ -26,7 +49,7 @@ final class AppSettingsTests: XCTestCase {
             settings.outputDestination = .script
             settings.outputScriptPath = "/tmp/a script with spaces"
             settings.useAppContext = false
-            settings.maxRecordingSeconds = 1_800
+            settings.maxRecordingSeconds = 600
             settings.appearance = .dark
             settings.idleUnloadMinutes = 0
             settings.unloadLLMOnQuit = false
@@ -41,7 +64,7 @@ final class AppSettingsTests: XCTestCase {
             XCTAssertEqual(reloaded.outputDestination, .script)
             XCTAssertEqual(reloaded.outputScriptPath, "/tmp/a script with spaces")
             XCTAssertFalse(reloaded.useAppContext)
-            XCTAssertEqual(reloaded.maxRecordingSeconds, 1_800)
+            XCTAssertEqual(reloaded.maxRecordingSeconds, 600)
             XCTAssertEqual(reloaded.appearance, .dark)
             XCTAssertEqual(reloaded.idleUnloadMinutes, 0)
             XCTAssertFalse(reloaded.unloadLLMOnQuit)
