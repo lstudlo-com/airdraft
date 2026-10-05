@@ -616,6 +616,9 @@ target.
 
 On phones (`560px` and below) the links and the GitHub key fold into a menu:
 the header keeps the mark, Get Airdraft and a round menu key with two strokes.
+The menu key wears the brand capsule's material rather than a key's: the
+opaque `--chrome` face lifted only by the mark's soft shade and light at the
+same `34px` depth, with no rim.
 The menu is not a dropdown panel. Opening it pulls the header's own
 progressive blur down the full width, from `100px` to the header plus the rows
 plus `100px` (`440ms`, `--ease-out`; closing `320ms` on `SelectionMotion.curve`).
@@ -632,8 +635,8 @@ Changelog, the current page resting in the `--sink-chip` well, then a groove
 and "Source on GitHub" with its external arrow. Fixed row heights give the blur
 its reach (`--menu-h`) without measuring. The rows follow the blur down one
 after another (`35ms` apart) and fade at once on closing. While the menu is
-open the key stays sunk (`--press`), like the app's microphone button under its
-overlay, and its strokes cross into a close mark. The blur fades through its
+open the key sinks, the mark's shade and light falling inside it, like the
+app's microphone button under its overlay, and its strokes cross into a close mark. The blur fades through its
 layers' opacity, never the container's: a translucent ancestor becomes their
 backdrop root and draws a flat panel instead of a blur. The menu is a native
 `popover`, so it works without JavaScript: the key toggles it, Escape and an

@@ -789,13 +789,17 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
      strokes are opaque grooves: a darker floor, shaded inside the top-left
      edge and lit inside the bottom right. Units are the icon's 364-point
      capsule height. */
-  .brand-mark {
-    --u: calc(var(--mark-h) / 364);
+  /* The mark's material, which the phone menu key shares. */
+  .brand-mark,
+  .menu-key {
     --mark-shade: rgb(0 0 0 / 0.2);
     --mark-light: rgb(255 255 255 / 0.95);
     --mark-floor: #cccccc; /* white 0.80 */
     --mark-floor-shade: rgb(0 0 0 / 0.35);
     --mark-floor-light: rgb(255 255 255 / 0.9);
+  }
+  .brand-mark {
+    --u: calc(var(--mark-h) / 364);
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -827,7 +831,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     margin-left: calc(20 * var(--u));
   }
   @media (prefers-color-scheme: dark) {
-    .brand-mark {
+    .brand-mark,
+    .menu-key {
       --mark-shade: rgb(0 0 0 / 0.55);
       --mark-light: rgb(255 255 255 / 0.09);
       --mark-floor: #1f1f1f; /* white 0.12 */
@@ -928,9 +933,28 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: none;
     margin-left: 6px;
   }
+  /* It wears the brand capsule's material, not a key's: the opaque chrome
+     face lifted only by the mark's soft shade down-right and light up-left
+     at the same 34px depth, with no rim. Pressed or open, the same light
+     falls inside it instead. */
+  .site-header .menu-key,
+  .site-header .menu-key:hover {
+    --mark-d: calc(34 / 28);
+    background: var(--chrome);
+    box-shadow:
+      calc(1.4px * var(--mark-d)) calc(2.2px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-shade),
+      calc(-1.2px * var(--mark-d)) calc(-1.6px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-light);
+  }
+  .site-header .menu-key:active,
   .site-header:has(.site-menu:popover-open) .menu-key {
-    background: var(--pressed);
-    box-shadow: var(--press);
+    background: var(--chrome);
+    box-shadow:
+      inset calc(1.4px * var(--mark-d)) calc(2.2px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-shade),
+      inset calc(-1.2px * var(--mark-d)) calc(-1.6px * var(--mark-d))
+        calc(5.2px * var(--mark-d)) var(--mark-light);
   }
   .menu-glyph {
     position: relative;
