@@ -86,6 +86,8 @@ verification status belong in the vault (see below).
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
   require those checks and desktop/mobile browser verification, not Xcode tests.
+  Keep the hero waveform card 84px below its facts line, or 60px at viewport
+  widths of 700px or less.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
   Group rebuilds under their version and verify changes against the tagged sources.

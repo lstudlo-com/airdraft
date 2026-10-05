@@ -363,6 +363,9 @@ then the app's own first-run caption, "Hold ⌃⌥ and speak. Each dictation add
 bar." The forty bars are decorative; their heights are a fixed pattern shaped
 like the app's `0.26 + 0.74 × √share` mapping, not data.
 
+The card sits `84px` below the hero facts line, reduced to `60px` at widths
+of `700px` or less.
+
 `Waveform` is the well: `104px` tall (`84px` on phones), raised gray bars up to
 `48px`, and a `60px` graphite caret. Bars grow from 12% on load. Like the app,
 the bars near the pointer grow by up to 28% on a Gaussian two and a half bars

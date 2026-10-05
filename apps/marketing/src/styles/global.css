@@ -955,7 +955,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
      faint top-left sheen, holding the waveform well and its caption. */
   .hero-card {
     width: min(100%, 880px);
-    margin-top: 56px;
+    margin-top: 84px;
     padding: 32px 32px 22px;
     border-radius: var(--radius-card);
     background:
@@ -2413,7 +2413,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       margin-top: 28px;
     }
     .hero-card {
-      margin-top: 40px;
+      margin-top: 60px;
       padding: 20px 16px 16px;
     }
     .wave {
