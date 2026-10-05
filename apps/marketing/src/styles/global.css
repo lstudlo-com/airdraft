@@ -676,18 +676,17 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       visibility 0s linear 240ms,
       height 320ms var(--ease-select);
   }
-  /* The fade belongs to each blurring layer, never the container: an
-     ancestor below full opacity becomes the layers' backdrop root, so they
-     would draw a flat panel instead of blurring the page until it settled. */
-  /* The blur carries the chrome's colour so whatever sits on it keeps its
-     contrast, whatever passes under it: white content in dark mode, black
-     in light. The tint fades out with the blur over its last 100px and
-     appears and fades with the layers. */
+  /* The blur carries the island's colour, the surface it covers once the
+     page has scrolled, so whatever sits on it keeps its contrast whatever
+     passes under it: white content in dark mode, black in light. Only the
+     phone menu opened before the island is full shows it over the chrome,
+     so there it takes the chrome's colour. The tint fades out with the blur
+     over its last 100px and appears and fades with the layers. */
   .header-blur::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: color-mix(in srgb, var(--chrome) 65%, transparent);
+    background-color: color-mix(in srgb, var(--blur-tint) 65%, transparent);
     -webkit-mask-image: linear-gradient(
       to bottom,
       black calc(100% - 100px),
@@ -698,8 +697,19 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       black calc(100% - 100px),
       transparent
     );
-    transition: opacity 240ms ease;
+    transition:
+      opacity 240ms ease,
+      background-color 240ms ease;
   }
+  .header-blur {
+    --blur-tint: var(--island);
+  }
+  .js .site-header:not(.is-blurred) .header-blur {
+    --blur-tint: var(--chrome);
+  }
+  /* The fade belongs to each blurring layer, never the container: an
+     ancestor below full opacity becomes the layers' backdrop root, so they
+     would draw a flat panel instead of blurring the page until it settled. */
   .js .site-header:not(.is-blurred) .header-blur i,
   .js .site-header:not(.is-blurred) .header-blur::after {
     opacity: 0;
@@ -770,7 +780,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   /* Only Reduce Transparency gets an opaque header, as in the app. */
   @media (prefers-reduced-transparency: reduce) {
     .header-blur {
-      background: var(--chrome);
+      background: var(--blur-tint);
     }
     .header-blur i {
       display: none;

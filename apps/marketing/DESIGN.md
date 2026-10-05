@@ -625,7 +625,7 @@ plus `100px` (`440ms`, `--ease-out`; closing `320ms` on `SelectionMotion.curve`)
 The blur's stops are measured up from its bottom edge, so above the rows it
 is the full `32px` blur and the same `100px` fade sits only at its end; at
 `100px` they are the app's ramp. It shows even before the island is full.
-It carries the header blur's `65%` `--chrome` tint (below), so the rows keep
+It carries the header blur's `65%` tint (below), so the rows keep
 their contrast; they are ink, never muted, for the same reason. The
 rows sit on it below the header row, aligned with the mark, each `44px` with
 `12px` corners like the app's sidebar destinations: Pricing, Support and
@@ -650,13 +650,15 @@ while labels and controls stay sharp. The blur is `100px` tall at every width,
 reaching past the header's row (`72px`, `64px` on phones) without moving it. At the top of the page it is
 hidden; it fades in (`240ms`) once the island has filled the window
 (`.is-blurred`, set by `island.ts`; see Layout), and stays shown without
-JavaScript. The blur carries colour: a `65%` `--chrome` tint above its layers,
-fading out with them over the last `100px` (at the header's own `100px`, from
-the top edge down), and appearing and fading with them. It keeps whatever sits
+JavaScript. The blur carries colour: a `65%` tint of `--island`, the surface
+it covers once the page has scrolled (never the lighter chrome), above its
+layers; only the phone menu opened before the island is full, still over the
+chrome, takes `--chrome`. It fades out with the layers over the last `100px` (at the header's own `100px`, from
+the top edge down) and appears and fades with them. It keeps whatever sits
 on the blur in contrast whatever passes under it: white content in dark mode,
 the graphite key in light. The tint sits on top of the blur, never in place of
 it; never simulate the blur with a tint or an opacity fade; only Reduce Transparency gets an
-opaque chrome header. Anchors land below it (`scroll-padding-top`). The footer
+opaque header, in the tint's colour. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island.
 
 Pricing keeps its copy to labels, prices and short checks; details belong in
