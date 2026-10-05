@@ -85,6 +85,8 @@ struct ProfileSpeechSettings: View {
 
     private var detail: String {
         if let reason = selection?.unavailableReason { return reason }
+        do { _ = try SpeechLanguagePolicy.resolve(config) }
+        catch { return error.localizedDescription }
         if needsDownload { return "Not installed. Download it in Models before dictating." }
         if config.kind.isLocal { return "Runs on this Mac. Language follows Speech options." }
         let destination = config.kind.preset?.name ?? URL(string: config.baseURL)?.host ?? "your server"

@@ -403,6 +403,19 @@ verification status belong in the vault (see below).
   and use the active profile's speech binding and refinement opt-out. Only current
   provider health marks Refinement unavailable; keep prior issues in Review Last
   Dictation and retained audio in Recover Last Dictation with retry/discard.
+- Speech language compatibility is owned by `SpeechLanguagePolicy`, keyed by the
+  exact model and provider/runtime. Models shows choices for the active profile's
+  effective speech model; model/profile changes never rewrite the shared language.
+  Preflight, file/history transcription, retry and the factory validate the same
+  snapshot before credentials, model loading or capture. Known unsupported choices
+  fail with a Models recovery action; unknown custom models stay explicitly unverified.
+  Cohere's pinned runtime requires an explicit supported language; never let Auto
+  or an unknown code become English. Experimental unknown-language prompts are not
+  a production Auto contract. SenseVoice rebuilds its recognizer when its effective
+  language changes. Qwen uses upstream language names in decoder options. Apple
+  exposes its effective fixed locale and asks the OS for supported equivalents.
+  Joint-language models validate the user's intent without sending an ignored
+  forced-language parameter. Mandarin, Cantonese and Chinese script stay distinct.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.

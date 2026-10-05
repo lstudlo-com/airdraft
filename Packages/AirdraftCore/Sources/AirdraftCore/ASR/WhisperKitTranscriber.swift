@@ -30,13 +30,18 @@ public actor WhisperKitTranscriber: Transcriber {
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
+        let language = try SpeechLanguagePolicy.resolve(ASRConfig(
+            kind: .whisperKit, whisperModel: variant, language: hints.language ?? ""
+        )).language
+        var resolvedHints = hints
+        resolvedHints.language = language
         let pipe = try await loadedPipe()
         let started = Date()
 
         var options = DecodingOptions()
         options.task = .transcribe
-        options.language = hints.language
-        options.detectLanguage = hints.language == nil
+        options.language = language
+        options.detectLanguage = language == nil
         options.temperature = 0
         options.usePrefillPrompt = true
         options.skipSpecialTokens = true
@@ -47,7 +52,7 @@ public actor WhisperKitTranscriber: Transcriber {
         // Decode our bounded windows directly. WhisperKit's long-clip seeking
         // can lose later speech, and its VAD fan-out drops failed chunks.
         options.chunkingStrategy = nil
-        if let prompt = hints.promptText, let tokenizer = pipe.tokenizer {
+        if let prompt = resolvedHints.promptText, let tokenizer = pipe.tokenizer {
             // Whisper accepts roughly 224 prompt tokens; keep the tail.
             let tokens = tokenizer.encode(text: " " + prompt).filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = Array(tokens.suffix(200))

@@ -44,6 +44,7 @@ public enum RecordingPrerequisites {
     public static func check(asr: ASRConfig, llm: LLMConfig, refinementEnabled: Bool,
                              microphone: MicrophonePreference, insertionEnabled: Bool,
                              environment: Environment = .live) throws {
+        _ = try SpeechLanguagePolicy.resolve(asr)
         func reject(_ message: String) throws { throw RecordingPrerequisiteError(message) }
         guard environment.microphoneAuthorized else {
             try reject("Allow microphone access in Configuration."); return

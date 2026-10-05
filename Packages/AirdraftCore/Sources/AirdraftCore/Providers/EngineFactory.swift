@@ -129,12 +129,16 @@ public actor EngineFactory {
     /// Loading, inference and unloading share a lease. Actor isolation alone is
     /// insufficient because each await allows another actor call to enter.
     public func transcribe(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig) async throws -> Transcript {
-        try await serialize {
+        let language = try SpeechLanguagePolicy.resolve(config)
+        var resolvedHints = hints
+        resolvedHints.language = language.language
+        let effectiveHints = resolvedHints
+        return try await serialize {
             try await self.prepareExclusive(config)
             let engine = await self.transcriber(for: config)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
-            let result = try await engine.transcribe(samples: samples, hints: hints)
+            let result = try await engine.transcribe(samples: samples, hints: effectiveHints)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
             return result

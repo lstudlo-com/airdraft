@@ -73,6 +73,7 @@ enum DebugRender {
             if let name = env["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) { settings.llm.select(kind) }
             if let name = env["AIRDRAFT_RENDER_ASR"], let kind = ASRProviderKind(rawValue: name) { settings.asr.select(kind) }
             if let model = env["AIRDRAFT_RENDER_ASR_MODEL"] { settings.asr.selectModel(model) }
+            if let language = env["AIRDRAFT_RENDER_LANGUAGE"] { settings.asr.language = language }
             if let model = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_MODEL"] { settings.llm.model = model }
             if let provider = env["AIRDRAFT_RENDER_OPENROUTER_PROVIDER"] {
                 settings.llm.openRouterRouting = OpenRouterRouting(providerID: provider,

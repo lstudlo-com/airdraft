@@ -21,14 +21,21 @@ public struct OpenRouterTranscriber: Transcriber {
     public func prepare() async throws {}
 
     func makeRequest(samples: [Float], hints: TranscriptionHints) throws -> URLRequest {
+        try preparedRequest(samples: samples, hints: hints).request
+    }
+
+    private func preparedRequest(samples: [Float], hints: TranscriptionHints) throws -> (request: URLRequest, language: String?) {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
+        let language = try SpeechLanguagePolicy.resolve(ASRConfig(
+            kind: .openRouter, model: model, language: hints.language ?? ""
+        )).language
         let key = try TranscriptionHTTP.requireKey(apiKey, provider: "OpenRouter")
 
         var body: [String: Any] = [
             "model": model,
             "input_audio": ["data": WAVEncoder.encode(samples: samples).base64EncodedString(), "format": "wav"]
         ]
-        if let language = hints.isoLanguage { body["language"] = language }
+        if let language { body["language"] = language }
 
         var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/audio/transcriptions")!)
         request.httpMethod = "POST"
@@ -39,15 +46,16 @@ public struct OpenRouterTranscriber: Transcriber {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        return request
+        return (request, language)
     }
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
         let started = Date()
         struct Reply: Decodable { let text: String }
-        let reply = try await http.decode(Reply.self, from: makeRequest(samples: samples, hints: hints))
+        let prepared = try preparedRequest(samples: samples, hints: hints)
+        let reply = try await http.decode(Reply.self, from: prepared.request)
         return Transcript(text: reply.text.trimmingCharacters(in: .whitespacesAndNewlines),
-                          language: hints.language, engine: id,
+                          language: prepared.language, engine: id,
                           latencyMs: Int(Date().timeIntervalSince(started) * 1000))
     }
 }

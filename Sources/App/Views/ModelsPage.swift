@@ -117,24 +117,7 @@ struct ModelsPage: View {
 
             PageSection("Speech options") {
                 SettingsCard {
-                    SettingRow(title: "Language") {
-                        SoftPicker("Language", selection: $settings.asr.language, width: 200) {
-                            ForEach(SpeechLanguage.choices(including: settings.asr.language), id: \.code) { Text($0.name).tag($0.code) }
-                        }
-                    }
-                    RowDivider()
-                    SettingRow(title: "Chinese script") {
-                        SoftSegmentedPicker("Chinese script", selection: $settings.asr.chineseScript,
-                                            options: ChineseScript.allCases.map { ($0, $0.title) }, width: 240)
-                    }
-                    if settings.asr.kind == .apple || container.speechConfig.kind == .apple {
-                        RowDivider()
-                        SettingRow(title: "Apple Speech locale", subtitle: "Language must be selected manually") {
-                            SoftPicker("Apple Speech locale", selection: $settings.asr.appleLocale, width: 200) {
-                                ForEach(SpeechLanguage.appleLocales(including: settings.asr.appleLocale), id: \.code) { Text($0.name).tag($0.code) }
-                            }
-                        }
-                    }
+                    SpeechLanguageSettings()
                 }
             }
 

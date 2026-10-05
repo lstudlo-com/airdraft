@@ -18,15 +18,23 @@ public actor AppleSpeechTranscriber: Transcriber {
         return false
     }
 
+    /// Query the OS rather than claiming a static list applies to every Mac.
+    public static func supportedLocaleIdentifiers() async -> [String] {
+        guard #available(macOS 26, *) else { return [] }
+        return await SpeechTranscriber.supportedLocales.map(\.identifier).sorted()
+    }
+
     public func isReady() async -> Bool {
         guard #available(macOS 26, *) else { return false }
-        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeIdentifier), preset: .transcription)
+        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: localeIdentifier)) else { return false }
+        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         return await AssetInventory.status(forModules: [transcriber]) == .installed
     }
 
     public func prepare() async throws {
         guard #available(macOS 26, *) else { throw TranscriberError.appleUnavailable }
-        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeIdentifier), preset: .transcription)
+        let locale = try await supportedLocale()
+        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
             try await request.downloadAndInstall()
         }
@@ -37,7 +45,8 @@ public actor AppleSpeechTranscriber: Transcriber {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
         guard #available(macOS 26, *) else { throw TranscriberError.appleUnavailable }
         let started = Date()
-        let transcriber = SpeechTranscriber(locale: Locale(identifier: localeIdentifier), preset: .transcription)
+        let locale = try await supportedLocale()
+        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
             throw TranscriberError.providerFailure("Apple Speech", "Language assets are not installed. Open Models and load Apple Speech before retrying.")
         }
@@ -90,17 +99,29 @@ public actor AppleSpeechTranscriber: Transcriber {
             Task { await analyzer.cancelAndFinishNow() }
         }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
-        return Transcript(text: text, language: hints.language, engine: id, latencyMs: ms)
+        return Transcript(text: text, language: locale.identifier, engine: id, latencyMs: ms)
     }
 
     static func locale(forLanguage code: String) -> String? {
-        switch code.lowercased() {
+        let normalized = code.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "_", with: "-")
+        switch normalized.lowercased() {
+        case "", "auto": return nil
         case "zh": return "zh-TW"
         case "en": return "en-US"
         case "ja": return "ja-JP"
         case "ko": return "ko-KR"
-        default: return nil
+        // Preserve all other language/locale requests. The OS resolves supported
+        // equivalents below; French must never fall back to a saved Chinese locale.
+        default: return normalized
         }
+    }
+
+    @available(macOS 26, *)
+    private func supportedLocale() async throws -> Locale {
+        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: localeIdentifier)) else {
+            throw TranscriberError.providerFailure("Apple Speech", "\(localeIdentifier) is unavailable on this Mac. Choose a supported locale in Models.")
+        }
+        return locale
     }
 
     private static func convert(_ buffer: AVAudioPCMBuffer, to format: AVAudioFormat) throws -> AVAudioPCMBuffer {

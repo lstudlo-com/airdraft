@@ -18,18 +18,20 @@ public struct DeepgramTranscriber: Transcriber {
     public func prepare() async throws {}
 
     func makeRequest(samples: [Float], hints: TranscriptionHints) throws -> URLRequest {
+        try preparedRequest(samples: samples, hints: hints).request
+    }
+
+    private func preparedRequest(samples: [Float], hints: TranscriptionHints) throws -> (request: URLRequest, language: String?) {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
+        let language = try Self.requestLanguage(model: model, hints: hints)
         let key = try TranscriptionHTTP.requireKey(apiKey, provider: "Deepgram")
         var url = URLComponents(string: "https://api.deepgram.com/v1/listen")!
         let multilingual = model == "nova-3-multilingual"
         let whisper = model == "whisper-large"
         var query = [URLQueryItem(name: "model", value: multilingual ? "nova-3" : model)]
         if !whisper { query.append(URLQueryItem(name: "smart_format", value: "true")) }
-        if multilingual {
-            query.append(URLQueryItem(name: "language", value: "multi"))
-        } else if let language = hints.languageCode {
-            let code = whisper ? hints.isoLanguage! : (hints.isoLanguage == "zh" && hints.chineseScript == .traditional ? "zh-TW" : language)
-            query.append(URLQueryItem(name: "language", value: code))
+        if let language {
+            query.append(URLQueryItem(name: "language", value: language))
         } else {
             // Dominant-language detection supports Mandarin. language=multi has
             // a different language set and price and must not be substituted.
@@ -42,7 +44,19 @@ public struct DeepgramTranscriber: Transcriber {
         request.setValue("Token \(key)", forHTTPHeaderField: "Authorization")
         request.setValue("audio/wav", forHTTPHeaderField: "Content-Type")
         request.httpBody = WAVEncoder.encode(samples: samples)
-        return request
+        return (request, language == "multi" ? nil : language)
+    }
+
+    static func requestLanguage(model: String, hints: TranscriptionHints) throws -> String? {
+        let resolved = try SpeechLanguagePolicy.resolve(ASRConfig(
+            kind: .deepgram, model: model, language: hints.language ?? ""
+        ))
+        if model == "nova-3-multilingual" { return "multi" }
+        guard let language = resolved.language else { return nil }
+        // Deepgram identifies Cantonese separately from Mandarin.
+        if language == "yue" { return "zh-HK" }
+        if language == "zh", model != "whisper-large", hints.chineseScript == .traditional { return "zh-TW" }
+        return language
     }
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
@@ -58,12 +72,13 @@ public struct DeepgramTranscriber: Transcriber {
             }
             let results: Results
         }
-        let reply = try await http.decode(Reply.self, from: makeRequest(samples: samples, hints: hints))
+        let prepared = try preparedRequest(samples: samples, hints: hints)
+        let reply = try await http.decode(Reply.self, from: prepared.request)
         guard let channel = reply.results.channels.first, let text = channel.alternatives.first?.transcript else {
             throw TranscriberError.invalidResponse
         }
         return Transcript(text: text.trimmingCharacters(in: .whitespacesAndNewlines),
-                          language: channel.detected_language ?? hints.languageCode,
+                          language: channel.detected_language ?? prepared.language,
                           engine: id, latencyMs: Int(Date().timeIntervalSince(started) * 1000))
     }
 }

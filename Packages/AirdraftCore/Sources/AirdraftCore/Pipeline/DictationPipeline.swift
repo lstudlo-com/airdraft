@@ -292,6 +292,7 @@ public final class DictationPipeline {
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError("Recording did not start. " + reason)
             }
+            _ = try SpeechLanguagePolicy.resolve(asr)
             if let recordingPreflight {
                 try await recordingPreflight(asr, llm, profile.usesLLM, microphone, needsInsertion)
             } else {
@@ -622,6 +623,7 @@ public final class DictationPipeline {
             if let reason = profile.speechModel?.unavailableReason {
                 throw RecordingPrerequisiteError(reason)
             }
+            let language = try SpeechLanguagePolicy.resolve(asrConfig)
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
             let transcriber = await factory.transcriber(for: asrConfig)
             guard isCurrent(token) else { return }
@@ -629,7 +631,7 @@ public final class DictationPipeline {
             guard isCurrent(token) else { return }
             if !ready { set(.preparingModel) }
             let hints = TranscriptionHints(
-                language: asrConfig.language.isEmpty ? nil : asrConfig.language,
+                language: language.language,
                 vocabulary: DictionaryPostProcessor.vocabulary(entries),
                 chineseScript: asrConfig.chineseScript
             )

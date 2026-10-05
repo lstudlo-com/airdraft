@@ -87,8 +87,9 @@ enum LocalE2E {
                 }
                 if let locale = argument("--e2e-locale") {
                     app.settings.asr.appleLocale = locale
-                    app.settings.asr.language = String(locale.prefix(2))
+                    app.settings.asr.language = locale
                 }
+                if let language = argument("--e2e-language") { app.settings.asr.language = language }
                 switch action {
                 case "insert":
                     report = try await InsertionE2E.run(bundleID: argument("--e2e-target-bundle"),

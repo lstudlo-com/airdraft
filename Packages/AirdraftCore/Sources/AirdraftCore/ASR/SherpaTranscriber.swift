@@ -64,6 +64,7 @@ public actor SherpaTranscriber: Transcriber {
     private let model: Model
     private let modelDirectory: URL
     private var recognizer: Recognizer?
+    private var recognizerConfiguration: RecognizerConfiguration?
 
     public init(model: Model) {
         self.model = model
@@ -81,24 +82,33 @@ public actor SherpaTranscriber: Transcriber {
     public func isReady() async -> Bool { recognizer != nil }
 
     public func prepare() async throws {
-        _ = try loadedRecognizer()
+        try Task.checkCancellation()
+        // A factory prepare precedes each transcription. Keep a warm recognizer's
+        // language here; the next transcription resolves its own current hint.
+        let configuration = try recognizerConfiguration ?? RecognizerConfiguration(model: model)
+        _ = try loadedRecognizer(configuration: configuration)
     }
 
     public func unload() async {
         recognizer = nil
+        recognizerConfiguration = nil
     }
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        try Task.checkCancellation()
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
-        let recognizer = try loadedRecognizer()
+        // Validate before inspecting files or entering the native runtime, including
+        // callers that use this adapter without the pipeline's preflight.
+        let configuration = try RecognizerConfiguration(model: model, hints: hints)
+        let recognizer = try loadedRecognizer(configuration: configuration)
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
         // are split at silences so memory and latency stay bounded.
         let text = try AudioChunker.transcribe(samples, maxSeconds: 30) { Self.decode($0, with: recognizer.pointer) }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
-        // Parakeet auto-detects internally; this API returns no detected language.
+        // Joint-language decoders return no detected language through this API.
         // Do not report an ignored language hint as recognition metadata.
-        return Transcript(text: text, language: model == .parakeet ? nil : hints.language, engine: id, latencyMs: ms)
+        return Transcript(text: text, language: configuration.language, engine: id, latencyMs: ms)
     }
 
     private static func decode(_ samples: [Float], with recognizer: OpaquePointer) -> String {
@@ -111,53 +121,85 @@ public actor SherpaTranscriber: Transcriber {
         return result.pointee.text.map { String(cString: $0) } ?? ""
     }
 
-    private func loadedRecognizer() throws -> Recognizer {
+    private func loadedRecognizer(configuration: RecognizerConfiguration) throws -> Recognizer {
         let folder = modelDirectory
         guard !FileManager.default.fileExists(atPath: folder.appendingPathComponent(LocalModels.incompleteMarker).path),
               LocalModels.hasSherpa(model, at: folder) else { throw TranscriberError.modelNotDownloaded }
-        if let recognizer { return recognizer }
+        if let recognizer, recognizerConfiguration == configuration { return recognizer }
+        // SenseVoice fixes its language when the recognizer is constructed.
+        // Release the old model before rebuilding so a language change cannot
+        // retain the old decoder or temporarily double its memory use.
+        recognizer = nil
+        recognizerConfiguration = nil
+        try Task.checkCancellation()
         let files = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
-        func onnx(_ prefix: String) -> String {
-            model.onnxFilename(for: prefix, in: files).map { folder.appendingPathComponent($0).path } ?? ""
+        let pointer = configuration.withCConfiguration(folder: folder, files: files) {
+            SherpaOnnxCreateOfflineRecognizer(&$0)
         }
-
-        // The C API copies every string while creating the recognizer, so the
-        // strdup'd paths only need to outlive that call. Zeroed fields take
-        // sherpa-onnx's defaults (greedy search, cjkchar units, no LM).
-        var cStrings: [UnsafeMutablePointer<CChar>] = []
-        defer { cStrings.forEach { free($0) } }
-        func c(_ s: String) -> UnsafePointer<CChar> {
-            let p = strdup(s)!
-            cStrings.append(p)
-            return UnsafePointer(p)
-        }
-
-        var config = SherpaOnnxOfflineRecognizerConfig()
-        config.feat_config.sample_rate = 16_000
-        config.feat_config.feature_dim = 80
-        config.model_config.tokens = c(folder.appendingPathComponent("tokens.txt").path)
-        config.model_config.num_threads = 4
-        config.model_config.provider = c("cpu")
-        switch model {
-        case .senseVoice:
-            config.model_config.model_type = c("sense_voice")
-            config.model_config.sense_voice.model = c(onnx("model"))
-            config.model_config.sense_voice.language = c("auto")
-            config.model_config.sense_voice.use_itn = 1
-        case .fireRed:
-            config.model_config.model_type = c("fire_red_asr")
-            config.model_config.fire_red_asr.encoder = c(onnx("encoder"))
-            config.model_config.fire_red_asr.decoder = c(onnx("decoder"))
-        case .parakeet:
-            config.model_config.model_type = c("nemo_transducer")
-            config.model_config.transducer.encoder = c(onnx("encoder"))
-            config.model_config.transducer.decoder = c(onnx("decoder"))
-            config.model_config.transducer.joiner = c(onnx("joiner"))
-            config.decoding_method = c("greedy_search")
-        }
-        guard let pointer = SherpaOnnxCreateOfflineRecognizer(&config) else { throw TranscriberError.modelNotDownloaded }
+        guard let pointer else { throw TranscriberError.modelNotDownloaded }
         let created = Recognizer(pointer)
         recognizer = created
+        recognizerConfiguration = configuration
         return created
+    }
+
+    /// The same value owns native configuration and cache identity. Tests inspect
+    /// the C fields synchronously without loading model weights or the runtime.
+    struct RecognizerConfiguration: Equatable {
+        let model: Model
+        let language: String?
+
+        init(model: Model, hints: TranscriptionHints = .init()) throws {
+            self.model = model
+            let kind: ASRProviderKind
+            switch model {
+            case .senseVoice: kind = .senseVoice
+            case .fireRed: kind = .fireRed
+            case .parakeet: kind = .parakeet
+            }
+            let config = ASRConfig(kind: kind, language: hints.language ?? "")
+            language = try SpeechLanguagePolicy.resolve(config).language
+        }
+
+        func withCConfiguration<Value>(folder: URL, files: [String],
+                                       _ body: (inout SherpaOnnxOfflineRecognizerConfig) throws -> Value) rethrows -> Value {
+            func onnx(_ prefix: String) -> String {
+                model.onnxFilename(for: prefix, in: files).map { folder.appendingPathComponent($0).path } ?? ""
+            }
+            // sherpa-onnx copies these strings while creating the recognizer.
+            // They remain valid only during this synchronous call.
+            var cStrings: [UnsafeMutablePointer<CChar>] = []
+            defer { cStrings.forEach { free($0) } }
+            func c(_ s: String) -> UnsafePointer<CChar> {
+                let p = strdup(s)!
+                cStrings.append(p)
+                return UnsafePointer(p)
+            }
+
+            var config = SherpaOnnxOfflineRecognizerConfig()
+            config.feat_config.sample_rate = 16_000
+            config.feat_config.feature_dim = 80
+            config.model_config.tokens = c(folder.appendingPathComponent("tokens.txt").path)
+            config.model_config.num_threads = 4
+            config.model_config.provider = c("cpu")
+            switch model {
+            case .senseVoice:
+                config.model_config.model_type = c("sense_voice")
+                config.model_config.sense_voice.model = c(onnx("model"))
+                config.model_config.sense_voice.language = c(language ?? "auto")
+                config.model_config.sense_voice.use_itn = 1
+            case .fireRed:
+                config.model_config.model_type = c("fire_red_asr")
+                config.model_config.fire_red_asr.encoder = c(onnx("encoder"))
+                config.model_config.fire_red_asr.decoder = c(onnx("decoder"))
+            case .parakeet:
+                config.model_config.model_type = c("nemo_transducer")
+                config.model_config.transducer.encoder = c(onnx("encoder"))
+                config.model_config.transducer.decoder = c(onnx("decoder"))
+                config.model_config.transducer.joiner = c(onnx("joiner"))
+                config.decoding_method = c("greedy_search")
+            }
+            return try body(&config)
+        }
     }
 }

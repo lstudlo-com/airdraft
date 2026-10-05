@@ -67,7 +67,7 @@ enum ModelCatalogue {
         ) { $0.kind = .parakeet },
         ModelEntry(
             id: "whisper:turbo", title: "Whisper v3 Turbo", vendor: "OpenAI · Core ML", provider: "OpenAI", brand: .openAI,
-            tags: ["99 languages"], speed: 3, accuracy: 3, storage: .download(sizeLabel: "1.5 GB"),
+            tags: ["100 languages"], speed: 3, accuracy: 3, storage: .download(sizeLabel: "1.5 GB"),
             note: "Runs on the Neural Engine."
         ) { $0.kind = .whisperKit; $0.whisperModel = "large-v3-v20240930_turbo" },
         ModelEntry(

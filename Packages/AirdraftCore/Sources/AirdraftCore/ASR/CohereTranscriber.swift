@@ -28,13 +28,16 @@ public actor CohereTranscriber: Transcriber {
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
         guard !samples.isEmpty else { throw TranscriberError.emptyAudio }
+        let language = try SpeechLanguagePolicy.resolve(ASRConfig(
+            kind: .cohere, cohereModel: modelId, language: hints.language ?? ""
+        )).language
         let model = try await loadedModel()
         let started = Date()
         let text = try AudioChunker.transcribe(samples, maxSeconds: 25) {
-            model.transcribe(audio: $0, sampleRate: 16_000, language: hints.language)
+            model.transcribe(audio: $0, sampleRate: 16_000, language: language)
         }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
-        return Transcript(text: text, language: hints.language, engine: id, latencyMs: ms)
+        return Transcript(text: text, language: language, engine: id, latencyMs: ms)
     }
 
     private func loadedModel() async throws -> CohereTranscribeModel {

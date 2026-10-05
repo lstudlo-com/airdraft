@@ -16,6 +16,7 @@ import tempfile
 SUITES = """
 AudioRecorderTests AudioChunkerTests MicrophoneTests SpeechPreviewTests
 AppleSpeechTranscriberTests
+SpeechLanguagePolicyTests SpeechAdapterLanguageTests SherpaLanguageTests PipelineLanguageTests
 PipelinePreviewTests PipelineAutomationTests HistoryRetranscriptionTests
 AudioHistoryTests ScriptDeliveryTests HistoryStoreTests ProfileStoreTests
 DictionaryPostProcessorTests CLIProcessTests CLIModelCatalogTests

@@ -96,6 +96,9 @@ Transcription accepts `--e2e-audio`, `--e2e-locale` and `--e2e-model` using cata
 IDs (`apple`, `qwen3:0.6b`, `qwen3:1.7b`, `cohere`, `sherpa:senseVoice`,
 `sherpa:fireRed`, `sherpa:parakeet`, `whisper:turbo`). `--e2e-cancel-ms` checks that
 cancellation produces no outcome or history and waits for model cleanup.
+Use `--e2e-language auto` or an explicit language code to exercise the production
+language policy independently of the Apple locale. Unsupported combinations must
+fail before loading a model; the retained recording remains available for retry.
 Add `--e2e-prepare` to load an already installed engine before starting the
 recording fixture; cancellation evidence then includes the actual processing
 state and elapsed time, distinguishing inference from startup.
