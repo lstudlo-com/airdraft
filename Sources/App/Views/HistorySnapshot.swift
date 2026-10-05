@@ -4,56 +4,81 @@ import Foundation
 /// Prepared once per database result, never from a scrolling view's body.
 struct HistorySnapshot: Sendable {
     let entries: [HistoryEntry]
-    let indexByID: [Int64: Int]
+    let indexByID: [String: Int]
     static let empty = HistorySnapshot(entries: [], indexByID: [:])
 
     static func prepare(_ records: [DictationRecord], history: HistoryStore, appendingTo previous: Self = .empty,
                         calendar: Calendar = .current, now: Date = Date()) -> Self {
+        let items = records.compactMap { record -> Item? in
+            guard let id = record.id else { return nil }
+            let asset = record.recordingID.flatMap { try? history.recording(id: $0) }
+            let available = asset.flatMap { history.audioURL(for: $0) == nil ? nil : $0 }
+            return Item(id: String(id), date: record.createdAt, record: record, asset: available)
+        }
+        return prepare(items, appendingTo: previous, calendar: calendar, now: now)
+    }
+
+    static func prepareRecordings(_ recordings: [RecordingPage.Entry], appendingTo previous: Self = .empty,
+                                  calendar: Calendar = .current, now: Date = Date()) -> Self {
+        prepare(recordings.map { Item(id: "recording:" + $0.id, date: $0.asset.createdAt, record: $0.dictation, asset: $0.asset) },
+                appendingTo: previous, calendar: calendar, now: now)
+    }
+
+    private struct Item {
+        let id: String
+        let date: Date
+        let record: DictationRecord?
+        let asset: RecordingAsset?
+    }
+
+    private static func prepare(_ items: [Item], appendingTo previous: Self, calendar: Calendar, now: Date) -> Self {
         let today = calendar.startOfDay(for: now)
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)
-        var previousDay = previous.entries.last.map { calendar.startOfDay(for: $0.record.createdAt) }
+        var previousDay = previous.entries.last.map { calendar.startOfDay(for: $0.createdAt) }
         var entries = previous.entries
         var indexByID = previous.indexByID
-        entries.reserveCapacity(entries.count + records.count)
-        indexByID.reserveCapacity(indexByID.count + records.count)
-        for record in records {
-            guard let id = record.id, indexByID[id] == nil else { continue }
-            let day = calendar.startOfDay(for: record.createdAt)
+        entries.reserveCapacity(entries.count + items.count)
+        indexByID.reserveCapacity(indexByID.count + items.count)
+        for item in items {
+            guard indexByID[item.id] == nil else { continue }
+            let day = calendar.startOfDay(for: item.date)
             let heading: String?
             if day == previousDay { heading = nil }
             else if day == today { heading = "Today" }
             else if day == yesterday { heading = "Yesterday" }
-            else { heading = record.createdAt.formatted(date: .abbreviated, time: .omitted) }
-            let time = record.createdAt.formatted(date: .omitted, time: .shortened)
+            else { heading = item.date.formatted(date: .abbreviated, time: .omitted) }
+            let time = item.date.formatted(date: .omitted, time: .shortened)
             var metadata = [time]
-            if let app = record.appName { metadata.append(app) }
-            if record.outputDestination == TextOutputDestination.script.rawValue {
-                metadata.append(record.outputSucceeded == true ? "Sent to script" : "Script failed")
+            if let record = item.record {
+                if let app = record.appName { metadata.append(app) }
+                if record.outputDestination == TextOutputDestination.script.rawValue {
+                    metadata.append(record.outputSucceeded == true ? "Sent to script" : "Script failed")
+                }
+                metadata += [record.mode, "\(String(format: "%.0f", record.audioSeconds)) s"]
             }
-            metadata += [record.mode, "\(String(format: "%.0f", record.audioSeconds)) s"]
-            let finalText = HistoryTextContent(record.finalText)
-            indexByID[id] = entries.count
-            entries.append(HistoryEntry(id: id, record: record, heading: heading,
-                timelineHeading: heading.map { _ in
-                    record.createdAt.formatted(.dateTime.month(.abbreviated).day())
-                }, time: time, timestamp: record.createdAt.formatted(date: .abbreviated, time: .standard),
-                metadata: metadata.joined(separator: " · "),
-                finalText: finalText, rawText: record.rawTranscript == record.finalText ? finalText : HistoryTextContent(record.rawTranscript),
-                audioAvailable: history.audioURL(for: record) != nil))
+            let finalText = HistoryTextContent(item.record?.finalText ?? "")
+            indexByID[item.id] = entries.count
+            entries.append(HistoryEntry(id: item.id, createdAt: item.date, record: item.record, asset: item.asset, heading: heading,
+                timelineHeading: heading.map { _ in item.date.formatted(.dateTime.month(.abbreviated).day()) },
+                time: time, timestamp: item.date.formatted(date: .abbreviated, time: .standard),
+                metadata: metadata.joined(separator: " · "), finalText: finalText,
+                rawText: item.record?.rawTranscript == item.record?.finalText ? finalText : HistoryTextContent(item.record?.rawTranscript ?? "")))
             previousDay = day
         }
         return Self(entries: entries, indexByID: indexByID)
     }
 
     /// Visibility contains only the small on-screen set; never scan the history.
-    func firstVisibleID(in ids: [Int64]) -> Int64? {
+    func firstVisibleID(in ids: [String]) -> String? {
         ids.compactMap { id in indexByID[id].map { (id, $0) } }.min { $0.1 < $1.1 }?.0
     }
 }
 
 struct HistoryEntry: Identifiable, Sendable {
-    let id: Int64
-    let record: DictationRecord
+    let id: String
+    let createdAt: Date
+    let record: DictationRecord?
+    let asset: RecordingAsset?
     let heading: String?
     let timelineHeading: String?
     let time: String
@@ -61,7 +86,7 @@ struct HistoryEntry: Identifiable, Sendable {
     let metadata: String
     let finalText: HistoryTextContent
     let rawText: HistoryTextContent
-    let audioAvailable: Bool
+    var audioAvailable: Bool { asset != nil }
 }
 
 struct HistoryTextContent: Equatable, Sendable {

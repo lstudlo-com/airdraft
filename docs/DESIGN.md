@@ -411,11 +411,16 @@ Current refinement failures appear on its submenu title, with raw-transcript
 fallback explained inside. Prior dictation issues remain separate. Fit dynamic
 titles through `MenuTitle.fit` and preserve full details in tooltips and Home.
 
-### History timeline
+### History timeline and recordings
 
 History keeps its title and search above two independently scrolling columns.
+Below the heading, an All/Recordings `SoftSegmentedPicker` shares a row with the
+quiet Keep Recordings retention action, which opens Configuration. All shows
+dictations; Recordings shows available saved audio, including recordings without
+a saved transcript. Both columns follow the current filter and search.
+
 A 52-point guide on the left groups compact timestamps and horizontal ticks by
-day. Its dates and times align with the History heading's leading edge. Each 24-point row is a button that jumps to its transcription; the active
+day. Its dates and times align with the History heading's leading edge. Each 24-point row is a button that jumps to its entry; the active
 row uses a longer, stronger tick and emphasized time. The guide follows the
 current card without adding a second selection state. When the cards return to
 the top, the guide restores its first day heading as well as its first timestamp. Day labels, search
@@ -424,7 +429,27 @@ times remain available in tooltips and accessibility labels.
 
 The cards retain the remaining width after the shared 12-point gap, their
 16-point insets, lazy loading and native copy, details, version and delete
-controls. Empty results omit the guide. Jumps respect Reduce Motion.
+controls. Their 18-point corners and raised gray material match the shared
+`Card`. A dictation with saved audio adds its recording controls below a
+`RowDivider`. A recording without a transcript uses the same card with a
+13-point medium Recording label, a trailing timestamp, and the 11-point
+supporting line No saved transcript. It omits transcript actions.
+
+The recording row contains a play/pause icon, a flexible `SoftSlider`, elapsed
+and total time in 10-point monospaced digits, Save Audio, and an ellipsis menu.
+Keep the row in the existing neutral material with shared raised buttons and
+a recessed slider track. The slider is disabled until that recording is active;
+dragging seeks in 0.1-second steps, and arrow keys seek by five seconds while it
+has focus. Playback stops when the filter or search changes, the page closes,
+or dictation starts. Only the active recording observes progress updates.
+
+Save Audio opens the native WAV save panel and reads Saving while export is in
+progress. The native ellipsis menu contains Show in Finder, Retranscribe when
+available, and Delete Recording Only when deletion is available. Keep recording
+deletion separate from deleting a dictation and its recording, with a native
+confirmation for each. Empty results omit the guide. The Recordings empty state
+explains how to retain future recordings when retention is off. Timeline jumps
+respect Reduce Motion.
 
 ### Profile editor
 

@@ -38,9 +38,17 @@ temporary file beside the destination, synchronize it, then publish it. Explicit
 replacement is required for an existing destination. Never export into the managed
 recording directory. The exported copy belongs to the user and survives cleanup.
 
-These are storage contracts. UI and reset coordination use separate implementation
-phases. Destructive fixtures must use temporary stores. All tests for this work
-remain silent: read files or inject samples, and use fake playback transports.
+History uses one timeline with All and Recordings filters. Audio-only entries keep
+their own date and duration without retaining deleted text. A single injected
+playback controller owns pause/resume and seeking; only its active progress view
+observes the clock. Native Save Audio and Show in Finder expose the managed WAV.
+Retranscription remains review-only even for detached assets. Missing files never
+produce playable rows, and changing the filter, starting dictation, cleanup or
+leaving History stops playback.
+
+Destructive fixtures must use temporary stores. All tests for this work remain
+silent: read files or inject samples, and use fake playback transports. Debug
+render fixtures use a silent transport even when their Play control is activated.
 
 References: [GRDB migrations](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations),
 [SQLite foreign keys](https://www.sqlite.org/foreignkeys.html).

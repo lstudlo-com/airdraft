@@ -1,6 +1,7 @@
 import AirdraftCore
 import SwiftUI
 import Observation
+import UniformTypeIdentifiers
 
 extension Notification.Name {
     static let historyEntriesChanged = Notification.Name("Airdraft.historyEntriesChanged")
@@ -9,10 +10,10 @@ extension Notification.Name {
 /// Database preparation and page actions stay independent of scroll position.
 struct HistoryPage: View {
     @Environment(AppContainer.self) private var container
-    @State private var playback = HistoryPlayback()
+    @State private var playback = makeHistoryPlayback()
     @State private var showReview = false
     @State private var snapshot = HistorySnapshot.empty
-    @State private var rowStates: [Int64: HistoryCardState] = [:]
+    @State private var rowStates: [String: HistoryCardState] = [:]
     @State private var scroll = HistoryScrollState()
     @State private var loadID = UUID()
     @State private var loading = false
@@ -21,44 +22,78 @@ struct HistoryPage: View {
     private let pageSize = min(10_000, max(1, Int(RenderMode.value("HISTORY_COUNT") ?? "") ?? 200))
     @State private var query = ""
     @State private var confirmClear = false
+    @State private var recordingsOnly = RenderMode.value("RECORDINGS_ONLY") == "1"
+    @State private var nextOffset: Int?
 
     var body: some View {
         PageScaffold(.history, scrollsContent: false, contentTopInset: 0) {
-            if let errorMessage {
-                StorageNotice(message: errorMessage) { Task { await reload() } }
-            }
-            if let error = container.pipeline.historyStorageError {
-                StorageNotice(message: error) { Task { await container.pipeline.retryHistorySave(); await reload() } }
-            }
-            if snapshot.entries.isEmpty {
-                EmptyNote(query.isEmpty ? "No dictations yet." : "No matches.")
-                    .padding(.top, Theme.pagePadding)
-            } else {
-                HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                    HistoryTimeline(snapshot: snapshot, scroll: scroll)
-                    HistoryEntries(snapshot: snapshot, rowStates: rowStates, scroll: scroll, playback: playback,
-                                   showReview: $showReview, errorMessage: $errorMessage,
-                                   hasMore: hasMore, loading: loading,
-                                   reload: { Task { await reload() } },
-                                   loadMore: { Task { await reload(append: true) } })
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    SoftSegmentedPicker("History filter", selection: $recordingsOnly,
+                                        options: [(false, "All"), (true, "Recordings")])
+                        .accessibilityIdentifier("history.filter")
+                    Spacer()
+                    Button("Keep Recordings: \(container.settings.audioRetention.title)") {
+                        container.navigation.page = .configuration
+                    }
+                    .font(.system(size: 11))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .help("Change recording retention in Configuration")
                 }
-                .frame(maxHeight: .infinity)
+                .padding(.top, Theme.controlSpacing)
+                if let errorMessage {
+                    StorageNotice(message: errorMessage) { Task { await reload() } }
+                        .padding(.top, Theme.controlSpacing)
+                }
+                if let error = container.pipeline.historyStorageError {
+                    StorageNotice(message: error) { Task { await container.pipeline.retryHistorySave(); await reload() } }
+                        .padding(.top, Theme.controlSpacing)
+                }
+                if snapshot.entries.isEmpty {
+                    if loading {
+                        ProgressView("Loading History…").controlSize(.small).padding(.top, Theme.pagePadding)
+                    } else {
+                    EmptyNote(query.isEmpty ? (recordingsOnly ? "No saved recordings." : "No dictations yet.") : "No matches.")
+                        .padding(.top, Theme.pagePadding)
+                    if recordingsOnly && query.isEmpty && container.settings.audioRetention == .off {
+                        Text("Turn on Keep Recordings to save future dictations.").supportingText()
+                    }
+                    }
+                } else {
+                    HStack(alignment: .top, spacing: Theme.controlSpacing) {
+                        HistoryTimeline(snapshot: snapshot, scroll: scroll)
+                        HistoryEntries(snapshot: snapshot, rowStates: rowStates, scroll: scroll, playback: playback,
+                                       showReview: $showReview, errorMessage: $errorMessage,
+                                       hasMore: hasMore, loading: loading,
+                                       reload: { Task { await reload() } },
+                                       loadMore: { Task { await reload(append: true) } })
+                    }
+                    .frame(maxHeight: .infinity)
+                }
             }
         } accessory: {
             SearchField(text: $query, placeholder: "Search history")
             Button { confirmClear = true } label: { Image(systemName: "trash") }
                 .buttonStyle(SoftButtonStyle())
-                .help("Delete all history")
-                .accessibilityLabel("Delete all history")
+                .help("Delete all history and recordings")
+                .accessibilityLabel("Delete All History and Recordings")
                 .disabled((snapshot.entries.isEmpty && query.isEmpty) || container.pipeline.isBusy || container.pipeline.isSavingHistory)
         }
         .task(id: query) {
             // Invalidate an older append/reload immediately, before the debounce.
             loadID = UUID()
+            playback.stop()
             if !query.isEmpty {
                 do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
             }
             await reload()
+        }
+        .onChange(of: recordingsOnly) { _, _ in
+            playback.stop()
+            scroll = HistoryScrollState()
+            snapshot = .empty
+            Task { await reload() }
         }
         .onDisappear { playback.stop() }
         .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
@@ -68,24 +103,33 @@ struct HistoryPage: View {
             HistoryTranscriptionReview().environment(container)
         }
         .onChange(of: container.pipeline.lastOutcome) { _, _ in Task { await reload() } }
+        .onReceive(NotificationCenter.default.publisher(for: .historyEntriesChanged)) { _ in
+            playback.stop(); Task { await reload() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in Task { await reload() } }
-        .confirmationDialog("Delete every history entry?", isPresented: $confirmClear, titleVisibility: .visible) {
-            Button("Delete All", role: .destructive) {
+        .confirmationDialog("Delete all history and recordings?", isPresented: $confirmClear, titleVisibility: .visible) {
+            Button("Delete History and Recordings", role: .destructive) {
                 guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
-                do {
-                    playback.stop()
-                    try container.history?.deleteAll()
-                    NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-                    Task { await reload() }
-                } catch { errorMessage = "History could not be cleared. " + error.localizedDescription }
+                playback.stop()
+                guard let history = container.history else { return }
+                Task {
+                    do {
+                        try await Task.detached { try history.deleteAll() }.value
+                        NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
+                    } catch { errorMessage = "History could not be cleared. " + error.localizedDescription }
+                }
             }
         }
     }
 
     private func reload(append: Bool = false) async {
-        guard let history = container.history else { return }
+        guard let history = container.history else {
+            errorMessage = "History storage is unavailable. Restart Airdraft after checking available disk space."
+            return
+        }
         if append && loading { return }
         let token = UUID()
         loadID = token
@@ -94,12 +138,19 @@ struct HistoryPage: View {
         let query = query
         let previous = append ? snapshot : .empty
         let pageSize = pageSize
-        let prepare: @Sendable () throws -> (HistorySnapshot, Bool) = {
-            let found = try history.recent(limit: pageSize + 1, query: query, offset: previous.entries.count)
-            return (HistorySnapshot.prepare(Array(found.prefix(pageSize)), history: history, appendingTo: previous), found.count > pageSize)
+        let recordingsOnly = recordingsOnly
+        let offset = append ? (nextOffset ?? previous.entries.count) : 0
+        let prepare: @Sendable () throws -> (HistorySnapshot, Int?) = {
+            if recordingsOnly {
+                let page = try history.recordings(limit: pageSize, query: query, offset: offset)
+                return (HistorySnapshot.prepareRecordings(page.entries, appendingTo: previous), page.nextOffset)
+            }
+            let found = try history.recent(limit: pageSize + 1, query: query, offset: offset)
+            return (HistorySnapshot.prepare(Array(found.prefix(pageSize)), history: history, appendingTo: previous),
+                    found.count > pageSize ? offset + pageSize : nil)
         }
         do {
-            let result: (HistorySnapshot, Bool)
+            let result: (HistorySnapshot, Int?)
             if RenderMode.isActive { result = try prepare() }
             else { result = try await Task.detached(priority: .userInitiated, operation: prepare).value }
             guard !Task.isCancelled, loadID == token else { return }
@@ -109,7 +160,11 @@ struct HistoryPage: View {
             #endif
             rowStates = Dictionary(uniqueKeysWithValues: result.0.entries.map { ($0.id, rowStates[$0.id] ?? HistoryCardState()) })
             snapshot = result.0
-            hasMore = result.1
+            if let playingID = playback.recordingID, !snapshot.entries.contains(where: { $0.asset?.id == playingID }) {
+                playback.stop()
+            }
+            hasMore = result.1 != nil
+            nextOffset = result.1
             errorMessage = nil
             if scroll.currentRecordID.flatMap({ snapshot.indexByID[$0] }) == nil {
                 scroll.currentRecordID = snapshot.entries.first?.id
@@ -124,20 +179,22 @@ struct HistoryPage: View {
 
 @MainActor @Observable
 private final class HistoryScrollState {
-    var currentRecordID: Int64?
+    var currentRecordID: String?
     var entriesAtTop = true
-    var entryPosition = ScrollPosition(idType: Int64.self)
+    var entryPosition = ScrollPosition(idType: String.self)
 }
 
 /// Survives lazy row eviction without keeping the row's view hierarchy alive.
 @MainActor @Observable
 final class HistoryCardState {
-    enum Presentation { case details, deletion }
+    enum Presentation { case details, deletion, audioDeletion }
     var showRaw = false
     var expanded = false
     var showInfo = false
     var copied = false
     var confirmDelete = false
+    var confirmAudioDelete = false
+    var exporting = false
     var mounted = false
     var pendingPresentation: Presentation?
 
@@ -145,6 +202,7 @@ final class HistoryCardState {
         pendingPresentation = nil
         showInfo = false
         confirmDelete = false
+        confirmAudioDelete = false
     }
 
     func copy(_ text: String) {
@@ -159,15 +217,15 @@ final class HistoryCardState {
 /// child reads them, keeping normal scrolling independent of row view updates.
 @MainActor @Observable
 private final class HistoryVisibleRows {
-    var ids: [Int64] = []
+    var ids: [String] = []
     @ObservationIgnored var viewport = HistoryViewport()
 
-    func update(_ visible: [Int64], snapshot: HistorySnapshot) {
+    func update(_ visible: [String], snapshot: HistorySnapshot) {
         let ordered = visible.compactMap { snapshot.indexByID[$0] }.sorted().map { snapshot.entries[$0].id }
         if ids != ordered { ids = ordered }
     }
 
-    func setVisible(_ id: Int64, _ visible: Bool, snapshot: HistorySnapshot) {
+    func setVisible(_ id: String, _ visible: Bool, snapshot: HistorySnapshot) {
         var next = Set(ids)
         if visible { next.insert(id) } else { next.remove(id) }
         update(Array(next), snapshot: snapshot)
@@ -215,9 +273,9 @@ private struct HistoryVisibleAccessibility<Content: View>: View {
 
 private struct HistoryEntries: View {
     let snapshot: HistorySnapshot
-    let rowStates: [Int64: HistoryCardState]
+    let rowStates: [String: HistoryCardState]
     @Bindable var scroll: HistoryScrollState
-    let playback: HistoryPlayback
+    let playback: RecordingPlayback
     @Binding var showReview: Bool
     @Binding var errorMessage: String?
     let hasMore: Bool
@@ -234,7 +292,7 @@ private struct HistoryEntries: View {
             }
             .scrollTargetLayout()
             if hasMore {
-                Button(loading ? "Loading…" : "Load Older Dictations", action: loadMore)
+                Button(loading ? "Loading…" : "Load Older Entries", action: loadMore)
                     .buttonStyle(SoftButtonStyle()).disabled(loading)
                     .padding(.vertical, Theme.controlSpacing)
             }
@@ -259,7 +317,7 @@ private struct HistoryEntries: View {
         }
         // Zero includes fully offscreen prefetched rows. A small positive
         // fraction excludes those while retaining tall expanded transcripts.
-        .onScrollTargetVisibilityChange(idType: Int64.self, threshold: 0.0001) { visibleIDs in
+        .onScrollTargetVisibilityChange(idType: String.self, threshold: 0.0001) { visibleIDs in
             visibility.update(visibleIDs, snapshot: snapshot)
             if let id = snapshot.firstVisibleID(in: visibleIDs) { scroll.currentRecordID = id }
         }
@@ -268,7 +326,7 @@ private struct HistoryEntries: View {
                 VStack(alignment: .leading, spacing: Theme.controlSpacing) {
                     rows(entries, accessibilityOnly: true)
                     if hasMore {
-                        Button(loading ? "Loading…" : "Load Older Dictations", action: loadMore).disabled(loading)
+                        Button(loading ? "Loading…" : "Load Older Entries", action: loadMore).disabled(loading)
                     }
                 }
             }
@@ -320,7 +378,7 @@ private struct HistoryRecordRow: View {
     let entry: HistoryEntry
     let state: HistoryCardState
     let rotorNamespace: Namespace.ID
-    let playback: HistoryPlayback
+    let playback: RecordingPlayback
     let isFirst: Bool
     @Binding var showReview: Bool
     @Binding var errorMessage: String?
@@ -339,13 +397,29 @@ private struct HistoryRecordRow: View {
                     SectionTitle(heading)
                         .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
                 }
-                HistoryCard(entry: entry, state: state,
-                            canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
-                            playing: playback.recordID == entry.id,
-                            onPlay: entry.audioAvailable ? play : nil,
-                            onRetranscribe: entry.audioAvailable && !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
-                            onDelete: delete)
+                if let record = entry.record {
+                    HistoryCard(entry: entry, state: state, record: record,
+                                canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
+                                recordingControls: recordingControls,
+                                onDelete: delete)
+                        .accessibilityIdentifier("history.entry.\(entry.id)")
+                } else {
+                    Card(spacing: Theme.controlSpacing) {
+                        HStack {
+                            Text("Recording").font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text(entry.time).supportingText()
+                        }
+                        Text("No saved transcript").supportingText()
+                        recordingControls
+                    }
                     .accessibilityIdentifier("history.entry.\(entry.id)")
+                }
+            }
+            .confirmationDialog("Delete this recording?", isPresented: Binding(get: { state.confirmAudioDelete }, set: { state.confirmAudioDelete = $0 }), titleVisibility: .visible) {
+                Button("Delete Recording", role: .destructive, action: deleteAudio)
+            } message: {
+                Text(entry.record == nil ? "This cannot be undone." : "The transcript stays in History. This cannot be undone.")
             }
             .onAppear {
                 state.mounted = true
@@ -369,6 +443,7 @@ private struct HistoryRecordRow: View {
         let content = state.showRaw ? entry.rawText : entry.finalText
         return VStack(alignment: .leading) {
             if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
+            if let record = entry.record {
             Text(state.expanded ? content.full : content.preview)
                 .lineLimit(state.expanded ? nil : 6)
                 .textSelection(.enabled)
@@ -377,20 +452,13 @@ private struct HistoryRecordRow: View {
                     reveal()
                     state.expanded.toggle()
                 }
-            if entry.record.rawTranscript != entry.record.finalText {
+            if record.rawTranscript != record.finalText {
                 SoftSegmentedPicker("Version", selection: $state.showRaw, options: [(false, "Refined"), (true, "Original")])
             }
-            Text(entry.metadata)
-            if entry.audioAvailable {
-                Button(playback.recordID == entry.id ? "Stop Playback" : "Play Recording", action: play)
-                    .accessibilityLabel(playback.recordID == entry.id ? "Stop Playback" : "Play Recording")
-                    .accessibilityIdentifier("history.play.\(entry.id)")
-                    .disabled(container.pipeline.isBusy)
-                Button("Retranscribe", action: retranscribe)
-                    .accessibilityLabel("Retranscribe")
-                    .accessibilityIdentifier("history.retranscribe.\(entry.id)")
-                    .disabled(container.pipeline.isBusy || container.pipeline.hasRecoverableRecording)
             }
+            Text(entry.metadata)
+            if entry.audioAvailable { recordingControls }
+            if entry.record != nil {
             Button("Copy") { state.copy(content.full) }
                 .accessibilityLabel("Copy")
                 .accessibilityIdentifier("history.copy.\(entry.id)")
@@ -401,6 +469,7 @@ private struct HistoryRecordRow: View {
                 Button("Delete") { revealAndPresent(.deletion) }
                     .accessibilityLabel("Delete")
                     .accessibilityIdentifier("history.delete.\(entry.id)")
+            }
             }
         }
         .accessibilityElement(children: .contain)
@@ -417,37 +486,99 @@ private struct HistoryRecordRow: View {
         switch presentation {
         case .details: state.showInfo = true
         case .deletion: state.confirmDelete = true
+        case .audioDeletion: state.confirmAudioDelete = true
         }
     }
 
     private func play() {
         guard !container.pipeline.isBusy, let history = container.history else { return }
-        do { try playback.toggle(entry.record, store: history) }
+        do {
+            guard let asset = entry.asset, let url = history.audioURL(for: asset) else { throw CocoaError(.fileNoSuchFile) }
+            try playback.toggle(id: asset.id, url: url)
+        }
         catch { errorMessage = "Recording could not be played. " + error.localizedDescription }
+    }
+
+    @ViewBuilder
+    private var recordingControls: some View {
+        if let asset = entry.asset {
+            HistoryRecordingControls(asset: asset, playback: playback, busy: container.pipeline.isBusy,
+                                     exporting: state.exporting, play: play, save: saveAudio,
+                                     reveal: revealAudio,
+                                     retranscribe: !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
+                                     delete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory ? { revealAndPresent(.audioDeletion) } : nil)
+        }
+    }
+
+    private func saveAudio() {
+        guard !state.exporting, let asset = entry.asset, let history = container.history else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.wav]
+        panel.canCreateDirectories = true
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        panel.nameFieldStringValue = "Airdraft_\(formatter.string(from: asset.createdAt))_\(asset.id.prefix(8)).wav"
+        let completion: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let destination = panel.url else { return }
+            state.exporting = true
+            Task {
+                defer { state.exporting = false }
+                do {
+                    // NSSavePanel obtains explicit replacement confirmation.
+                    try await Task.detached { try history.exportRecording(id: asset.id, to: destination, replacing: true) }.value
+                } catch { errorMessage = "Audio could not be saved. " + error.localizedDescription }
+            }
+        }
+        if let window = NSApp.keyWindow { panel.beginSheetModal(for: window, completionHandler: completion) }
+        else { panel.begin(completionHandler: completion) }
+    }
+
+    private func revealAudio() {
+        guard let asset = entry.asset, let url = container.history?.audioURL(for: asset) else {
+            errorMessage = "This recording is no longer available. Refresh History to update the list."
+            return
+        }
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
+    private func deleteAudio() {
+        guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory,
+              let asset = entry.asset, let history = container.history else { return }
+        playback.stop()
+        Task {
+            do {
+                try await Task.detached { try history.deleteRecording(id: asset.id) }.value
+                NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
+            } catch { errorMessage = "Recording could not be deleted. " + error.localizedDescription }
+        }
     }
 
     private func retranscribe() {
         guard !container.pipeline.isBusy, !container.pipeline.hasRecoverableRecording else { return }
         playback.stop()
-        container.pipeline.retranscribe(entry.record)
+        guard let asset = entry.asset else { return }
+        container.pipeline.retranscribe(asset)
         showReview = true
     }
 
     private func delete() {
         guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
-        do {
-            playback.stop()
-            try container.history?.delete(id: entry.id)
-            NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-            reload()
-        } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
+        playback.stop()
+        guard let id = entry.record?.id, let history = container.history else { return }
+        Task {
+            do {
+                try await Task.detached { try history.delete(id: id) }.value
+                NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
+            } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
+        }
     }
 }
 
 private struct HistoryTimeline: View {
     let snapshot: HistorySnapshot
     let scroll: HistoryScrollState
-    @State private var position = ScrollPosition(idType: Int64.self)
+    @State private var position = ScrollPosition(idType: String.self)
     @State private var visibility = HistoryVisibleRows()
     @Namespace private var rotorNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -534,7 +665,7 @@ private struct HistoryTimeline: View {
         .accessibilityIdentifier("history.timeline")
     }
 
-    private func setVisible(_ id: Int64, _ visible: Bool) {
+    private func setVisible(_ id: String, _ visible: Bool) {
         visibility.setVisible(id, visible, snapshot: snapshot)
         #if DEBUG
         HistoryRenderMetrics.timelineVisibleIDs = Set(visibility.ids)
@@ -579,14 +710,12 @@ private struct HistoryTimelineButton: View {
     }
 }
 
-struct HistoryCard: View {
+struct HistoryCard<RecordingControls: View>: View {
     let entry: HistoryEntry
     @Bindable var state: HistoryCardState
-    private var record: DictationRecord { entry.record }
+    let record: DictationRecord
     var canDelete = true
-    var playing = false
-    var onPlay: (() -> Void)? = nil
-    var onRetranscribe: (() -> Void)? = nil
+    let recordingControls: RecordingControls
     let onDelete: () -> Void
 
     private var content: HistoryTextContent { state.showRaw ? entry.rawText : entry.finalText }
@@ -611,16 +740,6 @@ struct HistoryCard: View {
                     .lineLimit(1)
                 Spacer()
                 HStack(spacing: 14) {
-                    if let onPlay {
-                        Button(action: onPlay) { Image(systemName: playing ? "stop.fill" : "play.fill") }
-                            .help(playing ? "Stop playback" : "Play recording")
-                            .accessibilityLabel(playing ? "Stop Playback" : "Play Recording")
-                    }
-                    if let onRetranscribe {
-                        Button(action: onRetranscribe) { Image(systemName: "arrow.clockwise") }
-                            .help("Retranscribe with the current model and profile")
-                            .accessibilityLabel("Retranscribe")
-                    }
                     Button(action: copy) { Image(systemName: state.copied ? "checkmark" : "doc.on.doc") }
                         .help("Copy")
                         .accessibilityLabel("Copy")
@@ -638,15 +757,17 @@ struct HistoryCard: View {
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
             }
+            if entry.audioAvailable {
+                RowDivider()
+                recordingControls
+            }
         }
         .contextMenu {
             Button("Copy", action: copy)
-            if let onPlay { Button(playing ? "Stop Playback" : "Play Recording", action: onPlay) }
-            if let onRetranscribe { Button("Retranscribe", action: onRetranscribe) }
             if canDelete { Button("Delete…", role: .destructive) { state.confirmDelete = true } }
         }
-        .confirmationDialog("Delete this dictation?", isPresented: $state.confirmDelete) {
-            Button("Delete", role: .destructive, action: onDelete)
+        .confirmationDialog("Delete this dictation and its recording?", isPresented: $state.confirmDelete, titleVisibility: .visible) {
+            Button("Delete Dictation", role: .destructive, action: onDelete)
         }
     }
 
@@ -657,6 +778,7 @@ struct HistoryCard: View {
     private var details: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
             row("When", record.createdAt.formatted(date: .abbreviated, time: .standard))
+            row("Audio", entry.audioAvailable ? "Saved locally" : "Unavailable")
             row("App", [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
             if let url = record.url { row("URL", url) }
             row("Profile", "\(record.mode) · \(record.family)")

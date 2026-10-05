@@ -4,34 +4,45 @@ import Observation
 import SwiftUI
 
 @MainActor
-@Observable
-final class HistoryPlayback: NSObject, AVAudioPlayerDelegate {
-    private(set) var recordID: Int64?
-    private var player: AVAudioPlayer?
-
-    func toggle(_ record: DictationRecord, store: HistoryStore) throws {
-        if recordID == record.id { stop(); return }
-        stop()
-        guard let url = store.audioURL(for: record) else { throw CocoaError(.fileNoSuchFile) }
-        let candidate = try AVAudioPlayer(contentsOf: url)
-        candidate.delegate = self
-        guard candidate.play() else { throw CocoaError(.fileReadCorruptFile) }
-        player = candidate
-        recordID = record.id
+func makeHistoryPlayback() -> RecordingPlayback {
+    #if DEBUG
+    if RenderMode.isActive {
+        return RecordingPlayback(automaticUpdates: false) { url in try SilentHistoryTransport(url: url) }
     }
+    #endif
+    return RecordingPlayback { url in try HistoryAudioTransport(url: url) }
+}
 
-    func stop() {
-        player?.stop()
-        player = nil
-        recordID = nil
+#if DEBUG
+/// Render fixtures can exercise every button without opening an output device.
+@MainActor
+private final class SilentHistoryTransport: RecordingPlaybackTransport {
+    let duration: TimeInterval
+    var currentTime: TimeInterval = 0
+    var isPlaying = false
+    init(url: URL) throws {
+        let file = try AVAudioFile(forReading: url)
+        duration = Double(file.length) / file.processingFormat.sampleRate
     }
+    func play() -> Bool { isPlaying = true; return true }
+    func pause() { isPlaying = false }
+    func stop() { isPlaying = false }
+}
+#endif
 
-    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        Task { @MainActor [weak self] in
-            guard self?.player === player else { return }
-            self?.stop()
-        }
+@MainActor
+private final class HistoryAudioTransport: RecordingPlaybackTransport {
+    private let player: AVAudioPlayer
+    init(url: URL) throws { player = try AVAudioPlayer(contentsOf: url) }
+    var duration: TimeInterval { player.duration }
+    var currentTime: TimeInterval {
+        get { player.currentTime }
+        set { player.currentTime = newValue }
     }
+    var isPlaying: Bool { player.isPlaying }
+    func play() -> Bool { player.play() }
+    func pause() { player.pause() }
+    func stop() { player.stop() }
 }
 
 struct HistoryTranscriptionReview: View {

@@ -66,6 +66,9 @@ enum DebugRender {
                 rawTranscript: "um please send the report tomorrow", refinedText: "Please send the report tomorrow.",
                 finalText: "Please send the report tomorrow.", asrEngine: "preview", audioSeconds: 2,
                 asrMs: 100, llmMs: 100, inserted: true), samples: [Float](repeating: 0, count: 32_000))
+            if env["AIRDRAFT_RENDER_DETACHED_AUDIO"] == "1" {
+                try? container.history?.deleteHistoryKeepingAudio()
+            }
         } else if env["AIRDRAFT_RENDER_SAMPLE_DATA"] == "1" {
             container = PreviewData.container
         } else if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {
@@ -173,7 +176,8 @@ enum DebugRender {
                 if env["AIRDRAFT_RENDER_LIVE"] == suffix {
                     window.center()
                     window.makeKeyAndOrderFront(nil)
-                    RunLoop.main.run(until: Date().addingTimeInterval(45))
+                    let liveSeconds = min(300, max(1, Double(env["AIRDRAFT_RENDER_LIVE_SECONDS"] ?? "") ?? 45))
+                    RunLoop.main.run(until: Date().addingTimeInterval(liveSeconds))
                     window.orderOut(nil)
                 }
                 if env["AIRDRAFT_RENDER_VERIFY_NAVIGATION"] == "1", page == .history {
@@ -359,7 +363,7 @@ enum DebugRender {
 
 @MainActor
 enum HistoryRenderMetrics {
-    static var timelineVisibleIDs: Set<Int64> = []
+    static var timelineVisibleIDs: Set<String> = []
     static var groupingPasses = 0
     static var groupedRecords = 0
     static var cardBodies = 0

@@ -825,7 +825,13 @@ queries filter before pagination and count missing files in continuation offsets
 Export stored bytes under the deletion writer lease; exported copies are user-owned.
 See `docs/recording-storage.md`. Preserve audio in pending-save recovery. Run cleanup
 at launch, hourly, after saves and after retention changes. Playback has one owner
-and stops when recording, deleting, leaving History or cleaning up audio.
+and stops when recording, deleting, leaving History or cleaning up audio. History
+uses All/Recordings filters over one timeline; audio-only cards contain no deleted
+transcript. Play/pause and seek share one transport, and only the selected progress
+view observes its clock. Keep drag seeking fine enough for subsecond recordings;
+keyboard seeking uses five-second steps. Verify using a silent injected transport,
+never system playback. Save Audio uses NSSavePanel and preserves source bytes;
+Show in Finder selects the managed file. Recording-only deletion preserves text.
 Retranscription uses a review-only pipeline policy, including explicit retries;
 it never inserts, runs delivery scripts, replaces the original entry or adds to
 history/statistics. Only the user's Copy action changes the clipboard.

@@ -3,6 +3,21 @@ import XCTest
 
 @MainActor
 final class HistoryRetranscriptionTests: XCTestCase {
+    func testDetachedRecordingReviewDoesNotRecreateDeletedHistory() async throws {
+        let fixture = try Fixture(speech: HistorySpeech([.success("Reviewed audio")]))
+        defer { fixture.cleanUp() }
+        let original = try fixture.saveOriginal()
+        let asset = try XCTUnwrap(fixture.history.recording(id: XCTUnwrap(original.recordingID)))
+        try fixture.history.deleteHistoryKeepingAudio()
+        fixture.pipeline.retranscribe(asset)
+        try await waitUntil("Detached recording review finishes") { !fixture.pipeline.isBusy }
+        XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed audio")
+        XCTAssertEqual(try fixture.history.count(), 0)
+        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+        XCTAssertTrue(fixture.probe.outcomes.isEmpty)
+        XCTAssertNotNil(fixture.history.audioURL(for: asset))
+    }
+
     func testRetranscriptionReturnsReviewWithoutInsertionOrDuplicateHistory() async throws {
         let fixture = try Fixture(speech: HistorySpeech([.success("New transcription")]))
         defer { fixture.cleanUp() }

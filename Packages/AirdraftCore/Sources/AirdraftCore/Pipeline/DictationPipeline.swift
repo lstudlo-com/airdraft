@@ -451,7 +451,17 @@ public final class DictationPipeline {
     /// Review old audio without insertion, clipboard changes, or duplicate history.
     /// This delivery policy survives speech failures and explicit retries.
     public func retranscribe(_ record: DictationRecord) {
-        guard !isBusy, !hasRecoverableRecording, let history else { return }
+        guard let history else { return }
+        retranscribe { try history.audioSamples(for: record) }
+    }
+
+    public func retranscribe(_ asset: RecordingAsset) {
+        guard let history else { return }
+        retranscribe { try history.audioSamples(for: asset) }
+    }
+
+    private func retranscribe(loadSamples: @escaping @Sendable () throws -> [Float]) {
+        guard !isBusy, !hasRecoverableRecording else { return }
         generation = UUID()
         let token = generation
         reviewGeneration = token
@@ -464,7 +474,7 @@ public final class DictationPipeline {
             do {
                 try await accessCheck()
                 guard isCurrent(token) else { return }
-                let samples = try await Task.detached { try history.audioSamples(for: record) }.value
+                let samples = try await Task.detached(operation: loadSamples).value
                 guard isCurrent(token) else { return }
                 await process(samples: samples, seconds: Double(samples.count) / AudioRecorder.sampleRate,
                               context: .empty, target: nil, token: token, reviewOnly: true)

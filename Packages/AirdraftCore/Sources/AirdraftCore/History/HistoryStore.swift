@@ -363,6 +363,18 @@ public final class HistoryStore: Sendable {
         } }
     }
 
+    public func audioSamples(for asset: RecordingAsset) throws -> [Float] {
+        try audioLock.withLock {
+            // A writer lease also prevents another store from removing the file
+            // between validating its reference and decoding it.
+            try dbQueue.write { db in
+                guard let stored = try RecordingAsset.fetchOne(db, key: asset.id),
+                      let url = try existingAudioURL(named: stored.filename) else { throw AudioStorageError.unavailable }
+                return try AudioFile.load(path: url.path)
+            }
+        }
+    }
+
     public func recording(id: String) throws -> RecordingAsset? {
         try dbQueue.read { db in try RecordingAsset.fetchOne(db, key: id) }
     }
