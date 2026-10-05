@@ -420,7 +420,7 @@ and other settings actions stay unavailable until maintenance finishes.
 History keeps its title and search above two independently scrolling columns.
 Below the heading, an All/Recordings `SoftSegmentedPicker` shares a row with the
 quiet Keep Recordings retention action, which opens Configuration. All shows
-dictations; Recordings shows available saved audio, including recordings without
+dictations and media transcript documents; Recordings shows available saved audio, including recordings without
 a saved transcript. Both columns follow the current filter and search.
 
 A 52-point guide on the left groups compact timestamps and horizontal ticks by
@@ -454,6 +454,36 @@ deletion separate from deleting a dictation and its recording, with a native
 confirmation for each. Empty results omit the guide. The Recordings empty state
 explains how to retain future recordings when retention is off. Timeline jumps
 respect Reduce Motion.
+
+### Media import and transcript editor
+
+History's Import Media plus button sits beside search and opens a native file
+picker; dropping a file opens the same import sheet. The sheet names the file
+above one `SettingsCard` containing Transcription, Language and Identify speakers.
+Reuse the compact `SoftPicker`, `.softSwitch` and `RowDivider`. Missing local
+models expose Open Models or the explicit speaker-model Download action.
+Supporting text identifies the processing destination, retained WAV, two-hour
+limit and result in History. The single primary action reads Transcribe locally
+or Upload and Transcribe for Soniox; Cancel remains secondary.
+
+Media cards share History's raised gray material, timeline and recording row.
+They show title, stage, a four-line preview and engine name. Active work exposes
+progress and Pause; incomplete work exposes the available Resume or Keep
+Transcript action. Open Transcript opens the editor.
+
+The editor keeps its 18-point title and Close above Edited/Original, Copy and a
+native Export menu. Speaker names use the existing soft fields; Add Speaker sits
+beside the short estimate notice. Turn cards show a timestamp, speaker selector,
+overlap notice when applicable and 13-point text. Original text is selectable;
+Edited text is editable when processing has completed. Retain shared 16-point
+card insets and 18-point corners, with at most 100 turns per page.
+
+The footer keeps Delete Transcript at the leading edge, playback when active,
+and optional Summarize beside the primary Save Changes action. Dirty editors ask
+before discarding changes. Summarize confirms provider use and cost, and deletion
+explains that the recording remains. Native TXT, JSON, SRT and VTT exports follow
+the selected version. These documents do not add dictation statistics or insert
+text into another app.
 
 ### Configuration data cleanup
 

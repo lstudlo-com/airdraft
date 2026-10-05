@@ -21,6 +21,7 @@ let package = Package(
             name: "AirdraftCore",
             dependencies: [
                 .product(name: "WhisperKit", package: "WhisperKit"),
+                .product(name: "SpeakerKit", package: "WhisperKit"),
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "Qwen3ASR", package: "speech-swift"),
                 .product(name: "CohereTranscribeASR", package: "speech-swift"),

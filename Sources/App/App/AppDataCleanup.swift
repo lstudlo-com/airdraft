@@ -63,7 +63,7 @@ extension AppContainer {
             ]
         }
         await cleanup.execute(scope, prepare: {
-            guard !self.downloads.isBusy else { throw CleanupError.busy }
+            guard !self.downloads.isBusy, (!self.pipeline.isBusy || self.pipeline.isMaintainingData), !self.pipeline.isSavingHistory else { throw CleanupError.busy }
             if !self.isolatedData {
                 let siblings = NSWorkspace.shared.runningApplications.filter {
                     $0.processIdentifier != ProcessInfo.processInfo.processIdentifier &&
@@ -72,6 +72,9 @@ extension AppContainer {
                 guard siblings.isEmpty else { throw CleanupError.otherInstance }
             }
             guard let lease = self.dataLease else { throw CleanupError.otherInstance }
+            // Resolve provider cleanup before writing the local cleanup journal/fence.
+            // A missing key must leave Configuration available for recovery.
+            if !self.cleanup.blocksWork { try await self.media?.prepareCleanup() }
             try self.pipeline.beginDataMaintenance()
             do { try lease.acquireExclusive() }
             catch { throw error }

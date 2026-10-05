@@ -19,10 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()
                 alert.messageText = "Quit with unfinished work?"
-                alert.informativeText = "Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
+                alert.informativeText = "Saved media jobs can resume from History. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
                 alert.addButton(withTitle: "Keep Open")
                 alert.addButton(withTitle: "Quit and Discard")
                 guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
+                app.media?.cancel()
                 app.pipeline.cancel()
                 app.downloads.cancelAll()
             }

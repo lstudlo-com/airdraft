@@ -18,9 +18,21 @@ struct HistorySnapshot: Sendable {
         return prepare(items, appendingTo: previous, calendar: calendar, now: now)
     }
 
+    static func prepareItems(_ items: [HistoryItem], appendingTo previous: Self = .empty) -> Self {
+        prepare(items.compactMap { item in
+            if let record = item.dictation, let id = record.id {
+                return Item(id: String(id), date: record.createdAt, record: record, asset: item.asset)
+            }
+            if let document = item.document {
+                return Item(id: "document:" + document.id, date: document.createdAt, record: nil, asset: item.asset, document: document)
+            }
+            return nil
+        }, appendingTo: previous, calendar: .current, now: Date())
+    }
+
     static func prepareRecordings(_ recordings: [RecordingPage.Entry], appendingTo previous: Self = .empty,
                                   calendar: Calendar = .current, now: Date = Date()) -> Self {
-        prepare(recordings.map { Item(id: "recording:" + $0.id, date: $0.asset.createdAt, record: $0.dictation, asset: $0.asset) },
+        prepare(recordings.map { Item(id: "recording:" + $0.id, date: $0.asset.createdAt, record: $0.dictation, asset: $0.asset, document: $0.document) },
                 appendingTo: previous, calendar: calendar, now: now)
     }
 
@@ -29,6 +41,7 @@ struct HistorySnapshot: Sendable {
         let date: Date
         let record: DictationRecord?
         let asset: RecordingAsset?
+        var document: TranscriptDocument? = nil
     }
 
     private static func prepare(_ items: [Item], appendingTo previous: Self, calendar: Calendar, now: Date) -> Self {
@@ -56,13 +69,13 @@ struct HistorySnapshot: Sendable {
                 }
                 metadata += [record.mode, "\(String(format: "%.0f", record.audioSeconds)) s"]
             }
-            let finalText = HistoryTextContent(item.record?.finalText ?? "")
+            let finalText = HistoryTextContent(item.document?.text ?? item.record?.finalText ?? "")
             indexByID[item.id] = entries.count
             entries.append(HistoryEntry(id: item.id, createdAt: item.date, record: item.record, asset: item.asset, heading: heading,
                 timelineHeading: heading.map { _ in item.date.formatted(.dateTime.month(.abbreviated).day()) },
                 time: time, timestamp: item.date.formatted(date: .abbreviated, time: .standard),
                 metadata: metadata.joined(separator: " · "), finalText: finalText,
-                rawText: item.record?.rawTranscript == item.record?.finalText ? finalText : HistoryTextContent(item.record?.rawTranscript ?? "")))
+                rawText: item.record?.rawTranscript == item.record?.finalText ? finalText : HistoryTextContent(item.record?.rawTranscript ?? ""), document: item.document))
             previousDay = day
         }
         return Self(entries: entries, indexByID: indexByID)
@@ -86,6 +99,7 @@ struct HistoryEntry: Identifiable, Sendable {
     let metadata: String
     let finalText: HistoryTextContent
     let rawText: HistoryTextContent
+    var document: TranscriptDocument? = nil
     var audioAvailable: Bool { asset != nil }
 }
 

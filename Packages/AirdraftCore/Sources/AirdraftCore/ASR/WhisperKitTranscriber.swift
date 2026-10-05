@@ -68,6 +68,30 @@ public actor WhisperKitTranscriber: Transcriber {
         return Transcript(text: text, language: detectedLanguage, engine: id, latencyMs: ms)
     }
 
+    /// File jobs call this on bounded windows and checkpoint only complete windows.
+    public func transcribeWords(samples: [Float], language: String?, offset: Double) async throws -> [TranscriptWord] {
+        let pipe = try await loadedPipe()
+        var options = DecodingOptions()
+        options.task = .transcribe
+        options.language = language
+        options.detectLanguage = language == nil
+        options.temperature = 0
+        options.skipSpecialTokens = true
+        options.withoutTimestamps = false
+        options.wordTimestamps = true
+        options.windowClipTime = 0
+        options.chunkingStrategy = nil
+        try Task.checkCancellation()
+        let results = try await pipe.transcribe(audioArray: samples, decodeOptions: options)
+        try Task.checkCancellation()
+        return results.flatMap { result in result.segments.flatMap { segment -> [TranscriptWord] in
+            if let words = segment.words, !words.isEmpty {
+                return words.map { TranscriptWord(start: offset + Double($0.start), end: offset + Double($0.end), text: $0.word) }
+            }
+            return [TranscriptWord(start: offset + Double(segment.start), end: offset + Double(segment.end), text: segment.text)]
+        } }
+    }
+
     private func loadedPipe() async throws -> WhisperKit {
         if let pipe { return pipe }
         if loading == nil {

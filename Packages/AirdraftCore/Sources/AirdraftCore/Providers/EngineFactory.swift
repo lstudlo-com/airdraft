@@ -68,6 +68,22 @@ public actor EngineFactory {
         return engine
     }
 
+    public func mediaCredential(for reference: String) throws -> String? { try credentialReader(reference) }
+
+    public func transcribeMediaWindow(_ samples: [Float], offset: Double, config: ASRConfig) async throws -> [TranscriptWord] {
+        let language = try SpeechLanguagePolicy.resolve(config).language
+        return try await serialize {
+            try await self.prepareExclusive(config)
+            guard let engine = await self.transcriber(for: config) as? WhisperKitTranscriber else { throw MediaError.unavailable }
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            let words = try await engine.transcribeWords(samples: samples, language: language, offset: offset)
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            return words
+        }
+    }
+
     /// Refiners are cheap value types built per call, so a key or model change
     /// in Settings takes effect on the next dictation.
     public func refiner(for config: LLMConfig) async -> (any Refiner)? {

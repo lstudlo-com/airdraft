@@ -43,6 +43,7 @@ public final class DictationPipeline {
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
     public private(set) var isMaintainingData = false
+    public var isProcessingMedia = false
     public private(set) var previewText = ""
     public private(set) var previewIssue: String?
     public private(set) var previewEnabledForRecording = false
@@ -208,7 +209,7 @@ public final class DictationPipeline {
     }
 
     public var isRecording: Bool { state == .recording }
-    public var isBusy: Bool { isMaintainingData || state.isBusy || recordingRequest != nil }
+    public var isBusy: Bool { isMaintainingData || isProcessingMedia || state.isBusy || recordingRequest != nil }
 
     // MARK: - Control
 
@@ -605,7 +606,7 @@ public final class DictationPipeline {
     /// Freeze every entry point before deletion. Existing writes must finish
     /// first; setting the flag is synchronous on the same actor as those starts.
     public func beginDataMaintenance() throws {
-        guard !state.isBusy, recordingRequest == nil, !isSavingHistory else { throw CleanupError.busy }
+        guard !isProcessingMedia, !state.isBusy, recordingRequest == nil, !isSavingHistory else { throw CleanupError.busy }
         isMaintainingData = true
         generation = UUID()
         resetTask?.cancel()

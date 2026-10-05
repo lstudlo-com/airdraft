@@ -89,10 +89,10 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
 
 /// SQLite history at ~/Library/Application Support/Transcribar/history.sqlite.
 public final class HistoryStore: Sendable {
-    private let dbQueue: DatabaseQueue
+    let dbQueue: DatabaseQueue
     private let audioDirectory: URL?
     // GRDB serializes SQL; this also covers the corresponding sidecar operations.
-    private let audioLock = NSLock()
+    let audioLock = NSLock()
 
     public init(directory: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -183,6 +183,17 @@ public final class HistoryStore: Sendable {
                 }
             }
         }
+        migrator.registerMigration("v5-media-documents") { db in
+            try db.create(table: "mediaDocument") { t in
+                t.primaryKey("id", .text)
+                t.column("createdAt", .datetime).notNull().indexed()
+                t.column("recordingID", .text).references("recordingAsset", onDelete: .setNull).indexed()
+                t.column("title", .text).notNull()
+                t.column("text", .text).notNull()
+                t.column("revision", .integer).notNull()
+                t.column("payload", .blob).notNull()
+            }
+        }
         try migrator.migrate(dbQueue)
     }
 
@@ -245,7 +256,7 @@ public final class HistoryStore: Sendable {
     public func cleanupPreview() throws -> CleanupPreview {
         try audioLock.withLock {
             try dbQueue.read { db in
-                CleanupPreview(historyCount: try DictationRecord.fetchCount(db),
+                CleanupPreview(historyCount: try DictationRecord.fetchCount(db) + Int.fetchOne(db, sql: "SELECT COUNT(*) FROM mediaDocument")!,
                                recordingCount: try RecordingAsset.fetchCount(db),
                                audioBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0) } ?? 0,
                                managedBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0.deletingLastPathComponent()) } ?? 0)
@@ -345,6 +356,7 @@ public final class HistoryStore: Sendable {
                 }
                 try removeOrphanAudio(retaining: [])
                 _ = try DictationRecord.deleteAll(db)
+                try db.execute(sql: "DELETE FROM mediaDocument")
                 _ = try RecordingAsset.deleteAll(db)
             }
             try dbQueue.vacuum()
@@ -354,7 +366,10 @@ public final class HistoryStore: Sendable {
     /// Removes transcript text and app context, retaining only independent audio metadata.
     public func deleteHistoryKeepingAudio() throws {
         try audioLock.withLock {
-            try dbQueue.write { db in _ = try DictationRecord.deleteAll(db) }
+            try dbQueue.write { db in
+                _ = try DictationRecord.deleteAll(db)
+                try db.execute(sql: "DELETE FROM mediaDocument")
+            }
             try dbQueue.vacuum()
         }
     }
@@ -460,10 +475,11 @@ public final class HistoryStore: Sendable {
                     WHERE a.id LIKE ? OR EXISTS (
                         SELECT 1 FROM dictation d WHERE d.recordingID = a.id AND
                         (d.rawTranscript LIKE ? OR d.finalText LIKE ? OR d.appName LIKE ?))
+                    OR EXISTS (SELECT 1 FROM mediaDocument m WHERE m.recordingID = a.id AND (m.title LIKE ? OR m.text LIKE ?))
                     """
                 while entries.count < pageSize {
                     let pattern = "%\(query)%"
-                    var arguments: StatementArguments = query.isEmpty ? [] : [pattern, pattern, pattern, pattern]
+                    var arguments: StatementArguments = query.isEmpty ? [] : [pattern, pattern, pattern, pattern, pattern, pattern]
                     arguments += [pageSize, scan]
                     let batch = try RecordingAsset.fetchAll(db, sql: """
                         SELECT a.* FROM recordingAsset a \(filter)
@@ -473,7 +489,8 @@ public final class HistoryStore: Sendable {
                         scan += 1
                         guard try existingAudioURL(named: asset.filename) != nil else { continue }
                         let dictation = try DictationRecord.filter(Column("recordingID") == asset.id).fetchOne(db)
-                        entries.append(.init(asset: asset, dictation: dictation))
+                        let document = try Row.fetchOne(db, sql: "SELECT payload, recordingID FROM mediaDocument WHERE recordingID = ? ORDER BY createdAt DESC LIMIT 1", arguments: [asset.id]).map(Self.decodeDocument)
+                        entries.append(.init(asset: asset, dictation: dictation, document: document))
                         if entries.count == pageSize { return RecordingPage(entries: entries, nextOffset: scan) }
                     }
                     if batch.count < pageSize { return RecordingPage(entries: entries, nextOffset: nil) }
@@ -511,7 +528,7 @@ public final class HistoryStore: Sendable {
         catch let error as CocoaError where error.code == .fileReadNoSuchFile { return nil }
     }
 
-    private func checkedAudioDirectory(create: Bool = false) throws -> URL? {
+    func checkedAudioDirectory(create: Bool = false) throws -> URL? {
         guard let directory = audioDirectory else { return nil }
         var info = try attributes(at: directory)
         if info == nil, create {
@@ -529,7 +546,7 @@ public final class HistoryStore: Sendable {
         return directory
     }
 
-    private func existingAudioURL(named filename: String?) throws -> URL? {
+    func existingAudioURL(named filename: String?) throws -> URL? {
         guard let filename, Self.isAudioFilename(filename),
               let directory = try checkedAudioDirectory() else { return nil }
         let url = directory.appendingPathComponent(filename)
@@ -584,7 +601,7 @@ public final class HistoryStore: Sendable {
         for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
             let name = url.lastPathComponent
             guard !filenames.contains(name),
-                  Self.isAudioFilename(name) || Self.isAudioFilename(name, extension: "pending") else { continue }
+                  Self.isAudioFilename(name) || Self.isAudioFilename(name, extension: "pending") || Self.isAudioFilename(name, extension: "upload") else { continue }
             // Unexpected directories and links belong to neither our writer nor cleanup.
             guard try attributes(at: url)?[.type] as? FileAttributeType == .typeRegular else { continue }
             try removeManagedFile(at: url)

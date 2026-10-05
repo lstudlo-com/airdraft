@@ -13,6 +13,12 @@ struct MenuView: View {
             Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
                 .disabled(container.cleanup.isRunning)
+        } else if container.media?.isBusy == true {
+            Text(MenuTitle.fit(container.media?.activity ?? "Preparing Media…"))
+            Button("Pause Media Job") { container.media?.cancel() }
+            Button("History…") { show(.history) }
+            Divider()
+            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else {
             standardMenu
         }
@@ -23,7 +29,7 @@ struct MenuView: View {
         Button(MenuTitle.fit(dictationTitle)) { container.pipeline.toggle() }
             .badge(container.pipeline.state.isBusy ? nil : Text(container.settings.hotkey.displayString))
             .help(shortcutHelp)
-            .disabled(container.pipeline.state.isBusy && !container.pipeline.isRecording)
+            .disabled(container.pipeline.isBusy && !container.pipeline.isRecording)
         if container.pipeline.state.isBusy {
             Button("Cancel Dictation") { container.pipeline.cancel() }
         }

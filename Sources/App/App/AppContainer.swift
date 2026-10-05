@@ -38,6 +38,7 @@ final class AppContainer {
     let factory: EngineFactory
     let models: ModelLifecycle
     let pipeline: DictationPipeline
+    let media: MediaJobRunner?
     let license: LicenseStore
     let permissions = SystemPermissions()
     let hotkeys: HotkeyService
@@ -112,6 +113,18 @@ final class AppContainer {
             recordingPreflight: recordingPreflight,
             accessCheck: { try await license.requireAccess() }
         )
+        let mediaFactory = factory
+        let mediaCredentialReader: @Sendable (String) async throws -> String? = isolatedData ? { _ in nil } : { try await mediaFactory.mediaCredential(for: $0) }
+        if let history {
+            media = MediaJobRunner(history: history, directory: dir, factory: factory,
+                                  credentialReader: mediaCredentialReader,
+                                  accessCheck: { try await license.requireAccess() })
+        } else { media = nil }
+        media?.onBusyChanged = { [weak pipeline, weak models] busy in
+            pipeline?.isProcessingMedia = busy
+            models?.setDictationBusy(busy)
+        }
+        media?.onChange = { NotificationCenter.default.post(name: .historyEntriesChanged, object: nil) }
         if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance() }
     }
 
@@ -145,7 +158,7 @@ final class AppContainer {
             AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")
             panel?.update(for: state)
             self?.hotkeys.cancelPendingPress()
-            self?.models.setDictationBusy(state.isBusy)
+            self?.models.setDictationBusy(state.isBusy || self?.pipeline.isProcessingMedia == true)
             // Esc cancels only while recording, so it never steals Esc elsewhere.
             if state == .recording { self?.escapeHotkey.register(.escape) } else { self?.escapeHotkey.unregister() }
         }

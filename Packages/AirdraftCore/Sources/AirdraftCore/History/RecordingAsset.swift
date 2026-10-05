@@ -32,6 +32,7 @@ public struct RecordingPage: Sendable {
         public var id: String { asset.id }
         public let asset: RecordingAsset
         public let dictation: DictationRecord?
+        public var document: TranscriptDocument? = nil
     }
     public let entries: [Entry]
     public let nextOffset: Int?

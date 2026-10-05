@@ -210,6 +210,26 @@ public actor ModelDownloader {
         return try await CLIProcess.run(tar, input: "", timeout: 300).status
     }
 
+    /// Explicit user-triggered installation. SpeakerKit inference always uses download: false.
+    public func downloadSpeakerModel(progress: @escaping ProgressHandler) async throws {
+        try await exclusive("speakerkit") {
+            let folder = LocalSpeakerDiarizer.folder
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let marker = folder.appendingPathComponent(LocalModels.incompleteMarker)
+            try Data().write(to: marker, options: .atomic)
+            var files: [ModelDownloadTransfer.File] = []
+            for path in LocalSpeakerDiarizer.modelPaths {
+                let entries = try await listFiles(repo: "argmaxinc/speakerkit-coreml", path: path)
+                guard !entries.isEmpty else { throw DownloadError.emptyListing }
+                files += try entries.map { try transferFile($0, repo: "argmaxinc/speakerkit-coreml", root: folder) }
+            }
+            try await ModelDownloadTransfer.install(files, progress: progress)
+            try Task.checkCancellation()
+            try FileManager.default.removeItem(at: marker)
+            guard LocalSpeakerDiarizer.isInstalled else { throw DownloadError.incomplete }
+        }
+    }
+
     // MARK: - Hub helpers
 
     private struct TreeEntry: Decodable {

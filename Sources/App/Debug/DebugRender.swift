@@ -145,6 +145,7 @@ enum DebugRender {
             while result == nil { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
             if result != true { exit(1) }
         }
+        if env["AIRDRAFT_RENDER_MEDIA"] == "1", let history = container.history { try? MediaPreview.seed(history) }
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
@@ -155,6 +156,10 @@ enum DebugRender {
                         LicenseView().ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
                             .background(Color(nsColor: .windowBackgroundColor))
+                    } else if pageName == "media-import" {
+                        MediaImportSheet(source: URL(fileURLWithPath: "/tmp/Interview.m4a")).ignoresSafeArea()
+                    } else if pageName == "media-editor" {
+                        MediaDocumentEditor(initial: MediaPreview.document).ignoresSafeArea()
                     } else if pageName == "cleanup" {
                         DataCleanupProgress().ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
@@ -183,13 +188,13 @@ enum DebugRender {
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
                 var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
-                if pageName.hasPrefix("license-") || pageName == "cleanup" {
+                if pageName.hasPrefix("license-") || ["cleanup", "media-import", "media-editor"].contains(pageName) {
                     // The sheet sizes to its content; render exactly that size.
                     frame.size = host.fittingSize
                     print("LICENSE_SIZE \(pageName) \(suffix) \(Int(frame.width)) x \(Int(frame.height))")
                 }
                 host.frame = frame
-                let window = NSWindow(contentRect: frame, styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
+                let window = NSWindow(contentRect: frame, styleMask: pageName.hasPrefix("media-") ? [.borderless] : [.titled, .fullSizeContentView], backing: .buffered, defer: false)
                 window.titlebarAppearsTransparent = true
                 window.appearance = NSAppearance(named: appearance)
                 window.contentView = host
@@ -227,7 +232,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup", "media-import", "media-editor"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

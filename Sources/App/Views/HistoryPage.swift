@@ -24,6 +24,8 @@ struct HistoryPage: View {
     @State private var confirmClear = false
     @State private var recordingsOnly = RenderMode.value("RECORDINGS_ONLY") == "1"
     @State private var nextOffset: Int?
+    @State private var importURL: URL?
+    @State private var showImport = false
 
     var body: some View {
         PageScaffold(.history, scrollsContent: false, contentTopInset: 0) {
@@ -42,6 +44,14 @@ struct HistoryPage: View {
                     .help("Change recording retention in Configuration")
                 }
                 .padding(.top, Theme.controlSpacing)
+                if let media = container.media, media.isBusy && media.document == nil {
+                    HStack { ProgressView().controlSize(.small); Text("Preparing Media…").supportingText(); Spacer(); Button("Cancel") { media.cancel() }.buttonStyle(SoftButtonStyle()) }
+                        .padding(.top, Theme.controlSpacing)
+                }
+                if let issue = container.media?.issue {
+                    HStack { Text(issue).supportingText(); Spacer(); Button("Dismiss") { container.media?.clearIssue() }.buttonStyle(SoftButtonStyle()) }
+                        .padding(.top, Theme.controlSpacing)
+                }
                 if let errorMessage {
                     StorageNotice(message: errorMessage) { Task { await reload() } }
                         .padding(.top, Theme.controlSpacing)
@@ -73,6 +83,9 @@ struct HistoryPage: View {
                 }
             }
         } accessory: {
+            Button { chooseMedia() } label: { Image(systemName: "plus") }
+                .buttonStyle(SoftButtonStyle()).help("Import Media…").accessibilityLabel("Import Media")
+                .disabled(container.pipeline.isBusy || container.media == nil)
             SearchField(text: $query, placeholder: "Search history")
             Button { confirmClear = true } label: { Image(systemName: "trash") }
                 .buttonStyle(SoftButtonStyle())
@@ -95,6 +108,15 @@ struct HistoryPage: View {
             snapshot = .empty
             Task { await reload() }
         }
+        .sheet(isPresented: $showImport) { MediaImportSheet(source: importURL).environment(container) }
+        .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
+            guard !container.pipeline.isBusy, let provider = providers.first else { return false }
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                Task { @MainActor in if let url { importURL = url; showImport = true } }
+            }
+            return true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .mediaEditorOpened)) { _ in playback.stop() }
         .onDisappear { playback.stop() }
         .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
         .onChange(of: container.pipeline.audioRevision) { _, _ in playback.stop(); Task { await reload() } }
@@ -119,6 +141,17 @@ struct HistoryPage: View {
         }
     }
 
+    private func chooseMedia() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.audio, .movie]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            importURL = url; showImport = true
+        }
+    }
+
     private func reload(append: Bool = false) async {
         guard let history = container.history else {
             errorMessage = "History storage is unavailable. Restart Airdraft after checking available disk space."
@@ -139,8 +172,8 @@ struct HistoryPage: View {
                 let page = try history.recordings(limit: pageSize, query: query, offset: offset)
                 return (HistorySnapshot.prepareRecordings(page.entries, appendingTo: previous), page.nextOffset)
             }
-            let found = try history.recent(limit: pageSize + 1, query: query, offset: offset)
-            return (HistorySnapshot.prepare(Array(found.prefix(pageSize)), history: history, appendingTo: previous),
+            let found = try history.historyItems(limit: pageSize + 1, offset: offset, query: query)
+            return (HistorySnapshot.prepareItems(Array(found.prefix(pageSize)), appendingTo: previous),
                     found.count > pageSize ? offset + pageSize : nil)
         }
         do {
@@ -181,7 +214,9 @@ private final class HistoryScrollState {
 /// Survives lazy row eviction without keeping the row's view hierarchy alive.
 @MainActor @Observable
 final class HistoryCardState {
-    enum Presentation { case details, deletion, audioDeletion }
+    enum Presentation { case details, deletion, audioDeletion, media }
+    var showMedia = false
+    var showMediaImport = false
     var showRaw = false
     var expanded = false
     var showInfo = false
@@ -195,6 +230,8 @@ final class HistoryCardState {
     func dismissPresentation() {
         pendingPresentation = nil
         showInfo = false
+        showMedia = false
+        showMediaImport = false
         confirmDelete = false
         confirmAudioDelete = false
     }
@@ -391,7 +428,10 @@ private struct HistoryRecordRow: View {
                     SectionTitle(heading)
                         .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
                 }
-                if let record = entry.record {
+                if let document = entry.document {
+                    MediaDocumentCard(document: document, preview: entry.finalText.preview, recordingControls: recordingControls, open: { revealAndPresent(.media) })
+                        .accessibilityIdentifier("history.entry.\(entry.id)")
+                } else if let record = entry.record {
                     HistoryCard(entry: entry, state: state, record: record,
                                 canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
                                 recordingControls: recordingControls,
@@ -409,6 +449,12 @@ private struct HistoryRecordRow: View {
                     }
                     .accessibilityIdentifier("history.entry.\(entry.id)")
                 }
+            }
+            .sheet(isPresented: Binding(get: { state.showMediaImport }, set: { state.showMediaImport = $0 })) {
+                MediaImportSheet(source: nil, recording: entry.asset).environment(container)
+            }
+            .sheet(isPresented: Binding(get: { state.showMedia }, set: { state.showMedia = $0 })) {
+                if let document = entry.document { MediaDocumentEditor(initial: document).environment(container) }
             }
             .confirmationDialog("Delete this recording?", isPresented: Binding(get: { state.confirmAudioDelete }, set: { state.confirmAudioDelete = $0 }), titleVisibility: .visible) {
                 Button("Delete Recording", role: .destructive, action: deleteAudio)
@@ -437,6 +483,12 @@ private struct HistoryRecordRow: View {
         let content = state.showRaw ? entry.rawText : entry.finalText
         return VStack(alignment: .leading) {
             if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
+            if let document = entry.document {
+                Text(document.title).font(.system(size: 13, weight: .medium))
+                Text(entry.finalText.preview).lineLimit(4)
+                MediaDocumentStatus(document: document)
+                MediaDocumentActions(document: document) { revealAndPresent(.media) }
+            }
             if let record = entry.record {
             Text(state.expanded ? content.full : content.preview)
                 .lineLimit(state.expanded ? nil : 6)
@@ -480,6 +532,7 @@ private struct HistoryRecordRow: View {
         switch presentation {
         case .details: state.showInfo = true
         case .deletion: state.confirmDelete = true
+        case .media: state.showMedia = true
         case .audioDeletion: state.confirmAudioDelete = true
         }
     }
@@ -549,6 +602,11 @@ private struct HistoryRecordRow: View {
     }
 
     private func retranscribe() {
+        if let asset = entry.asset, asset.source != .dictation {
+            guard !container.pipeline.isBusy else { return }
+            playback.stop(); state.showMediaImport = true
+            return
+        }
         guard !container.pipeline.isBusy, !container.pipeline.hasRecoverableRecording else { return }
         playback.stop()
         guard let asset = entry.asset else { return }

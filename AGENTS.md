@@ -888,3 +888,13 @@ Use `scripts/verify-native-behaviors.py` and `scripts/verify-model-lifecycle.py`
 for native regression fixtures. `verify-updater.py --ephemeral-key` uses a
 disposable Sparkle seed and temporary update target. Record live, fixture,
 source-review and unavailable coverage separately. See `docs/local-e2e.md`.
+
+## Media documents
+
+Media import uses the independent document/job contracts in `docs/media-transcription.md`.
+Keep audio ownership independent of text, preserve original words and times, and
+checkpoint completed windows before continuing. Local media uses the validated
+Whisper Large v3 Turbo path and optional explicit SpeakerKit download; never
+silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
+Share visual and accessibility recovery actions. Test with direct files or injected
+PCM and silent transports; never make the system play sound for verification.
