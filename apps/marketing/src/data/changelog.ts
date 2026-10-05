@@ -14,6 +14,28 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-7-0",
+    version: "0.7.0",
+    date: "2026-10-06",
+    title: "Hold to start with Trigger Delay",
+    changes: [
+      {
+        title: "Prevent accidental dictation",
+        description:
+          "Set Trigger Delay from 0 to 1000 ms in Configuration. Short presses keep the shortcut key’s normal action; holding past the delay starts dictation. The default is off, and stopping stays immediate.",
+      },
+      {
+        title: "Keep recordings within ten minutes",
+        description:
+          "The recording limit now ranges from 10 seconds to 10 minutes. Longer saved limits are reduced to ten minutes, while shorter choices and the five-minute default are preserved. Imported audio keeps its separate limits.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.7.0-build.174",
+    },
+  },
+  {
     id: "0-6-2",
     version: "0.6.2",
     date: "2026-10-05",
