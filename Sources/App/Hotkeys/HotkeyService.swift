@@ -5,8 +5,8 @@ import AirdraftCore
 import os
 
 /// Picks the right backend for the configured hotkey:
-/// - key combinations: Carbon (no permission needed)
-/// - modifier-only keys and fn: CGEventTap (needs Accessibility)
+/// - immediate key combinations: Carbon (no permission needed)
+/// - delayed shortcuts, modifier-only keys and fn: CGEventTap (needs Accessibility)
 @MainActor
 @Observable
 final class HotkeyService {
@@ -21,13 +21,16 @@ final class HotkeyService {
 
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
+    /// Stop/cancel actions bypass the start threshold.
+    var shouldDelayPress: () -> Bool = { true }
+    private(set) var triggerDelayMilliseconds = 0
     var suspended = false {
         didSet {
             guard suspended != oldValue else { return }
             eventTap.suspended = suspended
             // Carbon consumes registered shortcuts before the recorder's local
             // monitor receives them. Unregister both backends while recording.
-            apply(hotkey)
+            apply(hotkey, triggerDelayMilliseconds: triggerDelayMilliseconds)
         }
     }
 
@@ -42,12 +45,14 @@ final class HotkeyService {
         carbon.onRelease = { [weak self] in self?.release() }
         eventTap.onPress = { [weak self] in self?.press() }
         eventTap.onRelease = { [weak self] in self?.release() }
+        eventTap.shouldDelayPress = { [weak self] in self?.shouldDelayPress() ?? true }
         // The permission monitor's timer also checks the event tap's health.
         permissions.didRefresh = { [weak self] in self?.refreshEventTapStatus() }
     }
 
-    func apply(_ hotkey: Hotkey) {
+    func apply(_ hotkey: Hotkey, triggerDelayMilliseconds: Int = 0) {
         self.hotkey = hotkey
+        self.triggerDelayMilliseconds = HotkeyTriggerState.clampedDelay(triggerDelayMilliseconds)
         carbon.unregister()
         eventTap.stop()
 
@@ -58,7 +63,7 @@ final class HotkeyService {
             return
         }
 
-        if CarbonHotkey.canRegister(hotkey) {
+        if self.triggerDelayMilliseconds == 0, CarbonHotkey.canRegister(hotkey) {
             let ok = carbon.register(hotkey)
             backend = ok ? .carbon : .none
             isActive = ok
@@ -68,6 +73,7 @@ final class HotkeyService {
         }
 
         eventTap.hotkey = hotkey
+        eventTap.triggerDelayMilliseconds = self.triggerDelayMilliseconds
         eventTap.start()
         backend = .eventTap
         refreshEventTapStatus()
@@ -76,6 +82,8 @@ final class HotkeyService {
     var needsAccessibility: Bool {
         backend == .eventTap && !permissions.accessibilityGranted
     }
+
+    func cancelPendingPress() { eventTap.cancelPendingPress() }
 
     func refreshPermissionState() {
         guard backend == .eventTap else { return }

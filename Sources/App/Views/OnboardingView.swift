@@ -250,7 +250,8 @@ struct OnboardingView: View {
                 }
             }
             HStack(spacing: 10) {
-                Text(container.settings.hotkeyBehavior.instructionVerb).font(.system(size: 13))
+                Text(container.settings.hotkeyBehavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds))
+                    .font(.system(size: 13))
                 KeyCaps(hotkey: container.settings.hotkey)
                 Text(container.settings.hotkeyBehavior == .hold ? "and speak. Release to insert." : "and speak. Press again to insert.")
                     .font(.system(size: 13)).foregroundStyle(.secondary)

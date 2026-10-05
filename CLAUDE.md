@@ -554,6 +554,18 @@ verification status belong in the vault (see below).
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
 
+## Trigger Delay
+
+Configuration > Keyboard shortcuts owns Trigger Delay: 0–1000 ms, default 0,
+with typed entry and 50 ms steps. Delay only shortcut starts; Toggle stop/cancel
+and menu/App Intent actions stay immediate. Delayed shortcuts use the Accessibility
+event tap instead of Carbon. Buffer ordinary shortcut key events and return them
+in order on a short press; discard them only when the hold qualifies. Modifier
+events pass through so normal chords remain usable. Typing another key, changing
+the chord or setup, focus changes and monitor interruptions cancel pending holds.
+Never start model loading, microphone capture or the HUD before the threshold.
+Keep repeat, release, cancellation and persistence regressions in the core suite.
+
 ## First-run setup
 
 The optional, replayable onboarding uses the normal permissions, model downloader

@@ -64,6 +64,7 @@ and keeps the installation instructions legible within Finder.
 
 | Goal | State (2026-09-30) |
 |---|---|
+| Trigger Delay | Configuration > Keyboard shortcuts offers a 0–1000 ms hold threshold, default 0, with direct entry and 50 ms steps. Short presses retain their normal action; a qualified hold starts dictation once. Hold release and Toggle stop remain immediate. Ordinary key events are buffered until the decision; modifier events pass through. Delayed shortcuts require Accessibility. Pending holds cancel on typing another key, chord/setup changes, focus changes and monitor interruption. Menu and automation actions remain immediate. |
 | Recording limit | Microphone dictation auto-stops and processes at the selected limit, capped at 600 seconds. Configuration accepts 10–600 seconds, defaults to 300, and clamps older saved values above the cap. Shorter provider limits still apply. Imported audio retains its provider's input limits. |
 | App context | Read app context defaults to off for new and existing installations without a saved choice. Saved on/off choices are preserved. Enabling it supplies app, nearby and selected text to refinement and permits selected-text editing; cursor insertion works independently. |
 | 13 | Implemented trial, Keychain license storage, Polar public API activation/validation/deactivation and new-work access checks. Two-Mac and five-Mac products have separate allowed benefits and share a checkout link with plan selection; the live prices and device policies were read back. Debug is restricted to Sandbox and Release to production, with separate license receipts and a dedicated licensed Debug build command; ordinary source builds remain unlocked. Sandbox test-card purchases and issued keys for both plans now pass app activation, restart persistence, 2/5-device limits, rotation, portal deactivation and refund revocation. Actual disconnected restart and disposable-user Keychain denial remain separate acceptance checks. This is not a published paid release; see `licensing.md`. |
@@ -241,7 +242,7 @@ browser verification run independently of the native app.
 - Every native UI change is rendered with `--render-window all` and looked at before it is reported.
 - Website UI changes are inspected in the browser at desktop and mobile widths.
 - Every pipeline change is exercised with `AIRDRAFT_SELFTEST=<wav>` (Debug builds) and confirmed in the log and history.
-- Shortcut backends log their registration. The default Control + Option shortcut uses the event tap and requires Accessibility; key combinations such as Option + Space use Carbon.
+- Shortcut backends log their registration. The default Control + Option shortcut and all shortcuts with Trigger Delay use the event tap and require Accessibility; immediate key combinations such as Option + Space use Carbon.
 
 ## Non-goals for now
 

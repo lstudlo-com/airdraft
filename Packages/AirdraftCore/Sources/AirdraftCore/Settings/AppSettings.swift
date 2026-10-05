@@ -9,6 +9,9 @@ public enum HotkeyBehavior: String, Codable, CaseIterable, Sendable, Identifiabl
     public var id: String { rawValue }
     /// Verb for instructions shown next to the shortcut: "Hold ⌃ ⌥ and speak".
     public var instructionVerb: String { self == .hold ? "Hold" : "Press" }
+    public func instructionVerb(triggerDelayMilliseconds: Int) -> String {
+        triggerDelayMilliseconds > 0 ? "Hold" : instructionVerb
+    }
 }
 
 public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiable {
@@ -80,6 +83,17 @@ public final class AppSettings {
     public var llm: LLMConfig { didSet { persist("llm", llm) } }
     public var hotkey: Hotkey { didSet { persist("hotkey", hotkey) } }
     public var hotkeyBehavior: HotkeyBehavior { didSet { persist("hotkeyBehavior", hotkeyBehavior) } }
+    /// Minimum hold before a shortcut starts dictation. Zero disables the gate.
+    public var triggerDelayMilliseconds: Int {
+        didSet {
+            let clamped = HotkeyTriggerState.clampedDelay(triggerDelayMilliseconds)
+            if triggerDelayMilliseconds != clamped {
+                triggerDelayMilliseconds = clamped
+                return
+            }
+            persist("triggerDelayMilliseconds", triggerDelayMilliseconds)
+        }
+    }
     public var insertionMethod: InsertionMethod { didSet { persist("insertionMethod", insertionMethod) } }
     public var outputDestination: TextOutputDestination { didSet { persist("outputDestination", outputDestination) } }
     public var outputScriptPath: String { didSet { persist("outputScriptPath", outputScriptPath) } }
@@ -120,6 +134,8 @@ public final class AppSettings {
         llm = Self.load("llm", from: defaults) ?? LLMConfig()
         hotkey = Self.load("hotkey", from: defaults) ?? .controlOption
         hotkeyBehavior = Self.load("hotkeyBehavior", from: defaults) ?? .hold
+        triggerDelayMilliseconds = HotkeyTriggerState.clampedDelay(
+            Self.load("triggerDelayMilliseconds", from: defaults) ?? 0)
         insertionMethod = Self.load("insertionMethod", from: defaults) ?? .auto
         outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
         outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""

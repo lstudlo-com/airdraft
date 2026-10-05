@@ -38,7 +38,8 @@ struct HomePage: View {
             // The hero is Home's identity and always leads; a setup problem still
             // opens the readiness card directly beneath it.
             HomeHero(overview: overview, periodTitle: period.title, hotkey: container.settings.hotkey,
-                     behavior: container.settings.hotkeyBehavior, isReady: hasLoadedOverview, canDictate: setupIssues == 0)
+                     behavior: container.settings.hotkeyBehavior, triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds,
+                     isReady: hasLoadedOverview, canDictate: setupIssues == 0)
 
             DictationRecovery()
             if let historyReadError { StorageNotice(message: historyReadError) { Task { await reload() } } }
@@ -110,7 +111,8 @@ struct HomePage: View {
                     Spacer(minLength: Theme.controlSpacing)
                     if issues == 0 {
                         HStack(spacing: 6) {
-                            Text(container.settings.hotkeyBehavior.instructionVerb).font(.system(size: 12)).foregroundStyle(.secondary)
+                            Text(container.settings.hotkeyBehavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds))
+                                .font(.system(size: 12)).foregroundStyle(.secondary)
                             KeyCaps(hotkey: container.settings.hotkey)
                         }
                         Image(systemName: "chevron.down")

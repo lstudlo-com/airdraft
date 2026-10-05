@@ -129,6 +129,7 @@ final class AppContainer {
             }
             AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")
             panel?.update(for: state)
+            self?.hotkeys.cancelPendingPress()
             self?.models.setDictationBusy(state.isBusy)
             // Esc cancels only while recording, so it never steals Esc elsewhere.
             if state == .recording { self?.escapeHotkey.register(.escape) } else { self?.escapeHotkey.unregister() }
@@ -286,26 +287,38 @@ final class AppContainer {
     }
 
     private func registerHotkeys() {
+        var pressedBehavior: HotkeyBehavior?
+        hotkeys.shouldDelayPress = { [weak self] in
+            guard let self else { return true }
+            return self.settings.hotkeyBehavior != .toggle || !self.pipeline.isBusy
+        }
         hotkeys.onPress = { [weak self] in
             guard let self else { return }
+            pressedBehavior = self.settings.hotkeyBehavior
             switch self.settings.hotkeyBehavior {
             case .hold: self.pipeline.startRecording()
             case .toggle: self.pipeline.toggle()
             }
         }
         hotkeys.onRelease = { [weak self] in
-            guard let self, self.settings.hotkeyBehavior == .hold else { return }
+            let behavior = pressedBehavior
+            pressedBehavior = nil
+            guard let self, behavior == .hold else { return }
             self.pipeline.stopAndProcess()
         }
-        hotkeys.apply(settings.hotkey)
+        hotkeys.apply(settings.hotkey, triggerDelayMilliseconds: settings.triggerDelayMilliseconds)
         observeHotkeyChanges()
     }
 
-    /// Re-arms the monitor whenever Settings changes the hotkey.
+    /// Cancel pending holds when the shortcut, behavior or threshold changes.
     private func observeHotkeyChanges() {
-        observeChanges({ [weak self] in _ = self?.settings.hotkey }) { [weak self] in
+        observeChanges({ [weak self] in
+            _ = self?.settings.hotkey
+            _ = self?.settings.hotkeyBehavior
+            _ = self?.settings.triggerDelayMilliseconds
+        }) { [weak self] in
             guard let self else { return }
-            self.hotkeys.apply(self.settings.hotkey)
+            self.hotkeys.apply(self.settings.hotkey, triggerDelayMilliseconds: self.settings.triggerDelayMilliseconds)
         }
     }
 }

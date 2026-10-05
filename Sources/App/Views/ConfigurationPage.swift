@@ -36,13 +36,20 @@ struct ConfigurationPage: View {
 
             PageSection("Keyboard shortcuts") {
                 SettingsCard {
-                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold ? "Hold to record; release to stop" : "Press to start or stop") {
+                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold
+                               ? "Hold to record; release to stop"
+                               : settings.triggerDelayMilliseconds > 0 ? "Hold to start; press to stop" : "Press to start or stop") {
                         HotkeyRecorderView()
                     }
                     RowDivider()
                     SettingRow(title: "Push to talk or toggle") {
                         SoftSegmentedPicker("Shortcut behavior", selection: $settings.hotkeyBehavior,
                                             options: [(.hold, "Hold to talk"), (.toggle, "Toggle")], width: 200)
+                    }
+                    RowDivider()
+                    SettingRow(title: "Trigger Delay", subtitle: "Short presses keep their normal action; 0 = off") {
+                        SettingsNumberStepper(title: "Trigger Delay", value: $settings.triggerDelayMilliseconds,
+                                              in: HotkeyTriggerState.delayRange, step: 50, unit: "ms")
                     }
                     RowDivider()
                     SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
@@ -120,7 +127,7 @@ struct ConfigurationPage: View {
                         }
                     }
                     RowDivider()
-                    SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier-only shortcuts") {
+                    SettingRow(title: "Accessibility", subtitle: "Cursor insertion, app context, modifier shortcuts and Trigger Delay") {
                         if container.permissions.accessibilityGranted {
                             StatusDot(.ok)
                         } else {

@@ -9,6 +9,7 @@ struct HomeHero: View {
     let periodTitle: String
     let hotkey: Hotkey
     let behavior: HotkeyBehavior
+    var triggerDelayMilliseconds = 0
     var isReady = true
     var canDictate = true
 
@@ -316,7 +317,7 @@ struct HomeHero: View {
                 Text("Complete setup below before your first dictation.")
             } else if overview.pulses.isEmpty {
                 HStack(spacing: 6) {
-                    Text(behavior.instructionVerb)
+                    Text(behavior.instructionVerb(triggerDelayMilliseconds: triggerDelayMilliseconds))
                     KeyCaps(hotkey: hotkey)
                     Text("and speak. Each dictation adds a bar.")
                 }

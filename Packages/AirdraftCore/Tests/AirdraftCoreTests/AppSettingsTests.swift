@@ -3,6 +3,24 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testTriggerDelayDefaultsOffPersistsAndClamps() throws {
+        try withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+            XCTAssertEqual(settings.triggerDelayMilliseconds, 0)
+            for (input, expected) in [(350, 350), (-1, 0), (2000, 1000), (0, 0)] {
+                settings.triggerDelayMilliseconds = input
+                XCTAssertEqual(settings.triggerDelayMilliseconds, expected)
+                XCTAssertEqual(AppSettings(defaults: defaults).triggerDelayMilliseconds, expected)
+            }
+            defaults.set(try JSONEncoder().encode(-500), forKey: "settings.triggerDelayMilliseconds")
+            XCTAssertEqual(AppSettings(defaults: defaults).triggerDelayMilliseconds, 0)
+            defaults.set(try JSONEncoder().encode(10_000), forKey: "settings.triggerDelayMilliseconds")
+            XCTAssertEqual(AppSettings(defaults: defaults).triggerDelayMilliseconds, 1000)
+            defaults.set(Data("bad".utf8), forKey: "settings.triggerDelayMilliseconds")
+            XCTAssertEqual(AppSettings(defaults: defaults).triggerDelayMilliseconds, 0)
+        }
+    }
+
     func testRecordingLimitClampsSavedValuesAndPersistsMigration() throws {
         try withDefaults { defaults in
             XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, 300)
