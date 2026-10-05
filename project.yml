@@ -50,7 +50,8 @@ targets:
         AirdraftTrialDays: "$(AIRDRAFT_TRIAL_DAYS)"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"
-        NSMicrophoneUsageDescription: "Airdraft uses the microphone to record what you dictate."
+        NSMicrophoneUsageDescription: "Airdraft uses the microphone for dictation and meeting recordings."
+        NSAudioCaptureUsageDescription: "Airdraft records audio from the meeting app you choose for transcription."
         NSHumanReadableCopyright: ""
         SUFeedURL: https://github.com/lstudlo-com/airdraft/releases/latest/download/appcast.xml
         SUPublicEDKey: "OfxXCWN57nT7jmfbzyk6meZT19SD10JU9Z6fyhBA6Nc="

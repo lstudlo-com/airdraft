@@ -66,7 +66,7 @@ public enum MediaDecodeError: LocalizedError {
 public enum MediaAudioWindow {
     public static func read(_ url: URL, from seconds: Double, maximumSeconds: Double = 25) throws -> [Float] {
         let file = try AVAudioFile(forReading: url)
-        guard file.processingFormat.sampleRate == 16_000, file.processingFormat.channelCount == 1,
+        guard file.processingFormat.sampleRate == 16_000, (1...2).contains(file.processingFormat.channelCount),
               seconds.isFinite, seconds >= 0, maximumSeconds > 0 else { throw MediaError.invalidAudio }
         file.framePosition = min(file.length, AVAudioFramePosition(seconds * 16_000))
         let count = min(Int64(maximumSeconds * 16_000), file.length - file.framePosition)
@@ -74,6 +74,10 @@ public enum MediaAudioWindow {
         guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(count)) else { throw MediaError.invalidAudio }
         try file.read(into: buffer)
         guard let pointer = buffer.floatChannelData?[0] else { throw MediaError.invalidAudio }
-        return Array(UnsafeBufferPointer(start: pointer, count: Int(buffer.frameLength)))
+        let frameCount = Int(buffer.frameLength)
+        if file.processingFormat.channelCount == 2, let other = buffer.floatChannelData?[1] {
+            return (0..<frameCount).map { (pointer[$0] + other[$0]) * 0.5 }
+        }
+        return Array(UnsafeBufferPointer(start: pointer, count: frameCount))
     }
 }

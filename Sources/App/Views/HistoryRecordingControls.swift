@@ -11,10 +11,17 @@ struct HistoryRecordingControls: View {
     let reveal: () -> Void
     let retranscribe: (() -> Void)?
     let delete: (() -> Void)?
+    var accessibilityOnly = false
 
     var body: some View {
         let active = playback.recordingID == asset.id
         let playing = active && playback.isPlaying
+        if asset.source == .meeting {
+            Text("Meeting · microphone left, app audio right").supportingText()
+        }
+        if let issue = asset.captureIssue {
+            DisclosureGroup("Recording Details") { Text(issue).supportingText().textSelection(.enabled) }.settingsDisclosure()
+        }
         HStack(spacing: 8) {
             Button(action: play) { Image(systemName: playing ? "pause.fill" : "play.fill") }
                 .buttonStyle(SoftIconButtonStyle())
@@ -36,19 +43,21 @@ struct HistoryRecordingControls: View {
                 .buttonStyle(SoftButtonStyle())
                 .disabled(exporting)
                 .accessibilityIdentifier("recording.save.\(asset.id)")
-            Menu {
-                Button("Show in Finder", action: reveal)
-                if let retranscribe { Button("Retranscribe", action: retranscribe) }
-                if let delete {
-                    Divider()
-                    Button("Delete Recording Only…", role: .destructive, action: delete)
-                }
-            } label: { Image(systemName: "ellipsis") }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .help("Recording actions")
-                .accessibilityLabel("Recording Actions")
+            if accessibilityOnly { fileActions }
+            else {
+                Menu { fileActions } label: { Image(systemName: "ellipsis") }
+                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                    .help("Recording actions").accessibilityLabel("Recording Actions")
+            }
+        }
+    }
+
+    @ViewBuilder private var fileActions: some View {
+        Button("Show in Finder", action: reveal).accessibilityIdentifier("recording.reveal.\(asset.id)")
+        if let retranscribe { Button("Retranscribe", action: retranscribe) }
+        if let delete {
+            Divider()
+            Button("Delete Recording Only…", role: .destructive, action: delete)
         }
     }
 

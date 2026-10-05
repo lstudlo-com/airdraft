@@ -35,6 +35,12 @@ extension AppContainer {
                 }.value
             }
         ]
+        if scope != .history {
+            steps.append(.init("meetingDrafts", title: "Removing meeting recovery audio") {
+                try await Task.detached { try MeetingAudioStore.removeDrafts(in: directory) }.value
+                self.meeting?.refreshDrafts()
+            })
+        }
         if scope == .reset {
             steps += [
                 .init("models", title: "Unloading models") {

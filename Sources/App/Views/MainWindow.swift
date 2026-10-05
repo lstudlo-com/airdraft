@@ -61,6 +61,9 @@ struct MainWindowView: View {
                 mainContent
             }
         }
+        .sheet(isPresented: Binding(get: { container.meeting?.isPresented == true }, set: { container.meeting?.isPresented = $0 })) {
+            MeetingSheet().environment(container)
+        }
         .sheet(isPresented: $license.isPresented) { LicenseView().environment(container) }
         .sheet(isPresented: Binding(get: { container.dataAccessIssue != nil || container.cleanup.blocksWork || container.cleanup.finishedScope == .reset }, set: { _ in })) {
             DataCleanupProgress().environment(container).interactiveDismissDisabled()

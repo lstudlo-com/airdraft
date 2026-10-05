@@ -16,6 +16,7 @@ struct MediaDocumentCard<RecordingControls: View>: View {
                 MediaDocumentStatus(document: document)
             }
             if !preview.isEmpty { Text(String(preview.prefix(500))).font(.system(size: 13)).lineLimit(4) }
+            else if document.transcriptionComplete { Text("No speech detected.").supportingText() }
             MediaDocumentActions(document: document, open: open)
             recordingControls
         }

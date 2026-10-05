@@ -37,7 +37,7 @@ public enum LocalSpeakerDiarizer {
                                     concurrentSegmenterWorkers: 1, concurrentEmbedderWorkers: 2)
         let kit = try await SpeakerKit(config)
         do {
-            let samples = try AudioFile.load(path: url.path)
+            let samples = try MediaAudioWindow.read(url, from: 0, maximumSeconds: duration)
             try Task.checkCancellation()
             let result = try await kit.diarize(audioArray: samples,
                 options: PyannoteDiarizationOptions(useExclusiveReconciliation: false),

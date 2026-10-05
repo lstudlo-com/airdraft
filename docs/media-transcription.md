@@ -7,7 +7,8 @@ captures the engine, language and speaker-identification choice for that job.
 
 ## Input and storage
 
-- Import one file through History's Import Media action or file drop. AVFoundation
+- Import one file through History’s Add Recording → Import Media menu or file
+  drop. Record Meeting in the same menu opens audio capture. AVFoundation
   must decode exactly one audio track. Multiple-track files are rejected with an
   instruction to export the desired track separately.
 - Both source duration and decoded audio must be positive and at most two hours.
@@ -20,6 +21,12 @@ captures the engine, language and speaker-identification choice for that job.
 - The `mediaDocument` table stores indexed title/text plus a versioned document
   payload. Updates require the current revision, so a stale editor or callback
   cannot overwrite a newer document or recreate a deleted one.
+
+Saved [meeting recordings](meeting-recording.md) reuse the import sheet after
+capture stops. They retain a 16 kHz stereo WAV (microphone left, app audio right);
+local processing averages the channels when reading samples. This does not assign
+speaker identity by channel. The existing whole-session SpeakerKit memory check
+still applies. Meeting capture itself performs no transcription or upload.
 
 See [recording storage](recording-storage.md) and [data cleanup](data-cleanup.md)
 for shared storage and deletion contracts.
@@ -34,7 +41,8 @@ pass through `SpeechLanguagePolicy` before processing.
 
 ASR reads at most 31 seconds from the WAV to choose a quiet boundary and sends
 at most 25 seconds to WhisperKit. Each successful window saves words with absolute
-timestamps and the completed offset. Pause cancels the current operation; Resume
+timestamps, partial turns and the completed offset, so saved progress remains
+readable and exportable. Pause cancels the current operation; Resume
 reloads the saved configuration and offset. An interrupted normalization has no
 resumable document until the managed recording and document exist.
 
@@ -87,7 +95,8 @@ Summarize is an explicit action using the selected refinement provider, with a
 confirmation about text transfer and cost. It requires saved edits. Requests use
 sections of at most 8,000 characters, including splitting a long edited turn.
 Results remain ordered section summaries, with no unbounded final merge request.
-Cancellation or failure leaves the transcript unchanged.
+History labels this operation Summarizing and offers Cancel. Cancellation or
+failure leaves the transcript unchanged.
 
 ## Ownership and validation
 

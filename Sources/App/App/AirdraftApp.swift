@@ -19,9 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()
                 alert.messageText = "Quit with unfinished work?"
-                alert.informativeText = "Saved media jobs can resume from History. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
+                alert.informativeText = app.meeting?.isBusy == true
+                    ? "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in History."
+                    : "Saved media jobs can resume from History. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
                 alert.addButton(withTitle: "Keep Open")
-                alert.addButton(withTitle: "Quit and Discard")
+                alert.addButton(withTitle: app.meeting?.isBusy == true ? "Save Meeting and Quit" : "Quit and Discard")
                 guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
                 app.media?.cancel()
                 app.pipeline.cancel()
@@ -30,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             shutdownStarted = true
             app.beginShutdown()
             Task { @MainActor [weak self] in
+                await AppContainer.shared.meeting?.prepareForQuit()
                 await AppContainer.shared.models.shutdown()
                 self?.shutdownFinished = true
                 NSApp.terminate(nil)

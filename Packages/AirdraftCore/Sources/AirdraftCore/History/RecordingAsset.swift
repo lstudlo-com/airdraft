@@ -15,13 +15,15 @@ public struct RecordingAsset: Codable, Sendable, Identifiable, Hashable, Fetchab
     public let filename: String
     public let duration: Double
     public let source: Source
+    public var captureIssue: String? = nil
 
-    init(filename: String, createdAt: Date, duration: Double, source: Source = .dictation) {
+    init(filename: String, createdAt: Date, duration: Double, source: Source = .dictation, captureIssue: String? = nil) {
         self.id = String(filename.dropLast(4))
         self.filename = filename
         self.createdAt = createdAt
         self.duration = duration
         self.source = source
+        self.captureIssue = captureIssue
     }
 }
 

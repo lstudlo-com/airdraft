@@ -898,3 +898,13 @@ Whisper Large v3 Turbo path and optional explicit SpeakerKit download; never
 silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
 Share visual and accessibility recovery actions. Test with direct files or injected
 PCM and silent transports; never make the system play sound for verification.
+
+## Meeting capture
+
+Meeting recording uses ScreenCaptureKit audio/microphone outputs with no screen
+frames or playback. Preserve a common timestamp axis, separate microphone/app
+WAV channels, bounded conversion and recoverable PCM drafts. Drain converters
+before publishing an asset; never discard captured data on failed finalization.
+Capture, media processing, dictation and cleanup are mutually exclusive. Stop and
+save before quit or sleep, and keep recovery available from History. Use injected
+capture sessions and direct PCM for tests. See `docs/meeting-recording.md`.

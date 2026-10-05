@@ -37,7 +37,8 @@ monospaced elapsed/total time, Save Audio and a native ellipsis menu. The slider
 becomes available for the active recording, with 0.1-second drag steps and
 five-second arrow-key seeking while focused. Save Audio remains a labeled
 button; the menu holds Show in Finder, available Retranscribe, and available
-Delete Recording Only actions.
+Delete Recording Only actions. The lightweight accessibility rows expose the
+same shared file actions as direct buttons.
 
 ## Actions and recovery
 

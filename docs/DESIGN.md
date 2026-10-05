@@ -449,7 +449,9 @@ or dictation starts. Only the active recording observes progress updates.
 
 Save Audio opens the native WAV save panel and reads Saving while export is in
 progress. The native ellipsis menu contains Show in Finder, Retranscribe when
-available, and Delete Recording Only when deletion is available. Keep recording
+available, and Delete Recording Only when deletion is available. History’s
+lightweight accessibility rows expose these shared file actions as direct buttons.
+Keep recording
 deletion separate from deleting a dictation and its recording, with a native
 confirmation for each. Empty results omit the guide. The Recordings empty state
 explains how to retain future recordings when retention is off. Timeline jumps
@@ -457,9 +459,11 @@ respect Reduce Motion.
 
 ### Media import and transcript editor
 
-History's Import Media plus button sits beside search and opens a native file
-picker; dropping a file opens the same import sheet. The sheet names the file
-above one `SettingsCard` containing Transcription, Language and Identify speakers.
+History’s Add Recording plus menu sits beside search and contains Import Media
+and Record Meeting. Import Media opens a native file picker; dropping a file
+opens the same import sheet. Saved meetings reuse it for explicit transcription.
+The sheet names the file or recording above one `SettingsCard` containing
+Transcription, Language and Identify speakers.
 Reuse the compact `SoftPicker`, `.softSwitch` and `RowDivider`. Missing local
 models expose Open Models or the explicit speaker-model Download action.
 Supporting text identifies the processing destination, retained WAV, two-hour
@@ -468,8 +472,10 @@ or Upload and Transcribe for Soniox; Cancel remains secondary.
 
 Media cards share History's raised gray material, timeline and recording row.
 They show title, stage, a four-line preview and engine name. Active work exposes
-progress and Pause; incomplete work exposes the available Resume or Keep
-Transcript action. Open Transcript opens the editor.
+progress and Pause; summaries instead show Summarizing and Cancel. Incomplete
+work exposes the available Resume or Keep Transcript action. Visual cards and
+History accessibility rows share these actions and their sheet presenter. Open
+Transcript opens the editor.
 
 The editor keeps its 18-point title and Close above Edited/Original, Copy and a
 native Export menu. Speaker names use the existing soft fields; Add Speaker sits
@@ -478,12 +484,34 @@ overlap notice when applicable and 13-point text. Original text is selectable;
 Edited text is editable when processing has completed. Retain shared 16-point
 card insets and 18-point corners, with at most 100 turns per page.
 
+Keep the scrolling turn cards clipped above the fixed footer; their shadow
+allowance extends horizontally without drawing over footer actions.
 The footer keeps Delete Transcript at the leading edge, playback when active,
 and optional Summarize beside the primary Save Changes action. Dirty editors ask
 before discarding changes. Summarize confirms provider use and cost, and deletion
 explains that the recording remains. Native TXT, JSON, SRT and VTT exports follow
 the selected version. These documents do not add dictation statistics or insert
 text into another app.
+
+### Meeting recording
+
+The meeting sheet extends the same gray material and shared controls. Its heading
+and Close sit above one `SettingsCard`: App audio uses `SoftPicker` with Choose
+App beside the scope note; Include microphone uses `.softSwitch` below a
+`RowDivider`. Keep permission and headphone guidance concise, with Permissions
+beside its wrapping notice and Start Recording as the primary action. Reuse the
+shared card insets, corners and supporting text.
+
+During capture, the card leads with a monospaced elapsed time and Stop and Save,
+then separate microphone and selected-app level rows. Each meter has an
+accessible source label and Receiving/Waiting for audio text; disabled microphone
+shows Off. Starting offers Cancel and saving shows progress. Close keeps capture
+running, explained below the card. History's compact Show Meeting/Recover Meeting
+notice restores the sheet. Saved recording rows identify the left/right sources
+and disclose capture issues under Recording Details; Transcribe reuses the media
+sheet after saving. Keep errors and recovery actions adjacent to their message:
+Retry rescans unreadable drafts, while Recover lists each valid draft by date and
+time so one damaged session does not hide the others.
 
 ### Configuration data cleanup
 

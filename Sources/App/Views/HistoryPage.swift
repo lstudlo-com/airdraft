@@ -44,6 +44,13 @@ struct HistoryPage: View {
                     .help("Change recording retention in Configuration")
                 }
                 .padding(.top, Theme.controlSpacing)
+                if let meeting = container.meeting, meeting.isBusy || !meeting.drafts.isEmpty || meeting.recoveryIssue != nil {
+                    HStack {
+                        Text(meeting.isBusy ? "Meeting recording in progress" : "Interrupted meeting recording available").supportingText()
+                        Spacer()
+                        Button(meeting.isBusy ? "Show Meeting" : "Recover Meeting") { meeting.isPresented = true }.buttonStyle(SoftButtonStyle())
+                    }.padding(.top, Theme.controlSpacing)
+                }
                 if let media = container.media, media.isBusy && media.document == nil {
                     HStack { ProgressView().controlSize(.small); Text("Preparing Media…").supportingText(); Spacer(); Button("Cancel") { media.cancel() }.buttonStyle(SoftButtonStyle()) }
                         .padding(.top, Theme.controlSpacing)
@@ -64,7 +71,7 @@ struct HistoryPage: View {
                     if loading {
                         ProgressView("Loading History…").controlSize(.small).padding(.top, Theme.pagePadding)
                     } else {
-                    EmptyNote(query.isEmpty ? (recordingsOnly ? "No saved recordings." : "No dictations yet.") : "No matches.")
+                    EmptyNote(query.isEmpty ? (recordingsOnly ? "No saved recordings." : "No history yet.") : "No matches.")
                         .padding(.top, Theme.pagePadding)
                     if recordingsOnly && query.isEmpty && container.settings.audioRetention == .off {
                         Text("Turn on Keep Recordings to save future dictations.").supportingText()
@@ -83,9 +90,12 @@ struct HistoryPage: View {
                 }
             }
         } accessory: {
-            Button { chooseMedia() } label: { Image(systemName: "plus") }
-                .buttonStyle(SoftButtonStyle()).help("Import Media…").accessibilityLabel("Import Media")
-                .disabled(container.pipeline.isBusy || container.media == nil)
+            Menu {
+                Button("Import Media…") { chooseMedia() }.disabled(container.media == nil)
+                Button("Record Meeting…") { container.meeting?.isPresented = true }.disabled(container.meeting == nil)
+            } label: { Image(systemName: "plus").accessibilityLabel("Add Recording") }
+                .menuStyle(.borderlessButton).fixedSize().help("Import Media or Record Meeting")
+                .disabled(container.pipeline.isBusy)
             SearchField(text: $query, placeholder: "Search history")
             Button { confirmClear = true } label: { Image(systemName: "trash") }
                 .buttonStyle(SoftButtonStyle())
@@ -429,12 +439,12 @@ private struct HistoryRecordRow: View {
                         .padding(.top, isFirst ? 0 : Theme.sectionSpacing - Theme.controlSpacing)
                 }
                 if let document = entry.document {
-                    MediaDocumentCard(document: document, preview: entry.finalText.preview, recordingControls: recordingControls, open: { revealAndPresent(.media) })
+                    MediaDocumentCard(document: document, preview: entry.finalText.preview, recordingControls: recordingControls(), open: { revealAndPresent(.media) })
                         .accessibilityIdentifier("history.entry.\(entry.id)")
                 } else if let record = entry.record {
                     HistoryCard(entry: entry, state: state, record: record,
                                 canDelete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory,
-                                recordingControls: recordingControls,
+                                recordingControls: recordingControls(),
                                 onDelete: delete)
                         .accessibilityIdentifier("history.entry.\(entry.id)")
                 } else {
@@ -445,7 +455,7 @@ private struct HistoryRecordRow: View {
                             Text(entry.time).supportingText()
                         }
                         Text("No saved transcript").supportingText()
-                        recordingControls
+                        recordingControls()
                     }
                     .accessibilityIdentifier("history.entry.\(entry.id)")
                 }
@@ -485,7 +495,7 @@ private struct HistoryRecordRow: View {
             if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
             if let document = entry.document {
                 Text(document.title).font(.system(size: 13, weight: .medium))
-                Text(entry.finalText.preview).lineLimit(4)
+                Text(entry.finalText.preview.isEmpty && document.transcriptionComplete ? "No speech detected." : entry.finalText.preview).lineLimit(4)
                 MediaDocumentStatus(document: document)
                 MediaDocumentActions(document: document) { revealAndPresent(.media) }
             }
@@ -503,7 +513,7 @@ private struct HistoryRecordRow: View {
             }
             }
             Text(entry.metadata)
-            if entry.audioAvailable { recordingControls }
+            if entry.audioAvailable { recordingControls(accessibilityOnly: true) }
             if entry.record != nil {
             Button("Copy") { state.copy(content.full) }
                 .accessibilityLabel("Copy")
@@ -546,14 +556,14 @@ private struct HistoryRecordRow: View {
         catch { errorMessage = "Recording could not be played. " + error.localizedDescription }
     }
 
-    @ViewBuilder
-    private var recordingControls: some View {
+    @ViewBuilder private func recordingControls(accessibilityOnly: Bool = false) -> some View {
         if let asset = entry.asset {
             HistoryRecordingControls(asset: asset, playback: playback, busy: container.pipeline.isBusy,
                                      exporting: state.exporting, play: play, save: saveAudio,
                                      reveal: revealAudio,
                                      retranscribe: !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
-                                     delete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory ? { revealAndPresent(.audioDeletion) } : nil)
+                                     delete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory ? { revealAndPresent(.audioDeletion) } : nil,
+                                     accessibilityOnly: accessibilityOnly)
         }
     }
 

@@ -17,9 +17,11 @@ editable estimates; the interface makes no transcription-quality claim.
 
 ## Import
 
-History adds an Import Media plus button beside search and accepts one dropped
-file. The 480-point import sheet places the file name above one SettingsCard with
-Transcription, Language and Identify speakers. Use SoftPicker, SoftSwitch and
+History’s Add Recording plus menu beside search contains Import Media and Record
+Meeting; History also accepts one dropped file. A saved meeting reuses the import
+sheet for an explicit transcription choice. The 480-point import sheet places
+the file or recording name above one SettingsCard with Transcription, Language
+and Identify speakers. Use SoftPicker, SoftSwitch and
 RowDivider. Missing local models expose Open Models or an explicit speaker-model
 Download action with progress and Cancel.
 
@@ -32,8 +34,10 @@ required model is missing or other work is active.
 
 Media documents share History's date grouping, 52-point timeline and recording
 controls. Their cards show a title, stage, bounded text preview and engine name.
-Active work shows progress and Pause; incomplete work can expose Resume or Keep
-Transcript. Open Transcript opens the editor.
+Active work shows progress and Pause; a summary shows Summarizing and Cancel.
+Incomplete work can expose Resume or Keep Transcript. Visual cards and the
+accessibility representation share actions and the sheet presenter. Open
+Transcript opens the editor.
 
 The 650-by-530-point editor keeps title and Close above Edited/Original, Copy and
 the native Export menu. Speaker-name fields precede turn cards. Add Speaker and
@@ -41,7 +45,8 @@ the estimate notice remain adjacent. Each turn has a timestamp, speaker selector
 optional overlap notice and text. Show at most 100 turns per page with Previous
 and Next. Preserve shared card insets, corner radius and system typography.
 
-The footer holds Delete Transcript, active playback control, optional Summarize
+Turn cards remain clipped above the fixed footer, with horizontal room for their
+shadows. The footer holds Delete Transcript, active playback control, optional Summarize
 and Save Changes. Editing is disabled until processing completes. Unsaved changes
 require a discard confirmation; summaries require explicit confirmation and
 saved edits. Deleting a transcript explains that its recording stays.

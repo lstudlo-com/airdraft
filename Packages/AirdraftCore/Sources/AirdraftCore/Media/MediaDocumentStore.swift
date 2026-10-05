@@ -47,24 +47,28 @@ extension HistoryStore {
     }
 
     /// Adopts a completed, normalized WAV under the SQL writer lease. The importer owns its staging file.
-    public func importRecording(from wav: URL, source: RecordingAsset.Source = .imported) throws -> RecordingAsset {
+    public func importRecording(from wav: URL, source: RecordingAsset.Source = .imported,
+                                recordingID: String? = nil, captureIssue: String? = nil, createdAt: Date = Date()) throws -> RecordingAsset {
         try audioLock.withLock {
             let info = try FileManager.default.attributesOfItem(atPath: wav.path)
             guard info[.type] as? FileAttributeType == .typeRegular,
                   (info[.referenceCount] as? NSNumber)?.intValue == 1 else { throw MediaError.invalidAudio }
             let file = try AVAudioFile(forReading: wav)
-            guard file.processingFormat.sampleRate == 16_000, file.processingFormat.channelCount == 1, file.length > 0 else { throw MediaError.invalidAudio }
+            guard file.processingFormat.sampleRate == 16_000, (file.processingFormat.channelCount == 1 || (source == .meeting && file.processingFormat.channelCount == 2)), file.length > 0 else { throw MediaError.invalidAudio }
             let duration = Double(file.length) / 16_000
             guard duration <= MediaConfiguration.maximumDuration else { throw MediaError.tooLong }
             guard let directory = try checkedAudioDirectory(create: true) else { throw MediaError.unavailable }
-            let destination = directory.appendingPathComponent(UUID().uuidString + ".wav")
+            let id = recordingID ?? UUID().uuidString
+            guard UUID(uuidString: id) != nil else { throw MediaError.invalidAudio }
+            let destination = directory.appendingPathComponent(id + ".wav")
+            guard !FileManager.default.fileExists(atPath: destination.path) else { throw MeetingError.storage }
             do {
                 return try dbQueue.write { db in
                     try FileManager.default.copyItem(at: wav, to: destination)
                     try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: destination.path)
                     let handle = try FileHandle(forWritingTo: destination)
                     try handle.synchronize(); try handle.close()
-                    let asset = RecordingAsset(filename: destination.lastPathComponent, createdAt: Date(), duration: duration, source: source)
+                    let asset = RecordingAsset(filename: destination.lastPathComponent, createdAt: createdAt, duration: duration, source: source, captureIssue: captureIssue)
                     try asset.insert(db)
                     return asset
                 }

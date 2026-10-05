@@ -176,7 +176,8 @@ public final class HistoryStore: Sendable {
                 if let url = try existingAudioURL(named: record.audioFilename) {
                     let asset = RecordingAsset(filename: url.lastPathComponent, createdAt: record.createdAt,
                                                duration: record.audioSeconds)
-                    try asset.insert(db, onConflict: .ignore)
+                    try db.execute(sql: "INSERT OR IGNORE INTO recordingAsset (id, createdAt, filename, duration, source) VALUES (?, ?, ?, ?, ?)",
+                               arguments: [asset.id, asset.createdAt, asset.filename, asset.duration, asset.source.rawValue])
                     try db.execute(sql: "UPDATE dictation SET recordingID = ? WHERE id = ?", arguments: [asset.id, record.id])
                 } else {
                     try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE id = ?", arguments: [record.id])
@@ -193,6 +194,9 @@ public final class HistoryStore: Sendable {
                 t.column("revision", .integer).notNull()
                 t.column("payload", .blob).notNull()
             }
+        }
+        migrator.registerMigration("v6-meeting-metadata") { db in
+            try db.alter(table: "recordingAsset") { table in table.add(column: "captureIssue", .text) }
         }
         try migrator.migrate(dbQueue)
     }
@@ -258,7 +262,9 @@ public final class HistoryStore: Sendable {
             try dbQueue.read { db in
                 CleanupPreview(historyCount: try DictationRecord.fetchCount(db) + Int.fetchOne(db, sql: "SELECT COUNT(*) FROM mediaDocument")!,
                                recordingCount: try RecordingAsset.fetchCount(db),
-                               audioBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0) } ?? 0,
+                               audioBytes: try audioDirectory.map { folder in
+                                   try [folder, folder.deletingLastPathComponent().appendingPathComponent("MediaStaging"), folder.deletingLastPathComponent().appendingPathComponent("MeetingStaging")].reduce(Int64(0)) { try $0 + ManagedDataFiles.bytes(in: $1) }
+                               } ?? 0,
                                managedBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0.deletingLastPathComponent()) } ?? 0)
             }
         }

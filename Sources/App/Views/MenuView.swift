@@ -13,6 +13,13 @@ struct MenuView: View {
             Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
                 .disabled(container.cleanup.isRunning)
+        } else if container.meeting?.isBusy == true {
+            Text(container.meeting?.state == .finishing ? "Saving Meeting…" : "Recording Meeting")
+            Button("Stop and Save Meeting") { Task { await container.meeting?.stop() } }
+                .disabled(container.meeting?.state != .recording)
+            Button("Show Meeting…") { container.meeting?.isPresented = true; show(.history) }
+            Divider()
+            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else if container.media?.isBusy == true {
             Text(MenuTitle.fit(container.media?.activity ?? "Preparing Media…"))
             Button("Pause Media Job") { container.media?.cancel() }
@@ -45,6 +52,8 @@ struct MenuView: View {
             }
             .help(container.hotkeys.statusText)
         }
+        Button("Record Meeting…") { container.meeting?.isPresented = true; show(.history) }
+            .disabled(container.pipeline.isBusy || container.meeting == nil)
         Button("History…") { show(.history) }
         Button("Settings…") { show(.configuration) }
             .keyboardShortcut(",")
