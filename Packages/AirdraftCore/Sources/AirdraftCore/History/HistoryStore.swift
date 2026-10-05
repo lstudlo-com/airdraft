@@ -110,7 +110,7 @@ public final class HistoryStore: Sendable {
 
     /// Release the database handle before a disposable fixture removes its files.
     /// Call only after its pipeline work has been cancelled or completed.
-    func close() throws {
+    public func close() throws {
         try dbQueue.close()
     }
 
@@ -217,6 +217,38 @@ public final class HistoryStore: Sendable {
                     catch { throw AudioStorageError.cleanupFailed(saveError, error) }
                 }
                 throw saveError
+            }
+        }
+    }
+
+    /// Keep audio without carrying any transcript or app context into its asset.
+    public func saveRecording(samples: [Float], source: RecordingAsset.Source = .dictation,
+                              createdAt: Date = Date()) throws -> RecordingAsset {
+        try audioLock.withLock {
+            var written: URL?
+            do {
+                return try dbQueue.write { db in
+                    let url = try writeAudio(samples)
+                    written = url
+                    let asset = RecordingAsset(filename: url.lastPathComponent, createdAt: createdAt,
+                                               duration: Double(samples.count) / AudioRecorder.sampleRate, source: source)
+                    try asset.insert(db)
+                    return asset
+                }
+            } catch {
+                if let written { try removeAudio(named: written.lastPathComponent) }
+                throw error
+            }
+        }
+    }
+
+    public func cleanupPreview() throws -> CleanupPreview {
+        try audioLock.withLock {
+            try dbQueue.read { db in
+                CleanupPreview(historyCount: try DictationRecord.fetchCount(db),
+                               recordingCount: try RecordingAsset.fetchCount(db),
+                               audioBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0) } ?? 0,
+                               managedBytes: try audioDirectory.map { try ManagedDataFiles.bytes(in: $0.deletingLastPathComponent()) } ?? 0)
             }
         }
     }
@@ -389,9 +421,9 @@ public final class HistoryStore: Sendable {
                       let source = try existingAudioURL(named: asset.filename),
                       let directory = audioDirectory else { throw AudioStorageError.unavailable }
                 let target = destination.standardizedFileURL.resolvingSymlinksInPath()
-                let managed = directory.standardizedFileURL.resolvingSymlinksInPath().path
+                let managed = directory.deletingLastPathComponent().standardizedFileURL.resolvingSymlinksInPath().path
                 guard target.path != managed, !target.path.hasPrefix(managed + "/") else {
-                    throw AudioStorageError.unsafeLocation
+                    throw AudioStorageError.exportInManagedDirectory
                 }
                 let temporary = target.deletingLastPathComponent().appendingPathComponent(".Airdraft-\(UUID().uuidString).pending")
                 do {
@@ -452,11 +484,12 @@ public final class HistoryStore: Sendable {
     }
 
     private enum AudioStorageError: LocalizedError {
-        case unavailable, unsafeLocation, invalidSamples
+        case unavailable, unsafeLocation, invalidSamples, exportInManagedDirectory
         case cleanupFailed(Error, Error)
 
         var errorDescription: String? {
             switch self {
+            case .exportInManagedDirectory: return "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup."
             case .unavailable: return "This recording is no longer available."
             case .unsafeLocation: return "The recording location is not a regular file or private folder."
             case .invalidSamples: return "The recording contains invalid audio samples."

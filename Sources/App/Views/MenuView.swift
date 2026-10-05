@@ -6,6 +6,20 @@ struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        if container.pipeline.isMaintainingData {
+            Text("Data Cleanup")
+            Button("Open Airdraft…") { container.showMainWindow(openWindow) }
+            Divider()
+            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
+                .keyboardShortcut("q")
+                .disabled(container.cleanup.isRunning)
+        } else {
+            standardMenu
+        }
+    }
+
+    private var standardMenu: some View {
+        Group {
         Button(MenuTitle.fit(dictationTitle)) { container.pipeline.toggle() }
             .badge(container.pipeline.state.isBusy ? nil : Text(container.settings.hotkey.displayString))
             .help(shortcutHelp)
@@ -88,6 +102,7 @@ struct MenuView: View {
             .disabled(!container.updates.canCheckForUpdates)
         Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
+        }
     }
 
     private func show(_ page: Page) {

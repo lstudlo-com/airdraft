@@ -114,13 +114,7 @@ struct HistoryPage: View {
             Button("Delete History and Recordings", role: .destructive) {
                 guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
                 playback.stop()
-                guard let history = container.history else { return }
-                Task {
-                    do {
-                        try await Task.detached { try history.deleteAll() }.value
-                        NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-                    } catch { errorMessage = "History could not be cleared. " + error.localizedDescription }
-                }
+                Task { await container.performCleanup(.historyAndAudio) }
             }
         }
     }

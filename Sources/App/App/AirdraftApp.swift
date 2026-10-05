@@ -13,9 +13,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if shutdownFinished { return .terminateNow }
         if !shutdownStarted {
             let app = AppContainer.shared
-            if app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
+            if app.cleanup.isRunning { return .terminateCancel }
+            if app.cleanup.finishedScope != .reset && (app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
                app.dictionary.persistenceError != nil || app.profiles.persistenceError != nil ||
-               app.pipeline.isBusy || app.downloads.isBusy {
+               (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()
                 alert.messageText = "Quit with unfinished work?"
                 alert.informativeText = "Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."

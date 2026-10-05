@@ -36,7 +36,7 @@ transcript or app-name searches.
 Export and deletion share a SQLite writer lease across store instances. Copy to a
 temporary file beside the destination, synchronize it, then publish it. Explicit
 replacement is required for an existing destination. Never export into the managed
-recording directory. The exported copy belongs to the user and survives cleanup.
+app-data directory. The exported copy belongs to the user and survives cleanup.
 
 History uses one timeline with All and Recordings filters. Audio-only entries keep
 their own date and duration without retaining deleted text. A single injected
@@ -52,3 +52,5 @@ render fixtures use a silent transport even when their Play control is activated
 
 References: [GRDB migrations](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations),
 [SQLite foreign keys](https://www.sqlite.org/foreignkeys.html).
+
+Configuration cleanup and reset coordination are defined in `data-cleanup.md`.

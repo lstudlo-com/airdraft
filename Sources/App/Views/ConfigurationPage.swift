@@ -5,6 +5,9 @@ import SwiftUI
 struct ConfigurationPage: View {
     @Environment(AppContainer.self) private var container
 
+    @State private var pendingRetention: AudioRetention?
+    @State private var confirmRetention = false
+
     var body: some View {
         @Bindable var settings = container.settings
         PageScaffold(.configuration) {
@@ -96,7 +99,12 @@ struct ConfigurationPage: View {
             PageSection("Audio history") {
                 SettingsCard {
                     SettingRow(title: "Keep recordings", subtitle: "Local playback and retry. Off deletes audio, keeps text.") {
-                        SoftPicker("Keep recordings", selection: $settings.audioRetention, width: 160) {
+                        SoftPicker("Keep recordings", selection: Binding(get: { settings.audioRetention }, set: { choice in
+                            let old = settings.audioRetention.cutoff() ?? .distantFuture
+                            let new = choice.cutoff() ?? .distantFuture
+                            if new > old { pendingRetention = choice; confirmRetention = true }
+                            else { settings.audioRetention = choice }
+                        }), width: 160) {
                             ForEach(AudioRetention.allCases) { Text($0.title).tag($0) }
                         }
                     }
@@ -137,7 +145,18 @@ struct ConfigurationPage: View {
                 }
             }
 
+            DataCleanupSettings()
+
             UpdateSettings(updates: container.updates)
+        }
+        .confirmationDialog("Remove older saved dictation audio?", isPresented: $confirmRetention, titleVisibility: .visible) {
+            Button("Change Retention", role: .destructive) {
+                if let pendingRetention { settings.audioRetention = pendingRetention }
+                pendingRetention = nil
+            }
+            Button("Cancel", role: .cancel) { pendingRetention = nil }
+        } message: {
+            Text("Choosing \(pendingRetention?.title ?? "this limit") removes dictation audio outside that limit. Text and exported files stay. Deleted audio cannot be restored.")
         }
     }
 

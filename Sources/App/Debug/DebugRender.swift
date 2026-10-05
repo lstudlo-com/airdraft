@@ -126,6 +126,25 @@ enum DebugRender {
             container.pipeline.startRecording()
             RunLoop.main.run(until: Date().addingTimeInterval(0.1))
         }
+        if let state = env["AIRDRAFT_RENDER_CLEANUP"] {
+            var ready = false
+            Task { @MainActor in
+                await container.cleanup.execute(.reset, prepare: {}, steps: [
+                    .init("files", title: "Files") {},
+                    .init("permissions", title: "Permissions") {
+                        if state == "failed" { throw PermissionResetError(message: "macOS could not reset this app’s permissions. Unlock System Settings and retry.") }
+                    }
+                ])
+                ready = true
+            }
+            while !ready { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+        }
+        if env["AIRDRAFT_RENDER_VERIFY_CLEANUP"] == "1" {
+            var result: Bool?
+            Task { @MainActor in result = await DataCleanupVerification.run() }
+            while result == nil { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+            if result != true { exit(1) }
+        }
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
@@ -134,6 +153,10 @@ enum DebugRender {
                     if pageName.hasPrefix("license-") {
                         // A sheet has no titlebar inset, and its window is active.
                         LicenseView().ignoresSafeArea()
+                            .environment(\.controlActiveState, .key)
+                            .background(Color(nsColor: .windowBackgroundColor))
+                    } else if pageName == "cleanup" {
+                        DataCleanupProgress().ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
                             .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "permissions" {
@@ -160,7 +183,7 @@ enum DebugRender {
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
                 var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
-                if pageName.hasPrefix("license-") {
+                if pageName.hasPrefix("license-") || pageName == "cleanup" {
                     // The sheet sizes to its content; render exactly that size.
                     frame.size = host.fittingSize
                     print("LICENSE_SIZE \(pageName) \(suffix) \(Int(frame.width)) x \(Int(frame.height))")
@@ -173,6 +196,18 @@ enum DebugRender {
                 window.layoutIfNeeded()
                 host.layoutSubtreeIfNeeded()
                 RunLoop.main.run(until: Date().addingTimeInterval(container.settings.llm.kind.isCLI && page == .models ? 3 : 0.3))
+                if env["AIRDRAFT_RENDER_SCROLL_BOTTOM"] == "1" {
+                    func descendants(_ view: NSView) -> [NSScrollView] {
+                        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(descendants)
+                    }
+                    if let scroll = descendants(host).max(by: { $0.frame.width < $1.frame.width }),
+                       let document = scroll.documentView {
+                        let y = document.isFlipped ? max(0, document.bounds.height - scroll.contentView.bounds.height) : 0
+                        scroll.contentView.scroll(to: NSPoint(x: 0, y: y))
+                        scroll.reflectScrolledClipView(scroll.contentView)
+                        RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+                    }
+                }
                 if env["AIRDRAFT_RENDER_LIVE"] == suffix {
                     window.center()
                     window.makeKeyAndOrderFront(nil)
@@ -192,7 +227,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

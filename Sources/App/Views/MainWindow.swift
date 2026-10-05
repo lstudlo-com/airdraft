@@ -62,6 +62,9 @@ struct MainWindowView: View {
             }
         }
         .sheet(isPresented: $license.isPresented) { LicenseView().environment(container) }
+        .sheet(isPresented: Binding(get: { container.dataAccessIssue != nil || container.cleanup.blocksWork || container.cleanup.finishedScope == .reset }, set: { _ in })) {
+            DataCleanupProgress().environment(container).interactiveDismissDisabled()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             guard !container.pipeline.isBusy, let verified = license.record?.grant?.verifiedAt,
                   Date().timeIntervalSince(verified) >= 86_400 else { return }

@@ -832,6 +832,16 @@ view observes its clock. Keep drag seeking fine enough for subsecond recordings;
 keyboard seeking uses five-second steps. Verify using a silent injected transport,
 never system playback. Save Audio uses NSSavePanel and preserves source bytes;
 Show in Finder selects the managed file. Recording-only deletion preserves text.
+Configuration exposes four independent cleanup scopes through the shared
+`DataCleanupCoordinator`. Preview errors retry the preview and must still reach
+confirmation; only an already confirmed interrupted cleanup can resume directly.
+Keep new work fenced while its durable journal is pending. Strip deleted content
+from pending saves/recovery so retries cannot resurrect it. Require the app-data
+lease and reject running sibling copies before deleting shared data. Reset closes
+writers before removing app-owned files, removes provider keys without reading
+values, preserves license/trial accounts, and targets only the current app's TCC
+identity. Never promise to remove old path-based Accessibility entries. Tests use
+disposable roots and fake credentials/permission steps. See `docs/data-cleanup.md`.
 Retranscription uses a review-only pipeline policy, including explicit retries;
 it never inserts, runs delivery scripts, replaces the original entry or adds to
 history/statistics. Only the user's Copy action changes the clipboard.

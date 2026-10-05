@@ -24,6 +24,11 @@ final class AppContainer {
     }()
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "app")
 
+    let dataDirectory: URL
+    let cleanup: DataCleanupCoordinator
+    let dataLease: DataDirectoryLease?
+    let isolatedData: Bool
+    var dataAccessIssue: String? { dataLease?.holdsLease != true ? "Another app copy may be changing local data, or the data folder is unavailable. Quit other copies, check folder access, then reopen Airdraft." : nil }
     let settings: AppSettings
     let dictionary: DictionaryStore
     let profiles: ProfileStore
@@ -53,6 +58,10 @@ final class AppContainer {
     init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil) {
         hotkeys = HotkeyService(permissions: permissions)
         let dir = dataDirectory ?? AppSettings.supportDirectory
+        self.dataDirectory = dir
+        isolatedData = suppliedSettings != nil || dataDirectory != nil || RenderMode.isActive || RenderMode.excludesCredentials
+        cleanup = DataCleanupCoordinator(directory: dir)
+        dataLease = try? DataDirectoryLease(directory: dir)
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
         let license = suppliedLicense ?? AppLicense.make(isolated: suppliedSettings != nil || RenderMode.isActive || RenderMode.excludesCredentials)
@@ -67,12 +76,17 @@ final class AppContainer {
         #else
         factory = EngineFactory(status: engineStatus)
         #endif
-        dictionary = DictionaryStore(directory: dir)
-        profiles = ProfileStore(directory: dir)
+        // A copy blocked by another process's cleanup must not read, repair or
+        // write the shared JSON stores. The blocking sheet permits only Quit.
+        let readableDirectory = dataLease == nil
+            ? FileManager.default.temporaryDirectory.appendingPathComponent("Airdraft-Unavailable-\(UUID())") : dir
+        dictionary = DictionaryStore(directory: readableDirectory)
+        profiles = ProfileStore(directory: readableDirectory)
         models = ModelLifecycle(settings: settings, factory: factory, engineStatus: engineStatus, profiles: profiles)
 
         let history: HistoryStore?
         do {
+            guard dataLease != nil else { throw CleanupError.otherInstance }
             history = try HistoryStore(directory: dir)
         } catch {
             history = nil
@@ -98,6 +112,7 @@ final class AppContainer {
             recordingPreflight: recordingPreflight,
             accessCheck: { try await license.requireAccess() }
         )
+        if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance() }
     }
 
     /// Call once from the app delegate.
@@ -144,13 +159,14 @@ final class AppContainer {
         pipeline.onLLMUsed = { [weak self] instance, config in self?.models.noteLLMUsed(instance, config: config) }
         pipeline.llmNeedsLoad = { [weak self] config in await self?.models.llmNeedsLoad(config: config) ?? false }
         pipeline.loadLLM = { [weak self] config in await self?.models.loadLLMIfNeeded(config: config) }
-        models.start()
+        if !cleanup.blocksWork && dataLease != nil { models.start() }
         audioCleanupTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.pipeline.pruneSavedAudio()
                 do { try await Task.sleep(for: .seconds(3600)) } catch { return }
             }
         }
+        if cleanup.blocksWork || dataLease == nil { navigation.page = .configuration; showMainWindow() }
         observeAudioRetention()
         observeLivePreview()
         startupCompleted = true
@@ -216,6 +232,7 @@ final class AppContainer {
     }
 
     func showLicense() {
+        guard !pipeline.isMaintainingData else { return }
         license.isPresented = true
         showMainWindow()
     }

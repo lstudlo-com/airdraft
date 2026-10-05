@@ -27,6 +27,7 @@ final class ModelLifecycle {
     private var llmGeneration = UUID()
     private var llmCleanupGeneration = UUID()
     private var dictationBusy = false
+    private var started = false
     private var usedLLMEndpoints: [URL: Set<String>] = [:]
     private var llmUnloads: [UUID: (url: URL, task: Task<Void, Error>)] = [:]
 
@@ -44,6 +45,8 @@ final class ModelLifecycle {
     }
 
     func start() {
+        guard !started else { return }
+        started = true
         lastASR = speechConfig
         lastLLM = settings.llm
         Task { await factory.setIdleUnloadMinutes(settings.idleUnloadMinutes) }
@@ -255,6 +258,19 @@ final class ModelLifecycle {
             }
             Self.log.error("LLM unload failed; retaining instance for cleanup retry")
             return false
+        }
+    }
+
+    /// Stop pending automatic loads before reset removes their files.
+    func prepareForDataReset() async throws {
+        dictationBusy = true
+        speechLoadTask?.cancel()
+        llmGeneration = UUID()
+        llmCleanupGeneration = UUID()
+        try await OperationDeadline.run(seconds: 30) { [self] in
+            await speechLoadTask?.value
+            await factory.unloadAll()
+            await CLIWarmPool.shared.shutdown()
         }
     }
 

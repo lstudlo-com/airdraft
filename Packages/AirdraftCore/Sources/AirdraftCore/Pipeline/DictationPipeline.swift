@@ -42,6 +42,7 @@ public final class DictationPipeline {
     public private(set) var hasRecoverableRecording = false
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
+    public private(set) var isMaintainingData = false
     public private(set) var previewText = ""
     public private(set) var previewIssue: String?
     public private(set) var previewEnabledForRecording = false
@@ -207,7 +208,7 @@ public final class DictationPipeline {
     }
 
     public var isRecording: Bool { state == .recording }
-    public var isBusy: Bool { state.isBusy || recordingRequest != nil }
+    public var isBusy: Bool { isMaintainingData || state.isBusy || recordingRequest != nil }
 
     // MARK: - Control
 
@@ -217,7 +218,7 @@ public final class DictationPipeline {
     }
 
     public func startRecording() {
-        guard !state.isBusy, recordingRequest == nil else { return }
+        guard !isBusy, recordingRequest == nil else { return }
         guard !hasRecoverableRecording else {
             fail("A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.")
             return
@@ -496,7 +497,7 @@ public final class DictationPipeline {
     }
 
     public func pruneSavedAudio() async {
-        guard let history else { return }
+        guard !isMaintainingData, let history else { return }
         let cutoff = settings.audioRetention.cutoff()
         do {
             try await Task.detached { try history.pruneAudio(olderThan: cutoff) }.value
@@ -583,7 +584,7 @@ public final class DictationPipeline {
     }
 
     public func retryHistorySave() async {
-        guard !isSavingHistory else { return }
+        guard !isSavingHistory, !isMaintainingData else { return }
         isSavingHistory = true
         defer { isSavingHistory = false }
         do {
@@ -599,6 +600,56 @@ public final class DictationPipeline {
         } catch {
             historyStorageError = "History could not be saved. Your unsaved dictations remain in memory. " + error.localizedDescription
         }
+    }
+
+    /// Freeze every entry point before deletion. Existing writes must finish
+    /// first; setting the flag is synchronous on the same actor as those starts.
+    public func beginDataMaintenance() throws {
+        guard !state.isBusy, recordingRequest == nil, !isSavingHistory else { throw CleanupError.busy }
+        isMaintainingData = true
+        generation = UUID()
+        resetTask?.cancel()
+        audioRevision += 1
+    }
+
+    public func endDataMaintenance() { isMaintainingData = false }
+
+    public func prepareDataRemoval(_ scope: DataCleanupScope) async throws {
+        guard isMaintainingData else { throw CleanupError.busy }
+        if scope == .history {
+            // Pending text must not reappear on Save Retry. Retain its audio as
+            // a detached asset before discarding the pending transcript.
+            while let pending = unsavedHistory.first {
+                if let samples = pending.samples, !samples.isEmpty {
+                    guard let history else { throw CleanupError.storageUnavailable }
+                    _ = try await Task.detached {
+                        try history.saveRecording(samples: samples, createdAt: pending.record.createdAt)
+                    }.value
+                }
+                unsavedHistory.removeFirst()
+            }
+            if var saved = recovery {
+                saved.context = .empty; saved.target = nil; saved.reviewOnly = true
+                recovery = saved
+            }
+        } else if scope.removesHistory {
+            unsavedHistory = []
+        } else {
+            unsavedHistory = unsavedHistory.map { ($0.record, nil) }
+        }
+        if scope.removesAudio { recovery = nil; hasRecoverableRecording = false }
+        if scope.removesHistory {
+            lastOutcome = nil; reviewOutcome = nil; lastIssue = nil; historyStorageError = nil
+        }
+        audioStorageError = nil
+        stopPreview()
+        levelHistory = []
+    }
+
+    public func closeHistoryForReset() async throws {
+        guard isMaintainingData else { throw CleanupError.busy }
+        if let history { try await Task.detached { try history.close() }.value }
+        historyStore = nil
     }
 
     // MARK: - Processing

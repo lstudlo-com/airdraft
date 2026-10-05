@@ -411,6 +411,10 @@ Current refinement failures appear on its submenu title, with raw-transcript
 fallback explained inside. Prior dictation issues remain separate. Fit dynamic
 titles through `MenuTitle.fit` and preserve full details in tooltips and Home.
 
+During data cleanup, the menu contains only Data Cleanup, Open Airdraft and Quit
+Airdraft. Quit is disabled while a cleanup step is running. Profile, refinement
+and other settings actions stay unavailable until maintenance finishes.
+
 ### History timeline and recordings
 
 History keeps its title and search above two independently scrolling columns.
@@ -450,6 +454,35 @@ deletion separate from deleting a dictation and its recording, with a native
 confirmation for each. Empty results omit the guide. The Recordings empty state
 explains how to retain future recordings when retention is off. Timeline jumps
 respect Reduce Motion.
+
+### Configuration data cleanup
+
+Data & reset sits below Permissions and above Updates. One `SettingsCard`
+contains four rows: History, Audio files, History and audio, and Start fresh.
+Each pairs a short preservation note with its labeled removal or Reset App
+button. Reuse `SettingRow`, `RowDivider` and `SoftButtonStyle`, with the card's
+equal 16-point insets and 18-point corners. Keep the existing neutral treatment.
+
+Actions first show Checking stored data, then a native confirmation with the
+selected scope, available counts and approximate managed-file size. Preserve
+native Cancel and destructive action roles. State what remains, including
+external originals and exports. A preview failure keeps Retry beside the error;
+Retry refreshes the preview and returns to confirmation before any deletion.
+Disable the four actions while checking, cleaning up, dictating, saving history
+or downloading. A completed partial cleanup adds a short result inside the card.
+
+An active or interrupted cleanup opens `DataCleanupProgress`, a sheet that
+cannot be dismissed interactively. It shows the current step while running,
+then selectable errors and completed steps if interrupted. Its prominent Retry
+continues the same scope; Quit Airdraft becomes available when work stops. Reset
+completion explains that reopening starts setup and keeps license and trial
+records. Preserve its Quit Airdraft action, manual Accessibility-removal guidance
+and Open Accessibility Settings button.
+
+Keep recordings remains in Audio history. Shortening retention or choosing Off
+opens a native confirmation before the setting changes. Its message identifies
+the pending limit and explains that saved text and exported files remain;
+Cancel retains the previous choice.
 
 ### Profile editor
 
