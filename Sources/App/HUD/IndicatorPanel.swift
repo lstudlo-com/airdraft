@@ -19,6 +19,7 @@ final class IndicatorPanelController {
     private var dismissalID: UUID?
     private var contentID = UUID()
     private var targetFrame: NSRect?
+    private let spatialAnimation = SpatialHUDAnimation()
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
          messagePasteboard: NSPasteboard = .general,
@@ -57,6 +58,7 @@ final class IndicatorPanelController {
             snapshot: messageSnapshot, style: style, showPreview: preview,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
+            spatialAnimation: spatialAnimation,
             onSizeChange: { [weak self] size in
                 guard let self, self.contentID == id, self.dismissalID == nil else { return }
                 self.resize(to: size, animated: messageSnapshot != nil)
@@ -133,7 +135,9 @@ final class IndicatorPanelController {
         // The live pipeline can move to idle while the panel is fading. Freeze
         // the final display so idle cannot bring back the recording timer.
         let snapshot = HUDSnapshot(state: lastVisibleState, levels: pipeline.levelHistory,
-                                   elapsed: pipeline.lastRecordingDuration)
+                                   elapsed: pipeline.lastRecordingDuration,
+                                   visualizerTime: spatialAnimation.motion.phase,
+                                   visualizerEnergy: spatialAnimation.motion.energy)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
             showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
         host.sizingOptions = []
@@ -165,6 +169,9 @@ final class IndicatorPanelController {
         let style = styleProvider()
         guard style != .none else {
             panel.orderOut(nil)
+            // Tear down animated content when the user hides the recording window.
+            contentID = UUID()
+            panel.contentView = nil
             return
         }
         let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
@@ -216,6 +223,7 @@ struct RecordingHUDView: View {
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
+    var spatialAnimation = SpatialHUDAnimation()
     var onSizeChange: ((CGSize) -> Void)?
 
     var body: some View {
@@ -236,7 +244,7 @@ struct RecordingHUDView: View {
             }
             IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style,
                           messageMaxWidth: messageMaxWidth, messageMaxHeight: messageMaxHeight,
-                          messagePasteboard: messagePasteboard)
+                          messagePasteboard: messagePasteboard, spatialAnimation: spatialAnimation)
         }
         .fixedSize()
         .onGeometryChange(for: CGSize.self) { $0.size } action: { onSizeChange?($0) }
@@ -258,6 +266,9 @@ struct HUDSnapshot {
     var state: PipelineState
     var levels: [Float]
     var elapsed: TimeInterval
+    /// Deterministic animation phase for previews; delivery snapshots stay still.
+    var visualizerTime: TimeInterval = 1.4
+    var visualizerEnergy: Double?
 }
 
 /// Dark pill with equal outer insets. Classic fits its current timer or status
@@ -271,16 +282,19 @@ struct IndicatorView: View {
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
+    var spatialAnimation: SpatialHUDAnimation
 
     init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
-         messagePasteboard: NSPasteboard = .general) {
+         messagePasteboard: NSPasteboard = .general,
+         spatialAnimation: SpatialHUDAnimation = SpatialHUDAnimation()) {
         self.pipeline = pipeline
         self.snapshot = snapshot
         self.style = style
         self.messageMaxWidth = messageMaxWidth
         self.messageMaxHeight = messageMaxHeight
         self.messagePasteboard = messagePasteboard
+        self.spatialAnimation = spatialAnimation
     }
 
     private var state: PipelineState { snapshot?.state ?? pipeline?.state ?? .idle }
@@ -295,7 +309,16 @@ struct IndicatorView: View {
                 waveform(width: 80, height: 14)
             } else {
                 HStack(spacing: 8) {
-                    waveform(width: 72, height: 16)
+                    if style == .cube || style == .sonic {
+                        SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
+                                             frozenTime: snapshot?.visualizerTime,
+                                             frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
+                            .frame(width: 82, height: 22)
+                            .background { HUDWaveformWell() }
+                            .clipShape(Capsule())
+                    } else {
+                        waveform(width: 72, height: 16)
+                    }
                     ElapsedTime(pipeline: pipeline, snapshot: snapshot)
                         .fixedSize()
                 }

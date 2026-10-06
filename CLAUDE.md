@@ -386,6 +386,15 @@ verification status belong in the vault (see below).
   extra per-row depth. Scroll views must not clip raised cards' light and shade:
   History's card column extends into the timeline gap and the page's trailing and
   bottom margins, with matching content margins that keep the cards in place.
+- Recording window offers Classic, Mini, Cube, Sonic and None. Cube and Sonic
+  keep Classic's 34-point capsule, timer/status labels and six-point insets.
+  Cube uses shaded rotating face plates; Sonic braids ribbons through a wireframe
+  cube. Drive response from the existing recent microphone levels, with bounded
+  fast attack and slower release; never open another audio input or call it a
+  frequency spectrum. Keep motion in the visualization well and freeze its phase
+  and energy during delivery fade. Reduce Motion stops rotation and travelling
+  waves while retaining a static level response. Configuration previews use
+  synthetic input, pause in renders, and arrange choices in three columns.
 - After successful text delivery, freeze the recording HUD's final processing
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer
@@ -436,7 +445,7 @@ verification status belong in the vault (see below).
   (`EngineFactoryTests` checks this); the UI looks up load state by it.
 - Local engines load only from `LocalModels` folders and never download on their own.
   Starting dictation automatically loads an installed but unloaded speech model,
-  showing Loading in both Classic and Mini HUDs before opening the microphone.
+  showing Loading in all visible HUD styles before opening the microphone.
   Join an existing load through `EngineFactory`; cancellation or changed setup
   must not start stale recording. Missing model files still require installation.
   Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable

@@ -475,9 +475,11 @@ corners (`12px` on phones), raised with the hero's spread, with an inactive
 window's gray close and minimize buttons 16 points in. Both appearances are
 stacked; a groove divider with a raised round key compares them. Dragging the
 window or the keyboard on its range input moves it; without JavaScript it rests
-at half. On wide windows (from `1280px`) six callouts name the materials at
+at half. The recording-window picker includes Cube and Sonic; its callout points
+to their preview row and describes their voice response. On wide windows (from
+`1280px`) six callouts name the materials at
 their places in the window (carved mark, pressed well, raised button, raised
-card, engraved divider, sliding choice), joined by a leader ending in a
+card, engraved divider, reactive capsules), joined by a leader ending in a
 graphite stud ringed with the chrome. The window rises with the scroll and the
 callouts draw out after it. Once, when the window is half in view, the divider
 sweeps from the right edge to the middle over `1200ms` on the selection curve

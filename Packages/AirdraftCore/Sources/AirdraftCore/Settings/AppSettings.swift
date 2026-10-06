@@ -31,6 +31,10 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     case classic
     /// Waveform only.
     case mini
+    /// Audio-reactive, faceted rotating cube plus elapsed time.
+    case cube
+    /// Flowing sonic ribbons through a spatial cube plus elapsed time.
+    case sonic
     /// No recording window.
     case none
     public var id: String { rawValue }
@@ -38,6 +42,8 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
         switch self {
         case .classic: return "Classic"
         case .mini: return "Mini"
+        case .cube: return "Cube"
+        case .sonic: return "Sonic"
         case .none: return "None"
         }
     }

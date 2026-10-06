@@ -121,7 +121,7 @@ import Observation
 import SwiftUI
 
 enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hud" }
-enum HUDStyle: String { case classic, mini, none }
+enum HUDStyle: String { case classic, mini, cube, sonic, none }
 
 @MainActor @Observable final class DictationPipeline {
     static let levelHistoryLength = 22
@@ -179,25 +179,31 @@ struct NeumorphicSurface<S: Shape>: View {
         precondition(!visible(), "None must also hide a pending notice HUD")
         print("PASS: real NSPanel Classic to None to Mini to None visibility")
 
-        for activeStyle in [HUDStyle.classic, .mini] {
+        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let active = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let timerWidth = active.frame.width
             update(.transcribing)
             let transcribingWidth = active.frame.width
-            if style == .classic {
+            if style != .mini {
                 precondition(transcribingWidth > timerWidth, "The panel must grow for the longer current label")
             }
             update(.refining)
-            if style == .classic {
+            if style != .mini {
                 precondition(active.frame.width < transcribingWidth, "The panel must shrink again for Refining")
             }
             update(.inserting)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let start = ContinuousClock.now
+            let live = panel.contentView as! NSHostingView<RecordingHUDView>
+            let phase = live.rootView.spatialAnimation.motion.phase
+            let energy = live.rootView.spatialAnimation.motion.energy
             controller.deliveryCompleted()
             let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
+            precondition(frozen.rootView.snapshot?.visualizerTime == phase &&
+                         frozen.rootView.snapshot?.visualizerEnergy == energy,
+                         "Delivery must freeze the exact visualizer phase and energy")
             precondition(frozen.rootView.snapshot?.state == .inserting,
                          "Completion must preserve Inserting instead of the old timer")
             try await Task.sleep(for: .milliseconds(150))
@@ -240,7 +246,7 @@ struct NeumorphicSurface<S: Shape>: View {
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
 
-        for activeStyle in [HUDStyle.classic, .mini] {
+        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             update(.inserting)
@@ -300,7 +306,7 @@ struct NeumorphicSurface<S: Shape>: View {
         // The last failure's start: its five-second deadline and fade count from here,
         // not from the end of the checks below, whose duration varies by machine.
         var failedAt = Date()
-        for activeStyle in [HUDStyle.classic, .mini] {
+        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -381,7 +387,7 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.recording)
         try await Task.sleep(for: .seconds(4))
         precondition(visible(), "A cancelled message timeout must not hide a new recording")
-        for activeStyle in [HUDStyle.classic, .mini] {
+        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -391,7 +397,7 @@ struct NeumorphicSurface<S: Shape>: View {
                          "Both HUD styles must show the loading label without taking focus")
             saveRender(panel.contentView!, name: "loading-\(activeStyle.rawValue)")
         }
-        print("PASS: replacement deadlines, new recording cancellation and loading in both HUD styles")
+        print("PASS: replacement deadlines, new recording cancellation and loading in all visible HUD styles")
 
         for (name, diagnostic, width, height) in [
             ("cjk", "聽寫失敗：無法連線至伺服器。請檢查網路後重試。\n完整原因：連線逾時，沒有收到辨識結果。", 560.0, 420.0),
@@ -457,6 +463,7 @@ def verify(directory: Path, skip_hud: bool) -> None:
     else:
         run_suite(directory, "hud-visibility", {
             "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
+            "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],

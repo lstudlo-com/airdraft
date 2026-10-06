@@ -361,15 +361,22 @@ Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
 fills are raised solid gray pills inside their inset tracks (0.66 light, 0.32
 dark), lit from the top left, and remain proportional, with no fill for zero. The recording HUD fits its current timer or status and
-keeps bright live bars, a dark inset waveform track and shallow rim. Errors and
-recovery notices expand over 0.28 seconds into a rounded diagnostic panel with
-13-point wrapping text and a 28-point Copy Message icon at the far right. Full
-diagnostics remain visible through the pipeline's idle reset until the next
-operation; text scrolls only beyond the screen-bound height. Copy preserves all
+keeps bright live bars, a dark inset waveform track and shallow rim. Cube and
+Sonic use the same 34-point capsule and timer: Cube has silver face plates and
+orbital traces, while Sonic passes seven animated ribbons through a wireframe
+cube. Recent microphone amplitude controls their excursion, face separation and
+rotation speed, with fast attack and slower release. They do not claim to show
+frequency analysis. Reduce Motion holds the phase still and retains level
+response; delivery captures phase and energy for a frozen fade. Configuration
+previews use synthetic input and pause for deterministic renders.
+Errors and recovery notices expand over 0.28 seconds into a rounded diagnostic
+panel with 13-point wrapping text and a 28-point Copy Message icon at the far right. Full
+diagnostics remain visible through the pipeline's idle reset for five seconds;
+text scrolls only beyond the screen-bound height. Copy preserves all
 text without activating the panel. Recording remains click-through, and Reduce
-Motion disables spatial expansion. Informational confirmations such as Copied to
-clipboard show for three seconds and then fade over 0.5 seconds. Delivery metadata
-distinguishes these confirmations from persistent recovery messages.
+Motion disables spatial expansion. All messages fade over
+0.5 seconds after their five-second display. New operations cancel the deadline;
+expired notices never reopen on idle or style changes.
 
 Sidebar material, subtle fills and dividers continue to separate ordinary
 content. Profiles has no shadowed editor container. Native menus, action

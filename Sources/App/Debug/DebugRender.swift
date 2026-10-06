@@ -10,6 +10,10 @@ import SwiftUI
 enum DebugRender {
     /// Renders the main window for one page in dark and light appearance.
     static func renderWindow(pageName: String, toDirectory dir: URL, height: CGFloat = 660) {
+        if pageName == "hud-styles" {
+            SpatialHUDVerification.run(to: dir)
+            return
+        }
         if pageName == "menu" {
             MenuVerification.run(to: dir)
             return
@@ -371,11 +375,11 @@ enum DebugRender {
         ]
         var images: [NSImage] = []
         var classicWidths: [String: CGFloat] = [:]
-        for style in [HUDStyle.classic, .mini] {
+        for style in [HUDStyle.classic, .mini, .cube, .sonic] {
             for (name, snap) in states {
                 let measured = NSHostingView(rootView: IndicatorView(snapshot: snap, style: style)).fittingSize
                 if snap.state.hudMessage == nil {
-                    precondition(abs(measured.height - (style == .classic ? 34 : 32)) < 0.5,
+                    precondition(abs(measured.height - (style == .mini ? 32 : 34)) < 0.5,
                                  "HUD waveform must retain equal six-point outer insets")
                 }
                 if style == .classic { classicWidths[name] = measured.width }

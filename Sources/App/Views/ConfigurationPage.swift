@@ -31,8 +31,8 @@ struct ConfigurationPage: View {
                     AppIconSettingRow(title: "Dark app icon", selection: $settings.appIcons.dark)
                     RowDivider()
                     SettingRow(title: "Recording window") {
-                        HStack(spacing: 10) {
-                            ForEach(HUDStyle.allCases) { style in
+                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(106), spacing: 10), count: 3), spacing: 12) {
+                            ForEach([HUDStyle.classic, .mini, .none, .cube, .sonic]) { style in
                                 ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
                                     HUDPreview(style: style)
                                 }
@@ -94,7 +94,7 @@ struct ConfigurationPage: View {
                     }
                     if settings.livePreviewEnabled {
                         RowDivider()
-                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Requires Classic or Mini recording window" : "Choose and install a language in Models") {
+                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : "Choose and install a language in Models") {
                             Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
                         }
                     }
@@ -244,6 +244,8 @@ struct ThemePreview: View {
 /// Preview tile for the recording-window picker.
 struct HUDPreview: View {
     let style: HUDStyle
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var started = Date()
 
     var body: some View {
         ZStack {
@@ -255,6 +257,14 @@ struct HUDPreview: View {
             case .mini:
                 IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .mini)
                     .scaleEffect(0.55)
+            case .cube, .sonic:
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || RenderMode.isActive)) { context in
+                    let time = reduceMotion || RenderMode.isActive ? 1.4 : context.date.timeIntervalSince(started)
+                    let level = Float(0.08 + 0.55 * pow(0.5 + 0.5 * sin(time * 2.8), 2))
+                    IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: Array(repeating: level, count: 22),
+                                                        elapsed: 4.2, visualizerTime: time), style: style)
+                        .scaleEffect(0.65)
+                }
             case .none:
                 Image(systemName: "eye.slash").font(.system(size: 22)).foregroundStyle(.secondary)
             }
