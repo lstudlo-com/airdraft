@@ -155,11 +155,13 @@ struct NeumorphicSurface<S: Shape>: View {
 
     @MainActor static func verify() async throws {
         var style: HUDStyle = .classic
+        var timer = HUDTimerOptions()
         var reduceMotion = false
         let pipeline = DictationPipeline()
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }
         let controller = IndicatorPanelController(pipeline: pipeline, style: { style },
+            timer: { timer },
             messagePasteboard: pasteboard, reduceMotion: { reduceMotion })
         func update(_ state: PipelineState) {
             pipeline.state = state
@@ -181,18 +183,40 @@ struct NeumorphicSurface<S: Shape>: View {
 
         for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
             style = activeStyle
+            timer.isEnabled = false
+            pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
+            update(.recording)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            try await Task.sleep(for: .milliseconds(60))
+            let compactWidth = panel.frame.width
+            pipeline.recordingStartedAt = Date().addingTimeInterval(-600)
+            try await Task.sleep(for: .milliseconds(160))
+            precondition(panel.frame.width == compactWidth, "Hidden time must never reserve or grow space")
+            var enabledWidth: CGFloat?
+            for position in HUDTimerOptions.Position.allCases {
+                timer = HUDTimerOptions(isEnabled: true, position: position)
+                controller.update(for: .recording, isStateChange: false)
+                try await Task.sleep(for: .milliseconds(80))
+                precondition(panel.frame.width > compactWidth, "Enabling the timer must expand the capsule")
+                if let enabledWidth { precondition(abs(panel.frame.width - enabledWidth) < 0.5) }
+                enabledWidth = panel.frame.width
+            }
+            timer.isEnabled = false
+            controller.update(for: .recording, isStateChange: false)
+            precondition(abs(panel.frame.width - compactWidth) < 0.5, "Disabling must reclaim the timer's space")
+        }
+        print("PASS: all four live presets default timerless and resize correctly with either timer position")
+
+        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+            style = activeStyle
             update(.recording)
             let active = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let timerWidth = active.frame.width
             update(.transcribing)
             let transcribingWidth = active.frame.width
-            if style != .mini {
-                precondition(transcribingWidth > timerWidth, "The panel must grow for the longer current label")
-            }
+            precondition(transcribingWidth > timerWidth, "The panel must grow for the longer current label")
             update(.refining)
-            if style != .mini {
-                precondition(active.frame.width < transcribingWidth, "The panel must shrink again for Refining")
-            }
+            precondition(active.frame.width < transcribingWidth, "The panel must shrink again for Refining")
             update(.inserting)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let start = ContinuousClock.now
@@ -224,6 +248,8 @@ struct NeumorphicSurface<S: Shape>: View {
         }
 
         style = .classic
+        timer.isEnabled = true
+        pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
         update(.recording)
         update(.inserting)
         controller.deliveryCompleted()
@@ -242,6 +268,7 @@ struct NeumorphicSurface<S: Shape>: View {
         precondition(restarted.frame.width > shortTimerWidth && abs(restarted.frame.midX - center) < 0.5,
                      "A new minute digit must resize the live panel without clipping or shifting its center")
         print("PASS: live status widths and timer digit growth use intrinsic layout")
+        timer.isEnabled = false
         update(.idle)
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
@@ -464,6 +491,7 @@ def verify(directory: Path, skip_hud: bool) -> None:
         run_suite(directory, "hud-visibility", {
             "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
             "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
+            "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],

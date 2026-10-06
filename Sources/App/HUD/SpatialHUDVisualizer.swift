@@ -180,13 +180,6 @@ private struct SpatialHUDScene {
     }
 
     func sonic(in context: inout GraphicsContext) {
-        let corners = vertices.map { project(rotate($0), scale: 0.93 + energy * 0.08) }
-        let edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6),
-                     (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)]
-        for (a, b) in edges {
-            context.stroke(path([corners[a], corners[b]]),
-                           with: .color(.white.opacity(highContrast ? 0.65 : 0.24)), lineWidth: 0.5)
-        }
         // Braided ribbons form a travelling interference pattern, not fake FFT bands.
         // Their excursion is driven only by the measured short-term input level.
         for strand in 0..<7 {

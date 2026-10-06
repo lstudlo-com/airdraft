@@ -10,9 +10,11 @@ final class IndicatorPanelController {
     private let panel: NSPanel
     private let pipeline: DictationPipeline
     private let styleProvider: () -> HUDStyle
+    private let timerProvider: () -> HUDTimerOptions
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
     private var currentStyle: HUDStyle = .classic
+    private var currentTimer = HUDTimerOptions()
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
     private var messageTimeoutTask: Task<Void, Never>?
@@ -22,10 +24,12 @@ final class IndicatorPanelController {
     private let spatialAnimation = SpatialHUDAnimation()
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
+         timer: @escaping () -> HUDTimerOptions = { HUDTimerOptions() },
          messagePasteboard: NSPasteboard = .general,
          reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }) {
         self.pipeline = pipeline
         self.styleProvider = style
+        self.timerProvider = timer
         self.messagePasteboard = messagePasteboard
         self.reduceMotion = reduceMotion
         panel = RecordingHUDPanel(
@@ -46,6 +50,7 @@ final class IndicatorPanelController {
 
     private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
         currentStyle = style
+        currentTimer = timerProvider()
         currentPreview = preview
         let id = UUID()
         contentID = id
@@ -55,7 +60,7 @@ final class IndicatorPanelController {
             HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
         let bounds = targetScreen?.visibleFrame.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
-            snapshot: messageSnapshot, style: style, showPreview: preview,
+            snapshot: messageSnapshot, style: style, timer: currentTimer, showPreview: preview,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
             spatialAnimation: spatialAnimation,
@@ -78,7 +83,7 @@ final class IndicatorPanelController {
         switch state {
         case .idle:
             if messageTimeoutTask != nil, dismissalID == nil {
-                if styleProvider() != currentStyle { show() }
+                if styleProvider() != currentStyle || timerProvider() != currentTimer { show() }
                 return
             }
             dismiss()
@@ -139,7 +144,7 @@ final class IndicatorPanelController {
                                    visualizerTime: spatialAnimation.motion.phase,
                                    visualizerEnergy: spatialAnimation.motion.energy)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
-            showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
+            timer: currentTimer, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
         host.sizingOptions = []
         host.frame = NSRect(origin: .zero, size: panel.frame.size)
         panel.contentView = host
@@ -181,7 +186,7 @@ final class IndicatorPanelController {
         panel.ignoresMouseEvents = !message
         if message && !wasVisible {
             let compact = NSHostingView(rootView: IndicatorView(snapshot:
-                HUDSnapshot(state: .recording, levels: [], elapsed: 0), style: style)).fittingSize
+                HUDSnapshot(state: .recording, levels: [], elapsed: 0), style: style, timer: currentTimer)).fittingSize
             resize(to: compact)
         }
         panel.orderFrontRegardless()
@@ -218,6 +223,7 @@ struct RecordingHUDView: View {
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
     var style: HUDStyle
+    var timer = HUDTimerOptions()
     var showPreview: Bool
     var sampleText: String?
     var messageMaxWidth: CGFloat = 560
@@ -242,7 +248,7 @@ struct RecordingHUDView: View {
                     }
                     .environment(\.colorScheme, .dark)
             }
-            IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style,
+            IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style, timer: timer,
                           messageMaxWidth: messageMaxWidth, messageMaxHeight: messageMaxHeight,
                           messagePasteboard: messagePasteboard, spatialAnimation: spatialAnimation)
         }
@@ -252,6 +258,16 @@ struct RecordingHUDView: View {
 }
 
 extension PipelineState {
+    var hudCaption: String? {
+        switch self {
+        case .preparingModel: return "Loading"
+        case .transcribing: return "Transcribing"
+        case .refining: return "Refining"
+        case .inserting: return "Inserting"
+        default: return nil
+        }
+    }
+
     /// Text the HUD shows instead of the waveform, if any.
     var hudMessage: String? {
         switch self {
@@ -271,26 +287,28 @@ struct HUDSnapshot {
     var visualizerEnergy: Double?
 }
 
-/// Dark pill with equal outer insets. Classic fits its current timer or status
-/// label; Mini shows only the waveform.
+/// Preset artwork, optional timer and processing status share one content-sized pill.
 struct IndicatorView: View {
     static let contentInset: CGFloat = 6
 
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
     var style: HUDStyle = .classic
+    var timer: HUDTimerOptions
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
     var spatialAnimation: SpatialHUDAnimation
 
     init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
+         timer: HUDTimerOptions = HUDTimerOptions(),
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
          messagePasteboard: NSPasteboard = .general,
          spatialAnimation: SpatialHUDAnimation = SpatialHUDAnimation()) {
         self.pipeline = pipeline
         self.snapshot = snapshot
         self.style = style
+        self.timer = timer
         self.messageMaxWidth = messageMaxWidth
         self.messageMaxHeight = messageMaxHeight
         self.messagePasteboard = messagePasteboard
@@ -305,22 +323,25 @@ struct IndicatorView: View {
             if let message = state.hudMessage {
                 HUDMessageView(message: message, maxWidth: messageMaxWidth,
                                maxHeight: messageMaxHeight, pasteboard: messagePasteboard)
-            } else if style == .mini && state != .preparingModel {
-                waveform(width: 80, height: 14)
             } else {
                 HStack(spacing: 8) {
-                    if style == .cube || style == .sonic {
-                        SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
-                                             frozenTime: snapshot?.visualizerTime,
-                                             frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
-                            .frame(width: 82, height: 22)
-                            .background { HUDWaveformWell() }
-                            .clipShape(Capsule())
-                    } else {
-                        waveform(width: 72, height: 16)
+                    if showsTimer && timer.position == .left {
+                        ElapsedTime(pipeline: pipeline, snapshot: snapshot).fixedSize()
+                            .accessibilityIdentifier("hud.timer")
                     }
-                    ElapsedTime(pipeline: pipeline, snapshot: snapshot)
-                        .fixedSize()
+                    visualizer
+                        .accessibilityIdentifier("hud.visualizer")
+                    if showsTimer && timer.position == .right {
+                        ElapsedTime(pipeline: pipeline, snapshot: snapshot).fixedSize()
+                            .accessibilityIdentifier("hud.timer")
+                    }
+                    if let caption = state.hudCaption {
+                        Text(caption)
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.7))
+                            .fixedSize()
+                            .accessibilityIdentifier("hud.status")
+                    }
                 }
             }
         }
@@ -337,6 +358,24 @@ struct IndicatorView: View {
                                              startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
         )
         .environment(\.colorScheme, .dark)
+    }
+
+    private var showsTimer: Bool { timer.isEnabled && state == .recording }
+
+    @ViewBuilder private var visualizer: some View {
+        switch style {
+        case .cube, .sonic:
+            SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
+                                 frozenTime: snapshot?.visualizerTime,
+                                 frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
+                .frame(width: 82, height: 22)
+                .background { HUDWaveformWell() }
+                .clipShape(Capsule())
+        case .mini:
+            waveform(width: 80, height: 14)
+        case .classic, .none:
+            waveform(width: 72, height: 16)
+        }
     }
 
     private func waveform(width: CGFloat, height: CGFloat) -> some View {
@@ -467,18 +506,10 @@ struct ElapsedTime: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.1)) { context in
             let seconds = elapsed(at: context.date)
-            if let caption {
-                Text(caption)
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.7))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            } else {
-                Text(format(seconds))
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.white.opacity(state == .recording ? 0.95 : 0.6))
-            }
+            Text(format(seconds))
+                .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(Color.white.opacity(0.95))
         }
     }
 
@@ -499,13 +530,4 @@ struct ElapsedTime: View {
         return String(format: "%d:%02d.%d", minutes, seconds, tenths)
     }
 
-    private var caption: String? {
-        switch state {
-        case .preparingModel: return "Loading"
-        case .transcribing: return "Transcribing"
-        case .refining: return "Refining"
-        case .inserting: return "Inserting"
-        default: return nil
-        }
-    }
 }

@@ -27,13 +27,13 @@ public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiabl
 }
 
 public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
-    /// Waveform plus elapsed time.
+    /// Standard waveform.
     case classic
-    /// Waveform only.
+    /// Compact waveform.
     case mini
-    /// Audio-reactive, faceted rotating cube plus elapsed time.
+    /// Audio-reactive, faceted rotating cube.
     case cube
-    /// Flowing sonic ribbons through a spatial cube plus elapsed time.
+    /// Flowing sonic ribbons.
     case sonic
     /// No recording window.
     case none
@@ -121,6 +121,7 @@ public final class AppSettings {
     /// Ask LM Studio to unload the LLM when the app quits.
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
+    public var hudTimer: HUDTimerOptions { didSet { persist("hudTimer", hudTimer) } }
     public var livePreviewEnabled: Bool { didSet { persist("livePreviewEnabled", livePreviewEnabled) } }
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
@@ -154,6 +155,7 @@ public final class AppSettings {
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
+        hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off

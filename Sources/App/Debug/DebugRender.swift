@@ -94,6 +94,9 @@ enum DebugRender {
             container = AppContainer.shared
         }
         container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
+        if let position = env["AIRDRAFT_RENDER_HUD_TIMER"].flatMap(HUDTimerOptions.Position.init(rawValue:)) {
+            container.settings.hudTimer = HUDTimerOptions(isEnabled: true, position: position)
+        }
         if let stage = env["AIRDRAFT_RENDER_DOWNLOAD"] {
             let progress: ModelDownloader.Progress
             switch stage {
@@ -396,9 +399,22 @@ enum DebugRender {
                      classicWidths["refining"]! < classicWidths["transcribing"]! &&
                      classicWidths["inserting"]! < classicWidths["transcribing"]!,
                      "HUD width must fit its current status, not reserve the longest label")
-        let longTimer = NSHostingView(rootView: IndicatorView(snapshot:
-            HUDSnapshot(state: .recording, levels: samples, elapsed: 600), style: .classic)).fittingSize
-        precondition(longTimer.width > classicWidths["recording"]!, "A longer timer must grow instead of clipping")
+        for style in [HUDStyle.classic, .mini, .cube, .sonic] {
+            func size(_ elapsed: Double, timer: HUDTimerOptions = HUDTimerOptions()) -> CGSize {
+                NSHostingView(rootView: IndicatorView(snapshot:
+                    HUDSnapshot(state: .recording, levels: samples, elapsed: elapsed),
+                    style: style, timer: timer)).fittingSize
+            }
+            precondition(size(7.4) == size(600), "Disabled timers must not reserve layout space")
+            for position in HUDTimerOptions.Position.allCases {
+                let timer = HUDTimerOptions(isEnabled: true, position: position)
+                precondition(size(7.4, timer: timer).width > size(7.4).width)
+                precondition(size(600, timer: timer).width > size(7.4, timer: timer).width,
+                             "A longer timer must grow instead of clipping")
+                precondition(size(7.4, timer: timer).height == size(7.4).height)
+            }
+        }
+        print("PASS: all presets fit their optional timer with unchanged capsule height")
         let preview = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
             style: .classic, showPreview: true,
             sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")

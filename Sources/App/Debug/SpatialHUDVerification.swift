@@ -61,6 +61,13 @@ enum SpatialHUDVerification {
         precondition(snapshot("reduced-motion-silent") != reduced, "Reduce Motion must still report input level")
         print("PASS: compositor-rendered animation, speech response and static Reduce Motion")
 
+        let timerRenderer = ImageRenderer(content: TimerComparison())
+        timerRenderer.scale = 2
+        let timerImage = timerRenderer.nsImage!
+        let timerBitmap = NSBitmapImageRep(data: timerImage.tiffRepresentation!)!
+        try! timerBitmap.representation(using: .png, properties: [:])!
+            .write(to: directory.appendingPathComponent("timer-options.png"))
+
         input.reduceMotion = false
         for frame in 0..<72 {
             let time = Double(frame) / 24
@@ -139,6 +146,39 @@ enum SpatialHUDVerification {
             }
             .padding(32)
             .frame(width: 620)
+            .background(Color(white: 0.92))
+            .environment(\.colorScheme, .light)
+        }
+    }
+
+    private struct TimerComparison: View {
+        private let options = [HUDTimerOptions(), HUDTimerOptions(isEnabled: true, position: .left),
+                               HUDTimerOptions(isEnabled: true, position: .right)]
+        var body: some View {
+            VStack(alignment: .leading, spacing: 28) {
+                Text("Recording window").font(.system(size: 24, weight: .medium))
+                HStack {
+                    Text("PRESET").frame(width: 70, alignment: .leading)
+                    ForEach(["Timer off · default", "Timer left", "Timer right"], id: \.self) { title in
+                        Text(title).frame(width: 180)
+                    }
+                }
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                ForEach([HUDStyle.classic, .mini, .cube, .sonic]) { style in
+                    HStack {
+                        Text(style.title).font(.system(size: 13, weight: .medium)).frame(width: 70, alignment: .leading)
+                        ForEach(options.indices, id: \.self) { index in
+                            IndicatorView(snapshot: HUDSnapshot(state: .recording,
+                                levels: [0.1, 0.3, 0.6, 0.25, 0.4, 0.1, 0.7, 0.3], elapsed: 7.4),
+                                style: style, timer: options[index])
+                                .frame(width: 180)
+                        }
+                    }
+                }
+                Text("One timer setting for every preset. Sonic shows only the animated ribbons.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            .padding(32)
             .background(Color(white: 0.92))
             .environment(\.colorScheme, .light)
         }

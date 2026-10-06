@@ -151,7 +151,9 @@ final class AppContainer {
         Task { await license.load(); await license.refresh() }
         Self.log.notice("start: accessibilityTrusted=\(AppContextReader.isAccessibilityTrusted, privacy: .public)")
 
-        let panel = IndicatorPanelController(pipeline: pipeline) { [weak self] in self?.settings.hudStyle ?? .classic }
+        let panel = IndicatorPanelController(pipeline: pipeline,
+            style: { [weak self] in self?.settings.hudStyle ?? .classic },
+            timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() })
         indicator = panel
         pipeline.onOutputDelivered = { [weak panel, weak self] in
             panel?.deliveryCompleted()
@@ -229,6 +231,7 @@ final class AppContainer {
         observeChanges({ [weak self] in
             _ = self?.settings.livePreviewEnabled
             _ = self?.settings.hudStyle
+            _ = self?.settings.hudTimer
         }) { [weak self] in
             guard let self else { return }
             if !self.settings.livePreviewEnabled || self.settings.hudStyle == .none {

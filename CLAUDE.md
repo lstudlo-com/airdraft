@@ -393,12 +393,16 @@ verification status belong in the vault (see below).
   History's card column extends into the timeline gap and the page's trailing and
   bottom margins, with matching content margins that keep the cards in place.
 - Recording window offers Classic, Mini, Cube, Sonic and None. Cube and Sonic
-  keep Classic's 34-point capsule, timer/status labels and six-point insets.
-  Cube uses shaded rotating face plates; Sonic braids ribbons through a wireframe
-  cube. Drive response from the existing recent microphone levels, with bounded
-  fast attack and slower release; never open another audio input or call it a
-  frequency spectrum. Keep motion in the visualization well and freeze its phase
-  and energy during delivery fade. Reduce Motion stops rotation and travelling
+  keep Classic's 34-point capsule and six-point insets. The timer is an independent
+  module, off by default for every preset, with a persisted Left/Right position.
+  Configuration shows Show timer and, when enabled, Timer position; previews
+  reflect both settings. Hide these controls for None without resetting them.
+  Timer-free recording reserves no label space; processing labels remain visible
+  in all four presets. Cube uses shaded rotating face plates; Sonic shows only
+  braided ribbons, with no cube. Drive response from the existing recent microphone
+  levels, with bounded fast attack and slower release; never open another audio
+  input or call it a frequency spectrum. Keep motion in the visualization well and
+  freeze its phase and energy during delivery fade. Reduce Motion stops rotation and travelling
   waves while retaining a static level response. Configuration previews use
   synthetic input, pause in renders, and arrange choices in three columns.
 - After successful text delivery, freeze the recording HUD's final processing
@@ -414,7 +418,7 @@ verification status belong in the vault (see below).
   cancels the old timer; expired messages must not reopen on idle or style changes.
   Keep recovery details on Home and in History where applicable. Copy must preserve all text without activating the panel;
   recording remains click-through. Reduce Motion disables spatial expansion.
-  Size the capsule to its current timer or status label, with six-point outer
+  Size the capsule to its enabled timer or current status label, with six-point outer
   insets on every side of the waveform well. Do not reserve a fixed label width;
   grow the native panel when the timer gains a digit and keep it centered.
 - Native menu items never wrap, so the widest title sets the menu-bar menu's

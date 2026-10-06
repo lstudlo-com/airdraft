@@ -3,6 +3,49 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testHUDTimerDefaultsOffWithoutChangingExistingPreset() throws {
+        try withDefaults { defaults in
+            XCTAssertEqual(AppSettings(defaults: defaults).hudTimer, HUDTimerOptions())
+            for style in HUDStyle.allCases {
+                AppSettings(defaults: defaults).hudStyle = style
+                let reloaded = AppSettings(defaults: defaults)
+                XCTAssertFalse(reloaded.hudTimer.isEnabled)
+                XCTAssertEqual(reloaded.hudTimer.position, .right)
+                XCTAssertEqual(reloaded.hudStyle, style)
+            }
+        }
+    }
+
+    func testHUDTimerPersistsAcrossPresetsAndRemembersPositionWhenDisabled() throws {
+        try withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+            for position in HUDTimerOptions.Position.allCases {
+                settings.hudTimer.position = position
+                for enabled in [true, false] {
+                    settings.hudTimer.isEnabled = enabled
+                    for style in HUDStyle.allCases {
+                        settings.hudStyle = style
+                        let reloaded = AppSettings(defaults: defaults)
+                        XCTAssertEqual(reloaded.hudTimer, HUDTimerOptions(isEnabled: enabled, position: position))
+                        XCTAssertEqual(reloaded.hudStyle, style)
+                    }
+                }
+            }
+        }
+    }
+
+    func testUnreadableHUDTimerFallsBackIndependently() throws {
+        try withDefaults { defaults in
+            AppSettings(defaults: defaults).hudStyle = .sonic
+            for value in ["bad", #"{"isEnabled":true,"position":"removed"}"#] {
+                defaults.set(Data(value.utf8), forKey: "settings.hudTimer")
+                let settings = AppSettings(defaults: defaults)
+                XCTAssertEqual(settings.hudTimer, HUDTimerOptions())
+                XCTAssertEqual(settings.hudStyle, .sonic)
+            }
+        }
+    }
+
     func testAppIconsDefaultByThemeForNewAndExistingSettings() throws {
         try withDefaults { defaults in
             XCTAssertEqual(AppSettings(defaults: defaults).appIcons.light, .carvedWave)

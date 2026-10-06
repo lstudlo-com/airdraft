@@ -34,8 +34,22 @@ struct ConfigurationPage: View {
                         LazyVGrid(columns: Array(repeating: GridItem(.fixed(106), spacing: 10), count: 3), spacing: 12) {
                             ForEach([HUDStyle.classic, .mini, .none, .cube, .sonic]) { style in
                                 ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
-                                    HUDPreview(style: style)
+                                    HUDPreview(style: style, timer: settings.hudTimer)
                                 }
+                            }
+                        }
+                    }
+                    if settings.hudStyle != .none {
+                        RowDivider()
+                        SettingRow(title: "Show timer") {
+                            Toggle("Show timer", isOn: $settings.hudTimer.isEnabled)
+                                .labelsHidden().toggleStyle(.softSwitch)
+                        }
+                        if settings.hudTimer.isEnabled {
+                            RowDivider()
+                            SettingRow(title: "Timer position") {
+                                SoftSegmentedPicker("Timer position", selection: $settings.hudTimer.position,
+                                    options: HUDTimerOptions.Position.allCases.map { ($0, $0.title) }, width: 160)
                             }
                         }
                     }
@@ -244,6 +258,7 @@ struct ThemePreview: View {
 /// Preview tile for the recording-window picker.
 struct HUDPreview: View {
     let style: HUDStyle
+    var timer = HUDTimerOptions()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var started = Date()
 
@@ -252,17 +267,17 @@ struct HUDPreview: View {
             Color.primary.opacity(0.05)
             switch style {
             case .classic:
-                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .classic)
+                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .classic, timer: timer)
                     .scaleEffect(0.5)
             case .mini:
-                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .mini)
+                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .mini, timer: timer)
                     .scaleEffect(0.55)
             case .cube, .sonic:
                 TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || RenderMode.isActive)) { context in
                     let time = reduceMotion || RenderMode.isActive ? 1.4 : context.date.timeIntervalSince(started)
                     let level = Float(0.08 + 0.55 * pow(0.5 + 0.5 * sin(time * 2.8), 2))
                     IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: Array(repeating: level, count: 22),
-                                                        elapsed: 4.2, visualizerTime: time), style: style)
+                                                        elapsed: 4.2, visualizerTime: time), style: style, timer: timer)
                         .scaleEffect(0.65)
                 }
             case .none:
