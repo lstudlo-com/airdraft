@@ -4,6 +4,7 @@ import SwiftUI
 
 struct AutomationSettings: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.revealSearchSettings) private var revealSearchSettings
     @State private var selectionError: String?
 
     var body: some View {
@@ -15,10 +16,10 @@ struct AutomationSettings: View {
                         ForEach(TextOutputDestination.allCases) { Text($0.title).tag($0) }
                     }
                 }
-                if settings.outputDestination == .script {
+                if settings.outputDestination == .script || revealSearchSettings {
                     RowDivider()
                     SettingRow(title: "Executable script",
-                               subtitle: selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
+                               subtitle: settings.outputDestination != .script ? "Choose Send to script in Final text to send text via stdin" : selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
                                 ?? "Final text via stdin · one run · 10 s limit") {
                         VStack(alignment: .trailing, spacing: 6) {
                             if !settings.outputScriptPath.isEmpty {
@@ -27,6 +28,7 @@ struct AutomationSettings: View {
                                     .help(settings.outputScriptPath)
                             }
                             Button("Choose Script…", action: chooseScript).buttonStyle(SoftButtonStyle())
+                                .disabled(settings.outputDestination != .script)
                         }
                     }
                 }

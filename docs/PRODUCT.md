@@ -62,8 +62,9 @@ and keeps the installation instructions legible within Finder.
 
 ## Status
 
-| Goal | State (2026-09-30) |
+| Goal | Implemented behavior |
 |---|---|
+| Settings search | Configuration's heading has a recessed search field. It searches section names, setting names and full descriptions, with case/diacritic-insensitive terms and exact-name priority. Matches stay in place with recessed highlights; the active match scrolls clear of the header. A result count, previous/next, Command-F, Return/arrow navigation, Escape and clear support keyboard use. Conditional controls become discoverable with prerequisite guidance without changing settings. Typing is debounced; scrolling does no search/index work. |
 | App icons | Pure Wave, Carved Wave and Night Wave share Carved Wave's exact bar width, spacing, heights and position. Pure Wave and Carved Wave use dark bars on light tiles; Night Wave uses bright bars on a dark tile. Configuration > Appearance offers the three icons independently for light and dark themes. Defaults are Carved Wave in light and Night Wave in dark. The running Dock icon follows the effective app appearance, including Auto system changes, and restores saved choices at launch. The bundled Finder icon is Carved Wave; runtime changes never modify the app bundle. |
 | Trigger Delay | Configuration > Keyboard shortcuts offers a 0–1000 ms hold threshold, default 0, with direct entry and 50 ms steps. Short presses retain their normal action; a qualified hold starts dictation once. Hold release and Toggle stop remain immediate. Ordinary key events are buffered until the decision; modifier events pass through. Delayed shortcuts require Accessibility. Pending holds cancel on typing another key, chord/setup changes, focus changes and monitor interruption. Menu and automation actions remain immediate. |
 | Meeting recording | Record Meeting captures selected-app or system audio plus the selected microphone on macOS 15. It saves independent WAV channels before optional file transcription, preserves interrupted drafts, records gaps and stops at two hours. Capture never inserts text. See `meeting-recording.md`. |

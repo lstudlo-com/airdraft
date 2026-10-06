@@ -249,6 +249,7 @@ struct PageSection<Content: View, Trailing: View>: View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
             SectionTitle(title) { trailing }
             content
+                .environment(\.settingsSearchSection, title)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -376,6 +377,7 @@ struct SettingRow<Trailing: View>: View {
             trailing
         }
         .padding(.vertical, rowInset)
+        .modifier(SearchableSetting(title: title, detail: subtitle))
     }
 }
 

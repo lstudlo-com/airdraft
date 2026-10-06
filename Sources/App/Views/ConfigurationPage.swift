@@ -7,10 +7,11 @@ struct ConfigurationPage: View {
 
     @State private var pendingRetention: AudioRetention?
     @State private var confirmRetention = false
+    @State var search = SettingsSearchState()
 
     var body: some View {
         @Bindable var settings = container.settings
-        PageScaffold(.configuration) {
+        SettingsSearchScaffold(search: search) {
             MicrophoneSettings()
 
             PageSection("Appearance") {
@@ -39,17 +40,19 @@ struct ConfigurationPage: View {
                             }
                         }
                     }
-                    if settings.hudStyle != .none {
+                    if settings.hudStyle != .none || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Show timer") {
+                        SettingRow(title: "Show timer", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : nil) {
                             Toggle("Show timer", isOn: $settings.hudTimer.isEnabled)
                                 .labelsHidden().toggleStyle(.softSwitch)
+                                .disabled(settings.hudStyle == .none)
                         }
-                        if settings.hudTimer.isEnabled {
+                        if settings.hudTimer.isEnabled || search.isSearching {
                             RowDivider()
-                            SettingRow(title: "Timer position") {
+                            SettingRow(title: "Timer position", subtitle: settings.hudStyle == .none ? "Choose a recording window style and enable Show timer" : !settings.hudTimer.isEnabled ? "Enable Show timer" : nil) {
                                 SoftSegmentedPicker("Timer position", selection: $settings.hudTimer.position,
                                     options: HUDTimerOptions.Position.allCases.map { ($0, $0.title) }, width: 160)
+                                    .disabled(settings.hudStyle == .none || !settings.hudTimer.isEnabled)
                             }
                         }
                     }
@@ -106,9 +109,9 @@ struct ConfigurationPage: View {
                     SettingRow(title: "Show text while speaking", subtitle: "On-device Apple Speech; final model unchanged") {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
-                    if settings.livePreviewEnabled {
+                    if settings.livePreviewEnabled || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : "Choose and install a language in Models") {
+                        SettingRow(title: "Preview language", subtitle: !settings.livePreviewEnabled ? "Enable Show text while speaking; choose a language in Models" : settings.hudStyle == .none ? "Choose a recording window style" : "Choose and install a language in Models") {
                             Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
                         }
                     }

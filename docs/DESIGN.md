@@ -525,6 +525,31 @@ sheet after saving. Keep errors and recovery actions adjacent to their message:
 Retry rescans unreadable drafts, while Recover lists each valid draft by date and
 time so one damaged session does not hide the others.
 
+### Configuration search
+
+A 270 by 28 pt Search settings field sits at the right of the Configuration
+heading. It uses the shared recessed `SoftInsetTrack` capsule, with a visible
+accent focus ring, native text editing, and a clear action. Result position and
+previous/next controls fit inside it; no matches is explicit. Command-F focuses
+the input. Return or Down moves forward; Shift-Return or Up moves backward,
+wrapping through results. Escape clears the query, then releases focus when the
+field is empty. Keep native text composition intact.
+
+Search matches every term across the actual section title, row title and full
+description, ignoring case, diacritics and character width. Exact setting names
+precede incidental matches; other results keep the page's order. All matched
+rows gain a recessed neutral well, with greater
+depth on the current result. The wells sit 4 pt inside the card edge with 14 pt
+continuous corners, concentric with the card's 18 pt corners. They extend behind
+the rows while content keeps its 16 pt card inset and control positions. The
+current result scrolls to the visible center, clear of the sticky header, over
+0.22 seconds; Reduce Motion is instant.
+
+Typing settles for 160 ms before matching. Row preferences update the in-memory
+index only when their copy changes; scrolling does neither indexing nor matching.
+Conditional controls appear during search with prerequisite guidance and retain
+their disabled state when unavailable. Search never changes persisted settings.
+
 ### Configuration data cleanup
 
 Data & reset sits below Permissions and above Updates. One `SettingsCard`

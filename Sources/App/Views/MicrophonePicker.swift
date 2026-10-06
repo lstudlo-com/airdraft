@@ -56,6 +56,7 @@ struct MicrophonePicker: View {
 
 struct MicrophoneSettings: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.revealSearchSettings) private var revealSearchSettings
 
     var body: some View {
         let store = container.microphones
@@ -67,9 +68,9 @@ struct MicrophoneSettings: View {
                 }
                 let channelCount = store.selected(preference)?.inputChannelCount ?? 0
                 let selectedChannel = preference.channelIndex ?? 0
-                if channelCount > 1 || selectedChannel != 0 {
+                if channelCount > 1 || selectedChannel != 0 || revealSearchSettings {
                     RowDivider()
-                    SettingRow(title: "Input channel", subtitle: "Your microphone’s physical input") {
+                    SettingRow(title: "Input channel", subtitle: channelCount > 1 || selectedChannel != 0 ? "Your microphone’s physical input" : "Requires a microphone with multiple physical inputs") {
                         SoftPicker("Input channel", selection: Binding(
                             get: { container.settings.microphone.channelIndex ?? 0 },
                             set: { container.settings.microphone.channelIndex = $0 }
@@ -81,7 +82,7 @@ struct MicrophoneSettings: View {
                                 Text("Input \(selectedChannel + 1) · unavailable").tag(selectedChannel)
                             }
                         }
-                        .disabled(container.pipeline.isBusy)
+                        .disabled(container.pipeline.isBusy || channelCount <= 1 && selectedChannel == 0)
                     }
                 }
                 if store.selected(preference) == nil {
