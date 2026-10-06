@@ -225,7 +225,9 @@ verification status belong in the vault (see below).
   Use the model's official brand icon, falling back to its creator's company logo,
   never a color-coded waveform. Show the hosting provider beneath cloud models so
   the same model on different services stays distinguishable. Bundle brand assets
-  locally and document their sources in `docs/model-brand-assets.md`. Keep compact
+  locally and document their sources in `docs/model-brand-assets.md`. Render brand
+  icons in 24-point white tiles clipped to 6-point continuous rounded corners,
+  keeping transparent artwork on white in both appearances. Keep compact
   13-point model names and 11-point secondary text, with equal 16-point row insets.
   Profiles uses the same compact picker in its
   Profile section heading instead of a profile list; names carry it, without icons.

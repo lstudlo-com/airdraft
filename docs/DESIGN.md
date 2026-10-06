@@ -231,7 +231,9 @@ a scrollable body capped at `Theme.modelTableMaxHeight` (300 pt). Short results
 shrink to their measured height. Rows retain equal 16-point insets, with 13-point
 model names and 11-point secondary text. Local rows show language coverage;
 cloud rows identify the hosting provider, even when several hosts offer the same
-model. Brand icons use the model's mark or its creator's logo, bundled locally;
+model. Brand icons use the model's mark or its creator's logo, bundled locally.
+Their 24-point white tiles clip the artwork to 6-point continuous rounded corners
+in both appearances, including transparent PNGs;
 see [brand asset sources](model-brand-assets.md).
 A refresh action sits immediately beside the picker whose data it reloads.
 Supporting copy appears only for a choice, consequence, or actionable problem

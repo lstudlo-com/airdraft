@@ -11,6 +11,10 @@ intact; these marks identify the corresponding models and organizations.
 Apple Speech retains the system `apple.logo` symbol. SenseVoice uses Alibaba's
 company mark; Qwen uses the Qwen family mark.
 
+`ModelBrandIcon` preserves original asset colors inside a 24-point white tile
+with 6-point continuous rounded corners. The white backing fills transparent
+pixels in both appearances; Apple uses a black symbol on the same tile.
+
 Sources retrieved October 3, 2026:
 
 | Asset | Source |

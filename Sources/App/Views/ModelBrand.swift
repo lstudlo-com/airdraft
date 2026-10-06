@@ -45,13 +45,17 @@ struct ModelBrandIcon: View {
             if brand == .apple {
                 Image(systemName: "apple.logo")
                     .font(.system(size: 22))
+                    .foregroundStyle(.black)
             } else {
                 Image("ModelBrand\(brand.rawValue)")
+                    .renderingMode(.original)
                     .resizable()
                     .scaledToFit()
             }
         }
         .frame(width: 24, height: 24)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         .accessibilityHidden(true)
     }
 }
