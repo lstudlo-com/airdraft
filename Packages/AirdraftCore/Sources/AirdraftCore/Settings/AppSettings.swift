@@ -109,6 +109,7 @@ public final class AppSettings {
         }
     }
     public var appearance: AppearanceMode { didSet { persist("appearance", appearance) } }
+    public var appIcons: AppIconPreferences { didSet { persist("appIcons", appIcons) } }
     /// Unload local speech models after this many idle minutes. 0 = keep loaded.
     public var idleUnloadMinutes: Int { didSet { persist("idleUnloadMinutes", idleUnloadMinutes) } }
     /// Ask LM Studio to unload the LLM when the app quits.
@@ -143,6 +144,7 @@ public final class AppSettings {
         let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
         appearance = Self.load("appearance", from: defaults) ?? .auto
+        appIcons = Self.load("appIcons", from: defaults) ?? AppIconPreferences()
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         hudStyle = Self.load("hudStyle", from: defaults) ?? .classic

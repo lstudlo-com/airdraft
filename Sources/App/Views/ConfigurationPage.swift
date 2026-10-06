@@ -25,6 +25,11 @@ struct ConfigurationPage: View {
                         }
                     }
                     RowDivider()
+                    AppIconSettingRow(title: "Light app icon", selection: $settings.appIcons.light,
+                                      subtitle: "Dock icon while Airdraft is open")
+                    RowDivider()
+                    AppIconSettingRow(title: "Dark app icon", selection: $settings.appIcons.dark)
+                    RowDivider()
                     SettingRow(title: "Recording window") {
                         HStack(spacing: 10) {
                             ForEach(HUDStyle.allCases) { style in
@@ -166,6 +171,29 @@ struct ConfigurationPage: View {
         case .denied: return "Denied · allow in System Settings"
         case .restricted: return "Restricted"
         default: return "Not requested yet"
+        }
+    }
+}
+
+private struct AppIconSettingRow: View {
+    let title: String
+    @Binding var selection: AppIconStyle
+    var subtitle: String? = nil
+
+    var body: some View {
+        SettingRow(title: title, subtitle: subtitle) {
+            HStack(spacing: 8) {
+                Image(selection.assetName)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 40, height: 40)
+                    .accessibilityHidden(true)
+                SoftPicker(title, selection: $selection, width: 146) {
+                    ForEach(AppIconStyle.allCases) { style in
+                        Text(style.title).tag(style)
+                    }
+                }
+            }
         }
     }
 }

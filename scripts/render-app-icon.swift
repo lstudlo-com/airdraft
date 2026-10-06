@@ -1,128 +1,142 @@
-// Renders the airdraft app icon (neumorphic "speech → cursor" bar) on the
-// macOS icon grid and writes every size of the app's AppIcon.appiconset, plus
-// the website's copies of the icon and favicon.
-// Usage, from the repo root: swift scripts/render-app-icon.swift
+// Renders the three waveform-only app icons from one reproducible Swift source.
+// Usage from the repo root: swift scripts/render-app-icon.swift [output-root]
+// Carved Wave is the bundled Finder icon. Running Dock icons follow the user's
+// independently saved light/dark choices. Website PNGs use Carved Wave.
 import AppKit
 import SwiftUI
 
-// Soft-UI palette: the app window's neutral grays (Theme, HomeHero), lit from the
-// top left. No hue: the bars and caret are raised gray pills, as on Home.
-let base = Color(white: 0.91)
-let baseTop = Color(white: 0.96)
-let baseBottom = Color(white: 0.85)
-let lightShadow = Color.white
-let darkShadow = Color(white: 0.58)
-let contact = Color(white: 0.36)
-let barTop = Color(white: 0.79)        // HomeHero raisedTop
-let barBottom = Color(white: 0.54)     // HomeHero raisedBottom
-let caretTop = Color(white: 0.40)      // a step darker than Home's caret,
-let caretBottom = Color(white: 0.18)   // so it still reads at 16 px
+struct IconDesign {
+    let name: String
+    let material: String
+    let width: Double
+    let gap: Double
+    let height: Double
+    let levels = [0.36, 0.66, 1.0, 0.72, 0.48]
+}
 
-struct Icon: View {
-    // macOS icon grid: 824 pt body inside a 1024 pt canvas.
-    let side = CGFloat(824)
-    let levels: [CGFloat] = [0.36, 0.66, 1.0, 0.72, 0.48]
+let designs = [
+    IconDesign(name: "PureWave", material: "silver", width: 76, gap: 36, height: 460),
+    IconDesign(name: "CarvedWave", material: "carved", width: 84, gap: 30, height: 480),
+    IconDesign(name: "NightWave", material: "night", width: 76, gap: 38, height: 500)
+]
 
+func gray(_ value: Double) -> Color { Color(white: value) }
+
+struct WaveBar: View {
+    let study: IconDesign
+    let level: Double
     var body: some View {
-        let squircle = RoundedRectangle(cornerRadius: 185, style: .continuous)
-        ZStack {
-            // Body: raised squircle with a soft top-left light.
-            RoundedRectangle(cornerRadius: 185, style: .continuous)
-                .fill(LinearGradient(colors: [baseTop, baseBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 185, style: .continuous)
-                        .fill(RadialGradient(colors: [.white.opacity(0.7), .white.opacity(0)], center: UnitPoint(x: 0.2, y: 0.12), startRadius: 0, endRadius: 520))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 185, style: .continuous)
-                        .strokeBorder(LinearGradient(colors: [.white, .white.opacity(0)], startPoint: .topLeading, endPoint: .center), lineWidth: 4)
-                )
-
-            // Everything on the body is clipped to it, so soft shadows never spill past the edge.
-            ZStack {
-            // Raised pill: the "bar". A bright top edge and a short shadow
-            // underneath give it its height, instead of a wide soft halo.
-            Capsule(style: .continuous)
-                .fill(LinearGradient(colors: [baseTop, baseBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(Capsule(style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [lightShadow.opacity(0.9), lightShadow.opacity(0)],
-                                                 startPoint: .top, endPoint: .center), lineWidth: 4))
-                .frame(width: 744, height: 364)
-                .shadow(color: darkShadow.opacity(0.55), radius: 20, x: 10, y: 18)
-                .shadow(color: contact.opacity(0.35), radius: 2, x: 2, y: 3)
-
-            // Pressed track inside the pill.
-            Capsule(style: .continuous)
-                .fill(base.shadow(.inner(color: darkShadow, radius: 16, x: 12, y: 12))
-                          .shadow(.inner(color: lightShadow, radius: 14, x: -10, y: -10)))
-                .frame(width: 650, height: 270)
-
-            // Waveform bars raised from the track floor, then the caret where text lands:
-            // light up-left, shade down-right, like Home's waveform.
-            HStack(alignment: .center, spacing: 30) {
-                ForEach(Array(levels.enumerated()), id: \.offset) { _, level in
-                    Capsule(style: .continuous)
-                        .fill(LinearGradient(colors: [barTop, barBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .overlay(Capsule(style: .continuous)
-                            .strokeBorder(LinearGradient(colors: [.white.opacity(0.9), .white.opacity(0)],
-                                                         startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
-                        .frame(width: 38, height: 190 * level)
-                        .shadow(color: .black.opacity(0.32), radius: 7, x: 5, y: 8)
-                        .shadow(color: .white, radius: 6, x: -4, y: -5)
-                }
-                Capsule(style: .continuous)
-                    .fill(LinearGradient(colors: [caretTop, caretBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .overlay(Capsule(style: .continuous)
-                        .strokeBorder(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0)],
-                                                     startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
-                    .frame(width: 38, height: 208)
-                    .shadow(color: .black.opacity(0.38), radius: 8, x: 6, y: 9)
-                    .shadow(color: .white, radius: 6, x: -4, y: -5)
-                    .padding(.leading, 20)
-            }
-            }
-            .frame(width: side, height: side)
-            .clipShape(squircle)
+        let shape = Capsule(style: .continuous)
+        let night = study.material == "night"
+        let top: Double = switch study.material {
+        case "night": 0.88
+        default: 0.62
         }
-        .frame(width: side, height: side)
+        let bottom: Double = switch study.material {
+        case "night": 0.63
+        default: 0.37
+        }
+        if study.material == "carved" {
+            shape
+                .fill(LinearGradient(colors: [gray(0.58), gray(0.69)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .shadow(.inner(color: gray(0.25).opacity(0.65), radius: 9, x: 7, y: 9))
+                    .shadow(.inner(color: .white.opacity(0.95), radius: 7, x: -6, y: -7)))
+                .overlay(shape.strokeBorder(LinearGradient(colors: [gray(0.53).opacity(0.3), .white.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
+                .frame(width: study.width, height: study.height * level)
+                .shadow(color: .white.opacity(0.9), radius: 1.5, x: 1.5, y: 2)
+        } else {
+            shape
+                .fill(LinearGradient(colors: [gray(top), gray(bottom)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(night ? 0.75 : 0.9), .white.opacity(0.02), .black.opacity(0.13)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2.5))
+                .frame(width: study.width, height: study.height * level)
+                .drawingGroup()
+                .shadow(color: .black.opacity(night ? 0.5 : 0.24), radius: 11, x: 8, y: 12)
+                .shadow(color: .white.opacity(night ? 0.10 : 0.9), radius: 9, x: -6, y: -7)
+        }
+    }
+}
+
+struct WaveIcon: View {
+    let study: IconDesign
+    var body: some View {
+        let tile = RoundedRectangle(cornerRadius: 185, style: .continuous)
+        let night = study.material == "night"
+        let top = night ? 0.28 : 0.96
+        let bottom = night ? 0.16 : 0.85
+        ZStack {
+            tile.fill(LinearGradient(colors: [gray(top), gray(bottom)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .overlay(tile.fill(RadialGradient(colors: [.white.opacity(night ? 0.07 : 0.48), .white.opacity(0)], center: UnitPoint(x: 0.2, y: 0.12), startRadius: 0, endRadius: 560)))
+                .overlay(tile.strokeBorder(LinearGradient(colors: [.white.opacity(night ? 0.20 : 0.9), .white.opacity(0)], startPoint: .topLeading, endPoint: .center), lineWidth: 3))
+            HStack(alignment: .center, spacing: study.gap) {
+                ForEach(Array(study.levels.enumerated()), id: \.offset) { _, level in
+                    WaveBar(study: study, level: level)
+                }
+            }
+            .offset(x: -3)
+        }
+        .frame(width: 824, height: 824)
+        .clipShape(tile)
         .compositingGroup()
-        .shadow(color: .black.opacity(0.25), radius: 20, y: 14)
+        .shadow(color: .black.opacity(0.23), radius: 20, y: 14)
         .frame(width: 1024, height: 1024)
     }
 }
 
-@MainActor func master(_ icon: Icon) -> CGImage {
-    let renderer = ImageRenderer(content: icon)
+@MainActor func render<V: View>(_ view: V) -> CGImage {
+    let renderer = ImageRenderer(content: view)
     renderer.scale = 1
-    guard let image = renderer.cgImage else { fatalError("render failed") }
+    guard let image = renderer.cgImage else { fatalError("SwiftUI image rendering failed") }
     return image
 }
 
-/// Resample to `size` pixels and write a PNG.
-@MainActor func write(_ image: CGImage, size: Int, to url: URL) {
-    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4,
-                               hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+func pngData(_ image: CGImage, size: Int? = nil) -> Data {
+    let width = size ?? image.width, height = size ?? image.height
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height,
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
     NSGraphicsContext.saveGraphicsState()
     let context = NSGraphicsContext(bitmapImageRep: rep)!
     context.imageInterpolation = .high
     NSGraphicsContext.current = context
-    context.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: size, height: size))
+    context.cgContext.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
     NSGraphicsContext.restoreGraphicsState()
-    try! rep.representation(using: .png, properties: [:])!.write(to: url)
+    return rep.representation(using: .png, properties: [:])!
 }
 
-@MainActor func render() {
-    let dir = URL(fileURLWithPath: "Sources/App/Assets.xcassets/AppIcon.appiconset")
-    let icon = master(Icon())
-    for size in [16, 32, 64, 128, 256, 512, 1024] {
-        write(icon, size: size, to: dir.appendingPathComponent("icon_\(size).png"))
+@MainActor func main() throws {
+    let root = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : FileManager.default.currentDirectoryPath)
+    let assets = root.appendingPathComponent("Sources/App/Assets.xcassets")
+    for design in designs {
+        let image = render(WaveIcon(study: design))
+        let directory = assets.appendingPathComponent("AppIcon\(design.name).imageset")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for size in [512, 1024] {
+            try pngData(image, size: size).write(to: directory.appendingPathComponent("icon_\(size).png"))
+        }
+        let contents: [String: Any] = [
+            "images": [
+                ["filename": "icon_512.png", "idiom": "universal", "scale": "1x"],
+                ["filename": "icon_1024.png", "idiom": "universal", "scale": "2x"]
+            ],
+            "info": ["author": "xcode", "version": 1]
+        ]
+        try JSONSerialization.data(withJSONObject: contents, options: [.prettyPrinted, .sortedKeys])
+            .write(to: directory.appendingPathComponent("Contents.json"))
+        if design.name == "CarvedWave" {
+            let appIcon = assets.appendingPathComponent("AppIcon.appiconset")
+            try FileManager.default.createDirectory(at: appIcon, withIntermediateDirectories: true)
+            for size in [16, 32, 64, 128, 256, 512, 1024] {
+                try pngData(image, size: size).write(to: appIcon.appendingPathComponent("icon_\(size).png"))
+            }
+            let site = root.appendingPathComponent("apps/marketing/public")
+            try FileManager.default.createDirectory(at: site, withIntermediateDirectories: true)
+            try pngData(image, size: 512).write(to: site.appendingPathComponent("airdraft-icon.png"))
+            try pngData(image, size: 64).write(to: site.appendingPathComponent("favicon.png"))
+        }
+        print("Rendered \(design.name)")
     }
-    print("wrote \(dir.path)")
-
-    let site = URL(fileURLWithPath: "apps/marketing/public")
-    write(icon, size: 512, to: site.appendingPathComponent("airdraft-icon.png"))
-    write(icon, size: 64, to: site.appendingPathComponent("favicon.png"))
-    print("wrote \(site.path)")
 }
 
-MainActor.assumeIsolated { render() }
+MainActor.assumeIsolated {
+    do { try main() } catch { fputs("\(error)\n", stderr); exit(1) }
+}

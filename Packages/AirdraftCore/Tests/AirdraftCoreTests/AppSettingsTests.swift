@@ -3,6 +3,48 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testAppIconsDefaultByThemeForNewAndExistingSettings() throws {
+        try withDefaults { defaults in
+            XCTAssertEqual(AppSettings(defaults: defaults).appIcons.light, .carvedWave)
+            XCTAssertEqual(AppSettings(defaults: defaults).appIcons.dark, .nightWave)
+            let existing = AppSettings(defaults: defaults)
+            existing.appearance = .dark
+            existing.maxRecordingSeconds = 120
+            let reloaded = AppSettings(defaults: defaults)
+            XCTAssertEqual(reloaded.appIcons, AppIconPreferences())
+            XCTAssertEqual(reloaded.appearance, .dark)
+            XCTAssertEqual(reloaded.maxRecordingSeconds, 120)
+        }
+    }
+
+    func testAppIconChoicesPersistIndependentlyAcrossEveryCombination() throws {
+        try withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+            for light in AppIconStyle.allCases {
+                for dark in AppIconStyle.allCases {
+                    settings.appIcons.light = light
+                    settings.appIcons.dark = dark
+                    let reloaded = AppSettings(defaults: defaults)
+                    XCTAssertEqual(reloaded.appIcons.icon(isDark: false), light)
+                    XCTAssertEqual(reloaded.appIcons.icon(isDark: true), dark)
+                    XCTAssertEqual(reloaded.appearance, .auto)
+                }
+            }
+        }
+    }
+
+    func testUnreadableAppIconPreferencesFallBackWithoutResettingOtherSettings() throws {
+        try withDefaults { defaults in
+            AppSettings(defaults: defaults).appearance = .light
+            for value in ["bad", #"{"light":"removedIcon","dark":"nightWave"}"#] {
+                defaults.set(Data(value.utf8), forKey: "settings.appIcons")
+                let settings = AppSettings(defaults: defaults)
+                XCTAssertEqual(settings.appIcons, AppIconPreferences())
+                XCTAssertEqual(settings.appearance, .light)
+            }
+        }
+    }
+
     func testTriggerDelayDefaultsOffPersistsAndClamps() throws {
         try withDefaults { defaults in
             let settings = AppSettings(defaults: defaults)

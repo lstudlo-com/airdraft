@@ -109,15 +109,20 @@ verification status belong in the vault (see below).
   dashboard definitions and consent/data-filter regressions aligned. Website
   clicks measure intent, not installs or revenue.
 
-- The app icon is code: edit `scripts/render-app-icon.swift` (neumorphic bar with a waveform
-  ending in a text caret) and run `swift scripts/render-app-icon.swift` from the repo root; it
-  rewrites every PNG in `Sources/App/Assets.xcassets/AppIcon.appiconset`. Do not hand-edit the PNGs.
-  `swift scripts/render-app-icon-variants.swift [dir]` renders candidate icons and a comparison
-  sheet (current icon first, with 64, 32 and 16 px sizes) to a scratch directory without touching the
-  asset catalogue; port the chosen variant into `render-app-icon.swift`. The icon script also
-  writes the website's `airdraft-icon.png` and `favicon.png`. After changing the icon, run
-  `uv run apps/marketing/scripts/render-brand.py` (brand capsule SVGs). The icon and the
-  website use the app window's neutral grays only: no blue, violet or cyan anywhere.
+- The app icon is code: edit `scripts/render-app-icon.swift` and run it from the
+  repo root. It generates waveform-only Pure Wave, Carved Wave and Night Wave
+  images, the bundled Carved Wave `AppIcon.appiconset`, and the website PNG/favicon.
+  Do not hand-edit generated PNGs. Keep the outer rounded-square tile, five-bar
+  rhythm and neutral grays; the app icons have no inner capsule or caret.
+  Configuration > Appearance stores independent light/dark icon choices, defaulting
+  to Carved Wave and Night Wave. All three artworks are available for either theme.
+  Follow the app's effective appearance, including system changes in Auto, and apply
+  saved choices at launch through `NSApplication.applicationIconImage`. This changes
+  the running Dock icon; never modify the signed bundle or Finder metadata at runtime.
+  Finder uses the bundled Carved Wave icon. Generate exploratory variants only in
+  scratch directories. After icon changes, run
+  `uv run apps/marketing/scripts/render-brand.py` for the separate capsule wordmarks.
+  The sidebar, Home waveform and website brand keep their capsule and caret.
   The website's tokens in `apps/marketing/src/styles/global.css` translate `Theme`,
   `SoftControls`, `NeumorphicSurface` and `HomeHero` values for light and dark; when
   those change, update the website and its `DESIGN.md` in the same change.
@@ -680,6 +685,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 
 ## Validation
 
+- App icons: after a Debug build, run `python3 scripts/verify-app-icons.py --app <Debug.app>`.
+  It checks real AppKit icon images, theme changes, independent preferences and
+  restart/Auto resolution using a disposable settings suite. Inspect the native
+  Configuration pickers and light/dark renders as well.
 - Vault: run `python3 scripts/check-vault.py` after writing to the Obsidian vault and
   `python3 -B scripts/test-vault-check.py` after changing `scripts/vault_check.py`.
 - For a repeated insertion bug, verify the actual running build with

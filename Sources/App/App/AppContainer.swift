@@ -54,6 +54,7 @@ final class AppContainer {
     @ObservationIgnored private var startupCompleted = false
     @ObservationIgnored private var shutdownStarted = false
     @ObservationIgnored private var appearanceUpdatesStarted = false
+    @ObservationIgnored private var appIconController: AppIconController?
     private var indicator: IndicatorPanelController?
     private var audioCleanupTask: Task<Void, Never>?
 
@@ -298,6 +299,7 @@ final class AppContainer {
         guard !appearanceUpdatesStarted else { return }
         appearanceUpdatesStarted = true
         applyAppearance()
+        appIconController = AppIconController(settings: settings)
         observeAppearance()
     }
 
