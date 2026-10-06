@@ -114,6 +114,10 @@ verification status belong in the vault (see below).
   images, the bundled Carved Wave `AppIcon.appiconset`, and the website PNG/favicon.
   Do not hand-edit generated PNGs. Keep the outer rounded-square tile, five-bar
   rhythm and neutral grays; the app icons have no inner capsule or caret.
+  Share Carved Wave's geometry across all three: 84-point bars, 30-point gaps,
+  480-point maximum height, the same five height ratios and a -3-point horizontal
+  offset on the 1024-point canvas. Only materials differ: darker raised Pure Wave
+  bars, darker Carved Wave grooves, and bright Night Wave bars on a darker tile.
   Configuration > Appearance stores independent light/dark icon choices, defaulting
   to Carved Wave and Night Wave. All three artworks are available for either theme.
   Follow the app's effective appearance, including system changes in Auto, and apply

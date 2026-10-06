@@ -8,16 +8,21 @@ import SwiftUI
 struct IconDesign {
     let name: String
     let material: String
-    let width: Double
-    let gap: Double
-    let height: Double
-    let levels = [0.36, 0.66, 1.0, 0.72, 0.48]
+}
+
+// All materials use Carved Wave's geometry on the 1024-point canvas.
+enum WaveGeometry {
+    static let width = 84.0
+    static let gap = 30.0
+    static let height = 480.0
+    static let levels = [0.36, 0.66, 1.0, 0.72, 0.48]
+    static let horizontalOffset = -3.0
 }
 
 let designs = [
-    IconDesign(name: "PureWave", material: "silver", width: 76, gap: 36, height: 460),
-    IconDesign(name: "CarvedWave", material: "carved", width: 84, gap: 30, height: 480),
-    IconDesign(name: "NightWave", material: "night", width: 76, gap: 38, height: 500)
+    IconDesign(name: "PureWave", material: "silver"),
+    IconDesign(name: "CarvedWave", material: "carved"),
+    IconDesign(name: "NightWave", material: "night")
 ]
 
 func gray(_ value: Double) -> Color { Color(white: value) }
@@ -30,25 +35,25 @@ struct WaveBar: View {
         let night = study.material == "night"
         let top: Double = switch study.material {
         case "night": 0.88
-        default: 0.62
+        default: 0.48
         }
         let bottom: Double = switch study.material {
         case "night": 0.63
-        default: 0.37
+        default: 0.25
         }
         if study.material == "carved" {
             shape
-                .fill(LinearGradient(colors: [gray(0.58), gray(0.69)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .fill(LinearGradient(colors: [gray(0.43), gray(0.55)], startPoint: .topLeading, endPoint: .bottomTrailing)
                     .shadow(.inner(color: gray(0.25).opacity(0.65), radius: 9, x: 7, y: 9))
                     .shadow(.inner(color: .white.opacity(0.95), radius: 7, x: -6, y: -7)))
                 .overlay(shape.strokeBorder(LinearGradient(colors: [gray(0.53).opacity(0.3), .white.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
-                .frame(width: study.width, height: study.height * level)
+                .frame(width: WaveGeometry.width, height: WaveGeometry.height * level)
                 .shadow(color: .white.opacity(0.9), radius: 1.5, x: 1.5, y: 2)
         } else {
             shape
                 .fill(LinearGradient(colors: [gray(top), gray(bottom)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(night ? 0.75 : 0.9), .white.opacity(0.02), .black.opacity(0.13)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2.5))
-                .frame(width: study.width, height: study.height * level)
+                .frame(width: WaveGeometry.width, height: WaveGeometry.height * level)
                 .drawingGroup()
                 .shadow(color: .black.opacity(night ? 0.5 : 0.24), radius: 11, x: 8, y: 12)
                 .shadow(color: .white.opacity(night ? 0.10 : 0.9), radius: 9, x: -6, y: -7)
@@ -61,18 +66,18 @@ struct WaveIcon: View {
     var body: some View {
         let tile = RoundedRectangle(cornerRadius: 185, style: .continuous)
         let night = study.material == "night"
-        let top = night ? 0.28 : 0.96
-        let bottom = night ? 0.16 : 0.85
+        let top = night ? 0.18 : 0.96
+        let bottom = night ? 0.08 : 0.85
         ZStack {
             tile.fill(LinearGradient(colors: [gray(top), gray(bottom)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .overlay(tile.fill(RadialGradient(colors: [.white.opacity(night ? 0.07 : 0.48), .white.opacity(0)], center: UnitPoint(x: 0.2, y: 0.12), startRadius: 0, endRadius: 560)))
                 .overlay(tile.strokeBorder(LinearGradient(colors: [.white.opacity(night ? 0.20 : 0.9), .white.opacity(0)], startPoint: .topLeading, endPoint: .center), lineWidth: 3))
-            HStack(alignment: .center, spacing: study.gap) {
-                ForEach(Array(study.levels.enumerated()), id: \.offset) { _, level in
+            HStack(alignment: .center, spacing: WaveGeometry.gap) {
+                ForEach(Array(WaveGeometry.levels.enumerated()), id: \.offset) { _, level in
                     WaveBar(study: study, level: level)
                 }
             }
-            .offset(x: -3)
+            .offset(x: WaveGeometry.horizontalOffset)
         }
         .frame(width: 824, height: 824)
         .clipShape(tile)
