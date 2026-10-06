@@ -403,13 +403,14 @@ verification status belong in the vault (see below).
   extra per-row depth. Scroll views must not clip raised cards' light and shade:
   History's card column extends into the timeline gap and the page's trailing and
   bottom margins, with matching content margins that keep the cards in place.
-- Recording window offers Classic, Mini, Cube, Sonic and None. Cube and Sonic
-  keep Classic's 34-point capsule and six-point insets. The timer is an independent
+- Recording window offers Mini, Cube, Sonic and None; Mini is the default.
+  Migrate saved Classic selections to Mini without changing timer preferences.
+  Cube and Sonic keep the 34-point capsule and six-point insets. The timer is an independent
   module, off by default for every preset, with a persisted Left/Right position.
   Configuration shows Show timer and, when enabled, Timer position; previews
   reflect both settings. Hide these controls for None without resetting them.
   Timer-free recording reserves no label space; processing labels remain visible
-  in all four presets. Cube uses shaded rotating face plates; Sonic shows only
+  in all three visible presets. Cube uses shaded rotating face plates; Sonic shows only
   braided ribbons, with no cube. Drive response from the existing recent microphone
   levels, with bounded fast attack and slower release; never open another audio
   input or call it a frequency spectrum. Keep motion in the visualization well and
@@ -430,7 +431,9 @@ verification status belong in the vault (see below).
   Keep recovery details on Home and in History where applicable. Copy must preserve all text without activating the panel;
   recording remains click-through. Reduce Motion disables spatial expansion.
   Size the capsule to its enabled timer or current status label, with six-point outer
-  insets on every side of the waveform well. Do not reserve a fixed label width;
+  insets on every side of the waveform well. Timer and status text have a fixed
+  12-point inset at the exposed capsule edge: leading for a left timer, trailing
+  for a right timer or status label. Do not reserve a fixed label width;
   grow the native panel when the timer gains a digit and keep it centered.
 - Native menu items never wrap, so the widest title sets the menu-bar menu's
   width. Keep that menu about 270 points wide: pass every dynamic title (status,

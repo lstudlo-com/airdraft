@@ -33,7 +33,7 @@ struct ConfigurationPage: View {
                     RowDivider()
                     SettingRow(title: "Recording window") {
                         LazyVGrid(columns: Array(repeating: GridItem(.fixed(106), spacing: 10), count: 3), spacing: 12) {
-                            ForEach([HUDStyle.classic, .mini, .none, .cube, .sonic]) { style in
+                            ForEach(HUDStyle.allCases) { style in
                                 ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
                                     HUDPreview(style: style, timer: settings.hudTimer)
                                 }
@@ -269,9 +269,6 @@ struct HUDPreview: View {
         ZStack {
             Color.primary.opacity(0.05)
             switch style {
-            case .classic:
-                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .classic, timer: timer)
-                    .scaleEffect(0.5)
             case .mini:
                 IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .mini, timer: timer)
                     .scaleEffect(0.55)

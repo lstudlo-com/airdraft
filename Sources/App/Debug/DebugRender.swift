@@ -381,15 +381,15 @@ enum DebugRender {
             ("notice", HUDSnapshot(state: .notice("Text copied: the original destination is no longer focused. Return to the intended text field and paste the recovered transcript."), levels: [], elapsed: 0)),
         ]
         var images: [NSImage] = []
-        var classicWidths: [String: CGFloat] = [:]
-        for style in [HUDStyle.classic, .mini, .cube, .sonic] {
+        var miniWidths: [String: CGFloat] = [:]
+        for style in [HUDStyle.mini, .cube, .sonic] {
             for (name, snap) in states {
                 let measured = NSHostingView(rootView: IndicatorView(snapshot: snap, style: style)).fittingSize
                 if snap.state.hudMessage == nil {
                     precondition(abs(measured.height - (style == .mini ? 32 : 34)) < 0.5,
                                  "HUD waveform must retain equal six-point outer insets")
                 }
-                if style == .classic { classicWidths[name] = measured.width }
+                if style == .mini { miniWidths[name] = measured.width }
                 print("HUD \(style.rawValue) \(name): \(measured.width) x \(measured.height)")
                 let content = IndicatorView(snapshot: snap, style: style)
                     .padding(12)
@@ -399,11 +399,11 @@ enum DebugRender {
                 if let img = renderer.nsImage { images.append(img) }
             }
         }
-        precondition(classicWidths["recording"]! < classicWidths["transcribing"]! &&
-                     classicWidths["refining"]! < classicWidths["transcribing"]! &&
-                     classicWidths["inserting"]! < classicWidths["transcribing"]!,
+        precondition(miniWidths["recording"]! < miniWidths["transcribing"]! &&
+                     miniWidths["refining"]! < miniWidths["transcribing"]! &&
+                     miniWidths["inserting"]! < miniWidths["transcribing"]!,
                      "HUD width must fit its current status, not reserve the longest label")
-        for style in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for style in [HUDStyle.mini, .cube, .sonic] {
             func size(_ elapsed: Double, timer: HUDTimerOptions = HUDTimerOptions()) -> CGSize {
                 NSHostingView(rootView: IndicatorView(snapshot:
                     HUDSnapshot(state: .recording, levels: samples, elapsed: elapsed),
@@ -420,7 +420,7 @@ enum DebugRender {
         }
         print("PASS: all presets fit their optional timer with unchanged capsule height")
         let preview = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
-            style: .classic, showPreview: true,
+            style: .mini, showPreview: true,
             sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")
             .padding(12).background(Color(white: 0.93))
         let previewRenderer = ImageRenderer(content: preview)

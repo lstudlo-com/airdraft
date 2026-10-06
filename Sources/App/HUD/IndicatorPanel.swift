@@ -13,7 +13,7 @@ final class IndicatorPanelController {
     private let timerProvider: () -> HUDTimerOptions
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
-    private var currentStyle: HUDStyle = .classic
+    private var currentStyle: HUDStyle = .mini
     private var currentTimer = HUDTimerOptions()
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
@@ -45,7 +45,7 @@ final class IndicatorPanelController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        _ = applyStyle(.classic, preview: false)
+        _ = applyStyle(.mini, preview: false)
     }
 
     private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
@@ -290,17 +290,18 @@ struct HUDSnapshot {
 /// Preset artwork, optional timer and processing status share one content-sized pill.
 struct IndicatorView: View {
     static let contentInset: CGFloat = 6
+    static let textOuterInset: CGFloat = 12
 
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
-    var style: HUDStyle = .classic
+    var style: HUDStyle = .mini
     var timer: HUDTimerOptions
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
     var spatialAnimation: SpatialHUDAnimation
 
-    init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
+    init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .mini,
          timer: HUDTimerOptions = HUDTimerOptions(),
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
          messagePasteboard: NSPasteboard = .general,
@@ -327,12 +328,14 @@ struct IndicatorView: View {
                 HStack(spacing: 8) {
                     if showsTimer && timer.position == .left {
                         ElapsedTime(pipeline: pipeline, snapshot: snapshot).fixedSize()
+                            .padding(.leading, Self.textOuterInset - Self.contentInset)
                             .accessibilityIdentifier("hud.timer")
                     }
                     visualizer
                         .accessibilityIdentifier("hud.visualizer")
                     if showsTimer && timer.position == .right {
                         ElapsedTime(pipeline: pipeline, snapshot: snapshot).fixedSize()
+                            .padding(.trailing, Self.textOuterInset - Self.contentInset)
                             .accessibilityIdentifier("hud.timer")
                     }
                     if let caption = state.hudCaption {
@@ -340,6 +343,7 @@ struct IndicatorView: View {
                             .font(.system(size: 10, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.white.opacity(0.7))
                             .fixedSize()
+                            .padding(.trailing, Self.textOuterInset - Self.contentInset)
                             .accessibilityIdentifier("hud.status")
                     }
                 }
@@ -371,10 +375,8 @@ struct IndicatorView: View {
                 .frame(width: 82, height: 22)
                 .background { HUDWaveformWell() }
                 .clipShape(Capsule())
-        case .mini:
+        case .mini, .none:
             waveform(width: 80, height: 14)
-        case .classic, .none:
-            waveform(width: 72, height: 16)
         }
     }
 

@@ -362,14 +362,19 @@ sidebar, a Home action or the menu bar; Reduce Motion moves it without animation
 Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
 fills are raised solid gray pills inside their inset tracks (0.66 light, 0.32
-dark), lit from the top left, and remain proportional, with no fill for zero. The recording HUD fits its enabled timer or current status and
+dark), lit from the top left, and remain proportional, with no fill for zero.
+Mini is the default waveform preset; existing Classic selections migrate to Mini
+without changing timer preferences. The recording HUD fits its enabled timer or current status and
 keeps bright live bars, a dark inset waveform track and shallow rim. Cube and
 Sonic use the same 34-point capsule: Cube has silver face plates and orbital
 traces, while Sonic shows seven animated ribbons without a cube. The timer is
 a separate module, off by default for every preset. Show timer enables it during
 recording; Timer position chooses Left or Right, initially Right. Both preferences
 persist independently of the preset and update its preview. Disabling the timer
-reclaims its space and leaves processing labels visible in every preset. Recent
+reclaims its space and leaves processing labels visible in every preset. Timer
+and status text keep a fixed 12-point outer inset: leading for a left timer,
+trailing for a right timer or status label. The visualizer retains its six-point
+outer inset, and the label gap remains eight points. Recent
 microphone amplitude controls their excursion, face separation and rotation speed, with fast attack and slower release. They do not claim to show
 frequency analysis. Reduce Motion holds the phase still and retains level
 response; delivery captures phase and energy for a frozen fade. Configuration

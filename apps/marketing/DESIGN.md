@@ -475,9 +475,10 @@ corners (`12px` on phones), raised with the hero's spread, with an inactive
 window's gray close and minimize buttons 16 points in. Both appearances are
 stacked; a groove divider with a raised round key compares them. Dragging the
 window or the keyboard on its range input moves it; without JavaScript it rests
-at half. The recording-window picker includes Cube and Sonic, all with the timer off by
+at half. The recording-window picker offers Mini, Cube, Sonic and None, with Mini selected
+and the timer off by
 default; Sonic shows ribbons without a cube. Its callout points
-to their preview row and describes their voice response. On wide windows (from
+to the first preview row and describes their voice response. On wide windows (from
 `1280px`) six callouts name the materials at
 their places in the window (carved mark, pressed well, raised button, raised
 card, engraved divider, reactive capsules), joined by a leader ending in a

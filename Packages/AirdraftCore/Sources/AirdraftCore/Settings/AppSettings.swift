@@ -27,8 +27,6 @@ public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiabl
 }
 
 public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
-    /// Standard waveform.
-    case classic
     /// Compact waveform.
     case mini
     /// Audio-reactive, faceted rotating cube.
@@ -40,7 +38,6 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .classic: return "Classic"
         case .mini: return "Mini"
         case .cube: return "Cube"
         case .sonic: return "Sonic"
@@ -154,12 +151,16 @@ public final class AppSettings {
         appIcons = Self.load("appIcons", from: defaults) ?? AppIconPreferences()
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
-        hudStyle = Self.load("hudStyle", from: defaults) ?? .classic
+        let savedHUDStyle: String? = Self.load("hudStyle", from: defaults)
+        hudStyle = savedHUDStyle.flatMap(HUDStyle.init(rawValue:)) ?? .mini
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
+        if savedHUDStyle == "classic" {
+            persist("hudStyle", hudStyle)
+        }
         if maxRecordingSeconds != savedRecordingSeconds {
             persist("maxRecordingSeconds", maxRecordingSeconds)
         }

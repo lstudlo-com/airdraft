@@ -164,7 +164,7 @@ enum SpatialHUDVerification {
                     }
                 }
                 .font(.system(size: 11)).foregroundStyle(.secondary)
-                ForEach([HUDStyle.classic, .mini, .cube, .sonic]) { style in
+                ForEach([HUDStyle.mini, .cube, .sonic]) { style in
                     HStack {
                         Text(style.title).font(.system(size: 13, weight: .medium)).frame(width: 70, alignment: .leading)
                         ForEach(options.indices, id: \.self) { index in

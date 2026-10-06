@@ -121,7 +121,7 @@ import Observation
 import SwiftUI
 
 enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hud" }
-enum HUDStyle: String { case classic, mini, cube, sonic, none }
+enum HUDStyle: String { case mini, cube, sonic, none }
 
 @MainActor @Observable final class DictationPipeline {
     static let levelHistoryLength = 22
@@ -154,7 +154,7 @@ struct NeumorphicSurface<S: Shape>: View {
     }
 
     @MainActor static func verify() async throws {
-        var style: HUDStyle = .classic
+        var style: HUDStyle = .mini
         var timer = HUDTimerOptions()
         var reduceMotion = false
         let pipeline = DictationPipeline()
@@ -169,19 +169,19 @@ struct NeumorphicSurface<S: Shape>: View {
         }
         func visible() -> Bool { NSApp.windows.contains { $0 is NSPanel && $0.isVisible } }
         update(.recording)
-        precondition(visible(), "Classic HUD must be visible")
+        precondition(visible(), "Mini HUD must be visible")
         style = .none
         update(.recording)
         precondition(!visible(), "None must hide the active recording HUD immediately")
-        style = .mini
+        style = .cube
         update(.recording)
-        precondition(visible(), "Mini must show after None")
+        precondition(visible(), "Cube must show after None")
         style = .none
         update(.notice("Fixture notice"))
         precondition(!visible(), "None must also hide a pending notice HUD")
-        print("PASS: real NSPanel Classic to None to Mini to None visibility")
+        print("PASS: real NSPanel Mini to None to Cube to None visibility")
 
-        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
             style = activeStyle
             timer.isEnabled = false
             pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
@@ -205,9 +205,9 @@ struct NeumorphicSurface<S: Shape>: View {
             controller.update(for: .recording, isStateChange: false)
             precondition(abs(panel.frame.width - compactWidth) < 0.5, "Disabling must reclaim the timer's space")
         }
-        print("PASS: all four live presets default timerless and resize correctly with either timer position")
+        print("PASS: all three live presets default timerless and resize correctly with either timer position")
 
-        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let active = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -247,7 +247,7 @@ struct NeumorphicSurface<S: Shape>: View {
             precondition(!panel.isVisible, "Late success notices must not reopen the HUD")
         }
 
-        style = .classic
+        style = .mini
         timer.isEnabled = true
         pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
         update(.recording)
@@ -273,7 +273,7 @@ struct NeumorphicSurface<S: Shape>: View {
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
 
-        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             update(.inserting)
@@ -333,7 +333,7 @@ struct NeumorphicSurface<S: Shape>: View {
         // The last failure's start: its five-second deadline and fade count from here,
         // not from the end of the checks below, whose duration varies by machine.
         var failedAt = Date()
-        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -378,7 +378,7 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.idle)
         precondition(!visible(), "Idle must not reopen an expired failure")
 
-        style = .classic
+        style = .mini
         update(.recording)
         update(.notice(message))
         try await Task.sleep(for: .milliseconds(350))
@@ -414,14 +414,14 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.recording)
         try await Task.sleep(for: .seconds(4))
         precondition(visible(), "A cancelled message timeout must not hide a new recording")
-        for activeStyle in [HUDStyle.classic, .mini, .cube, .sonic] {
+        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let recordingWidth = panel.frame.width
             update(.preparingModel)
             precondition(panel.ignoresMouseEvents && (activeStyle != .mini || panel.frame.width > recordingWidth),
-                         "Both HUD styles must show the loading label without taking focus")
+                         "All HUD styles must show the loading label without taking focus")
             saveRender(panel.contentView!, name: "loading-\(activeStyle.rawValue)")
         }
         print("PASS: replacement deadlines, new recording cancellation and loading in all visible HUD styles")
