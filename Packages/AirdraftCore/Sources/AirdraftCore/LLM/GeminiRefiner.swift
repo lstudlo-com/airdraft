@@ -14,13 +14,13 @@ public struct GeminiRefiner: Refiner {
     public let timeout: TimeInterval
     public let effort: ThinkingEffort
 
-    public init(baseURL: URL, model: String, apiKey: String?, temperature: Double = 0.2, timeout: TimeInterval = 20, effort: ThinkingEffort = .off, session: URLSession = .shared) {
+    public init(baseURL: URL, model: String, apiKey: String?, temperature: Double = 0.2, timeout: TimeInterval = 20, effort: ThinkingEffort = .off, session: URLSession? = nil) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.temperature = temperature
         self.timeout = timeout
-        self.session = session
+        self.session = session ?? ProviderTransport.shared
         self.effort = effort
         self.id = "gemini:\(model)"
     }

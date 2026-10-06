@@ -42,7 +42,7 @@ struct HomePage: View {
                      isReady: hasLoadedOverview, canDictate: setupIssues == 0)
 
             DictationRecovery()
-            if let historyReadError { StorageNotice(message: historyReadError) { Task { await reload() } } }
+            if let historyReadError { StorageNotice(message: historyReadError, actionTitle: "Reload History") { Task { await reload() } } }
             readinessCard
 
             if !overview.topApps.isEmpty {
@@ -87,8 +87,8 @@ struct HomePage: View {
     private var pipelineSummary: String {
         let llm = container.settings.llm
         let speech = container.speechConfig.engineLabel
-        guard llm.kind != .none else { return "\(speech) · no refinement" }
-        return "\(speech) → \(llm.engineLabel) · \(container.profiles.activeProfile.name)"
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return "\(speech) · no refinement" }
+        return "\(speech) → \(llm.engineLabel) · \(container.effectiveProfile.name)"
     }
 
     private var readinessCard: some View {
@@ -105,6 +105,7 @@ struct HomePage: View {
                             .font(.system(size: 13, weight: .medium))
                         Text(pipelineSummary)
                             .supportingText()
+                            .accessibilityIdentifier("home.pipeline-summary")
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
@@ -179,9 +180,13 @@ struct HomePage: View {
         RowDivider()
         HealthRow(ok: speechReady, title: "Speech", detail: speechDetail) {
             if !speechReady {
-                if container.profiles.activeProfile.speechModel?.unavailableReason != nil {
+                if container.effectiveProfile.speechModel?.unavailableReason != nil {
                     Button("Profiles") { container.navigation.page = .profiles }
                         .buttonStyle(SoftButtonStyle())
+                } else if speechLanguageIssue != nil {
+                    Button("Language Settings") { container.navigation.page = .models }
+                        .buttonStyle(SoftButtonStyle())
+                        .accessibilityIdentifier("home.speech-language-action")
                 } else if container.speechConfig.kind.isLocal, LocalModels.isInstalled(container.speechConfig) {
                     Button("Load Model") { container.models.loadSpeechModel() }
                         .buttonStyle(SoftButtonStyle())
@@ -205,13 +210,13 @@ struct HomePage: View {
     }
 
     private var refinementNeedsKey: Bool {
-        container.profiles.activeProfile.usesLLM && container.settings.llm.kind.requiresKey && !refinementKeyPresent
+        container.effectiveProfile.usesLLM && container.settings.llm.kind.requiresKey && !refinementKeyPresent
     }
 
     /// Off is a valid choice, not a problem; a missing key, CLI or server is.
     private var refinementTone: StatusDot.Tone {
         let llm = container.settings.llm
-        if llm.kind == .none || !container.profiles.activeProfile.usesLLM { return .inactive }
+        if llm.kind == .none || !container.effectiveProfile.usesLLM { return .inactive }
         if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason == nil ? .ok : .attention }
         if refinementNeedsKey || (llm.kind.isCLI && llm.cliExecutable == nil) { return .attention }
         switch container.models.llmStatus.state {
@@ -223,10 +228,10 @@ struct HomePage: View {
 
     private var refinementDetail: String {
         let llm = container.settings.llm
-        guard llm.kind != .none, container.profiles.activeProfile.usesLLM else { return "Off · original transcript" }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "On-device · \(container.profiles.activeProfile.name)" }
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return "Off · original transcript" }
+        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "On-device · \(container.effectiveProfile.name)" }
         let state = refinementNeedsKey ? "API key needed" : container.models.llmStatus.label
-        return "\(state) · \(container.profiles.activeProfile.name)"
+        return "\(state) · \(container.effectiveProfile.name)"
     }
 
     private func refreshRefinementKey() async {
@@ -251,7 +256,8 @@ struct HomePage: View {
     }
 
     private var speechDetail: String {
-        if let reason = container.profiles.activeProfile.speechModel?.unavailableReason { return reason }
+        if let reason = container.effectiveProfile.speechModel?.unavailableReason { return reason }
+        if let issue = speechLanguageIssue { return issue }
         let asr = container.speechConfig
         if !asr.kind.isLocal {
             guard asr.kind.preset != nil else { return "Custom endpoint" }
@@ -262,10 +268,15 @@ struct HomePage: View {
     }
 
     private var speechReady: Bool {
-        if container.profiles.activeProfile.speechModel?.unavailableReason != nil { return false }
+        if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return false }
         let asr = container.speechConfig
         if !asr.kind.isLocal { return !(asr.kind.preset != nil) || speechKeyPresent }
         return LocalModels.isInstalled(asr) && container.engineStatus.state(for: asr.engineID) == .ready
+    }
+
+    private var speechLanguageIssue: String? {
+        do { _ = try SpeechLanguagePolicy.resolve(container.speechConfig); return nil }
+        catch { return error.localizedDescription }
     }
 
     private func refreshSpeechKey() async {
@@ -383,6 +394,8 @@ struct HealthRow<Trailing: View>: View {
             Spacer(minLength: Theme.controlSpacing)
             trailing
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("readiness.\(title.lowercased())")
     }
 }
 

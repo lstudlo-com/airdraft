@@ -130,8 +130,7 @@ private struct VocabularyLine: View {
                 .help("Remove")
                 .accessibilityLabel("Remove \(row.alias.map { "\($0) → " } ?? "")\(row.term)")
         }
-        .padding(.horizontal, Theme.cardPadding)
-        .padding(.vertical, 10)
+        .padding(Theme.cardPadding)
         .background(hovering ? Color.primary.opacity(0.03) : .clear)
         .onHover { hovering = $0 }
         .contextMenu { Button("Remove", role: .destructive, action: onDelete) }

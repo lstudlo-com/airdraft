@@ -24,19 +24,19 @@ tasks:
 
   build:
     description: Build the Airdraft macOS app.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc build
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile build
     toolchains: system
     deps: [generate]
 
   test:
     description: Run AirdraftCore tests in the app's Xcode build tree.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc test
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile test
     toolchains: system
     deps: [generate]
 
   build-release:
     description: Build an optimized Apple Silicon app for packaging.
-    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Release -destination generic/platform=macOS ARCHS=arm64 -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc build
+    command: xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Release -destination generic/platform=macOS ARCHS=arm64 -skipPackagePluginValidation -skipMacroValidation -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile build
     toolchains: system
     deps: [generate]
 

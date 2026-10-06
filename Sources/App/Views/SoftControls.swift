@@ -306,20 +306,24 @@ extension ToggleStyle where Self == SoftSwitchStyle {
 
 // MARK: Sliders
 
-/// A recessed track with a raised knob; drag, click or use the accessibility adjustments.
+/// A recessed track with a raised knob; drag, click, use arrow keys or accessibility adjustments.
 struct SoftSlider: View {
     let title: String
     @Binding var value: Double
     let range: ClosedRange<Double>
     let step: Double
+    /// Seeking can use a larger keyboard increment without reducing pointer precision.
+    var keyboardStep: Double? = nil
 
     @Environment(\.isEnabled) private var isEnabled
+    @FocusState private var focused: Bool
 
     var body: some View {
         GeometryReader { geometry in
             let knob: CGFloat = 18
             let travel = max(1, geometry.size.width - knob)
-            let fraction = (value - range.lowerBound) / (range.upperBound - range.lowerBound)
+            let span = range.upperBound - range.lowerBound
+            let fraction = span > 0 ? min(1, max(0, (value - range.lowerBound) / span)) : 0
             ZStack(alignment: .leading) {
                 SoftInsetTrack(shape: Capsule())
                     .frame(height: 8)
@@ -331,6 +335,8 @@ struct SoftSlider: View {
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
+                guard isEnabled else { return }
+                focused = true
                 let raw = range.lowerBound + Double((drag.location.x - knob / 2) / travel) * (range.upperBound - range.lowerBound)
                 set(raw)
             })
@@ -347,10 +353,27 @@ struct SoftSlider: View {
             @unknown default: break
             }
         }
+        .focusable(isEnabled)
+        .focused($focused)
+        .onMoveCommand { direction in
+            switch direction {
+            case .left, .down: set(value - (keyboardStep ?? step))
+            case .right, .up: set(value + (keyboardStep ?? step))
+            @unknown default: break
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(Color.accentColor, lineWidth: 1.5)
+                .padding(-2)
+                .opacity(focused && isEnabled ? 1 : 0)
+                .allowsHitTesting(false)
+        }
     }
 
     private func set(_ raw: Double) {
-        let stepped = (raw / step).rounded() * step
+        guard isEnabled, raw.isFinite, step > 0 else { return }
+        let stepped = range.lowerBound + ((raw - range.lowerBound) / step).rounded() * step
         value = min(max(stepped, range.lowerBound), range.upperBound)
     }
 }

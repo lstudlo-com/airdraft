@@ -10,7 +10,7 @@ public struct OpenRouterTranscriber: Transcriber {
     private let http: TranscriptionHTTP
 
     public init(model: String = "openai/whisper-1", apiKey: String?, timeout: TimeInterval = 75,
-                session: URLSession = .shared) {
+                session: URLSession? = nil) {
         self.model = model
         self.apiKey = apiKey
         self.timeout = timeout

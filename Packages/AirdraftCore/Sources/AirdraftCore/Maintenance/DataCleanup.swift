@@ -127,28 +127,21 @@ public final class DataCleanupCoordinator {
     }
 }
 
-/// Shared for the lifetime of an app copy; cleanup upgrades to exclusive.
+/// One writer owns the data directory for its entire lifetime, including reset.
 /// The lock file survives reset so another process cannot lock a different inode.
 public final class DataDirectoryLease: @unchecked Sendable {
     private let descriptor: Int32
-    public private(set) var holdsLease = true
+    public let holdsLease = true
     public init(directory: URL) throws {
         try ManagedDataFiles.validateRoot(directory)
         let url = directory.appendingPathComponent(".airdraft-data.lock")
         descriptor = open(url.path, O_CREAT | O_RDWR | O_NOFOLLOW, S_IRUSR | S_IWUSR)
         guard descriptor >= 0 else { throw POSIXError(.EACCES) }
-        guard flock(descriptor, LOCK_SH | LOCK_NB) == 0 else {
+        guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
             close(descriptor); throw CleanupError.otherInstance
         }
     }
     deinit { flock(descriptor, LOCK_UN); close(descriptor) }
-    public func acquireExclusive() throws {
-        guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
-            holdsLease = flock(descriptor, LOCK_SH | LOCK_NB) == 0
-            throw CleanupError.otherInstance
-        }
-    }
-    public func releaseExclusive() { holdsLease = flock(descriptor, LOCK_SH | LOCK_NB) == 0 }
 }
 
 public enum ManagedDataFiles {

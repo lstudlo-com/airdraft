@@ -8,7 +8,7 @@ public struct OpenAITranscriber: Transcriber {
     public let timeout: TimeInterval
     private let http: TranscriptionHTTP
 
-    public init(model: String = "gpt-transcribe", apiKey: String?, timeout: TimeInterval = 60, session: URLSession = .shared) {
+    public init(model: String = "gpt-transcribe", apiKey: String?, timeout: TimeInterval = 60, session: URLSession? = nil) {
         self.model = model
         self.apiKey = apiKey
         self.timeout = timeout

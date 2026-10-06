@@ -4,7 +4,7 @@ import Foundation
 public struct SonioxMediaTranscriber: Sendable {
     let key: String
     let session: URLSession
-    public init(key: String, session: URLSession = .shared) { self.key = key; self.session = session }
+    public init(key: String, session: URLSession? = nil) { self.key = key; self.session = session ?? ProviderTransport.shared }
     private func request(_ path: String, method: String = "GET") -> URLRequest {
         var request = URLRequest(url: URL(string: "https://api.soniox.com/v1/")!.appendingPathComponent(path))
         request.httpMethod = method; request.timeoutInterval = 120

@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 
 from release_signing import POLICY, inspect_app, inspect_dmg, preflight, validate_metadata
 from licensing import build_settings as licensing_settings, verify_app as verify_app_license
+from swiftpm_lock import restore as restore_resolution, verify as verify_resolution
 
 REPO = "lstudlo-com/airdraft"
 ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
@@ -40,10 +41,7 @@ def core_test_selection(source, scope):
     if scope == "full":
         return []
     selection = runpy.run_path(str(source / "scripts/test-local-e2e.py"))
-    names = selection["SUITES"] + selection["CASES"]
-    if not names or any(not re.fullmatch(r"[A-Za-z0-9_/]+", name) for name in names):
-        raise RuntimeError("Invalid credential-free core test allowlist")
-    return [f"-only-testing:AirdraftCoreTests/{name}" for name in names]
+    return selection["credential_free_selection"]()
 
 
 def local_test_environment():
@@ -219,6 +217,8 @@ def export_snapshot(commit):
     vendor = ROOT / "Packages/SherpaOnnxKit/Vendor"
     if not vendor.is_dir():
         raise RuntimeError("Run moon run airdraft:prepare once to install the native speech libraries")
+    run(sys.executable, destination / "scripts/native_inputs.py", "verify", "--vendor", vendor,
+        cwd=destination)
     (destination / "Packages/SherpaOnnxKit/Vendor").symlink_to(vendor, target_is_directory=True)
     return destination
 
@@ -284,15 +284,17 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     else:
         print("Credential-free scope: API-key/cloud and credential tests, including the Keychain fixture, are excluded.", flush=True)
     run(xcodegen(), "generate", cwd=source)
+    restore_resolution(source)
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
               "-skipPackagePluginValidation", "-skipMacroValidation",
-              "-packageAuthorizationProvider", "netrc",
+              "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
               f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
     core_results = Path(tempfile.mkdtemp(prefix="core-tests-", dir=output)) / "tests.xcresult"
     logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO",
                      "-resultBundlePath", core_results] +
            core_test_selection(source, test_scope), source, output / "build.log",
            env=local_test_environment() if test_scope == "credential-free" else None)
+    verify_resolution(source)
     logged([sys.executable, source / "scripts/verify-insertion-regressions.py", core_results,
             "--report", core_results.parent / "insertion-regressions.json"], source, output / "insertion.log")
     raw = run(*common, '-configuration', 'Debug', '-showBuildSettings', '-json', cwd=source, capture=True)
@@ -301,6 +303,9 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
     live_insertion = live_insertion_evidence(source, output, debug_app, commit, unverified_live_insertion)
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
+    run(sys.executable, source / "scripts/native_inputs.py", "verify", "--vendor",
+        source / "Packages/SherpaOnnxKit/Vendor", cwd=source)
+    shutil.copy2(verify_resolution(source), output / "Package.resolved")
     raw = run(*common, "-configuration", "Release", "-showBuildSettings", "-json", cwd=source, capture=True)
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
     app = Path(settings["TARGET_BUILD_DIR"]) / settings["FULL_PRODUCT_NAME"]

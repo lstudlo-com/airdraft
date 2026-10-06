@@ -18,9 +18,10 @@ struct MicrophonePicker: View {
                 Picker(title, selection: selection) { choices }
             }
         }
-        .disabled(container.pipeline.state.isBusy)
+        .disabled(container.pipeline.isBusy)
+        .accessibilityIdentifier("microphone.device-picker")
         .onAppear { container.microphones.refresh() }
-        .help("\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish dictation before switching.")
+        .help("\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish the current operation before switching.")
     }
 
     private var selection: Binding<String> {
@@ -28,6 +29,7 @@ struct MicrophonePicker: View {
         return Binding(
             get: { container.settings.microphone.uid ?? "" },
             set: { uid in
+                guard !container.pipeline.isBusy else { return }
                 let next: MicrophonePreference
                 if let device = store.devices.first(where: { $0.uid == uid }) {
                     next = MicrophonePreference(uid: device.uid, name: device.name)
@@ -73,7 +75,10 @@ struct MicrophoneSettings: View {
                     SettingRow(title: "Input channel", subtitle: channelCount > 1 || selectedChannel != 0 ? "Your microphone’s physical input" : "Requires a microphone with multiple physical inputs") {
                         SoftPicker("Input channel", selection: Binding(
                             get: { container.settings.microphone.channelIndex ?? 0 },
-                            set: { container.settings.microphone.channelIndex = $0 }
+                            set: { channel in
+                                guard !container.pipeline.isBusy else { return }
+                                container.settings.microphone.channelIndex = channel
+                            }
                         ), width: 230) {
                             ForEach(0..<channelCount, id: \.self) { channel in
                                 Text("Input \(channel + 1)").tag(channel)
@@ -83,6 +88,7 @@ struct MicrophoneSettings: View {
                             }
                         }
                         .disabled(container.pipeline.isBusy || channelCount <= 1 && selectedChannel == 0)
+                        .accessibilityIdentifier("microphone.channel-picker")
                     }
                 }
                 if store.selected(preference) == nil {

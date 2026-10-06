@@ -2,6 +2,12 @@ import AppKit
 import AirdraftCore
 
 extension AppContainer {
+    var cleanupRecoveryKeyReferences: [String] {
+        guard cleanup.pendingScope != nil, cleanup.error != nil, !cleanup.isRunning,
+              history != nil else { return [] }
+        return media?.cleanupKeyReferences ?? []
+    }
+
     func cleanupPreview(allowUnavailable: Bool = false) async throws -> CleanupPreview {
         guard let history else {
             guard allowUnavailable else { throw CleanupError.storageUnavailable }
@@ -15,8 +21,8 @@ extension AppContainer {
         return try await Task.detached { try history.cleanupPreview() }.value
     }
 
-    /// The coordinator holds both the UI/pipeline fence and the process lease
-    /// until every step succeeds. A failed reset can only retry its fixed scope.
+    /// The coordinator holds the UI/pipeline fence until cleanup succeeds.
+    /// The app retains its exclusive data lease for its entire lifetime.
     func performCleanup(_ scope: DataCleanupScope) async {
         let directory = dataDirectory
         var steps: [DataCleanupCoordinator.Step] = [
@@ -77,21 +83,20 @@ extension AppContainer {
                 }
                 guard siblings.isEmpty else { throw CleanupError.otherInstance }
             }
-            guard let lease = self.dataLease else { throw CleanupError.otherInstance }
-            // Resolve provider cleanup before writing the local cleanup journal/fence.
-            // A missing key must leave Configuration available for recovery.
-            if !self.cleanup.blocksWork { try await self.media?.prepareCleanup() }
+            guard self.dataLease?.holdsLease == true else { throw CleanupError.otherInstance }
+            // Repeat this idempotent preparation on resume: older journals did
+            // not prepare remote resources. Retained IDs must be cleaned before
+            // any remaining deletion. A closed reset store has no IDs to read.
+            if self.history != nil { try await self.media?.prepareCleanup() }
             try self.pipeline.beginDataMaintenance()
-            do { try lease.acquireExclusive() }
-            catch { throw error }
             self.hotkeys.suspended = true
         }, steps: steps, finish: { succeeded in
             NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
             if !self.cleanup.blocksWork && self.cleanup.finishedScope != .reset {
-                self.dataLease?.releaseExclusive()
                 if self.dataLease?.holdsLease == true {
                     self.pipeline.endDataMaintenance()
                     self.hotkeys.suspended = false
+                    self.models.setDictationBusy(self.pipeline.isBusy)
                     self.models.start()
                 }
             }

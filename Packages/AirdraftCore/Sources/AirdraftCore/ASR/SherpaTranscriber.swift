@@ -30,9 +30,13 @@ public actor SherpaTranscriber: Transcriber {
             }
         }
 
-        /// Published GitHub release-asset digest; pin the Parakeet conversion we support.
+        /// Published release-asset digests, verified against the supported archive bytes.
         var archiveSHA256: String? {
-            self == .parakeet ? "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf" : nil
+            switch self {
+            case .senseVoice: return "7305f7905bfcf77fa0b39388a313f3da35c68d971661a65475b56fb2162c8e63"
+            case .fireRed: return "43015b3f1643a5688b4821e8ed323473d38b798c4ec291471fe00df1bcfc4f1c"
+            case .parakeet: return "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf"
+            }
         }
 
         /// ONNX files the model needs, matched by prefix inside its folder.

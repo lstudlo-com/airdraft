@@ -14,13 +14,7 @@ public actor LMStudioControl {
     private let session: URLSession
 
     public init(session: URLSession? = nil) {
-        if let session {
-            self.session = session
-            return
-        }
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 5
-        self.session = URLSession(configuration: config)
+        self.session = session ?? ProviderTransport.makeSession(timeout: 5)
     }
 
     /// `baseURL` is the OpenAI-compatible one, e.g. http://localhost:1234/v1.

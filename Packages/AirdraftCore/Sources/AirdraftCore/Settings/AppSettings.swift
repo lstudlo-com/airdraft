@@ -82,6 +82,7 @@ public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiabl
 public final class AppSettings {
     public let hadExistingSetup: Bool
     public let onboarding: OnboardingProgress
+    public private(set) var isOnboardingPractice = false
     public var asr: ASRConfig { didSet { persist("asr", asr) } }
     public var llm: LLMConfig { didSet { persist("llm", llm) } }
     public var hotkey: Hotkey { didSet { persist("hotkey", hotkey) } }
@@ -181,14 +182,30 @@ public final class AppSettings {
         }
         llm.select(.none)
         outputDestination = .cursor
+        isOnboardingPractice = true
     }
 
     public func endOnboardingPractice() {
+        isOnboardingPractice = false
         guard let data = defaults.data(forKey: "onboarding.restore"),
               let saved = try? JSONDecoder().decode(PracticeSettings.self, from: data) else { return }
         llm = saved.llm
         outputDestination = saved.output
         defaults.removeObject(forKey: "onboarding.restore")
+    }
+
+    /// Practice uses its explicitly chosen speech setup without changing the
+    /// saved profile. Every consumer resolves the same temporary override.
+    public func effectiveProfile(_ profile: RefinementProfile) -> RefinementProfile {
+        guard isOnboardingPractice else { return profile }
+        var practice = profile
+        practice.speechModel = nil
+        practice.usesLLM = false
+        return practice
+    }
+
+    public func speechConfig(for profile: RefinementProfile) -> ASRConfig {
+        effectiveProfile(profile).speechConfig(default: asr)
     }
 
     public nonisolated static var supportDirectory: URL {

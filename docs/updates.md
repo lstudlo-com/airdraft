@@ -146,7 +146,19 @@ The DMG contains Airdraft and an Applications shortcut. It requires
 Apple Silicon and macOS 15 or later. Local models remain separate downloads.
 Build logs and artifacts are under `dist/releases/<tag>/`.
 Xcode resolves public dependencies with its `netrc` authorization provider so
-package downloads do not request Keychain access.
+package downloads do not request Keychain access. Root `Package.resolved` is the
+reviewed graph. Project generation restores it, builds prohibit automatic version
+changes, and preparation compares/copies the final resolution into the release
+evidence. A missing or drifted lock fails rather than resolving newer versions.
+
+Native speech input versions and archive hashes are committed in
+`Packages/SherpaOnnxKit/native-inputs.json`. Preparation verifies each archive
+before unpacking and publishes a complete derived tree only after successful
+repackaging. Before linking Vendor into an exported commit, release preparation
+runs that commit’s `scripts/native_inputs.py verify --vendor <path>` against
+input identities, recipe and all derived files. A missing, stale or changed tree
+requires rerunning `moon run airdraft:prepare`; signing cannot substitute for
+input verification.
 
 If a release request excludes API-key and credential tests, select that scope
 explicitly for both preparation and the push hook:

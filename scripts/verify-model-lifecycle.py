@@ -47,6 +47,7 @@ struct LLMConfig: Equatable {
     var llm = LLMConfig(baseURL: "http://127.0.0.1:9001/v1")
     var idleUnloadMinutes = 10
     var unloadLLMOnQuit = true
+    func speechConfig(for profile: RefinementProfile) -> ASRConfig { profile.speechConfig(default: asr) }
 }
 @MainActor final class EngineStatus {}
 struct RefinementProfile {

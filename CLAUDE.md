@@ -70,7 +70,10 @@ verification status belong in the vault (see below).
   `pnpm build:app` resolves the pinned local Moon binary; `pnpm test:local` runs
   the credential-free regression allowlist through the same Xcode mutex. Project
   generation uses installed XcodeGen or an existing `dist/tools/xcodegen` binary,
-  and fails with an installation hint when neither exists.
+  and fails with an installation hint when neither exists. The root `Package.resolved`
+  is the canonical reviewed SwiftPM graph; every generation route restores it into
+  the generated project. Xcode builds use `-onlyUsePackageVersionsFromResolvedFile`;
+  release builds compare the final pins with that committed graph.
 - `project.yml` is the source of truth for the Xcode project. After changing it run
   `xcodegen generate`. `airdraft.xcodeproj` is generated and git-ignored.
 - `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.
@@ -202,7 +205,10 @@ verification status belong in the vault (see below).
   phrase when possible; retain essential privacy, cost and recovery information.
   Remove redundant descriptions and place longer explanations in existing details
   disclosures. Error notices keep the message and action in one horizontal row;
-  long diagnostics may wrap beside the action. Separate every Home readiness row
+  long diagnostics may wrap beside the action. Reuse `NoticeRow` inside an existing
+  card and `InlineNotice` for a standalone card; never nest cards or repeat their
+  outer padding. Read errors offer reload/retry-read, not Retry Saving. Separate
+  every Home readiness row
   with `RowDivider`, including rows without a trailing action. `RowDivider` is the
   only separator inside cards: an engraved groove, a shade line with a highlight
   line just below it from the same top-left light, never a flat hairline.
@@ -251,8 +257,10 @@ verification status belong in the vault (see below).
   or copies of shared language/script settings. Resolve the active profile for
   preflight, loading, recording limits, transcription and Home/menu status without
   overwriting `AppSettings.asr`. Capture the profile and resolved speech config at
-  recording start; changes apply to the next recording, and explicit retry resolves
-  the current profile again. Keep Speech model visible with refinement off, preserve
+  recording start together with refinement and output settings; use that same snapshot
+  for preflight, prewarming and processing. Changes apply to the next recording;
+  explicit retry resolves current processing settings while keeping the original
+  delivery target and policy. Keep Speech model visible with refinement off, preserve
   bindings on duplication, and clear them on reset. Models edits the app default
   and shows when the active profile overrides it. Missing models or credentials
   require setup; never silently fall back to another speech model.
@@ -268,7 +276,9 @@ verification status belong in the vault (see below).
   Identify wired/wireless Continuity microphones by Core Audio transport type;
   preview them only when selected, including when System Default resolves to them.
   Opening the picker must not connect unselected iPhones. Stop their previews on
-  deselection, and stop all previews when closed or dictating.
+  deselection, and stop all previews when closed or the aggregate pipeline is busy,
+  including pending startup, media work, meeting capture and maintenance. Guard
+  device/channel setters with the same aggregate state.
   Sidebar destination selection is an opaque recessed well: 2.5-point depth,
   top-left inner shade and bottom-right inner light. The microphone button is its
   deliberate inverse, so a control never reads as a selected page: a raised
@@ -389,8 +399,10 @@ verification status belong in the vault (see below).
   segmented choices use `SoftSegmentedPicker` (a raised thumb sliding on an inset
   track with `SelectionMotion.curve`); switches use `.toggleStyle(.softSwitch)`, whose
   on state fills the inset track with the system accent. Objects inside a track or
-  well (thumbs, knobs, icon islands) keep their light and shade clipped inside it; sliders use `SoftSlider`;
-  steppers use raised minus and plus buttons beside the typed value. Keep
+  well (thumbs, knobs, icon islands) keep their light and shade clipped inside it.
+  Sliders use `SoftSlider` with shared focus, arrow-key and accessibility adjustment.
+  Set its keyboard step independently where seeking needs coarser steps; do not
+  add a second per-consumer move handler. Steppers use raised minus and plus buttons beside the typed value. Keep
   `.borderedProminent` for the single primary action and native link buttons. The
   menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
   keycaps, meters, preview frames and Home tracks. Light comes from the top left in both appearances: raised surfaces
@@ -555,7 +567,14 @@ verification status belong in the vault (see below).
   LLM error or timeout still inserts the raw transcript.
 - Read app context defaults to off when no choice is saved; preserve saved on/off
   choices. Reading context can turn dictation into selected-text editing, so it
-  requires opt-in. Cursor insertion remains independent of this setting.
+  requires opt-in. Browser URL metadata is captured as HTTP(S) origin only: scheme,
+  host and explicit port, with no userinfo, path, query or fragment. New prompts
+  and history receive that minimized value; do not rewrite existing history.
+  Cursor insertion remains independent of this setting.
+- Sensitive provider requests use `ProviderTransport`: no persistent cache, cookies
+  or credential storage, and redirects stay on the original scheme, normalized
+  host and effective port. Injected test sessions remain supported. Anonymous model
+  downloads keep their separate CDN-capable transport.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
 - Refinement output passes `RefinementFidelity` before delivery. A result that
   repeats an earlier same-app dictation the new speech does not resemble, or that
@@ -618,8 +637,10 @@ The optional, replayable onboarding uses the normal permissions, model downloade
 and dictation pipeline. Persist skip separately from successful practice; typed
 sample text must never mark a dictation complete. Existing setups do not open the
 flow automatically. Practice temporarily disables refinement and uses cursor
-insertion; restore returning users' refinement and output settings on exit and
-after restart. Never execute a saved script during practice. Use isolated preview
+insertion. It resolves the explicitly selected app-default speech config through
+the shared AppSettings resolver, temporarily ignoring saved profile bindings
+without mutating them. Restore returning users' refinement and output settings
+on exit and after restart. Never execute a saved script during practice. Use isolated preview
 containers for the `onboarding-*` Debug renders.
 
 ## Official-build licensing
@@ -811,7 +832,12 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - MLX (Qwen3-ASR, Cohere) only works in Xcode-built products; `swift build` has no Metal library.
 - sherpa-onnx (FireRedASR2, SenseVoice) is linked through `Packages/SherpaOnnxKit`, whose
   `Vendor/` xcframeworks are generated by `scripts/make-sherpa-xcframeworks.sh` (run once after
-  clone; git-ignored). Do not depend on the upstream sherpa-onnx package directly: its static
+  clone; git-ignored). Preparation verifies committed native input hashes before
+  unpacking and records the derived tree. Release export must verify the input
+  identities, recipe and every generated file with `scripts/native_inputs.py`.
+  Never generate a trusted manifest from an unverified Vendor tree. All three
+  fixed Sherpa model archives use the existing hash-before-unpack path.
+  Do not depend on the upstream sherpa-onnx package directly: its static
   `.framework` bundles get embedded by Xcode and break code signing. `SherpaTranscriber` calls
   the C API directly; do not re-add the 2,300-line upstream Swift wrapper.
   Keep the `AirdraftCore` product dynamic and explicitly embedded in `project.yml` so its
@@ -890,8 +916,16 @@ Configuration exposes four independent cleanup scopes through the shared
 confirmation; only an already confirmed interrupted cleanup can resume directly.
 Keep new work fenced while its durable journal is pending. Strip deleted content
 from pending saves/recovery so retries cannot resurrect it. Require the app-data
-lease and reject running sibling copies before deleting shared data. Reset closes
-writers before removing app-owned files, removes provider keys without reading
+lease and reject running sibling copies before deleting shared data. One app copy
+holds an exclusive lifetime data lease; cleanup/reset never downgrades it. A
+blocked copy cannot read or repair shared JSON or start work. Fresh cleanup
+prepares remote media jobs and staging before journaling or deleting their IDs;
+preparation failure preserves recovery data and leaves Configuration usable.
+Journaled retries repeat idempotent preparation while History is open, including
+legacy journals, without repeating completed destructive phases. Failed preparation
+with retained remote IDs exposes an explicit Repair Provider Access action using
+the existing key editor. Keep the maintenance fence and mount no editor until asked.
+Reset closes writers before removing app-owned files, removes provider keys without reading
 values, preserves license/trial accounts, and targets only the current app's TCC
 identity. Never promise to remove old path-based Accessibility entries. Tests use
 disposable roots and fake credentials/permission steps. See `docs/data-cleanup.md`.

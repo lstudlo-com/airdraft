@@ -13,13 +13,13 @@ public struct AnthropicRefiner: Refiner {
     private let session: URLSession
     public let timeout: TimeInterval
 
-    public init(baseURL: URL, model: String, apiKey: String?, effort: ThinkingEffort = .off, timeout: TimeInterval = 20, session: URLSession = .shared) {
+    public init(baseURL: URL, model: String, apiKey: String?, effort: ThinkingEffort = .off, timeout: TimeInterval = 20, session: URLSession? = nil) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.effort = effort
         self.timeout = timeout
-        self.session = session
+        self.session = session ?? ProviderTransport.shared
         self.id = "anthropic:\(model)"
     }
 

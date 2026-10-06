@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "libraries": [
+    {
+      "id": "SherpaOnnxC",
+      "version": "1.13.8",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/xcframework/sherpa-onnx-v1.13.8-macos-static.xcframework.zip",
+      "sha256": "93f7a064abe99e0d6185a88c5b36ce18c4bff35cd0d5e4e81f81151de8e3e7e5"
+    },
+    {
+      "id": "onnxruntime",
+      "version": "1.28.2",
+      "url": "https://github.com/csukuangfj/onnxruntime-libs/releases/download/v1.28.2/onnxruntime-macos-static-xcframework-1.28.2.xcframework.zip",
+      "sha256": "cb0b0bec912c77229517c463e28a3fac9674c521f9599919efff1ef2b42f3da0"
+    }
+  ]
+}

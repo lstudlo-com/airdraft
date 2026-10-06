@@ -8,11 +8,14 @@ public final class MediaJobRunner {
     public private(set) var activity = "Preparing Media"
     public private(set) var progress: Double?
     public private(set) var issue: String?
+    /// References for explicit access repair after cleanup fails; never key values.
+    public private(set) var cleanupKeyReferences: [String] = []
     public var onChange: (() -> Void)?
     public var onBusyChanged: ((Bool) -> Void)?
     @ObservationIgnored private var task: Task<Void, Never>?
     public typealias WindowDecoder = @Sendable ([Float], Double, ASRConfig) async throws -> [TranscriptWord]
     public typealias SpeakerDecoder = @Sendable (URL, Double) async throws -> [SpeakerInterval]
+    public typealias RemoteCleanup = @Sendable (TranscriptDocument) async throws -> Void
     @ObservationIgnored private let accessCheck: @MainActor () async throws -> Void
     @ObservationIgnored private let windowDecoder: WindowDecoder?
     @ObservationIgnored private let speakerDecoder: SpeakerDecoder?
@@ -20,13 +23,19 @@ public final class MediaJobRunner {
     @ObservationIgnored private let directory: URL
     @ObservationIgnored private let factory: EngineFactory
     @ObservationIgnored private let credentialReader: @Sendable (String) async throws -> String?
+    @ObservationIgnored private let remoteCleanup: RemoteCleanup
     public init(history: HistoryStore, directory: URL, factory: EngineFactory,
                 credentialReader: @escaping @Sendable (String) async throws -> String? = { try Keychain.read($0) },
                 windowDecoder: WindowDecoder? = nil, speakerDecoder: SpeakerDecoder? = nil,
+                remoteCleanup: RemoteCleanup? = nil,
                 accessCheck: @escaping @MainActor () async throws -> Void = {}) {
         self.accessCheck = accessCheck
         self.windowDecoder = windowDecoder; self.speakerDecoder = speakerDecoder
         self.history = history; self.directory = directory; self.factory = factory; self.credentialReader = credentialReader
+        self.remoteCleanup = remoteCleanup ?? { saved in
+            let key = try TranscriptionHTTP.requireKey(await credentialReader(saved.configuration.asr.keyRef), provider: "Soniox")
+            try await SonioxMediaTranscriber(key: key).cleanup(fileID: saved.remoteFileID, jobID: saved.remoteJobID)
+        }
     }
     public func cancel() { task?.cancel() }
     public func clearIssue() { issue = nil }
@@ -207,19 +216,29 @@ public final class MediaJobRunner {
     /// Called before removing any document with provider-owned resources. Failures remain retryable.
     public func cleanRemote(documentID: String) async throws {
         guard var saved = try history.document(id: documentID), saved.remoteFileID != nil || saved.remoteJobID != nil else { return }
-        let key = try TranscriptionHTTP.requireKey(await credentialReader(saved.configuration.asr.keyRef), provider: "Soniox")
-        try await SonioxMediaTranscriber(key: key).cleanup(fileID: saved.remoteFileID, jobID: saved.remoteJobID)
+        try await remoteCleanup(saved)
         saved.remoteFileID = nil; saved.remoteJobID = nil
         let result = try history.updateDocument(saved)
         if document?.id == result.id { document = result }
     }
     public func prepareCleanup() async throws {
         guard !isBusy else { throw MediaError.busy }
+        cleanupKeyReferences = []
         begin(); defer { end() }
         var offset = 0
         while true {
             let batch = try history.documents(limit: 100, offset: offset)
-            for saved in batch { try await cleanRemote(documentID: saved.id) }
+            for saved in batch {
+                do { try await cleanRemote(documentID: saved.id) }
+                catch {
+                    if saved.remoteFileID != nil || saved.remoteJobID != nil {
+                        // Soniox is the only remote media provider. Its saved
+                        // configuration supplies the reference needed for repair.
+                        cleanupKeyReferences = [saved.configuration.asr.keyRef]
+                    }
+                    throw error
+                }
+            }
             if batch.count < 100 { break }
             offset += batch.count
         }

@@ -27,7 +27,7 @@ struct DataCleanupSettings: View {
                 }
                 if let message = error ?? container.cleanup.error {
                     RowDivider()
-                    InlineNotice(message) {
+                    NoticeRow(message) {
                         Button("Retry") {
                             if let selection { prepare(selection) }
                         }.buttonStyle(SoftButtonStyle())
@@ -88,6 +88,7 @@ struct DataCleanupSettings: View {
 
 struct DataCleanupProgress: View {
     @Environment(AppContainer.self) private var container
+    @State private var showsProviderRepair = false
     private var completedDescription: String {
         let labels = ["pending": "recovery data", "history": "saved data", "models": "model unload",
                       "files": "app files", "caches": "caches", "keys": "provider keys",
@@ -112,6 +113,29 @@ struct DataCleanupProgress: View {
                 if !container.cleanup.completedSteps.isEmpty {
                     Text("Completed: " + completedDescription + ". Retry continues the same cleanup.").supportingText()
                 }
+                let references = container.cleanupRecoveryKeyReferences
+                if !references.isEmpty {
+                    Button(showsProviderRepair ? "Hide Provider Access" : "Repair Provider Access") {
+                        showsProviderRepair.toggle()
+                    }
+                    .buttonStyle(SoftButtonStyle())
+                    .accessibilityIdentifier("cleanup.repair-provider-access")
+                    // APIKeyField loads its saved value when mounted. Recovery
+                    // must remain an explicit action, even on a failed journal.
+                    if showsProviderRepair {
+                        SettingsCard {
+                            Text("Save or approve access to the Soniox key that owns these uploads, then retry cleanup.")
+                                .supportingText()
+                            ForEach(Array(references.enumerated()), id: \.element) { index, reference in
+                                if index > 0 { RowDivider() }
+                                if references.count > 1 { Text(reference).supportingText() }
+                                APIKeyField(account: reference)
+                                    .id(reference)
+                                    .accessibilityIdentifier("cleanup.provider-access.\(reference)")
+                            }
+                        }
+                    }
+                }
             }
             HStack {
                 if container.cleanup.pendingScope == .reset || container.cleanup.finishedScope == .reset {
@@ -131,5 +155,6 @@ struct DataCleanupProgress: View {
         }
         .padding(Theme.pagePadding)
         .frame(width: 510)
+        .onChange(of: container.cleanupRecoveryKeyReferences) { _, _ in showsProviderRepair = false }
     }
 }

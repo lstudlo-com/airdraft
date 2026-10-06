@@ -9,7 +9,7 @@ public struct ElevenLabsTranscriber: Transcriber {
     public let timeout: TimeInterval
     private let http: TranscriptionHTTP
 
-    public init(modelId: String = "scribe_v2", apiKey: String?, timeout: TimeInterval = 60, id: String? = nil, session: URLSession = .shared) {
+    public init(modelId: String = "scribe_v2", apiKey: String?, timeout: TimeInterval = 60, id: String? = nil, session: URLSession? = nil) {
         self.modelId = modelId
         self.apiKey = apiKey
         self.timeout = timeout

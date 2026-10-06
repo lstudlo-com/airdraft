@@ -46,20 +46,20 @@ public final class AppContextReader {
         if let window: AXUIElement = attribute(appElement, kAXFocusedWindowAttribute) {
             AXUIElementSetMessagingTimeout(window, 0.3)
             ctx.windowTitle = attribute(window, kAXTitleAttribute) as String?
-            if let doc: String = attribute(window, kAXDocumentAttribute), doc.hasPrefix("http") {
-                ctx.url = doc
+            if let doc: String = attribute(window, kAXDocumentAttribute) {
+                ctx.url = BrowserContextURL.origin(from: doc)
             }
         }
 
         guard let focused: AXUIElement = attribute(appElement, kAXFocusedUIElementAttribute) else { return ctx }
         AXUIElementSetMessagingTimeout(focused, 0.3)
 
-        if ctx.url == nil, let url: String = attribute(focused, "AXURL" as CFString), url.hasPrefix("http") {
-            ctx.url = url
+        if ctx.url == nil, let url: String = attribute(focused, "AXURL" as CFString) {
+            ctx.url = BrowserContextURL.origin(from: url)
         }
         if ctx.url == nil, let web = findWebArea(from: focused, depth: 6),
-           let url: String = attribute(web, "AXURL" as CFString), url.hasPrefix("http") {
-            ctx.url = url
+           let url: String = attribute(web, "AXURL" as CFString) {
+            ctx.url = BrowserContextURL.origin(from: url)
         }
 
         let role: String? = attribute(focused, kAXRoleAttribute)

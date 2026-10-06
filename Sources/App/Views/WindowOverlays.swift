@@ -13,14 +13,21 @@ struct MicrophoneSelectionOverlay: View {
     static let width: CGFloat = 336
 
     @Environment(AppContainer.self) private var container
-    @State private var previews = MicrophoneLevelPreviews()
+    @State private var previews: MicrophoneLevelPreviews
     @State private var isVisible = false
     let onClose: () -> Void
     var renderLevel: Float? = nil
 
+    @MainActor init(onClose: @escaping () -> Void, renderLevel: Float? = nil,
+                    previews: MicrophoneLevelPreviews? = nil) {
+        self.onClose = onClose
+        self.renderLevel = renderLevel
+        self._previews = State(initialValue: previews ?? MicrophoneLevelPreviews())
+    }
+
     private var preference: MicrophonePreference { container.settings.microphone }
     private var selected: Microphone? { container.microphones.selected(preference) }
-    private var isBusy: Bool { container.pipeline.state.isBusy }
+    private var isBusy: Bool { container.pipeline.isBusy }
     private var systemDefault: Microphone? {
         container.microphones.devices.first { $0.id == container.microphones.systemDefaultID }
     }
@@ -71,7 +78,7 @@ struct MicrophoneSelectionOverlay: View {
                 Group {
                     switch note {
                     case .busy:
-                        EmptyNote("Finish dictation to change microphones.")
+                        EmptyNote("Finish the current operation to change microphones.")
                     case .allowAccess:
                         Button("Allow Microphone Access…") {
                             Task {

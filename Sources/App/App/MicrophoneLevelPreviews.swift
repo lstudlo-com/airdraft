@@ -1,6 +1,16 @@
 import AirdraftCore
 import Observation
 
+/// Monitoring does not need sample capture. A factory keeps UI lifecycle checks silent.
+protocol MicrophoneLevelMonitoring: AnyObject, Sendable {
+    var levelHandler: (@Sendable (Float) -> Void)? { get set }
+    var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)? { get set }
+    func startLevelMonitoring(microphone: MicrophonePreference) throws
+    func cancel()
+}
+
+extension AudioRecorder: MicrophoneLevelMonitoring {}
+
 /// One capture per eligible device. Continuity inputs connect only when selected.
 /// The system-default row shares its device's level.
 @MainActor
@@ -12,9 +22,14 @@ final class MicrophoneLevelPreviews {
     private struct Session {
         let device: Microphone
         let channel: Int
-        let recorder: AudioRecorder
+        let recorder: any MicrophoneLevelMonitoring
     }
     @ObservationIgnored private var sessions: [String: Session] = [:]
+    @ObservationIgnored private let makeRecorder: () -> any MicrophoneLevelMonitoring
+
+    init(makeRecorder: @escaping () -> any MicrophoneLevelMonitoring = { AudioRecorder() }) {
+        self.makeRecorder = makeRecorder
+    }
 
     func synchronize(devices: [Microphone], selection: MicrophonePreference, systemDefaultID: UInt32?) {
         let selected = selection.resolve(in: devices, systemDefaultID: systemDefaultID)
@@ -30,7 +45,7 @@ final class MicrophoneLevelPreviews {
             }
             stop(device.uid)
             errors[device.uid] = nil
-            let recorder = AudioRecorder()
+            let recorder = makeRecorder()
             sessions[device.uid] = Session(device: device, channel: channel, recorder: recorder)
             recorder.levelHandler = { [weak self, weak recorder] level in
                 Task { @MainActor [weak self, weak recorder] in

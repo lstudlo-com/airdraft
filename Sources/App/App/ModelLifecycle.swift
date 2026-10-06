@@ -19,14 +19,14 @@ final class ModelLifecycle {
     private let factory: EngineFactory
     private let settings: AppSettings
     private let profiles: ProfileStore?
-    private var speechConfig: ASRConfig { profiles?.activeProfile.speechConfig(default: settings.asr) ?? settings.asr }
+    var speechConfig: ASRConfig { profiles.map { settings.speechConfig(for: $0.activeProfile) } ?? settings.asr }
     private let lmStudio = LMStudioControl()
     private var lastLLM: LLMConfig?
     private var lastASR: ASRConfig?
     private var speechLoadTask: Task<Void, Never>?
     private var llmGeneration = UUID()
     private var llmCleanupGeneration = UUID()
-    private var dictationBusy = false
+    private(set) var dictationBusy = false
     private var started = false
     private var usedLLMEndpoints: [URL: Set<String>] = [:]
     private var llmUnloads: [UUID: (url: URL, task: Task<Void, Error>)] = [:]
@@ -34,7 +34,7 @@ final class ModelLifecycle {
     func setDictationBusy(_ busy: Bool) {
         if busy && !dictationBusy { llmCleanupGeneration = UUID() }
         dictationBusy = busy
-        if !busy { handleSettingsChange() }
+        if !busy && started { handleSettingsChange() }
     }
 
     init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus, profiles: ProfileStore? = nil) {

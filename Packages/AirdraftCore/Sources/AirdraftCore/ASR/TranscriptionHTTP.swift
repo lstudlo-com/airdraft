@@ -4,7 +4,7 @@ import Foundation
 struct TranscriptionHTTP: Sendable {
     let session: URLSession
 
-    init(session: URLSession = .shared) { self.session = session }
+    init(session: URLSession? = nil) { self.session = session ?? ProviderTransport.shared }
 
     func send(_ request: URLRequest) async throws -> Data {
         let (data, http) = try await HTTPDeadline.data(for: request, session: session,

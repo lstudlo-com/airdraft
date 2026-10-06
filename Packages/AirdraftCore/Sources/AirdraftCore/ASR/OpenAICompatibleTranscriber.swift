@@ -12,7 +12,7 @@ public struct OpenAICompatibleTranscriber: Transcriber {
     private let http: TranscriptionHTTP
     private let requiresKey: Bool
 
-    public init(baseURL: URL, model: String, apiKey: String?, timeout: TimeInterval = 30, id: String? = nil, requiresKey: Bool = false, session: URLSession = .shared) {
+    public init(baseURL: URL, model: String, apiKey: String?, timeout: TimeInterval = 30, id: String? = nil, requiresKey: Bool = false, session: URLSession? = nil) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey

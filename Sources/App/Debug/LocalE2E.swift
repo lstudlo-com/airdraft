@@ -91,6 +91,8 @@ enum LocalE2E {
                 }
                 if let language = argument("--e2e-language") { app.settings.asr.language = language }
                 switch action {
+                case "architecture":
+                    report["status"] = await ArchitectureVerification.run() ? "passed" : "failed"
                 case "insert":
                     report = try await InsertionE2E.run(bundleID: argument("--e2e-target-bundle"),
                         token: argument("--e2e-insertion-token"), method: argument("--e2e-insertion-method"))

@@ -26,6 +26,17 @@ Retry skips completed steps, including after relaunch. Malformed journals fail
 closed. SQLite, files, Keychain and TCC are separate effects, not one rollbackable
 transaction. Errors name the remaining work and preserve the journal.
 
+Before deleting data, media preparation clears remote jobs and uploads while their
+recovery IDs still exist, then removes staging files. It runs again on a journaled
+retry while History is open: older journals do not prove that preparation completed.
+Cleared IDs make this idempotent, and completed destructive phases stay skipped.
+A failed fresh preparation preserves documents and IDs and leaves Configuration
+available. A failed journaled preparation retains the maintenance fence. When
+remote IDs remain, Repair Provider Access explicitly reveals the existing key
+editor for their saved references; it does not reopen general data editing.
+Resources whose recovery IDs were already deleted by an older completed cleanup
+cannot be reconstructed by this recovery path.
+
 Recording, processing, downloads and pending history writes must finish first. A
 main-actor pipeline fence blocks all new entry points, save retry and retention.
 History-only cleanup turns pending retained audio into detached assets before
@@ -33,8 +44,10 @@ forgetting its text; audio-only cleanup strips samples from pending text saves.
 Generation invalidation rejects late transcription callbacks. Playback stops as the
 fence begins. Notifications refresh History and sidebar statistics after cleanup.
 
-Every app copy holds a shared advisory lease on `.airdraft-data.lock`; cleanup
-requires exclusive access. Known running sibling builds are also checked because
+One app copy holds an exclusive advisory lease on `.airdraft-data.lock` for its
+entire lifetime. A second copy using the same directory is blocked; independent
+isolated directories remain usable. Cleanup and reset never downgrade the lease.
+Known running sibling builds are also checked because
 older versions may not implement the lease. A blocked new copy does not open or
 repair shared JSON stores. The lock file survives reset so its inode remains the
 coordination point. Failed reset keeps new work fenced until retry or quit.

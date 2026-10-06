@@ -23,7 +23,7 @@ public struct OpenAICompatibleRefiner: Refiner {
         effort: ThinkingEffort = .off,
         provider: LLMProviderKind = .openAICompatible,
         openRouterRouting: OpenRouterRouting = OpenRouterRouting(),
-        session: URLSession = .shared
+        session: URLSession? = nil
     ) {
         self.baseURL = baseURL
         self.model = model
@@ -33,7 +33,7 @@ public struct OpenAICompatibleRefiner: Refiner {
         self.effort = effort
         self.provider = provider
         self.openRouterRouting = openRouterRouting
-        self.session = session
+        self.session = session ?? ProviderTransport.shared
         self.id = "openai-compatible:\(baseURL.host ?? "?")/\(model)"
     }
 

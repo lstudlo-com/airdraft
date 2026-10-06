@@ -5,8 +5,10 @@ import SwiftUI
 struct SpeechLanguageSettings: View {
     @Environment(AppContainer.self) private var container
     @State private var appleLocales: [String] = []
+    /// Setup can preview a speech choice before it becomes the app default.
+    var configuration: ASRConfig? = nil
 
-    private var config: ASRConfig { container.speechConfig }
+    private var config: ASRConfig { configuration ?? container.speechConfig }
     private var capabilities: SpeechLanguageCapabilities { SpeechLanguagePolicy.capabilities(for: config) }
     private var selectedLanguage: String {
         // Display the model's accepted alias without rewriting the shared intent

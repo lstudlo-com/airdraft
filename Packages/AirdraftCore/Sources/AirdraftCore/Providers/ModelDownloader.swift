@@ -152,21 +152,26 @@ public actor ModelDownloader {
                 throw DownloadError.download(file: model.folderName, status: (response as? HTTPURLResponse)?.statusCode ?? 0)
             }
             try Task.checkCancellation()
-            if let checksum = model.archiveSHA256 {
-                progress(Progress(fraction: nil, currentFile: "Verifying archive…"))
-                try Self.verifySHA256(of: tmp, expected: checksum)
-            }
-            progress(Progress(fraction: nil, currentFile: "Unpacking…"))
-            let root = LocalModels.sherpaRoot
-            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-            let archive = root.appendingPathComponent(model.folderName + ".tar.bz2")
-            try? FileManager.default.removeItem(at: archive)
-            try FileManager.default.moveItem(at: tmp, to: archive)
-            defer { try? FileManager.default.removeItem(at: archive) }
-            let status = try await Self.unpack(archive, into: root)
-            guard status == 0, LocalModels.hasSherpa(model) else {
-                throw DownloadError.download(file: model.folderName, status: Int(status))
-            }
+            try await Self.installSherpaArchive(tmp, model: model, root: LocalModels.sherpaRoot, progress: progress)
+        }
+    }
+
+    /// Verify before touching the installation root, including an existing model.
+    static func installSherpaArchive(_ downloaded: URL, model: SherpaTranscriber.Model,
+                                    root: URL, progress: ProgressHandler) async throws {
+        if let checksum = model.archiveSHA256 {
+            progress(Progress(fraction: nil, currentFile: "Verifying archive…"))
+            try verifySHA256(of: downloaded, expected: checksum)
+        }
+        progress(Progress(fraction: nil, currentFile: "Unpacking…"))
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let archive = root.appendingPathComponent(model.folderName + ".tar.bz2")
+        try? FileManager.default.removeItem(at: archive)
+        try FileManager.default.moveItem(at: downloaded, to: archive)
+        defer { try? FileManager.default.removeItem(at: archive) }
+        let status = try await unpack(archive, into: root)
+        guard status == 0, LocalModels.hasSherpa(model, at: root.appendingPathComponent(model.folderName)) else {
+            throw DownloadError.download(file: model.folderName, status: Int(status))
         }
     }
 

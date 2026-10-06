@@ -1,5 +1,4 @@
 import XCTest
-import Security
 @testable import AirdraftCore
 
 @MainActor
@@ -73,18 +72,26 @@ final class DataCleanupTests: XCTestCase {
         XCTAssertThrowsError(try ManagedDataFiles.resetContents(in: link))
     }
 
-    func testIndependentLeasePreventsCleanupWhileAnotherCopyIsOpen() throws {
+    func testLifetimeLeaseRejectsSecondWriterUntilOwnerIsReleased() throws {
         let directory = try root()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let first = try DataDirectoryLease(directory: directory)
-        var second: DataDirectoryLease? = try DataDirectoryLease(directory: directory)
-        XCTAssertNotNil(second)
-        XCTAssertThrowsError(try first.acquireExclusive())
-        second = nil
-        try first.acquireExclusive()
+        var owner: DataDirectoryLease? = try DataDirectoryLease(directory: directory)
+        XCTAssertEqual(owner?.holdsLease, true)
         XCTAssertThrowsError(try DataDirectoryLease(directory: directory))
-        first.releaseExclusive()
-        XCTAssertNoThrow(try DataDirectoryLease(directory: directory))
+        try ManagedDataFiles.resetContents(in: directory)
+        XCTAssertThrowsError(try DataDirectoryLease(directory: directory), "Reset must retain the same exclusive lock inode")
+        owner = nil
+        let replacement = try DataDirectoryLease(directory: directory)
+        XCTAssertTrue(replacement.holdsLease)
+        XCTAssertThrowsError(try DataDirectoryLease(directory: directory))
+    }
+
+    func testDistinctDirectoriesCanHaveIndependentWriters() throws {
+        let firstRoot = try root(), secondRoot = try root()
+        defer { try? FileManager.default.removeItem(at: firstRoot); try? FileManager.default.removeItem(at: secondRoot) }
+        let first = try DataDirectoryLease(directory: firstRoot)
+        let second = try DataDirectoryLease(directory: secondRoot)
+        XCTAssertTrue(first.holdsLease && second.holdsLease)
     }
 
     func testPreferenceResetUsesOnlyDisposableDomainAndBlocksLegacyReimport() {
@@ -98,25 +105,4 @@ final class DataCleanupTests: XCTestCase {
         XCTAssertEqual(defaults.persistentDomain(forName: suite)?.keys.sorted(), ["airdraft.legacyDefaultsImported"])
     }
 
-    func testCredentialRemovalNeverReadsValuesOrDeletesLicenseAndIsRetryable() throws {
-        var removed: [String] = []
-        var removal = ProviderCredentialRemoval()
-        removal.services = ["fixture.current", "fixture.legacy"]
-        removal.list = { query in
-            XCTAssertNil(query[kSecReturnData as String])
-            XCTAssertEqual(query[kSecReturnAttributes as String] as? Bool, true)
-            return (errSecSuccess, [[kSecAttrAccount as String: "provider-token"], [kSecAttrAccount as String: "license.fixture.v1"]])
-        }
-        removal.remove = { query in
-            removed.append(query[kSecAttrAccount as String] as! String)
-            XCTAssertTrue((query[kSecAttrService as String] as! String).hasPrefix("fixture."))
-            return errSecSuccess
-        }
-        try removal.run()
-        XCTAssertEqual(removed, ["provider-token", "provider-token"])
-        removal.remove = { _ in errSecInteractionNotAllowed }
-        XCTAssertThrowsError(try removal.run())
-        removal.remove = { _ in errSecItemNotFound }
-        XCTAssertNoThrow(try removal.run())
-    }
 }

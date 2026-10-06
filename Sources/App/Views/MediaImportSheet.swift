@@ -18,18 +18,14 @@ struct MediaImportSheet: View {
             Text("Import Media").font(.system(size: 18, weight: .semibold))
             Text(source?.lastPathComponent ?? recording.map { "Recording · " + $0.createdAt.formatted(date: .abbreviated, time: .shortened) } ?? "No file selected").font(.system(size: 13)).lineLimit(2)
             SettingsCard {
-                HStack {
-                    Text("Transcription").font(.system(size: 13))
-                    Spacer()
+                SettingRow(title: "Transcription") {
                     SoftPicker("Transcription", selection: $configuration.engine, width: 180) {
                         Text("On This Mac").tag(MediaConfiguration.Engine.local)
                         Text("Soniox · Cloud").tag(MediaConfiguration.Engine.soniox)
                     }
                 }
                 RowDivider()
-                HStack {
-                    Text("Language").font(.system(size: 13))
-                    Spacer()
+                SettingRow(title: "Language") {
                     SoftPicker("Language", selection: $configuration.language, width: 180) {
                         Text("Detect Automatically").tag("")
                         ForEach(SpeechLanguagePolicy.capabilities(for: configuration.asr).supportedLanguages ?? ["en", "zh", "yue"], id: \.self) { code in
@@ -38,10 +34,9 @@ struct MediaImportSheet: View {
                     }
                 }
                 RowDivider()
-                HStack {
-                    Text("Identify speakers").font(.system(size: 13))
-                    Spacer()
-                    Toggle("Identify Speakers", isOn: $configuration.identifySpeakers).toggleStyle(.softSwitch)
+                SettingRow(title: "Identify speakers") {
+                    Toggle("Identify Speakers", isOn: $configuration.identifySpeakers)
+                        .labelsHidden().toggleStyle(.softSwitch)
                 }
                 if configuration.engine == .local {
                     Text("Whisper Large v3 Turbo · On-device transcription").supportingText()

@@ -32,7 +32,8 @@ final class AppContainer {
     let settings: AppSettings
     let dictionary: DictionaryStore
     let profiles: ProfileStore
-    var speechConfig: ASRConfig { profiles.activeProfile.speechConfig(default: settings.asr) }
+    var effectiveProfile: RefinementProfile { settings.effectiveProfile(profiles.activeProfile) }
+    var speechConfig: ASRConfig { settings.speechConfig(for: profiles.activeProfile) }
     var history: HistoryStore? { pipeline.historyStore }
     let engineStatus: EngineStatus
     let factory: EngineFactory
@@ -41,7 +42,7 @@ final class AppContainer {
     let media: MediaJobRunner?
     let meeting: MeetingController?
     let license: LicenseStore
-    let permissions = SystemPermissions()
+    let permissions: SystemPermissions
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
     let downloads = ModelDownloadStore()
@@ -58,13 +59,22 @@ final class AppContainer {
     private var indicator: IndicatorPanelController?
     private var audioCleanupTask: Task<Void, Never>?
 
-    init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil) {
+    init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil,
+         mediaRemoteCleanup: MediaJobRunner.RemoteCleanup? = nil,
+         recordingAccessCheck: (@MainActor () async throws -> Void)? = nil,
+         permissions suppliedPermissions: SystemPermissions? = nil) {
+        permissions = suppliedPermissions ?? SystemPermissions()
         hotkeys = HotkeyService(permissions: permissions)
         let dir = dataDirectory ?? AppSettings.supportDirectory
         self.dataDirectory = dir
         isolatedData = suppliedSettings != nil || dataDirectory != nil || RenderMode.isActive || RenderMode.excludesCredentials
-        cleanup = DataCleanupCoordinator(directory: dir)
-        dataLease = try? DataDirectoryLease(directory: dir)
+        let lease = try? DataDirectoryLease(directory: dir)
+        dataLease = lease
+        // A blocked copy cannot inspect or repair the owner's JSON, including
+        // its cleanup journal. The blocking sheet permits only Quit.
+        let readableDirectory = lease == nil
+            ? FileManager.default.temporaryDirectory.appendingPathComponent("Airdraft-Unavailable-\(UUID())") : dir
+        cleanup = DataCleanupCoordinator(directory: readableDirectory)
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
         let license = suppliedLicense ?? AppLicense.make(isolated: suppliedSettings != nil || RenderMode.isActive || RenderMode.excludesCredentials)
@@ -79,10 +89,6 @@ final class AppContainer {
         #else
         factory = EngineFactory(status: engineStatus)
         #endif
-        // A copy blocked by another process's cleanup must not read, repair or
-        // write the shared JSON stores. The blocking sheet permits only Quit.
-        let readableDirectory = dataLease == nil
-            ? FileManager.default.temporaryDirectory.appendingPathComponent("Airdraft-Unavailable-\(UUID())") : dir
         dictionary = DictionaryStore(directory: readableDirectory)
         profiles = ProfileStore(directory: readableDirectory)
         models = ModelLifecycle(settings: settings, factory: factory, engineStatus: engineStatus, profiles: profiles)
@@ -113,7 +119,7 @@ final class AppContainer {
             historyDirectory: dir,
             factory: factory,
             recordingPreflight: recordingPreflight,
-            accessCheck: { try await license.requireAccess() }
+            accessCheck: recordingAccessCheck ?? { try await license.requireAccess() }
         )
         let mediaFactory = factory
         let mediaIsolated = isolatedData
@@ -124,6 +130,7 @@ final class AppContainer {
         if let history {
             media = MediaJobRunner(history: history, directory: dir, factory: factory,
                                   credentialReader: mediaCredentialReader,
+                                  remoteCleanup: mediaRemoteCleanup,
                                   accessCheck: { try await license.requireAccess() })
         } else { media = nil }
         if let history {
@@ -132,13 +139,13 @@ final class AppContainer {
                 canStart: { !pipeline.isBusy && !pipeline.isSavingHistory },
                 accessCheck: { try await license.requireAccess() })
         } else { meeting = nil }
-        meeting?.onBusyChanged = { [weak pipeline, weak models] busy in
+        meeting?.onBusyChanged = { [weak pipeline, weak models, weak cleanup] busy in
             pipeline?.isCapturingMeeting = busy
-            models?.setDictationBusy(busy || pipeline?.isProcessingMedia == true)
+            models?.setDictationBusy(pipeline?.isBusy == true || cleanup?.isRunning == true)
         }
-        media?.onBusyChanged = { [weak pipeline, weak models] busy in
+        media?.onBusyChanged = { [weak pipeline, weak models, weak cleanup] busy in
             pipeline?.isProcessingMedia = busy
-            models?.setDictationBusy(busy || pipeline?.isCapturingMeeting == true)
+            models?.setDictationBusy(pipeline?.isBusy == true || cleanup?.isRunning == true)
         }
         media?.onChange = { NotificationCenter.default.post(name: .historyEntriesChanged, object: nil) }
         if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance() }
@@ -166,20 +173,7 @@ final class AppContainer {
             self.navigation.page = .home
             self.showMainWindow()
         }
-        pipeline.onStateChange = { [weak panel, weak self] state in
-            // Failure and notice text can quote provider responses; keep it out of the public log.
-            let (name, detail): (String, String) = switch state {
-            case .failed(let message): ("failed", message)
-            case .notice(let message, _): ("notice", message)
-            default: (String(describing: state), "")
-            }
-            AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")
-            panel?.update(for: state)
-            self?.hotkeys.cancelPendingPress()
-            self?.models.setDictationBusy(state.isBusy || self?.pipeline.isProcessingMedia == true || self?.pipeline.isCapturingMeeting == true)
-            // Esc cancels only while recording, so it never steals Esc elsewhere.
-            if state == .recording { self?.escapeHotkey.register(.escape) } else { self?.escapeHotkey.unregister() }
-        }
+        wirePipelineStateChanges()
         escapeHotkey.onPress = { [weak self] in self?.pipeline.cancel() }
 
         permissions.accessibilityDidChange = { [weak self] in self?.hotkeys.refreshPermissionState() }
@@ -201,6 +195,26 @@ final class AppContainer {
         observeAudioRetention()
         observeLivePreview()
         startupCompleted = true
+    }
+
+    /// Shared wiring also lets silent fixtures exercise cancellation during
+    /// maintenance without starting panels, permission monitoring or capture.
+    func wirePipelineStateChanges() {
+        pipeline.onStateChange = { [weak self] state in
+            guard let self else { return }
+            // Failure and notice text can quote provider responses; keep it out of the public log.
+            let (name, detail): (String, String) = switch state {
+            case .failed(let message): ("failed", message)
+            case .notice(let message, _): ("notice", message)
+            default: (String(describing: state), "")
+            }
+            AppContainer.log.notice("pipeline state: \(name, privacy: .public) \(detail, privacy: .private)")
+            self.indicator?.update(for: state)
+            self.hotkeys.cancelPendingPress()
+            self.models.setDictationBusy(self.pipeline.isBusy || self.cleanup.isRunning)
+            // Esc cancels only while recording, so it never steals Esc elsewhere.
+            if state == .recording { self.escapeHotkey.register(.escape) } else { self.escapeHotkey.unregister() }
+        }
     }
 
     /// Background intents can arrive during launch. Wait for the delegate's normal

@@ -3,6 +3,26 @@ import AppKit
 import SwiftUI
 
 /// Keep the message and its action together, including when a long diagnostic wraps.
+struct NoticeRow<Actions: View>: View {
+    let message: String
+    @ViewBuilder var actions: Actions
+
+    init(_ message: String, @ViewBuilder actions: () -> Actions) {
+        self.message = message
+        self.actions = actions()
+    }
+
+    var body: some View {
+        HStack(spacing: Theme.controlSpacing) {
+            Text(message).supportingText().textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            actions.fixedSize()
+        }
+        .buttonStyle(SoftButtonStyle())
+    }
+}
+
+/// Standalone notices own a card; rows embedded in an existing card do not.
 struct InlineNotice<Actions: View>: View {
     let message: String
     @ViewBuilder var actions: Actions
@@ -13,24 +33,18 @@ struct InlineNotice<Actions: View>: View {
     }
 
     var body: some View {
-        SettingsCard {
-            HStack(spacing: Theme.controlSpacing) {
-                Text(message).supportingText().textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                actions.fixedSize()
-            }
-            .buttonStyle(SoftButtonStyle())
-        }
+        SettingsCard { NoticeRow(message) { actions } }
     }
 }
 
 struct StorageNotice: View {
     let message: String
+    var actionTitle = "Retry Saving"
     let retry: () -> Void
 
     var body: some View {
         InlineNotice(message) {
-            Button("Retry Saving", action: retry)
+            Button(actionTitle, action: retry)
         }
     }
 }

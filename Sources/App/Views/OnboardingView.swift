@@ -35,7 +35,9 @@ struct OnboardingView: View {
         switch progress.step {
         case .permissions:
             return container.permissions.microphone == .authorized && container.permissions.accessibilityGranted
-        case .speech: return useCloud ? speechKeyPresent : localInstalled
+        case .speech:
+            return (try? SpeechLanguagePolicy.resolve(speechConfig)) != nil
+                && (useCloud ? speechKeyPresent : localInstalled)
         case .practice: return progress.deliveredDuringPractice
         }
     }
@@ -148,17 +150,7 @@ struct OnboardingView: View {
             PageSection("Your microphone") {
                 SettingsCard {
                     SettingRow(title: "Input") {
-                        SoftPicker("Microphone", selection: Binding(
-                            get: { container.settings.microphone.uid ?? "" },
-                            set: { uid in
-                                let device = container.microphones.devices.first { $0.uid == uid }
-                                let choice = device.map { MicrophonePreference(uid: $0.uid, name: $0.name) } ?? .systemDefault
-                                container.settings.microphone = container.microphones.selection(choice, preservingChannelFrom: container.settings.microphone)
-                            }
-                        ), width: 240) {
-                            Text("System Default").tag("")
-                            ForEach(container.microphones.devices) { Text($0.name).tag($0.uid) }
-                        }
+                        MicrophonePicker(width: 240)
                     }
                 }
             }
@@ -195,6 +187,10 @@ struct OnboardingView: View {
             } else {
                 localModel
             }
+            SettingsCard {
+                SpeechLanguageSettings(configuration: speechConfig)
+            }
+            .disabled(busy)
             Text(container.settings.hadExistingSetup || progress.hasBeenDismissed
                  ? "Practice uses direct transcription and inserts at the cursor. Your refinement and output settings return when you leave."
                  : "Start with direct transcription. Add AI text refinement in Models later.")
@@ -286,7 +282,13 @@ struct OnboardingView: View {
             } else {
                 Text("This uses your real model and settings. Your result also appears in History.").supportingText()
             }
-            if container.settings.asr.kind.isLocal {
+            if let issue = practiceLanguageIssue {
+                NoticeRow(issue) {
+                    Button("Change Language") { changeStep(.speech) }
+                        .disabled(busy)
+                        .accessibilityIdentifier("onboarding.change-language")
+                }
+            } else if container.speechConfig.kind.isLocal {
                 modelReadiness
             }
             DictationRecovery()
@@ -297,7 +299,7 @@ struct OnboardingView: View {
     }
 
     @ViewBuilder private var modelReadiness: some View {
-        let state = container.engineStatus.state(for: container.settings.asr.engineID)
+        let state = container.engineStatus.state(for: container.speechConfig.engineID)
         HStack {
             switch state {
             case .ready: Label("Model is ready", systemImage: "checkmark.circle").supportingText()
@@ -313,6 +315,12 @@ struct OnboardingView: View {
                     .buttonStyle(SoftButtonStyle()).disabled(busy)
             }
         }
+        .accessibilityIdentifier("onboarding.model-readiness")
+    }
+
+    private var practiceLanguageIssue: String? {
+        do { _ = try SpeechLanguagePolicy.resolve(container.speechConfig); return nil }
+        catch { return error.localizedDescription }
     }
 
     private var footer: some View {
@@ -321,6 +329,7 @@ struct OnboardingView: View {
                 Button("Back") {
                     changeStep(OnboardingProgress.Step(rawValue: progress.step.rawValue - 1)!)
                 }.buttonStyle(SoftButtonStyle()).disabled(busy)
+                    .accessibilityIdentifier("onboarding.back")
             }
             Spacer()
             Button(progress.step == .practice ? "Start Using Airdraft" : progress.step == .speech ? "Use This Setup" : "Continue") {
@@ -337,6 +346,7 @@ struct OnboardingView: View {
             .buttonStyle(.borderedProminent).controlSize(.large)
             .keyboardShortcut(.defaultAction)
             .disabled(!canContinue || busy)
+            .accessibilityIdentifier("onboarding.continue")
         }
     }
 
@@ -360,7 +370,9 @@ struct OnboardingView: View {
         cloudChoice = container.settings.asr.kind.preset?.kind ?? .groq
         let language = Locale.current.language.languageCode?.identifier ?? "en"
         let recommendation = ["zh", "en", "ja", "ko"].contains(language) ? "sherpa:senseVoice" : "whisper:turbo"
-        localChoice = ModelCatalogue.entries.first { $0.isSelected(container.settings.asr) && LocalModels.isInstalled(container.settings.asr) }?.id ?? recommendation
+        localChoice = ModelCatalogue.entries.first {
+            $0.isSelected(container.settings.asr) && (progress.step == .practice || LocalModels.isInstalled(container.settings.asr))
+        }?.id ?? recommendation
         refreshInstalled()
         if progress.step == .practice { container.settings.beginOnboardingPractice() }
         if !RenderMode.isActive {

@@ -11,7 +11,9 @@ python3 scripts/test-local-e2e.py --output /tmp/airdraft-local-tests
 python3 scripts/verify-native-behaviors.py
 python3 scripts/verify-model-lifecycle.py
 python3 scripts/verify-download-progress.py --output /tmp/airdraft-download-progress
+python3 scripts/verify-native-ui-controls.py --output /tmp/airdraft-ui-controls
 python3 -B scripts/test-release.py -v
+python3 -B scripts/test-swiftpm-lock.py -v
 python3 -B scripts/test-licensing.py -v
 python3 -B scripts/test-prompt-gate.py -v
 ```
@@ -29,6 +31,10 @@ Onboarding, license state and public Polar endpoint fixtures are included; they
 use disposable storage and intercepted responses, without API keys or purchases.
 Package downloads use Xcode's `netrc` authorization provider to avoid Keychain
 prompts for the project's public dependencies.
+The shared selector rejects known credential/provider-key suites, including
+`SonioxMediaTests` and the separately scoped `CredentialRemovalTests`, whether
+selected as a whole class or an individual case. Marker-only transport and URL
+minimization tests exercise privacy boundaries without keys or provider calls.
 The Xcode process group has a 30-minute deadline; override with `--timeout` seconds
 when a clean toolchain build requires longer.
 Pass `--parakeet-model /absolute/path/to/installed/parakeet` to enable the real
@@ -91,12 +97,28 @@ Available `--e2e-action` values:
 | Action | Behavior |
 |---|---|
 | `inventory` | Local model installation paths and on-device refinement availability |
+| `architecture` | Actual AppContainer cleanup, journal recovery, single-writer and onboarding resolution with disposable stores and an injected remote-cleanup operation; no capture, credentials or provider calls |
 | `insert` | Production capture/insertion against an explicitly prepared disposable field in another app; verifies the actual resulting field value |
 | `download` | Explicit anonymous installation of `--e2e-model` into the isolated root |
 | `transcribe` | Real pipeline, local ASR, dictionary/conversion, SQLite and retained WAV; insertion disabled |
 | `preview` | Real Apple Speech preview, provisional text and callback cancellation |
 | `microphones` | Existing repeated hardware capture/reconfiguration self-test |
 | `automation` | Real Start/Cancel/Start/Stop intents, microphone capture and a disposable script receiver |
+
+`architecture` exercises all cleanup scopes, old version-1 journals, remote-cleanup
+failure and retry, the lifetime data lease and practice configuration. Remote
+resources are harmless identifiers handled by an injected operation; no keys or
+provider requests are used. Run it with a fresh data directory.
+
+`--render-window native-ui <output>` exercises production views and callbacks with
+fake microphone monitors: busy-state fencing, model/language readiness, practice
+restoration, notice actions and the failed-cleanup repair disclosure. Credential
+controls remain disabled and no credential operations run. Its absolute
+`AIRDRAFT_E2E_MODEL_ROOT` must be a fresh child of the supplied `--e2e-local` directory.
+The fixture creates model presence markers there without loading a model.
+`verify-native-ui-controls.py` separately exercises the production slider and
+History progress consumer in silent windows, including keyboard, pointer and
+accessibility adjustment in both appearances; its playback object has no player.
 
 Transcription accepts `--e2e-audio`, `--e2e-locale` and `--e2e-model` using catalogue
 IDs (`apple`, `qwen3:0.6b`, `qwen3:1.7b`, `cohere`, `sherpa:senseVoice`,

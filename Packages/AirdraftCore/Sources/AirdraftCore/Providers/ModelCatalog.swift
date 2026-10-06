@@ -10,7 +10,7 @@ public enum ModelCatalog {
     }
 
     /// Models the configured refinement provider serves, in its own API shape.
-    public static func refinementModels(for config: LLMConfig, timeout: TimeInterval = 10) async throws -> [String] {
+    public static func refinementModels(for config: LLMConfig, timeout: TimeInterval = 10, session: URLSession? = nil) async throws -> [String] {
         if config.kind == .appleIntelligence { return [] }
         if let tool = config.kind.cliTool {
             guard let executable = config.cliExecutable else { throw RefinerError.invalidResponse }
@@ -20,7 +20,7 @@ public enum ModelCatalog {
         let key = try Keychain.read(config.keyRef)
         switch config.kind.wire {
         case .openAIChat:
-            let ids = try await fetch(baseURL: base, apiKey: key, timeout: timeout)
+            let ids = try await fetch(baseURL: base, apiKey: key, timeout: timeout, session: session)
             return refinementModels(in: ids, for: config.kind)
         case .anthropicMessages:
             var req = URLRequest(url: base.appendingPathComponent("models"))
@@ -31,7 +31,7 @@ public enum ModelCatalog {
                 struct Model: Decodable { let id: String }
                 let data: [Model]
             }
-            return try await decode(req, as: Reply.self).data.map(\.id)
+            return try await decode(req, as: Reply.self, session: session).data.map(\.id)
         case .appleIntelligence, .cli:
             return config.kind.cliTool?.modelSuggestions ?? []
         case .geminiGenerateContent:
@@ -42,7 +42,7 @@ public enum ModelCatalog {
                 struct Model: Decodable { let name: String; let supportedGenerationMethods: [String]? }
                 let models: [Model]
             }
-            return try await decode(req, as: Reply.self).models
+            return try await decode(req, as: Reply.self, session: session).models
                 .filter { $0.supportedGenerationMethods?.contains("generateContent") ?? true }
                 .map { $0.name.replacingOccurrences(of: "models/", with: "") }
                 .sorted()
@@ -60,7 +60,7 @@ public enum ModelCatalog {
         }
     }
 
-    public static func fetch(baseURL: URL, apiKey: String?, timeout: TimeInterval = 8) async throws -> [String] {
+    public static func fetch(baseURL: URL, apiKey: String?, timeout: TimeInterval = 8, session: URLSession? = nil) async throws -> [String] {
         var req = URLRequest(url: baseURL.appendingPathComponent("models"))
         req.timeoutInterval = timeout
         if let apiKey, !apiKey.isEmpty {
@@ -70,11 +70,11 @@ public enum ModelCatalog {
             struct Model: Decodable { let id: String }
             let data: [Model]
         }
-        return try await decode(req, as: Reply.self).data.map(\.id).sorted()
+        return try await decode(req, as: Reply.self, session: session).data.map(\.id).sorted()
     }
 
-    private static func decode<T: Decodable>(_ req: URLRequest, as type: T.Type) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: req)
+    private static func decode<T: Decodable>(_ req: URLRequest, as type: T.Type, session: URLSession?) async throws -> T {
+        let (data, response) = try await (session ?? ProviderTransport.shared).data(for: req)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw RefinerError.http(status: (response as? HTTPURLResponse)?.statusCode ?? 0, body: String(decoding: data, as: UTF8.self))
         }

@@ -36,7 +36,7 @@ public struct SpeechConnectionChecker: Sendable {
     private let http: TranscriptionHTTP
     private let timeout: TimeInterval
 
-    public init(session: URLSession = .shared, timeout: TimeInterval = 10) {
+    public init(session: URLSession? = nil, timeout: TimeInterval = 10) {
         http = TranscriptionHTTP(session: session)
         self.timeout = timeout
     }

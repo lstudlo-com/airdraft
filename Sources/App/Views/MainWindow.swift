@@ -330,7 +330,7 @@ struct SidebarView: View {
             .contentShape(NavigationStyle.wellShape)
             .padding(.horizontal, NavigationStyle.destinationInset)
             .padding(.top, 8)
-            .disabled(container.pipeline.state.isBusy)
+            .disabled(container.pipeline.isBusy)
             .help("Change microphone. Your choice is saved as the default.")
             .accessibilityLabel("Microphone: \(container.microphones.label(container.settings.microphone))")
             .accessibilityIdentifier("sidebar.microphone")

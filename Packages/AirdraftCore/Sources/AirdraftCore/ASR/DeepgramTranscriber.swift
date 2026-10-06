@@ -8,7 +8,7 @@ public struct DeepgramTranscriber: Transcriber {
     public let timeout: TimeInterval
     private let http: TranscriptionHTTP
 
-    public init(model: String = "nova-3", apiKey: String?, timeout: TimeInterval = 60, session: URLSession = .shared) {
+    public init(model: String = "nova-3", apiKey: String?, timeout: TimeInterval = 60, session: URLSession? = nil) {
         self.model = model
         self.apiKey = apiKey
         self.timeout = timeout

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Release gates: push scope, source identity, and hostile/mismatched manifests."""
 import importlib.util
+import io
 import json
+import runpy
+import subprocess
+import tarfile
 from pathlib import Path
 import tempfile
 import unittest
@@ -14,6 +18,34 @@ release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
 
 class ReleaseTests(unittest.TestCase):
+    def test_export_uses_committed_native_verifier_before_linking_vendor(self):
+        for code in (0, 9):
+            with self.subTest(verifier_exit=code), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                vendor = root / 'Packages/SherpaOnnxKit/Vendor'
+                vendor.mkdir(parents=True)
+                sentinel = vendor / 'fixture-library'
+                sentinel.write_text('preserve original vendor')
+                archive = io.BytesIO()
+                with tarfile.open(fileobj=archive, mode='w') as bundle:
+                    script = f'import sys\nsys.exit({code})\n'.encode()
+                    info = tarfile.TarInfo('scripts/native_inputs.py')
+                    info.size = len(script)
+                    bundle.addfile(info, io.BytesIO(script))
+                    directory = tarfile.TarInfo('Packages/SherpaOnnxKit')
+                    directory.type = tarfile.DIRTYPE
+                    bundle.addfile(directory)
+                with patch.object(release, 'ROOT', root), \
+                     patch.object(release.subprocess, 'check_output', return_value=archive.getvalue()):
+                    if code:
+                        with self.assertRaises(subprocess.CalledProcessError):
+                            release.export_snapshot('a' * 40)
+                        self.assertFalse((root / 'dist/release-source/Packages/SherpaOnnxKit/Vendor').exists())
+                    else:
+                        source = release.export_snapshot('a' * 40)
+                        self.assertEqual((source / 'Packages/SherpaOnnxKit/Vendor').resolve(), vendor.resolve())
+                self.assertEqual(sentinel.read_text(), 'preserve original vendor')
+
     def test_only_main_pushes_prepare_releases(self):
         sha = 'a' * 40
         self.assertIsNone(release.pushed_commit(f'refs/heads/feature {sha} refs/heads/feature {release.ZERO}\n'))
@@ -36,7 +68,21 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('-only-testing:AirdraftCoreTests/TextDeliveryRegressionTests', selection)
         self.assertNotIn('-only-testing:AirdraftCoreTests/AppIdentityTests', selection)
         self.assertFalse(any('CredentialTests' in name or 'RefinerWireTests' in name for name in selection))
+        self.assertFalse(any('SonioxMediaTests' in name or 'CredentialRemovalTests' in name for name in selection))
         self.assertEqual(release.core_test_selection(source, 'full'), [])
+
+    def test_credential_free_selection_rejects_forbidden_suites_and_cases(self):
+        runner = runpy.run_path(str(Path(__file__).with_name('test-local-e2e.py')))
+        select = runner['credential_free_selection']
+        for suite in runner['EXCLUDED_SUITES'] | {'AppIdentityTests'}:
+            with self.subTest(suite=suite), self.assertRaises(RuntimeError):
+                select([suite], [])
+        for suite in runner['EXCLUDED_SUITES']:
+            with self.subTest(case=suite), self.assertRaises(RuntimeError):
+                select([], [suite + '/testFixture'])
+        for names in ([], ['SafeTests', 'SafeTests'], ['*'], ['../SafeTests']):
+            with self.subTest(names=names), self.assertRaises(RuntimeError):
+                select(names, [])
 
     def test_unknown_scope_never_expands_to_full_tests(self):
         with self.assertRaisesRegex(RuntimeError, 'Unknown release test scope'):

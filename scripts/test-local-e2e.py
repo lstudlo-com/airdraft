@@ -7,18 +7,22 @@ and cloud-provider tests. Live app actions are documented in docs/local-e2e.md.
 import argparse
 import json
 import os
+import re
 import signal
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 
+from swiftpm_lock import verify
+
 SUITES = """
 AudioRecorderTests AudioChunkerTests MicrophoneTests SpeechPreviewTests
 AppleSpeechTranscriberTests
 SpeechLanguagePolicyTests SpeechAdapterLanguageTests SherpaLanguageTests PipelineLanguageTests
 PipelinePreviewTests PipelineAutomationTests HistoryRetranscriptionTests
-AudioHistoryTests RecordingPlaybackTests DataCleanupTests MeetingCaptureTests MediaDocumentTests SonioxMediaTests ScriptDeliveryTests HistoryStoreTests ProfileStoreTests
+PipelineConfigurationTests ProviderTransportTests BrowserContextURLTests ModelArchiveIntegrityTests
+AudioHistoryTests RecordingPlaybackTests DataCleanupTests MeetingCaptureTests MediaDocumentTests ScriptDeliveryTests HistoryStoreTests ProfileStoreTests
 DictionaryPostProcessorTests CLIProcessTests CLIModelCatalogTests
 CLIEffortAndIsolationTests ModelOwnershipTests AppleIntelligenceTests
 HotkeyPressStateTests HotkeyBehaviorTests ControlOptionHotkeyTests HotkeyTriggerStateTests SettingsSearchIndexTests
@@ -43,6 +47,29 @@ HardeningTests/testCLIProcessTimesOutAndStops
 HardeningTests/testCLIProcessDrainsLargeOutput
 EngineFactoryTests/testLocalEnginesAreCachedPerModel
 """.split()
+
+# These suites exercise credentials or provider API-key contracts, even when
+# their transport is mocked. Keep the same boundary in local and release runs.
+EXCLUDED_SUITES = frozenset("""
+SonioxMediaTests CredentialRemovalTests KeychainAccessTests CredentialEditorTests
+RefinerWireTests TranscriberWireTests SpeechCloudLanguageTests
+RecordingPrerequisitesTests RefinementProviderTests CompletionResponseTests
+OpenRouterTests SpeechPresetTests
+""".split())
+
+
+def credential_free_selection(suites=None, cases=None):
+    suites = SUITES if suites is None else suites
+    cases = CASES if cases is None else cases
+    names = list(suites) + list(cases)
+    if not names or len(set(names)) != len(names):
+        raise RuntimeError("Credential-free selection must be nonempty and unique")
+    for name in names:
+        if not re.fullmatch(r"[A-Za-z0-9_]+(?:/[A-Za-z0-9_]+)?", name):
+            raise RuntimeError(f"Invalid credential-free test selector: {name}")
+        if name.split("/")[0] in EXCLUDED_SUITES or name == "AppIdentityTests":
+            raise RuntimeError(f"Credential test is outside the selected scope: {name}")
+    return [f"-only-testing:AirdraftCoreTests/{name}" for name in names]
 
 
 def main():
@@ -70,9 +97,9 @@ def main():
         env["TEST_RUNNER_AIRDRAFT_PARAKEET_TEST_MODEL_DIR"] = str(path)
     command = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
                "-configuration", "Debug", "-skipPackagePluginValidation", "-skipMacroValidation",
-               "-packageAuthorizationProvider", "netrc",
+               "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
                "test", "-parallel-testing-enabled", "NO", "-resultBundlePath", str(result)]
-    command += [f"-only-testing:AirdraftCoreTests/{name}" for name in SUITES + CASES]
+    command += credential_free_selection()
     (output / "command.json").write_text(json.dumps(command, indent=2) + "\n")
     print(f"Credential-free regression results: {output}", flush=True)
     with (output / "tests.log").open("w") as log:
@@ -91,6 +118,7 @@ def main():
             code = 124
     print(f"xcodebuild exit: {code}; see {output / 'tests.log'}", flush=True)
     if code == 0:
+        verify(root)
         code = subprocess.run([sys.executable, str(root / 'scripts/verify-insertion-regressions.py'),
                                str(result), '--report', str(output / 'insertion-regressions.json')],
                               cwd=root, env=env).returncode

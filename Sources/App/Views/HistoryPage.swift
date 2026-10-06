@@ -60,7 +60,7 @@ struct HistoryPage: View {
                         .padding(.top, Theme.controlSpacing)
                 }
                 if let errorMessage {
-                    StorageNotice(message: errorMessage) { Task { await reload() } }
+                    StorageNotice(message: errorMessage, actionTitle: "Reload History") { Task { await reload() } }
                         .padding(.top, Theme.controlSpacing)
                 }
                 if let error = container.pipeline.historyStorageError {

@@ -10,7 +10,7 @@ public struct SonioxTranscriber: Transcriber {
     private let pollInterval: TimeInterval
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "soniox")
 
-    public init(apiKey: String?, timeout: TimeInterval = 60, session: URLSession = .shared, pollInterval: TimeInterval = 0.5) {
+    public init(apiKey: String?, timeout: TimeInterval = 60, session: URLSession? = nil, pollInterval: TimeInterval = 0.5) {
         self.apiKey = apiKey
         self.timeout = timeout
         self.http = TranscriptionHTTP(session: session)

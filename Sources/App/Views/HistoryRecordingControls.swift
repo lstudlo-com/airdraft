@@ -74,16 +74,8 @@ private struct HistoryPlaybackProgress: View {
     let playback: RecordingPlayback
     var body: some View {
         SoftSlider(title: "Playback position", value: Binding(get: { playback.currentTime }, set: { playback.seek(to: $0) }),
-                   range: 0...max(0.01, playback.duration), step: 0.1)
+                   range: 0...max(0.01, playback.duration), step: 0.1, keyboardStep: 5)
             .accessibilityValue("\(HistoryRecordingControls.time(playback.currentTime)) of \(HistoryRecordingControls.time(playback.duration))")
-            .focusable()
-            .onMoveCommand { direction in
-                switch direction {
-                case .left, .down: playback.seek(to: playback.currentTime - 5)
-                case .right, .up: playback.seek(to: playback.currentTime + 5)
-                @unknown default: break
-                }
-            }
         Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
             .font(.system(size: 10)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
     }

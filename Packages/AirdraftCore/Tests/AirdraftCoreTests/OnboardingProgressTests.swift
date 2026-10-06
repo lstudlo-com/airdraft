@@ -2,6 +2,39 @@ import XCTest
 @testable import AirdraftCore
 
 @MainActor final class OnboardingProgressTests: XCTestCase {
+    func testPracticeProfileOverrideEndsOnExitAndDoesNotSurviveRestart() {
+        let name = "OnboardingTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let original = AppSettings(defaults: defaults)
+        original.asr = ASRConfig(kind: .senseVoice)
+        original.llm = LLMConfig(kind: .appleIntelligence)
+        original.outputDestination = .script
+        let settings = AppSettings(defaults: defaults)
+        let profile = RefinementProfile(name: "Bound", instructions: "",
+            speechModel: ProfileSpeechModel(config: ASRConfig(kind: .openAI)))
+        for _ in 0..<3 {
+            settings.beginOnboardingPractice()
+            XCTAssertTrue(settings.isOnboardingPractice)
+            XCTAssertEqual(settings.speechConfig(for: profile).kind, .senseVoice)
+            XCTAssertNil(settings.effectiveProfile(profile).speechModel)
+            XCTAssertFalse(settings.effectiveProfile(profile).usesLLM)
+            settings.endOnboardingPractice()
+            XCTAssertFalse(settings.isOnboardingPractice)
+            XCTAssertEqual(settings.effectiveProfile(profile), profile)
+            XCTAssertEqual(settings.speechConfig(for: profile).kind, .openAI)
+            XCTAssertEqual(settings.llm.kind, .appleIntelligence)
+            XCTAssertEqual(settings.outputDestination, .script)
+        }
+        settings.beginOnboardingPractice()
+        let restarted = AppSettings(defaults: defaults)
+        XCTAssertFalse(restarted.isOnboardingPractice)
+        XCTAssertEqual(restarted.effectiveProfile(profile), profile)
+        XCTAssertEqual(restarted.speechConfig(for: profile).kind, .openAI)
+        XCTAssertEqual(restarted.llm.kind, .appleIntelligence)
+        XCTAssertEqual(restarted.outputDestination, .script)
+    }
+
     func testReplayInSameLaunchPreservesNewlyConfiguredSettings() {
         for completed in [false, true] {
             let name = "OnboardingTests.\(UUID())"

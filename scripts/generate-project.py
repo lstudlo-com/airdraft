@@ -5,6 +5,8 @@ import shutil
 import subprocess
 import sys
 
+from swiftpm_lock import restore
+
 
 def main():
     root = Path(__file__).resolve().parents[1]
@@ -16,7 +18,10 @@ def main():
     if executable is None:
         print("XcodeGen is missing. Install it with 'brew install xcodegen', then retry.", file=sys.stderr)
         return 127
-    return subprocess.run([executable, "generate"], cwd=root).returncode
+    code = subprocess.run([executable, "generate"], cwd=root).returncode
+    if code == 0:
+        restore(root)
+    return code
 
 
 if __name__ == "__main__":

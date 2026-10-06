@@ -32,15 +32,14 @@ struct MeetingSheet: View {
                     }
                     RowDivider()
                     if meeting.microphoneEnabled { captureRow("Microphone", received: meeting.microphoneReceived, level: meeting.microphoneLevel) }
-                    else { HStack { Text("Microphone").font(.system(size: 13)); Spacer(); Text("Off").supportingText() } }
+                    else { SettingRow(title: "Microphone") { Text("Off").supportingText() } }
                     RowDivider()
                     captureRow(meeting.sourceName, received: meeting.systemReceived, level: meeting.systemLevel)
                 }
                 Text("You can close this window. Stop recording from the menu bar or History.").supportingText()
             } else {
                 SettingsCard {
-                    HStack {
-                        Text("App audio").font(.system(size: 13)); Spacer()
+                    SettingRow(title: "App audio") {
                         SoftPicker("App audio", selection: $applicationID, width: 200) {
                             Text("All Apps").tag(Int32(0))
                             ForEach(sources) { source in Text(source.name).tag(source.id) }
@@ -52,8 +51,10 @@ struct MeetingSheet: View {
                         Button(loading ? "Loading…" : "Choose App…") { loadSources() }.buttonStyle(SoftButtonStyle()).disabled(loading)
                     }
                     RowDivider()
-                    HStack { Text("Include microphone").font(.system(size: 13)); Spacer(); Toggle("Include Microphone", isOn: $includeMicrophone).toggleStyle(.softSwitch) }
-                    if includeMicrophone { Text("Uses the microphone selected in the sidebar. Headphones reduce echo.").supportingText() }
+                    SettingRow(title: "Include microphone", subtitle: includeMicrophone ? "Uses the sidebar microphone. Headphones reduce echo." : nil) {
+                        Toggle("Include Microphone", isOn: $includeMicrophone)
+                            .labelsHidden().toggleStyle(.softSwitch)
+                    }
                 }
                 HStack(alignment: .top) {
                     Text("macOS asks for Screen & System Audio Recording permission. Only audio is saved. Make sure participants know you are recording.").supportingText().fixedSize(horizontal: false, vertical: true)
@@ -99,10 +100,11 @@ struct MeetingSheet: View {
             .sheet(isPresented: $showTranscription) { MediaImportSheet(source: nil, recording: meeting?.saved).environment(container) }
     }
     private func captureRow(_ title: String, received: Bool, level: Float) -> some View {
-        HStack {
-            Text(title).font(.system(size: 13)); Spacer()
-            Text(received ? "Receiving" : "Waiting for audio").supportingText()
-            ProgressView(value: min(1, Double(level) * 4)).frame(width: 80).accessibilityLabel(title + " level")
+        SettingRow(title: title) {
+            HStack(spacing: Theme.controlSpacing) {
+                Text(received ? "Receiving" : "Waiting for audio").supportingText()
+                ProgressView(value: min(1, Double(level) * 4)).frame(width: 80).accessibilityLabel(title + " level")
+            }
         }
     }
     private func loadSources() {
