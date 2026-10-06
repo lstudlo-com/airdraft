@@ -2,19 +2,45 @@
 version: 1
 slug: "sources-app-views-configurationpage-swift"
 primary_target: "Sources/App/Views/ConfigurationPage.swift"
-related_targets: ["Sources/App/Views/DataCleanupSettings.swift", "Sources/App/Views/MainWindow.swift", "Sources/App/Views/MenuView.swift", "Sources/App/Views/Theme.swift", "Sources/App/Views/SoftControls.swift"]
+related_targets: ["Sources/App/Views/SettingsSearch.swift", "Sources/App/Views/AutomationSettings.swift", "Sources/App/Views/MicrophonePicker.swift", "Sources/App/Views/DataCleanupSettings.swift", "Sources/App/Views/MainWindow.swift", "Sources/App/Views/MenuView.swift", "Sources/App/Views/Theme.swift", "Sources/App/Views/SoftControls.swift"]
 ---
 
-# Configuration data cleanup
+# Configuration
 
 Mode: Operate. Platform: native macOS SwiftUI.
 
 ## Direction
 
-Add scoped data removal to the incumbent Configuration page. Preserve its gray
-cards, shared row alignment, labeled actions and native confirmation controls.
+Keep settings discoverable and data removal scoped within the incumbent
+Configuration page. Preserve its gray cards, shared row alignment, labeled
+actions and native confirmation controls.
 
-## Built composition
+## Search composition and behavior
+
+A recessed 270 by 28 pt Search settings capsule sits at the right of the title
+row. Its native text field uses 13 pt type and an accent focus ring; the result
+position uses 11 pt type. Previous/next and clear controls stay inside the field,
+and an empty result set reads No matches. The existing page remains visible.
+
+Search uses the actual section names, setting titles and full descriptions.
+Every term must match, ignoring case, diacritics and character width. Exact
+setting titles come first; remaining matches follow the page's reading order.
+Matched rows have neutral recessed wells, with greater depth for the current
+result. Each well sits 4 pt inside the card edge with 14 pt continuous corners,
+concentric with the 18 pt card. Content retains the card's 16 pt inset.
+
+Command-F focuses search. Return and Down move forward; Shift-Return and Up move
+backward, wrapping through results. Escape clears a query and releases focus
+when empty; clear keeps focus in the field. Preserve native text composition.
+The current row scrolls to the visible center below the sticky header over
+0.22 seconds, or instantly with Reduce Motion.
+
+Typing settles for 160 ms before matching. Rebuild the in-memory index only
+when row copy changes; scrolling does no indexing or matching. Search reveals
+conditional controls with their prerequisites and preserves unavailable states.
+Discovery never changes persisted settings or enables a prerequisite.
+
+## Data cleanup composition
 
 Data & reset follows Permissions and precedes Updates. Its single SettingsCard
 contains History, Audio files, History and audio, and Start fresh. Supporting
@@ -53,7 +79,10 @@ confirmation, with Cancel retaining the previous setting.
 The visual system is docs/DESIGN.md; deletion scope is defined in
 docs/data-cleanup.md. This change introduces no new visual tokens.
 
-Reference images live under `.impeccable/review/cleanup/`: Configuration in
+Search extends the existing code and components without a separate visual comp.
+Reference images live under `.impeccable/review/settings-search/`.
+
+Cleanup reference images live under `.impeccable/review/cleanup/`: Configuration in
 `minimum/`, `tall/` and `collapsed/`; the sheet in `failed/cleanup-*` and
 `complete/cleanup-*`; and the live window in `live/compositor.png`.
 `live/reset-confirmation.png` records native confirmation layout; current source

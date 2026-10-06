@@ -7,10 +7,11 @@ struct ConfigurationPage: View {
 
     @State private var pendingRetention: AudioRetention?
     @State private var confirmRetention = false
+    @State var search = SettingsSearchState()
 
     var body: some View {
         @Bindable var settings = container.settings
-        PageScaffold(.configuration) {
+        SettingsSearchScaffold(search: search) {
             MicrophoneSettings()
 
             PageSection("Appearance") {
@@ -87,9 +88,9 @@ struct ConfigurationPage: View {
                     SettingRow(title: "Show text while speaking", subtitle: "On-device Apple Speech; final model unchanged") {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
-                    if settings.livePreviewEnabled {
+                    if settings.livePreviewEnabled || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Preview language", subtitle: settings.hudStyle == .none ? "Requires Classic or Mini recording window" : "Choose and install a language in Models") {
+                        SettingRow(title: "Preview language", subtitle: !settings.livePreviewEnabled ? "Enable Show text while speaking; choose a language in Models" : settings.hudStyle == .none ? "Requires Classic or Mini recording window" : "Choose and install a language in Models") {
                             Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
                         }
                     }

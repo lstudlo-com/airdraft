@@ -10,6 +10,10 @@ import SwiftUI
 enum DebugRender {
     /// Renders the main window for one page in dark and light appearance.
     static func renderWindow(pageName: String, toDirectory dir: URL, height: CGFloat = 660) {
+        if pageName == "settings-search" {
+            SettingsSearchVerification.run(to: dir)
+            return
+        }
         if pageName == "menu" {
             MenuVerification.run(to: dir)
             return

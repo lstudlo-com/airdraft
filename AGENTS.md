@@ -207,6 +207,17 @@ verification status belong in the vault (see below).
   edge. Use `SoftPicker(title, selection:, width:)` for menu pickers in settings rows or
   section headings so the visible capsule aligns with that edge. Numeric settings with a
   stepper must also support direct keyboard entry through `SettingsNumberStepper`.
+  Configuration keeps a recessed Search settings field at the right of its page
+  heading. Index the actual section titles, setting names and descriptions through
+  `PageSection` and `SettingRow`; do not maintain a duplicate catalogue. Match all
+  query terms case/diacritic-insensitively, prioritize exact setting names, and
+  retain page order otherwise. Debounce typing, rebuild the index only when copy
+  changes, and never search during scrolling. Keep results in place with recessed
+  highlights 4 pt inside the card edge with concentric 14 pt corners, scroll
+  the active result clear of the sticky header, and support
+  keyboard focus, previous/next, clear and no-match states. Search reveals conditional
+  controls with their prerequisites without changing settings. Reduce Motion skips
+  scroll animation; other pages remain unaffected.
   Keep settings copy purposeful: do not add descriptions that merely restate the
   selected provider, that a list is showing models, or other facts already obvious
   from the control. Keep concise text when it changes a decision or explains an
@@ -727,6 +738,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   verifies the production native menu, provider/profile state, width fitting,
   processing and retained-recording actions; captures light/dark menu windows.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
+  `airdraft --e2e-local <disposable-dir> --render-window settings-search <dir>`
+  exercises Configuration search, conditional controls, result scrolling,
+  cancellation and idle scroll work in live light/dark fixture windows.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to
   see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
