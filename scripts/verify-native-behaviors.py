@@ -5,8 +5,8 @@ Uses the production hotkey backends, microphone selection and HUD controller/vie
 Core value types are compiled directly; permissions and the pipeline are fixtures.
 No models, credentials, preferences, recordings or history are read. Copy uses a
 disposable pasteboard, never the user's clipboard.
-The HUD check briefly shows its own nonactivating panel. Run it between UI tests,
-or use --skip-hud while another process owns the screen.
+The HUD check exercises its nonactivating panel off-screen by default. Use
+--show-hud for a deliberate on-screen visual check, or --skip-hud to omit it.
 """
 
 from __future__ import annotations
@@ -160,14 +160,62 @@ struct NeumorphicSurface<S: Shape>: View {
         let pipeline = DictationPipeline()
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }
+        let showHUD = CommandLine.arguments.contains("--show-hud")
+        let desktop = NSScreen.screens.reduce(NSRect.zero) { $0.union($1.frame) }
+        let fixtureScreen = NSRect(x: desktop.maxX + 1000, y: desktop.minY, width: 800, height: 600)
         let controller = IndicatorPanelController(pipeline: pipeline, style: { style },
             timer: { timer },
-            messagePasteboard: pasteboard, reduceMotion: { reduceMotion })
+            messagePasteboard: pasteboard, reduceMotion: { reduceMotion },
+            screenFrame: showHUD ? nil : { fixtureScreen })
+        func assertOffscreen() {
+            guard !showHUD else { return }
+            for panel in NSApp.windows where panel is NSPanel && panel.isVisible {
+                precondition(NSScreen.screens.allSatisfy { !$0.frame.intersects(panel.frame) },
+                             "Routine verification must never display simulated errors on the user's desktop")
+            }
+        }
         func update(_ state: PipelineState) {
             pipeline.state = state
             controller.update(for: state)
+            assertOffscreen()
         }
-        func visible() -> Bool { NSApp.windows.contains { $0 is NSPanel && $0.isVisible } }
+        func visible() -> Bool {
+            assertOffscreen()
+            return NSApp.windows.contains { $0 is NSPanel && $0.isVisible }
+        }
+        func verifyMessageLayout(_ panel: NSWindow, allowsCopy: Bool) {
+            let view = panel.contentView!
+            view.layoutSubtreeIfNeeded()
+            let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            let scale = CGFloat(bitmap.pixelsWide) / view.bounds.width
+            func ink(from leading: CGFloat, to trailing: CGFloat) -> CGRect {
+                var bounds = CGRect.null
+                for y in Int(10 * scale)..<(bitmap.pixelsHigh - Int(10 * scale)) {
+                    for x in Int(leading * scale)..<Int(trailing * scale) {
+                        guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB),
+                              min(color.redComponent, color.greenComponent, color.blueComponent) > 0.65 else { continue }
+                        bounds = bounds.union(CGRect(x: CGFloat(x) / scale, y: CGFloat(y) / scale,
+                                                    width: 1 / scale, height: 1 / scale))
+                    }
+                }
+                return bounds
+            }
+            let text = ink(from: 14, to: view.bounds.width - (allowsCopy ? 54 : 14))
+            precondition(!text.isNull && abs(text.midY - view.bounds.midY) <= 2,
+                         "Rendered message must be vertically centered: \(text), \(view.bounds)")
+            if allowsCopy {
+                let button = ink(from: view.bounds.width - 42, to: view.bounds.width - 14)
+                precondition(!button.isNull && abs(button.midY - text.midY) <= 2,
+                             "Rendered error text and copy icon must share a vertical center")
+            } else if let message = (view as? NSHostingView<RecordingHUDView>)?.rootView.snapshot?.state.hudMessage {
+                let natural = ceil((message as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13)]).width)
+                if natural + 28 < 560 {
+                    precondition(abs(view.bounds.width - natural - 28) <= 1,
+                                 "Notices must fit their text without a copy icon or reserved action space")
+                }
+            }
+        }
         update(.recording)
         precondition(visible(), "Mini HUD must be visible")
         style = .none
@@ -282,6 +330,15 @@ struct NeumorphicSurface<S: Shape>: View {
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let shown = ContinuousClock.now
             try await Task.sleep(for: .seconds(3))
+            verifyMessageLayout(panel, allowsCopy: false)
+            let transcript = "Fixture transcript already copied 完整口述文字"
+            pasteboard.clearContents()
+            pasteboard.setString(transcript, forType: .string)
+            let clipboardVersion = pasteboard.changeCount
+            clickCopy(panel.contentView!, in: panel)
+            try await Task.sleep(for: .milliseconds(30))
+            precondition(pasteboard.changeCount == clipboardVersion && pasteboard.string(forType: .string) == transcript,
+                         "Clicking a copied notice must never replace the delivered transcript")
             update(.idle)
             precondition(panel.isVisible && panel.alphaValue == 1,
                          "Pipeline idle must not shorten the five-second message lifetime")
@@ -296,6 +353,9 @@ struct NeumorphicSurface<S: Shape>: View {
             let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
             precondition(frozen.rootView.snapshot?.state == confirmation,
                          "Dismissal must preserve the confirmation instead of restoring the timer")
+            precondition(frozen.rootView.messagePasteboard === pasteboard,
+                         "The fade must retain the injected pasteboard")
+            verifyMessageLayout(panel, allowsCopy: false)
             precondition(panel.isVisible && panel.alphaValue > 0 && panel.alphaValue < 1,
                          "Clipboard confirmation must start fading at five seconds")
             try await Task.sleep(for: .milliseconds(450))
@@ -309,7 +369,7 @@ struct NeumorphicSurface<S: Shape>: View {
             "The selected speech model has reached its request limit. Please retry after 30 seconds.\n" +
             "Request ID: fixture-request-完整錯誤訊息-END"
         func clickCopy(_ host: NSView, in panel: NSWindow) {
-            let point = NSPoint(x: host.bounds.maxX - 28, y: host.isFlipped ? 28 : host.bounds.maxY - 28)
+            let point = NSPoint(x: host.bounds.maxX - 28, y: host.bounds.midY)
             let location = host.convert(point, to: nil)
             let down = NSEvent.mouseEvent(with: .leftMouseDown, location: location, modifierFlags: [],
                 timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: panel.windowNumber,
@@ -353,6 +413,7 @@ struct NeumorphicSurface<S: Shape>: View {
                          "Expansion must keep the capsule centered and anchored above the screen edge: \(compact) to \(panel.frame)")
             precondition(!panel.ignoresMouseEvents && !panel.canBecomeKey && !panel.canBecomeMain,
                          "Messages must accept Copy without stealing destination focus")
+            verifyMessageLayout(panel, allowsCopy: true)
             for appearance in [NSAppearance.Name.aqua, .darkAqua] {
                 host.appearance = NSAppearance(named: appearance)
                 saveRender(host, name: "error-\(activeStyle.rawValue)-\(appearance.rawValue)")
@@ -382,6 +443,7 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.recording)
         update(.notice(message))
         try await Task.sleep(for: .milliseconds(350))
+        verifyMessageLayout(NSApp.windows.first { $0 is NSPanel && $0.isVisible }!, allowsCopy: false)
         update(.idle)
         try await Task.sleep(for: .milliseconds(600))
         precondition(visible(), "Recovery notices must remain readable after idle")
@@ -442,6 +504,18 @@ struct NeumorphicSurface<S: Shape>: View {
                          "Scrollable diagnostics must copy all text, including offscreen lines")
         }
         print("PASS: CJK, unbroken diagnostics and bounded scrollable text with complete copying")
+        for (name, state) in [
+            ("short-error", PipelineState.failed("Microphone access denied")),
+            ("copied-notice", .notice("Dictation text copied", requiresAttention: false)),
+            ("destination-notice", .notice("Destination changed. Text copied; paste it where you want."))
+        ] {
+            update(state)
+            let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+            try await Task.sleep(for: .milliseconds(30))
+            verifyMessageLayout(panel, allowsCopy: state.hudAllowsCopy)
+            saveRender(panel.contentView!, name: name)
+        }
+        print("PASS: single/multiline vertical centering, error-only Copy and notice clipboard preservation")
         update(.failed("Fixture failure"))
         precondition(visible(), "A new recording failure must remain visible")
         update(.idle)
@@ -454,7 +528,8 @@ struct NeumorphicSurface<S: Shape>: View {
 '''
 
 
-def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str) -> None:
+def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str,
+              arguments: tuple[str, ...] = ()) -> None:
     suite = directory / name
     suite.mkdir(parents=True, exist_ok=True)
     paths = []
@@ -465,14 +540,14 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str)
     binary = suite / name
     subprocess.run(["xcrun", "swiftc", "-parse-as-library", *paths, "-o", str(binary)],
                    check=True, cwd=REPO, timeout=60)
-    result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60)
+    result = subprocess.run([str(binary), *arguments], capture_output=True, text=True, timeout=60)
     (suite / "result.txt").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise RuntimeError(f"{name} failed with exit {result.returncode}:\n{result.stdout}{result.stderr}")
     print(result.stdout.strip(), flush=True)
 
 
-def verify(directory: Path, skip_hud: bool) -> None:
+def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
     run_suite(directory, "hotkey-suspension", {
         "HotkeyService.swift": source("Sources/App/Hotkeys/HotkeyService.swift"),
         "CarbonHotkey.swift": source("Sources/App/Hotkeys/CarbonHotkey.swift"),
@@ -495,19 +570,21 @@ def verify(directory: Path, skip_hud: bool) -> None:
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
-        }, HUD_FIXTURE)
+        }, HUD_FIXTURE, ("--show-hud",) if show_hud else ())
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--skip-hud", action="store_true", help="Avoid showing the isolated HUD test panel")
+    hud = parser.add_mutually_exclusive_group()
+    hud.add_argument("--skip-hud", action="store_true", help="Skip the isolated HUD checks")
+    hud.add_argument("--show-hud", action="store_true", help="Show HUD fixtures on-screen for visual verification")
     parser.add_argument("--output", type=Path, help="Keep compiled harnesses and results in this directory")
     args = parser.parse_args()
     if args.output:
-        verify(args.output.resolve(), args.skip_hud)
+        verify(args.output.resolve(), args.skip_hud, args.show_hud)
     else:
         with tempfile.TemporaryDirectory(prefix="airdraft-native-behaviors-") as temporary:
-            verify(Path(temporary), args.skip_hud)
+            verify(Path(temporary), args.skip_hud, args.show_hud)
 
 
 if __name__ == "__main__":

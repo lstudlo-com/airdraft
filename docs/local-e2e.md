@@ -37,6 +37,12 @@ tests stay opt-in; fixture executable tests always run.
 
 `verify-native-behaviors.py` compiles the real Carbon shortcut controller,
 microphone selection helper and HUD controller against small fixture dependencies.
+HUD panels run outside all connected screens by default, including synthetic HTTP
+429 errors. Native layout, animation, timeout and disposable-pasteboard checks still
+run. Use `--show-hud` only for an intentional on-screen visual check, or `--skip-hud`
+to omit those checks. Notices must expose no copy button, leave copied dictation
+untouched, and keep their text vertically centered; errors retain a centered copy
+button with complete diagnostics.
 `verify-model-lifecycle.py` compiles the real lifecycle source with controllable
 local-server responses. These are targeted native regression checks, not substitutes
 for live UI or hardware acceptance.

@@ -422,7 +422,10 @@ verification status belong in the vault (see below).
   clipboard restoration and history saving; never return to the recording timer
   or reopen it for a later success notice. New recording cancels the old fade.
   Failures and recovery notices expand the native panel over 0.28 seconds to show
-  complete wrapping diagnostics, with Copy Message at the far right. Bound the
+  complete wrapping text centered vertically in the panel. Only errors show
+  Copy Message at the far right, centered beside the text. Notices and informative
+  confirmations have no copy action or reserved button space, preserving the
+  delivered transcript on the clipboard. Bound the
   panel to the current screen and scroll oversized diagnostics without truncation.
   All error, recovery and informational messages show for five seconds from
   presentation, then fade over 0.5 seconds. Keep their snapshot through the
@@ -935,7 +938,10 @@ GUI fixture bundles ending in `.e2e` must refuse startup
 without `--e2e-local`, including automatic relaunch after a crash. Check the process
 before UI operations. Never use normal preferences/history as E2E fixtures.
 Use `scripts/verify-native-behaviors.py` and `scripts/verify-model-lifecycle.py`
-for native regression fixtures. `verify-updater.py --ephemeral-key` uses a
+for native regression fixtures. HUD fixtures run off-screen by default so
+synthetic errors never interrupt normal use. Pass `--show-hud` only for an
+intentional visual check; keep the default native layout, animation, timeout
+and disposable-pasteboard assertions active. `verify-updater.py --ephemeral-key` uses a
 disposable Sparkle seed and temporary update target. Record live, fixture,
 source-review and unavailable coverage separately. See `docs/local-e2e.md`.
 

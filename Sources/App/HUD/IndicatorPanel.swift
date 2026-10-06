@@ -13,6 +13,7 @@ final class IndicatorPanelController {
     private let timerProvider: () -> HUDTimerOptions
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
+    private let screenFrame: () -> NSRect?
     private var currentStyle: HUDStyle = .mini
     private var currentTimer = HUDTimerOptions()
     private var currentPreview = false
@@ -26,12 +27,17 @@ final class IndicatorPanelController {
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
          timer: @escaping () -> HUDTimerOptions = { HUDTimerOptions() },
          messagePasteboard: NSPasteboard = .general,
-         reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }) {
+         reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion },
+         screenFrame: (() -> NSRect?)? = nil) {
         self.pipeline = pipeline
         self.styleProvider = style
         self.timerProvider = timer
         self.messagePasteboard = messagePasteboard
         self.reduceMotion = reduceMotion
+        self.screenFrame = screenFrame ?? {
+            let mouse = NSEvent.mouseLocation
+            return (NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main ?? NSScreen.screens.first)?.visibleFrame
+        }
         panel = RecordingHUDPanel(
             contentRect: .zero,
             styleMask: [.nonactivatingPanel, .borderless],
@@ -58,7 +64,7 @@ final class IndicatorPanelController {
         // message readable for its five seconds instead of restoring the waveform.
         let messageSnapshot = lastVisibleState.hudMessage == nil ? nil :
             HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
-        let bounds = targetScreen?.visibleFrame.size ?? CGSize(width: 800, height: 600)
+        let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
             snapshot: messageSnapshot, style: style, timer: currentTimer, showPreview: preview,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
@@ -143,8 +149,11 @@ final class IndicatorPanelController {
                                    elapsed: pipeline.lastRecordingDuration,
                                    visualizerTime: spatialAnimation.motion.phase,
                                    visualizerEnergy: spatialAnimation.motion.energy)
+        let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
-            timer: currentTimer, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText))
+            timer: currentTimer, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText,
+            messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
+            messagePasteboard: messagePasteboard))
         host.sizingOptions = []
         host.frame = NSRect(origin: .zero, size: panel.frame.size)
         panel.contentView = host
@@ -162,13 +171,6 @@ final class IndicatorPanelController {
     }
 
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hud")
-
-    /// `NSScreen.main` is nil for a menu-bar app with no key window, so use the
-    /// screen under the mouse, then the first screen.
-    private var targetScreen: NSScreen? {
-        let mouse = NSEvent.mouseLocation
-        return NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main ?? NSScreen.screens.first
-    }
 
     private func show() {
         let style = styleProvider()
@@ -195,10 +197,10 @@ final class IndicatorPanelController {
     }
 
     private func resize(to size: CGSize, animated: Bool = false) {
-        guard size.width > 0, size.height > 0, let screen = targetScreen else { return }
+        guard size.width > 0, size.height > 0, let screen = screenFrame() else { return }
         let frame = NSRect(
-            x: screen.visibleFrame.midX - size.width / 2,
-            y: screen.visibleFrame.minY + 18,
+            x: screen.midX - size.width / 2,
+            y: screen.minY + 18,
             width: size.width,
             height: size.height
         )
@@ -275,6 +277,11 @@ extension PipelineState {
         default: return nil
         }
     }
+
+    var hudAllowsCopy: Bool {
+        if case .failed = self { return true }
+        return false
+    }
 }
 
 /// Everything the HUD needs, decoupled from the pipeline so it can be rendered offscreen.
@@ -322,7 +329,7 @@ struct IndicatorView: View {
     var body: some View {
         Group {
             if let message = state.hudMessage {
-                HUDMessageView(message: message, maxWidth: messageMaxWidth,
+                HUDMessageView(message: message, allowsCopy: state.hudAllowsCopy, maxWidth: messageMaxWidth,
                                maxHeight: messageMaxHeight, pasteboard: messagePasteboard)
             } else {
                 HStack(spacing: 8) {
@@ -389,9 +396,10 @@ struct IndicatorView: View {
     }
 }
 
-/// Full, wrapping diagnostics with a stationary copy action at the trailing edge.
+/// Full, wrapping messages. Only errors offer a copy action, keeping delivered text safe.
 struct HUDMessageView: View {
     let message: String
+    let allowsCopy: Bool
     var maxWidth: CGFloat = 560
     var maxHeight: CGFloat = 420
     var pasteboard: NSPasteboard = .general
@@ -400,7 +408,7 @@ struct HUDMessageView: View {
     private var textSize: CGSize {
         let font = NSFont.systemFont(ofSize: 13)
         let natural = (message as NSString).size(withAttributes: [.font: font]).width
-        let width = min(max(220, natural), max(1, maxWidth - 72))
+        let width = min(max(allowsCopy ? 220 : 1, natural), max(1, maxWidth - 28 - (allowsCopy ? 40 : 0)))
         let bounds = (message as NSString).boundingRect(
             with: CGSize(width: width, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [.font: font])
@@ -410,7 +418,7 @@ struct HUDMessageView: View {
     var body: some View {
         let size = textSize
         let height = min(size.height, max(1, maxHeight - 28))
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             Group {
                 if size.height > height {
                     ScrollView(.vertical) { messageText }
@@ -420,19 +428,21 @@ struct HUDMessageView: View {
                 }
             }
             .frame(width: size.width, alignment: .leading)
-            Button {
-                copied = Self.copy(message, to: pasteboard)
-            } label: {
-                Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 13, weight: .medium))
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
+            if allowsCopy {
+                Button {
+                    copied = Self.copy(message, to: pasteboard)
+                } label: {
+                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .help(copied ? "Copied" : "Copy Message")
+                .accessibilityLabel(copied ? "Message Copied" : "Copy Message")
+                .accessibilityIdentifier("hud.copyMessage")
             }
-            .buttonStyle(.plain)
-            .focusable(false)
-            .help(copied ? "Copied" : "Copy Message")
-            .accessibilityLabel(copied ? "Message Copied" : "Copy Message")
-            .accessibilityIdentifier("hud.copyMessage")
         }
         .foregroundStyle(Color.white.opacity(0.95))
         .padding(8)
@@ -445,6 +455,7 @@ struct HUDMessageView: View {
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("hud.message")
     }
 
     @discardableResult
