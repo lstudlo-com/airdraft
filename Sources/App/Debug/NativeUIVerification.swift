@@ -264,6 +264,14 @@ enum NativeUIVerification {
         close(practice)
 
         settings.asr = ASRConfig(kind: .parakeet, language: "zh")
+        let parakeetFolder = LocalModels.folder(for: settings.asr)!
+        precondition(!FileManager.default.fileExists(atPath: parakeetFolder.path), "Use fresh disposable model fixtures")
+        try! FileManager.default.createDirectory(at: parakeetFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: parakeetFolder) }
+        for name in ["tokens.txt", "encoder.int8.onnx", "decoder.int8.onnx", "joiner.int8.onnx"] {
+            try! Data("UI presence fixture; never load".utf8).write(to: parakeetFolder.appendingPathComponent(name))
+        }
+        precondition(LocalModels.isInstalled(settings.asr), "Distinguish unsupported language from a missing model")
         settings.onboarding.move(to: .practice)
         let invalid = show(OnboardingView().environment(container), width: Theme.windowWidth, height: 900)
         precondition(settings.isOnboardingPractice && container.speechConfig.kind == .parakeet)
@@ -274,11 +282,15 @@ enum NativeUIVerification {
         precondition(!text(find(id: "speech-language-issue", in: invalid)).isEmpty,
                      "Speech choice must validate selected Parakeet, not the active cloud binding")
         capture(invalid, to: directory.appendingPathComponent("practice-language-recovery.png"))
+        settings.asr.language = "en"; pump()
+        precondition(enabled(find(id: "onboarding.continue", in: invalid)),
+                     "With the same installed model, a supported explicit language must enable Continue")
+        // Never press Continue: presence markers are not loadable model files.
         close(invalid)
         settings.onboarding.dismiss()
         settings.endOnboardingPractice()
         precondition(container.profiles.activeProfile == savedProfile)
-        print("NATIVE_UI_PASS onboarding-selected-readiness retired-binding back language-recovery profile-preserved")
+        print("NATIVE_UI_PASS onboarding-selected-readiness retired-binding back installed-language-guard profile-preserved")
     }
 
     private static func verifyNotices(directory: URL) {
@@ -382,7 +394,10 @@ enum NativeUIVerification {
                                   styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = "Airdraft silent UI verification"
         window.appearance = NSAppearance(named: appearance)
-        window.contentView = NSHostingView(rootView: root)
+        // Keep intrinsic hosting-size negotiation from enlarging measurement
+        // fixtures, and include the native window background in bitmap evidence.
+        window.contentView = NSHostingView(rootView: root.frame(width: width, height: height)
+            .background(Color(nsColor: .windowBackgroundColor)))
         window.makeKeyAndOrderFront(nil)
         pump()
         return window
