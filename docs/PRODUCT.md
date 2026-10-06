@@ -204,7 +204,8 @@ Standing requirement from Light, reaffirmed 2026-09-21:
   recessed tracks shade their inner top-left edge. Verify live and saved renders.
 - History keeps a compact 52-point timeline beside the scrolling transcription
   cards, with a timestamp and horizontal tick for each entry. Clicking a tick
-  jumps to its card; scrolling updates the active tick. Both columns share day
+  jumps to its card; scrolling updates the active tick, and the timeline moves
+  only when that tick reaches its visible edge, not for every entry. Both columns share day
   grouping and search results, and cards continue to load lazily. Returning the
   cards to the top restores the timeline's first day heading, including when the
   first entry was already active. Prepare and cache labels, day groups, text

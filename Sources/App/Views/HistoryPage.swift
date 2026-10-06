@@ -642,6 +642,7 @@ private struct HistoryTimeline: View {
     let scroll: HistoryScrollState
     @State private var position = ScrollPosition(idType: String.self)
     @State private var visibility = HistoryVisibleRows()
+    @State private var marks = HistoryTimelineMarks()
     @Namespace private var rotorNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -660,7 +661,7 @@ private struct HistoryTimeline: View {
                                 .padding(.bottom, Theme.sectionTitleSpacing)
                                 .help(entry.heading ?? heading)
                         }
-                        HistoryTimelineButton(entry: entry, selected: entry.id == scroll.currentRecordID) {
+                        HistoryTimelineButton(entry: entry, mark: marks.mark(for: entry.id)) {
                             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
                                 scroll.currentRecordID = entry.id
                                 scroll.entryPosition.scrollTo(id: entry.id, anchor: .top)
@@ -684,7 +685,10 @@ private struct HistoryTimeline: View {
         .pageScrollEdge()
         .contentMargins(.top, Theme.pagePadding, for: .scrollContent)
         .scrollPosition($position)
-        .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { _, value in
+        .onScrollGeometryChange(for: HistoryViewport.self) { HistoryViewport($0) } action: { old, value in
+            #if DEBUG
+            if old.offset != value.offset { HistoryRenderMetrics.timelineScrolls += 1 }
+            #endif
             visibility.viewport = value
         }
         .accessibilityRepresentation {
@@ -692,7 +696,7 @@ private struct HistoryTimeline: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(entries) { entry in
                         if let heading = entry.timelineHeading { Text(heading).accessibilityAddTraits(.isHeader) }
-                        HistoryTimelineButton(entry: entry, selected: entry.id == scroll.currentRecordID) {
+                        HistoryTimelineButton(entry: entry, mark: marks.mark(for: entry.id)) {
                             scroll.currentRecordID = entry.id
                             scroll.entryPosition.scrollTo(id: entry.id, anchor: .top)
                         }
@@ -714,9 +718,18 @@ private struct HistoryTimeline: View {
             }
         }
         .scrollIndicators(.hidden)
-        .onChange(of: scroll.currentRecordID) { _, id in
-            if id == snapshot.entries.first?.id { position.scrollTo(edge: .top) }
-            else if let id { position.scrollTo(id: id) }
+        // Only this empty child observes the current record, so a change
+        // updates two row marks instead of re-evaluating the whole timeline.
+        .background {
+            HistoryTimelineFollower(scroll: scroll) { id in
+                #if DEBUG
+                HistoryRenderMetrics.currentRecordID = id
+                HistoryRenderMetrics.recordChanges += 1
+                #endif
+                marks.select(id)
+                if id == snapshot.entries.first?.id { position.scrollTo(edge: .top) }
+                else if let id { reveal(id) }
+            }
         }
         .onChange(of: scroll.entriesAtTop) { _, atTop in
             if atTop { position.scrollTo(edge: .top) }
@@ -727,6 +740,18 @@ private struct HistoryTimeline: View {
         .accessibilityIdentifier("history.timeline")
     }
 
+    /// Scrolls only when the selected row reaches the viewport's edge, then
+    /// leaves room ahead so the following selections need no scroll. Moving
+    /// the lazy timeline for every record hitched the card column.
+    private func reveal(_ id: String) {
+        guard let index = snapshot.indexByID[id] else { return }
+        // Sorted row indices; the first and last may be partly clipped.
+        let visible = visibility.ids.compactMap { snapshot.indexByID[$0] }
+        if let first = visible.first, let last = visible.last, first < index, index < last { return }
+        let downward = visible.last.map { index >= $0 } ?? true
+        position.scrollTo(id: id, anchor: UnitPoint(x: 0, y: downward ? 0.25 : 0.75))
+    }
+
     private func setVisible(_ id: String, _ visible: Bool) {
         visibility.setVisible(id, visible, snapshot: snapshot)
         #if DEBUG
@@ -735,16 +760,55 @@ private struct HistoryTimeline: View {
     }
 }
 
+/// Per-row selection, so moving the current record invalidates only the old and new rows.
+@MainActor @Observable
+private final class HistoryTimelineMark {
+    var selected = false
+}
+
+@MainActor
+private final class HistoryTimelineMarks {
+    private var marks: [String: HistoryTimelineMark] = [:]
+    private var selectedID: String?
+
+    func mark(for id: String) -> HistoryTimelineMark {
+        if let mark = marks[id] { return mark }
+        let mark = HistoryTimelineMark()
+        mark.selected = id == selectedID
+        marks[id] = mark
+        return mark
+    }
+
+    func select(_ id: String?) {
+        guard id != selectedID else { return }
+        if let selectedID { marks[selectedID]?.selected = false }
+        selectedID = id
+        if let id { marks[id]?.selected = true }
+    }
+}
+
+private struct HistoryTimelineFollower: View {
+    let scroll: HistoryScrollState
+    let follow: (String?) -> Void
+
+    var body: some View {
+        Color.clear
+            .onChange(of: scroll.currentRecordID, initial: true) { _, id in follow(id) }
+            .accessibilityHidden(true)
+    }
+}
+
 private struct HistoryTimelineButton: View {
     static let columnWidth: CGFloat = 52
     private static let rowHeight: CGFloat = 24
     private static let tickWidth: CGFloat = 10
     let entry: HistoryEntry
-    let selected: Bool
+    let mark: HistoryTimelineMark
     let action: () -> Void
     @State private var hovering = false
 
     var body: some View {
+        let selected = mark.selected
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(entry.time)

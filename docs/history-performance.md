@@ -71,6 +71,53 @@ drawing boundary. These use documented
 [wrapping line limits](https://developer.apple.com/documentation/appkit/nstextfield/maximumnumberoflines)
 and [native view sizing](https://developer.apple.com/documentation/swiftui/nsviewrepresentable/sizethatfits(_:nsview:context:)).
 
+## Timeline following and card creation
+
+Scrolling lagged again after the neumorphic card surfaces landed. A Time
+Profiler trace of the scroll fixture and per-step attribution showed that the
+remaining cost was not snapshot work but two kinds of steps:
+
+- Each current-record change re-evaluated the whole timeline body and called
+  `scrollTo(id:)` on its lazy stack. Moving the timeline at all is a second
+  lazy scroll update; an arithmetic `scrollTo(y:)` was only slightly cheaper,
+  and lazy stacks estimate unmaterialized rows, so fixed row heights cannot
+  predict their offsets. Disabling this step alone halved the work per step.
+- Each newly visible card created a native transcript field, a hidden probe
+  field and a Show More button, measured twice, and rasterized its gradient face
+  and edge strokes as separate CPU bitmaps.
+
+The timeline now scrolls only when the highlighted row reaches its first or last
+visible row, then places that row a quarter of the viewport from the edge it is
+travelling toward, so the following records need no scroll. Selection lives in
+per-row observable marks updated by a small follower view; a change invalidates
+the old and new rows instead of the timeline body. `HistoryTranscript` measures
+with one shared field, skips the seven-line probe when the text is shorter than
+six lines, caches results by text, expansion and width across lazy-row
+recreation, and creates Show More only when needed. `SoftRaisedSurface` renders
+its face and edges in one `drawingGroup`, with cast shadows outside the group so
+they are not clipped. Compositor captures of the live window and saved renders
+match the previous surfaces except a one-pixel antialiasing ring at most 15/255
+lighter.
+
+With Full Keyboard Access enabled, SwiftUI adds a key-view proxy and a focus-ring
+view for each button. Removing them from timeline and card buttons saved under
+0.4 ms per step, so keyboard access is unchanged.
+
+Interleaved runs of the committed and changed Debug builds, three each per
+appearance, on the fixture below:
+
+| Loaded entries | Build | Mean main-thread work per step | Steps over 16.7 ms (of 180) | p95 step |
+| --- | --- | --- | --- | --- |
+| 200 | Before | 5.65 ms | 45 | 27.5 ms |
+| 200 | After | 2.93 ms | 12.5 | 17.5 ms |
+| 2,000 | Before | 6.36 ms | 53 | 30.9 ms |
+| 2,000 | After | 3.00 ms | 12 | 17.6 ms |
+
+Mean work subtracts the fixed 1/120-second run-loop allowance from each step.
+The fixture now also requires the current record to stay visible in the
+timeline, and allows timeline offset changes for at most a quarter of the
+current-record changes; restoring the per-record `scrollTo(id:)` fails it.
+
 ## Verification
 
 Measured on macOS 27.0 with Xcode 27.0, in the Debug app, at 784 points wide.

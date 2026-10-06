@@ -307,6 +307,9 @@ verification status belong in the vault (see below).
   History prepares grouping, formatted labels, text previews and audio availability
   once per database page off the main actor. Keep timeline scroll state separate
   from page data, and find the first visible record through the snapshot ID index.
+  Scroll the timeline only when the highlighted row reaches its visible edge,
+  leaving room ahead; selection updates per-row marks. Never scroll it or
+  re-evaluate its body for every current-record change; the fixture checks this.
   Never scan or regroup all loaded records during scrolling or check files from
   row bodies. Keep accessibility scrolling independent of SwiftUI lazy-row identity
   traversal; its lightweight representation exposes visible rows, shares row actions
@@ -316,7 +319,8 @@ verification status belong in the vault (see below).
   visibility callbacks change; returning to the top must not retain offscreen
   timestamps. The navigation fixture asserts this cleanup. Exclude zero-visibility
   prefetched rows from active-entry tracking, and reveal the real row before
-  presenting Details or Delete. Collapsed text uses bounded native layout with cached sizing, not
+  presenting Details or Delete. Collapsed text uses bounded native layout with sizing
+  cached across lazy-row recreation and Show More created only when needed, not
   hidden full transcripts or geometry-to-state height feedback. Preserve full text
   for Copy and expansion, and keep expansion/version state outside lazy rows.
   Explicitly clip the native transcript field to its measured bounds so long text
@@ -355,7 +359,8 @@ verification status belong in the vault (see below).
 - Neumorphism covers the whole window. Page cards and controls use
   `SoftRaisedSurface` from `SoftControls.swift`: the Home hero's light and shade at
   full strength (white highlight up-left, shade down-right), with a smaller spread,
-  half for `Card` sections and a quarter for controls. Never lower their contrast to
+  half for `Card` sections and a quarter for controls. Render each face and its edges
+  in one `drawingGroup`, cast shadows outside it. Never lower their contrast to
   make them subtle; shrink the spread instead. Controls are raised: `SoftButtonStyle`
   and `SoftIconButtonStyle` sink into an inset well while pressed; text fields use
   `.softField()` with an accent ring while editing; menu pickers use `SoftPicker`;

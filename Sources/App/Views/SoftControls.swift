@@ -49,12 +49,6 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
             } else {
                 shape.fill(LinearGradient(colors: faces.map { Color(white: $0) },
                                           startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .background {
-                        SurfaceShadows(shape: shape, shadows: [
-                            .init(color: shade, radius: 12 * spread, x: 7 * spread, y: 9 * spread),
-                            .init(color: light, radius: 12 * spread, x: -6 * spread, y: -7 * spread),
-                        ])
-                    }
             }
         }
         .overlay {
@@ -63,6 +57,18 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
                                                   startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
             shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.035), lineWidth: 0.5)
+        }
+        // One GPU-rendered layer for the face and its edges. Otherwise each
+        // gradient is rasterized on the CPU whenever a lazy row appears.
+        // Cast shadows stay outside the group, which would clip them.
+        .drawingGroup()
+        .background {
+            if !pressed {
+                SurfaceShadows(shape: shape, shadows: [
+                    .init(color: shade, radius: 12 * spread, x: 7 * spread, y: 9 * spread),
+                    .init(color: light, radius: 12 * spread, x: -6 * spread, y: -7 * spread),
+                ])
+            }
         }
         .accessibilityHidden(true)
         .allowsHitTesting(false)

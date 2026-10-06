@@ -265,10 +265,16 @@ enum DebugRender {
             RunLoop.main.run(until: Date().addingTimeInterval(1.0 / 120))
             times.append((CFAbsoluteTimeGetCurrent() - start) * 1000)
         }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        precondition(HistoryRenderMetrics.currentRecordID.map(HistoryRenderMetrics.timelineVisibleIDs.contains) == true,
+                     "The timeline must keep the current record visible")
         let sorted = times.sorted()
         precondition(HistoryRenderMetrics.groupingPasses == 0, "Scrolling must not rebuild the history snapshot")
         precondition(HistoryRenderMetrics.cardBodies < 180, "Timeline tracking invalidated unrelated cards")
-        print("HISTORY_PERF samples=\(times.count) p50_ms=\(sorted[sorted.count / 2]) p95_ms=\(sorted[sorted.count * 95 / 100]) max_ms=\(sorted.last!) grouping_passes=\(HistoryRenderMetrics.groupingPasses) grouped_records=\(HistoryRenderMetrics.groupedRecords) card_bodies=\(HistoryRenderMetrics.cardBodies)")
+        precondition(HistoryRenderMetrics.timelineScrolls <= max(3, HistoryRenderMetrics.recordChanges / 4),
+                     "The timeline must not scroll for every current-record change")
+        let work = times.reduce(0, +) / Double(times.count) - 1000.0 / 120
+        print("HISTORY_PERF mean_work_ms=\(String(format: "%.2f", work)) slow=\(times.filter { $0 > 1000.0 / 60 }.count) samples=\(times.count) p50_ms=\(sorted[sorted.count / 2]) p95_ms=\(sorted[sorted.count * 95 / 100]) max_ms=\(sorted.last!) grouping_passes=\(HistoryRenderMetrics.groupingPasses) grouped_records=\(HistoryRenderMetrics.groupedRecords) card_bodies=\(HistoryRenderMetrics.cardBodies) record_changes=\(HistoryRenderMetrics.recordChanges) timeline_scrolls=\(HistoryRenderMetrics.timelineScrolls)")
     }
 
     /// Exercise the real SwiftUI scroll views without synthetic global input or user-data writes.
@@ -306,6 +312,8 @@ enum DebugRender {
         scroll(cards, toBottom: true)
         precondition(cards.contentView.bounds.minY > 100, "History did not scroll down")
         precondition(timeline.contentView.bounds.minY > 0, "Timeline did not follow the lower cards")
+        precondition(HistoryRenderMetrics.currentRecordID.map(HistoryRenderMetrics.timelineVisibleIDs.contains) == true,
+                     "The timeline must reveal the current lower record")
         precondition(HistoryRenderMetrics.timelineVisibleIDs.isDisjoint(with: initialTimelineIDs),
                      "Lower timeline accessibility must exclude the initial timestamps")
         scroll(cards, toBottom: false)
@@ -413,9 +421,12 @@ enum DebugRender {
 @MainActor
 enum HistoryRenderMetrics {
     static var timelineVisibleIDs: Set<String> = []
+    static var currentRecordID: String?
+    static var recordChanges = 0
+    static var timelineScrolls = 0
     static var groupingPasses = 0
     static var groupedRecords = 0
     static var cardBodies = 0
-    static func reset() { groupingPasses = 0; groupedRecords = 0; cardBodies = 0 }
+    static func reset() { groupingPasses = 0; groupedRecords = 0; cardBodies = 0; recordChanges = 0; timelineScrolls = 0 }
 }
 #endif
