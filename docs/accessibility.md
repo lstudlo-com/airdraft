@@ -131,19 +131,31 @@ Configuration no longer offers an AX-write mode. Airdraft does not attempt an
 writable but cannot verify a replacement; trying it first caused the repeated
 “Check the destination before pasting” recovery notice and blocked normal paste.
 
-The clipboard is restored after one second if its ownership has not changed.
-Once the paste event is posted, cancelling the dictation cannot shorten this
-delay: the receiving app still needs time to read the dictated text. There is
-never a second paste. Changed or unknown destinations still retain recovery text.
+A posted command does not confirm delivery. Airdraft waits up to one second
+for the expected replacement text in the original field, using its full value
+or the inserted UTF-16 range and resulting caret. These read-only checks remain
+local and do not supply refinement context. Only confirmation reports success,
+starts the HUD fade and permits restoration of the previous clipboard after
+the one-second handoff delay. Confirmation and handoff survive cancellation.
+
+Ignored, partial, slow or unobservable pastes keep the dictated text on the
+clipboard and show "Paste couldn't be confirmed" with a reminder to check the
+destination before pasting again. Caretless terminals still receive one paste;
+the lack of read-back prevents false success, not the initial attempt. History
+retains the final text and diagnostic without marking delivery successful.
+There is never a second automatic paste. Newer clipboard contents are preserved;
+the notice then directs recovery to History. A failed clipboard write never
+claims that text was copied.
 
 `TextDeliveryRegressionTests` calls production `captureTarget()` and `insert()`
 together through an injected OS boundary and private pasteboard. Cases cover
 both saved insertion preferences, unavailable AX values, native/web focus,
-changed destinations, cancellation and context-off pipeline delivery to History.
+changed destinations, dropped/partial/delayed paste, cancellation, clipboard
+ownership and context-off/refined pipeline delivery to History.
 The retired AX-write verifier and its tests were removed with that delivery path.
 
 Both `pnpm test:local` and release preparation inspect the actual xcresult with
-`verify-insertion-regressions.py`. All 38 current insertion cases must execute
+`verify-insertion-regressions.py`. All 49 current insertion cases must execute
 and pass; missing, skipped and failed cases block the run. From 0.4.2, release
 preparation also requires live TextEdit and Chrome insertion for both persisted
 preferences. `verify-live-insertion.py` requires the actual resulting text, one

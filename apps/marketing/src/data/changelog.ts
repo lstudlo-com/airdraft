@@ -8,11 +8,60 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-05.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-07.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-8-1",
+    version: "0.8.1",
+    date: "2026-10-07",
+    title: "Recover text when a paste cannot be confirmed",
+    changes: [
+      {
+        title: "Keep unconfirmed text available",
+        description:
+          "Airdraft now checks the destination text before reporting a successful paste. If an editor ignores the paste or cannot expose its text, your transcript stays on the clipboard and a recovery notice appears. Check the destination before pasting again; Airdraft never retries an uncertain paste automatically.",
+      },
+      {
+        title: "Preserve recovery details in History",
+        description:
+          "History saves the transcript and delivery diagnostic when a paste cannot be confirmed, including after successful refinement. If another app changes the clipboard, its newer content is preserved and the notice points you to History.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.8.1-build.197",
+    },
+  },
+  {
+    id: "0-8-0",
+    version: "0.8.0",
+    date: "2026-10-07",
+    title: "Recordings, meeting capture and configuration search",
+    changes: [
+      {
+        title: "Keep audio independently of transcripts",
+        description:
+          "Browse and export recordings, import media, edit speaker transcripts and capture meeting audio. Saved audio remains available for transcription and recovery, with separate cleanup controls for recordings and text.",
+      },
+      {
+        title: "Find settings and choose your recording window",
+        description:
+          "Search Configuration by setting name or description. Choose Mini, Cube or Sonic recording windows, enable an optional timer, and select separate light and dark app icons.",
+      },
+      {
+        title: "Protect privacy and interrupted work",
+        description:
+          "Provider redirect checks, browser context boundaries and interrupted cleanup recovery are stricter. Shared busy-state checks protect active operations, while History scrolling and recovery notices receive reliability fixes.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.8.0-build.194",
+    },
+  },
   {
     id: "0-7-0",
     version: "0.7.0",

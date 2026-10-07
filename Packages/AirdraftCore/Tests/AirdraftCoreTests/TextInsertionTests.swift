@@ -138,14 +138,14 @@ final class TextInsertionTests: XCTestCase {
             XCTAssertEqual(pasteboard.string(forType: .string), "Dictated 中文🙂")
             XCTAssertNotNil(pasteboard.data(forType: .init("org.nspasteboard.TransientType")))
             return true
-        }, onDelivered: {
+        }, confirmation: { true }, onDelivered: {
             deliveryEvents += 1
             XCTAssertEqual(posts, 1)
             XCTAssertEqual(pasteboard.string(forType: .string), "Dictated 中文🙂",
                            "Delivery feedback must precede clipboard restoration")
         })
 
-        XCTAssertTrue(success)
+        XCTAssertTrue(success.didInsert)
         XCTAssertEqual(posts, 1)
         XCTAssertEqual(deliveryEvents, 1)
         let restored = try XCTUnwrap(pasteboard.pasteboardItems)
@@ -165,9 +165,9 @@ final class TextInsertionTests: XCTestCase {
             pasteboard.clearContents()
             pasteboard.setString("User copied something newer", forType: .string)
             return true
-        })
+        }, confirmation: { true })
 
-        XCTAssertTrue(success)
+        XCTAssertTrue(success.didInsert)
         XCTAssertEqual(pasteboard.string(forType: .string), "User copied something newer")
     }
 
@@ -184,7 +184,7 @@ final class TextInsertionTests: XCTestCase {
             XCTFail("Failed paste must not report delivery or dismiss the recovery HUD")
         })
 
-        XCTAssertFalse(success)
+        XCTAssertFalse(success.didInsert)
         XCTAssertEqual(posts, 1)
         XCTAssertEqual(pasteboard.string(forType: .string), "Recoverable text")
     }
@@ -202,7 +202,7 @@ final class TextInsertionTests: XCTestCase {
                 posts += 1
                 posted.fulfill()
                 return true
-            })
+            }, confirmation: { true })
         }
         await fulfillment(of: [posted], timeout: 1)
         task.cancel()
@@ -210,7 +210,7 @@ final class TextInsertionTests: XCTestCase {
         XCTAssertEqual(pasteboard.string(forType: .string), "Dictation",
                        "Cancelling a posted paste must not replace the receiving app's input")
         let succeeded = await task.value
-        XCTAssertTrue(succeeded)
+        XCTAssertTrue(succeeded.didInsert)
         XCTAssertEqual(posts, 1)
         XCTAssertEqual(pasteboard.string(forType: .string), "Old clipboard")
     }
@@ -220,9 +220,48 @@ final class TextInsertionTests: XCTestCase {
         defer { pasteboard.releaseGlobally() }
         let inserter = TextInserter()
         inserter.restoreDelay = 0
-        let success = await inserter.insertViaPaste("Dictation", pasteboard: pasteboard, postPaste: { true })
+        let success = await inserter.insertViaPaste("Dictation", pasteboard: pasteboard,
+                                                  postPaste: { true }, confirmation: { true })
 
-        XCTAssertTrue(success)
+        XCTAssertTrue(success.didInsert)
         XCTAssertTrue(pasteboard.pasteboardItems?.isEmpty ?? true)
+    }
+
+    func testUnconfirmedPasteDoesNotOverwriteNewClipboardOrClaimItKeptText() async {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        let inserter = TextInserter()
+        inserter.confirmationTimeout = .milliseconds(25)
+        let result = await inserter.insertViaPaste("Dictation", pasteboard: pasteboard, postPaste: {
+            pasteboard.clearContents()
+            pasteboard.setString("Newer copy", forType: .string)
+            return true
+        }, confirmation: { false })
+        XCTAssertFalse(result.didInsert)
+        XCTAssertEqual(result.notice, "Paste couldn't be confirmed. Clipboard changed; recover your text from History.")
+        XCTAssertEqual(pasteboard.string(forType: .string), "Newer copy")
+    }
+
+    func testCancellationAfterUnconfirmedPasteKeepsRecoveryText() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("Old clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.confirmationTimeout = .milliseconds(100)
+        let posted = expectation(description: "Paste posted")
+        var posts = 0
+        let task = Task { @MainActor in
+            await inserter.insertViaPaste("Dictation", pasteboard: pasteboard, postPaste: {
+                posts += 1
+                posted.fulfill()
+                return true
+            }, confirmation: { false }, onDelivered: { XCTFail("No acknowledgement") })
+        }
+        await fulfillment(of: [posted], timeout: 1)
+        task.cancel()
+        let result = await task.value
+        XCTAssertFalse(result.didInsert)
+        XCTAssertEqual(posts, 1)
+        XCTAssertEqual(pasteboard.string(forType: .string), "Dictation")
     }
 }

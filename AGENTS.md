@@ -554,9 +554,16 @@ verification status belong in the vault (see below).
   delivery through History.
   Local and release core runs must pass `verify-insertion-regressions.py` against
   their actual xcresult; mandatory insertion cases cannot be missing or skipped.
-  Once paste is posted, its clipboard restoration delay must survive cancellation
-  so the receiving app can read the text. Never repeat a posted paste. Preserve
-  newer clipboard ownership. From 0.4.2, release preparation checks actual TextEdit
+  A posted paste is not delivery confirmation. Read back the expected text from
+  the original field before reporting success or restoring the old clipboard;
+  compare the full value or the inserted UTF-16 range with the resulting caret.
+  These reads stay local, independent of optional refinement context. When a
+  receiver is slow, ignores paste or exposes no readable text/caret, keep the
+  transcript on the clipboard and show a recovery notice instead of silently
+  dismissing the HUD. Record the notice with undelivered History status. Never
+  repeat a posted paste. Once posted, confirmation and the restoration delay
+  survive cancellation; preserve newer clipboard ownership and report copy
+  failures accurately. From 0.4.2, release preparation checks actual TextEdit
   and Chrome delivery for both saved insertion preferences, with fixture binary
   hashes matching the committed Debug build. Follow the Local releases policy
   when acceptance is unavailable: publish with a commit-bound unverified reason

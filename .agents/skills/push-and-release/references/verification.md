@@ -25,7 +25,7 @@ core suite，跨身分 Keychain fixture 也排除；scope 與 exclusions 記在
 
 `test-local-e2e.py` 是無 API 憑證的核心測試選集。release prepare 在建立新成品時另跑完整核心 suite；重用成品會略過，依 skill 第 3 節補齊本次測試。兩者都不能代替 App 的實際流程。原生 fixture 的 HUD 會短暫出現，與其他 UI 操作錯開執行。
 
-本機 runner 與 release prepare 都會檢查實際 xcresult 的 38 個 mandatory
+本機 runner 與 release prepare 都會檢查實際 xcresult 的 49 個 mandatory
 insertion regressions，涵蓋 production capture／insert entry points、無游標 editor 與關閉
 context 的 pipeline → History。任何 missing、skip 或 fail 都會阻止通過，
 不可只引用 xcodebuild exit 0。此 gate 適用於完整與 credential-free 範圍；
