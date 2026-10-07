@@ -12,6 +12,17 @@ import sys
 # covers one paste for both persisted settings plus cancellation during handoff.
 # Caretless cases cover editors that draw their own text, such as Zed and Warp.
 REQUIRED_TESTS = (
+    'TextDeliveryRegressionTests/testIgnoredPasteKeepsRecoveryTextAndDoesNotReportDelivery()',
+    'TextDeliveryRegressionTests/testDelayedPasteReportsDeliveryOnlyAfterExpectedTextArrives()',
+    'TextDeliveryRegressionTests/testSlowReceiverCanReadClipboardAfterConfirmationDeadline()',
+    'TextDeliveryRegressionTests/testPartialPasteOrCaretMovementCannotConfirmDelivery()',
+    'TextDeliveryRegressionTests/testUnobservablePasteKeepsRecoveryTextEvenWhenItWasPosted()',
+    'TextDeliveryRegressionTests/testConfirmedPasteReplacesUTF16SelectionAndPreservesSurroundingText()',
+    'TextDeliveryRegressionTests/testIgnoredPasteThroughPipelineKeepsNoticeClipboardAndUndeliveredHistory()',
+    'TextDeliveryRegressionTests/testIgnoredPasteAfterRefinementKeepsFinalTextAndRecoveryNotice()',
+    'TextDeliveryRegressionTests/testCaretlessIgnoredPasteAfterRefinementKeepsRecovery()',
+    'TextInsertionTests/testUnconfirmedPasteDoesNotOverwriteNewClipboardOrClaimItKeptText()',
+    'TextInsertionTests/testCancellationAfterUnconfirmedPasteKeepsRecoveryText()',
     'TextDeliveryRegressionTests/testCaptureFollowsAppSwitchBeforeRecordingStarts()',
     'TextDeliveryRegressionTests/testCaptureUsesSystemEditorWhenApplicationFocusIsStaleAfterSwitch()',
     'TextDeliveryRegressionTests/testRestorationUsesSystemEditorWhileApplicationFocusIsStale()',

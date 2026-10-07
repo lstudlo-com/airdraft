@@ -7,7 +7,7 @@ import os
 public enum InsertionMethod: String, Codable, CaseIterable, Sendable, Identifiable {
     /// Legacy automatic setting; uses the same validated paste path as `paste`.
     case auto
-    /// Always paste (clipboard is restored afterwards).
+    /// Always paste (clipboard is restored after confirmed delivery).
     case paste
     public var id: String { rawValue }
 }
@@ -57,6 +57,7 @@ public final class TextInserter {
         var enableWebAccessibility: (Int32) -> Bool
         var postPaste: () -> Bool
         var pasteboard: NSPasteboard
+        var readText: (AXUIElement, CFRange) -> String? = { _, _ in nil }
 
         static var live: Environment {
             Environment(frontmostApplication: {
@@ -80,7 +81,14 @@ public final class TextInserter {
                 let app = AXUIElementCreateApplication(pid)
                 AXUIElementSetMessagingTimeout(app, 0.3)
                 return AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success
-            }, postPaste: { postCommandV() }, pasteboard: .general)
+            }, postPaste: { postCommandV() }, pasteboard: .general, readText: { element, range in
+                var range = range
+                guard let parameter = AXValueCreate(.cfRange, &range) else { return nil }
+                var ref: CFTypeRef?
+                guard AXUIElementCopyParameterizedAttributeValue(element,
+                    kAXStringForRangeParameterizedAttribute as CFString, parameter, &ref) == .success else { return nil }
+                return ref as? String
+            })
         }
 
         private static func copyFocus(in root: AXUIElement,
@@ -99,6 +107,9 @@ public final class TextInserter {
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "insert")
     /// How long the pasted text stays on the clipboard before the previous contents return.
     public var restoreDelay: TimeInterval = 1.0
+    /// A posted event has no acknowledgement. Wait only for read-only evidence
+    /// from the original field; an unobservable or slow receiver keeps the text.
+    var confirmationTimeout: Duration = .seconds(1)
 
     public init() { environment = .live }
     init(environment: Environment) { self.environment = environment }
@@ -109,24 +120,20 @@ public final class TextInserter {
 
         // Dictated while airdraft itself was in front: there is nowhere sensible to type.
         if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
-            copyOnly(text)
             Self.log.notice("insert: target is airdraft, copied only")
-            return InsertionResult(method: .clipboardOnly, notice: "Copied to clipboard",
-                                   noticeRequiresAttention: false)
+            return copyOnly(text, notice: "Copied to clipboard", requiresAttention: false)
         }
 
         // Bring the original app back if focus moved while we were transcribing.
         guard environment.isTrusted() else {
-            copyOnly(text)
             Self.log.error("insert: Accessibility not granted, copied only")
-            return InsertionResult(method: .clipboardOnly, notice: "Accessibility is off, text copied")
+            return copyOnly(text, notice: "Accessibility is off, text copied")
         }
         let restored = if let target { await restoreFocus(to: target) } else { false }
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard restored, let target else {
-            copyOnly(text)
             Self.log.notice("insert: destination unavailable=\(target == nil, privacy: .public)")
-            return InsertionResult(method: .clipboardOnly, notice: target == nil
+            return copyOnly(text, notice: target == nil
                 ? "Couldn't identify the destination app. Text copied; paste it where you want."
                 : "Destination changed. Text copied; paste it where you want.")
         }
@@ -139,17 +146,21 @@ public final class TextInserter {
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard await Self.waitForMatch(matches: { self.matches(target) }) else {
             guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
-            copyOnly(text)
             Self.log.notice("insert: destination changed before paste")
-            return InsertionResult(method: .clipboardOnly, notice: "Destination changed. Text copied.")
+            return copyOnly(text, notice: "Destination changed. Text copied.")
         }
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
-        Self.log.notice("insert: paste verified by \(target.selection == nil ? "app window" : "field and caret", privacy: .public)")
-        let ok = await insertViaPaste(text, pasteboard: environment.pasteboard,
-                                     postPaste: environment.postPaste, onDelivered: onDelivered)
-        return ok
-            ? InsertionResult(method: .paste, notice: nil)
-            : InsertionResult(method: .clipboardOnly, notice: "Couldn't paste, text copied")
+        Self.log.notice("insert: destination matched by \(target.selection == nil ? "app window" : "field and caret", privacy: .public)")
+        let confirmation = pasteConfirmation(text, target: target)
+        // Reading the baseline may involve another process. Recheck the field
+        // and caret after that read, immediately before posting the only paste.
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+        guard matches(target) else {
+            return copyOnly(text, notice: "Destination changed. Text copied.")
+        }
+        return await insertViaPaste(text, pasteboard: environment.pasteboard,
+                                    postPaste: environment.postPaste, confirmation: confirmation,
+                                    onDelivered: onDelivered)
     }
 
     // MARK: - Focus
@@ -344,40 +355,97 @@ public final class TextInserter {
 
     // MARK: - Paste
 
+    /// Only the expected text in the original field confirms delivery. A moved
+    /// caret or an arbitrary value change is insufficient. Nothing is written
+    /// through AX, logged, persisted or supplied as refinement context.
+    private func pasteConfirmation(_ text: String, target: InsertionTarget) -> (() -> Bool)? {
+        guard let field = target.element, let range = target.selection else { return nil }
+        let (status, ref) = environment.readAttribute(field, kAXValueAttribute as CFString)
+        let before = status == .success ? ref as? String : nil
+        let expected: String? = before.flatMap { value in
+            let source = value as NSString
+            guard range.location <= source.length, range.length <= source.length - range.location else { return nil }
+            return source.replacingCharacters(in: NSRange(location: range.location, length: range.length), with: text)
+        }
+        let length = (text as NSString).length
+        guard length <= Int.max - range.location else { return nil }
+        let insertedRange = CFRange(location: range.location, length: length)
+        let finalCaret = CFRange(location: range.location + length, length: 0)
+        return {
+            guard self.environment.isTrusted(), self.environment.processID(field) == target.processID else { return false }
+            if let before, let expected {
+                let (status, ref) = self.environment.readAttribute(field, kAXValueAttribute as CFString)
+                if status == .success, let value = ref as? String, value == expected {
+                    return value != before || Self.selectionMatches(finalCaret, self.selection(field))
+                }
+            }
+            // Some editors expose text by range without exposing AXValue.
+            return Self.selectionMatches(finalCaret, self.selection(field)) &&
+                !Self.selectionMatches(range, finalCaret) && self.environment.readText(field, insertedRange) == text
+        }
+    }
+
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
-                        postPaste: (() -> Bool)? = nil, onDelivered: (() -> Void)? = nil) async -> Bool {
+                        postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
+                        onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         let saved = snapshot(pasteboard)
 
-        // Only on the clipboard long enough to paste: keep it off other devices
-        // (Universal Clipboard) and out of clipboard-manager history.
+        // Keep the temporary handoff local and out of clipboard-manager history.
+        // Without confirmation it remains available for manual recovery.
         pasteboard.prepareForNewContents(with: .currentHostOnly)
         let item = NSPasteboardItem()
         item.setString(text, forType: .string)
         item.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
-        pasteboard.writeObjects([item])
+        guard pasteboard.writeObjects([item]) else {
+            Self.log.error("insert: clipboard write failed; paste not posted")
+            return InsertionResult(method: .clipboardOnly,
+                notice: "Couldn't copy or paste. Your text is available in History.")
+        }
         let ourChange = pasteboard.changeCount
+        guard pasteboard.string(forType: .string) == text, pasteboard.changeCount == ourChange else {
+            return InsertionResult(method: .clipboardOnly,
+                notice: "Clipboard changed before paste. Your text is available in History.")
+        }
 
-        guard (postPaste ?? Self.postCommandV)() else { return false }
-        // Delivery feedback must not wait for clipboard restoration.
-        onDelivered?()
+        guard (postPaste ?? Self.postCommandV)() else {
+            return InsertionResult(method: .clipboardOnly, notice: "Couldn't paste, text copied")
+        }
         // The receiving app handles the posted event asynchronously. Once it is
         // posted, cancellation must not restore the old clipboard before that
         // app reads it. This unstructured task owns the short restoration delay
         // independently of the cancelled dictation; it never posts another key.
         let delay = restoreDelay
-        await Task { @MainActor in
-            try? await Task.sleep(for: .seconds(delay))
+        let timeout = confirmationTimeout
+        return await Task { @MainActor in
+            let started = ContinuousClock.now
+            let confirmed: Bool
+            if let confirmation { confirmed = await Self.waitForMatch(timeout: timeout, matches: confirmation) }
+            else { confirmed = false }
+            guard confirmed else {
+                let kept = pasteboard.changeCount == ourChange
+                Self.log.notice("insert: paste unconfirmed; recovery clipboard retained=\(kept, privacy: .public)")
+                return InsertionResult(method: .clipboardOnly, notice: kept
+                    ? "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again."
+                    : "Paste couldn't be confirmed. Clipboard changed; recover your text from History.")
+            }
+            Self.log.notice("insert: delivery confirmed by destination text")
+            onDelivered?()
+            try? await ContinuousClock().sleep(until: started.advanced(by: .seconds(delay)))
             // Restore only if nobody replaced the clipboard in the meantime.
             if pasteboard.changeCount == ourChange {
                 self.restore(pasteboard, items: saved)
             }
+            return InsertionResult(method: .paste, notice: nil)
         }.value
-        return true
     }
 
-    private func copyOnly(_ text: String) {
+    private func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true) -> InsertionResult {
         environment.pasteboard.clearContents()
-        environment.pasteboard.setString(text, forType: .string)
+        guard environment.pasteboard.setString(text, forType: .string),
+              environment.pasteboard.string(forType: .string) == text else {
+            return InsertionResult(method: .clipboardOnly, notice: "Couldn't copy. Your text is available in History.")
+        }
+        return InsertionResult(method: .clipboardOnly, notice: notice, noticeRequiresAttention: requiresAttention)
     }
 
     private func snapshot(_ pb: NSPasteboard) -> [[NSPasteboard.PasteboardType: Data]] {

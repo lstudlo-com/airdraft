@@ -7,6 +7,102 @@ import XCTest
 /// reads and the posted key event are replaced by a disposable editor.
 @MainActor
 final class TextDeliveryRegressionTests: XCTestCase {
+    func testIgnoredPasteKeepsRecoveryTextAndDoesNotReportDelivery() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.dropPaste = true
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        var delivered = 0
+        let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
+        XCTAssertFalse(result.didInsert, "Posting a key event is not proof that the editor received text")
+        XCTAssertNotNil(result.notice)
+        XCTAssertTrue(result.noticeRequiresAttention)
+        XCTAssertEqual(delivered, 0, "Unconfirmed delivery must not dismiss the HUD")
+        XCTAssertEqual(editor.posts, 1, "Never retry an uncertain paste")
+        XCTAssertTrue(editor.pasted.isEmpty)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+    }
+
+    func testDelayedPasteReportsDeliveryOnlyAfterExpectedTextArrives() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.pasteDelay = .milliseconds(100)
+        let inserter = editor.inserter()
+        inserter.confirmationTimeout = .milliseconds(300)
+        let target = await inserter.captureTarget()
+        var delivered = 0
+        let result = await inserter.insert(Editor.dictation, target: target) {
+            delivered += 1
+            XCTAssertEqual(editor.value, Editor.dictation)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+        }
+        XCTAssertTrue(result.didInsert)
+        XCTAssertEqual(delivered, 1)
+        XCTAssertEqual(editor.posts, 1)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
+    }
+
+    func testPartialPasteOrCaretMovementCannotConfirmDelivery() async throws {
+        for changedText in ["Dictated text", "something else", "cat"] {
+            let editor = Editor()
+            defer { editor.close() }
+            editor.replacement = changedText
+            let inserter = editor.inserter()
+            let target = await inserter.captureTarget()
+            let result = await inserter.insert(Editor.dictation, target: target) {
+                XCTFail("A changed value/caret alone must not report success")
+            }
+            XCTAssertFalse(result.didInsert)
+            XCTAssertNotNil(result.notice)
+            XCTAssertEqual(editor.posts, 1)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+        }
+    }
+
+    func testSlowReceiverCanReadClipboardAfterConfirmationDeadline() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.pasteDelay = .milliseconds(200)
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertFalse(result.didInsert)
+        XCTAssertNotNil(result.notice)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+        for _ in 0..<100 where editor.pasted.isEmpty { try await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertEqual(editor.value, Editor.dictation)
+        XCTAssertEqual(editor.posts, 1)
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+    }
+
+    func testUnobservablePasteKeepsRecoveryTextEvenWhenItWasPosted() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.unreadableValue = true
+        editor.unreadableTextRange = true
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertFalse(result.didInsert)
+        XCTAssertNotNil(result.notice)
+        XCTAssertEqual(editor.pasted, [Editor.dictation])
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
+    }
+
+    func testConfirmedPasteReplacesUTF16SelectionAndPreservesSurroundingText() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.value = "前🙂cat後"
+        editor.range = CFRange(location: 3, length: 3)
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        let result = await inserter.insert(Editor.dictation, target: target)
+        XCTAssertTrue(result.didInsert)
+        XCTAssertEqual(editor.value, "前🙂" + Editor.dictation + "後")
+        XCTAssertEqual(editor.posts, 1)
+    }
+
     func testAlwaysPasteCapturesAndDeliversToNativeEditor() async throws {
         let editor = Editor()
         defer { editor.close() }
@@ -287,12 +383,12 @@ final class TextDeliveryRegressionTests: XCTestCase {
             XCTAssertNil(target.selection, shape)
             var delivered = 0
             let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
-            XCTAssertEqual(result.method, .paste, shape)
-            XCTAssertNil(result.notice, shape)
+            XCTAssertFalse(result.didInsert, shape)
+            XCTAssertNotNil(result.notice, shape)
             XCTAssertEqual(editor.activations, 0, shape)
             XCTAssertEqual(editor.pasted, [Editor.dictation], shape)
-            XCTAssertEqual(delivered, 1, shape)
-            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard, shape)
+            XCTAssertEqual(delivered, 0, shape)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation, shape)
         }
     }
 
@@ -305,7 +401,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
         editor.frontmostPID = 999
         editor.activationDelay = .milliseconds(100)
         let result = await inserter.insert(Editor.dictation, target: target)
-        XCTAssertEqual(result.method, .paste)
+        XCTAssertFalse(result.didInsert)
+        XCTAssertNotNil(result.notice)
         XCTAssertEqual(editor.activations, 1)
         XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
@@ -405,16 +502,31 @@ final class TextDeliveryRegressionTests: XCTestCase {
         try await verifyPipelineDelivery(copyWithinApp: true, refinementFails: true)
     }
 
+    func testIgnoredPasteThroughPipelineKeepsNoticeClipboardAndUndeliveredHistory() async throws {
+        try await verifyPipelineDelivery(dropPaste: true)
+    }
+
+    func testIgnoredPasteAfterRefinementKeepsFinalTextAndRecoveryNotice() async throws {
+        try await verifyPipelineDelivery(dropPaste: true, refinementEnabled: true)
+    }
+
+    func testCaretlessIgnoredPasteAfterRefinementKeepsRecovery() async throws {
+        try await verifyPipelineDelivery(dropPaste: true, refinementEnabled: true, caretless: true)
+    }
+
     private func verifyPipelineDelivery(copyWithinApp: Bool = false, permissionLost: Bool = false,
-                                        refinementFails: Bool = false) async throws {
+                                        refinementFails: Bool = false, dropPaste: Bool = false,
+                                        refinementEnabled: Bool = false, caretless: Bool = false) async throws {
         let editor = Editor()
         defer { editor.close() }
         if copyWithinApp { editor.bundleID = try XCTUnwrap(Bundle.main.bundleIdentifier) }
+        editor.dropPaste = dropPaste
+        if caretless { editor.range = nil }
         let suite = "airdraft.delivery-regression.\(UUID().uuidString)"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
         settings.asr = ASRConfig(kind: .parakeet)
-        settings.llm.select(refinementFails ? .appleIntelligence : .none)
+        settings.llm.select(refinementFails || refinementEnabled ? .appleIntelligence : .none)
         settings.useAppContext = false
         settings.livePreviewEnabled = false
         let history = try HistoryStore(directory: directory)
@@ -424,7 +536,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
             factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Delivery regression tests must not read credentials"); return nil
             }, transcriberBuilder: { _ in DeliverySpeech() },
-               refinerBuilder: { _ in DeliveryFailingRefiner() }), recorder: recorder,
+               refinerBuilder: { _ in DeliveryRefiner(fails: refinementFails) }), recorder: recorder,
             inserter: editor.inserter(), recordingPreflight: { _, _, _, _, _ in }, requestMicrophoneAccess: { true })
         defer {
             pipeline.cancel()
@@ -440,13 +552,20 @@ final class TextDeliveryRegressionTests: XCTestCase {
         if permissionLost { editor.trusted = false }
         pipeline.stopAndProcess()
         for _ in 0..<200 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
-        let copiedOnly = copyWithinApp || permissionLost
+        let copiedOnly = copyWithinApp || permissionLost || dropPaste
         XCTAssertEqual(editor.pasted, copiedOnly ? [] : [Editor.dictation])
         XCTAssertEqual(delivered, copiedOnly ? 0 : 1)
         if copiedOnly {
             XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
-            XCTAssertEqual(pipeline.state, .notice(copyWithinApp ? "Copied to clipboard" : "Accessibility is off, text copied",
+            let notice = dropPaste
+                ? "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again."
+                : (copyWithinApp ? "Copied to clipboard" : "Accessibility is off, text copied")
+            XCTAssertEqual(pipeline.state, .notice(notice,
                                                   requiresAttention: !copyWithinApp))
+            if dropPaste {
+                XCTAssertEqual(editor.posts, 1)
+                XCTAssertEqual(try history.recent(limit: 1).first?.error, notice)
+            }
             try await Task.sleep(for: .milliseconds(3200))
             XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three seconds")
         } else {
@@ -457,6 +576,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertEqual(record.outputSucceeded, !copiedOnly)
         XCTAssertEqual(record.rawTranscript, Editor.dictation)
         XCTAssertEqual(record.finalText, Editor.dictation)
+        if refinementEnabled { XCTAssertEqual(record.refinedText, Editor.dictation) }
         if refinementFails {
             XCTAssertEqual(record.error, RefinerError.timeout.localizedDescription)
             XCTAssertEqual(pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
@@ -481,9 +601,13 @@ private struct DeliverySpeech: Transcriber {
     }
 }
 
-private struct DeliveryFailingRefiner: Refiner {
+private struct DeliveryRefiner: Refiner {
     let id = "delivery-regression-refiner"
-    func refine(_ request: RefineRequest) async throws -> RefineResult { throw RefinerError.timeout }
+    let fails: Bool
+    func refine(_ request: RefineRequest) async throws -> RefineResult {
+        if fails { throw RefinerError.timeout }
+        return RefineResult(text: "Dictated text 中文🙂", engine: id, latencyMs: 0, promptVersion: "fixture")
+    }
 }
 
 @MainActor
@@ -514,6 +638,12 @@ private final class Editor {
     var activations = 0
     var activationDelay: Duration?
     var unreadableValue = false
+    var unreadableTextRange = false
+    var value = "cat"
+    var replacement: String?
+    var pasteDelay: Duration?
+    var dropPaste = false
+    var posts = 0
     var pasted: [String] = []
     var onFocusRead: (() -> Void)?
 
@@ -560,19 +690,41 @@ private final class Editor {
                 return (.success, [value] as CFArray)
             case kAXValueAttribute as String:
                 if self.unreadableValue { return (.attributeUnsupported, nil) }
-                return (.success, "cat" as CFString)
+                return (.success, self.value as CFString)
             default: return (.attributeUnsupported, nil)
             }
         }, enableWebAccessibility: { _ in
             self.webEnabled = self.canEnableWebAccessibility
             return self.webEnabled
         }, postPaste: {
-            guard let text = self.clipboard.string(forType: .string) else { return false }
-            self.pasted.append(text)
+            self.posts += 1
+            if self.dropPaste { return true }
+            if let delay = self.pasteDelay {
+                Task { @MainActor in
+                    try? await Task.sleep(for: delay)
+                    self.receivePaste()
+                }
+            } else { self.receivePaste() }
             return true
-        }, pasteboard: clipboard)
+        }, pasteboard: clipboard, readText: { _, range in
+            let source = self.value as NSString
+            guard !self.unreadableTextRange, range.location <= source.length,
+                  range.length <= source.length - range.location else { return nil }
+            return source.substring(with: NSRange(location: range.location, length: range.length))
+        })
         let inserter = TextInserter(environment: environment)
         inserter.restoreDelay = 0
+        inserter.confirmationTimeout = .milliseconds(50)
         return inserter
+    }
+
+    private func receivePaste() {
+        guard let text = clipboard.string(forType: .string) else { return }
+        pasted.append(text)
+        if let range {
+            value = (value as NSString).replacingCharacters(in: NSRange(location: range.location, length: range.length),
+                                                           with: replacement ?? text)
+            self.range = CFRange(location: range.location + (text as NSString).length, length: 0)
+        }
     }
 }

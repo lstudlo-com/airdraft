@@ -77,7 +77,7 @@ public final class DictationPipeline {
     public var onRecordingBlocked: (() -> Void)?
     public var onOutcome: ((DictationOutcome) -> Void)?
     /// Delivery feedback precedes clipboard restoration and history persistence.
-    /// Paste delivery means the command was posted, not that the editor acknowledged it.
+    /// Paste delivery requires read-back of the expected text in the original field.
     public var onOutputDelivered: (() -> Void)?
     /// Called with the LLM instance id that served a refinement.
     public var onLLMUsed: ((String, LLMConfig) -> Void)?
@@ -819,6 +819,7 @@ public final class DictationPipeline {
                 outputSucceeded = result.didInsert
                 notice = result.notice
                 noticeRequiresAttention = result.noticeRequiresAttention
+                if !result.didInsert, result.noticeRequiresAttention { deliveryError = result.notice }
             case .script:
                 do {
                     try await sendScript(final, output.scriptPath)
