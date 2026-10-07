@@ -22,7 +22,8 @@ public enum LocalModels {
         case .senseVoice: return hasSherpa(.senseVoice)
         case .parakeet: return hasSherpa(.parakeet)
         case .apple: return AppleSpeechTranscriber.isAvailable
-        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return true
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return true
         }
     }
 
@@ -35,7 +36,8 @@ public enum LocalModels {
         case .fireRed: return sherpaFolder(for: .fireRed)
         case .senseVoice: return sherpaFolder(for: .senseVoice)
         case .parakeet: return sherpaFolder(for: .parakeet)
-        case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return nil
+        case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return nil
         }
     }
 

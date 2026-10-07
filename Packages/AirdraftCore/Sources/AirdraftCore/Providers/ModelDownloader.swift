@@ -103,7 +103,8 @@ public actor ModelDownloader {
             progress(Progress(fraction: nil, currentFile: "Installing language…"))
             try await AppleSpeechTranscriber(locale: config.effectiveAppleLocale).prepare()
             progress(Progress(fraction: 1, currentFile: "Language installed"))
-        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return
         }
     }
 

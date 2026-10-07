@@ -829,8 +829,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Parakeet TDT 0.6B v3 INT8, Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
   SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
-  ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
-  Do not re-add the removed Whisper variants or Voxtral without a reason.
+  ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3, AssemblyAI Universal-3.5 Pro,
+  Cartesia Ink-Whisper, Speechmatics Enhanced, xAI Grok Voice Transcribe 2.0,
+  Mistral Voxtral Mini Transcribe and Gemini 3.5 Transcribe, plus OpenRouter
+  (see `docs/transcription-apis.md`). Each direct provider uses its native speech API.
+  Cartesia file transcription requires an explicit language. Batch jobs/files are
+  deleted on success, failure and cancellation when reachable; never send Gemini
+  speech through a chat prompt or enable its smart mode as implicit refinement.
+  Do not re-add the removed local Whisper variants or local Voxtral without a reason.
   Whisper decodes sequential windows of at most 25 seconds, disables the SDK's
   one-second tail clipping, and preserves cancellation/errors across every chunk.
   Check both sub-second speech and final words beyond 30 seconds after changes.

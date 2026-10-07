@@ -10,6 +10,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// queued behind the caller, so quitting deadlocked. Instead: cancel, free the
     /// models, then terminate again.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        #if DEBUG
+        // Offscreen renders own disposable containers. Do not instantiate the
+        // user's shared container or enter normal model cleanup while exiting.
+        if RenderMode.isActive { return .terminateNow }
+        #endif
         if shutdownFinished { return .terminateNow }
         if !shutdownStarted {
             let app = AppContainer.shared

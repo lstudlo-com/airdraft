@@ -60,6 +60,18 @@ public actor EngineFactory {
             return DeepgramTranscriber(model: config.speechModelID, apiKey: key)
         case .soniox:
             return SonioxTranscriber(apiKey: key)
+        case .assemblyAI:
+            return AssemblyAITranscriber(apiKey: key)
+        case .cartesia:
+            return CartesiaTranscriber(apiKey: key)
+        case .speechmatics:
+            return SpeechmaticsTranscriber(apiKey: key)
+        case .xAI:
+            return XAITranscriber(apiKey: key)
+        case .mistral:
+            return MistralTranscriber(apiKey: key)
+        case .gemini:
+            return GeminiTranscriber(apiKey: key)
         case .openAICompatible:
             let url = URL(string: config.baseURL) ?? URL(string: "https://api.openai.com/v1")!
             return OpenAICompatibleTranscriber(baseURL: url, model: config.model, apiKey: key)

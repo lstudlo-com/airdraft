@@ -53,6 +53,30 @@ public enum SpeechLanguageError: Error, LocalizedError, Sendable, Equatable {
 /// Capability evidence was checked on 2026-10-05. Only exact model IDs inherit
 /// model-specific claims; a future checkpoint or a custom endpoint stays unknown.
 public enum SpeechLanguagePolicy {
+    // Provider file-transcription contracts verified on 2026-10-07.
+    static let assemblyLanguages = [
+        "en", "es", "fr", "de", "it", "pt", "ar", "da", "nl", "fi", "he", "hi",
+        "ja", "zh", "no", "sv", "tr", "vi"
+    ]
+    private static let cartesiaLanguages = [
+        "en", "zh", "de", "es", "ru", "ko", "fr", "ja", "pt", "tr", "pl", "ca",
+        "nl", "ar", "sv", "it", "id", "hi", "fi", "vi", "he", "uk", "el", "ms",
+        "cs", "ro", "da", "hu", "ta", "no", "th", "ur", "hr", "bg", "lt", "la",
+        "mi", "ml", "cy", "sk", "te", "fa", "lv", "bn", "sr", "az", "sl", "kn",
+        "et", "mk", "br", "eu", "is", "hy", "ne", "mn", "bs", "kk", "sq", "sw",
+        "gl", "mr", "pa", "si", "km", "sn", "yo", "so", "af", "oc", "ka", "be",
+        "tg", "sd", "gu", "am", "yi", "lo", "uz", "fo", "ht", "ps", "tk", "nn",
+        "mt", "sa", "lb", "my", "bo", "tl", "mg", "as", "tt", "haw", "ln", "ha",
+        "ba", "jw", "su", "yue"
+    ]
+    private static let speechmaticsLanguages = [
+        "ar", "ba", "be", "bg", "bn", "ca", "cs", "cy", "da", "de", "el", "en",
+        "eo", "es", "et", "eu", "fa", "fi", "fr", "ga", "gl", "he", "hi", "hr",
+        "hu", "ia", "id", "it", "ja", "ko", "lt", "lv", "mn", "mr", "ms", "mt",
+        "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "sw", "ta", "th",
+        "tl", "tr", "ug", "uk", "ur", "vi", "yue", "zh"
+    ]
+
     public static func capabilities(for config: ASRConfig) -> SpeechLanguageCapabilities {
         // Native cloud adapters use this resolved selection, including the existing
         // catalog fallback. OpenRouter and custom endpoints keep exact stored IDs.
@@ -131,6 +155,24 @@ public enum SpeechLanguagePolicy {
             // https://soniox.com/docs/stt/concepts/language-hints
             return capability("Soniox v5", nil, true, .hint,
                               "Recognizes mixed languages automatically. A selected language is a hint.")
+        case .assemblyAI:
+            return capability("AssemblyAI Universal-3.5 Pro", assemblyLanguages, true, .hint,
+                              "18 languages, including Mandarin. Auto Detect supports language switching.")
+        case .cartesia:
+            return capability("Cartesia Ink-Whisper", cartesiaLanguages, false, .forced,
+                              "Select a speech language. Auto Detect is unavailable for the file endpoint.")
+        case .speechmatics:
+            return capability("Speechmatics Enhanced", speechmaticsLanguages, true, .forced,
+                              "Auto Detect chooses one predominant language and works best with 60 seconds of speech.")
+        case .xAI:
+            return capability("Grok Voice Transcribe 2.0", nil, true, .hint,
+                              "Auto Detect supports language switching. A selected language is a hint.")
+        case .mistral:
+            return capability("Voxtral Mini Transcribe", ["en", "zh", "hi", "es", "ar", "fr", "pt", "ru", "de", "ja", "ko", "it", "nl"], true, .hint,
+                              "13 languages, including Mandarin. Auto Detect available.")
+        case .gemini:
+            return capability("Gemini 3.5 Transcribe", nil, true, .hint,
+                              "Auto Detect supports mixed languages. A selected language is a hint.")
         case .openRouter:
             return openRouterCapabilities(model: config.model)
         }

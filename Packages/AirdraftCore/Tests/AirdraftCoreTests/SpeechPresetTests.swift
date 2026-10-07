@@ -2,13 +2,13 @@ import XCTest
 @testable import AirdraftCore
 
 final class SpeechPresetTests: XCTestCase {
-    func testSixCurrentProvidersWithOpenRouterReusingItsRefinementCredential() {
+    func testTwelveProvidersWithIndependentSpeechCredentialsAndOpenRouterSharedKey() {
         let presets = EndpointPreset.asr
-        XCTAssertEqual(presets.count, 6)
-        XCTAssertEqual(Set(presets.map(\.kind)), [.openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox])
-        XCTAssertEqual(Set(presets.map(\.keyRef)).count, 6)
+        XCTAssertEqual(presets.count, 12)
+        XCTAssertEqual(Set(presets.map(\.kind)), [.openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox, .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini])
+        XCTAssertEqual(Set(presets.map(\.keyRef)).count, 12)
         XCTAssertEqual(ASRProviderKind.openRouter.preset?.keyRef, LLMProviderKind.openRouter.keyRef)
-        XCTAssertEqual(Set(presets.map(\.purpose)).count, 6)
+        XCTAssertEqual(Set(presets.map(\.purpose)).count, 12)
         for preset in presets {
             var config = ASRConfig()
             config.select(preset.kind)
@@ -118,7 +118,10 @@ final class SpeechPresetTests: XCTestCase {
     func testFactoryBuildsEachNativeAdapterWithMatchingIdentity() async {
         let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in nil })
         for (kind, type) in [(ASRProviderKind.openAI, "OpenAITranscriber"), (.openRouter, "OpenRouterTranscriber"), (.groq, "OpenAICompatibleTranscriber"),
-                             (.elevenLabs, "ElevenLabsTranscriber"), (.deepgram, "DeepgramTranscriber"), (.soniox, "SonioxTranscriber")] {
+                             (.elevenLabs, "ElevenLabsTranscriber"), (.deepgram, "DeepgramTranscriber"), (.soniox, "SonioxTranscriber"),
+                             (.assemblyAI, "AssemblyAITranscriber"), (.cartesia, "CartesiaTranscriber"),
+                             (.speechmatics, "SpeechmaticsTranscriber"), (.xAI, "XAITranscriber"),
+                             (.mistral, "MistralTranscriber"), (.gemini, "GeminiTranscriber")] {
             var config = ASRConfig()
             config.select(kind)
             for model in ModelCatalog.transcriptionModels(for: kind) {
