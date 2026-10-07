@@ -19,7 +19,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !shutdownStarted {
             let app = AppContainer.shared
             if app.cleanup.isRunning { return .terminateCancel }
-            if app.cleanup.finishedScope != .reset && (app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
+            // A copy that never opened app data has no unsaved work to discard.
+            // Its unavailable HistoryStore must not open another quit alert.
+            if app.dataLease != nil && app.cleanup.finishedScope != .reset && (app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
                app.dictionary.persistenceError != nil || app.profiles.persistenceError != nil ||
                (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()

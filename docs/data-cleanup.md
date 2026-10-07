@@ -39,6 +39,12 @@ older versions may not implement the lease. A blocked new copy does not open or
 repair shared JSON stores. The lock file survives reset so its inode remains the
 coordination point. Failed reset keeps new work fenced until retry or quit.
 
+A copy that cannot open its data directory shows Data Unavailable, without implying
+that deletion is running. Quit on this sheet goes through normal model shutdown
+without an unfinished-history warning for a database the copy never opened. Idle
+recovery and completed-reset sheets allow AppKit termination; only active cleanup
+prevents it. The delegate also refuses quitting while cleanup is running.
+
 Reset cancels pending model loading, drains the factory lease, closes SQLite and
 then removes managed data. Directory roots cannot be symbolic links; child symlinks
 are removed without following their targets. Audio export refuses destinations

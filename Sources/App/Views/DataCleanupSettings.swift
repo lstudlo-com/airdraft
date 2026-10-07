@@ -96,7 +96,8 @@ struct DataCleanupProgress: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-            Text(container.cleanup.finishedScope == .reset ? "App Reset Complete" : container.cleanup.pendingScope?.title ?? "Removing Data")
+            Text(container.dataAccessIssue != nil ? "Data Unavailable" :
+                 container.cleanup.finishedScope == .reset ? "App Reset Complete" : container.cleanup.pendingScope?.title ?? "Removing Data")
                 .font(.system(size: 18, weight: .semibold))
             if let issue = container.dataAccessIssue {
                 Text(issue).textSelection(.enabled)
@@ -131,5 +132,6 @@ struct DataCleanupProgress: View {
         }
         .padding(Theme.pagePadding)
         .frame(width: 510)
+        .background(DataCleanupSheetWindow(isRunning: container.cleanup.isRunning))
     }
 }

@@ -901,6 +901,11 @@ Show in Finder selects the managed file. Recording-only deletion preserves text.
 Configuration exposes four independent cleanup scopes through the shared
 `DataCleanupCoordinator`. Preview errors retry the preview and must still reach
 confirmation; only an already confirmed interrupted cleanup can resume directly.
+A blocked data-directory copy shows Data Unavailable and can quit without an
+unfinished-history warning for a database it never opened. Recovery and completed
+reset sheets must permit AppKit termination; only actively running cleanup blocks
+it. Verify with `python3 scripts/verify-data-cleanup-quit.py`, including `--legacy`
+for the silent negative check.
 Keep new work fenced while its durable journal is pending. Strip deleted content
 from pending saves/recovery so retries cannot resurrect it. Require the app-data
 lease and reject running sibling copies before deleting shared data. Reset closes
