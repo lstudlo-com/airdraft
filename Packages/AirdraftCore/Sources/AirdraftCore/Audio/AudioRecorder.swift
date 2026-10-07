@@ -18,7 +18,7 @@ public enum AudioRecorderError: Error, LocalizedError {
         case .alreadyRecording: return "Already recording."
         case .inputChanged: return "The microphone input changed. Record again."
         case .inputChannelUnavailable(let channel):
-            return "Input \(channel) is unavailable on this microphone. Choose an input channel in Configuration."
+            return "Input \(channel) is unavailable on this microphone. Choose an input channel in Settings."
         case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
         case .deviceSetupFailed(let name, let code):
             return "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone."

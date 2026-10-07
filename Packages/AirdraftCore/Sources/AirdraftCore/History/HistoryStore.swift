@@ -470,7 +470,7 @@ public final class HistoryStore: Sendable {
     }
 
     /// Filters before paging and resolves availability off the UI thread.
-    public func recordings(limit: Int = 200, query: String = "", offset: Int = 0) throws -> RecordingPage {
+    public func recordings(limit: Int = 200, query: String = "", offset: Int = 0, source: RecordingAsset.Source? = nil) throws -> RecordingPage {
         try audioLock.withLock {
             try dbQueue.read { db in
                 let pageSize = max(1, min(limit, 500))
@@ -478,17 +478,18 @@ public final class HistoryStore: Sendable {
                 var scan = max(0, offset)
                 var entries: [RecordingPage.Entry] = []
                 let filter = query.isEmpty ? "" : """
-                    WHERE a.id LIKE ? OR EXISTS (
+                    AND (a.id LIKE ? OR EXISTS (
                         SELECT 1 FROM dictation d WHERE d.recordingID = a.id AND
                         (d.rawTranscript LIKE ? OR d.finalText LIKE ? OR d.appName LIKE ?))
-                    OR EXISTS (SELECT 1 FROM mediaDocument m WHERE m.recordingID = a.id AND (m.title LIKE ? OR m.text LIKE ?))
+                    OR EXISTS (SELECT 1 FROM mediaDocument m WHERE m.recordingID = a.id AND (m.title LIKE ? OR m.text LIKE ?)))
                     """
                 while entries.count < pageSize {
                     let pattern = "%\(query)%"
-                    var arguments: StatementArguments = query.isEmpty ? [] : [pattern, pattern, pattern, pattern, pattern, pattern]
+                    var arguments: StatementArguments = [source?.rawValue, source?.rawValue]
+                    if !query.isEmpty { arguments += [pattern, pattern, pattern, pattern, pattern, pattern] }
                     arguments += [pageSize, scan]
                     let batch = try RecordingAsset.fetchAll(db, sql: """
-                        SELECT a.* FROM recordingAsset a \(filter)
+                        SELECT a.* FROM recordingAsset a WHERE (? IS NULL OR a.source = ?) \(filter)
                         ORDER BY a.createdAt DESC, a.id DESC LIMIT ? OFFSET ?
                         """, arguments: arguments)
                     for asset in batch {

@@ -53,4 +53,4 @@ render fixtures use a silent transport even when their Play control is activated
 References: [GRDB migrations](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations),
 [SQLite foreign keys](https://www.sqlite.org/foreignkeys.html).
 
-Configuration cleanup and reset coordination are defined in `data-cleanup.md`.
+Settings cleanup and reset coordination are defined in `data-cleanup.md`.

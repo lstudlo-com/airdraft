@@ -36,7 +36,7 @@ enum SettingsSearchVerification {
             let host = NSHostingView(rootView: root)
             let frame = NSRect(x: 200, y: 100, width: Theme.windowWidth - Theme.sidebarWidth, height: height)
             let window = NSWindow(contentRect: frame, styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
-            window.title = "Configuration Search Verification"
+            window.title = "Settings Search Verification"
             window.appearance = NSAppearance(named: appearance)
             window.contentView = host
             window.makeKeyAndOrderFront(nil)

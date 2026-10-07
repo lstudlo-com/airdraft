@@ -94,7 +94,7 @@ does not offer host pinning or imply that refinement's routing settings apply.
 Both stages can use the same `llm.openrouter` Keychain key while retaining their
 own provider and model selections.
 
-Configuration, Models and History share 16-point card padding on all four sides.
+Settings, Models and History share 16-point card padding on all four sides.
 Settings rows no longer add vertical padding on top of the card inset. Section
 headings use an 8-point gap; sections use 20 points. Model columns adapt to the
 900-point minimum window width. History trims surrounding blank lines for display
@@ -221,7 +221,7 @@ and a common set of recordings; they are not claimed by these tests.
   errors, timeouts and cancellation. Debug build, strict signing and diff checks passed.
 - Inspected all six pages in both themes, all five cloud model tables at 900 × 600,
   the local/cloud comparison, expanded source details, and connection-state fixtures.
-  Configuration, Models (including Refinement, Memory and Speech options), and History
+  Settings, Models (including Refinement, Memory and Speech options), and History
   were also inspected in the running app.
 - Computer Use verified all eleven model choices, direct row selection, remembered
   choices after provider changes, model search and its empty state, local/cloud filters,

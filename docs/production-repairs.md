@@ -23,7 +23,7 @@ the workspace build, not a deployed update or an untested second Mac.
 | F15 | Remove only the selected alias; keep the canonical term and sibling aliases; offer undo. | Alias removal/restoration test. |
 | F16 | Paginate beyond the old history cap; reveal text based on rendered truncation. | 305-entry pagination test and history renders. |
 | F17 | Keep recovery notices on Home and in the menu after transient HUD state clears. | Blocked-first-run render; speech failures open recovery. |
-| F18 | Hide ineffective temperature controls and show Gemini's actual Off/Automatic choices. | Configuration/refinement source and renders. |
+| F18 | Hide ineffective temperature controls and show Gemini's actual Off/Automatic choices. | Settings/refinement source and renders. |
 | F19 | Compile sample account/subscription UI only into Debug. | Release source and artifact checks. |
 | F20 | Clamp Groq recording duration to fit the 25 MB attachment ceiling and reject oversized bypass inputs. | Sample-count/duration boundary tests. |
 | F21 | Name settings controls, hide background accessibility elements during overlays, and manage modal focus. | Live Account and Microphone checks: focus enters the modal, Tab stays inside, Escape returns to its trigger. |

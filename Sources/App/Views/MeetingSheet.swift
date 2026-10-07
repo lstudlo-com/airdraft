@@ -5,112 +5,119 @@ import SwiftUI
 struct MeetingSheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
-    @State private var sources: [MeetingAudioSource] = []
-    @State private var applicationID: Int32 = 0
+    @State private var selection = MeetingSourceSelection()
     @State private var includeMicrophone = true
-    @State private var loading = false
-    @State private var sourceIssue: String?
-    @State private var showTranscription = false
-    private var meeting: MeetingController? { container.meeting }
+    @State private var choosingApp = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            HStack {
-                Text(meeting?.isBusy == true ? "Recording Meeting" : "Record Meeting").font(.system(size: 18, weight: .semibold))
-                Spacer()
-                Button("Close") { dismiss() }.buttonStyle(SoftButtonStyle()).keyboardShortcut(.cancelAction)
-            }
-            if let meeting, meeting.isBusy {
-                SettingsCard {
-                    HStack {
-                        Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : HistoryRecordingControls.time(meeting.elapsed))
-                            .font(.system(size: 23, weight: .medium, design: .monospaced))
-                        Spacer()
-                        if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
-                        else if meeting.state == .recording {
-                            Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(.borderedProminent)
-                        } else { ProgressView().controlSize(.small) }
+            Text("Record Meeting").font(.system(size: 18, weight: .semibold))
+            SettingsCard {
+                SettingRow(title: "App audio") {
+                    Button { choosingApp = true } label: {
+                        HStack { Text(selection.selectedName).lineLimit(1); Spacer(); Image(systemName: "chevron.down").font(.system(size: 10)) }.frame(width: 200)
                     }
-                    RowDivider()
-                    if meeting.microphoneEnabled { captureRow("Microphone", received: meeting.microphoneReceived, level: meeting.microphoneLevel) }
-                    else { HStack { Text("Microphone").font(.system(size: 13)); Spacer(); Text("Off").supportingText() } }
-                    RowDivider()
-                    captureRow(meeting.sourceName, received: meeting.systemReceived, level: meeting.systemLevel)
-                }
-                Text("You can close this window. Stop recording from the menu bar or History.").supportingText()
-            } else {
-                SettingsCard {
-                    HStack {
-                        Text("App audio").font(.system(size: 13)); Spacer()
-                        SoftPicker("App audio", selection: $applicationID, width: 200) {
-                            Text("All Apps").tag(Int32(0))
-                            ForEach(sources) { source in Text(source.name).tag(source.id) }
-                        }
+                    .buttonStyle(SoftButtonStyle()).accessibilityLabel("Choose App Audio")
+                    .accessibilityValue(selection.selectedName).accessibilityIdentifier("meeting.source")
+                    .popover(isPresented: $choosingApp, arrowEdge: .bottom) {
+                        MeetingSourceChoices(selection: selection) { choosingApp = false }
                     }
-                    HStack {
-                        Text("Choose an app to limit capture. Browsers include all their audio.").supportingText()
-                        Spacer()
-                        Button(loading ? "Loading…" : "Choose App…") { loadSources() }.buttonStyle(SoftButtonStyle()).disabled(loading)
-                    }
-                    RowDivider()
-                    HStack { Text("Include microphone").font(.system(size: 13)); Spacer(); Toggle("Include Microphone", isOn: $includeMicrophone).toggleStyle(.softSwitch) }
-                    if includeMicrophone { Text("Uses the microphone selected in the sidebar. Headphones reduce echo.").supportingText() }
                 }
-                HStack(alignment: .top) {
-                    Text("macOS asks for Screen & System Audio Recording permission. Only audio is saved. Make sure participants know you are recording.").supportingText().fixedSize(horizontal: false, vertical: true)
-                    Button("Permissions") { NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!) }.buttonStyle(SoftButtonStyle())
-                }
-                Text("Up to two hours. Microphone and app audio are kept on separate WAV channels until you delete them. Transcribe after saving.").supportingText().fixedSize(horizontal: false, vertical: true)
-                HStack {
-                    if let saved = meeting?.saved {
-                        Text("Recording saved to History.").supportingText()
-                        Spacer()
-                        Button("Transcribe…") { showTranscription = true }.buttonStyle(SoftButtonStyle())
-                            .disabled(container.pipeline.isBusy)
-                            .help("Transcribe the saved \(Int(saved.duration))-second recording")
-                    } else { Spacer() }
-                    Button("Start Recording") {
-                        meeting?.start(applicationID: applicationID == 0 ? nil : applicationID,
-                            microphoneID: container.settings.microphone.uid, microphone: includeMicrophone, microphoneChannel: container.settings.microphone.channelIndex ?? 0, sourceName: sources.first(where: { $0.id == applicationID })?.name ?? "All Apps")
-                    }.buttonStyle(.borderedProminent).disabled(container.pipeline.isBusy || meeting == nil || loading)
-                }
-            }
-            if let issue = sourceIssue ?? meeting?.issue ?? meeting?.recoveryIssue {
-                HStack(alignment: .top) {
-                    Text(issue).supportingText().textSelection(.enabled)
-                    Spacer()
-                    if sourceIssue != nil || meeting?.issue != nil {
-                        Button("Dismiss") { sourceIssue = nil; meeting?.issue = nil }.buttonStyle(SoftButtonStyle())
-                    } else { Button("Retry") { meeting?.refreshDrafts() }.buttonStyle(SoftButtonStyle()) }
-                }
-            }
-            if let meeting, !meeting.drafts.isEmpty, !meeting.isBusy {
                 RowDivider()
-                HStack {
-                    Text("\(meeting.drafts.count) interrupted recording(s) can be recovered.").supportingText()
-                    Spacer()
-                    Menu("Recover") {
-                        ForEach(meeting.drafts) { draft in
-                            Button(draft.createdAt.formatted(date: .abbreviated, time: .standard)) { meeting.recover(draft) }
-                        }
-                    }.menuStyle(.borderlessButton).fixedSize().disabled(container.pipeline.isBusy)
+                SettingRow(title: "Include microphone") {
+                    Toggle("Include Microphone", isOn: $includeMicrophone).labelsHidden().toggleStyle(.softSwitch)
                 }
+            }
+            if selection.unavailable {
+                Text("\(selection.selectedName) is no longer available. Choose another app.").supportingText().foregroundStyle(.red)
+            }
+            Text("Let participants know you are recording. Audio is saved on this Mac.").supportingText()
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction).buttonStyle(SoftButtonStyle())
+                Button("Start Recording") {
+                    container.navigation.page = .meetings
+                    container.meeting?.start(applicationID: selection.selectedID, microphoneID: container.settings.microphone.uid,
+                        microphone: includeMicrophone, microphoneChannel: container.settings.microphone.channelIndex ?? 0, sourceName: selection.selectedName)
+                    dismiss()
+                }.buttonStyle(.borderedProminent)
+                    .disabled(container.pipeline.isBusy || container.meeting == nil || selection.unavailable)
+                    .accessibilityIdentifier("meeting.start")
             }
         }.padding(Theme.pagePadding).frame(width: 480).background(Theme.islandBackground)
-            .sheet(isPresented: $showTranscription) { MediaImportSheet(source: nil, recording: meeting?.saved).environment(container) }
+            .onAppear { if let meeting = container.meeting { selection.provider = meeting.sourceProvider } }
+    }
+}
+
+private struct MeetingSourceChoices: View {
+    let selection: MeetingSourceSelection
+    let close: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+            HStack {
+                Text("App audio").font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Button("Refresh") { Task { await selection.load() } }.buttonStyle(SoftButtonStyle()).disabled(selection.loading)
+            }
+            sourceButton("All Apps", id: nil) { selection.select(nil); close() }
+            RowDivider()
+            if selection.loading { ProgressView("Finding Apps…").controlSize(.small) }
+            if let issue = selection.issue {
+                Text(issue).supportingText().textSelection(.enabled)
+                Button("Open Recording Permissions") {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+                }.buttonStyle(SoftButtonStyle())
+            } else if selection.loaded && selection.sources.isEmpty {
+                Text("No apps available. Open an app and refresh, or choose All Apps.").supportingText()
+            }
+            ScrollView {
+                VStack(spacing: 4) {
+                    ForEach(selection.sources) { source in
+                        sourceButton(source.name, id: source.id) { selection.select(source); close() }
+                    }
+                }
+            }.frame(maxHeight: 240)
+        }.padding(Theme.cardPadding).frame(width: 280)
+            .task { await selection.load() }
+    }
+    private func sourceButton(_ title: String, id: Int32?, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack { Text(title).lineLimit(1); Spacer(); if selection.selectedID == id { Image(systemName: "checkmark") } }
+                .font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 28).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel(title)
+    }
+}
+
+struct MeetingRecordingStatus: View {
+    let meeting: MeetingController
+    var body: some View {
+        Card(spacing: Theme.controlSpacing) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : "Recording Meeting")
+                        .font(.system(size: 13, weight: .medium))
+                    Text(HistoryRecordingControls.time(meeting.elapsed)).font(.system(size: 23, weight: .medium)).monospacedDigit()
+                }
+                Spacer()
+                if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
+                else if meeting.state == .recording {
+                    Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("meeting.stop")
+                } else { ProgressView().controlSize(.small) }
+            }
+            RowDivider()
+            captureRow(meeting.sourceName, received: meeting.systemReceived, level: meeting.systemLevel)
+            if meeting.microphoneEnabled {
+                RowDivider()
+                captureRow("Microphone", received: meeting.microphoneReceived, level: meeting.microphoneLevel)
+            }
+        }
     }
     private func captureRow(_ title: String, received: Bool, level: Float) -> some View {
         HStack {
             Text(title).font(.system(size: 13)); Spacer()
             Text(received ? "Receiving" : "Waiting for audio").supportingText()
             ProgressView(value: min(1, Double(level) * 4)).frame(width: 80).accessibilityLabel(title + " level")
-        }
-    }
-    private func loadSources() {
-        loading = true; sourceIssue = nil
-        Task {
-            defer { loading = false }
-            do { sources = try await MeetingCaptureSession.sources() }
-            catch { sourceIssue = error.localizedDescription }
         }
     }
 }

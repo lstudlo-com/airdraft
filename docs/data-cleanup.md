@@ -1,6 +1,6 @@
 # Data cleanup and reset
 
-Configuration has four independent actions with a native confirmation. A preview
+Settings has four independent actions with a native confirmation. A preview
 shows record counts and estimated managed bytes before confirmation. A failed
 preview retries the preview, never the deletion. Cancel is the default action.
 Shortening dictation retention also asks before removing older audio.

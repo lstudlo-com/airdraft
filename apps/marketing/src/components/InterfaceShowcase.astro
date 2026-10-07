@@ -7,7 +7,7 @@ import "../styles/interface.css";
 /**
  * The interface section: the real app window, then three live specimens.
  *
- * The window is the Configuration page rendered from a Debug build with an
+ * The window is the Settings page rendered from a Debug build with an
  * isolated empty data directory (scripts/render-app-window.sh), so it shows
  * no history, usage counts or personal settings. Both appearances are
  * stacked; a divider compares them. The callouts mark where each material
@@ -28,7 +28,7 @@ const callouts = [
   {
     side: "left",
     x: 16,
-    y: 279,
+    y: 351,
     title: "Pressed well",
     line: "The current page sinks in.",
   },
@@ -106,7 +106,7 @@ const destinations = [
               height={height * 2}
               alt={
                 appearance === "light"
-                  ? "Airdraft’s Configuration page in light mode: a sidebar beside raised cards for the microphone, appearance and keyboard shortcuts."
+                  ? "Airdraft’s Settings page in light mode: a sidebar beside raised cards for the microphone, appearance and keyboard shortcuts."
                   : ""
               }
               loading="lazy"

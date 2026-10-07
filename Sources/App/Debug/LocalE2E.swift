@@ -69,6 +69,12 @@ enum LocalE2E {
     static func runAction() -> Bool {
         guard let action = argument("--e2e-action") else {
             if CommandLine.arguments.contains("--e2e-seed") { seed() }
+            if CommandLine.arguments.contains("--e2e-meetings") {
+                let app = AppContainer.shared
+                if let history = app.history, (try? history.meetings().isEmpty) == true { try? MediaPreview.seedMeetings(history) }
+                MeetingVerification.installSilentCapture(in: app)
+                app.navigation.page = .meetings
+            }
             return false
         }
         if action == "microphones" {

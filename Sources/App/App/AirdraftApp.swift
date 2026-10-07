@@ -27,8 +27,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let alert = NSAlert()
                 alert.messageText = "Quit with unfinished work?"
                 alert.informativeText = app.meeting?.isBusy == true
-                    ? "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in History."
-                    : "Saved media jobs can resume from History. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
+                    ? "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in Meetings."
+                    : "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
                 alert.addButton(withTitle: "Keep Open")
                 alert.addButton(withTitle: app.meeting?.isBusy == true ? "Save Meeting and Quit" : "Quit and Discard")
                 guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
@@ -171,7 +171,7 @@ struct AirdraftApp: App {
                 Button("Check for Updates…") { container.updates.checkForUpdates() }
                     .disabled(!container.updates.canCheckForUpdates)
             }
-            // Configuration is the app's settings, so ⌘, opens it.
+            // ⌘, opens Settings.
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { show(.configuration) }
                     .keyboardShortcut(",")

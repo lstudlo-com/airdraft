@@ -2,7 +2,7 @@ import AirdraftCore
 import SwiftUI
 
 enum Page: String, CaseIterable, Identifiable {
-    case home, profiles, vocabulary, history, configuration, models
+    case home, profiles, vocabulary, history, meetings, models, configuration
     var id: String { rawValue }
 
     var title: String {
@@ -10,9 +10,10 @@ enum Page: String, CaseIterable, Identifiable {
         case .home: return "Home"
         case .profiles: return "Profiles"
         case .vocabulary: return "Vocabulary"
-        case .configuration: return "Configuration"
+        case .configuration: return "Settings"
         case .models: return "Models"
         case .history: return "History"
+        case .meetings: return "Meetings"
         }
     }
 
@@ -24,6 +25,7 @@ enum Page: String, CaseIterable, Identifiable {
         case .configuration: return "gearshape"
         case .models: return "square.stack.3d.up"
         case .history: return "clock"
+        case .meetings: return "person.2.wave.2"
         }
     }
 
@@ -176,6 +178,7 @@ struct MainWindowView: View {
         case .configuration: ConfigurationPage()
         case .models: ModelsPage()
         case .history: HistoryPage()
+        case .meetings: MeetingsPage()
         }
     }
 }
@@ -291,8 +294,8 @@ struct SidebarView: View {
 
             // One selection well spans both groups so it can slide between them.
             VStack(alignment: .leading, spacing: 0) {
-                navigationGroup([.home, .profiles, .vocabulary, .history])
-                navigationGroup([.configuration, .models])
+                navigationGroup([.home, .profiles, .vocabulary, .history, .meetings])
+                navigationGroup([.models, .configuration])
                     .padding(.top, 16)
             }
             .sidebarSelectionWell(selection: container.navigation.page)

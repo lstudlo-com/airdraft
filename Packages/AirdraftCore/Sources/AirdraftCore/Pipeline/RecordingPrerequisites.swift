@@ -47,17 +47,17 @@ public enum RecordingPrerequisites {
         _ = try SpeechLanguagePolicy.resolve(asr)
         func reject(_ message: String) throws { throw RecordingPrerequisiteError(message) }
         guard environment.microphoneAuthorized else {
-            try reject("Allow microphone access in Configuration."); return
+            try reject("Allow microphone access in Settings."); return
         }
         guard !insertionEnabled || environment.accessibilityAuthorized else {
-            try reject("Allow Accessibility access in Configuration."); return
+            try reject("Allow Accessibility access in Settings."); return
         }
         guard let device = microphone.resolve(in: environment.devices, systemDefaultID: environment.defaultDeviceID) else {
-            try reject("Microphone unavailable. Choose an input in Configuration."); return
+            try reject("Microphone unavailable. Choose an input in Settings."); return
         }
         let channel = microphone.channelIndex ?? 0
         guard channel >= 0, channel < device.inputChannelCount else {
-            try reject("Input channel unavailable. Choose one in Configuration."); return
+            try reject("Input channel unavailable. Choose one in Settings."); return
         }
         if asr.kind.isLocal {
             guard environment.installed(asr) else {

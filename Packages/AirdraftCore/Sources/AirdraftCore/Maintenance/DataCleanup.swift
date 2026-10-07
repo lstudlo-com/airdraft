@@ -17,9 +17,9 @@ public enum DataCleanupScope: String, Codable, CaseIterable, Identifiable, Senda
     public var removesAudio: Bool { self != .history }
     public var explanation: String {
         switch self {
-        case .history: "Deletes saved text and statistics. Recordings, settings and models stay."
-        case .audio: "Deletes managed audio and recovery recordings. Saved text, settings and models stay."
-        case .historyAndAudio: "Deletes saved text, statistics and managed audio. Settings and models stay."
+        case .history: "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay."
+        case .audio: "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay."
+        case .historyAndAudio: "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay."
         case .reset: "Deletes app data, settings, profiles, vocabulary, provider keys and downloaded models. Resets this app’s permissions. Quit when finished to restart setup. License and trial records stay."
         }
     }

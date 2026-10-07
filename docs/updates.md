@@ -1,8 +1,8 @@
 # App updates
 
-Airdraft embeds Sparkle 2.10.0. The menu bar, application menu, and Configuration
+Airdraft embeds Sparkle 2.10.0. The menu bar, application menu, and Settings
 page expose **Check for Updates…**. Automatic checks default to once a day while
-the app runs. Automatic downloading is opt-in under Configuration → Updates;
+the app runs. Automatic downloading is opt-in under Settings → Updates;
 downloaded updates install when the app quits. Sparkle persists these preferences.
 
 Checks are skipped during active dictation; requested restarts wait for it to

@@ -6,7 +6,7 @@ import SwiftUI
 @MainActor
 func makeHistoryPlayback() -> RecordingPlayback {
     #if DEBUG
-    if RenderMode.isActive {
+    if RenderMode.isActive || LocalE2E.isActive {
         return RecordingPlayback(automaticUpdates: false) { url in try SilentHistoryTransport(url: url) }
     }
     #endif

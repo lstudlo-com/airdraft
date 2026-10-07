@@ -29,6 +29,7 @@ final class MeetingController {
     @ObservationIgnored private var session: (any MeetingCapturing)?
     typealias CaptureFactory = (URL, Bool, @escaping @Sendable (MeetingCaptureStatus) -> Void, @escaping @Sendable (String) -> Void) throws -> any MeetingCapturing
     @ObservationIgnored var captureFactory: CaptureFactory = { try MeetingCaptureSession(directory: $0, microphone: $1, onStatus: $2, onFailure: $3) }
+    @ObservationIgnored var sourceProvider: @Sendable () async throws -> [MeetingAudioSource] = { try await MeetingCaptureSession.sources() }
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var timer: Task<Void, Never>?
     @ObservationIgnored private var generation = UUID()
@@ -45,7 +46,7 @@ final class MeetingController {
         do {
             let scan = try MeetingAudioStore.scanDrafts(in: directory)
             drafts = scan.drafts
-            recoveryIssue = scan.unreadable > 0 ? "\(scan.unreadable) unfinished recording(s) could not be read. Check folder access. Other recordings can still be recovered; Remove Audio Files in Configuration clears unreadable drafts too." : nil
+            recoveryIssue = scan.unreadable > 0 ? "\(scan.unreadable) unfinished recording(s) could not be read. Check folder access. Other recordings can still be recovered; Remove Audio Files in Settings clears unreadable drafts too." : nil
         } catch { recoveryIssue = error.localizedDescription }
     }
     func start(applicationID: Int32?, microphoneID: String?, microphone: Bool, microphoneChannel: Int? = nil, sourceName: String = "All Apps") {
@@ -117,7 +118,7 @@ final class MeetingController {
             saved = try await Task.detached { try MeetingAudioStore.recover(draft, directory: directory, history: history, interrupted: reason != nil) }.value
             issue = reason ?? saved?.captureIssue
         } catch {
-            issue = error.localizedDescription + " Any captured audio remains available for recovery in History."
+            issue = error.localizedDescription + " Any captured audio remains available for recovery in Meetings."
             try? MeetingAudioStore.discardEmpty(id: capture.id, directory: directory)
         }
         session = nil; finish(); refreshDrafts()

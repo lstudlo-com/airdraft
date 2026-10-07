@@ -68,8 +68,8 @@ public enum MediaAudioWindow {
         let file = try AVAudioFile(forReading: url)
         guard file.processingFormat.sampleRate == 16_000, (1...2).contains(file.processingFormat.channelCount),
               seconds.isFinite, seconds >= 0, maximumSeconds > 0 else { throw MediaError.invalidAudio }
-        file.framePosition = min(file.length, AVAudioFramePosition(seconds * 16_000))
-        let count = min(Int64(maximumSeconds * 16_000), file.length - file.framePosition)
+        file.framePosition = min(file.length, AVAudioFramePosition((seconds * 16_000).rounded()))
+        let count = min(Int64((maximumSeconds * 16_000).rounded()), file.length - file.framePosition)
         guard count > 0 else { return [] }
         guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(count)) else { throw MediaError.invalidAudio }
         try file.read(into: buffer)

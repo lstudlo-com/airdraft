@@ -466,10 +466,10 @@ dictation".
 
 "An interface you’ll love to open" follows the sample and precedes the guides.
 Its heading and one-line intro are centered over the window, `72px` above it
-(`48px` on phones). It shows the real app: the Configuration page rendered from a Debug build by
+(`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the
-Graphite accent) in `public/app/`. Re-render it when the Configuration page,
+Graphite accent) in `public/app/`. Re-render it when the Settings page,
 sidebar or materials change. The window is `784px` wide at most, `16px`
 corners (`12px` on phones), raised with the hero's spread, with an inactive
 window's gray close and minimize buttons 16 points in. Both appearances are
@@ -779,4 +779,4 @@ Night Wave are selectable native Dock icons. All three share Carved Wave's
 on a 1024-point canvas. Pure Wave and Carved Wave darken the bars; Night Wave
 darkens the background. The site's sidebar-derived capsule
 brand, Home-style hero waveform and installer wordmark retain their existing
-geometry. Regenerate the Configuration screenshots when its icon pickers change.
+geometry. Regenerate the Settings screenshots when its icon pickers change.

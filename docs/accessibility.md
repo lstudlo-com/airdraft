@@ -45,7 +45,7 @@ Apple's per-bundle `tccutil` reset may not remove an older path-based entry from
 the Accessibility list. Remove any such entry manually in System Settings with
 the minus button. Do not edit TCC.db or reset other apps' permissions.
 
-Home and Configuration expose a setup sheet with the running app's location,
+Home and Settings expose a setup sheet with the running app's location,
 Show in Finder, a live recheck, and Copy Diagnostics. Diagnostics include only
 OS/app versions, bundle ID, signing identity, permission status, and paths of
 running Airdraft copies. Copying is user initiated and uploads nothing.
@@ -126,7 +126,7 @@ AX calls retain their 300 ms timeout.
 
 Cursor insertion uses one normal paste command after checking the captured app
 and, when the editor exposes them, its field and selection. Both old `auto` and `paste` preferences use this path;
-Configuration no longer offers an AX-write mode. Airdraft does not attempt an
+Settings no longer offers an AX-write mode. Airdraft does not attempt an
 `AXSelectedText` write before pasting. Some editors advertise that attribute as
 writable but cannot verify a replacement; trying it first caused the repeated
 “Check the destination before pasting” recovery notice and blocked normal paste.

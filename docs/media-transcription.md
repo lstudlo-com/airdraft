@@ -1,14 +1,18 @@
 # Media transcription
 
-Imported audio and video become `TranscriptDocument` records in History.
+Imported audio and video become `TranscriptDocument` records in Meetings.
 `MediaJobRunner` owns their processing independently of dictation: it never
 inserts text at the cursor or adds to dictation statistics. The import sheet
 captures the engine, language and speaker-identification choice for that job.
+Its immutable presentation payload contains the chosen file or recording, so the
+first opening cannot race an empty selection. Each recording has a direct
+Transcribe action; further transcriptions create versions without replacing text.
+An active-job card remains visible even when search or pagination hides its row.
 
 ## Input and storage
 
-- Import one file through History’s Add Recording → Import Media menu or file
-  drop. Record Meeting in the same menu opens audio capture. AVFoundation
+- Import one file through Meetings → Import or file
+  drop. Record Meeting opens audio capture from that page. AVFoundation
   must decode exactly one audio track. Multiple-track files are rejected with an
   instruction to export the desired track separately.
 - Both source duration and decoded audio must be positive and at most two hours.
@@ -33,30 +37,49 @@ for shared storage and deletion contracts.
 
 ## Local processing
 
-The local engine is WhisperKit with `large-v3-v20240930_turbo`. Media jobs validate
-that exact model independently of the dictation model. The user installs it in
-Models. Speaker identification has a separate, explicit SpeakerKit download;
-inference uses local files with automatic downloading disabled. Language choices
-pass through `SpeechLanguagePolicy` before processing.
+The job captures one of eight local model choices: Whisper Large v3 Turbo,
+Qwen3-ASR 1.7B (5-bit) or 0.6B (4-bit), Cohere Transcribe 2B (5-bit),
+SenseVoice Small, FireRedASR2, Parakeet TDT v3, or Apple Speech. Each routes to
+its existing local adapter. No selection follows later dictation-setting changes.
+Legacy payloads without the added selection retain Whisper Turbo. Exact model
+IDs and language capabilities come from `MediaConfiguration` and
+`SpeechLanguagePolicy`; Cohere requires a language and Apple uses its displayed
+locale. Parakeet does not support Chinese.
 
-ASR reads at most 31 seconds from the WAV to choose a quiet boundary and sends
-at most 25 seconds to WhisperKit. Each successful window saves words with absolute
-timestamps, partial turns and the completed offset, so saved progress remains
-readable and exportable. Pause cancels the current operation; Resume
-reloads the saved configuration and offset. An interrupted normalization has no
-resumable document until the managed recording and document exist.
+Speech and SpeakerKit downloads are explicit actions inside transcription setup;
+the selected source and options remain in the sheet. Apple checks actual language
+asset readiness, and media inference refuses to install missing assets implicitly.
+Switching to Apple maps the current language to its displayed locale and clears
+the old language hint.
 
-After ASR finishes, optional SpeakerKit identification unloads speech models and
-clusters the whole session. It is a separate memory-intensive stage, not a series
-of independently numbered chunks. Preflight requires available free plus inactive
-memory above `duration × 16,000 × 4 × 4 + 1,500,000,000` bytes. Workers are bounded,
-but this check is an allocation estimate, not a promise that every two-hour file
-fits every Mac.
+Whisper reads at most 31 seconds to select a quiet boundary and decodes at most
+25 seconds, retaining native word timestamps. Optional SpeakerKit runs afterwards,
+unloading speech models and clustering the whole session. Other engines identify
+speakers first and checkpoint those intervals before ASR. `MediaSegmentPlan`
+builds speech turns of at most 25 seconds with integer-frame offsets. It keeps
+the longest active utterance as the estimated primary speaker, retains an overlap
+warning, and joins same-speaker pauses up to 0.5 seconds without crossing another
+speaker turn. Tiny overlap edges therefore stay in their utterance context.
+Unassigned speech activity is transcribed as Unknown. Uncovered regions are not
+decoded separately; no detected regions offers Without Speakers recovery instead
+of a false empty success. This does not separate simultaneous voices. Without
+speaker identification, engines use bounded unlabelled windows and require no SpeakerKit.
+Only exact digital silence is skipped by the ASR adapter; quiet nonzero speech is preserved.
 
-Speaker reconciliation chooses the interval with greatest word overlap, leaves
-gaps unknown and marks overlapping speech. IDs are estimates, never inferred
-personal names. If identification fails, completed ASR text remains available;
-Resume retries the remaining stage, or Keep Transcript completes without it.
+These additional engines return **segment timing**, not measured word timing.
+Each decoded segment retains its full text and audio bounds; JSON marks its
+`timing` as `segment` and the editor identifies segment timestamps. Partial
+segments are never checkpointed after cancellation. Each completed slice saves
+text plus the next offset atomically; Resume reuses the saved model, language,
+speaker intervals and offset. It neither renumbers speakers nor changes engines.
+
+SpeakerKit's whole-session memory preflight requires available free plus inactive
+memory above `duration × 16,000 × 4 × 4 + 1,500,000,000` bytes. Workers are bounded;
+this remains an estimate, not a guarantee that every two-hour file fits every Mac.
+Speaker IDs are estimates, never inferred personal names. Failed speaker detection
+has Resume and Without Speakers actions, including before any text exists. If ASR
+already finished, Keep Transcript completes the existing text without detection.
+All transcript versions retain these actions when opened in the editor.
 
 ## Soniox processing
 
@@ -82,8 +105,8 @@ display names are shared between versions. The editor shows 100 turns per page;
 timestamp buttons play the retained recording from that point when available.
 
 Save Changes uses the document revision. Closing a dirty editor asks before
-discarding changes. An editor opened during processing must be reopened for the
-latest result; editing remains unavailable until the document is complete.
+discarding changes. An unedited open document refreshes when processing completes; editing remains
+unavailable until its job is complete.
 
 TXT, JSON, SRT and VTT exports use a native save panel. JSON includes original
 words, turns, speaker names and the optional summary; it excludes internal remote
@@ -95,14 +118,15 @@ Summarize is an explicit action using the selected refinement provider, with a
 confirmation about text transfer and cost. It requires saved edits. Requests use
 sections of at most 8,000 characters, including splitting a long edited turn.
 Results remain ordered section summaries, with no unbounded final merge request.
-History labels this operation Summarizing and offers Cancel. Cancellation or
+Meetings labels this operation Summarizing and offers Cancel. Cancellation or
 failure leaves the transcript unchanged.
 
 ## Ownership and validation
 
 `MediaAudioDecoder` normalizes files; `MediaJobRunner` checkpoints stages;
 `LocalSpeakerDiarizer` owns global speaker inference; `SonioxMediaTranscriber`
-owns remote jobs. `MediaDocumentStore` owns persistence and mixed History queries,
+owns remote jobs. `MediaDocumentStore` owns persistence; `MeetingLibrary` queries non-dictation audio
+with every attached document version and transcript-only records,
 and `TranscriptExport` owns export formats. `AppContainer` makes media processing
 mutually exclusive with dictation and data maintenance.
 
