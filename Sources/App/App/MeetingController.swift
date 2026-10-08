@@ -147,6 +147,10 @@ final class MeetingController {
         while state == .finishing { try? await Task.sleep(for: .milliseconds(25)) }
     }
     #if DEBUG
-    func previewRecording() { state = .recording; elapsed = 742; microphoneReceived = true; systemReceived = true; microphoneLevel = 0.16; systemLevel = 0.28 }
+    func previewRecording(microphone: Float = 0.16, system: Float = 0.28, receiving: Bool = true) {
+        state = .recording; elapsed = 742
+        microphoneReceived = receiving; systemReceived = receiving
+        microphoneLevel = microphone; systemLevel = system
+    }
     #endif
 }

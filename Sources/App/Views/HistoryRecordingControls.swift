@@ -17,7 +17,7 @@ struct HistoryRecordingControls: View {
         let active = playback.recordingID == asset.id
         let playing = active && playback.isPlaying
         if asset.source == .meeting {
-            Text("Meeting · microphone left, app audio right").supportingText()
+            Text("Meeting audio").supportingText()
         }
         if let issue = asset.captureIssue {
             DisclosureGroup("Recording Details") { Text(issue).supportingText().textSelection(.enabled) }.settingsDisclosure()

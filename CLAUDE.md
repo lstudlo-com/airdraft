@@ -402,8 +402,12 @@ verification status belong in the vault (see below).
   well (thumbs, knobs, icon islands) keep their light and shade clipped inside it.
   Sliders use `SoftSlider` with shared focus, arrow-key and accessibility adjustment.
   Set its keyboard step independently where seeking needs coarser steps; do not
-  add a second per-consumer move handler. Steppers use raised minus and plus buttons beside the typed value. Keep
-  `.borderedProminent` for the single primary action and native link buttons. The
+  add a second per-consumer move handler. Steppers use raised minus and plus buttons beside the typed value.
+  Meetings' Record Meeting, Start Recording, Stop and Save, Transcribe and
+  Save Changes use `SoftButtonStyle(prominent: true)`: blue fill, white type and
+  the same raised, pressed and disabled capsule geometry as secondary buttons.
+  Header actions share the 28-point control height. Other primary controls keep
+  their existing `.borderedProminent` style and native link buttons. The
   menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
   keycaps, meters, preview frames and Home tracks. Light comes from the top left in both appearances: raised surfaces
   highlight their top-left edge and cast shadows down-right; recessed surfaces
@@ -1015,9 +1019,24 @@ PCM and silent transports; never make the system play sound for verification.
 ## Meeting capture
 
 Meeting recording uses ScreenCaptureKit audio/microphone outputs with no screen
-frames or playback. Preserve a common timestamp axis, separate microphone/app
-WAV channels, bounded conversion and recoverable PCM drafts. Drain converters
-before publishing an asset; never discard captured data on failed finalization.
+frames or playback. Preserve a common timestamp axis, separate raw source PCM,
+bounded conversion and recoverable drafts. Finalize new and recovered recordings
+as 16 kHz stereo WAVs with the same microphone-plus-app mix in both channels.
+Divide the source sum by the number of source files containing samples: average
+two sources for headroom, and keep a single source's level when the other is
+missing. Previously saved WAVs retain their bytes; Save Audio copies them without
+remixing. Drain converters before publishing an asset; never discard captured
+data on failed finalization.
+
+App audio opens a 320-point chooser with 32-point rows and 4-point gaps. Give its
+list an explicit content-derived height capped at seven full rows, 248 points;
+omit an empty scroll view. Resize for loading, empty and error messages, and keep
+loaded rows visible while refreshing. Verify visible rows in the expanded popup,
+not only Accessibility entries or the closed setup sheet. Recording meters reuse
+`MicrophoneLevelMeter` with ten fixed-height cells. Both capture paths apply
+`AudioLevel.meter` once: linear RMS times 8 clamped to 0...1. Add no view gain or
+logarithmic curve; Receiving/Waiting is independent of amplitude.
+
 Capture, media processing, dictation and cleanup are mutually exclusive. Stop and
 save before quit or sleep, and keep recovery available from Meetings. Use injected
 capture sessions and direct PCM for tests. See `docs/meeting-recording.md`.

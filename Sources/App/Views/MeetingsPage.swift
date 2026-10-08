@@ -78,7 +78,7 @@ struct MeetingsPage: View {
                 .disabled(container.pipeline.isBusy || container.media == nil)
                 .accessibilityIdentifier("meetings.import")
             Button("Record Meeting") { container.meeting?.isPresented = true }
-                .buttonStyle(.borderedProminent).disabled(container.pipeline.isBusy || container.meeting == nil)
+                .buttonStyle(SoftButtonStyle(prominent: true)).disabled(container.pipeline.isBusy || container.meeting == nil)
                 .accessibilityIdentifier("meetings.record")
         }
         .task(id: query) {

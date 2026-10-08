@@ -320,10 +320,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
         if !chunk.isEmpty { preview?(chunk) }
 
         if let levelHandler, count > 0 {
-            var sum: Float = 0
-            for v in chunk { sum += v * v }
-            let rms = (sum / Float(count)).squareRoot()
-            levelHandler(min(1, rms * 8))
+            levelHandler(AudioLevel.meter(chunk))
         }
     }
 }

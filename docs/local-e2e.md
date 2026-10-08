@@ -119,6 +119,16 @@ restoration, notice actions and the failed-cleanup repair disclosure. Credential
 controls remain disabled and no credential operations run. Its absolute
 `AIRDRAFT_E2E_MODEL_ROOT` must be a fresh child of the supplied `--e2e-local` directory.
 The fixture creates model presence markers there without loading a model.
+`--render-window meeting-controls <output>` opens the production meeting sheet
+and app chooser at the minimum main-window height. It checks row, viewport,
+popup and screen containment; delayed loading, 0/1/8/40 sources, refresh,
+errors, scrolling and selection; and both meeting meters in light/dark. It also
+checks cancelled source requests and saves geometry JSON plus native-view PNGs.
+Popover PNGs omit the system material backdrop; inspect the live popup as well.
+For interactive checks, `--e2e-meetings --e2e-meeting-apps 40
+--e2e-meeting-app-delay-ms 8000` supplies a delayed fake app list. Close/reopen
+the real popup during loading to complement the stale-request regression.
+These fixtures never open audio devices, play audio or request permissions.
 `verify-native-ui-controls.py` separately exercises the production slider and
 History progress consumer in silent windows, including keyboard, pointer and
 accessibility adjustment in both appearances; its playback object has no player.

@@ -187,7 +187,7 @@ struct MediaDocumentEditor: View {
                 if container.settings.llm.kind != .none {
                     Button("Summarize…") { confirmSummary = true }.buttonStyle(SoftButtonStyle()).disabled(!editable || dirty)
                 }
-                Button("Save Changes") { save() }.buttonStyle(.borderedProminent).disabled(!dirty || !editable)
+                Button("Save Changes") { save() }.buttonStyle(SoftButtonStyle(prominent: true)).disabled(!dirty || !editable)
             }
         }
         .padding(Theme.pagePadding).frame(width: 650, height: 530).background(Theme.islandBackground)

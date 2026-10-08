@@ -27,10 +27,12 @@ An active-job card remains visible even when search or pagination hides its row.
   cannot overwrite a newer document or recreate a deleted one.
 
 Saved [meeting recordings](meeting-recording.md) reuse the import sheet after
-capture stops. They retain a 16 kHz stereo WAV (microphone left, app audio right);
-local processing averages the channels when reading samples. This does not assign
-speaker identity by channel. The existing whole-session SpeakerKit memory check
-still applies. Meeting capture itself performs no transcription or upload.
+capture stops. New and recovered recordings retain a 16 kHz stereo WAV with
+the same microphone-plus-app mix in both channels; older saved WAVs retain their
+original channel layout. Local processing averages the channels when reading
+samples, so it accepts both formats without inferring speaker identity from a
+channel. The existing whole-session SpeakerKit memory check still applies.
+Meeting capture itself performs no transcription or upload.
 
 See [recording storage](recording-storage.md) and [data cleanup](data-cleanup.md)
 for shared storage and deletion contracts.

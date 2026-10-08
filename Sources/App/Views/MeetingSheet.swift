@@ -40,7 +40,7 @@ struct MeetingSheet: View {
                     container.meeting?.start(applicationID: selection.selectedID, microphoneID: container.settings.microphone.uid,
                         microphone: includeMicrophone, microphoneChannel: container.settings.microphone.channelIndex ?? 0, sourceName: selection.selectedName)
                     dismiss()
-                }.buttonStyle(.borderedProminent)
+                }.buttonStyle(SoftButtonStyle(prominent: true))
                     .disabled(container.pipeline.isBusy || container.meeting == nil || selection.unavailable)
                     .accessibilityIdentifier("meeting.start")
             }
@@ -52,6 +52,14 @@ struct MeetingSheet: View {
 private struct MeetingSourceChoices: View {
     let selection: MeetingSourceSelection
     let close: () -> Void
+
+    private let rowHeight: CGFloat = 32
+    private let rowSpacing: CGFloat = 4
+    private var listHeight: CGFloat {
+        let rows = min(selection.sources.count, 7)
+        return CGFloat(rows) * rowHeight + CGFloat(max(0, rows - 1)) * rowSpacing
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
             HStack {
@@ -61,30 +69,40 @@ private struct MeetingSourceChoices: View {
             }
             sourceButton("All Apps", id: nil) { selection.select(nil); close() }
             RowDivider()
-            if selection.loading { ProgressView("Finding Apps…").controlSize(.small) }
+            if selection.loading && selection.sources.isEmpty {
+                ProgressView("Finding Apps…").controlSize(.small).frame(height: rowHeight)
+            }
             if let issue = selection.issue {
-                Text(issue).supportingText().textSelection(.enabled)
+                Text(issue).supportingText().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 Button("Open Recording Permissions") {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
                 }.buttonStyle(SoftButtonStyle())
-            } else if selection.loaded && selection.sources.isEmpty {
-                Text("No apps available. Open an app and refresh, or choose All Apps.").supportingText()
+            } else if selection.loaded && !selection.loading && selection.sources.isEmpty {
+                Text("No apps available. Open an app and refresh, or choose All Apps.")
+                    .supportingText().fixedSize(horizontal: false, vertical: true)
             }
-            ScrollView {
-                VStack(spacing: 4) {
-                    ForEach(selection.sources) { source in
-                        sourceButton(source.name, id: source.id) { selection.select(source); close() }
+            if !selection.sources.isEmpty {
+                ScrollView {
+                    VStack(spacing: rowSpacing) {
+                        ForEach(selection.sources) { source in
+                            sourceButton(source.name, id: source.id) { selection.select(source); close() }
+                        }
                     }
                 }
-            }.frame(maxHeight: 240)
-        }.padding(Theme.cardPadding).frame(width: 280)
+                // A height ceiling alone lets a popover collapse this viewport to zero.
+                // Give it complete rows, then scroll when more apps are available.
+                .frame(height: listHeight)
+                .accessibilityIdentifier("meeting.sources.list")
+            }
+        }.padding(Theme.cardPadding).frame(width: 320).fixedSize(horizontal: false, vertical: true)
             .task { await selection.load() }
     }
     private func sourceButton(_ title: String, id: Int32?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack { Text(title).lineLimit(1); Spacer(); if selection.selectedID == id { Image(systemName: "checkmark") } }
-                .font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 28).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityLabel(title)
+                .font(.system(size: 13)).frame(maxWidth: .infinity).frame(height: rowHeight).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel(title).help(title)
+            .accessibilityIdentifier("meeting.source.\(id.map(String.init) ?? "all")")
     }
 }
 
@@ -101,7 +119,7 @@ struct MeetingRecordingStatus: View {
                 Spacer()
                 if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
                 else if meeting.state == .recording {
-                    Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(.borderedProminent)
+                    Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(SoftButtonStyle(prominent: true))
                         .accessibilityIdentifier("meeting.stop")
                 } else { ProgressView().controlSize(.small) }
             }
@@ -117,7 +135,10 @@ struct MeetingRecordingStatus: View {
         HStack {
             Text(title).font(.system(size: 13)); Spacer()
             Text(received ? "Receiving" : "Waiting for audio").supportingText()
-            ProgressView(value: min(1, Double(level) * 4)).frame(width: 80).accessibilityLabel(title + " level")
+            MicrophoneLevelMeter(level: level)
+                .accessibilityHidden(false)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(title) level, \(MicrophoneLevelMeter.steps(for: level)) of 10")
         }
     }
 }

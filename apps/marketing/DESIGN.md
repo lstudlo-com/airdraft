@@ -426,6 +426,11 @@ The site's keys (`SoftButtonStyle`). Renders `<a>` with `href`, otherwise `<butt
 Keys are raised capsules. Hover lightens the top of the face; pressing sinks the
 key into a well. Focus shows the 2px ink ring.
 
+The native Meetings flow's `SoftButtonStyle(prominent: true)` adds a blue fill
+and white type to that same raised/pressed geometry. Website primary keys keep
+the graphite `--key-*` tokens specified here; the native variant does not change
+the site's palette.
+
 ### Segmented picker (`.segmented`, `src/scripts/segmented.ts`)
 
 `SoftSegmentedPicker`: raised segments on a recessed capsule track. One raised

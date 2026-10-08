@@ -3,6 +3,16 @@ import XCTest
 @testable import AirdraftCore
 
 final class AudioRecorderTests: XCTestCase {
+    func testSharedMeterIsLinearInAmplitudeAndBounded() {
+        let cases: [(Float, Float)] = [(0, 0), (0.025, 0.2), (0.0625, 0.5), (0.125, 1), (1, 1)]
+        for (amplitude, expected) in cases {
+            XCTAssertEqual(AudioLevel.meter([amplitude, -amplitude]), expected, accuracy: 0.00001)
+        }
+        XCTAssertEqual(AudioLevel.meter([]), 0)
+        XCTAssertEqual(AudioLevel.meter([.nan]), 0)
+        XCTAssertEqual(AudioLevel.meter([.infinity]), 0)
+    }
+
     func testDiscreteHardwareInputsProduceAudibleMono() throws {
         // Scarlett exposes four discrete inputs, not a surround speaker layout.
         // The implicit AVAudioConverter map is [-1], which produces only zeros.

@@ -502,19 +502,23 @@ struct ChoiceTile<Preview: View>: View {
 
 /// A raised capsule that sinks into an inset well while pressed.
 struct SoftButtonStyle: ButtonStyle {
+    var prominent = false
+
     func makeBody(configuration: Configuration) -> some View {
-        SoftButtonBody(configuration: configuration)
+        SoftButtonBody(configuration: configuration, prominent: prominent)
     }
 
     private struct SoftButtonBody: View {
         let configuration: ButtonStyleConfiguration
+        let prominent: Bool
         @Environment(\.isEnabled) private var isEnabled
 
         var body: some View {
             configuration.label
                 .font(.system(size: 12.5, weight: .medium))
-                .softControlSurface(pressed: configuration.isPressed)
-                .foregroundStyle(.primary)
+                .softControlSurface(pressed: configuration.isPressed,
+                                    tint: prominent ? Color(red: 0.05, green: 0.36, blue: 0.73) : nil)
+                .foregroundStyle(prominent ? Color.white : Color.primary)
                 .opacity(isEnabled ? 1 : 0.5)
         }
     }
@@ -542,19 +546,20 @@ struct SoftIconButtonStyle: ButtonStyle {
 
 private struct SoftControlSurface: ViewModifier {
     var pressed = false
+    var tint: Color? = nil
 
     func body(content: Content) -> some View {
         content
             .padding(.horizontal, 12)
             .frame(minHeight: SoftControl.height)
-            .background { SoftRaisedSurface(shape: Capsule(), pressed: pressed) }
+            .background { SoftRaisedSurface(shape: Capsule(), pressed: pressed, tint: tint) }
             .contentShape(Capsule())
     }
 }
 
 extension View {
-    func softControlSurface(pressed: Bool = false) -> some View {
-        modifier(SoftControlSurface(pressed: pressed))
+    func softControlSurface(pressed: Bool = false, tint: Color? = nil) -> some View {
+        modifier(SoftControlSurface(pressed: pressed, tint: tint))
     }
 }
 

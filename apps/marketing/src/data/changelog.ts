@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-9-1",
+    version: "0.9.1",
+    date: "2026-10-08",
+    title: "Fix meeting audio and controls",
+    changes: [
+      {
+        title: "Read and choose meeting apps",
+        description:
+          "The app chooser now gives each app a full-height row, grows as sources load and scrolls longer lists. Refresh, empty states and errors remain visible.",
+      },
+      {
+        title: "Hear new recordings in both channels",
+        description:
+          "New and recovered meetings mix microphone and app audio into identical left and right channels. Previously saved files stay unchanged. Meeting meters now use the same linear response and ten-cell display as the microphone picker.",
+      },
+      {
+        title: "Keep primary controls consistent",
+        description:
+          "Recording, transcription and transcript-save actions use blue raised capsules with the same pressed and disabled states as Airdraft’s other neumorphic buttons.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.9.1-build.203",
+    },
+  },
+  {
     id: "0-9-0",
     version: "0.9.0",
     date: "2026-10-08",

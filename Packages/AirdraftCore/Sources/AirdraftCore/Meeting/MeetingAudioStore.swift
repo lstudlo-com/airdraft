@@ -131,7 +131,7 @@ public enum MeetingAudioStore {
         }
         return (drafts.sorted { $0.createdAt < $1.createdAt }, unreadable)
     }
-    /// Left channel is microphone, right channel is app audio. ASR downmixes a bounded read.
+    /// Mix captured sources equally into both playback channels using bounded reads.
     public static func recover(_ draft: MeetingDraft, directory: URL, history: HistoryStore, interrupted: Bool) throws -> RecordingAsset {
         guard UUID(uuidString: draft.id) != nil else { throw MeetingError.storage }
         let root = directory.appendingPathComponent("MeetingStaging")
@@ -153,6 +153,7 @@ public enum MeetingAudioStore {
         defer { for (handle, _) in tracks { try? handle.close() } }
         let length = tracks.map(\.1).max() ?? 0
         guard length > 0 else { throw MeetingError.noAudio }
+        let sourceCount = Float(tracks.filter { $0.1 > 0 }.count)
         let output = folder.appendingPathComponent("complete.wav")
         if FileManager.default.fileExists(atPath: output.path) { try regular(output); try FileManager.default.removeItem(at: output) }
         do {
@@ -171,6 +172,15 @@ public enum MeetingAudioStore {
                     data.withUnsafeBytes { bytes in
                         for i in 0..<(data.count / 2) { pointer[i] = Float(Int16(littleEndian: bytes.loadUnaligned(fromByteOffset: i * 2, as: Int16.self))) / 32768 }
                     }
+                }
+                let left = buffer.floatChannelData![0]
+                let right = buffer.floatChannelData![1]
+                for frame in 0..<count {
+                    // Average for headroom when both sources exist. A missing source
+                    // does not halve the surviving source's volume.
+                    let mixed = (left[frame] + right[frame]) / sourceCount
+                    left[frame] = mixed
+                    right[frame] = mixed
                 }
                 try file.write(from: buffer)
             }

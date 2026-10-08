@@ -140,7 +140,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
                 try writer.append(samples, track: track, at: outputOffsets[track] ?? offset)
                 outputOffsets[track, default: offset] += Double(samples.count) / 16_000
                 lastReceived[track] = timestamp
-                levels[track] = sqrt(samples.reduce(0) { $0 + $1 * $1 } / Float(samples.count))
+                levels[track] = AudioLevel.meter(samples)
             }
             if timestamp - lastStatus > 0.2 {
                 lastStatus = timestamp

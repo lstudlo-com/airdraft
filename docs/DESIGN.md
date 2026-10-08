@@ -1,6 +1,8 @@
 ---
 name: Airdraft native macOS
 description: Compact navigation and an open profile editor with restrained native controls.
+colors:
+  prominent-fill: "rgb(5% 36% 73%)"
 typography:
   title:
     fontSize: "18pt"
@@ -52,6 +54,10 @@ components:
   soft-control:
     height: "28pt"
     elevation: "raised, a quarter of the hero's shadow spread"
+  soft-control-prominent:
+    backgroundColor: "{colors.prominent-fill}"
+    textColor: "white"
+    height: "28pt"
   content-island:
     rounded: "{rounded.island}"
     inset: "{spacing.islandInset}"
@@ -86,15 +92,18 @@ Their readable design record is maintained in the Airdraft Obsidian vault:
 
 ## Colors
 
-Use SwiftUI and AppKit semantic colors, which resolve for the current appearance.
-There is no fixed brand palette for this native workspace, so the frontmatter
-does not substitute sampled screenshot colors for system colors.
+Use SwiftUI and AppKit semantic colors for the current appearance. The
+frontmatter records the shared prominent-button fill; other semantic colors
+remain defined by their native source rather than sampled screenshots.
 
 ### Primary
 
 `Color.accentColor` marks focused text editors and native prominent controls.
 Navigation icons and selection remain neutral. Native controls retain their
 system appearance, including the accent shown in the live Save button.
+Meetings uses `SoftButtonStyle(prominent: true)` with the blue `prominent-fill`
+token and white text for its primary actions. It retains the shared capsule
+geometry and top-left lighting in both appearances.
 
 ### Neutral
 
@@ -327,8 +336,10 @@ text fields and editors, menu pickers, segmented controls, switches, sliders and
 stepper buttons are raised at a quarter of the spread (`SoftRaisedSurface` in
 `SoftControls.swift`). Pressed buttons sink into an inset well; segmented controls,
 switches and sliders sit in inset tracks; a switch's on state fills its track with
-the system accent; editing fields show an accent ring. The single primary action
-keeps the native prominent button. The same lighting covers selected sidebar
+the system accent; editing fields show an accent ring. Meetings' primary actions
+use the prominent variant of `SoftButtonStyle`, preserving the raised face and
+pressed well with blue fill and white type. Other native primary controls keep
+their existing style. The same lighting covers selected sidebar
 destinations, the sidebar microphone capsule, each device's ten-cell input meter,
 shortcut keycaps, appearance preview frames, Home's app-usage tracks and the
 recording HUD.
@@ -533,17 +544,25 @@ text into another app.
 Record Meeting opens a compact setup sheet in the same gray material. Its
 18-point heading sits above one `SettingsCard`. App audio is a raised selector
 with the current choice and chevron; Include microphone uses `.softSwitch` below
-a `RowDivider`. The app selector opens a visible popover immediately, with All
-Apps, individual apps, a checkmark for the selection and Refresh. Keep loading,
-empty and permission errors inside that chooser, with Open Recording Permissions
-below the error. An unavailable selected app remains named in the sheet and
+a `RowDivider`. The app selector opens a 320-point popover with All Apps,
+individual apps, a selection checkmark and Refresh. Its 32-point app rows have
+4-point gaps and a content-derived viewport capped at seven complete rows,
+or 248 points. Omit an empty scroll view; size loading, empty and permission
+messages to their contents. Keep existing rows visible during refresh, with
+Open Recording Permissions below an error. An unavailable selected app remains named in the sheet and
 disables Start Recording. One short notice covers participant awareness and local
 storage; Cancel sits beside the primary Start Recording action.
+
+Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
+the shared blue prominent capsule. Preserve its raised, pressed and disabled
+geometry; page-header controls share the 28-point height.
 
 Start closes setup and shows recording status on Meetings. The raised status card
 leads with a 23-point monospaced elapsed time and Stop and Save, then selected-app
 and enabled-microphone level rows separated by `RowDivider`. Each meter has an
-accessible source label and Receiving or Waiting for audio text. Omit the
+accessible source label and Receiving or Waiting for audio text. Reuse the
+microphone picker's ten fixed-height cells and its linear level response, with
+no extra view gain. Receipt state remains independent of amplitude. Omit the
 microphone row when it is off. Starting offers Cancel and saving shows progress.
 Leaving the page keeps capture running; the page and menu bar retain its stop
 action. Saving adds an independently transcribable recording to the persistent
@@ -552,8 +571,8 @@ library without starting transcription.
 Keep recording and recovery errors beside Retry on Meetings. Interrupted
 recordings appear in a `PageSection` with a dated row and Recover Recording action
 for each valid draft. One unreadable session must not hide the others. Saved
-recording controls identify microphone-left/app-audio-right channels and disclose
-capture issues under Recording Details. These rows reuse the shared card insets,
+recording controls say Meeting audio and disclose capture issues under Recording
+Details. These rows reuse the shared card insets,
 corners, supporting text and engraved dividers.
 
 ### Settings search

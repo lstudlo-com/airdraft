@@ -27,6 +27,11 @@ Recordings and Search meetings lead a single full-width card column. Collapsing
 the sidebar preserves the shared icon rail and gives the cards the available
 page width.
 
+Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
+`SoftButtonStyle(prominent: true)`. Blue fill and white type share the secondary
+button's raised capsule, pressed well and disabled geometry. The page-header
+actions share the 28-point control height.
+
 Each card belongs to one recording. Title, date and duration lead the card;
 untranscribed audio shows Ready to transcribe and Transcribe. The latest
 transcript adds a three-line preview, stage, processing destination and Open
@@ -48,23 +53,31 @@ SettingsCard, a short participant/local-storage notice and Cancel beside Start
 Recording. App audio uses a raised selector; Include microphone uses the shared
 switch below a RowDivider. The microphone follows the sidebar's selected device.
 
-The app selector immediately opens a 280-point popover. It contains All Apps,
-individual running apps, a selection checkmark and Refresh. Loading, empty and
-permission failures stay in the chooser, with Open Recording Permissions for
-recovery. Refresh preserves the selected app; an exited app remains named with
-an unavailable notice and blocks Start Recording.
+The app selector opens a 320-point popover with All Apps, individual running
+apps, a selection checkmark and Refresh. App rows are 32 points high with
+4-point gaps. The list has an explicit content-derived height, capped at seven
+complete rows, or 248 points; additional apps scroll. Empty states omit the
+scroll view. Loading, empty and permission messages resize the popup, with
+Open Recording Permissions for recovery. Existing rows stay visible during
+refresh. The selected app is retained; an exited app remains named with an
+unavailable notice and blocks Start Recording.
 
 Start closes the sheet and opens Meetings. The status card shows Starting,
 Recording Meeting or Saving Recording, a 23-point monospaced elapsed time and
 the appropriate Cancel, Stop and Save or progress control. App audio and an
-enabled microphone each have a labeled Receiving/Waiting meter. An omitted
-microphone has no meter row. Leaving Meetings keeps capture running. Stopping
-saves the recording before transcription is offered.
+enabled microphone each reuse the microphone picker's ten fixed-height meter
+cells. Both capture paths apply `AudioLevel.meter` once, using linear RMS × 8
+clamped to 0...1; the view adds no gain or logarithmic response. Receiving/Waiting
+remains independent of amplitude. An omitted microphone has no meter row.
+Leaving Meetings keeps capture running. Stopping saves the recording before
+transcription is offered.
 
 Interrupted recordings appear as individual dated rows with Recover Recording.
 An unreadable draft has a separate Retry notice while valid drafts remain
-available. Saved recording controls disclose channel sources and capture issues
-under Recording Details.
+available. Saved recording controls use the label Meeting audio and disclose
+capture issues under Recording Details. New and recovered WAVs put the same
+combined microphone/app mix in both stereo channels. Existing saved audio keeps
+its original bytes, and Save Audio copies the file without remixing it.
 
 ## Transcription and editing
 
@@ -102,6 +115,8 @@ Reference captures live under `.impeccable/review/meetings/`: `min/`, `tall/`,
 `collapsed/` and `empty/` contain `meetings-light.png` and `meetings-dark.png`;
 `setup/` contains `meeting-setup-light.png` and `meeting-setup-dark.png`;
 `editor/` contains `media-editor-light.png` and `media-editor-dark.png`.
-These synthetic records demonstrate composition. They do not establish real
+These earlier synthetic records demonstrate library composition. The expanded
+app chooser requires its own visible-row inspection; AX entries and a closed
+setup sheet cannot establish that result. These captures do not establish real
 capture permissions, audio quality, speaker accuracy or provider acceptance.
 Release and verification history belong in the vault.

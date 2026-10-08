@@ -10,9 +10,12 @@ dictation statistics.
 Meetings is a dedicated sidebar page below History and above Models / Settings.
 Its header contains Import and Record Meeting; the menu bar opens the same flow.
 The compact setup sheet selects All Apps or one running app and an optional
-microphone. Clicking App audio immediately opens a visible chooser with loading,
-retry, permissions and empty states. Refresh retains the selected app and marks
-it unavailable if it exits. Browser selection includes all that browser's audio. Airdraft
+microphone. Clicking App audio opens a 320-point chooser with 32-point app rows
+and 4-point gaps. Its list has an explicit height derived from its content,
+capped at seven complete rows, or 248 points. Empty states omit the scroll view;
+loading, empty and permission messages resize the popup. Refresh keeps existing
+rows visible and retains the selected app, marking it unavailable if it exits.
+Browser selection includes all that browser's audio. Airdraft
 excludes its own process audio. Microphone capture uses the device and optional
 channel selected in the sidebar when recording starts.
 
@@ -24,11 +27,20 @@ There is no echo cancellation: use headphones when microphone and speaker audio 
 asks that participants know about recording.
 
 Start closes setup and shows elapsed time plus Receiving/Waiting meters on
-Meetings. Leaving the page keeps recording; Meetings and the menu bar provide
+Meetings. Each source reuses the microphone picker's `MicrophoneLevelMeter`,
+with ten fixed-height cells. `AudioLevel.meter` applies the same linear RMS × 8
+response, clamped to 0...1, once in both microphone and meeting capture. The view
+adds no gain or logarithmic curve; Receiving/Waiting describes buffer receipt
+independently of the level. Leaving the page keeps recording; Meetings and the menu bar provide
 Stop and Save. Starting offers Cancel; finishing shows saving progress.
 The saved recording appears immediately with its date, duration and Transcribe
 action, before any ASR runs. It remains in the library after restarting the app. Meeting work
 shares the pipeline busy gate with dictation, media jobs and data cleanup.
+
+Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
+the shared `SoftButtonStyle(prominent: true)`: blue fill and white type with the
+same raised capsule, pressed well and disabled geometry as secondary buttons.
+The header actions share the 28-point control height.
 
 ## Timeline, storage and limits
 
@@ -38,10 +50,17 @@ shares the pipeline busy gate with dictation, media jobs and data cleanup.
 - `MeetingStaging/<UUID>/` holds private raw 16-bit PCM files and session metadata.
   Recovery derives duration from file lengths, without needing a finalized WAV
   header. Directories use 0700 and files 0600 permissions.
-- Stop drains callbacks and converter tails, closes the files, then writes a
-  16 kHz stereo WAV in one-second buffers: microphone left, app audio right. The
-  shorter or disabled track is padded with silence. These channels are sources,
-  not speaker identities; app audio may contain multiple speakers.
+- Stop drains callbacks and converter tails, closes the separate source files,
+  then writes a 16 kHz, 16-bit stereo WAV in one-second buffers. Both channels
+  contain the same microphone-plus-app mix. Each output sample is
+  `(microphone + app audio) / N`, where `N` is the number of source files that
+  contain samples. Two sources are averaged for headroom; a missing source does
+  not halve the surviving source. Gaps and a shorter track contribute silence.
+  The source count stays fixed for that recording.
+- New captures and recovered drafts use this combined-channel format. It
+  supersedes microphone-left/app-audio-right output; previously saved WAVs keep
+  their original bytes. Separate source PCM and clocks remain internal to
+  capture and recovery. Neither output channel identifies a speaker.
 - The draft UUID is the recording ID. Adoption checks for an existing managed
   asset before completing recovery, preventing a duplicate after interruption.
   Staging is removed only after adoption; failed saves remain recoverable.

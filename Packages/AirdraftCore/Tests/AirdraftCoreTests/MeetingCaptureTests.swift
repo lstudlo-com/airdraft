@@ -9,7 +9,7 @@ final class MeetingCaptureTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }
         return root
     }
-    func testSeparateChannelsCommonClockGapsTailAndCleanup() throws {
+    func testCenteredChannelsCommonClockGapsTailAndCleanup() throws {
         let root = try directory(); let history = try HistoryStore(directory: root)
         let writer = try MeetingAudioWriter(directory: root, microphone: true)
         try writer.append(Array(repeating: 0.8, count: 16_000), track: .microphone, at: 0)
@@ -24,6 +24,12 @@ final class MeetingCaptureTests: XCTestCase {
         let url = try XCTUnwrap(history.audioURL(for: asset))
         let file = try AVAudioFile(forReading: url)
         XCTAssertEqual(file.processingFormat.channelCount, 2)
+        let stereo = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)))
+        try file.read(into: stereo)
+        let channels = try XCTUnwrap(stereo.floatChannelData)
+        for frame in 0..<Int(stereo.frameLength) {
+            XCTAssertEqual(channels[0][frame], channels[1][frame], "Both ears must receive the same mix at frame \(frame)")
+        }
         XCTAssertEqual(asset.source, .meeting); XCTAssertEqual(asset.duration, 3, accuracy: 0.0001)
         XCTAssertTrue(asset.captureIssue?.contains("gap") == true)
         let samples = try MediaAudioWindow.read(url, from: 0)
@@ -33,6 +39,9 @@ final class MeetingCaptureTests: XCTestCase {
         XCTAssertEqual(samples[20_000], 0, accuracy: 0.001)
         XCTAssertEqual(samples[33_000], -0.2, accuracy: 0.001)
         XCTAssertEqual(samples[47_900], 0.15, accuracy: 0.001) // Last quarter-second survived finalization.
+        let exported = try directory().appendingPathComponent("export.wav")
+        try history.exportRecording(id: asset.id, to: exported)
+        XCTAssertEqual(try Data(contentsOf: url), try Data(contentsOf: exported))
         XCTAssertEqual(try MeetingAudioStore.drafts(in: root).count, 0)
         _ = try history.createDocument(asset: asset, title: "Meeting", configuration: .init())
         try history.deleteHistoryKeepingAudio()
@@ -41,6 +50,25 @@ final class MeetingCaptureTests: XCTestCase {
         XCTAssertNotNil(history.audioURL(for: asset))
         try history.deleteAllAudio()
         XCTAssertNil(history.audioURL(for: asset))
+    }
+    func testSingleSourceAndInterruptedRecoveryFillBothChannelsWithoutHalvingVolume() throws {
+        for track in MeetingTrack.allCases {
+            let root = try directory(); let history = try HistoryStore(directory: root)
+            let writer = try MeetingAudioWriter(directory: root, microphone: track == .microphone)
+            try writer.append([0.6, -0.6, 0, 1, -1], track: track, at: 0)
+            let draft = try writer.finish()
+            let asset = try MeetingAudioStore.recover(draft, directory: root, history: history, interrupted: true)
+            let file = try AVAudioFile(forReading: XCTUnwrap(history.audioURL(for: asset)))
+            XCTAssertEqual(file.processingFormat.channelCount, 2)
+            let pcm = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 5))
+            try file.read(into: pcm)
+            let channels = try XCTUnwrap(pcm.floatChannelData)
+            let expected: [Float] = [0.6, -0.6, 0, 1, -1]
+            for (index, value) in expected.enumerated() {
+                XCTAssertEqual(channels[0][index], value, accuracy: 0.001)
+                XCTAssertEqual(channels[1][index], value, accuracy: 0.001)
+            }
+        }
     }
     func testInterruptedWriterRecoversWithoutHeaderOrTranscriptAndIdempotentAdoption() throws {
         let root = try directory(); let history = try HistoryStore(directory: root)

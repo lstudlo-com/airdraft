@@ -23,6 +23,7 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
     let shape: S
     var elevation: SoftElevation = .control
     var pressed = false
+    var tint: Color? = nil
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -43,9 +44,15 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
         let rim = Color.white.opacity(dark ? 0.048 : 0.27)
         Group {
             if pressed {
-                shape.fill(Color(white: dark ? 0.15 : 0.87)
+                shape.fill((tint ?? Color(white: dark ? 0.15 : 0.87))
                     .shadow(.inner(color: shade, radius: 12 * spread, x: 7 * spread, y: 9 * spread))
                     .shadow(.inner(color: light, radius: 12 * spread, x: -6 * spread, y: -7 * spread)))
+            } else if let tint {
+                shape.fill(tint)
+                    .overlay {
+                        shape.fill(LinearGradient(colors: [.white.opacity(0.07), .black.opacity(0.07)],
+                                                  startPoint: .topLeading, endPoint: .bottomTrailing))
+                    }
             } else {
                 shape.fill(LinearGradient(colors: faces.map { Color(white: $0) },
                                           startPoint: .topLeading, endPoint: .bottomTrailing))

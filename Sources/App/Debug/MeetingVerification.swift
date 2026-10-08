@@ -7,7 +7,15 @@ enum MeetingVerification {
     static func installSilentCapture(in app: AppContainer) {
         guard LocalE2E.isActive else { return }
         app.meeting?.captureFactory = { directory, microphone, _, _ in try SyntheticMeetingCapture(directory: directory, microphone: microphone) }
-        app.meeting?.sourceProvider = { [.init(id: 101, name: "Fixture Call"), .init(id: 102, name: "Fixture Browser")] }
+        let count = LocalE2E.argument("--e2e-meeting-apps").flatMap(Int.init)
+        let delay = min(30_000, max(0, LocalE2E.argument("--e2e-meeting-app-delay-ms").flatMap(Int.init) ?? 600))
+        app.meeting?.sourceProvider = {
+            if let count {
+                try await Task.sleep(for: .milliseconds(delay))
+                return (0..<min(100, max(0, count))).map { .init(id: Int32(101 + $0), name: String(format: "Fixture App %02d", $0 + 1)) }
+            }
+            return [.init(id: 101, name: "Fixture Call"), .init(id: 102, name: "Fixture Browser")]
+        }
     }
     /// Exercises the actual app coordinator without capture permissions, microphones or playback.
     static func run() async -> Bool {
