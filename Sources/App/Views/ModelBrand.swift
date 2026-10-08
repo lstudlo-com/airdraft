@@ -7,6 +7,7 @@ enum ModelBrand: String {
     case nvidia = "NVIDIA", openAI = "OpenAI", apple = "Apple"
     case soniox = "Soniox", groq = "Groq", elevenLabs = "ElevenLabs"
     case deepgram = "Deepgram", openRouter = "OpenRouter"
+    case cartesia = "Cartesia", speechmatics = "Speechmatics"
     case assemblyAI = "AssemblyAI", fishAudio = "FishAudio", google = "Google", gemini = "Gemini"
     case meta = "Meta", microsoft = "Microsoft", mistral = "Mistral", xAI = "xAI"
 
@@ -28,6 +29,12 @@ enum ModelBrand: String {
         if id.hasPrefix("x-ai/") || id.hasPrefix("xai/") || id.hasPrefix("spacexai/") { return .xAI }
         switch provider {
         case .soniox: return .soniox
+        case .assemblyAI: return .assemblyAI
+        case .cartesia: return .cartesia
+        case .speechmatics: return .speechmatics
+        case .xAI: return .xAI
+        case .mistral: return .mistral
+        case .gemini: return .gemini
         case .groq: return .groq
         case .elevenLabs: return .elevenLabs
         case .deepgram: return .deepgram

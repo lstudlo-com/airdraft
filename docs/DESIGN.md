@@ -181,7 +181,7 @@ Close and Minimize have 16-point top and leading insets within a 46-point
 titlebar, with the sidebar toggle aligned to their centers. The green zoom/full-screen button is
 hidden and full-screen/tiling is disabled. Navigation rows use
 the documented component height and a 2-point gap. The sidebar separates daily
-destinations from Configuration and Models with space rather than headings.
+destinations from Settings and Models with space rather than headings.
 
 `PageScaffold` applies `pagePadding` and `sectionSpacing` across the available
 content width. Section headings, heading controls and cards share a right edge.
@@ -377,7 +377,7 @@ trailing for a right timer or status label. The visualizer retains its six-point
 outer inset, and the label gap remains eight points. Recent
 microphone amplitude controls their excursion, face separation and rotation speed, with fast attack and slower release. They do not claim to show
 frequency analysis. Reduce Motion holds the phase still and retains level
-response; delivery captures phase and energy for a frozen fade. Configuration
+response; delivery captures phase and energy for a frozen fade. Settings
 previews use synthetic input and pause for deterministic renders.
 Errors and recovery notices expand over 0.28 seconds into a rounded diagnostic
 panel with 13-point wrapping text and a 28-point Copy Message icon at the far right. Full
@@ -434,9 +434,11 @@ and other settings actions stay unavailable until maintenance finishes.
 
 ### History timeline and recordings
 
-History keeps its title and search above two independently scrolling columns.
-Below the heading, an All/Recordings `SoftSegmentedPicker` shares a row with the
-quiet Keep Recordings retention action, which opens Configuration. All shows
+History keeps its title, search and an All/Recordings `PageFilter` in the sticky
+header, above two independently scrolling columns. Nothing sits between the header
+and the columns, so both scroll under its blur; storage notices scroll with the
+cards. An empty Recordings filter with retention off explains Keep Recordings and
+offers Open Settings. All shows
 dictations and media transcript documents; Recordings shows available saved audio, including recordings without
 a saved transcript. Both columns follow the current filter and search.
 
@@ -476,30 +478,46 @@ respect Reduce Motion.
 
 ### Media import and transcript editor
 
-History’s Add Recording plus menu sits beside search and contains Import Media
-and Record Meeting. Import Media opens a native file picker; dropping a file
-opens the same import sheet. Saved meetings reuse it for explicit transcription.
-The sheet names the file or recording above one `SettingsCard` containing
-Transcription, Language and Identify speakers.
-Reuse the compact `SoftPicker`, `.softSwitch` and `RowDivider`. Missing local
-models expose Open Models or the explicit speaker-model Download action.
-Supporting text identifies the processing destination, retained WAV, two-hour
-limit and result in History. The single primary action reads Transcribe locally
-or Upload and Transcribe for Soniox; Cancel remains secondary.
+Meetings owns recorded meetings and imported media. It follows History in the
+sidebar, with Models above Settings in the lower group. Its shared page heading
+keeps Import and the primary Record Meeting action at the right. The Recordings
+section places Search meetings above one full-width card column. Use the existing
+gray island and raised cards, with equal 16-point insets and 18-point corners.
 
-Media cards share History's raised gray material, timeline and recording row.
-They show title, stage, a four-line preview and engine name. Active work exposes
-progress and Pause; summaries instead show Summarizing and Cancel. Incomplete
-work exposes the available Resume or Keep Transcript action. Visual cards and
-History accessibility rows share these actions and their sheet presenter. Open
-Transcript opens the editor.
+Each recording has one card with title, date and duration. Untranscribed audio
+shows Ready to transcribe and a direct Transcribe action. Completed work adds
+the latest transcript's stage, three-line preview, processing destination and
+Open Transcript. Transcript Versions lists every saved run by version, date and
+model; New Transcription keeps earlier versions. Show in Finder and the shared
+playback, Save Audio and secondary-menu row stay with the source recording.
+Deleting audio confirms that every transcript version remains. Missing audio
+keeps its transcripts visible with an explicit unavailable notice.
 
-The editor keeps its 18-point title and Close above Edited/Original, Copy and a
-native Export menu. Speaker names use the existing soft fields; Add Speaker sits
+Import opens a native audio/video picker; dropping a file opens the same
+Transcribe Recording sheet. A recording's Transcribe action carries that exact
+source into the sheet. Its source label sits above one `SettingsCard` containing
+Process audio, the local Model picker, Language and Identify speakers. Reuse
+`SoftPicker`, `.softSwitch` and `RowDivider`. The eight local model choices share
+readiness checks and explicit speech/speaker downloads in this sheet, preserving
+the source and options. Show checking, progress, Cancel Download and actionable
+errors beside this setup. Keep transcription unavailable until setup is ready.
+Supporting text distinguishes local word timing for Whisper from segment timing
+for the other local models. Soniox states upload and cost. The footer names
+Meetings and the two-hour limit, with Cancel beside Transcribe or the explicit
+Upload and Transcribe action.
+
+Active processing has a page-level progress card above Recordings, so search and
+pagination cannot hide it. Document actions expose Pause, or Cancel while
+summarizing, and the available Resume, Without Speakers or Keep Transcript
+recovery. Every saved version exposes its recovery actions in the editor too.
+
+The editor keeps its editable 18-point title and Close above Edited/Original,
+Copy and a native Export menu. Segment-timed results identify their timing near
+these controls. Speaker names use the existing soft fields; Add Speaker sits
 beside the short estimate notice. Turn cards show a timestamp, speaker selector,
 overlap notice when applicable and 13-point text. Original text is selectable;
-Edited text is editable when processing has completed. Retain shared 16-point
-card insets and 18-point corners, with at most 100 turns per page.
+Edited text is editable when processing has completed. Retain the shared card
+insets and corners, with at most 100 turns per page.
 
 Keep the scrolling turn cards clipped above the fixed footer; their shadow
 allowance extends horizontally without drawing over footer actions.
@@ -512,27 +530,35 @@ text into another app.
 
 ### Meeting recording
 
-The meeting sheet extends the same gray material and shared controls. Its heading
-and Close sit above one `SettingsCard`: App audio uses `SoftPicker` with Choose
-App beside the scope note; Include microphone uses `.softSwitch` below a
-`RowDivider`. Keep permission and headphone guidance concise, with Permissions
-beside its wrapping notice and Start Recording as the primary action. Reuse the
-shared card insets, corners and supporting text.
+Record Meeting opens a compact setup sheet in the same gray material. Its
+18-point heading sits above one `SettingsCard`. App audio is a raised selector
+with the current choice and chevron; Include microphone uses `.softSwitch` below
+a `RowDivider`. The app selector opens a visible popover immediately, with All
+Apps, individual apps, a checkmark for the selection and Refresh. Keep loading,
+empty and permission errors inside that chooser, with Open Recording Permissions
+below the error. An unavailable selected app remains named in the sheet and
+disables Start Recording. One short notice covers participant awareness and local
+storage; Cancel sits beside the primary Start Recording action.
 
-During capture, the card leads with a monospaced elapsed time and Stop and Save,
-then separate microphone and selected-app level rows. Each meter has an
-accessible source label and Receiving/Waiting for audio text; disabled microphone
-shows Off. Starting offers Cancel and saving shows progress. Close keeps capture
-running, explained below the card. History's compact Show Meeting/Recover Meeting
-notice restores the sheet. Saved recording rows identify the left/right sources
-and disclose capture issues under Recording Details; Transcribe reuses the media
-sheet after saving. Keep errors and recovery actions adjacent to their message:
-Retry rescans unreadable drafts, while Recover lists each valid draft by date and
-time so one damaged session does not hide the others.
+Start closes setup and shows recording status on Meetings. The raised status card
+leads with a 23-point monospaced elapsed time and Stop and Save, then selected-app
+and enabled-microphone level rows separated by `RowDivider`. Each meter has an
+accessible source label and Receiving or Waiting for audio text. Omit the
+microphone row when it is off. Starting offers Cancel and saving shows progress.
+Leaving the page keeps capture running; the page and menu bar retain its stop
+action. Saving adds an independently transcribable recording to the persistent
+library without starting transcription.
 
-### Configuration search
+Keep recording and recovery errors beside Retry on Meetings. Interrupted
+recordings appear in a `PageSection` with a dated row and Recover Recording action
+for each valid draft. One unreadable session must not hide the others. Saved
+recording controls identify microphone-left/app-audio-right channels and disclose
+capture issues under Recording Details. These rows reuse the shared card insets,
+corners, supporting text and engraved dividers.
 
-A 270 by 28 pt Search settings field sits at the right of the Configuration
+### Settings search
+
+A 270 by 28 pt Search settings field sits at the right of the Settings
 heading. It uses the shared recessed `SoftInsetTrack` capsule, with a visible
 accent focus ring, native text editing, and a clear action. Result position and
 previous/next controls fit inside it; no matches is explicit. Command-F focuses
@@ -555,7 +581,7 @@ index only when their copy changes; scrolling does neither indexing nor matching
 Conditional controls appear during search with prerequisite guidance and retain
 their disabled state when unavailable. Search never changes persisted settings.
 
-### Configuration data cleanup
+### Settings data cleanup
 
 Data & reset sits below Permissions and above Updates. One `SettingsCard`
 contains four rows: History, Audio files, History and audio, and Start fresh.

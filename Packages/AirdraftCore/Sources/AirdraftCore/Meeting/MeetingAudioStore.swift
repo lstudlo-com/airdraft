@@ -12,12 +12,12 @@ public enum MeetingError: LocalizedError {
     case storage, invalidClock, permission, noDisplay, sourceGone, diskSpace, noAudio
     public var errorDescription: String? {
         switch self {
-        case .storage: return "The meeting recording could not be saved. Check disk access, then recover it from History."
+        case .storage: return "The meeting recording could not be saved. Check disk access, then recover it from Meetings."
         case .invalidClock: return "The audio clock changed. Recording stopped to preserve the saved timeline."
         case .permission: return "Allow Microphone and Screen & System Audio Recording in System Settings, then try again."
         case .noDisplay: return "No display is available for meeting audio capture. Connect a display and try again."
         case .sourceGone: return "The selected meeting app is no longer running. Choose it again."
-        case .diskSpace: return "Recording stopped because disk space is low. Free space, then recover the saved audio from History."
+        case .diskSpace: return "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings."
         case .noAudio: return "No audio buffers were received. Check the selected app, microphone and permissions."
         }
     }

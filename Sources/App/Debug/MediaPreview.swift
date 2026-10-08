@@ -23,5 +23,20 @@ import Foundation
         saved.stage = .completed; saved.transcriptionComplete = true; saved.diarizationComplete = true
         _ = try history.updateDocument(saved)
     }
+    static func seedMeetings(_ history: HistoryStore) throws {
+        let now = Date()
+        let latest = try history.saveRecording(samples: Array(repeating: 0, count: 32_000), source: .meeting, createdAt: now)
+        _ = latest
+        let older = try history.saveRecording(samples: Array(repeating: 0, count: 20 * 16_000), source: .meeting,
+                                             createdAt: now.addingTimeInterval(-86_400))
+        for title in ["Planning review · Original", "Planning review"] {
+            var saved = try history.createDocument(asset: older, title: title, configuration: .init(language: "en", localModel: .qwenSmall))
+            saved.words = document.words; saved.turns = document.turns; saved.speakerNames = document.speakerNames
+            saved.stage = .completed; saved.transcriptionComplete = true; saved.diarizationComplete = true
+            _ = try history.updateDocument(saved)
+        }
+        _ = try history.saveRecording(samples: Array(repeating: 0, count: 4 * 16_000), source: .meeting,
+                                      createdAt: now.addingTimeInterval(-2 * 86_400))
+    }
 }
 #endif

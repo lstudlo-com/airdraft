@@ -24,7 +24,7 @@ connection timing checks remain separate from these automated tests.
 
 ## Input channels
 
-Multi-input devices show an Input channel picker in Configuration. The selection
+Multi-input devices show an Input channel picker in Settings. The selection
 is saved with the microphone; existing preferences start with Input 1. Choose
 Input 2 if that is where the microphone is connected. Selecting another device
 resets the channel to Input 1. An unavailable channel reports an error.
@@ -37,7 +37,7 @@ format even though permission was granted and audio buffers were arriving.
 Do not mix all device channels: on this interface, inputs 3 and 4 are
 [computer-audio loopback](https://support.focusrite.com/hc/en-gb/articles/13414231413906-Can-I-Simultaneously-Record-All-4-Inputs-of-My-Scarlett-2i2-4th-Generation).
 
-## Configuration changes
+## Settings changes
 
 Apple's [AVAudioEngine configuration notification](https://developer.apple.com/documentation/foundation/nsnotification/name-swift.struct/avaudioengineconfigurationchange)
 can describe a change to input or output hardware. The notification alone does
@@ -82,7 +82,7 @@ M5, physical unplugging, or every device's hardware format changes.
 On 2026-09-23, the local channel-mapping fix passed 148 core tests with 3 skipped
 and no failures. The rebuilt app passed nine real-device checks across Scarlett
 Input 2, system-default Input 2 and the built-in microphone. Each checked a
-nonzero signal and audio callbacks after engine recovery. Light/dark Configuration
+nonzero signal and audio callbacks after engine recovery. Light/dark Settings
 renders were inspected. These checks do not replace speaking while holding the
 physical dictation shortcut, and this workspace build is not a published update.
 

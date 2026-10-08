@@ -5,14 +5,14 @@ primary_target: "Sources/App/Views/ConfigurationPage.swift"
 related_targets: ["Sources/App/Views/SettingsSearch.swift", "Sources/App/Views/AutomationSettings.swift", "Sources/App/Views/MicrophonePicker.swift", "Sources/App/Views/DataCleanupSettings.swift", "Sources/App/Views/MainWindow.swift", "Sources/App/Views/MenuView.swift", "Sources/App/Views/Theme.swift", "Sources/App/Views/SoftControls.swift"]
 ---
 
-# Configuration
+# Settings
 
 Mode: Operate. Platform: native macOS SwiftUI.
 
 ## Direction
 
 Keep settings discoverable and data removal scoped within the incumbent
-Configuration page. Preserve its gray cards, shared row alignment, labeled
+Settings page. Preserve its gray cards, shared row alignment, labeled
 actions and native confirmation controls.
 
 ## Search composition and behavior
@@ -82,7 +82,7 @@ docs/data-cleanup.md. This change introduces no new visual tokens.
 Search extends the existing code and components without a separate visual comp.
 Reference images live under `.impeccable/review/settings-search/`.
 
-Cleanup reference images live under `.impeccable/review/cleanup/`: Configuration in
+Cleanup reference images live under `.impeccable/review/cleanup/`: Settings in
 `minimum/`, `tall/` and `collapsed/`; the sheet in `failed/cleanup-*` and
 `complete/cleanup-*`; and the live window in `live/compositor.png`.
 `live/reset-confirmation.png` records native confirmation layout; current source

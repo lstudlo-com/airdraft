@@ -15,10 +15,17 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     case elevenLabs
     case deepgram
     case soniox
+    case assemblyAI
+    case cartesia
+    case speechmatics
+    case xAI
+    case mistral
+    case gemini
     public var id: String { rawValue }
     public var isLocal: Bool {
         switch self {
-        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox: return false
+        case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return false
         default: return true
         }
     }
@@ -342,7 +349,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .parakeet: return "sherpa-onnx:parakeet"
         case .apple: return "apple-speech:\(effectiveAppleLocale)"
         case .elevenLabs: return "elevenlabs:\(speechModelID)"
-        case .openAI, .openRouter, .groq, .deepgram, .soniox:
+        case .openAI, .openRouter, .groq, .deepgram, .soniox, .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini:
             return "\(kind.rawValue):\(speechModelID)"
         case .openAICompatible: return "openai-compatible:\(URL(string: baseURL)?.host ?? "?")/\(model)"
         }
@@ -397,7 +404,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .senseVoice: return "SenseVoice-small"
         case .parakeet: return "Parakeet TDT v3"
         case .apple: return "Apple Speech · \(appleLocale)"
-        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox:
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini:
             return "\(kind.preset?.name ?? kind.rawValue) · \(selectedSpeechModel?.title ?? model)"
         case .openAICompatible: return "\(URL(string: baseURL)?.host ?? baseURL) · \(model)"
         }
@@ -614,6 +622,36 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
               detail: "Smart punctuation, dates and numbers. Auto-detects the dominant language.", price: "$0.258/hr",
               billingNote: "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off.",
               consoleURL: URL(string: "https://console.deepgram.com")!, pricingURL: URL(string: "https://deepgram.com/pricing")!),
+        .init(kind: .assemblyAI, name: "AssemblyAI", modelTitle: "Universal-3.5 Pro", baseURL: "https://api.assemblyai.com/v2",
+              keyRef: "asr.assemblyai", purpose: "Batch accuracy & vocabulary",
+              detail: "18 languages, including Mandarin and English code-switching.", price: "See pricing",
+              billingNote: "Job deletion is attempted after use. Uploads without a job follow provider retention.",
+              consoleURL: URL(string: "https://www.assemblyai.com/dashboard")!, pricingURL: URL(string: "https://www.assemblyai.com/pricing")!),
+        .init(kind: .cartesia, name: "Cartesia", modelTitle: "Ink-Whisper", baseURL: "https://api.cartesia.ai",
+              keyRef: "asr.cartesia", purpose: "File recognition with a chosen language",
+              detail: "Broad language coverage; select a speech language before recording.", price: "See pricing",
+              billingNote: "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here.",
+              consoleURL: URL(string: "https://play.cartesia.ai/keys")!, pricingURL: URL(string: "https://cartesia.ai/pricing")!),
+        .init(kind: .speechmatics, name: "Speechmatics", modelTitle: "Enhanced", baseURL: "https://eu1.asr.api.speechmatics.com/v2",
+              keyRef: "asr.speechmatics", purpose: "Batch recognition & custom vocabulary",
+              detail: "Enhanced recognition. Auto Detect chooses one predominant language.", price: "See pricing",
+              billingNote: "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech.",
+              consoleURL: URL(string: "https://portal.speechmatics.com")!, pricingURL: URL(string: "https://www.speechmatics.com/pricing")!),
+        .init(kind: .xAI, name: "xAI", modelTitle: "Grok Voice Transcribe 2.0", baseURL: "https://api.x.ai/v1",
+              keyRef: "asr.xai", purpose: "Multilingual speech & keyterms",
+              detail: "Native transcription with automatic language detection and dictionary hints.", price: "See pricing",
+              billingNote: "Audio is sent to xAI. Check current model pricing and account limits before use.",
+              consoleURL: URL(string: "https://console.x.ai")!, pricingURL: URL(string: "https://docs.x.ai/developers/model-capabilities/audio/speech-to-text")!),
+        .init(kind: .mistral, name: "Mistral", modelTitle: "Voxtral Mini Transcribe", baseURL: "https://api.mistral.ai/v1",
+              keyRef: "asr.mistral", purpose: "Compact multilingual transcription",
+              detail: "13 languages, including Mandarin, with optional language hints.", price: "See pricing",
+              billingNote: "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription.",
+              consoleURL: URL(string: "https://console.mistral.ai/api-keys")!, pricingURL: URL(string: "https://mistral.ai/pricing")!),
+        .init(kind: .gemini, name: "Gemini", modelTitle: "Gemini 3.5 Transcribe", baseURL: "https://generativelanguage.googleapis.com/v1beta",
+              keyRef: "asr.gemini", purpose: "Verbatim speech & vocabulary hints",
+              detail: "Dedicated transcription in verbatim mode, with automatic language detection.", price: "See pricing",
+              billingNote: "Uses a separate speech key. Interaction storage is off; uploaded-file deletion is attempted after use.",
+              consoleURL: URL(string: "https://aistudio.google.com/api-keys")!, pricingURL: URL(string: "https://ai.google.dev/gemini-api/docs/pricing")!),
     ]
 
     public static let elevenLabsKeyRef = "asr.elevenlabs"

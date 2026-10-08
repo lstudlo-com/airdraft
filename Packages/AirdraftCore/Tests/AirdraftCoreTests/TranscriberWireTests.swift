@@ -165,6 +165,28 @@ final class TranscriberWireTests: XCTestCase {
                                        [URLQueryItem(name: "output_modalities", value: "transcription")])
                         XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
                         return (200, "{\"data\":[{\"id\":\"\(model.id)\",\"architecture\":{\"input_modalities\":[\"audio\"],\"output_modalities\":[\"transcription\"]}}]}")
+                    case .assemblyAI:
+                        XCTAssertEqual(request.url?.path, "/v2/transcript")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "test-key")
+                        return (200, #"{"transcripts":[]}"#)
+                    case .cartesia:
+                        XCTAssertEqual(request.url?.path, "/voices")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Cartesia-Version"), "2026-08-14")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
+                        return (200, #"{"data":[]}"#)
+                    case .speechmatics:
+                        XCTAssertEqual(request.url?.path, "/v2/jobs")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
+                        return (200, #"{"jobs":[]}"#)
+                    case .xAI:
+                        XCTAssertEqual(request.url?.path, "/v1/api-key")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
+                        return (200, #"{"api_key_id":"fixture","api_key_blocked":false,"api_key_disabled":false,"team_blocked":false}"#)
+                    case .gemini:
+                        XCTAssertEqual(request.url?.path, "/v1beta/models")
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "x-goog-api-key"), "test-key")
+                        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+                        return (200, #"{"models":[]}"#)
                     case .elevenLabs:
                         XCTAssertEqual(request.url?.path, "/v1/user")
                         XCTAssertEqual(request.value(forHTTPHeaderField: "xi-api-key"), "test-key")
@@ -173,6 +195,9 @@ final class TranscriberWireTests: XCTestCase {
                         XCTAssertEqual(request.url?.path, "/v1/auth/token")
                         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Token test-key")
                         return (200, "{\"api_key_id\":\"fixture\"}")
+                    case .mistral:
+                        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
+                        return (200, #"{"data":[]}"#)
                     default:
                         XCTAssertEqual(request.url?.lastPathComponent, "models")
                         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")

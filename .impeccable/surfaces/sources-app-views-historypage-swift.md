@@ -11,15 +11,16 @@ Mode: Operate. Platform: native macOS SwiftUI.
 
 ## Direction
 
-Extend the incumbent gray native History page so saved audio can be found,
+Extend the incumbent gray native History page so saved dictation audio can be found,
 played and exported. Preserve the existing timeline, transcription cards,
 neumorphic controls and native secondary menus.
 
 ## Built composition
 
-The title, search and clear action remain in the shared page heading. An
+The title and search remain in the shared page heading. Global cleanup lives in
+Settings; History never clears invisible meeting data. An
 All/Recordings segmented picker sits below it, opposite the current Keep
-Recordings setting. The retention action opens Configuration.
+Recordings setting. The retention action opens Settings.
 
 The 52-point timeline and the card column scroll independently with a shared
 12-point gap. Both use the active filter and search. Timeline headings show

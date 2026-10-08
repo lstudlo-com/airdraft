@@ -37,6 +37,7 @@ struct MediaDocumentActions: View {
     @Environment(AppContainer.self) private var container
     let document: TranscriptDocument
     let open: () -> Void
+    var showsOpen = true
     @State private var actionIssue: String?
     private var active: Bool { container.media?.isBusy == true && container.media?.document?.id == document.id }
     var body: some View {
@@ -55,13 +56,18 @@ struct MediaDocumentActions: View {
                 Button("Resume") { container.media?.resume(id: document.id) }
                     .buttonStyle(SoftButtonStyle()).disabled(container.pipeline.isBusy)
             }
+            if document.stage != .completed && !active && document.recordingID != nil && document.configuration.identifySpeakers && document.configuration.engine == .local {
+                Button("Without Speakers") { container.media?.resume(id: document.id, withoutSpeakers: true) }
+                    .buttonStyle(SoftButtonStyle()).disabled(container.pipeline.isBusy)
+                    .help("Continue transcription without speaker detection")
+            }
             if document.transcriptionComplete && document.stage != .completed && !active && document.remoteFileID == nil {
                 Button("Keep Transcript") {
                     do { try container.media?.keepTranscript(id: document.id) }
                     catch { actionIssue = error.localizedDescription }
                 }.buttonStyle(SoftButtonStyle()).disabled(container.pipeline.isBusy)
             }
-            Button("Open Transcript", action: open).buttonStyle(SoftButtonStyle())
+            if showsOpen { Button("Open Transcript", action: open).buttonStyle(SoftButtonStyle()) }
         }
     }
 }
@@ -99,7 +105,12 @@ struct MediaDocumentEditor: View {
                 }.menuStyle(.borderlessButton).fixedSize()
             }
             if let issue { Text(issue).supportingText().textSelection(.enabled) }
-            if container.media?.isBusy == true { Text("Editing is available after processing finishes. Close and reopen to load the latest result.").supportingText() }
+            if document.configuration.usesSegmentTiming {
+                Text("Segment timestamps · Speaker labels are estimates").supportingText()
+            }
+            if document.stage != .completed || container.media?.document?.id == document.id && container.media?.isBusy == true {
+                MediaDocumentActions(document: document, open: {}, showsOpen: false)
+            }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
                     if document.transcriptionComplete {
@@ -183,6 +194,10 @@ struct MediaDocumentEditor: View {
         .interactiveDismissDisabled(dirty)
         .onChange(of: document.title) { _, _ in dirty = true }
         .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
+        .onReceive(NotificationCenter.default.publisher(for: .historyEntriesChanged)) { _ in
+            guard !dirty, let saved = try? container.history?.document(id: document.id) else { return }
+            document = saved
+        }
         .onAppear {
             NotificationCenter.default.post(name: .mediaEditorOpened, object: nil)
             if let saved = try? container.history?.document(id: document.id) { document = saved }
@@ -200,7 +215,7 @@ struct MediaDocumentEditor: View {
                     } catch { issue = error.localizedDescription }
                 }
             }
-        } message: { Text("The recording stays in Recordings.") }
+        } message: { Text("The recording stays in Meetings.") }
         .confirmationDialog("Summarize this transcript?", isPresented: $confirmSummary, titleVisibility: .visible) {
             Button("Create Summary") {
                 container.media?.summarize(id: document.id, configuration: container.settings.llm)

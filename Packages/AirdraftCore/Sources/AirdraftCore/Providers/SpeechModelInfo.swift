@@ -107,6 +107,36 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
                           quality: "Mixed languages", qualityDetail: "Recognizes language switches within speech, including Chinese and English.",
                           speed: "Not published", speedDetail: "Asynchronous processing adds job scheduling and polling. " + unpublished,
                           documentationURL: URL(string: "https://soniox.com/docs/stt/models")!)]
+        case .assemblyAI:
+            return [.init(id: "universal-3-5-pro", title: "Universal-3.5 Pro", price: "See pricing",
+                          billing: "https://www.assemblyai.com/dashboard", quality: "18 languages",
+                          qualityDetail: "Includes Mandarin and English code-switching; uses dictionary keyterms.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://www.assemblyai.com/docs/pre-recorded-audio/universal-3-5-pro")!)]
+        case .cartesia:
+            return [.init(id: "ink-whisper", title: "Ink-Whisper", price: "See pricing",
+                          billing: "https://play.cartesia.ai/keys", quality: "Broad language coverage",
+                          qualityDetail: "File recognition with an explicit language. Streaming-only models are separate.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://docs.cartesia.ai/api-reference/stt/transcribe")!)]
+        case .speechmatics:
+            return [.init(id: "enhanced", title: "Enhanced", price: "See pricing",
+                          billing: "https://portal.speechmatics.com", quality: "Custom vocabulary",
+                          qualityDetail: "Batch recognition with dictionary terms. Auto Detect selects the predominant language.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://docs.speechmatics.com/speech-to-text/batch/quickstart")!)]
+        case .xAI:
+            return [.init(id: "grok-voice-transcribe-2.0", title: "Grok Voice Transcribe 2.0", price: "See pricing",
+                          billing: "https://console.x.ai", quality: "Multilingual",
+                          qualityDetail: "Automatic language detection and native keyterm hints.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://docs.x.ai/developers/model-capabilities/audio/speech-to-text")!)]
+        case .mistral:
+            return [.init(id: "voxtral-mini-latest", title: "Voxtral Mini Transcribe", price: "See pricing",
+                          billing: "https://console.mistral.ai/api-keys", quality: "13 languages",
+                          qualityDetail: "Voxtral Mini transcription with an optional language hint, including Mandarin.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://docs.mistral.ai/studio/audio/speech_to_text/offline_transcription")!)]
+        case .gemini:
+            return [.init(id: "gemini-3.5-transcribe", title: "Gemini 3.5 Transcribe", price: "See pricing",
+                          billing: "https://aistudio.google.com/api-keys", quality: "Verbatim & multilingual",
+                          qualityDetail: "Preserves fillers and repetitions; supports native custom vocabulary. Refinement remains independent.", speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://ai.google.dev/gemini-api/docs/transcribe")!)]
         default: return []
         }
     }

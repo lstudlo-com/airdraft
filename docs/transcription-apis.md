@@ -1,6 +1,7 @@
 # Cloud transcription in Airdraft
 
-Direct-provider research checked September 18, 2026; OpenRouter checked September 24, 2026.
+Existing provider prices checked September 18, 2026; OpenRouter checked September 24, 2026.
+The six additional direct API contracts were checked October 7, 2026; their prices link to current provider pages.
 These are file-transcription APIs: Airdraft sends the captured audio after
 recording stops. Streaming first-token latency is not dictation completion latency.
 
@@ -93,7 +94,7 @@ does not offer host pinning or imply that refinement's routing settings apply.
 Both stages can use the same `llm.openrouter` Keychain key while retaining their
 own provider and model selections.
 
-Configuration, Models and History share 16-point card padding on all four sides.
+Settings, Models and History share 16-point card padding on all four sides.
 Settings rows no longer add vertical padding on top of the card inset. Section
 headings use an 8-point gap; sections use 20 points. Model columns adapt to the
 900-point minimum window width. History trims surrounding blank lines for display
@@ -156,15 +157,40 @@ fallback. Direct providers use separate `asr.<provider>` Keychain accounts;
 OpenRouter shares `llm.openrouter` across speech and refinement. The UI links to each
 provider's key console and pricing page and explains why each choice exists.
 
-## Why not more providers?
+## Additional native speech providers
 
-Mistral's Voxtral Mini Transcribe 2 is a credible 13-language option at $0.003/min,
-but overlaps this selection's general transcription/value roles. Its launch article
-compares against older competitor prices, so its cost ranking is not reused here.
-AssemblyAI Universal-3 Pro is a credible English/domain-specialist alternative at
-$0.21/hour; its documented six-language coverage does not include Mandarin.
-Neither adds enough to this personal Chinese/English dictation shortlist to justify
-a sixth integration. This is a scope decision, not a claim that either API is obsolete.
+The six providers below use direct BYOK speech APIs. They appear in the same model
+picker, retain independent credentials and model selections, and work with profile
+speech bindings. They do not require OpenRouter.
+
+| Provider | Model and request | Language and dictionary contract |
+|---|---|---|
+| [AssemblyAI](https://www.assemblyai.com/docs/api-reference/transcripts/submit) | `universal-3-5-pro`; binary upload → JSON batch job → poll → delete | 18 supported languages. Automatic detection and code-switching are enabled. An explicit language narrows expected languages to it plus English; native keyterms are sent. |
+| [Cartesia](https://docs.cartesia.ai/api-reference/stt/transcribe) | `ink-whisper`; multipart `POST /stt`, `Cartesia-Version: 2026-08-14` | An explicit language is required; Auto Detect is blocked before upload. Dictionary substitutions apply after transcription. Ink-2 is streaming-only and is not offered by this file adapter. |
+| [Speechmatics](https://docs.speechmatics.com/speech-to-text/batch/quickstart) | `enhanced`; EU batch `POST /v2/jobs`, multipart `config` and `data_file` → poll → text → delete | Mandarin maps to `cmn`; dictionary terms use `additional_vocab`. Auto Detect chooses one predominant language and works best with at least 60 seconds of speech. |
+| [xAI](https://docs.x.ai/developers/model-capabilities/audio/speech-to-text) | `grok-voice-transcribe-2.0`; multipart `POST /v1/stt` | Language is optional; omitted means automatic detection. Native `keyterm` fields precede the audio file. |
+| [Mistral](https://docs.mistral.ai/studio/audio/speech_to_text/offline_transcription) | `voxtral-mini-latest`; multipart `POST /v1/audio/transcriptions` | 13 languages including Mandarin; language is an optional hint. Dictionary substitutions apply after transcription. |
+| [Gemini](https://ai.google.dev/gemini-api/docs/transcribe) | `gemini-3.5-transcribe`; resumable WAV upload → Interactions → delete file | Verbatim mode preserves fillers and repetitions. Language hints and `custom_vocabulary` are native transcription fields; the adapter never asks a chat model to rewrite speech. |
+
+AssemblyAI uses the batch API across Airdraft's ten-minute recording range;
+the 120-second Sync API is not the adapter used here. AssemblyAI, Speechmatics and
+Gemini share one 180-second deadline per operation. Polling and cancellation are
+bounded, and deletion is attempted only for a validated job/file created by that
+operation, with a separate two-second cleanup deadline. An AssemblyAI upload whose
+job could not be created follows the provider's upload retention policy. No API can
+guarantee remote deletion while unreachable.
+
+Gemini uses the `steps` response schema with `Api-Revision: 2026-05-20`, accepts
+only completed text output, and sets `store: false` for the interaction. The Files
+API supports the full WAV recording range without inline-base64 request limits.
+Its `asr.gemini` credential is independent of refinement's `llm.gemini` key.
+
+The new models display **See pricing** and **Not rated** rather than inferred
+costs or benchmark scores. Their billing notes and links remain visible in details.
+Their connection checks upload no audio: AssemblyAI lists transcripts; Cartesia
+lists voices; Speechmatics lists jobs; xAI checks key metadata; Mistral and Gemini
+list models. These confirm key access only; alias/model listing is not proof of
+speech permissions, balance or transcription quality.
 
 ## API behavior and validation
 
@@ -195,7 +221,7 @@ and a common set of recordings; they are not claimed by these tests.
   errors, timeouts and cancellation. Debug build, strict signing and diff checks passed.
 - Inspected all six pages in both themes, all five cloud model tables at 900 × 600,
   the local/cloud comparison, expanded source details, and connection-state fixtures.
-  Configuration, Models (including Refinement, Memory and Speech options), and History
+  Settings, Models (including Refinement, Memory and Speech options), and History
   were also inspected in the running app.
 - Computer Use verified all eleven model choices, direct row selection, remembered
   choices after provider changes, model search and its empty state, local/cloud filters,

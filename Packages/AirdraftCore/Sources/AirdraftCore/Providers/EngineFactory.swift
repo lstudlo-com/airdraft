@@ -60,6 +60,18 @@ public actor EngineFactory {
             return DeepgramTranscriber(model: config.speechModelID, apiKey: key)
         case .soniox:
             return SonioxTranscriber(apiKey: key)
+        case .assemblyAI:
+            return AssemblyAITranscriber(apiKey: key)
+        case .cartesia:
+            return CartesiaTranscriber(apiKey: key)
+        case .speechmatics:
+            return SpeechmaticsTranscriber(apiKey: key)
+        case .xAI:
+            return XAITranscriber(apiKey: key)
+        case .mistral:
+            return MistralTranscriber(apiKey: key)
+        case .gemini:
+            return GeminiTranscriber(apiKey: key)
         case .openAICompatible:
             let url = URL(string: config.baseURL) ?? URL(string: "https://api.openai.com/v1")!
             return OpenAICompatibleTranscriber(baseURL: url, model: config.model, apiKey: key)
@@ -72,12 +84,27 @@ public actor EngineFactory {
 
     public func transcribeMediaWindow(_ samples: [Float], offset: Double, config: ASRConfig) async throws -> [TranscriptWord] {
         let language = try SpeechLanguagePolicy.resolve(config).language
+        guard config.kind.isLocal else { throw MediaError.unsupportedModel }
+        // Exact digital silence contains no speech; do not let generative models invent a segment.
+        // Quiet nonzero audio still reaches the recognizer.
+        guard samples.contains(where: { $0 != 0 }) else { return [] }
         return try await serialize {
+            // Media setup owns explicit installation, including Apple's language assets.
+            if config.kind == .apple, !(await self.transcriber(for: config).isReady()) {
+                throw TranscriberError.modelNotDownloaded
+            }
             try await self.prepareExclusive(config)
-            guard let engine = await self.transcriber(for: config) as? WhisperKitTranscriber else { throw MediaError.unavailable }
+            let engine = await self.transcriber(for: config)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
-            let words = try await engine.transcribeWords(samples: samples, language: language, offset: offset)
+            let words: [TranscriptWord]
+            if let whisper = engine as? WhisperKitTranscriber {
+                words = try await whisper.transcribeWords(samples: samples, language: language, offset: offset)
+            } else {
+                let result = try await engine.transcribe(samples: samples, hints: .init(language: language, chineseScript: config.chineseScript))
+                // Measured audio-segment bounds, never invented times for individual words.
+                words = result.isEmpty ? [] : [.init(start: offset, end: offset + Double(samples.count) / 16_000, text: result.text + " ", timing: .segment)]
+            }
             try Task.checkCancellation()
             await self.markUsed(engine.id)
             return words

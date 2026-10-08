@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Renders the homepage's real app window (the interface section) from a Debug
-# build: the Configuration page at the fixed 784-point width, light and dark,
+# build: the Settings page at the fixed 784-point width, light and dark,
 # with an isolated empty data directory (--e2e-local), so the sidebar reads
 # "Ready to dictate" and no history, usage count or personal setting appears.
 # The renders are converted to grayscale, as the app looks with the system's

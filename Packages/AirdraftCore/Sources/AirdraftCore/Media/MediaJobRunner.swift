@@ -82,13 +82,17 @@ public final class MediaJobRunner {
         saved.configuration.identifySpeakers = false; saved.stage = .completed; saved.issue = nil
         document = try history.updateDocument(saved); onChange?()
     }
-    public func resume(id: String) {
+    public func resume(id: String, withoutSpeakers: Bool = false) {
         guard !isBusy else { return }
         begin()
         task = Task {
             defer { end() }
             do {
-                guard let saved = try history.document(id: id) else { throw MediaError.unavailable }
+                guard var saved = try history.document(id: id) else { throw MediaError.unavailable }
+                if withoutSpeakers {
+                    saved.configuration.identifySpeakers = false
+                    saved = try history.updateDocument(saved)
+                }
                 document = saved
                 try await run()
             } catch { await failed(error) }
@@ -149,6 +153,11 @@ public final class MediaJobRunner {
         guard let initial = document, let id = initial.recordingID,
               let asset = try history.recording(id: id), let url = history.audioURL(for: asset) else { throw MediaError.unavailable }
         try initial.configuration.validate()
+        let segmentTiming = initial.configuration.usesSegmentTiming
+        if segmentTiming && initial.configuration.identifySpeakers && !initial.diarizationComplete {
+            let speakers = try await identifySpeakers(url: url, asset: asset, documentID: initial.id)
+            try await persist { $0.speakerIntervals = speakers; $0.diarizationComplete = true }
+        }
         activity = "Transcribing"
         try await persist { $0.issue = nil; $0.stage = .transcribing }
         if !initial.transcriptionComplete {
@@ -161,20 +170,41 @@ public final class MediaJobRunner {
                 try Task.checkCancellation()
                 try await persist { $0.words = words; $0.completedSeconds = asset.duration; $0.transcriptionComplete = true; $0.rebuildTurns() }
             } else {
-                while let current = document, current.completedSeconds < asset.duration - 0.0001 {
+                let speechOnly = segmentTiming && initial.configuration.identifySpeakers
+                let segments = speechOnly
+                    ? MediaSegmentPlan.speechTurns(duration: asset.duration, speakers: document?.speakerIntervals ?? [])
+                    : segmentTiming ? MediaSegmentPlan.make(duration: asset.duration, speakers: []) : []
+                if speechOnly && segments.isEmpty { throw MediaError.noSpeakerActivity }
+                while let current = document, Int((current.completedSeconds * 16_000).rounded()) < Int((asset.duration * 16_000).rounded()) {
                     try Task.checkCancellation()
-                    let offset = current.completedSeconds
-                    let samples = try await Task.detached { try MediaAudioWindow.read(url, from: offset, maximumSeconds: 31) }.value
+                    let completedFrame = Int((current.completedSeconds * 16_000).rounded())
+                    let segment = segments.first { $0.endFrame > completedFrame }
+                    if speechOnly && segment == nil {
+                        try await persist { $0.completedSeconds = asset.duration }
+                        break
+                    }
+                    let frame = max(completedFrame, segment?.startFrame ?? completedFrame)
+                    let offset = Double(frame) / 16_000
+                    let maximum = segment.map { Double($0.endFrame - frame) / 16_000 } ?? 31
+                    let samples = try await Task.detached { try MediaAudioWindow.read(url, from: offset, maximumSeconds: maximum) }.value
                     guard !samples.isEmpty else { throw MediaError.invalidAudio }
                     // Select a quiet boundary within a bounded window, without retaining the whole file.
-                    let chunk = AudioChunker.split(samples, maxSeconds: 25, minTailSeconds: 0).first!
-                    let words: [TranscriptWord]
-                    if let windowDecoder { words = try await windowDecoder(chunk.samples, offset, initial.configuration.asr) }
-                    else { words = try await factory.transcribeMediaWindow(chunk.samples, offset: offset, config: initial.configuration.asr) }
+                    let chunk = segmentTiming ? samples : AudioChunker.split(samples, maxSeconds: 25, minTailSeconds: 0).first!.samples
+                    var words: [TranscriptWord]
+                    if let windowDecoder { words = try await windowDecoder(chunk, offset, initial.configuration.asr) }
+                    else { words = try await factory.transcribeMediaWindow(chunk, offset: offset, config: initial.configuration.asr) }
+                    if let segment {
+                        words = words.map { word in
+                            var value = word
+                            value.speaker = segment.speaker == SpeakerInterval.unassigned ? nil : segment.speaker
+                            value.overlapping = segment.overlapping; value.timing = .segment
+                            return value
+                        }
+                    }
                     try Task.checkCancellation()
                     try await persist {
                         $0.words += words
-                        $0.completedSeconds = offset + Double(chunk.samples.count) / 16_000
+                        $0.completedSeconds = Double(frame + chunk.count) / 16_000
                         $0.rebuildTurns()
                     }
                     progress = min(1, (document?.completedSeconds ?? 0) / asset.duration)
@@ -182,25 +212,30 @@ public final class MediaJobRunner {
                 try await persist { $0.transcriptionComplete = true; $0.rebuildTurns() }
             }
         }
-        if !initial.diarizationComplete && initial.configuration.identifySpeakers && initial.configuration.engine == .local {
-            activity = "Identifying Speakers"
-            try await persist { $0.stage = .identifyingSpeakers }
-            progress = nil
-            await factory.unloadAll()
-            let speakers: [SpeakerInterval]
-            if let speakerDecoder { speakers = try await speakerDecoder(url, asset.duration) }
-            else { speakers = try await LocalSpeakerDiarizer.identify(url: url, duration: asset.duration) { [weak self] value in
-                Task { @MainActor in
-                    guard self?.isBusy == true, self?.document?.id == initial.id else { return }
-                    self?.progress = value
-                }
-            }
-            }
-            try Task.checkCancellation()
+        if !segmentTiming && !initial.diarizationComplete && initial.configuration.identifySpeakers && initial.configuration.engine == .local {
+            let speakers = try await identifySpeakers(url: url, asset: asset, documentID: initial.id)
             try await persist { $0.words = SpeakerReconciliation.align($0.words, speakers: speakers); $0.diarizationComplete = true; $0.rebuildTurns() }
         }
         try await persist { $0.stage = .completed }
         try await cleanRemote(documentID: initial.id)
+    }
+    private func identifySpeakers(url: URL, asset: RecordingAsset, documentID: String) async throws -> [SpeakerInterval] {
+        activity = "Identifying Speakers"
+        try await persist { $0.stage = .identifyingSpeakers; $0.issue = nil }
+        progress = nil
+        await factory.unloadAll()
+        let result: [SpeakerInterval]
+        if let speakerDecoder { result = try await speakerDecoder(url, asset.duration) }
+        else {
+            result = try await LocalSpeakerDiarizer.identify(url: url, duration: asset.duration) { [weak self] value in
+                Task { @MainActor in
+                    guard self?.isBusy == true, self?.document?.id == documentID else { return }
+                    self?.progress = value
+                }
+            }
+        }
+        try Task.checkCancellation()
+        return result
     }
     private func saveRemoteIDs(_ file: String?, _ job: String?) async throws {
         try await persist { $0.remoteFileID = file; $0.remoteJobID = job }

@@ -43,9 +43,9 @@ public enum LocalSpeakerDiarizer {
                 options: PyannoteDiarizationOptions(useExclusiveReconciliation: false),
                 progressCallback: { progress($0.fractionCompleted) })
             try Task.checkCancellation()
-            let intervals = result.segments.compactMap { segment -> SpeakerInterval? in
-                guard let id = segment.speaker.speakerId else { return nil }
-                return SpeakerInterval(start: Double(segment.startTime), end: Double(segment.endTime), speaker: String(id + 1))
+            let intervals = result.segments.map { segment in
+                SpeakerInterval(start: Double(segment.startTime), end: Double(segment.endTime),
+                    speaker: segment.speaker.speakerId.map { String($0 + 1) } ?? SpeakerInterval.unassigned)
             }
             await kit.unloadModels()
             return intervals

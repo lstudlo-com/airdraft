@@ -21,11 +21,8 @@ struct HistoryPage: View {
     @State private var errorMessage: String?
     private let pageSize = min(10_000, max(1, Int(RenderMode.value("HISTORY_COUNT") ?? "") ?? 200))
     @State private var query = ""
-    @State private var confirmClear = false
     @State private var recordingsOnly = RenderMode.value("RECORDINGS_ONLY") == "1"
     @State private var nextOffset: Int?
-    @State private var importURL: URL?
-    @State private var showImport = false
 
     var body: some View {
         PageScaffold(.history, scrollsContent: false, contentTopInset: 0) {
@@ -41,24 +38,9 @@ struct HistoryPage: View {
                     .font(.system(size: 11))
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
-                    .help("Change recording retention in Configuration")
+                    .help("Change recording retention in Settings")
                 }
                 .padding(.top, Theme.controlSpacing)
-                if let meeting = container.meeting, meeting.isBusy || !meeting.drafts.isEmpty || meeting.recoveryIssue != nil {
-                    HStack {
-                        Text(meeting.isBusy ? "Meeting recording in progress" : "Interrupted meeting recording available").supportingText()
-                        Spacer()
-                        Button(meeting.isBusy ? "Show Meeting" : "Recover Meeting") { meeting.isPresented = true }.buttonStyle(SoftButtonStyle())
-                    }.padding(.top, Theme.controlSpacing)
-                }
-                if let media = container.media, media.isBusy && media.document == nil {
-                    HStack { ProgressView().controlSize(.small); Text("Preparing Media…").supportingText(); Spacer(); Button("Cancel") { media.cancel() }.buttonStyle(SoftButtonStyle()) }
-                        .padding(.top, Theme.controlSpacing)
-                }
-                if let issue = container.media?.issue {
-                    HStack { Text(issue).supportingText(); Spacer(); Button("Dismiss") { container.media?.clearIssue() }.buttonStyle(SoftButtonStyle()) }
-                        .padding(.top, Theme.controlSpacing)
-                }
                 if let errorMessage {
                     StorageNotice(message: errorMessage, actionTitle: "Reload History") { Task { await reload() } }
                         .padding(.top, Theme.controlSpacing)
@@ -90,18 +72,7 @@ struct HistoryPage: View {
                 }
             }
         } accessory: {
-            Menu {
-                Button("Import Media…") { chooseMedia() }.disabled(container.media == nil)
-                Button("Record Meeting…") { container.meeting?.isPresented = true }.disabled(container.meeting == nil)
-            } label: { Image(systemName: "plus").accessibilityLabel("Add Recording") }
-                .menuStyle(.borderlessButton).fixedSize().help("Import Media or Record Meeting")
-                .disabled(container.pipeline.isBusy)
             SearchField(text: $query, placeholder: "Search history")
-            Button { confirmClear = true } label: { Image(systemName: "trash") }
-                .buttonStyle(SoftButtonStyle())
-                .help("Delete all history and recordings")
-                .accessibilityLabel("Delete All History and Recordings")
-                .disabled((snapshot.entries.isEmpty && query.isEmpty) || container.pipeline.isBusy || container.pipeline.isSavingHistory)
         }
         .task(id: query) {
             // Invalidate an older append/reload immediately, before the debounce.
@@ -117,14 +88,6 @@ struct HistoryPage: View {
             scroll = HistoryScrollState()
             snapshot = .empty
             Task { await reload() }
-        }
-        .sheet(isPresented: $showImport) { MediaImportSheet(source: importURL).environment(container) }
-        .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-            guard !container.pipeline.isBusy, let provider = providers.first else { return false }
-            _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                Task { @MainActor in if let url { importURL = url; showImport = true } }
-            }
-            return true
         }
         .onReceive(NotificationCenter.default.publisher(for: .mediaEditorOpened)) { _ in playback.stop() }
         .onDisappear { playback.stop() }
@@ -142,24 +105,7 @@ struct HistoryPage: View {
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in Task { await reload() } }
-        .confirmationDialog("Delete all history and recordings?", isPresented: $confirmClear, titleVisibility: .visible) {
-            Button("Delete History and Recordings", role: .destructive) {
-                guard !container.pipeline.isBusy, !container.pipeline.isSavingHistory else { return }
-                playback.stop()
-                Task { await container.performCleanup(.historyAndAudio) }
-            }
-        }
-    }
 
-    private func chooseMedia() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.audio, .movie]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.begin { response in
-            guard response == .OK, let url = panel.url else { return }
-            importURL = url; showImport = true
-        }
     }
 
     private func reload(append: Bool = false) async {
@@ -179,11 +125,11 @@ struct HistoryPage: View {
         let offset = append ? (nextOffset ?? previous.entries.count) : 0
         let prepare: @Sendable () throws -> (HistorySnapshot, Int?) = {
             if recordingsOnly {
-                let page = try history.recordings(limit: pageSize, query: query, offset: offset)
+                let page = try history.recordings(limit: pageSize, query: query, offset: offset, source: .dictation)
                 return (HistorySnapshot.prepareRecordings(page.entries, appendingTo: previous), page.nextOffset)
             }
-            let found = try history.historyItems(limit: pageSize + 1, offset: offset, query: query)
-            return (HistorySnapshot.prepareItems(Array(found.prefix(pageSize)), appendingTo: previous),
+            let found = try history.recent(limit: pageSize + 1, query: query, offset: offset)
+            return (HistorySnapshot.prepare(Array(found.prefix(pageSize)), history: history, appendingTo: previous),
                     found.count > pageSize ? offset + pageSize : nil)
         }
         do {
@@ -461,7 +407,7 @@ private struct HistoryRecordRow: View {
                 }
             }
             .sheet(isPresented: Binding(get: { state.showMediaImport }, set: { state.showMediaImport = $0 })) {
-                MediaImportSheet(source: nil, recording: entry.asset).environment(container)
+                if let asset = entry.asset { MediaImportSheet(request: .recording(asset)).environment(container) }
             }
             .sheet(isPresented: Binding(get: { state.showMedia }, set: { state.showMedia = $0 })) {
                 if let document = entry.document { MediaDocumentEditor(initial: document).environment(container) }

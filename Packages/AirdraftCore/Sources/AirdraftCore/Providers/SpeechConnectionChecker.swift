@@ -51,6 +51,10 @@ public struct SpeechConnectionChecker: Sendable {
         case .openRouter: path = "key"
         case .elevenLabs: path = "user"
         case .deepgram: path = "auth/token"
+        case .assemblyAI: path = "transcript"
+        case .cartesia: path = "voices"
+        case .speechmatics: path = "jobs"
+        case .xAI: path = "api-key"
         default: path = "models"
         }
         var request = URLRequest(url: URL(string: preset.baseURL)!.appendingPathComponent(path), cachePolicy: .reloadIgnoringLocalCacheData)
@@ -60,6 +64,11 @@ public struct SpeechConnectionChecker: Sendable {
         switch config.kind {
         case .elevenLabs: request.setValue(key, forHTTPHeaderField: "xi-api-key")
         case .deepgram: request.setValue("Token \(key)", forHTTPHeaderField: "Authorization")
+        case .assemblyAI: request.setValue(key, forHTTPHeaderField: "Authorization")
+        case .cartesia:
+            request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+            request.setValue(CartesiaTranscriber.apiVersion, forHTTPHeaderField: "Cartesia-Version")
+        case .gemini: request.setValue(key, forHTTPHeaderField: "x-goog-api-key")
         default: request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         }
         let data = try await send(request)
@@ -94,6 +103,24 @@ public struct SpeechConnectionChecker: Sendable {
         case .deepgram:
             // /auth/token documents a JSON object of key details, without a stable public schema.
             break
+        case .assemblyAI:
+            guard json["transcripts"] is [[String: Any]] else { throw SpeechConnectionError.invalidResponse }
+        case .cartesia:
+            guard json["data"] is [[String: Any]] else { throw SpeechConnectionError.invalidResponse }
+        case .speechmatics:
+            guard json["jobs"] is [[String: Any]] else { throw SpeechConnectionError.invalidResponse }
+        case .xAI:
+            guard json["api_key_id"] is String,
+                  let blocked = json["api_key_blocked"] as? Bool,
+                  let disabled = json["api_key_disabled"] as? Bool,
+                  let teamBlocked = json["team_blocked"] as? Bool else { throw SpeechConnectionError.invalidResponse }
+            guard !blocked, !disabled, !teamBlocked else { throw SpeechConnectionError.invalidKey }
+        case .gemini:
+            guard json["models"] is [[String: Any]] else { throw SpeechConnectionError.invalidResponse }
+        case .mistral:
+            guard let models = json["data"] as? [[String: Any]] else { throw SpeechConnectionError.invalidResponse }
+            // Aliases need not appear as individual model IDs in the model list.
+            return SpeechConnectionResult(modelAvailable: models.contains { ($0["id"] as? String) == config.speechModelID })
         default: throw SpeechConnectionError.unsupportedProvider
         }
         return SpeechConnectionResult(modelAvailable: false)

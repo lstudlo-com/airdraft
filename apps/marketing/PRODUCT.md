@@ -20,7 +20,7 @@ a paid subscription.
 
 - The product name is "Airdraft", as in the app's bundle display name and window title.
 - Airdraft is a menu-bar dictation app for Apple silicon, macOS 15 or later. Apple SpeechAnalyzer needs macOS 26.
-- Hold the shortcut, speak, and release to insert text at the cursor. The default shortcut is Control-Option (⌃⌥); users can change it in Configuration.
+- Hold the shortcut, speak, and release to insert text at the cursor. The default shortcut is Control-Option (⌃⌥); users can change it in Settings.
 - Speech recognition and refinement choose providers independently; vocabulary corrections apply last.
   The pipeline lists on the homepage mirror `ASRProviderKind`, `LLMProviderKind` and the
   local engines kept in the root `CLAUDE.md`; update them together.
@@ -72,7 +72,7 @@ a paid subscription.
 - Do not invent prices, discounts, dates, performance measurements, testimonials,
   usage counts, licensing terms, or a download or checkout URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.
-  The homepage's interface section uses the Configuration page rendered by
+  The homepage's interface section uses the Settings page rendered by
   `scripts/render-app-window.sh` from an isolated empty data directory.
 
 ## Design brief

@@ -1,6 +1,6 @@
 # Automation
 
-Configure output in **Configuration → Output and automation**. The default remains **Insert at cursor**. **Send to script** runs the executable you choose after refinement, Chinese conversion and vocabulary replacement. The destination, script path and insertion method are fixed when recording starts, including any later retry of failed speech recognition. History records script completion separately from cursor insertion. Reviewing old audio never sends text to a script.
+Configure output in **Settings → Output and automation**. The default remains **Insert at cursor**. **Send to script** runs the executable you choose after refinement, Chinese conversion and vocabulary replacement. The destination, script path and insertion method are fixed when recording starts, including any later retry of failed speech recognition. History records script completion separately from cursor insertion. Reviewing old audio never sends text to a script.
 
 ## Shortcuts
 
@@ -22,7 +22,7 @@ The shared `CLIProcess` runner drains stdout and stderr while writing stdin, ret
 
 ## Example script
 
-Save this as `dictation.sh`, make it executable with `chmod +x dictation.sh`, then select it in Configuration. It appends each result to a text file in the same directory.
+Save this as `dictation.sh`, make it executable with `chmod +x dictation.sh`, then select it in Settings. It appends each result to a text file in the same directory.
 
 ```sh
 #!/bin/sh

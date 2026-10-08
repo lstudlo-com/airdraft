@@ -91,7 +91,7 @@ verification status belong in the vault (see below).
   require those checks and desktop/mobile browser verification, not Xcode tests.
   Keep the hero waveform card 84px below its facts line, or 60px at viewport
   widths of 700px or less.
-  The homepage's interface section shows the real Configuration window; regenerate
+  The homepage's interface section shows the real Settings window; regenerate
   `public/app/` with `apps/marketing/scripts/render-app-window.sh` from a Debug
   build (isolated empty data, grayscale) when that page, the sidebar or materials change.
   Keep the changelog current with published app releases: one entry per product
@@ -121,7 +121,7 @@ verification status belong in the vault (see below).
   480-point maximum height, the same five height ratios and a -3-point horizontal
   offset on the 1024-point canvas. Only materials differ: darker raised Pure Wave
   bars, darker Carved Wave grooves, and bright Night Wave bars on a darker tile.
-  Configuration > Appearance stores independent light/dark icon choices, defaulting
+  Settings > Appearance stores independent light/dark icon choices, defaulting
   to Carved Wave and Night Wave. All three artworks are available for either theme.
   Follow the app's effective appearance, including system changes in Auto, and apply
   saved choices at launch through `NSApplication.applicationIconImage`. This changes
@@ -197,7 +197,7 @@ verification status belong in the vault (see below).
 - Interface consistency is a product requirement. Native section cards must have
   equal top, bottom, leading and trailing insets: `Theme.cardPadding` (16 pt).
   All page content cards use `Theme.cardRadius` (18 pt) for continuous corners.
-  Use `PageSection` and `SettingsCard` for settings sections, including Configuration
+  Use `PageSection` and `SettingsCard` for settings sections, including Settings
   and Models. The card owns the outer padding; rows inside it must not add another
   vertical inset. Use shared spacing tokens instead of page-specific values.
   Descriptions use the shared `.supportingText()` style: 11-point regular,
@@ -222,7 +222,7 @@ verification status belong in the vault (see below).
   edge. Use `SoftPicker(title, selection:, width:)` for menu pickers in settings rows or
   section headings so the visible capsule aligns with that edge. Numeric settings with a
   stepper must also support direct keyboard entry through `SettingsNumberStepper`.
-  Configuration keeps a recessed Search settings field at the right of its page
+  Settings keeps a recessed Search settings field at the right of its page
   heading. Index the actual section titles, setting names and descriptions through
   `PageSection` and `SettingRow`; do not maintain a duplicate catalogue. Match all
   query terms case/diacritic-insensitively, prioritize exact setting names, and
@@ -419,7 +419,7 @@ verification status belong in the vault (see below).
   Migrate saved Classic selections to Mini without changing timer preferences.
   Cube and Sonic keep the 34-point capsule and six-point insets. The timer is an independent
   module, off by default for every preset, with a persisted Left/Right position.
-  Configuration shows Show timer and, when enabled, Timer position; previews
+  Settings shows Show timer and, when enabled, Timer position; previews
   reflect both settings. Hide these controls for None without resetting them.
   Timer-free recording reserves no label space; processing labels remain visible
   in all three visible presets. Cube uses shaded rotating face plates; Sonic shows only
@@ -427,7 +427,7 @@ verification status belong in the vault (see below).
   levels, with bounded fast attack and slower release; never open another audio
   input or call it a frequency spectrum. Keep motion in the visualization well and
   freeze its phase and energy during delivery fade. Reduce Motion stops rotation and travelling
-  waves while retaining a static level response. Configuration previews use
+  waves while retaining a static level response. Settings previews use
   synthetic input, pause in renders, and arrange choices in three columns.
 - After successful text delivery, freeze the recording HUD's final processing
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
@@ -628,7 +628,7 @@ verification status belong in the vault (see below).
 
 ## Trigger Delay
 
-Configuration > Keyboard shortcuts owns Trigger Delay: 0–1000 ms, default 0,
+Settings > Keyboard shortcuts owns Trigger Delay: 0–1000 ms, default 0,
 with typed entry and 50 ms steps. Delay only shortcut starts; Toggle stop/cancel
 and menu/App Intent actions stay immediate. Delayed shortcuts use the Accessibility
 event tap instead of Carbon. Buffer ordinary shortcut key events and return them
@@ -752,7 +752,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - App icons: after a Debug build, run `python3 scripts/verify-app-icons.py --app <Debug.app>`.
   It checks real AppKit icon images, theme changes, independent preferences and
   restart/Auto resolution using a disposable settings suite. Inspect the native
-  Configuration pickers and light/dark renders as well.
+  Settings pickers and light/dark renders as well.
 - Vault: run `python3 scripts/check-vault.py` after writing to the Obsidian vault and
   `python3 -B scripts/test-vault-check.py` after changing `scripts/vault_check.py`.
 - For a repeated insertion bug, verify the actual running build with
@@ -801,7 +801,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   processing and retained-recording actions; captures light/dark menu windows.
 - UI (Debug builds): `airdraft --render-window all <dir>` and `--render-hud <png>`, then look at the PNGs.
   `airdraft --e2e-local <disposable-dir> --render-window settings-search <dir>`
-  exercises Configuration search, conditional controls, result scrolling,
+  exercises Settings search, conditional controls, result scrolling,
   cancellation and idle scroll work in live light/dark fixture windows.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to
@@ -855,8 +855,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Parakeet TDT 0.6B v3 INT8, Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
   SenseVoice-small, Whisper Large v3 Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
-  ElevenLabs Scribe v2, OpenAI GPT-Transcribe and Deepgram Nova-3 (see `docs/transcription-apis.md`).
-  Do not re-add the removed Whisper variants or Voxtral without a reason.
+  ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3, AssemblyAI Universal-3.5 Pro,
+  Cartesia Ink-Whisper, Speechmatics Enhanced, xAI Grok Voice Transcribe 2.0,
+  Mistral Voxtral Mini Transcribe and Gemini 3.5 Transcribe, plus OpenRouter
+  (see `docs/transcription-apis.md`). Each direct provider uses its native speech API.
+  Cartesia file transcription requires an explicit language. Batch jobs/files are
+  deleted on success, failure and cancellation when reachable; never send Gemini
+  speech through a chat prompt or enable its smart mode as implicit refinement.
+  Do not re-add the removed local Whisper variants or local Voxtral without a reason.
   Whisper decodes sequential windows of at most 25 seconds, disables the SDK's
   one-second tail clipping, and preserves cancellation/errors across every chunk.
   Check both sub-second speech and final words beyond 30 seconds after changes.
@@ -918,9 +924,14 @@ view observes its clock. Keep drag seeking fine enough for subsecond recordings;
 keyboard seeking uses five-second steps. Verify using a silent injected transport,
 never system playback. Save Audio uses NSSavePanel and preserves source bytes;
 Show in Finder selects the managed file. Recording-only deletion preserves text.
-Configuration exposes four independent cleanup scopes through the shared
+Settings exposes four independent cleanup scopes through the shared
 `DataCleanupCoordinator`. Preview errors retry the preview and must still reach
 confirmation; only an already confirmed interrupted cleanup can resume directly.
+A blocked data-directory copy shows Data Unavailable and can quit without an
+unfinished-history warning for a database it never opened. Recovery and completed
+reset sheets must permit AppKit termination; only actively running cleanup blocks
+it. Verify with `python3 scripts/verify-data-cleanup-quit.py`, including `--legacy`
+for the silent negative check.
 Keep new work fenced while its durable journal is pending. Strip deleted content
 from pending saves/recovery so retries cannot resurrect it. Require the app-data
 lease and reject running sibling copies before deleting shared data. One app copy
@@ -942,7 +953,7 @@ history/statistics. Only the user's Copy action changes the clipboard.
 
 ## Recording and recovery invariants
 
-Microphone dictation has a hard 600-second maximum. Keep Configuration and persisted
+Microphone dictation has a hard 600-second maximum. Keep Settings and persisted
 settings within `SpeechInputLimits.recordingSecondsRange` (10–600 seconds), with the
 300-second default and shorter user choices preserved. Clamp older saved values.
 The recording timer stops capture and processes once at the effective limit;
@@ -990,9 +1001,14 @@ source-review and unavailable coverage separately. See `docs/local-e2e.md`.
 
 Media import uses the independent document/job contracts in `docs/media-transcription.md`.
 Keep audio ownership independent of text, preserve original words and times, and
-checkpoint completed windows before continuing. Local media uses the validated
-Whisper Large v3 Turbo path and optional explicit SpeakerKit download; never
-silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
+checkpoint completed windows before continuing. Meetings owns media import, saved
+meeting audio, every transcript version and draft recovery; History owns dictations.
+Keep Meetings after History and before the Models/Settings group, with Models first.
+The user-facing page name is Settings; the internal configuration route stays stable.
+Local media supports every `MediaConfiguration.LocalModel` with shared language
+validation and explicit setup. Whisper retains native word times; other engines use
+frame-aligned speaker segments and persist diarization before resumable ASR. Never
+label segment times as word times or silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
 Share visual and accessibility recovery actions. Test with direct files or injected
 PCM and silent transports; never make the system play sound for verification.
 
@@ -1003,5 +1019,5 @@ frames or playback. Preserve a common timestamp axis, separate microphone/app
 WAV channels, bounded conversion and recoverable PCM drafts. Drain converters
 before publishing an asset; never discard captured data on failed finalization.
 Capture, media processing, dictation and cleanup are mutually exclusive. Stop and
-save before quit or sleep, and keep recovery available from History. Use injected
+save before quit or sleep, and keep recovery available from Meetings. Use injected
 capture sessions and direct PCM for tests. See `docs/meeting-recording.md`.

@@ -1,6 +1,6 @@
 # Data cleanup and reset
 
-Configuration has four independent actions with a native confirmation. A preview
+Settings has four independent actions with a native confirmation. A preview
 shows record counts and estimated managed bytes before confirmation. A failed
 preview retries the preview, never the deletion. Cancel is the default action.
 Shortening dictation retention also asks before removing older audio.
@@ -51,6 +51,12 @@ Known running sibling builds are also checked because
 older versions may not implement the lease. A blocked new copy does not open or
 repair shared JSON stores. The lock file survives reset so its inode remains the
 coordination point. Failed reset keeps new work fenced until retry or quit.
+
+A copy that cannot open its data directory shows Data Unavailable, without implying
+that deletion is running. Quit on this sheet goes through normal model shutdown
+without an unfinished-history warning for a database the copy never opened. Idle
+recovery and completed-reset sheets allow AppKit termination; only active cleanup
+prevents it. The delegate also refuses quitting while cleanup is running.
 
 Reset cancels pending model loading, drains the factory lease, closes SQLite and
 then removes managed data. Directory roots cannot be symbolic links; child symlinks

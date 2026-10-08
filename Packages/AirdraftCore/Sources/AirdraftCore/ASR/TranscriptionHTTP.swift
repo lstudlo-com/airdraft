@@ -7,13 +7,17 @@ struct TranscriptionHTTP: Sendable {
     init(session: URLSession? = nil) { self.session = session ?? ProviderTransport.shared }
 
     func send(_ request: URLRequest) async throws -> Data {
+        try await response(request).0
+    }
+
+    func response(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, http) = try await HTTPDeadline.data(for: request, session: session,
                                                        timeoutError: TranscriberError.timedOut,
                                                        invalidResponse: TranscriberError.invalidResponse)
         guard (200..<300).contains(http.statusCode) else {
             throw TranscriberError.http(status: http.statusCode, body: String(decoding: data, as: UTF8.self))
         }
-        return data
+        return (data, http)
     }
 
     func decode<T: Decodable>(_ type: T.Type, from request: URLRequest) async throws -> T {

@@ -1,4 +1,5 @@
 import AVFoundation
+import AppKit
 import CoreMedia
 import Foundation
 import ScreenCaptureKit
@@ -52,7 +53,10 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
     }
     public static func sources() async throws -> [MeetingAudioSource] {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-        return content.applications.filter { $0.processID != ProcessInfo.processInfo.processIdentifier && !$0.applicationName.isEmpty }
+        return content.applications.filter {
+            $0.processID != ProcessInfo.processInfo.processIdentifier && !$0.applicationName.isEmpty &&
+            NSRunningApplication(processIdentifier: $0.processID)?.activationPolicy == .regular
+        }
             .map { MeetingAudioSource(id: $0.processID, name: $0.applicationName) }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
     public func start(applicationID: Int32?, microphoneID: String?, includeMicrophone: Bool, microphoneChannel: Int? = nil) async throws {
@@ -120,7 +124,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
             guard timestamp.isFinite else { throw MeetingError.invalidClock }
             guard CMClockGetTime(CMClockGetHostTimeClock()).seconds - timestamp < 5 else {
-                throw RecordingPrerequisiteError("Audio capture fell behind. Recording stopped; the saved audio can be recovered from History.")
+                throw RecordingPrerequisiteError("Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings.")
             }
             let offset = timestamp - origin
             guard let description = CMSampleBufferGetFormatDescription(sampleBuffer) else { throw MediaError.invalidAudio }

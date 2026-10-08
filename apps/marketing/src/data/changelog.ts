@@ -8,11 +8,43 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-07.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-08.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-9-0",
+    version: "0.9.0",
+    date: "2026-10-08",
+    title: "A dedicated home for meetings",
+    changes: [
+      {
+        title: "Find every meeting and transcript",
+        description:
+          "Meetings now has its own sidebar page. Each recording has a direct transcription action, saved transcript versions, recovery controls, Finder access and audio export. History stays focused on dictation.",
+      },
+      {
+        title: "Choose more local transcription models",
+        description:
+          "Speaker-labelled media transcription supports eight local model choices, including both Qwen3-ASR sizes, Cohere, SenseVoice, FireRed, Parakeet and Apple Speech alongside Whisper Turbo. Additional engines show segment timestamps; Whisper retains word timestamps.",
+      },
+      {
+        title: "Start recording with fewer steps",
+        description:
+          "A compact meeting sheet lets you select app audio and include your microphone. The app chooser opens immediately, and saved recordings stay visible after restarting. Models now appears above Settings, the new name for Configuration.",
+      },
+      {
+        title: "More cloud speech choices and clearer recovery",
+        description:
+          "Native speech integrations add AssemblyAI, Cartesia, Speechmatics, xAI, Mistral and Gemini. Blocked data and recovery screens now allow normal quitting while active cleanup remains protected.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.9.0-build.201",
+    },
+  },
   {
     id: "0-8-1",
     version: "0.8.1",

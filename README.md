@@ -22,7 +22,7 @@ fonts, and downloaded model weights retain their own licenses.
 ## App
 
 Menu-bar app with a Superwhisper-style main window (Home, Profiles, Vocabulary,
-Configuration, Models, History). Hold **⌃ ⌥** (Control + Option, default) to dictate; the
+Settings, Models, History). Hold **⌃ ⌥** (Control + Option, default) to dictate; the
 recording pill appears at the bottom centre of the screen.
 
 - Shortcuts: key combinations register through Carbon and need no permission.
@@ -90,7 +90,7 @@ Keychain authorization prompts.
 
 ### Microphone selection
 
-Choose a microphone from the window toolbar, menu bar, or Configuration →
+Choose a microphone from the window toolbar, menu bar, or Settings →
 Microphone. Your choice becomes Airdraft's saved default. System default follows
 macOS; a specific device stays selected across restarts and reconnects. If it is
 unavailable, reconnect it or choose another input. Airdraft never silently
@@ -100,7 +100,7 @@ substitutes another microphone. Finish dictation before switching devices.
 
 Airdraft uses Sparkle for **Check for Updates…**, daily background checks, and
 optional automatic downloads that install on quit. These controls are in
-Configuration → Updates. Releases use a signed GitHub-hosted update feed; it
+Settings → Updates. Releases use a signed GitHub-hosted update feed; it
 is published with each release. Run `moon run airdraft:release-setup` once on the
 release Mac. Every push to `origin/main` then tests committed sources, builds the
 DMG locally, and uploads a draft. GitHub publishes it after the push succeeds.
@@ -255,7 +255,7 @@ single-call thinking effort, so tool-free dictation does not offer them.
    can take a minute; the pill shows "Loading model".
 4. Models ▸ Refinement: preset "LM Studio (local)", pick the model from the list
    (`lms server start` first). Press "Test".
-5. Hold ⌃ ⌥ (Control + Option, default), speak, release. Change the key under Configuration ▸
+5. Hold ⌃ ⌥ (Control + Option, default), speak, release. Change the key under Settings ▸
    Keyboard Shortcuts ▸ "Record shortcut" and press the key or combination. A modifier
    on its own (Right ⌥, fn) also works but needs Accessibility; for fn set System
    Settings ▸ Keyboard ▸ "Press 🌐 key to" to "Do Nothing".

@@ -167,7 +167,10 @@ enum DebugRender {
             if result != true { exit(1) }
         }
         if pageName == "meeting-recording" { container.meeting?.previewRecording() }
-        if env["AIRDRAFT_RENDER_MEDIA"] == "1", let history = container.history { try? MediaPreview.seed(history) }
+        if env["AIRDRAFT_RENDER_MEDIA"] == "1", let history = container.history {
+            if pageName == "meetings" { try? MediaPreview.seedMeetings(history) }
+            else { try? MediaPreview.seed(history) }
+        }
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
@@ -178,10 +181,12 @@ enum DebugRender {
                         LicenseView().ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
                             .background(Color(nsColor: .windowBackgroundColor))
+                    } else if pageName == "meeting-recording", let meeting = container.meeting {
+                        MeetingRecordingStatus(meeting: meeting).padding(Theme.pagePadding)
                     } else if pageName.hasPrefix("meeting-") {
                         MeetingSheet().ignoresSafeArea()
                     } else if pageName == "media-import" {
-                        MediaImportSheet(source: URL(fileURLWithPath: "/tmp/Interview.m4a")).ignoresSafeArea()
+                        MediaImportSheet(request: .file(URL(fileURLWithPath: "/tmp/Interview.m4a"))).ignoresSafeArea()
                     } else if pageName == "media-editor" {
                         MediaDocumentEditor(initial: MediaPreview.document).ignoresSafeArea()
                     } else if pageName == "cleanup" {

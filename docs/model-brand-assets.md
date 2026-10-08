@@ -41,3 +41,10 @@ Sources retrieved October 3, 2026:
 
 The creator mappings also cover the public [OpenRouter transcription catalog](https://openrouter.ai/api/v1/models?output_modalities=transcription).
 Keep a model's creator separate from its hosting preset when adding entries.
+
+Sources retrieved October 7, 2026:
+
+| Asset | Source |
+|---|---|
+| Cartesia | [Cartesia organization avatar](https://github.com/cartesia-ai.png?size=128) |
+| Speechmatics | [Speechmatics organization avatar](https://github.com/speechmatics.png?size=128) |
