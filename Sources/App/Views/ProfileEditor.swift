@@ -164,9 +164,9 @@ struct ProfileTextEditor: View {
             }
             .foregroundStyle(.primary)
             .frame(height: height)
-            .background { SoftRaisedSurface(shape: SoftControl.fieldShape) }
+            .background { SoftRaisedSurface(shape: SoftControl.shape) }
             .overlay {
-                SoftControl.fieldShape
+                SoftControl.shape
                     .strokeBorder(Color.accentColor, lineWidth: 1.5)
                     .opacity(focused ? 1 : 0)
                     .allowsHitTesting(false)

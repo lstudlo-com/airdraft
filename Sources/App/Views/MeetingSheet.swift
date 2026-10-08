@@ -110,13 +110,13 @@ struct MeetingRecordingStatus: View {
     let meeting: MeetingController
     var body: some View {
         Card(spacing: Theme.controlSpacing) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: Theme.controlSpacing) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : "Recording Meeting")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 13, weight: .semibold))
                     Text(HistoryRecordingControls.time(meeting.elapsed)).font(.system(size: 23, weight: .medium)).monospacedDigit()
                 }
-                Spacer()
+                Spacer(minLength: 0)
                 if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
                 else if meeting.state == .recording {
                     Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(SoftButtonStyle(prominent: true))
@@ -132,8 +132,9 @@ struct MeetingRecordingStatus: View {
         }
     }
     private func captureRow(_ title: String, received: Bool, level: Float) -> some View {
-        HStack {
-            Text(title).font(.system(size: 13)); Spacer()
+        HStack(spacing: Theme.controlSpacing) {
+            Text(title).font(.system(size: 13)).lineLimit(1)
+            Spacer(minLength: 0)
             Text(received ? "Receiving" : "Waiting for audio").supportingText()
             MicrophoneLevelMeter(level: level)
                 .accessibilityHidden(false)

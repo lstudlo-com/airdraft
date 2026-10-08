@@ -241,7 +241,7 @@ struct OnboardingView: View {
                             Text("Start your full-feature trial or activate your license.").supportingText()
                         }
                         Spacer()
-                        Button("Trial & License…") { container.showLicense() }.buttonStyle(.borderedProminent)
+                        Button("Trial & License…") { container.showLicense() }.primaryButtonStyle()
                     }
                 }
             }
@@ -258,10 +258,10 @@ struct OnboardingView: View {
                 .padding(Theme.cardPadding)
                 .frame(minHeight: 160, idealHeight: 180)
                 .background {
-                    SoftRaisedSurface(shape: RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous), elevation: .card)
+                    SoftRaisedSurface(shape: SoftControl.shape, elevation: .card)
                 }
                 .overlay {
-                    RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                    SoftControl.shape
                         .strokeBorder(Color.accentColor, lineWidth: 1.5)
                         .opacity(practiceFocused ? 1 : 0)
                         .allowsHitTesting(false)
@@ -343,7 +343,7 @@ struct OnboardingView: View {
                 case .practice: progress.complete()
                 }
             }
-            .buttonStyle(.borderedProminent).controlSize(.large)
+            .primaryButtonStyle().controlSize(.large)
             .keyboardShortcut(.defaultAction)
             .disabled(!canContinue || busy)
             .accessibilityIdentifier("onboarding.continue")

@@ -197,6 +197,7 @@ final class MeetingWorkflowTests: XCTestCase {
             XCTAssertEqual(runner.document?.recordingID, asset.id)
             XCTAssertEqual(runner.document?.stage, .completed)
             XCTAssertEqual(runner.document?.turns.first?.speaker, "1")
+            XCTAssertEqual(runner.document?.title, "Meeting")
         }
         let extra = try reopened.createDocument(asset: assets[0], title: "Second version", configuration: .init())
         let entry = try XCTUnwrap(reopened.meetings().first { $0.asset?.id == assets[0].id })
@@ -212,6 +213,19 @@ final class MeetingWorkflowTests: XCTestCase {
         try reopened.deleteHistoryKeepingAudio()
         XCTAssertEqual(try reopened.meetings().count, 2)
         XCTAssertTrue(try reopened.meetings().allSatisfy { $0.documents.isEmpty && $0.audioAvailable })
+    }
+
+    func testLibraryTitleDropsGeneratedDateButKeepsChosenTitles() throws {
+        let history = try HistoryStore(directory: try directory())
+        let meeting = try history.saveRecording(samples: [0.1], source: .meeting, createdAt: Date(timeIntervalSince1970: 100))
+        let imported = try history.saveRecording(samples: [0.1], source: .imported, createdAt: Date(timeIntervalSince1970: 200))
+        func title(_ asset: RecordingAsset) throws -> String? { try history.meetings().first { $0.asset?.id == asset.id }?.title }
+        XCTAssertEqual(try title(meeting), "Meeting")
+        XCTAssertEqual(try title(imported), "Imported Recording")
+        _ = try history.createDocument(asset: meeting, title: "Recording · Oct 8, 2026 at 01:36", configuration: .init())
+        XCTAssertEqual(try title(meeting), "Meeting")
+        _ = try history.createDocument(asset: imported, title: "Weekly sync", configuration: .init())
+        XCTAssertEqual(try title(imported), "Weekly sync")
     }
 
     func testSegmentCheckpointResumesWithoutRediarizingOrLosingFinalFrame() async throws {

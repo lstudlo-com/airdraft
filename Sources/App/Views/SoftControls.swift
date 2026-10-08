@@ -101,10 +101,16 @@ struct SoftInsetTrack<S: InsettableShape>: View {
     }
 }
 
+/// Every button, menu button, picker, segmented control and text input shares one
+/// rounded-rectangle shape. Never a capsule: only switch and slider tracks stay round.
 enum SoftControl {
     static let height: CGFloat = 28
-    static let fieldRadius: CGFloat = 8
-    static var fieldShape: RoundedRectangle { RoundedRectangle(cornerRadius: fieldRadius, style: .continuous) }
+    static let radius: CGFloat = 8
+    static var shape: RoundedRectangle { RoundedRectangle(cornerRadius: radius, style: .continuous) }
+    /// A thumb inset by `inset` inside a control keeps its corners concentric.
+    static func innerShape(inset: CGFloat) -> RoundedRectangle {
+        RoundedRectangle(cornerRadius: max(0, radius - inset), style: .continuous)
+    }
 }
 
 // MARK: Fields
@@ -117,9 +123,9 @@ private struct SoftFieldChrome: ViewModifier {
             .textFieldStyle(.plain)
             .padding(.horizontal, 9)
             .frame(minHeight: SoftControl.height)
-            .background { SoftRaisedSurface(shape: SoftControl.fieldShape) }
+            .background { SoftRaisedSurface(shape: SoftControl.shape) }
             .overlay {
-                SoftControl.fieldShape
+                SoftControl.shape
                     .strokeBorder(Color.accentColor, lineWidth: 1.5)
                     .opacity(focused ? 1 : 0)
                     .allowsHitTesting(false)
@@ -149,7 +155,7 @@ extension View {
 
 /// A raised menu picker that replaces the native bezel. The native borderless picker shows
 /// the current choice and keeps VoiceOver and keyboard access; a transparent menu over the
-/// whole capsule opens the same choices for the pointer.
+/// whole control opens the same choices for the pointer.
 struct SoftPicker<Value: Hashable, Content: View>: View {
     let title: String
     @Binding var selection: Value
@@ -196,8 +202,8 @@ struct SoftPicker<Value: Hashable, Content: View>: View {
         }
         .padding(.horizontal, 11)
         .frame(width: width, height: SoftControl.height)
-        .background { SoftRaisedSurface(shape: Capsule()) }
-        .contentShape(Capsule())
+        .background { SoftRaisedSurface(shape: SoftControl.shape) }
+        .contentShape(SoftControl.shape)
     }
 }
 
@@ -239,11 +245,11 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
                         .frame(maxWidth: width == nil ? nil : .infinity, maxHeight: .infinity)
                         .background {
                             if selected {
-                                SoftRaisedSurface(shape: Capsule())
+                                SoftRaisedSurface(shape: SoftControl.innerShape(inset: 2))
                                     .matchedGeometryEffect(id: "thumb", in: thumb)
                             }
                         }
-                        .contentShape(Capsule())
+                        .contentShape(SoftControl.innerShape(inset: 2))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(option.1)
@@ -252,9 +258,9 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
         }
         .padding(2)
         .frame(width: width, height: small ? 22 : SoftControl.height)
-        .background { SoftInsetTrack(shape: Capsule()) }
+        .background { SoftInsetTrack(shape: SoftControl.shape) }
         // The thumb is an object inside the track: its light and shade stay within it.
-        .clipShape(Capsule())
+        .clipShape(SoftControl.shape)
         .opacity(isEnabled ? 1 : 0.5)
         .fixedSize(horizontal: width == nil, vertical: false)
         .accessibilityElement(children: .contain)

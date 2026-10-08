@@ -159,6 +159,9 @@ struct AirdraftApp: App {
         Window("Airdraft", id: "main") {
             MainWindowView()
                 .environment(container)
+                // With keyboard navigation on, macOS outlines the focused control in blue
+                // around the soft surfaces. Sheets and popovers inherit this from the root.
+                .focusEffectDisabled()
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

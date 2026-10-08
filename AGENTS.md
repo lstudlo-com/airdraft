@@ -220,7 +220,7 @@ verification status belong in the vault (see below).
   a left-aligned maximum width that strands section controls far from the window's
   right edge. Section headings, their trailing controls and cards share one right
   edge. Use `SoftPicker(title, selection:, width:)` for menu pickers in settings rows or
-  section headings so the visible capsule aligns with that edge. Numeric settings with a
+  section headings so the visible control aligns with that edge. Numeric settings with a
   stepper must also support direct keyboard entry through `SettingsNumberStepper`.
   Settings keeps a recessed Search settings field at the right of its page
   heading. Index the actual section titles, setting names and descriptions through
@@ -403,11 +403,20 @@ verification status belong in the vault (see below).
   Sliders use `SoftSlider` with shared focus, arrow-key and accessibility adjustment.
   Set its keyboard step independently where seeking needs coarser steps; do not
   add a second per-consumer move handler. Steppers use raised minus and plus buttons beside the typed value.
+  Buttons, menu buttons, pickers, segmented tracks, search fields and text inputs
+  share one shape, `SoftControl.shape` (8-point continuous corners); never
+  capsules or circles. Segmented thumbs stay concentric inside their track; only
+  switch and slider tracks stay round.
+  The main window root applies `.focusEffectDisabled()`, which its sheets and
+  popovers inherit: keyboard navigation never draws the system's blue focus ring
+  around soft controls. It must sit on an ancestor; inside a `ButtonStyle` it has
+  no effect, and `\.isFocused` does not reach a style either.
   Meetings' Record Meeting, Start Recording, Stop and Save, Transcribe and
   Save Changes use `SoftButtonStyle(prominent: true)`: blue fill, white type and
-  the same raised, pressed and disabled capsule geometry as secondary buttons.
+  the same raised, pressed and disabled geometry as secondary buttons.
   Header actions share the 28-point control height. Other primary controls keep
-  their existing `.borderedProminent` style and native link buttons. The
+  `.borderedProminent` through `.primaryButtonStyle()`, which applies the same
+  radius, and native link buttons. The
   menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
   keycaps, meters, preview frames and Home tracks. Light comes from the top left in both appearances: raised surfaces
   highlight their top-left edge and cast shadows down-right; recessed surfaces
@@ -688,7 +697,7 @@ never accept an arbitrary benefit from the same organization.
 The License sheet is plain text: the sidebar's `SidebarBrandMark` at 32 points
 (its `height` parameter; the sidebar size is unchanged) with Done, one headline,
 one sentence, then the buttons that apply. Use one prominent action per state and
-the shared soft capsule for the rest. Do not add cards, status dots, badges,
+the shared soft button for the rest. Do not add cards, status dots, badges,
 helper lines or footnotes. It is 440 points wide and as tall as its content,
 scrolling only past 520 points. Put an unfinished activation's recovery before
 trial, purchase and key entry. Sandbox builds keep the Sandbox tag and Test
@@ -1015,6 +1024,14 @@ frame-aligned speaker segments and persist diarization before resumable ASR. Nev
 label segment times as word times or silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
 Share visual and accessibility recovery actions. Test with direct files or injected
 PCM and silent transports; never make the system play sound for verification.
+A Meetings card shows its title, one metadata line (date, duration, engine and
+transcript count), a status dot and an actions menu, then at most a two-line
+preview and one player row ending in the single next step: Transcribe, Resume or
+Open Transcript. Versions, Save Audio, Show in Finder and deletion stay in the
+menu. New transcripts take the library's default title; the date stays in the
+metadata. The transcript editor keeps a fixed header (title, metadata, playback,
+version, Copy, Export) and footer (Delete, Summarize, Save Changes) around
+Summary, Speakers and a single Transcript card, and never opens with a focused title.
 
 ## Meeting capture
 

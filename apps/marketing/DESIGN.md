@@ -98,7 +98,8 @@ rounded:
   island: "22px"
   card: "18px"
   well: "12px"
-  field: "10px"
+  control: "12px"
+  field: "12px"
   cap: "7px"
   pill: "999px"
 spacing:
@@ -117,14 +118,14 @@ components:
     backgroundColor: "{colors.key-bottom}"
     textColor: "#ffffff"
     typography: "{typography.action}"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.control}"
     padding: "0 24px"
     height: "48px"
   key:
     backgroundColor: "{colors.control-top}"
     textColor: "{colors.ink}"
     typography: "{typography.action}"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.control}"
     padding: "0 20px"
     height: "44px"
   panel:
@@ -140,7 +141,7 @@ components:
     backgroundColor: "{colors.well}"
     textColor: "{colors.muted}"
     typography: "{typography.label}"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.control}"
     padding: "3px"
     height: "38px"
   chip:
@@ -191,7 +192,8 @@ carries shadows, motion, breakpoints and component previews.
 - The page is the app window: `--chrome` around a rounded `--island`; everything sits on the island.
 - Raised: a 1px top-left rim, a shade cast down-right and a white highlight cast up-left.
 - Recessed: inner shade at the top left, inner light at the bottom right.
-- One graphite key for the primary action; everything else is a gray capsule.
+- One graphite key for the primary action; everything else is a gray rounded key.
+- Keys, fields and segmented tracks share one corner, `--radius-control` (the app's 8-point `SoftControl.radius` at the site's 44px key scale); never capsules.
 - Engraved grooves (a shade line over a highlight line), never flat hairlines, to divide rows.
 - Light and dark follow the system appearance, like the app's Auto theme.
 
@@ -415,16 +417,16 @@ outlined `SidebarWordmark` SVG remains the installer's wordmark only.
 
 The site's keys (`SoftButtonStyle`). Renders `<a>` with `href`, otherwise `<button>`.
 
-| Prop                 | Values                                    | Notes                                                                                  |
-| -------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------- |
-| `variant`            | `primary`, `secondary` (default), `quiet` | One `primary` in view at a time. `quiet` is an inline text action.                     |
-| `size`               | `md` (44px), `lg` (48px)                  | `lg` for hero and closing actions.                                                     |
-| `icon`               | `none`, `right`, `down`, `external`       | Trailing arrow.                                                                        |
-| `iconOnly` + `label` |                                           | 44px circle; `label` is the accessible name and tooltip. Put the SVG in `slot="icon"`. |
-| `disabled`           |                                           | Renders a pressed-in, non-interactive `<span aria-disabled>`.                          |
+| Prop                 | Values                                    | Notes                                                                                      |
+| -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `variant`            | `primary`, `secondary` (default), `quiet` | One `primary` in view at a time. `quiet` is an inline text action.                         |
+| `size`               | `md` (44px), `lg` (48px)                  | `lg` for hero and closing actions.                                                         |
+| `icon`               | `none`, `right`, `down`, `external`       | Trailing arrow.                                                                            |
+| `iconOnly` + `label` |                                           | 44px square key; `label` is the accessible name and tooltip. Put the SVG in `slot="icon"`. |
+| `disabled`           |                                           | Renders a pressed-in, non-interactive `<span aria-disabled>`.                              |
 
-Keys are raised capsules. Hover lightens the top of the face; pressing sinks the
-key into a well. Focus shows the 2px ink ring.
+Keys are raised rounded rectangles on `--radius-control`. Hover lightens the top
+of the face; pressing sinks the key into a well. Focus shows the 2px ink ring.
 
 The native Meetings flow's `SoftButtonStyle(prominent: true)` adds a blue fill
 and white type to that same raised/pressed geometry. Website primary keys keep
@@ -433,8 +435,8 @@ the site's palette.
 
 ### Segmented picker (`.segmented`, `src/scripts/segmented.ts`)
 
-`SoftSegmentedPicker`: raised segments on a recessed capsule track. One raised
-thumb slides to the selected item (`.is-selected` or `aria-pressed="true"`) on
+`SoftSegmentedPicker`: raised segments on a recessed rounded track, with the
+thumb's corners concentric 3px inside the track's. One raised thumb slides to the selected item (`.is-selected` or `aria-pressed="true"`) on
 `SelectionMotion.curve` (`cubic-bezier(0.65, 0, 0.35, 1)`, 360ms), whatever
 changed the selection; its light and shade stay clipped inside the track.
 Without JavaScript the selected item draws its own face. The selected label is

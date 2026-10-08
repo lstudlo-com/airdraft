@@ -29,8 +29,8 @@ struct HotkeyRecorderView: View {
                     .foregroundStyle(Color.accentColor)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.accentColor.opacity(0.12)))
-                    .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Color.accentColor))
+                    .background(SoftControl.shape.fill(Color.accentColor.opacity(0.12)))
+                    .overlay(SoftControl.shape.strokeBorder(Color.accentColor))
             } else {
                 KeyCaps(hotkey: container.settings.hotkey)
             }

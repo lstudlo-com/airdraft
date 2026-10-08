@@ -108,7 +108,7 @@ struct LicenseView: View {
             EmptyView()
         case .locked:
             Button("Allow Access") { Task { await license.load(allowInteraction: true); await license.refresh() } }
-                .buttonStyle(.borderedProminent)
+                .primaryButtonStyle()
         default:
             if hasGrant { activation(config) } else { purchase(config) }
         }
@@ -177,11 +177,11 @@ struct LicenseView: View {
         }
     }
 
-    /// One prominent action per state; every other control uses the shared soft capsule.
+    /// One prominent action per state; every other control uses the shared soft button.
     @ViewBuilder
     private func styled<Control: View>(_ control: Control, prominent: Bool) -> some View {
         if prominent {
-            control.buttonStyle(.borderedProminent)
+            control.primaryButtonStyle()
         } else {
             control.buttonStyle(SoftButtonStyle())
         }

@@ -70,7 +70,7 @@ struct HistoryRecordingControls: View {
 
 /// Only the selected recording observes the 5 Hz clock. Other lazy cards do not
 /// read currentTime or recompute transcript layout on playback ticks.
-private struct HistoryPlaybackProgress: View {
+struct HistoryPlaybackProgress: View {
     let playback: RecordingPlayback
     var body: some View {
         SoftSlider(title: "Playback position", value: Binding(get: { playback.currentTime }, set: { playback.seek(to: $0) }),

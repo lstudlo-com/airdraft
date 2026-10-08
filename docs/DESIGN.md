@@ -102,8 +102,8 @@ remain defined by their native source rather than sampled screenshots.
 Navigation icons and selection remain neutral. Native controls retain their
 system appearance, including the accent shown in the live Save button.
 Meetings uses `SoftButtonStyle(prominent: true)` with the blue `prominent-fill`
-token and white text for its primary actions. It retains the shared capsule
-geometry and top-left lighting in both appearances.
+token and white text for its primary actions. It retains the shared 8-point
+control geometry and top-left lighting in both appearances.
 
 ### Neutral
 
@@ -194,7 +194,7 @@ destinations from Settings and Models with space rather than headings.
 
 `PageScaffold` applies `pagePadding` and `sectionSpacing` across the available
 content width. Section headings, heading controls and cards share a right edge.
-Settings pickers use `SoftPicker`, a raised capsule whose visible edge aligns
+Settings pickers use `SoftPicker`, a raised control whose visible edge aligns
 with the card's trailing 16-point inset. Editable numeric settings use
 `SettingsNumberStepper` for direct entry and arrow adjustments. Every page has
 the same header row: its destination name on the
@@ -336,10 +336,14 @@ text fields and editors, menu pickers, segmented controls, switches, sliders and
 stepper buttons are raised at a quarter of the spread (`SoftRaisedSurface` in
 `SoftControls.swift`). Pressed buttons sink into an inset well; segmented controls,
 switches and sliders sit in inset tracks; a switch's on state fills its track with
-the system accent; editing fields show an accent ring. Meetings' primary actions
-use the prominent variant of `SoftButtonStyle`, preserving the raised face and
-pressed well with blue fill and white type. Other native primary controls keep
-their existing style. The same lighting covers selected sidebar
+the system accent; editing fields show an accent ring. Buttons, menu buttons,
+pickers, segmented tracks, search fields and text inputs share one shape,
+`SoftControl.shape`: 8-point continuous corners, never a capsule or circle.
+Segmented thumbs sit concentric 2 points inside their track; only switch and
+slider tracks stay round. Meetings' primary actions use the prominent variant of
+`SoftButtonStyle`, preserving the raised face and pressed well with blue fill and
+white type. Other primary actions keep the native prominent button, given the
+same radius by `.primaryButtonStyle()`. The same lighting covers selected sidebar
 destinations, the sidebar microphone capsule, each device's ten-cell input meter,
 shortcut keycaps, appearance preview frames, Home's app-usage tracks and the
 recording HUD.
@@ -492,17 +496,22 @@ respect Reduce Motion.
 Meetings owns recorded meetings and imported media. It follows History in the
 sidebar, with Models above Settings in the lower group. Its shared page heading
 keeps Import and the primary Record Meeting action at the right. The Recordings
-section places Search meetings above one full-width card column. Use the existing
+section heading carries Search meetings at its trailing edge above one full-width
+card column. Use the existing
 gray island and raised cards, with equal 16-point insets and 18-point corners.
 
-Each recording has one card with title, date and duration. Untranscribed audio
-shows Ready to transcribe and a direct Transcribe action. Completed work adds
-the latest transcript's stage, three-line preview, processing destination and
-Open Transcript. Transcript Versions lists every saved run by version, date and
-model; New Transcription keeps earlier versions. Show in Finder and the shared
-playback, Save Audio and secondary-menu row stay with the source recording.
-Deleting audio confirms that every transcript version remains. Missing audio
-keeps its transcripts visible with an explicit unavailable notice.
+Each recording has one card. Its header holds the title, one metadata line
+(date, duration, processing destination and transcript count), a status dot with
+Transcribed, Paused, Not transcribed or the live activity, and an ellipsis
+actions menu. A transcript adds at most a two-line preview. An engraved divider
+separates one player row: play, position, time and the single next step,
+Transcribe, Resume or Open Transcript. The actions menu holds New Transcription,
+Transcript Versions (every saved run by version, date and model), recovery
+choices for a paused transcript, Save Audio, Show in Finder and Delete Recording.
+New transcripts take the library title, Meeting or Imported Recording, so the
+date appears only in the metadata. Deleting audio confirms that every transcript
+version remains. Missing audio keeps its transcripts visible with an explicit
+unavailable note in the player row.
 
 Import opens a native audio/video picker; dropping a file opens the same
 Transcribe Recording sheet. A recording's Transcribe action carries that exact
@@ -522,18 +531,23 @@ pagination cannot hide it. Document actions expose Pause, or Cancel while
 summarizing, and the available Resume, Without Speakers or Keep Transcript
 recovery. Every saved version exposes its recovery actions in the editor too.
 
-The editor keeps its editable 18-point title and Close above Edited/Original,
-Copy and a native Export menu. Segment-timed results identify their timing near
-these controls. Speaker names use the existing soft fields; Add Speaker sits
-beside the short estimate notice. Turn cards show a timestamp, speaker selector,
-overlap notice when applicable and 13-point text. Original text is selectable;
-Edited text is editable when processing has completed. Retain the shared card
-insets and corners, with at most 100 turns per page.
+The editor's fixed header keeps its editable 18-point title, never focused on
+open, above one metadata line (date, duration, model and segment timing) and
+Close. Its toolbar holds playback with the current time when audio exists, the
+Edited/Original segmented control, Copy and an Export menu on the shared soft
+button. Between the fixed header and footer, one scroll view holds sections:
+Summary when present, Speakers (a `SettingsCard` of name fields with Add Speaker
+in its heading and the estimate note below) and Transcript. Transcript is one
+card whose turns are separated by `RowDivider`; each shows the speaker selector,
+a timestamp that plays from that point, an overlap note when applicable and
+13-point text. Page controls sit in the Transcript heading, with at most 100
+turns per page. Original text is selectable; Edited text is editable when
+processing has completed.
 
-Keep the scrolling turn cards clipped above the fixed footer; their shadow
-allowance extends horizontally without drawing over footer actions.
-The footer keeps Delete Transcript at the leading edge, playback when active,
-and optional Summarize beside the primary Save Changes action. Dirty editors ask
+Keep the scrolling cards clipped above the fixed footer; their shadow allowance
+extends horizontally without drawing over footer actions. The footer keeps
+Delete Transcript at the leading edge, an unsaved-changes note, optional
+Summarize and the primary Save Changes action (Command-S). Dirty editors ask
 before discarding changes. Summarize confirms provider use and cost, and deletion
 explains that the recording remains. Native TXT, JSON, SRT and VTT exports follow
 the selected version. These documents do not add dictation statistics or insert
@@ -554,7 +568,7 @@ disables Start Recording. One short notice covers participant awareness and loca
 storage; Cancel sits beside the primary Start Recording action.
 
 Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
-the shared blue prominent capsule. Preserve its raised, pressed and disabled
+the shared blue prominent button. Preserve its raised, pressed and disabled
 geometry; page-header controls share the 28-point height.
 
 Start closes setup and shows recording status on Meetings. The raised status card
@@ -578,7 +592,7 @@ corners, supporting text and engraved dividers.
 ### Settings search
 
 A 270 by 28 pt Search settings field sits at the right of the Settings
-heading. It uses the shared recessed `SoftInsetTrack` capsule, with a visible
+heading. It uses the shared recessed `SoftInsetTrack` control shape, with a visible
 accent focus ring, native text editing, and a clear action. Result position and
 previous/next controls fit inside it; no matches is explicit. Command-F focuses
 the input. Return or Down moves forward; Shift-Return or Up moves backward,

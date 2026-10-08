@@ -10,8 +10,15 @@ public struct MeetingLibraryEntry: Identifiable, Sendable {
     public let audioAvailable: Bool
     public let documents: [TranscriptDocument]
     public var title: String {
-        documents.first?.title ?? (asset?.source == .imported ? "Imported Recording" : "Meeting")
+        if let title = documents.first?.title, !Self.isGeneratedTitle(title) { return title }
+        return Self.defaultTitle(for: asset?.source)
     }
+    /// A new transcript starts with the library's name; the card shows its date separately.
+    public static func defaultTitle(for source: RecordingAsset.Source?) -> String {
+        source == .imported ? "Imported Recording" : "Meeting"
+    }
+    /// Earlier builds named transcripts "Recording · <date>", repeating the card's date.
+    static func isGeneratedTitle(_ title: String) -> Bool { title.hasPrefix("Recording · ") }
 }
 
 extension HistoryStore {

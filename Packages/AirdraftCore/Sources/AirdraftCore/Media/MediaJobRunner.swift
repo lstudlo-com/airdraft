@@ -71,7 +71,7 @@ public final class MediaJobRunner {
                 try await accessCheck()
                 try configuration.validate()
                 document = try history.createDocument(asset: asset,
-                    title: "Recording · " + asset.createdAt.formatted(date: .abbreviated, time: .shortened), configuration: configuration)
+                    title: MeetingLibraryEntry.defaultTitle(for: asset.source), configuration: configuration)
                 onChange?()
                 try await run()
             } catch { await failed(error) }

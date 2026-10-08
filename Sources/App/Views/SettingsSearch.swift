@@ -224,8 +224,8 @@ struct SettingsSearchField: View {
         }
         .padding(.horizontal, 9)
         .frame(width: 270, height: SoftControl.height)
-        .background { SoftInsetTrack(shape: Capsule()) }
-        .overlay { Capsule().strokeBorder(focused ? Color.accentColor.opacity(0.65) : .clear, lineWidth: 1.5).allowsHitTesting(false) }
+        .background { SoftInsetTrack(shape: SoftControl.shape) }
+        .overlay { SoftControl.shape.strokeBorder(focused ? Color.accentColor.opacity(0.65) : .clear, lineWidth: 1.5).allowsHitTesting(false) }
         .background {
             Button("Find Setting") { focused = true }
                 .keyboardShortcut("f", modifiers: .command)

@@ -80,7 +80,7 @@ struct AccessibilityPermissionHelp: View {
                 Spacer()
                 if !container.permissions.accessibilityGranted {
                     Button("Open Settings…") { container.openAccessibilitySettings() }
-                        .buttonStyle(.borderedProminent)
+                        .primaryButtonStyle()
                 }
                 Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
             }

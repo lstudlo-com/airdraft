@@ -329,7 +329,7 @@ struct SettingsNumberStepper: View {
         }
     }
 
-    /// Raised round buttons replace the native stepper arrows.
+    /// Raised square buttons replace the native stepper arrows.
     private func stepButton(_ symbol: String, label: String, by delta: Int) -> some View {
         Button {
             set(value + delta)
@@ -500,7 +500,7 @@ struct ChoiceTile<Preview: View>: View {
     }
 }
 
-/// A raised capsule that sinks into an inset well while pressed.
+/// A raised rounded button that sinks into an inset well while pressed.
 struct SoftButtonStyle: ButtonStyle {
     var prominent = false
 
@@ -524,7 +524,7 @@ struct SoftButtonStyle: ButtonStyle {
     }
 }
 
-/// A round raised button for a single symbol, such as the stepper's minus and plus.
+/// A raised square button for a single symbol, such as the stepper's minus and plus.
 struct SoftIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         SoftIconBody(configuration: configuration)
@@ -537,8 +537,8 @@ struct SoftIconButtonStyle: ButtonStyle {
         var body: some View {
             configuration.label
                 .foregroundStyle(.primary)
-                .background { SoftRaisedSurface(shape: Circle(), pressed: configuration.isPressed) }
-                .contentShape(Circle())
+                .background { SoftRaisedSurface(shape: SoftControl.shape, pressed: configuration.isPressed) }
+                .contentShape(SoftControl.shape)
                 .opacity(isEnabled ? 1 : 0.4)
         }
     }
@@ -552,14 +552,20 @@ private struct SoftControlSurface: ViewModifier {
         content
             .padding(.horizontal, 12)
             .frame(minHeight: SoftControl.height)
-            .background { SoftRaisedSurface(shape: Capsule(), pressed: pressed, tint: tint) }
-            .contentShape(Capsule())
+            .background { SoftRaisedSurface(shape: SoftControl.shape, pressed: pressed, tint: tint) }
+            .contentShape(SoftControl.shape)
     }
 }
 
 extension View {
     func softControlSurface(pressed: Bool = false, tint: Color? = nil) -> some View {
         modifier(SoftControlSurface(pressed: pressed, tint: tint))
+    }
+
+    /// The single primary action: the native prominent bezel on the shared control radius.
+    func primaryButtonStyle() -> some View {
+        buttonStyle(.borderedProminent)
+            .buttonBorderShape(.roundedRectangle(radius: SoftControl.radius))
     }
 }
 
@@ -600,6 +606,26 @@ struct PageFilter<Selection: Hashable>: View {
         .softControlSurface()
         .accessibilityLabel(title)
         .accessibilityValue(options.first { $0.0 == selection }?.1 ?? title)
+    }
+}
+
+/// A pull-down menu on the shared soft button surface, for overflow actions and exports.
+struct SoftMenuButton<Content: View, Label: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+    @ViewBuilder var label: Label
+
+    var body: some View {
+        Menu { content } label: {
+            label
+                .font(.system(size: 12.5, weight: .medium))
+                .foregroundStyle(.primary)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .softControlSurface()
+        .accessibilityLabel(title)
     }
 }
 
@@ -739,7 +765,7 @@ struct SearchField: View {
         }
         .padding(.horizontal, 9)
         .frame(height: SoftControl.height)
-        .background { SoftRaisedSurface(shape: Capsule()) }
+        .background { SoftRaisedSurface(shape: SoftControl.shape) }
         .frame(width: 220)
     }
 }

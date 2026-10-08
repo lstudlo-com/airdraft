@@ -195,7 +195,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     --radius-island: 22px;
     --radius-card: 18px; /* Theme.cardRadius */
     --radius-well: 12px;
-    --radius-field: 10px;
+    /* SoftControl.radius: one corner for every key, field and segmented track. */
+    --radius-control: 12px;
+    --radius-field: var(--radius-control);
     --radius-cap: 7px;
 
     --island-inset: 12px;
@@ -505,7 +507,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     text-decoration: underline;
   }
 
-  /* Keys: SoftButtonStyle capsules. Pressing sinks them into a well. */
+  /* Keys: SoftButtonStyle rounded keys. Pressing sinks them into a well. */
   .key {
     display: inline-flex;
     justify-content: center;
@@ -514,7 +516,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     min-height: 44px;
     padding: 0 20px;
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--radius-control);
     background: var(--fill-control);
     color: var(--ink);
     box-shadow: var(--edge), var(--raise-control);
@@ -1477,7 +1479,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: inline-flex;
     gap: 0;
     padding: 3px;
-    border-radius: 999px;
+    border-radius: var(--radius-control);
     background: var(--well);
     box-shadow: var(--sink-track);
     overflow: clip;
@@ -1491,7 +1493,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     min-height: 32px;
     padding: 0 14px;
     border: 0;
-    border-radius: 999px;
+    border-radius: calc(var(--radius-control) - 3px);
     background: transparent;
     color: var(--muted);
     font-size: var(--step--1);
@@ -1540,7 +1542,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     bottom: 3px;
     left: 0;
     z-index: 0;
-    border-radius: 999px;
+    border-radius: calc(var(--radius-control) - 3px);
     transition:
       transform 360ms var(--ease-select),
       width 360ms var(--ease-select);

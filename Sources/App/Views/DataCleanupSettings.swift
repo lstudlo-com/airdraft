@@ -149,7 +149,7 @@ struct DataCleanupProgress: View {
                     Button("Quit Airdraft") { NSApp.terminate(nil) }.buttonStyle(SoftButtonStyle())
                     if let scope = container.cleanup.pendingScope {
                         Button("Retry") { Task { await container.performCleanup(scope) } }
-                            .buttonStyle(.borderedProminent)
+                            .primaryButtonStyle()
                     }
                 }
             }

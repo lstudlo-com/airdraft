@@ -78,6 +78,7 @@ struct MediaDocumentEditor: View {
     @State private var document: TranscriptDocument
     @State private var playback = makeHistoryPlayback()
     @State private var audioURL: URL?
+    @State private var duration: Double?
     @State private var page = 0
     @State private var dirty = false
     @State private var issue: String?
@@ -85,112 +86,43 @@ struct MediaDocumentEditor: View {
     @State private var showOriginal = false
     @State private var confirmClose = false
     @State private var confirmSummary = false
+    @FocusState private var titleFocused: Bool
     init(initial: TranscriptDocument) { _document = State(initialValue: initial) }
+    private static let pageSize = 100
     private var speakerIDs: [String] { Array(Set(document.turns.compactMap(\.speaker) + Array(document.speakerNames.keys))).sorted() }
     private var editable: Bool { !container.pipeline.isBusy && document.stage == .completed }
+    private var processing: Bool { container.media?.document?.id == document.id && container.media?.isBusy == true }
+    private var pageCount: Int { (document.turns.count + Self.pageSize - 1) / Self.pageSize }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-            HStack {
-                TextField("Title", text: $document.title).font(.system(size: 18, weight: .semibold)).textFieldStyle(.plain).disabled(!editable)
-                Spacer()
-                Button("Close") { if dirty { confirmClose = true } else { dismiss() } }
-                    .buttonStyle(SoftButtonStyle()).keyboardShortcut(.cancelAction)
-            }
-            HStack {
-                SoftSegmentedPicker("Transcript version", selection: $showOriginal, options: [(false, "Edited"), (true, "Original")])
-                Spacer()
-                Button("Copy") { copy() }.buttonStyle(SoftButtonStyle())
-                Menu("Export") {
-                    ForEach(TranscriptExport.Format.allCases, id: \.self) { format in Button(format.rawValue.uppercased() + "…") { export(format) } }
-                }.menuStyle(.borderlessButton).fixedSize()
-            }
-            if let issue { Text(issue).supportingText().textSelection(.enabled) }
-            if document.configuration.usesSegmentTiming {
-                Text("Segment timestamps · Speaker labels are estimates").supportingText()
-            }
-            if document.stage != .completed || container.media?.document?.id == document.id && container.media?.isBusy == true {
-                MediaDocumentActions(document: document, open: {}, showsOpen: false)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                .padding([.top, .horizontal], Theme.pagePadding)
+                .padding(.bottom, Theme.controlSpacing)
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Theme.controlSpacing) {
-                    if document.transcriptionComplete {
-                        SettingsCard {
-                            ForEach(speakerIDs, id: \.self) { id in
-                                if id != speakerIDs.first { RowDivider() }
-                                HStack {
-                                    Text("Speaker \(id)").font(.system(size: 13))
-                                    TextField("Name", text: Binding(get: { document.speakerNames[id] ?? "" }, set: { document.speakerNames[id] = $0; dirty = true }))
-                                        .softField().disabled(!editable)
-                                }
-                            }
-                        }
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+                    if let issue {
+                        InlineNotice(issue) { Button("Dismiss") { self.issue = nil } }
                     }
-                    HStack {
-                        Text("Speaker labels are estimates; you can correct them.").supportingText()
-                        Spacer()
-                        Button("Add Speaker") {
-                            let id = String((speakerIDs.compactMap(Int.init).max() ?? 0) + 1)
-                            document.speakerNames[id] = "Speaker " + id; dirty = true
-                        }.buttonStyle(SoftButtonStyle()).disabled(!editable)
-                    }
-                    ForEach(Array(document.turns.indices.dropFirst(page * 100).prefix(100)), id: \.self) { index in
-                        Card(spacing: Theme.controlSpacing) {
-                            HStack {
-                                Button(HistoryRecordingControls.time(document.turns[index].start)) { seek(document.turns[index].start) }
-                                    .buttonStyle(.plain).foregroundStyle(.secondary).disabled(audioURL == nil || !editable)
-                                    .help("Play from this timestamp")
-                                if showOriginal {
-                                    Text(document.speakerName(document.turns[index].originalSpeaker)).font(.system(size: 11))
-                                } else {
-                                    Menu(document.speakerName(document.turns[index].speaker)) {
-                                        Button("Unknown Speaker") { document.turns[index].speaker = nil; dirty = true }
-                                        ForEach(speakerIDs, id: \.self) { id in
-                                            Button(document.speakerName(id)) { document.turns[index].speaker = id; dirty = true }
-                                        }
-                                    }.menuStyle(.borderlessButton).fixedSize().disabled(!editable)
-                                }
-                                Spacer()
-                                if document.turns[index].overlapping { Text("Overlapping speech").supportingText() }
-                            }
-                            if showOriginal {
-                                Text(document.turns[index].originalText).font(.system(size: 13)).textSelection(.enabled)
-                            } else {
-                                TextField("Transcript", text: Binding(get: { document.turns[index].text }, set: { document.turns[index].editedText = $0; dirty = true }), axis: .vertical)
-                                    .font(.system(size: 13)).textFieldStyle(.plain).disabled(!editable)
-                            }
-                        }
-                    }
-                    if document.turns.isEmpty { EmptyNote(document.transcriptionComplete ? "No speech was detected." : "Transcription has not finished yet.") }
-                    if document.turns.count > 100 {
-                        HStack {
-                            Button("Previous") { page -= 1 }.disabled(page == 0)
-                            Spacer()
-                            Text("Page \(page + 1) of \((document.turns.count + 99) / 100)").supportingText()
-                            Spacer()
-                            Button("Next") { page += 1 }.disabled((page + 1) * 100 >= document.turns.count)
-                        }.buttonStyle(SoftButtonStyle())
+                    if document.stage != .completed || processing {
+                        Card(spacing: Theme.controlSpacing) { MediaDocumentActions(document: document, open: {}, showsOpen: false) }
                     }
                     if let summary = document.summary {
-                        Card { Text("Summary").font(.system(size: 13, weight: .medium)); Text(summary).font(.system(size: 13)).textSelection(.enabled) }
+                        PageSection("Summary") {
+                            Card { Text(summary).font(.system(size: 13)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                        }
                     }
-                }.padding(Theme.cardPadding)
-            }.padding(.horizontal, -Theme.cardPadding)
-            HStack {
-                Button("Delete Transcript…", role: .destructive) { confirmDelete = true }.buttonStyle(SoftButtonStyle()).disabled(container.pipeline.isBusy)
-                if playback.recordingID != nil {
-                    Button(playback.isPlaying ? "Pause" : "Play") {
-                        guard let audioURL, let id = document.recordingID else { return }
-                        do { try playback.toggle(id: id, url: audioURL) } catch { issue = error.localizedDescription }
-                    }.buttonStyle(SoftButtonStyle())
+                    if document.transcriptionComplete { speakers }
+                    transcript
                 }
-                Spacer()
-                if container.settings.llm.kind != .none {
-                    Button("Summarize…") { confirmSummary = true }.buttonStyle(SoftButtonStyle()).disabled(!editable || dirty)
-                }
-                Button("Save Changes") { save() }.buttonStyle(SoftButtonStyle(prominent: true)).disabled(!dirty || !editable)
+                .padding(.horizontal, Theme.pagePadding)
+                .padding(.vertical, Theme.cardPadding)
             }
+            footer
+                .padding([.bottom, .horizontal], Theme.pagePadding)
+                .padding(.top, Theme.controlSpacing)
         }
-        .padding(Theme.pagePadding).frame(width: 650, height: 530).background(Theme.islandBackground)
+        .frame(width: 680, height: 580).background(Theme.islandBackground)
         .interactiveDismissDisabled(dirty)
         .onChange(of: document.title) { _, _ in dirty = true }
         .onChange(of: container.pipeline.isBusy) { _, busy in if busy { playback.stop() } }
@@ -201,8 +133,12 @@ struct MediaDocumentEditor: View {
         .onAppear {
             NotificationCenter.default.post(name: .mediaEditorOpened, object: nil)
             if let saved = try? container.history?.document(id: document.id) { document = saved }
-            if let id = document.recordingID, let asset = try? container.history?.recording(id: id) { audioURL = container.history?.audioURL(for: asset) }
+            if let id = document.recordingID, let asset = try? container.history?.recording(id: id) {
+                audioURL = container.history?.audioURL(for: asset); duration = asset.duration
+            }
         }
+        // A sheet otherwise opens with the title as first responder and a blinking caret.
+        .task { titleFocused = false }
         .onDisappear { playback.stop() }
         .confirmationDialog("Delete this transcript?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete Transcript", role: .destructive) {
@@ -225,6 +161,156 @@ struct MediaDocumentEditor: View {
         .confirmationDialog("Discard unsaved changes?", isPresented: $confirmClose, titleVisibility: .visible) {
             Button("Discard Changes", role: .destructive) { dismiss() }
         }
+    }
+    private var metadata: String {
+        var parts = [document.createdAt.formatted(date: .abbreviated, time: .shortened)]
+        if let duration { parts.append(HistoryRecordingControls.time(duration)) }
+        parts.append(document.configuration.engine == .local ? document.configuration.selectedLocalModel.title : "Soniox")
+        if document.configuration.usesSegmentTiming { parts.append("Segment timestamps") }
+        return parts.joined(separator: " · ")
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+            HStack(alignment: .top, spacing: Theme.controlSpacing) {
+                VStack(alignment: .leading, spacing: 3) {
+                    TextField("Title", text: $document.title)
+                        .font(.system(size: 18, weight: .semibold)).textFieldStyle(.plain)
+                        .focused($titleFocused).onSubmit { titleFocused = false }
+                        .disabled(!editable).help("Rename transcript")
+                        .accessibilityLabel("Transcript title")
+                    Text(metadata).supportingText().lineLimit(1)
+                }
+                Button("Close") { if dirty { confirmClose = true } else { dismiss() } }
+                    .buttonStyle(SoftButtonStyle()).keyboardShortcut(.cancelAction)
+            }
+            HStack(spacing: 8) {
+                if audioURL != nil, document.recordingID != nil {
+                    Button { togglePlayback() } label: {
+                        Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 11)).frame(width: SoftControl.height, height: SoftControl.height)
+                    }
+                    .buttonStyle(SoftIconButtonStyle())
+                    .help(playback.isPlaying ? "Pause recording" : "Play recording")
+                    .accessibilityLabel(playback.isPlaying ? "Pause Recording" : "Play Recording")
+                    if playback.recordingID != nil { MediaEditorClock(playback: playback) }
+                }
+                SoftSegmentedPicker("Transcript version", selection: $showOriginal, options: [(false, "Edited"), (true, "Original")])
+                Spacer(minLength: 0)
+                Button("Copy") { copy() }.buttonStyle(SoftButtonStyle())
+                SoftMenuButton(title: "Export") {
+                    ForEach(TranscriptExport.Format.allCases, id: \.self) { format in Button(format.rawValue.uppercased() + "…") { export(format) } }
+                } label: {
+                    Text("Export  \(Image(systemName: "chevron.down"))")
+                }
+            }
+        }
+    }
+
+    private var speakers: some View {
+        PageSection("Speakers") {
+            Button("Add Speaker") {
+                let id = String((speakerIDs.compactMap(Int.init).max() ?? 0) + 1)
+                document.speakerNames[id] = "Speaker " + id; dirty = true
+            }.buttonStyle(SoftButtonStyle()).disabled(!editable)
+        } content: {
+            if !speakerIDs.isEmpty {
+                SettingsCard {
+                    ForEach(speakerIDs, id: \.self) { id in
+                        if id != speakerIDs.first { RowDivider() }
+                        SettingRow(title: "Speaker \(id)") {
+                            TextField("Name", text: Binding(get: { document.speakerNames[id] ?? "" }, set: { document.speakerNames[id] = $0; dirty = true }))
+                                .softField().frame(width: Theme.fieldWidth).disabled(!editable)
+                                .accessibilityLabel("Speaker \(id) name")
+                        }
+                    }
+                }
+            }
+            Text("Speaker labels are estimates. Assign each passage below to correct them.")
+                .supportingText().padding(.leading, Theme.sectionTitleLeadingInset)
+        }
+    }
+
+    private var transcript: some View {
+        PageSection("Transcript") {
+            if pageCount > 1 {
+                HStack(spacing: 8) {
+                    Text("Page \(page + 1) of \(pageCount)").supportingText().monospacedDigit()
+                    Button { page -= 1 } label: { Image(systemName: "chevron.left").frame(width: 12) }
+                        .disabled(page == 0).accessibilityLabel("Previous Page")
+                    Button { page += 1 } label: { Image(systemName: "chevron.right").frame(width: 12) }
+                        .disabled(page + 1 >= pageCount).accessibilityLabel("Next Page")
+                }.buttonStyle(SoftButtonStyle())
+            }
+        } content: {
+            if document.turns.isEmpty {
+                Card { EmptyNote(document.transcriptionComplete ? "No speech was detected." : "Transcription has not finished yet.") }
+            } else {
+                Card(spacing: Theme.controlSpacing) {
+                    let indices = Array(document.turns.indices.dropFirst(page * Self.pageSize).prefix(Self.pageSize))
+                    ForEach(indices, id: \.self) { index in
+                        if index != indices.first { RowDivider() }
+                        turn(index)
+                    }
+                }
+            }
+        }
+    }
+
+    private func turn(_ index: Int) -> some View {
+        let turn = document.turns[index]
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                if showOriginal {
+                    Text(document.speakerName(turn.originalSpeaker)).font(.system(size: 12, weight: .semibold))
+                } else {
+                    Menu {
+                        Button("Unknown Speaker") { document.turns[index].speaker = nil; dirty = true }
+                        ForEach(speakerIDs, id: \.self) { id in
+                            Button(document.speakerName(id)) { document.turns[index].speaker = id; dirty = true }
+                        }
+                    } label: {
+                        Text("\(document.speakerName(turn.speaker)) \(Image(systemName: "chevron.down"))")
+                            .font(.system(size: 12, weight: .semibold)).contentShape(Rectangle())
+                    }
+                    .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize().disabled(!editable)
+                    .help("Assign speaker")
+                }
+                Button(HistoryRecordingControls.time(turn.start)) { seek(turn.start) }
+                    .buttonStyle(.plain).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+                    .disabled(audioURL == nil || !editable)
+                    .help("Play from this timestamp")
+                Spacer(minLength: 0)
+                if turn.overlapping { Text("Overlapping speech").supportingText() }
+            }
+            if showOriginal {
+                Text(turn.originalText).font(.system(size: 13)).textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                TextField("Transcript", text: Binding(get: { document.turns[index].text }, set: { document.turns[index].editedText = $0; dirty = true }), axis: .vertical)
+                    .font(.system(size: 13)).textFieldStyle(.plain).disabled(!editable)
+            }
+        }
+    }
+
+    private var footer: some View {
+        HStack(spacing: Theme.controlSpacing) {
+            Button("Delete Transcript…", role: .destructive) { confirmDelete = true }
+                .buttonStyle(SoftButtonStyle()).disabled(container.pipeline.isBusy)
+            Spacer(minLength: 0)
+            if dirty { Text("Unsaved changes").supportingText() }
+            if container.settings.llm.kind != .none {
+                Button("Summarize…") { confirmSummary = true }.buttonStyle(SoftButtonStyle()).disabled(!editable || dirty)
+                    .help(dirty ? "Save changes before summarizing" : "Create a summary with your refinement provider")
+            }
+            Button("Save Changes") { save() }.buttonStyle(SoftButtonStyle(prominent: true)).disabled(!dirty || !editable)
+                .keyboardShortcut("s", modifiers: .command)
+        }
+    }
+
+    private func togglePlayback() {
+        guard let audioURL, let id = document.recordingID else { return }
+        do { try playback.toggle(id: id, url: audioURL) } catch { issue = error.localizedDescription }
     }
     private func save() {
         do {
@@ -260,3 +346,12 @@ struct MediaDocumentEditor: View {
     }
 }
 extension Notification.Name { static let mediaEditorOpened = Notification.Name("Airdraft.mediaEditorOpened") }
+
+/// Only the clock observes playback time, so editing rows do not refresh while audio plays.
+private struct MediaEditorClock: View {
+    let playback: RecordingPlayback
+    var body: some View {
+        Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
+            .font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+    }
+}

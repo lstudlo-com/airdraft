@@ -39,7 +39,8 @@ shares the pipeline busy gate with dictation, media jobs and data cleanup.
 
 Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
 the shared `SoftButtonStyle(prominent: true)`: blue fill and white type with the
-same raised capsule, pressed well and disabled geometry as secondary buttons.
+same raised 8-point control shape, pressed well and disabled geometry as
+secondary buttons.
 The header actions share the 28-point control height.
 
 ## Timeline, storage and limits
