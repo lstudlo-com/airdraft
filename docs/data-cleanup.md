@@ -30,7 +30,7 @@ Before deleting data, media preparation clears remote jobs and uploads while the
 recovery IDs still exist, then removes staging files. It runs again on a journaled
 retry while History is open: older journals do not prove that preparation completed.
 Cleared IDs make this idempotent, and completed destructive phases stay skipped.
-A failed fresh preparation preserves documents and IDs and leaves Configuration
+A failed fresh preparation preserves documents and IDs and leaves Settings
 available. A failed journaled preparation retains the maintenance fence. When
 remote IDs remain, Repair Provider Access explicitly reveals the existing key
 editor for their saved references; it does not reopen general data editing.

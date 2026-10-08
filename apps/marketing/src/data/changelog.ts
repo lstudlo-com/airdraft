@@ -42,7 +42,7 @@ export const changelog: ChangelogEntry[] = [
     ],
     source: {
       label: "Release notes",
-      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.9.0-build.201",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.9.0-build.202",
     },
   },
   {

@@ -938,7 +938,7 @@ lease and reject running sibling copies before deleting shared data. One app cop
 holds an exclusive lifetime data lease; cleanup/reset never downgrades it. A
 blocked copy cannot read or repair shared JSON or start work. Fresh cleanup
 prepares remote media jobs and staging before journaling or deleting their IDs;
-preparation failure preserves recovery data and leaves Configuration usable.
+preparation failure preserves recovery data and leaves Settings usable.
 Journaled retries repeat idempotent preparation while History is open, including
 legacy journals, without repeating completed destructive phases. Failed preparation
 with retained remote IDs exposes an explicit Repair Provider Access action using
