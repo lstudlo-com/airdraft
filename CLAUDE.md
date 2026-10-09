@@ -190,7 +190,8 @@ verification status belong in the vault (see below).
   never update only one. Create, rename, move or remove both files together.
   Verify that every pair matches before finishing or committing the change.
 - After completing and validating a requested fix or feature, make a local
-  conventional commit for that task unless the user asks to leave it uncommitted.
+  conventional commit for that task on its branch (see Checkouts and branches)
+  unless the user asks to leave it uncommitted.
   Stage only task-related files or hunks; preserve unrelated worktree changes.
   If the task cannot be committed cleanly, explain why. Push or release only
   when the user requests it.
@@ -703,6 +704,28 @@ scrolling only past 520 points. Put an unfinished activation's recovery before
 trial, purchase and key entry. Sandbox builds keep the Sandbox tag and Test
 Purchase.
 See `docs/licensing.md`; dashboard setup, mocks and renders do not verify an actual purchase.
+
+## Checkouts and branches
+
+The main folder (this repository root) is where the user builds in Xcode and
+where releases are made. Keep it on `main`; it is the only checkout of `main`.
+
+- Start every session with `python3 scripts/check-checkout.py`. When it warns,
+  stop and tell the user; never build, render or verify from a stale checkout.
+  Debug builds run the same check as an Xcode build phase.
+- Do features and fixes in a separate worktree on a branch (`claude/<topic>`,
+  `codex/<topic>`) created from the latest `origin/main`. Only a single small
+  commit may go directly on `main` in the main folder, with no other session active.
+- In a new worktree, clone the main folder's `Packages/SherpaOnnxKit/Vendor` with
+  `cp -cR` and run `python3 scripts/generate-project.py`; bare `xcodegen` drifts
+  the SwiftPM pins.
+- When validated, rebase onto `origin/main`, fast-forward `main` in the main
+  folder, then remove the worktree and its branch.
+- Never leave unfinished work in the main folder. Commit it to a `wip/<topic>`
+  branch in a worktree and keep the main folder on `main`.
+- `dist/` is ignored and is deleted with its worktree. Before removing one, move
+  its `dist/validation/` and `dist/releases/` evidence into the main folder's
+  `dist/` without overwriting, and update vault notes that cite the old path.
 
 ## Local releases
 

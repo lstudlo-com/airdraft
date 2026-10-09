@@ -35,6 +35,15 @@ targets:
       - package: AirdraftCore
         embed: true
       - package: Sparkle
+    preBuildScripts:
+      # Debug builds warn when this folder is off main or behind origin/main.
+      # Local refs only; it never fails or slows the build.
+      - name: Check Checkout
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "$CONFIGURATION" = "Debug" ]; then
+            /usr/bin/python3 "$SRCROOT/scripts/check-checkout.py" --xcode || true
+          fi
     info:
       path: Sources/App/Info.plist
       properties:

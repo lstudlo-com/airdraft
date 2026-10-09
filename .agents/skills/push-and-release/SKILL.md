@@ -17,7 +17,7 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 
 ## 1. 確認本次版本
 
-1. 檢查 Git 狀態、分支、remote、尚未推送的提交與 diff。刷新遠端狀態，確認本次要發佈的內容，保留無關檔案與 hunks。
+1. 在主資料夾（repository root）執行 `python3 scripts/check-checkout.py`；主資料夾必須在 `main`，不在 worktree 或其他分支發佈。檢查 Git 狀態、分支、remote、尚未推送的提交與 diff。刷新遠端狀態，確認本次要發佈的內容，保留無關檔案與 hunks。
 2. 比對已發布版本，依 `docs/updates.md` 選擇 display version。必要時修改 `project.yml`、執行 XcodeGen，並納入產生的 `Sources/App/Info.plist`。build number 由 Git commit count 決定。
 3. 確認 Xcode、原生 Vendor、`gh`、`uv`、固定簽章身分及 pre-push hook 可用。hook 已安裝就沿用；缺少時依 `docs/updates.md` 執行 release setup，不覆寫其他用途的 hook。
 4. 建立本次專用證據目錄，保留指令、log、xcresult、runtime JSON 與圖片。不要引用其他執行或其他 commit 的成功結果來代替本次驗證。
@@ -78,6 +78,7 @@ git push origin main
 - 下載公開 release 的 DMG、`appcast.xml`、`release.json`，用 `scripts/release.py` 的 `download_and_verify()` 核對 SHA-256、feed 資訊及 DMG 內 App 簽章。詳見驗證細節的呼叫方式。
 - 從 App 實際設定的 `SUFeedURL` 取得線上 feed，確認它描述這次版本，且內容雜湊與已驗證的 feed 相同。
 - 已提交版本的 E2E 分別記錄通過、失敗與未驗證，選配略過及未涵蓋的硬體／外部服務驗收在發佈後告知使用者。
+- 主資料夾仍在 `main`、`HEAD` 等於本次完整 SHA，且 `python3 scripts/check-checkout.py` 沒有警告；本次使用的 worktree 已依 `CLAUDE.md` 的 Checkouts and branches 移交 `dist/` 證據並移除。不符合時回報原因。
 
 驗證後更新 Obsidian vault，規範見 vault 的 `Knowledge Architecture.md`：
 
