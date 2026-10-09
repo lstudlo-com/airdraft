@@ -25,13 +25,20 @@ final class HotkeyService {
     var shouldDelayPress: () -> Bool = { true }
     private(set) var triggerDelayMilliseconds = 0
     var suspended = false {
-        didSet {
-            guard suspended != oldValue else { return }
-            eventTap.suspended = suspended
-            // Carbon consumes registered shortcuts before the recorder's local
-            // monitor receives them. Unregister both backends while recording.
-            apply(hotkey, triggerDelayMilliseconds: triggerDelayMilliseconds)
-        }
+        didSet { if suspended != oldValue { suspensionChanged() } }
+    }
+    /// Onboarding's shortcut practice pauses dictation independently of the
+    /// recorder and cleanup, so neither can resume it early.
+    var rehearsing = false {
+        didSet { if rehearsing != oldValue { suspensionChanged() } }
+    }
+    private var isSuspended: Bool { suspended || rehearsing }
+
+    private func suspensionChanged() {
+        eventTap.suspended = isSuspended
+        // Carbon consumes registered shortcuts before the recorder's local
+        // monitor receives them. Unregister both backends while recording.
+        apply(hotkey, triggerDelayMilliseconds: triggerDelayMilliseconds)
     }
 
     private let carbon = CarbonHotkey()
@@ -56,10 +63,10 @@ final class HotkeyService {
         carbon.unregister()
         eventTap.stop()
 
-        guard !suspended else {
+        guard !isSuspended else {
             backend = .none
             isActive = false
-            statusText = "Paused while recording a shortcut"
+            statusText = rehearsing ? "Paused while practicing the shortcut" : "Paused while recording a shortcut"
             return
         }
 
@@ -111,7 +118,7 @@ final class HotkeyService {
     }
 
     private func press() {
-        guard !suspended else { return }
+        guard !isSuspended else { return }
         Self.log.notice("press \(self.hotkey.displayString, privacy: .public)")
         onPress?()
     }

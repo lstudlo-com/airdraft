@@ -46,6 +46,10 @@ import XCTest
                 settings.onboarding.move(to: .practice)
                 settings.onboarding.noteDelivery()
                 XCTAssertTrue(settings.onboarding.complete())
+                XCTAssertEqual(settings.onboarding.step, .done)
+                XCTAssertTrue(settings.onboarding.isPresented, "The final step stays visible after success")
+                settings.onboarding.finish()
+                XCTAssertFalse(settings.onboarding.isPresented)
             } else { settings.onboarding.dismiss() }
             settings.llm.select(.anthropic)
             settings.outputDestination = .script
@@ -115,5 +119,93 @@ import XCTest
         XCTAssertFalse(restored.isComplete)
         restored.present()
         XCTAssertTrue(restored.isPresented)
+    }
+
+    func testLegacyThreeStepProgressKeepsItsStepAndChoices() throws {
+        for (legacy, step) in [(0, OnboardingProgress.Step.permissions), (1, .speech), (2, .practice)] {
+            let name = "OnboardingTests.\(UUID())"
+            let defaults = UserDefaults(suiteName: name)!
+            defer { defaults.removePersistentDomain(forName: name) }
+            let json = #"{"step":\#(legacy),"dismissed":true,"completed":false}"#
+            defaults.set(Data(json.utf8), forKey: "onboarding.progress")
+            let progress = OnboardingProgress(defaults: defaults, existingSetup: false)
+            XCTAssertEqual(progress.step, step)
+            XCTAssertTrue(progress.hasBeenDismissed, "Migration must not reopen a skipped setup")
+            XCTAssertFalse(progress.shouldPresentOnLaunch)
+            XCTAssertNil(progress.chosenSpeech)
+        }
+    }
+
+    func testNewInstallStartsAtWelcomeAndReplayRestartsAfterSuccess() {
+        let name = "OnboardingTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let progress = OnboardingProgress(defaults: defaults, existingSetup: false)
+        XCTAssertEqual(progress.step, .welcome)
+        XCTAssertEqual(OnboardingProgress.Step.allCases.map(\.rawValue),
+                       ["welcome", "speech", "permissions", "shortcut", "practice", "done"])
+        XCTAssertEqual(OnboardingProgress.Step.welcome.next, .speech)
+        XCTAssertNil(OnboardingProgress.Step.welcome.previous)
+        XCTAssertEqual(OnboardingProgress.Step.practice.previous, .shortcut)
+        progress.present()
+        progress.chooseSpeech(ASRConfig(kind: .whisperKit))
+        progress.move(to: .practice)
+        progress.noteDelivery()
+        progress.noteDelivery()
+        XCTAssertEqual(progress.practiceDeliveries, 2)
+        XCTAssertTrue(progress.complete())
+        progress.finish()
+        XCTAssertNil(progress.chosenSpeech, "A finished setup leaves the speech default to Models")
+        let restarted = OnboardingProgress(defaults: defaults, existingSetup: true)
+        XCTAssertTrue(restarted.isComplete)
+        XCTAssertEqual(restarted.step, .done)
+        restarted.present()
+        XCTAssertEqual(restarted.step, .welcome)
+        XCTAssertFalse(restarted.deliveredDuringPractice)
+        XCTAssertTrue(restarted.isComplete, "Replaying does not forget earlier success")
+    }
+
+    func testDeliveriesCountOnlyInPracticeAndResetWhenLeaving() {
+        let name = "OnboardingTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let progress = OnboardingProgress(defaults: defaults, existingSetup: false)
+        progress.present()
+        progress.move(to: .shortcut)
+        progress.noteDelivery()
+        XCTAssertFalse(progress.deliveredDuringPractice)
+        progress.move(to: .practice)
+        progress.noteDelivery()
+        XCTAssertTrue(progress.deliveredDuringPractice)
+        progress.move(to: .shortcut)
+        XCTAssertFalse(progress.deliveredDuringPractice, "Returning to practice needs a new dictation")
+        progress.move(to: .practice)
+        XCTAssertFalse(progress.complete())
+        progress.finish()
+        XCTAssertTrue(progress.hasBeenDismissed, "Finishing without success is a skip")
+        XCTAssertFalse(progress.isComplete)
+    }
+
+    func testChosenSpeechSurvivesRestartUntilSkipped() {
+        let name = "OnboardingTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let progress = OnboardingProgress(defaults: defaults, existingSetup: false)
+        var config = ASRConfig(kind: .senseVoice)
+        config.language = "zh"
+        progress.chooseSpeech(config)
+        progress.move(to: .permissions)
+        let resumed = OnboardingProgress(defaults: defaults, existingSetup: true)
+        XCTAssertEqual(resumed.chosenSpeech, config)
+        XCTAssertEqual(resumed.step, .permissions)
+        resumed.dismiss()
+        XCTAssertNil(OnboardingProgress(defaults: defaults, existingSetup: false).chosenSpeech)
+    }
+
+    func testOnlyShortcutPracticeAndUnreadyTryItPauseDictation() {
+        for step in OnboardingProgress.Step.allCases {
+            XCTAssertEqual(step.pausesDictation(speechReady: true), step == .shortcut, "\(step)")
+            XCTAssertEqual(step.pausesDictation(speechReady: false), step == .shortcut || step == .practice, "\(step)")
+        }
     }
 }

@@ -699,11 +699,27 @@ followed by a Connection row with Test and Cancel.
 
 ### Onboarding and licensing
 
-Onboarding reuses the 784-point window, a fixed 180-point step rail and shared
-settings cards for Permissions, Speech and Try It. Header and footer actions
-stay outside its scrolling content. Set Up Later preserves progress; successful
-practice requires real pipeline delivery. Returning users' refinement and output
-settings are restored after practice.
+Onboarding reuses the 784-point window and content island beside a fixed
+180-point step rail. The rail shows the sidebar brand and six steps (Welcome,
+Speech, Permissions, Shortcut, Try It, Ready) on the sidebar's own sliding
+recessed well with carved icons; finished steps show a checkmark and can be
+revisited. A model download in progress appears above Set Up Later on steps
+whose page does not already show it. Header (25-point title, 13-point subtitle)
+and footer actions stay outside the scrolling content, which keeps 12 points of
+room so card light and shade are not clipped.
+
+Each step teaches with the app's own material rather than illustrations:
+Welcome loops three beats in one raised card (practice key caps, raised bars in
+a recessed well, a field filling with text); Speech offers two raised choice
+cards with an accent ring and check for the selection; Permissions shows a live
+voice well for the selected microphone and a drawn Settings row whose soft switch
+turns on; Shortcut uses 64-point key caps printed like a Mac keyboard (symbol and
+word) that sink into wells with accent labels while the real keys are held;
+Try It pairs a read-aloud script card with the practice editor; Ready ends with
+a real-app prompt and tips. Reduce Motion shows each demonstration's final state.
+Set Up Later preserves progress; successful practice requires real pipeline
+delivery. Returning users' refinement and output settings are restored after
+practice.
 
 The License sheet is plain text on the sheet, with no cards, status dots, badges,
 helper lines or footnotes. Its top row holds the sidebar brand mark at 32 points

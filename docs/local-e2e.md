@@ -115,7 +115,9 @@ provider requests are used. Run it with a fresh data directory.
 
 `--render-window native-ui <output>` exercises production views and callbacks with
 fake microphone monitors: busy-state fencing, model/language readiness, practice
-restoration, notice actions and the failed-cleanup repair disclosure. Credential
+restoration, the six-step onboarding walk (real key events lighting the
+shortcut caps, typed text rejected, delivery completing setup, Ready and replay),
+notice actions and the failed-cleanup repair disclosure. Credential
 controls remain disabled and no credential operations run. Its absolute
 `AIRDRAFT_E2E_MODEL_ROOT` must be a fresh child of the supplied `--e2e-local` directory.
 The fixture creates model presence markers there without loading a model.

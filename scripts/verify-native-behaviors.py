@@ -68,7 +68,20 @@ enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hotkeys"
         service.suspended = true
         precondition(probe.register(replacement), "Repeated suspension must remain safe")
         probe.unregister()
-        print("PASS: Carbon suspension, delayed replacement, resume and original shortcut release")
+        service.suspended = false
+        // Onboarding's shortcut practice pauses independently: closing the recorder
+        // during practice must not hand the shortcut back to dictation.
+        service.rehearsing = true
+        precondition(!service.isActive && probe.register(replacement), "Practice must release the shortcut")
+        probe.unregister()
+        service.suspended = true
+        service.suspended = false
+        precondition(!service.isActive && probe.register(replacement), "Recorder must not end practice early")
+        probe.unregister()
+        service.rehearsing = false
+        precondition(service.backend == .carbon && service.isActive, "Leaving practice must restore dictation")
+        precondition(!probe.register(replacement), "The shortcut must belong to dictation again")
+        print("PASS: Carbon suspension, delayed replacement, resume, practice pause and original shortcut release")
     }
 }
 '''

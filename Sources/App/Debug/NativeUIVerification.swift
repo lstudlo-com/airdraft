@@ -58,6 +58,7 @@ enum NativeUIVerification {
         verifyMicrophones(container, gate: gate, directory: directory)
         verifyReadiness(container, directory: directory)
         verifyPractice(container, directory: directory)
+        verifyOnboardingFlow(container, directory: directory)
         verifyNotices(directory: directory)
         verifyCleanupRecovery(directory: directory)
         container.dictionary.add(DictionaryEntry(term: "Airdraft", aliases: ["air draft", "air draught"]))
@@ -247,6 +248,14 @@ enum NativeUIVerification {
         let savedProfile = container.profiles.activeProfile
         let settings = container.settings
         settings.asr = ASRConfig(kind: .senseVoice, language: "en")
+        let senseVoiceFolder = LocalModels.folder(for: settings.asr)!
+        precondition(!FileManager.default.fileExists(atPath: senseVoiceFolder.path), "Use fresh disposable model fixtures")
+        try! FileManager.default.createDirectory(at: senseVoiceFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: senseVoiceFolder) }
+        for name in ["tokens.txt", "model.int8.onnx"] {
+            try! Data("UI presence fixture; never load".utf8).write(to: senseVoiceFolder.appendingPathComponent(name))
+        }
+        precondition(LocalModels.isInstalled(settings.asr), "Practice readiness needs an installed model fixture")
         settings.onboarding.present()
         settings.onboarding.move(to: .practice)
         container.engineStatus.setPreviewState(settings.asr.engineID, .notLoaded)
@@ -259,7 +268,7 @@ enum NativeUIVerification {
         precondition(text(practice).contains("Model is ready"))
         capture(practice, to: directory.appendingPathComponent("practice-selected-engine-ready.png"))
         precondition(press(id: "onboarding.back", in: practice)); pump()
-        precondition(!settings.isOnboardingPractice && settings.onboarding.step == .speech)
+        precondition(!settings.isOnboardingPractice && settings.onboarding.step == .shortcut)
         precondition(container.speechConfig.kind == .groq && container.profiles.activeProfile == savedProfile)
         close(practice)
 
@@ -291,6 +300,88 @@ enum NativeUIVerification {
         settings.endOnboardingPractice()
         precondition(container.profiles.activeProfile == savedProfile)
         print("NATIVE_UI_PASS onboarding-selected-readiness retired-binding back installed-language-guard profile-preserved")
+    }
+
+    /// Walks the production onboarding from Welcome to Ready with injected permissions.
+    /// Delivery is the pipeline's own callback; nothing records, loads or downloads.
+    private static func verifyOnboardingFlow(_ container: AppContainer, directory: URL) {
+        let settings = container.settings
+        settings.asr = ASRConfig(kind: .senseVoice, language: "en")
+        let folder = LocalModels.folder(for: settings.asr)!
+        precondition(!FileManager.default.fileExists(atPath: folder.path), "Use fresh disposable model fixtures")
+        try! FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        for name in ["tokens.txt", "model.int8.onnx"] {
+            try! Data("UI presence fixture; never load".utf8).write(to: folder.appendingPathComponent(name))
+        }
+        settings.onboarding.dismiss()
+        settings.onboarding.present()
+        settings.onboarding.move(to: .welcome)
+        let window = show(OnboardingView().environment(container), width: Theme.windowWidth, height: 760)
+        func next(_ expected: OnboardingProgress.Step) {
+            precondition(enabled(find(id: "onboarding.continue", in: window)), "Continue must be available before \(expected)")
+            precondition(press(id: "onboarding.continue", in: window)); pump()
+            precondition(settings.onboarding.step == expected, "Expected \(expected), found \(settings.onboarding.step)")
+        }
+        precondition(text(window).contains("Get Started"))
+        next(.speech)
+        precondition(text(window).contains("On this Mac") && text(window).contains("Downloaded"))
+        next(.permissions)
+        precondition(settings.onboarding.chosenSpeech == settings.asr, "Speech choice must be remembered")
+        precondition(text(window).contains("Allowed"), "Injected permissions must read as allowed")
+        next(.shortcut)
+        precondition(text(find(id: "onboarding.shortcut-status", in: window)).contains("Control and Option"),
+                     "The shortcut must be named in words, not only symbols")
+        // Real key events through the window's queue reach the same local monitor as a keyboard.
+        func modifiers(_ flags: NSEvent.ModifierFlags, keyCode: UInt16) {
+            let event = NSEvent.keyEvent(with: .flagsChanged, location: .zero, modifierFlags: flags, timestamp: 0,
+                                         windowNumber: window.windowNumber, context: nil, characters: "",
+                                         charactersIgnoringModifiers: "", isARepeat: false, keyCode: keyCode)!
+            NSApp.postEvent(event, atStart: false)
+            // Dequeue like the app's event loop, which is where local monitors run.
+            while let queued = NSApp.nextEvent(matching: .any, until: Date().addingTimeInterval(0.05),
+                                               inMode: .default, dequeue: true) {
+                NSApp.sendEvent(queued)
+            }
+            pump()
+        }
+        modifiers([.control], keyCode: 59)
+        precondition(!text(find(id: "onboarding.shortcut-status", in: window)).contains("That’s it"), "One key is not the shortcut")
+        modifiers([.control, .option], keyCode: 58)
+        capture(window, to: directory.appendingPathComponent("onboarding-shortcut-pressed.png"))
+        modifiers([.option], keyCode: 59)
+        modifiers([], keyCode: 58)
+        precondition(text(find(id: "onboarding.shortcut-status", in: window)).contains("That’s it"),
+                     "A full press must be acknowledged")
+        next(.practice)
+        precondition(settings.isOnboardingPractice && settings.llm.kind == .none)
+        precondition(!enabled(find(id: "onboarding.continue", in: window)), "Practice needs a real dictation")
+        // Type into the real editor, as a person would without dictating.
+        func textViews(_ view: NSView) -> [NSTextView] { ((view as? NSTextView).map { [$0] } ?? []) + view.subviews.flatMap(textViews) }
+        guard let editor = textViews(window.contentView!).first else { preconditionFailure("Missing practice editor") }
+        window.makeFirstResponder(editor)
+        editor.insertText("I typed this instead", replacementRange: NSRange(location: NSNotFound, length: 0)); pump()
+        precondition(editor.string.contains("I typed this instead"))
+        precondition(!enabled(find(id: "onboarding.continue", in: window)), "Typed text must never complete practice")
+        settings.onboarding.noteDelivery(); pump()
+        precondition(enabled(find(id: "onboarding.continue", in: window)))
+        precondition(text(find(id: "onboarding.practice-success", in: window)).contains("It worked"))
+        precondition(text(find(id: "onboarding.script", in: window)).contains("Try a message"),
+                     "A second, free-form repetition follows the scripted sentence")
+        capture(window, to: directory.appendingPathComponent("onboarding-practice-delivered.png"))
+        next(.done)
+        precondition(settings.onboarding.isComplete && settings.onboarding.isPresented && !settings.isOnboardingPractice)
+        precondition(text(window).contains("Try it in a real app") || text(window).contains("TRY IT IN A REAL APP"))
+        capture(window, to: directory.appendingPathComponent("onboarding-ready.png"))
+        container.navigation.page = .history
+        precondition(press(id: "onboarding.continue", in: window)); pump()
+        precondition(!settings.onboarding.isPresented && container.navigation.page == .home)
+        precondition(settings.onboarding.chosenSpeech == nil)
+        close(window)
+        settings.onboarding.present()
+        precondition(settings.onboarding.step == .welcome && settings.onboarding.isComplete, "Replay starts again at Welcome")
+        settings.onboarding.dismiss()
+        print("NATIVE_UI_PASS onboarding-flow six-steps named-shortcut typed-text-rejected delivery-completes ready-finishes replay")
     }
 
     private static func verifyNotices(directory: URL) {

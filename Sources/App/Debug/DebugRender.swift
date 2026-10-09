@@ -44,15 +44,34 @@ enum DebugRender {
             container = LicensePreview.container(String(pageName.dropFirst("license-".count)))
         } else if pageName.hasPrefix("onboarding-") {
             container = PreviewData.container
-            if pageName == "onboarding-cloud" { container.settings.asr.select(.groq) }
-            container.settings.onboarding.move(to: pageName == "onboarding-permissions" ? .permissions :
-                pageName.hasPrefix("onboarding-practice") ? .practice : .speech)
-            if pageName == "onboarding-practice-ready" {
-                container.engineStatus.setPreviewState(container.settings.asr.engineID, .ready)
-            } else if pageName == "onboarding-practice-failed" {
-                container.engineStatus.setPreviewState(container.settings.asr.engineID, .failed("The speech model could not be loaded. Check the downloaded files in Models."))
+            let state = String(pageName.dropFirst("onboarding-".count))
+            let step: OnboardingProgress.Step = state == "cloud" ? .speech
+                : state.hasPrefix("permissions") ? .permissions
+                : state.hasPrefix("practice") ? .practice
+                : OnboardingProgress.Step(rawValue: state) ?? .speech
+            if state == "cloud" { container.settings.asr.select(.groq) }
+            if state.hasPrefix("permissions") {
+                setenv("AIRDRAFT_RENDER_ONBOARDING_PERMISSIONS", state == "permissions-granted" ? "granted" : "missing", 1)
             }
             container.settings.onboarding.present()
+            container.settings.onboarding.move(to: step)
+            if state == "practice-ready" || state == "practice-success" {
+                container.engineStatus.setPreviewState(container.settings.asr.engineID, .ready)
+            } else if state == "practice-failed" {
+                container.engineStatus.setPreviewState(container.settings.asr.engineID, .failed("The speech model could not be loaded. Check the downloaded files in Models."))
+            }
+            if state == "practice-success" {
+                container.settings.onboarding.noteDelivery()
+            }
+            if state == "speech-downloading" || state == "practice-downloading" {
+                // Isolated preview progress for a model this fixture has not installed.
+                let base = container.settings.asr
+                let pending = ModelCatalogue.entries.lazy.filter(\.isDownloadable)
+                    .map { $0.config(from: base) }.first { !LocalModels.isInstalled($0) } ?? base
+                container.downloads.setPreviewProgress(.init(fraction: 0.42, currentFile: "AudioEncoder.mlmodelc",
+                    receivedBytes: 630_000_000, totalBytes: 1_500_000_000), for: pending)
+                container.settings.onboarding.chooseSpeech(pending)
+            }
         } else if let fixtureDirectory {
             do { try HistoryVerification.run() }
             catch { preconditionFailure("History verification failed: \(error)") }

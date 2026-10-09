@@ -654,15 +654,30 @@ Keep repeat, release, cancellation and persistence regressions in the core suite
 
 ## First-run setup
 
-The optional, replayable onboarding uses the normal permissions, model downloader
-and dictation pipeline. Persist skip separately from successful practice; typed
-sample text must never mark a dictation complete. Existing setups do not open the
-flow automatically. Practice temporarily disables refinement and uses cursor
-insertion. It resolves the explicitly selected app-default speech config through
-the shared AppSettings resolver, temporarily ignoring saved profile bindings
-without mutating them. Restore returning users' refinement and output settings
-on exit and after restart. Never execute a saved script during practice. Use isolated preview
-containers for the `onboarding-*` Debug renders.
+The optional, replayable onboarding has six steps on the sidebar's sliding
+selection well: Welcome, Speech, Permissions, Shortcut, Try It and Ready. It
+teaches non-technical users by doing; keep copy plain, name keys in words beside
+their symbols (Control, Option) and never require typing a prompt or command.
+It uses the normal permissions, model downloader, shortcut and dictation pipeline.
+Persist skip separately from successful practice; typed text must never mark a
+dictation complete, and only Try It's real pipeline delivery records success.
+Existing setups do not open the flow automatically; replay after success starts
+at Welcome. Old three-step progress migrates without reopening a skipped setup.
+Speech offers On this Mac (recommended) or an online service with the user's key.
+A local download starts only from an explicit action, continues through later
+steps with progress in the rail, and becomes the app default only when complete
+while setup is open; Set Up Later discards that pending choice. Shortcut practice
+lights the real key caps through local event monitors and pauses dictation through
+`HotkeyService.rehearsing`, independent of the recorder's suspension; Try It also
+pauses until the chosen engine is usable. Permissions preview only the microphone
+dictation will use and update Accessibility by themselves. Practice temporarily
+disables refinement and uses cursor insertion. It resolves the explicitly selected
+app-default speech config through the shared AppSettings resolver, temporarily
+ignoring saved profile bindings without mutating them. Restore returning users'
+refinement and output settings on exit and after restart. Never execute a saved
+script during practice. Renders and fixtures never load models. Use isolated
+preview containers for the `onboarding-*` Debug renders; `native-ui` walks the
+production flow with injected permissions and real key events.
 
 ## Official-build licensing
 
