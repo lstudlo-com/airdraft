@@ -6,11 +6,17 @@ enum ModelDownloadTransfer {
         let url: URL
         let destination: URL
         let size: Int64?
+        let sha256: String?
+        init(url: URL, destination: URL, size: Int64?, sha256: String? = nil) {
+            self.url = url; self.destination = destination; self.size = size; self.sha256 = sha256
+        }
     }
 
     /// One byte budget includes model files and tokenizer assets. Cached files count only
     /// after matching their manifest size; partial files never become installed assets.
-    static func install(_ files: [File], progress: @escaping ModelDownloader.ProgressHandler) async throws {
+    static func install(_ files: [File], progress: @escaping ModelDownloader.ProgressHandler,
+                        fetch: @escaping @Sendable (URL, @escaping @Sendable (Int64, Int64?) -> Void) async throws -> (URL, URLResponse)
+                            = { try await download(from: $0, progress: $1) }) async throws {
         let total: Int64? = files.allSatisfy { ($0.size ?? 0) > 0 }
             ? files.reduce(0) { $0 + ($1.size ?? 0) } : nil
         var completed: Int64 = 0
@@ -18,7 +24,13 @@ enum ModelDownloadTransfer {
             try Task.checkCancellation()
             let name = file.destination.lastPathComponent
             let values = try? file.destination.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-            if let size = file.size, size > 0, values?.isRegularFile == true, values?.fileSize == Int(size) {
+            var validCache = file.size.map { $0 > 0 && values?.isRegularFile == true && values?.fileSize == Int($0) } ?? false
+            if validCache, let digest = file.sha256 {
+                progress(.init(fraction: nil, currentFile: "Verifying…", receivedBytes: completed, totalBytes: total))
+                do { try ModelDownloader.verifySHA256(of: file.destination, expected: digest) }
+                catch ModelDownloader.DownloadError.checksumMismatch { validCache = false }
+            }
+            if validCache, let size = file.size {
                 completed += size
                 progress(.init(fraction: total.map { Double(completed) / Double($0) }, currentFile: name,
                                receivedBytes: completed, totalBytes: total))
@@ -27,7 +39,7 @@ enum ModelDownloadTransfer {
             progress(.init(fraction: completed > 0 ? total.map { Double(completed) / Double($0) } : nil,
                            currentFile: "Connecting…", receivedBytes: completed, totalBytes: total))
             let before = completed
-            let (temporary, response) = try await download(from: file.url) { received, _ in
+            let (temporary, response) = try await fetch(file.url) { received, _ in
                 progress(.init(fraction: total.map { Double(before + received) / Double($0) }, currentFile: name,
                                receivedBytes: before + received, totalBytes: total))
             }
@@ -37,6 +49,10 @@ enum ModelDownloadTransfer {
             }
             let size = Int64(try temporary.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
             guard size > 0, file.size == nil || size == file.size else { throw ModelDownloader.DownloadError.incomplete }
+            if let digest = file.sha256 {
+                progress(.init(fraction: nil, currentFile: "Verifying…", receivedBytes: before + size, totalBytes: total))
+                try ModelDownloader.verifySHA256(of: temporary, expected: digest)
+            }
             try Task.checkCancellation()
             try FileManager.default.createDirectory(at: file.destination.deletingLastPathComponent(), withIntermediateDirectories: true)
             if FileManager.default.fileExists(atPath: file.destination.path) {

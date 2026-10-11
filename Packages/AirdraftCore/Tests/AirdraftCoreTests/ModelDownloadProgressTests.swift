@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import CryptoKit
 import XCTest
 @testable import AirdraftCore
 
@@ -70,6 +71,47 @@ final class ModelDownloadProgressTests: XCTestCase {
                 XCTFail("Must reject HTTP errors and incomplete manifest sizes")
             } catch { XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path)) }
         }
+    }
+
+    func testSameSizeCorruptCacheIsReplacedOnlyAfterDigestVerification() async throws {
+        let root = try scratch()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = root.appendingPathComponent("model.gguf")
+        let valid = Data("valid-model".utf8)
+        try Data(repeating: 0, count: valid.count).write(to: destination)
+        let digest = SHA256.hash(data: valid).map { String(format: "%02x", $0) }.joined()
+        let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
+                                             destination: destination, size: Int64(valid.count), sha256: digest)
+        try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { url, _ in
+            let temporary = root.appendingPathComponent(UUID().uuidString)
+            try valid.write(to: temporary)
+            return (temporary, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        XCTAssertEqual(try Data(contentsOf: destination), valid)
+        try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { _, _ in
+            XCTFail("A verified cache must not download again")
+            throw URLError(.badURL)
+        })
+    }
+
+    func testWrongDigestNeverReplacesExistingFiles() async throws {
+        let root = try scratch()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = root.appendingPathComponent("model.gguf")
+        let original = Data("old".utf8)
+        try original.write(to: destination)
+        let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
+                                             destination: destination, size: 3, sha256: String(repeating: "0", count: 64))
+        do {
+            try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { url, _ in
+                let temporary = root.appendingPathComponent("temporary")
+                try Data("bad".utf8).write(to: temporary)
+                return (temporary, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+            })
+            XCTFail("Must reject a same-size response with a wrong digest")
+        } catch ModelDownloader.DownloadError.checksumMismatch {}
+        XCTAssertEqual(try Data(contentsOf: destination), original)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("temporary").path))
     }
 
     @MainActor

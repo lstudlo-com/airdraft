@@ -93,6 +93,13 @@ public actor ModelDownloader {
 
     private func downloadFiles(_ config: ASRConfig, progress: @escaping ProgressHandler) async throws {
         switch config.kind {
+        case .transcribeCpp:
+            guard let entry = GGUFModelCatalog.model(config.model), let file = LocalModels.ggufFile(for: entry.id) else {
+                throw DownloadError.incomplete
+            }
+            try await ModelDownloadTransfer.install([
+                .init(url: entry.downloadURL, destination: file, size: entry.bytes, sha256: entry.sha256)
+            ], progress: progress)
         case .whisperKit: try await downloadWhisper(variant: config.whisperModel, progress: progress)
         case .qwen3: try await downloadQwen3(modelId: config.qwen3Model, progress: progress)
         case .cohere: try await downloadCohere(modelId: config.cohereModel, progress: progress)

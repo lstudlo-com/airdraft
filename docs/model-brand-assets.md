@@ -48,3 +48,13 @@ Sources retrieved October 7, 2026:
 |---|---|
 | Cartesia | [Cartesia organization avatar](https://github.com/cartesia-ai.png?size=128) |
 | Speechmatics | [Speechmatics organization avatar](https://github.com/speechmatics.png?size=128) |
+
+Sources retrieved October 12, 2026 for local GGUF models:
+
+| Asset | Source |
+|---|---|
+| Moonshine | [Moonshine AI organization avatar](https://github.com/moonshine-ai.png?size=128) |
+| Sber / GigaAM | [Salute developers organization avatar](https://github.com/salute-developers.png?size=128) |
+| MediaTek / Breeze | [MediaTek Research organization](https://huggingface.co/MediaTek-Research) avatar from its public organization API |
+| IBM / Granite | [IBM organization avatar](https://github.com/IBM.png?size=128) |
+| OpenMOSS | [OpenMOSS organization](https://huggingface.co/OpenMOSS) avatar from its public organization API |

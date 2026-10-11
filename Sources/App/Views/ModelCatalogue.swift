@@ -76,6 +76,14 @@ enum ModelCatalogue {
                    tags: ["100 languages"], speed: variant == .turbo ? 3 : 0,
                    accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
                    note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
+    } + GGUFModelCatalog.models.map { model in
+        let languages = model.supportedLanguages
+        let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : ["\(languages.count) languages"]
+        return ModelEntry(id: "gguf:\(model.id)", title: model.title,
+                          vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
+                          brand: ModelBrand(rawValue: model.brand)!, tags: tags,
+                          speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
+                          note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }
     }
 }
 

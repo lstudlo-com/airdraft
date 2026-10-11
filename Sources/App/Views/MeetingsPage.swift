@@ -316,7 +316,7 @@ private struct MeetingLibraryCard: View {
             if entry.documents.count > 1 {
                 Menu("Transcript Versions") {
                     ForEach(Array(entry.documents.enumerated()), id: \.element.id) { index, version in
-                        Button("\(entry.documents.count - index) · \(version.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(version.configuration.engine == .local ? version.configuration.selectedLocalModel.title : "Soniox")") { open(version) }
+                        Button("\(entry.documents.count - index) · \(version.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(version.configuration.engine == .local ? version.configuration.selectedModelTitle : "Soniox")") { open(version) }
                     }
                 }
             }

@@ -919,6 +919,16 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Cartesia file transcription requires an explicit language. Batch jobs/files are
   deleted on success, failure and cancellation when reachable; never send Gemini
   speech through a chat prompt or enable its smart mode as implicit refinement.
+  GGUF local choices are bundled in `local-gguf-models.json` and routed through
+  `GGUFModelCatalog` / `GGUFTranscriber` with the pinned transcribe.cpp XCFramework.
+  Each artifact uses an immutable Hub revision, byte size and SHA-256. Verify both
+  cached and new bytes before installation; failed or cancelled downloads keep the
+  incomplete marker. Never copy a competitor's benchmark score into app ratings.
+  Decode on a worker with one native compute operation per loaded model; retain the
+  model until sessions end, signal cancellation through the abort callback and reject
+  aborted/truncated prefixes. Native diarization is off; Meetings owns SpeakerKit
+  and reports segment timing for GGUF models. Auto requires the exact model's language
+  policy, including explicit source language for Canary, Cohere and Granite.
   Whisper choices are defined by `WhisperModelVariant`; keep Models, Profiles, language
   validation and Meetings aligned. Retain existing model selections and exact engine IDs.
   Whisper decodes sequential windows of at most 25 seconds, disables the SDK's

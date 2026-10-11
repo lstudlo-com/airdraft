@@ -42,6 +42,9 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
 
     /// Never silently substitute a catalogue default for a retired binding.
     public var unavailableReason: String? {
+        if kind == .transcribeCpp, GGUFModelCatalog.model(model) == nil {
+            return "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles."
+        }
         guard kind.preset != nil, kind != .openRouter,
               !SpeechModelInfo.models(for: kind).contains(where: { $0.id == model }) else { return nil }
         return "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles."

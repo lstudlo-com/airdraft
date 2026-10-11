@@ -165,7 +165,7 @@ struct MediaDocumentEditor: View {
     private var metadata: String {
         var parts = [document.createdAt.formatted(date: .abbreviated, time: .shortened)]
         if let duration { parts.append(HistoryRecordingControls.time(duration)) }
-        parts.append(document.configuration.engine == .local ? document.configuration.selectedLocalModel.title : "Soniox")
+        parts.append(document.configuration.engine == .local ? document.configuration.selectedModelTitle : "Soniox")
         if document.configuration.usesSegmentTiming { parts.append("Segment timestamps") }
         return parts.joined(separator: " · ")
     }

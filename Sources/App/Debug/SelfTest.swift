@@ -137,6 +137,7 @@ enum SelfTest {
                 container.settings.asr.select(kind)
                 if parts.count > 1 {
                     switch kind {
+                    case .transcribeCpp: container.settings.asr.model = parts[1]
                     case .qwen3: container.settings.asr.qwen3Model = parts[1]
                     case .cohere: container.settings.asr.cohereModel = parts[1]
                     case .whisperKit: container.settings.asr.whisperModel = parts[1]

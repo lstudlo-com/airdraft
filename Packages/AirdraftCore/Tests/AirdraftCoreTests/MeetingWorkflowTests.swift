@@ -26,7 +26,7 @@ final class MeetingWorkflowTests: XCTestCase {
         XCTAssertEqual(legacy.selectedLocalModel, .whisperTurbo)
         XCTAssertEqual(legacy.asr.kind, .whisperKit)
         XCTAssertNoThrow(try legacy.validate())
-        for model in MediaConfiguration.LocalModel.allCases {
+        for model in MediaConfiguration.LocalModel.allCases.filter({ $0 != .gguf }) {
             let config = MediaConfiguration(language: model == .apple ? "" : "en", localModel: model, appleLocale: "en-US")
             XCTAssertNoThrow(try config.validate(), model.title)
             let saved = try JSONDecoder().decode(MediaConfiguration.self, from: JSONEncoder().encode(config))

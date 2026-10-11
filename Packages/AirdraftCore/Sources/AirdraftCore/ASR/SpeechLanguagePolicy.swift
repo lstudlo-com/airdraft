@@ -82,6 +82,8 @@ public enum SpeechLanguagePolicy {
         // catalog fallback. OpenRouter and custom endpoints keep exact stored IDs.
         let cloudModel = config.speechModelID
         switch config.kind {
+        case .transcribeCpp:
+            return GGUFModelCatalog.model(config.model)?.languageCapabilities ?? unknown(config.model)
         case .qwen3:
             guard ["aufklarer/Qwen3-ASR-1.7B-MLX-5bit", "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"].contains(config.qwen3Model) else {
                 return unknown(config.qwen3Model)

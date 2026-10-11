@@ -7,6 +7,7 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     case senseVoice
     case parakeet
     case whisperKit
+    case transcribeCpp
     case apple
     case openAICompatible
     case openAI
@@ -341,6 +342,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
 
     public var engineID: String {
         switch kind {
+        case .transcribeCpp: return "transcribe-cpp:\(model)"
         case .whisperKit: return "whisperkit:\(whisperModel)"
         case .qwen3: return "qwen3-asr:\(qwen3Model)"
         case .cohere: return "cohere-transcribe:\(cohereModel)"
@@ -397,6 +399,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
 
     public var engineLabel: String {
         switch kind {
+        case .transcribeCpp: return GGUFModelCatalog.model(model)?.title ?? "Choose a local speech model"
         case .whisperKit: return "WhisperKit · \(whisperModel)"
         case .qwen3: return "Qwen3-ASR · \((qwen3Model as NSString).lastPathComponent)"
         case .fireRed: return "FireRedASR2-AED"

@@ -15,6 +15,7 @@ let package = Package(
         // No tagged releases; pinned to the revision the app was verified with.
         .package(url: "https://github.com/soniqo/speech-swift", revision: "d655076badd143f99c9ce19642fbea8b643ccc0b"),
         .package(path: "../SherpaOnnxKit"),
+        .package(path: "../TranscribeCppKit"),
     ],
     targets: [
         .target(
@@ -26,7 +27,9 @@ let package = Package(
                 .product(name: "Qwen3ASR", package: "speech-swift"),
                 .product(name: "CohereTranscribeASR", package: "speech-swift"),
                 .product(name: "SherpaOnnx", package: "SherpaOnnxKit"),
-            ]
+                .product(name: "TranscribeCppKit", package: "TranscribeCppKit"),
+            ],
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "airdraft-cli",

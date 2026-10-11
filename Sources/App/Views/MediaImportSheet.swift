@@ -53,8 +53,8 @@ struct MediaImportSheet: View {
                 if configuration.engine == .local {
                     RowDivider()
                     SettingRow(title: "Model") {
-                        SoftPicker("Transcription model", selection: Binding(get: { configuration.selectedLocalModel }, set: { configuration.selectLocalModel($0) }), width: 220) {
-                            ForEach(MediaConfiguration.LocalModel.allCases, id: \.self) { model in Text(model.title).tag(model) }
+                        SoftPicker("Transcription model", selection: Binding(get: { configuration.selectedModelID }, set: { configuration.selectModelChoice($0) }), width: 220) {
+                            ForEach(MediaConfiguration.modelChoices) { model in Text(model.title).tag(model.id) }
                         }.accessibilityIdentifier("media.model")
                     }
                 }

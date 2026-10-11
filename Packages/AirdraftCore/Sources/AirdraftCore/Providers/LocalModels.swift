@@ -15,6 +15,7 @@ public enum LocalModels {
 
     static func hasFiles(_ config: ASRConfig) -> Bool {
         switch config.kind {
+        case .transcribeCpp: return hasGGUF(config.model)
         case .whisperKit: return hasWhisper(config.whisperModel) && hasWhisperTokenizer
         case .qwen3: return hasQwen3(config.qwen3Model)
         case .cohere: return hasCohere(config.cohereModel)
@@ -30,6 +31,7 @@ public enum LocalModels {
     /// Download folder of the model `config` selects; nil for engines with nothing to download.
     public static func folder(for config: ASRConfig) -> URL? {
         switch config.kind {
+        case .transcribeCpp: return ggufFolder(for: config.model)
         case .whisperKit: return whisperFolder(for: config.whisperModel)
         case .qwen3: return qwen3Folder(for: config.qwen3Model)
         case .cohere: return cohereFolder(for: config.cohereModel)
@@ -86,6 +88,22 @@ public enum LocalModels {
             let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appendingPathComponent(name).path)
             return (attributes?[.size] as? Int64 ?? 0) > 0
         }
+    }
+
+    // MARK: GGUF (one verified artifact per catalogue choice)
+
+    public static func ggufFolder(for modelID: String) -> URL? {
+        guard GGUFModelCatalog.model(modelID) != nil else { return nil }
+        return root.appendingPathComponent("gguf/\(modelID)", isDirectory: true)
+    }
+    public static func ggufFile(for modelID: String) -> URL? {
+        guard let entry = GGUFModelCatalog.model(modelID) else { return nil }
+        return ggufFolder(for: modelID)?.appendingPathComponent(entry.filename)
+    }
+    static func hasGGUF(_ modelID: String) -> Bool {
+        guard let entry = GGUFModelCatalog.model(modelID), let file = ggufFile(for: modelID),
+              let values = try? file.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]) else { return false }
+        return values.isRegularFile == true && Int64(values.fileSize ?? 0) == entry.bytes
     }
 
     // MARK: Qwen3-ASR (speech-swift layout: <root>/qwen3-asr/<org>/<model>)
