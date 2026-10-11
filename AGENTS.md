@@ -94,6 +94,7 @@ verification status belong in the vault (see below).
   The homepage's interface section shows the real Settings window; regenerate
   `public/app/` with `apps/marketing/scripts/render-app-window.sh` from a Debug
   build (isolated empty data, grayscale) when that page, the sidebar or materials change.
+  Keep the generated WebP origin sidecars with those screenshots.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
   Group rebuilds under their version and verify changes against the tagged sources.
@@ -429,20 +430,25 @@ verification status belong in the vault (see below).
   extra per-row depth. Scroll views must not clip raised cards' light and shade:
   History's card column extends into the timeline gap and the page's trailing and
   bottom margins, with matching content margins that keep the cards in place.
-- Recording window offers Mini, Cube, Sonic and None; Mini is the default.
-  Migrate saved Classic selections to Mini without changing timer preferences.
-  Cube and Sonic keep the 34-point capsule and six-point insets. The timer is an independent
+- Recording window offers Classic, Cube, Sonic, Orbit, Silk and None; Classic is
+  the default. Migrate saved Mini selections to Classic and retain older Classic
+  selections without changing timer preferences. Every visible preset uses the
+  same 82-by-22-point well, 34-point capsule and six-point outer insets. The timer is an independent
   module, off by default for every preset, with a persisted Left/Right position.
   Settings shows Show timer and, when enabled, Timer position; previews
   reflect both settings. Hide these controls for None without resetting them.
   Timer-free recording reserves no label space; processing labels remain visible
-  in all three visible presets. Cube uses shaded rotating face plates; Sonic shows only
-  braided ribbons, with no cube. Drive response from the existing recent microphone
+  in all five visible presets. Cube uses shaded rotating face plates; Sonic shows only
+  braided ribbons, with no cube. Orbit uses interlocking silver gyroscope rings;
+  Silk is one folded metallic ribbon. Drive response from the existing recent microphone
   levels, with bounded fast attack and slower release; never open another audio
   input or call it a frequency spectrum. Keep motion in the visualization well and
   freeze its phase and energy during delivery fade. Reduce Motion stops rotation and travelling
   waves while retaining a static level response. Settings previews use
-  synthetic input, pause in renders, and arrange choices in three columns.
+  synthetic input for every visible style, including the Classic waveform, and
+  pause in renders, inactive scenes and Reduce Motion. Keep specimens at the same
+  0.78 scale (1.2 times the former spatial specimen), in 115.2-by-72-point preview
+  faces, with three columns below the setting title. Theme previews retain their size.
 - After successful text delivery, freeze the recording HUD's final processing
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer

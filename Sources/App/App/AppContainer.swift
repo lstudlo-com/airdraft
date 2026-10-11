@@ -159,7 +159,7 @@ final class AppContainer {
         Self.log.notice("start: accessibilityTrusted=\(AppContextReader.isAccessibilityTrusted, privacy: .public)")
 
         let panel = IndicatorPanelController(pipeline: pipeline,
-            style: { [weak self] in self?.settings.hudStyle ?? .mini },
+            style: { [weak self] in self?.settings.hudStyle ?? .classic },
             timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() })
         indicator = panel
         pipeline.onOutputDelivered = { [weak panel, weak self] in

@@ -134,7 +134,10 @@ import Observation
 import SwiftUI
 
 enum AppIdentity { static let logSubsystem = "com.lstudlo.airdraft.test.hud" }
-enum HUDStyle: String { case mini, cube, sonic, none }
+enum HUDStyle: String, CaseIterable {
+    case classic, cube, sonic, orbit, silk, none
+    static var visibleStyles: [Self] { allCases.filter { $0 != .none } }
+}
 
 @MainActor @Observable final class DictationPipeline {
     static let levelHistoryLength = 22
@@ -167,7 +170,7 @@ struct NeumorphicSurface<S: Shape>: View {
     }
 
     @MainActor static func verify() async throws {
-        var style: HUDStyle = .mini
+        var style: HUDStyle = .classic
         var timer = HUDTimerOptions()
         var reduceMotion = false
         let pipeline = DictationPipeline()
@@ -230,7 +233,7 @@ struct NeumorphicSurface<S: Shape>: View {
             }
         }
         update(.recording)
-        precondition(visible(), "Mini HUD must be visible")
+        precondition(visible(), "Classic HUD must be visible")
         style = .none
         update(.recording)
         precondition(!visible(), "None must hide the active recording HUD immediately")
@@ -240,9 +243,9 @@ struct NeumorphicSurface<S: Shape>: View {
         style = .none
         update(.notice("Fixture notice"))
         precondition(!visible(), "None must also hide a pending notice HUD")
-        print("PASS: real NSPanel Mini to None to Cube to None visibility")
+        print("PASS: real NSPanel Classic to None to Cube to None visibility")
 
-        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
+        for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
             timer.isEnabled = false
             pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
@@ -268,7 +271,7 @@ struct NeumorphicSurface<S: Shape>: View {
         }
         print("PASS: all three live presets default timerless and resize correctly with either timer position")
 
-        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
+        for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
             update(.recording)
             let active = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -308,7 +311,7 @@ struct NeumorphicSurface<S: Shape>: View {
             precondition(!panel.isVisible, "Late success notices must not reopen the HUD")
         }
 
-        style = .mini
+        style = .classic
         timer.isEnabled = true
         pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
         update(.recording)
@@ -334,7 +337,7 @@ struct NeumorphicSurface<S: Shape>: View {
         try await Task.sleep(for: .milliseconds(600))
         precondition(!visible(), "Cancel or empty speech must also dismiss the capsule")
 
-        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
+        for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
             update(.recording)
             update(.inserting)
@@ -406,7 +409,7 @@ struct NeumorphicSurface<S: Shape>: View {
         // The last failure's start: its five-second deadline and fade count from here,
         // not from the end of the checks below, whose duration varies by machine.
         var failedAt = Date()
-        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
+        for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
@@ -452,7 +455,7 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.idle)
         precondition(!visible(), "Idle must not reopen an expired failure")
 
-        style = .mini
+        style = .classic
         update(.recording)
         update(.notice(message))
         try await Task.sleep(for: .milliseconds(350))
@@ -489,13 +492,13 @@ struct NeumorphicSurface<S: Shape>: View {
         update(.recording)
         try await Task.sleep(for: .seconds(4))
         precondition(visible(), "A cancelled message timeout must not hide a new recording")
-        for activeStyle in [HUDStyle.mini, .cube, .sonic] {
+        for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
             update(.recording)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
             let recordingWidth = panel.frame.width
             update(.preparingModel)
-            precondition(panel.ignoresMouseEvents && (activeStyle != .mini || panel.frame.width > recordingWidth),
+            precondition(panel.ignoresMouseEvents && (activeStyle != .classic || panel.frame.width > recordingWidth),
                          "All HUD styles must show the loading label without taking focus")
             saveRender(panel.contentView!, name: "loading-\(activeStyle.rawValue)")
         }
@@ -542,7 +545,7 @@ struct NeumorphicSurface<S: Shape>: View {
 
 
 def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str,
-              arguments: tuple[str, ...] = ()) -> None:
+              arguments: tuple[str, ...] = (), timeout: int = 60) -> None:
     suite = directory / name
     suite.mkdir(parents=True, exist_ok=True)
     paths = []
@@ -553,7 +556,7 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str,
     binary = suite / name
     subprocess.run(["xcrun", "swiftc", "-parse-as-library", *paths, "-o", str(binary)],
                    check=True, cwd=REPO, timeout=60)
-    result = subprocess.run([str(binary), *arguments], capture_output=True, text=True, timeout=60)
+    result = subprocess.run([str(binary), *arguments], capture_output=True, text=True, timeout=timeout)
     (suite / "result.txt").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise RuntimeError(f"{name} failed with exit {result.returncode}:\n{result.stdout}{result.stderr}")
@@ -583,7 +586,8 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
-        }, HUD_FIXTURE, ("--show-hud",) if show_hud else ())
+        # Five presets each exercise real five-second deadlines and fades.
+        }, HUD_FIXTURE, ("--show-hud",) if show_hud else (), timeout=120)
 
 
 def main() -> None:

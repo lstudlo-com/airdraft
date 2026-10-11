@@ -2,6 +2,11 @@ import AVFoundation
 import AirdraftCore
 import SwiftUI
 
+// Recording-window direction: extend the existing gray Settings surface.
+// Every visible preset uses the same production capsule and a 1.2× specimen.
+// Classic scrolls, Orbit rotates silver rings, and Silk folds a metallic ribbon.
+// A title above two right-aligned rows keeps six choices readable at 784 points.
+// Finish with native motion/geometry checks and light/dark minimum/tall captures.
 struct ConfigurationPage: View {
     @Environment(AppContainer.self) private var container
 
@@ -31,14 +36,16 @@ struct ConfigurationPage: View {
                     RowDivider()
                     AppIconSettingRow(title: "Dark app icon", selection: $settings.appIcons.dark)
                     RowDivider()
-                    SettingRow(title: "Recording window") {
-                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(106), spacing: 10), count: 3), spacing: 12) {
+                    SettingRow(title: "Recording window", stacked: true) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(HUDPreview.tileWidth), spacing: 10), count: 3), spacing: 12) {
                             ForEach(HUDStyle.allCases) { style in
-                                ChoiceTile(title: style.title, selected: settings.hudStyle == style, action: { settings.hudStyle = style }) {
+                                ChoiceTile(title: style.title, selected: settings.hudStyle == style,
+                                           action: { settings.hudStyle = style }, previewSize: HUDPreview.size) {
                                     HUDPreview(style: style, timer: settings.hudTimer)
                                 }
                             }
                         }
+                        .frame(width: HUDPreview.tileWidth * 3 + 20)
                     }
                     if settings.hudStyle != .none || search.isSearching {
                         RowDivider()
@@ -260,31 +267,49 @@ struct ThemePreview: View {
 
 /// Preview tile for the recording-window picker.
 struct HUDPreview: View {
+    static let specimenScale: CGFloat = 0.65 * 1.2
+    static let size = CGSize(width: 96 * 1.2, height: 60 * 1.2)
+    static let tileWidth = size.width + 10
     let style: HUDStyle
     var timer = HUDTimerOptions()
+    /// A fixed phase lets the native fixture capture the actual Settings preview.
+    var frozenTime: TimeInterval?
+    var reduceMotionOverride: Bool?
+    var renderModeOverride: Bool?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var started = Date()
+
+    private var pausesMotion: Bool {
+        (reduceMotionOverride ?? reduceMotion) || (renderModeOverride ?? RenderMode.isActive)
+            || frozenTime != nil || scenePhase != .active
+    }
 
     var body: some View {
         ZStack {
             Color.primary.opacity(0.05)
             switch style {
-            case .mini:
-                IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: HUDPreview.sample, elapsed: 4.2), style: .mini, timer: timer)
-                    .scaleEffect(0.55)
-            case .cube, .sonic:
-                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || RenderMode.isActive)) { context in
-                    let time = reduceMotion || RenderMode.isActive ? 1.4 : context.date.timeIntervalSince(started)
-                    let level = Float(0.08 + 0.55 * pow(0.5 + 0.5 * sin(time * 2.8), 2))
-                    IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: Array(repeating: level, count: 22),
+            case .classic, .cube, .sonic, .orbit, .silk:
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: pausesMotion)) { context in
+                    let time = frozenTime ?? (pausesMotion ? 0.5 : context.date.timeIntervalSince(started))
+                    IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: Self.samples(at: time),
                                                         elapsed: 4.2, visualizerTime: time), style: style, timer: timer)
-                        .scaleEffect(0.65)
+                        .scaleEffect(Self.specimenScale)
                 }
             case .none:
                 Image(systemName: "eye.slash").font(.system(size: 22)).foregroundStyle(.secondary)
             }
         }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
     }
 
-    static let sample: [Float] = (0..<DictationPipeline.levelHistoryLength).map { Float(0.2 + 0.7 * abs(sin(Double($0) * 0.8))) }
+    static func samples(at time: TimeInterval) -> [Float] {
+        (0..<DictationPipeline.levelHistoryLength).map { index in
+            let t = time - Double(DictationPipeline.levelHistoryLength - 1 - index) * 0.055
+            let phrase = pow(0.5 + 0.5 * sin(t * 2.8), 2)
+            let syllable = 0.25 + 0.75 * pow(0.5 + 0.5 * sin(t * 17.3), 2)
+            return Float(0.04 + 0.62 * phrase * syllable)
+        }
+    }
 }

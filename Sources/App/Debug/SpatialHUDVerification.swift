@@ -22,7 +22,7 @@ enum SpatialHUDVerification {
         print("PASS: bounded input, silent/processing energy, attack/release and continuous rotation")
 
         let input = Input()
-        let window = NSWindow(contentRect: NSRect(x: 100, y: 100, width: 660, height: 350),
+        let window = NSWindow(contentRect: NSRect(x: 100, y: 100, width: 660, height: 180),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.backgroundColor = .clear
@@ -43,23 +43,49 @@ enum SpatialHUDVerification {
             try! png.write(to: directory.appendingPathComponent(name + ".png"))
             return png
         }
-        settle(0.3)
-        let first = snapshot("live-quiet")
-        input.level = 0.65
-        settle(0.4)
-        let speaking = snapshot("live-speaking")
-        precondition(first != speaking, "Microphone-level changes must change the artwork")
-        settle(0.25)
-        precondition(snapshot("live-rotation") != speaking, "Live animation must advance between frames")
-        input.reduceMotion = true
-        settle(0.2)
-        let reduced = snapshot("reduced-motion")
-        settle(0.25)
-        precondition(snapshot("reduced-motion-held") == reduced, "Reduce Motion must stop autonomous movement")
-        input.level = 0
-        settle(0.15)
-        precondition(snapshot("reduced-motion-silent") != reduced, "Reduce Motion must still report input level")
+        for style in [HUDStyle.cube, .sonic, .orbit, .silk] {
+            input.style = style
+            input.level = 0
+            input.reduceMotion = false
+            settle(0.3)
+            let first = snapshot(style.rawValue + "-live-quiet")
+            input.level = 0.65
+            settle(0.4)
+            let speaking = snapshot(style.rawValue + "-live-speaking")
+            precondition(first != speaking, "\(style.title) must react to microphone-level changes")
+            settle(0.25)
+            precondition(snapshot(style.rawValue + "-live-motion") != speaking,
+                         "\(style.title) live animation must advance")
+            input.reduceMotion = true
+            settle(0.2)
+            let reduced = snapshot(style.rawValue + "-reduced-motion")
+            settle(0.25)
+            precondition(snapshot(style.rawValue + "-reduced-motion-held") == reduced,
+                         "\(style.title) Reduce Motion must stop autonomous movement")
+            input.level = 0
+            settle(0.15)
+            precondition(snapshot(style.rawValue + "-reduced-motion-silent") != reduced,
+                         "\(style.title) Reduce Motion must still report input level")
+        }
         print("PASS: compositor-rendered animation, speech response and static Reduce Motion")
+
+        input.showsSettingsPreview = true
+        for style in HUDStyle.visibleStyles {
+            input.style = style
+            input.reduceMotion = false
+            settle(0.3)
+            let first = snapshot(style.rawValue + "-settings-preview")
+            settle(0.4)
+            precondition(snapshot(style.rawValue + "-settings-preview-moving") != first,
+                         "\(style.title) Settings specimen must animate")
+            input.reduceMotion = true
+            settle(0.3)
+            let reduced = snapshot(style.rawValue + "-settings-preview-reduced")
+            settle(0.3)
+            precondition(snapshot(style.rawValue + "-settings-preview-reduced-held") == reduced,
+                         "\(style.title) Settings specimen must respect Reduce Motion")
+        }
+        print("PASS: every production Settings specimen animates and pauses for Reduce Motion")
 
         let timerRenderer = ImageRenderer(content: TimerComparison())
         timerRenderer.scale = 2
@@ -88,25 +114,31 @@ enum SpatialHUDVerification {
     @Observable final class Input {
         var level: Float = 0
         var reduceMotion = false
+        var style = HUDStyle.cube
+        var showsSettingsPreview = false
     }
 
     private struct Comparison: View {
         var input: Input
         var body: some View {
-            VStack(spacing: 35) {
-                ForEach([HUDStyle.cube, .sonic]) { style in
-                    HStack(spacing: 28) {
-                        Text(style.title).font(.system(size: 18, weight: .medium)).frame(width: 70)
-                        SpatialHUDVisualizer(style: style, levels: [input.level], recording: true,
-                                             reduceMotionOverride: input.reduceMotion)
-                            .frame(width: 82, height: 22)
-                            .background(Color(white: 0.08), in: Capsule())
-                            .scaleEffect(4)
-                            .frame(width: 340, height: 90)
-                    }
+            HStack(spacing: 28) {
+                Text(input.style.title).font(.system(size: 18, weight: .medium)).frame(width: 70)
+                if input.showsSettingsPreview {
+                    HUDPreview(style: input.style, reduceMotionOverride: input.reduceMotion, renderModeOverride: false)
+                        .environment(\.scenePhase, .active)
+                        .frame(width: HUDPreview.size.width, height: HUDPreview.size.height)
+                        .scaleEffect(2)
+                        .frame(width: 340, height: 144)
+                } else {
+                    SpatialHUDVisualizer(style: input.style, levels: [input.level], recording: true,
+                                         reduceMotionOverride: input.reduceMotion)
+                        .frame(width: 82, height: 22)
+                        .background(Color(white: 0.08), in: Capsule())
+                        .scaleEffect(4)
+                        .frame(width: 340, height: 90)
                 }
             }
-            .frame(width: 660, height: 350)
+            .frame(width: 660, height: 180)
             .foregroundStyle(.white)
             .background(Color(white: 0.14))
         }
@@ -122,15 +154,16 @@ enum SpatialHUDVerification {
                     Spacer()
                     Text("Recording capsules").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
-                ForEach([HUDStyle.cube, .sonic]) { style in
+                ForEach(HUDStyle.visibleStyles) { style in
                     VStack(alignment: .leading, spacing: 18) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(style.title).font(.system(size: 24, weight: .medium))
                             Spacer()
-                            Text(style == .cube ? "Faceted silver · voice-reactive rotation" : "Sonic ribbons · spatial interference")
+                            Text(description(for: style))
                                 .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
-                        IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: [level], elapsed: 7.4,
+                        IndicatorView(snapshot: HUDSnapshot(state: .recording,
+                                                            levels: style == .classic ? HUDPreview.samples(at: time) : [level], elapsed: 7.4,
                                                             visualizerTime: time * 1.8 + 0.65), style: style)
                             .scaleEffect(3)
                             .frame(maxWidth: .infinity)
@@ -140,7 +173,7 @@ enum SpatialHUDVerification {
                 HStack {
                     Text("Enlarged 3× · simulated speech input")
                     Spacer()
-                    Text("Cube / Sonic")
+                    Text("Classic / Cube / Sonic / Orbit / Silk")
                 }
                 .font(.system(size: 10)).foregroundStyle(.secondary)
             }
@@ -148,6 +181,17 @@ enum SpatialHUDVerification {
             .frame(width: 620)
             .background(Color(white: 0.92))
             .environment(\.colorScheme, .light)
+        }
+
+        private func description(for style: HUDStyle) -> String {
+            switch style {
+            case .classic: return "Scrolling waveform"
+            case .cube: return "Faceted silver · voice-reactive rotation"
+            case .sonic: return "Braided sonic ribbons"
+            case .orbit: return "Interlocking silver rings"
+            case .silk: return "Folded metallic ribbon"
+            case .none: return ""
+            }
         }
     }
 
@@ -164,7 +208,7 @@ enum SpatialHUDVerification {
                     }
                 }
                 .font(.system(size: 11)).foregroundStyle(.secondary)
-                ForEach([HUDStyle.mini, .cube, .sonic]) { style in
+                ForEach(HUDStyle.visibleStyles) { style in
                     HStack {
                         Text(style.title).font(.system(size: 13, weight: .medium)).frame(width: 70, alignment: .leading)
                         ForEach(options.indices, id: \.self) { index in

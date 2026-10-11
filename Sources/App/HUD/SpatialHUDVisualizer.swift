@@ -29,10 +29,12 @@ struct SpatialHUDVisualizer: View {
             Canvas { context, size in
                 let scene = SpatialHUDScene(size: size, phase: phase, energy: energy,
                                             recording: recording, highContrast: contrast == .increased)
-                if style == .sonic {
-                    scene.sonic(in: &context)
-                } else {
-                    scene.cube(in: &context)
+                switch style {
+                case .cube: scene.cube(in: &context)
+                case .sonic: scene.sonic(in: &context)
+                case .orbit: scene.orbit(in: &context)
+                case .silk: scene.silk(in: &context)
+                case .classic, .none: break
                 }
             }
             .onChange(of: timeline.date, initial: true) { _, date in
@@ -204,6 +206,91 @@ private struct SpatialHUDScene {
                 Gradient(colors: [.white.opacity(0.06), .white.opacity(opacity), .white.opacity(0.06)]),
                 startPoint: CGPoint(x: 6, y: 0), endPoint: CGPoint(x: size.width - 6, y: 0)),
                 lineWidth: strand == 3 ? 0.9 : 0.5)
+        }
+    }
+
+    func orbit(in context: inout GraphicsContext) {
+        // Three interlocking rings share the cube's projection, but are drawn
+        // segment-by-segment in depth order so their crossings stay legible.
+        struct Segment {
+            let a: CGPoint
+            let b: CGPoint
+            let depth: Double
+            let silver: Double
+        }
+        var segments: [Segment] = []
+        for ring in 0..<3 {
+            let tilt = Double(ring) * .pi / 3 + 0.3
+            let radius = 1.30 + Double(ring) * 0.10 + energy * 0.12
+            let points = (0...72).map { index -> Point3 in
+                let angle = Double(index) / 72 * .pi * 2
+                let x = cos(angle) * radius
+                let y = sin(angle) * radius
+                return rotate(Point3(x: x * cos(tilt), y: y, z: x * sin(tilt)))
+            }
+            for index in 0..<72 {
+                let a = points[index]
+                let b = points[index + 1]
+                let light = max(0, min(1, 0.55 - (a.x + a.y) * 0.23 + a.z * 0.14))
+                segments.append(Segment(a: project(a), b: project(b), depth: (a.z + b.z) / 2,
+                                        silver: 0.22 + light * 0.72))
+            }
+        }
+        for segment in segments.sorted(by: { $0.depth < $1.depth }) {
+            context.stroke(path([segment.a, segment.b]),
+                           with: .color(Color(white: segment.silver).opacity(intensity)),
+                           style: StrokeStyle(lineWidth: highContrast ? 1.2 : 0.85, lineCap: .round))
+        }
+        let pearl = CGRect(x: center.x - 2.2, y: center.y - 2.2, width: 4.4, height: 4.4)
+        context.fill(Path(ellipseIn: pearl), with: .linearGradient(
+            Gradient(colors: [Color(white: 0.95), Color(white: 0.24)]),
+            startPoint: CGPoint(x: pearl.minX, y: pearl.minY),
+            endPoint: CGPoint(x: pearl.maxX, y: pearl.maxY)))
+        // Short, tapered side ripples give quiet input a stable silhouette.
+        for side in [-1.0, 1.0] {
+            let points = (0...32).map { index -> CGPoint in
+                let t = Double(index) / 32
+                return CGPoint(x: center.x + side * (13 + t * 22),
+                               y: center.y + sin(t * 10 - phase * 2) * sin(t * .pi) * (0.4 + energy * 2.1))
+            }
+            context.stroke(path(points), with: .linearGradient(
+                Gradient(colors: [.white.opacity(0.45 * intensity), .white.opacity(0.03)]),
+                startPoint: CGPoint(x: center.x + side * 13, y: center.y),
+                endPoint: CGPoint(x: center.x + side * 35, y: center.y)), lineWidth: 0.65)
+        }
+    }
+
+    func silk(in context: inout GraphicsContext) {
+        // A single satin ribbon built from contiguous strips. The twist changes
+        // its face width and light; speech lifts the folds without fake FFT bins.
+        let strips = 14
+        func point(_ t: Double, across: Double) -> CGPoint {
+            let envelope = pow(max(0, sin(t * .pi)), 0.8)
+            let fold = sin(t * .pi * 2 - phase * 1.45) * (1.1 + energy * 4.8)
+                + sin(t * .pi + phase * 0.72) * 1.5
+            let twist = cos(t * .pi * 3 - phase * 0.9)
+            let halfWidth = 2.0 + energy * 1.6
+            return CGPoint(x: 5 + t * (size.width - 10),
+                           y: center.y + envelope * (fold + across * halfWidth * (twist + 0.28)))
+        }
+        for strip in 0..<strips {
+            let lower = Double(strip) / Double(strips) * 2 - 1
+            let upper = Double(strip + 1) / Double(strips) * 2 - 1
+            let top = (0...72).map { point(Double($0) / 72, across: lower) }
+            let bottom = (0...72).reversed().map { point(Double($0) / 72, across: upper) }
+            let silver = 0.27 + 0.65 * pow(1 - Double(strip) / Double(strips), 0.7)
+            context.fill(path(top + bottom, closed: true), with: .linearGradient(
+                Gradient(colors: [Color(white: silver * 0.38), Color(white: silver),
+                                  Color(white: silver * 0.62), Color(white: silver * 0.28)]),
+                startPoint: CGPoint(x: 5, y: 0), endPoint: CGPoint(x: size.width - 5, y: size.height)))
+        }
+        for edge in [-1.0, 1.0] {
+            let points = (0...72).map { point(Double($0) / 72, across: edge) }
+            context.stroke(path(points), with: .linearGradient(
+                Gradient(colors: [.white.opacity(0.04), .white.opacity((edge < 0 ? 0.86 : 0.28) * intensity),
+                                  .white.opacity(0.04)]),
+                startPoint: CGPoint(x: 5, y: 0), endPoint: CGPoint(x: size.width - 5, y: 0)),
+                lineWidth: highContrast ? 0.8 : 0.45)
         }
     }
 }

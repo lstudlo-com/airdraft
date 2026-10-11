@@ -14,7 +14,7 @@ final class IndicatorPanelController {
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
     private let screenFrame: () -> NSRect?
-    private var currentStyle: HUDStyle = .mini
+    private var currentStyle: HUDStyle = .classic
     private var currentTimer = HUDTimerOptions()
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
@@ -51,7 +51,7 @@ final class IndicatorPanelController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        _ = applyStyle(.mini, preview: false)
+        _ = applyStyle(.classic, preview: false)
     }
 
     private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
@@ -298,17 +298,18 @@ struct HUDSnapshot {
 struct IndicatorView: View {
     static let contentInset: CGFloat = 6
     static let textOuterInset: CGFloat = 12
+    static let visualizerSize = CGSize(width: 82, height: 22)
 
     var pipeline: DictationPipeline?
     var snapshot: HUDSnapshot?
-    var style: HUDStyle = .mini
+    var style: HUDStyle = .classic
     var timer: HUDTimerOptions
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
     var spatialAnimation: SpatialHUDAnimation
 
-    init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .mini,
+    init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
          timer: HUDTimerOptions = HUDTimerOptions(),
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
          messagePasteboard: NSPasteboard = .general,
@@ -373,26 +374,22 @@ struct IndicatorView: View {
 
     private var showsTimer: Bool { timer.isEnabled && state == .recording }
 
-    @ViewBuilder private var visualizer: some View {
-        switch style {
-        case .cube, .sonic:
-            SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
-                                 frozenTime: snapshot?.visualizerTime,
-                                 frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
-                .frame(width: 82, height: 22)
-                .background { HUDWaveformWell() }
-                .clipShape(Capsule())
-        case .mini, .none:
-            waveform(width: 80, height: 14)
+    private var visualizer: some View {
+        Group {
+            switch style {
+            case .cube, .sonic, .orbit, .silk:
+                SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
+                                     frozenTime: snapshot?.visualizerTime,
+                                     frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
+            case .classic, .none:
+                WaveformBars(levels: levels, dimmed: state != .recording)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+            }
         }
-    }
-
-    private func waveform(width: CGFloat, height: CGFloat) -> some View {
-        WaveformBars(levels: levels, dimmed: state != .recording)
-            .frame(width: width, height: height)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 3)
-            .background { HUDWaveformWell() }
+        .frame(width: Self.visualizerSize.width, height: Self.visualizerSize.height)
+        .background { HUDWaveformWell() }
+        .clipShape(Capsule())
     }
 }
 
@@ -481,6 +478,7 @@ private struct HUDWaveformWell: View {
 struct WaveformBars: View {
     let levels: [Float]
     let dimmed: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let count = DictationPipeline.levelHistoryLength
     /// Quiet input still fills the pill: bars are drawn relative to the loudest
     /// of the visible samples. The floor keeps silence flat instead of amplifying
@@ -491,7 +489,7 @@ struct WaveformBars: View {
         GeometryReader { geo in
             let padded = Array(repeating: Float(0), count: max(0, count - levels.count)) + levels.suffix(count)
             let peak = max(Self.quietFloor, padded.max() ?? 0)
-            let spacing: CGFloat = 2
+            let spacing: CGFloat = 1.5
             let barWidth = max(1.5, (geo.size.width - spacing * CGFloat(count - 1)) / CGFloat(count))
             HStack(alignment: .center, spacing: spacing) {
                 ForEach(Array(padded.enumerated()), id: \.offset) { _, level in
@@ -501,7 +499,7 @@ struct WaveformBars: View {
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height)
-            .animation(.linear(duration: 0.08), value: padded)
+            .animation(reduceMotion ? nil : .linear(duration: 0.08), value: padded)
         }
     }
 

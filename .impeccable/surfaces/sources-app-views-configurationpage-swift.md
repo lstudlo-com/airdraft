@@ -2,7 +2,7 @@
 version: 1
 slug: "sources-app-views-configurationpage-swift"
 primary_target: "Sources/App/Views/ConfigurationPage.swift"
-related_targets: ["Sources/App/Views/SettingsSearch.swift", "Sources/App/Views/AutomationSettings.swift", "Sources/App/Views/MicrophonePicker.swift", "Sources/App/Views/DataCleanupSettings.swift", "Sources/App/Views/MainWindow.swift", "Sources/App/Views/MenuView.swift", "Sources/App/Views/Theme.swift", "Sources/App/Views/SoftControls.swift"]
+related_targets: ["Sources/App/Views/SettingsSearch.swift", "Sources/App/Views/AutomationSettings.swift", "Sources/App/Views/MicrophonePicker.swift", "Sources/App/Views/DataCleanupSettings.swift", "Sources/App/Views/MainWindow.swift", "Sources/App/Views/MenuView.swift", "Sources/App/Views/Theme.swift", "Sources/App/Views/SoftControls.swift", "Sources/App/HUD/IndicatorPanel.swift", "Sources/App/HUD/SpatialHUDVisualizer.swift", "Packages/AirdraftCore/Sources/AirdraftCore/Settings/AppSettings.swift", "Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"]
 ---
 
 # Settings
@@ -14,6 +14,37 @@ Mode: Operate. Platform: native macOS SwiftUI.
 Keep settings discoverable and data removal scoped within the incumbent
 Settings page. Preserve its gray cards, shared row alignment, labeled
 actions and native confirmation controls.
+
+Recording window is a local extension of the established native gray neumorphic
+world. Reuse ChoiceTile and production HUD artwork; no separate concept round
+or visual comp is required.
+
+## Recording window composition and behavior
+
+Appearance places Recording window below the app icon choices. The title sits
+above a right-aligned grid with Classic, Cube and Sonic in the first row, then
+Orbit, Silk and None. Preview faces are 115.2 by 72 pt. Every visible specimen
+uses the production IndicatorView at the same 0.78 scale, inside the shared
+recessed ChoiceTile with its label, accent selection outline and keyboard action.
+
+Classic is the default scrolling waveform, renamed from Mini. Saved Mini values
+migrate to Classic without changing timer enablement or position. All five
+visible styles share an 82 by 22 pt visualizer well in a 94 by 34 pt recording
+capsule when the timer is off, with equal 6 pt outer insets. The dark capsule
+widens to fit an enabled timer or processing label. Cube uses silver face plates;
+Sonic uses braided ribbons; Orbit uses interlocking silver rings around a small
+pearl; Silk is one continuous satin ribbon with folded, directional highlights.
+
+All five visible previews animate synthetic levels without opening an audio
+input. Pause preview motion for Reduce Motion, inactive scenes, render mode
+and frozen fixture time. Live spatial motion responds to existing microphone
+levels with fast attack and slower release; Reduce Motion keeps static level
+response. Delivery freezes phase and energy before fading.
+
+Show timer and the enabled timer's Left or Right position update every visible
+preview. None hides these controls without resetting their saved values. Search
+may reveal them disabled with prerequisite guidance. Processing labels remain
+visible when the timer is off.
 
 ## Search composition and behavior
 
@@ -81,6 +112,14 @@ docs/data-cleanup.md. This change introduces no new visual tokens.
 
 Search extends the existing code and components without a separate visual comp.
 Reference images live under `.impeccable/review/settings-search/`.
+
+Recording-window reference images live under
+`dist/validation/recording-window-2026-10-12/settings/` in the main checkout:
+light/dark Settings in `minimum/`, `tall/`,
+`collapsed/`, `timer-left/` and `timer-right/`. Production HUD specimens and motion
+captures live under `dist/validation/recording-window-2026-10-12/styles/`; their fixture log
+is `dist/validation/recording-window-2026-10-12/styles.log`. Source owns animation and
+saved-setting behavior; still images record composition and material.
 
 Cleanup reference images live under `.impeccable/review/cleanup/`: Settings in
 `minimum/`, `tall/` and `collapsed/`; the sheet in `failed/cleanup-*` and

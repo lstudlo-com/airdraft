@@ -3,21 +3,23 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
-    func testMiniIsDefaultAndClassicMigratesWithoutChangingTimerPreferences() throws {
+    func testClassicIsDefaultAndMiniMigratesWithoutChangingTimerPreferences() throws {
         try withDefaults { defaults in
-            XCTAssertEqual(AppSettings(defaults: defaults).hudStyle, .mini)
-            XCTAssertFalse(HUDStyle.allCases.map(\.rawValue).contains("classic"))
-            for enabled in [false, true] {
-                for position in HUDTimerOptions.Position.allCases {
-                    let timer = HUDTimerOptions(isEnabled: enabled, position: position)
-                    AppSettings(defaults: defaults).hudTimer = timer
-                    defaults.set(try JSONEncoder().encode("classic"), forKey: "settings.hudStyle")
-                    let migrated = AppSettings(defaults: defaults)
-                    XCTAssertEqual(migrated.hudStyle, .mini)
-                    XCTAssertEqual(migrated.hudTimer, timer)
-                    let saved = try XCTUnwrap(defaults.data(forKey: "settings.hudStyle"))
-                    XCTAssertEqual(try JSONDecoder().decode(String.self, from: saved), "mini")
-                    XCTAssertEqual(AppSettings(defaults: defaults).hudTimer, timer)
+            XCTAssertEqual(AppSettings(defaults: defaults).hudStyle, .classic)
+            XCTAssertFalse(HUDStyle.allCases.map(\.rawValue).contains("mini"))
+            for savedStyle in ["mini", "classic"] {
+                for enabled in [false, true] {
+                    for position in HUDTimerOptions.Position.allCases {
+                        let timer = HUDTimerOptions(isEnabled: enabled, position: position)
+                        AppSettings(defaults: defaults).hudTimer = timer
+                        defaults.set(try JSONEncoder().encode(savedStyle), forKey: "settings.hudStyle")
+                        let migrated = AppSettings(defaults: defaults)
+                        XCTAssertEqual(migrated.hudStyle, .classic)
+                        XCTAssertEqual(migrated.hudTimer, timer)
+                        let saved = try XCTUnwrap(defaults.data(forKey: "settings.hudStyle"))
+                        XCTAssertEqual(try JSONDecoder().decode(String.self, from: saved), "classic")
+                        XCTAssertEqual(AppSettings(defaults: defaults).hudTimer, timer)
+                    }
                 }
             }
         }
@@ -238,7 +240,7 @@ final class AppSettingsTests: XCTestCase {
             defaults.set("wrong storage type", forKey: "settings.livePreviewEnabled")
             let reloaded = AppSettings(defaults: defaults)
             XCTAssertEqual(reloaded.hotkey, .controlOption)
-            XCTAssertEqual(reloaded.hudStyle, .mini)
+            XCTAssertEqual(reloaded.hudStyle, .classic)
             XCTAssertFalse(reloaded.livePreviewEnabled)
             XCTAssertEqual(reloaded.maxRecordingSeconds, 600)
             XCTAssertEqual(reloaded.appearance, .light)

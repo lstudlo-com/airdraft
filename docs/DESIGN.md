@@ -378,22 +378,31 @@ Other list selection remains native.
 Preview frames stay recessed and retain an accent selection outline. Usage
 fills are raised solid gray pills inside their inset tracks (0.66 light, 0.32
 dark), lit from the top left, and remain proportional, with no fill for zero.
-Mini is the default waveform preset; existing Classic selections migrate to Mini
-without changing timer preferences. The recording HUD fits its enabled timer or current status and
-keeps bright live bars, a dark inset waveform track and shallow rim. Cube and
-Sonic use the same 34-point capsule: Cube has silver face plates and orbital
-traces, while Sonic shows seven animated ribbons without a cube. The timer is
-a separate module, off by default for every preset. Show timer enables it during
-recording; Timer position chooses Left or Right, initially Right. Both preferences
-persist independently of the preset and update its preview. Disabling the timer
-reclaims its space and leaves processing labels visible in every preset. Timer
-and status text keep a fixed 12-point outer inset: leading for a left timer,
-trailing for a right timer or status label. The visualizer retains its six-point
-outer inset, and the label gap remains eight points. Recent
-microphone amplitude controls their excursion, face separation and rotation speed, with fast attack and slower release. They do not claim to show
-frequency analysis. Reduce Motion holds the phase still and retains level
-response; delivery captures phase and energy for a frozen fade. Settings
-previews use synthetic input and pause for deterministic renders.
+Classic is the default waveform preset. Saved Mini selections migrate to
+Classic; older Classic selections and timer preferences remain intact. All five
+visible presets share an 82-by-22-point well and 34-point capsule with equal
+six-point outer insets. Cube has silver face plates and orbital traces; Sonic
+has seven braided ribbons. Orbit has interlocking silver gyroscope rings around
+a small pearl, with depth-ordered crossings. Silk is one folded metallic ribbon
+whose width and directional highlights change as it twists. Their recent
+microphone amplitude controls motion with fast attack and slower release. They
+reuse existing input and make no frequency-analysis claim.
+
+The timer is a separate module, off by default. Show timer enables it during
+recording; Timer position chooses Left or Right, initially Right. Both
+preferences persist across presets and update previews. Disabling the timer
+reclaims its space and leaves processing labels visible. Timer and status text
+retain a 12-point exposed-edge inset and eight-point gap to the well. Delivery
+freezes phase and energy before fading. Reduce Motion stops autonomous motion
+while keeping static input response.
+
+Settings places the Recording window title above a right-aligned three-column,
+two-row picker: Classic, Cube, Sonic, then Orbit, Silk, None. Every visible
+specimen uses the production IndicatorView, synthetic changing samples, and the
+same 0.78 scale. Preview faces are 115.2 by 72 points, 1.2 times the former
+96-by-60-point face; theme previews keep their existing size. Motion pauses for
+Reduce Motion, inactive scenes and deterministic renders. ChoiceTile retains
+its shared inset material, label, selection border and keyboard action.
 Errors and recovery notices expand over 0.28 seconds into a rounded diagnostic
 panel with 13-point wrapping text and a 28-point Copy Message icon at the far right. Full
 diagnostics remain visible through the pipeline's idle reset for five seconds;

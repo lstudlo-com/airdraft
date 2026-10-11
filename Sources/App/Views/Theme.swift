@@ -363,21 +363,33 @@ struct SettingRow<Trailing: View>: View {
     @Environment(\.settingRowInset) private var rowInset
     let title: String
     var subtitle: String? = nil
+    var stacked = false
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13, weight: .medium))
-                if let subtitle {
-                    Text(subtitle).supportingText()
+        Group {
+            if stacked {
+                VStack(alignment: .leading, spacing: Theme.controlSpacing) {
+                    label
+                    trailing.frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            } else {
+                HStack(alignment: .center, spacing: 16) {
+                    label
+                    Spacer(minLength: 12)
+                    trailing
                 }
             }
-            Spacer(minLength: 12)
-            trailing
         }
         .padding(.vertical, rowInset)
         .modifier(SearchableSetting(title: title, detail: subtitle))
+    }
+
+    private var label: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.system(size: 13, weight: .medium))
+            if let subtitle { Text(subtitle).supportingText() }
+        }
     }
 }
 
@@ -471,13 +483,14 @@ struct ChoiceTile<Preview: View>: View {
     let title: String
     let selected: Bool
     let action: () -> Void
+    var previewSize = CGSize(width: 96, height: 60)
     @ViewBuilder var preview: Preview
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
                 preview
-                    .frame(width: 96, height: 60)
+                    .frame(width: previewSize.width, height: previewSize.height)
                     .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                     .padding(5)
                     .background {

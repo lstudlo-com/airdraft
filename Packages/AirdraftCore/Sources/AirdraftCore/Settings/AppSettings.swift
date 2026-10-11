@@ -27,20 +27,27 @@ public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiabl
 }
 
 public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
-    /// Compact waveform.
-    case mini
+    /// The original scrolling waveform.
+    case classic
     /// Audio-reactive, faceted rotating cube.
     case cube
     /// Flowing sonic ribbons.
     case sonic
+    /// Interlocking silver gyroscope rings.
+    case orbit
+    /// A folded metallic ribbon.
+    case silk
     /// No recording window.
     case none
     public var id: String { rawValue }
+    public static var visibleStyles: [Self] { allCases.filter { $0 != .none } }
     public var title: String {
         switch self {
-        case .mini: return "Mini"
+        case .classic: return "Classic"
         case .cube: return "Cube"
         case .sonic: return "Sonic"
+        case .orbit: return "Orbit"
+        case .silk: return "Silk"
         case .none: return "None"
         }
     }
@@ -153,13 +160,13 @@ public final class AppSettings {
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         let savedHUDStyle: String? = Self.load("hudStyle", from: defaults)
-        hudStyle = savedHUDStyle.flatMap(HUDStyle.init(rawValue:)) ?? .mini
+        hudStyle = savedHUDStyle.flatMap(HUDStyle.init(rawValue:)) ?? .classic
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
-        if savedHUDStyle == "classic" {
+        if savedHUDStyle == "mini" {
             persist("hudStyle", hudStyle)
         }
         if maxRecordingSeconds != savedRecordingSeconds {
