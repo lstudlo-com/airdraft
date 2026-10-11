@@ -14,6 +14,38 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-10-0",
+    version: "0.10.0",
+    date: "2026-10-12",
+    title: "More local speech models and guided setup",
+    changes: [
+      {
+        title: "Animated recording-window choices",
+        description:
+          "Mini is now Classic, with an animated Settings preview and the same capsule size as the other styles. Larger preview tiles show all five styles, including Orbit’s interlocking silver rings and Silk’s folded metallic ribbon.",
+      },
+      {
+        title: "More on-device speech models",
+        description:
+          "The local catalogue adds Whisper Large v3, compressed Turbo, pinned GGUF and Core ML choices, Distil-Whisper and Orukeet. Models, Profiles and Meetings share the exact model selection, language limits and download checks.",
+      },
+      {
+        title: "Learn dictation step by step",
+        description:
+          "Six optional setup steps guide you through choosing speech, permissions, shortcut practice and your first dictation. Model downloads continue between steps, and shortcut rehearsal pauses recording.",
+      },
+      {
+        title: "Clearer meetings and consistent controls",
+        description:
+          "Meeting cards keep the next action beside a compact player. Transcript editing has fixed header and footer actions, while buttons, pickers and text fields share one rounded shape.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.10.0-build.211",
+    },
+  },
+  {
     id: "0-9-1",
     version: "0.9.1",
     date: "2026-10-08",
