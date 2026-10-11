@@ -15,7 +15,7 @@ struct ProfileSpeechSettings: View {
 
     private var localChoices: [Choice] {
         ModelCatalogue.entries.map {
-            Choice(title: $0.title, selection: ProfileSpeechModel(config: $0.config(from: container.settings.asr)))
+            Choice(title: "\($0.title) · \($0.vendor)", selection: ProfileSpeechModel(config: $0.config(from: container.settings.asr)))
         }
     }
 

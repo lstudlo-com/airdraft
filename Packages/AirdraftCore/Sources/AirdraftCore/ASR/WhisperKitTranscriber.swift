@@ -95,7 +95,7 @@ public actor WhisperKitTranscriber: Transcriber {
     private func loadedPipe() async throws -> WhisperKit {
         if let pipe { return pipe }
         if loading == nil {
-            guard LocalModels.hasWhisper(variant), LocalModels.hasWhisperTokenizer else { throw TranscriberError.modelNotDownloaded }
+            guard LocalModels.isInstalled(ASRConfig(kind: .whisperKit, whisperModel: variant)) else { throw TranscriberError.modelNotDownloaded }
             let config = WhisperKitConfig(
                 model: variant,
                 modelFolder: LocalModels.whisperFolder(for: variant).path,

@@ -58,3 +58,15 @@ Sources retrieved October 12, 2026 for local GGUF models:
 | MediaTek / Breeze | [MediaTek Research organization](https://huggingface.co/MediaTek-Research) avatar from its public organization API |
 | IBM / Granite | [IBM organization avatar](https://github.com/IBM.png?size=128) |
 | OpenMOSS | [OpenMOSS organization](https://huggingface.co/OpenMOSS) avatar from its public organization API |
+
+Additional Core ML creators retrieved October 12, 2026:
+
+| Asset | Source |
+|---|---|
+| Oruk | [Oruk model organization](https://huggingface.co/oruk) profile avatar |
+| Moondream | [Moondream model organization](https://huggingface.co/moondream) profile avatar |
+| Fermion | [Fermion Research](https://huggingface.co/FermionResearch) profile avatar |
+| Hugging Face / Distil-Whisper | [Hugging Face organization avatar](https://github.com/huggingface.png?size=128) |
+
+Hugging Face's avatar CDN can return WebP despite a PNG/JPEG suffix. These assets
+are decoded and losslessly stored as PNG for the native asset catalogue.

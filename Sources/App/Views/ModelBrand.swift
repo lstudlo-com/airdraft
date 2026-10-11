@@ -4,6 +4,8 @@ import SwiftUI
 /// Model identity belongs to its creator, independently of the hosting service.
 enum ModelBrand: String {
     case qwen = "Qwen", alibaba = "Alibaba", fireRed = "FireRed", cohere = "Cohere"
+    case huggingFace = "HuggingFace"
+    case oruk = "Oruk", moondream = "Moondream", fermion = "Fermion"
     case moonshine = "Moonshine", sber = "Sber", mediaTek = "MediaTek", ibm = "IBM", openMOSS = "OpenMOSS"
     case nvidia = "NVIDIA", openAI = "OpenAI", apple = "Apple"
     case soniox = "Soniox", groq = "Groq", elevenLabs = "ElevenLabs"

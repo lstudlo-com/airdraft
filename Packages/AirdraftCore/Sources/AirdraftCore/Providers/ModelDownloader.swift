@@ -93,6 +93,16 @@ public actor ModelDownloader {
 
     private func downloadFiles(_ config: ASRConfig, progress: @escaping ProgressHandler) async throws {
         switch config.kind {
+        case .fluidAudio:
+            guard let entry = CoreMLSpeechModelCatalog.model(config.model), let folder = LocalModels.coreMLSpeechFolder(for: entry.id) else {
+                throw DownloadError.incomplete
+            }
+            let files = entry.files.map { file in
+                ModelDownloadTransfer.File(url: URL(string: "https://huggingface.co/\(entry.repository)/resolve/\(entry.revision)/\(file.path)")!,
+                                           destination: folder.appendingPathComponent(file.path), size: file.bytes, sha256: file.sha256)
+            }
+            try await ModelDownloadTransfer.install(files, progress: progress)
+        case .orukeet: try await downloadSherpa(model: .orukeet, progress: progress)
         case .transcribeCpp:
             guard let entry = GGUFModelCatalog.model(config.model), let file = LocalModels.ggufFile(for: entry.id) else {
                 throw DownloadError.incomplete
@@ -201,7 +211,8 @@ public actor ModelDownloader {
         try await exclusive("whisper:\(variant)") {
             progress(Progress(fraction: nil, currentFile: "Preparing download…"))
             let repo = "argmaxinc/whisperkit-coreml"
-            let modelFiles = try await listFiles(repo: repo, path: "openai_whisper-\(variant)")
+            guard let choice = WhisperModelVariant(rawValue: variant) else { throw DownloadError.incomplete }
+            let modelFiles = try await listFiles(repo: repo, path: choice.directoryName)
             guard !modelFiles.isEmpty else { throw DownloadError.emptyListing }
             var files = try modelFiles.map { try transferFile($0, repo: repo, root: LocalModels.whisperKitRoot) }
             if !LocalModels.hasWhisperTokenizer {

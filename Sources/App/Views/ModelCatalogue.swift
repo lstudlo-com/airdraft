@@ -72,16 +72,28 @@ enum ModelCatalogue {
         ) { $0.kind = .apple },
     ] + WhisperModelVariant.allCases.map { variant in
         ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", title: variant.title,
-                   vendor: "OpenAI · Core ML", provider: "OpenAI", brand: .openAI,
-                   tags: ["100 languages"], speed: variant == .turbo ? 3 : 0,
+                   vendor: variant.isEnglishOnly ? "Hugging Face · Core ML" : "OpenAI · Core ML",
+                   provider: variant.isEnglishOnly ? "Hugging Face" : "OpenAI", brand: variant.isEnglishOnly ? .huggingFace : .openAI,
+                   tags: (variant.isEnglishOnly ? ["EN"] : ["100 languages"]) + ["Core ML"], speed: variant == .turbo ? 3 : 0,
                    accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
                    note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
+    } + [
+        ModelEntry(id: "sherpa:orukeet", title: "Orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
+                   tags: ["25 languages", "ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
+                   note: "25 European languages; no Chinese support.") { $0.kind = .orukeet }
+    ] + CoreMLSpeechModelCatalog.models.map { model in
+        ModelEntry(id: "coreml:\(model.id)", title: model.title, vendor: "\(model.creator) · Core ML", provider: model.creator,
+                   brand: model.creator == "Moondream" ? .moondream : model.creator == "Fermion Research" ? .fermion : .nvidia,
+                   tags: (model.languages.count == 1 ? [model.languages[0].uppercased()] : ["\(model.languages.count) languages"]) + ["Core ML"],
+                   speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
+            $0.kind = .fluidAudio; $0.model = model.id
+        }
     } + GGUFModelCatalog.models.map { model in
         let languages = model.supportedLanguages
         let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : ["\(languages.count) languages"]
         return ModelEntry(id: "gguf:\(model.id)", title: model.title,
                           vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
-                          brand: ModelBrand(rawValue: model.brand)!, tags: tags,
+                          brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
                           speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
                           note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }
     }

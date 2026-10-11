@@ -56,7 +56,7 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
 public struct MediaConfiguration: Codable, Sendable, Equatable {
     public enum Engine: String, Codable, Sendable, CaseIterable { case local, soniox }
     public enum LocalModel: String, Codable, CaseIterable, Sendable {
-        case whisperTurbo, whisperLargeV3, whisperTurboCompressed, qwenLarge, qwenSmall, cohere, senseVoice, fireRed, parakeet, apple, gguf
+        case whisperTurbo, whisperLargeV3, whisperTurboCompressed, qwenLarge, qwenSmall, cohere, senseVoice, fireRed, parakeet, apple, orukeet, gguf, coreML, whisperDistilLargeV3, whisperDistilCompressed, whisperDistilTurbo, whisperDistilTurboCompressed
         public var title: String {
             switch self {
             case .whisperTurbo: return WhisperModelVariant.turbo.title
@@ -68,18 +68,26 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             case .senseVoice: return "SenseVoice Small"
             case .fireRed: return "FireRedASR2"
             case .parakeet: return "Parakeet TDT v3"
+            case .whisperDistilLargeV3: return WhisperModelVariant.distilLargeV3.title
+            case .whisperDistilCompressed: return WhisperModelVariant.distilLargeV3Compressed.title
+            case .whisperDistilTurbo: return WhisperModelVariant.distilTurbo.title
+            case .whisperDistilTurboCompressed: return WhisperModelVariant.distilTurboCompressed.title
+            case .orukeet: return "Orukeet"
+            case .coreML: return "Core ML speech model"
             case .gguf: return "GGUF speech model"
             case .apple: return "Apple Speech"
             }
         }
         public var kind: ASRProviderKind {
             switch self {
-            case .whisperTurbo, .whisperLargeV3, .whisperTurboCompressed: return .whisperKit
+            case .whisperTurbo, .whisperLargeV3, .whisperTurboCompressed, .whisperDistilLargeV3, .whisperDistilCompressed, .whisperDistilTurbo, .whisperDistilTurboCompressed: return .whisperKit
             case .qwenLarge, .qwenSmall: return .qwen3
             case .cohere: return .cohere
             case .senseVoice: return .senseVoice
             case .fireRed: return .fireRed
             case .parakeet: return .parakeet
+            case .orukeet: return .orukeet
+            case .coreML: return .fluidAudio
             case .gguf: return .transcribeCpp
             case .apple: return .apple
             }
@@ -90,6 +98,10 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
         case .whisperTurbo: return .turbo
         case .whisperLargeV3: return .largeV3
         case .whisperTurboCompressed: return .turboCompressed
+        case .whisperDistilLargeV3: return .distilLargeV3
+        case .whisperDistilCompressed: return .distilLargeV3Compressed
+        case .whisperDistilTurbo: return .distilTurbo
+        case .whisperDistilTurboCompressed: return .distilTurboCompressed
         default: return nil
         }
     }
@@ -99,15 +111,16 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
     public var identifySpeakers: Bool
     // Optional additions keep existing document payloads decodable without rewriting them.
     public var localModel: LocalModel?
+    public var coreMLModel: String?
     public var ggufModel: String?
     public var appleLocale: String?
     public var selectedLocalModel: LocalModel { localModel ?? .whisperTurbo }
     public var usesSegmentTiming: Bool { engine == .local && selectedLocalModel.kind != .whisperKit }
     public init(engine: Engine = .local, whisperModel: String? = nil, language: String = "", identifySpeakers: Bool = true,
-                localModel: LocalModel? = nil, appleLocale: String? = nil, ggufModel: String? = nil) {
+                localModel: LocalModel? = nil, appleLocale: String? = nil, ggufModel: String? = nil, coreMLModel: String? = nil) {
         self.engine = engine; self.whisperModel = whisperModel ?? Self.whisperVariant(for: localModel ?? .whisperTurbo)?.rawValue ?? Self.supportedWhisperModel
         self.language = language; self.identifySpeakers = identifySpeakers
-        self.localModel = localModel; self.appleLocale = appleLocale; self.ggufModel = ggufModel
+        self.localModel = localModel; self.appleLocale = appleLocale; self.ggufModel = ggufModel; self.coreMLModel = coreMLModel
     }
     public static let supportedWhisperModel = "large-v3-v20240930_turbo"
     public mutating func selectLocalModel(_ model: LocalModel) {
@@ -123,25 +136,33 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
         public let title: String
     }
     public static var modelChoices: [ModelChoice] {
-        LocalModel.allCases.filter { $0 != .gguf }.map { .init(id: $0.rawValue, title: $0.title) }
+        LocalModel.allCases.filter { $0 != .gguf && $0 != .coreML }.map { .init(id: $0.rawValue, title: $0.title) }
+            + CoreMLSpeechModelCatalog.models.map { .init(id: "coreml:\($0.id)", title: "\($0.title) · Core ML") }
             + GGUFModelCatalog.models.map { .init(id: "gguf:\($0.id)", title: "\($0.title) · GGUF") }
     }
     public var selectedModelID: String {
-        selectedLocalModel == .gguf ? "gguf:\(ggufModel ?? "")" : selectedLocalModel.rawValue
+        if selectedLocalModel == .coreML { return "coreml:\(coreMLModel ?? "")" }
+        return selectedLocalModel == .gguf ? "gguf:\(ggufModel ?? "")" : selectedLocalModel.rawValue
     }
     public var selectedModelTitle: String {
+        if selectedLocalModel == .coreML { return CoreMLSpeechModelCatalog.model(coreMLModel ?? "")?.title ?? "Unavailable speech model" }
         if selectedLocalModel == .gguf { return GGUFModelCatalog.model(ggufModel ?? "")?.title ?? "Unavailable speech model" }
         return selectedLocalModel.title
     }
     public mutating func selectModelChoice(_ id: String) {
-        if id.hasPrefix("gguf:") {
+        if id.hasPrefix("coreml:") {
+            selectLocalModel(.coreML)
+            coreMLModel = String(id.dropFirst(7))
+        } else if id.hasPrefix("gguf:") {
             selectLocalModel(.gguf)
             ggufModel = String(id.dropFirst(5))
-        } else if let model = LocalModel(rawValue: id), model != .gguf {
+        } else if let model = LocalModel(rawValue: id), model != .gguf, model != .coreML {
             selectLocalModel(model)
         }
     }
     public func validate() throws {
+        if engine == .local, selectedLocalModel == .coreML,
+           CoreMLSpeechModelCatalog.model(coreMLModel ?? "") == nil { throw MediaError.unsupportedModel }
         if engine == .local, selectedLocalModel == .gguf,
            GGUFModelCatalog.model(ggufModel ?? "") == nil { throw MediaError.unsupportedModel }
         if engine == .local && selectedLocalModel.kind == .whisperKit,
@@ -151,7 +172,7 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
     public var asr: ASRConfig {
         ASRConfig(kind: engine == .local ? selectedLocalModel.kind : .soniox, whisperModel: whisperModel,
                   qwen3Model: selectedLocalModel == .qwenSmall ? "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" : "aufklarer/Qwen3-ASR-1.7B-MLX-5bit",
-                  appleLocale: appleLocale ?? "zh-TW", model: selectedLocalModel == .gguf ? ggufModel ?? "" : "gpt-transcribe", language: language)
+                  appleLocale: appleLocale ?? "zh-TW", model: selectedLocalModel == .gguf ? ggufModel ?? "" : selectedLocalModel == .coreML ? coreMLModel ?? "" : "gpt-transcribe", language: language)
     }
     /// Bounded v1 file contract. Diarization clusters the whole session; independent chunks must not reuse speaker IDs.
     public static let maximumDuration: Double = 2 * 60 * 60

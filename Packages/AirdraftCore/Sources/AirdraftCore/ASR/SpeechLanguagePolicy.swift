@@ -82,6 +82,11 @@ public enum SpeechLanguagePolicy {
         // catalog fallback. OpenRouter and custom endpoints keep exact stored IDs.
         let cloudModel = config.speechModelID
         switch config.kind {
+        case .fluidAudio:
+            return CoreMLSpeechModelCatalog.model(config.model)?.languageCapabilities ?? unknown(config.model)
+        case .orukeet:
+            return capability("Orukeet", parakeetLanguages, true, .notApplied,
+                              "Automatically recognizes 25 European languages; no Chinese support.")
         case .transcribeCpp:
             return GGUFModelCatalog.model(config.model)?.languageCapabilities ?? unknown(config.model)
         case .qwen3:
@@ -112,6 +117,9 @@ public enum SpeechLanguagePolicy {
                               "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support.")
         case .whisperKit:
             guard let variant = WhisperModelVariant(rawValue: config.whisperModel) else { return unknown(config.whisperModel) }
+            if variant.isEnglishOnly {
+                return capability(variant.title, ["en"], true, .forced, "Recognizes English only; Auto uses English.")
+            }
             return capability(variant.title, whisperV3Languages, true, .forced,
                               "Auto Detect or a selected language.")
         case .apple:
@@ -183,6 +191,9 @@ public enum SpeechLanguagePolicy {
     public static func resolve(_ config: ASRConfig) throws -> ResolvedSpeechLanguage {
         let capabilities = capabilities(for: config)
         let requested = try canonicalLanguage(config.language)
+        if config.kind == .whisperKit, WhisperModelVariant(rawValue: config.whisperModel)?.isEnglishOnly == true, requested == nil {
+            return ResolvedSpeechLanguage(language: "en", requestedLanguage: nil, capabilities: capabilities)
+        }
         if config.kind == .apple {
             return ResolvedSpeechLanguage(language: config.effectiveAppleLocale,
                                           requestedLanguage: requested, capabilities: capabilities)

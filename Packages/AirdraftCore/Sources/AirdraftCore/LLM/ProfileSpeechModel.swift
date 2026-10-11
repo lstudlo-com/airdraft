@@ -14,7 +14,7 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
         case .qwen3: model = config.qwen3Model
         case .cohere: model = config.cohereModel
         case .whisperKit: model = config.whisperModel
-        case .apple, .parakeet, .fireRed, .senseVoice: model = ""
+        case .apple, .parakeet, .fireRed, .senseVoice, .orukeet: model = ""
         default: model = config.model
         }
         baseURL = kind == .openAICompatible ? config.baseURL : nil
@@ -28,7 +28,7 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
         case .qwen3: config.qwen3Model = model
         case .cohere: config.cohereModel = model
         case .whisperKit: config.whisperModel = model
-        case .apple, .parakeet, .fireRed, .senseVoice: break
+        case .apple, .parakeet, .fireRed, .senseVoice, .orukeet: break
         default:
             config.model = model
             if kind == .elevenLabs { config.elevenLabsModel = model }
@@ -42,7 +42,8 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
 
     /// Never silently substitute a catalogue default for a retired binding.
     public var unavailableReason: String? {
-        if kind == .transcribeCpp, GGUFModelCatalog.model(model) == nil {
+        if (kind == .transcribeCpp && GGUFModelCatalog.model(model) == nil) ||
+            (kind == .fluidAudio && CoreMLSpeechModelCatalog.model(model) == nil) {
             return "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles."
         }
         guard kind.preset != nil, kind != .openRouter,

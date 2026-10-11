@@ -8,25 +8,30 @@ public actor SherpaTranscriber: Transcriber {
         case senseVoice
         case fireRed
         case parakeet
+        case orukeet
 
         /// Folder name under LocalModels.sherpaRoot and the release archive to fetch.
         public var folderName: String {
             switch self {
             case .senseVoice: return "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09"
             case .fireRed: return "sherpa-onnx-fire-red-asr2-zh_en-int8-2026-02-26"
+            case .orukeet: return "sherpa-onnx-orukeet-v0.1.0-int8"
             case .parakeet: return "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8"
             }
         }
 
         public var archiveURL: URL {
-            URL(string: "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/\(folderName).tar.bz2")!
+            if self == .orukeet {
+                return URL(string: "https://huggingface.co/oruk/orukeet/resolve/55a984d46f68323301837194ce647c702f55facc/onnx/\(folderName).tar.bz2")!
+            }
+            return URL(string: "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/\(folderName).tar.bz2")!
         }
 
         public var sizeLabel: String {
             switch self {
             case .senseVoice: return "166 MB"
             case .fireRed: return "840 MB"
-            case .parakeet: return "487 MB"
+            case .parakeet, .orukeet: return "487 MB"
             }
         }
 
@@ -35,6 +40,7 @@ public actor SherpaTranscriber: Transcriber {
             switch self {
             case .senseVoice: return "7305f7905bfcf77fa0b39388a313f3da35c68d971661a65475b56fb2162c8e63"
             case .fireRed: return "43015b3f1643a5688b4821e8ed323473d38b798c4ec291471fe00df1bcfc4f1c"
+            case .orukeet: return "f9191f30178cc9122ce2f023bf9fefafc822028307b0efa4caff645ba3fe8d0a"
             case .parakeet: return "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf"
             }
         }
@@ -44,12 +50,12 @@ public actor SherpaTranscriber: Transcriber {
             switch self {
             case .senseVoice: return ["model"]
             case .fireRed: return ["encoder", "decoder"]
-            case .parakeet: return ["encoder", "decoder", "joiner"]
+            case .parakeet, .orukeet: return ["encoder", "decoder", "joiner"]
             }
         }
 
         func onnxFilename(for prefix: String, in names: [String]) -> String? {
-            if self == .parakeet {
+            if self == .parakeet || self == .orukeet {
                 let filename = "\(prefix).int8.onnx"
                 return names.contains(filename) ? filename : nil
             }
@@ -160,6 +166,7 @@ public actor SherpaTranscriber: Transcriber {
             case .senseVoice: kind = .senseVoice
             case .fireRed: kind = .fireRed
             case .parakeet: kind = .parakeet
+            case .orukeet: kind = .orukeet
             }
             let config = ASRConfig(kind: kind, language: hints.language ?? "")
             language = try SpeechLanguagePolicy.resolve(config).language
@@ -196,7 +203,7 @@ public actor SherpaTranscriber: Transcriber {
                 config.model_config.model_type = c("fire_red_asr")
                 config.model_config.fire_red_asr.encoder = c(onnx("encoder"))
                 config.model_config.fire_red_asr.decoder = c(onnx("decoder"))
-            case .parakeet:
+            case .parakeet, .orukeet:
                 config.model_config.model_type = c("nemo_transducer")
                 config.model_config.transducer.encoder = c(onnx("encoder"))
                 config.model_config.transducer.decoder = c(onnx("decoder"))

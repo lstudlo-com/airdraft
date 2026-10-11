@@ -10,7 +10,7 @@ final class ModelArchiveIntegrityTests: XCTestCase {
             XCTAssertEqual(digest.count, 64)
             XCTAssertTrue(digest.allSatisfy { "0123456789abcdef".contains($0) })
         }
-        XCTAssertEqual(Set(SherpaTranscriber.Model.allCases.compactMap(\.archiveSHA256)).count, 3)
+        XCTAssertEqual(Set(SherpaTranscriber.Model.allCases.compactMap(\.archiveSHA256)).count, SherpaTranscriber.Model.allCases.count)
     }
 
     func testArchiveVerificationAcceptsExactBytesAndRejectsChanges() throws {

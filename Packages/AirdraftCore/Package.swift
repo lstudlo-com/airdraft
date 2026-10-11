@@ -16,6 +16,7 @@ let package = Package(
         .package(url: "https://github.com/soniqo/speech-swift", revision: "d655076badd143f99c9ce19642fbea8b643ccc0b"),
         .package(path: "../SherpaOnnxKit"),
         .package(path: "../TranscribeCppKit"),
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.17.7"),
     ],
     targets: [
         .target(
@@ -28,6 +29,7 @@ let package = Package(
                 .product(name: "CohereTranscribeASR", package: "speech-swift"),
                 .product(name: "SherpaOnnx", package: "SherpaOnnxKit"),
                 .product(name: "TranscribeCppKit", package: "TranscribeCppKit"),
+                .product(name: "FluidAudio", package: "FluidAudio"),
             ],
             resources: [.process("Resources")]
         ),

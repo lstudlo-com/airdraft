@@ -39,10 +39,11 @@ for shared storage and deletion contracts.
 
 ## Local processing
 
-The job captures one of 79 local model choices: Whisper Large v3, standard and compressed Turbo,
+The job captures one of 92 local model choices: Whisper Large v3, standard and compressed Turbo,
 Qwen3-ASR 1.7B (5-bit) or 0.6B (4-bit), Cohere Transcribe 2B (5-bit),
 SenseVoice Small, FireRedASR2, Parakeet TDT v3, Apple Speech, or one of the
-69 pinned GGUF models from `GGUFModelCatalog`. These share their exact
+69 pinned GGUF models from `GGUFModelCatalog`, eight Parakeet/Ultra/Redux/Phonon
+Core ML choices, four English-only Distil-Whisper choices, or Orukeet. These share their exact
 Models/Profiles artifact, language policy and download transaction. GGUF inference
 uses transcribe.cpp; native diarization is disabled and word timestamps are not
 implied by a model name. No selection follows later dictation-setting changes.

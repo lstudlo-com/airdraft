@@ -919,9 +919,19 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Cartesia file transcription requires an explicit language. Batch jobs/files are
   deleted on success, failure and cancellation when reachable; never send Gemini
   speech through a chat prompt or enable its smart mode as implicit refinement.
+  Core ML speech choices use `CoreMLSpeechModelCatalog` / `FluidAudioTranscriber`
+  and FluidAudio's explicit `AsrModels.loadLocal` only; SDK auto-download/recovery is
+  forbidden. Redux uses the upstream CPU/GPU encoder path to avoid its lengthy
+  first ANE compile. Every component is pinned and verified. Decode windows are at most
+  15 seconds, with exact variant/precision, European/English/Japanese language rules
+  and session-owned model retention through unload/cancel. Orukeet reuses the verified
+  sherpa-onnx transducer path. Distil-Whisper is English only (including Auto), uses
+  `distil-whisper_` directories and shares the v3 tokenizer and native word timing.
   GGUF local choices are bundled in `local-gguf-models.json` and routed through
   `GGUFModelCatalog` / `GGUFTranscriber` with the pinned transcribe.cpp XCFramework.
-  Each artifact uses an immutable Hub revision, byte size and SHA-256. Verify both
+  Show runtime/quantization in local rows and provider/runtime in profile choices
+  so same-family variants stay distinguishable. Each artifact uses an immutable Hub
+  revision, byte size and SHA-256. Verify both
   cached and new bytes before installation; failed or cancelled downloads keep the
   incomplete marker. Never copy a competitor's benchmark score into app ratings.
   Decode on a worker with one native compute operation per loaded model; retain the

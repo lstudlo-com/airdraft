@@ -200,6 +200,8 @@ struct MenuView: View {
         case .cohere: return "Cohere"
         case .senseVoice: return "SenseVoice"
         case .parakeet: return "Parakeet"
+        case .orukeet: return "Orukeet"
+        case .fluidAudio: return CoreMLSpeechModelCatalog.model(container.speechConfig.model)?.creator ?? "Core ML speech"
         case .transcribeCpp: return GGUFModelCatalog.model(container.speechConfig.model)?.creator ?? "Local speech"
         case .whisperKit: return "WhisperKit"
         case .apple: return "Apple Speech"

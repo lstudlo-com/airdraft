@@ -5,7 +5,7 @@ import AirdraftCore
 // local engines load from ~/Library/Application Support/Transcribar/Models.
 //
 //   airdraft-cli download [--whisper VARIANT | --gguf ID]
-//   airdraft-cli transcribe <audio> [--gguf ID | --whisper VARIANT | --qwen3 [ID] | --cohere [ID] | --sensevoice | --firered | --parakeet | --apple [LOCALE] | --elevenlabs [MODEL]]
+//   airdraft-cli transcribe <audio> [--gguf ID | --coreml ID | --orukeet | --whisper VARIANT | --qwen3 [ID] | --cohere [ID] | --sensevoice | --firered | --parakeet | --apple [LOCALE] | --elevenlabs [MODEL]]
 //                              [--url BASE --model M] [--lang zh] [--vocab "A,B"]
 //   airdraft-cli refine "<text>" [--llm-url BASE] [--llm-model M] [--mode clean|concise|summary] [--instructions "..."] [--task "..."]
 //                           [--family general|email|workChat|personalChat|document|code|terminal] [--dict "Term=alias1,alias2;Term2"]
@@ -65,6 +65,8 @@ func parseDictionary(_ spec: String?) -> [DictionaryEntry] {
 
 func makeTranscriber(_ args: Args) -> any Transcriber {
     let defaults = ASRConfig()
+    if args["orukeet"] != nil { return SherpaTranscriber(model: .orukeet) }
+    if let id = args["coreml"] { return FluidAudioTranscriber(modelID: id) }
     if let id = args.optionalValue("gguf", default: "whisper-tiny") { return GGUFTranscriber(modelID: id) }
     if let id = args.optionalValue("cohere", default: defaults.cohereModel) { return CohereTranscriber(modelId: id) }
     if let id = args.optionalValue("qwen3", default: defaults.qwen3Model) { return Qwen3ASRTranscriber(modelId: id) }
@@ -138,7 +140,7 @@ case "download":
     } else if let id = args["whisper"], WhisperModelVariant(rawValue: id) != nil {
         config = ASRConfig(kind: .whisperKit, whisperModel: id)
     } else { die("download needs --gguf <catalogue ID> or --whisper <supported Core ML variant>") }
-    try await ModelDownloader().download(config, progress: { _ in })
+    try await ModelDownloader.shared.download(config, progress: { _ in })
     print("[download] \(config.engineID) installed=\(LocalModels.isInstalled(config))")
 case "transcribe", "run":
     guard args.positional.count > 1 else { die("missing audio path") }

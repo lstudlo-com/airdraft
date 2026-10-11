@@ -39,6 +39,8 @@ public actor EngineFactory {
         catch { return CredentialFailureEngine(id: id, error: error) }
         let engine: any Transcriber
         switch config.kind {
+        case .fluidAudio: engine = FluidAudioTranscriber(modelID: config.model)
+        case .orukeet: engine = SherpaTranscriber(model: .orukeet)
         case .transcribeCpp: engine = GGUFTranscriber(modelID: config.model)
         case .whisperKit: engine = WhisperKitTranscriber(variant: config.whisperModel)
         case .qwen3: engine = Qwen3ASRTranscriber(modelId: config.qwen3Model)

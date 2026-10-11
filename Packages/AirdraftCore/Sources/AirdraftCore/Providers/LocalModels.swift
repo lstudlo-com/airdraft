@@ -15,6 +15,8 @@ public enum LocalModels {
 
     static func hasFiles(_ config: ASRConfig) -> Bool {
         switch config.kind {
+        case .fluidAudio: return hasCoreMLSpeech(config.model)
+        case .orukeet: return hasSherpa(.orukeet)
         case .transcribeCpp: return hasGGUF(config.model)
         case .whisperKit: return hasWhisper(config.whisperModel) && hasWhisperTokenizer
         case .qwen3: return hasQwen3(config.qwen3Model)
@@ -31,6 +33,8 @@ public enum LocalModels {
     /// Download folder of the model `config` selects; nil for engines with nothing to download.
     public static func folder(for config: ASRConfig) -> URL? {
         switch config.kind {
+        case .fluidAudio: return coreMLSpeechFolder(for: config.model)
+        case .orukeet: return sherpaFolder(for: .orukeet)
         case .transcribeCpp: return ggufFolder(for: config.model)
         case .whisperKit: return whisperFolder(for: config.whisperModel)
         case .qwen3: return qwen3Folder(for: config.qwen3Model)
@@ -67,7 +71,7 @@ public enum LocalModels {
     public static var whisperTokenizerFolder: URL { root.appendingPathComponent("tokenizer/whisper-large-v3", isDirectory: true) }
 
     public static func whisperFolder(for variant: String) -> URL {
-        whisperKitRoot.appendingPathComponent("openai_whisper-\(variant)", isDirectory: true)
+        whisperKitRoot.appendingPathComponent(WhisperModelVariant(rawValue: variant)?.directoryName ?? "openai_whisper-\(variant)", isDirectory: true)
     }
 
     /// True when the Core ML bundles for this variant are present.
@@ -87,6 +91,18 @@ public enum LocalModels {
         whisperTokenizerFiles.allSatisfy { name in
             let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appendingPathComponent(name).path)
             return (attributes?[.size] as? Int64 ?? 0) > 0
+        }
+    }
+
+    public static func coreMLSpeechFolder(for modelID: String) -> URL? {
+        guard CoreMLSpeechModelCatalog.model(modelID) != nil else { return nil }
+        return root.appendingPathComponent("coreml-speech/\(modelID)", isDirectory: true)
+    }
+    static func hasCoreMLSpeech(_ modelID: String) -> Bool {
+        guard let entry = CoreMLSpeechModelCatalog.model(modelID), let folder = coreMLSpeechFolder(for: modelID) else { return false }
+        return entry.files.allSatisfy { file in
+            let values = try? folder.appendingPathComponent(file.path).resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+            return values?.isRegularFile == true && Int64(values?.fileSize ?? 0) == file.bytes
         }
     }
 
