@@ -109,8 +109,8 @@ public enum SpeechLanguagePolicy {
             return capability("Parakeet TDT v3", parakeetLanguages, true, .notApplied,
                               "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support.")
         case .whisperKit:
-            guard config.whisperModel == "large-v3-v20240930_turbo" else { return unknown(config.whisperModel) }
-            return capability("Whisper Large v3 Turbo", whisperV3Languages, true, .forced,
+            guard let variant = WhisperModelVariant(rawValue: config.whisperModel) else { return unknown(config.whisperModel) }
+            return capability(variant.title, whisperV3Languages, true, .forced,
                               "Auto Detect or a selected language.")
         case .apple:
             // The OS owns supported locales/assets. Keep ASRConfig's existing

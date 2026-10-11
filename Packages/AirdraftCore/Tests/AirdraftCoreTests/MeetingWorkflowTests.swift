@@ -72,8 +72,23 @@ final class MeetingWorkflowTests: XCTestCase {
         XCTAssertEqual(MediaSegmentPlan.make(duration: 1, speakers: []).first?.speaker, nil)
     }
 
+    func testWhisperSelectionKeepsVariantWordTimingAndSavedJobsDistinct() throws {
+        var config = MediaConfiguration(language: "zh")
+        for model in [MediaConfiguration.LocalModel.whisperLargeV3, .whisperTurboCompressed, .whisperTurbo] {
+            config.selectLocalModel(model)
+            XCTAssertNoThrow(try config.validate())
+            XCTAssertFalse(config.usesSegmentTiming)
+            let saved = try JSONDecoder().decode(MediaConfiguration.self, from: JSONEncoder().encode(config))
+            XCTAssertEqual(saved.asr.engineID, "whisperkit:\(config.whisperModel)")
+            XCTAssertEqual(saved.selectedLocalModel, model)
+            XCTAssertEqual(saved.whisperModel, MediaConfiguration.whisperVariant(for: model)?.rawValue)
+        }
+        XCTAssertThrowsError(try MediaConfiguration(whisperModel: WhisperModelVariant.turbo.rawValue,
+                                                  localModel: .whisperLargeV3).validate())
+    }
+
     func testActualFactoryRoutesAllAddedLocalEnginesWithHonestSegmentBounds() async throws {
-        for model in MediaConfiguration.LocalModel.allCases where model != .whisperTurbo {
+        for model in MediaConfiguration.LocalModel.allCases where model.kind != .whisperKit {
             let config = MediaConfiguration(language: model == .apple ? "" : "en", localModel: model, appleLocale: "en-US")
             let speech = SegmentSpeech(ready: true)
             let engine = factory(speech)

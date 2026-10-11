@@ -66,16 +66,17 @@ enum ModelCatalogue {
             note: "25 European languages. Does not support Chinese."
         ) { $0.kind = .parakeet },
         ModelEntry(
-            id: "whisper:turbo", title: "Whisper v3 Turbo", vendor: "OpenAI · Core ML", provider: "OpenAI", brand: .openAI,
-            tags: ["100 languages"], speed: 3, accuracy: 3, storage: .download(sizeLabel: "1.5 GB"),
-            note: "Runs on the Neural Engine."
-        ) { $0.kind = .whisperKit; $0.whisperModel = "large-v3-v20240930_turbo" },
-        ModelEntry(
             id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
             tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
             note: "macOS manages language assets."
         ) { $0.kind = .apple },
-    ]
+    ] + WhisperModelVariant.allCases.map { variant in
+        ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", title: variant.title,
+                   vendor: "OpenAI · Core ML", provider: "OpenAI", brand: .openAI,
+                   tags: ["100 languages"], speed: variant == .turbo ? 3 : 0,
+                   accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
+                   note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
+    }
 }
 
 /// Shared column geometry keeps both tables aligned, including at the minimum window width.

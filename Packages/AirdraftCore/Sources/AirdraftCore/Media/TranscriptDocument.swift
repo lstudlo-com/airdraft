@@ -56,10 +56,12 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
 public struct MediaConfiguration: Codable, Sendable, Equatable {
     public enum Engine: String, Codable, Sendable, CaseIterable { case local, soniox }
     public enum LocalModel: String, Codable, CaseIterable, Sendable {
-        case whisperTurbo, qwenLarge, qwenSmall, cohere, senseVoice, fireRed, parakeet, apple
+        case whisperTurbo, whisperLargeV3, whisperTurboCompressed, qwenLarge, qwenSmall, cohere, senseVoice, fireRed, parakeet, apple
         public var title: String {
             switch self {
-            case .whisperTurbo: return "Whisper Large v3 Turbo"
+            case .whisperTurbo: return WhisperModelVariant.turbo.title
+            case .whisperLargeV3: return WhisperModelVariant.largeV3.title
+            case .whisperTurboCompressed: return WhisperModelVariant.turboCompressed.title
             case .qwenLarge: return "Qwen3-ASR 1.7B"
             case .qwenSmall: return "Qwen3-ASR 0.6B"
             case .cohere: return "Cohere Transcribe 2B"
@@ -71,7 +73,7 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
         }
         public var kind: ASRProviderKind {
             switch self {
-            case .whisperTurbo: return .whisperKit
+            case .whisperTurbo, .whisperLargeV3, .whisperTurboCompressed: return .whisperKit
             case .qwenLarge, .qwenSmall: return .qwen3
             case .cohere: return .cohere
             case .senseVoice: return .senseVoice
@@ -79,6 +81,14 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             case .parakeet: return .parakeet
             case .apple: return .apple
             }
+        }
+    }
+    public static func whisperVariant(for model: LocalModel) -> WhisperModelVariant? {
+        switch model {
+        case .whisperTurbo: return .turbo
+        case .whisperLargeV3: return .largeV3
+        case .whisperTurboCompressed: return .turboCompressed
+        default: return nil
         }
     }
     public var engine: Engine
@@ -89,10 +99,10 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
     public var localModel: LocalModel?
     public var appleLocale: String?
     public var selectedLocalModel: LocalModel { localModel ?? .whisperTurbo }
-    public var usesSegmentTiming: Bool { engine == .local && selectedLocalModel != .whisperTurbo }
-    public init(engine: Engine = .local, whisperModel: String = "large-v3-v20240930_turbo", language: String = "", identifySpeakers: Bool = true,
+    public var usesSegmentTiming: Bool { engine == .local && selectedLocalModel.kind != .whisperKit }
+    public init(engine: Engine = .local, whisperModel: String? = nil, language: String = "", identifySpeakers: Bool = true,
                 localModel: LocalModel? = nil, appleLocale: String? = nil) {
-        self.engine = engine; self.whisperModel = whisperModel
+        self.engine = engine; self.whisperModel = whisperModel ?? Self.whisperVariant(for: localModel ?? .whisperTurbo)?.rawValue ?? Self.supportedWhisperModel
         self.language = language; self.identifySpeakers = identifySpeakers
         self.localModel = localModel; self.appleLocale = appleLocale
     }
@@ -103,9 +113,11 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             language = ""
         }
         localModel = model
+        if let variant = Self.whisperVariant(for: model) { whisperModel = variant.rawValue }
     }
     public func validate() throws {
-        if engine == .local && selectedLocalModel == .whisperTurbo && whisperModel != Self.supportedWhisperModel { throw MediaError.unsupportedModel }
+        if engine == .local && selectedLocalModel.kind == .whisperKit,
+           whisperModel != Self.whisperVariant(for: selectedLocalModel)?.rawValue { throw MediaError.unsupportedModel }
         _ = try SpeechLanguagePolicy.resolve(asr)
     }
     public var asr: ASRConfig {

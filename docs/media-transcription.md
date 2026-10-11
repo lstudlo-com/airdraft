@@ -39,7 +39,7 @@ for shared storage and deletion contracts.
 
 ## Local processing
 
-The job captures one of eight local model choices: Whisper Large v3 Turbo,
+The job captures one of ten local model choices: Whisper Large v3, standard and compressed Turbo,
 Qwen3-ASR 1.7B (5-bit) or 0.6B (4-bit), Cohere Transcribe 2B (5-bit),
 SenseVoice Small, FireRedASR2, Parakeet TDT v3, or Apple Speech. Each routes to
 its existing local adapter. No selection follows later dictation-setting changes.
