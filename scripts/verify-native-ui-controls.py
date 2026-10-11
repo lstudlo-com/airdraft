@@ -217,7 +217,10 @@ def main() -> None:
         directory = Path(temporary)
         fixture = directory / "Fixture.swift"
         history = (REPO / "Sources/App/Views/HistoryRecordingControls.swift").read_text()
-        progress = "private struct HistoryPlaybackProgress:" + history.split("private struct HistoryPlaybackProgress:", 1)[1]
+        declaration = re.search(r"(?m)^(?:private )?struct HistoryPlaybackProgress: View \{", history)
+        if declaration is None:
+            raise RuntimeError("Production HistoryPlaybackProgress declaration not found")
+        progress = history[declaration.start():]
         formatter = re.search(r"    static func time\(_ seconds: Double\) -> String \{.*?\n    \}", history, re.S).group(0)
         fixture.write_text(FIXTURE + "\nenum HistoryRecordingControls {\n" + formatter + "\n}\n" + progress)
         # Compile the production motion definition, without sidebar-only dependencies.
