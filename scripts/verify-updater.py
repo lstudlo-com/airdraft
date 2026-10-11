@@ -8,6 +8,7 @@ import pathlib
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -29,7 +30,21 @@ def main():
                         help="Also cover migration from the former ad-hoc app identity")
     parser.add_argument("--ephemeral-key", action="store_true",
                         help="Use a disposable fixture signing seed, without reading Sparkle's Keychain item")
+    parser.add_argument("--scenario", choices=("tampered", "install"), help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.scenario is None:
+        # A rejected archive can leave Sparkle's installer helper tearing down
+        # after the fixture exits. Give each download scenario its own bundle
+        # identity and temporary state rather than resuming that failed update.
+        for scenario in ("tampered", "install"):
+            command = [sys.executable, pathlib.Path(__file__).resolve(),
+                       "--sparkle", args.sparkle, "--scenario", scenario]
+            if args.legacy_source:
+                command.append("--legacy-source")
+            if args.ephemeral_key:
+                command.append("--ephemeral-key")
+            run(*command, timeout=240)
+        return
     identity = preflight()
     root = pathlib.Path(__file__).resolve().parent.parent
     sparkle = args.sparkle.resolve()
@@ -132,14 +147,15 @@ sparkle:edSignature="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
             run(sparkle / "bin/generate_appcast", *signing_arguments,
                 "--download-url-prefix", f"http://127.0.0.1:{server.server_port}/updates/",
                 "--maximum-deltas", "0", "-o", feed, archives)
-            original_archive = archive.read_bytes()
-            changed = bytearray(original_archive)
-            changed[len(changed) // 2] ^= 1
-            archive.write_bytes(changed)
-            run(macos / "UpdaterTest", "tampered-download", timeout=40)
-            if plistlib.loads((app / "Contents/Info.plist").read_bytes())["CFBundleVersion"] != "1":
-                raise RuntimeError("Tampered archive replaced the app")
-            archive.write_bytes(original_archive)
+            if args.scenario == "tampered":
+                changed = bytearray(archive.read_bytes())
+                changed[len(changed) // 2] ^= 1
+                archive.write_bytes(changed)
+                run(macos / "UpdaterTest", "tampered-download", timeout=40)
+                if plistlib.loads((app / "Contents/Info.plist").read_bytes())["CFBundleVersion"] != "1":
+                    raise RuntimeError("Tampered archive replaced the app")
+                print("PASS: tampered archive rejected; original app remains version 1", flush=True)
+                return
             run(macos / "UpdaterTest", "install", timeout=40)
             deadline = time.monotonic() + 20
             while time.monotonic() < deadline:

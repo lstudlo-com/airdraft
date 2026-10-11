@@ -4,6 +4,10 @@ This workflow exercises the app without API credentials. The test runner uses an
 explicit allowlist: cloud-provider contracts and all credential tests are excluded,
 including tests that use fake API keys. It does not discover, read or enter API keys.
 
+The updater verifier uses separate disposable app identities for tampered-download
+rejection and successful installation, so a failed installer helper cannot affect
+the next scenario. Both scenarios retain feed, archive and signing checks.
+
 ## Repeatable regression checks
 
 ```sh
