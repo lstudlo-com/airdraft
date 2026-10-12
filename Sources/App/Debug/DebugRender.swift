@@ -22,6 +22,10 @@ enum DebugRender {
             SettingsSearchVerification.run(to: dir)
             return
         }
+        if pageName == "hud-disco-settings" {
+            SettingsSearchVerification.run(to: dir, discoOnly: true)
+            return
+        }
         if pageName == "hud-styles" {
             SpatialHUDVerification.run(to: dir)
             return
@@ -128,6 +132,7 @@ enum DebugRender {
         if let position = env["AIRDRAFT_RENDER_HUD_TIMER"].flatMap(HUDTimerOptions.Position.init(rawValue:)) {
             container.settings.hudTimer = HUDTimerOptions(isEnabled: true, position: position)
         }
+        if env["AIRDRAFT_RENDER_HUD_DISCO"] == "1" { container.settings.hudDiscoEnabled = true }
         if let stage = env["AIRDRAFT_RENDER_DOWNLOAD"] {
             let progress: ModelDownloader.Progress
             switch stage {

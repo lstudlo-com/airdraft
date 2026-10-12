@@ -94,6 +94,8 @@ verification status belong in the vault (see below).
   The homepage's interface section shows the real Settings window; regenerate
   `public/app/` with `apps/marketing/scripts/render-app-window.sh` from a Debug
   build (isolated empty data, grayscale) when that page, the sidebar or materials change.
+  Capture at 784 by 1000 points so the recording choices, Disco and timer row
+  fit; keep the website frame dimensions and bottom-anchored callouts aligned.
   Keep the generated WebP origin sidecars with those screenshots.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
@@ -440,7 +442,19 @@ verification status belong in the vault (see below).
   Timer-free recording reserves no label space; processing labels remain visible
   in all five visible presets. Cube uses shaded rotating face plates; Sonic shows only
   braided ribbons, with no cube. Orbit uses interlocking silver gyroscope rings;
-  Silk is one folded metallic ribbon. Drive response from the existing recent microphone
+  Silk is one folded metallic ribbon. Settings > Appearance offers Disco, an
+  independent persisted switch,
+  off by default and shared by all five visible styles. Hide it for None without
+  resetting it; search reveals it disabled with prerequisite guidance. Color only
+  the animated artwork, retaining neutral capsule, well, timer and status text.
+  Use the shared HUDDiscoMotion/HUDDiscoFrame palette: voice energy controls
+  saturation, smoothed syllable attacks add an accent, and gated accumulated
+  energy advances continuous ice/sapphire/amethyst/coral/amber/mint color bands.
+  Silence settles and holds color; do not use random jumps or a wall-clock hue loop.
+  Preserve each style's directional shading. Reduce Motion stops color travel
+  while retaining static level-driven color, and delivery freezes the palette
+  together with geometry. Previews use the same palette and synthetic levels.
+  Drive spatial motion from those same recent microphone
   levels, with bounded fast attack and slower release; never open another audio
   input or call it a frequency spectrum. Keep motion in the visualization well and
   freeze its phase and energy during delivery fade. Reduce Motion stops rotation and travelling

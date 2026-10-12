@@ -7,7 +7,7 @@ import SwiftUI
 /// No hotkeys, microphone capture, credential reads, updater or cleanup actions start.
 @MainActor
 enum SettingsSearchVerification {
-    static func run(to directory: URL) {
+    static func run(to directory: URL, discoOnly: Bool = false) {
         setbuf(stdout, nil)
         precondition(LocalE2E.isActive, "Use --e2e-local <disposable directory>")
         NSApp.accessibilitySetValue(true, forAttribute: NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface"))
@@ -20,6 +20,10 @@ enum SettingsSearchVerification {
             Microphone(id: 100, uid: "search-fixture", name: "Fixture Microphone")
         ], systemDefaultID: 100)
         container.navigation.page = .configuration
+        if discoOnly {
+            container.settings.hudStyle = .classic
+            container.settings.hudDiscoEnabled = false
+        }
         let originalSettings = defaults.persistentDomain(forName: suite) ?? [:]
 
         for (name, appearance, height, reduced) in [
@@ -44,6 +48,51 @@ enum SettingsSearchVerification {
             let scroll = scrollViews(host).first!
             precondition(search.matches.isEmpty && search.selectedID == nil)
             capture(window, to: directory.appendingPathComponent("\(name)-empty.png"))
+            func query(_ text: String, title: String, file: String) {
+                search.query = text
+                settle()
+                precondition(search.matches.first?.title == title, "\(text) must find \(title): \(search.matches)")
+                capture(window, to: directory.appendingPathComponent("\(name)-\(file).png"))
+                verifyVisible(search, in: host, scroll: scroll)
+            }
+
+            if discoOnly {
+                func toggle() -> NSObject {
+                    guard let toggle = descendants(window).first(where: {
+                        value($0, "accessibilityIdentifier") as? String == "settings.hudDisco"
+                    }) else { preconditionFailure("Disco must expose its actual toggle") }
+                    return toggle
+                }
+                func press() {
+                    let object = toggle()
+                    let selector = NSSelectorFromString("accessibilityPerformPress")
+                    precondition(object.responds(to: selector))
+                    let action = unsafeBitCast(object.method(for: selector),
+                        to: (@convention(c) (NSObject, Selector) -> Bool).self)
+                    precondition(action(object, selector)); settle()
+                }
+                query("disco", title: "Disco", file: "disco-found")
+                precondition(!container.settings.hudDiscoEnabled, "Search must not enable Disco")
+                press()
+                precondition(container.settings.hudDiscoEnabled && AppSettings(defaults: defaults).hudDiscoEnabled,
+                             "The native Disco switch must enable and persist its preference")
+                capture(window, to: directory.appendingPathComponent("\(name)-disco-on.png"))
+                search.clear(); settle()
+                container.settings.hudStyle = .none; settle()
+                precondition(!descendants(window).contains {
+                    value($0, "accessibilityIdentifier") as? String == "settings.hudDisco"
+                }, "None must hide the switch")
+                query("disco", title: "Disco", file: "disco-none")
+                precondition(value(toggle(), "isAccessibilityEnabled") as? Bool == false)
+                precondition(container.settings.hudDiscoEnabled, "None and searching must preserve the preference")
+                container.settings.hudStyle = .classic; settle()
+                press()
+                precondition(!container.settings.hudDiscoEnabled && !AppSettings(defaults: defaults).hudDiscoEnabled)
+                search.clear(); settle()
+                window.orderOut(nil)
+                print("HUD_DISCO_SETTINGS_PASS \(name) native-toggle persistence search None-hidden-disabled-preserved")
+                continue
+            }
             let find = key("f", code: 3, modifiers: .command, window: window)
             precondition(window.performKeyEquivalent(with: find), "Command-F must focus settings search")
             settle()
@@ -62,14 +111,6 @@ enum SettingsSearchVerification {
             window.sendEvent(key("\u{1b}", code: 53, window: window))
             settle()
             precondition(search.query.isEmpty && search.matches.isEmpty, "Escape must clear search")
-
-            func query(_ text: String, title: String, file: String) {
-                search.query = text
-                settle()
-                precondition(search.matches.first?.title == title, "\(text) must find \(title): \(search.matches)")
-                capture(window, to: directory.appendingPathComponent("\(name)-\(file).png"))
-                verifyVisible(search, in: host, scroll: scroll)
-            }
 
             query("when you quit", title: "Download updates automatically", file: "description")
             let bottom = scroll.contentView.bounds.origin.y
@@ -98,6 +139,8 @@ enum SettingsSearchVerification {
             query("timer position", title: "Timer position", file: "conditional-timer")
             precondition(!container.settings.hudTimer.isEnabled)
             query("light app icon", title: "Light app icon", file: "app-icon")
+            query("disco", title: "Disco", file: "disco")
+            precondition(!container.settings.hudDiscoEnabled, "Finding Disco must not enable it")
             query("physical inputs", title: "Input channel", file: "conditional-channel")
 
             search.query = "not-a-setting-🎙️"

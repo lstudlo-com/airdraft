@@ -388,6 +388,19 @@ whose width and directional highlights change as it twists. Their recent
 microphone amplitude controls motion with fast attack and slower release. They
 reuse existing input and make no frequency-analysis claim.
 
+Disco is an independent saved switch in Settings > Appearance, off by default
+and shared by all five styles. Only the animated well artwork takes color;
+the dark capsule, well, timer, processing labels and diagnostics retain their
+neutral treatment. An ice/sapphire/amethyst/coral/amber/mint palette loops
+smoothly within a short band across neighbouring bars, faces, rings or ribbon
+strands. Measured energy drives saturation and continuous palette travel;
+smoothed syllable attacks briefly strengthen the color. Silence releases the
+envelope and holds the palette position. Preserve metallic shading and depth.
+Reduce Motion uses static level-driven color without travel; delivery freezes
+the palette alongside phase and energy. All five synthetic Settings previews
+use the shared palette and respect their existing pause rules. None hides the
+switch without clearing its preference; Settings search reveals it disabled.
+
 The timer is a separate module, off by default. Show timer enables it during
 recording; Timer position chooses Left or Right, initially Right. Both
 preferences persist across presets and update previews. Disabling the timer

@@ -41,13 +41,20 @@ struct ConfigurationPage: View {
                             ForEach(HUDStyle.allCases) { style in
                                 ChoiceTile(title: style.title, selected: settings.hudStyle == style,
                                            action: { settings.hudStyle = style }, previewSize: HUDPreview.size) {
-                                    HUDPreview(style: style, timer: settings.hudTimer)
+                                    HUDPreview(style: style, timer: settings.hudTimer, discoEnabled: settings.hudDiscoEnabled)
                                 }
                             }
                         }
                         .frame(width: HUDPreview.tileWidth * 3 + 20)
                     }
                     if settings.hudStyle != .none || search.isSearching {
+                        RowDivider()
+                        SettingRow(title: "Disco", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : "Colors flow with your voice") {
+                            Toggle("Disco", isOn: $settings.hudDiscoEnabled)
+                                .labelsHidden().toggleStyle(.softSwitch)
+                                .disabled(settings.hudStyle == .none)
+                                .accessibilityIdentifier("settings.hudDisco")
+                        }
                         RowDivider()
                         SettingRow(title: "Show timer", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : nil) {
                             Toggle("Show timer", isOn: $settings.hudTimer.isEnabled)
@@ -272,6 +279,7 @@ struct HUDPreview: View {
     static let tileWidth = size.width + 10
     let style: HUDStyle
     var timer = HUDTimerOptions()
+    var discoEnabled = false
     /// A fixed phase lets the native fixture capture the actual Settings preview.
     var frozenTime: TimeInterval?
     var reduceMotionOverride: Bool?
@@ -279,6 +287,7 @@ struct HUDPreview: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var started = Date()
+    @State private var disco = HUDDiscoMotion()
 
     private var pausesMotion: Bool {
         (reduceMotionOverride ?? reduceMotion) || (renderModeOverride ?? RenderMode.isActive)
@@ -292,9 +301,17 @@ struct HUDPreview: View {
             case .classic, .cube, .sonic, .orbit, .silk:
                 TimelineView(.animation(minimumInterval: 1.0 / 30, paused: pausesMotion)) { context in
                     let time = frozenTime ?? (pausesMotion ? 0.5 : context.date.timeIntervalSince(started))
-                    IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: Self.samples(at: time),
-                                                        elapsed: 4.2, visualizerTime: time), style: style, timer: timer)
+                    let samples = Self.samples(at: time)
+                    let energy = SpatialHUDMotion.energy(levels: samples, recording: true)
+                    IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: samples,
+                                                        elapsed: 4.2, visualizerTime: time,
+                                                        visualizerDisco: pausesMotion ? .still(energy: energy) : disco.frame),
+                                  style: style, timer: timer, discoEnabled: discoEnabled)
                         .scaleEffect(Self.specimenScale)
+                        .onChange(of: context.date, initial: true) { _, date in
+                            guard discoEnabled, !pausesMotion else { return }
+                            disco.advance(to: date.timeIntervalSinceReferenceDate, target: energy)
+                        }
                 }
             case .none:
                 Image(systemName: "eye.slash").font(.system(size: 22)).foregroundStyle(.secondary)

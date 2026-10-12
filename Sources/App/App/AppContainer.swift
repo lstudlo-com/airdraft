@@ -160,6 +160,7 @@ final class AppContainer {
 
         let panel = IndicatorPanelController(pipeline: pipeline,
             style: { [weak self] in self?.settings.hudStyle ?? .classic },
+            disco: { [weak self] in self?.settings.hudDiscoEnabled ?? false },
             timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() })
         indicator = panel
         pipeline.onOutputDelivered = { [weak panel, weak self] in
@@ -245,6 +246,7 @@ final class AppContainer {
         observeChanges({ [weak self] in
             _ = self?.settings.livePreviewEnabled
             _ = self?.settings.hudStyle
+            _ = self?.settings.hudDiscoEnabled
             _ = self?.settings.hudTimer
         }) { [weak self] in
             guard let self else { return }

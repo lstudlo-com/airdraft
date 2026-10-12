@@ -10,11 +10,13 @@ final class IndicatorPanelController {
     private let panel: NSPanel
     private let pipeline: DictationPipeline
     private let styleProvider: () -> HUDStyle
+    private let discoProvider: () -> Bool
     private let timerProvider: () -> HUDTimerOptions
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
     private let screenFrame: () -> NSRect?
     private var currentStyle: HUDStyle = .classic
+    private var currentDisco = false
     private var currentTimer = HUDTimerOptions()
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
@@ -25,12 +27,14 @@ final class IndicatorPanelController {
     private let spatialAnimation = SpatialHUDAnimation()
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
+         disco: @escaping () -> Bool = { false },
          timer: @escaping () -> HUDTimerOptions = { HUDTimerOptions() },
          messagePasteboard: NSPasteboard = .general,
          reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion },
          screenFrame: (() -> NSRect?)? = nil) {
         self.pipeline = pipeline
         self.styleProvider = style
+        self.discoProvider = disco
         self.timerProvider = timer
         self.messagePasteboard = messagePasteboard
         self.reduceMotion = reduceMotion
@@ -56,6 +60,7 @@ final class IndicatorPanelController {
 
     private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
         currentStyle = style
+        currentDisco = discoProvider()
         currentTimer = timerProvider()
         currentPreview = preview
         let id = UUID()
@@ -66,7 +71,7 @@ final class IndicatorPanelController {
             HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
-            snapshot: messageSnapshot, style: style, timer: currentTimer, showPreview: preview,
+            snapshot: messageSnapshot, style: style, timer: currentTimer, discoEnabled: currentDisco, showPreview: preview,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
             spatialAnimation: spatialAnimation,
@@ -89,7 +94,7 @@ final class IndicatorPanelController {
         switch state {
         case .idle:
             if messageTimeoutTask != nil, dismissalID == nil {
-                if styleProvider() != currentStyle || timerProvider() != currentTimer { show() }
+                if styleProvider() != currentStyle || discoProvider() != currentDisco || timerProvider() != currentTimer { show() }
                 return
             }
             dismiss()
@@ -145,13 +150,16 @@ final class IndicatorPanelController {
 
         // The live pipeline can move to idle while the panel is fading. Freeze
         // the final display so idle cannot bring back the recording timer.
+        let reduced = reduceMotion()
+        let staticEnergy = SpatialHUDMotion.energy(levels: pipeline.levelHistory, recording: lastVisibleState == .recording)
         let snapshot = HUDSnapshot(state: lastVisibleState, levels: pipeline.levelHistory,
                                    elapsed: pipeline.lastRecordingDuration,
                                    visualizerTime: spatialAnimation.motion.phase,
-                                   visualizerEnergy: spatialAnimation.motion.energy)
+                                   visualizerEnergy: reduced ? staticEnergy : spatialAnimation.motion.energy,
+                                   visualizerDisco: reduced ? .still(energy: staticEnergy) : spatialAnimation.disco.frame)
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
-            timer: currentTimer, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText,
+            timer: currentTimer, discoEnabled: currentDisco, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard))
         host.sizingOptions = []
@@ -226,6 +234,7 @@ struct RecordingHUDView: View {
     var snapshot: HUDSnapshot?
     var style: HUDStyle
     var timer = HUDTimerOptions()
+    var discoEnabled = false
     var showPreview: Bool
     var sampleText: String?
     var messageMaxWidth: CGFloat = 560
@@ -251,6 +260,7 @@ struct RecordingHUDView: View {
                     .environment(\.colorScheme, .dark)
             }
             IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style, timer: timer,
+                          discoEnabled: discoEnabled,
                           messageMaxWidth: messageMaxWidth, messageMaxHeight: messageMaxHeight,
                           messagePasteboard: messagePasteboard, spatialAnimation: spatialAnimation)
         }
@@ -292,6 +302,7 @@ struct HUDSnapshot {
     /// Deterministic animation phase for previews; delivery snapshots stay still.
     var visualizerTime: TimeInterval = 1.4
     var visualizerEnergy: Double?
+    var visualizerDisco: HUDDiscoFrame?
 }
 
 /// Preset artwork, optional timer and processing status share one content-sized pill.
@@ -304,6 +315,7 @@ struct IndicatorView: View {
     var snapshot: HUDSnapshot?
     var style: HUDStyle = .classic
     var timer: HUDTimerOptions
+    var discoEnabled: Bool
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
@@ -311,6 +323,7 @@ struct IndicatorView: View {
 
     init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
          timer: HUDTimerOptions = HUDTimerOptions(),
+         discoEnabled: Bool = false,
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
          messagePasteboard: NSPasteboard = .general,
          spatialAnimation: SpatialHUDAnimation = SpatialHUDAnimation()) {
@@ -318,6 +331,7 @@ struct IndicatorView: View {
         self.snapshot = snapshot
         self.style = style
         self.timer = timer
+        self.discoEnabled = discoEnabled
         self.messageMaxWidth = messageMaxWidth
         self.messageMaxHeight = messageMaxHeight
         self.messagePasteboard = messagePasteboard
@@ -375,18 +389,11 @@ struct IndicatorView: View {
     private var showsTimer: Bool { timer.isEnabled && state == .recording }
 
     private var visualizer: some View {
-        Group {
-            switch style {
-            case .cube, .sonic, .orbit, .silk:
-                SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
-                                     frozenTime: snapshot?.visualizerTime,
-                                     frozenEnergy: snapshot?.visualizerEnergy, animation: spatialAnimation)
-            case .classic, .none:
-                WaveformBars(levels: levels, dimmed: state != .recording)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-            }
-        }
+        SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
+                             discoEnabled: discoEnabled,
+                             frozenTime: snapshot?.visualizerTime,
+                             frozenEnergy: snapshot?.visualizerEnergy,
+                             frozenDisco: snapshot?.visualizerDisco, animation: spatialAnimation)
         .frame(width: Self.visualizerSize.width, height: Self.visualizerSize.height)
         .background { HUDWaveformWell() }
         .clipShape(Capsule())
@@ -478,6 +485,7 @@ private struct HUDWaveformWell: View {
 struct WaveformBars: View {
     let levels: [Float]
     let dimmed: Bool
+    var disco: HUDDiscoFrame?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let count = DictationPipeline.levelHistoryLength
     /// Quiet input still fills the pill: bars are drawn relative to the loudest
@@ -492,9 +500,11 @@ struct WaveformBars: View {
             let spacing: CGFloat = 1.5
             let barWidth = max(1.5, (geo.size.width - spacing * CGFloat(count - 1)) / CGFloat(count))
             HStack(alignment: .center, spacing: spacing) {
-                ForEach(Array(padded.enumerated()), id: \.offset) { _, level in
+                ForEach(Array(padded.enumerated()), id: \.offset) { index, level in
                     Capsule(style: .continuous)
-                        .fill(Color.white.opacity(dimmed ? 0.28 : 0.92))
+                        .fill((disco?.color(at: Double(index) / Double(count - 1),
+                                            shade: 0.72 + Double(shaped(level / peak)) * 0.28) ?? .white)
+                            .opacity(dimmed ? 0.28 : 0.92))
                         .frame(width: barWidth, height: max(2.5, CGFloat(shaped(level / peak)) * geo.size.height))
                 }
             }

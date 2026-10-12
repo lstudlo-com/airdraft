@@ -25,7 +25,7 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/data" "$work/renders" "$out"
 
-AIRDRAFT_RENDER_MIC_DEVICES=single AIRDRAFT_RENDER_HEIGHT=900 \
+AIRDRAFT_RENDER_MIC_DEVICES=single AIRDRAFT_RENDER_HEIGHT=1000 \
   "$app/Contents/MacOS/Airdraft Debug" --e2e-local "$work/data" \
   --render-window configuration "$work/renders" >/dev/null
 
@@ -42,7 +42,7 @@ from pathlib import Path
 for appearance in ("light", "dark"):
     image = Path(sys.argv[1]) / f"configuration-{appearance}.webp"
     origin = (f"Origin: native Airdraft Debug Settings window in {appearance} mode, "
-              "rendered at 784 by 900 points with isolated empty data and one "
+              "rendered at 784 by 1000 points with isolated empty data and one "
               "fixture microphone by apps/marketing/scripts/render-app-window.sh; "
               "converted to grayscale WebP. No image-generation model was used.")
     image.with_suffix(image.suffix + ".json").write_text(

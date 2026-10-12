@@ -171,6 +171,7 @@ struct NeumorphicSurface<S: Shape>: View {
 
     @MainActor static func verify() async throws {
         var style: HUDStyle = .classic
+        var disco = false
         var timer = HUDTimerOptions()
         var reduceMotion = false
         let pipeline = DictationPipeline()
@@ -180,6 +181,7 @@ struct NeumorphicSurface<S: Shape>: View {
         let desktop = NSScreen.screens.reduce(NSRect.zero) { $0.union($1.frame) }
         let fixtureScreen = NSRect(x: desktop.maxX + 1000, y: desktop.minY, width: 800, height: 600)
         let controller = IndicatorPanelController(pipeline: pipeline, style: { style },
+            disco: { disco },
             timer: { timer },
             messagePasteboard: pasteboard, reduceMotion: { reduceMotion },
             screenFrame: showHUD ? nil : { fixtureScreen })
@@ -246,6 +248,7 @@ struct NeumorphicSurface<S: Shape>: View {
         print("PASS: real NSPanel Classic to None to Cube to None visibility")
 
         for activeStyle in HUDStyle.visibleStyles {
+            disco = true
             style = activeStyle
             timer.isEnabled = false
             pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
@@ -269,7 +272,7 @@ struct NeumorphicSurface<S: Shape>: View {
             controller.update(for: .recording, isStateChange: false)
             precondition(abs(panel.frame.width - compactWidth) < 0.5, "Disabling must reclaim the timer's space")
         }
-        print("PASS: all three live presets default timerless and resize correctly with either timer position")
+        print("PASS: all five Disco presets retain timerless geometry and resize correctly with either timer position")
 
         for activeStyle in HUDStyle.visibleStyles {
             style = activeStyle
@@ -287,11 +290,14 @@ struct NeumorphicSurface<S: Shape>: View {
             let live = panel.contentView as! NSHostingView<RecordingHUDView>
             let phase = live.rootView.spatialAnimation.motion.phase
             let energy = live.rootView.spatialAnimation.motion.energy
+            let color = live.rootView.spatialAnimation.disco.frame
             controller.deliveryCompleted()
             let frozen = panel.contentView as! NSHostingView<RecordingHUDView>
             precondition(frozen.rootView.snapshot?.visualizerTime == phase &&
                          frozen.rootView.snapshot?.visualizerEnergy == energy,
                          "Delivery must freeze the exact visualizer phase and energy")
+            precondition(frozen.rootView.discoEnabled && frozen.rootView.snapshot?.visualizerDisco == color,
+                         "Delivery must freeze Disco's exact palette and speech envelope")
             precondition(frozen.rootView.snapshot?.state == .inserting,
                          "Completion must preserve Inserting instead of the old timer")
             try await Task.sleep(for: .milliseconds(150))
@@ -312,6 +318,17 @@ struct NeumorphicSurface<S: Shape>: View {
         }
 
         style = .classic
+        reduceMotion = true
+        update(.recording)
+        update(.inserting)
+        controller.deliveryCompleted()
+        let reducedPanel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!
+        let reducedView = reducedPanel.contentView as! NSHostingView<RecordingHUDView>
+        precondition(reducedView.rootView.snapshot?.visualizerDisco == .still(energy: 0),
+                     "Reduce Motion delivery must freeze the displayed static palette")
+        try await Task.sleep(for: .milliseconds(550))
+        reduceMotion = false
+        print("PASS: Reduce Motion freezes the static Disco palette during delivery")
         timer.isEnabled = true
         pipeline.recordingStartedAt = Date().addingTimeInterval(-7)
         update(.recording)
@@ -582,6 +599,7 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
         run_suite(directory, "hud-visibility", {
             "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
             "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
+            "HUDDisco.swift": source("Sources/App/HUD/HUDDisco.swift"),
             "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"

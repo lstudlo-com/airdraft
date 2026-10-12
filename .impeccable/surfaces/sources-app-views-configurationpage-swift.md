@@ -46,6 +46,16 @@ preview. None hides these controls without resetting their saved values. Search
 may reveal them disabled with prerequisite guidance. Processing labels remain
 visible when the timer is off.
 
+Disco is a separate shared switch directly below the recording-window choices,
+off by default. It colorizes each style's existing animated artwork with a
+continuous voice-driven palette. Energy controls saturation and palette travel;
+smoothed syllable attacks strengthen color, and silence settles and holds it.
+Keep the capsule, well, labels and Settings surface neutral. Preserve directional
+shading on cube faces, rings and folded ribbon. All five previews reflect the
+switch using synthetic input and the shared palette. Reduce Motion retains static
+level-driven color; delivery freezes the exact palette with geometry. None hides
+Disco without resetting it, and search can reveal it disabled with guidance.
+
 ## Search composition and behavior
 
 A recessed 270 by 28 pt Search settings capsule sits at the right of the title

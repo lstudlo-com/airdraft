@@ -3,6 +3,28 @@ import XCTest
 
 @MainActor
 final class AppSettingsTests: XCTestCase {
+    func testDiscoDefaultsOffAndSurvivesPresetChangesAndRestart() throws {
+        try withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+            XCTAssertFalse(settings.hudDiscoEnabled)
+            let timer = HUDTimerOptions(isEnabled: true, position: .left)
+            settings.hudTimer = timer
+            for enabled in [true, false] {
+                settings.hudDiscoEnabled = enabled
+                for style in HUDStyle.allCases {
+                    settings.hudStyle = style
+                    let reloaded = AppSettings(defaults: defaults)
+                    XCTAssertEqual(reloaded.hudDiscoEnabled, enabled)
+                    XCTAssertEqual(reloaded.hudStyle, style)
+                    XCTAssertEqual(reloaded.hudTimer, timer)
+                }
+            }
+            defaults.set(Data("\"invalid\"".utf8), forKey: "settings.hudDiscoEnabled")
+            XCTAssertFalse(AppSettings(defaults: defaults).hudDiscoEnabled)
+            XCTAssertEqual(AppSettings(defaults: defaults).hudTimer, timer)
+        }
+    }
+
     func testClassicIsDefaultAndMiniMigratesWithoutChangingTimerPreferences() throws {
         try withDefaults { defaults in
             XCTAssertEqual(AppSettings(defaults: defaults).hudStyle, .classic)

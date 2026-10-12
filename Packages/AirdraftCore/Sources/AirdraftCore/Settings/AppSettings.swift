@@ -126,6 +126,7 @@ public final class AppSettings {
     /// Ask LM Studio to unload the LLM when the app quits.
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
+    public var hudDiscoEnabled: Bool { didSet { persist("hudDiscoEnabled", hudDiscoEnabled) } }
     public var hudTimer: HUDTimerOptions { didSet { persist("hudTimer", hudTimer) } }
     public var livePreviewEnabled: Bool { didSet { persist("livePreviewEnabled", livePreviewEnabled) } }
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
@@ -161,6 +162,7 @@ public final class AppSettings {
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         let savedHUDStyle: String? = Self.load("hudStyle", from: defaults)
         hudStyle = savedHUDStyle.flatMap(HUDStyle.init(rawValue:)) ?? .classic
+        hudDiscoEnabled = Self.load("hudDiscoEnabled", from: defaults) ?? false
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"

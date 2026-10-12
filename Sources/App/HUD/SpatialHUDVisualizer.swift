@@ -4,6 +4,7 @@ import SwiftUI
 
 @Observable final class SpatialHUDAnimation {
     var motion = SpatialHUDMotion()
+    var disco = HUDDiscoMotion()
 }
 
 /// A small software-projected scene. Only this well redraws at display cadence;
@@ -12,34 +13,54 @@ struct SpatialHUDVisualizer: View {
     let style: HUDStyle
     let levels: [Float]
     let recording: Bool
+    var discoEnabled = false
     var frozenTime: TimeInterval?
     var frozenEnergy: Double?
+    var frozenDisco: HUDDiscoFrame?
     @State var animation = SpatialHUDAnimation()
     var reduceMotionOverride: Bool?
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
+    private var pausesAnimation: Bool {
+        frozenTime != nil || reduceMotion || (style == .classic || style == .none) && !discoEnabled
+    }
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60,
-                                paused: frozenTime != nil || reduceMotion)) { timeline in
+                                paused: pausesAnimation)) { timeline in
             let target = SpatialHUDMotion.energy(levels: levels, recording: recording)
             let energy = frozenEnergy ?? (frozenTime != nil || reduceMotion ? target : animation.motion.energy)
             let phase = reduceMotion ? 0.65 : frozenTime ?? animation.motion.phase
-            Canvas { context, size in
-                let scene = SpatialHUDScene(size: size, phase: phase, energy: energy,
-                                            recording: recording, highContrast: contrast == .increased)
-                switch style {
-                case .cube: scene.cube(in: &context)
-                case .sonic: scene.sonic(in: &context)
-                case .orbit: scene.orbit(in: &context)
-                case .silk: scene.silk(in: &context)
-                case .classic, .none: break
+            let disco: HUDDiscoFrame? = discoEnabled
+                ? frozenDisco ?? (frozenTime != nil || reduceMotion ? .still(energy: target) : animation.disco.frame)
+                : nil
+            Group {
+                if style == .classic || style == .none {
+                    WaveformBars(levels: levels, dimmed: !recording, disco: disco)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 3)
+                } else {
+                    Canvas { context, size in
+                        let scene = SpatialHUDScene(size: size, phase: phase, energy: energy,
+                                                    recording: recording, highContrast: contrast == .increased,
+                                                    disco: disco)
+                        switch style {
+                        case .cube: scene.cube(in: &context)
+                        case .sonic: scene.sonic(in: &context)
+                        case .orbit: scene.orbit(in: &context)
+                        case .silk: scene.silk(in: &context)
+                        case .classic, .none: break
+                        }
+                    }
                 }
             }
             .onChange(of: timeline.date, initial: true) { _, date in
-                guard frozenTime == nil, !reduceMotion else { return }
-                animation.motion.advance(to: date.timeIntervalSinceReferenceDate, target: target, recording: recording)
+                guard !pausesAnimation else { return }
+                if style != .classic && style != .none {
+                    animation.motion.advance(to: date.timeIntervalSinceReferenceDate, target: target, recording: recording)
+                }
+                if discoEnabled { animation.disco.advance(to: date.timeIntervalSinceReferenceDate, target: target) }
             }
         }
         .accessibilityHidden(true)
@@ -77,6 +98,11 @@ private struct SpatialHUDScene {
     let energy: Double
     let recording: Bool
     let highContrast: Bool
+    let disco: HUDDiscoFrame?
+
+    private func ink(at position: Double = 0, silver: Double = 1) -> Color {
+        disco?.color(at: position, shade: silver) ?? Color(white: silver)
+    }
 
     private struct Point3 {
         var x: Double
@@ -132,7 +158,7 @@ private struct SpatialHUDScene {
                                z: sin(t) * radius * 0.5)
                 return project(rotate(p))
             }
-            context.stroke(path(points), with: .color(.white.opacity((0.09 + energy * 0.12) * intensity)),
+            context.stroke(path(points), with: .color(ink(at: Double(ring) / 3).opacity((0.09 + energy * 0.12) * intensity)),
                            lineWidth: highContrast ? 0.8 : 0.5)
         }
         let points = vertices
@@ -157,17 +183,18 @@ private struct SpatialHUDScene {
             let light = max(0, -rotatedNormal.x * 0.35 - rotatedNormal.y * 0.65 + rotatedNormal.z * 0.55)
             let silver = 0.22 + light * 0.57
             context.fill(face, with: .linearGradient(
-                Gradient(colors: [Color(white: min(1, silver + 0.20)), Color(white: silver * 0.65)]),
+                Gradient(colors: [ink(at: Double(index) / 6, silver: min(1, silver + 0.20)),
+                                  ink(at: Double(index) / 6 + 0.12, silver: silver * 0.65)]),
                 startPoint: CGPoint(x: center.x - 9, y: 0),
                 endPoint: CGPoint(x: center.x + 9, y: size.height)))
-            context.stroke(face, with: .color(.white.opacity((0.28 + light * 0.48) * intensity)),
+            context.stroke(face, with: .color(ink(at: Double(index) / 6).opacity((0.28 + light * 0.48) * intensity)),
                            lineWidth: highContrast ? 0.85 : 0.55)
             // An inset face outline gives the object a visible bevel at HUD scale.
             let centroid = CGPoint(x: corners.map(\.x).reduce(0, +) / 4,
                                    y: corners.map(\.y).reduce(0, +) / 4)
             let inset = corners.map { CGPoint(x: centroid.x + ($0.x - centroid.x) * 0.70,
                                               y: centroid.y + ($0.y - centroid.y) * 0.70) }
-            context.stroke(path(inset, closed: true), with: .color(.white.opacity(0.13 * intensity)), lineWidth: 0.4)
+            context.stroke(path(inset, closed: true), with: .color(ink(at: Double(index) / 6).opacity(0.13 * intensity)), lineWidth: 0.4)
         }
         // Two balanced traces connect the floating object to the audio field.
         for side in [-1.0, 1.0] {
@@ -177,7 +204,7 @@ private struct SpatialHUDScene {
                 return CGPoint(x: center.x + side * (14 + t * 22),
                                y: center.y + sin(t * 9 - phase * 3) * envelope * energy * 3)
             }
-            context.stroke(path(trace), with: .color(.white.opacity((0.20 + energy * 0.48) * intensity)), lineWidth: 0.75)
+            context.stroke(path(trace), with: .color(ink(at: side > 0 ? 1 : 0).opacity((0.20 + energy * 0.48) * intensity)), lineWidth: 0.75)
         }
     }
 
@@ -200,10 +227,12 @@ private struct SpatialHUDScene {
             if strand == 3 && !highContrast {
                 var glow = context
                 glow.addFilter(.blur(radius: 1.5))
-                glow.stroke(curve, with: .color(.white.opacity(energy * 0.25)), lineWidth: 2.5)
+                glow.stroke(curve, with: .color(ink(at: 0.5).opacity(energy * 0.25)), lineWidth: 2.5)
             }
             context.stroke(curve, with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.06), .white.opacity(opacity), .white.opacity(0.06)]),
+                Gradient(colors: [ink(at: Double(strand) / 12).opacity(0.06),
+                                  ink(at: Double(strand) / 12 + 0.4).opacity(opacity),
+                                  ink(at: Double(strand) / 12 + 0.8).opacity(0.06)]),
                 startPoint: CGPoint(x: 6, y: 0), endPoint: CGPoint(x: size.width - 6, y: 0)),
                 lineWidth: strand == 3 ? 0.9 : 0.5)
         }
@@ -217,6 +246,7 @@ private struct SpatialHUDScene {
             let b: CGPoint
             let depth: Double
             let silver: Double
+            let colorPosition: Double
         }
         var segments: [Segment] = []
         for ring in 0..<3 {
@@ -233,17 +263,18 @@ private struct SpatialHUDScene {
                 let b = points[index + 1]
                 let light = max(0, min(1, 0.55 - (a.x + a.y) * 0.23 + a.z * 0.14))
                 segments.append(Segment(a: project(a), b: project(b), depth: (a.z + b.z) / 2,
-                                        silver: 0.22 + light * 0.72))
+                                        silver: 0.22 + light * 0.72,
+                                        colorPosition: Double(ring) / 3 + Double(index) / 144))
             }
         }
         for segment in segments.sorted(by: { $0.depth < $1.depth }) {
             context.stroke(path([segment.a, segment.b]),
-                           with: .color(Color(white: segment.silver).opacity(intensity)),
+                           with: .color(ink(at: segment.colorPosition, silver: segment.silver).opacity(intensity)),
                            style: StrokeStyle(lineWidth: highContrast ? 1.2 : 0.85, lineCap: .round))
         }
         let pearl = CGRect(x: center.x - 2.2, y: center.y - 2.2, width: 4.4, height: 4.4)
         context.fill(Path(ellipseIn: pearl), with: .linearGradient(
-            Gradient(colors: [Color(white: 0.95), Color(white: 0.24)]),
+            Gradient(colors: [ink(at: 0.5, silver: 0.95), ink(at: 0.5, silver: 0.24)]),
             startPoint: CGPoint(x: pearl.minX, y: pearl.minY),
             endPoint: CGPoint(x: pearl.maxX, y: pearl.maxY)))
         // Short, tapered side ripples give quiet input a stable silhouette.
@@ -254,7 +285,8 @@ private struct SpatialHUDScene {
                                y: center.y + sin(t * 10 - phase * 2) * sin(t * .pi) * (0.4 + energy * 2.1))
             }
             context.stroke(path(points), with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.45 * intensity), .white.opacity(0.03)]),
+                Gradient(colors: [ink(at: side > 0 ? 1 : 0).opacity(0.45 * intensity),
+                                  ink(at: side > 0 ? 1 : 0).opacity(0.03)]),
                 startPoint: CGPoint(x: center.x + side * 13, y: center.y),
                 endPoint: CGPoint(x: center.x + side * 35, y: center.y)), lineWidth: 0.65)
         }
@@ -280,15 +312,17 @@ private struct SpatialHUDScene {
             let bottom = (0...72).reversed().map { point(Double($0) / 72, across: upper) }
             let silver = 0.27 + 0.65 * pow(1 - Double(strip) / Double(strips), 0.7)
             context.fill(path(top + bottom, closed: true), with: .linearGradient(
-                Gradient(colors: [Color(white: silver * 0.38), Color(white: silver),
-                                  Color(white: silver * 0.62), Color(white: silver * 0.28)]),
+                Gradient(colors: [ink(at: 0, silver: silver * 0.38),
+                                  ink(at: 0.36 + Double(strip) / 56, silver: silver),
+                                  ink(at: 0.70, silver: silver * 0.62), ink(at: 1, silver: silver * 0.28)]),
                 startPoint: CGPoint(x: 5, y: 0), endPoint: CGPoint(x: size.width - 5, y: size.height)))
         }
         for edge in [-1.0, 1.0] {
             let points = (0...72).map { point(Double($0) / 72, across: edge) }
             context.stroke(path(points), with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.04), .white.opacity((edge < 0 ? 0.86 : 0.28) * intensity),
-                                  .white.opacity(0.04)]),
+                Gradient(colors: [ink(at: 0).opacity(0.04),
+                                  ink(at: edge < 0 ? 0.35 : 0.65).opacity((edge < 0 ? 0.86 : 0.28) * intensity),
+                                  ink(at: 1).opacity(0.04)]),
                 startPoint: CGPoint(x: 5, y: 0), endPoint: CGPoint(x: size.width - 5, y: 0)),
                 lineWidth: highContrast ? 0.8 : 0.45)
         }

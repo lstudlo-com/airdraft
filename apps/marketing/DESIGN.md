@@ -477,8 +477,9 @@ Its heading and one-line intro are centered over the window, `72px` above it
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the
 Graphite accent) in `public/app/`. Re-render it when the Settings page,
-sidebar or materials change. The source render is 784 by 900 points so all six recording-window choices
-and the timer row fit. The window is `784px` wide at most, `16px`
+sidebar or materials change. The source render is 784 by 1000 points so all six recording-window choices,
+the Disco switch and the timer row fit. Disco is off in these grayscale screenshots.
+The window is `784px` wide at most, `16px`
 corners (`12px` on phones), raised with the hero's spread, with an inactive
 window's gray close and minimize buttons 16 points in. Both appearances are
 stacked; a groove divider with a raised round key compares them. Dragging the
