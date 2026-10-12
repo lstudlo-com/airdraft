@@ -8,11 +8,33 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-08.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-12.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-10-1",
+    version: "0.10.1",
+    date: "2026-10-12",
+    title: "Recover stalled models and add Disco colors",
+    changes: [
+      {
+        title: "Switch away from a stalled speech model",
+        description:
+          "Model loading now has a two-minute limit. Cancelling or changing models frees the next selection while unfinished native work cleans up safely. A model still cleaning up stays protected from duplicate loading and deletion.",
+      },
+      {
+        title: "Make recording colors respond to speech",
+        description:
+          "The saved Disco switch adds flowing colors to Classic, Cube, Sonic, Orbit and Silk. Voice energy and syllable accents shape the palette, which settles during pauses and freezes during delivery. Reduce Motion keeps the colors still.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.10.1-build.216",
+    },
+  },
   {
     id: "0-10-0",
     version: "0.10.0",
