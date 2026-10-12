@@ -507,6 +507,13 @@ verification status belong in the vault (see below).
   showing Loading in all visible HUD styles before opening the microphone.
   Join an existing load through `EngineFactory`; cancellation or changed setup
   must not start stale recording. Missing model files still require installation.
+  Bound speech-model preparation to 120 seconds. Cancellation and timeout release
+  the selection lease even when a native loader ignores cancellation. Retire that
+  engine instance until its preparation returns, then unload it without publishing
+  late readiness. Block another load of the same model until retirement completes;
+  other models remain selectable. Keep its files protected through
+  `EngineStatus.hasPendingLoad`, and let reset/quit wait for retirement within their
+  existing deadlines. Active inference and its unload still share the factory lease.
   Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable
   5, 10, 30 minutes and Never; preserve explicitly saved choices.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in

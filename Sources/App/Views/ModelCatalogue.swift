@@ -361,7 +361,7 @@ struct ModelRow: View {
             .foregroundStyle(.secondary)
             .help(isSelectedForUse ? "Choose another model in Models or the active profile before deleting this one" : "Delete downloaded files")
             .accessibilityLabel("Delete \(entry.title)")
-            .disabled(isSelectedForUse || container.pipeline.isBusy || container.engineStatus.state(for: entryConfig.engineID) == .loading)
+            .disabled(isSelectedForUse || container.pipeline.isBusy || container.engineStatus.hasPendingLoad(for: entryConfig.engineID))
             .confirmationDialog("Delete \(entry.title)?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete", role: .destructive) { deleteFiles() }
             } message: {
@@ -379,7 +379,7 @@ struct ModelRow: View {
 
     private func deleteFiles() {
         guard !isSelectedForUse, !container.pipeline.isBusy,
-              container.engineStatus.state(for: entryConfig.engineID) != .loading else { return }
+              !container.engineStatus.hasPendingLoad(for: entryConfig.engineID) else { return }
         do {
             try LocalModels.remove(entryConfig)
             error = nil

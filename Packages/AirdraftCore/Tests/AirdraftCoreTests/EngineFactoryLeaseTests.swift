@@ -1,8 +1,118 @@
 import XCTest
+import os
 @testable import AirdraftCore
 
 @MainActor
 final class EngineFactoryLeaseTests: XCTestCase {
+    func testCancelledLoadDoesNotBlockAnotherModelOrPublishLateReadiness() async throws {
+        let firstConfig = ASRConfig(kind: .parakeet)
+        let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+        let first = SuspendedLoadSpeech(id: firstConfig.engineID)
+        let second = LeaseSpeech(id: secondConfig.engineID)
+        let status = EngineStatus()
+        let factory = factory(status: status) { config in
+            if config.kind == .parakeet { return first }
+            return second
+        }
+        var loadFinished = false
+        let loading = Task {
+            defer { loadFinished = true }
+            try await factory.prepare(firstConfig)
+        }
+        defer { loading.cancel(); Task { await first.release() } }
+        try await waitUntil("First load started") { await first.isLoading }
+        loading.cancel()
+        let switching = Task { try await factory.prepare(secondConfig) }
+        defer { switching.cancel() }
+        try await waitUntil("Cancelled load releases selection without waiting for the SDK") {
+            loadFinished && status.state(for: secondConfig.engineID) == .ready
+        }
+        try await switching.value
+        guard case .failure(let error) = await loading.result, error is CancellationError else {
+            return XCTFail("Cancelled preparation must report cancellation")
+        }
+        XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
+        XCTAssertTrue(status.hasPendingLoad(for: firstConfig.engineID), "Files stay protected until native work ends")
+        let unloadedWhileLoading = await first.unloadedWhileLoading
+        XCTAssertFalse(unloadedWhileLoading, "Do not unload a model while its SDK is still loading")
+
+        await first.release()
+        try await waitUntil("Abandoned model is unloaded after its SDK returns") {
+            await first.unloaded && !status.hasPendingLoad(for: firstConfig.engineID)
+        }
+        XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
+        XCTAssertEqual(status.state(for: secondConfig.engineID), .ready)
+        await factory.unloadAll()
+    }
+
+    func testLoadTimeoutAllowsSwitchingButPreventsDuplicateNativeLoads() async throws {
+        let config = ASRConfig(kind: .parakeet)
+        let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+        let stalled = SuspendedLoadSpeech(id: config.engineID)
+        let retry = LeaseSpeech(id: config.engineID)
+        let other = LeaseSpeech(id: otherConfig.engineID)
+        let builds = OSAllocatedUnfairLock(initialState: 0)
+        let status = EngineStatus()
+        let factory = factory(status: status, timeout: 0.1) { config in
+            if config.kind != .parakeet { return other }
+            let count = builds.withLock { count in count += 1; return count }
+            if count == 1 { return stalled }
+            return retry
+        }
+        defer { Task { await stalled.release() } }
+        do {
+            try await factory.prepare(config)
+            XCTFail("A stalled load must time out")
+        } catch TranscriberError.modelLoadTimedOut {}
+        XCTAssertEqual(status.state(for: config.engineID), .failed(TranscriberError.modelLoadTimedOut.localizedDescription))
+        XCTAssertTrue(status.hasPendingLoad(for: config.engineID))
+        do {
+            try await factory.prepare(config)
+            XCTFail("Do not start a second copy of the same native load")
+        } catch TranscriberError.modelLoadStillStopping {}
+        XCTAssertEqual(builds.withLock { $0 }, 1)
+        try await factory.prepare(otherConfig)
+        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+
+        await stalled.release()
+        try await waitUntil("Native cleanup finishes") { !status.hasPendingLoad(for: config.engineID) }
+        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+        try await factory.prepare(config)
+        XCTAssertEqual(builds.withLock { $0 }, 2, "Retry must use a fresh engine")
+        XCTAssertEqual(status.state(for: config.engineID), .ready)
+        XCTAssertEqual(status.state(for: otherConfig.engineID), .notLoaded)
+        await factory.unloadAll()
+    }
+
+    func testUnloadAllWaitsForRetiredLoadWithoutBlockingAnotherSelection() async throws {
+        let config = ASRConfig(kind: .parakeet)
+        let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+        let stalled = SuspendedLoadSpeech(id: config.engineID)
+        let other = LeaseSpeech(id: otherConfig.engineID)
+        let status = EngineStatus()
+        let factory = factory(status: status, timeout: 0.1) { config in
+            if config.kind == .parakeet { return stalled }
+            return other
+        }
+        defer { Task { await stalled.release() } }
+        do { try await factory.prepare(config); XCTFail("Expected load timeout") }
+        catch TranscriberError.modelLoadTimedOut {}
+        var cleanupFinished = false
+        let cleanup = Task { await factory.unloadAll(); cleanupFinished = true }
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(cleanupFinished, "Reset must not delete files still used by a retired loader")
+        try await factory.prepare(otherConfig)
+        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+        XCTAssertFalse(cleanupFinished)
+        await stalled.release()
+        await cleanup.value
+        let unloadedWhileLoading = await stalled.unloadedWhileLoading
+        XCTAssertFalse(unloadedWhileLoading)
+        XCTAssertFalse(status.hasPendingLoad(for: config.engineID))
+        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+        await factory.unloadAll()
+    }
+
     func testUnloadWaitsForActiveTranscription() async throws {
         let config = ASRConfig(kind: .parakeet)
         let speech = LeaseSpeech(id: config.engineID)
@@ -103,9 +213,9 @@ final class EngineFactoryLeaseTests: XCTestCase {
         await busyFactory.unloadAll()
     }
 
-    private func factory(status: EngineStatus,
+    private func factory(status: EngineStatus, timeout: TimeInterval = 120,
                          builder: @escaping @Sendable (ASRConfig) -> any Transcriber) -> EngineFactory {
-        EngineFactory(status: status, credentialReader: { _ in
+        EngineFactory(status: status, modelLoadTimeout: timeout, credentialReader: { _ in
             XCTFail("Local lifecycle tests must not read credentials")
             return nil
         }, transcriberBuilder: builder)
@@ -124,6 +234,32 @@ final class EngineFactoryLeaseTests: XCTestCase {
 }
 
 private enum LeaseFailure: Error { case timedOut }
+
+/// Deliberately ignores cancellation, like a synchronous native model compiler.
+private actor SuspendedLoadSpeech: Transcriber {
+    nonisolated let id: String
+    private var continuation: CheckedContinuation<Void, Never>?
+    private var ready = false
+    var isLoading: Bool { continuation != nil }
+    private(set) var unloaded = false
+    private(set) var unloadedWhileLoading = false
+    init(id: String) { self.id = id }
+    func isReady() -> Bool { ready }
+    func prepare() async throws {
+        await withCheckedContinuation { continuation = $0 }
+        ready = true
+    }
+    func release() { continuation?.resume(); continuation = nil }
+    func unload() {
+        unloadedWhileLoading = isLoading
+        ready = false
+        unloaded = true
+    }
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        XCTFail("The abandoned model must never transcribe")
+        throw LeaseFailure.timedOut
+    }
+}
 
 private actor LeaseSpeech: Transcriber {
     enum Event: Equatable { case prepare, transcribeStarted, transcribeFinished, unload }

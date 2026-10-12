@@ -11,17 +11,21 @@ public actor EngineFactory {
     private var local: [String: any Transcriber] = [:]
     private var operationTail: Task<Void, Never>?
     private var idleTask: Task<Void, Never>?
+    private let modelLoadTimeout: TimeInterval
+    private var retiringLoads: [String: Task<Void, Never>] = [:]
     private let transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)?
     private let refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)?
     private let credentialReader: @Sendable (String) throws -> String?
 
     public init(status: EngineStatus,
+                modelLoadTimeout: TimeInterval = 120,
                 credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) },
                 transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil,
                 refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)? = nil) {
         self.transcriberBuilder = transcriberBuilder
         self.refinerBuilder = refinerBuilder
         self.status = status
+        self.modelLoadTimeout = modelLoadTimeout
         self.credentialReader = credentialReader
         Task { await self.startIdleWatch() }
     }
@@ -204,6 +208,11 @@ public actor EngineFactory {
 
     private func prepareExclusive(_ config: ASRConfig) async throws {
         try Task.checkCancellation()
+        guard retiringLoads[config.engineID] == nil else {
+            let error = TranscriberError.modelLoadStillStopping
+            await MainActor.run { status.set(config.engineID, .failed(error.localizedDescription)) }
+            throw error
+        }
         let engine = transcriber(for: config)
         await unloadAllExclusive(except: engine.id)
         try Task.checkCancellation()
@@ -212,19 +221,42 @@ public actor EngineFactory {
             return
         }
         await MainActor.run { status.set(engine.id, .loading) }
+        let preparation = Task { try await engine.prepare() }
         do {
-            try await engine.prepare()
+            try await OperationDeadline.run(seconds: modelLoadTimeout) {
+                try await withTaskCancellationHandler {
+                    try await preparation.value
+                } onCancel: { preparation.cancel() }
+            }
             try Task.checkCancellation()
             await MainActor.run { status.set(engine.id, .ready) }
         } catch {
-            await engine.unload()
-            if Task.isCancelled {
-                await MainActor.run { status.set(engine.id, .notLoaded) }
-                throw CancellationError()
+            let cancelled = Task.isCancelled || error is CancellationError
+            let failure: Error
+            if cancelled { failure = CancellationError() }
+            else if case RefinerError.timeout = error { failure = TranscriberError.modelLoadTimedOut }
+            else { failure = error }
+            preparation.cancel()
+            // A native compiler may ignore cancellation. Retire this instance
+            // outside the lease so another model can load, but do not unload it
+            // or allow its files to be deleted until preparation really returns.
+            local[engine.id] = nil
+            await MainActor.run {
+                status.setRetiring(engine.id, true)
+                status.set(engine.id, cancelled ? .notLoaded : .failed(failure.localizedDescription))
             }
-            await MainActor.run { status.set(engine.id, .failed(error.localizedDescription)) }
-            throw error
+            retiringLoads[engine.id] = Task { [weak self] in
+                _ = await preparation.result
+                await engine.unload()
+                await self?.finishRetiringLoad(engine.id)
+            }
+            throw failure
         }
+    }
+
+    private func finishRetiringLoad(_ engineID: String) async {
+        retiringLoads[engineID] = nil
+        await MainActor.run { status.setRetiring(engineID, false) }
     }
 
     public func markUsed(_ engineID: String) async {
@@ -233,6 +265,10 @@ public actor EngineFactory {
 
     public func unloadAll(except keep: String? = nil) async {
         _ = try? await serialize { await self.unloadAllExclusive(except: keep) }
+        // Reset and quit still wait for owned native work. This wait must stay
+        // outside the lease, so it cannot block an unrelated model selection.
+        let pending = Array(retiringLoads.values)
+        for task in pending { await task.value }
     }
 
     private func unloadAllExclusive(except keep: String? = nil) async {

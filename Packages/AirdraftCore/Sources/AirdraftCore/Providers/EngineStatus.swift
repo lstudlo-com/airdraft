@@ -23,10 +23,21 @@ public enum EngineLoadState: Equatable, Sendable {
 public final class EngineStatus {
     public private(set) var states: [String: EngineLoadState] = [:]
     public private(set) var lastUsedAt: [String: Date] = [:]
+    private var retiringLoads: Set<String> = []
 
     public init() {}
 
     public func state(for engineID: String) -> EngineLoadState { states[engineID] ?? .notLoaded }
+
+    /// Cancelled native preparation may still be reading model files.
+    public func hasPendingLoad(for engineID: String) -> Bool {
+        state(for: engineID) == .loading || retiringLoads.contains(engineID)
+    }
+
+    func setRetiring(_ id: String, _ retiring: Bool) {
+        if retiring { retiringLoads.insert(id) }
+        else { retiringLoads.remove(id) }
+    }
 
     #if DEBUG
     public func setPreviewState(_ id: String, _ state: EngineLoadState) { set(id, state) }

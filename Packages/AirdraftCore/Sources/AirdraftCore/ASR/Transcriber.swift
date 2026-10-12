@@ -79,6 +79,8 @@ public enum TranscriberError: Error, LocalizedError {
     case http(status: Int, body: String)
     case invalidResponse
     case modelNotDownloaded
+    case modelLoadTimedOut
+    case modelLoadStillStopping
     case appleUnavailable
     case missingAPIKey(String)
     case timedOut
@@ -92,6 +94,8 @@ public enum TranscriberError: Error, LocalizedError {
             return "Speech provider returned HTTP \(status)\(detail)"
         case .invalidResponse: return "The speech provider returned an unexpected response."
         case .modelNotDownloaded: return "Speech model is not downloaded. Download it on the Models page."
+        case .modelLoadTimedOut: return "Speech model loading took too long. Try again or choose another model in Models."
+        case .modelLoadStillStopping: return "The previous model load is still stopping. Choose another model, or restart Airdraft to retry this one."
         case .appleUnavailable: return "Apple speech recognition needs macOS 26 or newer."
         case .missingAPIKey(let provider): return "Add your \(provider) API key on the Models page."
         case .timedOut: return "Transcription took too long. Please try again."
