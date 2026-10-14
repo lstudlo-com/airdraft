@@ -22,6 +22,7 @@ final class SpeechPresetTests: XCTestCase {
         XCTAssertEqual(ModelCatalog.transcriptionModels(for: .openAI), ["gpt-transcribe", "gpt-4o-mini-transcribe", "gpt-4o-transcribe"])
         XCTAssertEqual(ModelCatalog.transcriptionModels(for: .elevenLabs), ["scribe_v2", "scribe_v2_medical"])
         XCTAssertEqual(ModelCatalog.transcriptionModels(for: .soniox), ["stt-async-v5"])
+        XCTAssertEqual(ModelCatalog.transcriptionModels(for: .assemblyAI), ["universal-3-5-pro", "universal-3-6-pro-preview"])
         XCTAssertEqual(ASRProviderKind.openRouter.preset?.defaultModel, "openai/whisper-1")
     }
 
@@ -135,6 +136,7 @@ final class SpeechPresetTests: XCTestCase {
                 case let e as OpenAICompatibleTranscriber: XCTAssertEqual(e.model, model)
                 case let e as ElevenLabsTranscriber: XCTAssertEqual(e.modelId, model)
                 case let e as DeepgramTranscriber: XCTAssertEqual(e.model, model)
+                case let e as AssemblyAITranscriber: XCTAssertEqual(e.model, model)
                 default: break
                 }
             }

@@ -166,6 +166,10 @@ public enum SpeechLanguagePolicy {
             return capability("Soniox v5", nil, true, .hint,
                               "Recognizes mixed languages automatically. A selected language is a hint.")
         case .assemblyAI:
+            if cloudModel == "universal-3-6-pro-preview" {
+                return capability("AssemblyAI Universal-3.6 Pro (Preview)", nil, nil, .hint,
+                                  "Batch preview language coverage is unverified. A selected language is a hint.")
+            }
             return capability("AssemblyAI Universal-3.5 Pro", assemblyLanguages, true, .hint,
                               "18 languages, including Mandarin. Auto Detect supports language switching.")
         case .cartesia:

@@ -933,11 +933,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Parakeet TDT 0.6B v3 INT8, Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
   SenseVoice-small, Whisper Large v3, standard and compressed Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
-  ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3, AssemblyAI Universal-3.5 Pro,
+  ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3, AssemblyAI Universal-3.5 Pro
+  and Universal-3.6 Pro batch preview (`universal-3-6-pro-preview`),
   Cartesia Ink-Whisper, Speechmatics Enhanced, xAI Grok Voice Transcribe 2.0,
   Mistral Voxtral Mini Transcribe and Gemini 3.5 Transcribe, plus OpenRouter
   (see `docs/transcription-apis.md`). Each direct provider uses its native speech API.
-  Cartesia file transcription requires an explicit language. Batch jobs/files are
+  Cartesia file transcription requires an explicit language. AssemblyAI requests
+  include only the selected batch model; never send the 3.6 streaming ID to the
+  batch endpoint or silently replace it with 3.5 Pro. Batch jobs/files are
   deleted on success, failure and cancellation when reachable; never send Gemini
   speech through a chat prompt or enable its smart mode as implicit refinement.
   Core ML speech choices use `CoreMLSpeechModelCatalog` / `FluidAudioTranscriber`

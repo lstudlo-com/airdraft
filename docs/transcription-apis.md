@@ -165,15 +165,24 @@ speech bindings. They do not require OpenRouter.
 
 | Provider | Model and request | Language and dictionary contract |
 |---|---|---|
-| [AssemblyAI](https://www.assemblyai.com/docs/api-reference/transcripts/submit) | `universal-3-5-pro`; binary upload → JSON batch job → poll → delete | 18 supported languages. Automatic detection and code-switching are enabled. An explicit language narrows expected languages to it plus English; native keyterms are sent. |
+| [AssemblyAI](https://www.assemblyai.com/docs/api-reference/transcripts/submit) | `universal-3-5-pro` and `universal-3-6-pro-preview`; binary upload → JSON batch job → poll → delete | 3.5 Pro supports 18 languages. 3.6 Pro is a pre-recorded preview with unverified language coverage. Automatic detection and code-switching are requested. An explicit language narrows expected languages to it plus English; native keyterms are sent. |
 | [Cartesia](https://docs.cartesia.ai/api-reference/stt/transcribe) | `ink-whisper`; multipart `POST /stt`, `Cartesia-Version: 2026-08-14` | An explicit language is required; Auto Detect is blocked before upload. Dictionary substitutions apply after transcription. Ink-2 is streaming-only and is not offered by this file adapter. |
 | [Speechmatics](https://docs.speechmatics.com/speech-to-text/batch/quickstart) | `enhanced`; EU batch `POST /v2/jobs`, multipart `config` and `data_file` → poll → text → delete | Mandarin maps to `cmn`; dictionary terms use `additional_vocab`. Auto Detect chooses one predominant language and works best with at least 60 seconds of speech. |
 | [xAI](https://docs.x.ai/developers/model-capabilities/audio/speech-to-text) | `grok-voice-transcribe-2.0`; multipart `POST /v1/stt` | Language is optional; omitted means automatic detection. Native `keyterm` fields precede the audio file. |
 | [Mistral](https://docs.mistral.ai/studio/audio/speech_to_text/offline_transcription) | `voxtral-mini-latest`; multipart `POST /v1/audio/transcriptions` | 13 languages including Mandarin; language is an optional hint. Dictionary substitutions apply after transcription. |
 | [Gemini](https://ai.google.dev/gemini-api/docs/transcribe) | `gemini-3.5-transcribe`; resumable WAV upload → Interactions → delete file | Verbatim mode preserves fillers and repetitions. Language hints and `custom_vocabulary` are native transcription fields; the adapter never asks a chat model to rewrite speech. |
 
-AssemblyAI uses the batch API across Airdraft's ten-minute recording range;
-the 120-second Sync API is not the adapter used here. AssemblyAI, Speechmatics and
+AssemblyAI uses the batch API across Airdraft's ten-minute recording range.
+Both Models and Profiles can select Universal-3.6 Pro (Preview), using the
+pre-recorded ID `universal-3-6-pro-preview` listed on AssemblyAI's
+[roadmap](https://www.assemblyai.com/roadmap). The stable streaming ID
+`universal-3-6-pro` belongs to the WebSocket API and is not sent to the batch
+endpoint. The batch API reference still enumerates only 3.5 Pro and Universal-2;
+preview availability requires a real request with the user's account. Airdraft
+keeps 3.5 Pro as the provider default and preserves saved selections. It sends only
+the selected model, without a fallback to 3.5 Pro. The preview does not inherit
+3.5 Pro's 18-language Auto restriction or the streaming model's 32-language claim.
+The 120-second Sync API is not the adapter used here. AssemblyAI, Speechmatics and
 Gemini share one 180-second deadline per operation. Polling and cancellation are
 bounded, and deletion is attempted only for a validated job/file created by that
 operation, with a separate two-second cleanup deadline. An AssemblyAI upload whose

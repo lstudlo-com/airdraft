@@ -111,7 +111,12 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
             return [.init(id: "universal-3-5-pro", title: "Universal-3.5 Pro", price: "See pricing",
                           billing: "https://www.assemblyai.com/dashboard", quality: "18 languages",
                           qualityDetail: "Includes Mandarin and English code-switching; uses dictionary keyterms.", speed: "Not published", speedDetail: unpublished,
-                          documentationURL: URL(string: "https://www.assemblyai.com/docs/pre-recorded-audio/universal-3-5-pro")!)]
+                          documentationURL: URL(string: "https://www.assemblyai.com/docs/pre-recorded-audio/select-the-speech-model")!),
+                    .init(id: "universal-3-6-pro-preview", title: "Universal-3.6 Pro (Preview)", price: "See pricing",
+                          billing: "https://www.assemblyai.com/dashboard", quality: "Batch preview",
+                          qualityDetail: "Pre-recorded preview. Language coverage and accuracy have not been verified.",
+                          speed: "Not published", speedDetail: unpublished,
+                          documentationURL: URL(string: "https://www.assemblyai.com/roadmap")!)]
         case .cartesia:
             return [.init(id: "ink-whisper", title: "Ink-Whisper", price: "See pricing",
                           billing: "https://play.cartesia.ai/keys", quality: "Broad language coverage",

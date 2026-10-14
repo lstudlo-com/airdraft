@@ -2,14 +2,16 @@ import Foundation
 
 /// Batch transcription supports Airdraft's full recording length without chunking.
 public struct AssemblyAITranscriber: Transcriber {
-    public let id = "assemblyAI:universal-3-5-pro"
+    public var id: String { "assemblyAI:\(model)" }
+    public let model: String
     public let apiKey: String?
     public let timeout: TimeInterval
     private let http: TranscriptionHTTP
     private let pollInterval: TimeInterval
     private static let base = URL(string: "https://api.assemblyai.com/v2")!
 
-    public init(apiKey: String?, timeout: TimeInterval = 180, session: URLSession? = nil, pollInterval: TimeInterval = 0.5) {
+    public init(model: String = "universal-3-5-pro", apiKey: String?, timeout: TimeInterval = 180, session: URLSession? = nil, pollInterval: TimeInterval = 0.5) {
+        self.model = model
         self.apiKey = apiKey; self.timeout = timeout; http = TranscriptionHTTP(session: session)
         self.pollInterval = pollInterval
     }
@@ -17,11 +19,18 @@ public struct AssemblyAITranscriber: Transcriber {
     public func prepare() async throws {}
 
     func payload(audioURL: String, hints: TranscriptionHints) throws -> [String: Any] {
-        let language = try SpeechLanguagePolicy.resolve(ASRConfig(kind: .assemblyAI, language: hints.languageCode ?? "auto")).language
-        let expected = language.map { Array(Set([$0, "en"])).sorted() } ?? SpeechLanguagePolicy.assemblyLanguages
-        var body: [String: Any] = ["audio_url": audioURL, "speech_models": ["universal-3-5-pro"],
-                                   "language_detection": true,
-                                   "language_detection_options": ["expected_languages": expected, "code_switching": true]]
+        guard SpeechModelInfo.models(for: .assemblyAI).contains(where: { $0.id == model }) else {
+            throw TranscriberError.providerFailure("AssemblyAI", "Unsupported batch model: \(model). Choose a model on Models.")
+        }
+        let language = try SpeechLanguagePolicy.resolve(ASRConfig(kind: .assemblyAI, model: model, language: hints.languageCode ?? "auto")).language
+        var options: [String: Any] = ["code_switching": true]
+        if let language {
+            options["expected_languages"] = Array(Set([language, "en"])).sorted()
+        } else if model == "universal-3-5-pro" {
+            options["expected_languages"] = SpeechLanguagePolicy.assemblyLanguages
+        }
+        var body: [String: Any] = ["audio_url": audioURL, "speech_models": [model],
+                                   "language_detection": true, "language_detection_options": options]
         let terms = hints.vocabularyTerms.prefix(100).filter { $0.split(whereSeparator: \.isWhitespace).count <= 6 }
         if !terms.isEmpty { body["keyterms_prompt"] = Array(terms) }
         return body
@@ -42,7 +51,14 @@ public struct AssemblyAITranscriber: Transcriber {
             upload.httpBody = WAVEncoder.encode(samples: samples)
             let audio = try await http.decode(Upload.self, from: upload).upload_url
             guard let url = URL(string: audio), url.scheme == "https", url.host != nil else { throw TranscriberError.invalidResponse }
-            struct Job: Decodable { let id: String; let status: String; let text: String?; let language_code: String?; let error: String? }
+            struct Job: Decodable {
+                let id: String
+                let status: String
+                let text: String?
+                let language_code: String?
+                let speech_model_used: String?
+                let error: String?
+            }
             var create = try CloudSpeechResources.request(Self.base.appendingPathComponent("transcript"), method: "POST", key: key, prefix: "", deadline: deadline)
             create.setValue("application/json", forHTTPHeaderField: "Content-Type")
             create.httpBody = try JSONSerialization.data(withJSONObject: payload(audioURL: audio, hints: hints))
@@ -59,6 +75,10 @@ public struct AssemblyAITranscriber: Transcriber {
                 job = next
             }
             guard let text = job.text else { throw TranscriberError.invalidResponse }
+            if let used = job.speech_model_used, used != model,
+               !(model == "universal-3-6-pro-preview" && used == "universal-3-6-pro") {
+                throw TranscriberError.providerFailure("AssemblyAI", "Requested \(model), but AssemblyAI used \(used). Choose another model or retry.")
+            }
             await cleanup(jobID, key: key)
             jobID = nil
             try Task.checkCancellation()

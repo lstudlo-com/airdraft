@@ -68,7 +68,7 @@ public actor EngineFactory {
         case .soniox:
             return SonioxTranscriber(apiKey: key)
         case .assemblyAI:
-            return AssemblyAITranscriber(apiKey: key)
+            return AssemblyAITranscriber(model: config.speechModelID, apiKey: key)
         case .cartesia:
             return CartesiaTranscriber(apiKey: key)
         case .speechmatics:

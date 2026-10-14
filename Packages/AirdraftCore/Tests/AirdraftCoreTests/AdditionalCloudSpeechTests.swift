@@ -107,25 +107,79 @@ final class AdditionalCloudSpeechTests: XCTestCase {
     }
 
     func testAssemblyBatchCompletesAndDeletesOwnJob() async throws {
-        let deleted = expectation(description: "Assembly job deleted")
-        let s = session { request in
-            XCTAssertEqual(request.url?.host, "api.assemblyai.com")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "key")
-            if request.httpMethod == "DELETE" {
-                XCTAssertEqual(request.url?.path, "/v2/transcript/\(self.jobID)"); deleted.fulfill(); return .init()
+        for model in ModelCatalog.transcriptionModels(for: .assemblyAI) {
+            let deleted = expectation(description: "Assembly job deleted")
+            let s = session { request in
+                XCTAssertEqual(request.url?.host, "api.assemblyai.com")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "key")
+                if request.httpMethod == "DELETE" {
+                    XCTAssertEqual(request.url?.path, "/v2/transcript/\(self.jobID)"); deleted.fulfill(); return .init()
+                }
+                switch request.url?.path {
+                case "/v2/upload":
+                    XCTAssertEqual(self.body(request), WAVEncoder.encode(samples: self.samples))
+                    return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
+                case "/v2/transcript":
+                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: self.body(request)) as? [String: Any])
+                    XCTAssertEqual(payload["speech_models"] as? [String], [model])
+                    return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
+                default: return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
+                }
             }
-            switch request.url?.path {
-            case "/v2/upload":
-                XCTAssertEqual(self.body(request), WAVEncoder.encode(samples: self.samples))
-                return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
-            case "/v2/transcript": return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
-            default: return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
-            }
+            defer { s.invalidateAndCancel() }
+            let result = try await AssemblyAITranscriber(model: model, apiKey: "key", session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
+            XCTAssertEqual(result.text, "中文 English")
+            XCTAssertEqual(result.engine, "assemblyAI:\(model)")
+            await fulfillment(of: [deleted], timeout: 1)
         }
-        defer { s.invalidateAndCancel() }
-        let result = try await AssemblyAITranscriber(apiKey: "key", session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
-        XCTAssertEqual(result.text, "中文 English")
-        await fulfillment(of: [deleted], timeout: 1)
+    }
+
+    func testAssemblyPreviewDoesNotInheritStableOrStreamingLanguageClaims() throws {
+        let engine = AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key")
+        let automatic = try engine.payload(audioURL: "", hints: .init())
+        let options = try XCTUnwrap(automatic["language_detection_options"] as? [String: Any])
+        XCTAssertNil(options["expected_languages"], "Do not restrict the preview to 3.5 Pro's 18 languages.")
+        let payload = try engine.payload(audioURL: "", hints: .init(language: "yue"))
+        let explicit = try XCTUnwrap(payload["language_detection_options"] as? [String: Any])
+        XCTAssertEqual(explicit["expected_languages"] as? [String], ["en", "yue"])
+        let capabilities = SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .assemblyAI, model: engine.model))
+        XCTAssertNil(capabilities.supportedLanguages)
+        XCTAssertNil(capabilities.supportsAutomatic)
+        XCTAssertTrue(capabilities.modelName.contains("3.6"))
+        XCTAssertThrowsError(try AssemblyAITranscriber(model: "universal-3-6-pro", apiKey: "key").payload(audioURL: "", hints: .init()))
+    }
+
+    func testAssemblyPreviewFailureDoesNotRetryWithStableModel() async {
+        for reply in [
+            "{\"id\":\"\(jobID)\",\"status\":\"error\",\"error\":\"Preview unavailable\"}",
+            "{\"id\":\"\(jobID)\",\"status\":\"completed\",\"text\":\"Wrong model\",\"speech_model_used\":\"universal-3-5-pro\"}"
+        ] {
+            let deleted = expectation(description: "Failed preview job deleted")
+            var submittedModels: [[String]] = []
+            let s = session { request in
+                if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
+                if request.url?.lastPathComponent == "upload" {
+                    return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
+                }
+                if request.httpMethod == "POST" {
+                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: self.body(request)) as? [String: Any])
+                    submittedModels.append(try XCTUnwrap(payload["speech_models"] as? [String]))
+                    return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
+                }
+                return .init(body: reply)
+            }
+            defer { s.invalidateAndCancel() }
+            do {
+                _ = try await AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key", session: s, pollInterval: 0.01)
+                    .transcribe(samples: samples, hints: hints)
+                XCTFail("Expected preview error")
+            } catch TranscriberError.providerFailure(let provider, let message) {
+                XCTAssertEqual(provider, "AssemblyAI")
+                XCTAssertTrue(message == "Preview unavailable" || message.contains("AssemblyAI used universal-3-5-pro"))
+            } catch { XCTFail("\(error)") }
+            XCTAssertEqual(submittedModels, [["universal-3-6-pro-preview"]])
+            await fulfillment(of: [deleted], timeout: 1)
+        }
     }
 
     func testSpeechmaticsMandarinAndVocabularyPayload() throws {
