@@ -122,6 +122,7 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
 /// Short and empty results use only the space they need.
 struct ModelTable<Rows: View>: View {
     let cost: String
+    let rowCount: Int
     @ViewBuilder var rows: Rows
     @State private var contentHeight = Theme.modelTableMaxHeight
 
@@ -129,12 +130,36 @@ struct ModelTable<Rows: View>: View {
         Card(padding: 0) {
             ModelTableHeader(cost: cost)
             RowDivider()
-            ScrollView(.vertical) {
-                VStack(spacing: 0) { rows }
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+            Group {
+                if rowCount > 6 {
+                    // Native List virtualizes rows and owns accessibility
+                    // scrolling without traversing a lazy SwiftUI identity tree.
+                    List {
+                        rows
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .contentMargins(0, for: .scrollContent)
+                    .environment(\.defaultMinListRowHeight, 60)
+                } else {
+                    ScrollView(.vertical) {
+                        VStack(spacing: 0) { rows }
+                            .onGeometryChange(for: CGFloat.self) {
+                                min($0.size.height, Theme.modelTableMaxHeight)
+                            } action: { contentHeight = $0 }
+                    }
+                }
             }
             .frame(height: min(contentHeight, Theme.modelTableMaxHeight))
             .scrollBounceBehavior(.basedOnSize)
+            #if DEBUG
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                ModelsPerformanceVerification.noteViewport($0)
+            }
+            #endif
         }
     }
 }
@@ -238,6 +263,7 @@ struct ModelRow: View {
     let entry: ModelEntry
     @State private var error: String?
     @State private var installed = false
+    @State private var checkingInstallation = true
     @State private var hovering = false
     @State private var confirmDelete = false
 
@@ -251,6 +277,9 @@ struct ModelRow: View {
 
     var body: some View {
         @Bindable var settings = container.settings
+        #if DEBUG
+        let _ = ModelsPerformanceVerification.noteRow(entry.id)
+        #endif
         let selected = entry.isSelected(settings.asr)
         VStack(alignment: .leading, spacing: 6) {
             ModelComparisonColumns {
@@ -298,8 +327,14 @@ struct ModelRow: View {
         .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
         .onHover { hovering = $0 }
         .help(entry.note)
-        .onAppear { installed = LocalModels.isInstalled(entryConfig) }
-        .onChange(of: progress != nil) { _, _ in installed = LocalModels.isInstalled(entryConfig) }
+        .task(id: progress != nil) {
+            checkingInstallation = true
+            let config = entryConfig
+            let result = await Task.detached(priority: .utility) { LocalModels.isInstalled(config) }.value
+            guard !Task.isCancelled else { return }
+            installed = result
+            checkingInstallation = false
+        }
     }
 
     @ViewBuilder
@@ -347,6 +382,8 @@ struct ModelRow: View {
             .foregroundStyle(.secondary)
             .help("Cancel download")
             .accessibilityLabel("Cancel download of \(entry.title)")
+        } else if checkingInstallation {
+            ProgressView().controlSize(.mini).accessibilityLabel("Checking \(entry.title)")
         } else if !installed, entry.isDownloadable {
             Button { download() } label: {
                 Image(systemName: "arrow.down.circle").font(.system(size: 16))

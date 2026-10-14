@@ -135,6 +135,13 @@ For interactive checks, `--e2e-meetings --e2e-meeting-apps 40
 --e2e-meeting-app-delay-ms 8000` supplies a delayed fake app list. Close/reopen
 the real popup during loading to complement the stale-request regression.
 These fixtures never open audio devices, play audio or request permissions.
+`--render-window models-performance <output>` measures production Home-to-Models
+layout at 784 × 600 and 784 × 1000 in both appearances, using disposable data.
+It records layout milliseconds and materialized local rows for five visits per
+case, checks empty/short/capped table heights and saves JSON/PNGs. Set
+`AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS=1` to require bounded initial row creation.
+Verify table scrolling and provider/search filters in the live window as well. No models are loaded,
+cloud calls made or credentials read.
 `verify-native-ui-controls.py` separately exercises the production slider and
 History progress consumer in silent windows, including keyboard, pointer and
 accessibility adjustment in both appearances; its playback object has no player.

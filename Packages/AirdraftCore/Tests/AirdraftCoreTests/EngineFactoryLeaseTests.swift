@@ -4,6 +4,40 @@ import os
 
 @MainActor
 final class EngineFactoryLeaseTests: XCTestCase {
+    func testUncachedTranscriptionUsesThePreparedInstanceOnce() async throws {
+        let config = ASRConfig(kind: .openAICompatible, model: "fixture")
+        let builds = OSAllocatedUnfairLock(initialState: 0)
+        let preparing = OSAllocatedUnfairLock(initialState: 0)
+        let factory = factory(status: EngineStatus()) { config in
+            builds.withLock { $0 += 1 }
+            return TimedSpeech(id: config.engineID)
+        }
+        let result = try await factory.transcribe([0.1], hints: .init(), config: config) {
+            preparing.withLock { $0 += 1 }
+        }
+        XCTAssertEqual(result.text, "Complete words")
+        XCTAssertEqual(builds.withLock { $0 }, 1, "Prepare and decode must use one request-scoped engine")
+        XCTAssertEqual(preparing.withLock { $0 }, 1)
+        XCTAssertGreaterThanOrEqual(result.latencyMs, 75, "ASR time must include model preparation")
+        _ = try await factory.transcribe([0.1], hints: .init(), config: config)
+        XCTAssertEqual(builds.withLock { $0 }, 2, "Remote engines must still resolve fresh settings per call")
+        await factory.unloadAll()
+    }
+
+    func testWarmTranscriptionSkipsPreparation() async throws {
+        let config = ASRConfig(kind: .parakeet)
+        let engine = TimedSpeech(id: config.engineID)
+        let factory = factory(status: EngineStatus()) { _ in engine }
+        try await factory.prepare(config)
+        let warm = try await factory.transcribe([0.1], hints: .init(), config: config) {
+            XCTFail("A warm model must not show Loading")
+        }
+        XCTAssertEqual(warm.text, "Complete words")
+        let preparations = await engine.preparations
+        XCTAssertEqual(preparations, 1)
+        await factory.unloadAll()
+    }
+
     func testCancelledLoadDoesNotBlockAnotherModelOrPublishLateReadiness() async throws {
         let firstConfig = ASRConfig(kind: .parakeet)
         let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
@@ -234,6 +268,24 @@ final class EngineFactoryLeaseTests: XCTestCase {
 }
 
 private enum LeaseFailure: Error { case timedOut }
+
+private actor TimedSpeech: Transcriber {
+    nonisolated let id: String
+    private var ready = false
+    private(set) var preparations = 0
+    init(id: String) { self.id = id }
+    func isReady() -> Bool { ready }
+    func prepare() async throws {
+        preparations += 1
+        try await Task.sleep(for: .milliseconds(80))
+        ready = true
+    }
+    func unload() { ready = false }
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        guard ready else { throw TranscriberError.modelNotDownloaded }
+        return .init(text: "Complete words", engine: id, latencyMs: 1)
+    }
+}
 
 /// Deliberately ignores cancellation, like a synchronous native model compiler.
 private actor SuspendedLoadSpeech: Transcriber {

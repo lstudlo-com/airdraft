@@ -1,9 +1,11 @@
 import Foundation
+import os
 
 /// Resolves the configured engines at call time, so switching providers in
 /// Settings takes effect on the next dictation. Local transcribers are cached
 /// by engine id because loading them is expensive; at most one stays loaded.
 public actor EngineFactory {
+    private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "transcription-timing")
     /// Observable load states, for the UI.
     public let status: EngineStatus
     /// Unload engines that have not been used for this long. 0 disables.
@@ -100,8 +102,7 @@ public actor EngineFactory {
             if config.kind == .apple, !(await self.transcriber(for: config).isReady()) {
                 throw TranscriberError.modelNotDownloaded
             }
-            try await self.prepareExclusive(config)
-            let engine = await self.transcriber(for: config)
+            let engine = try await self.prepareExclusive(config)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
             let words: [TranscriptWord]
@@ -173,24 +174,29 @@ public actor EngineFactory {
     /// Loads the engine for `config`, reports progress on `status`, and
     /// unloads every other cached engine so only one model sits in memory.
     public func prepare(_ config: ASRConfig) async throws {
-        try await serialize { try await self.prepareExclusive(config) }
+        _ = try await serialize { try await self.prepareExclusive(config) }
     }
 
     /// Loading, inference and unloading share a lease. Actor isolation alone is
     /// insufficient because each await allows another actor call to enter.
-    public func transcribe(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig) async throws -> Transcript {
+    public func transcribe(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig,
+                           onPreparing: (@Sendable () async -> Void)? = nil) async throws -> Transcript {
+        let started = ProcessInfo.processInfo.systemUptime
         let language = try SpeechLanguagePolicy.resolve(config)
         var resolvedHints = hints
         resolvedHints.language = language.language
         let effectiveHints = resolvedHints
         return try await serialize {
-            try await self.prepareExclusive(config)
-            let engine = await self.transcriber(for: config)
+            let engine = try await self.prepareExclusive(config, onPreparing: onPreparing)
+            let prepared = ProcessInfo.processInfo.systemUptime
             try Task.checkCancellation()
             await self.markUsed(engine.id)
-            let result = try await engine.transcribe(samples: samples, hints: effectiveHints)
+            var result = try await engine.transcribe(samples: samples, hints: effectiveHints)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
+            let finished = ProcessInfo.processInfo.systemUptime
+            result.latencyMs = Int((finished - started) * 1000)
+            Self.log.notice("engine=\(engine.id, privacy: .public) totalMs=\(result.latencyMs) preparationMs=\(Int((prepared - started) * 1000)) decodeMs=\(Int((finished - prepared) * 1000)) audioSeconds=\(Double(samples.count) / 16_000)")
             return result
         }
     }
@@ -206,7 +212,7 @@ public actor EngineFactory {
         return try await withTaskCancellationHandler { try await task.value } onCancel: { task.cancel() }
     }
 
-    private func prepareExclusive(_ config: ASRConfig) async throws {
+    private func prepareExclusive(_ config: ASRConfig, onPreparing: (@Sendable () async -> Void)? = nil) async throws -> any Transcriber {
         try Task.checkCancellation()
         guard retiringLoads[config.engineID] == nil else {
             let error = TranscriberError.modelLoadStillStopping
@@ -218,8 +224,10 @@ public actor EngineFactory {
         try Task.checkCancellation()
         if await engine.isReady() {
             await MainActor.run { status.set(engine.id, .ready) }
-            return
+            return engine
         }
+        await onPreparing?()
+        try Task.checkCancellation()
         await MainActor.run { status.set(engine.id, .loading) }
         let preparation = Task { try await engine.prepare() }
         do {
@@ -230,6 +238,7 @@ public actor EngineFactory {
             }
             try Task.checkCancellation()
             await MainActor.run { status.set(engine.id, .ready) }
+            return engine
         } catch {
             let cancelled = Task.isCancelled || error is CancellationError
             let failure: Error

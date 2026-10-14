@@ -693,17 +693,15 @@ public final class DictationPipeline {
             }
             let language = try SpeechLanguagePolicy.resolve(asrConfig)
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
-            let transcriber = await factory.transcriber(for: asrConfig)
-            guard isCurrent(token) else { return }
-            let ready = await transcriber.isReady()
-            guard isCurrent(token) else { return }
-            if !ready { set(.preparingModel) }
             let hints = TranscriptionHints(
                 language: language.language,
                 vocabulary: DictionaryPostProcessor.vocabulary(entries),
                 chineseScript: asrConfig.chineseScript
             )
-            transcript = try await factory.transcribe(samples, hints: hints, config: asrConfig)
+            transcript = try await factory.transcribe(samples, hints: hints, config: asrConfig) { @MainActor [weak self] in
+                guard let self, self.isCurrent(token) else { return }
+                self.set(.preparingModel)
+            }
         } catch {
             guard isCurrent(token) else { return }
             retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: output)
@@ -744,6 +742,7 @@ public final class DictationPipeline {
                 dictionary: entries,
                 chineseScript: asrConfig.chineseScript
             )
+            let refinementStarted = ProcessInfo.processInfo.systemUptime
             do {
                 let timeout = llmConfig.kind.isCLI ? max(60, llmConfig.timeoutSeconds) : llmConfig.timeoutSeconds
                 let result = try await OperationDeadline.run(seconds: timeout) { @MainActor [self] in
@@ -772,7 +771,6 @@ public final class DictationPipeline {
                     skipReason = "LLM output rejected, using raw transcript"
                 } else {
                     refined = result.text
-                    llmMs = result.latencyMs
                     llmEngine = result.engine
                     promptVersion = result.promptVersion
                 }
@@ -780,6 +778,8 @@ public final class DictationPipeline {
                 llmError = error.localizedDescription
                 skipReason = "LLM failed, using raw transcript"
             }
+            llmMs = Int((ProcessInfo.processInfo.systemUptime - refinementStarted) * 1000)
+            Self.log.notice("refinement timing totalMs=\(llmMs) engine=\(llmConfig.engineLabel, privacy: .public)")
         } else {
             skipReason = "LLM off"
         }

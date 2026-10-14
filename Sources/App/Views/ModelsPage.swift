@@ -95,14 +95,20 @@ struct ModelsPage: View {
                         ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
                     }
                 }) {
-                    ModelTable(cost: "Storage") {
+                    ModelTable(cost: "Storage", rowCount: localModels.count) {
                         if localModels.isEmpty {
                             EmptyNote("No local models match your search.")
                                 .padding(Theme.cardPadding)
                         }
                         ForEach(Array(localModels.enumerated()), id: \.element.id) { index, entry in
-                            if index > 0 { RowDivider() }
-                            ModelRow(entry: entry)
+                            VStack(spacing: 0) {
+                                if index > 0 { RowDivider() }
+                                ModelRow(entry: entry)
+                            }
+                            .accessibilityElement(children: .contain)
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                     .id("\(localProvider ?? "all")|\(query)")
@@ -209,14 +215,20 @@ struct ModelsPage: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                ModelTable(cost: "Pricing") {
+                ModelTable(cost: "Pricing", rowCount: visible.count) {
                     if visible.isEmpty {
                         EmptyNote("No cloud models match your search.")
                             .padding(Theme.cardPadding)
                     }
                     ForEach(Array(visible.enumerated()), id: \.element.id) { index, entry in
-                        if index > 0 { RowDivider() }
-                        CloudModelRow(preset: entry.preset, model: entry.model)
+                        VStack(spacing: 0) {
+                            if index > 0 { RowDivider() }
+                            CloudModelRow(preset: entry.preset, model: entry.model)
+                        }
+                        .accessibilityElement(children: .contain)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     }
                 }
                 .id("\(cloudProvider?.rawValue ?? "all")|\(query)")

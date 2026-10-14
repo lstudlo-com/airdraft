@@ -5,6 +5,10 @@ import Observation
 /// Other OpenAI-compatible servers are reported as `.unmanaged`.
 public actor LMStudioControl {
     public enum ServerKind: Sendable, Equatable { case lmStudio, unmanaged, unreachable }
+    public struct ModelSnapshot: Sendable {
+        public let server: ServerKind
+        public let instances: [String]
+    }
 
     /// Context requested when the app loads a model. Honoured by GGUF
     /// (llama.cpp) models, where a huge default context pre-allocates gigabytes
@@ -46,6 +50,31 @@ public actor LMStudioControl {
         guard let root = Self.apiRoot(for: baseURL) else { return [] }
         let (data, response) = try await session.data(from: root.appendingPathComponent("models"))
         try Self.validate(response, data: data)
+        return try Self.instanceIDs(data, modelKey: modelKey)
+    }
+
+    /// Discover the server and selected instances in one fresh request, without
+    /// caching readiness across model switches or external unloads.
+    public func modelSnapshot(baseURL: URL, modelKey: String) async throws -> ModelSnapshot {
+        guard let root = Self.apiRoot(for: baseURL) else { return .init(server: .unmanaged, instances: []) }
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(from: root.appendingPathComponent("models"))
+        } catch let error as URLError where error.code == .cannotConnectToHost || error.code == .timedOut {
+            return .init(server: .unreachable, instances: [])
+        } catch {
+            try Task.checkCancellation()
+            return .init(server: .unmanaged, instances: [])
+        }
+        try Task.checkCancellation()
+        guard (response as? HTTPURLResponse)?.statusCode == 200,
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              object["models"] is [Any] else { return .init(server: .unmanaged, instances: []) }
+        return .init(server: .lmStudio, instances: try Self.instanceIDs(data, modelKey: modelKey))
+    }
+
+    private static func instanceIDs(_ data: Data, modelKey: String) throws -> [String] {
         struct Reply: Decodable {
             struct Model: Decodable {
                 struct Loaded: Decodable { let id: String }

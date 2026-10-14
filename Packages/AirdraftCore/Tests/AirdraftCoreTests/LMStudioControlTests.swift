@@ -2,6 +2,25 @@ import XCTest
 @testable import AirdraftCore
 
 final class LMStudioControlTests: XCTestCase {
+    func testModelSnapshotDiscoversServerAndInstancesInOneRequest() async throws {
+        let fixture = Fixture()
+        let snapshot = try await fixture.control.modelSnapshot(baseURL: fixture.base, modelKey: "loaded-2")
+        XCTAssertEqual(snapshot.server, .lmStudio)
+        XCTAssertEqual(snapshot.instances, ["loaded-2"])
+        XCTAssertEqual(fixture.requests.count, 1, "Readiness must not fetch the same inventory twice")
+        let missing = try await fixture.control.modelSnapshot(baseURL: fixture.base, modelKey: "missing")
+        XCTAssertEqual(missing.server, .lmStudio)
+        XCTAssertEqual(missing.instances, [])
+        XCTAssertEqual(fixture.requests.count, 2, "Each check must observe fresh external model state")
+    }
+
+    func testModelSnapshotDoesNotManageAnUnrecognizedServer() async throws {
+        let fixture = Fixture(status: 503)
+        let snapshot = try await fixture.control.modelSnapshot(baseURL: fixture.base, modelKey: "local-model")
+        XCTAssertEqual(snapshot.server, .unmanaged)
+        XCTAssertEqual(snapshot.instances, [])
+    }
+
     func testLocalModelLifecycleUsesNativeEndpointsAndExactInstance() async throws {
         let fixture = Fixture()
         let control = fixture.control

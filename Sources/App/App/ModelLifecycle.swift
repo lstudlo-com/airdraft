@@ -94,23 +94,22 @@ final class ModelLifecycle {
             llmStatus.set(.remote)
             return
         }
-        let server = await lmStudio.serverKind(baseURL: url)
+        let snapshot: LMStudioControl.ModelSnapshot
+        do { snapshot = try await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model) }
+        catch {
+            guard config == settings.llm, !Task.isCancelled else { return }
+            llmStatus.set(.failed(error.localizedDescription))
+            return
+        }
         guard config == settings.llm, !Task.isCancelled else { return }
-        switch server {
+        switch snapshot.server {
         case .unmanaged:
             llmStatus.set(.remote)
         case .unreachable:
             llmStatus.set(.unreachable)
         case .lmStudio:
             if case .loading = llmStatus.state { return }
-            do {
-                let instances = try await lmStudio.instances(baseURL: url, modelKey: config.model)
-                guard config == settings.llm, !Task.isCancelled else { return }
-                llmStatus.set(instances.first.map { .loaded(instance: $0) } ?? .notLoaded)
-            } catch {
-                guard config == settings.llm, !Task.isCancelled else { return }
-                llmStatus.set(.failed(error.localizedDescription))
-            }
+            llmStatus.set(snapshot.instances.first.map { .loaded(instance: $0) } ?? .notLoaded)
         }
     }
 
@@ -120,8 +119,10 @@ final class ModelLifecycle {
     func llmNeedsLoad(config: LLMConfig) async -> Bool {
         await waitForLLMUnloads(config)
         guard !Task.isCancelled else { return false }
-        guard let url = await lmStudioURL(config) else { return false }
-        return ((try? await lmStudio.instances(baseURL: url, modelKey: config.model)) ?? []).isEmpty
+        guard config.kind == .openAICompatible, let url = URL(string: config.baseURL),
+              let snapshot = try? await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model),
+              !Task.isCancelled, snapshot.server == .lmStudio else { return false }
+        return snapshot.instances.isEmpty
     }
 
     func loadLLM() {

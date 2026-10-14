@@ -247,6 +247,11 @@ verification status belong in the vault (see below).
   their heading pickers filter browsing without changing the active speech config.
   Only choosing a model selects its provider. Keep table headers fixed and cap the
   scrolling rows at `Theme.modelTableMaxHeight` (300 pt); short lists shrink to fit.
+  Long model tables use native List virtualization; group each row with its
+  separator as one cell. Short lists measure an eager stack and clamp geometry
+  observations to the viewport cap. Preserve native accessibility scrolling;
+  do not expose SwiftUI lazy-stack identity traversal for end-of-list actions. Check installation on a worker,
+  cancel stale UI updates on row eviction, and refresh after download completion.
   Use the model's official brand icon, falling back to its creator's company logo,
   never a color-coded waveform. Show the hosting provider beneath cloud models so
   the same model on different services stays distinguishable. Bundle brand assets
@@ -528,6 +533,13 @@ verification status belong in the vault (see below).
   other models remain selectable. Keep its files protected through
   `EngineStatus.hasPendingLoad`, and let reset/quit wait for retirement within their
   existing deadlines. Active inference and its unload still share the factory lease.
+  Resolve one request-scoped transcriber for preparation and inference; cloud
+  credentials are read once for that operation and remain fresh on later calls.
+  ASR timings include lease wait, model preparation and inference. Refinement
+  timings include discovery, loading, retries and failed attempts; timing logs
+  contain durations and engine identifiers, never audio, text or credentials.
+  LM Studio readiness and UI status use one fresh model inventory snapshot per
+  check, preserving exact instance IDs and external unload visibility.
   Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable
   5, 10, 30 minutes and Never; preserve explicitly saved choices.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in

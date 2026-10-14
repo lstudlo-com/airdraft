@@ -85,6 +85,7 @@ actor CLIWarmPool {
 }
 @MainActor final class LMStudioControl {
     enum Kind { case lmStudio, unmanaged, unreachable }
+    struct ModelSnapshot { let server: Kind; let instances: [String] }
     struct Call: Equatable { let url: URL; let id: String }
     static var unloadCalls: [Call] = []
     static var failures: [URL: Int] = [:]
@@ -99,6 +100,9 @@ actor CLIWarmPool {
         onInstances = nil; onUnload = nil; instanceCalls = []; loadCalls = []
     }
     func serverKind(baseURL: URL) async -> Kind { .lmStudio }
+    func modelSnapshot(baseURL: URL, modelKey: String) async throws -> ModelSnapshot {
+        .init(server: .lmStudio, instances: try await instances(baseURL: baseURL, modelKey: modelKey))
+    }
     func instances(baseURL: URL, modelKey: String) async throws -> [String] {
         Self.instanceCalls.append(.init(url: baseURL, id: modelKey))
         await Self.onInstances?(baseURL, modelKey)
