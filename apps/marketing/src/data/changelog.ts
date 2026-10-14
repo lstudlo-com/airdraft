@@ -8,11 +8,33 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-12.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-14.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-10-2",
+    version: "0.10.2",
+    date: "2026-10-14",
+    title: "Add AssemblyAI Universal-3.6 Pro preview",
+    changes: [
+      {
+        title: "Choose the 3.6 Pro batch preview",
+        description:
+          "Models and Profiles now offer Universal-3.6 Pro (Preview) through AssemblyAI's pre-recorded preview API. Universal-3.5 Pro remains available and keeps its saved selections. Preview availability and transcription quality still need verification with an AssemblyAI account.",
+      },
+      {
+        title: "Keep the selected speech model on the request",
+        description:
+          "AssemblyAI requests use the model you choose. Preview failures do not retry with 3.5 Pro, and a response that reports a different model version is rejected instead of being recorded as a successful 3.6 Pro transcription.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.10.2-build.218",
+    },
+  },
   {
     id: "0-10-1",
     version: "0.10.1",
