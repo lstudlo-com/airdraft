@@ -2,6 +2,49 @@ import XCTest
 @testable import AirdraftCore
 
 final class CLIWarmPoolTests: XCTestCase {
+    func testSameKeyCannotCrossRecordingOwnersAndStaleCleanupCannotStopNewSession() async throws {
+        let pool = CLIWarmPool()
+        let firstOwner = UUID(), secondOwner = UUID()
+        let first = try makeSession("exec /bin/sleep 30")
+        let second = try makeSession("exec /bin/sleep 30")
+        defer { first.stop(); second.stop() }
+        await pool.prewarm(key: first.key, owner: firstOwner) { first }
+        let wrongOwner = await pool.take(key: first.key, owner: secondOwner)
+        XCTAssertNil(wrongOwner)
+        await pool.prewarm(key: second.key, owner: secondOwner) { second }
+        try await waitForExit(first)
+        await pool.discard(owner: firstOwner)
+        XCTAssertTrue(second.isAlive)
+        let taken = await pool.take(key: second.key, owner: secondOwner)
+        XCTAssertTrue(taken === second)
+    }
+
+    func testOwnerCleanupStopsUnconsumedWarmSession() async throws {
+        let pool = CLIWarmPool()
+        let owner = UUID()
+        let session = try makeSession("exec /bin/sleep 30")
+        defer { session.stop() }
+        await pool.prewarm(key: session.key, owner: owner) { session }
+        await pool.discard(owner: owner)
+        try await waitForExit(session)
+        let taken = await pool.take(key: session.key, owner: owner)
+        XCTAssertNil(taken)
+    }
+
+    func testCancelledPreparationCannotLeaveNewWarmProcess() async throws {
+        let pool = CLIWarmPool()
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            await pool.prewarm(key: "cancelled", owner: UUID()) {
+                XCTFail("Cancelled warm preparation must not launch a process")
+                return try self.makeSession("exec /bin/sleep 30", key: "cancelled")
+            }
+        }
+        await cancelled.value
+        let taken = await pool.take(key: "cancelled")
+        XCTAssertNil(taken)
+    }
+
     func testChangingWarmKeyReplacesPreviousSession() async throws {
         let pool = CLIWarmPool()
         let first = try makeSession("exec /bin/sleep 30", key: "first-profile")

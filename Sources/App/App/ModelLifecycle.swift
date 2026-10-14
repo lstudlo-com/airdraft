@@ -24,17 +24,27 @@ final class ModelLifecycle {
     private var lastLLM: LLMConfig?
     private var lastASR: ASRConfig?
     private var speechLoadTask: Task<Void, Never>?
-    private var llmGeneration = UUID()
     private var llmCleanupGeneration = UUID()
     private(set) var dictationBusy = false
     private var started = false
     private var usedLLMEndpoints: [URL: Set<String>] = [:]
-    private var llmUnloads: [UUID: (url: URL, task: Task<Void, Error>)] = [:]
+    private var llmUnloads: [UUID: (url: URL, id: String, task: Task<Void, Error>)] = [:]
+    private var deferredLLMInstances: [URL: [String: LLMConfig]] = [:]
+    private struct LLMPreparation {
+        let config: LLMConfig
+        let task: Task<RefinementPreparationBackend, Error>
+        /// A captured dictation may need a model after the UI selection changes.
+        var waiters: [UUID: Bool]
+    }
+    private var llmPreparations: [UUID: LLMPreparation] = [:]
+    private var llmStopping = false
+    private var unloadPendingLLM = false
 
     func setDictationBusy(_ busy: Bool) {
         if busy && !dictationBusy { llmCleanupGeneration = UUID() }
         dictationBusy = busy
         if !busy && started { handleSettingsChange() }
+        if !busy && !llmStopping { cleanDeferredLLMInstances() }
     }
 
     init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus, profiles: ProfileStore? = nil) {
@@ -77,14 +87,8 @@ final class ModelLifecycle {
 
     // MARK: LLM
 
-    /// Base URL when `config` points at a running LM Studio, the only server whose models the app manages.
-    private func lmStudioURL(_ config: LLMConfig) async -> URL? {
-        guard config.kind == .openAICompatible, let url = URL(string: config.baseURL),
-              await lmStudio.serverKind(baseURL: url) == .lmStudio else { return nil }
-        return url
-    }
-
     func refreshLLMStatus() async {
+        guard !llmStopping else { return }
         let config = settings.llm
         if config.kind.isCLI {
             llmStatus.set(.ready(config.cliExecutable == nil ? "CLI not found" : "Ready"))
@@ -97,11 +101,11 @@ final class ModelLifecycle {
         let snapshot: LMStudioControl.ModelSnapshot
         do { snapshot = try await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model) }
         catch {
-            guard config == settings.llm, !Task.isCancelled else { return }
+            guard config == settings.llm, !Task.isCancelled, !llmStopping else { return }
             llmStatus.set(.failed(error.localizedDescription))
             return
         }
-        guard config == settings.llm, !Task.isCancelled else { return }
+        guard config == settings.llm, !Task.isCancelled, !llmStopping else { return }
         switch snapshot.server {
         case .unmanaged:
             llmStatus.set(.remote)
@@ -113,76 +117,118 @@ final class ModelLifecycle {
         }
     }
 
-    /// True when LM Studio is reachable but the configured model is not loaded,
-    /// so the app should load it (small context) instead of letting LM Studio
-    /// JIT-load it with its huge default context.
-    func llmNeedsLoad(config: LLMConfig) async -> Bool {
-        await waitForLLMUnloads(config)
-        guard !Task.isCancelled else { return false }
-        guard config.kind == .openAICompatible, let url = URL(string: config.baseURL),
-              let snapshot = try? await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model),
-              !Task.isCancelled, snapshot.server == .lmStudio else { return false }
-        return snapshot.instances.isEmpty
-    }
-
     func loadLLM() {
         Task { await loadLLMIfNeeded() }
     }
 
-    /// Explicit configs belong to an in-flight dictation; UI loads follow selection.
+    /// Recording and final refinement join the same discovery/load operation.
+    /// Completed preparations are never cached: the next recording sees external unloads.
+    func prepareLLM(config: LLMConfig) async throws {
+        _ = try await prepareLLMBackend(config: config)
+    }
+
+    /// Reuses the same inventory that prepared the model to identify supported
+    /// speculative work; callers must not discover the backend a second time.
+    func prepareLLMBackend(config: LLMConfig) async throws -> RefinementPreparationBackend {
+        try await prepareLLMBackend(config: config, followsSelection: false)
+    }
+
+    /// UI loads follow selection; captured dictations keep their original configuration.
     func loadLLMIfNeeded(config requestedConfig: LLMConfig? = nil) async {
-        let token = UUID()
-        llmGeneration = token
-        llmCleanupGeneration = UUID()
         let config = requestedConfig ?? settings.llm
-        let followsSelection = requestedConfig == nil
+        do { _ = try await prepareLLMBackend(config: config, followsSelection: requestedConfig == nil) }
+        catch is CancellationError {}
+        catch { Self.log.error("LLM preparation failed: \(error.localizedDescription, privacy: .public)") }
+    }
+
+    private func prepareLLMBackend(config: LLMConfig, followsSelection: Bool) async throws -> RefinementPreparationBackend {
+        try Task.checkCancellation()
+        guard !llmStopping else { throw CancellationError() }
+        guard config.kind == .openAICompatible, config.endpoint != nil else { return .unmanaged }
+        let waiter = UUID()
+        let token: UUID
+        let task: Task<RefinementPreparationBackend, Error>
+        if let pending = llmPreparations.first(where: { sameManagedModel($0.value.config, config) }) {
+            token = pending.key
+            task = pending.value.task
+            llmPreparations[token]?.waiters[waiter] = !followsSelection
+        } else {
+            token = UUID()
+            llmCleanupGeneration = UUID()
+            task = Task { [self] in
+                defer { llmPreparations[token] = nil }
+                return try await performLLMPreparation(config, token: token)
+            }
+            llmPreparations[token] = .init(config: config, task: task, waiters: [waiter: !followsSelection])
+        }
+        defer { llmPreparations[token]?.waiters[waiter] = nil }
+        // Cancel only this waiter. Cancelling the native load request can lose
+        // the instance ID while LM Studio keeps loading it on the server.
+        let backend = try await OperationDeadline.run(seconds: 300) { try await task.value }
+        try Task.checkCancellation()
+        return backend
+    }
+
+    private func preparationIsNeeded(_ config: LLMConfig, token: UUID) -> Bool {
+        !llmStopping && (sameManagedModel(config, settings.llm)
+            || llmPreparations[token]?.waiters.values.contains(true) == true)
+    }
+
+    private func performLLMPreparation(_ config: LLMConfig, token: UUID) async throws -> RefinementPreparationBackend {
+        guard let url = config.endpoint else { return .unmanaged }
         await waitForLLMUnloads(config)
-        guard !Task.isCancelled, token == llmGeneration else { return }
-        guard let url = await lmStudioURL(config) else {
-            if config == settings.llm { await refreshLLMStatus() }
-            return
-        }
-        if let existing = try? await lmStudio.instances(baseURL: url, modelKey: config.model).first {
-            guard !Task.isCancelled, token == llmGeneration,
-                  !followsSelection || settings.llm == config else { return }
-            markLLMUsed(existing, config: config)
-            if settings.llm == config { llmStatus.set(.loaded(instance: existing)) }
-            return
-        }
-        // Set the outcome directly: refreshLLMStatus leaves a `.loading` state alone.
-        guard !Task.isCancelled, token == llmGeneration,
-              !followsSelection || settings.llm == config else { return }
-        if settings.llm == config { llmStatus.set(.loading) }
+        guard preparationIsNeeded(config, token: token) else { throw CancellationError() }
         do {
+            let snapshot = try await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model)
+            guard preparationIsNeeded(config, token: token) else { throw CancellationError() }
+            switch snapshot.server {
+            case .unmanaged:
+                if sameManagedModel(config, settings.llm) { llmStatus.set(.remote) }
+                return .unmanaged
+            case .unreachable:
+                if sameManagedModel(config, settings.llm) { llmStatus.set(.unreachable) }
+                throw URLError(.cannotConnectToHost)
+            case .lmStudio: break
+            }
+            if let existing = snapshot.instances.first {
+                markLLMUsed(existing, config: config)
+                if sameManagedModel(config, settings.llm) { llmStatus.set(.loaded(instance: existing)) }
+                return .lmStudio
+            }
+            if sameManagedModel(config, settings.llm) { llmStatus.set(.loading) }
             let id = try await lmStudio.load(baseURL: url, modelKey: config.model)
             markLLMUsed(id, config: config)
-            guard !Task.isCancelled, token == llmGeneration,
-                  !followsSelection || settings.llm == config else {
-                // Another session may now use the same model. Keep ownership for
-                // quit cleanup instead of unloading a reselected or active model.
-                guard !dictationBusy, !sameManagedModel(config, settings.llm) else { return }
-                do {
-                    try await unloadLLMInstance(id, at: url)
-                } catch {
-                    Self.log.error("Stale LLM load cleanup failed; retaining instance for cleanup retry")
+            guard preparationIsNeeded(config, token: token) else {
+                if (llmStopping && unloadPendingLLM)
+                    || (!llmStopping && !dictationBusy && !sameManagedModel(config, settings.llm)) {
+                    do { try await unloadLLMInstance(id, at: url) }
+                    catch { Self.log.error("Stale LLM load cleanup failed; retaining instance for cleanup retry") }
+                } else if !llmStopping && !sameManagedModel(config, settings.llm) {
+                    // Do not interrupt another recording. Revisit this exact
+                    // abandoned instance when the aggregate pipeline becomes idle.
+                    deferredLLMInstances[url, default: [:]][id] = config
                 }
-                return
+                throw CancellationError()
             }
-            if settings.llm == config { llmStatus.set(.loaded(instance: id)) }
+            if sameManagedModel(config, settings.llm) { llmStatus.set(.loaded(instance: id)) }
             Self.log.notice("LLM loaded instance=\(id, privacy: .public)")
+            return .lmStudio
         } catch {
-            guard token == llmGeneration, settings.llm == config else { return }
-            llmStatus.set(Task.isCancelled ? .notLoaded : .failed(error.localizedDescription))
+            if preparationIsNeeded(config, token: token), sameManagedModel(config, settings.llm),
+               !(error is CancellationError), llmStatus.state != .unreachable {
+                llmStatus.set(.failed(error.localizedDescription))
+            }
+            throw error
         }
     }
 
     func unloadLLM() {
         guard !dictationBusy else { return }
-        llmGeneration = UUID()
         let cleanupToken = UUID()
         llmCleanupGeneration = cleanupToken
         let config = settings.llm
         Task {
+            await waitForLLMPreparations(config)
             if await unloadInstances(of: config, onlyUsedByApp: false, generation: cleanupToken), settings.llm == config {
                 await refreshLLMStatus()
             }
@@ -204,7 +250,28 @@ final class ModelLifecycle {
 
     private func forgetLLM(_ id: String, at url: URL) {
         usedLLMEndpoints[url]?.remove(id)
+        deferredLLMInstances[url]?[id] = nil
         if !usedLLMEndpoints.values.contains(where: { $0.contains(id) }) { llmStatus.forget(id) }
+    }
+
+    private func cleanDeferredLLMInstances() {
+        guard !deferredLLMInstances.isEmpty else { return }
+        let pending = deferredLLMInstances
+        let generation = llmCleanupGeneration
+        Task {
+            for (url, instances) in pending {
+                for (id, config) in instances {
+                    if sameManagedModel(config, settings.llm) {
+                        deferredLLMInstances[url]?[id] = nil
+                        continue
+                    }
+                    guard usedLLMEndpoints[url]?.contains(id) == true,
+                          canUnload(config, onlyUsedByApp: true, generation: generation) else { continue }
+                    do { try await unloadLLMInstance(id, at: url) }
+                    catch { Self.log.error("Deferred LLM cleanup failed; retaining instance for cleanup retry") }
+                }
+            }
+        }
     }
 
     private func sameManagedModel(_ lhs: LLMConfig, _ rhs: LLMConfig) -> Bool {
@@ -213,6 +280,7 @@ final class ModelLifecycle {
 
     private func canUnload(_ config: LLMConfig, onlyUsedByApp: Bool, generation: UUID) -> Bool {
         !Task.isCancelled && !dictationBusy && generation == llmCleanupGeneration
+            && !llmPreparations.values.contains(where: { sameManagedModel($0.config, config) && $0.waiters.values.contains(true) })
             && (!onlyUsedByApp || !sameManagedModel(config, settings.llm))
     }
 
@@ -222,15 +290,26 @@ final class ModelLifecycle {
         for task in pending { _ = try? await task.value }
     }
 
+    private func waitForLLMPreparations(_ config: LLMConfig? = nil) async {
+        let pending = llmPreparations.values.filter { preparation in
+            config.map { sameManagedModel(preparation.config, $0) } ?? true
+        }.map(\.task)
+        for task in pending { _ = try? await task.value }
+    }
+
     /// Once sent, an unload may still succeed after selection changes. New
     /// preparation waits for its response before relying on instance discovery.
     private func unloadLLMInstance(_ id: String, at url: URL) async throws {
+        if let pending = llmUnloads.values.first(where: { $0.url == url && $0.id == id }) {
+            try await pending.task.value
+            return
+        }
         let token = UUID()
         let task = Task {
             try await lmStudio.unload(baseURL: url, instanceID: id)
             forgetLLM(id, at: url)
         }
-        llmUnloads[token] = (url, task)
+        llmUnloads[token] = (url, id, task)
         defer { llmUnloads[token] = nil }
         try await withTaskCancellationHandler {
             try await task.value
@@ -242,10 +321,11 @@ final class ModelLifecycle {
     @discardableResult
     private func unloadInstances(of config: LLMConfig, onlyUsedByApp: Bool, generation: UUID) async -> Bool {
         guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
-        guard let url = await lmStudioURL(config) else { return true }
-        guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
+        guard config.kind == .openAICompatible, let url = config.endpoint else { return true }
         do {
-            let ids = try await lmStudio.instances(baseURL: url, modelKey: config.model)
+            let snapshot = try await lmStudio.modelSnapshot(baseURL: url, modelKey: config.model)
+            guard snapshot.server == .lmStudio else { return true }
+            let ids = snapshot.instances
             guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
             for id in ids where !onlyUsedByApp || usedLLMEndpoints[url]?.contains(id) == true {
                 guard canUnload(config, onlyUsedByApp: onlyUsedByApp, generation: generation) else { return false }
@@ -266,13 +346,20 @@ final class ModelLifecycle {
     func prepareForDataReset() async throws {
         dictationBusy = true
         speechLoadTask?.cancel()
-        llmGeneration = UUID()
+        llmStopping = true
+        unloadPendingLLM = true
         llmCleanupGeneration = UUID()
         try await OperationDeadline.run(seconds: 30) { [self] in
-            await speechLoadTask?.value
-            await factory.unloadAll()
-            await CLIWarmPool.shared.shutdown()
+            async let speech: Void = retireSpeechForReset()
+            async let cli: Void = CLIWarmPool.shared.shutdown()
+            async let llm: Void = waitForLLMPreparations()
+            _ = await (speech, cli, llm)
         }
+    }
+
+    private func retireSpeechForReset() async {
+        await speechLoadTask?.value
+        await factory.unloadAll()
     }
 
     // MARK: Quit
@@ -280,17 +367,24 @@ final class ModelLifecycle {
     /// Frees everything the app is responsible for. Bounded so quitting never hangs.
     func shutdown() async {
         speechLoadTask?.cancel()
-        llmGeneration = UUID()
+        llmStopping = true
+        unloadPendingLLM = settings.unloadLLMOnQuit
         llmCleanupGeneration = UUID()
         do {
             try await OperationDeadline.run(seconds: 5) { [self] in
-                await factory.unloadAll()
-                await CLIWarmPool.shared.shutdown()
-                await self.unloadUsedLLMOnQuit()
+                async let speech: Void = factory.unloadAll()
+                async let cli: Void = CLIWarmPool.shared.shutdown()
+                async let llm: Void = retireLLMOnQuit()
+                _ = await (speech, cli, llm)
             }
         } catch {
             Self.log.error("Model cleanup reached its deadline; allowing quit")
         }
+    }
+
+    private func retireLLMOnQuit() async {
+        await waitForLLMPreparations()
+        await unloadUsedLLMOnQuit()
     }
 
     private func unloadUsedLLMOnQuit() async {
@@ -329,7 +423,6 @@ final class ModelLifecycle {
         let previous = lastLLM
         lastLLM = settings.llm
         if let previous, !sameManagedModel(previous, settings.llm) {
-            llmGeneration = UUID()
             let cleanupToken = UUID()
             llmCleanupGeneration = cleanupToken
             llmStatus.set(.unknown)

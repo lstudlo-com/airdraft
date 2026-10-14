@@ -66,19 +66,25 @@ final class CLISession: @unchecked Sendable {
 public actor CLIWarmPool {
     public static let shared = CLIWarmPool()
     private var session: CLISession?
+    private var owner: UUID?
     private var startedAt = Date.distantPast
     /// A session waiting this long is stale (the user started recording and walked away).
     private let maxIdle: TimeInterval = 180
 
     private let log = Logger(subsystem: AppIdentity.logSubsystem, category: "cli")
 
-    func prewarm(key: String, make: () throws -> CLISession) {
+    func prewarm(key: String, owner requestedOwner: UUID? = nil, make: () throws -> CLISession) {
+        guard !Task.isCancelled else { return }
         discardIfStale()
-        guard session?.key != key else { return }
+        guard session?.key != key || owner != requestedOwner else { return }
         session?.stop()
         session = nil
+        owner = nil
         do {
-            session = try make()
+            let pending = try make()
+            guard !Task.isCancelled else { pending.stop(); return }
+            session = pending
+            owner = requestedOwner
             startedAt = Date()
             log.notice("warm: session started key=\(key, privacy: .public)")
         } catch {
@@ -86,20 +92,29 @@ public actor CLIWarmPool {
         }
     }
 
-    func take(key: String) -> CLISession? {
+    func take(key: String, owner requestedOwner: UUID? = nil) -> CLISession? {
         discardIfStale()
-        guard let current = session, current.key == key, current.isAlive else {
+        guard let current = session, current.key == key, owner == requestedOwner, current.isAlive else {
             log.notice("warm: miss (have=\(self.session?.key ?? "none", privacy: .public) alive=\(self.session?.isAlive ?? false, privacy: .public) want=\(key, privacy: .public))")
             return nil
         }
         log.notice("warm: hit")
         session = nil
+        owner = nil
         return current
+    }
+
+    func discard(owner requestedOwner: UUID) {
+        guard owner == requestedOwner else { return }
+        session?.stop()
+        session = nil
+        owner = nil
     }
 
     public func shutdown() {
         session?.stop()
         session = nil
+        owner = nil
     }
 
     private func discardIfStale() {
@@ -107,6 +122,7 @@ public actor CLIWarmPool {
         if !current.isAlive || Date().timeIntervalSince(startedAt) > maxIdle {
             current.stop()
             session = nil
+            owner = nil
         }
     }
 }

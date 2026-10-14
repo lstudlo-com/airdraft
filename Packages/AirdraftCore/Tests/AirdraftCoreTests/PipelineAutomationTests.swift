@@ -442,12 +442,12 @@ final class PipelineAutomationTests: XCTestCase {
         fixture.settings.llm = captured
         var inspected: [LLMConfig] = []
         var loaded: [LLMConfig] = []
-        fixture.pipeline.llmNeedsLoad = { config in
+        fixture.pipeline.prepareRefinement = { config in
             inspected.append(config)
             fixture.settings.llm = LLMConfig(kind: .none)
-            return true
+            loaded.append(config)
+            return .unmanaged
         }
-        fixture.pipeline.loadLLM = { config in loaded.append(config) }
 
         fixture.pipeline.processSamples(Fixture.samples)
         try await finished(fixture)

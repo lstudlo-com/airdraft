@@ -45,9 +45,31 @@ public struct RefineResult: Sendable, Equatable {
     }
 }
 
+/// A fresh model-lifecycle probe determines whether speculative local work is
+/// supported. A generic/cloud endpoint must never receive an extra inference.
+public enum RefinementPreparationBackend: Sendable, Equatable {
+    case unmanaged
+    case lmStudio
+}
+
 public protocol Refiner: Sendable {
     var id: String { get }
+    func prepare(_ request: RefineRequest, backend: RefinementPreparationBackend, owner: UUID) async throws -> any Refiner
+    func prewarmPrompt(_ request: RefineRequest, backend: RefinementPreparationBackend) async throws
     func refine(_ request: RefineRequest) async throws -> RefineResult
+}
+
+extension Refiner {
+    public func prepare(_ request: RefineRequest, backend: RefinementPreparationBackend, owner: UUID) async throws -> any Refiner {
+        try Task.checkCancellation()
+        return self
+    }
+
+    /// Optional work has its own task; callers can cancel it when final speech
+    /// arrives without spending the refinement deadline waiting for prefill.
+    public func prewarmPrompt(_ request: RefineRequest, backend: RefinementPreparationBackend) async throws {
+        try Task.checkCancellation()
+    }
 }
 
 public enum RefinerError: Error, LocalizedError {

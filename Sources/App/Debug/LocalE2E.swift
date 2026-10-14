@@ -83,6 +83,7 @@ enum LocalE2E {
         }
         Task {
             let app = AppContainer.shared
+            var actionPipeline: DictationPipeline?
             var report: [String: Any] = ["action": action, "status": "failed"]
             do {
                 if let id = argument("--e2e-model") {
@@ -118,6 +119,13 @@ enum LocalE2E {
                     report["status"] = "passed"
                 case "transcribe":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
+                    let recordingMilliseconds: Int?
+                    if let value = argument("--e2e-recording-ms") {
+                        guard let milliseconds = Int(value), (0...120_000).contains(milliseconds) else {
+                            throw E2EError.unknownAction
+                        }
+                        recordingMilliseconds = milliseconds
+                    } else { recordingMilliseconds = nil }
                     if let name = argument("--e2e-profile") {
                         guard let profile = app.profiles.profiles.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) else {
                             throw E2EError.unknownAction
@@ -141,7 +149,19 @@ enum LocalE2E {
                             app.settings.llm.model = argument("--e2e-llm-model") ?? ""
                         }
                     }
-                    app.pipeline.insertionEnabled = false
+                    var pipeline = app.pipeline
+                    var replay: RefinementLatencyVerification.Session?
+                    pipeline.insertionEnabled = false
+                    pipeline.prepareRefinement = { [weak models = app.models] config in
+                        guard let models else { throw CancellationError() }
+                        return try await models.prepareLLMBackend(config: config)
+                    }
+                    pipeline.onLLMUsed = { [weak models = app.models] instance, config in
+                        models?.noteLLMUsed(instance, config: config)
+                    }
+                    pipeline.onStateChange = { [weak pipeline, weak models = app.models] _ in
+                        models?.setDictationBusy(pipeline?.isBusy == true)
+                    }
                     let samples = try AudioFile.load(path: path)
                     if CommandLine.arguments.contains("--e2e-prepare") {
                         guard app.settings.asr.kind.isLocal, LocalModels.isInstalled(app.settings.asr) else {
@@ -155,20 +175,30 @@ enum LocalE2E {
                         try await app.factory.prepare(app.settings.asr)
                         report["prepared"] = true
                     }
-                    let processingStarted = ContinuousClock.now
-                    app.pipeline.processSamples(samples)
+                    var processingStarted = ContinuousClock.now
+                    if let milliseconds = recordingMilliseconds {
+                        let session = try RefinementLatencyVerification.makeSession(app: app, samples: samples)
+                        replay = session
+                        pipeline = session.pipeline
+                        actionPipeline = pipeline
+                        try await session.startAndStop(recordingMilliseconds: milliseconds)
+                        processingStarted = .now
+                    } else {
+                        actionPipeline = pipeline
+                        pipeline.processSamples(samples)
+                    }
                     if let delay = argument("--e2e-cancel-ms").flatMap(Int.init) {
                         try await Task.sleep(for: .milliseconds(delay))
-                        report["stateBeforeCancel"] = String(describing: app.pipeline.state)
-                        report["busyBeforeCancel"] = app.pipeline.isBusy
-                        report["outcomeBeforeCancel"] = app.pipeline.lastOutcome != nil
+                        report["stateBeforeCancel"] = String(describing: pipeline.state)
+                        report["busyBeforeCancel"] = pipeline.isBusy
+                        report["outcomeBeforeCancel"] = pipeline.lastOutcome != nil
                         let processingDuration = processingStarted.duration(to: .now).components
                         report["processingMillisecondsBeforeCancel"] = Double(processingDuration.seconds) * 1_000 +
                             Double(processingDuration.attoseconds) / 1e15
-                        app.pipeline.cancel()
+                        pipeline.cancel()
                         let start = ContinuousClock.now
                         await app.factory.unloadAll()
-                        report["cancelled"] = !app.pipeline.isBusy && app.pipeline.lastOutcome == nil
+                        report["cancelled"] = !pipeline.isBusy && pipeline.lastOutcome == nil
                         report["historyEmpty"] = try app.history?.recent(limit: 1).isEmpty == true
                         report["cleanupSeconds"] = Double(start.duration(to: .now).components.seconds)
                         let cleanupDuration = start.duration(to: .now).components
@@ -183,25 +213,27 @@ enum LocalE2E {
                         break
                     }
                     let deadline = ContinuousClock.now.advanced(by: .seconds(240))
-                    while app.pipeline.isBusy, ContinuousClock.now < deadline {
+                    while pipeline.isBusy, ContinuousClock.now < deadline {
                         try await Task.sleep(for: .milliseconds(100))
                     }
                     if CommandLine.arguments.contains("--e2e-expect-silence") {
                         report["historyEmpty"] = try app.history?.recent(limit: 1).isEmpty == true
-                        report["noOutcome"] = app.pipeline.lastOutcome == nil
-                        report["status"] = app.pipeline.state == .idle && report["historyEmpty"] as? Bool == true &&
+                        report["noOutcome"] = pipeline.lastOutcome == nil
+                        report["status"] = pipeline.state == .idle && report["historyEmpty"] as? Bool == true &&
                             report["noOutcome"] as? Bool == true ? "passed" : "failed"
                         break
                     }
-                    guard !app.pipeline.isBusy, let outcome = app.pipeline.lastOutcome,
+                    guard !pipeline.isBusy, let outcome = pipeline.lastOutcome,
                           !outcome.raw.isEmpty,
                           let record = try app.history?.recent(limit: 1).first,
-                          record.finalText == outcome.final else { throw E2EError.pipeline(String(describing: app.pipeline.state)) }
+                          record.finalText == outcome.final else { throw E2EError.pipeline(String(describing: pipeline.state)) }
                     report["raw"] = outcome.raw
                     report["final"] = outcome.final
                     report["profile"] = app.profiles.activeProfile.name
                     report["asrMs"] = outcome.asrMs
                     report["llmMs"] = outcome.llmMs
+                    report["timings"] = RefinementLatencyVerification.timingReport(outcome.timings)
+                    if let replay { report["recordingReplay"] = replay.report }
                     report["refinementSkipped"] = outcome.llmSkippedReason ?? ""
                     report["refinementStatus"] = app.settings.llm.kind == .none || !app.profiles.activeProfile.usesLLM ? "excluded" :
                         (outcome.llmSkippedReason == nil ? "passed" : "fallback")
@@ -288,7 +320,7 @@ enum LocalE2E {
                 report["error"] = error.localizedDescription
             }
             report["engine"] = app.settings.asr.engineID
-            app.pipeline.cancel()
+            (actionPipeline ?? app.pipeline).cancel()
             do {
                 let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
                 try data.write(to: directory.appendingPathComponent("result.json"), options: .atomic)

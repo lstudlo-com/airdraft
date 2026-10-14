@@ -29,6 +29,24 @@ public struct DictationOutcome: Sendable, Equatable {
     public var asrMs: Int
     public var llmMs: Int
     public var llmSkippedReason: String?
+    public var timings: DictationTimings = .init()
+}
+
+/// Wall-clock stages, in milliseconds. Preparation can overlap recording/ASR;
+/// only preparationWaitMs belongs to the final refinement wait.
+public struct DictationTimings: Sendable, Equatable {
+    public var refinerSetupMs = 0
+    public var modelPreparationMs = 0
+    public var cliWarmupMs = 0
+    public var promptPrefixMs = 0
+    public var preparationWaitMs = 0
+    public var refinementRequestMs = 0
+    public var postProcessingMs = 0
+    public var deliveryMs = 0
+    public var historyMs = 0
+    public var processingMs = 0
+    public var stopToDeliveryMs: Int?
+    public init() {}
 }
 
 /// Record -> transcribe -> (refine) -> dictionary -> insert -> history.
@@ -66,6 +84,9 @@ public final class DictationPipeline {
         let llm: LLMConfig
         let microphone: MicrophonePreference
         let output: OutputSnapshot
+        let baseRules: String
+        let dictionary: [DictionaryEntry]
+        let useAppContext: Bool
     }
     private var recordingAtStart: RecordingSnapshot?
     private let sendScript: @Sendable (String, String) async throws -> Void
@@ -88,10 +109,9 @@ public final class DictationPipeline {
     public var onOutputDelivered: (() -> Void)?
     /// Called with the LLM instance id that served a refinement.
     public var onLLMUsed: ((String, LLMConfig) -> Void)?
-    /// Returns true when the refinement model must be loaded before use.
-    public var llmNeedsLoad: ((LLMConfig) async -> Bool)?
-    /// Loads the refinement model (called only when `llmNeedsLoad` said so).
-    public var loadLLM: ((LLMConfig) async -> Void)?
+    /// Ensures the captured refinement model is ready. Starts during recording;
+    /// final refinement joins the same preparation instead of repeating discovery.
+    public var prepareRefinement: ((LLMConfig) async throws -> RefinementPreparationBackend)?
     /// When false the final text is not inserted anywhere (self-tests).
     public var insertionEnabled = true
 
@@ -107,7 +127,32 @@ public final class DictationPipeline {
 
     private var generation = UUID()
     private var releaseTask: Task<Void, Never>?
-    private var warmTask: Task<Void, Never>?
+    @MainActor private final class RefinementPreparation {
+        let token: UUID
+        var task: Task<any Refiner, Error>?
+        var prefixTask: Task<Void, Never>?
+        var setupMs = 0
+        var modelMs = 0
+        var cliMs = 0
+        var prefixMs = 0
+        var setupStarted: TimeInterval?
+        var modelStarted: TimeInterval?
+        var cliStarted: TimeInterval?
+        var prefixStarted: TimeInterval?
+        var setupDuration: Int { setupStarted.map { DictationPipeline.elapsed(since: $0) } ?? setupMs }
+        var modelDuration: Int { modelStarted.map { DictationPipeline.elapsed(since: $0) } ?? modelMs }
+        var cliDuration: Int { cliStarted.map { DictationPipeline.elapsed(since: $0) } ?? cliMs }
+        var prefixDuration: Int { prefixStarted.map { DictationPipeline.elapsed(since: $0) } ?? prefixMs }
+        init(token: UUID) { self.token = token }
+    }
+    @MainActor private final class RefinementAttempt {
+        var preparationWaitMs = 0
+        var requestStarted: TimeInterval?
+        var requestMs = 0
+        var requestFinished = false
+    }
+    private var refinementPreparation: RefinementPreparation?
+    private var stopRequestedAt: TimeInterval?
     private var insertionTargetAtStart: InsertionTarget?
     private var contextAtStart: AppContext = .empty
     private var processingTask: Task<Void, Never>?
@@ -288,7 +333,8 @@ public final class DictationPipeline {
         let profile = settings.effectiveProfile(profiles.activeProfile)
         return RecordingSnapshot(asr: profile.speechConfig(default: settings.asr), profile: profile,
                                  llm: settings.llm, microphone: settings.microphone,
-                                 output: output ?? selectedOutput())
+                                 output: output ?? selectedOutput(), baseRules: profiles.baseRules,
+                                 dictionary: dictionary.entries, useAppContext: settings.useAppContext)
     }
 
     private func beginRecording(token: UUID) async {
@@ -365,7 +411,10 @@ public final class DictationPipeline {
         }
         recordingAtStart = snapshot
         insertionTargetAtStart = insertionTarget
-        contextAtStart = settings.useAppContext ? contextReader.read() : .empty
+        contextAtStart = snapshot.useAppContext ? contextReader.read() : .empty
+        if snapshot.useAppContext && contextAtStart.recentDictations.isEmpty {
+            contextAtStart.recentDictations = (try? history?.recentFinals(appBundleId: contextAtStart.bundleId)) ?? []
+        }
         wireRecorder(for: token)
         startPreview(for: token)
         do {
@@ -377,9 +426,10 @@ public final class DictationPipeline {
             return
         }
         recordingStartedAt = Date()
+        stopRequestedAt = nil
         levelHistory = []
         set(.recording)
-        prewarmRefiner(context: contextAtStart, snapshot: snapshot)
+        startRefinementPreparation(context: contextAtStart, snapshot: snapshot, token: token)
 
         let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
         autoStopTask?.cancel()
@@ -400,6 +450,7 @@ public final class DictationPipeline {
             return
         }
         guard state == .recording, !stopping else { return }
+        stopRequestedAt = ProcessInfo.processInfo.systemUptime
         stopping = true
         let token = generation
         releaseTask = Task { @MainActor in
@@ -412,6 +463,7 @@ public final class DictationPipeline {
 
     private func finishRecording() {
         guard state == .recording, let snapshot = recordingAtStart else { return }
+        if stopRequestedAt == nil { stopRequestedAt = ProcessInfo.processInfo.systemUptime }
         autoStopTask?.cancel()
         releaseTask?.cancel()
         stopping = false
@@ -423,6 +475,7 @@ public final class DictationPipeline {
         recordingStartedAt = nil
 
         guard seconds >= 0.3 else {
+            discardRefinementPreparation()
             set(.idle)
             return
         }
@@ -438,6 +491,8 @@ public final class DictationPipeline {
     public func processSamples(_ samples: [Float], context: AppContext = .empty) {
         guard !isBusy else { return }
         generation = UUID()
+        discardRefinementPreparation()
+        stopRequestedAt = nil
         let snapshot = recordingSnapshot()
         let token = generation
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
@@ -448,7 +503,6 @@ public final class DictationPipeline {
             do {
                 try await accessCheck()
                 guard isCurrent(token) else { return }
-                prewarmRefiner(context: context, snapshot: snapshot)
                 await process(samples: samples, seconds: seconds, context: context, target: nil, token: token, snapshot: snapshot)
             } catch {
                 guard isCurrent(token) else { return }
@@ -473,6 +527,8 @@ public final class DictationPipeline {
     private func retranscribe(loadSamples: @escaping @Sendable () throws -> [Float]) {
         guard !isBusy, !hasRecoverableRecording else { return }
         generation = UUID()
+        discardRefinementPreparation()
+        stopRequestedAt = nil
         let token = generation
         reviewGeneration = token
         reviewOutcome = nil
@@ -514,31 +570,92 @@ public final class DictationPipeline {
         } catch { audioStorageError = "Saved audio could not be removed. " + error.localizedDescription }
     }
 
-    /// A CLI refiner takes seconds to start a session, so start it while the user
-    /// is still speaking. Only the system prompt is needed for that, and it is
-    /// already known: it does not depend on what is said.
-    private func prewarmRefiner(context: AppContext, snapshot: RecordingSnapshot) {
+    /// Build once, discover/load a managed model and start a supported CLI while
+    /// recording/ASR is running. No transcript is sent until final recognition.
+    private func startRefinementPreparation(context: AppContext, snapshot: RecordingSnapshot, token: UUID) {
+        guard refinementPreparation?.token != token else { return }
+        discardRefinementPreparation()
         let config = snapshot.llm
         let profile = snapshot.profile
-        guard profile.usesLLM, config.kind.cliTool != nil else { return }
+        guard profile.usesLLM, config.kind != .none else { return }
         let request = RefineRequest(
             transcript: "",
             profile: profile,
-            baseRules: profiles.baseRules,
+            baseRules: snapshot.baseRules,
             context: context,
             family: AppFamily.classify(context),
-            dictionary: dictionary.entries,
+            dictionary: snapshot.dictionary,
             chineseScript: snapshot.asr.chineseScript
         )
-        let systemPrompt = PromptBuilder.systemPrompt(for: request)
-        warmTask?.cancel()
-        warmTask = Task { [factory] in
-            guard !Task.isCancelled else { return }
-            guard var refiner = await factory.refiner(for: config) as? CLIRefiner else { return }
-            guard !Task.isCancelled else { return }
-            refiner.warmSystemPrompt = systemPrompt
-            await refiner.prewarm()
+        let preparation = RefinementPreparation(token: token)
+        refinementPreparation = preparation
+        let prepare = prepareRefinement
+        preparation.task = Task { [factory] in
+            // A cold native load may finish while a long recording continues.
+            // Its speculative lifetime is independent of the final refinement
+            // deadline, which still bounds the remaining wait plus the request.
+            return try await OperationDeadline.run(seconds: 300) { @MainActor in
+                try Task.checkCancellation()
+                let setupStarted = ProcessInfo.processInfo.systemUptime
+                preparation.setupStarted = setupStarted
+                guard var refiner = await factory.refiner(for: config) else { throw RefinerError.invalidResponse }
+                preparation.setupMs = Self.elapsed(since: setupStarted)
+                preparation.setupStarted = nil
+                try Task.checkCancellation()
+                let modelStarted = ProcessInfo.processInfo.systemUptime
+                preparation.modelStarted = modelStarted
+                let backend: RefinementPreparationBackend
+                do { backend = try await prepare?(config) ?? .unmanaged }
+                catch {
+                    preparation.modelMs = Self.elapsed(since: modelStarted)
+                    preparation.modelStarted = nil
+                    throw error
+                }
+                preparation.modelMs = Self.elapsed(since: modelStarted)
+                preparation.modelStarted = nil
+                try Task.checkCancellation()
+                let warmStarted = ProcessInfo.processInfo.systemUptime
+                if config.kind.isCLI { preparation.cliStarted = warmStarted }
+                refiner = try await refiner.prepare(request, backend: backend, owner: token)
+                if config.kind.isCLI {
+                    preparation.cliMs = Self.elapsed(since: warmStarted)
+                    preparation.cliStarted = nil
+                }
+                if backend == .lmStudio {
+                    let preparedRefiner = refiner
+                    preparation.prefixTask = Task { @MainActor in
+                        guard !Task.isCancelled else { return }
+                        let prefixStarted = ProcessInfo.processInfo.systemUptime
+                        preparation.prefixStarted = prefixStarted
+                        defer {
+                            preparation.prefixMs = Self.elapsed(since: prefixStarted)
+                            preparation.prefixStarted = nil
+                        }
+                        // Speculative work must never consume the final request's
+                        // deadline. It is cancelled as soon as ASR is complete.
+                        do {
+                            try await OperationDeadline.run(seconds: config.timeoutSeconds) {
+                                try await preparedRefiner.prewarmPrompt(request, backend: backend)
+                            }
+                        } catch {}
+                    }
+                }
+                try Task.checkCancellation()
+                return refiner
+            }
         }
+    }
+
+    private func discardRefinementPreparation(for token: UUID? = nil) {
+        guard let preparation = refinementPreparation, token == nil || preparation.token == token else { return }
+        preparation.task?.cancel()
+        preparation.prefixTask?.cancel()
+        refinementPreparation = nil
+        Task { await CLIRefiner.discardPrewarm(owner: preparation.token) }
+    }
+
+    private static func elapsed(since start: TimeInterval) -> Int {
+        Int(max(0, ProcessInfo.processInfo.systemUptime - start) * 1000)
     }
 
     public func cancel() {
@@ -549,7 +666,8 @@ public final class DictationPipeline {
         recovery = nil
         hasRecoverableRecording = false
         releaseTask?.cancel()
-        warmTask?.cancel()
+        discardRefinementPreparation()
+        stopRequestedAt = nil
         recordingRequestID = UUID()
         recordingRequest?.cancel()
         recordingRequest = nil
@@ -576,6 +694,8 @@ public final class DictationPipeline {
         guard !isBusy, let recovery else { return }
         let snapshot = recordingSnapshot(output: recovery.output)
         generation = UUID()
+        discardRefinementPreparation()
+        stopRequestedAt = nil
         let token = generation
         if recovery.reviewOnly { reviewGeneration = token }
         set(.transcribing)
@@ -615,6 +735,8 @@ public final class DictationPipeline {
         guard !isCapturingMeeting, !isProcessingMedia, !state.isBusy, recordingRequest == nil, !isSavingHistory else { throw CleanupError.busy }
         isMaintainingData = true
         generation = UUID()
+        discardRefinementPreparation()
+        stopRequestedAt = nil
         resetTask?.cancel()
         audioRevision += 1
     }
@@ -663,6 +785,13 @@ public final class DictationPipeline {
 
     private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID, snapshot: RecordingSnapshot, reviewOnly: Bool = false) async {
         guard isCurrent(token) else { return }
+        let processingStarted = ProcessInfo.processInfo.systemUptime
+        let stopRequested = stopRequestedAt
+        var timings = DictationTimings()
+        defer {
+            discardRefinementPreparation(for: token)
+            Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1)")
+        }
         // Muted/digital-silence recordings contain no speech. Some recognizers
         // hallucinate on them; never let that text reach delivery or history.
         // Use exact silence, not a volume threshold that could reject quiet speech.
@@ -674,14 +803,14 @@ public final class DictationPipeline {
             return
         }
         let output = snapshot.output
-        let entries = dictionary.entries
+        let entries = snapshot.dictionary
         let asrConfig = snapshot.asr
         let llmConfig = snapshot.llm
         let profile = snapshot.profile
-        let baseRules = profiles.baseRules
+        let baseRules = snapshot.baseRules
         let family = AppFamily.classify(context)
         var context = context
-        if settings.useAppContext && context.recentDictations.isEmpty {
+        if snapshot.useAppContext && context.recentDictations.isEmpty && stopRequested == nil {
             context.recentDictations = (try? history?.recentFinals(appBundleId: context.bundleId)) ?? []
         }
 
@@ -693,6 +822,7 @@ public final class DictationPipeline {
             }
             let language = try SpeechLanguagePolicy.resolve(asrConfig)
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
+            startRefinementPreparation(context: context, snapshot: snapshot, token: token)
             let hints = TranscriptionHints(
                 language: language.language,
                 vocabulary: DictionaryPostProcessor.vocabulary(entries),
@@ -709,6 +839,7 @@ public final class DictationPipeline {
             return
         }
         guard isCurrent(token) else { return }
+        refinementPreparation?.prefixTask?.cancel()
         recovery = nil
         hasRecoverableRecording = false
         lastIssue = nil
@@ -743,19 +874,24 @@ public final class DictationPipeline {
                 chineseScript: asrConfig.chineseScript
             )
             let refinementStarted = ProcessInfo.processInfo.systemUptime
+            let preparation = refinementPreparation
+            let attempt = RefinementAttempt()
             do {
                 let timeout = llmConfig.kind.isCLI ? max(60, llmConfig.timeoutSeconds) : llmConfig.timeoutSeconds
                 let result = try await OperationDeadline.run(seconds: timeout) { @MainActor [self] in
                     guard isCurrent(token) else { throw CancellationError() }
-                    guard let refiner = await factory.refiner(for: llmConfig) else { throw RefinerError.invalidResponse }
-                    try Task.checkCancellation()
-                    if let needs = llmNeedsLoad, await needs(llmConfig) {
-                        try Task.checkCancellation()
-                        guard isCurrent(token) else { throw CancellationError() }
-                        await loadLLM?(llmConfig)
-                    }
+                    guard let task = preparation?.task else { throw RefinerError.invalidResponse }
+                    let refiner = try await task.value
+                    preparation?.prefixTask?.cancel()
                     try Task.checkCancellation()
                     guard isCurrent(token) else { throw CancellationError() }
+                    attempt.preparationWaitMs = Self.elapsed(since: refinementStarted)
+                    let requestStarted = ProcessInfo.processInfo.systemUptime
+                    attempt.requestStarted = requestStarted
+                    defer {
+                        attempt.requestMs = Self.elapsed(since: requestStarted)
+                        attempt.requestFinished = true
+                    }
                     return try await refiner.refine(request)
                 }
                 guard isCurrent(token) else { return }
@@ -779,19 +915,28 @@ public final class DictationPipeline {
                 skipReason = "LLM failed, using raw transcript"
             }
             llmMs = Int((ProcessInfo.processInfo.systemUptime - refinementStarted) * 1000)
-            Self.log.notice("refinement timing totalMs=\(llmMs) engine=\(llmConfig.engineLabel, privacy: .public)")
+            timings.preparationWaitMs = attempt.requestStarted == nil ? llmMs : attempt.preparationWaitMs
+            timings.refinementRequestMs = attempt.requestFinished ? attempt.requestMs : attempt.requestStarted.map { Self.elapsed(since: $0) } ?? 0
+            timings.refinerSetupMs = preparation?.setupDuration ?? 0
+            timings.modelPreparationMs = preparation?.modelDuration ?? 0
+            timings.cliWarmupMs = preparation?.cliDuration ?? 0
+            timings.promptPrefixMs = preparation?.prefixDuration ?? 0
+            Self.log.notice("refinement timing totalMs=\(llmMs) setupMs=\(timings.refinerSetupMs) modelPreparationMs=\(timings.modelPreparationMs) cliWarmupMs=\(timings.cliWarmupMs) promptPrefixMs=\(timings.promptPrefixMs) preparationWaitMs=\(timings.preparationWaitMs) requestMs=\(timings.refinementRequestMs) engine=\(llmConfig.engineLabel, privacy: .public)")
         } else {
             skipReason = "LLM off"
         }
         guard isCurrent(token) else { return }
 
         // 3. Script normalisation, then the dictionary always has the last word.
+        let postStarted = ProcessInfo.processInfo.systemUptime
         let normalised = ChineseScriptConverter.convert(refined, to: asrConfig.chineseScript)
         let final = DictionaryPostProcessor.apply(normalised, entries: entries)
+        timings.postProcessingMs = Self.elapsed(since: postStarted)
 
         if reviewOnly {
+            timings.processingMs = Self.elapsed(since: processingStarted)
             reviewOutcome = DictationOutcome(raw: transcript.text, refined: refined, final: final,
-                asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason)
+                asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings)
             lastIssue = llmError.map { "Refinement failed; the original transcript is shown. " + $0 }
             set(.idle)
             return
@@ -800,6 +945,7 @@ public final class DictationPipeline {
         // 4. Deliver once. A script can have external side effects, so never retry it
         // or fall back to pasting when its completion is uncertain.
         set(.inserting)
+        let deliveryStarted = ProcessInfo.processInfo.systemUptime
         var notice: String?
         var noticeRequiresAttention = true
         var deliveryError: String?
@@ -809,6 +955,7 @@ public final class DictationPipeline {
         let reportDelivery: () -> Void = { [weak self] in
             guard let self, self.isCurrent(token), !reportedDelivery else { return }
             reportedDelivery = true
+            if let stopRequested { timings.stopToDeliveryMs = Self.elapsed(since: stopRequested) }
             self.onOutputDelivered?()
         }
         if insertionEnabled {
@@ -836,6 +983,7 @@ public final class DictationPipeline {
             }
         }
         if outputSucceeded { reportDelivery() }
+        timings.deliveryMs = Self.elapsed(since: deliveryStarted)
         if llmError != nil, notice == nil {
             let reason = llmRejected ? "Refinement didn't match your speech" : "Refinement unavailable"
             notice = outputSucceeded
@@ -844,6 +992,7 @@ public final class DictationPipeline {
         }
 
         // 5. History
+        let historyStarted = ProcessInfo.processInfo.systemUptime
         let record = DictationRecord(
             appBundleId: context.bundleId,
             appName: context.appName,
@@ -871,10 +1020,12 @@ public final class DictationPipeline {
             await retryHistorySave()
         }
         guard isCurrent(token) else { return }
+        timings.historyMs = Self.elapsed(since: historyStarted)
+        timings.processingMs = Self.elapsed(since: processingStarted)
 
         let outcome = DictationOutcome(
             raw: transcript.text, refined: refined, final: final,
-            asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason
+            asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings
         )
         lastOutcome = outcome
         onOutcome?(outcome)

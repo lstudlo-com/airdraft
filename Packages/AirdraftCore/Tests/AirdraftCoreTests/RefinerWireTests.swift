@@ -86,6 +86,84 @@ final class RefinerWireTests: XCTestCase {
         XCTAssertNil(off)
     }
 
+    func testNativeWiresRememberOnlySuccessfulCompatibilityNegotiation() async throws {
+        for wire in ["anthropic", "gemini"] {
+            let fixture = RefinerCompatibilityFixture(wire: wire)
+            defer { fixture.close() }
+            let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
+            _ = try await refiner.refine(fixture.request())
+            _ = try await refiner.refine(fixture.request(transcript: "Different original words"))
+            XCTAssertEqual(fixture.bodies.count, 3, wire)
+            let option = wire == "anthropic" ? "output_config" : "generationConfig"
+            XCTAssertNotNil(fixture.bodies[0][option])
+            XCTAssertNil(fixture.bodies[1][option])
+            XCTAssertNil(fixture.bodies[2][option])
+            if wire == "anthropic" {
+                let messages = try XCTUnwrap(fixture.bodies[2]["messages"] as? [[String: String]])
+                XCTAssertTrue(messages[0]["content"]?.contains("Different original words") == true)
+                XCTAssertEqual(fixture.bodies[2]["max_tokens"] as? Int, AnthropicRefiner.maxTokens)
+                XCTAssertEqual(fixture.bodies[0]["system"] as? String, fixture.bodies[2]["system"] as? String)
+            } else {
+                let contents = try XCTUnwrap(fixture.bodies[2]["contents"] as? [[String: Any]])
+                let parts = try XCTUnwrap(contents[0]["parts"] as? [[String: String]])
+                XCTAssertTrue(parts[0]["text"]?.contains("Different original words") == true)
+                XCTAssertNotNil(fixture.bodies[2]["systemInstruction"])
+            }
+        }
+    }
+
+    func testNativeWiresRejectIncompleteMinimalWithoutLearningCompatibility() async throws {
+        for wire in ["anthropic", "gemini"] {
+            let fixture = RefinerCompatibilityFixture(mode: .incomplete, wire: wire)
+            defer { fixture.close() }
+            let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
+            for _ in 0..<2 {
+                do { _ = try await refiner.refine(fixture.request()); XCTFail("Expected incomplete output") }
+                catch RefinerError.incompleteOutput {}
+            }
+            XCTAssertEqual(fixture.bodies.count, 4, wire)
+            let option = wire == "anthropic" ? "output_config" : "generationConfig"
+            XCTAssertNotNil(fixture.bodies[2][option], "Incomplete minimal output must not suppress future options")
+        }
+    }
+
+    func testChangedCredentialsRenegotiateOptionsForEveryWire() async throws {
+        for wire in ["chat", "anthropic", "gemini"] {
+            let fixture = RefinerCompatibilityFixture(wire: wire)
+            defer { fixture.close() }
+            let compatibility = RefinerCompatibility()
+            for credential in ["fixture-account-a", "fixture-account-b"] {
+                let refiner: any Refiner
+                if wire == "chat" {
+                    var chat = OpenAICompatibleRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                    chat.compatibility = compatibility
+                    refiner = chat
+                } else if wire == "anthropic" {
+                    var anthropic = AnthropicRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                    anthropic.compatibility = compatibility
+                    refiner = anthropic
+                } else {
+                    var gemini = GeminiRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                    gemini.compatibility = compatibility
+                    refiner = gemini
+                }
+                _ = try await refiner.refine(fixture.request())
+            }
+            XCTAssertEqual(fixture.bodies.count, 4, "A different account must first try its full options: \(wire)")
+        }
+    }
+
+    private func compatibilityRefiner(wire: String, fixture: RefinerCompatibilityFixture) -> any Refiner {
+        if wire == "anthropic" {
+            var refiner = AnthropicRefiner(baseURL: fixture.url, model: "fixture", apiKey: "fixture", session: fixture.session)
+            refiner.compatibility = RefinerCompatibility()
+            return refiner
+        }
+        var refiner = GeminiRefiner(baseURL: fixture.url, model: "fixture", apiKey: "fixture", session: fixture.session)
+        refiner.compatibility = RefinerCompatibility()
+        return refiner
+    }
+
     func testSwitchingProvidersKeepsEachModelChoice() {
         var config = LLMConfig()
         config.model = "google/gemma-4-26b-a4b-qat"

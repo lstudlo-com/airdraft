@@ -159,10 +159,29 @@ state and elapsed time, distinguishing inference from startup.
 `--e2e-expect-silence` asserts no outcome/history for a silent fixture.
 `--e2e-profile` selects a built-in or fixture profile by name.
 
+Add `--e2e-recording-ms 3000` to replay the same file through recording startup,
+allow refinement preparation to overlap that lead time, then stop through the
+production grace period. The recorder retains file PCM without opening a device
+or playing audio. App context and live preview must be off. This uses the same
+real local speech/refinement engines and history with insertion disabled, and
+accepts a lead time from 0 to 120000 ms below the configured recording limit.
+Its `recordingReplay.stopToOutcomeMs` includes the grace period, processing and
+history; it is not proof of cursor insertion. Both replay and ordinary file
+transcription report `timings` for setup, model preparation, CLI warmup, prompt prefix,
+remaining preparation wait, refinement request, postprocessing, delivery,
+history and total processing. `stopToDeliveryMs` is null when output is disabled.
+
 Optional refinement accepts only `codex`, `claudeCode`, `appleIntelligence` or
 `openAICompatible`; the last requires a loopback `--e2e-endpoint` and optional
 `--e2e-llm-model`. Subscription CLI login must already exist. Do not inspect auth
 files or perform login as part of credential-free verification.
+For an identified local LM Studio server, recording preparation can evaluate the
+captured system prompt before speech recognition finishes, allowing the final
+request to reuse its prefix. The speculative request contains no audio or raw
+transcript and its output is discarded; it is never delivered or saved. Generic
+compatible endpoints and cloud providers do not receive this extra inference.
+The final request cancels unfinished prefix work and proceeds without waiting;
+an optional warmup failure does not consume its final refinement budget.
 
 After building, run `python3 scripts/verify-local-e2e-errors.py --app "$APP"`
 to assert failure exits for invalid selectors, missing audio and an unwritable report.

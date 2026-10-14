@@ -72,6 +72,16 @@ public struct CLIRefiner: Refiner {
     public let effort: ThinkingEffort
     public let supportedEfforts: [ThinkingEffort]?
     public let timeout: TimeInterval
+    private var warmOwner: UUID?
+
+    public func prepare(_ request: RefineRequest, backend: RefinementPreparationBackend, owner: UUID) async throws -> any Refiner {
+        try Task.checkCancellation()
+        var bound = self
+        bound.warmSystemPrompt = PromptBuilder.systemPrompt(for: request)
+        bound = await bound.prewarm(owner: owner)
+        try Task.checkCancellation()
+        return bound
+    }
 
     public init(tool: Tool, executable: String, model: String, effort: ThinkingEffort = .off, timeout: TimeInterval = 60, supportedEfforts: [ThinkingEffort]? = nil) {
         self.tool = tool
@@ -111,13 +121,31 @@ public struct CLIRefiner: Refiner {
 
     /// Starts a session now so the next dictation only pays for inference.
     public func prewarm() async {
+        await startPrewarm(owner: nil)
+    }
+
+    /// Only this recording may consume the process. Return the bound value so
+    /// preparation and inference keep the same process ownership.
+    public func prewarm(owner: UUID) async -> CLIRefiner {
+        var bound = self
+        bound.warmOwner = owner
+        await bound.startPrewarm(owner: owner)
+        return bound
+    }
+
+    /// A stale recording must not discard the next recording's warm process.
+    public static func discardPrewarm(owner: UUID) async {
+        await CLIWarmPool.shared.discard(owner: owner)
+    }
+
+    private func startPrewarm(owner: UUID?) async {
         guard supportsWarmStart else { return }
         let systemPrompt = warmSystemPrompt
         let arguments = warmArguments(systemPrompt: systemPrompt)
         let key = warmKey(systemPrompt: systemPrompt)
         let environment = self.environment
         let executable = self.executable
-        await CLIWarmPool.shared.prewarm(key: key) {
+        await CLIWarmPool.shared.prewarm(key: key, owner: owner) {
             let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("airdraft-cli-warm")
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             return try CLISession(key: key, executable: executable, arguments: arguments, environment: environment, workDir: dir)
@@ -174,7 +202,8 @@ public struct CLIRefiner: Refiner {
     public func refine(_ request: RefineRequest) async throws -> RefineResult {
         let started = Date()
         let systemPrompt = PromptBuilder.systemPrompt(for: request)
-        if supportsWarmStart, let session = await CLIWarmPool.shared.take(key: warmKey(systemPrompt: systemPrompt)) {
+        try Task.checkCancellation()
+        if supportsWarmStart, let session = await CLIWarmPool.shared.take(key: warmKey(systemPrompt: systemPrompt), owner: warmOwner) {
             let message = PromptBuilder.userMessage(for: request)
             let timeout = self.timeout
             let raw = try await withTaskCancellationHandler {

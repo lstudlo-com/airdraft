@@ -183,8 +183,10 @@ final class AppContainer {
         startAppearanceUpdates()
         observeWindows()
         pipeline.onLLMUsed = { [weak self] instance, config in self?.models.noteLLMUsed(instance, config: config) }
-        pipeline.llmNeedsLoad = { [weak self] config in await self?.models.llmNeedsLoad(config: config) ?? false }
-        pipeline.loadLLM = { [weak self] config in await self?.models.loadLLMIfNeeded(config: config) }
+        pipeline.prepareRefinement = { [weak self] config in
+            guard let self else { throw CancellationError() }
+            return try await self.models.prepareLLMBackend(config: config)
+        }
         if !cleanup.blocksWork && dataLease != nil { models.start() }
         audioCleanupTask = Task { [weak self] in
             while !Task.isCancelled {

@@ -11,6 +11,7 @@ public struct GeminiRefiner: Refiner {
     public let apiKey: String?
     public let temperature: Double
     private let session: URLSession
+    var compatibility = RefinerCompatibility.shared
     public let timeout: TimeInterval
     public let effort: ThinkingEffort
 
@@ -53,35 +54,52 @@ public struct GeminiRefiner: Refiner {
         guard let apiKey, !apiKey.isEmpty else {
             throw RefinerError.http(status: 401, body: "Gemini API key is missing. Add it under Models ▸ Refinement.")
         }
-        let started = Date()
-        var (data, http) = try await send(makeRequest(payload(for: request, thinkingDisabled: effort == .off)))
-        if http.statusCode == 400 {
-            (data, http) = try await send(makeRequest(payload(for: request, thinkingDisabled: false, minimal: true)))
-        }
-        guard (200..<300).contains(http.statusCode) else {
-            throw RefinerError.http(status: http.statusCode, body: String(decoding: data, as: UTF8.self))
-        }
-        struct Reply: Decodable {
-            struct Candidate: Decodable {
-                struct Content: Decodable {
-                    struct Part: Decodable { let text: String? }
-                    let parts: [Part]?
-                }
-                let content: Content?
-                let finishReason: String?
+        let started = ProcessInfo.processInfo.systemUptime
+        let full = payload(for: request, thinkingDisabled: effort == .off)
+        let minimal = full.filter { ["systemInstruction", "contents"].contains($0.key) }
+        let key = try RefinerCompatibility.Key(endpoint: baseURL, wire: "gemini-generate-content", model: model,
+            options: full.filter { !["contents", "systemInstruction"].contains($0.key) }, apiKey: apiKey)
+        let useMinimal = await compatibility.prefersMinimal(key)
+        do {
+            var (data, http) = try await send(makeRequest(useMinimal ? minimal : full))
+            var negotiated = false
+            if http.statusCode == 400, !useMinimal {
+                (data, http) = try await send(makeRequest(minimal))
+                negotiated = true
+            } else if useMinimal, !(200..<300).contains(http.statusCode) {
+                await compatibility.forget(key)
+                if http.statusCode == 400 { (data, http) = try await send(makeRequest(full)) }
             }
-            let candidates: [Candidate]?
-            let modelVersion: String?
+            guard (200..<300).contains(http.statusCode) else {
+                throw RefinerError.http(status: http.statusCode, body: String(decoding: data, as: UTF8.self))
+            }
+            struct Reply: Decodable {
+                struct Candidate: Decodable {
+                    struct Content: Decodable {
+                        struct Part: Decodable { let text: String? }
+                        let parts: [Part]?
+                    }
+                    let content: Content?
+                    let finishReason: String?
+                }
+                let candidates: [Candidate]?
+                let modelVersion: String?
+            }
+            guard let reply = try? JSONDecoder().decode(Reply.self, from: data) else { throw RefinerError.invalidResponse }
+            try CompletionReason.validate(reply.candidates?.first?.finishReason, allowed: ["STOP"])
+            let parts = reply.candidates?.first?.content?.parts?.compactMap(\.text) ?? []
+            let text = PromptBuilder.sanitize(parts.joined())
+            guard !text.isEmpty else { throw RefinerError.emptyOutput }
+            try Task.checkCancellation()
+            if negotiated { await compatibility.recordSuccess(key) }
+            return RefineResult(
+                text: text, engine: id, latencyMs: Int((ProcessInfo.processInfo.systemUptime - started) * 1000),
+                promptVersion: PromptBuilder.version, servedBy: reply.modelVersion
+            )
+        } catch {
+            if useMinimal { await compatibility.forget(key) }
+            throw error
         }
-        guard let reply = try? JSONDecoder().decode(Reply.self, from: data) else { throw RefinerError.invalidResponse }
-        try CompletionReason.validate(reply.candidates?.first?.finishReason, allowed: ["STOP"])
-        let parts = reply.candidates?.first?.content?.parts?.compactMap(\.text) ?? []
-        let text = PromptBuilder.sanitize(parts.joined())
-        guard !text.isEmpty else { throw RefinerError.emptyOutput }
-        return RefineResult(
-            text: text, engine: id, latencyMs: Int(Date().timeIntervalSince(started) * 1000),
-            promptVersion: PromptBuilder.version, servedBy: reply.modelVersion
-        )
     }
 
     private func send(_ req: URLRequest) async throws -> (Data, HTTPURLResponse) {

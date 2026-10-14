@@ -540,6 +540,28 @@ verification status belong in the vault (see below).
   contain durations and engine identifiers, never audio, text or credentials.
   LM Studio readiness and UI status use one fresh model inventory snapshot per
   check, preserving exact instance IDs and external unload visibility.
+  Refinement preparation starts during recording (or before ASR for file/retry
+  work). Keep one refiner per captured session and join in-flight LM Studio
+  discovery/loading for the same endpoint/model. Preparation may continue for
+  the native 300-second load lifetime while recording; the configured final
+  deadline still bounds its remaining wait plus inference. A cancelled waiter
+  cannot cancel another session's shared load or publish late results. Reset and
+  quit drain pending loads within their deadlines while independently stopping
+  speech engines and CLI children. Do not cache completed model readiness.
+  The same discovery result identifies LM Studio for best-effort prompt-prefix
+  warmup during recording: use the captured empty-transcript request with the
+  same model/options and a one-token output cap. Keep the formal request intact;
+  warm output never reaches fidelity, delivery or history. Skip this request on
+  cloud/unmanaged servers. Ordinary warmup failure cannot fail final refinement;
+  ASR completion cancels unfinished prefix work without awaiting it or consuming
+  the final request's deadline. Cancellation still discards the session. Do not
+  introduce a second discovery.
+  Capture base rules, vocabulary and app-context consent with the recording's
+  configuration. CLI warm sessions belong to one recording generation; discard
+  them on cancellation, skipped refinement, ASR failure and short/empty capture.
+  Expose separate model/prompt-prefix preparation, remaining wait, request, postprocess,
+  delivery and history durations. Stop-to-delivery ends at confirmed delivery,
+  excluding clipboard restoration and history; file/review fixtures leave it nil.
   Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable
   5, 10, 30 minutes and Never; preserve explicitly saved choices.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in
@@ -567,6 +589,11 @@ verification status belong in the vault (see below).
   Gemini (`x-goog-api-key`, `systemInstruction`, `generationConfig.thinkingConfig`).
   Every refiner retries a 400 once with a minimal, spec-core body, so a provider that rejects
   an optional field costs a little latency instead of the user's dictation. Keep that fallback.
+  A complete successful minimal response after a full-body 400 may remember that
+  negotiation for five minutes, scoped to endpoint, wire, model, credential and
+  inference options. Store only an opaque digest, never keys or prompt/response contents.
+  Failed/incomplete negotiations are not remembered; expiry or a rejected cached
+  request restores the full contract. Keep the cache bounded.
 - `ThinkingEffort` is one setting mapped per provider (`reasoning_effort`, `output_config.effort`,
   `thinkingBudget`, `--effort`, `model_reasoning_effort`). Cleanup needs none; `off` is the default.
 - Subscription CLIs (Claude Code, Codex) are refinement providers too: `CLIRefiner` runs them
@@ -893,6 +920,11 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   `airdraft --e2e-local <disposable-dir> --render-window settings-search <dir>`
   exercises Settings search, conditional controls, result scrolling,
   cancellation and idle scroll work in live light/dark fixture windows.
+  `transcribe --e2e-recording-ms <0...120000>` replays a supplied file through
+  production recording/preparation/stop with a silent recorder. It requires
+  isolated local models, no context/preview and disabled insertion. Report its
+  stop-to-outcome endpoint after history separately from confirmed delivery;
+  it never proves microphone capture or external-editor insertion.
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to
   see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
