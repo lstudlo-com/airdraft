@@ -29,8 +29,8 @@ struct MediaDocumentStatus: View {
     let document: TranscriptDocument
     var body: some View {
         Text(container.media?.isBusy == true && container.media?.document?.id == document.id
-             ? container.media?.activity ?? "Processing"
-             : document.stage == .completed ? "Completed" : "Ready to Resume").supportingText()
+             ? container.media?.activity ?? String(localized: "Processing")
+             : document.stage == .completed ? String(localized: "Completed") : String(localized: "Ready to Resume")).supportingText()
     }
 }
 struct MediaDocumentActions: View {
@@ -44,7 +44,7 @@ struct MediaDocumentActions: View {
         if active {
             HStack {
                 ProgressView(value: container.media?.progress).controlSize(.small)
-                Button(container.media?.activity == "Summarizing" ? "Cancel" : "Pause") { container.media?.cancel() }.buttonStyle(SoftButtonStyle())
+                Button(container.media?.isSummarizing == true ? "Cancel" : "Pause") { container.media?.cancel() }.buttonStyle(SoftButtonStyle())
             }
         }
         if let actionIssue { Text(actionIssue).supportingText().textSelection(.enabled) }
@@ -166,7 +166,7 @@ struct MediaDocumentEditor: View {
         var parts = [document.createdAt.formatted(date: .abbreviated, time: .shortened)]
         if let duration { parts.append(HistoryRecordingControls.time(duration)) }
         parts.append(document.configuration.engine == .local ? document.configuration.selectedModelTitle : "Soniox")
-        if document.configuration.usesSegmentTiming { parts.append("Segment timestamps") }
+        if document.configuration.usesSegmentTiming { parts.append(String(localized: "Segment timestamps")) }
         return parts.joined(separator: " · ")
     }
 
@@ -195,7 +195,7 @@ struct MediaDocumentEditor: View {
                     .accessibilityLabel(playback.isPlaying ? "Pause Recording" : "Play Recording")
                     if playback.recordingID != nil { MediaEditorClock(playback: playback) }
                 }
-                SoftSegmentedPicker("Transcript version", selection: $showOriginal, options: [(false, "Edited"), (true, "Original")])
+                SoftSegmentedPicker("Transcript version", selection: $showOriginal, options: [(false, String(localized: "Edited")), (true, String(localized: "Original"))])
                 Spacer(minLength: 0)
                 Button("Copy") { copy() }.buttonStyle(SoftButtonStyle())
                 SoftMenuButton(title: "Export") {
@@ -211,7 +211,7 @@ struct MediaDocumentEditor: View {
         PageSection("Speakers") {
             Button("Add Speaker") {
                 let id = String((speakerIDs.compactMap(Int.init).max() ?? 0) + 1)
-                document.speakerNames[id] = "Speaker " + id; dirty = true
+                document.speakerNames[id] = String(localized: "Speaker \(id)"); dirty = true
             }.buttonStyle(SoftButtonStyle()).disabled(!editable)
         } content: {
             if !speakerIDs.isEmpty {

@@ -65,7 +65,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             let allowed = await AVCaptureDevice.requestAccess(for: .audio)
             guard allowed else { throw MeetingError.permission }
             if let microphoneID, !AVCaptureDevice.DiscoverySession(deviceTypes: [.microphone, .external], mediaType: .audio, position: .unspecified).devices.contains(where: { $0.uniqueID == microphoneID }) {
-                throw RecordingPrerequisiteError("The selected microphone is unavailable. Choose a connected microphone in the sidebar.")
+                throw RecordingPrerequisiteError(String(localized: "The selected microphone is unavailable. Choose a connected microphone in the sidebar.", bundle: .module))
             }
         }
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
@@ -99,7 +99,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
         var stopIssue = reason
         if let stream {
             do { try await stream.stopCapture() }
-            catch { stopIssue = reason ?? "System capture stopped unexpectedly. The saved tail may be incomplete." }
+            catch { stopIssue = reason ?? String(localized: "System capture stopped unexpectedly. The saved tail may be incomplete.", bundle: .module) }
         }
         stream = nil
         let finalIssue = stopIssue
@@ -115,7 +115,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
         }
     }
     public func stream(_ stream: SCStream, didStopWithError error: Error) {
-        queue.async { self.report("System audio capture was interrupted: " + error.localizedDescription) }
+        queue.async { self.report(String(localized: "System audio capture was interrupted:", bundle: .module) + " " + error.localizedDescription) }
     }
     public func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard accepting, !failed, sampleBuffer.isValid, CMSampleBufferDataIsReady(sampleBuffer), type == .audio || type == .microphone else { return }
@@ -124,7 +124,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
             guard timestamp.isFinite else { throw MeetingError.invalidClock }
             guard CMClockGetTime(CMClockGetHostTimeClock()).seconds - timestamp < 5 else {
-                throw RecordingPrerequisiteError("Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings.")
+                throw RecordingPrerequisiteError(String(localized: "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings.", bundle: .module))
             }
             let offset = timestamp - origin
             guard let description = CMSampleBufferGetFormatDescription(sampleBuffer) else { throw MediaError.invalidAudio }
@@ -215,7 +215,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
         }
         let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1)!
         if formats[track] != format {
-            if formats[track] != nil { try writer.note("\(track == .microphone ? "Microphone" : "App audio") format changed during recording.") }
+            if formats[track] != nil { try writer.note(String(localized: "\(track.displayName) format changed during recording.", bundle: .module)) }
             guard let converter = AVAudioConverter(from: monoFormat, to: outputFormat) else { throw MediaError.invalidAudio }
             converter.primeMethod = .none
             converters[track] = converter; formats[track] = format

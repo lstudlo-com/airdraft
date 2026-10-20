@@ -56,4 +56,14 @@ final class SettingsSearchIndexTests: XCTestCase {
         XCTAssertEqual(after.matches("granted").count, 1)
         XCTAssertTrue(SettingsSearchIndex([]).matches("microphone").isEmpty)
     }
+
+    func testMatchesLocalizedChineseCopyWithoutSpaces() {
+        let index = SettingsSearchIndex([
+            .init(section: "鍵盤快速鍵", title: "觸發延遲", detail: "短按保持原本的動作；0 = 關閉"),
+            .init(section: "音訊記錄", title: "保留錄音", detail: "供本機播放與重試。關閉會刪除音訊，保留文字。"),
+        ])
+        XCTAssertEqual(index.matches("延遲").map(\.title), ["觸發延遲"])
+        XCTAssertEqual(index.matches("錄音 重試").map(\.title), ["保留錄音"])
+        XCTAssertEqual(index.matches("保留錄音").map(\.title), ["保留錄音"])
+    }
 }

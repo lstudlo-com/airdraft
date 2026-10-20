@@ -21,15 +21,15 @@ public struct AppleIntelligenceRefiner: Refiner {
     }
 
     public static var unavailableReason: String? {
-        guard #available(macOS 26, *) else { return "Apple Intelligence requires macOS 26 or later." }
+        guard #available(macOS 26, *) else { return String(localized: "Apple Intelligence requires macOS 26 or later.", bundle: .module) }
         switch SystemLanguageModel.default.availability {
         case .available: return nil
-        case .unavailable(.deviceNotEligible): return "This Mac does not support Apple Intelligence."
+        case .unavailable(.deviceNotEligible): return String(localized: "This Mac does not support Apple Intelligence.", bundle: .module)
         case .unavailable(.appleIntelligenceNotEnabled):
             return "Enable Apple Intelligence in System Settings."
         case .unavailable(.modelNotReady):
-            return "Apple Intelligence preparing · check System Settings"
-        case .unavailable: return "Unavailable · check Apple Intelligence in System Settings"
+            return String(localized: "Apple Intelligence preparing · check System Settings", bundle: .module)
+        case .unavailable: return String(localized: "Unavailable · check Apple Intelligence in System Settings", bundle: .module)
         }
     }
 
@@ -51,7 +51,7 @@ public struct AppleIntelligenceRefiner: Refiner {
 
     private static func generate(instructions: String, prompt: String) async throws -> String {
         guard #available(macOS 26, *) else {
-            throw RecordingPrerequisiteError("Apple Intelligence requires macOS 26 or later.")
+            throw RecordingPrerequisiteError(String(localized: "Apple Intelligence requires macOS 26 or later.", bundle: .module))
         }
         let session = LanguageModelSession(model: .default, instructions: instructions)
         // No output cap: hitting a cap could silently insert half a dictation.

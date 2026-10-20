@@ -115,7 +115,7 @@ struct MeetingsPage: View {
                 SettingsCard {
                     ForEach(meeting.drafts) { draft in
                         if draft.id != meeting.drafts.first?.id { RowDivider() }
-                        SettingRow(title: draft.createdAt.formatted(date: .abbreviated, time: .shortened)) {
+                        SettingRow(title: .verbatim(draft.createdAt.formatted(date: .abbreviated, time: .shortened))) {
                             Button("Recover Recording") { meeting.recover(draft) }.buttonStyle(SoftButtonStyle())
                                 .disabled(container.pipeline.isBusy)
                         }
@@ -148,7 +148,7 @@ struct MeetingsPage: View {
             entries = (append ? entries : []) + Array(found.prefix(pageSize))
             hasMore = found.count > pageSize
             if let id = playback.recordingID, !entries.contains(where: { $0.asset?.id == id }) { playback.stop() }
-        } catch { if token == loadID { issue = "Recordings could not be loaded. " + error.localizedDescription } }
+        } catch { if token == loadID { issue = String(localized: "Recordings could not be loaded.") + " " + error.localizedDescription } }
     }
 }
 
@@ -163,7 +163,7 @@ private struct MeetingJobStatus: View {
                     Text(media.activity).supportingText().lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Button(media.document == nil || media.activity == "Summarizing" ? "Cancel" : "Pause") { media.cancel() }
+                Button(media.document == nil || media.isSummarizing ? "Cancel" : "Pause") { media.cancel() }
                     .buttonStyle(SoftButtonStyle())
             }
             ProgressView(value: media.progress).controlSize(.small)
@@ -242,17 +242,17 @@ private struct MeetingLibraryCard: View {
     private var metadata: String {
         var parts = [entry.createdAt.formatted(date: .abbreviated, time: .shortened)]
         if let asset = entry.asset { parts.append(HistoryRecordingControls.time(asset.duration)) }
-        if let document { parts.append(document.configuration.engine == .local ? "On This Mac" : "Soniox") }
-        if entry.documents.count > 1 { parts.append("\(entry.documents.count) transcripts") }
+        if let document { parts.append(document.configuration.engine == .local ? String(localized: "On This Mac") : "Soniox") }
+        if entry.documents.count > 1 { parts.append(String(localized: "\(entry.documents.count) transcripts")) }
         return parts.joined(separator: " · ")
     }
 
     private var status: (text: String, tone: StatusDot.Tone) {
-        if processing { return (container.media?.activity ?? "Processing", .busy) }
+        if processing { return (container.media?.activity ?? String(localized: "Processing"), .busy) }
         if let document {
-            return document.stage == .completed ? ("Transcribed", .ok) : ("Paused", .attention)
+            return document.stage == .completed ? (String(localized: "Transcribed"), .ok) : (String(localized: "Paused"), .attention)
         }
-        return entry.audioAvailable ? ("Not transcribed", .inactive) : ("Audio unavailable", .attention)
+        return entry.audioAvailable ? (String(localized: "Not transcribed"), .inactive) : (String(localized: "Audio unavailable"), .attention)
     }
 
     @ViewBuilder private func transcript(_ document: TranscriptDocument) -> some View {
@@ -337,7 +337,7 @@ private struct MeetingLibraryCard: View {
         .help("Recording actions")
     }
     private func reveal(_ asset: RecordingAsset) {
-        guard let url = container.history?.audioURL(for: asset) else { report("This audio file is no longer available."); return }
+        guard let url = container.history?.audioURL(for: asset) else { report(String(localized: "This audio file is no longer available.")); return }
         NSWorkspace.shared.activateFileViewerSelecting([url])
     }
     private func play(_ asset: RecordingAsset) {

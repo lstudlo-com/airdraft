@@ -39,7 +39,7 @@ public final class ModelDownloadStore {
         let id = config.engineID
         guard tasks[id] == nil else { return }
         let token = UUID()
-        jobs[id] = Job(progress: .init(fraction: nil, currentFile: "Preparing download…"), token: token)
+        jobs[id] = Job(progress: .init(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)), token: token)
         tasks[id] = Task { [self] in
             // Keep callback order and bound pending UI work when the network is fast.
             let (updates, continuation) = AsyncStream<ModelDownloader.Progress>.makeStream(bufferingPolicy: .bufferingNewest(1))
@@ -61,7 +61,7 @@ public final class ModelDownloadStore {
                 onComplete()
             } catch {
                 let cancelled = Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
-                jobs[id] = Job(progress: nil, error: cancelled ? "Download cancelled. Retry to resume." : error.localizedDescription, token: token)
+                jobs[id] = Job(progress: nil, error: cancelled ? String(localized: "Download cancelled. Retry to resume.", bundle: .module) : error.localizedDescription, token: token)
             }
         }
     }

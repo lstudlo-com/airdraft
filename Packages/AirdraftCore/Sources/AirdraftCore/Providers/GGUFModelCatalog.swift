@@ -33,13 +33,13 @@ public struct GGUFModel: Codable, Sendable, Identifiable, Equatable {
         let control: SpeechLanguageManualControl = manualControl == "automatic" ? .notApplied : .forced
         let summary: String
         if supportedLanguages.count == 1 {
-            summary = "Recognizes \(SpeechLanguagePolicy.languageName(supportedLanguages[0])) only."
+            summary = String(localized: "Recognizes \(SpeechLanguagePolicy.languageName(supportedLanguages[0])) only.", bundle: .module)
         } else if control == .notApplied {
-            summary = "Automatically recognizes \(supportedLanguages.count) supported languages; selection has no effect."
+            summary = String(localized: "Automatically recognizes \(supportedLanguages.count) supported languages; selection has no effect.", bundle: .module)
         } else if automatic {
-            summary = "\(supportedLanguages.count) languages. Auto Detect or a selected language."
+            summary = String(localized: "\(supportedLanguages.count) languages. Auto Detect or a selected language.", bundle: .module)
         } else {
-            summary = "\(supportedLanguages.count) languages. Select a language; Auto Detect is unavailable."
+            summary = String(localized: "\(supportedLanguages.count) languages. Select a language; Auto Detect is unavailable.", bundle: .module)
         }
         return .init(modelName: title, supportedLanguages: supportedLanguages,
                      supportsAutomatic: automatic, manualControl: control, summary: summary)

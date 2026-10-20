@@ -22,7 +22,7 @@ struct RefinementSettings: View {
                         EmptyView()
                     }
                 case .appleIntelligence:
-                    SettingRow(title: "On-device cleanup", subtitle: AppleIntelligenceRefiner.unavailableReason ?? "Ready · no key or server needed") {
+                    SettingRow(title: "On-device cleanup", detail: AppleIntelligenceRefiner.unavailableReason ?? String(localized: "Ready · no key or server needed")) {
                         StatusDot(ok: AppleIntelligenceRefiner.unavailableReason == nil)
                     }
                     RowDivider()
@@ -48,9 +48,9 @@ struct RefinementSettings: View {
                     }
                     RowDivider()
                     }
-                    SettingRow(title: "Timeout", subtitle: llm.kind.isCLI
-                               ? "60 s minimum for CLIs; then use raw text"
-                               : "Use raw text on timeout") {
+                    SettingRow(title: "Timeout", detail: llm.kind.isCLI
+                               ? String(localized: "60 s minimum for CLIs; then use raw text")
+                               : String(localized: "Use raw text on timeout")) {
                         SettingsNumberStepper(title: "Timeout", value: Binding(
                             get: { Int(settings.llm.timeoutSeconds) },
                             set: { settings.llm.timeoutSeconds = Double($0) }
@@ -62,12 +62,12 @@ struct RefinementSettings: View {
                     }
                     if !llm.kind.isCLI && llm.kind != .appleIntelligence {
                         RowDivider()
-                        SettingRow(title: "Thinking effort", subtitle: thinkingSubtitle) {
+                        SettingRow(title: "Thinking effort", detail: thinkingSubtitle) {
                             SoftSegmentedPicker("Thinking effort", selection: Binding(
                                 get: { llm.kind == .gemini && settings.llm.thinkingEffort != .off ? .high : settings.llm.thinkingEffort },
                                 set: { settings.llm.thinkingEffort = $0 }
                             ), options: (llm.kind == .gemini ? [ThinkingEffort.off, .high] : ThinkingEffort.standard).map {
-                                ($0, llm.kind == .gemini && $0 == .high ? "Automatic" : $0.title)
+                                ($0, llm.kind == .gemini && $0 == .high ? String(localized: "Automatic") : $0.title)
                             }, width: 260)
                         }
                     }
@@ -85,11 +85,11 @@ struct RefinementSettings: View {
     }
 
     private var thinkingSubtitle: String {
-        if llm.kind == .gemini { return "Off where supported; Automatic uses model default" }
+        if llm.kind == .gemini { return String(localized: "Off where supported; Automatic uses model default") }
         if [.cerebras, .groq].contains(llm.kind), llm.model.contains("gpt-oss") {
-            return "Reasoning required; Off uses minimum effort"
+            return String(localized: "Reasoning required; Off uses minimum effort")
         }
-        return "Off is fastest for cleanup"
+        return String(localized: "Off is fastest for cleanup")
     }
 
     // MARK: - Provider rows
@@ -97,7 +97,7 @@ struct RefinementSettings: View {
     @ViewBuilder
     private var localServerRows: some View {
         @Bindable var settings = container.settings
-        SettingRow(title: "Model status", subtitle: statusSubtitle) {
+        SettingRow(title: "Model status", detail: statusSubtitle) {
             HStack(spacing: 8) {
                 StatusDot(statusTone)
                 switch container.models.llmStatus.state {
@@ -115,7 +115,7 @@ struct RefinementSettings: View {
         RowDivider()
         SettingRow(title: "Server") {
             SoftPicker("Server", selection: Binding<String>(
-                get: { EndpointPreset.llm.first { $0.baseURL == settings.llm.baseURL }?.name ?? "Custom" },
+                get: { EndpointPreset.llm.first { $0.baseURL == settings.llm.baseURL }?.name ?? String(localized: "Custom") },
                 set: { name in
                     guard let p = EndpointPreset.llm.first(where: { $0.name == name }) else { return }
                     settings.llm.baseURL = p.baseURL
@@ -143,7 +143,7 @@ struct RefinementSettings: View {
 
     @ViewBuilder
     private var cloudRows: some View {
-        SettingRow(title: "\(llm.kind.title) API key", subtitle: llm.kind == .openRouter ? "Shared with speech" : "Stored in Keychain") {
+        SettingRow(title: "\(llm.kind.title) API key", detail: llm.kind == .openRouter ? String(localized: "Shared with speech") : String(localized: "Stored in Keychain")) {
             APIKeyField(account: llm.keyRef, console: llm.kind.keyConsoleURL)
         }
         RowDivider()
@@ -160,7 +160,7 @@ struct RefinementSettings: View {
     /// where it lives and which model it should ask for.
     @ViewBuilder
     private var cliRows: some View {
-        SettingRow(title: "Command", subtitle: cliSubtitle) {
+        SettingRow(title: "Command", detail: cliSubtitle) {
             HStack(spacing: 8) {
                 StatusDot(ok: llm.cliExecutable != nil)
                 Button("Locate Again") {
@@ -179,13 +179,13 @@ struct RefinementSettings: View {
 
     private var cliSubtitle: String {
         guard let path = llm.cliExecutable else {
-            return "Install \(llm.kind.cliTool?.executableName ?? "CLI"), then Locate Again"
+            return String(localized: "Install \(llm.kind.cliTool?.executableName ?? "CLI"), then Locate Again")
         }
         return path
     }
 
     private var testRow: some View {
-        SettingRow(title: "Connection", subtitle: testResult.isEmpty ? nil : testResult) {
+        SettingRow(title: "Connection", detail: testResult.isEmpty ? nil : testResult) {
             if testTask != nil {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
@@ -205,7 +205,7 @@ struct RefinementSettings: View {
         let label = container.models.llmStatus.label
         switch container.models.llmStatus.state {
         case .loaded, .notLoaded, .loading:
-            return label + (container.settings.unloadLLMOnQuit ? " · unloads on quit" : "")
+            return label + (container.settings.unloadLLMOnQuit ? String(localized: " · unloads on quit") : "")
         default:
             return label
         }
@@ -235,7 +235,7 @@ struct RefinementSettings: View {
         let candidate = await container.factory.refiner(for: config)
         guard testID == token, !Task.isCancelled else { return }
         guard let refiner = candidate else {
-            testResult = "Refinement is off"
+            testResult = String(localized: "Refinement is off")
             return
         }
         let req = RefineRequest(
@@ -248,12 +248,12 @@ struct RefinementSettings: View {
             let r = try await refiner.refine(req)
             guard testID == token, !Task.isCancelled else { return }
             let host = config.kind == .openRouter
-                ? " · " + (r.servedBy.map { "Served by \($0)" } ?? "Provider not reported")
+                ? " · " + (r.servedBy.map { String(localized: "Served by \($0)") } ?? String(localized: "Provider not reported"))
                 : ""
-            testResult = "OK in \(r.latencyMs) ms\(host): \(r.text.prefix(60))"
+            testResult = String(localized: "OK in \(r.latencyMs) ms\(host): \(r.text.prefix(60))")
         } catch {
             guard testID == token, !Task.isCancelled else { return }
-            testResult = "Failed. \(error.localizedDescription)"
+            testResult = String(localized: "Failed. \(error.localizedDescription)")
         }
     }
 }
@@ -333,17 +333,17 @@ struct RefinementModelRow: View {
         llm.thinkingEffort.supported(in: availableEfforts) ?? .off
     }
     private var effortSubtitle: String {
-        if availableEfforts.isEmpty { return "Not supported by this model" }
+        if availableEfforts.isEmpty { return String(localized: "Not supported by this model") }
         if llm.thinkingEffort != selectedEffort {
-            return "Saved \(llm.thinkingEffort.title.lowercased()) maps to \(selectedEffort.title.lowercased())"
+            return String(localized: "Saved \(llm.thinkingEffort.title.lowercased()) maps to \(selectedEffort.title.lowercased())")
         }
-        return "Lower is faster and uses fewer tokens"
+        return String(localized: "Lower is faster and uses fewer tokens")
     }
 
     var body: some View {
         @Bindable var settings = container.settings
         Group {
-            SettingRow(title: "Model", subtitle: status.isEmpty ? nil : status) {
+            SettingRow(title: "Model", detail: status.isEmpty ? nil : status) {
                 HStack(spacing: 6) {
                     if models.isEmpty || customModel {
                         TextField("Model ID or alias", text: $settings.llm.model)
@@ -373,7 +373,7 @@ struct RefinementModelRow: View {
             }
             if tool != nil {
                 RowDivider()
-                SettingRow(title: "Thinking effort", subtitle: effortSubtitle) {
+                SettingRow(title: "Thinking effort", detail: effortSubtitle) {
                     if availableEfforts.isEmpty {
                         Text("Not supported").foregroundStyle(.secondary)
                     } else {
@@ -395,7 +395,7 @@ struct RefinementModelRow: View {
 
     private func modelTitle(_ id: String) -> String {
         guard let info = cliModels.first(where: { $0.id == id }) else { return id }
-        return info.title + (info.hidden ? " (hidden)" : "")
+        return info.title + (info.hidden ? String(localized: " (hidden)") : "")
     }
 
     private var taskKey: String { "\(llm.kind.rawValue)|\(llm.baseURL)|\(llm.keyRef)|\(llm.cliExecutable ?? "")" }
@@ -408,7 +408,7 @@ struct RefinementModelRow: View {
         loading = true
         models = config.kind.cliTool?.modelSuggestions ?? []
         cliModels = []
-        status = "Loading models…"
+        status = String(localized: "Loading models…")
         defer { if key == taskKey, !Task.isCancelled { loading = false } }
         do {
             let ids: [String]
@@ -423,14 +423,14 @@ struct RefinementModelRow: View {
             guard key == taskKey, !Task.isCancelled else { return }
             models = ids
             cliModels = info
-            status = ids.isEmpty ? "No models listed; enter a model ID." : ""
+            status = ids.isEmpty ? String(localized: "No models listed; enter a model ID.") : ""
             if !config.kind.isCLI, container.settings.llm.model.isEmpty, let first = ids.first {
                 container.settings.llm.model = first
             }
         } catch {
             guard key == taskKey, !Task.isCancelled else { return }
             status = config.kind.isCLI
-                ? "Models unavailable; enter a model ID."
+                ? String(localized: "Models unavailable; enter a model ID.")
                 : Self.shortMessage(for: error)
         }
     }
@@ -440,13 +440,13 @@ struct RefinementModelRow: View {
         if let error = error as? Keychain.AccessError { return error.localizedDescription }
         if case RefinerError.http(let status, _) = error {
             switch status {
-            case 401, 403: return "Add a valid API key to list models."
-            case 404: return "Endpoint not found; check the base URL."
-            case 429: return "Rate limited by the provider; try again shortly."
-            default: return "Provider returned HTTP \(status); type the model id."
+            case 401, 403: return String(localized: "Add a valid API key to list models.")
+            case 404: return String(localized: "Endpoint not found; check the base URL.")
+            case 429: return String(localized: "Rate limited by the provider; try again shortly.")
+            default: return String(localized: "Provider returned HTTP \(status); type the model id.")
             }
         }
         if error is RefinerError { return error.localizedDescription }
-        return "Could not reach the provider; type the model id."
+        return String(localized: "Could not reach the provider; type the model id.")
     }
 }

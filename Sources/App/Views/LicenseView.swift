@@ -37,7 +37,7 @@ struct LicenseView: View {
         .confirmationDialog("Have you removed the unfinished activation in the customer portal?", isPresented: $confirmPending) {
             Button("I Removed It") { Task { await license.acknowledgePendingActivation() } }
         } message: { Text("Trying again before removing it may use another device slot.") }
-        .confirmationDialog("Did you remove \(license.deviceLabel ?? "this device") in the customer portal?", isPresented: $confirmForget) {
+        .confirmationDialog("Did you remove \(license.deviceLabel ?? String(localized: "this device")) in the customer portal?", isPresented: $confirmForget) {
             Button("Forget Removed Device", role: .destructive) { Task { await license.forgetRemovedActivation() } }
         } message: { Text("This only clears the saved activation on this Mac. It cannot release a device slot in Polar. For a rotated key, use Update Key instead.") }
     }
@@ -212,53 +212,55 @@ struct LicenseView: View {
     }
 
     private func summary(now: Date) -> Summary {
-        let label = license.deviceLabel ?? "this Mac"
+        let label = license.deviceLabel ?? String(localized: "this Mac")
         if isPending {
-            return Summary(title: "Activation unfinished",
-                           detail: "A previous attempt may have used a device slot. Remove “\(label)” in your customer portal, then confirm.")
+            return Summary(title: String(localized: "Activation unfinished"),
+                           detail: String(localized: "A previous attempt may have used a device slot. Remove “\(label)” in your customer portal, then confirm."))
         }
         switch license.access {
         case .community:
-            return Summary(title: "Self-built edition", detail: "Every feature is unlocked. This build needs no license.")
+            return Summary(title: String(localized: "Self-built edition"), detail: String(localized: "Every feature is unlocked. This build needs no license."))
         case .loading:
-            return Summary(title: "Checking license…")
+            return Summary(title: String(localized: "Checking license…"))
         case .unconfigured:
-            return Summary(title: "Not configured",
-                           detail: "This build can’t start a trial or accept a purchase. Contact Airdraft support for a configured build.")
+            return Summary(title: String(localized: "Not configured"),
+                           detail: String(localized: "This build can’t start a trial or accept a purchase. Contact Airdraft support for a configured build."))
         case .needsTrial:
-            return Summary(title: "Try every feature free for \(Self.days(license.configuration?.trialDays ?? 14))",
-                           detail: "No card required.")
+            return Summary(title: String(localized: "Try every feature free for \(Self.days(license.configuration?.trialDays ?? 14))"),
+                           detail: String(localized: "No card required."))
         case .trial(let end):
-            return Summary(title: "\(Self.remaining(until: end, now: now)) left in your trial",
-                           detail: "Full access until \(end.formatted(date: .abbreviated, time: .shortened)). No automatic charge.")
+            return Summary(title: String(localized: "\(Self.remaining(until: end, now: now)) left in your trial"),
+                           detail: String(localized: "Full access until \(end.formatted(date: .abbreviated, time: .shortened)). No automatic charge."))
         case .licensed:
             let offline = license.isOffline && license.message == nil
-            return Summary(title: "Licensed", detail: [
-                "This Mac: \(label)",
-                license.record?.grant?.expiresAt.map { "Valid until \($0.formatted(date: .abbreviated, time: .omitted))." },
-                offline ? "Offline. Using your last verified license." : nil,
+            return Summary(title: String(localized: "Licensed"), detail: [
+                String(localized: "This Mac: \(label)"),
+                license.record?.grant?.expiresAt.map { String(localized: "Valid until \($0.formatted(date: .abbreviated, time: .omitted)).") },
+                offline ? String(localized: "Offline. Using your last verified license.") : nil,
             ].compactMap { $0 }.joined(separator: "\n"))
         case .expired:
-            return Summary(title: hasGrant ? "Your license has expired" : "Your trial has ended",
-                           detail: "Buy or activate a license to keep dictating. Your history and settings stay available.")
+            return Summary(title: hasGrant ? String(localized: "Your license has expired") : String(localized: "Your trial has ended"),
+                           detail: String(localized: "Buy or activate a license to keep dictating. Your history and settings stay available."))
         case .revoked:
-            return Summary(title: "This activation is no longer valid",
-                           detail: "If you rotated your key, enter the new one. Otherwise check “\(label)” in your customer portal.")
+            return Summary(title: String(localized: "This activation is no longer valid"),
+                           detail: String(localized: "If you rotated your key, enter the new one. Otherwise check “\(label)” in your customer portal."))
         case .locked:
-            return Summary(title: "Keychain access needed",
-                           detail: "Allow access to read your saved license. A locked license never restarts your trial.")
+            return Summary(title: String(localized: "Keychain access needed"),
+                           detail: String(localized: "Allow access to read your saved license. A locked license never restarts your trial."))
         case .clockChanged:
-            return Summary(title: "Check your Mac’s date and time",
-                           detail: "Correct the clock to continue your trial, or activate a license.")
+            return Summary(title: String(localized: "Check your Mac’s date and time"),
+                           detail: String(localized: "Correct the clock to continue your trial, or activate a license."))
         }
     }
 
-    private static func days(_ count: Int) -> String { "\(count) day\(count == 1 ? "" : "s")" }
+    private static func days(_ count: Int) -> String {
+        count == 1 ? String(localized: "1 day") : String(localized: "\(count) days")
+    }
 
     /// Whole days, rounded up, so a fresh 14-day trial reads 14.
     private static func remaining(until end: Date, now: Date) -> String {
         let seconds = end.timeIntervalSince(now)
-        guard seconds > 0 else { return "No time" }
+        guard seconds > 0 else { return String(localized: "No time") }
         return days(Int((seconds / 86_400).rounded(.up)))
     }
 }

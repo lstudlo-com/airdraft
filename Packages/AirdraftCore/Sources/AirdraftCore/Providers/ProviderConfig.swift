@@ -81,7 +81,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
 
     public var title: String {
         switch self {
-        case .openAICompatible: return "Local / self-hosted"
+        case .openAICompatible: return String(localized: "Local / self-hosted", bundle: .module)
         case .openAI: return "OpenAI"
         case .anthropic: return "Anthropic"
         case .gemini: return "Google Gemini"
@@ -91,14 +91,14 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .claudeCode: return "Claude Code CLI"
         case .codex: return "Codex CLI"
         case .appleIntelligence: return "Apple Intelligence"
-        case .none: return "Off"
+        case .none: return String(localized: "Off", bundle: .module)
         }
     }
 
     /// Compact name for the menu bar.
     public var shortTitle: String {
         switch self {
-        case .openAICompatible: return "Local"
+        case .openAICompatible: return String(localized: "Local", bundle: .module)
         case .openAI: return "OpenAI"
         case .anthropic: return "Anthropic"
         case .gemini: return "Gemini"
@@ -108,7 +108,7 @@ public enum LLMProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
         case .claudeCode: return "Claude Code"
         case .codex: return "Codex"
         case .appleIntelligence: return "Apple Intelligence"
-        case .none: return "Off"
+        case .none: return String(localized: "Off", bundle: .module)
         }
     }
 
@@ -201,14 +201,14 @@ public enum ThinkingEffort: String, Codable, CaseIterable, Sendable, Identifiabl
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .off: return "Off"
-        case .minimal: return "Minimal"
-        case .low: return "Low"
-        case .medium: return "Medium"
-        case .high: return "High"
-        case .xhigh: return "Extra high"
-        case .max: return "Max"
-        case .ultra: return "Ultra"
+        case .off: return String(localized: "Off", bundle: .module)
+        case .minimal: return String(localized: "Minimal", bundle: .module)
+        case .low: return String(localized: "Low", bundle: .module)
+        case .medium: return String(localized: "Medium", bundle: .module)
+        case .high: return String(localized: "High", bundle: .module)
+        case .xhigh: return String(localized: "Extra high", bundle: .module)
+        case .max: return String(localized: "Max", bundle: .module)
+        case .ultra: return String(localized: "Ultra", bundle: .module)
         }
     }
 
@@ -243,7 +243,7 @@ public enum ChineseScript: String, Codable, CaseIterable, Sendable, Identifiable
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .auto: return "Auto"
+        case .auto: return String(localized: "Auto", bundle: .module)
         case .traditional: return "繁體中文"
         case .simplified: return "简体中文"
         }
@@ -558,9 +558,9 @@ public struct LLMConfig: Codable, Sendable, Equatable {
     public var engineLabel: String {
         switch kind {
         case .appleIntelligence: return "Apple Intelligence"
-        case .none: return "Off"
+        case .none: return String(localized: "Off", bundle: .module)
         case .openAICompatible: return "\(endpoint?.host ?? baseURL) · \(model)"
-        case .claudeCode, .codex: return "\(kind.title) · \(model.isEmpty ? "default model" : model)"
+        case .claudeCode, .codex: return "\(kind.title) · \(model.isEmpty ? String(localized: "default model", bundle: .module) : model)"
         default: return "\(kind.title) · \(model)"
         }
     }
@@ -576,10 +576,10 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
 
     /// Local / self-hosted servers for the OpenAI-compatible kind.
     public static let llm: [EndpointPreset] = [
-        .init(name: "LM Studio (local)", baseURL: LLMProviderKind.openAICompatible.defaultBaseURL,
+        .init(name: String(localized: "LM Studio (local)", bundle: .module), baseURL: LLMProviderKind.openAICompatible.defaultBaseURL,
               defaultModel: LLMProviderKind.openAICompatible.defaultModel, keyRef: LLMProviderKind.openAICompatible.keyRef),
-        .init(name: "Ollama (local)", baseURL: "http://localhost:11434/v1", defaultModel: "qwen3:8b", keyRef: "llm.ollama"),
-        .init(name: "Custom", baseURL: "http://localhost:8000/v1", defaultModel: "", keyRef: "llm.custom"),
+        .init(name: String(localized: "Ollama (local)", bundle: .module), baseURL: "http://localhost:11434/v1", defaultModel: "qwen3:8b", keyRef: "llm.ollama"),
+        .init(name: String(localized: "Custom", bundle: .module), baseURL: "http://localhost:8000/v1", defaultModel: "", keyRef: "llm.custom"),
     ]
 
     /// Curated file-transcription APIs. OpenRouter rates vary by model and
@@ -603,63 +603,63 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
     public static let asr: [Speech] = [
         .init(kind: .soniox, name: "Soniox", modelTitle: "v5", baseURL: "https://api.soniox.com/v1",
               keyRef: "asr.soniox", purpose: "Value & mixed languages",
-              detail: "60+ languages, including Chinese and English in the same sentence.", price: "~$0.10/hr",
-              billingNote: "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable.",
+              detail: String(localized: "60+ languages, including Chinese and English in the same sentence.", bundle: .module), price: "~$0.10/hr",
+              billingNote: String(localized: "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable.", bundle: .module),
               consoleURL: URL(string: "https://console.soniox.com")!, pricingURL: URL(string: "https://soniox.com/pricing")!),
         .init(kind: .groq, name: "Groq", modelTitle: "Whisper v3 Turbo", baseURL: "https://api.groq.com/openai/v1",
               keyRef: "asr.groq", purpose: "Speed & lowest cost",
-              detail: "Fast inference for short dictation; trades some accuracy for speed.", price: "$0.04/hr",
-              billingNote: "10-second minimum billed per request. Inference speed does not include upload or network time.",
+              detail: String(localized: "Fast inference for short dictation; trades some accuracy for speed.", bundle: .module), price: "$0.04/hr",
+              billingNote: String(localized: "10-second minimum billed per request. Inference speed does not include upload or network time.", bundle: .module),
               consoleURL: URL(string: "https://console.groq.com/keys")!, pricingURL: URL(string: "https://console.groq.com/docs/speech-to-text")!),
         .init(kind: .elevenLabs, name: "ElevenLabs", modelTitle: "Scribe v2", baseURL: "https://api.elevenlabs.io/v1",
               keyRef: "asr.elevenlabs", purpose: "Broad language coverage",
-              detail: "Quality-focused transcription across 90+ languages and varied accents.", price: "$0.22/hr",
-              billingNote: "Base API rate. Paid keyterm prompting and audio-event tags are off; your dictionary still applies after refinement.",
+              detail: String(localized: "Quality-focused transcription across 90+ languages and varied accents.", bundle: .module), price: "$0.22/hr",
+              billingNote: String(localized: "Base API rate. Paid keyterm prompting and audio-event tags are off; your dictionary still applies after refinement.", bundle: .module),
               consoleURL: URL(string: "https://elevenlabs.io/app/developers/api-keys")!, pricingURL: URL(string: "https://elevenlabs.io/pricing/api")!),
         .init(kind: .openAI, name: "OpenAI", modelTitle: "GPT-Transcribe", baseURL: "https://api.openai.com/v1",
               keyRef: "asr.openai", purpose: "Names & technical vocabulary",
-              detail: "Uses your dictionary as keyword hints with the current transcription model.", price: "$0.27/hr",
-              billingNote: "$0.0045 per audio minute. Replaces the older GPT-4o transcription preset.",
+              detail: String(localized: "Uses your dictionary as keyword hints with the current transcription model.", bundle: .module), price: "$0.27/hr",
+              billingNote: String(localized: "$0.0045 per audio minute. Replaces the older GPT-4o transcription preset.", bundle: .module),
               consoleURL: URL(string: "https://platform.openai.com/api-keys")!, pricingURL: URL(string: "https://developers.openai.com/api/docs/pricing")!),
         .init(kind: .openRouter, name: "OpenRouter", modelTitle: "Whisper 1", baseURL: "https://openrouter.ai/api/v1",
               keyRef: "llm.openrouter", purpose: "Choose a hosted speech model",
-              detail: "Transcribes audio through OpenRouter's speech endpoint with a separate speech model choice.", price: "Varies by model",
-              billingNote: "Models have different billing units. Check the selected model's OpenRouter page before use.",
+              detail: String(localized: "Transcribes audio through OpenRouter's speech endpoint with a separate speech model choice.", bundle: .module), price: String(localized: "Varies by model", bundle: .module),
+              billingNote: String(localized: "Models have different billing units. Check the selected model's OpenRouter page before use.", bundle: .module),
               consoleURL: URL(string: "https://openrouter.ai/keys")!, pricingURL: URL(string: "https://openrouter.ai/models?output_modalities=transcription")!),
         .init(kind: .deepgram, name: "Deepgram", modelTitle: "Nova-3", baseURL: "https://api.deepgram.com/v1",
               keyRef: "asr.deepgram", purpose: "Noisy audio & formatting",
-              detail: "Smart punctuation, dates and numbers. Auto-detects the dominant language.", price: "$0.258/hr",
-              billingNote: "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off.",
+              detail: String(localized: "Smart punctuation, dates and numbers. Auto-detects the dominant language.", bundle: .module), price: "$0.258/hr",
+              billingNote: String(localized: "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off.", bundle: .module),
               consoleURL: URL(string: "https://console.deepgram.com")!, pricingURL: URL(string: "https://deepgram.com/pricing")!),
         .init(kind: .assemblyAI, name: "AssemblyAI", modelTitle: "Universal Pro", baseURL: "https://api.assemblyai.com/v2",
               keyRef: "asr.assemblyai", purpose: "Batch accuracy & vocabulary",
-              detail: "Universal-3.5 Pro and Universal-3.6 Pro batch preview.", price: "See pricing",
-              billingNote: "Job deletion is attempted after use. Uploads without a job follow provider retention.",
+              detail: String(localized: "Universal-3.5 Pro and Universal-3.6 Pro batch preview.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Job deletion is attempted after use. Uploads without a job follow provider retention.", bundle: .module),
               consoleURL: URL(string: "https://www.assemblyai.com/dashboard")!, pricingURL: URL(string: "https://www.assemblyai.com/pricing")!),
         .init(kind: .cartesia, name: "Cartesia", modelTitle: "Ink-Whisper", baseURL: "https://api.cartesia.ai",
               keyRef: "asr.cartesia", purpose: "File recognition with a chosen language",
-              detail: "Broad language coverage; select a speech language before recording.", price: "See pricing",
-              billingNote: "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here.",
+              detail: String(localized: "Broad language coverage; select a speech language before recording.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here.", bundle: .module),
               consoleURL: URL(string: "https://play.cartesia.ai/keys")!, pricingURL: URL(string: "https://cartesia.ai/pricing")!),
         .init(kind: .speechmatics, name: "Speechmatics", modelTitle: "Enhanced", baseURL: "https://eu1.asr.api.speechmatics.com/v2",
               keyRef: "asr.speechmatics", purpose: "Batch recognition & custom vocabulary",
-              detail: "Enhanced recognition. Auto Detect chooses one predominant language.", price: "See pricing",
-              billingNote: "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech.",
+              detail: String(localized: "Enhanced recognition. Auto Detect chooses one predominant language.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech.", bundle: .module),
               consoleURL: URL(string: "https://portal.speechmatics.com")!, pricingURL: URL(string: "https://www.speechmatics.com/pricing")!),
         .init(kind: .xAI, name: "xAI", modelTitle: "Grok Voice Transcribe 2.0", baseURL: "https://api.x.ai/v1",
               keyRef: "asr.xai", purpose: "Multilingual speech & keyterms",
-              detail: "Native transcription with automatic language detection and dictionary hints.", price: "See pricing",
-              billingNote: "Audio is sent to xAI. Check current model pricing and account limits before use.",
+              detail: String(localized: "Native transcription with automatic language detection and dictionary hints.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Audio is sent to xAI. Check current model pricing and account limits before use.", bundle: .module),
               consoleURL: URL(string: "https://console.x.ai")!, pricingURL: URL(string: "https://docs.x.ai/developers/model-capabilities/audio/speech-to-text")!),
         .init(kind: .mistral, name: "Mistral", modelTitle: "Voxtral Mini Transcribe", baseURL: "https://api.mistral.ai/v1",
               keyRef: "asr.mistral", purpose: "Compact multilingual transcription",
-              detail: "13 languages, including Mandarin, with optional language hints.", price: "See pricing",
-              billingNote: "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription.",
+              detail: String(localized: "13 languages, including Mandarin, with optional language hints.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription.", bundle: .module),
               consoleURL: URL(string: "https://console.mistral.ai/api-keys")!, pricingURL: URL(string: "https://mistral.ai/pricing")!),
         .init(kind: .gemini, name: "Gemini", modelTitle: "Gemini 3.5 Transcribe", baseURL: "https://generativelanguage.googleapis.com/v1beta",
               keyRef: "asr.gemini", purpose: "Verbatim speech & vocabulary hints",
-              detail: "Dedicated transcription in verbatim mode, with automatic language detection.", price: "See pricing",
-              billingNote: "Uses a separate speech key. Interaction storage is off; uploaded-file deletion is attempted after use.",
+              detail: String(localized: "Dedicated transcription in verbatim mode, with automatic language detection.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              billingNote: String(localized: "Uses a separate speech key. Interaction storage is off; uploaded-file deletion is attempted after use.", bundle: .module),
               consoleURL: URL(string: "https://aistudio.google.com/api-keys")!, pricingURL: URL(string: "https://ai.google.dev/gemini-api/docs/pricing")!),
     ]
 

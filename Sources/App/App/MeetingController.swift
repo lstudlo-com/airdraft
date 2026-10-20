@@ -14,7 +14,7 @@ final class MeetingController {
     private(set) var microphoneReceived = false
     private(set) var systemReceived = false
     private(set) var microphoneEnabled = true
-    private(set) var sourceName = "All Apps"
+    private(set) var sourceName = String(localized: "All Apps")
     @ObservationIgnored private var lastStatusAt = Date()
     @ObservationIgnored private var lastAudioAt = Date()
     private(set) var saved: RecordingAsset?
@@ -39,17 +39,17 @@ final class MeetingController {
         self.directory = directory; self.history = history; self.canStart = canStart; self.accessCheck = accessCheck
         refreshDrafts()
         sleepObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in await self?.interrupt(reason: "Recording stopped when the Mac went to sleep.") }
+            Task { @MainActor in await self?.interrupt(reason: String(localized: "Recording stopped when the Mac went to sleep.")) }
         }
     }
     func refreshDrafts() {
         do {
             let scan = try MeetingAudioStore.scanDrafts(in: directory)
             drafts = scan.drafts
-            recoveryIssue = scan.unreadable > 0 ? "\(scan.unreadable) unfinished recording(s) could not be read. Check folder access. Other recordings can still be recovered; Remove Audio Files in Settings clears unreadable drafts too." : nil
+            recoveryIssue = scan.unreadable > 0 ? String(localized: "\(scan.unreadable) unfinished recording(s) could not be read. Check folder access. Other recordings can still be recovered; Remove Audio Files in Settings clears unreadable drafts too.") : nil
         } catch { recoveryIssue = error.localizedDescription }
     }
-    func start(applicationID: Int32?, microphoneID: String?, microphone: Bool, microphoneChannel: Int? = nil, sourceName: String = "All Apps") {
+    func start(applicationID: Int32?, microphoneID: String?, microphone: Bool, microphoneChannel: Int? = nil, sourceName: String = String(localized: "All Apps")) {
         guard !isBusy, canStart() else { return }
         state = .starting; onBusyChanged?(true); saved = nil; issue = nil; elapsed = 0
         microphoneReceived = false; systemReceived = false; microphoneLevel = 0; systemLevel = 0
@@ -89,13 +89,13 @@ final class MeetingController {
                             self.microphoneLevel = 0; self.systemLevel = 0
                         }
                         if Date().timeIntervalSince(self.lastAudioAt) >= 15 {
-                            await self.stop(reason: "No audio was received for 15 seconds. Check app audio and microphone permissions."); return
+                            await self.stop(reason: String(localized: "No audio was received for 15 seconds. Check app audio and microphone permissions.")); return
                         }
-                        if self.elapsed >= MediaConfiguration.maximumDuration { await self.stop(reason: "Recording stopped at the two-hour limit."); return }
+                        if self.elapsed >= MediaConfiguration.maximumDuration { await self.stop(reason: String(localized: "Recording stopped at the two-hour limit.")); return }
                     }
                 }
             } catch {
-                issue = error is CancellationError ? issue ?? "Meeting start cancelled." : error.localizedDescription
+                issue = error is CancellationError ? issue ?? String(localized: "Meeting start cancelled.") : error.localizedDescription
                 if let capture = session {
                     _ = try? await capture.stop(reason: issue)
                     try? MeetingAudioStore.discardEmpty(id: capture.id, directory: directory)
@@ -118,7 +118,7 @@ final class MeetingController {
             saved = try await Task.detached { try MeetingAudioStore.recover(draft, directory: directory, history: history, interrupted: reason != nil) }.value
             issue = reason ?? saved?.captureIssue
         } catch {
-            issue = error.localizedDescription + " Any captured audio remains available for recovery in Meetings."
+            issue = error.localizedDescription + " " + String(localized: "Any captured audio remains available for recovery in Meetings.")
             try? MeetingAudioStore.discardEmpty(id: capture.id, directory: directory)
         }
         session = nil; finish(); refreshDrafts()
@@ -142,7 +142,7 @@ final class MeetingController {
     }
     func prepareForQuit() async {
         if state == .starting { task?.cancel(); await task?.value }
-        if state == .recording { await stop(reason: "Recording stopped when Airdraft quit.") }
+        if state == .recording { await stop(reason: String(localized: "Recording stopped when Airdraft quit.")) }
         // A save already in progress must finish before models and process teardown.
         while state == .finishing { try? await Task.sleep(for: .milliseconds(25)) }
     }

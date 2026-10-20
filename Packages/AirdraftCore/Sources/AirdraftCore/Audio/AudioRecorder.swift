@@ -13,15 +13,15 @@ public enum AudioRecorderError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .microphoneDenied: return "Microphone access was denied."
-        case .formatUnavailable: return "The microphone's audio format is unavailable. Reconnect it or choose another microphone."
-        case .alreadyRecording: return "Already recording."
-        case .inputChanged: return "The microphone input changed. Record again."
+        case .microphoneDenied: return String(localized: "Microphone access was denied.", bundle: .module)
+        case .formatUnavailable: return String(localized: "The microphone's audio format is unavailable. Reconnect it or choose another microphone.", bundle: .module)
+        case .alreadyRecording: return String(localized: "Already recording.", bundle: .module)
+        case .inputChanged: return String(localized: "The microphone input changed. Record again.", bundle: .module)
         case .inputChannelUnavailable(let channel):
-            return "Input \(channel) is unavailable on this microphone. Choose an input channel in Settings."
-        case .microphoneUnavailable(let name): return "\(name) is unavailable. Reconnect it or choose another microphone."
+            return String(localized: "Input \(channel) is unavailable on this microphone. Choose an input channel in Settings.", bundle: .module)
+        case .microphoneUnavailable(let name): return String(localized: "\(name) is unavailable. Reconnect it or choose another microphone.", bundle: .module)
         case .deviceSetupFailed(let name, let code):
-            return "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone."
+            return String(localized: "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone.", bundle: .module)
         }
     }
 }

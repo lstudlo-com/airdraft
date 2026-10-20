@@ -39,11 +39,11 @@ public enum WhisperModelVariant: String, CaseIterable, Codable, Sendable {
 
     public var note: String {
         switch self {
-        case .turbo: return "Runs on the Neural Engine."
-        case .largeV3: return "Full-size multilingual model."
-        case .turboCompressed: return "Compressed Core ML weights."
+        case .turbo: return String(localized: "Runs on the Neural Engine.", bundle: .module)
+        case .largeV3: return String(localized: "Full-size multilingual model.", bundle: .module)
+        case .turboCompressed: return String(localized: "Compressed Core ML weights.", bundle: .module)
         case .distilLargeV3, .distilLargeV3Compressed, .distilTurbo, .distilTurboCompressed:
-            return "English-only distilled Whisper weights."
+            return String(localized: "English-only distilled Whisper weights.", bundle: .module)
         }
     }
 }

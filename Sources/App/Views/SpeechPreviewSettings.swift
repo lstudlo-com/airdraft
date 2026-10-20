@@ -3,7 +3,7 @@ import SwiftUI
 
 struct SpeechPreviewSettings: View {
     @Environment(AppContainer.self) private var container
-    @State private var reason: String? = "Checking language assets…"
+    @State private var reason: String? = String(localized: "Checking language assets…")
     @State private var refreshID = UUID()
 
     private var config: ASRConfig {
@@ -23,7 +23,7 @@ struct SpeechPreviewSettings: View {
                     }
                 }
                 RowDivider()
-                SettingRow(title: "Language assets", subtitle: job?.error ?? reason ?? "Ready") {
+                SettingRow(title: "Language assets", detail: job?.error ?? reason ?? String(localized: "Ready")) {
                     if let progress = job?.progress {
                         HStack {
                             ProgressView().controlSize(.small)
@@ -42,7 +42,7 @@ struct SpeechPreviewSettings: View {
             }
         }
         .task(id: "\(settings.livePreviewLocale)|\(refreshID)") {
-            guard !RenderMode.isActive else { reason = "Language not installed"; return }
+            guard !RenderMode.isActive else { reason = String(localized: "Language not installed"); return }
             let locale = settings.livePreviewLocale
             let unavailable = await SpeechPreview.unavailableReason(locale: locale)
             guard !Task.isCancelled, locale == settings.livePreviewLocale else { return }

@@ -117,7 +117,7 @@ private final class NativeModel: @unchecked Sendable {
         do {
             try Self.check(transcribe_model_get_capabilities(handle, &caps))
             guard caps.native_sample_rate == 16_000 else {
-                throw TranscriberError.providerFailure("Local speech model", "Unsupported sample rate.")
+                throw TranscriberError.providerFailure(String(localized: "Local speech model", bundle: .module), String(localized: "Unsupported sample rate.", bundle: .module))
             }
             windowSeconds = caps.max_audio_ms > 0 ? min(25, Double(caps.max_audio_ms) / 1000) : 25
         } catch {
@@ -157,7 +157,7 @@ private final class NativeModel: @unchecked Sendable {
         if cancellation.isCancelled || transcribe_was_aborted(session) { throw CancellationError() }
         try Self.check(status)
         guard !transcribe_was_truncated(session) else {
-            throw TranscriberError.providerFailure("Local speech model", "The decoder truncated the result. Try a shorter recording.")
+            throw TranscriberError.providerFailure(String(localized: "Local speech model", bundle: .module), String(localized: "The decoder truncated the result. Try a shorter recording.", bundle: .module))
         }
         let text = transcribe_full_text(session).map { String(cString: $0) } ?? ""
         let detected = transcribe_detected_language(session).map { String(cString: $0) }
@@ -167,7 +167,7 @@ private final class NativeModel: @unchecked Sendable {
     private static func check(_ status: transcribe_status) throws {
         guard status == TRANSCRIBE_OK else {
             let message = transcribe_status_string(Int32(status.rawValue)).map { String(cString: $0) } ?? "Native decoding failed."
-            throw TranscriberError.providerFailure("Local speech model", message)
+            throw TranscriberError.providerFailure(String(localized: "Local speech model", bundle: .module), message)
         }
     }
 }

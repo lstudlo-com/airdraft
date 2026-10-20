@@ -66,6 +66,6 @@ final class MicrophoneStore {
     }
 
     func label(_ preference: MicrophonePreference) -> String {
-        selected(preference)?.name ?? "\(preference.name) · unavailable"
+        selected(preference)?.name ?? String(localized: "\(preference.name) · unavailable")
     }
 }

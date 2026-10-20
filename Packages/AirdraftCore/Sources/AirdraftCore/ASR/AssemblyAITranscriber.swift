@@ -20,7 +20,7 @@ public struct AssemblyAITranscriber: Transcriber {
 
     func payload(audioURL: String, hints: TranscriptionHints) throws -> [String: Any] {
         guard SpeechModelInfo.models(for: .assemblyAI).contains(where: { $0.id == model }) else {
-            throw TranscriberError.providerFailure("AssemblyAI", "Unsupported batch model: \(model). Choose a model on Models.")
+            throw TranscriberError.providerFailure("AssemblyAI", String(localized: "Unsupported batch model: \(model). Choose a model on Models.", bundle: .module))
         }
         let language = try SpeechLanguagePolicy.resolve(ASRConfig(kind: .assemblyAI, model: model, language: hints.languageCode ?? "auto")).language
         var options: [String: Any] = ["code_switching": true]
@@ -77,7 +77,7 @@ public struct AssemblyAITranscriber: Transcriber {
             guard let text = job.text else { throw TranscriberError.invalidResponse }
             if let used = job.speech_model_used, used != model,
                !(model == "universal-3-6-pro-preview" && used == "universal-3-6-pro") {
-                throw TranscriberError.providerFailure("AssemblyAI", "Requested \(model), but AssemblyAI used \(used). Choose another model or retry.")
+                throw TranscriberError.providerFailure("AssemblyAI", String(localized: "Requested \(model), but AssemblyAI used \(used). Choose another model or retry.", bundle: .module))
             }
             await cleanup(jobID, key: key)
             jobID = nil

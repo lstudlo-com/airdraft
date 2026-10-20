@@ -167,25 +167,25 @@ private enum ProfileConfirmation {
 
     var title: String {
         switch self {
-        case .reset(let profile): "Reset “\(profile.name)” to its default?"
-        case .delete(let profile): "Delete “\(profile.name)”?"
-        case .resetAll: "Reset all profiles?"
+        case .reset(let profile): String(localized: "Reset “\(profile.name)” to its default?")
+        case .delete(let profile): String(localized: "Delete “\(profile.name)”?")
+        case .resetAll: String(localized: "Reset all profiles?")
         }
     }
 
     var actionTitle: String {
         switch self {
-        case .reset: "Reset Profile"
-        case .delete: "Delete Profile"
-        case .resetAll: "Reset All Profiles"
+        case .reset: String(localized: "Reset Profile")
+        case .delete: String(localized: "Delete Profile")
+        case .resetAll: String(localized: "Reset All Profiles")
         }
     }
 
     var message: String {
         switch self {
-        case .reset: "Your changes to this built-in profile will be replaced."
-        case .delete: "This cannot be undone."
-        case .resetAll: "Restores built-in profiles and the base system prompt. Profiles you created will be deleted."
+        case .reset: String(localized: "Your changes to this built-in profile will be replaced.")
+        case .delete: String(localized: "This cannot be undone.")
+        case .resetAll: String(localized: "Restores built-in profiles and the base system prompt. Profiles you created will be deleted.")
         }
     }
 }

@@ -19,7 +19,7 @@ public enum SpeechInputLimits {
 
     static func validate(sampleCount: Int, for kind: ASRProviderKind) throws {
         if kind == .groq && sampleCount > 12_000_000 {
-            throw TranscriberError.providerFailure("Groq", "This recording exceeds the upload limit. Choose another speech provider and retry.")
+            throw TranscriberError.providerFailure("Groq", String(localized: "This recording exceeds the upload limit. Choose another speech provider and retry.", bundle: .module))
         }
     }
 }

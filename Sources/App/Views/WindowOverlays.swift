@@ -58,7 +58,7 @@ struct MicrophoneSelectionOverlay: View {
         OverlayPanel(title: "Microphone", width: Self.width, onClose: onClose) {
             ScrollView {
                 VStack(spacing: Self.rowSpacing) {
-                    choice(title: "System Default", device: systemDefault, selected: preference.uid == nil) {
+                    choice(title: String(localized: "System Default"), device: systemDefault, selected: preference.uid == nil) {
                         choose(.systemDefault)
                     }
                     ForEach(container.microphones.devices) { device in
@@ -159,7 +159,7 @@ struct MicrophoneSelectionOverlay: View {
             }
             .buttonStyle(NavigationRowStyle(selected: selected))
             .disabled(device == nil || isBusy)
-            .help(device == nil ? "\(title) is unavailable. Reconnect it or choose another microphone." : title)
+            .help(device == nil ? String(localized: "\(title) is unavailable. Reconnect it or choose another microphone.") : title)
             .accessibilityLabel(title)
             .accessibilityValue(device == nil ? "Unavailable" : "Input level \(MicrophoneLevelMeter.steps(for: level)) of 10")
             .accessibilityAddTraits(selected ? .isSelected : [])

@@ -92,12 +92,12 @@ struct ProfileEditor<Chooser: View>: View {
 
         if current.usesLLM {
             PageSection("Instructions") {
-                ProfileTextEditor(title: "Profile instructions", text: binding(\.instructions), height: 180, showsTitle: false)
+                ProfileTextEditor(title: String(localized: "Profile instructions"), text: binding(\.instructions), height: 180, showsTitle: false)
                 DisclosureGroup("Task", isExpanded: $showTask) {
                     ProfileTextEditor(
-                        title: "Task", text: binding(\.task), height: 90,
+                        title: String(localized: "Task"), text: binding(\.task), height: 90,
                         showsTitle: false,
-                        placeholder: "Optional: summarize, translate, or set another task."
+                        placeholder: String(localized: "Optional: summarize, translate, or set another task.")
                     )
                     .padding(.top, Theme.sectionTitleSpacing)
                 }
@@ -136,7 +136,7 @@ struct ProfileTextEditor: View {
     @Binding var text: String
     let height: CGFloat
     var showsTitle = true
-    var placeholder = "Describe the wording, tone, or format you want."
+    var placeholder = String(localized: "Describe the wording, tone, or format you want.")
     @FocusState private var focused: Bool
 
     var body: some View {

@@ -157,14 +157,20 @@ public final class LLMStatus {
 
     public var label: String {
         switch state {
-        case .unknown: return "Checking…"
-        case .remote: return "Cloud"
-        case .ready(let what): return what
-        case .unreachable: return "Server not running"
-        case .notLoaded: return "Not loaded"
-        case .loading: return "Loading…"
-        case .loaded: return "Loaded"
-        case .failed(let m): return "Failed: \(m)"
+        case .unknown: return String(localized: "Checking…", bundle: .module)
+        case .remote: return String(localized: "Cloud", bundle: .module)
+        case .ready(let what):
+            // ModelLifecycle reports these tokens; other details are shown as given.
+            switch what {
+            case "CLI not found": return String(localized: "CLI not found", bundle: .module)
+            case "Ready": return String(localized: "Ready", bundle: .module)
+            default: return what
+            }
+        case .unreachable: return String(localized: "Server not running", bundle: .module)
+        case .notLoaded: return String(localized: "Not loaded", bundle: .module)
+        case .loading: return String(localized: "Loading…", bundle: .module)
+        case .loaded: return String(localized: "Loaded", bundle: .module)
+        case .failed(let m): return String(localized: "Failed: \(m)", bundle: .module)
         }
     }
 

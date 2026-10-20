@@ -11,8 +11,8 @@ public enum RefinementFidelity {
 
         public var message: String {
             switch self {
-            case .repeatsEarlierDictation: return "Refinement repeated an earlier dictation instead of this one."
-            case .changesLanguage: return "Refinement changed the language of the transcript."
+            case .repeatsEarlierDictation: return String(localized: "Refinement repeated an earlier dictation instead of this one.", bundle: .module)
+            case .changesLanguage: return String(localized: "Refinement changed the language of the transcript.", bundle: .module)
             }
         }
     }

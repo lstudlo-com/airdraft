@@ -28,7 +28,7 @@ final class AppContainer {
     let cleanup: DataCleanupCoordinator
     let dataLease: DataDirectoryLease?
     let isolatedData: Bool
-    var dataAccessIssue: String? { dataLease?.holdsLease != true ? "Another app copy may be changing local data, or the data folder is unavailable. Quit other copies, check folder access, then reopen Airdraft." : nil }
+    var dataAccessIssue: String? { dataLease?.holdsLease != true ? String(localized: "Another app copy may be changing local data, or the data folder is unavailable. Quit other copies, check folder access, then reopen Airdraft.") : nil }
     let settings: AppSettings
     let dictionary: DictionaryStore
     let profiles: ProfileStore
@@ -228,13 +228,13 @@ final class AppContainer {
         while !startupCompleted, !shutdownStarted {
             try Task.checkCancellation()
             guard clock.now < deadline else {
-                throw RecordingPrerequisiteError("Airdraft startup timed out. Open Airdraft, then try this action again.")
+                throw RecordingPrerequisiteError(String(localized: "Airdraft startup timed out. Open Airdraft, then try this action again."))
             }
             try await Task.sleep(for: .milliseconds(20))
         }
         try Task.checkCancellation()
         guard !shutdownStarted else {
-            throw RecordingPrerequisiteError("Airdraft is quitting. Reopen it before running this action.")
+            throw RecordingPrerequisiteError(String(localized: "Airdraft is quitting. Reopen it before running this action."))
         }
     }
 

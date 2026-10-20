@@ -19,8 +19,10 @@ struct AutomationSettings: View {
                 if settings.outputDestination == .script || revealSearchSettings {
                     RowDivider()
                     SettingRow(title: "Executable script",
-                               subtitle: settings.outputDestination != .script ? "Choose Send to script in Final text to send text via stdin" : selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
-                                ?? "Final text via stdin · one run · 10 s limit") {
+                               detail: settings.outputDestination != .script
+                                ? String(localized: "Choose Send to script in Final text to send text via stdin")
+                                : selectionError ?? ScriptDelivery.unavailableReason(path: settings.outputScriptPath)
+                                ?? String(localized: "Final text via stdin · one run · 10 s limit")) {
                         VStack(alignment: .trailing, spacing: 6) {
                             if !settings.outputScriptPath.isEmpty {
                                 Text(URL(fileURLWithPath: settings.outputScriptPath).lastPathComponent)
@@ -44,8 +46,8 @@ struct AutomationSettings: View {
 
     private func chooseScript() {
         let panel = NSOpenPanel()
-        panel.title = "Choose an Executable Script"
-        panel.prompt = "Choose"
+        panel.title = String(localized: "Choose an Executable Script")
+        panel.prompt = String(localized: "Choose")
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false

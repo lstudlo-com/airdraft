@@ -6,7 +6,7 @@ struct UpdateSettings: View {
     var body: some View {
         PageSection("Updates") {
             SettingsCard {
-                SettingRow(title: "Airdraft", subtitle: updates.versionLabel) {
+                SettingRow(title: "Airdraft", detail: updates.versionLabel) {
                     Button("Check for Updates…") { updates.checkForUpdates() }
                         .buttonStyle(SoftButtonStyle())
                         .disabled(!updates.canCheckForUpdates)

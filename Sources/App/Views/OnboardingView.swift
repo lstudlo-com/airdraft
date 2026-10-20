@@ -105,10 +105,10 @@ struct OnboardingView: View {
 
     private var continueTitle: String {
         switch step {
-        case .welcome: "Get Started"
-        case .speech: speech.isDownloading ? "Continue While It Downloads" : "Continue"
-        case .done: "Start Using Airdraft"
-        default: "Continue"
+        case .welcome: String(localized: "Get Started")
+        case .speech: speech.isDownloading ? String(localized: "Continue While It Downloads") : String(localized: "Continue")
+        case .done: String(localized: "Start Using Airdraft")
+        default: String(localized: "Continue")
         }
     }
 
@@ -183,12 +183,12 @@ struct OnboardingView: View {
 
     private var title: String {
         switch step {
-        case .welcome: "Talk, and your words appear where you type."
-        case .speech: "Choose how Airdraft listens."
-        case .permissions: "Let Airdraft hear you and type for you."
-        case .shortcut: "Meet your shortcut."
-        case .practice: "Say your first sentence."
-        case .done: "You’re ready to dictate."
+        case .welcome: String(localized: "Talk, and your words appear where you type.")
+        case .speech: String(localized: "Choose how Airdraft listens.")
+        case .permissions: String(localized: "Let Airdraft hear you and type for you.")
+        case .shortcut: String(localized: "Meet your shortcut.")
+        case .practice: String(localized: "Say your first sentence.")
+        case .done: String(localized: "You’re ready to dictate.")
         }
     }
 
@@ -197,19 +197,19 @@ struct OnboardingView: View {
             triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds).lowercased()
         switch step {
         case .welcome:
-            return "Airdraft turns speech into text in any app: email, chat, notes and documents. Setup takes about three minutes, and you can stop at any time."
+            return String(localized: "Airdraft turns speech into text in any app: email, chat, notes and documents. Setup takes about three minutes, and you can stop at any time.")
         case .speech:
-            return "Pick where your speech becomes text. You can change this later in Models."
+            return String(localized: "Pick where your speech becomes text. You can change this later in Models.")
         case .permissions:
-            return "macOS asks once. Airdraft only records while you use your shortcut."
+            return String(localized: "macOS asks once. Airdraft only records while you use your shortcut.")
         case .shortcut:
-            return "One shortcut starts dictation in every app. Practice it here; nothing is recorded on this step."
+            return String(localized: "One shortcut starts dictation in every app. Practice it here; nothing is recorded on this step.")
         case .practice:
             return progress.deliveredDuringPractice
-                ? "That was a real dictation. Try one more in your own words, or continue."
-                : "Click in the box below, \(verb) your shortcut and read the sentence aloud."
+                ? String(localized: "That was a real dictation. Try one more in your own words, or continue.")
+                : String(localized: "Click in the box below, \(verb) your shortcut and read the sentence aloud.")
         case .done:
-            return "Airdraft works anywhere you can type. Here is how to make it part of your day."
+            return String(localized: "Airdraft works anywhere you can type. Here is how to make it part of your day.")
         }
     }
 }
@@ -365,7 +365,7 @@ private struct OnboardingRail: View {
         .sidebarSelectionAnchor(step)
         .padding(.horizontal, NavigationStyle.destinationInset)
         .accessibilityLabel("Step \(step.index + 1) of \(OnboardingProgress.Step.allCases.count): \(step.title)")
-        .accessibilityValue(passed ? "Done" : current ? "Current" : "")
+        .accessibilityValue(passed ? Text("Done") : current ? Text("Current") : Text(verbatim: ""))
         .accessibilityAddTraits(current ? .isSelected : [])
     }
 }
@@ -373,12 +373,12 @@ private struct OnboardingRail: View {
 extension OnboardingProgress.Step {
     var title: String {
         switch self {
-        case .welcome: "Welcome"
-        case .speech: "Speech"
-        case .permissions: "Permissions"
-        case .shortcut: "Shortcut"
-        case .practice: "Try It"
-        case .done: "Ready"
+        case .welcome: String(localized: "Welcome")
+        case .speech: String(localized: "Speech")
+        case .permissions: String(localized: "Permissions")
+        case .shortcut: String(localized: "Shortcut")
+        case .practice: String(localized: "Try It")
+        case .done: String(localized: "Ready")
         }
     }
 

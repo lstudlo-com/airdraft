@@ -38,15 +38,15 @@ struct DataCleanupSettings: View {
                 }
             }
         }
-        .alert((selection?.title ?? "Remove Data") + "?", isPresented: $confirming) {
+        .alert((selection?.title ?? String(localized: "Remove Data")) + "?", isPresented: $confirming) {
             Button("Cancel", role: .cancel) { selection = nil }
-            Button(selection?.title ?? "Remove", role: .destructive) {
+            Button(selection?.title ?? String(localized: "Remove"), role: .destructive) {
                 if let selection { Task { await container.performCleanup(selection) } }
             }
         } message: { Text(confirmationMessage) }
     }
 
-    private func shortTitle(_ scope: DataCleanupScope) -> String {
+    private func shortTitle(_ scope: DataCleanupScope) -> LocalizedStringResource {
         switch scope {
         case .history: "History"
         case .audio: "Audio files"
@@ -54,7 +54,7 @@ struct DataCleanupSettings: View {
         case .reset: "App reset"
         }
     }
-    private func subtitle(_ scope: DataCleanupScope) -> String {
+    private func subtitle(_ scope: DataCleanupScope) -> LocalizedStringResource {
         switch scope {
         case .history: "Keep recordings, settings and models"
         case .audio: "Keep saved text, settings and models"
@@ -67,13 +67,14 @@ struct DataCleanupSettings: View {
         let bytes = selection == .reset ? preview.managedBytes : preview.audioBytes
         let size = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
         var parts = [selection.explanation]
-        if preview.countsAvailable && selection.removesHistory { parts.append("\(preview.historyCount) saved \(preview.historyCount == 1 ? "dictation" : "dictations").") }
-        if preview.countsAvailable && selection.removesAudio { parts.append("\(preview.recordingCount) \(preview.recordingCount == 1 ? "recording" : "recordings"); approximately \(size) of managed files.") }
-        if !preview.countsAvailable { parts.append("History counts are unavailable. Approximately \(size) of managed files will be removed.") }
+        if preview.countsAvailable && selection.removesHistory { parts.append(preview.historyCount == 1 ? String(localized: "1 saved dictation.") : String(localized: "\(preview.historyCount) saved dictations.")) }
+        if preview.countsAvailable && selection.removesAudio { parts.append(preview.recordingCount == 1 ? String(localized: "1 recording; approximately \(size) of managed files.") : String(localized: "\(preview.recordingCount) recordings; approximately \(size) of managed files.")) }
+        if !preview.countsAvailable { parts.append(String(localized: "History counts are unavailable. Approximately \(size) of managed files will be removed.")) }
         if selection == .reset {
-            parts.append("Airdraft and Debug share local data and provider keys. Preferences for Airdraft, Debug and legacy Transcribar will be reset. Permission target: \(Bundle.main.bundleIdentifier ?? "Airdraft"). Old Accessibility entries may need removal in System Settings.")
+            let target = Bundle.main.bundleIdentifier ?? "Airdraft"
+            parts.append(String(localized: "Airdraft and Debug share local data and provider keys. Preferences for Airdraft, Debug and legacy Transcribar will be reset. Permission target: \(target). Old Accessibility entries may need removal in System Settings."))
         }
-        parts.append("External original media and exported copies stay. This cannot be undone.")
+        parts.append(String(localized: "External original media and exported copies stay. This cannot be undone."))
         return parts.joined(separator: "\n\n")
     }
     private func prepare(_ scope: DataCleanupScope) {
@@ -90,29 +91,32 @@ struct DataCleanupProgress: View {
     @Environment(AppContainer.self) private var container
     @State private var showsProviderRepair = false
     private var completedDescription: String {
-        let labels = ["pending": "recovery data", "history": "saved data", "models": "model unload",
-                      "files": "app files", "caches": "caches", "keys": "provider keys",
-                      "settings": "preferences", "permissions": "permissions"]
-        return container.cleanup.completedSteps.compactMap { labels[$0] }.joined(separator: ", ")
+        let labels = ["pending": String(localized: "recovery data"), "history": String(localized: "saved data"),
+                      "models": String(localized: "model unload"), "files": String(localized: "app files"),
+                      "caches": String(localized: "caches"), "keys": String(localized: "provider keys"),
+                      "settings": String(localized: "preferences"), "permissions": String(localized: "permissions")]
+        return container.cleanup.completedSteps.compactMap { labels[$0] }
+            .joined(separator: String(localized: "ListSeparator", defaultValue: ", ", comment: "Between items in a list"))
     }
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
-            Text(container.dataAccessIssue != nil ? "Data Unavailable" :
-                 container.cleanup.finishedScope == .reset ? "App Reset Complete" : container.cleanup.pendingScope?.title ?? "Removing Data")
+            Text(container.dataAccessIssue != nil ? String(localized: "Data Unavailable") :
+                 container.cleanup.finishedScope == .reset ? String(localized: "App Reset Complete")
+                 : container.cleanup.pendingScope?.title ?? String(localized: "Removing Data"))
                 .font(.system(size: 18, weight: .semibold))
             if let issue = container.dataAccessIssue {
                 Text(issue).textSelection(.enabled)
             } else if container.cleanup.isRunning {
-                ProgressView(container.cleanup.currentStep ?? "Preparing…").controlSize(.small)
+                ProgressView(container.cleanup.currentStep ?? String(localized: "Preparing…")).controlSize(.small)
                 Text("Keep Airdraft open until this finishes.").supportingText()
             } else if container.cleanup.finishedScope == .reset {
                 Text("App data and setup are cleared. Reopen Airdraft to start again. Your license and trial records are unchanged.")
                 Text("macOS may retain old Accessibility entries. Remove obsolete Airdraft entries with the minus button in System Settings.").supportingText()
             } else {
-                Text(container.cleanup.error ?? "An interrupted cleanup needs to finish before new work can start.")
+                Text(container.cleanup.error ?? String(localized: "An interrupted cleanup needs to finish before new work can start."))
                     .textSelection(.enabled)
                 if !container.cleanup.completedSteps.isEmpty {
-                    Text("Completed: " + completedDescription + ". Retry continues the same cleanup.").supportingText()
+                    Text("Completed: \(completedDescription). Retry continues the same cleanup.").supportingText()
                 }
                 let references = container.cleanupRecoveryKeyReferences
                 if !references.isEmpty {

@@ -52,10 +52,10 @@ public final class DictionaryStore {
         do { entries = try JSONDecoder().decode([DictionaryEntry].self, from: Data(contentsOf: fileURL)) }
         catch {
             if let backup = UnreadableFile.setAside(fileURL) {
-                persistenceError = "Vocabulary could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Recover that file before replacing it with an empty vocabulary."
+                persistenceError = String(localized: "Vocabulary could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Recover that file before replacing it with an empty vocabulary.", bundle: .module)
             } else {
                 unreadableOriginal = true
-                persistenceError = "Vocabulary could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft."
+                persistenceError = String(localized: "Vocabulary could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft.", bundle: .module)
             }
         }
     }
@@ -74,7 +74,7 @@ public final class DictionaryStore {
             persistenceError = nil
             return true
         } catch {
-            persistenceError = "Changes are not saved. Keep Airdraft open and retry after checking storage. " + error.localizedDescription
+            persistenceError = String(localized: "Changes are not saved. Keep Airdraft open and retry after checking storage.", bundle: .module) + " " + error.localizedDescription
             return false
         }
     }

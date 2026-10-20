@@ -49,7 +49,7 @@ struct ProfileSpeechSettings: View {
     var body: some View {
         PageSection("Speech model") {
             SettingsCard {
-                SettingRow(title: "Model", subtitle: selection == nil ? "Follows the selection in Models" : "Used when this profile is active") {
+                SettingRow(title: "Model", detail: selection == nil ? String(localized: "Follows the selection in Models") : String(localized: "Used when this profile is active")) {
                     SoftPicker("Profile speech model", selection: $selection, width: 240) {
                         Text("Use App Default").tag(ProfileSpeechModel?.none)
                         Section("On This Mac") {
@@ -74,7 +74,7 @@ struct ProfileSpeechSettings: View {
                     .accessibilityIdentifier("profiles.speechModel")
                 }
                 RowDivider()
-                SettingRow(title: config.engineLabel, subtitle: detail) {
+                SettingRow(title: .verbatim(config.engineLabel), detail: detail) {
                     Button("Models") { container.navigation.page = .models }
                         .buttonStyle(SoftButtonStyle())
                         .accessibilityLabel("Manage speech models")
@@ -87,9 +87,9 @@ struct ProfileSpeechSettings: View {
         if let reason = selection?.unavailableReason { return reason }
         do { _ = try SpeechLanguagePolicy.resolve(config) }
         catch { return error.localizedDescription }
-        if needsDownload { return "Not installed. Download it in Models before dictating." }
-        if config.kind.isLocal { return "Runs on this Mac. Language follows Speech options." }
+        if needsDownload { return String(localized: "Not installed. Download it in Models before dictating.") }
+        if config.kind.isLocal { return String(localized: "Runs on this Mac. Language follows Speech options.") }
         let destination = config.kind.preset?.name ?? URL(string: config.baseURL)?.host ?? "your server"
-        return "Audio is sent to \(destination). Configure access in Models."
+        return String(localized: "Audio is sent to \(destination). Configure access in Models.")
     }
 }

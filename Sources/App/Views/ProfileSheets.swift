@@ -11,7 +11,7 @@ struct BaseSystemPromptEditor: View {
             Text("Base system prompt").font(.system(size: 20, weight: .semibold))
             Text("Shared across AI profiles; profile instructions are added automatically.")
                 .supportingText()
-            ProfileTextEditor(title: "Base system prompt", text: $draft, height: 320, showsTitle: false)
+            ProfileTextEditor(title: String(localized: "Base system prompt"), text: $draft, height: 320, showsTitle: false)
             HStack {
                 Button("Restore Defaults") { draft = PromptBuilder.defaultBaseRules }
                     .disabled(draft == PromptBuilder.defaultBaseRules)

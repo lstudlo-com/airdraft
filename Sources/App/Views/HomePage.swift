@@ -19,9 +19,9 @@ struct HomePage: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .all: return "All time"
-            case .week: return "Last 7 days"
-            case .today: return "Today"
+            case .all: return String(localized: "All time")
+            case .week: return String(localized: "Last 7 days")
+            case .today: return String(localized: "Today")
             }
         }
         var days: Int? {
@@ -87,7 +87,7 @@ struct HomePage: View {
     private var pipelineSummary: String {
         let llm = container.settings.llm
         let speech = container.speechConfig.engineLabel
-        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return "\(speech) · no refinement" }
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
         return "\(speech) → \(llm.engineLabel) · \(container.effectiveProfile.name)"
     }
 
@@ -160,7 +160,7 @@ struct HomePage: View {
             HealthRow(
                 ok: container.permissions.accessibilityGranted,
                 title: "Accessibility",
-                detail: container.permissions.accessibilityGranted ? "Granted" : "Allow text insertion in System Settings"
+                detail: container.permissions.accessibilityGranted ? String(localized: "Granted") : String(localized: "Allow text insertion in System Settings")
             ) {
                 if !container.permissions.accessibilityGranted {
                     AccessibilityPermissionActions()
@@ -228,9 +228,9 @@ struct HomePage: View {
 
     private var refinementDetail: String {
         let llm = container.settings.llm
-        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return "Off · original transcript" }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? "On-device · \(container.effectiveProfile.name)" }
-        let state = refinementNeedsKey ? "API key needed" : container.models.llmStatus.label
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "Off · original transcript") }
+        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? String(localized: "On-device · \(container.effectiveProfile.name)") }
+        let state = refinementNeedsKey ? String(localized: "API key needed") : container.models.llmStatus.label
         return "\(state) · \(container.effectiveProfile.name)"
     }
 
@@ -250,9 +250,9 @@ struct HomePage: View {
     }
 
     private var microphoneDetail: String {
-        if container.permissions.microphone != .authorized { return "Microphone permission needed" }
-        guard let device = container.microphones.selected(container.settings.microphone) else { return "Selected microphone is unavailable" }
-        return microphoneReady ? device.name : "Selected input channel is unavailable"
+        if container.permissions.microphone != .authorized { return String(localized: "Microphone permission needed") }
+        guard let device = container.microphones.selected(container.settings.microphone) else { return String(localized: "Selected microphone is unavailable") }
+        return microphoneReady ? device.name : String(localized: "Selected input channel is unavailable")
     }
 
     private var speechDetail: String {
@@ -260,10 +260,10 @@ struct HomePage: View {
         if let issue = speechLanguageIssue { return issue }
         let asr = container.speechConfig
         if !asr.kind.isLocal {
-            guard asr.kind.preset != nil else { return "Custom endpoint" }
-            return speechKeyPresent ? "API key saved" : "API key missing or locked"
+            guard asr.kind.preset != nil else { return String(localized: "Custom endpoint") }
+            return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
-        if !LocalModels.isInstalled(asr) { return "Model not installed" }
+        if !LocalModels.isInstalled(asr) { return String(localized: "Model not installed") }
         return container.engineStatus.state(for: asr.engineID).label
     }
 
@@ -296,10 +296,10 @@ struct HomePage: View {
             }
             RowDivider()
             HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                SummaryFact(value: "\(overview.streakDays.formatted()) \(overview.streakDays == 1 ? "day" : "days")", label: "Streak")
+                SummaryFact(value: overview.streakDays == 1 ? String(localized: "1 day") : String(localized: "\(overview.streakDays.formatted()) days"), label: "Streak")
                 SummaryFact(value: overview.stats.dictations.formatted(), label: "Dictations")
                 SummaryFact(value: overview.activeDays.formatted(), label: "Active days")
-                SummaryFact(value: "\(overview.longestWords.formatted()) words", label: "Longest dictation")
+                SummaryFact(value: String(localized: "\(overview.longestWords.formatted()) words"), label: "Longest dictation")
             }
         }
     }
@@ -346,7 +346,7 @@ struct HomePage: View {
             (next, latest) = values
             historyReadError = nil
         case .failure(let error):
-            historyReadError = "History could not be read. " + error.localizedDescription
+            historyReadError = String(localized: "History could not be read.") + " " + error.localizedDescription
             hasLoadedOverview = true
             return
         }
@@ -369,15 +369,15 @@ struct HomePage: View {
 
 struct HealthRow<Trailing: View>: View {
     let tone: StatusDot.Tone
-    let title: String
+    let title: LocalizedStringResource
     let detail: String
     @ViewBuilder var trailing: Trailing
 
-    init(ok: Bool, title: String, detail: String, @ViewBuilder trailing: () -> Trailing) {
+    init(ok: Bool, title: LocalizedStringResource, detail: String, @ViewBuilder trailing: () -> Trailing) {
         self.init(tone: ok ? .ok : .attention, title: title, detail: detail, trailing: trailing)
     }
 
-    init(tone: StatusDot.Tone, title: String, detail: String, @ViewBuilder trailing: () -> Trailing) {
+    init(tone: StatusDot.Tone, title: LocalizedStringResource, detail: String, @ViewBuilder trailing: () -> Trailing) {
         self.tone = tone
         self.title = title
         self.detail = detail
@@ -395,7 +395,8 @@ struct HealthRow<Trailing: View>: View {
             trailing
         }
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("readiness.\(title.lowercased())")
+        // Identifiers stay English so fixtures work in every language.
+        .accessibilityIdentifier("readiness.\(title.key.lowercased())")
     }
 }
 
@@ -424,7 +425,7 @@ struct AppShareRow: View {
 
 struct SummaryFact: View {
     let value: String
-    let label: String
+    let label: LocalizedStringResource
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)

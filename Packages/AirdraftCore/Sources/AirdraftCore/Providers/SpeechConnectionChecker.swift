@@ -5,7 +5,7 @@ public struct SpeechConnectionResult: Sendable, Equatable {
     public var catalogIsPublic = false
     public var message: String {
         if catalogIsPublic { return "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified." }
-        return modelAvailable ? "Connected. The selected model is listed for this key." : "Connected. API key accepted."
+        return modelAvailable ? String(localized: "Connected. The selected model is listed for this key.", bundle: .module) : String(localized: "Connected. API key accepted.", bundle: .module)
     }
 }
 
@@ -15,17 +15,17 @@ public enum SpeechConnectionError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case .missingKey: return "Enter an API key before testing."
-        case .unsupportedProvider: return "Connection testing is unavailable for this provider."
-        case .invalidResponse: return "The service returned an unexpected response. Try again later."
-        case .invalidKey: return "The API key was rejected. Check the key and its permissions in the provider console."
-        case .permissionDenied: return "This key cannot run the connection check. Check account or model-read permissions in the provider console; speech access is separate."
-        case .rateLimited: return "The provider's rate or quota limit was reached. Check your account and try again later."
-        case .timedOut: return "The connection timed out. Check your network and try again."
-        case .network: return "Could not reach the provider. Check your internet connection and try again."
-        case .modelUnavailable: return "The key connected, but the selected model was not listed. Check model access or choose another model."
+        case .missingKey: return String(localized: "Enter an API key before testing.", bundle: .module)
+        case .unsupportedProvider: return String(localized: "Connection testing is unavailable for this provider.", bundle: .module)
+        case .invalidResponse: return String(localized: "The service returned an unexpected response. Try again later.", bundle: .module)
+        case .invalidKey: return String(localized: "The API key was rejected. Check the key and its permissions in the provider console.", bundle: .module)
+        case .permissionDenied: return String(localized: "This key cannot run the connection check. Check account or model-read permissions in the provider console; speech access is separate.", bundle: .module)
+        case .rateLimited: return String(localized: "The provider's rate or quota limit was reached. Check your account and try again later.", bundle: .module)
+        case .timedOut: return String(localized: "The connection timed out. Check your network and try again.", bundle: .module)
+        case .network: return String(localized: "Could not reach the provider. Check your internet connection and try again.", bundle: .module)
+        case .modelUnavailable: return String(localized: "The key connected, but the selected model was not listed. Check model access or choose another model.", bundle: .module)
         case .openRouterModelUnlisted: return "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model."
-        case .server(let status): return "The provider returned HTTP \(status). Try again later."
+        case .server(let status): return String(localized: "The provider returned HTTP \(status). Try again later.", bundle: .module)
         }
     }
 }

@@ -83,11 +83,11 @@ public enum RefinerError: Error, LocalizedError {
         switch self {
         case .http(let status, let body):
             let detail = ProviderErrorBody.summary(body).map { ": \($0)" } ?? "."
-            return "Refinement provider returned HTTP \(status)\(detail)"
-        case .invalidResponse: return "The refinement provider returned an unexpected response."
-        case .incompleteOutput: return "The refinement response was incomplete. The original transcript was kept."
-        case .emptyOutput: return "The refinement provider returned empty text."
-        case .timeout: return "Refinement timed out."
+            return String(localized: "Refinement provider returned HTTP \(status)\(detail)", bundle: .module)
+        case .invalidResponse: return String(localized: "The refinement provider returned an unexpected response.", bundle: .module)
+        case .incompleteOutput: return String(localized: "The refinement response was incomplete. The original transcript was kept.", bundle: .module)
+        case .emptyOutput: return String(localized: "The refinement provider returned empty text.", bundle: .module)
+        case .timeout: return String(localized: "Refinement timed out.", bundle: .module)
         }
     }
 }

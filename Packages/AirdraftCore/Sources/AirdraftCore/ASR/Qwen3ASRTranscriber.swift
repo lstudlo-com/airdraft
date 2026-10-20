@@ -63,7 +63,7 @@ public actor Qwen3ASRTranscriber: Transcriber {
         if let language = try SpeechLanguagePolicy.canonicalLanguage(hints.language ?? "") {
             let unverifiedName = allowUnverifiedLanguage ? Locale(identifier: "en").localizedString(forLanguageCode: language)?.capitalized : nil
             guard let name = names[language == "tl" ? "fil" : language] ?? unverifiedName else {
-                throw RecordingPrerequisiteError("Qwen3-ASR does not support \(SpeechLanguagePolicy.languageName(language)). Choose a supported language in Models.")
+                throw RecordingPrerequisiteError(String(localized: "Qwen3-ASR does not support \(SpeechLanguagePolicy.languageName(language)). Choose a supported language in Models.", bundle: .module))
             }
             options.language = name
         }

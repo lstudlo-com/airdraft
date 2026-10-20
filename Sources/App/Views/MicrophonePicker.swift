@@ -4,7 +4,7 @@ import SwiftUI
 /// Every choice is saved as Airdraft's default, without changing other apps.
 struct MicrophonePicker: View {
     @Environment(AppContainer.self) private var container
-    var title = "Microphone"
+    var title = String(localized: "Microphone")
     /// Device names come from hardware; the menu bar fits them to its width.
     var fitsMenu = false
     /// Pages show the raised soft picker at this width; the menu bar keeps the native menu.
@@ -49,7 +49,8 @@ struct MicrophonePicker: View {
         Text("System Default").tag("")
         ForEach(store.devices) { device in Text(label(device.name)).help(device.name).tag(device.uid) }
         if let uid = preference.uid, store.selected(preference) == nil {
-            Text(label("\(preference.name) · unavailable")).help("\(preference.name) · unavailable").tag(uid)
+            let unavailable = String(localized: "\(preference.name) · unavailable")
+            Text(label(unavailable)).help(unavailable).tag(uid)
         }
     }
 
@@ -72,7 +73,7 @@ struct MicrophoneSettings: View {
                 let selectedChannel = preference.channelIndex ?? 0
                 if channelCount > 1 || selectedChannel != 0 || revealSearchSettings {
                     RowDivider()
-                    SettingRow(title: "Input channel", subtitle: channelCount > 1 || selectedChannel != 0 ? "Your microphone’s physical input" : "Requires a microphone with multiple physical inputs") {
+                    SettingRow(title: "Input channel", detail: channelCount > 1 || selectedChannel != 0 ? String(localized: "Your microphone’s physical input") : String(localized: "Requires a microphone with multiple physical inputs")) {
                         SoftPicker("Input channel", selection: Binding(
                             get: { container.settings.microphone.channelIndex ?? 0 },
                             set: { channel in

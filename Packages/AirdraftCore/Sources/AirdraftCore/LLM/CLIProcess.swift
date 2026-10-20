@@ -21,9 +21,9 @@ enum CLIProcess {
 
         var errorDescription: String? {
             switch self {
-            case .launchFailed(let reason): return "Could not run the executable: \(reason.prefix(300))"
-            case .pipeFailure: return "Could not communicate with the executable."
-            case .incompleteInput: return "The executable closed its input before all text was delivered."
+            case .launchFailed(let reason): return String(localized: "Could not run the executable: \(reason.prefix(300))", bundle: .module)
+            case .pipeFailure: return String(localized: "Could not communicate with the executable.", bundle: .module)
+            case .incompleteInput: return String(localized: "The executable closed its input before all text was delivered.", bundle: .module)
             }
         }
     }

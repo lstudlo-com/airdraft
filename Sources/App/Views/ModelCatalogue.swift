@@ -38,59 +38,59 @@ enum ModelCatalogue {
         ModelEntry(
             id: "qwen3:1.7b", title: "Qwen3-ASR 1.7B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "2.3 GB"),
-            note: "Best for mixed Chinese and English."
+            note: String(localized: "Best for mixed Chinese and English.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
             id: "qwen3:0.6b", title: "Qwen3-ASR 0.6B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: "680 MB"),
-            note: "Low memory, very fast."
+            note: String(localized: "Low memory, very fast.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(
             id: "sherpa:fireRed", title: "FireRedASR2", vendor: "FireRed · ONNX", provider: "FireRed", brand: .fireRed,
             tags: ["ZH", "EN"], speed: 3, accuracy: 5, storage: .download(sizeLabel: SherpaTranscriber.Model.fireRed.sizeLabel),
-            note: "Best Mandarin accuracy, 20+ dialects."
+            note: String(localized: "Best Mandarin accuracy, 20+ dialects.")
         ) { $0.kind = .fireRed },
         ModelEntry(
             id: "cohere", title: "Cohere Transcribe", vendor: "Cohere · MLX", provider: "Cohere", brand: .cohere,
             tags: ["EN", "ZH", "+12"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "1.6 GB"),
-            note: "Best open English model."
+            note: String(localized: "Best open English model.")
         ) { $0.kind = .cohere; $0.cohereModel = "aufklarer/Cohere-Transcribe-2B-MLX-5bit" },
         ModelEntry(
             id: "sherpa:senseVoice", title: "SenseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
-            note: "Fastest."
+            note: String(localized: "Fastest.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", title: "Parakeet TDT v3", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
             tags: ["EN", "+24"], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
-            note: "25 European languages. Does not support Chinese."
+            note: String(localized: "25 European languages. Does not support Chinese.")
         ) { $0.kind = .parakeet },
         ModelEntry(
             id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
             tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
-            note: "macOS manages language assets."
+            note: String(localized: "macOS manages language assets.")
         ) { $0.kind = .apple },
     ] + WhisperModelVariant.allCases.map { variant in
         ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", title: variant.title,
                    vendor: variant.isEnglishOnly ? "Hugging Face · Core ML" : "OpenAI · Core ML",
                    provider: variant.isEnglishOnly ? "Hugging Face" : "OpenAI", brand: variant.isEnglishOnly ? .huggingFace : .openAI,
-                   tags: (variant.isEnglishOnly ? ["EN"] : ["100 languages"]) + ["Core ML"], speed: variant == .turbo ? 3 : 0,
+                   tags: (variant.isEnglishOnly ? ["EN"] : [String(localized: "100 languages")]) + ["Core ML"], speed: variant == .turbo ? 3 : 0,
                    accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
                    note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
     } + [
         ModelEntry(id: "sherpa:orukeet", title: "Orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
-                   tags: ["25 languages", "ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
-                   note: "25 European languages; no Chinese support.") { $0.kind = .orukeet }
+                   tags: [String(localized: "25 languages"), "ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
+                   note: String(localized: "25 European languages; no Chinese support.")) { $0.kind = .orukeet }
     ] + CoreMLSpeechModelCatalog.models.map { model in
         ModelEntry(id: "coreml:\(model.id)", title: model.title, vendor: "\(model.creator) · Core ML", provider: model.creator,
                    brand: model.creator == "Moondream" ? .moondream : model.creator == "Fermion Research" ? .fermion : .nvidia,
-                   tags: (model.languages.count == 1 ? [model.languages[0].uppercased()] : ["\(model.languages.count) languages"]) + ["Core ML"],
+                   tags: (model.languages.count == 1 ? [model.languages[0].uppercased()] : [String(localized: "\(model.languages.count) languages")]) + ["Core ML"],
                    speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
             $0.kind = .fluidAudio; $0.model = model.id
         }
     } + GGUFModelCatalog.models.map { model in
         let languages = model.supportedLanguages
-        let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : ["\(languages.count) languages"]
+        let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : [String(localized: "\(languages.count) languages")]
         return ModelEntry(id: "gguf:\(model.id)", title: model.title,
                           vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
                           brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
@@ -226,13 +226,14 @@ struct CloudModelRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
             } speed: {
-                ModelMetric(title: "Speed", fraction: speedFraction,
-                            label: model.realtimeSpeedFactor.map { "\($0.formatted())×" } ?? "Not rated",
+                ModelMetric(title: String(localized: "Speed"), fraction: speedFraction,
+                            label: model.realtimeSpeedFactor.map { "\($0.formatted())×" } ?? String(localized: "Not rated"),
                             detail: model.speedDetail)
             } accuracy: {
-                ModelMetric(title: "Accuracy", fraction: model.wordErrorRate.map { 1 - $0 / 100 },
-                            label: model.wordErrorRate.map { "\($0.formatted())% WER" } ?? "Not rated",
-                            detail: model.qualityDetail + (model.wordErrorRate == nil ? " No numeric rating is available." : " WER is word error rate; lower is better."))
+                ModelMetric(title: String(localized: "Accuracy"), fraction: model.wordErrorRate.map { 1 - $0 / 100 },
+                            label: model.wordErrorRate.map { String(localized: "\($0.formatted())% WER") } ?? String(localized: "Not rated"),
+                            detail: model.qualityDetail + " " + (model.wordErrorRate == nil ? String(localized: "No numeric rating is available.")
+                                : String(localized: "WER is word error rate; lower is better.")))
             } cost: {
                 Text(model.price).font(.system(size: 12)).monospacedDigit().foregroundStyle(.secondary)
                     .help(model.billing)
@@ -304,13 +305,14 @@ struct ModelRow: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Use \(entry.title), \(entry.provider), \(entry.tags.joined(separator: ", "))")
                 .accessibilityValue(selected ? "Selected" : "Not selected")
-                .help("\(entry.vendor). \(entry.note) \(installed ? "Use this model" : "Download first")")
+                .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
             } speed: {
-                ModelMetric(title: "Speed", fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? "\(entry.speed) / 5" : "Not rated",
-                            detail: entry.speed > 0 ? "Airdraft's relative guidance for local models. Actual speed depends on your Mac." : "Not benchmarked in Airdraft.")
+                ModelMetric(title: String(localized: "Speed"), fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? "\(entry.speed) / 5" : String(localized: "Not rated"),
+                            detail: entry.speed > 0 ? String(localized: "Airdraft's relative guidance for local models. Actual speed depends on your Mac.") : String(localized: "Not benchmarked in Airdraft."))
             } accuracy: {
-                ModelMetric(title: "Accuracy", fraction: entry.accuracy > 0 ? Double(entry.accuracy) / 5 : nil, label: entry.accuracy > 0 ? "\(entry.accuracy) / 5" : "Not rated",
-                            detail: (entry.accuracy > 0 ? "Airdraft's relative guidance for local models. " : "Not benchmarked in Airdraft. ") + entry.note)
+                ModelMetric(title: String(localized: "Accuracy"), fraction: entry.accuracy > 0 ? Double(entry.accuracy) / 5 : nil, label: entry.accuracy > 0 ? "\(entry.accuracy) / 5" : String(localized: "Not rated"),
+                            detail: (entry.accuracy > 0 ? String(localized: "Airdraft's relative guidance for local models.")
+                                     : String(localized: "Not benchmarked in Airdraft.")) + " " + entry.note)
             } cost: {
                 storageLabel
             } accessory: {
@@ -410,8 +412,8 @@ struct ModelRow: View {
     }
 
     private var storageMessage: String {
-        if case .download(let size) = entry.storage { return "Frees \(size). You can download it again later." }
-        return "You can download it again later."
+        if case .download(let size) = entry.storage { return String(localized: "Frees \(size). You can download it again later.") }
+        return String(localized: "You can download it again later.")
     }
 
     private func deleteFiles() {
@@ -421,7 +423,7 @@ struct ModelRow: View {
             try LocalModels.remove(entryConfig)
             error = nil
         } catch {
-            self.error = "Could not delete the model files: \(error.localizedDescription)"
+            self.error = String(localized: "Could not delete the model files: \(error.localizedDescription)")
         }
         installed = LocalModels.isInstalled(entryConfig)
     }

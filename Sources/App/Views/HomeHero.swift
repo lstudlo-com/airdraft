@@ -33,7 +33,7 @@ struct HomeHero: View {
     var body: some View {
         VStack(spacing: Theme.sectionSpacing) {
             HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                HeroMetric(value: stats.wordsPerMinute.formatted(), unit: "WPM", label: "Average speed")
+                HeroMetric(value: stats.wordsPerMinute.formatted(), unit: String(localized: "WPM"), label: "Average speed")
                 HeroMetric(value: stats.words.formatted(), label: "Words")
                 HeroMetric(value: stats.apps.formatted(), label: "Apps used")
                 HeroMetric(value: saved.value, unit: saved.unit, label: "Saved \(periodTitle.lowercased())")
@@ -103,8 +103,9 @@ struct HomeHero: View {
 
     private var saved: (value: String, unit: String) {
         let minutes = stats.minutesSaved
-        if minutes >= 60 { return ((Double(minutes) / 60).formatted(.number.precision(.fractionLength(1))), "h") }
-        return (minutes.formatted(), "min")
+        if minutes >= 60 { return ((Double(minutes) / 60).formatted(.number.precision(.fractionLength(1))),
+                                     String(localized: "h", comment: "Hours unit after a number")) }
+        return (minutes.formatted(), String(localized: "min", comment: "Minutes unit after a number"))
     }
 
     // MARK: Waveform
@@ -177,8 +178,8 @@ struct HomeHero: View {
                         }
                         .buttonStyle(.plain)
                         .focused($focusedPulseID, equals: pulse.id)
-                        .accessibilityLabel("\(pulse.appName ?? "Unknown app"), \(pulse.date.formatted(date: .abbreviated, time: .shortened))")
-                        .accessibilityValue("\(pulse.words) words, \(pulse.wordsPerMinute) WPM, \(selected ? "expanded" : "collapsed")")
+                        .accessibilityLabel("\(pulse.appName ?? String(localized: "Unknown app")), \(pulse.date.formatted(date: .abbreviated, time: .shortened))")
+                        .accessibilityValue("\(pulse.words) words, \(pulse.wordsPerMinute) WPM, \(selected ? String(localized: "expanded") : String(localized: "collapsed"))")
                         .accessibilityHint(selected ? "Hide this dictation's text" : "Show this dictation's text")
                         .accessibilityAddTraits(selected ? .isSelected : [])
                         .accessibilityIdentifier("home.dictation.\(pulse.id)")
@@ -295,8 +296,9 @@ struct HomeHero: View {
     private var defaultCaption: String {
         let pulses = overview.pulses.count
         let total = stats.dictations
-        if pulses < total { return "Latest \(pulses) of \(total.formatted()) dictations" }
-        return "\(total.formatted()) \(total == 1 ? "dictation" : "dictations") · \(periodTitle.lowercased())"
+        if pulses < total { return String(localized: "Latest \(pulses) of \(total.formatted()) dictations") }
+        return total == 1 ? String(localized: "1 dictation · \(periodTitle.lowercased())")
+            : String(localized: "\(total.formatted()) dictations · \(periodTitle.lowercased())")
     }
 
     @ViewBuilder private var caption: some View {
@@ -305,7 +307,7 @@ struct HomeHero: View {
         Group {
             if let pulse {
                 HStack(spacing: 6) {
-                    Text(pulse.appName ?? "Unknown app").foregroundStyle(.primary)
+                    Text(pulse.appName ?? String(localized: "Unknown app")).foregroundStyle(.primary)
                     Text("·")
                     Text("\(pulse.words.formatted()) words")
                     if pulse.wordsPerMinute > 0 {
@@ -380,7 +382,7 @@ private struct HomeHeroTranscript: View {
             RowDivider()
             HStack(spacing: Theme.controlSpacing) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(pulse.appName ?? "Unknown app")
+                    Text(pulse.appName ?? String(localized: "Unknown app"))
                         .font(.system(size: 13, weight: .medium))
                         .lineLimit(1)
                     Text(pulse.date, format: .dateTime.month(.abbreviated).day().hour().minute())
@@ -461,7 +463,7 @@ private struct SoftPalette {
 struct HeroMetric: View {
     let value: String
     var unit: String? = nil
-    let label: String
+    let label: LocalizedStringResource
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {

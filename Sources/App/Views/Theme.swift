@@ -234,14 +234,14 @@ struct PageSection<Content: View, Trailing: View>: View {
     @ViewBuilder var content: Content
     @ViewBuilder var trailing: Trailing
 
-    init(_ title: String, @ViewBuilder content: () -> Content) where Trailing == EmptyView {
-        self.title = title
+    init(_ title: LocalizedStringResource, @ViewBuilder content: () -> Content) where Trailing == EmptyView {
+        self.title = String(localized: title)
         self.content = content()
         self.trailing = EmptyView()
     }
 
-    init(_ title: String, @ViewBuilder trailing: () -> Trailing, @ViewBuilder content: () -> Content) {
-        self.title = title
+    init(_ title: LocalizedStringResource, @ViewBuilder trailing: () -> Trailing, @ViewBuilder content: () -> Content) {
+        self.title = String(localized: title)
         self.content = content()
         self.trailing = trailing()
     }
@@ -259,6 +259,13 @@ struct SectionTitle<Trailing: View>: View {
     let text: String
     @ViewBuilder var trailing: Trailing
 
+    init(_ text: LocalizedStringResource, @ViewBuilder trailing: () -> Trailing = { EmptyView() }) {
+        self.text = String(localized: text)
+        self.trailing = trailing()
+    }
+
+    /// Runtime text that is already localized, such as a formatted date.
+    @_disfavoredOverload
     init(_ text: String, @ViewBuilder trailing: () -> Trailing = { EmptyView() }) {
         self.text = text
         self.trailing = trailing()
@@ -296,12 +303,13 @@ struct SettingsNumberStepper: View {
     @State private var draft: String
     @FocusState private var isEditing: Bool
 
-    init(title: String, value: Binding<Int>, in range: ClosedRange<Int>, step: Int = 1, unit: String) {
-        self.title = title
+    init(title: LocalizedStringResource, value: Binding<Int>, in range: ClosedRange<Int>, step: Int = 1,
+         unit: LocalizedStringResource) {
+        self.title = String(localized: title)
         self._value = value
         self.range = range
         self.step = step
-        self.unit = unit
+        self.unit = String(localized: unit)
         self._draft = State(initialValue: String(value.wrappedValue))
     }
 
@@ -317,8 +325,8 @@ struct SettingsNumberStepper: View {
             Text(unit)
                 .foregroundStyle(.secondary)
             HStack(spacing: 4) {
-                stepButton("minus", label: "Decrease \(title)", by: -step)
-                stepButton("plus", label: "Increase \(title)", by: step)
+                stepButton("minus", label: String(localized: "Decrease \(title)"), by: -step)
+                stepButton("plus", label: String(localized: "Increase \(title)"), by: step)
             }
         }
         .onChange(of: value) { _, newValue in
@@ -359,12 +367,30 @@ struct SettingsNumberStepper: View {
 }
 
 /// Title + optional subtitle on the left, any control on the right.
+/// Literal copy is localized; runtime text passes through `detail:` or `.verbatim`.
 struct SettingRow<Trailing: View>: View {
     @Environment(\.settingRowInset) private var rowInset
     let title: String
     var subtitle: String? = nil
     var stacked = false
     @ViewBuilder var trailing: Trailing
+
+    init(title: LocalizedStringResource, subtitle: LocalizedStringResource? = nil, stacked: Bool = false,
+         @ViewBuilder trailing: () -> Trailing) {
+        self.title = String(localized: title)
+        self.subtitle = subtitle.map { String(localized: $0) }
+        self.stacked = stacked
+        self.trailing = trailing()
+    }
+
+    /// A subtitle computed at runtime, already localized by its source.
+    init(title: LocalizedStringResource, detail: String?, stacked: Bool = false,
+         @ViewBuilder trailing: () -> Trailing) {
+        self.title = String(localized: title)
+        self.subtitle = detail
+        self.stacked = stacked
+        self.trailing = trailing()
+    }
 
     var body: some View {
         Group {
@@ -466,6 +492,8 @@ struct IconBadge: View {
 
 struct PillTag: View {
     let text: String
+    init(text: LocalizedStringResource) { self.text = String(localized: text) }
+    init(verbatim: String) { text = verbatim }
     var body: some View {
         Text(text)
             .font(.system(size: 9.5, weight: .semibold))
@@ -480,6 +508,7 @@ struct PillTag: View {
 
 /// Selectable preview tile (theme / recording window pickers).
 struct ChoiceTile<Preview: View>: View {
+    /// Already localized by the choice's model.
     let title: String
     let selected: Bool
     let action: () -> Void
@@ -509,7 +538,7 @@ struct ChoiceTile<Preview: View>: View {
         .buttonStyle(.plain)
         .fixedSize()
         .accessibilityLabel(title)
-        .accessibilityValue(selected ? "Selected" : "Not selected")
+        .accessibilityValue(selected ? Text("Selected") : Text("Not selected"))
     }
 }
 
@@ -584,7 +613,7 @@ extension View {
 
 /// The same compact selector is used by every page-level filter.
 struct PageFilter<Selection: Hashable>: View {
-    let title: String
+    let title: LocalizedStringResource
     @Binding var selection: Selection
     let options: [(Selection, String)]
 
@@ -604,7 +633,7 @@ struct PageFilter<Selection: Hashable>: View {
             }
         } label: {
             HStack(spacing: 8) {
-                Text(options.first { $0.0 == selection }?.1 ?? title)
+                Text(options.first { $0.0 == selection }?.1 ?? String(localized: title))
                     .lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.system(size: 9, weight: .medium))
@@ -617,14 +646,14 @@ struct PageFilter<Selection: Hashable>: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .softControlSurface()
-        .accessibilityLabel(title)
-        .accessibilityValue(options.first { $0.0 == selection }?.1 ?? title)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(options.first { $0.0 == selection }?.1 ?? String(localized: title))
     }
 }
 
 /// A pull-down menu on the shared soft button surface, for overflow actions and exports.
 struct SoftMenuButton<Content: View, Label: View>: View {
-    let title: String
+    let title: LocalizedStringResource
     @ViewBuilder var content: Content
     @ViewBuilder var label: Label
 
@@ -638,7 +667,7 @@ struct SoftMenuButton<Content: View, Label: View>: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .softControlSurface()
-        .accessibilityLabel(title)
+        .accessibilityLabel(Text(title))
     }
 }
 
@@ -770,11 +799,11 @@ struct SegmentMeter: View {
 /// Toolbar-style search field.
 struct SearchField: View {
     @Binding var text: String
-    var placeholder = "Search"
+    var placeholder: LocalizedStringResource = "Search"
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
-            TextField(placeholder, text: $text).textFieldStyle(.plain).font(.system(size: 13))
+            TextField(String(localized: placeholder), text: $text).textFieldStyle(.plain).font(.system(size: 13))
         }
         .padding(.horizontal, 9)
         .frame(height: SoftControl.height)
@@ -807,12 +836,12 @@ struct StatusDot: View {
         }
     }
 
-    private var label: String {
+    private var label: Text {
         switch tone {
-        case .ok: return "Ready"
-        case .attention: return "Needs attention"
-        case .busy: return "In progress"
-        case .inactive: return "Off"
+        case .ok: return Text("Ready")
+        case .attention: return Text("Needs attention")
+        case .busy: return Text("In progress")
+        case .inactive: return Text("Off")
         }
     }
 }
@@ -820,7 +849,7 @@ struct StatusDot: View {
 /// Reloads a list from its source; shows progress while loading.
 struct RefreshButton: View {
     let loading: Bool
-    let help: String
+    let help: LocalizedStringResource
     var disabled = false
     let action: () -> Void
 
@@ -830,15 +859,17 @@ struct RefreshButton: View {
         }
         .buttonStyle(SoftButtonStyle())
         .disabled(loading || disabled)
-        .help(help)
-        .accessibilityLabel(help)
+        .help(Text(help))
+        .accessibilityLabel(Text(help))
     }
 }
 
 /// Short secondary text for an empty list or search without results.
 struct EmptyNote: View {
     let text: String
-    init(_ text: String) { self.text = text }
+    init(_ text: LocalizedStringResource) { self.text = String(localized: text) }
+    /// Runtime text, such as an error message, that is already localized.
+    @_disfavoredOverload init(_ text: String) { self.text = text }
     var body: some View {
         Text(text).supportingText()
     }
@@ -869,7 +900,7 @@ struct SettingsDisclosureStyle: DisclosureGroupStyle {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityValue(configuration.isExpanded ? "Expanded" : "Collapsed")
+            .accessibilityValue(configuration.isExpanded ? Text("Expanded") : Text("Collapsed"))
             if configuration.isExpanded { configuration.content }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -880,7 +911,7 @@ struct SettingsDisclosureStyle: DisclosureGroupStyle {
 /// a 28 pt heading row, and content that brings its own 32 pt rows.
 struct OverlayPanel<Content: View>: View {
     @FocusState private var closeFocused: Bool
-    let title: String
+    let title: LocalizedStringResource
     var width: CGFloat
     let onClose: () -> Void
     @ViewBuilder var content: Content
@@ -905,7 +936,7 @@ struct OverlayPanel<Content: View>: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .keyboardShortcut(.cancelAction)
-                .accessibilityLabel("Close \(title)")
+                .accessibilityLabel(Text("Close \(String(localized: title))"))
                 .focused($closeFocused)
             }
             // The title lines up with row text; the glyph, not its hit area, lines up with row trailing content.
@@ -926,5 +957,12 @@ struct OverlayPanel<Content: View>: View {
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
         .onAppear { closeFocused = true }
+    }
+}
+
+extension LocalizedStringResource {
+    /// Runtime text that is already localized or never translated, such as a model name.
+    static func verbatim(_ text: String) -> LocalizedStringResource {
+        LocalizedStringResource(stringLiteral: text)
     }
 }

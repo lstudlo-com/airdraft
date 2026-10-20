@@ -43,17 +43,17 @@ final class AppUpdater: NSObject, SPUUpdaterDelegate {
 
     var versionLabel: String {
         let info = Bundle.main.infoDictionary ?? [:]
-        return "Version \(info["CFBundleShortVersionString"] as? String ?? "—") (\(info["CFBundleVersion"] as? String ?? "—"))"
+        return String(localized: "Version \(info["CFBundleShortVersionString"] as? String ?? "—") (\(info["CFBundleVersion"] as? String ?? "—"))")
     }
 
     /// Called only on a normal app launch, never by offscreen renders or self-tests.
     func start() {
         guard Bundle.main.object(forInfoDictionaryKey: "AirdraftDistribution") as? String != "community" else {
-            startupError = "Self-built editions update from source. Official downloads use a separate paid license."
+            startupError = String(localized: "Self-built editions update from source. Official downloads use a separate paid license.")
             return
         }
         guard Bundle.main.bundleIdentifier != "com.lstudlo.app.airdraft.debug" else {
-            startupError = "Development builds do not install public releases."
+            startupError = String(localized: "Development builds do not install public releases.")
             return
         }
         guard !isStarted else { return }
@@ -63,7 +63,7 @@ final class AppUpdater: NSObject, SPUUpdaterDelegate {
             startupError = nil
             Self.log.notice("updater started")
         } catch {
-            startupError = "Updates are unavailable in this build."
+            startupError = String(localized: "Updates are unavailable in this build.")
             Self.log.error("updater could not start: \(error.localizedDescription, privacy: .public)")
         }
     }
@@ -84,7 +84,7 @@ final class AppUpdater: NSObject, SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, mayPerform updateCheck: SPUUpdateCheck) throws {
         guard !isDictating() else {
             throw NSError(domain: "com.lightiichen.airdraft.updates", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "Finish dictating before checking for updates."])
+                          userInfo: [NSLocalizedDescriptionKey: String(localized: "Finish dictating before checking for updates.")])
         }
     }
 

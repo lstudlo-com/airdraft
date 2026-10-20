@@ -5,7 +5,9 @@ import Observation
 public final class MediaJobRunner {
     public private(set) var document: TranscriptDocument?
     public private(set) var isBusy = false
-    public private(set) var activity = "Preparing Media"
+    public private(set) var activity = String(localized: "Preparing Media", bundle: .module)
+    /// Activity labels are localized; compare the job kind instead.
+    public private(set) var isSummarizing = false
     public private(set) var progress: Double?
     public private(set) var issue: String?
     /// References for explicit access repair after cleanup fails; never key values.
@@ -100,7 +102,7 @@ public final class MediaJobRunner {
     }
     public func summarize(id: String, configuration: LLMConfig) {
         guard !isBusy else { return }
-        begin(); activity = "Summarizing"
+        begin(); activity = String(localized: "Summarizing", bundle: .module); isSummarizing = true
         task = Task {
             defer { end() }
             do {
@@ -133,14 +135,14 @@ public final class MediaJobRunner {
                 }
                 try Task.checkCancellation()
                 // Ordered section summaries avoid a second unbounded model request.
-                try await persist { $0.summary = parts.enumerated().map { chunks.count > 1 ? "Part \($0.offset + 1)\n\($0.element)" : $0.element }.joined(separator: "\n\n"); $0.issue = nil }
+                try await persist { $0.summary = parts.enumerated().map { chunks.count > 1 ? String(localized: "Part \($0.offset + 1)", bundle: .module) + "\n" + $0.element : $0.element }.joined(separator: "\n\n"); $0.issue = nil }
             } catch {
-                issue = error is CancellationError ? "Summary cancelled. The transcript is unchanged." : "Summary failed: " + error.localizedDescription
+                issue = error is CancellationError ? String(localized: "Summary cancelled. The transcript is unchanged.", bundle: .module) : String(localized: "Summary failed:", bundle: .module) + " " + error.localizedDescription
             }
         }
     }
 
-    private func begin() { activity = "Preparing Media"; document = nil; isBusy = true; issue = nil; progress = nil; onBusyChanged?(true) }
+    private func begin() { activity = String(localized: "Preparing Media", bundle: .module); isSummarizing = false; document = nil; isBusy = true; issue = nil; progress = nil; onBusyChanged?(true) }
     private func end() { isBusy = false; progress = nil; task = nil; onBusyChanged?(false); onChange?() }
     private func persist(_ edit: (inout TranscriptDocument) -> Void) async throws {
         guard var current = document else { throw MediaError.unavailable }
@@ -158,7 +160,7 @@ public final class MediaJobRunner {
             let speakers = try await identifySpeakers(url: url, asset: asset, documentID: initial.id)
             try await persist { $0.speakerIntervals = speakers; $0.diarizationComplete = true }
         }
-        activity = "Transcribing"
+        activity = String(localized: "Transcribing", bundle: .module)
         try await persist { $0.issue = nil; $0.stage = .transcribing }
         if !initial.transcriptionComplete {
             if initial.configuration.engine == .soniox {
@@ -220,7 +222,7 @@ public final class MediaJobRunner {
         try await cleanRemote(documentID: initial.id)
     }
     private func identifySpeakers(url: URL, asset: RecordingAsset, documentID: String) async throws -> [SpeakerInterval] {
-        activity = "Identifying Speakers"
+        activity = String(localized: "Identifying Speakers", bundle: .module)
         try await persist { $0.stage = .identifyingSpeakers; $0.issue = nil }
         progress = nil
         await factory.unloadAll()
@@ -242,11 +244,11 @@ public final class MediaJobRunner {
     }
     private func failed(_ error: Error) async {
         let cancelled = error is CancellationError || Task.isCancelled
-        let message = cancelled ? "Paused. Resume to continue from the last saved stage." : error.localizedDescription
+        let message = cancelled ? String(localized: "Paused. Resume to continue from the last saved stage.", bundle: .module) : error.localizedDescription
         issue = message
         guard document != nil else { return }
         do { try await persist { $0.stage = cancelled ? .paused : .failed; $0.issue = message } }
-        catch { issue = message + " Changes could not be saved: " + error.localizedDescription }
+        catch { issue = message + " " + String(localized: "Changes could not be saved:", bundle: .module) + " " + error.localizedDescription }
     }
     /// Called before removing any document with provider-owned resources. Failures remain retryable.
     public func cleanRemote(documentID: String) async throws {

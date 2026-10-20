@@ -17,7 +17,7 @@ final class HotkeyService {
     private(set) var backend: Backend = .none
     private(set) var isActive = false
     /// Human-readable state for the menu and settings.
-    private(set) var statusText = "Not started"
+    private(set) var statusText = String(localized: "Not started")
 
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
@@ -66,7 +66,7 @@ final class HotkeyService {
         guard !isSuspended else {
             backend = .none
             isActive = false
-            statusText = rehearsing ? "Paused while practicing the shortcut" : "Paused while recording a shortcut"
+            statusText = rehearsing ? String(localized: "Paused while practicing the shortcut") : String(localized: "Paused while recording a shortcut")
             return
         }
 
@@ -74,7 +74,7 @@ final class HotkeyService {
             let ok = carbon.register(hotkey)
             backend = ok ? .carbon : .none
             isActive = ok
-            statusText = ok ? "Active (\(hotkey.displayString))" : "Could not register \(hotkey.displayString); another app may own it."
+            statusText = ok ? String(localized: "Active (\(hotkey.displayString))") : String(localized: "Could not register \(hotkey.displayString); another app may own it.")
             Self.log.notice("hotkey backend=carbon active=\(ok, privacy: .public) key=\(hotkey.displayString, privacy: .public)")
             return
         }
@@ -111,10 +111,10 @@ final class HotkeyService {
         }
         isActive = active
         statusText = active
-            ? "Active (\(hotkey.displayString))"
+            ? String(localized: "Active (\(hotkey.displayString))")
             : permissions.accessibilityGranted
-                ? "Permission granted, but the shortcut monitor is unavailable. Quit and reopen Airdraft."
-                : "Waiting for Accessibility permission (needed for \(hotkey.displayString))"
+                ? String(localized: "Permission granted, but the shortcut monitor is unavailable. Quit and reopen Airdraft.")
+                : String(localized: "Waiting for Accessibility permission (needed for \(hotkey.displayString))")
     }
 
     private func press() {

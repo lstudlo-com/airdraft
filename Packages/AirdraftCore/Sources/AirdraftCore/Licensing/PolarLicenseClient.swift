@@ -100,16 +100,16 @@ public enum LicenseError: Error, LocalizedError, Equatable, Sendable {
     case accessRequired, clockChanged, activationUncertain
     public var errorDescription: String? {
         switch self {
-        case .rejected: "This license or device activation is no longer valid. Check your key and devices in the customer portal."
-        case .activationLimit: "Activation was refused. Check the license and available device slots in the customer portal."
-        case .unavailable: "Polar could not be reached. Your saved license has been kept. Try again when connected."
-        case .invalidResponse: "The license response could not be verified. Your saved license has been kept."
-        case .storage: "Could not save the license in Keychain. Access has not been changed."
-        case .storageLocked: "Your license needs Keychain access. Choose Allow Access in License to restore it."
-        case .notConfigured: "This official build is missing its licensing configuration. Contact Airdraft support."
-        case .accessRequired: "Open License to start your trial or activate a purchased key. Your history remains available."
-        case .clockChanged: "The system clock moved backwards. Correct the date and time to continue your trial."
-        case .activationUncertain: "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again."
+        case .rejected: String(localized: "This license or device activation is no longer valid. Check your key and devices in the customer portal.", bundle: .module)
+        case .activationLimit: String(localized: "Activation was refused. Check the license and available device slots in the customer portal.", bundle: .module)
+        case .unavailable: String(localized: "Polar could not be reached. Your saved license has been kept. Try again when connected.", bundle: .module)
+        case .invalidResponse: String(localized: "The license response could not be verified. Your saved license has been kept.", bundle: .module)
+        case .storage: String(localized: "Could not save the license in Keychain. Access has not been changed.", bundle: .module)
+        case .storageLocked: String(localized: "Your license needs Keychain access. Choose Allow Access in License to restore it.", bundle: .module)
+        case .notConfigured: String(localized: "This official build is missing its licensing configuration. Contact Airdraft support.", bundle: .module)
+        case .accessRequired: String(localized: "Open License to start your trial or activate a purchased key. Your history remains available.", bundle: .module)
+        case .clockChanged: String(localized: "The system clock moved backwards. Correct the date and time to continue your trial.", bundle: .module)
+        case .activationUncertain: String(localized: "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again.", bundle: .module)
         }
     }
 }

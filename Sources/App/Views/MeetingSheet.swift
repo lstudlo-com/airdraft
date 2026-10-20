@@ -67,7 +67,7 @@ private struct MeetingSourceChoices: View {
                 Spacer()
                 Button("Refresh") { Task { await selection.load() } }.buttonStyle(SoftButtonStyle()).disabled(selection.loading)
             }
-            sourceButton("All Apps", id: nil) { selection.select(nil); close() }
+            sourceButton(String(localized: "All Apps"), id: nil) { selection.select(nil); close() }
             RowDivider()
             if selection.loading && selection.sources.isEmpty {
                 ProgressView("Finding Apps…").controlSize(.small).frame(height: rowHeight)
@@ -127,7 +127,7 @@ struct MeetingRecordingStatus: View {
             captureRow(meeting.sourceName, received: meeting.systemReceived, level: meeting.systemLevel)
             if meeting.microphoneEnabled {
                 RowDivider()
-                captureRow("Microphone", received: meeting.microphoneReceived, level: meeting.microphoneLevel)
+                captureRow(String(localized: "Microphone"), received: meeting.microphoneReceived, level: meeting.microphoneLevel)
             }
         }
     }

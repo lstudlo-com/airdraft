@@ -59,7 +59,7 @@ public enum MediaAudioDecoder {
 
 public enum MediaDecodeError: LocalizedError {
     case multipleTracks
-    public var errorDescription: String? { "This file contains multiple audio tracks. Export the track you want as a separate audio file, then import it." }
+    public var errorDescription: String? { String(localized: "This file contains multiple audio tracks. Export the track you want as a separate audio file, then import it.", bundle: .module) }
 }
 
 /// A bounded read that preserves absolute positions across app restarts.

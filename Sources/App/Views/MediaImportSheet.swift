@@ -157,7 +157,7 @@ struct MediaImportSheet: View {
                 }
                 await checkModels()
             } catch {
-                issue = error is CancellationError ? "Download paused. Retry to finish." : error.localizedDescription
+                issue = error is CancellationError ? String(localized: "Download paused. Retry to finish.") : error.localizedDescription
                 // A cancelled download must not cancel its readiness refresh or strand the sheet.
                 await Task { await checkModels() }.value
             }

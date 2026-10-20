@@ -162,7 +162,7 @@ public final class ProfileStore {
             persistenceError = nil
             return true
         } catch {
-            persistenceError = "Changes are not saved. Keep Airdraft open and retry after checking storage. " + error.localizedDescription
+            persistenceError = String(localized: "Changes are not saved. Keep Airdraft open and retry after checking storage.", bundle: .module) + " " + error.localizedDescription
             return false
         }
     }

@@ -12,13 +12,13 @@ public enum MeetingError: LocalizedError {
     case storage, invalidClock, permission, noDisplay, sourceGone, diskSpace, noAudio
     public var errorDescription: String? {
         switch self {
-        case .storage: return "The meeting recording could not be saved. Check disk access, then recover it from Meetings."
-        case .invalidClock: return "The audio clock changed. Recording stopped to preserve the saved timeline."
-        case .permission: return "Allow Microphone and Screen & System Audio Recording in System Settings, then try again."
-        case .noDisplay: return "No display is available for meeting audio capture. Connect a display and try again."
-        case .sourceGone: return "The selected meeting app is no longer running. Choose it again."
-        case .diskSpace: return "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings."
-        case .noAudio: return "No audio buffers were received. Check the selected app, microphone and permissions."
+        case .storage: return String(localized: "The meeting recording could not be saved. Check disk access, then recover it from Meetings.", bundle: .module)
+        case .invalidClock: return String(localized: "The audio clock changed. Recording stopped to preserve the saved timeline.", bundle: .module)
+        case .permission: return String(localized: "Allow Microphone and Screen & System Audio Recording in System Settings, then try again.", bundle: .module)
+        case .noDisplay: return String(localized: "No display is available for meeting audio capture. Connect a display and try again.", bundle: .module)
+        case .sourceGone: return String(localized: "The selected meeting app is no longer running. Choose it again.", bundle: .module)
+        case .diskSpace: return String(localized: "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings.", bundle: .module)
+        case .noAudio: return String(localized: "No audio buffers were received. Check the selected app, microphone and permissions.", bundle: .module)
         }
     }
 }
@@ -63,7 +63,7 @@ public final class MeetingAudioWriter {
         let count = min(samples.count - skipped, Int(MediaConfiguration.maximumDuration * 16_000) - position)
         guard count > 0 else { throw MediaError.tooLong }
         if position - previous > 4_000 {
-            try note("\(track == .microphone ? "Microphone" : "App audio") gap at \(String(format: "%.1f", Double(previous) / 16_000)) seconds (\(String(format: "%.1f", Double(position - previous) / 16_000)) seconds).")
+            try note(String(localized: "\(track.displayName) gap at \(String(format: "%.1f", Double(previous) / 16_000)) seconds (\(String(format: "%.1f", Double(position - previous) / 16_000)) seconds).", bundle: .module))
         }
         let pcm = samples[skipped..<(skipped + count)].map { Int16(max(-1, min(1, $0)) * 32767).littleEndian }
         try handle.seek(toOffset: UInt64(position * 2)) // Sparse holes preserve missing time without unbounded allocations.
@@ -84,11 +84,11 @@ public final class MeetingAudioWriter {
     public func finish(reason: String? = nil) throws -> MeetingDraft {
         guard !closed else { return draft }
         if let reason { try note(reason) }
-        if (ends[.system] ?? 0) == 0 { try note("No app audio was received.") }
-        if draft.microphone && (ends[.microphone] ?? 0) == 0 { try note("No microphone audio was received.") }
+        if (ends[.system] ?? 0) == 0 { try note(String(localized: "No app audio was received.", bundle: .module)) }
+        if draft.microphone && (ends[.microphone] ?? 0) == 0 { try note(String(localized: "No microphone audio was received.", bundle: .module)) }
         let longest = ends.values.max() ?? 0
         for track in MeetingTrack.allCases where track == .system || draft.microphone {
-            if let end = ends[track], longest - end > 4_000 { try note("\(track == .microphone ? "Microphone" : "App audio") ended \(String(format: "%.1f", Double(longest - end) / 16_000)) seconds before the recording stopped.") }
+            if let end = ends[track], longest - end > 4_000 { try note(String(localized: "\(track.displayName) ended \(String(format: "%.1f", Double(longest - end) / 16_000)) seconds before the recording stopped.", bundle: .module)) }
         }
         for handle in handles.values { try handle.synchronize(); try handle.close() }
         handles.removeAll(); closed = true
@@ -186,9 +186,9 @@ public enum MeetingAudioStore {
             }
         } // Close WAV before publishing its asset.
         var notes = draft.interruptions
-        if interrupted { notes.insert("Recovered after recording was interrupted; the final audio may be incomplete.", at: 0) }
-        if tracks[1].1 == 0 { notes.append("No app audio was received.") }
-        if draft.microphone && tracks[0].1 == 0 { notes.append("No microphone audio was received.") }
+        if interrupted { notes.insert(String(localized: "Recovered after recording was interrupted; the final audio may be incomplete.", bundle: .module), at: 0) }
+        if tracks[1].1 == 0 { notes.append(String(localized: "No app audio was received.", bundle: .module)) }
+        if draft.microphone && tracks[0].1 == 0 { notes.append(String(localized: "No microphone audio was received.", bundle: .module)) }
         let asset = try history.importRecording(from: output, source: .meeting, recordingID: draft.id,
             captureIssue: notes.isEmpty ? nil : Array(Set(notes)).sorted().joined(separator: " "), createdAt: draft.createdAt)
         try FileManager.default.removeItem(at: folder)
@@ -207,5 +207,12 @@ public enum MeetingAudioStore {
     public static func removeDrafts(in directory: URL) throws {
         let root = directory.appendingPathComponent("MeetingStaging")
         if FileManager.default.fileExists(atPath: root.path) { try ensureDirectory(root); try FileManager.default.removeItem(at: root) }
+    }
+}
+
+extension MeetingTrack {
+    /// The source named in recording notes.
+    var displayName: String {
+        self == .microphone ? String(localized: "Microphone", bundle: .module) : String(localized: "App audio", bundle: .module)
     }
 }

@@ -440,10 +440,19 @@ enum DebugRender {
                 if let img = renderer.nsImage { images.append(img) }
             }
         }
-        precondition(classicWidths["recording"]! < classicWidths["transcribing"]! &&
-                     classicWidths["refining"]! < classicWidths["transcribing"]! &&
-                     classicWidths["inserting"]! < classicWidths["transcribing"]!,
-                     "HUD width must fit its current status, not reserve the longest label")
+        // Status widths follow each label in every language, never the longest one.
+        let labelled = ["transcribing", "refining", "inserting"]
+        func captionWidth(_ name: String) -> CGFloat {
+            let caption = states.first { $0.0 == name }?.1.state.hudCaption ?? ""
+            return (caption as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12)]).width
+        }
+        for name in labelled {
+            precondition(classicWidths["recording"]! < classicWidths[name]!, "A status label must widen the capsule")
+            for other in labelled where captionWidth(name) + 1 < captionWidth(other) {
+                precondition(classicWidths[name]! < classicWidths[other]!,
+                             "HUD width must fit its current status, not reserve the longest label")
+            }
+        }
         for style in HUDStyle.visibleStyles {
             func size(_ elapsed: Double, timer: HUDTimerOptions = HUDTimerOptions()) -> CGSize {
                 NSHostingView(rootView: IndicatorView(snapshot:

@@ -52,7 +52,7 @@ struct HistoryTranscript: NSViewRepresentable {
         /// Created on first use: most cards fit in six lines and never need it.
         var toggle: NSButton {
             if let createdToggle { return createdToggle }
-            let toggle = NSButton(title: expanded ? "Show Less" : "Show More", target: self, action: #selector(toggleExpansion))
+            let toggle = NSButton(title: expanded ? String(localized: "Show Less") : String(localized: "Show More"), target: self, action: #selector(toggleExpansion))
             Self.configureToggle(toggle)
             toggle.isHidden = !showsToggle
             addSubview(toggle)
@@ -67,7 +67,7 @@ struct HistoryTranscript: NSViewRepresentable {
             textField.maximumNumberOfLines = expanded ? 0 : 6
             textField.attributedStringValue = NSAttributedString(string: expanded ? content.full : content.preview,
                                                                  attributes: Self.attributes)
-            createdToggle?.title = expanded ? "Show Less" : "Show More"
+            createdToggle?.title = expanded ? String(localized: "Show Less") : String(localized: "Show More")
             lastMeasurement = nil
             invalidateIntrinsicContentSize()
             needsLayout = true
@@ -135,7 +135,7 @@ struct HistoryTranscript: NSViewRepresentable {
 
         private static func toggleSize(expanded: Bool) -> CGSize {
             if let size = toggleSizes[expanded] { return size }
-            let toggle = NSButton(title: expanded ? "Show Less" : "Show More", target: nil, action: nil)
+            let toggle = NSButton(title: expanded ? String(localized: "Show Less") : String(localized: "Show More"), target: nil, action: nil)
             configureToggle(toggle)
             toggleSizes[expanded] = toggle.fittingSize
             return toggle.fittingSize

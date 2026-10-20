@@ -5,7 +5,7 @@ public struct HUDTimerOptions: Codable, Equatable, Sendable {
     public enum Position: String, Codable, CaseIterable, Sendable, Identifiable {
         case left, right
         public var id: String { rawValue }
-        public var title: String { self == .left ? "Left" : "Right" }
+        public var title: String { self == .left ? String(localized: "Left", bundle: .module) : String(localized: "Right", bundle: .module) }
     }
 
     public var isEnabled: Bool

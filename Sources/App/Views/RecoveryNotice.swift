@@ -7,6 +7,13 @@ struct NoticeRow<Actions: View>: View {
     let message: String
     @ViewBuilder var actions: Actions
 
+    init(_ message: LocalizedStringResource, @ViewBuilder actions: () -> Actions) {
+        self.message = String(localized: message)
+        self.actions = actions()
+    }
+
+    /// Runtime text, such as an error message, that is already localized.
+    @_disfavoredOverload
     init(_ message: String, @ViewBuilder actions: () -> Actions) {
         self.message = message
         self.actions = actions()
@@ -27,6 +34,13 @@ struct InlineNotice<Actions: View>: View {
     let message: String
     @ViewBuilder var actions: Actions
 
+    init(_ message: LocalizedStringResource, @ViewBuilder actions: () -> Actions) {
+        self.message = String(localized: message)
+        self.actions = actions()
+    }
+
+    /// Runtime text, such as an error message, that is already localized.
+    @_disfavoredOverload
     init(_ message: String, @ViewBuilder actions: () -> Actions) {
         self.message = message
         self.actions = actions()
@@ -39,12 +53,12 @@ struct InlineNotice<Actions: View>: View {
 
 struct StorageNotice: View {
     let message: String
-    var actionTitle = "Retry Saving"
+    var actionTitle: LocalizedStringResource = "Retry Saving"
     let retry: () -> Void
 
     var body: some View {
         InlineNotice(message) {
-            Button(actionTitle, action: retry)
+            Button(String(localized: actionTitle), action: retry)
         }
     }
 }

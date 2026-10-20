@@ -88,17 +88,17 @@ public enum TranscriberError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .emptyAudio: return "No audio was captured."
+        case .emptyAudio: return String(localized: "No audio was captured.", bundle: .module)
         case .http(let status, let body):
             let detail = ProviderErrorBody.summary(body).map { ": \($0)" } ?? "."
-            return "Speech provider returned HTTP \(status)\(detail)"
-        case .invalidResponse: return "The speech provider returned an unexpected response."
-        case .modelNotDownloaded: return "Speech model is not downloaded. Download it on the Models page."
-        case .modelLoadTimedOut: return "Speech model loading took too long. Try again or choose another model in Models."
-        case .modelLoadStillStopping: return "The previous model load is still stopping. Choose another model, or restart Airdraft to retry this one."
-        case .appleUnavailable: return "Apple speech recognition needs macOS 26 or newer."
-        case .missingAPIKey(let provider): return "Add your \(provider) API key on the Models page."
-        case .timedOut: return "Transcription took too long. Please try again."
+            return String(localized: "Speech provider returned HTTP \(status)\(detail)", bundle: .module)
+        case .invalidResponse: return String(localized: "The speech provider returned an unexpected response.", bundle: .module)
+        case .modelNotDownloaded: return String(localized: "Speech model is not downloaded. Download it on the Models page.", bundle: .module)
+        case .modelLoadTimedOut: return String(localized: "Speech model loading took too long. Try again or choose another model in Models.", bundle: .module)
+        case .modelLoadStillStopping: return String(localized: "The previous model load is still stopping. Choose another model, or restart Airdraft to retry this one.", bundle: .module)
+        case .appleUnavailable: return String(localized: "Apple speech recognition needs macOS 26 or newer.", bundle: .module)
+        case .missingAPIKey(let provider): return String(localized: "Add your \(provider) API key on the Models page.", bundle: .module)
+        case .timedOut: return String(localized: "Transcription took too long. Please try again.", bundle: .module)
         case .providerFailure(let provider, let message): return "\(provider): \(message.prefix(300))"
         }
     }

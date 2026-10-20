@@ -51,7 +51,7 @@ public final class CredentialEditor {
         } catch {
             guard generation == token, !Task.isCancelled else { return }
             needsAccess = (error as? Keychain.AccessError) == .authorizationRequired
-            message = needsAccess ? "Your saved key needs access approval." : error.localizedDescription
+            message = needsAccess ? String(localized: "Your saved key needs access approval.", bundle: .module) : error.localizedDescription
             failed = true
         }
     }
@@ -72,10 +72,10 @@ public final class CredentialEditor {
         if ok {
             savedValue = value
             needsAccess = false
-            message = value.isEmpty ? "API key removed." : "API key saved."
+            message = value.isEmpty ? String(localized: "API key removed.", bundle: .module) : String(localized: "API key saved.", bundle: .module)
             failed = false
         } else {
-            message = "Could not save the API key. The existing key was not replaced."
+            message = String(localized: "Could not save the API key. The existing key was not replaced.", bundle: .module)
             failed = true
         }
     }

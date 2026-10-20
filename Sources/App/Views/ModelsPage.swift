@@ -18,9 +18,9 @@ struct ModelsPage: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .all: return "All models"
-            case .local: return "On this Mac"
-            case .cloud: return "Cloud"
+            case .all: return String(localized: "All models")
+            case .local: return String(localized: "On this Mac")
+            case .cloud: return String(localized: "Cloud")
             }
         }
     }
@@ -95,7 +95,7 @@ struct ModelsPage: View {
                         ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
                     }
                 }) {
-                    ModelTable(cost: "Storage", rowCount: localModels.count) {
+                    ModelTable(cost: String(localized: "Storage"), rowCount: localModels.count) {
                         if localModels.isEmpty {
                             EmptyNote("No local models match your search.")
                                 .padding(Theme.cardPadding)
@@ -215,7 +215,7 @@ struct ModelsPage: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                ModelTable(cost: "Pricing", rowCount: visible.count) {
+                ModelTable(cost: String(localized: "Pricing"), rowCount: visible.count) {
                     if visible.isEmpty {
                         EmptyNote("No cloud models match your search.")
                             .padding(Theme.cardPadding)
@@ -263,15 +263,15 @@ struct ModelsPage: View {
             let fetched = try await OpenRouterSpeechCatalog.fetch()
             guard !Task.isCancelled else { return }
             if fetched.isEmpty {
-                openRouterCatalogError = "OpenRouter returned no speech models. Showing curated choices."
+                openRouterCatalogError = String(localized: "OpenRouter returned no speech models. Showing curated choices.")
             } else {
                 openRouterModels = fetched
             }
         } catch {
             guard !Task.isCancelled else { return }
             openRouterCatalogError = openRouterModels.isEmpty
-                ? "Catalog unavailable; showing saved choices. Try Refresh."
-                : "Refresh failed; showing the last list."
+                ? String(localized: "Catalog unavailable; showing saved choices. Try Refresh.")
+                : String(localized: "Refresh failed; showing the last list.")
         }
     }
 
@@ -343,22 +343,22 @@ struct SpeechKeyRows: View {
 
     private var keySubtitle: String {
         switch preset.kind {
-        case .elevenLabs: return "Needs User Read permission"
-        case .openRouter: return "Shared with OpenRouter refinement"
-        default: return "Stored in your Keychain"
+        case .elevenLabs: return String(localized: "Needs User Read permission")
+        case .openRouter: return String(localized: "Shared with OpenRouter refinement")
+        default: return String(localized: "Stored in your Keychain")
         }
     }
 
     var body: some View {
-        SettingRow(title: "\(preset.name) API key", subtitle: keySubtitle) {
+        SettingRow(title: "\(preset.name) API key", detail: keySubtitle) {
             APIKeyField(account: preset.keyRef, console: preset.consoleURL)
         }
         RowDivider()
-        SettingRow(title: "Connection", subtitle: message) {
+        SettingRow(title: "Connection", detail: message) {
             if task != nil {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Button("Cancel") { cancel(); message = "Connection test cancelled." }
+                    Button("Cancel") { cancel(); message = String(localized: "Connection test cancelled.") }
                         .buttonStyle(SoftButtonStyle())
                 }
             } else {
@@ -404,7 +404,7 @@ struct SpeechKeyRows: View {
                 let key = try await Task.detached { try Keychain.read(account) }.value ?? ""
                 guard generation == token, !Task.isCancelled else { return }
                 guard !key.isEmpty else {
-                    message = "Save an API key first."
+                    message = String(localized: "Save an API key first.")
                     return
                 }
                 let result = try await SpeechConnectionChecker().check(config: config, apiKey: key)
@@ -424,15 +424,15 @@ enum SpeechLanguage {
 
     static func choices(including current: String) -> [Choice] {
         let codes = ["en", "zh", "ja", "ko", "es", "fr", "de", "it", "pt", "ru", "vi", "th", "id"]
-        var list = [Choice(code: "", name: "Detect automatically")] + codes.map { Choice(code: $0, name: name($0)) }
-        if !current.isEmpty, !codes.contains(current) { list.append(Choice(code: current, name: "\(name(current)) (custom)")) }
+        var list = [Choice(code: "", name: String(localized: "Detect automatically"))] + codes.map { Choice(code: $0, name: name($0)) }
+        if !current.isEmpty, !codes.contains(current) { list.append(Choice(code: current, name: String(localized: "\(name(current)) (custom)"))) }
         return list
     }
 
     static func appleLocales(including current: String) -> [Choice] {
         let codes = ["zh-TW", "zh-CN", "zh-HK", "en-US", "en-GB", "ja-JP", "ko-KR"]
         var list = codes.map { Choice(code: $0, name: name($0)) }
-        if !codes.contains(current) { list.append(Choice(code: current, name: "\(name(current)) (custom)")) }
+        if !codes.contains(current) { list.append(Choice(code: current, name: String(localized: "\(name(current)) (custom)"))) }
         return list
     }
 

@@ -59,7 +59,7 @@ public struct AnthropicRefiner: Refiner {
 
     public func refine(_ request: RefineRequest) async throws -> RefineResult {
         guard let apiKey, !apiKey.isEmpty else {
-            throw RefinerError.http(status: 401, body: "Anthropic API key is missing. Add it under Models ▸ Refinement.")
+            throw RefinerError.http(status: 401, body: String(localized: "Anthropic API key is missing. Add it under Models ▸ Refinement.", bundle: .module))
         }
         let started = ProcessInfo.processInfo.systemUptime
         let full = payload(for: request)

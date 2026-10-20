@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "AirdraftCore",
+    defaultLocalization: "en",
     platforms: [.macOS("15.0")],
     products: [
         // Keep engine dependencies out of the app preview's JIT linking work.

@@ -36,7 +36,7 @@ public enum AppResetAdapters {
         process.arguments = ["reset", "All", bundleID]
         let output = try await CLIProcess.run(process, input: "", timeout: 10)
         guard output.status == 0 else {
-            throw PermissionResetError(message: "macOS could not reset this app’s permissions. " + output.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
+            throw PermissionResetError(message: String(localized: "macOS could not reset this app’s permissions.", bundle: .module) + " " + output.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
         }
     }
 }
@@ -66,14 +66,14 @@ struct ProviderCredentialRemoval {
                                            kSecReturnAttributes as String: true]
                 let (status, result) = list(query)
                 if status == errSecItemNotFound { continue }
-                guard status == errSecSuccess else { throw PermissionResetError(message: "Some provider keys could not be removed (Keychain status \(status)). Completed removals stay removed; unlock Keychain and retry.") }
+                guard status == errSecSuccess else { throw PermissionResetError(message: String(localized: "Some provider keys could not be removed (Keychain status \(status)). Completed removals stay removed; unlock Keychain and retry.", bundle: .module)) }
                 let rows = result as? [[String: Any]] ?? (result as? [String: Any]).map { [$0] } ?? []
                 for row in rows {
                     guard let account = row[kSecAttrAccount as String] as? String,
                           !account.hasPrefix("license.") else { continue }
                     let status = remove([kSecClass as String: kSecClassGenericPassword,
                                          kSecAttrService as String: service, kSecAttrAccount as String: account])
-                    guard status == errSecSuccess || status == errSecItemNotFound else { throw PermissionResetError(message: "Some provider keys could not be removed (Keychain status \(status)). Completed removals stay removed; unlock Keychain and retry.") }
+                    guard status == errSecSuccess || status == errSecItemNotFound else { throw PermissionResetError(message: String(localized: "Some provider keys could not be removed (Keychain status \(status)). Completed removals stay removed; unlock Keychain and retry.", bundle: .module)) }
                 }
             }
         }

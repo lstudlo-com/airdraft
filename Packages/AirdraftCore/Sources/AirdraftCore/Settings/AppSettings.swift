@@ -8,9 +8,9 @@ public enum HotkeyBehavior: String, Codable, CaseIterable, Sendable, Identifiabl
     case toggle
     public var id: String { rawValue }
     /// Verb for instructions shown next to the shortcut: "Hold ⌃ ⌥ and speak".
-    public var instructionVerb: String { self == .hold ? "Hold" : "Press" }
+    public var instructionVerb: String { self == .hold ? String(localized: "Hold", bundle: .module) : String(localized: "Press", bundle: .module) }
     public func instructionVerb(triggerDelayMilliseconds: Int) -> String {
-        triggerDelayMilliseconds > 0 ? "Hold" : instructionVerb
+        triggerDelayMilliseconds > 0 ? String(localized: "Hold", bundle: .module) : instructionVerb
     }
 }
 
@@ -19,9 +19,9 @@ public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiabl
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .auto: return "Auto"
-        case .light: return "Light"
-        case .dark: return "Dark"
+        case .auto: return String(localized: "Auto", bundle: .module)
+        case .light: return String(localized: "Light", bundle: .module)
+        case .dark: return String(localized: "Dark", bundle: .module)
         }
     }
 }
@@ -43,12 +43,12 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     public static var visibleStyles: [Self] { allCases.filter { $0 != .none } }
     public var title: String {
         switch self {
-        case .classic: return "Classic"
-        case .cube: return "Cube"
-        case .sonic: return "Sonic"
-        case .orbit: return "Orbit"
-        case .silk: return "Silk"
-        case .none: return "None"
+        case .classic: return String(localized: "Classic", bundle: .module)
+        case .cube: return String(localized: "Cube", bundle: .module)
+        case .sonic: return String(localized: "Sonic", bundle: .module)
+        case .orbit: return String(localized: "Orbit", bundle: .module)
+        case .silk: return String(localized: "Silk", bundle: .module)
+        case .none: return String(localized: "None", bundle: .module)
         }
     }
 }
@@ -56,7 +56,7 @@ public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
 public enum TextOutputDestination: String, Codable, CaseIterable, Sendable, Identifiable {
     case cursor, script
     public var id: String { rawValue }
-    public var title: String { self == .cursor ? "Insert at cursor" : "Send to script" }
+    public var title: String { self == .cursor ? String(localized: "Insert at cursor", bundle: .module) : String(localized: "Send to script", bundle: .module) }
 }
 
 /// Audio retention is independent of text history; Off also removes saved audio.
@@ -65,11 +65,11 @@ public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiabl
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .off: return "Off"
-        case .day: return "1 day"
-        case .week: return "7 days"
-        case .month: return "30 days"
-        case .forever: return "Until deleted"
+        case .off: return String(localized: "Off", bundle: .module)
+        case .day: return String(localized: "1 day", bundle: .module)
+        case .week: return String(localized: "7 days", bundle: .module)
+        case .month: return String(localized: "30 days", bundle: .module)
+        case .forever: return String(localized: "Until deleted", bundle: .module)
         }
     }
     public func cutoff(now: Date = Date()) -> Date? {

@@ -7,20 +7,20 @@ public enum DataCleanupScope: String, Codable, CaseIterable, Identifiable, Senda
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .history: "Remove History"
-        case .audio: "Remove Audio Files"
-        case .historyAndAudio: "Remove History and Audio Files"
-        case .reset: "Reset App"
+        case .history: String(localized: "Remove History", bundle: .module)
+        case .audio: String(localized: "Remove Audio Files", bundle: .module)
+        case .historyAndAudio: String(localized: "Remove History and Audio Files", bundle: .module)
+        case .reset: String(localized: "Reset App", bundle: .module)
         }
     }
     public var removesHistory: Bool { self != .audio }
     public var removesAudio: Bool { self != .history }
     public var explanation: String {
         switch self {
-        case .history: "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay."
-        case .audio: "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay."
-        case .historyAndAudio: "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay."
-        case .reset: "Deletes app data, settings, profiles, vocabulary, provider keys and downloaded models. Resets this app’s permissions. Quit when finished to restart setup. License and trial records stay."
+        case .history: String(localized: "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay.", bundle: .module)
+        case .audio: String(localized: "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay.", bundle: .module)
+        case .historyAndAudio: String(localized: "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay.", bundle: .module)
+        case .reset: String(localized: "Deletes app data, settings, profiles, vocabulary, provider keys and downloaded models. Resets this app’s permissions. Quit when finished to restart setup. License and trial records stay.", bundle: .module)
         }
     }
 }
@@ -41,12 +41,12 @@ public enum CleanupError: LocalizedError {
     case busy, differentScope, invalidJournal, otherInstance, unsafeRoot, storageUnavailable
     public var errorDescription: String? {
         switch self {
-        case .storageUnavailable: "History storage is unavailable. Check available disk space and reopen Airdraft."
-        case .busy: "Stop recording and wait for current work to finish before removing data."
-        case .differentScope: "Finish the interrupted cleanup before starting another one."
-        case .invalidJournal: "The cleanup record could not be read. Keep Airdraft closed and check its data folder before removing anything."
-        case .otherInstance: "Quit other Airdraft or Transcribar copies that share this data folder, then retry."
-        case .unsafeRoot: "The app data folder is not a regular local directory. Cleanup stopped without following its link."
+        case .storageUnavailable: String(localized: "History storage is unavailable. Check available disk space and reopen Airdraft.", bundle: .module)
+        case .busy: String(localized: "Stop recording and wait for current work to finish before removing data.", bundle: .module)
+        case .differentScope: String(localized: "Finish the interrupted cleanup before starting another one.", bundle: .module)
+        case .invalidJournal: String(localized: "The cleanup record could not be read. Keep Airdraft closed and check its data folder before removing anything.", bundle: .module)
+        case .otherInstance: String(localized: "Quit other Airdraft or Transcribar copies that share this data folder, then retry.", bundle: .module)
+        case .unsafeRoot: String(localized: "The app data folder is not a regular local directory. Cleanup stopped without following its link.", bundle: .module)
         }
     }
 }

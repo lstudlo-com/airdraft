@@ -162,6 +162,15 @@ struct SoftPicker<Value: Hashable, Content: View>: View {
     let width: CGFloat
     @ViewBuilder var content: Content
 
+    init(_ title: LocalizedStringResource, selection: Binding<Value>, width: CGFloat, @ViewBuilder content: () -> Content) {
+        self.title = String(localized: title)
+        self._selection = selection
+        self.width = width
+        self.content = content()
+    }
+
+    /// A title computed at runtime and already localized.
+    @_disfavoredOverload
     init(_ title: String, selection: Binding<Value>, width: CGFloat, @ViewBuilder content: () -> Content) {
         self.title = title
         self._selection = selection
@@ -219,8 +228,9 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(_ title: String, selection: Binding<Value>, options: [(Value, String)], width: CGFloat? = nil, small: Bool = false) {
-        self.title = title
+    /// Option labels are runtime strings; localize them where they are defined.
+    init(_ title: LocalizedStringResource, selection: Binding<Value>, options: [(Value, String)], width: CGFloat? = nil, small: Bool = false) {
+        self.title = String(localized: title)
         self._selection = selection
         self.options = options
         self.width = width
@@ -321,7 +331,7 @@ extension ToggleStyle where Self == SoftSwitchStyle {
 
 /// A recessed track with a raised knob; drag, click, use arrow keys or accessibility adjustments.
 struct SoftSlider: View {
-    let title: String
+    let title: LocalizedStringResource
     @Binding var value: Double
     let range: ClosedRange<Double>
     let step: Double
@@ -357,7 +367,7 @@ struct SoftSlider: View {
         .frame(height: 22)
         .opacity(isEnabled ? 1 : 0.5)
         .accessibilityElement()
-        .accessibilityLabel(title)
+        .accessibilityLabel(Text(title))
         .accessibilityValue(value.formatted(.number.precision(.fractionLength(0...2))))
         .accessibilityAdjustableAction { direction in
             switch direction {

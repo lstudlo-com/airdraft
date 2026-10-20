@@ -49,7 +49,7 @@ struct ConfigurationPage: View {
                     }
                     if settings.hudStyle != .none || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Disco", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : "Colors flow with your voice") {
+                        SettingRow(title: "Disco", detail: settings.hudStyle == .none ? String(localized: "Choose a recording window style") : String(localized: "Colors flow with your voice")) {
                             Toggle("Disco", isOn: $settings.hudDiscoEnabled)
                                 .labelsHidden().toggleStyle(.softSwitch)
                                 .disabled(settings.hudStyle == .none)
@@ -63,7 +63,7 @@ struct ConfigurationPage: View {
                         }
                         if settings.hudTimer.isEnabled || search.isSearching {
                             RowDivider()
-                            SettingRow(title: "Timer position", subtitle: settings.hudStyle == .none ? "Choose a recording window style and enable Show timer" : !settings.hudTimer.isEnabled ? "Enable Show timer" : nil) {
+                            SettingRow(title: "Timer position", detail: settings.hudStyle == .none ? String(localized: "Choose a recording window style and enable Show timer") : !settings.hudTimer.isEnabled ? String(localized: "Enable Show timer") : nil) {
                                 SoftSegmentedPicker("Timer position", selection: $settings.hudTimer.position,
                                     options: HUDTimerOptions.Position.allCases.map { ($0, $0.title) }, width: 160)
                                     .disabled(settings.hudStyle == .none || !settings.hudTimer.isEnabled)
@@ -75,15 +75,15 @@ struct ConfigurationPage: View {
 
             PageSection("Keyboard shortcuts") {
                 SettingsCard {
-                    SettingRow(title: "Dictation", subtitle: settings.hotkeyBehavior == .hold
-                               ? "Hold to record; release to stop"
-                               : settings.triggerDelayMilliseconds > 0 ? "Hold to start; press to stop" : "Press to start or stop") {
+                    SettingRow(title: "Dictation", detail: settings.hotkeyBehavior == .hold
+                               ? String(localized: "Hold to record; release to stop")
+                               : settings.triggerDelayMilliseconds > 0 ? String(localized: "Hold to start; press to stop") : String(localized: "Press to start or stop")) {
                         HotkeyRecorderView()
                     }
                     RowDivider()
                     SettingRow(title: "Push to talk or toggle") {
                         SoftSegmentedPicker("Shortcut behavior", selection: $settings.hotkeyBehavior,
-                                            options: [(.hold, "Hold to talk"), (.toggle, "Toggle")], width: 200)
+                                            options: [(.hold, String(localized: "Hold to talk")), (.toggle, String(localized: "Toggle"))], width: 200)
                     }
                     RowDivider()
                     SettingRow(title: "Trigger Delay", subtitle: "Short presses keep their normal action; 0 = off") {
@@ -125,7 +125,7 @@ struct ConfigurationPage: View {
                     }
                     if settings.livePreviewEnabled || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Preview language", subtitle: !settings.livePreviewEnabled ? "Enable Show text while speaking; choose a language in Models" : settings.hudStyle == .none ? "Choose a recording window style" : "Choose and install a language in Models") {
+                        SettingRow(title: "Preview language", detail: !settings.livePreviewEnabled ? String(localized: "Enable Show text while speaking; choose a language in Models") : settings.hudStyle == .none ? String(localized: "Choose a recording window style") : String(localized: "Choose and install a language in Models")) {
                             Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
                         }
                     }
@@ -146,7 +146,7 @@ struct ConfigurationPage: View {
                     }
                     if let error = container.pipeline.audioStorageError {
                         RowDivider()
-                        SettingRow(title: "Cleanup failed", subtitle: error) {
+                        SettingRow(title: "Cleanup failed", detail: error) {
                             Button("Retry") { Task { await container.pipeline.pruneSavedAudio() } }
                                 .buttonStyle(SoftButtonStyle())
                         }
@@ -156,7 +156,7 @@ struct ConfigurationPage: View {
 
             PageSection("Permissions") {
                 SettingsCard {
-                    SettingRow(title: "Microphone", subtitle: micStatus) {
+                    SettingRow(title: "Microphone", detail: micStatus) {
                         if container.permissions.microphone != .authorized {
                             Button(container.permissions.microphone == .notDetermined ? "Request…" : "Open Settings…") {
                                 if container.permissions.microphone == .notDetermined {
@@ -192,24 +192,24 @@ struct ConfigurationPage: View {
             }
             Button("Cancel", role: .cancel) { pendingRetention = nil }
         } message: {
-            Text("Choosing \(pendingRetention?.title ?? "this limit") removes dictation audio outside that limit. Text and exported files stay. Deleted audio cannot be restored.")
+            Text("Choosing \(pendingRetention?.title ?? String(localized: "this limit")) removes dictation audio outside that limit. Text and exported files stay. Deleted audio cannot be restored.")
         }
     }
 
     private var micStatus: String {
         switch container.permissions.microphone {
-        case .authorized: return "Granted · \(container.microphones.label(container.settings.microphone))"
-        case .denied: return "Denied · allow in System Settings"
-        case .restricted: return "Restricted"
-        default: return "Not requested yet"
+        case .authorized: return String(localized: "Granted · \(container.microphones.label(container.settings.microphone))")
+        case .denied: return String(localized: "Denied · allow in System Settings")
+        case .restricted: return String(localized: "Restricted")
+        default: return String(localized: "Not requested yet")
         }
     }
 }
 
 private struct AppIconSettingRow: View {
-    let title: String
+    let title: LocalizedStringResource
     @Binding var selection: AppIconStyle
-    var subtitle: String? = nil
+    var subtitle: LocalizedStringResource? = nil
 
     var body: some View {
         SettingRow(title: title, subtitle: subtitle) {

@@ -14,9 +14,9 @@ public enum Keychain {
         public var errorDescription: String? {
             switch self {
             case .authorizationRequired:
-                return "Your saved API key needs access approval. Open Models and choose Allow access for this provider."
+                return String(localized: "Your saved API key needs access approval. Open Models and choose Allow access for this provider.", bundle: .module)
             case .failure(let status):
-                return "Could not access Keychain (\(status)). Your saved key has not been removed."
+                return String(localized: "Could not access Keychain (\(status)). Your saved key has not been removed.", bundle: .module)
             }
         }
     }

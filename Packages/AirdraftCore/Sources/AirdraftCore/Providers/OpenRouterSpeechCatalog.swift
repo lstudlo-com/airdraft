@@ -48,10 +48,10 @@ public enum OpenRouterSpeechCatalog {
         let modelTitle = title?.isEmpty == false ? title! : id
         var components = URLComponents(string: "https://openrouter.ai")!
         components.path = "/\(id)"
-        return SpeechModelInfo(id: id, title: modelTitle, price: "See pricing",
-                               billing: "OpenRouter models may bill per audio second or by token. Check this model's current rate.",
-                               quality: "Not rated", qualityDetail: "No comparable transcription accuracy is published for this model.",
-                               speed: "Not published", speedDetail: "No comparable file-transcription latency is published. Upload and network time affect your wait.",
+        return SpeechModelInfo(id: id, title: modelTitle, price: String(localized: "See pricing", bundle: .module),
+                               billing: String(localized: "OpenRouter models may bill per audio second or by token. Check this model's current rate.", bundle: .module),
+                               quality: String(localized: "Not rated", bundle: .module), qualityDetail: String(localized: "No comparable transcription accuracy is published for this model.", bundle: .module),
+                               speed: String(localized: "Not published", bundle: .module), speedDetail: String(localized: "No comparable file-transcription latency is published. Upload and network time affect your wait.", bundle: .module),
                                documentationURL: components.url ?? URL(string: "https://openrouter.ai/models")!)
     }
 }

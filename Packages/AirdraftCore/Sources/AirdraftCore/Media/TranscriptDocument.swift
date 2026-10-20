@@ -6,12 +6,12 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
         case ready, transcribing, identifyingSpeakers, completed, paused, failed
         public var title: String {
             switch self {
-            case .ready: return "Ready to transcribe"
-            case .transcribing: return "Transcribing"
-            case .identifyingSpeakers: return "Identifying speakers"
-            case .completed: return "Completed"
-            case .paused: return "Paused"
-            case .failed: return "Needs attention"
+            case .ready: return String(localized: "Ready to transcribe", bundle: .module)
+            case .transcribing: return String(localized: "Transcribing", bundle: .module)
+            case .identifyingSpeakers: return String(localized: "Identifying speakers", bundle: .module)
+            case .completed: return String(localized: "Completed", bundle: .module)
+            case .paused: return String(localized: "Paused", bundle: .module)
+            case .failed: return String(localized: "Needs attention", bundle: .module)
             }
         }
     }
@@ -45,7 +45,7 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
     public var originalText: String { words.map(\.text).joined().trimmingCharacters(in: .whitespacesAndNewlines) }
     public var text: String { turns.isEmpty ? originalText : turns.map(\.text).joined(separator: "\n") }
     public func speakerName(_ id: String?) -> String {
-        guard let id else { return "Unknown speaker" }
+        guard let id else { return String(localized: "Unknown speaker", bundle: .module) }
         return speakerNames[id] ?? "Speaker \(id)"
     }
     public mutating func rebuildTurns() {
@@ -73,8 +73,8 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             case .whisperDistilTurbo: return WhisperModelVariant.distilTurbo.title
             case .whisperDistilTurboCompressed: return WhisperModelVariant.distilTurboCompressed.title
             case .orukeet: return "Orukeet"
-            case .coreML: return "Core ML speech model"
-            case .gguf: return "GGUF speech model"
+            case .coreML: return String(localized: "Core ML speech model", bundle: .module)
+            case .gguf: return String(localized: "GGUF speech model", bundle: .module)
             case .apple: return "Apple Speech"
             }
         }
@@ -256,15 +256,15 @@ public enum MediaError: LocalizedError {
     case invalidAudio, tooLong, unavailable, conflict, busy, missingSpeakerModel, insufficientMemory, unsupportedModel, noSpeakerActivity
     public var errorDescription: String? {
         switch self {
-        case .noSpeakerActivity: return "No speech regions were identified. Choose Without Speakers to transcribe the full recording."
-        case .unsupportedModel: return "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings."
-        case .invalidAudio: return "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file."
-        case .tooLong: return "Media files can be up to two hours long. Split this recording before importing it."
-        case .unavailable: return "The recording or document is no longer available."
-        case .conflict: return "This document changed in another operation. Reopen it to load the latest version."
-        case .busy: return "Finish the current recording or media job first."
-        case .missingSpeakerModel: return "Download the speaker model before identifying speakers."
-        case .insufficientMemory: return "There is not enough available memory to identify speakers in this recording. Close other apps and retry, or choose Without Speakers."
+        case .noSpeakerActivity: return String(localized: "No speech regions were identified. Choose Without Speakers to transcribe the full recording.", bundle: .module)
+        case .unsupportedModel: return String(localized: "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings.", bundle: .module)
+        case .invalidAudio: return String(localized: "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file.", bundle: .module)
+        case .tooLong: return String(localized: "Media files can be up to two hours long. Split this recording before importing it.", bundle: .module)
+        case .unavailable: return String(localized: "The recording or document is no longer available.", bundle: .module)
+        case .conflict: return String(localized: "This document changed in another operation. Reopen it to load the latest version.", bundle: .module)
+        case .busy: return String(localized: "Finish the current recording or media job first.", bundle: .module)
+        case .missingSpeakerModel: return String(localized: "Download the speaker model before identifying speakers.", bundle: .module)
+        case .insufficientMemory: return String(localized: "There is not enough available memory to identify speakers in this recording. Close other apps and retry, or choose Without Speakers.", bundle: .module)
         }
     }
 }

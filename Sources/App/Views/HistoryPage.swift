@@ -29,7 +29,7 @@ struct HistoryPage: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     SoftSegmentedPicker("History filter", selection: $recordingsOnly,
-                                        options: [(false, "All"), (true, "Recordings")])
+                                        options: [(false, String(localized: "All")), (true, String(localized: "Recordings"))])
                         .accessibilityIdentifier("history.filter")
                     Spacer()
                     Button("Keep Recordings: \(container.settings.audioRetention.title)") {
@@ -110,7 +110,7 @@ struct HistoryPage: View {
 
     private func reload(append: Bool = false) async {
         guard let history = container.history else {
-            errorMessage = "History storage is unavailable. Restart Airdraft after checking available disk space."
+            errorMessage = String(localized: "History storage is unavailable. Restart Airdraft after checking available disk space.")
             return
         }
         if append && loading { return }
@@ -155,7 +155,7 @@ struct HistoryPage: View {
             }
         } catch {
             guard loadID == token else { return }
-            errorMessage = "History could not be loaded. " + error.localizedDescription
+            errorMessage = String(localized: "History could not be loaded.") + " " + error.localizedDescription
         }
     }
 }
@@ -441,7 +441,7 @@ private struct HistoryRecordRow: View {
             if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
             if let document = entry.document {
                 Text(document.title).font(.system(size: 13, weight: .medium))
-                Text(entry.finalText.preview.isEmpty && document.transcriptionComplete ? "No speech detected." : entry.finalText.preview).lineLimit(4)
+                Text(entry.finalText.preview.isEmpty && document.transcriptionComplete ? String(localized: "No speech detected.") : entry.finalText.preview).lineLimit(4)
                 MediaDocumentStatus(document: document)
                 MediaDocumentActions(document: document) { revealAndPresent(.media) }
             }
@@ -455,7 +455,7 @@ private struct HistoryRecordRow: View {
                     state.expanded.toggle()
                 }
             if record.rawTranscript != record.finalText {
-                SoftSegmentedPicker("Version", selection: $state.showRaw, options: [(false, "Refined"), (true, "Original")])
+                SoftSegmentedPicker("Version", selection: $state.showRaw, options: [(false, String(localized: "Refined")), (true, String(localized: "Original"))])
             }
             }
             Text(entry.metadata)
@@ -499,7 +499,7 @@ private struct HistoryRecordRow: View {
             guard let asset = entry.asset, let url = history.audioURL(for: asset) else { throw CocoaError(.fileNoSuchFile) }
             try playback.toggle(id: asset.id, url: url)
         }
-        catch { errorMessage = "Recording could not be played. " + error.localizedDescription }
+        catch { errorMessage = String(localized: "Recording could not be played.") + " " + error.localizedDescription }
     }
 
     @ViewBuilder private func recordingControls(accessibilityOnly: Bool = false) -> some View {
@@ -530,7 +530,7 @@ private struct HistoryRecordRow: View {
                 do {
                     // NSSavePanel obtains explicit replacement confirmation.
                     try await Task.detached { try history.exportRecording(id: asset.id, to: destination, replacing: true) }.value
-                } catch { errorMessage = "Audio could not be saved. " + error.localizedDescription }
+                } catch { errorMessage = String(localized: "Audio could not be saved.") + " " + error.localizedDescription }
             }
         }
         if let window = NSApp.keyWindow { panel.beginSheetModal(for: window, completionHandler: completion) }
@@ -539,7 +539,7 @@ private struct HistoryRecordRow: View {
 
     private func revealAudio() {
         guard let asset = entry.asset, let url = container.history?.audioURL(for: asset) else {
-            errorMessage = "This recording is no longer available. Refresh History to update the list."
+            errorMessage = String(localized: "This recording is no longer available. Refresh History to update the list.")
             return
         }
         NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -553,7 +553,7 @@ private struct HistoryRecordRow: View {
             do {
                 try await Task.detached { try history.deleteRecording(id: asset.id) }.value
                 NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-            } catch { errorMessage = "Recording could not be deleted. " + error.localizedDescription }
+            } catch { errorMessage = String(localized: "Recording could not be deleted.") + " " + error.localizedDescription }
         }
     }
 
@@ -578,7 +578,7 @@ private struct HistoryRecordRow: View {
             do {
                 try await Task.detached { try history.delete(id: id) }.value
                 NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-            } catch { errorMessage = "History could not be deleted. " + error.localizedDescription }
+            } catch { errorMessage = String(localized: "History could not be deleted.") + " " + error.localizedDescription }
         }
     }
 }
@@ -804,7 +804,7 @@ struct HistoryCard<RecordingControls: View>: View {
             HStack(spacing: 10) {
                 if wasRefined {
                     SoftSegmentedPicker("Version", selection: $state.showRaw,
-                                        options: [(false, "Refined"), (true, "Original")], small: true)
+                                        options: [(false, String(localized: "Refined")), (true, String(localized: "Original"))], small: true)
                 }
                 Text(entry.metadata)
                     .font(.system(size: 11.5))
@@ -849,18 +849,18 @@ struct HistoryCard<RecordingControls: View>: View {
 
     private var details: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
-            row("When", record.createdAt.formatted(date: .abbreviated, time: .standard))
-            row("Audio", entry.audioAvailable ? "Saved locally" : "Unavailable")
-            row("App", [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
+            row(String(localized: "When"), record.createdAt.formatted(date: .abbreviated, time: .standard))
+            row(String(localized: "Audio"), entry.audioAvailable ? String(localized: "Saved locally") : String(localized: "Unavailable"))
+            row(String(localized: "App"), [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
             if let url = record.url { row("URL", url) }
-            row("Profile", "\(record.mode) · \(record.family)")
-            row("Speech", "\(record.asrEngine) · \(record.asrMs) ms")
-            row("Refinement", record.llmEngine.map { "\($0) · \(record.llmMs) ms" } ?? "skipped")
-            if let e = record.error { row("Error", e) }
+            row(String(localized: "Profile"), "\(record.mode) · \(record.family)")
+            row(String(localized: "Speech"), String(localized: "\(record.asrEngine) · \(record.asrMs) ms"))
+            row(String(localized: "Refinement"), record.llmEngine.map { String(localized: "\($0) · \(record.llmMs) ms") } ?? String(localized: "skipped"))
+            if let e = record.error { row(String(localized: "Error"), e) }
             if record.outputDestination == TextOutputDestination.script.rawValue {
-                row("Script delivery", record.outputSucceeded == true ? "completed" : "failed or interrupted")
+                row(String(localized: "Script delivery"), record.outputSucceeded == true ? String(localized: "completed") : String(localized: "failed or interrupted"))
             } else {
-                row("Inserted", record.inserted ? "yes" : "no")
+                row(String(localized: "Inserted"), record.inserted ? String(localized: "yes") : String(localized: "no"))
             }
         }
         .font(.system(size: 12))

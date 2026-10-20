@@ -5,7 +5,7 @@ import Observation
 @MainActor @Observable
 final class MeetingSourceSelection {
     var selectedID: Int32?
-    private(set) var selectedName = "All Apps"
+    private(set) var selectedName = String(localized: "All Apps")
     private(set) var sources: [MeetingAudioSource] = []
     private(set) var loading = false
     private(set) var issue: String?
@@ -16,7 +16,7 @@ final class MeetingSourceSelection {
 
     func select(_ source: MeetingAudioSource?) {
         selectedID = source?.id
-        selectedName = source?.name ?? "All Apps"
+        selectedName = source?.name ?? String(localized: "All Apps")
     }
     func load() async {
         let token = UUID(); generation = token

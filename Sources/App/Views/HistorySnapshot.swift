@@ -57,17 +57,17 @@ struct HistorySnapshot: Sendable {
             let day = calendar.startOfDay(for: item.date)
             let heading: String?
             if day == previousDay { heading = nil }
-            else if day == today { heading = "Today" }
-            else if day == yesterday { heading = "Yesterday" }
+            else if day == today { heading = String(localized: "Today") }
+            else if day == yesterday { heading = String(localized: "Yesterday") }
             else { heading = item.date.formatted(date: .abbreviated, time: .omitted) }
             let time = item.date.formatted(date: .omitted, time: .shortened)
             var metadata = [time]
             if let record = item.record {
                 if let app = record.appName { metadata.append(app) }
                 if record.outputDestination == TextOutputDestination.script.rawValue {
-                    metadata.append(record.outputSucceeded == true ? "Sent to script" : "Script failed")
+                    metadata.append(record.outputSucceeded == true ? String(localized: "Sent to script") : String(localized: "Script failed"))
                 }
-                metadata += [record.mode, "\(String(format: "%.0f", record.audioSeconds)) s"]
+                metadata += [record.mode, String(localized: "\(String(format: "%.0f", record.audioSeconds)) s", comment: "Audio duration in seconds")]
             }
             let finalText = HistoryTextContent(item.document?.text ?? item.record?.finalText ?? "")
             indexByID[item.id] = entries.count

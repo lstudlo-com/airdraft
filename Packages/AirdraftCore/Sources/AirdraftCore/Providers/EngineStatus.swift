@@ -9,10 +9,10 @@ public enum EngineLoadState: Equatable, Sendable {
 
     public var label: String {
         switch self {
-        case .notLoaded: return "Not loaded"
-        case .loading: return "Loading…"
-        case .ready: return "Loaded"
-        case .failed(let m): return "Failed: \(m)"
+        case .notLoaded: return String(localized: "Not loaded", bundle: .module)
+        case .loading: return String(localized: "Loading…", bundle: .module)
+        case .ready: return String(localized: "Loaded", bundle: .module)
+        case .failed(let m): return String(localized: "Failed: \(m)", bundle: .module)
         }
     }
 }

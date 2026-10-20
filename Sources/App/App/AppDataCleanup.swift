@@ -26,7 +26,7 @@ extension AppContainer {
     func performCleanup(_ scope: DataCleanupScope) async {
         let directory = dataDirectory
         var steps: [DataCleanupCoordinator.Step] = [
-            .init("pending", title: "Clearing recovery data") { try await self.pipeline.prepareDataRemoval(scope) },
+            .init("pending", title: String(localized: "Clearing recovery data")) { try await self.pipeline.prepareDataRemoval(scope) },
             .init("history", title: scope.title) {
                 guard let history = self.history else {
                     if scope == .reset { return } // Reset can remove an unreadable database after closing.
@@ -42,33 +42,33 @@ extension AppContainer {
             }
         ]
         if scope != .history {
-            steps.append(.init("meetingDrafts", title: "Removing meeting recovery audio") {
+            steps.append(.init("meetingDrafts", title: String(localized: "Removing meeting recovery audio")) {
                 try await Task.detached { try MeetingAudioStore.removeDrafts(in: directory) }.value
                 self.meeting?.refreshDrafts()
             })
         }
         if scope == .reset {
             steps += [
-                .init("models", title: "Unloading models") {
+                .init("models", title: String(localized: "Unloading models")) {
                     try await self.models.prepareForDataReset()
                 },
-                .init("files", title: "Removing app files") {
+                .init("files", title: String(localized: "Removing app files")) {
                     try await self.pipeline.closeHistoryForReset()
                     try await Task.detached { try ManagedDataFiles.resetContents(in: directory) }.value
                 },
-                .init("caches", title: "Removing app caches") {
+                .init("caches", title: String(localized: "Removing app caches")) {
                     guard !self.isolatedData else { return }
                     try await Task.detached { try AppResetAdapters.removeAppCaches() }.value
                 },
-                .init("keys", title: "Removing provider keys") {
+                .init("keys", title: String(localized: "Removing provider keys")) {
                     guard !self.isolatedData else { return }
                     try await Task.detached { try AppResetAdapters.removeProviderCredentials() }.value
                 },
-                .init("settings", title: "Resetting preferences") {
+                .init("settings", title: String(localized: "Resetting preferences")) {
                     guard !self.isolatedData else { return }
                     AppResetAdapters.resetPreferences(in: .standard, domains: AppResetAdapters.preferenceDomains)
                 },
-                .init("permissions", title: "Resetting app permissions") {
+                .init("permissions", title: String(localized: "Resetting app permissions")) {
                     guard !self.isolatedData else { return }
                     try await AppResetAdapters.resetPermissions(bundleID: Bundle.main.bundleIdentifier ?? "")
                 }

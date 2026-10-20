@@ -208,8 +208,8 @@ struct SettingsSearchField: View {
                     .accessibilityLabel(resultDescription)
                     .accessibilityIdentifier("settings.search.count")
                 if search.matches.count > 1 {
-                    stepButton("chevron.up", label: "Previous Setting", by: -1)
-                    stepButton("chevron.down", label: "Next Setting", by: 1)
+                    stepButton("chevron.up", label: String(localized: "Previous Setting"), by: -1)
+                    stepButton("chevron.down", label: String(localized: "Next Setting"), by: 1)
                 }
             }
             if !search.query.isEmpty {
@@ -236,14 +236,14 @@ struct SettingsSearchField: View {
 
     private var resultLabel: String {
         if search.query != search.appliedQuery { return "…" }
-        guard let index = search.selectedIndex else { return "No matches" }
+        guard let index = search.selectedIndex else { return String(localized: "No matches") }
         return "\(index + 1)/\(search.matches.count)"
     }
 
     private var resultDescription: String {
         guard let index = search.selectedIndex else { return resultLabel }
         let result = search.matches[index]
-        return "Result \(index + 1) of \(search.matches.count), \(result.section), \(result.title)"
+        return String(localized: "Result \(index + 1) of \(search.matches.count), \(result.section), \(result.title)")
     }
 
     private var isComposing: Bool { (NSApp.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() == true }

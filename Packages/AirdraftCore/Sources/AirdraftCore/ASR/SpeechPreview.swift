@@ -18,7 +18,7 @@ public enum SpeechPreview {
     }
 
     public static func unavailableReason(locale: String) async -> String? {
-        guard #available(macOS 26, *) else { return "Live preview requires macOS 26 or later." }
+        guard #available(macOS 26, *) else { return String(localized: "Live preview requires macOS 26 or later.", bundle: .module) }
         do {
             _ = try await installedTranscriber(locale: locale)
             return nil
@@ -28,15 +28,15 @@ public enum SpeechPreview {
     @available(macOS 26, *)
     private static func installedTranscriber(locale: String) async throws -> SpeechTranscriber {
         guard SpeechTranscriber.isAvailable else {
-            throw PreviewIssue("Apple Speech live preview is unavailable on this Mac. Turn off Live Preview in Settings.")
+            throw PreviewIssue(String(localized: "Apple Speech live preview is unavailable on this Mac. Turn off Live Preview in Settings.", bundle: .module))
         }
         guard let supported = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: locale)) else {
-            throw PreviewIssue("Apple Speech does not support this preview language. Choose another language in Settings.")
+            throw PreviewIssue(String(localized: "Apple Speech does not support this preview language. Choose another language in Settings.", bundle: .module))
         }
         try Task.checkCancellation()
         let transcriber = SpeechTranscriber(locale: supported, preset: .progressiveTranscription)
         guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
-            throw PreviewIssue("Install Apple Speech for \(supported.identifier) from Models, then start another recording.")
+            throw PreviewIssue(String(localized: "Install Apple Speech for \(supported.identifier) from Models, then start another recording.", bundle: .module))
         }
         try Task.checkCancellation()
         return transcriber
@@ -48,7 +48,7 @@ public enum SpeechPreview {
         do {
             let transcriber = try await installedTranscriber(locale: locale)
             guard let targetFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
-                throw PreviewIssue("Apple Speech has no available audio format. Reload its language in Models and retry.")
+                throw PreviewIssue(String(localized: "Apple Speech has no available audio format. Reload its language in Models and retry.", bundle: .module))
             }
             try Task.checkCancellation()
             let converter = try SpeechPreviewConverter(targetFormat: targetFormat)
@@ -65,17 +65,17 @@ public enum SpeechPreview {
                             control.publish(String(result.text.characters), startTime: result.range.start.seconds)
                         }
                         if !Task.isCancelled, control.isActive {
-                            control.fail("Live preview stopped. Start another recording to retry; final transcription is still available.")
+                            control.fail(String(localized: "Live preview stopped. Start another recording to retry; final transcription is still available.", bundle: .module))
                         }
                     } catch {
-                        if !Task.isCancelled { control.fail("Live preview stopped: \(error.localizedDescription) Start another recording to retry.") }
+                        if !Task.isCancelled { control.fail(String(localized: "Live preview stopped: \(error.localizedDescription) Start another recording to retry.", bundle: .module)) }
                     }
                 }
                 group.addTask {
                     do {
                         _ = try await analyzer.analyzeSequence(input)
                     } catch {
-                        if !Task.isCancelled { control.fail("Live preview stopped: \(error.localizedDescription) Start another recording to retry.") }
+                        if !Task.isCancelled { control.fail(String(localized: "Live preview stopped: \(error.localizedDescription) Start another recording to retry.", bundle: .module)) }
                     }
                     // Finishing the input stream alone does not finish a SpeechAnalyzer.
                     // This cleanup stays off the caller's recording/final-transcription path.
@@ -106,7 +106,7 @@ private final class PreviewSession: SpeechPreviewSession, Sendable {
             if #available(macOS 26, *) {
                 await SpeechPreview.run(locale: locale, control: control)
             } else {
-                control.fail("Live preview requires macOS 26 or later.")
+                control.fail(String(localized: "Live preview requires macOS 26 or later.", bundle: .module))
             }
         }
         control.setWorker(worker)
@@ -151,9 +151,9 @@ final class SpeechPreviewControl: @unchecked Sendable {
         switch audio.append(samples) {
         case .accepted, .stopped: break
         case .overflow:
-            fail("Live preview could not keep up. Start another recording to retry, or turn off Live Preview. Final transcription is unaffected.")
+            fail(String(localized: "Live preview could not keep up. Start another recording to retry, or turn off Live Preview. Final transcription is unaffected.", bundle: .module))
         case .invalid:
-            fail("Live preview received invalid audio. Check the selected microphone and start another recording.")
+            fail(String(localized: "Live preview received invalid audio. Check the selected microphone and start another recording.", bundle: .module))
         }
     }
 
@@ -275,13 +275,13 @@ private actor SpeechPreviewConverter {
     init(targetFormat: AVAudioFormat) throws {
         guard let source = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000,
                                          channels: 1, interleaved: false) else {
-            throw PreviewIssue("Live preview could not prepare audio. Start another recording to retry.")
+            throw PreviewIssue(String(localized: "Live preview could not prepare audio. Start another recording to retry.", bundle: .module))
         }
         sourceFormat = source
         self.targetFormat = targetFormat
         converter = source == targetFormat ? nil : AVAudioConverter(from: source, to: targetFormat)
         if source != targetFormat, converter == nil {
-            throw PreviewIssue("Live preview could not convert audio. Reload Apple Speech in Models and retry.")
+            throw PreviewIssue(String(localized: "Live preview could not convert audio. Reload Apple Speech in Models and retry.", bundle: .module))
         }
     }
 
@@ -290,7 +290,7 @@ private actor SpeechPreviewConverter {
             try Task.checkCancellation()
             guard let source = AVAudioPCMBuffer(pcmFormat: sourceFormat, frameCapacity: AVAudioFrameCount(samples.count)),
                   let channel = source.floatChannelData?[0] else {
-                throw PreviewIssue("Live preview could not allocate an audio buffer. Start another recording to retry.")
+                throw PreviewIssue(String(localized: "Live preview could not allocate an audio buffer. Start another recording to retry.", bundle: .module))
             }
             source.frameLength = AVAudioFrameCount(samples.count)
             samples.withUnsafeBufferPointer { values in channel.update(from: values.baseAddress!, count: samples.count) }
@@ -298,7 +298,7 @@ private actor SpeechPreviewConverter {
             let ratio = targetFormat.sampleRate / sourceFormat.sampleRate
             let capacity = AVAudioFrameCount(ceil(Double(samples.count) * ratio)) + 32
             guard let output = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else {
-                throw PreviewIssue("Live preview could not allocate an audio buffer. Start another recording to retry.")
+                throw PreviewIssue(String(localized: "Live preview could not allocate an audio buffer. Start another recording to retry.", bundle: .module))
             }
             var consumed = false
             var error: NSError?
@@ -312,7 +312,7 @@ private actor SpeechPreviewConverter {
                 return source
             }
             if let error { throw error }
-            guard status != .error else { throw PreviewIssue("Live preview audio conversion failed. Start another recording to retry.") }
+            guard status != .error else { throw PreviewIssue(String(localized: "Live preview audio conversion failed. Start another recording to retry.", bundle: .module)) }
             if output.frameLength > 0 { return AnalyzerInput(buffer: output) }
         }
         return nil

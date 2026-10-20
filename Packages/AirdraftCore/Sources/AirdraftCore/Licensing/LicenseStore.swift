@@ -155,7 +155,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
         guard !key.isEmpty, !isBusy, !storageBlocked, loaded, var next = record,
               let client, configuration != nil else { return }
         guard next.grant == nil else {
-            message = "Deactivate this Mac before replacing its license key."
+            message = String(localized: "Deactivate this Mac before replacing its license key.", bundle: .module)
             return
         }
         guard !next.activationPending else { message = LicenseError.activationUncertain.localizedDescription; return }
@@ -275,7 +275,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
                 record = next
                 do { try await storage.write(next) }
                 catch { storageBlocked = true }
-                message = "Removal could not be confirmed. Update a rotated key, or remove this device in the customer portal before forgetting it here."
+                message = String(localized: "Removal could not be confirmed. Update a rotated key, or remove this device in the customer portal before forgetting it here.", bundle: .module)
                 return
             }
             next.grant = nil

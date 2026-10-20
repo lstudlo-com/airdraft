@@ -6,9 +6,9 @@ public enum AppIconStyle: String, Codable, CaseIterable, Sendable, Identifiable 
 
     public var title: String {
         switch self {
-        case .pureWave: return "Pure Wave"
-        case .carvedWave: return "Carved Wave"
-        case .nightWave: return "Night Wave"
+        case .pureWave: return String(localized: "Pure Wave", bundle: .module)
+        case .carvedWave: return String(localized: "Carved Wave", bundle: .module)
+        case .nightWave: return String(localized: "Night Wave", bundle: .module)
         }
     }
 }

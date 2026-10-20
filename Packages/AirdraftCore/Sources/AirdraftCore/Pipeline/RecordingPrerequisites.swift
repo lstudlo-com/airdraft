@@ -47,25 +47,25 @@ public enum RecordingPrerequisites {
         _ = try SpeechLanguagePolicy.resolve(asr)
         func reject(_ message: String) throws { throw RecordingPrerequisiteError(message) }
         guard environment.microphoneAuthorized else {
-            try reject("Allow microphone access in Settings."); return
+            try reject(String(localized: "Allow microphone access in Settings.", bundle: .module)); return
         }
         guard !insertionEnabled || environment.accessibilityAuthorized else {
-            try reject("Allow Accessibility access in Settings."); return
+            try reject(String(localized: "Allow Accessibility access in Settings.", bundle: .module)); return
         }
         guard let device = microphone.resolve(in: environment.devices, systemDefaultID: environment.defaultDeviceID) else {
-            try reject("Microphone unavailable. Choose an input in Settings."); return
+            try reject(String(localized: "Microphone unavailable. Choose an input in Settings.", bundle: .module)); return
         }
         let channel = microphone.channelIndex ?? 0
         guard channel >= 0, channel < device.inputChannelCount else {
-            try reject("Input channel unavailable. Choose one in Settings."); return
+            try reject(String(localized: "Input channel unavailable. Choose one in Settings.", bundle: .module)); return
         }
         if asr.kind.isLocal {
             guard environment.installed(asr) else {
-                try reject("Install the speech model in Models."); return
+                try reject(String(localized: "Install the speech model in Models.", bundle: .module)); return
             }
         } else {
             guard !asr.speechModelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                try reject("Choose a speech model in Models."); return
+                try reject(String(localized: "Choose a speech model in Models.", bundle: .module)); return
             }
             if asr.kind == .openAICompatible { try validateEndpoint(asr.baseURL, stage: "speech") }
             if asr.kind.preset != nil { try requireKey(asr.keyRef, stage: "speech", environment: environment) }
@@ -77,7 +77,7 @@ public enum RecordingPrerequisites {
             }
             if llm.kind.requiresKey { try requireKey(llm.keyRef, stage: "refinement", environment: environment) }
             if llm.kind.isCLI, llm.cliExecutable == nil {
-                try reject("Set up the refinement CLI in Models, or turn it Off."); return
+                try reject(String(localized: "Set up the refinement CLI in Models, or turn it Off.", bundle: .module)); return
             }
             if llm.kind == .openAICompatible { try validateEndpoint(llm.baseURL, stage: "refinement") }
         }
@@ -86,19 +86,24 @@ public enum RecordingPrerequisites {
     private static func validateEndpoint(_ value: String, stage: String) throws {
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
               let host = url.host, !host.isEmpty else {
-            throw RecordingPrerequisiteError("Check the \(stage) endpoint in Models.")
+            throw RecordingPrerequisiteError(stage == "speech" ? String(localized: "Check the speech endpoint in Models.", bundle: .module)
+                                             : String(localized: "Check the refinement endpoint in Models.", bundle: .module))
         }
     }
 
     private static func readKey(_ account: String, stage: String, environment: Environment) throws -> String? {
         do { return try environment.readCredential(account) }
-        catch { throw RecordingPrerequisiteError("\(stage.capitalized) key locked. Use Allow Access in Models.") }
+        catch {
+            throw RecordingPrerequisiteError(stage == "speech" ? String(localized: "Speech key locked. Use Allow Access in Models.", bundle: .module)
+                                             : String(localized: "Refinement key locked. Use Allow Access in Models.", bundle: .module))
+        }
     }
 
     private static func requireKey(_ account: String, stage: String, environment: Environment) throws {
         guard let key = try readKey(account, stage: stage, environment: environment),
               !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw RecordingPrerequisiteError("Add a \(stage) API key in Models\(stage == "refinement" ? ", or turn refinement Off" : "").")
+            throw RecordingPrerequisiteError(stage == "refinement" ? String(localized: "Add a refinement API key in Models, or turn refinement Off.", bundle: .module)
+                                             : String(localized: "Add a speech API key in Models.", bundle: .module))
         }
     }
 }

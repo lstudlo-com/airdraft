@@ -32,7 +32,7 @@ public actor ModelDownloader {
                 let received = ByteCountFormatter.string(fromByteCount: receivedBytes, countStyle: .file)
                 if let totalBytes {
                     parts.append("\(received) of \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")
-                } else { parts.append("\(received) received") }
+                } else { parts.append(String(localized: "\(received) received", bundle: .module)) }
             }
             return parts.joined(separator: " · ")
         }
@@ -48,13 +48,13 @@ public actor ModelDownloader {
         case unsafePath(String)
         public var errorDescription: String? {
             switch self {
-            case .listing(let s): return "Could not list model files (HTTP \(s))."
-            case .download(let f, let s): return "Download of \(f) failed (HTTP \(s))."
-            case .alreadyInProgress: return "This model is already downloading."
-            case .incomplete: return "The model download is incomplete. Retry to finish the missing files."
-            case .checksumMismatch: return "The model archive failed its integrity check. Download it again."
-            case .emptyListing: return "The model folder is empty on Hugging Face."
-            case .unsafePath(let path): return "Refused to download \(path): it points outside the models folder."
+            case .listing(let s): return String(localized: "Could not list model files (HTTP \(s)).", bundle: .module)
+            case .download(let f, let s): return String(localized: "Download of \(f) failed (HTTP \(s)).", bundle: .module)
+            case .alreadyInProgress: return String(localized: "This model is already downloading.", bundle: .module)
+            case .incomplete: return String(localized: "The model download is incomplete. Retry to finish the missing files.", bundle: .module)
+            case .checksumMismatch: return String(localized: "The model archive failed its integrity check. Download it again.", bundle: .module)
+            case .emptyListing: return String(localized: "The model folder is empty on Hugging Face.", bundle: .module)
+            case .unsafePath(let path): return String(localized: "Refused to download \(path): it points outside the models folder.", bundle: .module)
             }
         }
     }
@@ -117,9 +117,9 @@ public actor ModelDownloader {
         case .senseVoice: try await downloadSherpa(model: .senseVoice, progress: progress)
         case .parakeet: try await downloadSherpa(model: .parakeet, progress: progress)
         case .apple:
-            progress(Progress(fraction: nil, currentFile: "Installing language…"))
+            progress(Progress(fraction: nil, currentFile: String(localized: "Installing language…", bundle: .module)))
             try await AppleSpeechTranscriber(locale: config.effectiveAppleLocale).prepare()
-            progress(Progress(fraction: 1, currentFile: "Language installed"))
+            progress(Progress(fraction: 1, currentFile: String(localized: "Language installed", bundle: .module)))
         case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
              .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return
         }
@@ -128,7 +128,7 @@ public actor ModelDownloader {
     /// Qwen3-ASR weights through speech-swift's own anonymous downloader.
     public func downloadQwen3(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("qwen3:\(modelId)") {
-            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
+            progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
             _ = try await Qwen3ASRModel.fromPretrained(
                 modelId: modelId,
                 cacheDir: LocalModels.qwen3Folder(for: modelId),
@@ -144,14 +144,14 @@ public actor ModelDownloader {
     /// Cohere Transcribe weights through speech-swift's own anonymous downloader.
     public func downloadCohere(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("cohere:\(modelId)") {
-            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
+            progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
             _ = try await CohereTranscribeModel.fromPretrained(
                 modelId,
                 cacheDir: LocalModels.cohereFolder(for: modelId),
                 offlineMode: false,
                 progressHandler: { fraction in
                     progress(Progress(fraction: fraction > 0 && fraction < 1 ? fraction : nil,
-                                      currentFile: fraction >= 1 ? "Preparing model…" : "Downloading weights…"))
+                                      currentFile: fraction >= 1 ? String(localized: "Preparing model…", bundle: .module) : String(localized: "Downloading weights…", bundle: .module)))
                 }
             )
         }
@@ -178,7 +178,7 @@ public actor ModelDownloader {
     static func installSherpaArchive(_ downloaded: URL, model: SherpaTranscriber.Model,
                                     root: URL, progress: ProgressHandler) async throws {
         if let checksum = model.archiveSHA256 {
-            progress(Progress(fraction: nil, currentFile: "Verifying archive…"))
+            progress(Progress(fraction: nil, currentFile: String(localized: "Verifying archive…", bundle: .module)))
             try verifySHA256(of: downloaded, expected: checksum)
         }
         progress(Progress(fraction: nil, currentFile: "Unpacking…"))
@@ -209,7 +209,7 @@ public actor ModelDownloader {
     /// A WhisperKit variant plus the shared tokenizer files, from the Hub's public file API.
     public func downloadWhisper(variant: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("whisper:\(variant)") {
-            progress(Progress(fraction: nil, currentFile: "Preparing download…"))
+            progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
             let repo = "argmaxinc/whisperkit-coreml"
             guard let choice = WhisperModelVariant(rawValue: variant) else { throw DownloadError.incomplete }
             let modelFiles = try await listFiles(repo: repo, path: choice.directoryName)

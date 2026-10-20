@@ -48,7 +48,7 @@ public actor AppleSpeechTranscriber: Transcriber {
         let locale = try await supportedLocale()
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
-            throw TranscriberError.providerFailure("Apple Speech", "Language assets are not installed. Open Models and load Apple Speech before retrying.")
+            throw TranscriberError.providerFailure("Apple Speech", String(localized: "Language assets are not installed. Open Models and load Apple Speech before retrying.", bundle: .module))
         }
         try Task.checkCancellation()
         let analyzer = SpeechAnalyzer(modules: [transcriber])
@@ -119,7 +119,7 @@ public actor AppleSpeechTranscriber: Transcriber {
     @available(macOS 26, *)
     private func supportedLocale() async throws -> Locale {
         guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: localeIdentifier)) else {
-            throw TranscriberError.providerFailure("Apple Speech", "\(localeIdentifier) is unavailable on this Mac. Choose a supported locale in Models.")
+            throw TranscriberError.providerFailure("Apple Speech", String(localized: "\(localeIdentifier) is unavailable on this Mac. Choose a supported locale in Models.", bundle: .module))
         }
         return locale
     }

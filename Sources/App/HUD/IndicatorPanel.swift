@@ -246,7 +246,7 @@ struct RecordingHUDView: View {
     var body: some View {
         VStack(spacing: 10) {
             if showPreview {
-                Text(pipeline?.previewIssue ?? sampleText ?? (pipeline?.previewText).flatMap { $0.isEmpty ? nil : $0 } ?? "Listening…")
+                Text(pipeline?.previewIssue ?? sampleText ?? (pipeline?.previewText).flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Listening…"))
                     .font(.system(size: 13))
                     .foregroundStyle(Color.white.opacity(0.95))
                     .lineLimit(3)
@@ -272,10 +272,10 @@ struct RecordingHUDView: View {
 extension PipelineState {
     var hudCaption: String? {
         switch self {
-        case .preparingModel: return "Loading"
-        case .transcribing: return "Transcribing"
-        case .refining: return "Refining"
-        case .inserting: return "Inserting"
+        case .preparingModel: return String(localized: "Loading", comment: "Recording window status")
+        case .transcribing: return String(localized: "Transcribing", comment: "Recording window status")
+        case .refining: return String(localized: "Refining", comment: "Recording window status")
+        case .inserting: return String(localized: "Inserting", comment: "Recording window status")
         default: return nil
         }
     }

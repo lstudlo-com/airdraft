@@ -50,7 +50,7 @@ public struct SpeechmaticsTranscriber: Transcriber {
                 guard job.id == created.id else { throw TranscriberError.invalidResponse }
                 if job.status == "done" { break }
                 if ["rejected", "deleted", "expired"].contains(job.status) {
-                    throw TranscriberError.providerFailure("Speechmatics", "The transcription job was \(job.status).")
+                    throw TranscriberError.providerFailure("Speechmatics", String(localized: "The transcription job was \(job.status).", bundle: .module))
                 }
                 guard ["running", "queued"].contains(job.status) else { throw TranscriberError.invalidResponse }
                 try await CloudSpeechResources.pause(interval: pollInterval, deadline: deadline)

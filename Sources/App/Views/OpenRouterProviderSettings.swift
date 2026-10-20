@@ -40,7 +40,7 @@ struct OpenRouterProviderSettings: View {
 
     private func providerTitle(_ endpoint: OpenRouterEndpoint) -> String {
         OpenRouterCatalog.relatedEndpoints(providerID: endpoint.id, in: listedEndpoints).count > 1
-            ? "\(endpoint.title) · provider-wide" : endpoint.title
+            ? String(localized: "\(endpoint.title) · provider-wide") : endpoint.title
     }
 
     var body: some View {
@@ -64,9 +64,9 @@ struct OpenRouterProviderSettings: View {
 
             if !routing.providerID.isEmpty {
                 SettingRow(title: "Allow other providers as fallback",
-                           subtitle: routing.allowFallbacks
-                            ? "Other hosts may cost more"
-                            : "Use raw text if this host fails") {
+                           detail: routing.allowFallbacks
+                            ? String(localized: "Other hosts may cost more")
+                            : String(localized: "Use raw text if this host fails")) {
                     Toggle("Allow other providers as fallback", isOn: $settings.llm.openRouterRouting.allowFallbacks)
                         .labelsHidden().toggleStyle(.softSwitch)
                 }
@@ -142,20 +142,20 @@ struct OpenRouterProviderSettings: View {
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3),
                       alignment: .leading, spacing: Theme.controlSpacing) {
-                metric(endpoint.throughput?.isMedian == true ? "Output speed · median" : "Output speed",
+                metric(endpoint.throughput?.isMedian == true ? String(localized: "Output speed · median") : String(localized: "Output speed"),
                        value: measurement(endpoint.throughput, unit: "tokens/s"),
-                       help: "Output tokens per second reported by OpenRouter over the last 30 minutes. This is generation speed, not total dictation time. Missing measurements are not estimates.")
-                metric(endpoint.latency?.isMedian == true ? "Latency · median" : "Latency",
+                       help: String(localized: "Output tokens per second reported by OpenRouter over the last 30 minutes. This is generation speed, not total dictation time. Missing measurements are not estimates."))
+                metric(endpoint.latency?.isMedian == true ? String(localized: "Latency · median") : String(localized: "Latency"),
                        value: measurement(endpoint.latency, unit: "s"),
-                       help: "Endpoint latency reported by OpenRouter over the last 30 minutes.")
-                metric("Uptime · 30 min", value: endpoint.uptime.map { String(format: "%.2f%%", $0) } ?? "Not reported",
-                       help: "Recent endpoint uptime reported by OpenRouter.")
-                metric("Input · USD / 1M tokens", value: price(endpoint.pricing?.prompt))
-                metric("Output · USD / 1M tokens", value: price(endpoint.pricing?.completion))
-                metric("Cached input · USD / 1M", value: price(endpoint.pricing?.cachedInput))
-                metric("Context window", value: tokens(endpoint.contextLength))
-                metric("Maximum output", value: tokens(endpoint.maxCompletionTokens))
-                metric("Precision", value: endpoint.quantization?.uppercased() ?? "Not reported")
+                       help: String(localized: "Endpoint latency reported by OpenRouter over the last 30 minutes."))
+                metric(String(localized: "Uptime · 30 min"), value: endpoint.uptime.map { String(format: "%.2f%%", $0) } ?? String(localized: "Not reported"),
+                       help: String(localized: "Recent endpoint uptime reported by OpenRouter."))
+                metric(String(localized: "Input · USD / 1M tokens"), value: price(endpoint.pricing?.prompt))
+                metric(String(localized: "Output · USD / 1M tokens"), value: price(endpoint.pricing?.completion))
+                metric(String(localized: "Cached input · USD / 1M"), value: price(endpoint.pricing?.cachedInput))
+                metric(String(localized: "Context window"), value: tokens(endpoint.contextLength))
+                metric(String(localized: "Maximum output"), value: tokens(endpoint.maxCompletionTokens))
+                metric(String(localized: "Precision"), value: endpoint.quantization?.uppercased() ?? String(localized: "Not reported"))
             }
         }
     }
@@ -172,17 +172,17 @@ struct OpenRouterProviderSettings: View {
     }
 
     private func measurement(_ value: OpenRouterEndpoint.Measurement?, unit: String) -> String {
-        guard let number = value?.value else { return "Not reported" }
+        guard let number = value?.value else { return String(localized: "Not reported") }
         return number.formatted(.number.precision(.fractionLength(0...2))) + " " + unit
     }
 
     private func price(_ value: Double?) -> String {
-        guard let value else { return "Not reported" }
+        guard let value else { return String(localized: "Not reported") }
         return (value * 1_000_000).formatted(.currency(code: "USD").precision(.fractionLength(2...4)))
     }
 
     private func tokens(_ value: Int?) -> String {
-        value.map { "\($0.formatted()) tokens" } ?? "Not reported"
+        value.map { String(localized: "\($0.formatted()) tokens") } ?? String(localized: "Not reported")
     }
 
     private func refresh() async {
@@ -204,13 +204,13 @@ struct OpenRouterProviderSettings: View {
             endpoints = result
             loadedModel = requestedModel
             refreshedAt = Date()
-            if result.isEmpty { errorMessage = "No providers are currently listed for this model. Choose another model or refresh." }
+            if result.isEmpty { errorMessage = String(localized: "No providers are currently listed for this model. Choose another model or refresh.") }
         } catch {
             guard key == taskKey, !Task.isCancelled else { return }
             if case RefinerError.http(let status, _) = error, status == 404 {
-                errorMessage = "No provider data found for this model. Check the model ID or choose a listed model."
+                errorMessage = String(localized: "No provider data found for this model. Check the model ID or choose a listed model.")
             } else {
-                errorMessage = "Could not load provider data. Refresh to try again. Your routing preference is preserved."
+                errorMessage = String(localized: "Could not load provider data. Refresh to try again. Your routing preference is preserved.")
             }
         }
     }

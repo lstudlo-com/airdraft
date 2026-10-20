@@ -4,7 +4,7 @@ import SwiftUI
 /// Lists the models an OpenAI-compatible endpoint reports so nobody has to type
 /// an id. Used by the remote speech provider rows.
 struct ModelField: View {
-    let title: String
+    let title: LocalizedStringResource
     @Binding var model: String
     let baseURL: String
     let apiKeyRef: String
@@ -17,7 +17,7 @@ struct ModelField: View {
     @State private var refreshID = UUID()
 
     var body: some View {
-        SettingRow(title: title, subtitle: status.isEmpty ? nil : status) {
+        SettingRow(title: title, detail: status.isEmpty ? nil : status) {
             HStack(spacing: 6) {
                 if models.isEmpty {
                     TextField("Model ID", text: $model).softField().frame(width: Theme.fieldWidth)
@@ -43,7 +43,7 @@ struct ModelField: View {
         models = []
         guard let url = URL(string: baseURL), url.host != nil else {
             models = []
-            status = "Enter a valid base URL."
+            status = String(localized: "Enter a valid base URL.")
             return
         }
         loading = true
@@ -56,7 +56,7 @@ struct ModelField: View {
             guard requestID == token, !Task.isCancelled else { return }
             if speechOnly { ids = ModelCatalog.speechModels(in: ids) }
             models = ids
-            status = ids.isEmpty ? "Endpoint lists no models." : "\(ids.count) models available"
+            status = ids.isEmpty ? String(localized: "Endpoint lists no models.") : String(localized: "\(ids.count) models available")
             if model.isEmpty, let first = ids.first { model = first }
         } catch {
             guard requestID == token, !Task.isCancelled else { return }

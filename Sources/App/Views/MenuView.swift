@@ -21,7 +21,7 @@ struct MenuView: View {
             Divider()
             Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else if container.media?.isBusy == true {
-            Text(MenuTitle.fit(container.media?.activity ?? "Preparing Media…"))
+            Text(MenuTitle.fit(container.media?.activity ?? String(localized: "Preparing Media…")))
             Button("Pause Media Job") { container.media?.cancel() }
             Button("History…") { show(.history) }
             Divider()
@@ -59,9 +59,9 @@ struct MenuView: View {
             .keyboardShortcut(",")
         Divider()
 
-        MicrophonePicker(title: MenuTitle.fit("Microphone: \(microphoneLabel)"), fitsMenu: true)
+        MicrophonePicker(title: MenuTitle.fit(String(localized: "Microphone: \(microphoneLabel)")), fitsMenu: true)
 
-        Picker(MenuTitle.fit("Profile: \(container.profiles.activeProfile.name)"), selection: Binding(
+        Picker(MenuTitle.fit(String(localized: "Profile: \(container.profiles.activeProfile.name)")), selection: Binding(
             get: { container.profiles.activeProfileID },
             set: { container.profiles.setActive($0) }
         )) {
@@ -71,7 +71,7 @@ struct MenuView: View {
         }
         .help("Profile: \(container.profiles.activeProfile.name). Changes apply to the next dictation.")
 
-        Menu(MenuTitle.fit("Refinement: \(refinementLabel)")) {
+        Menu(MenuTitle.fit(String(localized: "Refinement: \(refinementLabel)"))) {
             if !container.profiles.activeProfile.usesLLM {
                 Text("Off for this profile")
                 Button("Profile Settings…") { show(.profiles) }
@@ -97,9 +97,9 @@ struct MenuView: View {
         .help(llmDetail)
 
         Menu("Models") {
-            Text(MenuTitle.fit("Speech: \(speechProviderLabel) · \(speechStateLabel)"))
+            Text(MenuTitle.fit(String(localized: "Speech: \(speechProviderLabel) · \(speechStateLabel)")))
                 .help("Speech: \(container.speechConfig.engineLabel) · \(fullSpeechStateLabel)")
-            Text(MenuTitle.fit("Refinement: \(llmSummary)"))
+            Text(MenuTitle.fit(String(localized: "Refinement: \(llmSummary)")))
                 .help("Refinement: \(llmDetail)")
             Divider()
             Button("Manage Models…") { show(.models) }
@@ -129,7 +129,7 @@ struct MenuView: View {
         if container.pipeline.hasRecoverableRecording {
             Menu("Recover Last Dictation") {
                 Button("Review Last Dictation…") { show(.home) }
-                    .help(container.pipeline.lastIssue ?? "Review the saved recording.")
+                    .help(container.pipeline.lastIssue ?? String(localized: "Review the saved recording."))
                 Divider()
                 Button("Retry Transcription") { container.pipeline.retryRecording() }
                     .disabled(container.pipeline.isBusy)
@@ -143,13 +143,13 @@ struct MenuView: View {
 
     private var microphoneLabel: String {
         let preference = container.settings.microphone
-        guard preference.uid != nil else { return "Default" }
-        return container.microphones.selected(preference) == nil ? "Unavailable" : preference.name
+        guard preference.uid != nil else { return String(localized: "Default") }
+        return container.microphones.selected(preference) == nil ? String(localized: "Unavailable") : preference.name
     }
 
     private var refinementLabel: String {
-        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return "Off" }
-        return refinementUnavailable ? "Unavailable" : container.settings.llm.kind.shortTitle
+        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
+        return refinementUnavailable ? String(localized: "Unavailable") : container.settings.llm.kind.shortTitle
     }
 
     /// Current provider health is independent of an earlier dictation's issue.
@@ -170,19 +170,19 @@ struct MenuView: View {
     }
 
     private var speechStateLabel: String {
-        if container.speechConfig.kind == .apple { return "Built in" }
-        guard container.speechConfig.kind.isLocal else { return "Cloud" }
+        if container.speechConfig.kind == .apple { return String(localized: "Built in") }
+        guard container.speechConfig.kind.isLocal else { return String(localized: "Cloud") }
         switch container.engineStatus.state(for: container.speechConfig.engineID) {
-        case .notLoaded: return "Not loaded"
-        case .loading: return "Loading…"
-        case .ready: return "Loaded"
-        case .failed: return "Unavailable"
+        case .notLoaded: return String(localized: "Not loaded")
+        case .loading: return String(localized: "Loading…")
+        case .ready: return String(localized: "Loaded")
+        case .failed: return String(localized: "Unavailable")
         }
     }
 
     private var fullSpeechStateLabel: String {
-        if container.speechConfig.kind == .apple { return "Built in" }
-        guard container.speechConfig.kind.isLocal else { return "Cloud" }
+        if container.speechConfig.kind == .apple { return String(localized: "Built in") }
+        guard container.speechConfig.kind.isLocal else { return String(localized: "Cloud") }
         return container.engineStatus.state(for: container.speechConfig.engineID).label
     }
 
@@ -201,63 +201,63 @@ struct MenuView: View {
         case .senseVoice: return "SenseVoice"
         case .parakeet: return "Parakeet"
         case .orukeet: return "Orukeet"
-        case .fluidAudio: return CoreMLSpeechModelCatalog.model(container.speechConfig.model)?.creator ?? "Core ML speech"
-        case .transcribeCpp: return GGUFModelCatalog.model(container.speechConfig.model)?.creator ?? "Local speech"
+        case .fluidAudio: return CoreMLSpeechModelCatalog.model(container.speechConfig.model)?.creator ?? String(localized: "Core ML speech")
+        case .transcribeCpp: return GGUFModelCatalog.model(container.speechConfig.model)?.creator ?? String(localized: "Local speech")
         case .whisperKit: return "WhisperKit"
         case .apple: return "Apple Speech"
-        case .openAICompatible: return "Custom server"
+        case .openAICompatible: return String(localized: "Custom server")
         case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
              .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini:
-            return container.speechConfig.kind.preset?.name ?? "Cloud"
+            return container.speechConfig.kind.preset?.name ?? String(localized: "Cloud")
         }
     }
 
     private var llmStateLabel: String {
         if container.settings.llm.kind == .appleIntelligence {
-            return AppleIntelligenceRefiner.unavailableReason == nil ? "On-device" : "Unavailable"
+            return AppleIntelligenceRefiner.unavailableReason == nil ? String(localized: "On-device") : String(localized: "Unavailable")
         }
         if container.settings.llm.kind != .openAICompatible && !container.settings.llm.kind.isCLI {
-            return "Cloud"
+            return String(localized: "Cloud")
         }
         switch container.models.llmStatus.state {
-        case .unknown: return "Checking…"
-        case .remote: return "Cloud"
-        case .ready(let detail): return detail == "CLI not found" ? "CLI missing" : "Ready"
-        case .unreachable: return "Server offline"
-        case .notLoaded: return "Not loaded"
-        case .loading: return "Loading…"
-        case .loaded: return "Loaded"
-        case .failed: return "Unavailable"
+        case .unknown: return String(localized: "Checking…")
+        case .remote: return String(localized: "Cloud")
+        case .ready(let detail): return detail == "CLI not found" ? String(localized: "CLI missing") : String(localized: "Ready")
+        case .unreachable: return String(localized: "Server offline")
+        case .notLoaded: return String(localized: "Not loaded")
+        case .loading: return String(localized: "Loading…")
+        case .loaded: return String(localized: "Loaded")
+        case .failed: return String(localized: "Unavailable")
         }
     }
 
     private var llmSummary: String {
-        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return "Off" }
+        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
         return "\(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
     }
 
     private var llmDetail: String {
-        guard container.profiles.activeProfile.usesLLM else { return "Raw transcript; refinement is off for this profile." }
-        guard container.settings.llm.kind != .none else { return "Raw transcript without refinement" }
+        guard container.profiles.activeProfile.usesLLM else { return String(localized: "Raw transcript; refinement is off for this profile.") }
+        guard container.settings.llm.kind != .none else { return String(localized: "Raw transcript without refinement") }
         if container.settings.llm.kind == .appleIntelligence {
-            return AppleIntelligenceRefiner.unavailableReason ?? "Apple Intelligence · on-device"
+            return AppleIntelligenceRefiner.unavailableReason ?? String(localized: "Apple Intelligence · on-device")
         }
         return "\(container.settings.llm.engineLabel) · \(container.models.llmStatus.label)"
     }
 
     private var shortcutHelp: String {
-        let verb = container.settings.hotkeyBehavior == .hold ? "Hold" : "Press"
-        return "\(verb) \(container.settings.hotkey.displayString) to dictate."
+        let verb = container.settings.hotkeyBehavior == .hold ? String(localized: "Hold") : String(localized: "Press")
+        return String(localized: "\(verb) \(container.settings.hotkey.displayString) to dictate.")
     }
 
     private var dictationTitle: String {
         switch container.pipeline.state {
-        case .idle, .failed, .notice: return "Start Dictation"
-        case .recording: return "Stop & Transcribe"
-        case .preparingModel: return "Loading Speech Model…"
-        case .transcribing: return "Transcribing…"
-        case .refining: return "Refining…"
-        case .inserting: return "Inserting…"
+        case .idle, .failed, .notice: return String(localized: "Start Dictation")
+        case .recording: return String(localized: "Stop & Transcribe")
+        case .preparingModel: return String(localized: "Loading Speech Model…")
+        case .transcribing: return String(localized: "Transcribing…")
+        case .refining: return String(localized: "Refining…")
+        case .inserting: return String(localized: "Inserting…")
         }
     }
 }
@@ -276,6 +276,11 @@ enum MenuTitle {
         // The first sentence usually carries the whole reason.
         if let end = line.range(of: ". ") {
             let sentence = String(line[..<end.lowerBound]) + "."
+            if fits(sentence) { return sentence }
+        }
+        // Chinese sentences end with a full-width stop and no space.
+        if let end = line.firstIndex(of: "。"), line.index(after: end) < line.endIndex {
+            let sentence = String(line[...end])
             if fits(sentence) { return sentence }
         }
         let characters = Array(line)

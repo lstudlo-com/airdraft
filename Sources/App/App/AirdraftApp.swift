@@ -25,12 +25,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                app.dictionary.persistenceError != nil || app.profiles.persistenceError != nil ||
                (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()
-                alert.messageText = "Quit with unfinished work?"
+                alert.messageText = String(localized: "Quit with unfinished work?")
                 alert.informativeText = app.meeting?.isBusy == true
-                    ? "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in Meetings."
-                    : "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
-                alert.addButton(withTitle: "Keep Open")
-                alert.addButton(withTitle: app.meeting?.isBusy == true ? "Save Meeting and Quit" : "Quit and Discard")
+                    ? String(localized: "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in Meetings.")
+                    : String(localized: "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work.")
+                alert.addButton(withTitle: String(localized: "Keep Open"))
+                alert.addButton(withTitle: app.meeting?.isBusy == true ? String(localized: "Save Meeting and Quit") : String(localized: "Quit and Discard"))
                 guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
                 app.media?.cancel()
                 app.pipeline.cancel()

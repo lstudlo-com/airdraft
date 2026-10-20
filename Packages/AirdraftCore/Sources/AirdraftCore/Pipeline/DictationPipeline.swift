@@ -190,7 +190,7 @@ public final class DictationPipeline {
         self.profiles = profiles
         self.historyStore = history
         self.historyDirectory = historyDirectory
-        if history == nil && historyDirectory != nil { historyStorageError = "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." }
+        if history == nil && historyDirectory != nil { historyStorageError = String(localized: "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder.", bundle: .module) }
         self.factory = factory
         self.recorder = recorder
         self.previewBuilder = previewBuilder
@@ -223,7 +223,7 @@ public final class DictationPipeline {
                 let output = self.recordingAtStart?.output
                 self.cancel()
                 if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output) }
-                self.fail(reason.localizedDescription + (samples.isEmpty ? "" : " Captured audio is kept for retry."))
+                self.fail(reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module)))
             }
         }
     }
@@ -273,7 +273,7 @@ public final class DictationPipeline {
     public func startRecording() {
         guard !isBusy, recordingRequest == nil else { return }
         guard !hasRecoverableRecording else {
-            fail("A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.")
+            fail(String(localized: "A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.", bundle: .module))
             return
         }
         let token = UUID()
@@ -288,13 +288,13 @@ public final class DictationPipeline {
     /// App Intents use the same startup task and only report success once capture begins.
     public func startFromAutomation() async throws {
         if isRecording { return }
-        guard !isBusy else { throw RecordingPrerequisiteError("Airdraft is already starting or processing a recording.") }
-        guard !hasRecoverableRecording else { throw RecordingPrerequisiteError("Retry or discard the saved recording in Airdraft first.") }
+        guard !isBusy else { throw RecordingPrerequisiteError(String(localized: "Airdraft is already starting or processing a recording.", bundle: .module)) }
+        guard !hasRecoverableRecording else { throw RecordingPrerequisiteError(String(localized: "Retry or discard the saved recording in Airdraft first.", bundle: .module)) }
         try Task.checkCancellation()
         startRecording()
         let token = recordingRequestID
         guard let request = recordingRequest else {
-            throw RecordingPrerequisiteError(lastIssue ?? "Recording could not start.")
+            throw RecordingPrerequisiteError(lastIssue ?? String(localized: "Recording could not start.", bundle: .module))
         }
         do {
             try await OperationDeadline.run(seconds: 15) { await request.value }
@@ -302,24 +302,24 @@ public final class DictationPipeline {
         } catch {
             if recordingRequestID == token, generation == token { cancel() }
             if case RefinerError.timeout = error {
-                throw RecordingPrerequisiteError("Recording startup timed out. Open Airdraft to check the selected model and permissions.")
+                throw RecordingPrerequisiteError(String(localized: "Recording startup timed out. Open Airdraft to check the selected model and permissions.", bundle: .module))
             }
             throw error
         }
         guard generation == token else { throw CancellationError() }
-        guard isRecording else { throw RecordingPrerequisiteError(lastIssue ?? "Recording did not start.") }
+        guard isRecording else { throw RecordingPrerequisiteError(lastIssue ?? String(localized: "Recording did not start.", bundle: .module)) }
     }
 
     public func stopFromAutomation() throws {
         guard isRecording || recordingRequest != nil || !isBusy else {
-            throw RecordingPrerequisiteError("Airdraft is already processing a recording.")
+            throw RecordingPrerequisiteError(String(localized: "Airdraft is already processing a recording.", bundle: .module))
         }
         stopAndProcess()
     }
 
     public func cancelFromAutomation() throws {
         guard state != .inserting else {
-            throw RecordingPrerequisiteError("Text delivery has started and cannot be cancelled safely.")
+            throw RecordingPrerequisiteError(String(localized: "Text delivery has started and cannot be cancelled safely.", bundle: .module))
         }
         cancel()
     }
@@ -353,7 +353,7 @@ public final class DictationPipeline {
                 throw RecordingPrerequisiteError(reason)
             }
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
-                throw RecordingPrerequisiteError("Recording did not start. " + reason)
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason)
             }
             _ = try SpeechLanguagePolicy.resolve(asr)
             if let recordingPreflight {
@@ -364,7 +364,7 @@ public final class DictationPipeline {
             }
             guard isCurrent(token) else { return }
             guard recordingSnapshot() == snapshot else {
-                throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
             if asr.kind.isLocal {
                 let engine = await factory.transcriber(for: asr)
@@ -382,7 +382,7 @@ public final class DictationPipeline {
             }
             guard isCurrent(token) else { return }
             guard recordingSnapshot() == snapshot else {
-                throw RecordingPrerequisiteError("Recording did not start because setup changed. Try your shortcut again.")
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
         } catch {
             guard isCurrent(token) else { return }
@@ -393,19 +393,19 @@ public final class DictationPipeline {
         let granted = await requestMicrophoneAccess()
         guard isCurrent(token) else { return }
         guard granted else {
-            fail("Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.")
+            fail(String(localized: "Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.", bundle: .module))
             onRecordingBlocked?()
             return
         }
         guard recordingSnapshot() == snapshot else {
-            fail("Recording did not start because setup changed. Try your shortcut again.")
+            fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
             return
         }
         let insertionTarget = needsInsertion ? await inserter.captureTarget() : nil
         guard isCurrent(token) else { return }
         guard recordingSnapshot() == snapshot else {
-            fail("Recording did not start because setup changed. Try your shortcut again.")
+            fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
             return
         }
@@ -421,7 +421,7 @@ public final class DictationPipeline {
             try recorder.start(microphone: microphone)
         } catch {
             stopPreview()
-            fail("Could not start recording: \(error.localizedDescription)")
+            fail(String(localized: "Could not start recording: \(error.localizedDescription)", bundle: .module))
             onRecordingBlocked?()
             return
         }
@@ -545,7 +545,7 @@ public final class DictationPipeline {
                               context: .empty, target: nil, token: token, snapshot: snapshot, reviewOnly: true)
             } catch {
                 guard isCurrent(token) else { return }
-                fail("Recording could not be opened. " + error.localizedDescription)
+                fail(String(localized: "Recording could not be opened.", bundle: .module) + " " + error.localizedDescription)
                 if error is LicenseError { onRecordingBlocked?() }
             }
         }
@@ -567,7 +567,7 @@ public final class DictationPipeline {
             try await Task.detached { try history.pruneAudio(olderThan: cutoff) }.value
             audioStorageError = nil
             audioRevision += 1
-        } catch { audioStorageError = "Saved audio could not be removed. " + error.localizedDescription }
+        } catch { audioStorageError = String(localized: "Saved audio could not be removed.", bundle: .module) + " " + error.localizedDescription }
     }
 
     /// Build once, discover/load a managed model and start a supported CLI while
@@ -725,7 +725,7 @@ public final class DictationPipeline {
             historyStorageError = nil
             await pruneSavedAudio()
         } catch {
-            historyStorageError = "History could not be saved. Your unsaved dictations remain in memory. " + error.localizedDescription
+            historyStorageError = String(localized: "History could not be saved. Your unsaved dictations remain in memory.", bundle: .module) + " " + error.localizedDescription
         }
     }
 
@@ -835,7 +835,7 @@ public final class DictationPipeline {
         } catch {
             guard isCurrent(token) else { return }
             retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: output)
-            fail("Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.")
+            fail(String(localized: "Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.", bundle: .module))
             return
         }
         guard isCurrent(token) else { return }
@@ -937,7 +937,7 @@ public final class DictationPipeline {
             timings.processingMs = Self.elapsed(since: processingStarted)
             reviewOutcome = DictationOutcome(raw: transcript.text, refined: refined, final: final,
                 asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings)
-            lastIssue = llmError.map { "Refinement failed; the original transcript is shown. " + $0 }
+            lastIssue = llmError.map { String(localized: "Refinement failed; the original transcript is shown.", bundle: .module) + " " + $0 }
             set(.idle)
             return
         }
@@ -977,7 +977,7 @@ public final class DictationPipeline {
                     try await sendScript(final, output.scriptPath)
                     outputSucceeded = true
                 } catch {
-                    deliveryError = "Script delivery failed or was interrupted. It may already have acted; it was not retried. Your text is kept in History. " + error.localizedDescription
+                    deliveryError = String(localized: "Script delivery failed or was interrupted. It may already have acted; it was not retried. Your text is kept in History.", bundle: .module) + " " + error.localizedDescription
                     notice = deliveryError
                 }
             }
@@ -985,10 +985,10 @@ public final class DictationPipeline {
         if outputSucceeded { reportDelivery() }
         timings.deliveryMs = Self.elapsed(since: deliveryStarted)
         if llmError != nil, notice == nil {
-            let reason = llmRejected ? "Refinement didn't match your speech" : "Refinement unavailable"
+            let reason = llmRejected ? String(localized: "Refinement didn't match your speech", bundle: .module) : String(localized: "Refinement unavailable", bundle: .module)
             notice = outputSucceeded
-                ? (output.destination == .script ? "\(reason); raw text sent to script." : "\(reason); raw text inserted.")
-                : "\(reason); raw text is available in History."
+                ? (output.destination == .script ? String(localized: "\(reason); raw text sent to script.", bundle: .module) : String(localized: "\(reason); raw text inserted.", bundle: .module))
+                : String(localized: "\(reason); raw text is available in History.", bundle: .module)
         }
 
         // 5. History

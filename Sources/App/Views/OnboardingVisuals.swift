@@ -48,10 +48,14 @@ enum OnboardingKeyNames {
         return symbol == "fn" ? "🌐︎" : symbol
     }
 
-    /// "Control and Option", "Option and Space", "Right Option".
+    /// "Control and Option", "Option and Space", "Right Option". Key names stay as printed
+    /// on Mac keyboards; only the joining words are localized.
     static func spoken(_ hotkey: Hotkey) -> String {
         let names = hotkey.keyCaps.map { cap in capWord(cap).map { $0.capitalized } ?? cap }
-        return names.count > 1 ? names.dropLast().joined(separator: ", ") + " and " + names.last! : names.first ?? ""
+        guard names.count > 1, let last = names.last else { return names.first ?? "" }
+        let head = names.dropLast().joined(separator: String(localized: "KeyNameSeparator", defaultValue: ", ",
+                                                              comment: "Between key names in a list of three or more"))
+        return String(localized: "\(head) and \(last)", comment: "Key names, e.g. Control and Option")
     }
 }
 
@@ -69,7 +73,7 @@ struct OnboardingKeyCaps: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Shortcut \(OnboardingKeyNames.spoken(hotkey))")
-        .accessibilityValue(lit.isEmpty ? "Not pressed" : lit.count == hotkey.keyCaps.count ? "Pressed" : "Partly pressed")
+        .accessibilityValue(lit.isEmpty ? Text("Not pressed") : lit.count == hotkey.keyCaps.count ? Text("Pressed") : Text("Partly pressed"))
     }
 }
 
@@ -79,7 +83,7 @@ struct OnboardingWelcomeDemo: View {
     let hotkey: Hotkey
     let behavior: HotkeyBehavior
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private static let sentence = "Running late. See you at ten!"
+    private static var sentence: String { String(localized: "Running late. See you at ten!") }
     private static let cycle: Double = 7
 
     var body: some View {
@@ -101,10 +105,10 @@ struct OnboardingWelcomeDemo: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(behavior.instructionVerb) \(OnboardingKeyNames.spoken(hotkey)), speak, then \(behavior == .hold ? "let go" : "press again"). Your words appear where you were typing.")
+        .accessibilityLabel("\(behavior.instructionVerb) \(OnboardingKeyNames.spoken(hotkey)), speak, then \(behavior == .hold ? String(localized: "let go") : String(localized: "press again")). Your words appear where you were typing.")
     }
 
-    private func panel<Content: View>(_ number: Int, title: String, active: Bool,
+    private func panel<Content: View>(_ number: Int, title: LocalizedStringResource, active: Bool,
                                       @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 14) {
             content()
@@ -252,10 +256,10 @@ struct OnboardingAccessibilitySwitch: View {
 
 /// One of two large choices. Selection reads as an accent ring and check, never color fill.
 struct OnboardingChoiceCard: View {
-    let title: String
+    let title: LocalizedStringResource
     let symbol: String
-    var badge: String? = nil
-    let points: [String]
+    var badge: LocalizedStringResource? = nil
+    let points: [LocalizedStringResource]
     let selected: Bool
     let action: () -> Void
 
@@ -274,10 +278,10 @@ struct OnboardingChoiceCard: View {
                         .font(.system(size: 16))
                         .foregroundStyle(selected ? Color.accentColor : Color.secondary.opacity(0.5))
                 }
-                if let badge { PillTag(text: badge.uppercased()) }
+                if let badge { PillTag(verbatim: String(localized: badge).uppercased()) }
                 VStack(alignment: .leading, spacing: 5) {
-                    ForEach(points, id: \.self) { point in
-                        Text(point).supportingText().fixedSize(horizontal: false, vertical: true)
+                    ForEach(points.indices, id: \.self) { index in
+                        Text(points[index]).supportingText().fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

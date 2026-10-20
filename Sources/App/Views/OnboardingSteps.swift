@@ -21,7 +21,7 @@ struct OnboardingWelcomeStep: View {
         }
     }
 
-    private func fact(_ symbol: String, _ title: String, _ detail: String) -> some View {
+    private func fact(_ symbol: String, _ title: LocalizedStringResource, _ detail: LocalizedStringResource) -> some View {
         HStack(spacing: Theme.controlSpacing) {
             Image(systemName: symbol)
                 .font(.system(size: 13))
@@ -143,7 +143,7 @@ struct OnboardingSpeechStep: View {
 private extension ModelEntry {
     var downloadSize: String {
         if case .download(let size) = storage { return size }
-        return "language files"
+        return String(localized: "language files")
     }
 }
 
@@ -267,13 +267,13 @@ struct OnboardingPermissionsStep: View {
                              systemDefaultID: container.microphones.systemDefaultID)
     }
 
-    private func header<Action: View>(_ title: String, detail: String, ready: Bool,
+    private func header<Action: View>(_ title: LocalizedStringResource, detail: LocalizedStringResource, ready: Bool,
                                       @ViewBuilder action: () -> Action) -> some View {
         HStack(spacing: Theme.controlSpacing) {
             StatusDot(ok: ready)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.system(size: 13, weight: .medium))
-                Text(ready ? "Allowed" : detail).supportingText()
+                (ready ? Text("Allowed") : Text(detail)).supportingText()
             }
             Spacer()
             if !ready { action() }
@@ -281,7 +281,7 @@ struct OnboardingPermissionsStep: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func instruction(_ number: Int, _ text: String) -> some View {
+    private func instruction(_ number: Int, _ text: LocalizedStringResource) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("\(number)")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
@@ -334,11 +334,11 @@ struct OnboardingShortcutStep: View {
                 HotkeyRecorderView()
             }
             RowDivider()
-            SettingRow(title: "How it works", subtitle: behavior == .hold
-                       ? "Hold while you speak. Good for short messages."
-                       : "Press once to start and again to stop. Good for longer thoughts.") {
+            SettingRow(title: "How it works", detail: behavior == .hold
+                       ? String(localized: "Hold while you speak. Good for short messages.")
+                       : String(localized: "Press once to start and again to stop. Good for longer thoughts.")) {
                 SoftSegmentedPicker("Shortcut behavior", selection: $settings.hotkeyBehavior,
-                                    options: [(.hold, "Hold to talk"), (.toggle, "Toggle")], width: 200)
+                                    options: [(.hold, String(localized: "Hold to talk")), (.toggle, String(localized: "Toggle"))], width: 200)
             }
             RowDivider()
             SettingRow(title: "Cancel a recording", subtitle: "Throws away what you just said.") {
@@ -439,7 +439,9 @@ struct OnboardingPracticeStep: View {
         guard chosen.kind.isLocal, !LocalModels.isInstalled(chosen) else { return nil }
         return container.downloads.jobs[chosen.engineID]
     }
-    private static let sentence = "Hello! I’m trying Airdraft for the first time, and it’s writing what I say."
+    private static var sentence: String {
+        String(localized: "Hello! I’m trying Airdraft for the first time, and it’s writing what I say.")
+    }
 
     var body: some View {
         if !container.license.access.allowsUse {
@@ -630,7 +632,7 @@ struct OnboardingDoneStep: View {
         }
     }
 
-    private func tipLabel(_ symbol: String, _ title: String, _ detail: String) -> some View {
+    private func tipLabel(_ symbol: String, _ title: LocalizedStringResource, _ detail: LocalizedStringResource) -> some View {
         HStack(spacing: Theme.controlSpacing) {
             Image(systemName: symbol)
                 .font(.system(size: 13))

@@ -1,0 +1,4066 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "\"%@\" is not a valid speech language code. Choose a language on Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」不是有效的語音語言代碼。請在「模型」中選擇語言。"
+          }
+        }
+      }
+    },
+    "$0.0045 per audio minute." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每分鐘音訊 0.0045 美元。"
+          }
+        }
+      }
+    },
+    "$0.0045 per audio minute. Replaces the older GPT-4o transcription preset." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每分鐘音訊 0.0045 美元。取代舊的 GPT-4o 轉錄預設組合。"
+          }
+        }
+      }
+    },
+    "%@ Audio cleanup also failed: %@. Retry clearing saved audio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ Audio cleanup also failed: %2$@. Retry clearing saved audio."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 音訊清理也失敗：%2$@。請重試清除已儲存的音訊。"
+          }
+        }
+      }
+    },
+    "%@ does not support %@. Choose a supported language on Models or another speech model." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ does not support %2$@. Choose a supported language on Models or another speech model."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 不支援%2$@。請在「模型」中選擇支援的語言或其他語音模型。"
+          }
+        }
+      }
+    },
+    "%@ ended %@ seconds before the recording stopped." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ ended %2$@ seconds before the recording stopped."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@在錄音停止前 %2$@ 秒結束。"
+          }
+        }
+      }
+    },
+    "%@ format changed during recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音期間%@格式已變更。"
+          }
+        }
+      }
+    },
+    "%@ gap at %@ seconds (%@ seconds)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ gap at %2$@ seconds (%3$@ seconds)."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@在 %2$@ 秒處中斷（%3$@ 秒）。"
+          }
+        }
+      }
+    },
+    "%@ is unavailable on this Mac. Choose a supported locale in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 無法使用 %@。請在「模型」中選擇支援的地區語言。"
+          }
+        }
+      }
+    },
+    "%@ is unavailable. Reconnect it or choose another microphone." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」無法使用。請重新連接，或選擇其他麥克風。"
+          }
+        }
+      }
+    },
+    "%@ needs an explicit speech language. Choose a supported language on Models or select a model with Auto Detect." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要指定語音語言。請在「模型」中選擇支援的語言，或選擇具備自動偵測的模型。"
+          }
+        }
+      }
+    },
+    "%@ received" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已接收 %@"
+          }
+        }
+      }
+    },
+    "%@; raw text inserted." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已插入原始文字。"
+          }
+        }
+      }
+    },
+    "%@; raw text is available in History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；原始文字可在「記錄」中取得。"
+          }
+        }
+      }
+    },
+    "%@; raw text sent to script." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已將原始文字傳送到腳本。"
+          }
+        }
+      }
+    },
+    "%lld languages. Auto Detect or a selected language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。自動偵測或使用選取的語言。"
+          }
+        }
+      }
+    },
+    "%lld languages. Select a language; Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。請選擇語言；無法自動偵測。"
+          }
+        }
+      }
+    },
+    "1 day" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 天"
+          }
+        }
+      }
+    },
+    "10-second minimum billed per request. Inference speed does not include upload or network time." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次請求最少以 10 秒計費。推論速度不含上傳或網路時間。"
+          }
+        }
+      }
+    },
+    "10-second minimum billed per request. USD per audio hour." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次請求最少以 10 秒計費。以每小時音訊美元計價。"
+          }
+        }
+      }
+    },
+    "10.3% word error" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10.3% 字詞錯誤率"
+          }
+        }
+      }
+    },
+    "12% word error" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12% 字詞錯誤率"
+          }
+        }
+      }
+    },
+    "13 languages" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 種語言"
+          }
+        }
+      }
+    },
+    "13 languages, including Mandarin, with optional language hints." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 種語言，包含華語，可選擇提供語言提示。"
+          }
+        }
+      }
+    },
+    "13 languages, including Mandarin. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 種語言，包含華語。可自動偵測。"
+          }
+        }
+      }
+    },
+    "14 languages, including Mandarin. Select a language; Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 種語言，包含華語。請選擇語言；無法自動偵測。"
+          }
+        }
+      }
+    },
+    "18 languages" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "18 種語言"
+          }
+        }
+      }
+    },
+    "18 languages, including Mandarin. Auto Detect supports language switching." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "18 種語言，包含華語。自動偵測支援語言切換。"
+          }
+        }
+      }
+    },
+    "30 days" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 天"
+          }
+        }
+      }
+    },
+    "30 languages, including Chinese. Language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 種語言，包含中文。透過 OpenRouter 的語言提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "30 languages, including Mandarin and Cantonese. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 種語言，包含華語與粵語。可自動偵測。"
+          }
+        }
+      }
+    },
+    "60+ languages, including Chinese and English in the same sentence." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 多種語言，同一句中英夾雜也沒問題。"
+          }
+        }
+      }
+    },
+    "7 days" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 天"
+          }
+        }
+      }
+    },
+    "8 languages. Mandarin and Cantonese are unsupported." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 種語言。不支援華語與粵語。"
+          }
+        }
+      }
+    },
+    "90+ languages" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 多種語言"
+          }
+        }
+      }
+    },
+    "A hosted GPT-Transcribe option for comparing recognition on your own audio." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "託管的 GPT-Transcribe 選項，可用你自己的音訊比較辨識效果。"
+          }
+        }
+      }
+    },
+    "A hosted Whisper Large v3 Turbo option for comparing recognition on your own audio." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "託管的 Whisper Large v3 Turbo 選項，可用你自己的音訊比較辨識效果。"
+          }
+        }
+      }
+    },
+    "A recording is waiting for retry. Open Airdraft to retry or discard it before recording again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有一段錄音正在等待重試。請先打開 Airdraft 重試或捨棄它，再重新錄音。"
+          }
+        }
+      }
+    },
+    "API key removed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除 API 金鑰。"
+          }
+        }
+      }
+    },
+    "API key saved." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存 API 金鑰。"
+          }
+        }
+      }
+    },
+    "Accessibility is off, text copied" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輔助使用已關閉，已拷貝文字"
+          }
+        }
+      }
+    },
+    "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用可能已保留一個裝置名額。請打開客戶入口網站，移除該待處理裝置後再試一次。"
+          }
+        }
+      }
+    },
+    "Activation was refused. Check the license and available device slots in the customer portal." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用遭拒。請在客戶入口網站檢查授權與可用的裝置名額。"
+          }
+        }
+      }
+    },
+    "Add a refinement API key in Models, or turn refinement Off." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中加入潤稿 API 金鑰，或關閉潤稿。"
+          }
+        }
+      }
+    },
+    "Add a speech API key in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中加入語音 API 金鑰。"
+          }
+        }
+      }
+    },
+    "Add your %@ API key on the Models page." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」頁面加入你的 %@ API 金鑰。"
+          }
+        }
+      }
+    },
+    "Airdraft is already processing a recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 已在處理一段錄音。"
+          }
+        }
+      }
+    },
+    "Airdraft is already starting or processing a recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 已在開始或處理一段錄音。"
+          }
+        }
+      }
+    },
+    "Allow Accessibility access in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中允許輔助使用權限。"
+          }
+        }
+      }
+    },
+    "Allow Microphone and Screen & System Audio Recording in System Settings, then try again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「系統設定」中允許「麥克風」與「螢幕與系統音訊錄製」，然後再試一次。"
+          }
+        }
+      }
+    },
+    "Allow microphone access in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中允許取用麥克風。"
+          }
+        }
+      }
+    },
+    "Already recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在錄音中。"
+          }
+        }
+      }
+    },
+    "An alternative recognition model to compare against Nova-3 for your recordings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用你的錄音與 Nova-3 比較的另一個辨識模型。"
+          }
+        }
+      }
+    },
+    "Anthropic API key is missing. Add it under Models ▸ Refinement." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少 Anthropic API 金鑰。請在「模型」▸「潤稿」中加入。"
+          }
+        }
+      }
+    },
+    "App audio" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 音訊"
+          }
+        }
+      }
+    },
+    "Apple Intelligence preparing · check System Settings" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 準備中 · 請檢查「系統設定」"
+          }
+        }
+      }
+    },
+    "Apple Intelligence requires macOS 26 or later." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 需要 macOS 26 或以上版本。"
+          }
+        }
+      }
+    },
+    "Apple Speech does not support this preview language. Choose another language in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 語音不支援此預覽語言。請在「設定」中選擇其他語言。"
+          }
+        }
+      }
+    },
+    "Apple Speech has no available audio format. Reload its language in Models and retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 語音沒有可用的音訊格式。請在「模型」中重新載入其語言後重試。"
+          }
+        }
+      }
+    },
+    "Apple Speech live preview is unavailable on this Mac. Turn off Live Preview in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 無法使用 Apple 語音即時預覽。請在「設定」中關閉即時預覽。"
+          }
+        }
+      }
+    },
+    "Apple speech recognition needs macOS 26 or newer." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 語音辨識需要 macOS 26 或以上版本。"
+          }
+        }
+      }
+    },
+    "Asynchronous processing adds job scheduling and polling." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非同步處理會增加工作排程與輪詢時間。"
+          }
+        }
+      }
+    },
+    "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊擷取跟不上。錄音已停止；已儲存的音訊可從「會議」中復原。"
+          }
+        }
+      }
+    },
+    "Audio is sent to xAI. Check current model pricing and account limits before use." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊會傳送到 xAI。使用前請確認目前的模型定價與帳號限制。"
+          }
+        }
+      }
+    },
+    "Auto" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動"
+          }
+        }
+      }
+    },
+    "Auto Detect available. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可自動偵測。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Auto Detect chooses one predominant language and works best with 60 seconds of speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測會選擇一種主要語言，有 60 秒語音時效果最佳。"
+          }
+        }
+      }
+    },
+    "Auto Detect has its own language coverage; select a language if needed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測有自己的語言範圍；必要時請選擇語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect or a selected language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測或使用選取的語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect selects one dominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測會選擇一種主要語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect supports language switching. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測支援語言切換。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Auto Detect supports mixed languages. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測支援多語混合。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Automatic language detection and native keyterm hints." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測語言，並支援原生關鍵詞提示。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes %lld European languages; no Chinese support." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 %lld 種歐洲語言；不支援中文。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes %lld supported languages; selection has no effect." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 %lld 種支援的語言；選擇語言不會有作用。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes 10 languages, excluding Chinese; selection has no effect." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 10 種語言，不含中文；選擇語言不會有作用。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 25 種歐洲語言。選擇語言不會有作用；不支援中文。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes 25 European languages; no Chinese support." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 25 種歐洲語言；不支援中文。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes Mandarin and English; selection does not limit recognition." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識華語與英文；選擇語言不會限制辨識。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes speech; language selection has no effect." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識語音；選擇語言不會有作用。"
+          }
+        }
+      }
+    },
+    "Base API rate. Paid keyterm prompting and audio-event tags are off; your dictionary still applies after refinement." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本 API 費率。付費的關鍵詞提示與音訊事件標籤已關閉；你的詞彙在潤稿後仍會套用。"
+          }
+        }
+      }
+    },
+    "Batch preview" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批次預覽版"
+          }
+        }
+      }
+    },
+    "Batch preview language coverage is unverified. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批次預覽版的語言範圍尚未驗證。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Batch recognition with dictionary terms. Auto Detect selects the predominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用詞彙進行批次辨識。自動偵測會選擇主要語言。"
+          }
+        }
+      }
+    },
+    "Broad language coverage" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言範圍廣泛"
+          }
+        }
+      }
+    },
+    "Broad language coverage; select a speech language before recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言範圍廣泛；錄音前請先選擇語音語言。"
+          }
+        }
+      }
+    },
+    "Broad language support" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援多種語言"
+          }
+        }
+      }
+    },
+    "CLI not found" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到 CLI"
+          }
+        }
+      }
+    },
+    "Cantonese" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粵語"
+          }
+        }
+      }
+    },
+    "Captured audio is kept for retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已錄製的音訊會保留以供重試。"
+          }
+        }
+      }
+    },
+    "Carved Wave" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "雕刻波形"
+          }
+        }
+      }
+    },
+    "Changes are not saved. Keep Airdraft open and retry after checking storage." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更尚未儲存。請保持 Airdraft 開啟，檢查儲存空間後重試。"
+          }
+        }
+      }
+    },
+    "Changes could not be saved:" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存變更："
+          }
+        }
+      }
+    },
+    "Check the refinement endpoint in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中檢查潤稿端點。"
+          }
+        }
+      }
+    },
+    "Check the speech endpoint in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中檢查語音端點。"
+          }
+        }
+      }
+    },
+    "Checking…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在檢查⋯"
+          }
+        }
+      }
+    },
+    "Choose Mandarin Chinese or Cantonese explicitly on Models instead of zh-HK." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中明確選擇華語或粵語，而非 zh-HK。"
+          }
+        }
+      }
+    },
+    "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇 Airdraft 受管理資料夾以外的資料夾，讓輸出的副本在 App 清理後仍能保留。"
+          }
+        }
+      }
+    },
+    "Choose a regular executable file." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇一般的可執行檔案。"
+          }
+        }
+      }
+    },
+    "Choose a speech model in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中選擇語音模型。"
+          }
+        }
+      }
+    },
+    "Classic" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "經典"
+          }
+        }
+      }
+    },
+    "Clinical vocabulary" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "臨床詞彙"
+          }
+        }
+      }
+    },
+    "Clipboard changed before paste. Your text is available in History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上前剪貼板已變更。你的文字可在「記錄」中取得。"
+          }
+        }
+      }
+    },
+    "Cloud" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "雲端"
+          }
+        }
+      }
+    },
+    "Completed" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已完成"
+          }
+        }
+      }
+    },
+    "Compressed Core ML weights." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壓縮的 Core ML 權重。"
+          }
+        }
+      }
+    },
+    "Connected. API key accepted." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已連線。API 金鑰已接受。"
+          }
+        }
+      }
+    },
+    "Connected. The selected model is listed for this key." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已連線。所選模型列在此金鑰的可用清單中。"
+          }
+        }
+      }
+    },
+    "Connection testing is unavailable for this provider." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此供應商無法進行連線測試。"
+          }
+        }
+      }
+    },
+    "Copied to clipboard" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷貝到剪貼板"
+          }
+        }
+      }
+    },
+    "Core ML speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core ML 語音模型"
+          }
+        }
+      }
+    },
+    "Could not access Keychain (%d). Your saved key has not been removed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法存取鑰匙圈（%d）。你已儲存的金鑰並未移除。"
+          }
+        }
+      }
+    },
+    "Could not communicate with the executable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法與執行檔通訊。"
+          }
+        }
+      }
+    },
+    "Could not list model files (HTTP %lld)." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法列出模型檔案（HTTP %lld）。"
+          }
+        }
+      }
+    },
+    "Could not reach the provider. Check your internet connection and try again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線到供應商。請檢查網路連線後再試一次。"
+          }
+        }
+      }
+    },
+    "Could not run the executable: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法執行執行檔：%@"
+          }
+        }
+      }
+    },
+    "Could not save the API key. The existing key was not replaced." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存 API 金鑰。現有的金鑰未被取代。"
+          }
+        }
+      }
+    },
+    "Could not save the license in Keychain. Access has not been changed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法將授權儲存到鑰匙圈。存取權未變更。"
+          }
+        }
+      }
+    },
+    "Could not start recording: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法開始錄音：%@"
+          }
+        }
+      }
+    },
+    "Couldn't copy or paste. Your text is available in History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法拷貝或貼上。你的文字可在「記錄」中取得。"
+          }
+        }
+      }
+    },
+    "Couldn't copy. Your text is available in History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法拷貝。你的文字可在「記錄」中取得。"
+          }
+        }
+      }
+    },
+    "Couldn't identify the destination app. Text copied; paste it where you want." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法辨識目標 App。已拷貝文字；請貼到你想要的位置。"
+          }
+        }
+      }
+    },
+    "Couldn't paste, text copied" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法貼上，已拷貝文字"
+          }
+        }
+      }
+    },
+    "Cube" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立方"
+          }
+        }
+      }
+    },
+    "Custom" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂"
+          }
+        }
+      }
+    },
+    "Custom server" : {
+      "comment" : "Used by concurrent AD-059/060/061 work; kept until that code lands.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom server"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂伺服器"
+          }
+        }
+      }
+    },
+    "Custom vocabulary" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂詞彙"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色"
+          }
+        }
+      }
+    },
+    "Deactivate this Mac before replacing its license key." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更換授權碼前，請先停用這台 Mac。"
+          }
+        }
+      }
+    },
+    "Dedicated transcription in verbatim mode, with automatic language detection." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以逐字模式專門轉錄，並自動偵測語言。"
+          }
+        }
+      }
+    },
+    "Deepgram states its non-Whisper models return results faster than its Whisper models. No comparable latency is published." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deepgram 表示其非 Whisper 模型回傳結果比 Whisper 模型更快。未公布可比較的延遲。"
+          }
+        }
+      }
+    },
+    "Default model" : {
+      "comment" : "Used by concurrent AD-059/060/061 work; kept until that code lands.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default model"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設模型"
+          }
+        }
+      }
+    },
+    "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除所有聽寫與會議音訊，包括中斷的錄音。已儲存的文字、設定與模型會保留。"
+          }
+        }
+      }
+    },
+    "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除所有聽寫記錄、會議逐字稿、錄音與中斷的會議。設定與模型會保留。"
+          }
+        }
+      }
+    },
+    "Deletes app data, settings, profiles, vocabulary, provider keys and downloaded models. Resets this app’s permissions. Quit when finished to restart setup. License and trial records stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除 App 資料、設定、模式、詞彙、供應商金鑰與已下載的模型，並重置此 App 的權限。完成後請結束 App 以重新設定。授權與試用記錄會保留。"
+          }
+        }
+      }
+    },
+    "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除聽寫記錄與所有會議逐字稿。錄音、設定與模型會保留。"
+          }
+        }
+      }
+    },
+    "Designed for noisy and far-field speech. Auto-detects one language; supports Mandarin." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "專為吵雜與遠距語音設計。會自動偵測一種語言；支援華語。"
+          }
+        }
+      }
+    },
+    "Destination changed. Text copied." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標已變更。已拷貝文字。"
+          }
+        }
+      }
+    },
+    "Destination changed. Text copied; paste it where you want." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標已變更。已拷貝文字；請貼到你想要的位置。"
+          }
+        }
+      }
+    },
+    "Download cancelled. Retry to resume." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消下載。重試即可繼續。"
+          }
+        }
+      }
+    },
+    "Download of %@ failed (HTTP %lld)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download of %1$@ failed (HTTP %2$lld)."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載「%1$@」失敗（HTTP %2$lld）。"
+          }
+        }
+      }
+    },
+    "Download the speaker model before identifying speakers." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識講者前，請先下載講者模型。"
+          }
+        }
+      }
+    },
+    "Downloading weights…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下載權重⋯"
+          }
+        }
+      }
+    },
+    "English-only distilled Whisper weights." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅限英文的蒸餾 Whisper 權重。"
+          }
+        }
+      }
+    },
+    "Enhanced recognition. Auto Detect chooses one predominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強化辨識。自動偵測會選擇一種主要語言。"
+          }
+        }
+      }
+    },
+    "Enter an API key before testing." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "測試前請先輸入 API 金鑰。"
+          }
+        }
+      }
+    },
+    "Extra high" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超高"
+          }
+        }
+      }
+    },
+    "Failed: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失敗：%@"
+          }
+        }
+      }
+    },
+    "Fast inference for short dictation; trades some accuracy for speed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "短聽寫推論快速；以部分準確度換取速度。"
+          }
+        }
+      }
+    },
+    "File recognition with an explicit language. Streaming-only models are separate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以指定語言進行檔案辨識。僅限串流的模型另外提供。"
+          }
+        }
+      }
+    },
+    "Finish the current recording or media job first." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先完成目前的錄音或媒體工作。"
+          }
+        }
+      }
+    },
+    "Finish the interrupted cleanup before starting another one." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先完成中斷的清理作業，再開始另一個。"
+          }
+        }
+      }
+    },
+    "Full-size multilingual model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整大小的多語模型。"
+          }
+        }
+      }
+    },
+    "GGUF speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GGUF 語音模型"
+          }
+        }
+      }
+    },
+    "Gemini API key is missing. Add it under Models ▸ Refinement." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少 Gemini API 金鑰。請在「模型」▸「潤稿」中加入。"
+          }
+        }
+      }
+    },
+    "General speech" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般語音"
+          }
+        }
+      }
+    },
+    "General speech recognition across varied languages and accents." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "適用於多種語言與口音的一般語音辨識。"
+          }
+        }
+      }
+    },
+    "Groq's benchmark. Faster and cheaper than Large v3, with a higher error rate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 的基準測試。比 Large v3 更快更便宜，但錯誤率較高。"
+          }
+        }
+      }
+    },
+    "Groq's benchmark. Lower error rate than Turbo; costs more per hour." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 的基準測試。錯誤率比 Turbo 低；每小時費用較高。"
+          }
+        }
+      }
+    },
+    "Groq's published inference benchmark; excludes upload and network time. Results vary with audio." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 公布的推論基準測試；不含上傳與網路時間。結果會因音訊而異。"
+          }
+        }
+      }
+    },
+    "High" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        }
+      }
+    },
+    "High accuracy" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高準確度"
+          }
+        }
+      }
+    },
+    "History could not be saved. Your unsaved dictations remain in memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存記錄。未儲存的聽寫仍保留在記憶體中。"
+          }
+        }
+      }
+    },
+    "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用記錄。聽寫會保留在記憶體中直到儲存。請重新儲存或檢查資料夾。"
+          }
+        }
+      }
+    },
+    "History storage is unavailable. Check available disk space and reopen Airdraft." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用記錄儲存空間。請檢查可用磁碟空間並重新打開 Airdraft。"
+          }
+        }
+      }
+    },
+    "Hold" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住"
+          }
+        }
+      }
+    },
+    "Identifying Speakers" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在辨識講者"
+          }
+        }
+      }
+    },
+    "Identifying speakers" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在辨識講者"
+          }
+        }
+      }
+    },
+    "Improved recognition over original Whisper; accepts dictionary context as a text prompt." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識效果優於原始 Whisper；可接受詞彙情境作為文字提示。"
+          }
+        }
+      }
+    },
+    "Includes Mandarin and English code-switching; uses dictionary keyterms." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援華語與英文夾雜；使用詞彙中的關鍵詞。"
+          }
+        }
+      }
+    },
+    "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ink-Whisper 是檔案模型。這裡無法使用自動偵測與串流 Ink-2。"
+          }
+        }
+      }
+    },
+    "Input %lld is unavailable on this microphone. Choose an input channel in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此麥克風無法使用輸入 %lld。請在「設定」中選擇輸入聲道。"
+          }
+        }
+      }
+    },
+    "Input channel unavailable. Choose one in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入聲道無法使用。請在「設定」中選擇一個。"
+          }
+        }
+      }
+    },
+    "Insert at cursor" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在游標處插入"
+          }
+        }
+      }
+    },
+    "Install Apple Speech for %@ from Models, then start another recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請從「模型」安裝 %@ 的 Apple 語音，然後開始新的錄音。"
+          }
+        }
+      }
+    },
+    "Install the speech model in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中安裝語音模型。"
+          }
+        }
+      }
+    },
+    "Installing language…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在安裝語言⋯"
+          }
+        }
+      }
+    },
+    "Job deletion is attempted after use. Uploads without a job follow provider retention." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用後會嘗試刪除工作。沒有工作的上傳檔案依供應商的保留政策處理。"
+          }
+        }
+      }
+    },
+    "Keyword hints from your dictionary and mixed-language recognition." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用詞彙提供關鍵字提示，並支援多語混合辨識。"
+          }
+        }
+      }
+    },
+    "LM Studio (local)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LM Studio（本機）"
+          }
+        }
+      }
+    },
+    "Language assets are not installed. Open Models and load Apple Speech before retrying." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言資源尚未安裝。請打開「模型」並載入 Apple 語音後再重試。"
+          }
+        }
+      }
+    },
+    "Language coverage unverified. Select an explicit language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言範圍尚未驗證。請指定語言。"
+          }
+        }
+      }
+    },
+    "Language installed" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言已安裝"
+          }
+        }
+      }
+    },
+    "Language support is unverified for this model and endpoint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型與端點的語言支援尚未驗證。"
+          }
+        }
+      }
+    },
+    "Left" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左側"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "淺色"
+          }
+        }
+      }
+    },
+    "Live preview audio conversion failed. Start another recording to retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽的音訊轉換失敗。請開始新的錄音以重試。"
+          }
+        }
+      }
+    },
+    "Live preview could not allocate an audio buffer. Start another recording to retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽無法配置音訊緩衝區。請開始新的錄音以重試。"
+          }
+        }
+      }
+    },
+    "Live preview could not convert audio. Reload Apple Speech in Models and retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽無法轉換音訊。請在「模型」中重新載入 Apple 語音後重試。"
+          }
+        }
+      }
+    },
+    "Live preview could not keep up. Start another recording to retry, or turn off Live Preview. Final transcription is unaffected." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽跟不上。請開始新的錄音以重試，或關閉即時預覽。最終轉錄不受影響。"
+          }
+        }
+      }
+    },
+    "Live preview could not prepare audio. Start another recording to retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽無法準備音訊。請開始新的錄音以重試。"
+          }
+        }
+      }
+    },
+    "Live preview received invalid audio. Check the selected microphone and start another recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽收到無效的音訊。請檢查所選麥克風並開始新的錄音。"
+          }
+        }
+      }
+    },
+    "Live preview requires macOS 26 or later." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽需要 macOS 26 或以上版本。"
+          }
+        }
+      }
+    },
+    "Live preview stopped. Start another recording to retry; final transcription is still available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽已停止。請開始新的錄音以重試；最終轉錄仍可使用。"
+          }
+        }
+      }
+    },
+    "Live preview stopped: %@ Start another recording to retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽已停止：%@ 請開始新的錄音以重試。"
+          }
+        }
+      }
+    },
+    "Loaded" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已載入"
+          }
+        }
+      }
+    },
+    "Loading…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入⋯"
+          }
+        }
+      }
+    },
+    "Local" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本機"
+          }
+        }
+      }
+    },
+    "Local / self-hosted" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本機／自行架設"
+          }
+        }
+      }
+    },
+    "Local speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本機語音模型"
+          }
+        }
+      }
+    },
+    "Low" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
+          }
+        }
+      }
+    },
+    "Mandarin Chinese" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中文（華語）"
+          }
+        }
+      }
+    },
+    "Mandarin, Cantonese, English, Japanese and Korean. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "華語、粵語、英文、日文與韓文。可自動偵測。"
+          }
+        }
+      }
+    },
+    "Max" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最高"
+          }
+        }
+      }
+    },
+    "Media files can be up to two hours long. Split this recording before importing it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體檔案最長兩小時。請先分割此錄音再輸入。"
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中"
+          }
+        }
+      }
+    },
+    "Microphone" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風"
+          }
+        }
+      }
+    },
+    "Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風取用權限遭拒。請在「系統設定」>「隱私權與安全性」>「麥克風」中啟用。"
+          }
+        }
+      }
+    },
+    "Microphone access was denied." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風取用權限遭拒。"
+          }
+        }
+      }
+    },
+    "Microphone unavailable. Choose an input in Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風無法使用。請在「設定」中選擇輸入裝置。"
+          }
+        }
+      }
+    },
+    "Minimal" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低"
+          }
+        }
+      }
+    },
+    "Mixed languages" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多語混合"
+          }
+        }
+      }
+    },
+    "Models have different billing units. Check the selected model's OpenRouter page before use." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各模型的計費單位不同。使用前請查看所選模型的 OpenRouter 頁面。"
+          }
+        }
+      }
+    },
+    "Multilingual Whisper. Language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多語 Whisper。透過 OpenRouter 的語言提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "Multilingual transcription. Exact language coverage and hints are unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多語轉錄。確切的語言範圍與提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "Native transcription with automatic language detection and dictionary hints." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原生轉錄，支援自動語言偵測與詞彙提示。"
+          }
+        }
+      }
+    },
+    "Needs attention" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要處理"
+          }
+        }
+      }
+    },
+    "Night Wave" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜間波形"
+          }
+        }
+      }
+    },
+    "No app audio was received." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到 App 音訊。"
+          }
+        }
+      }
+    },
+    "No audio buffers were received. Check the selected app, microphone and permissions." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到任何音訊緩衝區。請檢查所選的 App、麥克風與權限。"
+          }
+        }
+      }
+    },
+    "No audio was captured." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未錄到任何音訊。"
+          }
+        }
+      }
+    },
+    "No comparable file-transcription latency is published. Upload and network time affect your wait." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未公布可比較的檔案轉錄延遲。上傳與網路時間會影響等待時間。"
+          }
+        }
+      }
+    },
+    "No comparable transcription accuracy is published for this model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型未公布可比較的轉錄準確度。"
+          }
+        }
+      }
+    },
+    "No display is available for meeting audio capture. Connect a display and try again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用於擷取會議音訊的顯示器。請連接顯示器後再試一次。"
+          }
+        }
+      }
+    },
+    "No microphone audio was received." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到麥克風音訊。"
+          }
+        }
+      }
+    },
+    "No speech regions were identified. Choose Without Speakers to transcribe the full recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未辨識到語音片段。請選擇「不辨識講者」以轉錄整段錄音。"
+          }
+        }
+      }
+    },
+    "Noisy audio" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "吵雜音訊"
+          }
+        }
+      }
+    },
+    "None" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無"
+          }
+        }
+      }
+    },
+    "Not loaded" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未載入"
+          }
+        }
+      }
+    },
+    "Not published" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未公布"
+          }
+        }
+      }
+    },
+    "Not rated" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未評分"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        }
+      }
+    },
+    "Ollama (local)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ollama（本機）"
+          }
+        }
+      }
+    },
+    "Open License to start your trial or activate a purchased key. Your history remains available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開「授權」以開始試用或啟用已購買的授權碼。你的記錄仍可使用。"
+          }
+        }
+      }
+    },
+    "OpenAI reports improved word error rate and language recognition over original Whisper models, at a lower price than GPT-4o Transcribe." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI 表示其字詞錯誤率與語言辨識優於原始 Whisper 模型，價格也比 GPT-4o Transcribe 低。"
+          }
+        }
+      }
+    },
+    "OpenRouter lists this model's current price on its model page. Check the billing unit before use." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 在模型頁面列出此模型目前的價格。使用前請確認計費單位。"
+          }
+        }
+      }
+    },
+    "OpenRouter models may bill per audio second or by token. Check this model's current rate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 模型可能按音訊秒數或 token 計費。請確認此模型目前的費率。"
+          }
+        }
+      }
+    },
+    "Orbit" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "軌道"
+          }
+        }
+      }
+    },
+    "Part %lld" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 部分"
+          }
+        }
+      }
+    },
+    "Paste couldn't be confirmed. Clipboard changed; recover your text from History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法確認是否已貼上。剪貼板已變更；請從「記錄」中找回你的文字。"
+          }
+        }
+      }
+    },
+    "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法確認是否已貼上。文字保留在剪貼板中；再次貼上前請先檢查目標位置。"
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停"
+          }
+        }
+      }
+    },
+    "Paused. Resume to continue from the last saved stage." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停。繼續即可從上次儲存的階段接續。"
+          }
+        }
+      }
+    },
+    "Polar could not be reached. Your saved license has been kept. Try again when connected." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線到 Polar。已保留你儲存的授權。連線後請再試一次。"
+          }
+        }
+      }
+    },
+    "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預錄單語費率。自動偵測會選擇一種語言；語言夾雜請使用 Soniox。付費的關鍵詞提示已關閉。"
+          }
+        }
+      }
+    },
+    "Pre-recorded pay-as-you-go: $0.0043 per minute. Optional add-ons are off." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預錄隨用隨付：每分鐘 0.0043 美元。選用附加功能已關閉。"
+          }
+        }
+      }
+    },
+    "Pre-recorded pay-as-you-go: $0.0048 per minute. Deepgram hosts Whisper Large v2." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預錄隨用隨付：每分鐘 0.0048 美元。由 Deepgram 託管 Whisper Large v2。"
+          }
+        }
+      }
+    },
+    "Pre-recorded pay-as-you-go: $0.0052 per minute. This is Nova-3 with multilingual mode enabled." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預錄隨用隨付：每分鐘 0.0052 美元。這是啟用多語模式的 Nova-3。"
+          }
+        }
+      }
+    },
+    "Pre-recorded preview. Language coverage and accuracy have not been verified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預錄預覽版。語言範圍與準確度尚未驗證。"
+          }
+        }
+      }
+    },
+    "Preparing Media" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備媒體"
+          }
+        }
+      }
+    },
+    "Preparing download…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備下載⋯"
+          }
+        }
+      }
+    },
+    "Preparing model…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備模型⋯"
+          }
+        }
+      }
+    },
+    "Preserves fillers and repetitions; supports native custom vocabulary. Refinement remains independent." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留贅字與重複；支援原生自訂詞彙。潤稿仍獨立進行。"
+          }
+        }
+      }
+    },
+    "Press" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下"
+          }
+        }
+      }
+    },
+    "Published base API rate. Paid keyterm and entity-detection add-ons are off." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公布的基本 API 費率。付費的關鍵詞與實體偵測附加功能已關閉。"
+          }
+        }
+      }
+    },
+    "Pure Wave" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "純淨波形"
+          }
+        }
+      }
+    },
+    "Quality-focused transcription across 90+ languages and varied accents." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注重品質的轉錄，支援 90 多種語言與各種口音。"
+          }
+        }
+      }
+    },
+    "Quit other Airdraft or Transcribar copies that share this data folder, then retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請結束共用此資料夾的其他 Airdraft 或 Transcribar 副本，然後重試。"
+          }
+        }
+      }
+    },
+    "Qwen3-ASR does not support %@. Choose a supported language in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen3-ASR 不支援%@。請在「模型」中選擇支援的語言。"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就緒"
+          }
+        }
+      }
+    },
+    "Ready to transcribe" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可以轉錄"
+          }
+        }
+      }
+    },
+    "Recognizes %@ only." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅辨識%@。"
+          }
+        }
+      }
+    },
+    "Recognizes language switches within speech, including Chinese and English." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可辨識語音中的語言切換，包含中文與英文。"
+          }
+        }
+      }
+    },
+    "Recognizes mixed languages automatically. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識多語混合。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Recording could not be opened." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法打開錄音。"
+          }
+        }
+      }
+    },
+    "Recording could not start." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法開始錄音。"
+          }
+        }
+      }
+    },
+    "Recording did not start because setup changed. Try your shortcut again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因設定已變更，錄音未開始。請再按一次快速鍵。"
+          }
+        }
+      }
+    },
+    "Recording did not start." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音未開始。"
+          }
+        }
+      }
+    },
+    "Recording startup timed out. Open Airdraft to check the selected model and permissions." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音啟動逾時。請打開 Airdraft 檢查所選模型與權限。"
+          }
+        }
+      }
+    },
+    "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因磁碟空間不足，錄音已停止。請釋放空間，然後從「會議」中復原已儲存的音訊。"
+          }
+        }
+      }
+    },
+    "Recovered after recording was interrupted; the final audio may be incomplete." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音中斷後已復原；最後的音訊可能不完整。"
+          }
+        }
+      }
+    },
+    "Refinement changed the language of the transcript." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿改變了逐字稿的語言。"
+          }
+        }
+      }
+    },
+    "Refinement didn't match your speech" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿結果與你說的內容不符"
+          }
+        }
+      }
+    },
+    "Refinement failed; the original transcript is shown." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿失敗；已顯示原始逐字稿。"
+          }
+        }
+      }
+    },
+    "Refinement key locked. Use Allow Access in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿金鑰已鎖定。請在「模型」中使用「允許存取」。"
+          }
+        }
+      }
+    },
+    "Refinement provider returned HTTP %lld%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refinement provider returned HTTP %1$lld%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿供應商回傳 HTTP %1$lld%2$@"
+          }
+        }
+      }
+    },
+    "Refinement repeated an earlier dictation instead of this one." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿重複了先前的聽寫，而不是這一次的內容。"
+          }
+        }
+      }
+    },
+    "Refinement timed out." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿逾時。"
+          }
+        }
+      }
+    },
+    "Refinement unavailable" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法潤稿"
+          }
+        }
+      }
+    },
+    "Refused to download %@: it points outside the models folder." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拒絕下載「%@」：它指向模型資料夾以外的位置。"
+          }
+        }
+      }
+    },
+    "Removal could not be confirmed. Update a rotated key, or remove this device in the customer portal before forgetting it here." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法確認是否已移除。請更新已更換的授權碼，或先在客戶入口網站移除此裝置，再於此處忘記它。"
+          }
+        }
+      }
+    },
+    "Remove Audio Files" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除音訊檔案"
+          }
+        }
+      }
+    },
+    "Remove History" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除記錄"
+          }
+        }
+      }
+    },
+    "Remove History and Audio Files" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除記錄與音訊檔案"
+          }
+        }
+      }
+    },
+    "Requested %@, but AssemblyAI used %@. Choose another model or retry." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Requested %1$@, but AssemblyAI used %2$@. Choose another model or retry."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要求使用 %1$@，但 AssemblyAI 使用了 %2$@。請選擇其他模型或重試。"
+          }
+        }
+      }
+    },
+    "Reset App" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置 App"
+          }
+        }
+      }
+    },
+    "Retry or discard the saved recording in Airdraft first." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先在 Airdraft 中重試或捨棄已儲存的錄音。"
+          }
+        }
+      }
+    },
+    "Right" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右側"
+          }
+        }
+      }
+    },
+    "Runs on the Neural Engine." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在神經網路引擎上執行。"
+          }
+        }
+      }
+    },
+    "Saved audio could not be removed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法移除已儲存的音訊。"
+          }
+        }
+      }
+    },
+    "Script delivery failed or was interrupted. It may already have acted; it was not retried. Your text is kept in History." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "腳本傳送失敗或中斷。腳本可能已經執行；不會重試。你的文字保留在「記錄」中。"
+          }
+        }
+      }
+    },
+    "Script delivery failed: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "腳本傳送失敗：%@"
+          }
+        }
+      }
+    },
+    "Script delivery timed out. The script may have already acted on the text; it was not retried." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "腳本傳送逾時。腳本可能已處理文字；不會重試。"
+          }
+        }
+      }
+    },
+    "Script exited with status %d." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "腳本以狀態 %d 結束。"
+          }
+        }
+      }
+    },
+    "See pricing" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看定價"
+          }
+        }
+      }
+    },
+    "Select a speech language. Auto Detect is unavailable for the file endpoint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇語音語言。檔案端點無法自動偵測。"
+          }
+        }
+      }
+    },
+    "Send to script" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送到腳本"
+          }
+        }
+      }
+    },
+    "Server not running" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器未執行"
+          }
+        }
+      }
+    },
+    "Set up the refinement CLI in Models, or turn it Off." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中設定潤稿 CLI，或將其關閉。"
+          }
+        }
+      }
+    },
+    "Silk" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絲帶"
+          }
+        }
+      }
+    },
+    "Smart punctuation, dates and numbers. Auto-detects the dominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智慧標點、日期與數字。自動偵測主要語言。"
+          }
+        }
+      }
+    },
+    "Some provider keys could not be removed (Keychain status %d). Completed removals stay removed; unlock Keychain and retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分供應商金鑰無法移除（鑰匙圈狀態 %d）。已完成的移除不會還原；請解鎖鑰匙圈後重試。"
+          }
+        }
+      }
+    },
+    "Sonic" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聲波"
+          }
+        }
+      }
+    },
+    "Specialized for clinical terms, medication names and medical dictation." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "專為臨床術語、藥品名稱與醫療聽寫設計。"
+          }
+        }
+      }
+    },
+    "Speech key locked. Use Allow Access in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音金鑰已鎖定。請在「模型」中使用「允許存取」。"
+          }
+        }
+      }
+    },
+    "Speech model is not downloaded. Download it on the Models page." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音模型尚未下載。請在「模型」頁面下載。"
+          }
+        }
+      }
+    },
+    "Speech model loading took too long. Try again or choose another model in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音模型載入時間過長。請再試一次，或在「模型」中選擇其他模型。"
+          }
+        }
+      }
+    },
+    "Speech provider returned HTTP %lld%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Speech provider returned HTTP %1$lld%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音供應商回傳 HTTP %1$lld%2$@"
+          }
+        }
+      }
+    },
+    "Stop recording and wait for current work to finish before removing data." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除資料前，請先停止錄音並等待目前的工作完成。"
+          }
+        }
+      }
+    },
+    "Summarizing" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在製作摘要"
+          }
+        }
+      }
+    },
+    "Summary cancelled. The transcript is unchanged." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消摘要。逐字稿未變更。"
+          }
+        }
+      }
+    },
+    "Summary failed:" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要失敗："
+          }
+        }
+      }
+    },
+    "Supports Mandarin. Auto Detect and language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援華語。透過 OpenRouter 的自動偵測與語言提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "Supports Mandarin. Auto Detect through OpenRouter is unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援華語。透過 OpenRouter 的自動偵測尚未驗證。"
+          }
+        }
+      }
+    },
+    "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL. Mandarin is not supported in this mode; the Language setting is ignored." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 與 NL 之間切換。此模式不支援華語；會忽略「語言」設定。"
+          }
+        }
+      }
+    },
+    "System audio capture was interrupted:" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統音訊擷取已中斷："
+          }
+        }
+      }
+    },
+    "System capture stopped unexpectedly. The saved tail may be incomplete." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統擷取意外停止。最後儲存的部分可能不完整。"
+          }
+        }
+      }
+    },
+    "Text delivery has started and cannot be cancelled safely." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字傳送已開始，無法安全取消。"
+          }
+        }
+      }
+    },
+    "The API key was rejected. Check the key and its permissions in the provider console." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 金鑰遭拒。請在供應商主控台檢查金鑰及其權限。"
+          }
+        }
+      }
+    },
+    "The app data folder is not a regular local directory. Cleanup stopped without following its link." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 資料夾不是一般的本機目錄。清理已停止，並未追蹤其連結。"
+          }
+        }
+      }
+    },
+    "The audio clock changed. Recording stopped to preserve the saved timeline." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊時鐘已變更。為保留已儲存的時間軸，錄音已停止。"
+          }
+        }
+      }
+    },
+    "The cleanup record could not be read. Keep Airdraft closed and check its data folder before removing anything." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取清理記錄。移除任何內容前，請保持 Airdraft 關閉並檢查其資料夾。"
+          }
+        }
+      }
+    },
+    "The connection timed out. Check your network and try again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連線逾時。請檢查網路後再試一次。"
+          }
+        }
+      }
+    },
+    "The decoder truncated the result. Try a shorter recording." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解碼器截斷了結果。請嘗試較短的錄音。"
+          }
+        }
+      }
+    },
+    "The executable closed its input before all text was delivered." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行檔在所有文字送達前就關閉了輸入。"
+          }
+        }
+      }
+    },
+    "The key connected, but the selected model was not listed. Check model access or choose another model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金鑰已連線，但未列出所選模型。請檢查模型存取權或選擇其他模型。"
+          }
+        }
+      }
+    },
+    "The license response could not be verified. Your saved license has been kept." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法驗證授權回應。已保留你儲存的授權。"
+          }
+        }
+      }
+    },
+    "The meeting recording could not be saved. Check disk access, then recover it from Meetings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存會議錄音。請檢查磁碟存取權限，然後從「會議」中復原。"
+          }
+        }
+      }
+    },
+    "The microphone input changed. Record again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風輸入已變更。請重新錄音。"
+          }
+        }
+      }
+    },
+    "The microphone's audio format is unavailable. Reconnect it or choose another microphone." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得麥克風的音訊格式。請重新連接，或選擇其他麥克風。"
+          }
+        }
+      }
+    },
+    "The model archive failed its integrity check. Download it again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型壓縮檔未通過完整性檢查。請重新下載。"
+          }
+        }
+      }
+    },
+    "The model download is incomplete. Retry to finish the missing files." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型下載不完整。請重試以完成缺少的檔案。"
+          }
+        }
+      }
+    },
+    "The model folder is empty on Hugging Face." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hugging Face 上的模型資料夾是空的。"
+          }
+        }
+      }
+    },
+    "The model page lists 30 languages and 22 Chinese dialects." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型頁面列出 30 種語言與 22 種中文方言。"
+          }
+        }
+      }
+    },
+    "The model used in OpenRouter's transcription API example." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 轉錄 API 範例中使用的模型。"
+          }
+        }
+      }
+    },
+    "The previous model load is still stopping. Choose another model, or restart Airdraft to retry this one." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先前的模型載入仍在停止中。請選擇其他模型，或重新啟動 Airdraft 以重試此模型。"
+          }
+        }
+      }
+    },
+    "The provider does not publish comparable file-transcription latency. Upload and network time also affect your wait." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "供應商未公布可比較的檔案轉錄延遲。上傳與網路時間也會影響等待時間。"
+          }
+        }
+      }
+    },
+    "The provider returned HTTP %lld. Try again later." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "供應商回傳 HTTP %lld。請稍後再試。"
+          }
+        }
+      }
+    },
+    "The provider's rate or quota limit was reached. Check your account and try again later." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已達供應商的速率或配額上限。請檢查你的帳號並稍後再試。"
+          }
+        }
+      }
+    },
+    "The recording contains invalid audio samples." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音包含無效的音訊樣本。"
+          }
+        }
+      }
+    },
+    "The recording location is not a regular file or private folder." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音位置不是一般檔案或私人資料夾。"
+          }
+        }
+      }
+    },
+    "The recording or document is no longer available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音或文件已無法使用。"
+          }
+        }
+      }
+    },
+    "The refinement provider returned an unexpected response." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿供應商回傳了非預期的回應。"
+          }
+        }
+      }
+    },
+    "The refinement provider returned empty text." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿供應商回傳了空白文字。"
+          }
+        }
+      }
+    },
+    "The refinement response was incomplete. The original transcript was kept." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿回應不完整。已保留原始逐字稿。"
+          }
+        }
+      }
+    },
+    "The selected meeting app is no longer running. Choose it again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選的會議 App 已不在執行中。請重新選擇。"
+          }
+        }
+      }
+    },
+    "The selected microphone is unavailable. Choose a connected microphone in the sidebar." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選的麥克風無法使用。請在側邊欄選擇已連接的麥克風。"
+          }
+        }
+      }
+    },
+    "The selected script could not be found or read." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到或無法讀取所選的腳本。"
+          }
+        }
+      }
+    },
+    "The selected script is not executable. Enable its execute permission." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選的腳本無法執行。請啟用其執行權限。"
+          }
+        }
+      }
+    },
+    "The service returned an unexpected response. Try again later." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服務回傳了非預期的回應。請稍後再試。"
+          }
+        }
+      }
+    },
+    "The speech provider returned an unexpected response." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音供應商回傳了非預期的回應。"
+          }
+        }
+      }
+    },
+    "The system clock moved backwards. Correct the date and time to continue your trial." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統時鐘倒退了。請修正日期與時間以繼續試用。"
+          }
+        }
+      }
+    },
+    "The transcription job was %@." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轉錄工作狀態：%@。"
+          }
+        }
+      }
+    },
+    "There is not enough available memory to identify speakers in this recording. Close other apps and retry, or choose Without Speakers." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用記憶體不足，無法辨識此錄音的講者。請關閉其他 App 後重試，或選擇「不辨識講者」。"
+          }
+        }
+      }
+    },
+    "This Mac does not support Apple Intelligence." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 不支援 Apple Intelligence。"
+          }
+        }
+      }
+    },
+    "This document changed in another operation. Reopen it to load the latest version." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件已在其他作業中變更。請重新打開以載入最新版本。"
+          }
+        }
+      }
+    },
+    "This file contains multiple audio tracks. Export the track you want as a separate audio file, then import it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此檔案包含多個音軌。請將想要的音軌輸出成獨立的音訊檔案，再輸入。"
+          }
+        }
+      }
+    },
+    "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此檔案沒有可解碼的音訊。請試試 WAV、M4A、MP3、MP4 或 MOV 檔案。"
+          }
+        }
+      }
+    },
+    "This key cannot run the connection check. Check account or model-read permissions in the provider console; speech access is separate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此金鑰無法執行連線檢查。請在供應商主控台檢查帳號或模型讀取權限；語音存取權是分開的。"
+          }
+        }
+      }
+    },
+    "This license or device activation is no longer valid. Check your key and devices in the customer portal." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此授權或裝置啟用已失效。請在客戶入口網站檢查你的授權碼與裝置。"
+          }
+        }
+      }
+    },
+    "This model is already downloading." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型已在下載中。"
+          }
+        }
+      }
+    },
+    "This official build is missing its licensing configuration. Contact Airdraft support." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此官方版本缺少授權設定。請聯絡 Airdraft 支援。"
+          }
+        }
+      }
+    },
+    "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模式的語音模型已無法使用。請在「模式」中選擇其他模型或「使用 App 預設值」。"
+          }
+        }
+      }
+    },
+    "This recording exceeds the upload limit. Choose another speech provider and retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此錄音超過上傳上限。請選擇其他語音供應商後重試。"
+          }
+        }
+      }
+    },
+    "This recording is no longer available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此錄音已無法使用。"
+          }
+        }
+      }
+    },
+    "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此已儲存的轉錄使用了不支援的模型。請使用「會議」中列出的模型開始新的轉錄。"
+          }
+        }
+      }
+    },
+    "This speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此語音模型"
+          }
+        }
+      }
+    },
+    "Token-based estimate of $0.003 per minute; actual cost varies with audio and output." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 token 估算每分鐘 0.003 美元；實際費用依音訊與輸出而異。"
+          }
+        }
+      }
+    },
+    "Token-based estimate of $0.006 per minute; actual cost varies with audio and output." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 token 估算每分鐘 0.006 美元；實際費用依音訊與輸出而異。"
+          }
+        }
+      }
+    },
+    "Token-based estimate. Dictionary context can add cost. Audio and jobs are deleted after use when the API is reachable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 token 估算。詞彙情境可能增加費用。API 可連線時，使用後會刪除音訊與工作。"
+          }
+        }
+      }
+    },
+    "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 token 估算。詞彙情境可能增加費用。API 可連線時，使用後會刪除上傳的音訊與工作。"
+          }
+        }
+      }
+    },
+    "Transcribes audio through OpenRouter's speech endpoint with a separate speech model choice." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過 OpenRouter 的語音端點轉錄音訊，並可另外選擇語音模型。"
+          }
+        }
+      }
+    },
+    "Transcribing" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轉錄中"
+          }
+        }
+      }
+    },
+    "Transcription failed: %@ Captured audio is kept for retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轉錄失敗：%@ 已錄製的音訊會保留以供重試。"
+          }
+        }
+      }
+    },
+    "Transcription took too long. Please try again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轉錄時間過長。請再試一次。"
+          }
+        }
+      }
+    },
+    "Ultra" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "極致"
+          }
+        }
+      }
+    },
+    "Unavailable · check Apple Intelligence in System Settings" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用 · 請在「系統設定」中檢查 Apple Intelligence"
+          }
+        }
+      }
+    },
+    "Universal-3.5 Pro and Universal-3.6 Pro batch preview." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Universal-3.5 Pro 與 Universal-3.6 Pro 批次預覽版。"
+          }
+        }
+      }
+    },
+    "Unknown speaker" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知講者"
+          }
+        }
+      }
+    },
+    "Unsupported batch model: %@. Choose a model on Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支援的批次模型：%@。請在「模型」中選擇模型。"
+          }
+        }
+      }
+    },
+    "Unsupported sample rate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支援的取樣率。"
+          }
+        }
+      }
+    },
+    "Until deleted" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直到刪除"
+          }
+        }
+      }
+    },
+    "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Voxtral Mini Latest。轉錄後仍會套用詞彙替換。"
+          }
+        }
+      }
+    },
+    "Uses a separate speech key. Interaction storage is off; uploaded-file deletion is attempted after use." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用獨立的語音金鑰。互動儲存已關閉；使用後會嘗試刪除上傳的檔案。"
+          }
+        }
+      }
+    },
+    "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用歐盟批次端點。使用後會嘗試刪除工作與音訊。語音至少 60 秒時，自動偵測效果最佳。"
+          }
+        }
+      }
+    },
+    "Uses the selected Apple Speech locale. Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用所選的 Apple 語音地區語言。無法自動偵測。"
+          }
+        }
+      }
+    },
+    "Uses your dictionary as keyword hints with the current transcription model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以目前的轉錄模型，將你的詞彙作為關鍵字提示。"
+          }
+        }
+      }
+    },
+    "Varies by model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依模型而異"
+          }
+        }
+      }
+    },
+    "Verbatim & multilingual" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字與多語"
+          }
+        }
+      }
+    },
+    "Verifying archive…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在驗證壓縮檔⋯"
+          }
+        }
+      }
+    },
+    "Vocabulary could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取或備份詞彙。為保護原始檔案，已暫停儲存。請檢查資料夾權限並重新打開 Airdraft。"
+          }
+        }
+      }
+    },
+    "Vocabulary could not be read. The original is preserved as %@ in the data folder. Recover that file before replacing it with an empty vocabulary." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取詞彙。原始檔案已在資料夾中保留為 %@。請先復原該檔案，再以空白詞彙取代。"
+          }
+        }
+      }
+    },
+    "Voxtral Mini transcription with an optional language hint, including Mandarin." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voxtral Mini 轉錄，可選擇提供語言提示，包含華語。"
+          }
+        }
+      }
+    },
+    "Your license needs Keychain access. Choose Allow Access in License to restore it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的授權需要鑰匙圈存取權。請在「授權」中選擇「允許存取」以還原。"
+          }
+        }
+      }
+    },
+    "Your saved API key needs access approval. Open Models and choose Allow access for this provider." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你儲存的 API 金鑰需要核准存取。請打開「模型」並為此供應商選擇「允許存取」。"
+          }
+        }
+      }
+    },
+    "Your saved key needs access approval." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你儲存的金鑰需要核准存取。"
+          }
+        }
+      }
+    },
+    "default model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設模型"
+          }
+        }
+      }
+    },
+    "macOS could not open %@ (audio error %lld). Try System default or reconnect the microphone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "macOS could not open %1$@ (audio error %2$lld). Try System default or reconnect the microphone."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 無法打開「%1$@」（音訊錯誤 %2$lld）。請試用系統預設，或重新連接麥克風。"
+          }
+        }
+      }
+    },
+    "macOS could not reset this app’s permissions." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 無法重置此 App 的權限。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

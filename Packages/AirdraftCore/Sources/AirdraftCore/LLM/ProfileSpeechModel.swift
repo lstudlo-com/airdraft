@@ -44,10 +44,10 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
     public var unavailableReason: String? {
         if (kind == .transcribeCpp && GGUFModelCatalog.model(model) == nil) ||
             (kind == .fluidAudio && CoreMLSpeechModelCatalog.model(model) == nil) {
-            return "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles."
+            return String(localized: "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles.", bundle: .module)
         }
         guard kind.preset != nil, kind != .openRouter,
               !SpeechModelInfo.models(for: kind).contains(where: { $0.id == model }) else { return nil }
-        return "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles."
+        return String(localized: "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles.", bundle: .module)
     }
 }

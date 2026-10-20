@@ -46,7 +46,7 @@ struct SpeechLanguageSettings: View {
             }
             .task { appleLocales = await AppleSpeechTranscriber.supportedLocaleIdentifiers() }
         } else {
-            SettingRow(title: "Language", subtitle: capabilities.summary) {
+            SettingRow(title: "Language", detail: capabilities.summary) {
                 SoftPicker("Language", selection: Binding(
                     get: { selectedLanguage },
                     set: { settings.asr.language = $0 }

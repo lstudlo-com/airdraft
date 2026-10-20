@@ -513,12 +513,12 @@ public final class HistoryStore: Sendable {
 
         var errorDescription: String? {
             switch self {
-            case .exportInManagedDirectory: return "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup."
-            case .unavailable: return "This recording is no longer available."
-            case .unsafeLocation: return "The recording location is not a regular file or private folder."
-            case .invalidSamples: return "The recording contains invalid audio samples."
+            case .exportInManagedDirectory: return String(localized: "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup.", bundle: .module)
+            case .unavailable: return String(localized: "This recording is no longer available.", bundle: .module)
+            case .unsafeLocation: return String(localized: "The recording location is not a regular file or private folder.", bundle: .module)
+            case .invalidSamples: return String(localized: "The recording contains invalid audio samples.", bundle: .module)
             case let .cleanupFailed(original, cleanup):
-                return "\(original.localizedDescription) Audio cleanup also failed: \(cleanup.localizedDescription). Retry clearing saved audio."
+                return String(localized: "\(original.localizedDescription) Audio cleanup also failed: \(cleanup.localizedDescription). Retry clearing saved audio.", bundle: .module)
             }
         }
     }

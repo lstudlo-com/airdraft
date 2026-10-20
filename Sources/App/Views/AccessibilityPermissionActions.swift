@@ -44,7 +44,8 @@ struct AccessibilityPermissionHelp: View {
                     }
 
                     if !installation.otherCopies.isEmpty {
-                        Text("Another copy is running. Quit it before changing permissions:\n" + installation.otherCopies.joined(separator: "\n"))
+                        Text(String(localized: "Another copy is running. Quit it before changing permissions:")
+                             + "\n" + installation.otherCopies.joined(separator: "\n"))
                             .font(.system(size: 13)).foregroundStyle(.secondary).textSelection(.enabled)
                     }
 

@@ -23,8 +23,8 @@ public struct CoreMLSpeechModel: Codable, Sendable, Identifiable, Equatable {
     public var languageCapabilities: SpeechLanguageCapabilities {
         .init(modelName: title, supportedLanguages: languages, supportsAutomatic: true,
               manualControl: .notApplied,
-              summary: languages.count == 1 ? "Recognizes \(SpeechLanguagePolicy.languageName(languages[0])) only."
-                  : "Automatically recognizes \(languages.count) European languages; no Chinese support.")
+              summary: languages.count == 1 ? String(localized: "Recognizes \(SpeechLanguagePolicy.languageName(languages[0])) only.", bundle: .module)
+                  : String(localized: "Automatically recognizes \(languages.count) European languages; no Chinese support.", bundle: .module))
     }
 }
 

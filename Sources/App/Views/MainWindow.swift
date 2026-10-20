@@ -7,13 +7,13 @@ enum Page: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .home: return "Home"
-        case .profiles: return "Profiles"
-        case .vocabulary: return "Vocabulary"
-        case .configuration: return "Settings"
-        case .models: return "Models"
-        case .history: return "History"
-        case .meetings: return "Meetings"
+        case .home: return String(localized: "Home")
+        case .profiles: return String(localized: "Profiles")
+        case .vocabulary: return String(localized: "Vocabulary")
+        case .configuration: return String(localized: "Settings")
+        case .models: return String(localized: "Models")
+        case .history: return String(localized: "History")
+        case .meetings: return String(localized: "Meetings")
         }
     }
 
@@ -428,7 +428,7 @@ struct SidebarView: View {
     }
 
     private var footerLine: String {
-        guard wordsDictated > 0 else { return "Ready to dictate" }
-        return "\(wordsDictated.formatted()) words dictated"
+        guard wordsDictated > 0 else { return String(localized: "Ready to dictate") }
+        return String(localized: "\(wordsDictated.formatted()) words dictated")
     }
 }
