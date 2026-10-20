@@ -3,6 +3,7 @@ import BentoTile from "./ui/BentoTile.astro";
 import Keys from "./ui/Keys.astro";
 import Section from "./ui/Section.astro";
 import "../styles/interface.css";
+import { appLabels } from "../data/app";
 import type { Locale } from "../i18n";
 
 interface Props {
@@ -20,22 +21,29 @@ const { locale = "en" } = Astro.props;
  * from the app's design system appears, at the window's own coordinates
  * (points on its 784 × 1000 frame). The specimens are built from the site's
  * parts and respond to the pointer (src/scripts/interface.ts).
+ *
+ * The app ships English and Traditional Chinese and follows the macOS
+ * language; the screenshots are English renders, so the translated alt text
+ * and caption say so. The specimens' sidebar and segmented labels are the
+ * app's own in the page's language (src/data/app.ts).
  */
 const width = 784;
 const height = 1000;
 const zh = locale === "zh-tw";
+const app = appLabels[locale];
 const copy = zh
   ? {
       title: "打開就想用的介面",
       intro: "凸起的按鍵、壓下的凹槽、刻出的分隔線，淺色深色都一樣。",
-      alt: "Airdraft 淺色模式的 Settings 頁面：側邊欄旁是麥克風、外觀與鍵盤快速鍵的凸起卡片。App 介面目前為英文。",
+      alt: "Airdraft 淺色模式的 Settings 頁面，截圖為英文介面：側邊欄旁是麥克風、外觀與鍵盤快速鍵的凸起卡片。",
       compare: "比較淺色與深色外觀",
       half: "一半淺色，一半深色",
       allLight: "全部淺色",
       allDark: "全部深色",
       mixed: "{light}% 淺色，{dark}% 深色",
       materials: "視窗中的材質",
-      caption: "以 Graphite 強調色從 App 算繪。",
+      caption:
+        "以 Graphite 強調色從 App 算繪，畫面為英文介面；App 支援英文與繁體中文，跟隨 macOS 的語言設定。",
       drag: "拖曳即可比較淺色與深色。",
       press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
       select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
@@ -133,19 +141,19 @@ const percent = (value: number, of: number) =>
 // SF Symbols from the app's sidebar, drawn as 24-point outlines.
 const destinations = [
   {
-    name: "Home",
+    name: app.home,
     path: "M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z",
   },
   {
-    name: "Profiles",
+    name: app.profiles,
     path: "M12.5 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6.5M17.6 3.9a1.6 1.6 0 0 1 2.3 2.3L12.5 13.6 9.5 14.5l.9-3Z",
   },
   {
-    name: "Vocabulary",
+    name: app.vocabulary,
     path: "M6 4.5h11.5V18H7.25A1.75 1.75 0 0 0 5.5 19.75M5.5 19.75A1.75 1.75 0 0 0 7.25 21.5H17.5M5.5 19.75V5.5a1 1 0 0 1 1-1M9 4.5V12",
   },
   {
-    name: "History",
+    name: app.history,
     path: "M12 7v5l3.2 2M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z",
   },
 ];
@@ -271,8 +279,8 @@ const destinations = [
           <span></span>
         </button>
         <ul class="segmented" data-spec-segmented>
-          <li class="is-selected">Hold to talk</li>
-          <li>Toggle</li>
+          <li class="is-selected">{app.holdToTalk}</li>
+          <li>{app.toggle}</li>
         </ul>
       </div>
     </BentoTile>

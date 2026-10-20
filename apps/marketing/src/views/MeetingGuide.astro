@@ -7,8 +7,10 @@ import { href, type Locale } from "../i18n";
 
 /**
  * Private meeting transcription, in each language. Every statement follows
- * docs/meeting-recording.md and docs/media-transcription.md; button names are
- * the app's own (its interface is English). Keep both languages aligned.
+ * docs/meeting-recording.md and docs/media-transcription.md. The app ships
+ * English and Traditional Chinese, so button and setting names are the app's
+ * own in the page's language: the zh-Hant values in its string catalogs,
+ * quoted with 「」. Keep both languages aligned.
  */
 interface Props {
   locale: Locale;
@@ -23,15 +25,14 @@ const zh = locale === "zh-tw";
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="Airdraft 的 Meetings 頁面可以錄下 App 音訊與你的麥克風，或匯入音訊、影片檔，再用你選的模型轉成逐字稿。選本機模型時，錄音和逐字稿都留在你的 Mac。App 介面目前為英文，下文的按鈕名稱照 App 顯示。"
+    intro="Airdraft 的「會議」頁面可以錄下 App 音訊與你的麥克風，或匯入音訊、影片檔，再用你選的模型轉成逐字稿。選本機模型時，錄音和逐字稿都留在你的 Mac。App 支援英文與繁體中文介面，跟隨 macOS 的語言設定；下文的按鈕名稱照繁體中文介面顯示。"
   >
     <Surface class="guide-section">
       <h2 id="requirements">需要準備什麼？</h2>
       <ul>
         <li>Apple 晶片的 Mac，macOS 15 以上。</li>
         <li>
-          錄會議需要「螢幕與系統錄音」權限；勾選 Include microphone
-          時才會要求麥克風權限。
+          錄會議需要「螢幕與系統音訊錄製」權限；開啟「包含麥克風」時才會要求麥克風權限。
         </li>
         <li>一個已安裝的本機語音模型，或用於雲端轉錄的 Soniox API 金鑰。</li>
         <li>
@@ -44,22 +45,20 @@ const zh = locale === "zh-tw";
       <h2 id="record">錄下會議</h2>
       <ol class="guide-steps">
         <li>
-          <h3>打開 Record Meeting</h3>
-          <p>在 Meetings 頁面按 Record Meeting，選單列也能開啟同一個流程。</p>
+          <h3>打開「錄製會議」</h3>
+          <p>在「會議」頁面按「錄製會議」，選單列也能開啟同一個流程。</p>
         </li>
         <li>
           <h3>選擇要錄的聲音</h3>
           <p>
-            App audio 可選 All Apps 或某一個正在執行的
-            App；選瀏覽器會錄下它所有分頁的聲音。Include microphone
-            會使用側邊欄目前選的麥克風。只錄聲音，不保留任何畫面。
+            「App 音訊」可選「所有 App」或某一個正在執行的
+            App；選瀏覽器會錄下它所有分頁的聲音。「包含麥克風」會使用側邊欄目前選的麥克風。只錄聲音，不保留任何畫面。
           </p>
         </li>
         <li>
           <h3>開始並告知與會者</h3>
           <p>
-            按 Start Recording。錄音前請讓與會者知道你在錄音。離開 Meetings
-            頁面也會繼續錄，從 Meetings 或選單列按 Stop and Save 結束。
+            按「開始錄音」。錄音前請讓與會者知道你在錄音。離開「會議」頁面也會繼續錄，從「會議」頁面或選單列按「停止並儲存」結束。
           </p>
         </li>
         <li>
@@ -74,8 +73,7 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="import">或匯入檔案</h2>
       <p>
-        在 Meetings 按
-        Import…，或直接把檔案拖進來。音訊或影片最長兩小時，且只能有一條音軌；多音軌的檔案請先匯出你要的那一軌。原始檔案不會被修改，Airdraft
+        在「會議」頁面按「輸入⋯」，或直接把檔案拖進來。音訊或影片最長兩小時，且只能有一條音軌；多音軌的檔案請先匯出你要的那一軌。原始檔案不會被修改，Airdraft
         會另存一份 16 kHz 的副本。
       </p>
     </Surface>
@@ -83,17 +81,16 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="transcribe">轉成標出講者的逐字稿</h2>
       <p>
-        在錄音上按 Transcribe…，選擇模型與語言，需要時開啟 Identify
-        speakers。講者辨識在本機執行；第一次使用時，在同一個視窗裡按下載取得它的模型。
+        在錄音上按「轉錄⋯」，選擇模型與語言，需要時開啟「辨識講者」。講者辨識在本機執行；第一次使用時，在同一個視窗裡按「下載」取得它的模型。
       </p>
       <ul>
         <li>
-          講者標籤是估計值，顯示為 Speaker 1、Speaker
-          2，不會猜出人名；你可以改名或重新指派。重疊說話的聲音不會被拆開。
+          講者標籤是估計值，顯示為「講者 1」、「講者
+          2」，不會猜出人名；你可以改名或重新指派。重疊說話的聲音不會被拆開。
         </li>
         <li>
-          Whisper 保留逐字的時間；其他本機模型提供段落時間。轉錄中斷後可以
-          Resume，從上次完成的段落繼續。
+          Whisper
+          保留逐字的時間；其他本機模型提供段落時間。轉錄中斷後可以按「繼續」，從上次完成的段落繼續。
         </li>
         <li>
           Parakeet 不支援中文。中文或中英混說請選支援的模型，例如 Qwen3-ASR。
@@ -129,14 +126,15 @@ const zh = locale === "zh-tw";
             <tr>
               <th scope="row">Soniox 轉錄</th>
               <td>
-                按下 Upload and Transcribe 後，音訊會上傳到 Soniox，使用你的 API
+                按下「上傳並轉錄」後，音訊會上傳到 Soniox，使用你的 API
                 金鑰並可能產生費用。本機仍保留一份 WAV。
               </td>
             </tr>
             <tr>
-              <th scope="row">Summarize</th>
+              <th scope="row">製作摘要</th>
               <td>
-                確認後，逐字稿會送到你選的潤稿服務；選本機潤稿則留在 Mac。
+                按「製作摘要⋯」並確認後，逐字稿會送到你選的潤稿服務；選本機潤稿則留在
+                Mac。
               </td>
             </tr>
           </tbody>
@@ -147,8 +145,8 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="export">編輯與匯出</h2>
       <p>
-        原文與你的修改並存，可在 Edited 與 Original
-        之間切換；複製與匯出會使用目前顯示的版本。可匯出 TXT、JSON、SRT 或
+        原文與你的修改並存，可在「已編輯」與「原始」之間切換；「拷貝」與「輸出」會使用目前顯示的版本。可輸出
+        TXT、JSON、SRT 或
         VTT，字幕檔保留每段的時間與講者。點時間戳記可以從那裡播放錄音。
       </p>
       <p>

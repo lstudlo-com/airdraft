@@ -77,8 +77,13 @@ in the changelog, guides or pricing.
   recommends Qwen3-ASR 1.7B for mixed Chinese and English. Chinese script
   defaults to Traditional with Taiwan vocabulary and can be Simplified or Auto.
   Parakeet does not support Chinese. Never claim mixed-language accuracy.
-- The app interface is English. Translated pages say so where it matters and
-  keep app labels (profiles, HUD states, buttons) as the app shows them.
+- The app interface ships in English and Traditional Chinese and follows the
+  macOS language setting. Translated pages quote app labels (buttons,
+  settings, HUD states, Refined/Original, Meetings controls) with the app's
+  zh-Hant values from its string catalogs (`src/data/app.ts` for shared
+  labels); a label without a catalog entry, including the built-in profile
+  names Clean, Concise, Summary and Verbatim, stays as the app shows it. The
+  homepage screenshots are English renders, and the translated pages say so.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
 - Changelog entries distinguish unreleased development, dated source history and
@@ -163,7 +168,8 @@ published key and HTML before sending. It does not run during build or deploymen
 English pages live at the root. Traditional Chinese (Taiwan) translations live
 under `/zh-tw/` with the same slug: the homepage, pricing, the meeting guide and
 the comparison guide (`translatedPaths` in `src/i18n/index.ts`). They use
-natural Taiwan wording and keep Airdraft, provider and model names in English.
+natural Taiwan wording and keep Airdraft, provider and model names in English;
+app labels follow the app's Traditional Chinese interface.
 Prices stay in US dollars from shared data. Untranslated pages (support,
 changelog, privacy, the other guides) stay English and are labelled so where a
 translated page links to them. The header (above 760px), the phone menu and

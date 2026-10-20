@@ -460,13 +460,17 @@ bento's profile and history graphics.
 `Hud` is the app's recording pill (`IndicatorPanel`): a graphite rounded
 rectangle with a white top-left rim, holding a small dark inset well of white
 bars, then a timer or state in the rounded face. It stays dark in both
-appearances, as in the app. Pass `levels` for a still frame.
+appearances, as in the app. Pass `levels` for a still frame and `locale` for
+the app's own state labels in that language (潤稿中 and 轉錄中 on the
+Traditional Chinese pages, from `src/data/app.ts`); scripts read them from
+its `data-refining` and `data-transcribing` attributes.
 
 The sample (`DictationPreview.astro`) is a raised panel: a recessed "What you
 said" well and a "What Airdraft inserts" card that waits pressed in and rises
 once typed, above Run sample, the HUD and a status line that speaks only while
 running. It plays once when mostly on screen: words light up, the HUD counts,
-then shows Decoding and Refining, fillers are struck one at a time, and the text
+then shows Decoding and Refining (轉錄中 and 潤稿中 in Traditional Chinese),
+fillers are struck one at a time, and the text
 is typed with an ink caret. Profile buttons re-run only the refinement; Stop
 jumps to the result. Without JavaScript the Clean result shows; reduced motion
 shows it immediately and never autoplays. Its accessible name is "Sample

@@ -99,6 +99,7 @@ const arts: Record<
   cursor(art, timeline) {
     const typed = words(one("[data-typed]", art)!);
     const label = one("[data-hud-label]", art)!;
+    const refining = one("[data-hud]", art)?.dataset.refining ?? "Refining";
     const bars = all(".hud-bars span", art);
     const clock = { seconds: 0 };
     timeline
@@ -125,7 +126,7 @@ const arts: Record<
         "<",
       )
       .call(() => {
-        label.textContent = "Refining";
+        label.textContent = refining;
       })
       .to(bars, { "--level": 0.14, duration: 0.3 })
       .to(typed, { display: "inline", duration: 0, stagger: 0.09 }, "+=0.4")
@@ -228,19 +229,21 @@ const arts: Record<
       .call(flip(0));
   },
   fallback(art, timeline) {
+    // The app's status lines in the page's language (HomePage.astro).
     const status = one("[data-status]", art)!;
+    const { busy = "Refining…", failed = "Refinement failed" } = status.dataset;
     const dot = one(".status-dot", art)!;
     const chip = status.parentElement!;
     const typed = words(one("[data-typed]", art)!);
     timeline
       .set(typed, { display: "none" })
       .call(() => {
-        status.textContent = "Refining…";
+        status.textContent = busy;
         dot.dataset.tone = "busy";
       })
       .to({}, { duration: 1.3 })
       .call(() => {
-        status.textContent = "Refinement failed";
+        status.textContent = failed;
         dot.dataset.tone = "attention";
       })
       .to(chip, { x: -3, duration: 0.05, repeat: 5, yoyo: true })

@@ -44,6 +44,8 @@ function setup(preview: HTMLElement) {
   const result = find<HTMLElement>("[data-result]");
   const status = find<HTMLElement>("[data-status]");
   const hudLabel = find<HTMLElement>("[data-hud-label]");
+  // The HUD's states in the page's language (Hud.astro).
+  const hud = find<HTMLElement>("[data-hud]").dataset;
   const bars = [...preview.querySelectorAll<HTMLElement>(".hud-bars span")];
   const profiles = [
     ...picker.querySelectorAll<HTMLButtonElement>("[data-profile]"),
@@ -146,7 +148,7 @@ function setup(preview: HTMLElement) {
   const refineAndType = (startAt: number) => {
     at(startAt, () => {
       preview.dataset.state = "refining";
-      hudLabel.textContent = "Refining";
+      hudLabel.textContent = hud.refining ?? "Refining";
       status.textContent = labels.refining;
       fillers.forEach((filler, index) =>
         at(120 + index * 220, () => filler.classList.add("struck")),
@@ -209,7 +211,7 @@ function setup(preview: HTMLElement) {
       window.clearInterval(meter);
       setLevels(0.14);
       preview.dataset.state = "decoding";
-      hudLabel.textContent = "Decoding";
+      hudLabel.textContent = hud.transcribing ?? "Decoding";
       status.textContent = labels.transcribing;
     });
     refineAndType(time + 520);

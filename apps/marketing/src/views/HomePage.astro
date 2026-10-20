@@ -15,19 +15,23 @@ import Button from "../components/ui/Button.astro";
 import Hud from "../components/ui/Hud.astro";
 import Keys from "../components/ui/Keys.astro";
 import Section from "../components/ui/Section.astro";
+import { appLabels } from "../data/app";
 import { siteLinks } from "../data/site";
 import { href, type Locale } from "../i18n";
 
 /**
  * The homepage, in each language (src/pages/index.astro and
  * src/pages/zh-tw/index.astro). Copy differs; structure, components and
- * motion are shared. App UI labels (profiles, HUD states, Refined/Original)
- * stay in English because the app's interface is English.
+ * motion are shared. The app ships English and Traditional Chinese, so app
+ * UI labels (HUD states, Refined/Original, status lines) use its own labels
+ * in the page's language (src/data/app.ts). Built-in profile names stay
+ * English: the app shows them that way in both languages.
  */
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
+const app = appLabels[locale];
 
 const copy = {
   en: {
@@ -114,9 +118,9 @@ const copy = {
     tiles: {
       cursor: ["貼到游標位置", "不論你正在哪個 App 打字。"],
       shortcut: ["一個快速鍵", "按住 ⌃⌥，或錄一組你自己的。"],
-      profiles: ["設定檔", "內建四種，每一種都能改寫。"],
-      vocabulary: ["你的詞彙表", "名字和術語教一次就好。"],
-      history: ["歷史紀錄", "可以搜尋、切回原文、複製。"],
+      profiles: ["模式", "內建四種，每一種都能改寫。"],
+      vocabulary: ["你的詞彙", "名字和術語教一次就好。"],
+      history: ["記錄", "可以搜尋、切回原始文字、複製。"],
       fallback: ["文字不會不見", "潤稿失敗時，照樣貼上原始文字。"],
       privacy: [
         "留在你的 Mac",
@@ -218,7 +222,12 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
                 <span class="caret"></span>
               </p>
             </div>
-            <Hud label="Refining" levels={hudLevels} class="art-hud" />
+            <Hud
+              label={app.hudRefining}
+              levels={hudLevels}
+              class="art-hud"
+              locale={locale}
+            />
           </div>
         </BentoTile>
 
@@ -276,8 +285,8 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
             <span class="art-card art-card-mid"></span>
             <div class="art-card art-card-front">
               <ul class="segmented art-toggle">
-                <li class="is-selected">Refined</li>
-                <li>Original</li>
+                <li class="is-selected">{app.refined}</li>
+                <li>{app.original}</li>
               </ul>
               <p data-history>{outputs[0]}</p>
             </div>
@@ -292,7 +301,13 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           <div class="art-fallback">
             <span class="chip-muted">
               <span class="status-dot" data-tone="attention"></span>
-              <span data-status>Refinement failed</span>
+              <span
+                data-status
+                data-busy={app.refining}
+                data-failed={app.refinementFailed}
+              >
+                {app.refinementFailed}
+              </span>
             </span>
             <div class="art-field">
               <p data-typed>

@@ -21,6 +21,10 @@ function setup(card: HTMLElement) {
   const wave = card.querySelector<HTMLElement>(".wave")!;
   const caret = wave.querySelector<HTMLElement>(".wave-caret")!;
   const label = card.querySelector<HTMLElement>("[data-hud-label]")!;
+  // The app's Refining state in the page's language (Hud.astro).
+  const refining =
+    card.querySelector<HTMLElement>("[data-hud]")?.dataset.refining ??
+    "Refining";
   const meter = [...card.querySelectorAll<HTMLElement>(".hud-bars span")];
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   const longest = 6; // seconds that make a full-height bar
@@ -114,7 +118,7 @@ function setup(card: HTMLElement) {
     cancelAnimationFrame(frame);
     state = "refining";
     card.classList.replace("is-recording", "is-refining");
-    label.textContent = "Refining";
+    label.textContent = refining;
 
     const settled = live;
     const gone = leaving;

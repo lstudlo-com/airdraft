@@ -13,7 +13,8 @@ const { locale = "en" } = Astro.props;
  * The hero object: Home's hero card from the app, without its metrics (the
  * site never shows usage counts). In the app each bar is one dictation; here
  * the forty bars are decorative and their heights are a fixed pattern, not
- * data. The caption is the app's own first-run instruction, and it works:
+ * data. The caption is the app's own first-run instruction, in the page's
+ * language (zh-Hant from the app's string catalog), and it works:
  * holding ⌃⌥ (or pressing and holding the waveform) plays a pretend
  * dictation that adds a bar (src/scripts/dictate.ts).
  */
@@ -34,7 +35,7 @@ const levels = Array.from({ length: count }, (_, index) => {
     {locale === "zh-tw" ? (
       <p class="hero-caption">
         按住 <Keys keys={["⌃", "⌥"]} label="Control Option" />{" "}
-        開始說話。每次聽寫會多一條長條。
+        並說話。每次聽寫都會增加一條長條。
       </p>
     ) : (
       <p class="hero-caption">
@@ -42,7 +43,7 @@ const levels = Array.from({ length: count }, (_, index) => {
         dictation adds a bar.
       </p>
     )}
-    <Hud class="hero-hud" />
+    <Hud class="hero-hud" locale={locale} />
   </div>
 </div>
 

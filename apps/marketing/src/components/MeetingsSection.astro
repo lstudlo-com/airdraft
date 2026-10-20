@@ -2,6 +2,7 @@
 import Button from "./ui/Button.astro";
 import Section from "./ui/Section.astro";
 import Surface from "./ui/Surface.astro";
+import { appLabels } from "../data/app";
 import { href, type Locale } from "../i18n";
 import "../styles/meetings.css";
 
@@ -10,6 +11,7 @@ import "../styles/meetings.css";
  * page parts (title, one metadata line, a status dot, the player row, then
  * speaker turns with their timestamps), beside what the feature does. The
  * transcript is authored sample text, not a recording or a model benchmark.
+ * Speaker labels are the app's own in the page's language (src/data/app.ts).
  *
  * Every point matches docs/meeting-recording.md and
  * docs/media-transcription.md: ScreenCaptureKit app audio plus an optional
@@ -31,9 +33,13 @@ const copy = {
     meeting: "Design review",
     meta: "Oct 21 · 32:14 · Whisper Large v3 Turbo",
     turns: [
-      ["Speaker 1", "0:12", "Let’s ship the onboarding changes on Thursday."],
       [
-        "Speaker 2",
+        appLabels.en.speaker(1),
+        "0:12",
+        "Let’s ship the onboarding changes on Thursday.",
+      ],
+      [
+        appLabels.en.speaker(2),
         "0:31",
         "Then I’ll update the screenshots before the release.",
       ],
@@ -69,8 +75,16 @@ const copy = {
     meeting: "設計週會",
     meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
     turns: [
-      ["Speaker 1", "0:12", "onboarding 的修改我們週四上線。"],
-      ["Speaker 2", "0:31", "那我 release 前先把 screenshot 更新好。"],
+      [
+        appLabels["zh-tw"].speaker(1),
+        "0:12",
+        "onboarding 的修改我們週四上線。",
+      ],
+      [
+        appLabels["zh-tw"].speaker(2),
+        "0:31",
+        "那我 release 前先把 screenshot 更新好。",
+      ],
     ],
     points: [
       [

@@ -1,24 +1,38 @@
 ---
+import { appLabels } from "../../data/app";
+import type { Locale } from "../../i18n";
+
 /**
  * The app's recording pill (IndicatorPanel): a graphite capsule holding a small
  * dark well of white waveform bars, then a timer or a state such as Decoding
  * or Refining. Always dark, as in the app. Decorative, so hidden from
- * assistive technology. Pass `levels` (0–1) for a still frame.
+ * assistive technology. Pass `levels` (0–1) for a still frame, and `locale`
+ * so the states, shown or set by a script from `data-transcribing` and
+ * `data-refining`, are the app's own labels in that language.
  */
 interface Props {
   label?: string;
   levels?: number[];
   class?: string;
+  locale?: Locale;
 }
 
 const {
   label = "0:00.0",
   levels = Array.from({ length: 14 }, () => 0.14),
   class: className,
+  locale = "en",
 } = Astro.props;
+const labels = appLabels[locale];
 ---
 
-<div class:list={["hud", className]} aria-hidden="true" data-hud>
+<div
+  class:list={["hud", className]}
+  aria-hidden="true"
+  data-hud
+  data-transcribing={labels.hudTranscribing}
+  data-refining={labels.hudRefining}
+>
   <span class="hud-well">
     <span class="hud-bars">
       {levels.map((level) => (
