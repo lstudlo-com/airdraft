@@ -129,6 +129,27 @@
     width: 22%;
     font-weight: 600;
   }
+  /* The comparison table keeps seven readable columns and scrolls in its
+     focusable region on narrower windows. */
+  .guide-table-wide {
+    min-width: 880px;
+  }
+  .guide-table-wide :is(th, td) {
+    padding-inline: 10px;
+    font-size: var(--step--1);
+  }
+  .guide-table-wide th[scope="row"] {
+    width: 12%;
+  }
+  .guide-sources a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .guide-section li > a,
+  .guide-section .details-body a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
   .guide-decisions > div + div {
     margin-top: 20px;
     padding-top: 20px;
@@ -161,6 +182,9 @@
     }
     .guide-table {
       min-width: 520px;
+    }
+    .guide-table.guide-table-wide {
+      min-width: 760px;
     }
     .guide-section h2 {
       font-size: var(--step-2);

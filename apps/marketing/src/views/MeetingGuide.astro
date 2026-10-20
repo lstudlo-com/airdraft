@@ -1,0 +1,370 @@
+---
+import GuideLayout from "../layouts/GuideLayout.astro";
+import Surface from "../components/ui/Surface.astro";
+import Button from "../components/ui/Button.astro";
+import { guidesFor } from "../data/guides";
+import { href, type Locale } from "../i18n";
+
+/**
+ * Private meeting transcription, in each language. Every statement follows
+ * docs/meeting-recording.md and docs/media-transcription.md; button names are
+ * the app's own (its interface is English). Keep both languages aligned.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const guide = guidesFor(locale).find(
+  (entry) => entry.slug === "private-meeting-transcription",
+)!;
+const zh = locale === "zh-tw";
+---
+
+{zh ? (
+  <GuideLayout
+    guide={guide}
+    intro="Airdraft 的 Meetings 頁面可以錄下 App 音訊與你的麥克風，或匯入音訊、影片檔，再用你選的模型轉成逐字稿。選本機模型時，錄音和逐字稿都留在你的 Mac。App 介面目前為英文，下文的按鈕名稱照 App 顯示。"
+  >
+    <Surface class="guide-section">
+      <h2 id="requirements">需要準備什麼？</h2>
+      <ul>
+        <li>Apple 晶片的 Mac，macOS 15 以上。</li>
+        <li>
+          錄會議需要「螢幕與系統錄音」權限；勾選 Include microphone
+          時才會要求麥克風權限。
+        </li>
+        <li>一個已安裝的本機語音模型，或用於雲端轉錄的 Soniox API 金鑰。</li>
+        <li>
+          Airdraft 沒有回音消除。麥克風和喇叭的聲音可能互相干擾時，請戴耳機。
+        </li>
+      </ul>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="record">錄下會議</h2>
+      <ol class="guide-steps">
+        <li>
+          <h3>打開 Record Meeting</h3>
+          <p>在 Meetings 頁面按 Record Meeting，選單列也能開啟同一個流程。</p>
+        </li>
+        <li>
+          <h3>選擇要錄的聲音</h3>
+          <p>
+            App audio 可選 All Apps 或某一個正在執行的
+            App；選瀏覽器會錄下它所有分頁的聲音。Include microphone
+            會使用側邊欄目前選的麥克風。只錄聲音，不保留任何畫面。
+          </p>
+        </li>
+        <li>
+          <h3>開始並告知與會者</h3>
+          <p>
+            按 Start Recording。錄音前請讓與會者知道你在錄音。離開 Meetings
+            頁面也會繼續錄，從 Meetings 或選單列按 Stop and Save 結束。
+          </p>
+        </li>
+        <li>
+          <h3>先存檔，之後再轉錄</h3>
+          <p>
+            錄音會連同日期與長度出現在列表中。這時還沒有轉錄，也沒有上傳任何東西。
+          </p>
+        </li>
+      </ol>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="import">或匯入檔案</h2>
+      <p>
+        在 Meetings 按
+        Import…，或直接把檔案拖進來。音訊或影片最長兩小時，且只能有一條音軌；多音軌的檔案請先匯出你要的那一軌。原始檔案不會被修改，Airdraft
+        會另存一份 16 kHz 的副本。
+      </p>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="transcribe">轉成標出講者的逐字稿</h2>
+      <p>
+        在錄音上按 Transcribe…，選擇模型與語言，需要時開啟 Identify
+        speakers。講者辨識在本機執行；第一次使用時，在同一個視窗裡按下載取得它的模型。
+      </p>
+      <ul>
+        <li>
+          講者標籤是估計值，顯示為 Speaker 1、Speaker
+          2，不會猜出人名；你可以改名或重新指派。重疊說話的聲音不會被拆開。
+        </li>
+        <li>
+          Whisper 保留逐字的時間；其他本機模型提供段落時間。轉錄中斷後可以
+          Resume，從上次完成的段落繼續。
+        </li>
+        <li>
+          Parakeet 不支援中文。中文或中英混說請選支援的模型，例如 Qwen3-ASR。
+        </li>
+      </ul>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="privacy">什麼會離開你的 Mac？</h2>
+      <div
+        class="guide-table-scroll"
+        tabindex="0"
+        role="region"
+        aria-label="會議資料去向比較"
+      >
+        <table class="guide-table">
+          <caption>每個步驟送出的資料</caption>
+          <thead>
+            <tr>
+              <th scope="col">步驟</th>
+              <th scope="col">送出的資料</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">錄音</th>
+              <td>不送出。音訊存在這台 Mac。</td>
+            </tr>
+            <tr>
+              <th scope="row">本機模型轉錄</th>
+              <td>不送出。講者辨識也在本機。</td>
+            </tr>
+            <tr>
+              <th scope="row">Soniox 轉錄</th>
+              <td>
+                按下 Upload and Transcribe 後，音訊會上傳到 Soniox，使用你的 API
+                金鑰並可能產生費用。本機仍保留一份 WAV。
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Summarize</th>
+              <td>
+                確認後，逐字稿會送到你選的潤稿服務；選本機潤稿則留在 Mac。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="export">編輯與匯出</h2>
+      <p>
+        原文與你的修改並存，可在 Edited 與 Original
+        之間切換；複製與匯出會使用目前顯示的版本。可匯出 TXT、JSON、SRT 或
+        VTT，字幕檔保留每段的時間與講者。點時間戳記可以從那裡播放錄音。
+      </p>
+      <p>
+        會議錄音不受聽寫的錄音保留設定影響，會一直保留到你自己刪除音訊。刪除逐字稿不會刪除錄音。
+      </p>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="limits">限制</h2>
+      <ul>
+        <li>每段錄音或檔案最長兩小時。</li>
+        <li>
+          開始錄音前需要約 2 GB 可用空間；連續 15 秒收不到音訊時會停止錄音。
+        </li>
+        <li>長檔案的講者辨識需要足夠的可用記憶體，會先檢查再執行。</li>
+        <li>
+          Airdraft
+          尚未公布會議轉錄或講者辨識的準確度測量。請先用你自己的錄音試試看。
+        </li>
+      </ul>
+      <div class="guide-actions">
+        <Button href={href("/pricing/", locale)} icon="right">
+          查看價格
+        </Button>
+        <Button
+          href={href("/guides/compare-mac-dictation-apps/", locale)}
+          variant="quiet"
+          icon="right"
+        >
+          與其他 App 比較
+        </Button>
+      </div>
+    </Surface>
+  </GuideLayout>
+) : (
+  <GuideLayout
+    guide={guide}
+    intro="Airdraft’s Meetings page records app audio and your microphone, or imports an audio or video file, then transcribes it with the model you choose. With a local model, the recording and the transcript stay on your Mac."
+  >
+    <Surface class="guide-section">
+      <h2 id="requirements">What do I need?</h2>
+      <ul>
+        <li>An Apple silicon Mac with macOS 15 or later.</li>
+        <li>
+          Screen &amp; System Audio Recording permission to record meetings.
+          Microphone access is requested only when you include the microphone.
+        </li>
+        <li>
+          An installed local speech model, or a Soniox API key for cloud
+          transcription.
+        </li>
+        <li>
+          Headphones when your microphone could pick up the speakers: there is
+          no echo cancellation.
+        </li>
+      </ul>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="record">Record a meeting</h2>
+      <ol class="guide-steps">
+        <li>
+          <h3>Open Record Meeting</h3>
+          <p>
+            Choose Record Meeting on the Meetings page. The menu bar opens the
+            same flow.
+          </p>
+        </li>
+        <li>
+          <h3>Choose what to capture</h3>
+          <p>
+            For App audio, pick All Apps or one running app; a browser includes
+            all of its audio. Include microphone uses the microphone selected in
+            the sidebar. Only audio is captured, never screen video.
+          </p>
+        </li>
+        <li>
+          <h3>Start, and tell everyone</h3>
+          <p>
+            Choose Start Recording, and let participants know you are recording.
+            Recording continues if you leave Meetings; stop it with Stop and
+            Save on Meetings or in the menu bar.
+          </p>
+        </li>
+        <li>
+          <h3>It is saved before anything else happens</h3>
+          <p>
+            The recording appears with its date and duration. Nothing has been
+            transcribed or uploaded yet.
+          </p>
+        </li>
+      </ol>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="import">Or import a file</h2>
+      <p>
+        Choose Import… on Meetings or drop a file. Audio and video files can be
+        up to two hours long with exactly one audio track; export the track you
+        want from a multi-track file first. Airdraft keeps a 16 kHz copy and
+        never changes the original.
+      </p>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="transcribe">Transcribe with speakers</h2>
+      <p>
+        Choose Transcribe… on a recording, pick a model and language, and turn
+        on Identify speakers if you want labels. Speaker identification runs on
+        your Mac; the first time, download its model from the same sheet.
+      </p>
+      <ul>
+        <li>
+          Speaker labels are estimates, shown as Speaker 1, Speaker 2 and so on,
+          never guessed names. Rename or reassign them. Overlapping voices are
+          not separated.
+        </li>
+        <li>
+          Whisper keeps word timings; other local models give segment timings.
+          An interrupted transcription can Resume from its last finished
+          segment.
+        </li>
+        <li>
+          Parakeet does not support Chinese. For Chinese, or Chinese and English
+          mixed, choose a model that supports it, such as Qwen3-ASR.
+        </li>
+      </ul>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="privacy">What leaves my Mac?</h2>
+      <div
+        class="guide-table-scroll"
+        tabindex="0"
+        role="region"
+        aria-label="Compare where meeting data goes"
+      >
+        <table class="guide-table">
+          <caption>Data sent at each step</caption>
+          <thead>
+            <tr>
+              <th scope="col">Step</th>
+              <th scope="col">What is sent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Recording</th>
+              <td>Nothing. The audio is saved on this Mac.</td>
+            </tr>
+            <tr>
+              <th scope="row">Local transcription</th>
+              <td>Nothing. Speaker identification also runs locally.</td>
+            </tr>
+            <tr>
+              <th scope="row">Soniox transcription</th>
+              <td>
+                After you choose Upload and Transcribe, the audio goes to Soniox
+                on your API key, and charges may apply. A local WAV remains.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Summarize</th>
+              <td>
+                After you confirm, the transcript goes to your selected
+                refinement provider; local refinement keeps it on your Mac.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="export">Edit and export</h2>
+      <p>
+        Your edits sit beside the original; switch between Edited and Original,
+        and Copy and Export use the one shown. Export TXT, JSON, SRT or VTT;
+        subtitles keep each turn’s time and speaker. Select a timestamp to play
+        the recording from there.
+      </p>
+      <p>
+        Meeting recordings ignore dictation’s audio retention and stay until you
+        remove the audio. Deleting a transcript keeps its recording.
+      </p>
+    </Surface>
+
+    <Surface class="guide-section">
+      <h2 id="limits">Limits</h2>
+      <ul>
+        <li>Each recording or file can be up to two hours long.</li>
+        <li>
+          Starting a recording needs about 2 GB of free space. Capture stops
+          after 15 seconds without receiving audio.
+        </li>
+        <li>
+          Speaker identification on long files needs enough free memory and
+          checks before it starts.
+        </li>
+        <li>
+          Airdraft has not published accuracy measurements for meeting
+          transcription or speaker labels. Try it with your own recordings.
+        </li>
+      </ul>
+      <div class="guide-actions">
+        <Button href={href("/pricing/", locale)} icon="right">
+          See Pricing
+        </Button>
+        <Button
+          href={href("/guides/compare-mac-dictation-apps/", locale)}
+          variant="quiet"
+          icon="right"
+        >
+          Compare With Other Apps
+        </Button>
+      </div>
+    </Surface>
+  </GuideLayout>
+)}

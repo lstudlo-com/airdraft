@@ -12,9 +12,14 @@ Access, restricted to the owner's L Studio Google identity.
 The primary audience values a quiet Mac utility, control over their models and
 their data, and less typing.
 Positioning: Airdraft is a late entrant among dictation apps, so the site does
-not lead with what every dictation app does (cleaning up ums). It leads with
-what sets it apart: a thoughtful, premium, native macOS app that works without
-a paid subscription.
+not lead with what every dictation app does (cleaning up ums). The hero names
+the jobs (speak into any app, transcribe meetings) and the privacy-minded user
+who wants processing that can stay on the Mac. The Traditional Chinese pages
+address Mac users who mix Chinese and English. This is a research hypothesis
+(vault: `Research/Competitors`, 2026-10-21 health check), not a validated
+segment; keep English copy true for every user. Meetings, mixed Chinese and
+English, and Claude Code / Codex refinement are shown on the homepage, not only
+in the changelog, guides or pricing.
 
 ## Product truth
 
@@ -49,7 +54,8 @@ a paid subscription.
   disabled "Not set up yet" key.
 - Pricing may state only: the open-source build is $0 with no locked features; the
   license terms above; donations unlock nothing; cloud providers bill users directly;
-  and a dated cost comparison. That comparison prices one stated workload (dictations,
+  that both editions include dictation and Meetings (the same app); a link to the
+  dated app comparison guide; and a dated cost comparison. That comparison prices one stated workload (dictations,
   seconds, token budget) for three Airdraft setups (all local; Parakeet with Cerebras
   `qwen-3.8-27b`; Groq Whisper Large v3 Turbo with Cerebras) against Wispr Flow Pro
   and Typeless Pro. `src/data/pricing.ts` holds the workload and list prices and
@@ -58,6 +64,21 @@ a paid subscription.
   pages, rechecked whenever the date changes. Show the assumptions beneath the table
   and say what leaves the Mac for each cloud setup.
 - Support troubleshooting comes from the root README's First run and Known issues sections.
+- Meetings records app audio from all apps or one app
+  plus an optional microphone through ScreenCaptureKit, with no screen frames,
+  or imports one audio or video file with a single audio track, up to two hours.
+  Transcription uses a chosen local model or Soniox (upload only after Upload and
+  Transcribe). Speaker labels are optional local estimates (Speaker 1, …),
+  renameable, never guessed names; overlapping voices are not separated. Exports
+  are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
+  `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
+  measurement is published.
+- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally; the README
+  recommends Qwen3-ASR 1.7B for mixed Chinese and English. Chinese script
+  defaults to Traditional with Taiwan vocabulary and can be Simplified or Auto.
+  Parakeet does not support Chinese. Never claim mixed-language accuracy.
+- The app interface is English. Translated pages say so where it matters and
+  keep app labels (profiles, HUD states, buttons) as the app shows them.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
 - Changelog entries distinguish unreleased development, dated source history and
@@ -85,8 +106,10 @@ action. Raised keys and recessed wells explain the interaction. Keep readable
 contrast, a 13px text floor, visible keyboard focus, reduced-motion behavior,
 and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
 The first viewport is the hero alone, at every window size: the positioning
-headline, the "Get Airdraft", source and sample actions, two quiet facts (open
-source; macOS 15+ on Apple silicon), and Home's waveform card from the app
+headline (the jobs: "Speak into any app. Transcribe your meetings."; in
+Traditional Chinese the audience and jobs: 中英混著講，說完就貼上。會議也能整理成逐字稿。),
+the "Get Airdraft", source and sample actions, three quiet facts (open source;
+processing can stay entirely on the Mac; macOS 15+ on Apple silicon), and Home's waveform card from the app
 (decorative bars, no metrics, the app's first-run caption); no paragraph. The
 caption works: holding ⌃⌥ or pressing the waveform plays a pretend dictation
 that adds a bar, without recording anything.
@@ -107,8 +130,13 @@ perspective. Bento tiles are one graphic and one line.
 
 ## Search and product guides
 
-The homepage links to a guide hub and three distinct guides: offline setup,
-local/cloud data flow, and the free source build versus official app. Keep their
+The homepage links to a guide hub and five distinct guides: offline setup,
+local/cloud data flow, the free source build versus official app, private
+meeting transcription, and a dated comparison with VoiceInk, Handy, Typeless
+and Apple Dictation on macOS 27. The comparison cites each product's own pages
+with check dates, says where competitors are better, marks unknown cells "Not
+checked", and lists Airdraft's current gaps. Recheck every row before changing
+its date; never add rankings, reviews or benchmark numbers. Keep their
 answers in static HTML, with descriptive internal links, visible breadcrumbs and
 semantic comparison tables. The first viewport remains the hero alone.
 Cloud refinement can receive enabled app context as well as transcript and
@@ -129,6 +157,17 @@ metadata, structured data, feed targets and social-image dimensions. HTTP previe
 checks also verify response headers, canonical redirects, assets and real 404s.
 IndexNow submission is explicit, defaults to a no-network dry run, and checks the
 published key and HTML before sending. It does not run during build or deployment.
+
+## Languages
+
+English pages live at the root. Traditional Chinese (Taiwan) translations live
+under `/zh-tw/` with the same slug: the homepage, pricing, the meeting guide and
+the comparison guide (`translatedPaths` in `src/i18n/index.ts`). They use
+natural Taiwan wording and keep Airdraft, provider and model names in English.
+Prices stay in US dollars from shared data. Untranslated pages (support,
+changelog, privacy, the other guides) stay English and are labelled so where a
+translated page links to them. The header (above 760px), the phone menu and
+the footer offer the other language's version of the page, or its homepage.
 
 ## Delivery
 

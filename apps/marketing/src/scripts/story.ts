@@ -164,6 +164,30 @@ const arts: Record<
         );
     });
   },
+  // The Chinese script picker: the same mixed sentence in each script.
+  script(art, timeline) {
+    const holder = one(".art-profiles", art)!;
+    const outputs: string[] = JSON.parse(holder.dataset.outputs ?? "[]");
+    const items = all("li:not(.segmented-thumb)", art);
+    const output = one("[data-output]", art)!;
+    outputs.forEach((_, step) => {
+      const index = (step + 1) % outputs.length;
+      timeline
+        .to({}, { duration: 2 })
+        .to(output, { autoAlpha: 0, y: -6, duration: 0.22 })
+        .call(() => {
+          items.forEach((item, position) =>
+            item.classList.toggle("is-selected", position === index),
+          );
+          output.textContent = outputs[index];
+        })
+        .fromTo(
+          output,
+          { y: 6 },
+          { autoAlpha: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        );
+    });
+  },
   vocabulary(art, timeline) {
     const wrong = one("[data-wrong]", art)!;
     const right = one("[data-right]", art)!;

@@ -2,38 +2,110 @@
 import Arrow from "./Arrow.astro";
 import Button from "./ui/Button.astro";
 import Hud from "./ui/Hud.astro";
+import type { Locale } from "../i18n";
+
+/**
+ * The authored sample dictation (src/scripts/preview.ts). Each language has
+ * its own spoken line and profile results; the script reads them from data
+ * attributes. Profile names and HUD states stay as the app shows them.
+ */
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+
+const copy = {
+  en: {
+    name: "Sample dictation",
+    said: "What you said",
+    inserts: "What Airdraft inserts",
+    picker: "Refinement profile",
+    run: "Run sample",
+    noscript:
+      "Showing the Clean profile. Turn on JavaScript to run the sample.",
+    examples: {
+      clean:
+        "Hi Maya, I’ll send the draft tomorrow morning. Could we move our check-in to two?",
+      concise:
+        "Maya, I’ll send the draft tomorrow morning. Can we move our check-in to two?",
+      summary:
+        "Send Maya the draft tomorrow morning. Ask to move the check-in to two.",
+    },
+    labels: {
+      stop: "Stop",
+      again: "Run again",
+      run: "Run sample",
+      placeholder: "The text appears here when you let go.",
+      listening: "Listening…",
+      transcribing: "Transcribing…",
+      refining: "Refining…",
+    },
+  },
+  "zh-tw": {
+    name: "聽寫範例",
+    said: "你說的話",
+    inserts: "Airdraft 貼上的文字",
+    picker: "潤稿設定檔",
+    run: "播放範例",
+    noscript: "目前顯示 Clean 設定檔。開啟 JavaScript 即可播放範例。",
+    examples: {
+      clean: "嗨 Maya，我明天早上會把 draft 寄給你。check-in 可以改到兩點嗎？",
+      concise: "Maya，draft 明天早上寄給你。check-in 能改到兩點嗎？",
+      summary: "明天早上把 draft 寄給 Maya，並請她把 check-in 改到兩點。",
+    },
+    labels: {
+      stop: "停止",
+      again: "再播一次",
+      run: "播放範例",
+      placeholder: "放開快速鍵後，文字會出現在這裡。",
+      listening: "聆聽中…",
+      transcribing: "轉錄中…",
+      refining: "潤稿中…",
+    },
+  },
+}[locale];
 ---
 
 <section
   class="preview panel"
   id="try"
-  aria-label="Sample dictation"
+  aria-label={copy.name}
   data-preview
+  data-examples={JSON.stringify(copy.examples)}
+  data-labels={JSON.stringify(copy.labels)}
 >
   <div class="preview-stage">
     <div class="spoken well">
-      <span class="field-label">What you said</span>
-      <p data-spoken>
-        “<span class="filler struck">Um,</span> let Maya know I’ll send the
-        draft tomorrow morning. <span class="filler struck">And, uh,</span> ask
-        if we can move our check-in to two.”
-      </p>
+      <span class="field-label">{copy.said}</span>
+      {locale === "zh-tw" ? (
+        <p data-spoken>
+          「<span class="filler struck">呃，</span> 跟 Maya 說 draft
+          我明天早上寄給她。 <span class="filler struck">然後那個，</span> 問她
+          check-in 能不能改到兩點。」
+        </p>
+      ) : (
+        <p data-spoken>
+          “<span class="filler struck">Um,</span> let Maya know I’ll send the
+          draft tomorrow morning. <span class="filler struck">And, uh,</span>{" "}
+          ask if we can move our check-in to two.”
+        </p>
+      )}
     </div>
     <span class="stage-arrow" aria-hidden="true">
       <Arrow />
     </span>
     <div class="written" data-written>
-      <span class="field-label">What Airdraft inserts</span>
+      <span class="field-label">{copy.inserts}</span>
       <div class="result-copy" aria-live="polite" data-result>
         <p>
-          Hi Maya, I’ll send the draft tomorrow morning. Could we move our
-          check-in to two?<span class="caret" aria-hidden="true"></span>
+          {copy.examples.clean}
+          <span class="caret" aria-hidden="true"></span>
         </p>
       </div>
       <div
         class="segmented"
         role="group"
-        aria-label="Refinement profile"
+        aria-label={copy.picker}
         data-profile-picker
         hidden
       >
@@ -63,15 +135,13 @@ import Hud from "./ui/Hud.astro";
         <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
       </svg>
       <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
-      <span data-play-label>Run sample</span>
+      <span data-play-label>{copy.run}</span>
     </Button>
     <Hud />
     <p class="preview-status" aria-live="polite" data-status></p>
   </div>
   <noscript>
-    <p class="no-script-note">
-      Showing the Clean profile. Turn on JavaScript to run the sample.
-    </p>
+    <p class="no-script-note">{copy.noscript}</p>
   </noscript>
 </section>
 

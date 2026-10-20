@@ -15,6 +15,7 @@ import {
   socialImageAlt,
   type Breadcrumb,
 } from "../lib/seo";
+import { alternatesFor, languageTag, localeOf, ogLocale } from "../i18n";
 
 interface Props {
   title?: string;
@@ -28,22 +29,34 @@ const {
   noindex = false,
   breadcrumbs = [],
 } = Astro.props;
+const locale = localeOf(Astro.url.pathname);
 const canonical =
   Astro.site && !noindex
     ? canonicalURL(Astro.url.pathname, Astro.site)
     : undefined;
+// Every language version of a translated page, including itself, plus
+// x-default for visitors whose language has no version (the English page).
+const alternates =
+  canonical && Astro.site
+    ? alternatesFor(Astro.url.pathname).map((entry) => ({
+        hreflang: languageTag[entry.locale],
+        href: canonicalURL(entry.path, Astro.site!).href,
+        locale: entry.locale,
+      }))
+    : [];
+const xDefault = alternates.find((entry) => entry.locale === "en");
 const socialImage = Astro.site
   ? new URL("/social-card.png", Astro.site)
   : undefined;
 const structuredData = canonical
-  ? pageStructuredData({ canonical, title, description, breadcrumbs })
+  ? pageStructuredData({ canonical, title, description, breadcrumbs, locale })
   : undefined;
 const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION?.trim();
 const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={languageTag[locale]}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -64,6 +77,12 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       content={noindex ? "noindex" : "max-image-preview:large"}
     />
     {canonical && <link rel="canonical" href={canonical} />}
+    {alternates.map((entry) => (
+      <link rel="alternate" hreflang={entry.hreflang} href={entry.href} />
+    ))}
+    {xDefault && (
+      <link rel="alternate" hreflang="x-default" href={xDefault.href} />
+    )}
     {googleVerification && (
       <meta name="google-site-verification" content={googleVerification} />
     )}
@@ -75,12 +94,19 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
     <link
       rel="alternate"
       type="application/rss+xml"
-      title="Airdraft releases"
+      title={
+        locale === "zh-tw" ? "Airdraft 版本更新（英文）" : "Airdraft releases"
+      }
       href="/changelog.xml"
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={siteName} />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={ogLocale[locale]} />
+    {alternates
+      .filter((entry) => entry.locale !== locale)
+      .map((entry) => (
+        <meta property="og:locale:alternate" content={ogLocale[entry.locale]} />
+      ))}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
@@ -112,7 +138,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       // run before the first render, where "pagereveal" fires.
       addEventListener("pagereveal", (event) => {
         if (!event.viewTransition) return;
-        const linked = ["/pricing", "/support", "/changelog"];
+        const linked = ["/pricing", "/support", "/changelog", "/zh-tw/pricing"];
         const page = (url) => {
           try {
             return new URL(url).pathname.replace(/\/$/, "");
@@ -140,10 +166,10 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
     FINISH: No invented release, price, license or measurement. Visible focus, reduced motion, useful without JavaScript.
     -->
     <a class="skip-link" href="#main">
-      Skip to content
+      {locale === "zh-tw" ? "跳到主要內容" : "Skip to content"}
     </a>
     <slot />
-    <Analytics />
+    <Analytics locale={locale} />
     <script>
       import "../scripts/segmented";
       import "../scripts/island";

@@ -2,7 +2,8 @@ import { captureWebsiteEvent } from "./analytics";
 
 type Profile = "clean" | "concise" | "summary";
 
-const examples: Record<Profile, string> = {
+// English defaults; DictationPreview.astro supplies each page's language.
+const defaultExamples: Record<Profile, string> = {
   clean:
     "Hi Maya, I’ll send the draft tomorrow morning. Could we move our check-in to two?",
   concise:
@@ -10,11 +11,30 @@ const examples: Record<Profile, string> = {
   summary:
     "Send Maya the draft tomorrow morning. Ask to move the check-in to two.",
 };
+const defaultLabels = {
+  stop: "Stop",
+  again: "Run again",
+  run: "Run sample",
+  placeholder: "The text appears here when you let go.",
+  listening: "Listening…",
+  transcribing: "Transcribing…",
+  refining: "Refining…",
+};
+
+const parse = <T extends object>(raw: string | undefined, fallback: T): T => {
+  try {
+    return { ...fallback, ...JSON.parse(raw ?? "{}") };
+  } catch {
+    return fallback;
+  }
+};
 
 const preview = document.querySelector<HTMLElement>("[data-preview]");
 if (preview) setup(preview);
 
 function setup(preview: HTMLElement) {
+  const examples = parse(preview.dataset.examples, defaultExamples);
+  const labels = parse(preview.dataset.labels, defaultLabels);
   const find = <T extends Element>(selector: string) =>
     preview.querySelector<T>(selector)!;
   const play = find<HTMLButtonElement>("[data-play]");
@@ -87,10 +107,10 @@ function setup(preview: HTMLElement) {
   const setRunning = (value: boolean) => {
     running = value;
     playLabel.textContent = value
-      ? "Stop"
+      ? labels.stop
       : hasRun
-        ? "Run again"
-        : "Run sample";
+        ? labels.again
+        : labels.run;
   };
   const renderResult = (text: string) => {
     const paragraph = document.createElement("p");
@@ -105,7 +125,7 @@ function setup(preview: HTMLElement) {
   const renderPlaceholder = () => {
     const paragraph = document.createElement("p");
     paragraph.className = "placeholder";
-    paragraph.textContent = "The text appears here when you let go.";
+    paragraph.textContent = labels.placeholder;
     result.replaceChildren(paragraph);
   };
 
@@ -127,7 +147,7 @@ function setup(preview: HTMLElement) {
     at(startAt, () => {
       preview.dataset.state = "refining";
       hudLabel.textContent = "Refining";
-      status.textContent = "Refining…";
+      status.textContent = labels.refining;
       fillers.forEach((filler, index) =>
         at(120 + index * 220, () => filler.classList.add("struck")),
       );
@@ -159,7 +179,7 @@ function setup(preview: HTMLElement) {
     fillers.forEach((filler) => filler.classList.remove("struck"));
     renderPlaceholder();
     preview.dataset.state = "listening";
-    status.textContent = "Listening…";
+    status.textContent = labels.listening;
 
     const started = performance.now();
     level = 0.14;
@@ -179,7 +199,7 @@ function setup(preview: HTMLElement) {
         level = isFiller ? 0.42 : 1;
       });
       time += isFiller ? 320 : 70 + text.length * 12;
-      if (/[.,”]$/.test(text)) {
+      if (/[.,”。，」]$/.test(text)) {
         at(time, () => (level = 0.14));
         time += 140;
       }
@@ -190,7 +210,7 @@ function setup(preview: HTMLElement) {
       setLevels(0.14);
       preview.dataset.state = "decoding";
       hudLabel.textContent = "Decoding";
-      status.textContent = "Transcribing…";
+      status.textContent = labels.transcribing;
     });
     refineAndType(time + 520);
   };

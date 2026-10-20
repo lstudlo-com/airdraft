@@ -178,7 +178,10 @@ document.addEventListener("click", (event) => {
   else if (siteLinks.checkout && link.href === siteLinks.checkout)
     name = "checkout_clicked";
   else if (link.href === siteLinks.issues) name = "support_clicked";
-  else if (link.origin === location.origin && link.pathname === "/pricing/")
+  else if (
+    link.origin === location.origin &&
+    ["/pricing/", "/zh-tw/pricing/"].includes(link.pathname)
+  )
     name = "pricing_clicked";
   else if (link.href.startsWith(`${siteLinks.source}/releases/`))
     name = "release_clicked";

@@ -35,6 +35,7 @@ class Page(HTMLParser):
         self.schemas = []
         self.schema = ""
         self.language = None
+        self.og_alternates = []
         self.feed(source)
 
     def handle_starttag(self, tag, attributes):
@@ -45,6 +46,8 @@ class Page(HTMLParser):
             self.language = attrs.get("lang")
         if tag == "meta":
             self.meta[attrs.get("name", attrs.get("property"))] = attrs.get("content", "")
+            if attrs.get("property") == "og:locale:alternate":
+                self.og_alternates.append(attrs.get("content", ""))
         if tag == "link":
             self.links.append(attrs)
         if tag == "a" and "href" in attrs:
@@ -72,6 +75,10 @@ class Page(HTMLParser):
 
     def hrefs(self, relation):
         return [link["href"] for link in self.links if link.get("rel") == relation]
+
+
+def page_alternate_locales(page):
+    return set(page.og_alternates)
 
 
 def graph_nodes(value):
@@ -112,8 +119,12 @@ def check(base_url=None):
     require(not pages.get("/404.html", home).hrefs("canonical"), "404 must not canonicalize missing paths.")
     titles, descriptions = set(), set()
     adjacency = {}
+    # Traditional Chinese (Taiwan) pages live under /zh-tw/; everything else is English.
+    def language_of(route):
+        return "zh-Hant-TW" if route.startswith("/zh-tw/") else "en"
+    og_locales = {"en": "en_US", "zh-Hant-TW": "zh_TW"}
     for route, page in pages.items():
-        require(page.language == "en", f"{route}: missing English language.")
+        require(page.language == language_of(route), f"{route}: expected lang {language_of(route)}, got {page.language}.")
         require(page.h1_count == 1, f"{route}: expected one H1, got {page.h1_count}.")
         adjacency[route] = set()
         for href in page.anchors:
@@ -137,6 +148,7 @@ def check(base_url=None):
         require(description.strip() and description not in descriptions, f"{route}: missing/duplicate description.")
         descriptions.add(description)
         require(page.meta.get("og:url") == origin + route, f"{route}: OG URL mismatch.")
+        require(page.meta.get("og:locale") == og_locales[language_of(route)], f"{route}: OG locale mismatch.")
         require(page.meta.get("og:title") == page.title, f"{route}: OG title mismatch.")
         require(page.meta.get("og:description") == description, f"{route}: OG description mismatch.")
         require(page.meta.get("og:site_name") == "Airdraft", f"{route}: missing site name.")
@@ -149,7 +161,7 @@ def check(base_url=None):
         require(not re.search(r"nosnippet|noai|max-snippet:0", robots), f"{route}: unexpected snippet restriction.")
         require(any(link.get("type") == "application/rss+xml" and urljoin(origin, link.get("href", "")) == origin + "/changelog.xml" for link in page.links), f"{route}: RSS discovery missing.")
         nodes = [node for schema in page.schemas for node in graph_nodes(schema)]
-        require(any(node.get("@type") == "WebPage" and node.get("url") == origin + route for node in nodes), f"{route}: WebPage structured data missing.")
+        require(any(node.get("@type") == "WebPage" and node.get("url") == origin + route and node.get("inLanguage") == language_of(route) for node in nodes), f"{route}: WebPage structured data missing or in the wrong language.")
         require(not any("aggregateRating" in node or "review" in node or "offers" in node for node in nodes), f"{route}: unsupported review or offer claim.")
     root_nodes = [node for schema in home.schemas for node in graph_nodes(schema)]
     require(any(node.get("@type") == "WebSite" and node.get("name") == "Airdraft" and node.get("url") == origin + "/" for node in root_nodes), "Homepage WebSite identity missing.")
@@ -161,15 +173,47 @@ def check(base_url=None):
             reachable.add(route)
             pending.extend(adjacency.get(route, set()) - reachable)
     require(set(indexable) <= reachable, f"Orphan pages: {set(indexable) - reachable}")
-    namespace = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+    # Translated pages: every alternate set names each language version once,
+    # includes the page itself, points x-default at the English page, and is
+    # identical on every member (reciprocal). Every /zh-tw/ page is a translation.
+    alternate_sets = {}
+    for route, page in indexable.items():
+        alternates = {link["hreflang"]: link.get("href", "") for link in page.links if link.get("rel") == "alternate" and link.get("hreflang")}
+        require(len(alternates) == len([link for link in page.links if link.get("rel") == "alternate" and link.get("hreflang")]), f"{route}: duplicate hreflang.")
+        if route.startswith("/zh-tw/"):
+            require(bool(alternates), f"{route}: translated page without hreflang alternates.")
+        if not alternates:
+            continue
+        alternate_sets[route] = alternates
+        require(alternates.get(language_of(route)) == origin + route, f"{route}: hreflang set must include the page itself.")
+        require(set(alternates) >= {"en", "zh-Hant-TW", "x-default"}, f"{route}: hreflang set must name en, zh-Hant-TW and x-default.")
+        require(alternates.get("x-default") == alternates.get("en"), f"{route}: x-default must be the English page.")
+        for language, target in alternates.items():
+            path = urlsplit(target).path
+            require(target.startswith(origin + "/") and path in indexable, f"{route}: hreflang {language} targets a non-indexable page {target}.")
+            if language != "x-default":
+                require(language_of(path) == language, f"{route}: hreflang {language} targets a {language_of(path)} page.")
+    for route, alternates in alternate_sets.items():
+        for language, target in alternates.items():
+            path = urlsplit(target).path
+            require(alternate_sets.get(path) == alternates, f"{route}: hreflang alternates are not reciprocal with {path}.")
+        require(page_alternate_locales(indexable[route]) == {og_locales[language] for language in alternates if language not in ("x-default", language_of(route))}, f"{route}: og:locale:alternate must list the other languages.")
+    namespace = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9", "x": "http://www.w3.org/1999/xhtml"}
     sitemap_index = ET.parse(DIST / "sitemap-index.xml")
     sitemap_urls = []
+    sitemap_alternates = {}
     for loc in sitemap_index.findall("s:sitemap/s:loc", namespace):
         require(loc.text.startswith(origin + "/"), "Sitemap index origin mismatch.")
         sitemap = ET.parse(DIST / urlsplit(loc.text).path.lstrip("/"))
         sitemap_urls.extend(element.text for element in sitemap.findall("s:url/s:loc", namespace))
+        for entry in sitemap.findall("s:url", namespace):
+            location = entry.findtext("s:loc", "", namespace)
+            sitemap_alternates[location] = {link.get("hreflang"): link.get("href") for link in entry.findall("x:link", namespace)}
     require(set(sitemap_urls) == {origin + route for route in indexable}, "Sitemap must contain exactly the indexable canonical HTML pages.")
     require(len(sitemap_urls) == len(set(sitemap_urls)), "Duplicate sitemap URL.")
+    for route in indexable:
+        expected = {language: target for language, target in alternate_sets.get(route, {}).items() if language != "x-default"}
+        require(sitemap_alternates.get(origin + route, {}) == expected, f"{route}: sitemap alternates differ from the page's hreflang links.")
     redirects = {}
     for line in (DIST / "_redirects").read_text().splitlines():
         if line.strip() and not line.lstrip().startswith("#"):
@@ -238,7 +282,7 @@ def check(base_url=None):
         require(status == 404 and "noindex" in Page(body.decode()).meta.get("robots", ""), "Missing path must return HTTP 404 with noindex.")
     if errors:
         raise AssertionError("\n".join(errors))
-    print(f"Search checks passed: {len(indexable)} indexable pages, canonical/sitemap parity, crawlable internal links, AI/search permissions, structured data, {len(items)} feed entries, social image" + (", HTTP routes." if base_url else "."))
+    print(f"Search checks passed: {len(indexable)} indexable pages ({len(alternate_sets)} with language alternates), canonical/sitemap parity, crawlable internal links, AI/search permissions, structured data, {len(items)} feed entries, social image" + (", HTTP routes." if base_url else "."))
 
 
 if __name__ == "__main__":

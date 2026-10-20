@@ -3,6 +3,32 @@ import LicenseCard from "./LicenseCard.astro";
 import Button from "./ui/Button.astro";
 import Surface from "./ui/Surface.astro";
 import { siteLinks } from "../data/site";
+import type { Locale } from "../i18n";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+const copy =
+  locale === "zh-tw"
+    ? {
+        title: "取得 Airdraft",
+        intro:
+          "可以免費從原始碼自行編譯，或一次買斷現成可用的 App。官方版尚未開賣。",
+        build: "自己編譯",
+        free: "免費",
+        note: "所有功能。需要在 Apple 晶片 Mac 上使用 Xcode。",
+        action: "自行編譯說明",
+      }
+    : {
+        title: "Get Airdraft",
+        intro:
+          "Free to build from source, or a one-time license for the ready-to-run app.",
+        build: "Build it yourself",
+        free: "Free",
+        note: "Every feature. Needs Xcode on an Apple silicon Mac.",
+        action: "Build instructions",
+      };
 
 /**
  * The close: the two ways to get Airdraft, side by side. Build it yourself
@@ -19,28 +45,24 @@ import { siteLinks } from "../data/site";
   aria-labelledby="get-heading"
 >
   <div class="section-heading">
-    <h2 id="get-heading">Get Airdraft</h2>
-    <p>
-      Free to build from source, or a one-time license for the ready-to-run app.
-    </p>
+    <h2 id="get-heading">{copy.title}</h2>
+    <p>{copy.intro}</p>
   </div>
 
   <div class="offers">
     <Surface as="article" class="offer" data-offer="">
       <div class="offer-head">
-        <h3>Build it yourself</h3>
+        <h3>{copy.build}</h3>
       </div>
-      <p class="offer-price">Free</p>
-      <p class="offer-note">
-        Every feature. Needs Xcode on an Apple silicon Mac.
-      </p>
+      <p class="offer-price">{copy.free}</p>
+      <p class="offer-note">{copy.note}</p>
       <div class="offer-foot">
         <Button href={siteLinks.build} size="lg" icon="external">
-          Build instructions
+          {copy.action}
         </Button>
       </div>
     </Surface>
 
-    <LicenseCard name="offer-macs" />
+    <LicenseCard name="offer-macs" locale={locale} />
   </div>
 </section>

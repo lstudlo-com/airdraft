@@ -19,13 +19,17 @@ function compare(frame: HTMLElement) {
     frame.classList.remove("awaits-sweep", "is-sweeping");
     frame.style.setProperty("--split", `${value}%`);
     range.value = String(value);
+    // The page supplies its language's wording (InterfaceShowcase.astro).
+    const { allLight, allDark, mixed } = range.dataset;
     range.setAttribute(
       "aria-valuetext",
       value >= 100
-        ? "All light"
+        ? (allLight ?? "All light")
         : value <= 0
-          ? "All dark"
-          : `${value}% light, ${100 - value}% dark`,
+          ? (allDark ?? "All dark")
+          : (mixed ?? "{light}% light, {dark}% dark")
+              .replace("{light}", String(value))
+              .replace("{dark}", String(100 - value)),
     );
   };
   const fromPointer = (event: PointerEvent) => {

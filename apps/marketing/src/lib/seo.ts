@@ -1,4 +1,5 @@
 import { siteLinks } from "../data/site";
+import { languageTag, locales, type Locale } from "../i18n";
 
 export interface Breadcrumb {
   name: string;
@@ -7,11 +8,11 @@ export interface Breadcrumb {
 
 export const siteName = "Airdraft";
 export const defaultTitle =
-  "Airdraft | Open-source Mac dictation, local or cloud";
+  "Airdraft | Mac dictation and meeting transcription, local or cloud";
 export const defaultDescription =
-  "Airdraft is a Mac dictation app with independent local or cloud speech and refinement. Speak, release the shortcut, and insert text. Free to build from source.";
+  "Airdraft is an open-source Mac app that types what you say into any app and transcribes meetings, with independent local or cloud speech and refinement. Free to build from source.";
 export const socialImageAlt =
-  "Airdraft: The Mac transcription app you own. Open source, with local or cloud models.";
+  "Airdraft: Speak into any app. Transcribe meetings. Keep it on your Mac. Open source, with local or cloud models.";
 
 /** HTML routes use the same trailing slash as Astro's directory output. */
 export function canonicalURL(path: string, site: URL): URL {
@@ -38,11 +39,13 @@ export function pageStructuredData({
   title,
   description,
   breadcrumbs = [],
+  locale = "en",
 }: {
   canonical: URL;
   title: string;
   description: string;
   breadcrumbs?: Breadcrumb[];
+  locale?: Locale;
 }) {
   const home = new URL("/", canonical);
   const websiteID = new URL("#website", home).href;
@@ -57,7 +60,7 @@ export function pageStructuredData({
         "@id": websiteID,
         name: siteName,
         url: home.href,
-        inLanguage: "en",
+        inLanguage: locales.map((entry) => languageTag[entry]),
       },
       {
         "@type": "SoftwareApplication",
@@ -75,6 +78,8 @@ export function pageStructuredData({
           "Independent local or cloud speech recognition and refinement",
           "Editable writing profiles and vocabulary corrections",
           "Local, searchable dictation history",
+          "Meeting recording and audio or video transcription with optional speaker labels",
+          "Traditional or Simplified Chinese output, including mixed Chinese and English speech with supported models",
         ],
       },
     );
@@ -86,7 +91,7 @@ export function pageStructuredData({
     url: canonical.href,
     name: title,
     description,
-    inLanguage: "en",
+    inLanguage: languageTag[locale],
     isPartOf: { "@id": websiteID },
     about: { "@id": applicationID },
     ...(breadcrumbs.length > 1 && {

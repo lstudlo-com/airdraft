@@ -43,6 +43,12 @@ const paths = new Set([
   "/guides/offline-dictation-on-mac/",
   "/guides/local-vs-cloud-dictation/",
   "/guides/free-source-or-official-app/",
+  "/guides/private-meeting-transcription/",
+  "/guides/compare-mac-dictation-apps/",
+  "/zh-tw/",
+  "/zh-tw/pricing/",
+  "/zh-tw/guides/private-meeting-transcription/",
+  "/zh-tw/guides/compare-mac-dictation-apps/",
 ]);
 export function safePath(path: string) {
   return paths.has(path) ? path : "/404/";

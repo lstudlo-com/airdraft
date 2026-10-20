@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { guides } from "../data/guides";
+import { guides, zhGuides } from "../data/guides";
 import { siteLinks } from "../data/site";
 
 // Optional navigation for tools that read llms.txt. HTML is authoritative;
@@ -10,7 +10,7 @@ export const GET: APIRoute = ({ site }) => {
   return new Response(
     `# Airdraft
 
-> Airdraft is an open-source menu-bar dictation app for Apple silicon Macs running macOS 15 or later. It transcribes speech, optionally refines the text, and inserts it at the cursor. Speech and refinement providers are chosen independently.
+> Airdraft is an open-source menu-bar dictation app for Apple silicon Macs running macOS 15 or later. It transcribes speech, optionally refines the text, and inserts it at the cursor. Speech and refinement providers are chosen independently. Its Meetings page records app audio and the microphone or imports audio and video files, then transcribes them with optional speaker labels.
 
 The linked pages contain current product facts and availability. The source build is free. See Pricing for official-build availability and license terms.
 
@@ -24,6 +24,12 @@ The linked pages contain current product facts and availability. The source buil
 ## Guides
 
 ${guides.map((guide) => `- [${guide.title}](${url(guide.href)}): ${guide.description}`).join("\n")}
+
+## Traditional Chinese (Taiwan)
+
+- [Airdraft 首頁](${url("/zh-tw/")}): 中英混合聽寫、會議逐字稿與功能介紹。
+- [價格](${url("/zh-tw/pricing/")}): 自行編譯、官方授權與服務商費用。
+${zhGuides.map((guide) => `- [${guide.title}](${url(guide.href)}): ${guide.description}`).join("\n")}
 
 ## Source
 

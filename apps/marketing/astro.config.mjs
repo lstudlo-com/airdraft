@@ -33,6 +33,12 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !excludedPaths.has(new URL(page).pathname),
+      // Pairs each translated page with its English original by path
+      // (src/i18n/index.ts), as xhtml:link alternates in the sitemap.
+      i18n: {
+        defaultLocale: "en",
+        locales: { en: "en", "zh-tw": "zh-Hant-TW" },
+      },
     }),
   ],
   devToolbar: { enabled: false },

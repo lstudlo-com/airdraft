@@ -1,5 +1,12 @@
 ---
 import Section from "./ui/Section.astro";
+import type { Locale } from "../i18n";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+const zh = locale === "zh-tw";
 
 /**
  * "You choose where each step runs": the dictation pipeline as one raised
@@ -35,12 +42,12 @@ interface Stage {
 const stages: Stage[] = [
   {
     id: "speech",
-    title: "Speech",
+    title: zh ? "語音辨識" : "Speech",
     options: [
       {
         place: "mac",
-        label: "This Mac",
-        line: "Audio never leaves your Mac.",
+        label: zh ? "這台 Mac" : "This Mac",
+        line: zh ? "音訊不會離開你的 Mac。" : "Audio never leaves your Mac.",
         items: [
           "Qwen3-ASR",
           "Whisper",
@@ -53,8 +60,10 @@ const stages: Stage[] = [
       },
       {
         place: "cloud",
-        label: "Cloud",
-        line: "Audio goes to the provider, on your own API key.",
+        label: zh ? "雲端" : "Cloud",
+        line: zh
+          ? "音訊會送到服務商，使用你自己的 API 金鑰。"
+          : "Audio goes to the provider, on your own API key.",
         items: [
           "Soniox",
           "Groq",
@@ -68,12 +77,14 @@ const stages: Stage[] = [
   },
   {
     id: "refinement",
-    title: "Refinement",
+    title: zh ? "潤稿" : "Refinement",
     options: [
       {
         place: "mac",
-        label: "This Mac",
-        line: "A local model cleans up the transcript. It stays here.",
+        label: zh ? "這台 Mac" : "This Mac",
+        line: zh
+          ? "本機模型整理逐字稿，文字留在這裡。"
+          : "A local model cleans up the transcript. It stays here.",
         items: [
           "Apple Intelligence",
           "LM Studio",
@@ -83,8 +94,10 @@ const stages: Stage[] = [
       },
       {
         place: "cloud",
-        label: "Cloud",
-        line: "The transcript goes to the provider you pick.",
+        label: zh ? "雲端" : "Cloud",
+        line: zh
+          ? "逐字稿會送到你選的服務商。"
+          : "The transcript goes to the provider you pick.",
         items: [
           "OpenAI",
           "Anthropic",
@@ -96,8 +109,10 @@ const stages: Stage[] = [
       },
       {
         place: "plan",
-        label: "Subscription",
-        line: "Uses the Claude or ChatGPT plan you already pay for.",
+        label: zh ? "訂閱方案" : "Subscription",
+        line: zh
+          ? "使用你已經付費的 Claude 或 ChatGPT 方案。"
+          : "Uses the Claude or ChatGPT plan you already pay for.",
         items: ["Claude Code", "Codex"],
       },
     ],
@@ -111,8 +126,14 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
 
 <Section
   id="how-it-works"
-  title="You choose where each step runs"
-  intro="Speech and refinement run separately. Pick local or cloud for each."
+  title={
+    zh ? "每個步驟在哪裡執行，由你決定" : "You choose where each step runs"
+  }
+  intro={
+    zh
+      ? "語音辨識和潤稿分開執行，各自選本機或雲端。"
+      : "Speech and refinement run separately. Pick local or cloud for each."
+  }
 >
   <div class="pipeline panel" data-reveal>
     {stages.map((stage, index) => (
@@ -128,7 +149,11 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
         <div
           class="segmented"
           role="radiogroup"
-          aria-label={`Where ${stage.title.toLowerCase()} runs`}
+          aria-label={
+            zh
+              ? `${stage.title}在哪裡執行`
+              : `Where ${stage.title.toLowerCase()} runs`
+          }
         >
           {stage.options.map((option, choice) => (
             <label>
@@ -178,22 +203,35 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
     ))}
     <div class="pipe-stage" role="group" aria-labelledby="stage-insertion">
       <span class="pipe-arrow" aria-hidden="true" set:html={arrow} />
-      <h3 id="stage-insertion">Insertion</h3>
-      <p class="pipe-fixed">At your cursor</p>
+      <h3 id="stage-insertion">{zh ? "貼上" : "Insertion"}</h3>
+      <p class="pipe-fixed">{zh ? "在游標位置" : "At your cursor"}</p>
       <p class="pipe-line">
-        Your vocabulary fixes names last. Then the text goes into the app you’re
-        typing in.
+        {zh
+          ? "最後由你的詞彙表修正名稱，再把文字貼進你正在打字的 App。"
+          : "Your vocabulary fixes names last. Then the text goes into the app you’re typing in."}
       </p>
       <div class="fix-field" data-art="fix">
-        <p>
-          Meet me in{" "}
-          <span class="fix">
-            <del class="fix-wrong">cooper tino</del>
-            <ins class="fix-right">Cupertino</ins>
-          </span>{" "}
-          at nine.
-          <span class="caret" aria-hidden="true"></span>
-        </p>
+        {zh ? (
+          <p>
+            九點在{" "}
+            <span class="fix">
+              <del class="fix-wrong">cooper tino</del>
+              <ins class="fix-right">Cupertino</ins>
+            </span>{" "}
+            碰面。
+            <span class="caret" aria-hidden="true" />
+          </p>
+        ) : (
+          <p>
+            Meet me in{" "}
+            <span class="fix">
+              <del class="fix-wrong">cooper tino</del>
+              <ins class="fix-right">Cupertino</ins>
+            </span>{" "}
+            at nine.
+            <span class="caret" aria-hidden="true" />
+          </p>
+        )}
       </div>
     </div>
   </div>

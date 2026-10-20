@@ -2,6 +2,12 @@
 import Hud from "./ui/Hud.astro";
 import Keys from "./ui/Keys.astro";
 import Waveform from "./ui/Waveform.astro";
+import type { Locale } from "../i18n";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
 
 /**
  * The hero object: Home's hero card from the app, without its metrics (the
@@ -25,10 +31,17 @@ const levels = Array.from({ length: count }, (_, index) => {
 <div class="hero-card" data-dictate>
   <Waveform levels={levels} />
   <div class="hero-status">
-    <p class="hero-caption">
-      Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
-      dictation adds a bar.
-    </p>
+    {locale === "zh-tw" ? (
+      <p class="hero-caption">
+        按住 <Keys keys={["⌃", "⌥"]} label="Control Option" />{" "}
+        開始說話。每次聽寫會多一條長條。
+      </p>
+    ) : (
+      <p class="hero-caption">
+        Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
+        dictation adds a bar.
+      </p>
+    )}
     <Hud class="hero-hud" />
   </div>
 </div>
