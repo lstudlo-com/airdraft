@@ -171,8 +171,9 @@
         animation-range: cover 0% cover 100%;
       }
       @media (min-width: 1001px) {
-        /* wide + narrow, three narrow, narrow + wide */
-        .bento .tile:is(:nth-child(2), :nth-child(4), :nth-child(7)) {
+        /* wide + narrow, three narrow, narrow + wide, wide + narrow */
+        .bento
+          .tile:is(:nth-child(2), :nth-child(4), :nth-child(7), :nth-child(9)) {
           --col: 1;
         }
         .bento .tile:nth-child(5) {
@@ -205,6 +206,19 @@
       }
       .pipeline > .pipe-stage:nth-child(3) {
         --step: 12%;
+      }
+
+      /* The Meetings card and its list rise like the pipeline board. */
+      .meetings > * {
+        --rise-y: 56px;
+        --rise-scale: 0.94;
+        animation:
+          motion-rise linear both,
+          motion-lift linear both;
+        animation-timeline: view(), view();
+        animation-range:
+          entry 0% cover 40%,
+          entry 0% cover 40%;
       }
 
       /* 5. The close. Both offers rise as the island settles back to its

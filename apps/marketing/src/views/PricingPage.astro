@@ -1,0 +1,333 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Button from "../components/ui/Button.astro";
+import Disclosure from "../components/ui/Disclosure.astro";
+import Section from "../components/ui/Section.astro";
+import Surface from "../components/ui/Surface.astro";
+import Check from "../components/Check.astro";
+import {
+  licenseIncludes,
+  licenseIncludesZh,
+  licenseLabelsZh,
+  licenses,
+  siteLinks,
+  sourceIncludes,
+  sourceIncludesZh,
+} from "../data/site";
+import "../styles/pricing.css";
+import {
+  costRows,
+  formatUSD,
+  pricesCheckedOn,
+  pricesCheckedOnZh,
+  totalAfter,
+  workload,
+  workloadSummary,
+} from "../data/pricing";
+import { href, type Locale } from "../i18n";
+
+/**
+ * The pricing page, in each language (src/pages/pricing.astro and
+ * src/pages/zh-tw/pricing.astro). Prices, license terms and the cost
+ * comparison come from src/data; only the wording differs.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const zh = locale === "zh-tw";
+
+// One primary key per page: the one-Mac license once checkout is open, until
+// then the source build, which is the path available today.
+const onSale = Boolean(siteLinks.checkout);
+
+const n = (value: number) => value.toLocaleString("en-US");
+// Each setup's three-year total as a share of the most expensive, for the
+// bar under it.
+const mostInThreeYears = Math.max(...costRows.map((row) => totalAfter(row, 3)));
+const plans = licenses.map((plan) =>
+  zh ? { ...plan, ...licenseLabelsZh[plan.id] } : plan,
+);
+const rowLabel = (row: (typeof costRows)[number]) =>
+  zh ? row.zh : { name: row.name, detail: row.detail };
+
+const copy = zh
+  ? {
+      title: "價格 — Airdraft",
+      description:
+        "Airdraft 可以免費從原始碼編譯。現成可用的官方 App 是一次買斷授權：一台 Mac US$29，最多三台 Mac US$49。",
+      heading: "價格",
+      intro: "免費自己編譯，或一次買下現成可用的 App。",
+      source: "開放原始碼",
+      build: "自己編譯",
+      buildAction: "自行編譯說明",
+      sourceList: "原始碼版本包含",
+      app: "現成可用的 App",
+      once: "一次付清",
+      buy: (macs: string) => `購買（${macs}）`,
+      notOnSale: "尚未開賣",
+      appList: "每份授權都包含",
+      currency: "美元，未稅。",
+      costTitle: "一年的聽寫要花多少錢",
+      costIntro: `同樣每月 ${n(workloadSummary.dictationsPerMonth)} 次聽寫，五種做法的花費。`,
+      columns: ["設定", "每月", "第一年", "三年"],
+      groups: ["Airdraft", "訂閱制"],
+      note: `每個工作日 ${workload.dictationsPerDay} 次聽寫，每次 ${workload.secondsPerDictation} 秒，以一台 Mac 授權計算。語音辨識：Parakeet 或 Groq Whisper Large v3 Turbo。潤稿：Apple Intelligence、LM Studio，或 Cerebras 上的 Qwen 3.8 27B（輸入 ${n(workload.inputTokens)} tokens，輸出 ${workload.outputTokens}）。${pricesCheckedOnZh}的公開牌價。`,
+      questions: "常見問題",
+    }
+  : {
+      title: "Pricing — Airdraft",
+      description:
+        "Airdraft is free to build from source. The ready-to-run app is a one-time license: $29 for one Mac or $49 for up to three.",
+      heading: "Pricing",
+      intro: "Build it free, or buy the ready-to-run app once.",
+      source: "Open source",
+      build: "Build it yourself",
+      buildAction: "Build instructions",
+      sourceList: "The source build includes",
+      app: "Ready-to-run app",
+      once: "one-time",
+      buy: (macs: string) => `Buy for ${macs}`,
+      notOnSale: "Not on sale yet",
+      appList: "Every license includes",
+      currency: "US dollars, before tax.",
+      costTitle: "What a year of dictation costs",
+      costIntro: `The same ${n(workloadSummary.dictationsPerMonth)} dictations a month, five ways.`,
+      columns: ["Setup", "Per month", "First year", "Three years"],
+      groups: ["Airdraft", "Subscriptions"],
+      note: `${workload.dictationsPerDay} dictations a workday, ${workload.secondsPerDictation} seconds each, with the one-Mac license. Speech: Parakeet or Groq Whisper Large v3 Turbo. Refinement: Apple Intelligence, LM Studio or Qwen 3.8 27B on Cerebras (${n(workload.inputTokens)} tokens in, ${workload.outputTokens} out). List prices, ${pricesCheckedOn}.`,
+      questions: "Questions",
+    };
+
+const costGroups = [
+  { label: copy.groups[0], rows: costRows.filter((row) => row.airdraft) },
+  { label: copy.groups[1], rows: costRows.filter((row) => !row.airdraft) },
+];
+// Row order across both groups, for the rows' staggered entrance (motion.css).
+const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
+const comparison = href("/guides/compare-mac-dictation-apps/", locale);
+const meetingGuide = href("/guides/private-meeting-transcription/", locale);
+---
+
+<Layout title={copy.title} description={copy.description}>
+  <SiteHeader />
+  <main id="main" class="island subpage">
+    <Section
+      id="pricing"
+      level={1}
+      first
+      title={copy.heading}
+      intro={copy.intro}
+    >
+      <div class="plans">
+        <Surface as="article" class="plan plan-source">
+          <h2>{copy.source}</h2>
+          <div class="tier">
+            <h3>{copy.build}</h3>
+            <p class="plan-price">$0</p>
+            <Button
+              href={siteLinks.build}
+              variant={onSale ? "secondary" : "primary"}
+              icon="external"
+            >
+              {copy.buildAction}
+            </Button>
+          </div>
+          <ul class="plan-includes" aria-label={copy.sourceList}>
+            {(zh ? sourceIncludesZh : sourceIncludes).map((feature) => (
+              <li>
+                <Check />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </Surface>
+
+        <Surface as="article" class="plan plan-app">
+          <h2>{copy.app}</h2>
+          <div class="tiers">
+            {plans.map((plan, index) => (
+              <div class="tier">
+                <h3>{plan.title}</h3>
+                <p class="plan-price">
+                  {plan.price}
+                  <span class="price-unit">{copy.once}</span>
+                </p>
+                {onSale ? (
+                  <Button
+                    href={siteLinks.checkout}
+                    data-analytics-plan={plan.id}
+                    variant={index === 0 ? "primary" : "secondary"}
+                    icon="external"
+                  >
+                    {copy.buy(plan.macs)}
+                  </Button>
+                ) : (
+                  <Button disabled>{copy.notOnSale}</Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <ul class="plan-includes" aria-label={copy.appList}>
+            {(zh ? licenseIncludesZh : licenseIncludes).map((feature) => (
+              <li>
+                <Check />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </Surface>
+      </div>
+      <p class="pricing-note">{copy.currency}</p>
+    </Section>
+
+    <Section id="provider-costs" title={copy.costTitle} intro={copy.costIntro}>
+      <Surface class="cost-table-wrap">
+        <table class="cost-table">
+          <thead>
+            <tr>
+              <th scope="col">{copy.columns[0]}</th>
+              <th scope="col" class="cost-optional">
+                {copy.columns[1]}
+              </th>
+              <th scope="col">{copy.columns[2]}</th>
+              <th scope="col">{copy.columns[3]}</th>
+            </tr>
+          </thead>
+          {costGroups.map((group) => (
+            <tbody
+              class:list={[
+                group.rows[0]?.airdraft === false && "cost-subscription",
+              ]}
+            >
+              <tr
+                class="cost-group"
+                style={`--row: ${rowIndex(group.rows[0])}`}
+              >
+                <th scope="colgroup" colspan="4">
+                  {group.label}
+                </th>
+              </tr>
+              {group.rows.map((row) => (
+                <tr style={`--row: ${rowIndex(row)}`}>
+                  <th scope="row">
+                    {rowLabel(row).name}
+                    <span class="cost-detail">{rowLabel(row).detail}</span>
+                  </th>
+                  <td class="cost-optional">{formatUSD(row.monthly)}</td>
+                  <td>{formatUSD(totalAfter(row, 1))}</td>
+                  <td>
+                    {formatUSD(totalAfter(row, 3))}
+                    <span
+                      class="cost-bar"
+                      style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
+                      aria-hidden="true"
+                    >
+                      <b />
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </Surface>
+      <p class="pricing-note">{copy.note}</p>
+    </Section>
+
+    <Section id="pricing-questions" title={copy.questions}>
+      {zh ? (
+        <div class="question-list panel">
+          <Disclosure summary="是訂閱制嗎？">
+            <p>不是。授權是一次買斷，不會過期，並包含所購版本的更新。</p>
+          </Disclosure>
+          <Disclosure summary="兩種授權差在哪裡？">
+            <p>
+              只差可以同時使用的 Mac 數量。要移轉授權時，先停用舊的那台 Mac。
+            </p>
+          </Disclosure>
+          <Disclosure summary="可以先試用嗎？">
+            <p>
+              可以。App 有 14
+              天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。
+            </p>
+          </Disclosure>
+          <Disclosure summary="兩個版本包含哪些功能？">
+            <p>
+              是同一個 App：在任何 App 裡聽寫、會議功能（錄下 App
+              音訊與麥克風，或匯入音訊與影片，可選擇標出講者，並匯出
+              TXT、JSON、SRT 或
+              VTT）、設定檔、詞彙表與歷史紀錄。官方版沒有額外功能，只是省去用
+              Xcode 編譯。詳見<a href={meetingGuide}>會議逐字稿指南</a>。
+            </p>
+          </Disclosure>
+          <Disclosure summary="雲端服務商怎麼收費？">
+            <p>
+              由服務商依用量直接向你收費，使用你存在 Keychain 裡的 API
+              金鑰。本機模型免費；Claude Code 與 Codex 使用你現有的訂閱方案。
+            </p>
+          </Disclosure>
+          <Disclosure summary="和其他聽寫 App 比起來如何？">
+            <p>
+              請看附查核日期的
+              <a href={comparison}>
+                Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較
+              </a>
+              ，也包括它們比較好的地方。
+            </p>
+          </Disclosure>
+        </div>
+      ) : (
+        <div class="question-list panel">
+          <Disclosure summary="Is it a subscription?">
+            <p>
+              No. A license is a one-time purchase and doesn’t expire. Updates
+              to the version you buy are included.
+            </p>
+          </Disclosure>
+          <Disclosure summary="What’s the difference between the licenses?">
+            <p>
+              Only how many Macs can use it at once. To move a license,
+              deactivate the old Mac.
+            </p>
+          </Disclosure>
+          <Disclosure summary="Can I try it first?">
+            <p>
+              Yes. The app has a 14-day trial with every feature, starting when
+              you choose, not when you install.
+            </p>
+          </Disclosure>
+          <Disclosure summary="What do both editions include?">
+            <p>
+              The same app: dictation into any app, Meetings (record app audio
+              and your microphone or import audio and video, with optional
+              speaker labels and TXT, JSON, SRT or VTT export), profiles,
+              vocabulary and history. The official app adds no features; it
+              saves building with Xcode. See the{" "}
+              <a href={meetingGuide}>meeting guide</a>.
+            </p>
+          </Disclosure>
+          <Disclosure summary="What do cloud providers cost?">
+            <p>
+              They bill you directly, per use, with your own API key kept in the
+              Keychain. Local models are free; Claude Code and Codex use your
+              existing subscription.
+            </p>
+          </Disclosure>
+          <Disclosure summary="How does it compare with other apps?">
+            <p>
+              See the dated{" "}
+              <a href={comparison}>
+                comparison with VoiceInk, Handy, Typeless and Apple Dictation
+              </a>
+              , including where they are better.
+            </p>
+          </Disclosure>
+        </div>
+      )}
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

@@ -5,6 +5,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 import GuideLinks from "../components/GuideLinks.astro";
 import Section from "../components/ui/Section.astro";
 import type { Guide } from "../data/guides";
+import { localeOf } from "../i18n";
 import "../styles/guides.css";
 
 interface Props {
@@ -13,11 +14,24 @@ interface Props {
 }
 
 const { guide, intro } = Astro.props;
-const breadcrumbs = [
-  { name: "Home", path: "/" },
-  { name: "Guides", path: "/guides/" },
-  { name: guide.title, path: guide.href },
-];
+const locale = localeOf(guide.href);
+// The English guides have a hub; the translated guides hang from the
+// translated homepage until there is a translated hub.
+const breadcrumbs =
+  locale === "zh-tw"
+    ? [
+        { name: "首頁", path: "/zh-tw/" },
+        { name: guide.title, path: guide.href },
+      ]
+    : [
+        { name: "Home", path: "/" },
+        { name: "Guides", path: "/guides/" },
+        { name: guide.title, path: guide.href },
+      ];
+const copy = {
+  en: { breadcrumb: "Breadcrumb", related: "Related guides" },
+  "zh-tw": { breadcrumb: "麵包屑導覽", related: "相關指南" },
+}[locale];
 ---
 
 <Layout
@@ -27,8 +41,8 @@ const breadcrumbs = [
 >
   <SiteHeader />
   <main id="main" class="island subpage">
-    <Section level={1} first title={guide.title} intro={intro}>
-      <nav class="guide-breadcrumbs" aria-label="Breadcrumb">
+    <Section id="guide" level={1} first title={guide.title} intro={intro}>
+      <nav class="guide-breadcrumbs" aria-label={copy.breadcrumb}>
         <ol>
           {breadcrumbs.map((item, index) => (
             <li>
@@ -45,8 +59,17 @@ const breadcrumbs = [
         <slot />
       </article>
     </Section>
-    <Section title="Related guides">
-      <GuideLinks exclude={guide.slug} />
+    <Section id="related" title={copy.related}>
+      <GuideLinks exclude={guide.slug} locale={locale} />
+      {locale === "zh-tw" && (
+        <p class="guide-hub-note">
+          設定、本機與雲端資料去向，以及自行編譯或官方版的比較，請看
+          <a href="/guides/" hreflang="en">
+            英文指南
+          </a>
+          。
+        </p>
+      )}
     </Section>
   </main>
   <SiteFooter />

@@ -1,7 +1,8 @@
 ---
 import Button from "./ui/Button.astro";
 import Surface from "./ui/Surface.astro";
-import { licenses } from "../data/site";
+import { licenseLabelsZh, licenses } from "../data/site";
+import { href, type Locale } from "../i18n";
 
 /**
  * The homepage close's license offer, as one raised card: a segmented choice
@@ -14,16 +15,38 @@ import { licenses } from "../data/site";
  */
 interface Props {
   name: string;
+  locale?: Locale;
 }
 
-const { name } = Astro.props;
+const { name, locale = "en" } = Astro.props;
+const zh = locale === "zh-tw";
+const plans = licenses.map((plan) =>
+  zh ? { ...plan, ...licenseLabelsZh[plan.id] } : plan,
+);
+const copy = zh
+  ? {
+      title: "現成可用的 App",
+      count: "Mac 數量",
+      once: "一次付清",
+      use: (macs: string) => `個人使用，${macs}。`,
+      rest: "所有功能，先有 14 天試用。",
+      see: "查看價格",
+    }
+  : {
+      title: "Ready-to-run app",
+      count: "Number of Macs",
+      once: "one-time",
+      use: (macs: string) => `Personal use on ${macs}.`,
+      rest: " Every feature, with a 14-day trial first.",
+      see: "See pricing",
+    };
 ---
 
 <Surface as="article" class="license offer offer-featured" data-offer="">
   <div class="offer-head">
-    <h3>Ready-to-run app</h3>
-    <div class="segmented" role="radiogroup" aria-label="Number of Macs">
-      {licenses.map((plan, index) => (
+    <h3>{copy.title}</h3>
+    <div class="segmented" role="radiogroup" aria-label={copy.count}>
+      {plans.map((plan, index) => (
         <label>
           <input
             type="radio"
@@ -39,23 +62,28 @@ const { name } = Astro.props;
   </div>
   <p class="offer-price">
     <span class="license-swap">
-      {licenses.map((plan) => (
+      {plans.map((plan) => (
         <span data-plan={plan.id}>{plan.price}</span>
       ))}
     </span>
-    <span class="price-unit">one-time</span>
+    <span class="price-unit">{copy.once}</span>
   </p>
   <p class="offer-note">
     <span class="license-swap">
-      {licenses.map((plan) => (
-        <span data-plan={plan.id}>Personal use on {plan.macs}.</span>
+      {plans.map((plan) => (
+        <span data-plan={plan.id}>{copy.use(plan.macs)}</span>
       ))}
     </span>
-    {" Every feature, with a 14-day trial first."}
+    {copy.rest}
   </p>
   <div class="offer-foot">
-    <Button href="/pricing/" variant="primary" size="lg" icon="right">
-      See pricing
+    <Button
+      href={href("/pricing/", locale)}
+      variant="primary"
+      size="lg"
+      icon="right"
+    >
+      {copy.see}
     </Button>
   </div>
 </Surface>

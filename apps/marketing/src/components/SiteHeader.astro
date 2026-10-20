@@ -3,13 +3,50 @@ import Brand from "./ui/Brand.astro";
 import Arrow from "./Arrow.astro";
 import Button from "./ui/Button.astro";
 import { siteLinks } from "../data/site";
+import {
+  href,
+  languageName,
+  languageTag,
+  localeOf,
+  localizedPath,
+  switchTarget,
+} from "../i18n";
 
+const locale = localeOf(Astro.url.pathname);
 const path = Astro.url.pathname.replace(/\/$/, "");
-const links = [
-  { href: "/pricing/", label: "Pricing" },
-  { href: "/support/", label: "Support" },
-  { href: "/changelog/", label: "Changelog" },
-];
+const copy = {
+  en: {
+    labels: ["Pricing", "Support", "Changelog"],
+    home: "Airdraft home",
+    nav: "Main navigation",
+    github: "Airdraft on GitHub",
+    source: "Source on GitHub",
+    get: "Get Airdraft",
+    menu: "Menu",
+    switchTo: "Read this page in Traditional Chinese",
+  },
+  "zh-tw": {
+    labels: ["價格", "支援", "更新紀錄"],
+    home: "Airdraft 首頁",
+    nav: "主要導覽",
+    github: "Airdraft 的 GitHub",
+    source: "GitHub 原始碼",
+    get: "取得 Airdraft",
+    menu: "選單",
+    switchTo: "Read this page in English",
+  },
+}[locale];
+// Support and Changelog are English only; their labels follow the page.
+const links = ["/pricing/", "/support/", "/changelog/"].map(
+  (target, index) => ({
+    href: href(target, locale),
+    label: copy.labels[index],
+  }),
+);
+const language = switchTarget(Astro.url.pathname);
+// The globe-and-letter mark used beside the language name.
+const languagePath =
+  "M12 3.25a8.75 8.75 0 1 0 0 17.5 8.75 8.75 0 0 0 0-17.5Zm0 0c-2.3 2.4-3.45 5.32-3.45 8.75S9.7 18.35 12 20.75m0-17.5c2.3 2.4 3.45 5.32 3.45 8.75S14.3 18.35 12 20.75M3.6 9.25h16.8M3.6 14.75h16.8";
 const current = links.findIndex(
   (link) => path === link.href.replace(/\/$/, ""),
 );
@@ -31,7 +68,7 @@ const githubPath =
     <i></i>
   </div>
   <div class="site-header-inner wrap">
-    <a class="brand" href="/" aria-label="Airdraft home">
+    <a class="brand" href={localizedPath("/", locale)} aria-label={copy.home}>
       <Brand />
     </a>
     <!-- The links sit at the window's true centre, not halfway between the
@@ -39,7 +76,7 @@ const githubPath =
          The current page's recessed well is one element in the links' grid
          cell, so a cross-document view transition slides it to the next
          page's link (global.css, Layout.astro), like the app's sidebar. -->
-    <nav class="header-links" aria-label="Main navigation">
+    <nav class="header-links" aria-label={copy.nav}>
       {current >= 0 && (
         <span
           class="nav-well"
@@ -58,10 +95,19 @@ const githubPath =
       ))}
     </nav>
     <div class="header-actions">
+      <a
+        class="nav-link header-language"
+        href={language.path}
+        hreflang={languageTag[language.locale]}
+        lang={languageTag[language.locale]}
+        title={copy.switchTo}
+      >
+        {languageName[language.locale]}
+      </a>
       <Button
         href={siteLinks.source}
         iconOnly
-        label="Airdraft on GitHub"
+        label={copy.github}
         class="header-source"
       >
         <svg
@@ -75,15 +121,24 @@ const githubPath =
           <path d={githubPath}></path>
         </svg>
       </Button>
-      <Button href="/pricing/" variant="primary" class="nav-cta">
-        Get Airdraft
+      <Button
+        href={href("/pricing/", locale)}
+        variant="primary"
+        class="nav-cta"
+      >
+        {copy.get}
       </Button>
       <!-- Phones: the links and GitHub fold into a menu that pulls the
            header's blur down over them. The key stays sunk while it is open
            and its two strokes cross. A native popover, so it opens,
            dismisses on Escape or an outside tap, and returns focus without
            JavaScript. -->
-      <Button iconOnly label="Menu" class="menu-key" popovertarget="site-menu">
+      <Button
+        iconOnly
+        label={copy.menu}
+        class="menu-key"
+        popovertarget="site-menu"
+      >
         <span slot="icon" class="menu-glyph" aria-hidden="true">
           <i></i>
           <i></i>
@@ -91,7 +146,7 @@ const githubPath =
       </Button>
     </div>
   </div>
-  <nav id="site-menu" class="site-menu" popover aria-label="Main navigation">
+  <nav id="site-menu" class="site-menu" popover aria-label={copy.nav}>
     {links.map((link, index) => (
       <a
         class="menu-link"
@@ -113,8 +168,31 @@ const githubPath =
       >
         <path d={githubPath}></path>
       </svg>
-      Source on GitHub
+      {copy.source}
       <Arrow direction="external" />
+    </a>
+    <a
+      class="menu-link"
+      href={language.path}
+      hreflang={languageTag[language.locale]}
+      lang={languageTag[language.locale]}
+      style="--i: 5"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d={languagePath}
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        ></path>
+      </svg>
+      {languageName[language.locale]}
     </a>
   </nav>
 </header>

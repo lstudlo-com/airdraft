@@ -1,0 +1,406 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Arrow from "../components/Arrow.astro";
+import DictationPreview from "../components/DictationPreview.astro";
+import GetAirdraft from "../components/GetAirdraft.astro";
+import HeroCard from "../components/HeroCard.astro";
+import InterfaceShowcase from "../components/InterfaceShowcase.astro";
+import MeetingsSection from "../components/MeetingsSection.astro";
+import PipelineStory from "../components/PipelineStory.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import GuideLinks from "../components/GuideLinks.astro";
+import BentoTile from "../components/ui/BentoTile.astro";
+import Button from "../components/ui/Button.astro";
+import Hud from "../components/ui/Hud.astro";
+import Keys from "../components/ui/Keys.astro";
+import Section from "../components/ui/Section.astro";
+import { siteLinks } from "../data/site";
+import { href, type Locale } from "../i18n";
+
+/**
+ * The homepage, in each language (src/pages/index.astro and
+ * src/pages/zh-tw/index.astro). Copy differs; structure, components and
+ * motion are shared. App UI labels (profiles, HUD states, Refined/Original)
+ * stay in English because the app's interface is English.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+
+const copy = {
+  en: {
+    title: undefined,
+    description: undefined,
+    headline: ["Speak into any app.", "Transcribe your meetings."],
+    get: "Get Airdraft",
+    source: "View source",
+    sample: "Try the sample",
+    facts: [
+      "Open source",
+      "Can stay entirely on your Mac",
+      "macOS 15+ on Apple silicon",
+    ],
+    guidesTitle: "Choose your dictation setup",
+    guidesIntro:
+      "Keep speech and cleanup on your Mac, mix in cloud models, record meetings, or compare Airdraft with other apps.",
+    guidesNote: undefined,
+    featuresTitle: "What Airdraft handles for you",
+    // Illustrative outputs for the bento graphics (decorative, sample text).
+    spoken: "Um, tell Maya the, uh, draft is coming tomorrow.",
+    outputs: [
+      "Tell Maya the draft is coming tomorrow.",
+      "Draft to Maya tomorrow.",
+      "Maya gets the draft tomorrow.",
+    ],
+    typed: "Hi Maya, I’ll send the draft tomorrow morning.",
+    mixed: [
+      "明天 demo 前先把 API key 換掉，再 push 到 main。",
+      "明天 demo 前先把 API key 换掉，再 push 到 main。",
+    ],
+    tiles: {
+      cursor: ["Inserts at your cursor", "In whatever app you’re typing in."],
+      shortcut: ["One shortcut", "Hold ⌃⌥, or record your own."],
+      profiles: ["Profiles", "Four built in. Rewrite any of them."],
+      vocabulary: ["Your vocabulary", "Teach it names and jargon once."],
+      history: ["History", "Search it, flip to the original, copy."],
+      fallback: ["Nothing is lost", "If cleanup fails, the raw text goes in."],
+      privacy: [
+        "Stays on your Mac",
+        "With local models, nothing leaves. Keys live in the Keychain.",
+      ],
+      mixed: [
+        "Chinese and English, mixed",
+        "Mix both in one sentence with Qwen3-ASR; get 繁體 or 简体 text.",
+      ],
+      plan: [
+        "Your Claude or ChatGPT plan",
+        "Claude Code or Codex, no API key.",
+      ],
+    },
+    privacyArt: {
+      mac: "This Mac",
+      speech: "Speech",
+      refinement: "Refinement",
+      cloud: "Cloud, if you choose",
+    },
+  },
+  "zh-tw": {
+    title: "Airdraft｜中英混合聽寫與會議逐字稿的 Mac App",
+    description:
+      "Airdraft 是開放原始碼的 Mac App：中英混著講，說完就貼上；會議錄音也能整理成標出講者的逐字稿。語音辨識與潤稿可以各自選本機或雲端。",
+    // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
+    headline: ["中英混著講，", "說完就貼上。", "會議也能", "整理成逐字稿。"],
+    get: "取得 Airdraft",
+    source: "查看原始碼",
+    sample: "試試範例",
+    facts: ["開放原始碼", "可全在本機處理", "macOS 15 以上、Apple 晶片"],
+    guidesTitle: "會議逐字稿與比較",
+    guidesIntro: "在本機把會議轉成逐字稿，以及和其他聽寫 App 的差異。",
+    guidesNote: true,
+    featuresTitle: "Airdraft 幫你處理的事",
+    spoken: "呃，跟 Maya 說那個 draft 明天會好。",
+    outputs: [
+      "跟 Maya 說 draft 明天會好。",
+      "Maya：draft 明天好。",
+      "draft 明天交給 Maya。",
+    ],
+    typed: "嗨 Maya，我明天早上會把 draft 寄給你。",
+    mixed: [
+      "明天 demo 前先把 API key 換掉，再 push 到 main。",
+      "明天 demo 前先把 API key 换掉，再 push 到 main。",
+    ],
+    tiles: {
+      cursor: ["貼到游標位置", "不論你正在哪個 App 打字。"],
+      shortcut: ["一個快速鍵", "按住 ⌃⌥，或錄一組你自己的。"],
+      profiles: ["設定檔", "內建四種，每一種都能改寫。"],
+      vocabulary: ["你的詞彙表", "名字和術語教一次就好。"],
+      history: ["歷史紀錄", "可以搜尋、切回原文、複製。"],
+      fallback: ["文字不會不見", "潤稿失敗時，照樣貼上原始文字。"],
+      privacy: [
+        "留在你的 Mac",
+        "用本機模型時什麼都不送出，金鑰存在 Keychain。",
+      ],
+      mixed: ["中英混著講", "用 Qwen3-ASR 一句話混著說，輸出繁體或簡體。"],
+      plan: ["沿用 Claude 或 ChatGPT 方案", "用 Claude Code 或 Codex 潤稿。"],
+    },
+    privacyArt: {
+      mac: "這台 Mac",
+      speech: "語音辨識",
+      refinement: "潤稿",
+      cloud: "要用雲端也可以",
+    },
+  },
+}[locale];
+
+const outputs = [...copy.outputs, copy.spoken];
+// The app's built-in profile names and Chinese script choices, as it shows them.
+const profiles = ["Clean", "Concise", "Summary", "Verbatim"];
+const scripts = ["繁體中文", "简体中文"];
+const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
+---
+
+<Layout title={copy.title} description={copy.description}>
+  <SiteHeader />
+
+  <main id="main" class="island">
+    <section class="hero wrap" aria-labelledby="hero-heading" data-hero>
+      <!-- Exactly one screen tall at every size: the first view is the copy
+           and Home's waveform card, nothing else. -->
+      <div class="hero-stage">
+        <div class="hero-copy" data-hero-copy>
+          <h1 id="hero-heading">
+            {copy.headline.map((line, index) => (
+              <>
+                {index > 0 && locale === "en" && " "}
+                <span>{line}</span>
+              </>
+            ))}
+          </h1>
+          <div class="hero-actions">
+            <Button
+              href={href("/pricing/", locale)}
+              variant="primary"
+              size="lg"
+              icon="right"
+            >
+              {copy.get}
+            </Button>
+            <Button href={siteLinks.source} size="lg" icon="external">
+              {copy.source}
+            </Button>
+            <Button href="#try" variant="quiet" icon="down">
+              {copy.sample}
+            </Button>
+          </div>
+          <ul class="hero-meta">
+            {copy.facts.map((fact) => (
+              <li>{fact}</li>
+            ))}
+          </ul>
+        </div>
+        <HeroCard locale={locale} />
+      </div>
+
+      <DictationPreview locale={locale} />
+    </section>
+
+    <MeetingsSection locale={locale} />
+
+    <InterfaceShowcase locale={locale} />
+
+    <Section id="guides" title={copy.guidesTitle} intro={copy.guidesIntro}>
+      <GuideLinks locale={locale} />
+      {copy.guidesNote && (
+        <p class="guide-hub-note">
+          離線設定、本機與雲端資料去向，以及自行編譯或官方版的比較，請看
+          <a href="/guides/" hreflang="en">
+            英文指南
+          </a>
+          。
+        </p>
+      )}
+    </Section>
+
+    <Section id="features" title={copy.featuresTitle}>
+      <div class="bento">
+        <BentoTile
+          wide
+          art="cursor"
+          title={copy.tiles.cursor[0]}
+          caption={copy.tiles.cursor[1]}
+        >
+          <div class="art-cursor">
+            <div class="art-field">
+              <p data-typed>
+                {copy.typed}
+                <span class="caret"></span>
+              </p>
+            </div>
+            <Hud label="Refining" levels={hudLevels} class="art-hud" />
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="shortcut"
+          title={copy.tiles.shortcut[0]}
+          caption={copy.tiles.shortcut[1]}
+        >
+          <Keys keys={["⌃", "⌥"]} label="Control Option" size="xl" />
+        </BentoTile>
+
+        <BentoTile
+          art="profiles"
+          title={copy.tiles.profiles[0]}
+          caption={copy.tiles.profiles[1]}
+        >
+          <div class="art-profiles" data-outputs={JSON.stringify(outputs)}>
+            <ul class="segmented">
+              {profiles.map((profile, index) => (
+                <li class:list={[index === 0 && "is-selected"]}>{profile}</li>
+              ))}
+            </ul>
+            <p class="art-output" data-output>
+              {outputs[0]}
+            </p>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="vocabulary"
+          title={copy.tiles.vocabulary[0]}
+          caption={copy.tiles.vocabulary[1]}
+        >
+          <div class="art-vocab">
+            <span class="art-wrong" data-wrong>
+              cooper tino
+            </span>
+            <Arrow direction="down" />
+            <span class="chip-strong art-right" data-right>
+              Cupertino
+            </span>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="history"
+          title={copy.tiles.history[0]}
+          caption={copy.tiles.history[1]}
+        >
+          <div
+            class="art-deck"
+            data-texts={JSON.stringify([outputs[0], copy.spoken])}
+          >
+            <span class="art-card art-card-back"></span>
+            <span class="art-card art-card-mid"></span>
+            <div class="art-card art-card-front">
+              <ul class="segmented art-toggle">
+                <li class="is-selected">Refined</li>
+                <li>Original</li>
+              </ul>
+              <p data-history>{outputs[0]}</p>
+            </div>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="fallback"
+          title={copy.tiles.fallback[0]}
+          caption={copy.tiles.fallback[1]}
+        >
+          <div class="art-fallback">
+            <span class="chip-muted">
+              <span class="status-dot" data-tone="attention"></span>
+              <span data-status>Refinement failed</span>
+            </span>
+            <div class="art-field">
+              <p data-typed>
+                {copy.spoken}
+                <span class="caret"></span>
+              </p>
+            </div>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          wide
+          art="privacy"
+          id="privacy"
+          title={copy.tiles.privacy[0]}
+          caption={copy.tiles.privacy[1]}
+        >
+          <div class="art-privacy">
+            <div class="art-mac">
+              <span class="art-mac-label">{copy.privacyArt.mac}</span>
+              <div class="art-flow">
+                <span class="art-node">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6.5 9a6.5 6.5 0 0 0 13 0M12 18.5V21"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                    ></path>
+                  </svg>
+                </span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">{copy.privacyArt.speech}</span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">{copy.privacyArt.refinement}</span>
+                <span class="art-link">
+                  <i data-dot></i>
+                </span>
+                <span class="art-node">
+                  <span class="caret"></span>
+                </span>
+              </div>
+            </div>
+            <div class="art-cloud">
+              <span class="art-cloud-link"></span>
+              <span class="chip-muted">{copy.privacyArt.cloud}</span>
+            </div>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          wide
+          art="script"
+          id="mixed-language"
+          title={copy.tiles.mixed[0]}
+          caption={copy.tiles.mixed[1]}
+        >
+          <div class="art-profiles" data-outputs={JSON.stringify(copy.mixed)}>
+            <ul class="segmented">
+              {scripts.map((script, index) => (
+                <li class:list={[index === 0 && "is-selected"]} lang="zh">
+                  {script}
+                </li>
+              ))}
+            </ul>
+            <p class="art-output art-mixed" data-output lang="zh">
+              {copy.mixed[0]}
+            </p>
+          </div>
+        </BentoTile>
+
+        <BentoTile
+          art="plan"
+          title={copy.tiles.plan[0]}
+          caption={copy.tiles.plan[1]}
+        >
+          <ul class="art-plans">
+            <li class="chip-strong">
+              <span class="status-dot"></span>
+              Claude Code
+            </li>
+            <li class="chip-muted">
+              <span class="status-dot" data-tone="inactive"></span>
+              Codex
+            </li>
+          </ul>
+        </BentoTile>
+      </div>
+    </Section>
+
+    <PipelineStory locale={locale} />
+
+    <GetAirdraft locale={locale} />
+  </main>
+
+  <SiteFooter />
+</Layout>
+
+<script>
+  import "../scripts/story";
+</script>

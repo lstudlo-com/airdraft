@@ -1,6 +1,28 @@
 ---
 import Button from "./ui/Button.astro";
 import "../styles/analytics.css";
+import type { Locale } from "../i18n";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+const copy = {
+  en: {
+    title: "Optional website analytics",
+    body: "Help us understand visits and which features interest people. No recordings or typed text.",
+    privacy: "Privacy details",
+    decline: "Decline",
+    allow: "Allow Analytics",
+  },
+  "zh-tw": {
+    title: "選用的網站分析",
+    body: "協助我們了解造訪情形，以及大家對哪些功能有興趣。不會收集錄音或輸入的文字。",
+    privacy: "隱私說明（英文）",
+    decline: "拒絕",
+    allow: "允許分析",
+  },
+}[locale];
 
 if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
   if (
@@ -29,15 +51,14 @@ if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
   hidden
 >
   <div>
-    <h2 id="analytics-title">Optional website analytics</h2>
+    <h2 id="analytics-title">{copy.title}</h2>
     <p>
-      Help us understand visits and which features interest people. No
-      recordings or typed text. <a href="/privacy/">Privacy details</a>
+      {copy.body} <a href="/privacy/">{copy.privacy}</a>
     </p>
   </div>
   <div class="analytics-actions">
-    <Button data-analytics-choice="denied">Decline</Button>
-    <Button data-analytics-choice="granted">Allow Analytics</Button>
+    <Button data-analytics-choice="denied">{copy.decline}</Button>
+    <Button data-analytics-choice="granted">{copy.allow}</Button>
   </div>
 </aside>
 <script>

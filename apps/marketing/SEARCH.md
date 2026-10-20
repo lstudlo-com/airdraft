@@ -16,6 +16,16 @@ or making claims about search features.
 - `public/_redirects` permanently redirects slashless and `index.html` aliases
   to canonical pages. Update those explicit routes when adding an indexable page;
   leave assets and missing URLs outside the redirect rules.
+- Translated pages follow `src/i18n/index.ts`: Traditional Chinese (Taiwan)
+  at `/zh-tw/` + the English slug, `lang="zh-Hant-TW"`, `og:locale` `zh_TW`
+  with the other language as `og:locale:alternate`, and WebPage `inLanguage`
+  matching the page. Every member of a translation set emits the same
+  `hreflang` alternates (`en`, `zh-Hant-TW` and `x-default` pointing at the
+  English page), including itself; the sitemap's `xhtml:link` alternates
+  (`@astrojs/sitemap` i18n) must match them. The WebSite entity lists both
+  languages. Add a translation to `translatedPaths`, `_redirects`, the analytics
+  path allowlist and `llms.txt` together. `check-search.py` enforces language,
+  reciprocity and sitemap parity.
 - Keep product facts consistent across visible text, structured data, guides,
   social previews and the optional `/llms.txt` directory. Prices and availability
   come from shared data. Explain self-building separately from the official app.

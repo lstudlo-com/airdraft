@@ -3,6 +3,12 @@ import BentoTile from "./ui/BentoTile.astro";
 import Keys from "./ui/Keys.astro";
 import Section from "./ui/Section.astro";
 import "../styles/interface.css";
+import type { Locale } from "../i18n";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
 
 /**
  * The interface section: the real app window, then three live specimens.
@@ -17,6 +23,59 @@ import "../styles/interface.css";
  */
 const width = 784;
 const height = 1000;
+const zh = locale === "zh-tw";
+const copy = zh
+  ? {
+      title: "打開就想用的介面",
+      intro: "凸起的按鍵、壓下的凹槽、刻出的分隔線，淺色深色都一樣。",
+      alt: "Airdraft 淺色模式的 Settings 頁面：側邊欄旁是麥克風、外觀與鍵盤快速鍵的凸起卡片。App 介面目前為英文。",
+      compare: "比較淺色與深色外觀",
+      half: "一半淺色，一半深色",
+      allLight: "全部淺色",
+      allDark: "全部深色",
+      mixed: "{light}% 淺色，{dark}% 深色",
+      materials: "視窗中的材質",
+      caption: "以 Graphite 強調色從 App 算繪。",
+      drag: "拖曳即可比較淺色與深色。",
+      press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
+      select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
+      travel: ["有行程的控制項", "旋鈕與滑塊在軌道裡滑動。"],
+      keysLabel: "Control Option",
+    }
+  : {
+      title: "An interface you’ll love to open",
+      intro:
+        "Raised keys, pressed wells and carved grooves, in light and dark.",
+      alt: "Airdraft’s Settings page in light mode: a sidebar beside raised cards for the microphone, appearance and keyboard shortcuts.",
+      compare: "Compare light and dark appearance",
+      half: "Half light, half dark",
+      allLight: "All light",
+      allDark: "All dark",
+      mixed: "{light}% light, {dark}% dark",
+      materials: "Materials in the window",
+      caption: "Rendered from the app with the Graphite accent.",
+      drag: "Drag to compare light and dark.",
+      press: ["Keys that press in", "Hold ⌃⌥ on your keyboard to press them."],
+      select: [
+        "Selection that slides",
+        "The well moves first; the icon’s island follows.",
+      ],
+      travel: [
+        "Controls with travel",
+        "Knobs and thumbs slide inside their tracks.",
+      ],
+      keysLabel: "Control Option",
+    };
+const calloutText: Record<string, [string, string]> = zh
+  ? {
+      "Carved mark": ["刻出的標誌", "波形是刻進去的。"],
+      "Pressed well": ["壓下的凹槽", "目前的頁面沉進去。"],
+      "Raised button": ["凸起的按鈕", "控制項站起來等你按。"],
+      "Raised card": ["凸起的卡片", "每個區塊浮在頁面上。"],
+      "Engraved divider": ["刻線分隔", "各列以溝槽分開。"],
+      "Reactive capsules": ["會反應的膠囊", "五種樣式跟著你的聲音動。"],
+    }
+  : {};
 const callouts = [
   {
     side: "left",
@@ -61,6 +120,13 @@ const callouts = [
     line: "Five styles follow your voice.",
   },
 ];
+const shown = callouts.map((callout) => {
+  const [title, line] = calloutText[callout.title] ?? [
+    callout.title,
+    callout.line,
+  ];
+  return { ...callout, title, line };
+});
 const percent = (value: number, of: number) =>
   `${((value / of) * 100).toFixed(2)}%`;
 
@@ -85,12 +151,7 @@ const destinations = [
 ];
 ---
 
-<Section
-  id="interface"
-  class="interface"
-  title="An interface you’ll love to open"
-  intro="Raised keys, pressed wells and carved grooves, in light and dark."
->
+<Section id="interface" class="interface" title={copy.title} intro={copy.intro}>
   <figure class="showcase">
     <div class="showcase-frame" data-reveal>
       <div
@@ -104,11 +165,7 @@ const destinations = [
               src={`/app/configuration-${appearance}.webp`}
               width={width * 2}
               height={height * 2}
-              alt={
-                appearance === "light"
-                  ? "Airdraft’s Settings page in light mode: a sidebar beside raised cards for the microphone, appearance and keyboard shortcuts."
-                  : ""
-              }
+              alt={appearance === "light" ? copy.alt : ""}
               loading="lazy"
               decoding="async"
               draggable="false"
@@ -138,15 +195,18 @@ const destinations = [
           min="0"
           max="100"
           value="50"
-          aria-label="Compare light and dark appearance"
-          aria-valuetext="Half light, half dark"
+          aria-label={copy.compare}
+          aria-valuetext={copy.half}
+          data-all-light={copy.allLight}
+          data-all-dark={copy.allDark}
+          data-mixed={copy.mixed}
           data-compare-range
           hidden
         />
       </div>
 
-      <ul class="callouts" aria-label="Materials in the window">
-        {callouts.map((callout, index) => (
+      <ul class="callouts" aria-label={copy.materials}>
+        {shown.map((callout, index) => (
           <li
             class={`callout callout-${callout.side}`}
             style={`--x: ${percent(callout.x, width)}; --y: ${percent(callout.y, height)}; --i: ${index};`}
@@ -162,27 +222,18 @@ const destinations = [
       </ul>
     </div>
     <figcaption>
-      Rendered from the app with the Graphite accent.{" "}
-      <span class="js-only">Drag to compare light and dark.</span>
+      {copy.caption} <span class="js-only">{copy.drag}</span>
     </figcaption>
   </figure>
 
   <div class="bento specimens">
-    <BentoTile
-      art="press"
-      title="Keys that press in"
-      caption="Hold ⌃⌥ on your keyboard to press them."
-    >
+    <BentoTile art="press" title={copy.press[0]} caption={copy.press[1]}>
       <div class="spec-press" data-spec-press>
-        <Keys keys={["⌃", "⌥"]} label="Control Option" size="xl" />
+        <Keys keys={["⌃", "⌥"]} label={copy.keysLabel} size="xl" />
       </div>
     </BentoTile>
 
-    <BentoTile
-      art="select"
-      title="Selection that slides"
-      caption="The well moves first; the icon’s island follows."
-    >
+    <BentoTile art="select" title={copy.select[0]} caption={copy.select[1]}>
       <div class="spec-sidebar" data-spec-sidebar>
         <span class="spec-well" data-spec-well>
           <span class="spec-island" data-spec-island></span>
@@ -209,11 +260,7 @@ const destinations = [
       </div>
     </BentoTile>
 
-    <BentoTile
-      art="switch"
-      title="Controls with travel"
-      caption="Knobs and thumbs slide inside their tracks."
-    >
+    <BentoTile art="switch" title={copy.travel[0]} caption={copy.travel[1]}>
       <div class="spec-controls" data-spec-controls>
         <button
           type="button"

@@ -1,17 +1,21 @@
 ---
 import Button from "./ui/Button.astro";
 import Surface from "./ui/Surface.astro";
-import { guides } from "../data/guides";
+import { guidesFor } from "../data/guides";
+import type { Locale } from "../i18n";
 import "../styles/guides.css";
 
 interface Props {
   exclude?: string;
   headingLevel?: 2 | 3;
+  locale?: Locale;
 }
 
-const { exclude, headingLevel = 3 } = Astro.props;
+const { exclude, headingLevel = 3, locale = "en" } = Astro.props;
+const read = locale === "zh-tw" ? "閱讀指南" : "Read Guide";
+const readLabel = locale === "zh-tw" ? "閱讀指南：" : "Read guide: ";
 const Heading = headingLevel === 2 ? "h2" : "h3";
-const entries = guides.filter((guide) => guide.slug !== exclude);
+const entries = guidesFor(locale).filter((guide) => guide.slug !== exclude);
 ---
 
 <ul class="guide-links">
@@ -25,9 +29,9 @@ const entries = guides.filter((guide) => guide.slug !== exclude);
         href={guide.href}
         variant="quiet"
         icon="right"
-        aria-label={`Read guide: ${guide.title}`}
+        aria-label={`${readLabel}${guide.title}`}
       >
-        Read Guide
+        {read}
       </Button>
     </Surface>
   ))}

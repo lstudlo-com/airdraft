@@ -35,7 +35,7 @@ consent. There is one manual `$pageview` per document after consent; this static
 site does not use ClientRouter. Do not also enable automatic pageviews. If
 ClientRouter is added, revise navigation handling and test duplicate capture.
 
-The notice offers equally styled Allow and Decline actions. `/privacy/` allows
+The notice offers equally styled Allow and Decline actions, in the page's language. `/privacy/` allows
 revocation; consent is stored for 180 days. No PostHog script or request runs
 before consent or after an initial decline. GPC and DNT keep collection off.
 SDK opt-out and a final event gate handle withdrawal, including another tab and
@@ -48,7 +48,7 @@ disabled. The service still receives the network connection, so this is not a
 claim that no personal data can ever reach a processor.
 
 The event allowlist preserves anonymous/session IDs, browser and device types,
-known page paths and numeric Web Vitals. It removes arbitrary properties,
+known page paths (including the `/zh-tw/` translations) and numeric Web Vitals. It removes arbitrary properties,
 nested person/DOM data, query strings, hashes, referral paths and advertising
 click IDs. Only `utm_source`, `utm_medium`, `utm_campaign` and `utm_content` are
 accepted, with 1–80 ASCII letters, digits, underscores or hyphens. Never put
@@ -64,7 +64,7 @@ All events include `site=airdraft-marketing`, `environment=production` and
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `$pageview`, `$pageleave`                      | Which pages and referral sources attract visits? How long do consented visits last?                          |
 | `$web_vitals`                                  | Do LCP, INP, CLS or FCP show a performance problem?                                                          |
-| `pricing_clicked`                              | Which placements lead visitors to pricing?                                                                   |
+| `pricing_clicked`                              | Which placements lead visitors to pricing (English or Traditional Chinese)?                                  |
 | `source_clicked`, `build_instructions_clicked` | How much interest is there in self-building?                                                                 |
 | `license_plan_selected`                        | Which Mac count do visitors actively select?                                                                 |
 | `demo_started`, `demo_profile_selected`        | Do visitors intentionally try the authored samples and profiles?                                             |

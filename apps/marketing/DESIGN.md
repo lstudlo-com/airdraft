@@ -313,15 +313,18 @@ a little further than the later
 sections sit from each other (`0.72` of the gap: `104px` on desktop), which use `entry-title`
 headings, a step below the page title.
 
-The homepage bento is a three-column grid with `24px` gaps and seven tiles in
-a fixed rhythm: wide + narrow, three narrow, narrow + wide. The provider board
+The homepage bento is a three-column grid with `24px` gaps and nine tiles in
+a fixed rhythm: wide + narrow, three narrow, narrow + wide, wide + narrow.
+The last row holds mixed Chinese and English (the app's 繁體中文 | 简体中文
+script picker over one mixed sentence, cycling while on screen) and the
+subscription refiners (Claude Code raised with its status dot, Codex recessed). The provider board
 never pins: it is about one viewport tall on desktop and stacks below `1000px`.
 
 | Max width | Changes                                                                                                                                                                                                                           |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider board stacks its three columns; the hero waveform drops its 12 oldest bars. |
 | `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                                                            |
-| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links and GitHub move into the blur the menu pulls down.                                                                                                            |
+| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links, GitHub and the language switch move into the blur the menu pulls down.                                                                                       |
 | `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                                               |
 
 ## Elevation & Depth
@@ -445,7 +448,7 @@ bento's profile and history graphics.
 
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
-- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`.
+- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: recessed capsules. `.chip-muted` and `.chip-strong` (raised) show a before → after pair.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page.
@@ -469,9 +472,20 @@ jumps to the result. Without JavaScript the Clean result shows; reduced motion
 shows it immediately and never autoplays. Its accessible name is "Sample
 dictation".
 
+### Meetings (`MeetingsSection.astro`)
+
+"Meetings, transcribed on your Mac" follows the sample and precedes the
+interface section. Two raised panels share a row (`1.15fr` / `1fr`, stacked
+below `1000px` at most `640px` wide): a transcript card from the app's
+Meetings page (status dot, title, one metadata line, a player row with a
+raised play key, a recessed track and the rounded timer, then speaker turns
+with recessed speaker chips and timestamps, divided by grooves) and a grooved
+list of five points with a quiet key to the meeting guide. The transcript is
+authored sample text. Both panels rise like the provider board.
+
 ### Interface section (`InterfaceShowcase.astro`)
 
-"An interface you’ll love to open" follows the sample and precedes the guides.
+"An interface you’ll love to open" follows the Meetings section and precedes the guides.
 Its heading and one-line intro are centered over the window, `72px` above it
 (`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
@@ -628,7 +642,9 @@ changes at once. Layout's `pagereveal` script marks a move between two linked
 pages `nav-slide`, where the moving group draws the well itself so it keeps its
 shape; arriving from or leaving for another page fades it. Reduced motion and
 browsers without cross-document view transitions change pages instantly. The
-GitHub icon key and the primary "Get Airdraft" key at the end. The header's
+language switch (a quiet capsule link named in its own language, "繁體中文"
+or "English"; hidden at `760px` and below, where the footer and phone menu
+carry it), the GitHub icon key and the primary "Get Airdraft" key at the end. The header's
 keys (GitHub, Get Airdraft and the phone menu key) stand exactly as tall as the
 brand capsule, `34px`, with a transparent margin that keeps a `44px` touch
 target.
@@ -648,8 +664,9 @@ It carries the header blur's `65%` tint (below), so the rows keep
 their contrast; they are ink, never muted, for the same reason. The
 rows sit on it below the header row, aligned with the mark, each `44px` with
 `12px` corners like the app's sidebar destinations: Pricing, Support and
-Changelog, the current page resting in the `--sink-chip` well, then a groove
-and "Source on GitHub" with its external arrow. Fixed row heights give the blur
+Changelog, the current page resting in the `--sink-chip` well, then a groove,
+"Source on GitHub" with its external arrow, and the language switch with a
+globe glyph (`--menu-h` is `262px`). Fixed row heights give the blur
 its reach (`--menu-h`) without measuring. The rows follow the blur down one
 after another (`35ms` apart) and fade at once on closing. While the menu is
 open the key sinks, the mark's shade and light falling inside it, like the
@@ -703,8 +720,13 @@ project.
 
 ### Product guides and sharing
 
-The homepage links to three guides after the hero, sample and interface section, using `GuideLinks`:
-offline setup, local/cloud data flow, and source build versus official app. The
+The homepage links to the guides after the interface section, using `GuideLinks`:
+offline setup, local/cloud data flow, source build versus official app,
+private meeting transcription, and the app comparison. The Traditional Chinese
+homepage lists its two translated guides and links the English hub. The
+comparison table (`.guide-table-wide`) keeps seven columns at `880px` minimum
+(`760px` on phones) inside its focusable scroll region, then lists sources with
+`time` check dates. The
 hub uses H2 card titles; related cards inside a titled section use H3. `GuideLayout`
 reuses the subpage title, Section, Surface and Button, followed by visible wrapping
 breadcrumbs and readable answer sections. Tables keep real headers and captions;
@@ -715,7 +737,8 @@ The footer also links the release RSS feed, with a 760px link group to avoid an
 isolated final link at desktop widths.
 
 The shared 1200×630 social card uses the existing app icon, neutral chrome and
-island, and factual product copy. Regenerate it from the repository root with
+island, and factual product copy ("Speak into any app. Transcribe meetings.
+Keep it on your Mac."). Regenerate it from the repository root with
 `swift apps/marketing/scripts/render-social-card.swift`. It contains no personal
 app data, price or unverified availability claim.
 

@@ -49,9 +49,25 @@ export const licenses: License[] = [
   },
 ];
 
+// The licenses' Traditional Chinese (Taiwan) labels, by id. Prices stay the
+// US-dollar strings above.
+export const licenseLabelsZh: Record<
+  string,
+  Pick<License, "name" | "title" | "macs">
+> = {
+  "one-mac": { name: "1 台 Mac", title: "一台 Mac", macs: "一台 Mac" },
+  "three-macs": {
+    name: "3 台 Mac",
+    title: "三台 Mac",
+    macs: "最多三台 Mac",
+  },
+};
+
 // What every license includes, in the order the pricing page lists it. Keep
-// each to a few words: the pricing questions carry the details.
+// each to a few words: the pricing questions carry the details. Both editions
+// ship the same app, so dictation and Meetings head both lists.
 export const licenseIncludes = [
+  "Dictation and Meetings",
   "Every feature, no Xcode",
   "14-day full-feature trial",
   "Updates to the version you buy",
@@ -60,6 +76,21 @@ export const licenseIncludes = [
 
 // The source build's counterpart, beside the licenses on the pricing page.
 export const sourceIncludes = [
+  "Dictation and Meetings",
   "Every feature, no locks",
   "Needs Xcode to build",
+];
+
+export const licenseIncludesZh = [
+  "聽寫與會議逐字稿",
+  "所有功能，不需要 Xcode",
+  "14 天全功能試用",
+  "包含所購版本的更新",
+  "可自行在 Mac 之間移轉",
+];
+
+export const sourceIncludesZh = [
+  "聽寫與會議逐字稿",
+  "所有功能，沒有鎖住的功能",
+  "需要 Xcode 編譯",
 ];

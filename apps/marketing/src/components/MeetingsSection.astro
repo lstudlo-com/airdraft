@@ -1,0 +1,142 @@
+---
+import Button from "./ui/Button.astro";
+import Section from "./ui/Section.astro";
+import Surface from "./ui/Surface.astro";
+import { href, type Locale } from "../i18n";
+import "../styles/meetings.css";
+
+/**
+ * Meetings on the homepage: a transcript card built from the app's Meetings
+ * page parts (title, one metadata line, a status dot, the player row, then
+ * speaker turns with their timestamps), beside what the feature does. The
+ * transcript is authored sample text, not a recording or a model benchmark.
+ *
+ * Every point matches docs/meeting-recording.md and
+ * docs/media-transcription.md: ScreenCaptureKit app audio plus an optional
+ * microphone with no screen frames, single-track files up to two hours,
+ * optional local speaker estimates, Soniox only after Upload and Transcribe,
+ * and TXT, JSON, SRT and VTT export.
+ */
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+
+const copy = {
+  en: {
+    title: "Meetings, transcribed on your Mac",
+    intro:
+      "Record a call or import a file, then turn it into a transcript with speakers.",
+    sample: "Sample meeting transcript",
+    meeting: "Design review",
+    meta: "Oct 21 · 32:14 · Whisper Large v3 Turbo",
+    turns: [
+      ["Speaker 1", "0:12", "Let’s ship the onboarding changes on Thursday."],
+      [
+        "Speaker 2",
+        "0:31",
+        "Then I’ll update the screenshots before the release.",
+      ],
+    ],
+    points: [
+      [
+        "Record any app",
+        "One app or all app audio, plus your microphone. No screen video is kept.",
+      ],
+      [
+        "Or import a file",
+        "Audio or video up to two hours, with one audio track.",
+      ],
+      [
+        "Speakers, estimated locally",
+        "Optional speaker labels you can rename and reassign.",
+      ],
+      [
+        "Local unless you choose cloud",
+        "A local model keeps the audio here; Soniox uploads only after you confirm.",
+      ],
+      [
+        "Edit, then export",
+        "Keep the original beside your edits. Export TXT, JSON, SRT or VTT.",
+      ],
+    ],
+    guide: "Read the Meeting Guide",
+  },
+  "zh-tw": {
+    title: "會議錄音，在你的 Mac 上變成逐字稿",
+    intro: "錄下通話或匯入檔案，整理成標出講者的逐字稿。",
+    sample: "會議逐字稿範例",
+    meeting: "設計週會",
+    meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
+    turns: [
+      ["Speaker 1", "0:12", "onboarding 的修改我們週四上線。"],
+      ["Speaker 2", "0:31", "那我 release 前先把 screenshot 更新好。"],
+    ],
+    points: [
+      [
+        "錄下任何 App",
+        "單一 App 或所有 App 的聲音，可加上麥克風；不保留畫面。",
+      ],
+      ["也能匯入檔案", "音訊或影片，最長兩小時、單一音軌。"],
+      ["在本機估計講者", "可選擇標出講者，再自行改名或調整。"],
+      ["選本機模型就不上傳", "要用 Soniox 雲端轉錄時，確認之後才會上傳。"],
+      ["編輯後匯出", "原文與修改並存，可匯出 TXT、JSON、SRT 或 VTT。"],
+    ],
+    guide: "閱讀會議逐字稿指南",
+  },
+}[locale];
+---
+
+<Section id="meetings" title={copy.title} intro={copy.intro}>
+  <div class="meetings" data-reveal>
+    <Surface as="article" class="meeting-card" aria-label={copy.sample}>
+      <div class="meeting-head">
+        <span class="status-dot" aria-hidden="true"></span>
+        <div>
+          <p class="meeting-title">{copy.meeting}</p>
+          <p class="meeting-meta">{copy.meta}</p>
+        </div>
+      </div>
+      <div class="meeting-player" aria-hidden="true">
+        <span class="meeting-play">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+          </svg>
+        </span>
+        <span class="meeting-track">
+          <b></b>
+        </span>
+        <span class="meeting-time">0:31</span>
+      </div>
+      <ol class="meeting-turns">
+        {copy.turns.map(([speaker, time, text]) => (
+          <li>
+            <span class="meeting-speaker">
+              <span class="chip-muted">{speaker}</span>
+              <span class="meeting-stamp">{time}</span>
+            </span>
+            <p>{text}</p>
+          </li>
+        ))}
+      </ol>
+    </Surface>
+
+    <Surface class="meeting-points">
+      <dl>
+        {copy.points.map(([title, line]) => (
+          <div>
+            <dt>{title}</dt>
+            <dd>{line}</dd>
+          </div>
+        ))}
+      </dl>
+      <Button
+        href={href("/guides/private-meeting-transcription/", locale)}
+        variant="quiet"
+        icon="right"
+      >
+        {copy.guide}
+      </Button>
+    </Surface>
+  </div>
+</Section>
