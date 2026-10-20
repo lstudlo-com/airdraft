@@ -5,7 +5,11 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var shutdownStarted = false
     private var shutdownFinished = false
-    private var waitedForDelivery = false
+    /// The bounded delivery wait that a quit request started, if any.
+    private var deliveryWait: Task<Void, Never>?
+    /// Set only by that wait's own terminate request and consumed by the next
+    /// `applicationShouldTerminate`, so no cancel path can leave it behind.
+    private var resumingAfterDeliveryWait = false
 
     /// `.terminateLater` spins a nested run loop that cannot run main-actor work
     /// queued behind the caller, so quitting deadlocked. Instead: cancel, free the
@@ -17,20 +21,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if RenderMode.isActive { return .terminateNow }
         #endif
         if shutdownFinished { return .terminateNow }
+        // Every quit request after a finished wait waits again for newer deliveries.
+        let resumed = resumingAfterDeliveryWait
+        resumingAfterDeliveryWait = false
         if !shutdownStarted {
             let app = AppContainer.shared
             if app.cleanup.isRunning { return .terminateCancel }
+            // Repeated quit requests join the wait already running.
+            if deliveryWait != nil { return .terminateCancel }
             // A delivered dictation releases the pipeline before its history
             // is saved. Finish that tail (bounded) and restore the clipboard
             // now, then ask again; anything still unsaved reaches the alert.
-            if app.pipeline.hasPendingDelivery && !waitedForDelivery {
-                waitedForDelivery = true
-                Task { @MainActor in
+            if app.pipeline.hasPendingDelivery && !resumed {
+                deliveryWait = Task { @MainActor [weak self] in
                     let pipeline = AppContainer.shared.pipeline
                     _ = try? await OperationDeadline.run(seconds: 5) { @MainActor in
                         await pipeline.finishPendingDelivery(flushClipboard: true)
                     }
+                    self?.deliveryWait = nil
+                    self?.resumingAfterDeliveryWait = true
                     NSApp.terminate(nil)
+                    // Consumed by the call above; never carried to a later quit.
+                    self?.resumingAfterDeliveryWait = false
                 }
                 return .terminateCancel
             }
@@ -46,10 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     : String(localized: "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work.")
                 alert.addButton(withTitle: String(localized: "Keep Open"))
                 alert.addButton(withTitle: app.meeting?.isBusy == true ? String(localized: "Save Meeting and Quit") : String(localized: "Quit and Discard"))
-                guard alert.runModal() == .alertSecondButtonReturn else {
-                    waitedForDelivery = false
-                    return .terminateCancel
-                }
+                guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
                 app.media?.cancel()
                 app.pipeline.cancel()
                 app.downloads.cancelAll()

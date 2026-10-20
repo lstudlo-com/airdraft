@@ -153,6 +153,51 @@ final class RefinementFidelityTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(fixture.history.recent().first).llmEngine, "fidelity-test")
     }
 
+    /// The delivery tail saves history after the pipeline is released. Until it
+    /// has, the delivered dictation must still reach `<recent_terms>` and the
+    /// repeat check of a recording that starts right away.
+    func testRecordingStartIncludesDeliveredDictationHistoryHasNotSaved() async throws {
+        let earlier = "Please send the quarterly report to Anna before Friday."
+        let fixture = try Fixture(transcripts: ["please send the quarterly report to anna before friday",
+                                                "can you check whether the build passed on main"],
+                                  refined: earlier, historyAvailable: false)
+        defer { fixture.cleanUp() }
+        fixture.pipeline.insertionEnabled = false
+
+        try await fixture.record()
+        XCTAssertNotNil(fixture.pipeline.historyStorageError, "The first dictation must still be unsaved")
+        XCTAssertEqual(try fixture.history.recent().count, 0)
+        try await fixture.record()
+
+        let requests = await fixture.refiner.requests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests.last?.context.recentDictations, [earlier],
+                       "An unsaved delivered dictation belongs to the next recording's context")
+        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "can you check whether the build passed on main",
+                       "A refinement that repeats the unsaved dictation falls back to the raw transcript")
+    }
+
+    func testRecentFinalsMergeSavedAndPendingOncePerApp() {
+        let now = Date()
+        func record(_ text: String, _ app: String, _ secondsAgo: TimeInterval) -> DictationRecord {
+            DictationRecord(createdAt: now.addingTimeInterval(-secondsAgo), appBundleId: app, mode: "Clean",
+                            family: "general", rawTranscript: text, refinedText: text, finalText: text, asrEngine: "fixture",
+                            audioSeconds: 1, asrMs: 1, llmMs: 1, inserted: true)
+        }
+        var savedCopy = record("Second", "com.example.editor", 60)
+        // A stored date keeps only milliseconds; the pending copy must still match it.
+        savedCopy.createdAt = Date(timeIntervalSinceReferenceDate: (savedCopy.createdAt.timeIntervalSinceReferenceDate * 1000).rounded(.down) / 1000)
+        let saved = [record("Old", "com.example.editor", 30 * 60), record("First", "com.example.editor", 120),
+                     savedCopy, record("Elsewhere", "com.example.browser", 10)]
+        let pending = [record("Second", "com.example.editor", 60), record("Third", "com.example.editor", 5),
+                       record("Fourth", "com.example.editor", 1), record("Other app", "com.example.browser", 2)]
+        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now),
+                       ["Second", "Third", "Fourth"])
+        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now, limit: 5),
+                       ["First", "Second", "Third", "Fourth"])
+        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: nil, now: now), [])
+    }
+
     private func waitUntilIdle(_ pipeline: DictationPipeline) async throws {
         try await Task.sleep(for: .milliseconds(5))
         let deadline = Date().addingTimeInterval(3)
@@ -176,6 +221,12 @@ final class RefinementFidelityTests: XCTestCase {
         let context = AppContext(bundleId: "com.openai.codex", appName: "ChatGPT", windowTitle: "ChatGPT")
 
         init(transcript: String, refined: String) throws {
+            try self.init(transcripts: [transcript], refined: refined)
+        }
+
+        /// `historyAvailable: false` keeps every delivered dictation pending in
+        /// memory, as while the delivery tail is still saving it.
+        init(transcripts: [String], refined: String, historyAvailable: Bool = true) throws {
             suite = "airdraft.refinement-fidelity.\(UUID().uuidString)"
             directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
             let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
@@ -184,22 +235,38 @@ final class RefinementFidelityTests: XCTestCase {
             settings.useAppContext = true
             settings.livePreviewEnabled = false
             history = try HistoryStore(directory: directory)
+            let blockedHistory = directory.appendingPathComponent("history-is-a-file")
+            if !historyAvailable { try Data().write(to: blockedHistory) }
             let refiner = FixedRefiner(text: refined)
             self.refiner = refiner
+            let script = SpeechLines(transcripts)
             let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Tests must not read credentials")
                 return nil
-            }, transcriberBuilder: { _ in FixedSpeech(text: transcript) }, refinerBuilder: { _ in refiner })
+            }, transcriberBuilder: { _ in FixedSpeech(script: script) }, refinerBuilder: { _ in refiner })
             let profiles = ProfileStore(directory: directory)
             profiles.setActive(RefinementProfile.conciseID)
             let probe = Probe()
             self.probe = probe
             pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
-                profiles: profiles, history: history, factory: factory, recorder: SilentFixtureRecorder(),
+                profiles: profiles, history: historyAvailable ? history : nil,
+                historyDirectory: historyAvailable ? nil : blockedHistory, factory: factory, recorder: SilentFixtureRecorder(),
+                contextReader: AppContextReader(reading: { [context] in context }),
                 insertText: { text, _, _ in
                     probe.insertedTexts.append(text)
                     return InsertionResult(method: .paste, notice: nil)
                 }, recordingPreflight: { _, _, _, _, _ in }, requestMicrophoneAccess: { true })
+        }
+
+        /// Records through the production start path and waits for the pipeline to release.
+        func record() async throws {
+            pipeline.startRecording()
+            for _ in 0..<400 where !pipeline.isRecording { try await Task.sleep(for: .milliseconds(5)) }
+            XCTAssertTrue(pipeline.isRecording, "Recording did not start: \(pipeline.state)")
+            pipeline.stopAndProcess()
+            try await Task.sleep(for: .milliseconds(5))
+            for _ in 0..<600 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
+            XCTAssertFalse(pipeline.isBusy, "Dictation did not finish")
         }
 
         func saveEarlier(_ final: String) throws {
@@ -233,12 +300,19 @@ private actor FixedRefiner: Refiner {
     }
 }
 
+private final class SpeechLines: @unchecked Sendable {
+    private let lock = NSLock()
+    private var lines: [String]
+    init(_ lines: [String]) { self.lines = lines }
+    func next() -> String { lock.withLock { lines.count > 1 ? lines.removeFirst() : lines[0] } }
+}
+
 private struct FixedSpeech: Transcriber {
-    let text: String
+    let script: SpeechLines
     let id = "fidelity-speech"
     func prepare() async throws {}
     func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
-        Transcript(text: text, engine: id, latencyMs: 1)
+        Transcript(text: script.next(), engine: id, latencyMs: 1)
     }
 }
 
@@ -247,6 +321,7 @@ private final class SilentFixtureRecorder: AudioRecording, @unchecked Sendable {
     var levelHandler: (@Sendable (Float) -> Void)?
     var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
     func start(microphone: MicrophonePreference) throws { isRecording = true }
-    func stop() -> [Float] { isRecording = false; return [] }
+    /// One second of fixed audio, enough to transcribe.
+    func stop() -> [Float] { isRecording = false; return [Float](repeating: 0.125, count: 16_000) }
     func cancel() { isRecording = false }
 }

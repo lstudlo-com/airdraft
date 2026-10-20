@@ -67,6 +67,7 @@ public final class DictationPipeline {
     private var deliveryTailID: UUID?
     private var historySaveTask: Task<Void, Never>?
     public private(set) var isMaintainingData = false
+    private var maintenanceReason: String?
     public var isProcessingMedia = false
     public var isCapturingMeeting = false
     public private(set) var previewText = ""
@@ -269,9 +270,11 @@ public final class DictationPipeline {
     public var isRecording: Bool { state == .recording }
     /// Work outside dictation that excludes a new recording.
     private var exclusiveWorkReason: String? {
-        if isMaintainingData { return "Recording is unavailable while Airdraft manages its data." }
-        if isCapturingMeeting { return "Stop the meeting recording before dictating." }
-        if isProcessingMedia { return "Wait for the media transcription to finish before dictating." }
+        if isMaintainingData {
+            return maintenanceReason ?? String(localized: "Recording is unavailable while Airdraft manages its data.", bundle: .module)
+        }
+        if isCapturingMeeting { return String(localized: "Stop the meeting recording before dictating.", bundle: .module) }
+        if isProcessingMedia { return String(localized: "Wait for the media transcription to finish before dictating.", bundle: .module) }
         return nil
     }
     public var isBusy: Bool { isMaintainingData || isProcessingMedia || isCapturingMeeting || state.isBusy || recordingRequest != nil }
@@ -365,6 +368,8 @@ public final class DictationPipeline {
         let microphone = snapshot.microphone
         let output = snapshot.output
         let needsInsertion = insertionEnabled && output.destination == .cursor
+        // Read earlier dictations while startup checks run, before the destination is known.
+        let recentFinals = snapshot.useAppContext ? prefetchRecentFinals(appBundleId: nil) : nil
         do {
             try await accessCheck()
             guard isCurrent(token) else { return }
@@ -423,6 +428,11 @@ public final class DictationPipeline {
         }
         let insertionTarget = needsInsertion ? await inserter.captureTarget() : nil
         guard isCurrent(token) else { return }
+        var context = snapshot.useAppContext ? contextReader.read() : .empty
+        if let recentFinals, context.recentDictations.isEmpty {
+            context.recentDictations = await recentFinals.finals(for: context.bundleId)
+            guard isCurrent(token) else { return }
+        }
         guard recordingSnapshot() == snapshot else {
             fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
@@ -430,10 +440,7 @@ public final class DictationPipeline {
         }
         recordingAtStart = snapshot
         insertionTargetAtStart = insertionTarget
-        contextAtStart = snapshot.useAppContext ? contextReader.read() : .empty
-        if snapshot.useAppContext && contextAtStart.recentDictations.isEmpty {
-            contextAtStart.recentDictations = (try? history?.recentFinals(appBundleId: contextAtStart.bundleId)) ?? []
-        }
+        contextAtStart = context
         wireRecorder(for: token)
         startPreview(for: token)
         do {
@@ -767,10 +774,13 @@ public final class DictationPipeline {
 
     /// Freeze every entry point before deletion. Existing writes must finish
     /// first; setting the flag is synchronous on the same actor as those starts.
-    public func beginDataMaintenance() throws {
+    /// `reason` replaces the generic cleanup message shown for a rejected
+    /// shortcut, e.g. when another running copy holds the data lease.
+    public func beginDataMaintenance(reason: String? = nil) throws {
         guard !isCapturingMeeting, !isProcessingMedia, !state.isBusy, recordingRequest == nil, !isSavingHistory,
               !isFinishingDelivery else { throw CleanupError.busy }
         isMaintainingData = true
+        maintenanceReason = reason
         generation = UUID()
         discardRefinementPreparation()
         stopRequestedAt = nil
@@ -778,7 +788,10 @@ public final class DictationPipeline {
         audioRevision += 1
     }
 
-    public func endDataMaintenance() { isMaintainingData = false }
+    public func endDataMaintenance() {
+        isMaintainingData = false
+        maintenanceReason = nil
+    }
 
     /// Delivered dictations still saving history or restoring the clipboard.
     public var hasPendingDelivery: Bool { isFinishingDelivery || isSavingHistory || inserter.hasPendingClipboardRestoration }
@@ -860,7 +873,8 @@ public final class DictationPipeline {
         let family = AppFamily.classify(context)
         var context = context
         if snapshot.useAppContext && context.recentDictations.isEmpty && stopRequested == nil {
-            context.recentDictations = (try? history?.recentFinals(appBundleId: context.bundleId)) ?? []
+            context.recentDictations = await prefetchRecentFinals(appBundleId: context.bundleId).finals(for: context.bundleId)
+            guard isCurrent(token) else { return }
         }
 
         // 1. ASR
@@ -1107,6 +1121,29 @@ public final class DictationPipeline {
     }
 
     // MARK: - Helpers
+
+    /// Earlier dictations for `<recent_terms>` and the fidelity repeat check.
+    /// Delivered dictations the delivery tail has not saved yet are snapshotted
+    /// before saved rows are read off the main actor: a record saved in between
+    /// is found in the database, and one saved earlier appears only once.
+    private func prefetchRecentFinals(appBundleId: String?) -> RecentFinalsPrefetch {
+        let pending = unsavedHistory.map(\.record)
+        let store = history
+        let saved = Task.detached(priority: .userInitiated) { () -> [DictationRecord] in
+            // Without a known destination, read every app's recent rows and filter later.
+            (try? store?.recentRecords(appBundleId: appBundleId, limit: appBundleId == nil ? 200 : HistoryStore.recentFinalsLimit)) ?? []
+        }
+        return RecentFinalsPrefetch(pending: pending, saved: saved)
+    }
+
+    private struct RecentFinalsPrefetch {
+        let pending: [DictationRecord]
+        let saved: Task<[DictationRecord], Never>
+
+        func finals(for appBundleId: String?) async -> [String] {
+            HistoryStore.recentFinals(saved: await saved.value, pending: pending, appBundleId: appBundleId)
+        }
+    }
 
     private func isCurrent(_ token: UUID) -> Bool { generation == token && !Task.isCancelled }
 

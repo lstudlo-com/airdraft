@@ -664,7 +664,9 @@ verification status belong in the vault (see below).
   dictation. History saving and the outcome run in an ordered delivery tail
   (`isFinishingDelivery`); quit waits for it (bounded) and restores the clipboard
   at once, and data cleanup and meeting start wait for it too. A shortcut rejected
-  by media, meeting or maintenance work shows its reason in the HUD. From 0.4.2, release preparation checks actual TextEdit
+  by media, meeting or maintenance work shows its reason in the HUD; a copy blocked
+  by another copy's data lease names that cause. Every quit request waits for
+  pending delivery again; no flag may persist across a cancelled quit. From 0.4.2, release preparation checks actual TextEdit
   and Chrome delivery for both saved insertion preferences, with fixture binary
   hashes matching the committed Debug build. Follow the Local releases policy
   when acceptance is unavailable: publish with a commit-bound unverified reason
@@ -690,7 +692,8 @@ verification status belong in the vault (see below).
   discarded for the raw transcript and recorded as a refinement error. Prompts get
   recent dictations only as `<recent_terms>` (names and technical terms), never
   sentences: small models returned them instead of the new speech, and each copy
-  fed the next prompt. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
+  fed the next prompt. Recent dictations include delivered ones the delivery tail
+  has not saved yet; read saved rows off the main actor. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
   code so edited base rules keep it. Whisper prompts carry only the script
   sentence; Whisper repeats bare dictionary terms on silence, so terms go only to
   dedicated keyword or context fields. Send that sentence only when Chinese is the
@@ -739,7 +742,10 @@ resource parameters, `String(localized:)` in the app and
 ternary explicitly: the compiler extracts only the first branch of a
 `LocalizedStringResource` ternary. Never localize prompts, identifiers, persisted
 values, model or provider names, or keycap names, and never compare against
-displayed text. Fixtures and accessibility identifiers stay English. After a Debug
+displayed text. Native menus (`MenuBarExtra`, `NSHostingMenu`, app commands)
+resolve SwiftUI keys with an empty environment locale, so their titles, items and
+tooltips must be `String(localized:)` values; the menu fixture checks both
+languages. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. After a Debug
 build, run `python3 scripts/localization.py sync`, translate new keys and run
 `check`; `audit` lists literals that bypass localization. `LocalizationCatalogTests`
 fails on missing, stale or placeholder-mismatched zh-Hant entries. Verify UI

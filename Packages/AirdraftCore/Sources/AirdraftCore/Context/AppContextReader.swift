@@ -11,7 +11,10 @@ public final class AppContextReader {
     public var maxAfterChars = 300
     public var maxSelectionChars = 5000
 
-    public init() {}
+    private let override: (@MainActor () -> AppContext)?
+
+    /// Tests pass `reading` to supply a fixed destination without the system's AX tree.
+    public init(reading override: (@MainActor () -> AppContext)? = nil) { self.override = override }
 
     /// Password managers: their window titles and fields must never reach a refinement provider.
     static let privateApps: Set<String> = [
@@ -31,6 +34,7 @@ public final class AppContextReader {
     }
 
     public func read() -> AppContext {
+        if let override { return override() }
         var ctx = AppContext()
         guard let app = NSWorkspace.shared.frontmostApplication else { return ctx }
         ctx.bundleId = app.bundleIdentifier

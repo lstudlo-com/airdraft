@@ -321,18 +321,47 @@ public final class HistoryStore: Sendable {
         }
     }
 
+    /// How far back and how many earlier same-app dictations reach a prompt.
+    public static let recentFinalsWindow: TimeInterval = 20 * 60
+    public static let recentFinalsLimit = 3
+
     /// Final texts of recent dictations into the same app, oldest first.
-    public func recentFinals(appBundleId: String?, within seconds: TimeInterval = 20 * 60, limit: Int = 3) throws -> [String] {
+    public func recentFinals(appBundleId: String?, within seconds: TimeInterval = recentFinalsWindow,
+                             limit: Int = recentFinalsLimit) throws -> [String] {
         guard let appBundleId else { return [] }
-        return try dbQueue.read { db in
+        return Self.recentFinals(saved: try recentRecords(appBundleId: appBundleId, within: seconds, limit: limit),
+                                 pending: [], appBundleId: appBundleId, within: seconds, limit: limit)
+    }
+
+    /// Saved dictations from the last `seconds`, newest first. A nil app returns
+    /// every app's records, so a caller can read before it knows the destination.
+    public func recentRecords(appBundleId: String?, within seconds: TimeInterval = recentFinalsWindow,
+                              limit: Int) throws -> [DictationRecord] {
+        try dbQueue.read { db in
             let since = Date().addingTimeInterval(-seconds)
-            let rows = try DictationRecord
-                .filter(Column("appBundleId") == appBundleId && Column("createdAt") >= since)
-                .order(Column("createdAt").desc)
-                .limit(limit)
-                .fetchAll(db)
-            return rows.reversed().map(\.finalText)
+            var request = DictationRecord.filter(Column("createdAt") >= since)
+            if let appBundleId { request = request.filter(Column("appBundleId") == appBundleId) }
+            return try request.order(Column("createdAt").desc).limit(limit).fetchAll(db)
         }
+    }
+
+    /// Recent same-app final texts, oldest first, from saved rows plus delivered
+    /// dictations whose history save is still pending. A pending record that has
+    /// meanwhile been saved appears once.
+    public static func recentFinals(saved: [DictationRecord], pending: [DictationRecord], appBundleId: String?,
+                                    now: Date = Date(), within seconds: TimeInterval = recentFinalsWindow,
+                                    limit: Int = recentFinalsLimit) -> [String] {
+        guard let appBundleId, limit > 0 else { return [] }
+        let since = now.addingTimeInterval(-seconds)
+        let scoped = saved.filter { $0.appBundleId == appBundleId && $0.createdAt >= since }
+        // Stored dates lose sub-millisecond precision; match within a second.
+        let unsaved = pending.filter { record in
+            record.appBundleId == appBundleId && record.createdAt >= since && !scoped.contains {
+                $0.finalText == record.finalText && abs($0.createdAt.timeIntervalSince(record.createdAt)) < 1
+            }
+        }
+        let merged = (scoped + unsaved).sorted { $0.createdAt < $1.createdAt }
+        return merged.suffix(limit).map(\.finalText)
     }
 
     public func delete(id: Int64) throws {

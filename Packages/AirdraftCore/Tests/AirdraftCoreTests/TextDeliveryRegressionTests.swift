@@ -576,6 +576,21 @@ final class TextDeliveryRegressionTests: XCTestCase {
         guard case .failed(let meeting) = fixture.pipeline.state else { return XCTFail("Meeting press was dropped") }
         XCTAssertTrue(meeting.contains("meeting"))
         XCTAssertEqual(fixture.recorder.starts, 0)
+
+        // A copy blocked by another running copy names that cause, not a cleanup.
+        fixture.pipeline.isCapturingMeeting = false
+        let lease = "Another app copy may be changing local data."
+        try fixture.pipeline.beginDataMaintenance(reason: lease)
+        fixture.pipeline.startRecording()
+        guard case .failed(let blocked) = fixture.pipeline.state else { return XCTFail("Blocked press was dropped") }
+        XCTAssertEqual(blocked, lease)
+        fixture.pipeline.endDataMaintenance()
+        try fixture.pipeline.beginDataMaintenance()
+        fixture.pipeline.startRecording()
+        guard case .failed(let cleanup) = fixture.pipeline.state else { return XCTFail("Cleanup press was dropped") }
+        XCTAssertTrue(cleanup.contains("manages its data"), "Ending maintenance clears the earlier reason")
+        fixture.pipeline.endDataMaintenance()
+        XCTAssertEqual(fixture.recorder.starts, 0)
     }
 
     private func verifyNextDictationAfterDelivery(toggle: Bool) async throws {

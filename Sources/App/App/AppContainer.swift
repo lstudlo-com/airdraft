@@ -148,7 +148,8 @@ final class AppContainer {
             models?.setDictationBusy(pipeline?.isBusy == true || cleanup?.isRunning == true)
         }
         media?.onChange = { NotificationCenter.default.post(name: .historyEntriesChanged, object: nil) }
-        if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance() }
+        // A copy without the data lease names that cause, not a cleanup in progress.
+        if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance(reason: dataAccessIssue) }
     }
 
     /// Call once from the app delegate.
