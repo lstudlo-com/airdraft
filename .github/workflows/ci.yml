@@ -2,8 +2,11 @@ name: macOS CI
 # Unsigned build and credential-free Core suite on GitHub's Xcode 27 image.
 # Release signing, notarization-ready identity and live insertion stay local:
 # see scripts/release.py and docs/updates.md.
+# Pushes run on main only: a same-repository branch is checked through its pull
+# request, so one change never runs this two-hour job twice.
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -39,8 +42,19 @@ jobs:
           xcodebuild -showComponent MetalToolchain
 
       - name: Install pinned XcodeGen
-        # Downloads XcodeGen 2.46.0 into dist/tools and checks the release pin.
-        run: python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; print(release.xcodegen())'
+        # Always downloads XcodeGen 2.46.0, verifies it against the release pin
+        # (XCODEGEN_SHA256 in scripts/release.py) and puts it first on PATH, so
+        # project generation never picks up a copy preinstalled on the image.
+        run: |
+          tools="$RUNNER_TEMP/xcodegen-2.46.0"
+          mkdir -p "$tools"
+          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --retry 3 \
+            --output "$tools/xcodegen.zip" https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
+          expected=$(python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; print(release.XCODEGEN_SHA256)')
+          echo "$expected  $tools/xcodegen.zip" | shasum -a 256 --check
+          ditto -xk "$tools/xcodegen.zip" "$tools"
+          "$tools/xcodegen/bin/xcodegen" --version | grep -F '2.46.0'
+          echo "$tools/xcodegen/bin" >> "$GITHUB_PATH"
 
       - name: Cache native library archives
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -67,7 +81,9 @@ jobs:
           python3 scripts/native_inputs.py prepare --archives "$NATIVE_ARCHIVES"
 
       - name: Generate the Xcode project
-        run: python3 scripts/generate-project.py
+        run: |
+          test "$(command -v xcodegen)" = "$RUNNER_TEMP/xcodegen-2.46.0/xcodegen/bin/xcodegen"
+          python3 scripts/generate-project.py
 
       - name: Cache SwiftPM downloads
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
