@@ -211,9 +211,15 @@ enum NativeUIVerification {
         }
         precondition(LocalModels.isInstalled(config))
         let unloaded = show(HomePage().environment(container).contentIsland(), width: 604, height: 900)
-        precondition(text(find(id: "readiness.speech", in: unloaded)).contains("Needs attention"))
-        precondition(enabled(find(label: "Load Model", in: unloaded)))
+        // Dictation loads an installed model itself, so idle unload is not a setup problem.
+        let unloadedText = text(find(id: "readiness.speech", in: unloaded))
+        precondition(unloadedText.contains("Ready") && unloadedText.contains("Loads when you dictate")
+            && !unloadedText.contains("Needs attention"), "Installed but unloaded speech must stay ready: \(unloadedText)")
+        precondition(enabled(find(label: "Load Model", in: unloaded)), "Optional preloading stays available")
         capture(unloaded, to: directory.appendingPathComponent("home-installed-unloaded.png"))
+        container.engineStatus.setPreviewState(config.engineID, .failed("UI fixture load failure")); pump()
+        let failedText = text(find(id: "readiness.speech", in: unloaded))
+        precondition(failedText.contains("Needs attention") && failedText.contains("Load Model"), "A failed load still needs attention")
         container.engineStatus.setPreviewState(config.engineID, .ready); pump()
         let readyText = text(find(id: "readiness.speech", in: unloaded))
         precondition(readyText.contains("Ready") && !readyText.contains("Needs attention") && !readyText.contains("Load Model"))
@@ -235,7 +241,7 @@ enum NativeUIVerification {
         precondition(press(action) && container.navigation.page == .profiles)
         close(invalid)
         container.profiles.update(saved)
-        print("NATIVE_UI_PASS home-missing-get-model installed-unloaded-load installed-ready retired-binding-profiles")
+        print("NATIVE_UI_PASS home-missing-get-model installed-unloaded-ready failed-load-attention installed-ready retired-binding-profiles")
     }
 
     private static func verifyPractice(_ container: AppContainer, directory: URL) {
