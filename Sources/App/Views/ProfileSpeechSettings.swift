@@ -37,7 +37,7 @@ struct ProfileSpeechSettings: View {
         var saved: [Choice] = []
         for candidate in [selection, ProfileSpeechModel(config: container.settings.asr)].compactMap({ $0 }) {
             guard !choices.contains(where: { $0.selection == candidate }) else { continue }
-            let choice = Choice(title: candidate.applying(to: container.settings.asr).engineLabel, selection: candidate)
+            let choice = Choice(title: candidate.applying(to: container.settings.asr).displayName, selection: candidate)
             saved.append(choice)
             choices.append(choice)
         }
@@ -74,7 +74,7 @@ struct ProfileSpeechSettings: View {
                     .accessibilityIdentifier("profiles.speechModel")
                 }
                 RowDivider()
-                SettingRow(title: config.engineLabel, subtitle: detail) {
+                SettingRow(title: config.displayName, subtitle: detail) {
                     Button("Models") { container.navigation.page = .models }
                         .buttonStyle(SoftButtonStyle())
                         .accessibilityLabel("Manage speech models")

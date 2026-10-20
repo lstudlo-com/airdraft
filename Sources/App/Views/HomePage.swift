@@ -86,9 +86,17 @@ struct HomePage: View {
 
     private var pipelineSummary: String {
         let llm = container.settings.llm
-        let speech = container.speechConfig.engineLabel
+        let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return "\(speech) · no refinement" }
-        return "\(speech) → \(llm.engineLabel) · \(container.effectiveProfile.name)"
+        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.name)"
+    }
+
+    /// Exact identifiers stay available on hover for diagnosis.
+    private var pipelineHelp: String {
+        let llm = container.settings.llm
+        let speech = String(localized: "Speech: \(container.speechConfig.engineLabel)")
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return speech }
+        return speech + "\n" + String(localized: "Refinement: \(llm.engineLabel)")
     }
 
     private var readinessCard: some View {
@@ -108,6 +116,7 @@ struct HomePage: View {
                             .accessibilityIdentifier("home.pipeline-summary")
                             .lineLimit(1)
                             .truncationMode(.middle)
+                            .help(pipelineHelp)
                     }
                     Spacer(minLength: Theme.controlSpacing)
                     if issues == 0 {
