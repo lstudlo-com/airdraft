@@ -211,7 +211,7 @@ function setup(preview: HTMLElement) {
       window.clearInterval(meter);
       setLevels(0.14);
       preview.dataset.state = "decoding";
-      hudLabel.textContent = hud.transcribing ?? "Decoding";
+      hudLabel.textContent = hud.transcribing ?? "Transcribing";
       status.textContent = labels.transcribing;
     });
     refineAndType(time + 520);

@@ -13,8 +13,7 @@ import type { Locale } from "../i18n";
 export const appLabels = {
   en: {
     // The recording window's processing states (IndicatorPanel.hudCaption).
-    // The site's sample shows Decoding where the app now says Transcribing.
-    hudTranscribing: "Decoding",
+    hudTranscribing: "Transcribing",
     hudRefining: "Refining",
     // The menu's processing status lines.
     listening: "Listening…",
