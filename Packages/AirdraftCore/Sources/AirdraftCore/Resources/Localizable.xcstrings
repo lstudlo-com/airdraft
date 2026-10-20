@@ -1000,7 +1000,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請選擇 Airdraft 受管理資料夾以外的資料夾，讓輸出的副本在 App 清理後仍能保留。"
+            "value" : "請選擇 Airdraft 受管理資料夾以外的資料夾，讓匯出的副本在 App 清理後仍能保留。"
           }
         }
       }
@@ -2092,7 +2092,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "媒體檔案最長兩小時。請先分割此錄音再輸入。"
+            "value" : "媒體檔案最長兩小時。請先分割此錄音再匯入。"
           }
         }
       }
@@ -3630,7 +3630,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案包含多個音軌。請將想要的音軌輸出成獨立的音訊檔案，再輸入。"
+            "value" : "此檔案包含多個音軌。請將想要的音軌匯出成獨立的音訊檔案，再匯入。"
           }
         }
       }

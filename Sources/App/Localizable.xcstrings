@@ -2182,7 +2182,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選擇「%@」會移除超出該期限的聽寫音訊。文字與已輸出的檔案會保留。已刪除的音訊無法復原。"
+            "value" : "選擇「%@」會移除超出該期限的聽寫音訊。文字與已匯出的檔案會保留。已刪除的音訊無法復原。"
           }
         }
       }
@@ -3622,7 +3622,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸出"
+            "value" : "匯出"
           }
         }
       }
@@ -3632,7 +3632,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸出 %@"
+            "value" : "匯出 %@"
           }
         }
       }
@@ -3642,7 +3642,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "外部的原始媒體與已輸出的副本會保留。此動作無法復原。"
+            "value" : "外部的原始媒體與已匯出的副本會保留。此動作無法復原。"
           }
         }
       }
@@ -4232,7 +4232,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入⋯"
+            "value" : "匯入⋯"
           }
         }
       }
@@ -7188,7 +7188,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錄製會議或輸入音訊。錄音與逐字稿會留在這台 Mac 上。"
+            "value" : "錄製會議或匯入音訊。錄音與逐字稿會留在這台 Mac 上。"
           }
         }
       }
