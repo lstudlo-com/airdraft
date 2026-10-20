@@ -60,6 +60,12 @@ public final class DictationPipeline {
     public private(set) var hasRecoverableRecording = false
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
+    /// A delivered dictation is still saving history and publishing its outcome.
+    /// The next recording may already run; quit and data maintenance wait.
+    public private(set) var isFinishingDelivery = false
+    private var deliveryTail: Task<Void, Never>?
+    private var deliveryTailID: UUID?
+    private var historySaveTask: Task<Void, Never>?
     public private(set) var isMaintainingData = false
     public var isProcessingMedia = false
     public var isCapturingMeeting = false
@@ -261,6 +267,13 @@ public final class DictationPipeline {
     }
 
     public var isRecording: Bool { state == .recording }
+    /// Work outside dictation that excludes a new recording.
+    private var exclusiveWorkReason: String? {
+        if isMaintainingData { return "Recording is unavailable while Airdraft manages its data." }
+        if isCapturingMeeting { return "Stop the meeting recording before dictating." }
+        if isProcessingMedia { return "Wait for the media transcription to finish before dictating." }
+        return nil
+    }
     public var isBusy: Bool { isMaintainingData || isProcessingMedia || isCapturingMeeting || state.isBusy || recordingRequest != nil }
 
     // MARK: - Control
@@ -271,7 +284,13 @@ public final class DictationPipeline {
     }
 
     public func startRecording() {
-        guard !isBusy, recordingRequest == nil else { return }
+        // Recording, startup and processing are already visible in the HUD.
+        guard !state.isBusy, recordingRequest == nil else { return }
+        if let reason = exclusiveWorkReason {
+            // Never drop a shortcut press silently while nothing else is shown.
+            fail(reason)
+            return
+        }
         guard !hasRecoverableRecording else {
             fail("A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.")
             return
@@ -710,10 +729,27 @@ public final class DictationPipeline {
         hasRecoverableRecording = true
     }
 
+    /// Saves pending dictations. Calls are serialized: a caller that arrives
+    /// during another save waits for it, then saves anything it left behind.
     public func retryHistorySave() async {
-        guard !isSavingHistory, !isMaintainingData else { return }
+        while let running = historySaveTask {
+            await running.value
+            if unsavedHistory.isEmpty && historyStorageError == nil { return }
+            // Another waiter may already have started the follow-up save.
+            if historySaveTask == nil { break }
+        }
+        guard !isMaintainingData else { return }
         isSavingHistory = true
-        defer { isSavingHistory = false }
+        let task = Task { @MainActor in await self.saveUnsavedHistory() }
+        historySaveTask = task
+        await task.value
+    }
+
+    private func saveUnsavedHistory() async {
+        defer {
+            isSavingHistory = false
+            historySaveTask = nil
+        }
         do {
             if historyStore == nil, let historyDirectory { historyStore = try HistoryStore(directory: historyDirectory) }
             guard let historyStore else { return }
@@ -732,7 +768,8 @@ public final class DictationPipeline {
     /// Freeze every entry point before deletion. Existing writes must finish
     /// first; setting the flag is synchronous on the same actor as those starts.
     public func beginDataMaintenance() throws {
-        guard !isCapturingMeeting, !isProcessingMedia, !state.isBusy, recordingRequest == nil, !isSavingHistory else { throw CleanupError.busy }
+        guard !isCapturingMeeting, !isProcessingMedia, !state.isBusy, recordingRequest == nil, !isSavingHistory,
+              !isFinishingDelivery else { throw CleanupError.busy }
         isMaintainingData = true
         generation = UUID()
         discardRefinementPreparation()
@@ -742,6 +779,18 @@ public final class DictationPipeline {
     }
 
     public func endDataMaintenance() { isMaintainingData = false }
+
+    /// Delivered dictations still saving history or restoring the clipboard.
+    public var hasPendingDelivery: Bool { isFinishingDelivery || isSavingHistory || inserter.hasPendingClipboardRestoration }
+
+    /// Waits for delivered dictations to reach history. Quit passes
+    /// `flushClipboard` to restore the displaced clipboard without the delay;
+    /// delivery is already confirmed, so the receiver has read the transcript.
+    public func finishPendingDelivery(flushClipboard: Bool = false) async {
+        await inserter.finishClipboardRestoration(immediately: flushClipboard)
+        while let tail = deliveryTail { await tail.value }
+        if let historySaveTask { await historySaveTask.value }
+    }
 
     public func prepareDataRemoval(_ scope: DataCleanupScope) async throws {
         guard isMaintainingData else { throw CleanupError.busy }
@@ -991,8 +1040,10 @@ public final class DictationPipeline {
                 : "\(reason); raw text is available in History."
         }
 
-        // 5. History
-        let historyStarted = ProcessInfo.processInfo.systemUptime
+        // 5. History. Delivery has finished, so this session releases the
+        // pipeline before persistence: the next shortcut press can record at
+        // once. Saving and the outcome continue in a tail that keeps their
+        // order and that quit and data maintenance wait for.
         let record = DictationRecord(
             appBundleId: context.bundleId,
             appName: context.appName,
@@ -1015,20 +1066,36 @@ public final class DictationPipeline {
             outputDestination: insertionEnabled ? output.destination.rawValue : nil,
             outputSucceeded: insertionEnabled ? outputSucceeded : nil
         )
-        if history != nil || historyDirectory != nil {
+        // Delivered text always reaches history, whatever happens next.
+        let savesHistory = history != nil || historyDirectory != nil
+        if savesHistory {
+            // Held in memory first: a failed save stays visible and retryable.
             unsavedHistory.append((record, settings.audioRetention == .off ? nil : samples))
-            await retryHistorySave()
         }
-        guard isCurrent(token) else { return }
-        timings.historyMs = Self.elapsed(since: historyStarted)
-        timings.processingMs = Self.elapsed(since: processingStarted)
-
-        let outcome = DictationOutcome(
-            raw: transcript.text, refined: refined, final: final,
-            asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings
-        )
-        lastOutcome = outcome
-        onOutcome?(outcome)
+        discardRefinementPreparation(for: token)
+        let historyStarted = ProcessInfo.processInfo.systemUptime
+        let previousTail = deliveryTail
+        let tailID = UUID()
+        deliveryTailID = tailID
+        isFinishingDelivery = true
+        deliveryTail = Task { @MainActor [timings, refined, llmMs, skipReason] in
+            var timings = timings
+            await previousTail?.value
+            if savesHistory { await self.retryHistorySave() }
+            timings.historyMs = Self.elapsed(since: historyStarted)
+            timings.processingMs = Self.elapsed(since: processingStarted)
+            let outcome = DictationOutcome(
+                raw: transcript.text, refined: refined, final: final,
+                asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings
+            )
+            Self.log.notice("delivery tail historyMs=\(timings.historyMs) processingMs=\(timings.processingMs)")
+            self.lastOutcome = outcome
+            self.onOutcome?(outcome)
+            if self.deliveryTailID == tailID {
+                self.deliveryTail = nil
+                self.isFinishingDelivery = false
+            }
+        }
         if let notice {
             lastIssue = notice
             set(.notice(notice, requiresAttention: noticeRequiresAttention))

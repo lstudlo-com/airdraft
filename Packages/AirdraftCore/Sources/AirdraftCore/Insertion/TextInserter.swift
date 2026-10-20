@@ -106,7 +106,22 @@ public final class TextInserter {
     private let environment: Environment
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "insert")
     /// How long the pasted text stays on the clipboard before the previous contents return.
+    /// Counted from the paste; delivery returns before it ends so the next dictation can start.
     public var restoreDelay: TimeInterval = 1.0
+    private typealias ClipboardItems = [[NSPasteboard.PasteboardType: Data]]
+    /// One confirmed paste's restoration, owned by the inserter rather than the
+    /// dictation: it survives cancellation and a newer paste can take it over.
+    private struct PendingRestoration {
+        let id: UUID
+        let pasteboard: NSPasteboard
+        let changeCount: Int
+        let items: ClipboardItems
+        let task: Task<Void, Never>
+    }
+    private var pendingRestoration: PendingRestoration?
+    /// True while a confirmed paste's text still waits to be replaced by the
+    /// clipboard it displaced.
+    public var hasPendingClipboardRestoration: Bool { pendingRestoration != nil }
     /// A posted event has no acknowledgement. Wait only for read-only evidence
     /// from the original field; an unobservable or slow receiver keeps the text.
     var confirmationTimeout: Duration = .seconds(1)
@@ -388,7 +403,11 @@ public final class TextInserter {
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
                         postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
                         onDelivered: (() -> Void)? = nil) async -> InsertionResult {
-        let saved = snapshot(pasteboard)
+        // A previous confirmed paste may still hold the clipboard. Its text is
+        // already in its field, so take over the clipboard it displaced instead
+        // of snapshotting that transcript; its delayed restore can never clobber
+        // this paste.
+        let saved = takeOverRestoration(of: pasteboard) ?? snapshot(pasteboard)
 
         // Keep the temporary handoff local and out of clipboard-manager history.
         // Without confirmation it remains available for manual recovery.
@@ -397,6 +416,8 @@ public final class TextInserter {
         item.setString(text, forType: .string)
         item.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
         guard pasteboard.writeObjects([item]) else {
+            // The earlier transcript was already cleared; return what it displaced.
+            if !saved.isEmpty { restore(pasteboard, items: saved) }
             Self.log.error("insert: clipboard write failed; paste not posted")
             return InsertionResult(method: .clipboardOnly,
                 notice: "Couldn't copy or paste. Your text is available in History.")
@@ -412,12 +433,13 @@ public final class TextInserter {
         }
         // The receiving app handles the posted event asynchronously. Once it is
         // posted, cancellation must not restore the old clipboard before that
-        // app reads it. This unstructured task owns the short restoration delay
-        // independently of the cancelled dictation; it never posts another key.
+        // app reads it. This unstructured task owns confirmation independently
+        // of the cancelled dictation; it never posts another key. Restoration
+        // is scheduled separately so delivery returns as soon as it is confirmed.
         let delay = restoreDelay
         let timeout = confirmationTimeout
+        let started = ContinuousClock.now
         return await Task { @MainActor in
-            let started = ContinuousClock.now
             let confirmed: Bool
             if let confirmation { confirmed = await Self.waitForMatch(timeout: timeout, matches: confirmation) }
             else { confirmed = false }
@@ -430,13 +452,54 @@ public final class TextInserter {
             }
             Self.log.notice("insert: delivery confirmed by destination text")
             onDelivered?()
-            try? await ContinuousClock().sleep(until: started.advanced(by: .seconds(delay)))
-            // Restore only if nobody replaced the clipboard in the meantime.
-            if pasteboard.changeCount == ourChange {
-                self.restore(pasteboard, items: saved)
-            }
+            self.scheduleRestoration(of: pasteboard, items: saved, ownedChange: ourChange,
+                                     at: started.advanced(by: .seconds(max(0, delay))))
             return InsertionResult(method: .paste, notice: nil)
         }.value
+    }
+
+    /// Waits for the delayed restore, or with `immediately` performs it now.
+    /// Delivery was already confirmed, so quitting need not wait out the delay.
+    public func finishClipboardRestoration(immediately: Bool = false) async {
+        guard let pending = pendingRestoration else { return }
+        if immediately {
+            pending.task.cancel()
+            completeRestoration(pending.id)
+        } else {
+            await pending.task.value
+        }
+    }
+
+    private func scheduleRestoration(of pasteboard: NSPasteboard, items: ClipboardItems,
+                                     ownedChange: Int, at deadline: ContinuousClock.Instant) {
+        pendingRestoration?.task.cancel()
+        let id = UUID()
+        let task = Task { @MainActor [weak self] in
+            try? await ContinuousClock().sleep(until: deadline)
+            // A takeover or immediate finish already decided this restore.
+            guard !Task.isCancelled else { return }
+            self?.completeRestoration(id)
+        }
+        pendingRestoration = PendingRestoration(id: id, pasteboard: pasteboard, changeCount: ownedChange,
+                                                items: items, task: task)
+    }
+
+    private func completeRestoration(_ id: UUID) {
+        guard let pending = pendingRestoration, pending.id == id else { return }
+        pendingRestoration = nil
+        // Restore only if nobody replaced the clipboard in the meantime.
+        if pending.pasteboard.changeCount == pending.changeCount {
+            restore(pending.pasteboard, items: pending.items)
+        }
+    }
+
+    /// Returns the clipboard a pending restore would bring back while its
+    /// transcript still owns the pasteboard; a newer copy keeps its own snapshot.
+    private func takeOverRestoration(of pasteboard: NSPasteboard) -> ClipboardItems? {
+        guard let pending = pendingRestoration, pending.pasteboard === pasteboard else { return nil }
+        pending.task.cancel()
+        pendingRestoration = nil
+        return pasteboard.changeCount == pending.changeCount ? pending.items : nil
     }
 
     private func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true) -> InsertionResult {
@@ -448,7 +511,7 @@ public final class TextInserter {
         return InsertionResult(method: .clipboardOnly, notice: notice, noticeRequiresAttention: requiresAttention)
     }
 
-    private func snapshot(_ pb: NSPasteboard) -> [[NSPasteboard.PasteboardType: Data]] {
+    private func snapshot(_ pb: NSPasteboard) -> ClipboardItems {
         (pb.pasteboardItems ?? []).map { item in
             var dict: [NSPasteboard.PasteboardType: Data] = [:]
             for type in item.types {
@@ -458,7 +521,7 @@ public final class TextInserter {
         }
     }
 
-    private func restore(_ pb: NSPasteboard, items: [[NSPasteboard.PasteboardType: Data]]) {
+    private func restore(_ pb: NSPasteboard, items: ClipboardItems) {
         pb.clearContents()
         guard !items.isEmpty else { return }
         let restored: [NSPasteboardItem] = items.map { dict in

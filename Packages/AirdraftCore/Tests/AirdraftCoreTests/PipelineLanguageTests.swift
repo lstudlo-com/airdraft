@@ -138,9 +138,9 @@ final class PipelineLanguageTests: XCTestCase {
 
     private func waitForCompletion(_ pipeline: DictationPipeline, file: StaticString = #filePath, line: UInt = #line) async throws {
         let deadline = Date().addingTimeInterval(3)
-        while pipeline.isBusy, Date() < deadline { try await Task.sleep(for: .milliseconds(5)) }
+        while pipeline.isBusy || pipeline.isFinishingDelivery, Date() < deadline { try await Task.sleep(for: .milliseconds(5)) }
         XCTAssertFalse(pipeline.isBusy, "Pipeline did not finish", file: file, line: line)
-        if pipeline.isBusy { throw WaitError.timedOut }
+        if pipeline.isBusy || pipeline.isFinishingDelivery { throw WaitError.timedOut }
     }
 
     private enum WaitError: Error { case timedOut }

@@ -77,7 +77,7 @@ final class PipelinePreparationTests: XCTestCase {
 
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Next capture uses edited settings") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy }
+        try await waitUntil("Next capture uses edited settings") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
         XCTAssertEqual(fixture.probe.requests.count, 1)
         XCTAssertEqual(fixture.probe.deliveries.last, "Final words Changed")
@@ -285,7 +285,7 @@ final class PipelinePreparationTests: XCTestCase {
         fixture.profiles.setActive(RefinementProfile.verbatimID)
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Verbatim output completes") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy }
+        try await waitUntil("Verbatim output completes") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.probe.builtConfigs.isEmpty)
         XCTAssertTrue(fixture.probe.requests.isEmpty)
     }
@@ -318,7 +318,7 @@ final class PipelinePreparationTests: XCTestCase {
         try await fixture.pipeline.startFromAutomation()
         try await waitUntil("Short capture prepares") { await gate.callCount == 1 }
         try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Short capture is discarded") { !fixture.pipeline.isBusy }
+        try await waitUntil("Short capture is discarded") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.probe.requests.isEmpty)
         XCTAssertEqual(try fixture.history.count(), 0)
         await gate.release()
@@ -337,7 +337,7 @@ final class PipelinePreparationTests: XCTestCase {
         defer { fixture.cleanUp() }
         fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Speech audio becomes recoverable") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
+        try await waitUntil("Speech audio becomes recoverable") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         fixture.settings.llm.model = "retry-model"
         fixture.pipeline.retryRecording()
         try await finished(fixture)
@@ -359,7 +359,7 @@ final class PipelinePreparationTests: XCTestCase {
         XCTAssertNotNil(saved.audioFilename)
         XCTAssertEqual(try fixture.history.audioSamples(for: saved).count, Fixture.samples.count)
         fixture.pipeline.retranscribe(saved)
-        try await waitUntil("Review finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy }
+        try await waitUntil("Review finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
         XCTAssertEqual(fixture.probe.preparedConfigs.count, 1)
         XCTAssertEqual(fixture.probe.requests.count, 1)
@@ -421,7 +421,7 @@ final class PipelinePreparationTests: XCTestCase {
     }
 
     private func finished(_ fixture: Fixture) async throws {
-        try await waitUntil("Delivery and history complete") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy }
+        try await waitUntil("Delivery and history complete") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
     }
 
     private func waitUntil(_ description: String, timeout: TimeInterval = 4,

@@ -61,6 +61,14 @@ REQUIRED_TESTS = (
     'TextInsertionTests/testPasteRestoresAllOriginalItemsAndFormats()',
     'TextInsertionTests/testSelectionFallbackRejectsMultipleCaretsMalformedRangesAndTransportErrors()',
     'TextInsertionTests/testUnknownAndChangedSelectionCannotAuthorizeInsertion()',
+    # Delivery releases the pipeline before clipboard restoration and history.
+    'TextDeliveryRegressionTests/testHoldShortcutImmediatelyAfterConfirmedDeliveryStartsRecording()',
+    'TextDeliveryRegressionTests/testToggleShortcutImmediatelyAfterConfirmedDeliveryStartsRecording()',
+    'TextDeliveryRegressionTests/testQuitAndMaintenanceWaitForDeliveredDictationHistory()',
+    'TextDeliveryRegressionTests/testShortcutDuringExclusiveWorkShowsReasonInsteadOfDroppingPress()',
+    'TextInsertionTests/testNewerPasteTakesOverPendingRestoreWithoutClobbering()',
+    'TextInsertionTests/testPendingRestoreKeepsAClipboardCopiedBeforeTheNextPaste()',
+    'TextInsertionTests/testQuitRestoresConfirmedPasteClipboardWithoutWaitingForDelay()',
 )
 
 

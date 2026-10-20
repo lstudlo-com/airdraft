@@ -75,7 +75,9 @@ extension AppContainer {
             ]
         }
         await cleanup.execute(scope, prepare: {
-            guard !self.downloads.isBusy, (!self.pipeline.isBusy || self.pipeline.isMaintainingData), !self.pipeline.isSavingHistory else { throw CleanupError.busy }
+            // Let a delivered dictation finish saving before checking for work.
+            await self.pipeline.finishPendingDelivery()
+            guard !self.downloads.isBusy, (!self.pipeline.isBusy || self.pipeline.isMaintainingData), !self.pipeline.isSavingHistory, !self.pipeline.isFinishingDelivery else { throw CleanupError.busy }
             if !self.isolatedData {
                 let siblings = NSWorkspace.shared.runningApplications.filter {
                     $0.processIdentifier != ProcessInfo.processInfo.processIdentifier &&

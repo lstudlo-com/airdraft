@@ -5,6 +5,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var shutdownStarted = false
     private var shutdownFinished = false
+    private var waitedForDelivery = false
 
     /// `.terminateLater` spins a nested run loop that cannot run main-actor work
     /// queued behind the caller, so quitting deadlocked. Instead: cancel, free the
@@ -19,9 +20,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !shutdownStarted {
             let app = AppContainer.shared
             if app.cleanup.isRunning { return .terminateCancel }
+            // A delivered dictation releases the pipeline before its history
+            // is saved. Finish that tail (bounded) and restore the clipboard
+            // now, then ask again; anything still unsaved reaches the alert.
+            if app.pipeline.hasPendingDelivery && !waitedForDelivery {
+                waitedForDelivery = true
+                Task { @MainActor in
+                    let pipeline = AppContainer.shared.pipeline
+                    _ = try? await OperationDeadline.run(seconds: 5) { @MainActor in
+                        await pipeline.finishPendingDelivery(flushClipboard: true)
+                    }
+                    NSApp.terminate(nil)
+                }
+                return .terminateCancel
+            }
             // A copy that never opened app data has no unsaved work to discard.
             // Its unavailable HistoryStore must not open another quit alert.
-            if app.dataLease != nil && app.cleanup.finishedScope != .reset && (app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil ||
+            if app.dataLease != nil && app.cleanup.finishedScope != .reset && (app.pipeline.hasRecoverableRecording || app.pipeline.historyStorageError != nil || app.pipeline.isFinishingDelivery ||
                app.dictionary.persistenceError != nil || app.profiles.persistenceError != nil ||
                (app.pipeline.isBusy && !app.pipeline.isMaintainingData) || app.downloads.isBusy) {
                 let alert = NSAlert()
@@ -31,7 +46,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     : "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work."
                 alert.addButton(withTitle: "Keep Open")
                 alert.addButton(withTitle: app.meeting?.isBusy == true ? "Save Meeting and Quit" : "Quit and Discard")
-                guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
+                guard alert.runModal() == .alertSecondButtonReturn else {
+                    waitedForDelivery = false
+                    return .terminateCancel
+                }
                 app.media?.cancel()
                 app.pipeline.cancel()
                 app.downloads.cancelAll()
