@@ -21,7 +21,7 @@ struct MicrophonePicker: View {
         .disabled(container.pipeline.isBusy)
         .accessibilityIdentifier("microphone.device-picker")
         .onAppear { container.microphones.refresh() }
-        .help("\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish the current operation before switching.")
+        .help(String(localized: "\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish the current operation before switching."))
     }
 
     private var selection: Binding<String> {
@@ -46,7 +46,8 @@ struct MicrophonePicker: View {
     @ViewBuilder private var choices: some View {
         let store = container.microphones
         let preference = container.settings.microphone
-        Text("System Default").tag("")
+        // Pre-localized: the menu bar's native NSMenu does not resolve SwiftUI keys.
+        Text(String(localized: "System Default")).tag("")
         ForEach(store.devices) { device in Text(label(device.name)).help(device.name).tag(device.uid) }
         if let uid = preference.uid, store.selected(preference) == nil {
             let unavailable = String(localized: "\(preference.name) · unavailable")

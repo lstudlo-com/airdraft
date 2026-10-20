@@ -15,7 +15,7 @@ struct DataCleanupSettings: View {
                 ForEach(Array(DataCleanupScope.allCases.enumerated()), id: \.element.id) { index, scope in
                     if index > 0 { RowDivider() }
                     SettingRow(title: scope == .reset ? "Start fresh" : shortTitle(scope), subtitle: subtitle(scope)) {
-                        Button(scope.title + "…") { prepare(scope) }
+                        Button(actionTitle(scope)) { prepare(scope) }
                             .buttonStyle(SoftButtonStyle())
                             .disabled(loading || container.cleanup.blocksWork || container.pipeline.isBusy || container.pipeline.isSavingHistory || container.downloads.isBusy)
                             .accessibilityIdentifier("cleanup.\(scope.rawValue)")
@@ -38,7 +38,7 @@ struct DataCleanupSettings: View {
                 }
             }
         }
-        .alert((selection?.title ?? String(localized: "Remove Data")) + "?", isPresented: $confirming) {
+        .alert(confirmationTitle, isPresented: $confirming) {
             Button("Cancel", role: .cancel) { selection = nil }
             Button(selection?.title ?? String(localized: "Remove"), role: .destructive) {
                 if let selection { Task { await container.performCleanup(selection) } }
@@ -46,6 +46,24 @@ struct DataCleanupSettings: View {
         } message: { Text(confirmationMessage) }
     }
 
+    /// Whole phrases, so each language supplies its own ellipsis and question mark.
+    private func actionTitle(_ scope: DataCleanupScope) -> String {
+        switch scope {
+        case .history: String(localized: "Remove History…")
+        case .audio: String(localized: "Remove Audio Files…")
+        case .historyAndAudio: String(localized: "Remove History and Audio Files…")
+        case .reset: String(localized: "Reset App…")
+        }
+    }
+    private var confirmationTitle: String {
+        switch selection {
+        case .history: String(localized: "Remove History?")
+        case .audio: String(localized: "Remove Audio Files?")
+        case .historyAndAudio: String(localized: "Remove History and Audio Files?")
+        case .reset: String(localized: "Reset App?")
+        case nil: String(localized: "Remove Data?")
+        }
+    }
     private func shortTitle(_ scope: DataCleanupScope) -> LocalizedStringResource {
         switch scope {
         case .history: "History"

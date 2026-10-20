@@ -186,18 +186,18 @@ struct AirdraftApp: App {
         .defaultSize(width: Theme.windowWidth, height: 660)
         .commands {
             CommandGroup(after: .appInfo) {
-                Button("Set Up Airdraft…") { container.showOnboarding() }
+                Button(String(localized: "Set Up Airdraft…")) { container.showOnboarding() }
                     .disabled(container.pipeline.isBusy)
-                Button("License…") { container.showLicense() }
-                Button("Check for Updates…") { container.updates.checkForUpdates() }
+                Button(String(localized: "License…")) { container.showLicense() }
+                Button(String(localized: "Check for Updates…")) { container.updates.checkForUpdates() }
                     .disabled(!container.updates.canCheckForUpdates)
             }
             // ⌘, opens Settings.
             CommandGroup(replacing: .appSettings) {
-                Button("Settings…") { show(.configuration) }
+                Button(String(localized: "Settings…")) { show(.configuration) }
                     .keyboardShortcut(",")
             }
-            CommandMenu("Go") {
+            CommandMenu(String(localized: "Go")) {
                 ForEach(Array(Page.allCases.enumerated()), id: \.element) { index, page in
                     Button(page.title) { show(page) }
                         .keyboardShortcut(KeyEquivalent(Character(String(index + 1))))

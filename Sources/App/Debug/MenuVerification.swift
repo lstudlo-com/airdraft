@@ -27,6 +27,15 @@ enum MenuVerification {
         app.models.llmStatus.set(.loaded(instance: "menu-fixture"))
 
         var report: [String: Any] = [:]
+        // Expected titles come from the same catalogs, so the fixture passes in
+        // every shipped language and fails when a title stays untranslated.
+        func L(_ key: String.LocalizationValue) -> String { String(localized: key) }
+        let profileName = app.profiles.activeProfile.name
+        // Runtime text passed as `.verbatim` is never looked up as a catalog key,
+        // even when it matches one ("Settings…" is translated in zh-Hant).
+        precondition(String(localized: LocalizedStringResource.verbatim("Settings…")) == "Settings…",
+                     "Verbatim text must not be translated")
+        report["language"] = Bundle.main.preferredLocalizations.first ?? "unknown"
         func makeMenu() -> NSMenu {
             let menu = NSHostingMenu(rootView: MenuView().environment(app))
             menu.update()
@@ -49,60 +58,68 @@ enum MenuVerification {
                 }
             }
         }
-
         let normal = makeMenu()
         precondition(normal.items.filter(\.isSeparatorItem).count == 2, "Exactly three root groups")
         // Recording group: dictation, the meeting recorder's entry point, then History and Settings.
         let firstGroup = normal.items.prefix { !$0.isSeparatorItem }.map(\.title)
-        precondition(firstGroup == ["Start Dictation", "Record Meeting…", "History…", "Settings…"],
-                     "Unexpected recording group: \(firstGroup)")
-        precondition(titles(normal).contains("Profile: Clean") && titles(normal).contains("Refinement: Local"),
+        let expectedGroup = [L("Start Dictation"), L("Record Meeting…"), L("History…"), L("Settings…")]
+        precondition(firstGroup == expectedGroup, "Unexpected recording group: \(firstGroup), expected \(expectedGroup)")
+        let lastGroup = Array(normal.items.reversed().prefix { !$0.isSeparatorItem }.map(\.title).reversed())
+        precondition(lastGroup == [L("Check for Updates…"), L("Quit Airdraft")], "Unexpected app commands: \(lastGroup)")
+        let localRefinement = L("Refinement: \(LLMProviderKind.openAICompatible.shortTitle)")
+        precondition(titles(normal).contains(L("Profile: \(profileName)")) && titles(normal).contains(localRefinement),
                      "Current choices belong in root submenu titles. Actual: \(titles(normal))")
-        precondition(!titles(normal).contains(where: { $0.contains("Loaded") || $0.contains("dictate") }))
+        precondition(!titles(normal).contains(where: { $0.contains(L("Loaded")) || $0.contains(settings.hotkey.displayString) }))
         precondition(normal.items.first?.keyEquivalent == "", "The menu must not register a second dictation shortcut")
         precondition(normal.items.first?.badge != nil, "The shortcut hint must stay on the recording row")
-        let models = submenu(normal, "Models")
-        precondition(titles(models).contains("Speech: Cohere · Loaded"), "Status must use the profile's speech model")
-        precondition(titles(models).contains("Unload Models") && titles(models).contains("Manage Models…"))
+        let models = submenu(normal, L("Models"))
+        precondition(titles(models).contains(L("Speech: \("Cohere") · \(L("Loaded"))")), "Status must use the profile's speech model. Actual: \(titles(models))")
+        precondition(titles(models).contains(L("Unload Models")) && titles(models).contains(L("Manage Models…")))
+        let microphoneTitle = titles(normal).first { $0.hasPrefix(L("Microphone: \("")")) } ?? ""
+        let microphones = submenu(normal, microphoneTitle)
+        precondition(titles(microphones).first == L("System Default"), "Unexpected microphone choices: \(titles(microphones))")
         record("normal", normal)
         record("models", models)
 
         app.models.llmStatus.set(.unreachable)
         let offline = makeMenu()
-        let refinement = submenu(offline, "Refinement: Unavailable")
-        precondition(titles(refinement).contains("Dictation will use raw text"))
+        let refinement = submenu(offline, L("Refinement: \(L("Unavailable"))"))
+        precondition(titles(refinement).contains(L("Dictation will use raw text")) && titles(refinement).contains(L("Refinement Settings…")),
+                     "Unexpected refinement details: \(titles(refinement))")
         precondition(offline.items.first?.isEnabled == true, "Unavailable refinement must not block dictation")
         record("refinement-offline", offline)
         record("refinement-details", refinement)
 
         settings.llm.select(.groq)
-        precondition(titles(makeMenu()).contains("Refinement: Groq"), "A stale local failure must not label a cloud provider unavailable")
+        precondition(titles(makeMenu()).contains(L("Refinement: \("Groq")")), "A stale local failure must not label a cloud provider unavailable")
         settings.llm.select(.openAICompatible)
 
         profile.usesLLM = false
         app.profiles.update(profile)
         let verbatim = makeMenu()
-        precondition(titles(verbatim).contains("Refinement: Off"), "The profile's opt-out overrides provider health")
-        precondition(titles(submenu(verbatim, "Models")).contains("Refinement: Off"))
+        let refinementOff = L("Refinement: \(L("Off"))")
+        precondition(titles(verbatim).contains(refinementOff), "The profile's opt-out overrides provider health")
+        precondition(titles(submenu(verbatim, L("Models"))).contains(refinementOff))
+        precondition(titles(submenu(verbatim, refinementOff)).contains(L("Off for this profile")))
         record("profile-refinement-off", verbatim, capture: false)
         profile.usesLLM = true
         profile.name = String(repeating: "Long profile name ", count: 12)
         app.profiles.update(profile)
         settings.microphone = MicrophonePreference(uid: "missing-menu-fixture", name: String(repeating: "Studio microphone ", count: 12))
         let long = makeMenu()
-        precondition(titles(long).contains("Microphone: Unavailable"))
-        precondition(titles(long).first(where: { $0.hasPrefix("Profile:") })?.hasSuffix("…") == true)
+        precondition(titles(long).contains(L("Microphone: \(L("Unavailable"))")))
+        precondition(titles(long).first(where: { $0.hasPrefix(L("Profile: \("")")) })?.hasSuffix("…") == true)
         record("long-and-missing", long)
-        profile.name = "Clean"
+        profile.name = profileName
         app.profiles.update(profile)
         settings.microphone = .systemDefault
 
         app.models.llmStatus.set(.remote)
         app.engineStatus.setPreviewState(app.speechConfig.engineID, .notLoaded)
-        precondition(!titles(submenu(makeMenu(), "Models")).contains("Unload Models"))
+        precondition(!titles(submenu(makeMenu(), L("Models"))).contains(L("Unload Models")))
         app.hotkeys.suspended = true
         let shortcut = makeMenu()
-        precondition(titles(shortcut).contains("Set Up Shortcut…"))
+        precondition(titles(shortcut).contains(L("Set Up Shortcut…")))
         record("shortcut-unavailable", shortcut, capture: false)
 
         // Missing local model files produce a real retained recording without
@@ -111,7 +128,7 @@ enum MenuVerification {
         app.pipeline.processSamples([Float](repeating: 0.01, count: 1_600))
         let busy = makeMenu()
         precondition(busy.items.first?.isEnabled == false)
-        precondition(titles(busy).contains("Cancel Dictation"))
+        precondition(titles(busy).contains(L("Cancel Dictation")))
         record("processing", busy, capture: false)
         let deadline = Date().addingTimeInterval(5)
         while app.pipeline.isBusy && Date() < deadline {
@@ -120,20 +137,21 @@ enum MenuVerification {
         precondition(app.pipeline.hasRecoverableRecording && app.pipeline.lastIssue != nil,
                      "Missing local files must retain a recovery recording")
         let recovery = makeMenu()
-        let actions = submenu(recovery, "Recover Last Dictation")
-        precondition(titles(actions) == ["Review Last Dictation…", "Retry Transcription", "Discard Recording"])
+        let actions = submenu(recovery, L("Recover Last Dictation"))
+        precondition(titles(actions) == [L("Review Last Dictation…"), L("Retry Transcription"), L("Discard Recording")],
+                     "Unexpected recovery actions: \(titles(actions))")
         record("recovery", recovery)
         record("recovery-actions", actions)
-        guard let discard = actions.items.firstIndex(where: { $0.title == "Discard Recording" }) else {
+        guard let discard = actions.items.firstIndex(where: { $0.title == L("Discard Recording") }) else {
             preconditionFailure("Missing discard action")
         }
         actions.performActionForItem(at: discard)
         precondition(!app.pipeline.hasRecoverableRecording, "Native discard must reach the real pipeline")
-        precondition(!titles(makeMenu()).contains("Recover Last Dictation"))
+        precondition(!titles(makeMenu()).contains(L("Recover Last Dictation")))
 
         let data = try! JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
         try! data.write(to: directory.appendingPathComponent("menu-verification.json"))
-        print("PASS: native menu groups, shortcut badge, provider/profile states, long names, missing device, busy/recovery and discard")
+        print("PASS (\(report["language"] ?? "")): native menu groups, localized titles, shortcut badge, provider/profile states, long names, missing device, busy/recovery and discard")
     }
 
     private static func captureMenu(_ menu: NSMenu, to url: URL) {

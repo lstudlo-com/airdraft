@@ -3242,7 +3242,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "迪斯可"
+            "value" : "Disco"
           }
         }
       }
@@ -4322,7 +4322,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入"
+            "value" : "輸入裝置"
           }
         }
       }
@@ -7570,12 +7570,72 @@
         }
       }
     },
-    "Remove Data" : {
+    "Remove Audio Files?" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除資料"
+            "value" : "要移除音訊檔案嗎？"
+          }
+        }
+      }
+    },
+    "Remove Audio Files…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除音訊檔案⋯"
+          }
+        }
+      }
+    },
+    "Remove Data?" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移除資料嗎？"
+          }
+        }
+      }
+    },
+    "Remove History and Audio Files?" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移除記錄與音訊檔案嗎？"
+          }
+        }
+      }
+    },
+    "Remove History and Audio Files…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除記錄與音訊檔案⋯"
+          }
+        }
+      }
+    },
+    "Remove History?" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移除記錄嗎？"
+          }
+        }
+      }
+    },
+    "Remove History…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除記錄⋯"
           }
         }
       }
@@ -7726,6 +7786,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置所有模式⋯"
+          }
+        }
+      }
+    },
+    "Reset App?" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要重置 App 嗎？"
+          }
+        }
+      }
+    },
+    "Reset App…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置 App⋯"
           }
         }
       }

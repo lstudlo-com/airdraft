@@ -962,7 +962,11 @@ struct OverlayPanel<Content: View>: View {
 
 extension LocalizedStringResource {
     /// Runtime text that is already localized or never translated, such as a model name.
+    /// A string literal resource would still look the text up as a key in
+    /// `Localizable`; this table never exists, so lookup returns the text as is.
     static func verbatim(_ text: String) -> LocalizedStringResource {
-        LocalizedStringResource(stringLiteral: text)
+        LocalizedStringResource(String.LocalizationValue(text), table: verbatimTable)
     }
+
+    static let verbatimTable = "AirdraftVerbatim"
 }

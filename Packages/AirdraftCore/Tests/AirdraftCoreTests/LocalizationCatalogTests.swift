@@ -49,7 +49,7 @@ final class LocalizationCatalogTests: XCTestCase {
         let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hant", ofType: "lproj"))
         let chinese = try XCTUnwrap(Bundle(path: path))
         XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "關閉")
-        XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼板")
+        XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼簿")
         // The test process runs in English: Core copy keeps its exact source wording.
         XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
     }

@@ -7,25 +7,25 @@ struct MenuView: View {
 
     var body: some View {
         if container.pipeline.isMaintainingData {
-            Text("Data Cleanup")
-            Button("Open Airdraft…") { container.showMainWindow(openWindow) }
+            Text(String(localized: "Data Cleanup"))
+            Button(String(localized: "Open Airdraft…")) { container.showMainWindow(openWindow) }
             Divider()
-            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
+            Button(String(localized: "Quit Airdraft")) { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
                 .disabled(container.cleanup.isRunning)
         } else if container.meeting?.isBusy == true {
-            Text(container.meeting?.state == .finishing ? "Saving Meeting…" : "Recording Meeting")
-            Button("Stop and Save Meeting") { Task { await container.meeting?.stop() } }
+            Text(container.meeting?.state == .finishing ? String(localized: "Saving Meeting…") : String(localized: "Recording Meeting"))
+            Button(String(localized: "Stop and Save Meeting")) { Task { await container.meeting?.stop() } }
                 .disabled(container.meeting?.state != .recording)
-            Button("Show Meeting…") { show(.meetings) }
+            Button(String(localized: "Show Meeting…")) { show(.meetings) }
             Divider()
-            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+            Button(String(localized: "Quit Airdraft")) { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else if container.media?.isBusy == true {
             Text(MenuTitle.fit(container.media?.activity ?? String(localized: "Preparing Media…")))
-            Button("Pause Media Job") { container.media?.cancel() }
-            Button("History…") { show(.history) }
+            Button(String(localized: "Pause Media Job")) { container.media?.cancel() }
+            Button(String(localized: "History…")) { show(.history) }
             Divider()
-            Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+            Button(String(localized: "Quit Airdraft")) { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else {
             standardMenu
         }
@@ -38,11 +38,11 @@ struct MenuView: View {
             .help(shortcutHelp)
             .disabled(container.pipeline.isBusy && !container.pipeline.isRecording)
         if container.pipeline.state.isBusy {
-            Button("Cancel Dictation") { container.pipeline.cancel() }
+            Button(String(localized: "Cancel Dictation")) { container.pipeline.cancel() }
         }
         recoveryMenu
         if !container.hotkeys.isActive {
-            Button("Set Up Shortcut…") {
+            Button(String(localized: "Set Up Shortcut…")) {
                 if container.hotkeys.needsAccessibility {
                     container.openAccessibilitySettings()
                 } else {
@@ -52,10 +52,10 @@ struct MenuView: View {
             }
             .help(container.hotkeys.statusText)
         }
-        Button("Record Meeting…") { show(.meetings); container.meeting?.isPresented = true }
+        Button(String(localized: "Record Meeting…")) { show(.meetings); container.meeting?.isPresented = true }
             .disabled(container.pipeline.isBusy || container.meeting == nil)
-        Button("History…") { show(.history) }
-        Button("Settings…") { show(.configuration) }
+        Button(String(localized: "History…")) { show(.history) }
+        Button(String(localized: "Settings…")) { show(.configuration) }
             .keyboardShortcut(",")
         Divider()
 
@@ -69,19 +69,19 @@ struct MenuView: View {
                 Text(MenuTitle.fit(profile.name)).help(profile.name).tag(profile.id)
             }
         }
-        .help("Profile: \(container.profiles.activeProfile.name). Changes apply to the next dictation.")
+        .help(String(localized: "Profile: \(container.profiles.activeProfile.name). Changes apply to the next dictation."))
 
         Menu(MenuTitle.fit(String(localized: "Refinement: \(refinementLabel)"))) {
             if !container.profiles.activeProfile.usesLLM {
-                Text("Off for this profile")
-                Button("Profile Settings…") { show(.profiles) }
+                Text(String(localized: "Off for this profile"))
+                Button(String(localized: "Profile Settings…")) { show(.profiles) }
                 Divider()
             } else if refinementUnavailable {
-                Text("Refinement unavailable").help(llmDetail)
-                Text("Dictation will use raw text")
+                Text(String(localized: "Refinement unavailable")).help(llmDetail)
+                Text(String(localized: "Dictation will use raw text"))
                 Divider()
             }
-            Picker("Provider", selection: Binding(
+            Picker(String(localized: "Provider"), selection: Binding(
                 get: { container.settings.llm.kind },
                 set: { container.settings.llm.select($0) }
             )) {
@@ -92,19 +92,19 @@ struct MenuView: View {
             .pickerStyle(.inline)
             .labelsHidden()
             Divider()
-            Button("Refinement Settings…") { show(.models) }
+            Button(String(localized: "Refinement Settings…")) { show(.models) }
         }
         .help(llmDetail)
 
-        Menu("Models") {
+        Menu(String(localized: "Models")) {
             Text(MenuTitle.fit(String(localized: "Speech: \(speechProviderLabel) · \(speechStateLabel)")))
-                .help("Speech: \(container.speechConfig.engineLabel) · \(fullSpeechStateLabel)")
+                .help(String(localized: "Speech: \(container.speechConfig.engineLabel) · \(fullSpeechStateLabel)"))
             Text(MenuTitle.fit(String(localized: "Refinement: \(llmSummary)")))
-                .help("Refinement: \(llmDetail)")
+                .help(String(localized: "Refinement: \(llmDetail)"))
             Divider()
-            Button("Manage Models…") { show(.models) }
+            Button(String(localized: "Manage Models…")) { show(.models) }
             if canUnloadModels {
-                Button("Unload Models") {
+                Button(String(localized: "Unload Models")) {
                     container.models.unloadSpeechModels()
                     container.models.unloadLLM()
                 }
@@ -113,9 +113,9 @@ struct MenuView: View {
         }
         Divider()
 
-        Button("Check for Updates…") { container.updates.checkForUpdates() }
+        Button(String(localized: "Check for Updates…")) { container.updates.checkForUpdates() }
             .disabled(!container.updates.canCheckForUpdates)
-        Button("Quit Airdraft") { NSApplication.shared.terminate(nil) }
+        Button(String(localized: "Quit Airdraft")) { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
         }
     }
@@ -127,17 +127,17 @@ struct MenuView: View {
 
     @ViewBuilder private var recoveryMenu: some View {
         if container.pipeline.hasRecoverableRecording {
-            Menu("Recover Last Dictation") {
-                Button("Review Last Dictation…") { show(.home) }
+            Menu(String(localized: "Recover Last Dictation")) {
+                Button(String(localized: "Review Last Dictation…")) { show(.home) }
                     .help(container.pipeline.lastIssue ?? String(localized: "Review the saved recording."))
                 Divider()
-                Button("Retry Transcription") { container.pipeline.retryRecording() }
+                Button(String(localized: "Retry Transcription")) { container.pipeline.retryRecording() }
                     .disabled(container.pipeline.isBusy)
-                Button("Discard Recording") { container.pipeline.discardRecording() }
+                Button(String(localized: "Discard Recording")) { container.pipeline.discardRecording() }
                     .disabled(container.pipeline.isBusy)
             }
         } else if let issue = container.pipeline.lastIssue {
-            Button("Review Last Dictation…") { show(.home) }.help(issue)
+            Button(String(localized: "Review Last Dictation…")) { show(.home) }.help(issue)
         }
     }
 
