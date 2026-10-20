@@ -52,8 +52,12 @@ enum MenuVerification {
 
         let normal = makeMenu()
         precondition(normal.items.filter(\.isSeparatorItem).count == 2, "Exactly three root groups")
-        precondition(Array(titles(normal).prefix(3)) == ["Start Dictation", "History…", "Settings…"])
-        precondition(titles(normal).contains("Profile: Clean") && titles(normal).contains("Refinement: Local"))
+        // Recording group: dictation, the meeting recorder's entry point, then History and Settings.
+        let firstGroup = normal.items.prefix { !$0.isSeparatorItem }.map(\.title)
+        precondition(firstGroup == ["Start Dictation", "Record Meeting…", "History…", "Settings…"],
+                     "Unexpected recording group: \(firstGroup)")
+        precondition(titles(normal).contains("Profile: Clean") && titles(normal).contains("Refinement: Local"),
+                     "Current choices belong in root submenu titles. Actual: \(titles(normal))")
         precondition(!titles(normal).contains(where: { $0.contains("Loaded") || $0.contains("dictate") }))
         precondition(normal.items.first?.keyEquivalent == "", "The menu must not register a second dictation shortcut")
         precondition(normal.items.first?.badge != nil, "The shortcut hint must stay on the recording row")

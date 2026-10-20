@@ -74,7 +74,7 @@ struct HomePage: View {
     // MARK: Readiness
 
     private var setupIssues: Int {
-        [container.hotkeys.isActive, outputReady, microphoneReady, speechReady, refinementTone != .attention]
+        [container.hotkeys.isActive, outputReady, microphoneReady, speechTone != .attention, refinementTone != .attention]
             .filter { !$0 }.count
     }
 
@@ -86,9 +86,17 @@ struct HomePage: View {
 
     private var pipelineSummary: String {
         let llm = container.settings.llm
-        let speech = container.speechConfig.engineLabel
+        let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
-        return "\(speech) → \(llm.engineLabel) · \(container.effectiveProfile.name)"
+        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.name)"
+    }
+
+    /// Exact identifiers stay available on hover for diagnosis.
+    private var pipelineHelp: String {
+        let llm = container.settings.llm
+        let speech = String(localized: "Speech: \(container.speechConfig.engineLabel)")
+        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return speech }
+        return speech + "\n" + String(localized: "Refinement: \(llm.engineLabel)")
     }
 
     private var readinessCard: some View {
@@ -108,6 +116,7 @@ struct HomePage: View {
                             .accessibilityIdentifier("home.pipeline-summary")
                             .lineLimit(1)
                             .truncationMode(.middle)
+                            .help(pipelineHelp)
                     }
                     Spacer(minLength: Theme.controlSpacing)
                     if issues == 0 {
@@ -178,8 +187,8 @@ struct HomePage: View {
             }
         }
         RowDivider()
-        HealthRow(ok: speechReady, title: "Speech", detail: speechDetail) {
-            if !speechReady {
+        HealthRow(tone: speechTone, title: "Speech", detail: speechDetail) {
+            if speechTone == .attention {
                 if container.effectiveProfile.speechModel?.unavailableReason != nil {
                     Button("Profiles") { container.navigation.page = .profiles }
                         .buttonStyle(SoftButtonStyle())
@@ -196,6 +205,12 @@ struct HomePage: View {
                         container.navigation.page = .models
                     }.buttonStyle(SoftButtonStyle())
                 }
+            } else if speechLoadsOnDemand {
+                // Optional: dictation loads it anyway; this only saves the first wait.
+                Button("Load Model") { container.models.loadSpeechModel() }
+                    .buttonStyle(SoftButtonStyle())
+                    .disabled(container.pipeline.isBusy)
+                    .help("Load now instead of when you start dictating")
             }
         }
         RowDivider()
@@ -264,14 +279,29 @@ struct HomePage: View {
             return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
         if !LocalModels.isInstalled(asr) { return String(localized: "Model not installed") }
+        if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
         return container.engineStatus.state(for: asr.engineID).label
     }
 
-    private var speechReady: Bool {
-        if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return false }
+    /// An installed local model that is not in memory is ready: starting
+    /// dictation loads it. Only missing files, keys, bindings, languages or a
+    /// failed load need attention.
+    private var speechTone: StatusDot.Tone {
+        if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return .attention }
         let asr = container.speechConfig
-        if !asr.kind.isLocal { return !(asr.kind.preset != nil) || speechKeyPresent }
-        return LocalModels.isInstalled(asr) && container.engineStatus.state(for: asr.engineID) == .ready
+        if !asr.kind.isLocal { return asr.kind.preset == nil || speechKeyPresent ? .ok : .attention }
+        guard LocalModels.isInstalled(asr) else { return .attention }
+        switch container.engineStatus.state(for: asr.engineID) {
+        case .ready, .notLoaded: return .ok
+        case .loading: return .busy
+        case .failed: return .attention
+        }
+    }
+
+    private var speechLoadsOnDemand: Bool {
+        let asr = container.speechConfig
+        return asr.kind.isLocal && container.engineStatus.state(for: asr.engineID) == .notLoaded
+            && speechTone == .ok
     }
 
     private var speechLanguageIssue: String? {

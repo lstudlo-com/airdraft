@@ -419,6 +419,57 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .openAICompatible: return "\(URL(string: baseURL)?.host ?? baseURL) · \(model)"
         }
     }
+
+    /// Readable catalogue name of the selected speech model, matching the
+    /// titles in Models. Unknown or custom models fall back to their raw ID.
+    public var modelDisplayName: String {
+        switch kind {
+        case .fluidAudio: return CoreMLSpeechModelCatalog.model(model)?.title ?? model
+        case .orukeet: return "Orukeet"
+        case .transcribeCpp: return GGUFModelCatalog.model(model)?.title ?? model
+        case .whisperKit: return WhisperModelVariant(rawValue: whisperModel)?.title ?? "Whisper \(whisperModel)"
+        case .qwen3:
+            switch qwen3Model {
+            case "aufklarer/Qwen3-ASR-1.7B-MLX-5bit": return "Qwen3-ASR 1.7B"
+            case "aufklarer/Qwen3-ASR-0.6B-MLX-4bit": return "Qwen3-ASR 0.6B"
+            default: return (qwen3Model as NSString).lastPathComponent
+            }
+        case .fireRed: return "FireRedASR2"
+        case .cohere:
+            return cohereModel == "aufklarer/Cohere-Transcribe-2B-MLX-5bit"
+                ? "Cohere Transcribe" : (cohereModel as NSString).lastPathComponent
+        case .senseVoice: return "SenseVoice"
+        case .parakeet: return "Parakeet TDT v3"
+        case .apple: return "Apple Speech"
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini:
+            return selectedSpeechModel?.title ?? model
+        case .openAICompatible: return model.isEmpty ? String(localized: "Custom server", bundle: .module) : model
+        }
+    }
+
+    /// Runtime of a local model, or who hosts a cloud model. Same-family
+    /// variants (Core ML, GGUF and MLX builds) stay distinguishable with it.
+    public var modelSource: String? {
+        switch kind {
+        case .qwen3, .cohere: return "MLX"
+        case .fireRed, .senseVoice, .parakeet, .orukeet: return "ONNX"
+        case .whisperKit, .fluidAudio: return "Core ML"
+        case .transcribeCpp: return GGUFModelCatalog.model(model).map { "GGUF \($0.quantization)" } ?? "GGUF"
+        case .apple: return nil
+        case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
+             .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini:
+            return kind.preset?.name
+        case .openAICompatible: return URL(string: baseURL)?.host ?? String(localized: "Custom server", bundle: .module)
+        }
+    }
+
+    /// User-facing model label: readable name plus runtime or host. Raw
+    /// identifiers stay in `engineLabel` for tooltips and diagnostics.
+    public var displayName: String {
+        guard let source = modelSource, !source.isEmpty, source != modelDisplayName else { return modelDisplayName }
+        return "\(modelDisplayName) · \(source)"
+    }
 }
 
 public struct LLMConfig: Codable, Sendable, Equatable {
@@ -563,6 +614,83 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         case .claudeCode, .codex: return "\(kind.title) · \(model.isEmpty ? String(localized: "default model", bundle: .module) : model)"
         default: return "\(kind.title) · \(model)"
         }
+    }
+
+    /// Who serves refinement: a known local server by name, a custom
+    /// server by host, otherwise the provider's compact title.
+    public var providerDisplayName: String {
+        guard kind == .openAICompatible else { return kind.shortTitle }
+        let host = endpoint?.host ?? baseURL
+        let normalized = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+        if let preset = EndpointPreset.llm.first(where: {
+            $0.name != "Custom" && $0.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) == normalized
+        }) {
+            return preset.name.replacingOccurrences(of: " (local)", with: "")
+        }
+        return host.isEmpty ? kind.title : host
+    }
+
+    /// Readable model name; the raw ID stays in `engineLabel`.
+    public var modelDisplayName: String {
+        if model.trimmingCharacters(in: .whitespaces).isEmpty { return kind.isCLI ? String(localized: "Default model", bundle: .module) : "" }
+        return Self.readableModelName(model)
+    }
+
+    /// Provider plus readable model, for summaries such as Home.
+    public var displayName: String {
+        switch kind {
+        case .appleIntelligence, .none: return kind.title
+        default:
+            let name = modelDisplayName
+            return name.isEmpty ? providerDisplayName : "\(providerDisplayName) · \(name)"
+        }
+    }
+
+    /// Turns a provider model ID into a readable name without a catalogue:
+    /// `google/gemma-4-26b-a4b-qat` → `Gemma 4 26B A4B QAT`,
+    /// `claude-haiku-4-5-20251001` → `Claude Haiku 4.5`. Mixed-case IDs and
+    /// IDs that yield nothing readable are returned unchanged.
+    public static func readableModelName(_ id: String) -> String {
+        let trimmed = id.trimmingCharacters(in: .whitespacesAndNewlines)
+        let base = trimmed.split(separator: "/").last.map(String.init) ?? trimmed
+        guard !base.isEmpty, base == base.lowercased() else { return base.isEmpty ? trimmed : base }
+        var tokens = base.split(whereSeparator: { "-_: ".contains($0) }).map(String.init)
+        // Release dates and floating tags identify a snapshot, not the model.
+        while let last = tokens.last, tokens.count > 1,
+              last == "latest" || (last.count == 8 && last.allSatisfy(\.isNumber)) {
+            tokens.removeLast()
+        }
+        // Split major-minor versions such as `4-5` back into `4.5`.
+        var merged: [String] = []
+        for token in tokens {
+            if let previous = merged.last, previous.count == 1, previous.allSatisfy(\.isNumber),
+               token.count == 1, token.allSatisfy(\.isNumber) {
+                merged[merged.count - 1] = "\(previous).\(token)"
+            } else {
+                merged.append(token)
+            }
+        }
+        let acronyms: Set<String> = ["gpt", "oss", "qat", "mlx", "gguf", "awq", "it", "asr", "tts", "vl", "moe"]
+        func word(_ token: String) -> String {
+            if acronyms.contains(token) { return token.uppercased() }
+            // Parameter counts (26b, 1.5b, 270m) and active-expert tags (a4b, e4b).
+            if token.range(of: #"^(\d+(\.\d+)?|[a-z]\d+(\.\d+)?)[bmkt]$"#, options: .regularExpression) != nil {
+                return token.uppercased()
+            }
+            if token.range(of: #"^[a-z]+\d+(\.\d+)?$"#, options: .regularExpression) != nil
+                || token.range(of: #"^[a-z]+$"#, options: .regularExpression) != nil {
+                return token.prefix(1).uppercased() + token.dropFirst()
+            }
+            return token
+        }
+        var words: [String] = []
+        for token in merged {
+            let next = word(token)
+            // GPT joins its version or variant with a hyphen: GPT-4.1, GPT-OSS.
+            if words.last == "GPT" { words[words.count - 1] = "GPT-\(next)" } else { words.append(next) }
+        }
+        let name = words.joined(separator: " ")
+        return name.isEmpty ? trimmed : name
     }
 }
 
