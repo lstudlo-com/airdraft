@@ -70,6 +70,8 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse(any('CredentialTests' in name or 'RefinerWireTests' in name for name in selection))
         self.assertFalse(any('SonioxMediaTests' in name or 'CredentialRemovalTests' in name for name in selection))
         self.assertEqual(release.core_test_selection(source, 'full'), [])
+        # The CI-only unsigned route is a runner flag, never part of release selection.
+        self.assertFalse(any('CODE_SIGN' in name for name in selection))
 
     def test_credential_free_selection_rejects_forbidden_suites_and_cases(self):
         runner = runpy.run_path(str(Path(__file__).with_name('test-local-e2e.py')))

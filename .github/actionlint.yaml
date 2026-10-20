@@ -1,0 +1,5 @@
+# GitHub-hosted labels newer than actionlint's built-in list.
+# xcode-27: Apple Silicon image with macOS 27 and Xcode 27 (GA 2026-10-15).
+self-hosted-runner:
+  labels:
+    - xcode-27
