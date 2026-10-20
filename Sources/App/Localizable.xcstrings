@@ -4900,6 +4900,16 @@
         }
       }
     },
+    "Load now instead of when you start dictating" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在就載入，不必等到開始聽寫"
+          }
+        }
+      }
+    },
     "Load the speech model to start speaking." : {
       "localizations" : {
         "zh-Hant" : {
@@ -5032,15 +5042,7 @@
       }
     },
     "Loads when you dictate" : {
-      "comment" : "Used by concurrent AD-059/060/061 work; kept until that code lands.",
-      "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loads when you dictate"
-          }
-        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8926,6 +8928,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語音選項"
+          }
+        }
+      }
+    },
+    "Speech: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音：%@"
           }
         }
       }
