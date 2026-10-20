@@ -89,7 +89,11 @@ verification status belong in the vault (see below).
   `translatedPaths` in `src/i18n/index.ts` drives reciprocal hreflang, sitemap
   alternates and the language switch. Add a translation to `_redirects`, the
   analytics path allowlist and `llms.txt` together; translated pages quote the
-  app's zh-Hant catalog labels. JavaScript packages
+  app's zh-Hant catalog labels. Until a published build includes the Traditional
+  Chinese interface, zh-TW pages say it arrives in the next version and that
+  published builds show English labels; rewrite those sentences with that release.
+  Translated pages mark links to English-only pages （英文）, and their header
+  folds its links into the menu up to 700 px. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
