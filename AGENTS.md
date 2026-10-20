@@ -84,7 +84,12 @@ verification status belong in the vault (see below).
 - `apps/marketing` is the Astro marketing website, initialized from Cloudflare's
   official Astro Framework Starter and deployed with Workers static assets.
   Read its `PRODUCT.md` and `DESIGN.md` before changing content or design, and
-  build pages from its reusable components in `src/components/ui/`. JavaScript packages
+  build pages from its reusable components in `src/components/ui/`. Traditional
+  Chinese (Taiwan) pages live under `/zh-tw/` with the English slug;
+  `translatedPaths` in `src/i18n/index.ts` drives reciprocal hreflang, sitemap
+  alternates and the language switch. Add a translation to `_redirects`, the
+  analytics path allowlist and `llms.txt` together; translated pages quote the
+  app's zh-Hant catalog labels. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
@@ -105,7 +110,9 @@ verification status belong in the vault (see below).
   readable content without JavaScript.
   Search contracts live in `apps/marketing/SEARCH.md`. Keep factual guide content,
   metadata and structured data aligned; never invent sale availability, reviews or
-  ranking claims. Marketing builds validate generated crawlability, canonical URLs,
+  ranking claims. The app comparison guide cites each product's own pages with
+  check dates, states where competitors are better and marks unknown cells Not
+  checked; recheck rows before changing their dates. Marketing builds validate generated crawlability, canonical URLs,
   sitemap membership, links, feeds and social previews. Keep `_redirects` aligned
   with canonical HTML routes. IndexNow defaults to a dry run; submission is a
   separate explicit command after publication, never a build side effect.
@@ -259,6 +266,11 @@ verification status belong in the vault (see below).
   icons in 24-point white tiles clipped to 6-point continuous rounded corners,
   keeping transparent artwork on white in both appearances. Keep compact
   13-point model names and 11-point secondary text, with equal 16-point row insets.
+  User-facing summaries (Home readiness, the Profiles speech row) name models
+  through `ASRConfig.displayName` / `LLMConfig.displayName`: catalogue titles with
+  local runtime/quantization or cloud host, and the refinement provider with a
+  readable model name. Unknown or custom models fall back to their raw ID.
+  `engineLabel` and `engineID` are diagnostic: help text and logs only.
   Profiles uses the same compact picker in its
   Profile section heading instead of a profile list; names carry it, without icons.
   Each profile may bind a speech model; nil means Use App Default. Store only the
@@ -494,7 +506,7 @@ verification status belong in the vault (see below).
   issues, notices, device, profile and provider names) through `MenuTitle.fit`,
   which measures the menu font against a 190-point limit. Never show full
   diagnostics in a menu item; keep them in tooltips and Home's recovery notice.
-  Keep three groups: recording/History/Settings, current microphone/profile/refinement
+  Keep three groups: recording (Start Dictation, Record Meeting)/History/Settings, current microphone/profile/refinement
   choices plus Models, then app commands. Show current choices in submenu titles.
   Do not add a permanent status header; display the shortcut as a native badge on
   the recording action without registering another shortcut. Processing replaces
@@ -526,6 +538,9 @@ verification status belong in the vault (see below).
   showing Loading in all visible HUD styles before opening the microphone.
   Join an existing load through `EngineFactory`; cancellation or changed setup
   must not start stale recording. Missing model files still require installation.
+  Home treats an installed but unloaded local model as ready ("Loads when you
+  dictate", optional Load Model); only missing files, keys, bindings, language
+  issues or a failed load count as setup steps.
   Bound speech-model preparation to 120 seconds. Cancellation and timeout release
   the selection lease even when a native loader ignores cancellation. Retire that
   engine instance until its preparation returns, then unload it without publishing
@@ -643,7 +658,13 @@ verification status belong in the vault (see below).
   dismissing the HUD. Record the notice with undelivered History status. Never
   repeat a posted paste. Once posted, confirmation and the restoration delay
   survive cancellation; preserve newer clipboard ownership and report copy
-  failures accurately. From 0.4.2, release preparation checks actual TextEdit
+  failures accurately. Confirmed delivery releases the pipeline immediately: the
+  inserter owns the delayed clipboard restore, and a newer paste takes over the
+  clipboard the old one displaced, so an earlier restore never overwrites a newer
+  dictation. History saving and the outcome run in an ordered delivery tail
+  (`isFinishingDelivery`); quit waits for it (bounded) and restores the clipboard
+  at once, and data cleanup and meeting start wait for it too. A shortcut rejected
+  by media, meeting or maintenance work shows its reason in the HUD. From 0.4.2, release preparation checks actual TextEdit
   and Chrome delivery for both saved insertion preferences, with fixture binary
   hashes matching the committed Debug build. Follow the Local releases policy
   when acceptance is unavailable: publish with a commit-bound unverified reason
@@ -705,6 +726,25 @@ verification status belong in the vault (see below).
   Cancel and Restore defaults. Use the existing `ProfileStore.baseRules` pipeline.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
   `ModelCatalog`. Do not add UI that requires typing a prompt to get a good result.
+
+## Localization
+
+The app ships English and Traditional Chinese (Taiwan, zh-Hant) through String
+Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
+and AirdraftCore's `Resources/Localizable.xcstrings`. Write user-facing copy as
+localizable literals: SwiftUI `Text`/`Button` literals, the shared components'
+resource parameters, `String(localized:)` in the app and
+`String(localized:, bundle: .module)` in AirdraftCore. Pass runtime text through
+`detail:`, `.verbatim(_:)` or the `String` overloads. Wrap every branch of a
+ternary explicitly: the compiler extracts only the first branch of a
+`LocalizedStringResource` ternary. Never localize prompts, identifiers, persisted
+values, model or provider names, or keycap names, and never compare against
+displayed text. Fixtures and accessibility identifiers stay English. After a Debug
+build, run `python3 scripts/localization.py sync`, translate new keys and run
+`check`; `audit` lists literals that bypass localization. `LocalizationCatalogTests`
+fails on missing, stale or placeholder-mismatched zh-Hant entries. Verify UI
+changes in zh-Hant renders (`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) as
+well as English.
 
 ## Trigger Delay
 
@@ -1142,6 +1182,11 @@ intentional visual check; keep the default native layout, animation, timeout
 and disposable-pasteboard assertions active. `verify-updater.py --ephemeral-key` uses a
 disposable Sparkle seed and temporary update target. Record live, fixture,
 source-review and unavailable coverage separately. See `docs/local-e2e.md`.
+`.github/workflows/ci.yml` runs the unsigned build and `test-local-e2e.py
+--unsigned` on the `xcode-27` GitHub image with Xcode 27.0. `--unsigned` is
+CI-only; release builds keep the pinned identity. Archives are cached, but the
+Sherpa Vendor tree is rebuilt with hash checks each run. Lint workflows with
+actionlint plus shellcheck; `.github/actionlint.yaml` declares new hosted labels.
 
 ## Media documents
 
