@@ -93,6 +93,7 @@
   .guide-table-scroll {
     overflow-x: auto;
     scrollbar-gutter: stable;
+    container: guide-table / inline-size;
   }
   .guide-table {
     width: 100%;
@@ -129,10 +130,15 @@
     width: 22%;
     font-weight: 600;
   }
-  /* The comparison table keeps seven readable columns and scrolls in its
-     focusable region on narrower windows. */
+  /* The comparison table keeps eight readable columns where they fit. In a
+     narrower region each product becomes its own block of labelled rows
+     (the responsive layer), so nothing scrolls sideways or hides. The
+     explicit ARIA roles keep table semantics when the cells are restyled. */
   .guide-table-wide {
-    min-width: 880px;
+    min-width: 960px;
+  }
+  .guide-table .cell-label {
+    display: none;
   }
   .guide-table-wide :is(th, td) {
     padding-inline: 10px;
@@ -183,11 +189,53 @@
     .guide-table {
       min-width: 520px;
     }
-    .guide-table.guide-table-wide {
-      min-width: 760px;
-    }
     .guide-section h2 {
       font-size: var(--step-2);
+    }
+  }
+  @container guide-table (max-width: 959px) {
+    .guide-table.guide-table-wide {
+      display: block;
+      min-width: 0;
+    }
+    .guide-table-wide :is(caption, tbody, tr, th, td) {
+      display: block;
+    }
+    .guide-table-wide caption {
+      padding-bottom: 4px;
+    }
+    .guide-table-wide thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .guide-table-wide tbody tr {
+      padding: 18px 0;
+    }
+    .guide-table-wide :is(th, td) {
+      padding: 0;
+      font-size: var(--step-0);
+    }
+    .guide-table-wide th[scope="row"] {
+      width: auto;
+      margin-bottom: 10px;
+      font-size: var(--step-1);
+    }
+    .guide-table-wide td {
+      display: grid;
+      grid-template-columns: minmax(6.5em, 30%) minmax(0, 1fr);
+      gap: 14px;
+      padding-block: 5px;
+    }
+    .guide-table-wide .cell-label {
+      display: block;
+      color: var(--muted);
+      font-size: var(--step--1);
+      font-weight: 600;
+      line-height: 1.85;
     }
   }
 }

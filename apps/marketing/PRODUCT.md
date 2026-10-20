@@ -43,12 +43,15 @@ in the changelog, guides or pricing.
   before applicable tax. Both licenses have every feature and differ only in how
   many Macs can be active at once; a Mac can be deactivated to move the license.
   Licenses don't expire, updates to the purchased version are included, and the
-  app offers a 14-day full-feature trial the user starts. `licenses` and
+  app offers a 14-day full-feature trial the user starts. While checkout is
+  closed there is no build to try, so copy says the trial comes with the
+  official app once it is on sale (`siteLinks.checkout` switches it). `licenses` and
   `licenseIncludes` in `src/data/site.ts` carry these facts; change them only with
   the Polar products. Self-built editions stay complete and free.
 - Purchase is not open yet (the merchant account is in test mode). License actions
   read "Not on sale yet" and stay disabled until `siteLinks.checkout` holds the
-  production checkout link from `scripts/licensing-config.json`.
+  production checkout link from `scripts/licensing-config.json`. The homepage's
+  Get Airdraft section says so in both languages.
 - `src/data/site.ts` also controls optional content: the Buy Me a Coffee URL
   (support page) and the license link (footer). Until set, donation actions show a
   disabled "Not set up yet" key.
@@ -73,12 +76,19 @@ in the changelog, guides or pricing.
   are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
   `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
   measurement is published.
-- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally; the README
-  recommends Qwen3-ASR 1.7B for mixed Chinese and English. Chinese script
-  defaults to Traditional with Taiwan vocabulary and can be Simplified or Auto.
-  Parakeet does not support Chinese. Never claim mixed-language accuracy.
-- The app interface ships in English and Traditional Chinese and follows the
-  macOS language setting. Translated pages quote app labels (buttons,
+- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. First-run setup
+  marks SenseVoice, a small, fast download, as the best fit on a Mac set to
+  Chinese, English, Japanese or Korean (Whisper Large v3 Turbo otherwise); the
+  Models page and README mark the larger Qwen3-ASR 1.7B as best for mixed
+  Chinese and English. Say which recommendation is which, as the app does.
+  Chinese script defaults to Traditional with Taiwan vocabulary and can be
+  Simplified or Auto. Parakeet does not support Chinese. Never claim
+  mixed-language accuracy.
+- Published builds through 0.10.2 have an English interface. The Traditional
+  Chinese interface is in the source and ships from the next release, following
+  the macOS language setting; pages say "from the next version" without naming
+  one, and the meeting guide notes that 0.10.2 and earlier show English labels.
+  Rewrite these sentences when a release includes it. Translated pages quote app labels (buttons,
   settings, HUD states, Refined/Original, Meetings controls) with the app's
   zh-Hant values from its string catalogs (`src/data/app.ts` for shared
   labels); a label without a catalog entry, including the built-in profile
@@ -139,8 +149,10 @@ The homepage links to a guide hub and five distinct guides: offline setup,
 local/cloud data flow, the free source build versus official app, private
 meeting transcription, and a dated comparison with VoiceInk, Handy, Typeless
 and Apple Dictation on macOS 27. The comparison cites each product's own pages
-with check dates, says where competitors are better, marks unknown cells "Not
-checked", and lists Airdraft's current gaps. Recheck every row before changing
+or source with check dates, says where competitors are better, marks unknown
+cells "Not checked", includes whether each can be downloaded and tried today,
+and lists Airdraft's current gaps. Where its table does not fit, each product
+becomes a block of labelled rows instead of scrolling sideways. Recheck every row before changing
 its date; never add rankings, reviews or benchmark numbers. Keep their
 answers in static HTML, with descriptive internal links, visible breadcrumbs and
 semantic comparison tables. The first viewport remains the hero alone.
@@ -171,9 +183,12 @@ the comparison guide (`translatedPaths` in `src/i18n/index.ts`). They use
 natural Taiwan wording and keep Airdraft, provider and model names in English;
 app labels follow the app's Traditional Chinese interface.
 Prices stay in US dollars from shared data. Untranslated pages (support,
-changelog, privacy, the other guides) stay English and are labelled so where a
-translated page links to them. The header (above 760px), the phone menu and
-the footer offer the other language's version of the page, or its homepage.
+changelog, privacy, the other guides) stay English and are labelled （英文）
+where a translated page links to them, including the header, phone menu and
+footer; translated headers fold their links into the menu up to 700px to fit
+the labels. The header (above 760px), the phone menu and the footer offer the
+other language's version of the page; on an untranslated page the switch reads
+繁體中文首頁 (or English home) and leads to that homepage.
 
 ## Delivery
 

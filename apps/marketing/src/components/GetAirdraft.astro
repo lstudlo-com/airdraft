@@ -9,12 +9,12 @@ interface Props {
   locale?: Locale;
 }
 const { locale = "en" } = Astro.props;
+const onSale = Boolean(siteLinks.checkout);
 const copy =
   locale === "zh-tw"
     ? {
         title: "取得 Airdraft",
-        intro:
-          "可以免費從原始碼自行編譯，或一次買斷現成可用的 App。官方版尚未開賣。",
+        intro: `可以免費從原始碼自行編譯，或一次買斷現成可用的 App。${onSale ? "" : "官方版尚未開賣。"}`,
         build: "自己編譯",
         free: "免費",
         note: "所有功能。需要在 Apple 晶片 Mac 上使用 Xcode。",
@@ -22,8 +22,7 @@ const copy =
       }
     : {
         title: "Get Airdraft",
-        intro:
-          "Free to build from source, or a one-time license for the ready-to-run app.",
+        intro: `Free to build from source, or a one-time license for the ready-to-run app.${onSale ? "" : " The official app isn’t on sale yet."}`,
         build: "Build it yourself",
         free: "Free",
         note: "Every feature. Needs Xcode on an Apple silicon Mac.",

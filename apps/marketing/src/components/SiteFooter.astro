@@ -3,7 +3,6 @@ import Brand from "./ui/Brand.astro";
 import { license, siteLinks } from "../data/site";
 import {
   href,
-  languageName,
   languageTag,
   localeOf,
   localizedPath,
@@ -33,12 +32,13 @@ const label = {
     github: "GitHub",
     build: "自行編譯說明",
     pricing: "價格",
+    // English-only pages say so.
     guides: "指南（英文）",
-    support: "支援",
-    donate: "贊助",
-    changelog: "更新紀錄",
-    rss: "RSS",
-    privacy: "隱私",
+    support: "支援（英文）",
+    donate: "贊助（英文）",
+    changelog: "更新紀錄（英文）",
+    rss: "RSS（英文）",
+    privacy: "隱私（英文）",
     license: "授權條款",
   },
 }[locale];
@@ -62,14 +62,25 @@ const links = [
   </a>
   <nav class="footer-links" aria-label={label.nav}>
     {links.map((link) => (
-      <a href={link.href}>{link.label}</a>
+      <a
+        href={link.href}
+        hreflang={
+          locale === "zh-tw" &&
+          link.href.startsWith("/") &&
+          localeOf(link.href) === "en"
+            ? "en"
+            : undefined
+        }
+      >
+        {link.label}
+      </a>
     ))}
     <a
       href={language.path}
       hreflang={languageTag[language.locale]}
       lang={languageTag[language.locale]}
     >
-      {languageName[language.locale]}
+      {language.label}
     </a>
   </nav>
 </footer>

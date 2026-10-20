@@ -2,9 +2,10 @@ import type { Locale } from "../i18n";
 
 /**
  * App interface labels the site quotes, as the app shows them in each
- * language. The app ships English and Traditional Chinese and follows the
- * macOS language setting; the zh-tw values are the zh-Hant entries in
- * Sources/App/Localizable.xcstrings (and AirdraftCore's catalog). Look each
+ * language. The Traditional Chinese interface ships from the release after
+ * 0.10.2 and follows the macOS language setting; the zh-tw values are the
+ * zh-Hant entries in Sources/App/Localizable.xcstrings (and AirdraftCore's
+ * catalog). Look each
  * English key up there before adding or changing one; a label without a
  * catalog entry stays as the app shows it. Built-in profile names (Clean,
  * Concise, Summary, Verbatim) are data, not catalog strings, so they stay

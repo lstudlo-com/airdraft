@@ -7,10 +7,11 @@ import { href, type Locale } from "../i18n";
 
 /**
  * Private meeting transcription, in each language. Every statement follows
- * docs/meeting-recording.md and docs/media-transcription.md. The app ships
- * English and Traditional Chinese, so button and setting names are the app's
- * own in the page's language: the zh-Hant values in its string catalogs,
- * quoted with 「」. Keep both languages aligned.
+ * docs/meeting-recording.md and docs/media-transcription.md. Button and
+ * setting names are the app's own in the page's language: the zh-Hant values
+ * in its string catalogs, quoted with 「」. Published builds through 0.10.2
+ * show English labels, and the zh-TW intro says so. Keep both languages
+ * aligned.
  */
 interface Props {
   locale: Locale;
@@ -25,7 +26,7 @@ const zh = locale === "zh-tw";
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="Airdraft 的「會議」頁面可以錄下 App 音訊與你的麥克風，或匯入音訊、影片檔，再用你選的模型轉成逐字稿。選本機模型時，錄音和逐字稿都留在你的 Mac。App 支援英文與繁體中文介面，跟隨 macOS 的語言設定；下文的按鈕名稱照繁體中文介面顯示。"
+    intro="Airdraft 的「會議」頁面可以錄下 App 音訊與你的麥克風，或匯入音訊、影片檔，再用你選的模型轉成逐字稿。選本機模型時，錄音和逐字稿都留在你的 Mac。App 介面從下一個版本起支援英文與繁體中文，跟隨 macOS 的語言設定；0.10.2 及更早的版本只顯示英文。下文的按鈕名稱照繁體中文介面書寫。"
   >
     <Surface class="guide-section">
       <h2 id="requirements">需要準備什麼？</h2>
@@ -73,7 +74,7 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="import">或匯入檔案</h2>
       <p>
-        在「會議」頁面按「輸入⋯」，或直接把檔案拖進來。音訊或影片最長兩小時，且只能有一條音軌；多音軌的檔案請先匯出你要的那一軌。原始檔案不會被修改，Airdraft
+        在「會議」頁面按「匯入⋯」，或直接把檔案拖進來。音訊或影片最長兩小時，且只能有一條音軌；多音軌的檔案請先匯出你要的那一軌。原始檔案不會被修改，Airdraft
         會另存一份 16 kHz 的副本。
       </p>
     </Surface>
@@ -145,7 +146,7 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="export">編輯與匯出</h2>
       <p>
-        原文與你的修改並存，可在「已編輯」與「原始」之間切換；「拷貝」與「輸出」會使用目前顯示的版本。可輸出
+        原文與你的修改並存，可在「已編輯」與「原始」之間切換；「拷貝」與「匯出」會使用目前顯示的版本。可匯出
         TXT、JSON、SRT 或
         VTT，字幕檔保留每段的時間與講者。點時間戳記可以從那裡播放錄音。
       </p>

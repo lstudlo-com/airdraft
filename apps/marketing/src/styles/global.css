@@ -877,6 +877,13 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--ink);
     background: rgb(128 128 128 / 0.1);
   }
+  .nav-link {
+    white-space: nowrap;
+  }
+  /* "（英文）" after a translated page's link to an English-only page. */
+  .nav-note {
+    font-size: var(--step--1);
+  }
   /* The links share one grid row so the current page's well can sit in its
      link's cell, behind the label. */
   .header-links {
@@ -2667,6 +2674,16 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .site-header-inner {
       grid-template-columns: 1fr auto;
     }
+    /* The hero facts would wrap with a separator opening the second line;
+       on phones they stack, one fact per line, without separators. */
+    .hero-meta {
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .hero-meta li + li::before {
+      display: none;
+    }
     .header-links {
       display: none;
     }
@@ -2690,6 +2707,29 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   @media (min-width: 561px) {
     .site-menu {
       display: none;
+    }
+  }
+  /* Translated pages mark English-only links "（英文）", so their links need
+     more room and fold into the menu up to 700px. */
+  @media (min-width: 561px) and (max-width: 700px) {
+    .site-header-long .site-header-inner {
+      grid-template-columns: 1fr auto;
+    }
+    .site-header-long .header-links {
+      display: none;
+    }
+  }
+  @supports selector(:popover-open) {
+    @media (min-width: 561px) and (max-width: 700px) {
+      .site-header-long .header-source {
+        display: none;
+      }
+      .site-header-long .menu-key {
+        display: inline-flex;
+      }
+      .site-header-long .site-menu:popover-open {
+        display: grid;
+      }
     }
   }
   /* Between the phone menu and a roomy header the language switch would

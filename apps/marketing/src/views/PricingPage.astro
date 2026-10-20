@@ -249,10 +249,17 @@ const meetingGuide = href("/guides/private-meeting-transcription/", locale);
             </p>
           </Disclosure>
           <Disclosure summary="可以先試用嗎？">
-            <p>
-              可以。App 有 14
-              天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。
-            </p>
+            {onSale ? (
+              <p>
+                可以。App 有 14
+                天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。
+              </p>
+            ) : (
+              <p>
+                官方版開賣後，App 附 14
+                天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。目前尚未開賣，也還沒有試用版可下載；原始碼版本現在就能免費編譯，功能完全相同。
+              </p>
+            )}
           </Disclosure>
           <Disclosure summary="兩個版本包含哪些功能？">
             <p>
@@ -294,10 +301,19 @@ const meetingGuide = href("/guides/private-meeting-transcription/", locale);
             </p>
           </Disclosure>
           <Disclosure summary="Can I try it first?">
-            <p>
-              Yes. The app has a 14-day trial with every feature, starting when
-              you choose, not when you install.
-            </p>
+            {onSale ? (
+              <p>
+                Yes. The app has a 14-day trial with every feature, starting
+                when you choose, not when you install.
+              </p>
+            ) : (
+              <p>
+                Once the official app is on sale, it includes a 14-day trial
+                with every feature, starting when you choose, not when you
+                install. It isn’t on sale yet, so there is no trial to download
+                today. The free source build has every feature now.
+              </p>
+            )}
           </Disclosure>
           <Disclosure summary="What do both editions include?">
             <p>

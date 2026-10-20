@@ -12,6 +12,7 @@ const copy = {
     title: "Optional website analytics",
     body: "Help us understand visits and which features interest people. No recordings or typed text.",
     privacy: "Privacy details",
+    gap: " ",
     decline: "Decline",
     allow: "Allow Analytics",
   },
@@ -19,6 +20,8 @@ const copy = {
     title: "選用的網站分析",
     body: "協助我們了解造訪情形，以及大家對哪些功能有興趣。不會收集錄音或輸入的文字。",
     privacy: "隱私說明（英文）",
+    // No space between full-width punctuation and the next sentence.
+    gap: "",
     decline: "拒絕",
     allow: "允許分析",
   },
@@ -53,7 +56,9 @@ if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
   <div>
     <h2 id="analytics-title">{copy.title}</h2>
     <p>
-      {copy.body} <a href="/privacy/">{copy.privacy}</a>
+      {copy.body}
+      {copy.gap}
+      <a href="/privacy/">{copy.privacy}</a>
     </p>
   </div>
   <div class="analytics-actions">

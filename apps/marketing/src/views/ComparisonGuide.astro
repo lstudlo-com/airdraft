@@ -26,6 +26,8 @@ const [oneMac, threeMacs] = licenses;
 type Row = {
   name: string;
   price: string;
+  /** Whether a visitor can download and try it today. */
+  available: string;
   source: string;
   speech: string;
   cleanup: string;
@@ -38,6 +40,8 @@ const rows: Row[] = zh
       {
         name: "Airdraft",
         price: `自行編譯免費；官方 App 一次買斷，一台 Mac US${oneMac.price}、三台 US${threeMacs.price}，尚未開賣`,
+        available:
+          "否：官方 App 尚未開賣，也未經公證；可用 Xcode 從原始碼自行編譯",
         source: "開放原始碼（GPL-3.0）",
         speech: "在你的 Mac，或用你自己金鑰的雲端服務",
         cleanup: "本機、自備金鑰的雲端，或用你的方案跑 Claude Code、Codex",
@@ -47,15 +51,18 @@ const rows: Row[] = zh
       {
         name: "VoiceInk",
         price: "一次買斷：1／2／3 台 Mac 為 US$25／US$39／US$49；14 天退款",
+        available: "可以：官網提供試用版下載（未載明試用天數）",
         source: "開放原始碼（GPL-3.0）",
         speech: "在你的 Mac，或用你自己金鑰的雲端服務",
         cleanup: "可選服務商，含 Claude Code、Codex 等本機 CLI 範本",
-        meetings: "批次轉錄音訊與影片檔；匯出 TXT、CSV",
+        meetings:
+          "可排隊轉錄音訊與影片檔；記錄可存成 TXT 或 Markdown，也能匯出 CSV",
         platforms: "Mac；另有 iOS App",
       },
       {
         name: "Handy",
         price: "免費，接受贊助",
+        available: "可以：免費下載",
         source: "開放原始碼（MIT）",
         speech: "在你的裝置上",
         cleanup: "可選後處理，本機或你設定的 API",
@@ -65,6 +72,7 @@ const rows: Row[] = zh
       {
         name: "Typeless",
         price: "免費版每週字數有限；Pro 每月 US$30 或每年 US$144",
+        available: "可以：免費版可下載",
         source: "非開源",
         speech: "代管雲端服務",
         cleanup: "代管：個人字典、語氣與整理",
@@ -74,6 +82,7 @@ const rows: Row[] = zh
       {
         name: "Apple 聽寫（macOS 27）",
         price: "macOS 內建",
+        available: "可以：macOS 內建",
         source: "非開源",
         speech: "系統內建；裝置上或伺服器處理依語言、設定與硬體而定",
         cleanup:
@@ -86,6 +95,8 @@ const rows: Row[] = zh
       {
         name: "Airdraft",
         price: `Source build free; official app ${oneMac.price} for one Mac or ${threeMacs.price} for three, one-time, not on sale yet`,
+        available:
+          "No: the official app is not on sale or notarized; the source build needs Xcode",
         source: "Open source (GPL-3.0)",
         speech: "On your Mac, or cloud providers on your own key",
         cleanup:
@@ -97,17 +108,19 @@ const rows: Row[] = zh
       {
         name: "VoiceInk",
         price: "$25, $39 or $49 one-time for 1, 2 or 3 Macs; 14-day refund",
+        available: "Yes: free trial download (trial length not stated)",
         source: "Open source (GPL-3.0)",
         speech: "On your Mac, or cloud providers on your own key",
         cleanup:
           "Provider of your choice, including local CLI templates for Claude Code and Codex",
         meetings:
-          "Batch transcription of audio and video files; TXT and CSV export",
+          "Queues audio and video files for transcription; history saves TXT or Markdown and exports CSV",
         platforms: "Mac; separate iOS app",
       },
       {
         name: "Handy",
         price: "Free, with donations",
+        available: "Yes: free download",
         source: "Open source (MIT)",
         speech: "On your device",
         cleanup: "Optional post-processing, locally or through an API you set",
@@ -117,6 +130,7 @@ const rows: Row[] = zh
       {
         name: "Typeless",
         price: "Free with a weekly word limit; Pro $30 a month or $144 a year",
+        available: "Yes: free plan download",
         source: "Closed source",
         speech: "Hosted cloud service",
         cleanup: "Hosted: personal dictionary, tone and cleanup",
@@ -126,6 +140,7 @@ const rows: Row[] = zh
       {
         name: "Apple Dictation (macOS 27)",
         price: "Included with macOS",
+        available: "Yes: built into macOS",
         source: "Closed source",
         speech:
           "Built in; on-device or server processing depends on language, settings and hardware",
@@ -137,10 +152,20 @@ const rows: Row[] = zh
     ];
 
 const columns = zh
-  ? ["產品", "價格", "原始碼", "語音辨識", "文字整理", "會議與檔案", "平台"]
+  ? [
+      "產品",
+      "價格",
+      "現在能下載試用",
+      "原始碼",
+      "語音辨識",
+      "文字整理",
+      "會議與檔案",
+      "平台",
+    ]
   : [
       "Product",
       "Price",
+      "Download and try today",
       "Source",
       "Speech recognition",
       "Text cleanup",
@@ -149,6 +174,17 @@ const columns = zh
     ];
 
 // Each source with the date its facts were checked.
+// The cells after the product name, in column order.
+const cells = (row: Row) => [
+  row.price,
+  row.available,
+  row.source,
+  row.speech,
+  row.cleanup,
+  row.meetings,
+  row.platforms,
+];
+
 const sources = [
   {
     label: zh ? "VoiceInk 價格" : "VoiceInk pricing",
@@ -168,7 +204,17 @@ const sources = [
   {
     label: zh ? "VoiceInk 檔案轉錄文件" : "VoiceInk file transcription",
     url: "https://tryvoiceink.com/docs/transcribe-audio-files",
-    checked: "2026-10-07",
+    checked: "2026-10-21",
+  },
+  {
+    label: zh ? "VoiceInk 原始碼：記錄存檔" : "VoiceInk source: history save",
+    url: "https://github.com/Beingpax/VoiceInk/blob/main/VoiceInk/Features/History/Components/SaveIconButton.swift",
+    checked: "2026-10-21",
+  },
+  {
+    label: zh ? "VoiceInk 原始碼：CSV 匯出" : "VoiceInk source: CSV export",
+    url: "https://github.com/Beingpax/VoiceInk/blob/main/VoiceInk/Features/History/Export/VoiceInkCSVExportService.swift",
+    checked: "2026-10-21",
   },
   {
     label: "Handy",
@@ -233,25 +279,31 @@ const sources = [
         role="region"
         aria-label="聽寫 App 比較表"
       >
-        <table class="guide-table guide-table-wide">
+        <table class="guide-table guide-table-wide" role="table">
           <caption>2026 年 10 月 21 日查核；「未查核」不代表沒有該功能</caption>
-          <thead>
-            <tr>
+          <thead role="rowgroup">
+            <tr role="row">
               {columns.map((column) => (
-                <th scope="col">{column}</th>
+                <th scope="col" role="columnheader">
+                  {column}
+                </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup">
             {rows.map((row) => (
-              <tr>
-                <th scope="row">{row.name}</th>
-                <td>{row.price}</td>
-                <td>{row.source}</td>
-                <td>{row.speech}</td>
-                <td>{row.cleanup}</td>
-                <td>{row.meetings}</td>
-                <td>{row.platforms}</td>
+              <tr role="row">
+                <th scope="row" role="rowheader">
+                  {row.name}
+                </th>
+                {cells(row).map((cell, index) => (
+                  <td role="cell">
+                    <span class="cell-label" aria-hidden="true">
+                      {columns[index + 1]}
+                    </span>
+                    {cell}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -300,8 +352,9 @@ const sources = [
       <ul>
         <li>語音辨識和潤稿各自選本機或雲端，例如本機辨識加上雲端潤稿。</li>
         <li>
-          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體；中英混說建議用
-          Qwen3-ASR 1.7B。
+          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。第一次設定時，中文、英文、日文或韓文系統會建議下載小而快的
+          SenseVoice；中英混說時，模型頁把 Qwen3-ASR 1.7B
+          標為「最適合中英夾雜」，但下載較大。
         </li>
         <li>
           可以用你已付費的 Claude 或 ChatGPT 方案，透過 Claude Code 或 Codex
@@ -321,8 +374,9 @@ const sources = [
       <ul>
         <li>官方 App 尚未開賣，也還沒有經過公證的公開安裝檔。</li>
         <li>
-          只支援 Mac，沒有手機版；App 介面只有英文與繁體中文，跟隨 macOS
-          的語言設定。
+          只支援
+          Mac，沒有手機版。目前發布的版本只有英文介面；下一個版本起支援英文與繁體中文介面，跟隨
+          macOS 的語言設定。
         </li>
         <li>選擇很多，第一次設定要挑模型。</li>
         <li>尚未公布準確度或速度的測量。</li>
@@ -360,27 +414,33 @@ const sources = [
         role="region"
         aria-label="Compare dictation apps"
       >
-        <table class="guide-table guide-table-wide">
+        <table class="guide-table guide-table-wide" role="table">
           <caption>
             Checked October 21, 2026. “Not checked” does not mean missing.
           </caption>
-          <thead>
-            <tr>
+          <thead role="rowgroup">
+            <tr role="row">
               {columns.map((column) => (
-                <th scope="col">{column}</th>
+                <th scope="col" role="columnheader">
+                  {column}
+                </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup">
             {rows.map((row) => (
-              <tr>
-                <th scope="row">{row.name}</th>
-                <td>{row.price}</td>
-                <td>{row.source}</td>
-                <td>{row.speech}</td>
-                <td>{row.cleanup}</td>
-                <td>{row.meetings}</td>
-                <td>{row.platforms}</td>
+              <tr role="row">
+                <th scope="row" role="rowheader">
+                  {row.name}
+                </th>
+                {cells(row).map((cell, index) => (
+                  <td role="cell">
+                    <span class="cell-label" aria-hidden="true">
+                      {columns[index + 1]}
+                    </span>
+                    {cell}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -436,8 +496,10 @@ const sources = [
         </li>
         <li>
           Local Chinese models (Qwen3-ASR, SenseVoice, FireRedASR2), with
-          Traditional or Simplified output. For mixed Chinese and English, the
-          setup instructions recommend Qwen3-ASR 1.7B.
+          Traditional or Simplified output. First-run setup suggests SenseVoice,
+          a small, fast download, on a Mac set to Chinese, English, Japanese or
+          Korean. For mixed Chinese and English, the Models page marks the
+          larger Qwen3-ASR 1.7B as the best fit.
         </li>
         <li>
           Claude Code or Codex can refine text on the Claude or ChatGPT plan you
@@ -459,7 +521,10 @@ const sources = [
           The official app is not on sale, and there is no notarized public
           installer yet.
         </li>
-        <li>It runs only on the Mac, with no phone app.</li>
+        <li>
+          It runs only on the Mac, with no phone app. Published builds are in
+          English; the next version adds a Traditional Chinese interface.
+        </li>
         <li>There are many choices, and first setup means picking models.</li>
         <li>No accuracy or speed measurements have been published.</li>
         <li>Meeting recording has no echo cancellation.</li>

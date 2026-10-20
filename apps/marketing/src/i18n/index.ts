@@ -22,6 +22,15 @@ export const languageName: Record<Locale, string> = {
   "zh-tw": "繁體中文",
 };
 
+/**
+ * The switch's label when this page has no translation and it leads to the
+ * other language's homepage instead, in the target language.
+ */
+export const languageHomeName: Record<Locale, string> = {
+  en: "English home",
+  "zh-tw": "繁體中文首頁",
+};
+
 const zhPrefix = "/zh-tw";
 
 /**
@@ -72,18 +81,28 @@ export function alternatesFor(
 
 /**
  * Where the language switch leads: this page's translation if there is one,
- * otherwise the other language's homepage.
+ * otherwise the other language's homepage. `label` names the destination in
+ * its language, so an untranslated page says it leads to a homepage.
  */
 export function switchTarget(pathname: string): {
   locale: Locale;
   path: string;
+  translated: boolean;
+  label: string;
 } {
   const current = localeOf(pathname);
   const other: Locale = current === "en" ? "zh-tw" : "en";
   const alternate = alternatesFor(pathname).find(
     (entry) => entry.locale === other,
   );
-  return alternate ?? { locale: other, path: localizedPath("/", other) };
+  return alternate
+    ? { ...alternate, translated: true, label: languageName[other] }
+    : {
+        locale: other,
+        path: localizedPath("/", other),
+        translated: false,
+        label: languageHomeName[other],
+      };
 }
 
 /** A route in the visitor's language when it exists, else the English one. */

@@ -5,7 +5,6 @@ import Button from "./ui/Button.astro";
 import { siteLinks } from "../data/site";
 import {
   href,
-  languageName,
   languageTag,
   localeOf,
   localizedPath,
@@ -24,9 +23,14 @@ const copy = {
     get: "Get Airdraft",
     menu: "Menu",
     switchTo: "Read this page in Traditional Chinese",
+    switchHome:
+      "This page is in English only. Open the Traditional Chinese homepage.",
+    english: "",
   },
   "zh-tw": {
     labels: ["價格", "支援", "更新紀錄"],
+    // Support and Changelog are English only, and say so.
+    english: "（英文）",
     home: "Airdraft 首頁",
     nav: "主要導覽",
     github: "Airdraft 的 GitHub",
@@ -34,15 +38,19 @@ const copy = {
     get: "取得 Airdraft",
     menu: "選單",
     switchTo: "Read this page in English",
+    switchHome: "這一頁沒有英文版。前往英文首頁。",
   },
 }[locale];
-// Support and Changelog are English only; their labels follow the page.
-const links = ["/pricing/", "/support/", "/changelog/"].map(
-  (target, index) => ({
-    href: href(target, locale),
+const links = ["/pricing/", "/support/", "/changelog/"].map((target, index) => {
+  const link = href(target, locale);
+  return {
+    href: link,
     label: copy.labels[index],
-  }),
-);
+    // An English page linked from a translated one says so.
+    hreflang: localeOf(link) === locale ? undefined : "en",
+    note: localeOf(link) === locale ? "" : copy.english,
+  };
+});
 const language = switchTarget(Astro.url.pathname);
 // The globe-and-letter mark used beside the language name.
 const languagePath =
@@ -58,7 +66,12 @@ const githubPath =
      backdrop blurs (1 to 32px), each masked to the band where the app's
      quadratic radius ramp (ProgressiveHeaderBlur.swift) reaches it. The
      labels and controls stay sharp above it. -->
-<header class="site-header">
+<header
+  class:list={[
+    "site-header",
+    links.some((link) => link.note) && "site-header-long",
+  ]}
+>
   <div class="header-blur" aria-hidden="true">
     <i></i>
     <i></i>
@@ -88,9 +101,11 @@ const githubPath =
         <a
           class="nav-link"
           href={link.href}
+          hreflang={link.hreflang}
           aria-current={index === current ? "page" : undefined}
         >
           {link.label}
+          {link.note && <span class="nav-note">{link.note}</span>}
         </a>
       ))}
     </nav>
@@ -100,9 +115,9 @@ const githubPath =
         href={language.path}
         hreflang={languageTag[language.locale]}
         lang={languageTag[language.locale]}
-        title={copy.switchTo}
+        title={language.translated ? copy.switchTo : copy.switchHome}
       >
-        {languageName[language.locale]}
+        {language.label}
       </a>
       <Button
         href={siteLinks.source}
@@ -151,10 +166,14 @@ const githubPath =
       <a
         class="menu-link"
         href={link.href}
+        hreflang={link.hreflang}
         style={`--i: ${index}`}
         aria-current={index === current ? "page" : undefined}
       >
-        {link.label}
+        <span>
+          {link.label}
+          {link.note && <span class="nav-note">{link.note}</span>}
+        </span>
       </a>
     ))}
     <span class="menu-groove" style="--i: 3" aria-hidden="true"></span>
@@ -192,7 +211,7 @@ const githubPath =
           stroke-linecap="round"
         ></path>
       </svg>
-      {languageName[language.locale]}
+      {language.label}
     </a>
   </nav>
 </header>

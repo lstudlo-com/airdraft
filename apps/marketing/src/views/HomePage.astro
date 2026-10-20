@@ -22,10 +22,11 @@ import { href, type Locale } from "../i18n";
 /**
  * The homepage, in each language (src/pages/index.astro and
  * src/pages/zh-tw/index.astro). Copy differs; structure, components and
- * motion are shared. The app ships English and Traditional Chinese, so app
- * UI labels (HUD states, Refined/Original, status lines) use its own labels
- * in the page's language (src/data/app.ts). Built-in profile names stay
- * English: the app shows them that way in both languages.
+ * motion are shared. App UI labels (HUD states, Refined/Original, status
+ * lines) use the app's own labels in the page's language (src/data/app.ts);
+ * its Traditional Chinese interface ships from the release after 0.10.2.
+ * Built-in profile names stay English: the app shows them that way in both
+ * languages.
  */
 interface Props {
   locale: Locale;

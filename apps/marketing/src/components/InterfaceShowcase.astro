@@ -22,9 +22,10 @@ const { locale = "en" } = Astro.props;
  * (points on its 784 × 1000 frame). The specimens are built from the site's
  * parts and respond to the pointer (src/scripts/interface.ts).
  *
- * The app ships English and Traditional Chinese and follows the macOS
- * language; the screenshots are English renders, so the translated alt text
- * and caption say so. The specimens' sidebar and segmented labels are the
+ * Published builds through 0.10.2 are English only; the Traditional Chinese
+ * interface ships from the next release and follows the macOS language. The
+ * screenshots are English renders, so the translated alt text and caption
+ * say so. The specimens' sidebar and segmented labels are the
  * app's own in the page's language (src/data/app.ts).
  */
 const width = 784;
@@ -43,7 +44,7 @@ const copy = zh
       mixed: "{light}% 淺色，{dark}% 深色",
       materials: "視窗中的材質",
       caption:
-        "以 Graphite 強調色從 App 算繪，畫面為英文介面；App 支援英文與繁體中文，跟隨 macOS 的語言設定。",
+        "以 Graphite 強調色從 App 算繪，畫面為英文介面。下一個版本起支援英文與繁體中文介面，跟隨 macOS 的語言設定。",
       drag: "拖曳即可比較淺色與深色。",
       press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
       select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
@@ -230,7 +231,9 @@ const destinations = [
       </ul>
     </div>
     <figcaption>
-      {copy.caption} <span class="js-only">{copy.drag}</span>
+      {copy.caption}
+      {zh ? "" : " "}
+      <span class="js-only">{copy.drag}</span>
     </figcaption>
   </figure>
 
