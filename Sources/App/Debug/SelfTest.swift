@@ -185,7 +185,7 @@ enum SelfTest {
             // Wait for the pipeline to settle, then quit.
             for _ in 0..<600 {
                 try? await Task.sleep(for: .milliseconds(500))
-                if !container.pipeline.state.isBusy { break }
+                if !container.pipeline.state.isBusy && !container.pipeline.isFinishingDelivery { break }
             }
             try? await Task.sleep(for: .seconds(1))
             log.notice("self-test: done state=\(String(describing: container.pipeline.state), privacy: .public)")

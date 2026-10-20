@@ -31,7 +31,7 @@ final class SilentRecordingTests: XCTestCase {
     }
 
     private func settle(_ pipeline: DictationPipeline) async {
-        for _ in 0..<200 where pipeline.isBusy { try? await Task.sleep(for: .milliseconds(5)) }
+        for _ in 0..<200 where pipeline.isBusy || pipeline.isFinishingDelivery { try? await Task.sleep(for: .milliseconds(5)) }
         XCTAssertFalse(pipeline.isBusy)
     }
 

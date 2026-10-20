@@ -1,0 +1,125 @@
+name: macOS CI
+# Unsigned build and credential-free Core suite on GitHub's Xcode 27 image.
+# Release signing, notarization-ready identity and live insertion stay local:
+# see scripts/release.py and docs/updates.md.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: macos-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-test:
+    name: Build and credential-free tests
+    # Apple Silicon image with macOS 27 and the Xcode 27 toolchain.
+    runs-on: xcode-27
+    timeout-minutes: 120
+    env:
+      # Same toolchain as the 0.10.2 release build (Xcode 27.0, 27A266a, macOS 27.0 SDK).
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      NATIVE_ARCHIVES: ${{ github.workspace }}/dist/ci/native-archives
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Install the Metal toolchain
+        # MLX (Qwen3-ASR, Cohere) compiles Metal kernels during the Xcode build.
+        run: |
+          if ! xcodebuild -showComponent MetalToolchain 2>/dev/null | grep -q 'Status: installed'; then
+            xcodebuild -downloadComponent MetalToolchain
+          fi
+          xcodebuild -showComponent MetalToolchain
+
+      - name: Install pinned XcodeGen
+        # Downloads XcodeGen 2.46.0 into dist/tools and checks the release pin.
+        run: python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; print(release.xcodegen())'
+
+      - name: Cache native library archives
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: dist/ci/native-archives
+          key: native-archives-${{ hashFiles('Packages/SherpaOnnxKit/native-inputs.json') }}
+
+      - name: Prepare Sherpa-ONNX libraries
+        # Cached or downloaded archives are hash-checked before unpacking; the
+        # derived Vendor tree and its manifest are rebuilt and verified each run.
+        run: |
+          mkdir -p "$NATIVE_ARCHIVES"
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess, urllib.parse
+          archives = pathlib.Path(os.environ["NATIVE_ARCHIVES"])
+          inputs = json.loads(pathlib.Path("Packages/SherpaOnnxKit/native-inputs.json").read_text())
+          for item in inputs["libraries"]:
+              target = archives / pathlib.Path(urllib.parse.urlsplit(item["url"]).path).name
+              if not target.is_file():
+                  subprocess.run(["curl", "--fail", "--silent", "--show-error", "--location",
+                                  "--proto", "=https", "--proto-redir", "=https", "--retry", "3",
+                                  item["url"], "--output", str(target)], check=True)
+          PY
+          python3 scripts/native_inputs.py prepare --archives "$NATIVE_ARCHIVES"
+
+      - name: Generate the Xcode project
+        run: python3 scripts/generate-project.py
+
+      - name: Cache SwiftPM downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Packages/AirdraftCore/Package.swift', 'Packages/SherpaOnnxKit/Package.swift') }}
+          restore-keys: swiftpm-${{ runner.os }}-
+
+      - name: Build the app (unsigned)
+        # CI has no Apple Development identity. Never use this route for releases.
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          log="$RUNNER_TEMP/ci-logs/build.log"
+          if ! xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
+              -skipPackagePluginValidation -skipMacroValidation \
+              -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile \
+              build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO > "$log" 2>&1; then
+            grep -E ' error: ' "$log" | head -50 || true
+            tail -100 "$log"
+            exit 1
+          fi
+          tail -3 "$log"
+
+      - name: Run the credential-free Core suite
+        # Same allowlist as pnpm test:local; API-key, cloud-provider and Keychain
+        # suites stay excluded. Also checks the SwiftPM pins and the mandatory
+        # insertion regressions in the executed xcresult.
+        run: python3 scripts/test-local-e2e.py --unsigned --timeout 3600 --output "$RUNNER_TEMP/local-e2e"
+
+      - name: Verify the release and vault script contracts
+        run: |
+          python3 -B scripts/test-insertion-regressions.py
+          python3 -B scripts/test-release.py
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-ci-logs
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/ci-logs
+            ${{ runner.temp }}/local-e2e/tests.log
+            ${{ runner.temp }}/local-e2e/command.json
+            ${{ runner.temp }}/local-e2e/insertion-regressions.json
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-ci-xcresult
+          retention-days: 7
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/local-e2e/tests.xcresult

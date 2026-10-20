@@ -78,12 +78,12 @@ final class PipelineSafetyTests: XCTestCase {
             }, transcriberBuilder: { _ in engine }))
         pipeline.insertionEnabled = false
         pipeline.processSamples([Float](repeating: 0.1, count: 16000))
-        for _ in 0..<100 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(2)) }
+        for _ in 0..<100 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(2)) }
         XCTAssertTrue(pipeline.hasRecoverableRecording)
         XCTAssertNotNil(pipeline.lastIssue)
         await engine.recover()
         pipeline.retryRecording()
-        for _ in 0..<100 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(2)) }
+        for _ in 0..<100 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(2)) }
         XCTAssertEqual(pipeline.lastOutcome?.raw, "Recovered words")
         XCTAssertFalse(pipeline.hasRecoverableRecording)
     }
@@ -183,7 +183,7 @@ extension PipelineSafetyTests {
         XCTAssertEqual(checked?.kind, .senseVoice)
         fixture.profiles.setActive(RefinementProfile.conciseID)
         pipeline.stopAndProcess()
-        for _ in 0..<400 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
+        for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
         let record = try XCTUnwrap(fixture.history.recent().first)
         XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
         XCTAssertEqual(record.mode, "Bound profile")
@@ -224,7 +224,7 @@ extension PipelineSafetyTests {
         defer { pipeline.cancel() }
         pipeline.processSamples([Float](repeating: 0.1, count: 16000))
         fixture.profiles.setActive(RefinementProfile.cleanID)
-        for _ in 0..<400 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(5)) }
+        for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
         let record = try XCTUnwrap(fixture.history.recent().first)
         XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
         XCTAssertEqual(record.mode, "Bound profile")

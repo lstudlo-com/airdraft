@@ -43,7 +43,7 @@ final class PipelineAutomationTests: XCTestCase {
         defer { fixture.cleanUp() }
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
+        try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         allowed = false
         fixture.pipeline.retryRecording()
         try await finished(fixture)
@@ -155,7 +155,7 @@ final class PipelineAutomationTests: XCTestCase {
         defer { fixture.cleanUp() }
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
+        try await waitUntil("Speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.probe.scripts.isEmpty)
         XCTAssertEqual(try fixture.history.count(), 0)
 
@@ -176,9 +176,9 @@ final class PipelineAutomationTests: XCTestCase {
         fixture.pipeline.onOutputDelivered = { XCTFail("Review-only text is not delivered") }
         let original = try fixture.saveOriginal()
         fixture.pipeline.retranscribe(original)
-        try await waitUntil("Review speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy }
+        try await waitUntil("Review speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         fixture.pipeline.retryRecording()
-        try await waitUntil("Review retry completes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy }
+        try await waitUntil("Review retry completes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed words")
         XCTAssertTrue(fixture.probe.scripts.isEmpty)
@@ -371,7 +371,7 @@ final class PipelineAutomationTests: XCTestCase {
         fixture.settings.outputScriptPath = fixture.secondScript.path
         fixture.recorder.interruptionHandler?(.inputChanged)
         try await waitUntil("Interrupted audio is recoverable") {
-            fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy
+            fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
 
         XCTAssertEqual(fixture.probe.blockedRecordings, 1)
@@ -481,7 +481,7 @@ final class PipelineAutomationTests: XCTestCase {
         let started = Date()
         try await fixture.pipeline.startFromAutomation()
         try await waitUntil("Maximum recording time delivers the transcript", timeout: 13) {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy
+            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
         XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(started), 9.5)
         XCTAssertFalse(fixture.recorder.isRecording)
@@ -539,7 +539,7 @@ final class PipelineAutomationTests: XCTestCase {
     }
 
     private func finished(_ fixture: Fixture) async throws {
-        try await waitUntil("Dictation delivery and history finish") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy }
+        try await waitUntil("Dictation delivery and history finish") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
     }
 
     private func waitUntil(_ description: String, timeout: TimeInterval = 3,

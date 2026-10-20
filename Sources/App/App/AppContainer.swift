@@ -136,7 +136,7 @@ final class AppContainer {
         if let history {
             let pipeline = pipeline
             meeting = MeetingController(directory: dir, history: history,
-                canStart: { !pipeline.isBusy && !pipeline.isSavingHistory },
+                canStart: { !pipeline.isBusy && !pipeline.isSavingHistory && !pipeline.isFinishingDelivery },
                 accessCheck: { try await license.requireAccess() })
         } else { meeting = nil }
         meeting?.onBusyChanged = { [weak pipeline, weak models, weak cleanup] busy in

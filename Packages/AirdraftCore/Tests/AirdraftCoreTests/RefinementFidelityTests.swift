@@ -156,7 +156,7 @@ final class RefinementFidelityTests: XCTestCase {
     private func waitUntilIdle(_ pipeline: DictationPipeline) async throws {
         try await Task.sleep(for: .milliseconds(5))
         let deadline = Date().addingTimeInterval(3)
-        while pipeline.isBusy, Date() < deadline { try await Task.sleep(for: .milliseconds(5)) }
+        while pipeline.isBusy || pipeline.isFinishingDelivery, Date() < deadline { try await Task.sleep(for: .milliseconds(5)) }
         XCTAssertFalse(pipeline.isBusy, "Dictation did not finish")
     }
 

@@ -22,7 +22,7 @@ final class PipelinePreviewTests: XCTestCase {
         XCTAssertEqual(try fixture.history.count(), 0)
 
         fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final transcription finishes") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy }
+        try await waitUntil("Final transcription finishes") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         let received = await fixture.speech.receivedSamples
         XCTAssertEqual(received, [first + second])
         XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
@@ -91,7 +91,7 @@ final class PipelinePreviewTests: XCTestCase {
         // This fake only records cancellation. It never completes its preview work.
         fixture.pipeline.stopAndProcess()
         try await waitUntil("Final speech completes independently of preview") {
-            fixture.pipeline.lastOutcome?.final == FinalPreviewTestSpeech.finalText && !fixture.pipeline.isBusy
+            fixture.pipeline.lastOutcome?.final == FinalPreviewTestSpeech.finalText && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
         preview.sendText("Preview still producing text after stop")
         preview.sendIssue("Preview still producing errors after stop")
@@ -150,7 +150,7 @@ final class PipelinePreviewTests: XCTestCase {
         XCTAssertNil(fixture.pipeline.lastIssue)
         fixture.pipeline.stopAndProcess()
         try await waitUntil("Final transcription survives preview failure") {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy
+            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
 
         XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
@@ -190,7 +190,7 @@ final class PipelinePreviewTests: XCTestCase {
         XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
         fixture.pipeline.stopAndProcess()
         try await waitUntil("Final speech still finishes with hidden HUD") {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy
+            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
         XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
         XCTAssertEqual(try fixture.history.count(), 1)
@@ -201,7 +201,7 @@ final class PipelinePreviewTests: XCTestCase {
         defer { fixture.cleanUp() }
         fixture.recorder.failOnStart = true
         fixture.pipeline.startRecording()
-        try await waitUntil("Recording start failure finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Recording start failure finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         let preview = try XCTUnwrap(fixture.previews.sessions.first)
         XCTAssertEqual(preview.cancelCount, 1)

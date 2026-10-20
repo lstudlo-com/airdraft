@@ -37,7 +37,7 @@ final class RecordingPrerequisitesTests: XCTestCase {
             var blocked = false
             pipeline.onRecordingBlocked = { blocked = true }
             pipeline.startRecording()
-            for _ in 0..<100 where pipeline.isBusy { try await Task.sleep(for: .milliseconds(2)) }
+            for _ in 0..<100 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(2)) }
             XCTAssertFalse(pipeline.isRecording)
             XCTAssertTrue(blocked)
             XCTAssertTrue(pipeline.lastIssue?.contains(expected) == true, pipeline.lastIssue ?? "Missing issue")

@@ -17,14 +17,14 @@ final class PipelineConfigurationTests: XCTestCase {
         XCTAssertEqual(fixture.preflightLLM, original)
         fixture.settings.llm = fixture.nextLLM
         fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
         XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
 
         fixture.probe.clear()
         try await fixture.pipeline.startFromAutomation()
         fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(fixture.preflightLLM, fixture.nextLLM)
         XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
         XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == fixture.nextLLM })
@@ -36,7 +36,7 @@ final class PipelineConfigurationTests: XCTestCase {
         let original = fixture.settings.llm
         fixture.pipeline.processSamples(ConfigurationFixture.samples)
         fixture.settings.llm = fixture.nextLLM
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
         XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
     }
@@ -48,7 +48,7 @@ final class PipelineConfigurationTests: XCTestCase {
         let saved = try fixture.history.save(fixture.record, samples: ConfigurationFixture.samples)
         fixture.pipeline.retranscribe(saved)
         fixture.settings.llm = fixture.nextLLM
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertNotNil(fixture.pipeline.reviewOutcome)
         XCTAssertEqual(fixture.probe.built, [original])
         XCTAssertTrue(fixture.deliveries.isEmpty)
@@ -63,13 +63,13 @@ final class PipelineConfigurationTests: XCTestCase {
         fixture.settings.outputScriptPath = fixture.script.path
         try await fixture.pipeline.startFromAutomation()
         fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
         fixture.settings.llm = fixture.nextLLM
         fixture.settings.outputDestination = .cursor
         fixture.pipeline.retryRecording()
         fixture.settings.llm = LLMConfig(kind: .none)
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
         XCTAssertEqual(fixture.deliveries, [fixture.script.path])
         XCTAssertEqual(try fixture.history.recent().first?.outputDestination, "script")
@@ -85,7 +85,7 @@ final class PipelineConfigurationTests: XCTestCase {
         XCTAssertEqual(try fixture.history.count(), 0)
         XCTAssertNil(fixture.pipeline.lastOutcome)
         fixture.pipeline.processSamples(ConfigurationFixture.samples)
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
     }
 
@@ -98,13 +98,13 @@ final class PipelineConfigurationTests: XCTestCase {
         fixture.settings.insertionMethod = .paste
         try await fixture.pipeline.startFromAutomation()
         fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
         target.currentPID = 202
         fixture.settings.insertionMethod = .auto
         fixture.settings.llm = fixture.nextLLM
         fixture.pipeline.retryRecording()
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(target.deliveries.count, 1)
         XCTAssertEqual(target.deliveries.first?.0, .paste)
         XCTAssertEqual(target.deliveries.first?.1?.processID, 101)
@@ -117,7 +117,7 @@ final class PipelineConfigurationTests: XCTestCase {
         defer { fixture.close() }
         fixture.pipeline.processSamples(ConfigurationFixture.samples)
         fixture.settings.llm = LLMConfig(kind: .none)
-        try await wait { !fixture.pipeline.isBusy }
+        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Recorded words")
         XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
         XCTAssertNotNil(try fixture.history.recent().first?.error)
@@ -139,7 +139,7 @@ final class PipelineConfigurationTests: XCTestCase {
             XCTAssertEqual(fixture.preflightASR?.kind, selected)
             XCTAssertFalse(fixture.preflightUsesLLM ?? true)
             fixture.pipeline.stopAndProcess()
-            try await wait { !fixture.pipeline.isBusy }
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
             XCTAssertEqual(try fixture.history.recent().first?.asrEngine, fixture.settings.asr.engineID)
             XCTAssertTrue(fixture.probe.built.isEmpty)
             XCTAssertEqual(try Data(contentsOf: fixture.directory.appendingPathComponent("profiles.json")), savedProfiles)

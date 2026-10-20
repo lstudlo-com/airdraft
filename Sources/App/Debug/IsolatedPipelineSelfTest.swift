@@ -38,7 +38,7 @@ enum IsolatedPipelineSelfTest {
                 pipeline.processSamples(try AudioFile.load(path: path))
                 for _ in 0..<120 {
                     try await Task.sleep(for: .milliseconds(500))
-                    if !pipeline.isBusy { break }
+                    if !pipeline.isBusy && !pipeline.isFinishingDelivery { break }
                 }
                 guard let outcome = pipeline.lastOutcome, !outcome.raw.isEmpty,
                       outcome.llmSkippedReason == "LLM failed, using raw transcript",

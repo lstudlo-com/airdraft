@@ -213,7 +213,7 @@ enum LocalE2E {
                         break
                     }
                     let deadline = ContinuousClock.now.advanced(by: .seconds(240))
-                    while pipeline.isBusy, ContinuousClock.now < deadline {
+                    while pipeline.isBusy || pipeline.isFinishingDelivery, ContinuousClock.now < deadline {
                         try await Task.sleep(for: .milliseconds(100))
                     }
                     if CommandLine.arguments.contains("--e2e-expect-silence") {
@@ -298,7 +298,7 @@ enum LocalE2E {
                     report["meterPeak"] = peak
                     _ = try await StopDictationIntent().perform()
                     let deadline = ContinuousClock.now.advanced(by: .seconds(60))
-                    while app.pipeline.isBusy, ContinuousClock.now < deadline {
+                    while app.pipeline.isBusy || app.pipeline.isFinishingDelivery, ContinuousClock.now < deadline {
                         try await Task.sleep(for: .milliseconds(100))
                     }
                     guard let outcome = app.pipeline.lastOutcome, !outcome.raw.isEmpty,

@@ -148,6 +148,10 @@ final class TextInsertionTests: XCTestCase {
         XCTAssertTrue(success.didInsert)
         XCTAssertEqual(posts, 1)
         XCTAssertEqual(deliveryEvents, 1)
+        XCTAssertTrue(inserter.hasPendingClipboardRestoration,
+                      "Delivery returns before the restore delay so the next dictation can start")
+        await inserter.finishClipboardRestoration()
+        XCTAssertFalse(inserter.hasPendingClipboardRestoration)
         let restored = try XCTUnwrap(pasteboard.pasteboardItems)
         XCTAssertEqual(restored.count, 2)
         XCTAssertEqual(restored[0].string(forType: .string), "Original clipboard")
@@ -168,7 +172,69 @@ final class TextInsertionTests: XCTestCase {
         }, confirmation: { true })
 
         XCTAssertTrue(success.didInsert)
+        await inserter.finishClipboardRestoration()
         XCTAssertEqual(pasteboard.string(forType: .string), "User copied something newer")
+    }
+
+    func testNewerPasteTakesOverPendingRestoreWithoutClobbering() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("User clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.restoreDelay = 0.15
+        let first = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard,
+                                                  postPaste: { true }, confirmation: { true })
+        XCTAssertTrue(first.didInsert)
+        XCTAssertTrue(inserter.hasPendingClipboardRestoration)
+        XCTAssertEqual(pasteboard.string(forType: .string), "First dictation")
+        // The next dictation pastes before the first restore is due.
+        inserter.restoreDelay = 0.4
+        var pastedSecond: String?
+        let second = await inserter.insertViaPaste("Second dictation", pasteboard: pasteboard, postPaste: {
+            pastedSecond = pasteboard.string(forType: .string)
+            return true
+        }, confirmation: { true })
+        XCTAssertTrue(second.didInsert)
+        XCTAssertEqual(pastedSecond, "Second dictation")
+        // Past the first restore's deadline, the newer paste still owns the clipboard.
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertEqual(pasteboard.string(forType: .string), "Second dictation",
+                       "An earlier restore must never replace a newer dictation's paste")
+        await inserter.finishClipboardRestoration()
+        XCTAssertEqual(pasteboard.string(forType: .string), "User clipboard",
+                       "The user's clipboard returns, not the earlier transcript")
+    }
+
+    func testPendingRestoreKeepsAClipboardCopiedBeforeTheNextPaste() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("User clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.restoreDelay = 5
+        _ = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard,
+                                          postPaste: { true }, confirmation: { true })
+        pasteboard.clearContents()
+        pasteboard.setString("Copied after first dictation", forType: .string)
+        inserter.restoreDelay = 0
+        _ = await inserter.insertViaPaste("Second dictation", pasteboard: pasteboard,
+                                          postPaste: { true }, confirmation: { true })
+        await inserter.finishClipboardRestoration()
+        XCTAssertEqual(pasteboard.string(forType: .string), "Copied after first dictation")
+    }
+
+    func testQuitRestoresConfirmedPasteClipboardWithoutWaitingForDelay() async {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("User clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.restoreDelay = 30
+        _ = await inserter.insertViaPaste("Dictation", pasteboard: pasteboard,
+                                          postPaste: { true }, confirmation: { true })
+        let started = ContinuousClock.now
+        await inserter.finishClipboardRestoration(immediately: true)
+        XCTAssertLessThan(started.duration(to: .now), .seconds(1))
+        XCTAssertFalse(inserter.hasPendingClipboardRestoration)
+        XCTAssertEqual(pasteboard.string(forType: .string), "User clipboard")
     }
 
     func testFailedPasteKeepsTextAvailableWithoutRetry() async {
@@ -212,6 +278,7 @@ final class TextInsertionTests: XCTestCase {
         let succeeded = await task.value
         XCTAssertTrue(succeeded.didInsert)
         XCTAssertEqual(posts, 1)
+        await inserter.finishClipboardRestoration()
         XCTAssertEqual(pasteboard.string(forType: .string), "Old clipboard")
     }
 
@@ -224,6 +291,7 @@ final class TextInsertionTests: XCTestCase {
                                                   postPaste: { true }, confirmation: { true })
 
         XCTAssertTrue(success.didInsert)
+        await inserter.finishClipboardRestoration()
         XCTAssertTrue(pasteboard.pasteboardItems?.isEmpty ?? true)
     }
 

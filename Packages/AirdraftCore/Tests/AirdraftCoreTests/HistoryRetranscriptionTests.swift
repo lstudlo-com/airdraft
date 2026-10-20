@@ -10,7 +10,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         let asset = try XCTUnwrap(fixture.history.recording(id: XCTUnwrap(original.recordingID)))
         try fixture.history.deleteHistoryKeepingAudio()
         fixture.pipeline.retranscribe(asset)
-        try await waitUntil("Detached recording review finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Detached recording review finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed audio")
         XCTAssertEqual(try fixture.history.count(), 0)
         XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
@@ -24,7 +24,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         let original = try fixture.saveOriginal()
 
         fixture.pipeline.retranscribe(original)
-        try await waitUntil("Retranscription finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Retranscription finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "New transcription")
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "New transcription")
@@ -45,14 +45,14 @@ final class HistoryRetranscriptionTests: XCTestCase {
         let original = try fixture.saveOriginal()
 
         fixture.pipeline.retranscribe(original)
-        try await waitUntil("Failed retranscription retains audio") { !fixture.pipeline.isBusy }
+        try await waitUntil("Failed retranscription retains audio") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
         XCTAssertNotNil(fixture.pipeline.lastIssue)
         XCTAssertNil(fixture.pipeline.reviewOutcome)
         XCTAssertEqual(fixture.probe.blockedRecordings, 0, "Review errors must stay in the review UI")
 
         fixture.pipeline.retryRecording()
-        try await waitUntil("Retry finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Recovered transcription")
         XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
@@ -102,7 +102,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         fixture.pipeline.retranscribe(original)
         await speech.release(call: 1)
         try await waitUntil("Replacement review finishes") {
-            fixture.pipeline.reviewOutcome?.final == "Current transcription" && !fixture.pipeline.isBusy
+            fixture.pipeline.reviewOutcome?.final == "Current transcription" && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
 
         XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "Current transcription")
@@ -121,7 +121,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         fixture.pipeline.insertionEnabled = false
 
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Dictation and audio save finish") { !fixture.pipeline.isBusy }
+        try await waitUntil("Dictation and audio save finish") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         let records = try fixture.history.recent()
         XCTAssertEqual(records.count, 1)
@@ -148,7 +148,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         fixture.pipeline.insertionEnabled = false
 
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Text-only dictation finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Text-only dictation finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         let record = try XCTUnwrap(fixture.history.recent().first)
         XCTAssertEqual(record.finalText, "Text only")
@@ -166,7 +166,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         try Data("blocks the recordings directory".utf8).write(to: blocker)
 
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Failed audio save finishes") { !fixture.pipeline.isBusy }
+        try await waitUntil("Failed audio save finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
         XCTAssertNotNil(fixture.pipeline.historyStorageError)
         XCTAssertEqual(try fixture.history.count(), 0)
@@ -201,7 +201,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         let blocker = fixture.directory.appendingPathComponent("Recordings")
         try Data([1]).write(to: blocker)
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Save fails") { !fixture.pipeline.isBusy }
+        try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         XCTAssertNotNil(fixture.pipeline.historyStorageError)
         try FileManager.default.removeItem(at: blocker)
         try fixture.pipeline.beginDataMaintenance()
@@ -224,7 +224,7 @@ final class HistoryRetranscriptionTests: XCTestCase {
         let blocker = fixture.directory.appendingPathComponent("Recordings")
         try Data([1]).write(to: blocker)
         fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Save fails") { !fixture.pipeline.isBusy }
+        try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
         try FileManager.default.removeItem(at: blocker)
         try fixture.pipeline.beginDataMaintenance()
         try await fixture.pipeline.prepareDataRemoval(.audio)

@@ -48,6 +48,10 @@ HardeningTests/testCLIProcessDrainsLargeOutput
 EngineFactoryTests/testLocalEnginesAreCachedPerModel
 """.split()
 
+# CI runners have no Apple Development identity. Unsigned builds are a CI-only
+# test route; release builds keep the pinned identity and Hardened Runtime.
+UNSIGNED_SETTINGS = ("CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO")
+
 # These suites exercise credentials or provider API-key contracts, even when
 # their transport is mocked. Keep the same boundary in local and release runs.
 EXCLUDED_SUITES = frozenset("""
@@ -77,6 +81,8 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--timeout", type=int, default=1800,
                         help="Overall Xcode deadline in seconds (default: 1800)")
+    parser.add_argument("--unsigned", action="store_true",
+                        help="CI only: build test products without code signing (never for releases)")
     parser.add_argument("--parakeet-model", type=Path,
                         help="Existing downloaded INT8 folder; enables native reload/long-audio test")
     args = parser.parse_args()
@@ -99,6 +105,8 @@ def main():
                "-configuration", "Debug", "-skipPackagePluginValidation", "-skipMacroValidation",
                "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
                "test", "-parallel-testing-enabled", "NO", "-resultBundlePath", str(result)]
+    if args.unsigned:
+        command += UNSIGNED_SETTINGS
     command += credential_free_selection()
     (output / "command.json").write_text(json.dumps(command, indent=2) + "\n")
     print(f"Credential-free regression results: {output}", flush=True)
