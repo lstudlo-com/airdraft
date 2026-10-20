@@ -104,6 +104,22 @@ final class ModelDisplayNameTests: XCTestCase {
         XCTAssertEqual(config.displayName, "Off")
     }
 
+    /// The App's Models table takes its titles from `modelDisplayName`; Home,
+    /// Profiles and the menu use the same names for each local model.
+    func testLocalSpeechModelTitlesHaveOneSource() {
+        let expected: [(ASRConfig, String)] = [
+            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-1.7B-MLX-5bit"), "Qwen3-ASR 1.7B"),
+            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"), "Qwen3-ASR 0.6B"),
+            (ASRConfig(kind: .cohere), "Cohere Transcribe"),
+            (ASRConfig(kind: .fireRed), "FireRedASR2"),
+            (ASRConfig(kind: .senseVoice), "SenseVoice"),
+            (ASRConfig(kind: .parakeet), "Parakeet TDT v3"),
+            (ASRConfig(kind: .orukeet), "Orukeet"),
+            (ASRConfig(kind: .apple), "Apple Speech"),
+        ]
+        for (config, title) in expected { XCTAssertEqual(config.modelDisplayName, title) }
+    }
+
     func testReadableModelNames() {
         let cases = [
             ("gemini-2.5-flash", "Gemini 2.5 Flash"),
@@ -113,6 +129,22 @@ final class ModelDisplayNameTests: XCTestCase {
             ("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B Instruct"),
             ("qwen-3.8-27b", "Qwen 3.8 27B"),
             ("llama3.2:latest", "Llama3.2"),
+            ("o3-mini", "o3-mini"),
+            ("o4-mini-2025-04-16", "o4-mini"),
+            ("openai/o1", "o1"),
+            ("gpt-4o-2024-08-06", "GPT-4o"),
+            ("gpt-4o-mini", "GPT-4o Mini"),
+            ("chatgpt-4o-latest", "ChatGPT-4o"),
+            ("deepseek-chat", "DeepSeek Chat"),
+            ("deepseek/deepseek-r1-0528", "DeepSeek R1 0528"),
+            ("deepseek-r1-distill-qwen-32b", "DeepSeek R1 Distill Qwen 32B"),
+            ("qwen/qwen3-235b-a22b-2507", "Qwen3 235B A22B 2507"),
+            ("qwen2.5-coder-32b-instruct", "Qwen2.5 Coder 32B Instruct"),
+            ("qwq-32b", "QwQ 32B"),
+            ("mixtral-8x7b-32768", "Mixtral 8x7B 32768"),
+            ("meta-llama/llama-4-scout-17b-16e-instruct", "Llama 4 Scout 17B 16E Instruct"),
+            ("glm-4.5-air", "GLM 4.5 Air"),
+            ("moonshotai/kimi-k2-instruct", "Kimi K2 Instruct"),
             ("Mixed-Case-ID", "Mixed-Case-ID"),
             ("", ""),
         ]

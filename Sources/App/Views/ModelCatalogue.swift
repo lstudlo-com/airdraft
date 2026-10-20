@@ -18,6 +18,25 @@ struct ModelEntry: Identifiable {
     /// Points a speech config at this model.
     let select: (inout ASRConfig) -> Void
 
+    /// The title comes from Core's `ASRConfig.modelDisplayName`, the name Home,
+    /// Profiles and the menu show, so the Models table cannot drift from it.
+    init(id: String, vendor: String, provider: String, brand: ModelBrand, tags: [String], speed: Int, accuracy: Int,
+         storage: Storage, note: String, select: @escaping (inout ASRConfig) -> Void) {
+        var config = ASRConfig()
+        select(&config)
+        self.id = id
+        self.title = config.modelDisplayName
+        self.vendor = vendor
+        self.provider = provider
+        self.brand = brand
+        self.tags = tags
+        self.speed = speed
+        self.accuracy = accuracy
+        self.storage = storage
+        self.note = note
+        self.select = select
+    }
+
     func config(from base: ASRConfig) -> ASRConfig {
         var config = base
         select(&config)
@@ -36,53 +55,52 @@ struct ModelEntry: Identifiable {
 enum ModelCatalogue {
     static let entries: [ModelEntry] = [
         ModelEntry(
-            id: "qwen3:1.7b", title: "Qwen3-ASR 1.7B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
+            id: "qwen3:1.7b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "2.3 GB"),
             note: String(localized: "Best for mixed Chinese and English.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
-            id: "qwen3:0.6b", title: "Qwen3-ASR 0.6B", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
+            id: "qwen3:0.6b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: "680 MB"),
             note: String(localized: "Low memory, very fast.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(
-            id: "sherpa:fireRed", title: "FireRedASR2", vendor: "FireRed · ONNX", provider: "FireRed", brand: .fireRed,
+            id: "sherpa:fireRed", vendor: "FireRed · ONNX", provider: "FireRed", brand: .fireRed,
             tags: ["ZH", "EN"], speed: 3, accuracy: 5, storage: .download(sizeLabel: SherpaTranscriber.Model.fireRed.sizeLabel),
             note: String(localized: "Best Mandarin accuracy, 20+ dialects.")
         ) { $0.kind = .fireRed },
         ModelEntry(
-            id: "cohere", title: "Cohere Transcribe", vendor: "Cohere · MLX", provider: "Cohere", brand: .cohere,
+            id: "cohere", vendor: "Cohere · MLX", provider: "Cohere", brand: .cohere,
             tags: ["EN", "ZH", "+12"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "1.6 GB"),
             note: String(localized: "Best open English model.")
         ) { $0.kind = .cohere; $0.cohereModel = "aufklarer/Cohere-Transcribe-2B-MLX-5bit" },
         ModelEntry(
-            id: "sherpa:senseVoice", title: "SenseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
+            id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
             note: String(localized: "Fastest.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
-            id: "sherpa:parakeet", title: "Parakeet TDT v3", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
+            id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
             tags: ["EN", "+24"], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
             note: String(localized: "25 European languages. Does not support Chinese.")
         ) { $0.kind = .parakeet },
         ModelEntry(
-            id: "apple", title: "Apple Speech", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
+            id: "apple", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
             tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
             note: String(localized: "macOS manages language assets.")
         ) { $0.kind = .apple },
     ] + WhisperModelVariant.allCases.map { variant in
-        ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", title: variant.title,
-                   vendor: variant.isEnglishOnly ? "Hugging Face · Core ML" : "OpenAI · Core ML",
+        ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", vendor: variant.isEnglishOnly ? "Hugging Face · Core ML" : "OpenAI · Core ML",
                    provider: variant.isEnglishOnly ? "Hugging Face" : "OpenAI", brand: variant.isEnglishOnly ? .huggingFace : .openAI,
                    tags: (variant.isEnglishOnly ? ["EN"] : [String(localized: "100 languages")]) + ["Core ML"], speed: variant == .turbo ? 3 : 0,
                    accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
                    note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
     } + [
-        ModelEntry(id: "sherpa:orukeet", title: "Orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
+        ModelEntry(id: "sherpa:orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
                    tags: [String(localized: "25 languages"), "ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
                    note: String(localized: "25 European languages; no Chinese support.")) { $0.kind = .orukeet }
     ] + CoreMLSpeechModelCatalog.models.map { model in
-        ModelEntry(id: "coreml:\(model.id)", title: model.title, vendor: "\(model.creator) · Core ML", provider: model.creator,
+        ModelEntry(id: "coreml:\(model.id)", vendor: "\(model.creator) · Core ML", provider: model.creator,
                    brand: model.creator == "Moondream" ? .moondream : model.creator == "Fermion Research" ? .fermion : .nvidia,
                    tags: (model.languages.count == 1 ? [model.languages[0].uppercased()] : [String(localized: "\(model.languages.count) languages")]) + ["Core ML"],
                    speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
@@ -91,8 +109,7 @@ enum ModelCatalogue {
     } + GGUFModelCatalog.models.map { model in
         let languages = model.supportedLanguages
         let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : [String(localized: "\(languages.count) languages")]
-        return ModelEntry(id: "gguf:\(model.id)", title: model.title,
-                          vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
+        return ModelEntry(id: "gguf:\(model.id)", vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
                           brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
                           speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
                           note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }

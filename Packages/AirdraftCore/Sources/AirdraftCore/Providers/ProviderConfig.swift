@@ -655,10 +655,22 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         let base = trimmed.split(separator: "/").last.map(String.init) ?? trimmed
         guard !base.isEmpty, base == base.lowercased() else { return base.isEmpty ? trimmed : base }
         var tokens = base.split(whereSeparator: { "-_: ".contains($0) }).map(String.init)
-        // Release dates and floating tags identify a snapshot, not the model.
-        while let last = tokens.last, tokens.count > 1,
-              last == "latest" || (last.count == 8 && last.allSatisfy(\.isNumber)) {
-            tokens.removeLast()
+        // Release dates and floating tags identify a snapshot, not the model:
+        // `20251001`, `2024-08-06`, `0528` and `latest`.
+        func isDigits(_ token: String, _ count: Int) -> Bool { token.count == count && token.allSatisfy(\.isNumber) }
+        while tokens.count > 1 {
+            if let last = tokens.last, last == "latest" || isDigits(last, 8) {
+                tokens.removeLast()
+            } else if tokens.count > 3, isDigits(tokens[tokens.count - 3], 4), isDigits(tokens[tokens.count - 2], 2),
+                      isDigits(tokens[tokens.count - 1], 2) {
+                tokens.removeLast(3)
+            } else {
+                break
+            }
+        }
+        // OpenAI writes its reasoning series in lower case with hyphens: o3-mini, o4-mini.
+        if let first = tokens.first, first.range(of: #"^o\d+$"#, options: .regularExpression) != nil {
+            return tokens.joined(separator: "-")
         }
         // Split major-minor versions such as `4-5` back into `4.5`.
         var merged: [String] = []
@@ -670,12 +682,20 @@ public struct LLMConfig: Codable, Sendable, Equatable {
                 merged.append(token)
             }
         }
-        let acronyms: Set<String> = ["gpt", "oss", "qat", "mlx", "gguf", "awq", "it", "asr", "tts", "vl", "moe"]
+        let acronyms: Set<String> = ["gpt", "oss", "qat", "mlx", "gguf", "awq", "it", "asr", "tts", "vl", "moe", "glm",
+                                     "fp8", "fp16", "bf16", "gptq", "lfm2"]
+        // Brands whose own spelling is not plain capitalization.
+        let brands = ["deepseek": "DeepSeek", "qwq": "QwQ", "chatgpt": "ChatGPT", "openai": "OpenAI",
+                      "minimax": "MiniMax", "smollm": "SmolLM", "smollm2": "SmolLM2", "smollm3": "SmolLM3",
+                      "internlm": "InternLM", "internlm2": "InternLM2", "internlm3": "InternLM3", "llava": "LLaVA",
+                      "olmo": "OLMo", "exaone": "EXAONE", "xai": "xAI"]
         func word(_ token: String) -> String {
+            if let brand = brands[token] { return brand }
             if acronyms.contains(token) { return token.uppercased() }
-            // Parameter counts (26b, 1.5b, 270m) and active-expert tags (a4b, e4b).
-            if token.range(of: #"^(\d+(\.\d+)?|[a-z]\d+(\.\d+)?)[bmkt]$"#, options: .regularExpression) != nil {
-                return token.uppercased()
+            // Parameter counts (26b, 1.5b, 270m), mixtures (8x7b), active-expert
+            // tags (a4b, e4b) and expert counts (16e).
+            if token.range(of: #"^(\d+(\.\d+)?|\d+x\d+(\.\d+)?|[a-z]\d+(\.\d+)?)[bmkte]$"#, options: .regularExpression) != nil {
+                return token.uppercased().replacingOccurrences(of: "X", with: "x")
             }
             if token.range(of: #"^[a-z]+\d+(\.\d+)?$"#, options: .regularExpression) != nil
                 || token.range(of: #"^[a-z]+$"#, options: .regularExpression) != nil {
@@ -686,8 +706,12 @@ public struct LLMConfig: Codable, Sendable, Equatable {
         var words: [String] = []
         for token in merged {
             let next = word(token)
-            // GPT joins its version or variant with a hyphen: GPT-4.1, GPT-OSS.
-            if words.last == "GPT" { words[words.count - 1] = "GPT-\(next)" } else { words.append(next) }
+            // GPT joins its version or variant with a hyphen: GPT-4.1, GPT-OSS, ChatGPT-4o.
+            if let last = words.last, last == "GPT" || last == "ChatGPT" {
+                words[words.count - 1] = "\(last)-\(next)"
+            } else {
+                words.append(next)
+            }
         }
         let name = words.joined(separator: " ")
         return name.isEmpty ? trimmed : name
