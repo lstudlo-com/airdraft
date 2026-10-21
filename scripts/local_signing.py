@@ -31,7 +31,8 @@ def local_config(team):
     return ("// Created by scripts/generate-project.py because the pinned release certificate\n"
             "// is installed on this Mac. Git-ignored; edit or delete it to sign differently.\n"
             f"DEVELOPMENT_TEAM = {team}\n"
-            "CODE_SIGN_IDENTITY = Apple Development\n")
+            "CODE_SIGN_IDENTITY = Apple Development\n"
+            "ENABLE_HARDENED_RUNTIME = YES\n")
 
 
 def ensure_local_config(root, run=subprocess.run, log=print, environ=os.environ):

@@ -117,6 +117,9 @@ python3 scripts/generate-project.py
 ```
 
 `Config/Local.xcconfig` is ignored by Git. Release builds never use it.
+Ad-hoc builds are for development only: they run without Hardened Runtime,
+because its library validation rejects frameworks that carry no Team ID.
+Team-signed builds and releases keep Hardened Runtime.
 
 ### Tests
 

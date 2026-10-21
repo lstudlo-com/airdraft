@@ -49,7 +49,11 @@ name **Airdraft Debug**. Builds from source sign ad-hoc unless the git-ignored
 `Config/Local.xcconfig` names a team (see `Config/Local.xcconfig.example`);
 `scripts/generate-project.py` creates it for the pinned team on a Mac that holds
 the pinned certificate. Release builds ignore it and pass the pinned identity,
-team and Hardened Runtime explicitly. They do
+team and Hardened Runtime explicitly. `Config/Signing.xcconfig` enables Hardened
+Runtime for every team-signed build and leaves it off for team-less ad-hoc builds:
+library validation would otherwise refuse their own frameworks, which carry no
+Team ID. Those builds are development-only; `scripts/verify-adhoc-launch.py`
+launches one from a disposable clone. They do
 not install public Sparkle releases. See [Accessibility access](accessibility.md)
 for migration and recovery steps when System Settings shows an enabled switch
 but the running app is untrusted.

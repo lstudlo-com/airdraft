@@ -1,5 +1,5 @@
 name: macOS CI
-# Unsigned build and credential-free Core suite on GitHub's Xcode 27 image.
+# Ad-hoc build, launch check and credential-free Core suite on GitHub's Xcode 27 image.
 # Release signing, notarization-ready identity and live insertion stay local:
 # see scripts/release.py and docs/updates.md.
 # Pushes run on main only: a same-repository branch is checked through its pull
@@ -92,20 +92,30 @@ jobs:
           key: swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Packages/AirdraftCore/Package.swift', 'Packages/SherpaOnnxKit/Package.swift') }}
           restore-keys: swiftpm-${{ runner.os }}-
 
-      - name: Build the app (unsigned)
-        # CI has no Apple Development identity. Never use this route for releases.
+      - name: Build the app (ad-hoc, like a contributor)
+        # CI has no Apple Development identity, so Config/Signing.xcconfig signs
+        # ad-hoc without Hardened Runtime, exactly as a fresh contributor clone.
+        # Never use this route for releases.
         run: |
           mkdir -p "$RUNNER_TEMP/ci-logs"
           log="$RUNNER_TEMP/ci-logs/build.log"
           if ! xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
               -skipPackagePluginValidation -skipMacroValidation \
               -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile \
-              build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO > "$log" 2>&1; then
+              build > "$log" 2>&1; then
             grep -E ' error: ' "$log" | head -50 || true
             tail -100 "$log"
             exit 1
           fi
           tail -3 "$log"
+
+      - name: Launch the ad-hoc build
+        # dyld must load the app's own frameworks from a team-less signature; a
+        # Hardened Runtime negative control must be refused.
+        run: |
+          app="$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
+            -showBuildSettings 2>/dev/null | awk -F' = ' '/ CODESIGNING_FOLDER_PATH = /{print $2; exit}')"
+          python3 scripts/verify-adhoc-launch.py --app "$app" --output "$RUNNER_TEMP/ci-logs/adhoc-launch"
 
       - name: Check third-party notices
         # Regenerates the bundled acknowledgements from the resolved SwiftPM
