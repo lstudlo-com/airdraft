@@ -551,7 +551,7 @@
   },
   {
     "id": "cohere-transcribe-arabic-07-2026",
-    "title": "Cohere Transcribe",
+    "title": "Cohere Transcribe Arabic",
     "family": "cohere_asr",
     "creator": "Cohere",
     "brand": "Cohere",

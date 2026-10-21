@@ -1,7 +1,6 @@
 import CohereTranscribeASR
 import CryptoKit
 import Foundation
-import Qwen3ASR
 
 /// Anonymous downloads into `LocalModels.root`. Never sends a Hugging Face
 /// token, so a stale `~/.cache/huggingface/token` cannot break it.
@@ -46,6 +45,7 @@ public actor ModelDownloader {
         case incomplete
         case checksumMismatch
         case unsafePath(String)
+        case unpinned(String)
         public var errorDescription: String? {
             switch self {
             case .listing(let s): return String(localized: "Could not list model files (HTTP \(s)).", bundle: .module)
@@ -55,6 +55,7 @@ public actor ModelDownloader {
             case .checksumMismatch: return String(localized: "The model archive failed its integrity check. Download it again.", bundle: .module)
             case .emptyListing: return String(localized: "The model folder is empty on Hugging Face.", bundle: .module)
             case .unsafePath(let path): return String(localized: "Refused to download \(path): it points outside the models folder.", bundle: .module)
+            case .unpinned(let model): return String(localized: "\(model) has no reviewed download. Choose a model from the Models list.", bundle: .module)
             }
         }
     }
@@ -125,19 +126,16 @@ public actor ModelDownloader {
         }
     }
 
-    /// Qwen3-ASR weights through speech-swift's own anonymous downloader.
+    /// Qwen3-ASR weights and tokenizer at a pinned revision, each file checked
+    /// against its manifest size and SHA-256 before it enters the model folder.
+    /// Files already present are kept when they match, so existing installs
+    /// never download again.
     public func downloadQwen3(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("qwen3:\(modelId)") {
+            guard let artifact = PinnedHubModelCatalog.qwen3(modelId) else { throw DownloadError.unpinned(modelId) }
             progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
-            _ = try await Qwen3ASRModel.fromPretrained(
-                modelId: modelId,
-                cacheDir: LocalModels.qwen3Folder(for: modelId),
-                offlineMode: false,
-                progressHandler: { fraction, stage in
-                    progress(Progress(fraction: fraction > 0 && fraction < 0.8 ? fraction / 0.8 : nil,
-                                      currentFile: stage))
-                }
-            )
+            try await ModelDownloadTransfer.install(artifact.transferFiles(into: LocalModels.qwen3Folder(for: modelId)),
+                                                    progress: progress)
         }
     }
 
@@ -206,21 +204,17 @@ public actor ModelDownloader {
         guard actual == expected.lowercased() else { throw DownloadError.checksumMismatch }
     }
 
-    /// A WhisperKit variant plus the shared tokenizer files, from the Hub's public file API.
+    /// A WhisperKit variant plus the shared tokenizer files, each pinned to an
+    /// immutable revision with its size and SHA-256.
     public func downloadWhisper(variant: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("whisper:\(variant)") {
+            guard let choice = WhisperModelVariant(rawValue: variant),
+                  let artifact = PinnedHubModelCatalog.whisper(choice) else { throw DownloadError.unpinned(variant) }
             progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
-            let repo = "argmaxinc/whisperkit-coreml"
-            guard let choice = WhisperModelVariant(rawValue: variant) else { throw DownloadError.incomplete }
-            let modelFiles = try await listFiles(repo: repo, path: choice.directoryName)
-            guard !modelFiles.isEmpty else { throw DownloadError.emptyListing }
-            var files = try modelFiles.map { try transferFile($0, repo: repo, root: LocalModels.whisperKitRoot) }
+            var files = try artifact.transferFiles(into: LocalModels.whisperFolder(for: variant))
             if !LocalModels.hasWhisperTokenizer {
-                let tokenizerRepo = "openai/whisper-large-v3"
-                let tokenizerFiles = try await listFiles(repo: tokenizerRepo, path: "")
-                    .filter { LocalModels.whisperTokenizerFiles.contains($0.path) }
-                guard tokenizerFiles.count == LocalModels.whisperTokenizerFiles.count else { throw DownloadError.emptyListing }
-                files += try tokenizerFiles.map { try transferFile($0, repo: tokenizerRepo, root: LocalModels.whisperTokenizerFolder) }
+                guard let tokenizer = PinnedHubModelCatalog.whisperTokenizer else { throw DownloadError.unpinned("whisper-tokenizer") }
+                files += try tokenizer.transferFiles(into: LocalModels.whisperTokenizerFolder)
             }
             try await ModelDownloadTransfer.install(files, progress: progress)
         }

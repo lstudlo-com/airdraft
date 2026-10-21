@@ -221,14 +221,21 @@ final class OnboardingSpeechChoice {
     var useCloud = false
     var localChoice = "sherpa:senseVoice"
     var cloudChoice: ASRProviderKind = .groq
-    private(set) var recommendation = "sherpa:senseVoice"
+    private(set) var recommendation = ModelCatalogue.recommendation
+    var recommendedID: String { recommendation.model.catalogueID }
     private(set) var localInstalled = false
     private(set) var keyPresent = false
     @ObservationIgnored private weak var container: AppContainer?
 
     var entry: ModelEntry {
         ModelCatalogue.entries.first { $0.id == localChoice }
-            ?? ModelCatalogue.entries.first { $0.id == recommendation }!
+            ?? ModelCatalogue.entry(recommendation.model)
+    }
+    /// The recommendation and its alternatives, best first, plus a model chosen
+    /// elsewhere (an existing install or the picker) so the selection stays visible.
+    var options: [ModelEntry] {
+        let suggested = ([recommendation.model] + recommendation.alternatives).map(ModelCatalogue.entry)
+        return suggested.contains { $0.id == entry.id } ? suggested : [entry] + suggested
     }
     var preset: EndpointPreset.Speech { EndpointPreset.asr.first { $0.kind == cloudChoice }! }
     private var base: ASRConfig { container?.settings.asr ?? ASRConfig() }
@@ -252,15 +259,14 @@ final class OnboardingSpeechChoice {
     func configure(_ container: AppContainer) {
         self.container = container
         let current = container.settings.onboarding.chosenSpeech ?? container.settings.asr
-        let language = Locale.current.language.languageCode?.identifier ?? "en"
-        recommendation = ["zh", "en", "ja", "ko"].contains(language) ? "sherpa:senseVoice" : "whisper:turbo"
+        recommendation = ModelCatalogue.recommendation
         useCloud = !current.kind.isLocal && current.kind.preset != nil
         cloudChoice = current.kind.preset?.kind ?? .groq
         let keepCurrent = container.settings.onboarding.chosenSpeech != nil || container.settings.hadExistingSetup
             || container.settings.onboarding.step == .practice || LocalModels.isInstalled(current)
         localChoice = ModelCatalogue.entries.first {
             $0.isDownloadable && $0.isSelected(current) && keepCurrent
-        }?.id ?? recommendation
+        }?.id ?? recommendedID
         refreshInstalled()
     }
 

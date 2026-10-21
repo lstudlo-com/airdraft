@@ -79,6 +79,22 @@
         }
       }
     },
+    "%@ %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ · %3$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ · %3$@"
+          }
+        }
+      }
+    },
     "%@ %@, speak, then %@. Your words appear where you were typing." : {
       "localizations" : {
         "en" : {
@@ -216,6 +232,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ 次聽寫 · %2$@"
+          }
+        }
+      }
+    },
+    "%@ download. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ download. %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載大小 %1$@。%2$@"
           }
         }
       }
@@ -1773,6 +1805,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "華語準確度最佳，支援 20 多種方言。"
+          }
+        }
+      }
+    },
+    "Best fit" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合"
+          }
+        }
+      }
+    },
+    "Best for mixed Chinese and English" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合中英夾雜"
           }
         }
       }
@@ -3487,6 +3539,16 @@
         }
       }
     },
+    "Downloaded, loaded and used to transcribe in Airdraft's own tests." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在 Airdraft 自己的測試中實際下載、載入並完成轉錄。"
+          }
+        }
+      }
+    },
     "Downloading %@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3747,6 +3809,26 @@
         }
       }
     },
+    "Experimental" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實驗性"
+          }
+        }
+      }
+    },
+    "Experimental models (%lld)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實驗性模型（%lld）"
+          }
+        }
+      }
+    },
     "Export" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3783,16 +3865,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "失敗。%@"
-          }
-        }
-      }
-    },
-    "Fastest." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最快。"
           }
         }
       }
@@ -5571,6 +5643,16 @@
         }
       }
     },
+    "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中英夾雜時最準確。使用約 2.5 GB 記憶體。"
+          }
+        }
+      }
+    },
     "NOW SAY ANYTHING" : {
       "localizations" : {
         "zh-Hant" : {
@@ -6047,6 +6129,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未轉錄"
+          }
+        }
+      }
+    },
+    "Not yet tested end to end in Airdraft. It may fail to load or transcribe poorly." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試，可能無法載入或轉錄品質不佳。"
+          }
+        }
+      }
+    },
+    "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試，可能無法載入或轉錄品質不佳。"
           }
         }
       }
@@ -7384,6 +7486,26 @@
         }
       }
     },
+    "Recommended because this Mac has %@ of memory, leaving room for your other apps." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 有 %@ 記憶體，因此推薦這個模型，為其他 App 保留空間。"
+          }
+        }
+      }
+    },
+    "Recommended for your language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依你的語言推薦"
+          }
+        }
+      }
+    },
     "Record Meeting" : {
       "localizations" : {
         "zh-Hant" : {
@@ -8683,6 +8805,16 @@
         }
       }
     },
+    "Search results include experimental models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋結果包含實驗性模型。"
+          }
+        }
+      }
+    },
     "Search section names, settings and descriptions. Return or arrows moves between matches." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9093,6 +9225,16 @@
         }
       }
     },
+    "Shows or hides models Airdraft has not tested end to end." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示或隱藏尚未在 Airdraft 中完整測試的模型。"
+          }
+        }
+      }
+    },
     "Simulated speech input · production recording artwork" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9109,6 +9251,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "少於此字數時略過潤稿"
+          }
+        }
+      }
+    },
+    "Small and fast, and works well on any Mac." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小巧快速，在任何 Mac 上都很好用。"
+          }
+        }
+      }
+    },
+    "Smaller and faster; weaker with English terms in Chinese speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "較小、較快；中文夾雜英文詞時較弱。"
           }
         }
       }
@@ -9711,6 +9873,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄音會保留在「會議」中。"
+          }
+        }
+      }
+    },
+    "The smaller model comes first because this Mac has 8 GB of memory or less." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 的記憶體為 8 GB 或更少，因此較小的模型排在前面。"
           }
         }
       }
@@ -10446,18 +10618,12 @@
         }
       }
     },
-    "Use %@, %@, %@" : {
+    "Use %@" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Use %1$@, %2$@, %3$@"
-          }
-        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 %1$@，%2$@，%3$@"
+            "value" : "使用 %@"
           }
         }
       }
@@ -10608,6 +10774,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有效期限至 %@。"
+          }
+        }
+      }
+    },
+    "Verified" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已驗證"
           }
         }
       }

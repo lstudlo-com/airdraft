@@ -76,17 +76,14 @@ struct OnboardingSpeechStep: View {
 
     private var local: some View {
         SettingsCard {
-            HStack(spacing: Theme.controlSpacing) {
-                ModelBrandIcon(brand: speech.entry.brand)
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(speech.entry.title).font(.system(size: 13, weight: .medium))
-                        if speech.entry.id == speech.recommendation { PillTag(text: "BEST FIT") }
-                    }
-                    Text("\(speech.entry.note) \(speech.entry.tags.joined(separator: " · "))").supportingText()
-                }
-                Spacer(minLength: 8)
-                downloadAction
+            ForEach(Array(speech.options.enumerated()), id: \.element.id) { index, entry in
+                if index > 0 { RowDivider() }
+                option(entry)
+            }
+            if speech.recommendation.reason == .limitedMemory {
+                Text("Recommended because this Mac has \(memoryLabel) of memory, leaving room for your other apps.")
+                    .supportingText().fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("onboarding.memory-note")
             }
             if let current = speech.download?.progress, !speech.localInstalled {
                 ModelDownloadProgress(progress: current)
@@ -104,6 +101,62 @@ struct OnboardingSpeechStep: View {
             }
         }
         .onChange(of: speech.localChoice) { _, _ in speech.refreshInstalled() }
+    }
+
+    /// One local choice. With alternatives, each row selects itself; only the
+    /// selected row offers its download, which starts only from that button.
+    private func option(_ entry: ModelEntry) -> some View {
+        let selected = entry.id == speech.entry.id
+        let selectable = speech.options.count > 1
+        return HStack(spacing: Theme.controlSpacing) {
+            Button { speech.localChoice = entry.id } label: {
+                HStack(spacing: Theme.controlSpacing) {
+                    if selectable {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 14))
+                            .foregroundStyle(selected ? Color.accentColor : .secondary)
+                    }
+                    ModelBrandIcon(brand: entry.brand)
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 6) {
+                            Text(entry.title).font(.system(size: 13, weight: .medium))
+                            if entry.id == speech.recommendedID { PillTag(text: "BEST FIT") }
+                        }
+                        Text(tradeoff(entry)).supportingText().fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .allowsHitTesting(selectable && !busy)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: entry.id == speech.recommendedID
+                ? "\(entry.title), \(String(localized: "Best fit")). \(tradeoff(entry))" : "\(entry.title). \(tradeoff(entry))"))
+            .accessibilityValue(selectable ? (selected ? Text("Selected") : Text("Not selected")) : Text(verbatim: ""))
+            .accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityIdentifier("onboarding.speech-option.\(entry.id)")
+            if selected { downloadAction }
+        }
+    }
+
+    /// Download size and the plain-language trade-off between the choices.
+    private func tradeoff(_ entry: ModelEntry) -> String {
+        let detail: String
+        switch entry.id {
+        case LocalSpeechRecommendation.Model.qwen3Large.catalogueID:
+            detail = String(localized: "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory.")
+        case LocalSpeechRecommendation.Model.senseVoice.catalogueID where speech.recommendation.reason == .systemLanguage:
+            // Its English-terms caveat concerns Chinese speech, so it would only confuse here.
+            detail = String(localized: "Small and fast, and works well on any Mac.")
+        default:
+            detail = entry.note
+        }
+        return String(localized: "\(entry.downloadSize) download. \(detail)")
+    }
+
+    private var memoryLabel: String {
+        ByteCountFormatter.string(fromByteCount: Int64(clamping: ModelCatalogue.physicalMemory), countStyle: .memory)
     }
 
     @ViewBuilder private var downloadAction: some View {

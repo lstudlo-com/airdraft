@@ -105,6 +105,16 @@
         }
       }
     },
+    "%@ has no reviewed download. Choose a model from the Models list." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 沒有經過審核的下載來源。請從「模型」清單中選擇模型。"
+          }
+        }
+      }
+    },
     "%@ is unavailable on this Mac. Choose a supported locale in Models." : {
       "localizations" : {
         "zh-Hant" : {

@@ -7,6 +7,8 @@ struct ModelsPage: View {
     @State private var filter: Filter = .all
     @State private var localProvider: String?
     @State private var cloudProvider: ASRProviderKind?
+    /// Experimental models stay one click away; searching always includes them.
+    @State private var showsExperimental = false
     @State private var initialized = false
     @State private var openRouterModels: [SpeechModelInfo] = []
     @State private var openRouterLoading = false
@@ -30,6 +32,33 @@ struct ModelsPage: View {
             (localProvider == nil || $0.provider == localProvider) &&
                 matches([$0.title, $0.provider, $0.vendor, $0.note] + $0.tags)
         }
+    }
+
+    private var isSearching: Bool { !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    /// Recommended, then Verified (with built-in) rows, then the Experimental
+    /// disclosure and, when open or searching, its rows. Each item is one list cell.
+    private var localItems: [LocalModelItem] {
+        let recommendation = ModelCatalogue.recommendation
+        let groups = ModelCatalogue.grouped(localModels, recommendation: recommendation)
+        var items: [LocalModelItem] = []
+        let recommendedHeader: LocalModelItem.Header = recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
+        for (index, entry) in groups.recommended.enumerated() {
+            items.append(.model(entry, header: index == 0 ? recommendedHeader : nil,
+                                bestFit: entry.id == recommendation.model.catalogueID))
+        }
+        for (index, entry) in groups.verified.enumerated() {
+            let labelled = !groups.recommended.isEmpty || !groups.experimental.isEmpty
+            items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, bestFit: false))
+        }
+        if !groups.experimental.isEmpty {
+            let expanded = showsExperimental || isSearching
+            items.append(.experimental(count: groups.experimental.count, expanded: expanded, searching: isSearching))
+            if expanded {
+                items += groups.experimental.map { .model($0, header: nil, bestFit: false) }
+            }
+        }
+        return items
     }
 
     private var localProviders: [String] {
@@ -95,15 +124,24 @@ struct ModelsPage: View {
                         ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
                     }
                 }) {
-                    ModelTable(cost: String(localized: "Storage"), rowCount: localModels.count) {
-                        if localModels.isEmpty {
+                    let items = localItems
+                    ModelTable(cost: String(localized: "Storage"), rowCount: items.count) {
+                        if items.isEmpty {
                             EmptyNote("No local models match your search.")
                                 .padding(Theme.cardPadding)
                         }
-                        ForEach(Array(localModels.enumerated()), id: \.element.id) { index, entry in
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             VStack(spacing: 0) {
                                 if index > 0 { RowDivider() }
-                                ModelRow(entry: entry)
+                                switch item {
+                                case let .model(entry, header, bestFit):
+                                    if let header { LocalModelGroupHeader(header: header) }
+                                    ModelRow(entry: entry, bestFit: bestFit)
+                                case let .experimental(count, expanded, searching):
+                                    ExperimentalModelsDisclosure(count: count, expanded: expanded, searching: searching) {
+                                        showsExperimental.toggle()
+                                    }
+                                }
                             }
                             .accessibilityElement(children: .contain)
                             .listRowInsets(EdgeInsets())
@@ -174,6 +212,7 @@ struct ModelsPage: View {
                     filter = value
                 }
                 localProvider = RenderMode.value("LOCAL_PROVIDER")
+                showsExperimental = RenderMode.value("SHOW_EXPERIMENTAL") == "1"
                 cloudProvider = RenderMode.value("CLOUD_PROVIDER").flatMap(ASRProviderKind.init(rawValue:))
                 query = RenderMode.value("MODEL_QUERY") ?? ""
                 initialized = true

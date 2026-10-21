@@ -50,18 +50,59 @@ struct ModelEntry: Identifiable {
     }
 
     var isDownloadable: Bool { if case .download = storage { return true } else { return false } }
+
+    /// AD-071: whether Airdraft has evidence that this entry downloads, loads and
+    /// transcribes. Built-in Apple Speech is provided by macOS and has no tier.
+    var tier: ModelTier? {
+        guard isDownloadable else { return nil }
+        return ModelCatalogue.verificationEvidence[id] == nil ? .experimental : .verified
+    }
+
+    /// A short visible strength, shown under the title in Models.
+    var highlight: String? {
+        id == LocalSpeechRecommendation.Model.qwen3Large.catalogueID
+            ? String(localized: "Best for mixed Chinese and English") : nil
+    }
+}
+
+enum ModelTier: Equatable {
+    case verified, experimental
+
+    var title: String {
+        switch self {
+        case .verified: String(localized: "Verified")
+        case .experimental: String(localized: "Experimental")
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .verified: "checkmark.seal"
+        case .experimental: "flask"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .verified: String(localized: "Downloaded, loaded and used to transcribe in Airdraft's own tests.")
+        case .experimental: String(localized: "Not yet tested end to end in Airdraft. It may fail to load or transcribe poorly.")
+        }
+    }
 }
 
 enum ModelCatalogue {
+    /// Pinned bytes, so the label matches what the download actually fetches.
+    private static func qwenSize(_ model: String) -> String { PinnedHubModelCatalog.qwen3(model)?.sizeLabel ?? "" }
+
     static let entries: [ModelEntry] = [
         ModelEntry(
             id: "qwen3:1.7b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "2.3 GB"),
+            tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-1.7B-MLX-5bit")),
             note: String(localized: "Best for mixed Chinese and English.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
             id: "qwen3:0.6b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: "680 MB"),
+            tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-0.6B-MLX-4bit")),
             note: String(localized: "Low memory, very fast.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(
@@ -77,7 +118,7 @@ enum ModelCatalogue {
         ModelEntry(
             id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
-            note: String(localized: "Fastest.")
+            note: String(localized: "Smaller and faster; weaker with English terms in Chinese speech.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
@@ -113,6 +154,62 @@ enum ModelCatalogue {
                           brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
                           speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
                           note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }
+    }
+}
+
+extension LocalSpeechRecommendation.Model {
+    var catalogueID: String {
+        switch self {
+        case .qwen3Large: "qwen3:1.7b"
+        case .senseVoice: "sherpa:senseVoice"
+        case .whisperTurbo: "whisper:turbo"
+        }
+    }
+}
+
+extension ModelCatalogue {
+    /// Local entries with recorded download, load and transcription evidence
+    /// (AD-071). Keep the source beside each ID; every other download is
+    /// Experimental until it gains the same evidence.
+    static let verificationEvidence: [String: String] = {
+        let coverage = "Vault Records/Verification/2026-10-12 Local Speech Model Coverage"
+        let mixed = "eval/mixed-asr (2026-10-21, source 2242fb4)"
+        var evidence = Dictionary(uniqueKeysWithValues: [
+            "coreml:parakeet-v2", "coreml:parakeet-v3", "coreml:parakeet-v3-int4", "coreml:parakeet-ultra",
+            "coreml:parakeet-redux", "coreml:phonon-2", "coreml:parakeet-110m", "coreml:parakeet-ja",
+            "gguf:whisper-tiny", "gguf:moonshine-tiny", "gguf:moonshine-tiny-zh", "gguf:breeze-asr-25",
+            "gguf:canary-180m-flash", "gguf:fun-asr-nano-2512", "gguf:gigaam-v3-ctc",
+            "sherpa:orukeet", "whisper:large-v3", "whisper:distil-large-v3_594MB",
+        ].map { ($0, coverage) })
+        for id in ["qwen3:1.7b", "qwen3:0.6b", "sherpa:senseVoice", "sherpa:fireRed", "whisper:turbo"] {
+            evidence[id] = mixed
+        }
+        return evidence
+    }()
+
+    /// Recommended first, then the rest of the verified and built-in entries,
+    /// then Experimental ones, each in catalogue order.
+    static func grouped(_ entries: [ModelEntry], recommendation: LocalSpeechRecommendation)
+        -> (recommended: [ModelEntry], verified: [ModelEntry], experimental: [ModelEntry]) {
+        let order = ([recommendation.model] + recommendation.alternatives).map(\.catalogueID)
+        let recommended = order.compactMap { id in entries.first { $0.id == id } }
+        let rest = entries.filter { !order.contains($0.id) }
+        return (recommended, rest.filter { $0.tier != .experimental }, rest.filter { $0.tier == .experimental })
+    }
+
+    /// One recommendation for first-run setup and Models (AD-074). Renders inject
+    /// the system language and memory so both cases can be inspected on any Mac.
+    static var recommendation: LocalSpeechRecommendation {
+        let language = RenderMode.value("SYSTEM_LANGUAGE") ?? LocalSpeechRecommendation.systemLanguageCode
+        return .recommend(languageCode: language, physicalMemory: physicalMemory)
+    }
+
+    static var physicalMemory: UInt64 {
+        RenderMode.value("MEMORY_GB").flatMap { UInt64($0) }.map { $0 << 30 } ?? ProcessInfo.processInfo.physicalMemory
+    }
+
+    static func entry(_ model: LocalSpeechRecommendation.Model) -> ModelEntry {
+        entries.first { $0.id == model.catalogueID }!
     }
 }
 
@@ -276,9 +373,86 @@ struct CloudModelRow: View {
     }
 }
 
+/// One cell of the local models table (AD-071).
+enum LocalModelItem: Identifiable {
+    enum Header { case recommended, recommendedForMemory, verified }
+    case model(ModelEntry, header: Header?, bestFit: Bool)
+    case experimental(count: Int, expanded: Bool, searching: Bool)
+
+    var id: String {
+        switch self {
+        case .model(let entry, _, _): entry.id
+        case .experimental: "experimental-disclosure"
+        }
+    }
+}
+
+struct LocalModelGroupHeader: View {
+    let header: LocalModelItem.Header
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                .accessibilityAddTraits(.isHeader)
+            if header == .recommendedForMemory {
+                Text("The smaller model comes first because this Mac has 8 GB of memory or less.").supportingText()
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.top, 12)
+    }
+
+    private var title: String {
+        switch header {
+        case .recommended, .recommendedForMemory: String(localized: "Recommended for your language")
+        case .verified: String(localized: "Verified")
+        }
+    }
+}
+
+/// Experimental models stay available but collapsed, so the table opens with
+/// models Airdraft has tested. Searching includes them without a click.
+struct ExperimentalModelsDisclosure: View {
+    let count: Int
+    let expanded: Bool
+    let searching: Bool
+    let toggle: () -> Void
+
+    var body: some View {
+        Button(action: toggle) {
+            HStack(spacing: 8) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .rotationEffect(.degrees(expanded ? 90 : 0))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 14)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Experimental models (\(count))").font(.system(size: 13, weight: .medium))
+                    Text(searching ? String(localized: "Search results include experimental models.")
+                         : String(localized: "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly."))
+                        .supportingText().fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(Theme.cardPadding)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .allowsHitTesting(!searching)
+        .accessibilityLabel(Text("Experimental models (\(count))"))
+        .accessibilityValue(expanded ? Text("Expanded") : Text("Collapsed"))
+        .accessibilityHint(searching ? Text(verbatim: "") : Text("Shows or hides models Airdraft has not tested end to end."))
+        .accessibilityIdentifier("models.experimental-disclosure")
+    }
+}
+
 struct ModelRow: View {
     @Environment(AppContainer.self) private var container
     let entry: ModelEntry
+    /// The recommendation for this Mac's language and memory.
+    var bestFit = false
     @State private var error: String?
     @State private var installed = false
     @State private var checkingInstallation = true
@@ -311,8 +485,16 @@ struct ModelRow: View {
                             .foregroundStyle(selected ? Color.accentColor : Color.secondary.opacity(installed ? 0.6 : 0.3))
                         ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.title).font(.system(size: 13, weight: .medium))
-                            Text(entry.tags.joined(separator: " · ")).supportingText()
+                            HStack(spacing: 6) {
+                                Text(entry.title).font(.system(size: 13, weight: .medium))
+                                if bestFit { PillTag(text: "BEST FIT") }
+                            }
+                            if let highlight = entry.highlight {
+                                Text("\(Image(systemName: "star.fill")) \(highlight)")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(.primary.opacity(0.75))
+                            }
+                            tierAndTags
                             loadStateLabel
                         }
                         .fixedSize(horizontal: false, vertical: true)
@@ -320,7 +502,7 @@ struct ModelRow: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Use \(entry.title), \(entry.provider), \(entry.tags.joined(separator: ", "))")
+                .accessibilityLabel(accessibilityLabel)
                 .accessibilityValue(selected ? "Selected" : "Not selected")
                 .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
             } speed: {
@@ -354,6 +536,29 @@ struct ModelRow: View {
             installed = result
             checkingInstallation = false
         }
+    }
+
+    /// Tier first, as a compact symbol and word, then the language and runtime tags.
+    private var tierAndTags: some View {
+        let tags = entry.tags.joined(separator: " · ")
+        return Group {
+            if let tier = entry.tier {
+                Text("\(Image(systemName: tier.symbol)) \(tier.title) · \(tags)")
+                    .help(tier.detail)
+            } else {
+                Text(tags)
+            }
+        }
+        .supportingText()
+    }
+
+    private var accessibilityLabel: String {
+        var parts = [String(localized: "Use \(entry.title)"), entry.provider]
+        if bestFit { parts.append(String(localized: "Best fit")) }
+        if let highlight = entry.highlight { parts.append(highlight) }
+        if let tier = entry.tier { parts.append(tier.title) }
+        parts.append(entry.tags.joined(separator: ", "))
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder

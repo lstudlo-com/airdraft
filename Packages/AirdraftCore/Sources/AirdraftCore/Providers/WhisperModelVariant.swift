@@ -26,15 +26,9 @@ public enum WhisperModelVariant: String, CaseIterable, Codable, Sendable {
         }
     }
 
+    /// The pinned download, so the label always matches the bytes the app fetches.
     public var sizeLabel: String {
-        switch self {
-        case .turbo: return "1.5 GB"
-        case .largeV3: return "3.1 GB"
-        case .turboCompressed: return "626 MB"
-        case .distilLargeV3, .distilTurbo: return "1.5 GB"
-        case .distilLargeV3Compressed: return "594 MB"
-        case .distilTurboCompressed: return "600 MB"
-        }
+        PinnedHubModelCatalog.whisper(self)?.sizeLabel ?? ""
     }
 
     public var note: String {
