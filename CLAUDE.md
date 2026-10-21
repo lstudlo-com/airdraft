@@ -831,7 +831,10 @@ resolve SwiftUI keys with an empty environment locale, so their titles, items an
 tooltips must be `String(localized:)` values; the menu fixture checks both
 languages. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. Built-in profiles keep
 their stored English names; the interface shows `RefinementProfile.displayName`
-(History: `displayName(forSavedName:)`), localized until renamed. Modifier-only
+(History: `displayName(forSavedName:)`), localized until renamed. Renaming goes
+through `ProfileStore.rename`, which sets `nameIsCustom` so a typed name (even
+"Clean" in zh-Hant) shows as typed, and refuses a name another profile already
+shows or stores. Modifier-only
 shortcut labels localize only their side word through
 `Hotkey.displayCaps`/`localizedDisplayString`; `keyCaps`/`displayString` stay
 English for logs and matching. `Sources/App/AppShortcuts.xcstrings` holds App

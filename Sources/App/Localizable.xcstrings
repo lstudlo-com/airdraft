@@ -11526,6 +11526,16 @@
           }
         }
       }
+    },
+    "“%@” is already used by another profile." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一個模式已使用「%@」這個名稱。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

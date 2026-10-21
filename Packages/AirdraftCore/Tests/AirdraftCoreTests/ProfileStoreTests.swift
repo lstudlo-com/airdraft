@@ -209,4 +209,47 @@ extension ProfileStoreTests {
                                     context: .empty, family: .general, dictionary: [])
         XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("PROFILE Concise"))
     }
+
+    /// AD-079: in Traditional Chinese, a built-in can be renamed to its English stored
+    /// name and keeps showing it, and no other profile can take a name that one
+    /// already shows or stores.
+    func testTypedNamesShowAsTypedAndNeverDuplicateAnotherProfile() throws {
+        let zh: (UUID) -> String? = {
+            [RefinementProfile.cleanID: "整理", RefinementProfile.conciseID: "精簡",
+             RefinementProfile.summaryID: "摘要", RefinementProfile.verbatimID: "逐字"][$0]
+        }
+        let dir = tempDir()
+        let store = ProfileStore(directory: dir)
+        XCTAssertEqual(store.activeProfile.displayName(localizingBuiltIn: zh), "整理")
+        XCTAssertEqual(store.rename(id: RefinementProfile.cleanID, to: "整理", localizingBuiltIn: zh), .unchanged)
+        XCTAssertEqual(store.rename(id: RefinementProfile.cleanID, to: "  Clean ", localizingBuiltIn: zh), .renamed)
+        XCTAssertEqual(store.activeProfile.name, "Clean", "Prompts and history keep the same stored name")
+        XCTAssertEqual(store.activeProfile.displayName(localizingBuiltIn: zh), "Clean", "An explicit name shows as typed")
+
+        let reloaded = ProfileStore(directory: dir)
+        XCTAssertTrue(reloaded.activeProfile.nameIsCustom)
+        XCTAssertEqual(reloaded.activeProfile.displayName(localizingBuiltIn: zh), "Clean")
+        XCTAssertFalse(reloaded.isDefault(reloaded.activeProfile), "Restore Defaults brings the localized name back")
+
+        let custom = reloaded.add(RefinementProfile(name: "Notes", instructions: "x"))
+        XCTAssertEqual(reloaded.rename(id: custom.id, to: "精簡", localizingBuiltIn: zh), .duplicate("精簡"),
+                       "A custom profile may not look like the built-in Concise")
+        XCTAssertEqual(reloaded.rename(id: custom.id, to: "concise", localizingBuiltIn: zh), .duplicate("精簡"),
+                       "Nor take its stored name, which English shows")
+        XCTAssertEqual(reloaded.rename(id: custom.id, to: "CLEAN", localizingBuiltIn: zh), .duplicate("Clean"))
+        XCTAssertEqual(reloaded.rename(id: custom.id, to: "整理", localizingBuiltIn: zh), .renamed,
+                       "整理 is free once the built-in shows Clean")
+        XCTAssertEqual(reloaded.rename(id: custom.id, to: "   ", localizingBuiltIn: zh), .empty)
+        XCTAssertEqual(reloaded.profiles.first { $0.id == custom.id }?.name, "整理")
+
+        reloaded.resetProfile(id: RefinementProfile.cleanID)
+        XCTAssertFalse(reloaded.activeProfile.nameIsCustom)
+        XCTAssertEqual(reloaded.activeProfile.displayName(localizingBuiltIn: zh), "整理")
+
+        // Files written before the flag existed decode with it off.
+        var legacy = try JSONSerialization.jsonObject(with: JSONEncoder().encode(RefinementProfile.defaults[0])) as! [String: Any]
+        legacy.removeValue(forKey: "nameIsCustom")
+        let decoded = try JSONDecoder().decode(RefinementProfile.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertEqual(decoded, RefinementProfile.defaults[0])
+    }
 }

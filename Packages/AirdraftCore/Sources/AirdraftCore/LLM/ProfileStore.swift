@@ -89,6 +89,46 @@ public final class ProfileStore {
         save()
     }
 
+    public enum RenameResult: Equatable {
+        case renamed, unchanged, empty
+        /// Another profile already shows or stores this name (its display name).
+        case duplicate(String)
+    }
+
+    /// Renames to what the user typed, shown as typed from now on (AD-079). A name
+    /// another profile already shows or stores is refused, so two profiles never
+    /// look the same, in either interface language.
+    @discardableResult
+    public func rename(id: UUID, to typed: String) -> RenameResult {
+        rename(id: id, to: typed, localizingBuiltIn: RefinementProfile.localizedBuiltInName)
+    }
+
+    func rename(id: UUID, to typed: String, localizingBuiltIn localize: (UUID) -> String?) -> RenameResult {
+        let name = typed.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let index = profiles.firstIndex(where: { $0.id == id }) else { return .unchanged }
+        guard !name.isEmpty else { return .empty }
+        guard name != profiles[index].displayName(localizingBuiltIn: localize) else { return .unchanged }
+        if let other = profile(named: name, except: id, localizingBuiltIn: localize) {
+            return .duplicate(other.displayName(localizingBuiltIn: localize))
+        }
+        profiles[index].name = name
+        profiles[index].nameIsCustom = true
+        save()
+        return .renamed
+    }
+
+    /// Case-, width- and diacritic-insensitive match against stored and shown names.
+    private func profile(named name: String, except id: UUID?,
+                         localizingBuiltIn localize: (UUID) -> String? = RefinementProfile.localizedBuiltInName) -> RefinementProfile? {
+        let key = Self.nameKey(name)
+        return profiles.first { $0.id != id && (Self.nameKey($0.name) == key || Self.nameKey($0.displayName(localizingBuiltIn: localize)) == key) }
+    }
+
+    private static func nameKey(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+    }
+
     /// Built-ins cannot be removed; use `resetProfile` instead.
     public func remove(id: UUID) {
         guard let p = profiles.first(where: { $0.id == id }), !p.isBuiltIn else { return }
@@ -175,7 +215,7 @@ public final class ProfileStore {
     private func uniqueName(_ base: String) -> String {
         var name = base
         var n = 2
-        while profiles.contains(where: { $0.name == name }) {
+        while profile(named: name, except: nil) != nil {
             name = "\(base) \(n)"
             n += 1
         }
