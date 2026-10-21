@@ -601,6 +601,9 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
             "HUDDisco.swift": source("Sources/App/HUD/HUDDisco.swift"),
             "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
+            # Core files localize through SwiftPM's Bundle.module; compiled alone
+            # they read the harness's main bundle, which yields the English source.
+            "ModuleBundle.swift": "import Foundation\nextension Bundle { static let module = Bundle.main }\n",
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
