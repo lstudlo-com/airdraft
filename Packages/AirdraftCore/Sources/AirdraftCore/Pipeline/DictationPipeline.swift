@@ -75,13 +75,16 @@ public final class DictationPipeline {
     public var latestPendingDictation: PendingRecording? { recoveries.last { !$0.info.isReview }?.info }
     /// New dictation stays available while failed recordings wait. Bound their
     /// memory: at most three recordings or 15 minutes of 16 kHz audio (~58 MB),
-    /// then ask for a retry or discard instead of dropping audio.
+    /// then ask for a retry or discard instead of dropping audio. The bound is
+    /// hard: a new recording starts only while the kept audio plus its own
+    /// effective recording limit still fits, so a failure can always be kept.
     public static let maximumPendingRecordings = 3
     public static let maximumPendingRecordingSeconds: Double = 900
     public var canKeepAnotherRecording: Bool {
         let dictations = recoveries.filter { !$0.info.isReview }
+        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind)
         return dictations.count < Self.maximumPendingRecordings
-            && dictations.reduce(0) { $0 + $1.info.seconds } < Self.maximumPendingRecordingSeconds
+            && dictations.reduce(0) { $0 + $1.info.seconds } + Double(limit) <= Self.maximumPendingRecordingSeconds
     }
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
@@ -815,7 +818,9 @@ public final class DictationPipeline {
                                    output: output ?? recordingAtStart?.output ?? selectedOutput()))
     }
 
-    /// Successful or silent processing resolves the recovery a retry was processing.
+    /// Successful or silent processing resolves the recovery a retry was
+    /// processing, once its result is held by History's pending saves or the
+    /// review outcome. Cancellation before that point keeps the audio.
     private func resolveRecovery(for token: UUID) {
         guard let retrying = retryingRecovery, retrying.token == token else { return }
         retryingRecovery = nil
@@ -993,9 +998,9 @@ public final class DictationPipeline {
         }
         guard isCurrent(token) else { return }
         refinementPreparation?.prefixTask?.cancel()
-        resolveRecovery(for: token)
         lastIssue = nil
         guard !transcript.isEmpty else {
+            resolveRecovery(for: token)
             set(.idle)
             return
         }
@@ -1089,6 +1094,7 @@ public final class DictationPipeline {
             timings.processingMs = Self.elapsed(since: processingStarted)
             reviewOutcome = DictationOutcome(raw: transcript.text, refined: refined, final: final,
                 asrMs: transcript.latencyMs, llmMs: llmMs, llmSkippedReason: skipReason, timings: timings)
+            resolveRecovery(for: token)
             lastIssue = llmError.map { String(localized: "Refinement failed; the original transcript is shown.", bundle: .module) + " " + $0 }
             set(.idle)
             return
@@ -1181,6 +1187,9 @@ public final class DictationPipeline {
             // Held in memory first: a failed save stays visible and retryable.
             unsavedHistory.append((record, settings.audioRetention == .off ? nil : samples))
         }
+        // The result is delivered and held for History: only now may a retry
+        // release the kept audio it was processing.
+        resolveRecovery(for: token)
         discardRefinementPreparation(for: token)
         let historyStarted = ProcessInfo.processInfo.systemUptime
         let previousTail = deliveryTail

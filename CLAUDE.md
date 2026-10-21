@@ -1203,7 +1203,10 @@ dictation recoveries or `maximumPendingRecordingSeconds` (900) of audio, then
 refuse a new recording with a message and open Home instead of dropping audio.
 Each entry keeps its own failure text, insertion target and delivery policy; Home,
 the menu and retry act on the newest entry by ID, and a failed retry keeps the
-same entry as the newest. Cancellation never discards kept audio; only Discard
+same entry as the newest. The bound is hard: start a recording only while kept
+audio plus its effective recording limit fits 900 seconds.
+A retry resolves its entry only once the result is delivered and held for History
+(or set as the review outcome), so cancelling during refinement keeps the audio. Cancellation never discards kept audio; only Discard
 Recording or audio cleanup does. History's failed review is a single separate
 entry cleared when its sheet closes. Saving failures must stay visible.
 Engine loading, inference and unloading share the factory lease. Downloads belong
