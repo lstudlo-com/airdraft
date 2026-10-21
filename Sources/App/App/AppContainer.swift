@@ -10,6 +10,7 @@ import os
 @MainActor
 @Observable
 final class AppContainer {
+    #if DEBUG
     /// Replaces dictation's OS boundary for fixtures: capture, speech engine,
     /// recording preflight and microphone access. Nil uses the real boundary.
     struct DictationBoundary {
@@ -18,6 +19,11 @@ final class AppContainer {
         var recordingPreflight: @MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void
         var requestMicrophoneAccess: @Sendable () async -> Bool
     }
+    #else
+    /// Fixtures compile only into Debug builds. In Release this type has no
+    /// values, so the boundary is always nil and the real OS boundary is used.
+    enum DictationBoundary {}
+    #endif
 
     static let shared: AppContainer = {
         #if DEBUG
@@ -103,7 +109,7 @@ final class AppContainer {
             factory = EngineFactory(status: engineStatus, transcriberBuilder: dictationBoundary?.transcriberBuilder)
         }
         #else
-        factory = EngineFactory(status: engineStatus, transcriberBuilder: dictationBoundary?.transcriberBuilder)
+        factory = EngineFactory(status: engineStatus)
         #endif
         dictionary = DictionaryStore(directory: readableDirectory)
         profiles = ProfileStore(directory: readableDirectory)
@@ -118,16 +124,23 @@ final class AppContainer {
             Self.log.error("history unavailable: \(error.localizedDescription, privacy: .public)")
         }
 
-        var recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
         #if DEBUG
+        var recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
         if LocalE2E.isActive {
             recordingPreflight = { asr, llm, refinementEnabled, microphone, insertionEnabled in
                 try LocalE2E.checkRecording(asr: asr, llm: llm, refinementEnabled: refinementEnabled,
                                             microphone: microphone, insertionEnabled: insertionEnabled)
             }
         }
-        #endif
         if let boundary = dictationBoundary { recordingPreflight = boundary.recordingPreflight }
+        let recorder: any AudioRecording = dictationBoundary?.recorder ?? AudioRecorder()
+        let requestMicrophoneAccess: @Sendable () async -> Bool = dictationBoundary?.requestMicrophoneAccess
+            ?? { await AudioRecorder.requestMicrophoneAccess() }
+        #else
+        let recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
+        let recorder: any AudioRecording = AudioRecorder()
+        let requestMicrophoneAccess: @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
+        #endif
         pipeline = DictationPipeline(
             settings: settings,
             dictionary: dictionary,
@@ -135,10 +148,10 @@ final class AppContainer {
             history: history,
             historyDirectory: dir,
             factory: factory,
-            recorder: dictationBoundary?.recorder ?? AudioRecorder(),
+            recorder: recorder,
             recordingPreflight: recordingPreflight,
             accessCheck: recordingAccessCheck ?? { try await license.requireAccess() },
-            requestMicrophoneAccess: dictationBoundary?.requestMicrophoneAccess ?? { await AudioRecorder.requestMicrophoneAccess() }
+            requestMicrophoneAccess: requestMicrophoneAccess
         )
         pipeline.practiceTarget = practiceEditor
         let mediaFactory = factory
