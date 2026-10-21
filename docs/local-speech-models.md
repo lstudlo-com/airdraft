@@ -77,3 +77,26 @@ compared byte for byte), tokenizer `06f233f`. Other Whisper variants were pinned
 from Hub metadata and have not been downloaded. Moving a pin is deliberate:
 rerun the script, review the diff and repeat the Qwen3/Whisper self-tests.
 Cohere Transcribe and SpeakerKit still download from Hub `main`.
+
+## Recommendations and tiers in Models
+
+`LocalSpeechRecommendation` (Core) picks the first-run model from the primary
+system language and physical memory (AD-074). Chinese gets Qwen3-ASR 1.7B, with
+SenseVoice as the smaller alternative. On 8 GB or less the order reverses.
+English, Japanese and Korean get SenseVoice; other languages get Whisper Large v3
+Turbo. Qwen3-ASR 0.6B is never the lighter default because it can loop until its
+token cap and spike memory. Onboarding's Speech step and the Models table use the
+same rule.
+
+The local table opens with "Recommended for your language", then Verified and
+built-in models, then a collapsed "Experimental models (N)" disclosure (AD-071).
+Searching includes Experimental rows without a click. Rows show the tier as a
+symbol and word before their tags; Qwen3-ASR 1.7B also shows "Best for mixed
+Chinese and English". `ModelCatalogue.verificationEvidence` lists the Verified
+IDs with their sources: the 18 choices that were actually downloaded, loaded and
+used for transcription in the 2026-10-12 local coverage verification, plus
+SenseVoice, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
+`eval/mixed-asr/`. Promote a model only with the same kind of evidence. The
+`models-performance` fixture rejects IDs that are not in the catalogue. Renders accept
+`AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB` and
+`AIRDRAFT_RENDER_SHOW_EXPERIMENTAL=1`.

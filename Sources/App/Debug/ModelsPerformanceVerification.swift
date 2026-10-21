@@ -15,6 +15,12 @@ enum ModelsPerformanceVerification {
 
     static func run(to directory: URL) {
         precondition(LocalE2E.isActive, "Use --e2e-local <disposable directory>")
+        let ids = Set(ModelCatalogue.entries.map(\.id))
+        let unknown = Set(ModelCatalogue.verificationEvidence.keys).subtracting(ids)
+        precondition(unknown.isEmpty, "Verification evidence names unknown models: \(unknown.sorted())")
+        let laziness = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS"] == "1"
+        // Laziness is measured over the whole catalogue, so open the Experimental group.
+        if laziness { setenv("AIRDRAFT_RENDER_SHOW_EXPERIMENTAL", "1", 1) }
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let suite = "airdraft.models-performance.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
@@ -54,7 +60,7 @@ enum ModelsPerformanceVerification {
                     "layoutMs": timings, "materializedLocalRows": counts,
                     "catalogueRows": ModelCatalogue.entries.count]
                 results.append(result)
-                if ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS"] == "1" {
+                if laziness {
                     precondition(counts.allSatisfy { $0 > 0 && $0 < ModelCatalogue.entries.count / 2 },
                                  "Models must not materialize the entire catalogue on navigation")
                     let table = nativeTables(host).first { $0.numberOfRows > 6 }!

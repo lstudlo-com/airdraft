@@ -79,6 +79,22 @@
         }
       }
     },
+    "%@ %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ · %3$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ · %3$@"
+          }
+        }
+      }
+    },
     "%@ %@, speak, then %@. Your words appear where you were typing." : {
       "localizations" : {
         "en" : {
@@ -1793,6 +1809,16 @@
         }
       }
     },
+    "Best for mixed Chinese and English" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合中英夾雜"
+          }
+        }
+      }
+    },
     "Best for mixed Chinese and English." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3503,6 +3529,16 @@
         }
       }
     },
+    "Downloaded, loaded and used to transcribe in Airdraft's own tests." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在 Airdraft 自己的測試中實際下載、載入並完成轉錄。"
+          }
+        }
+      }
+    },
     "Downloading %@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3759,6 +3795,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已展開"
+          }
+        }
+      }
+    },
+    "Experimental" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實驗性"
+          }
+        }
+      }
+    },
+    "Experimental models (%lld)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實驗性模型（%lld）"
           }
         }
       }
@@ -6067,6 +6123,26 @@
         }
       }
     },
+    "Not yet tested end to end in Airdraft. It may fail to load or transcribe poorly." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試，可能無法載入或轉錄品質不佳。"
+          }
+        }
+      }
+    },
+    "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試，可能無法載入或轉錄品質不佳。"
+          }
+        }
+      }
+    },
     "Nothing is permanent" : {
       "localizations" : {
         "zh-Hant" : {
@@ -7390,6 +7466,16 @@
         }
       }
     },
+    "Recommended for your language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依你的語言推薦"
+          }
+        }
+      }
+    },
     "Record Meeting" : {
       "localizations" : {
         "zh-Hant" : {
@@ -8689,6 +8775,16 @@
         }
       }
     },
+    "Search results include experimental models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋結果包含實驗性模型。"
+          }
+        }
+      }
+    },
     "Search section names, settings and descriptions. Return or arrows moves between matches." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9095,6 +9191,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示計時器"
+          }
+        }
+      }
+    },
+    "Shows or hides models Airdraft has not tested end to end." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示或隱藏尚未在 Airdraft 中完整測試的模型。"
           }
         }
       }
@@ -9727,6 +9833,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄音會保留在「會議」中。"
+          }
+        }
+      }
+    },
+    "The smaller model comes first because this Mac has 8 GB of memory or less." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 的記憶體為 8 GB 或更少，因此較小的模型排在前面。"
           }
         }
       }
@@ -10462,18 +10578,12 @@
         }
       }
     },
-    "Use %@, %@, %@" : {
+    "Use %@" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Use %1$@, %2$@, %3$@"
-          }
-        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 %1$@，%2$@，%3$@"
+            "value" : "使用 %@"
           }
         }
       }
@@ -10624,6 +10734,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有效期限至 %@。"
+          }
+        }
+      }
+    },
+    "Verified" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已驗證"
           }
         }
       }
