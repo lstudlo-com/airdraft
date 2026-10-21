@@ -56,10 +56,18 @@ enum DebugRender {
             let step: OnboardingProgress.Step = state == "cloud" ? .speech
                 : state.hasPrefix("permissions") ? .permissions
                 : state.hasPrefix("practice") ? .practice
+                : state.hasPrefix("done") ? .done
                 : OnboardingProgress.Step(rawValue: state) ?? .speech
             if state == "cloud" { container.settings.asr.select(.groq) }
             if state.hasPrefix("permissions") {
                 setenv("AIRDRAFT_RENDER_ONBOARDING_PERMISSIONS", state == "permissions-granted" ? "granted" : "missing", 1)
+            }
+            if step == .done {
+                // Ready follows practice, which leaves a new user's refinement off. Availability is
+                // injected: `done-ai-<availability>` (default available); `done-ai-on` has chosen it.
+                let ai = state.hasPrefix("done-ai-") ? String(state.dropFirst("done-ai-".count)) : "available"
+                setenv("AIRDRAFT_RENDER_APPLE_INTELLIGENCE", ai == "on" ? "available" : ai, 1)
+                container.settings.chooseRefinement(ai == "on" ? .appleIntelligence : .none)
             }
             container.settings.onboarding.present()
             container.settings.onboarding.move(to: step)
