@@ -748,6 +748,12 @@ struct OnboardingRefinementChoice: View {
 
     @ViewBuilder private var action: some View {
         switch llm.kind {
+        case .none where !keepsExactWords && availability == .notEnabled,
+             .appleIntelligence where !keepsExactWords && availability == .notEnabled:
+            // Setup stays open; returning to Airdraft checks availability again.
+            Button("Open System Settings") { AppleIntelligenceSetup.openSystemSettings() }
+                .buttonStyle(SoftButtonStyle())
+                .accessibilityIdentifier("onboarding.open-apple-intelligence-settings")
         case .none where available:
             Button("Use Apple Intelligence") { container.settings.chooseRefinement(.appleIntelligence) }
                 .buttonStyle(SoftButtonStyle())
@@ -773,6 +779,16 @@ enum AppleIntelligenceSetup {
     static var availability: AppleIntelligenceRefiner.Availability {
         RenderMode.value("APPLE_INTELLIGENCE").flatMap(AppleIntelligenceRefiner.Availability.init(rawValue:))
             ?? AppleIntelligenceRefiner.availability
+    }
+
+    /// Apple Intelligence & Siri in System Settings, or System Settings itself when
+    /// that pane is unavailable. Opening a pane requests no permission.
+    static func openSystemSettings() {
+        guard !RenderMode.isActive else { return }
+        let pane = URL(string: "x-apple.systempreferences:com.apple.Siri-Settings.extension")!
+        if !NSWorkspace.shared.open(pane), let settings = URL(string: "x-apple.systempreferences:") {
+            NSWorkspace.shared.open(settings)
+        }
     }
 
     static func explanation(_ availability: AppleIntelligenceRefiner.Availability) -> Text {
