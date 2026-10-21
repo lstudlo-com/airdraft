@@ -75,7 +75,7 @@ enum MenuVerification {
         let localRefinement = L("Refinement: \(LLMProviderKind.openAICompatible.shortTitle)")
         precondition(titles(normal).contains(L("Profile: \(profileName)")) && titles(normal).contains(localRefinement),
                      "Current choices belong in root submenu titles. Actual: \(titles(normal))")
-        precondition(!titles(normal).contains(where: { $0.contains(L("Loaded")) || $0.contains(settings.hotkey.displayString) }))
+        precondition(!titles(normal).contains(where: { $0.contains(L("Loaded")) || $0.contains(settings.hotkey.localizedDisplayString) }))
         precondition(normal.items.first?.keyEquivalent == "", "The menu must not register a second dictation shortcut")
         precondition(normal.items.first?.badge != nil, "The shortcut hint must stay on the recording row")
         let models = submenu(normal, L("Models"))

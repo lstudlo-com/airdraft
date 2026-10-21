@@ -69,7 +69,7 @@ struct HistorySnapshot: Sendable {
                 } else if record.deliveryStatus == .sentUnverified {
                     metadata.append(String(localized: "Pasted, unconfirmed", comment: "History status: a paste was sent to an app that exposes no text to confirm it"))
                 }
-                metadata += [RefinementProfile.displayName(forSavedName: record.mode), String(localized: "\(String(format: "%.0f", record.audioSeconds)) s", comment: "Audio duration in seconds")]
+                metadata += [RefinementProfile.displayName(forSavedName: record.mode), DurationLabel.seconds(record.audioSeconds)]
             }
             let finalText = HistoryTextContent(item.document?.text ?? item.record?.finalText ?? "")
             indexByID[item.id] = entries.count

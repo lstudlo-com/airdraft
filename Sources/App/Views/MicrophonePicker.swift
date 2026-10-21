@@ -21,7 +21,7 @@ struct MicrophonePicker: View {
         .disabled(container.pipeline.isBusy)
         .accessibilityIdentifier("microphone.device-picker")
         .onAppear { container.microphones.refresh() }
-        .help(String(localized: "\(container.settings.microphone.name). Saved as Airdraft's default microphone. Finish the current operation before switching."))
+        .help(String(localized: "\(container.settings.microphone.displayName). Saved as Airdraft's default microphone. Finish the current operation before switching."))
     }
 
     private var selection: Binding<String> {

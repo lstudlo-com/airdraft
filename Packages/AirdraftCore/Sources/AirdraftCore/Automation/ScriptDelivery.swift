@@ -20,7 +20,7 @@ public enum ScriptDelivery {
     }
 
     public static func unavailableReason(path: String) -> String? {
-        guard path.hasPrefix("/"), !path.contains("\0") else { return "Choose a script using its absolute file path." }
+        guard path.hasPrefix("/"), !path.contains("\0") else { return String(localized: "Choose a script using its absolute file path.", bundle: .module) }
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: path) else { return String(localized: "The selected script could not be found or read.", bundle: .module) }
         guard attributes[.type] as? FileAttributeType == .typeRegular else { return String(localized: "Choose a regular executable file.", bundle: .module) }
         guard FileManager.default.isExecutableFile(atPath: path) else { return String(localized: "The selected script is not executable. Enable its execute permission.", bundle: .module) }

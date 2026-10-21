@@ -54,7 +54,26 @@ public struct Hotkey: Codable, Sendable, Equatable, Hashable {
         return caps
     }
 
+    /// English cap labels for logs and matching; the interface uses `displayCaps`.
     public var displayString: String { keyCaps.joined(separator: " ") }
+
+    /// Cap labels for the interface: a modifier-only key's side word is localized
+    /// ("右 ⌥"); the key symbols and names stay as printed on Mac keyboards.
+    public var displayCaps: [String] { keyCaps.map(Hotkey.displayCap) }
+
+    public var localizedDisplayString: String { displayCaps.joined(separator: " ") }
+
+    public static func displayCap(_ cap: String) -> String {
+        if cap.hasPrefix("Left ") {
+            let key = String(cap.dropFirst(5))
+            return String(localized: "Left \(key)", bundle: .module, comment: "A modifier key on the left side of the keyboard, e.g. Left ⌥")
+        }
+        if cap.hasPrefix("Right ") {
+            let key = String(cap.dropFirst(6))
+            return String(localized: "Right \(key)", bundle: .module, comment: "A modifier key on the right side of the keyboard, e.g. Right ⌥")
+        }
+        return cap
+    }
 
     public static func modifierKeyName(_ code: UInt16) -> String {
         switch code {

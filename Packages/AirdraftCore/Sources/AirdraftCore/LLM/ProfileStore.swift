@@ -130,10 +130,10 @@ public final class ProfileStore {
         do { p = try JSONDecoder().decode(Persisted.self, from: Data(contentsOf: fileURL)) }
         catch {
             if let backup = UnreadableFile.setAside(fileURL) {
-                persistenceError = "Profiles could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Defaults are shown until you restore your file."
+                persistenceError = String(localized: "Profiles could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Defaults are shown until you restore your file.", bundle: .module)
             } else {
                 unreadableOriginal = true
-                persistenceError = "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft."
+                persistenceError = String(localized: "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft.", bundle: .module)
             }
             return
         }

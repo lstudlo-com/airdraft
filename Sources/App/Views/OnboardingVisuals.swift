@@ -44,7 +44,8 @@ enum OnboardingKeyNames {
     static func capWord(_ cap: String) -> String? {
         let parts = cap.split(separator: " ").map(String.init)
         guard let symbol = parts.last, let word = words[symbol] else { return nil }
-        return parts.count > 1 ? "\(parts[0].lowercased()) \(word)" : word
+        // The side word is localized ("右 option"); the key's own name stays as printed.
+        return parts.count > 1 ? Hotkey.displayCap("\(parts[0]) \(word)").lowercased() : word
     }
 
     static func symbol(_ cap: String) -> String {

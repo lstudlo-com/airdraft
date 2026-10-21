@@ -353,22 +353,6 @@
         }
       }
     },
-    "%@ · %lld ms" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ · %2$lld ms"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ · %2$lld 毫秒"
-          }
-        }
-      }
-    },
     "%@ · Click a bar to read" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2337,22 +2321,22 @@
         }
       }
     },
-    "Clear app data and setup; keep license and trial records" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除 App 資料與設定；保留授權與試用記錄"
-          }
-        }
-      }
-    },
     "Clearing recovery data" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在清除復原資料"
+          }
+        }
+      }
+    },
+    "Clears app data and setup; license and trial records stay" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除 App 資料與設定；授權與試用記錄會保留"
           }
         }
       }
@@ -3143,6 +3127,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要刪除「%@」嗎？"
+          }
+        }
+      }
+    },
+    "Deletes dictations and meeting transcripts; recordings stay" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除聽寫與會議逐字稿；錄音會保留"
+          }
+        }
+      }
+    },
+    "Deletes saved audio; transcripts stay" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除已儲存的音訊；逐字稿會保留"
+          }
+        }
+      }
+    },
+    "Deletes transcripts and audio; settings and models stay" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除逐字稿與音訊；設定與模型會保留"
           }
         }
       }
@@ -4684,36 +4698,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保留錄音"
-          }
-        }
-      }
-    },
-    "Keep recordings, settings and models" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保留錄音、設定與模型"
-          }
-        }
-      }
-    },
-    "Keep saved text, settings and models" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保留已儲存的文字、設定與模型"
-          }
-        }
-      }
-    },
-    "Keep settings, models and permissions" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保留設定、模型與權限"
           }
         }
       }
@@ -11246,26 +11230,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "·"
-          }
-        }
-      }
-    },
-    "· %@" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "· %@"
-          }
-        }
-      }
-    },
-    "· %lld ms" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "· %lld 毫秒"
           }
         }
       }

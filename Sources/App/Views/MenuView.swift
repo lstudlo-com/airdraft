@@ -34,7 +34,7 @@ struct MenuView: View {
     private var standardMenu: some View {
         Group {
         Button(MenuTitle.fit(dictationTitle)) { container.pipeline.toggle() }
-            .badge(container.pipeline.state.isBusy ? nil : Text(container.settings.hotkey.displayString))
+            .badge(container.pipeline.state.isBusy ? nil : Text(container.settings.hotkey.localizedDisplayString))
             .help(shortcutHelp)
             .disabled(container.pipeline.isBusy && !container.pipeline.isRecording)
         if container.pipeline.state.isBusy {
@@ -248,7 +248,7 @@ struct MenuView: View {
 
     private var shortcutHelp: String {
         let verb = container.settings.hotkeyBehavior == .hold ? String(localized: "Hold") : String(localized: "Press")
-        return String(localized: "\(verb) \(container.settings.hotkey.displayString) to dictate.")
+        return String(localized: "\(verb) \(container.settings.hotkey.localizedDisplayString) to dictate.")
     }
 
     private var dictationTitle: String {

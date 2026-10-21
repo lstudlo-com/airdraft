@@ -467,7 +467,7 @@ struct KeyCaps: View {
     let hotkey: Hotkey
     var body: some View {
         HStack(spacing: 5) {
-            ForEach(hotkey.keyCaps, id: \.self) { KeyCap(text: $0) }
+            ForEach(hotkey.displayCaps, id: \.self) { KeyCap(text: $0) }
         }
     }
 }
@@ -970,4 +970,20 @@ extension LocalizedStringResource {
     }
 
     static let verbatimTable = "AirdraftVerbatim"
+}
+
+/// One duration convention for Home and History: seconds, with one decimal below ten
+/// ("1.3 s", "12 s"), so processing times and audio lengths read alike.
+enum DurationLabel {
+    static func seconds(_ seconds: Double) -> String {
+        let value = seconds.isFinite ? max(0, seconds) : 0
+        let number = value < 9.95
+            ? value.formatted(.number.precision(.fractionLength(1)))
+            : value.formatted(.number.precision(.fractionLength(0)))
+        return String(localized: "\(number) s", comment: "Audio duration in seconds")
+    }
+
+    static func milliseconds(_ milliseconds: Int) -> String {
+        seconds(Double(milliseconds) / 1000)
+    }
 }

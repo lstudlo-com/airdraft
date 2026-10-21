@@ -68,6 +68,10 @@ final class LocalizationCatalogTests: XCTestCase {
         let chinese = try XCTUnwrap(Bundle(path: path))
         XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "關閉")
         XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼簿")
+        // Built-in profile names and a modifier key's side are shown in the interface language.
+        XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
+        XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
+        XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
         // The test process runs in English: Core copy keeps its exact source wording.
         XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
     }

@@ -854,8 +854,8 @@ struct HistoryCard<RecordingControls: View>: View {
             row(String(localized: "App"), [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
             if let url = record.url { row("URL", url) }
             row(String(localized: "Profile"), "\(RefinementProfile.displayName(forSavedName: record.mode)) · \(record.family)")
-            row(String(localized: "Speech"), String(localized: "\(record.asrEngine) · \(record.asrMs) ms"))
-            row(String(localized: "Refinement"), record.llmEngine.map { String(localized: "\($0) · \(record.llmMs) ms") } ?? String(localized: "skipped"))
+            row(String(localized: "Speech"), "\(record.asrEngine) · \(DurationLabel.milliseconds(record.asrMs))")
+            row(String(localized: "Refinement"), record.llmEngine.map { "\($0) · \(DurationLabel.milliseconds(record.llmMs))" } ?? String(localized: "skipped"))
             if let e = record.error { row(String(localized: "Error"), e) }
             if record.outputDestination == TextOutputDestination.script.rawValue {
                 row(String(localized: "Script delivery"), record.outputSucceeded == true ? String(localized: "completed") : String(localized: "failed or interrupted"))
