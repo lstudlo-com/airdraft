@@ -4,6 +4,7 @@ import {
   analyticsAllowed,
   consentKey,
   consentLifetime,
+  guideOf,
   readConsent,
   sanitizeEvent,
   safePath,
@@ -185,10 +186,17 @@ document.addEventListener("click", (event) => {
     name = "pricing_clicked";
   else if (link.href.startsWith(`${siteLinks.source}/releases/`))
     name = "release_clicked";
+  // A guide opened from another page, in either language.
+  const guide =
+    link.origin === location.origin && link.pathname !== location.pathname
+      ? guideOf(link.pathname)
+      : undefined;
+  if (!name && guide) name = "guide_clicked";
   if (name)
     captureWebsiteEvent(name, {
       placement: placement(link),
       plan: link.dataset.analyticsPlan || "",
+      guide: guide || "",
     });
 });
 

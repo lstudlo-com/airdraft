@@ -12,6 +12,24 @@ export interface Guide {
 // guide's setup instructions and limits aligned with the native app.
 export const guides: Guide[] = [
   {
+    slug: "mixed-chinese-english-dictation",
+    title: "Dictate mixed Chinese and English on a Mac",
+    description:
+      "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
+    summary:
+      "Pick a local model for mixed Mandarin and English, with Airdraft's own measured trade-offs.",
+    href: "/guides/mixed-chinese-english-dictation/",
+  },
+  {
+    slug: "dictate-to-claude-code-and-terminals",
+    title: "Dictate prompts into Claude Code, Codex and terminals",
+    description:
+      "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
+    summary:
+      "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
+    href: "/guides/dictate-to-claude-code-and-terminals/",
+  },
+  {
     slug: "offline-dictation-on-mac",
     title: "Set up offline dictation on your Mac",
     description:
@@ -61,6 +79,22 @@ export const guides: Guide[] = [
 
 // Traditional Chinese (Taiwan) translations, at the same slugs under /zh-tw/.
 export const zhGuides: Guide[] = [
+  {
+    slug: "mixed-chinese-english-dictation",
+    title: "在 Mac 上中英混著講的聽寫",
+    description:
+      "一句話裡夾著英文術語時，該選哪個本機語音模型？Airdraft 自己的測量比較錯誤率、英文詞保留、下載大小、記憶體與速度。",
+    summary: "幫中英混說挑本機模型，附 Airdraft 自己測出的取捨。",
+    href: "/zh-tw/guides/mixed-chinese-english-dictation/",
+  },
+  {
+    slug: "dictate-to-claude-code-and-terminals",
+    title: "用說的把提示詞送進 Claude Code、Codex 與終端機",
+    description:
+      "在 Mac 上用語音把提示詞輸入 Claude Code、Codex 與終端機：自行繪製文字的終端機怎麼貼上、怎麼沿用你的訂閱方案潤稿，以及哪些資料會離開 Mac。",
+    summary: "用說的對程式助理下指令，並沿用你已付費的方案潤稿。",
+    href: "/zh-tw/guides/dictate-to-claude-code-and-terminals/",
+  },
   {
     slug: "private-meeting-transcription",
     title: "在 Mac 上私密地把會議轉成逐字稿",

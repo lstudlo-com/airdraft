@@ -14,12 +14,18 @@ their data, and less typing.
 Positioning: Airdraft is a late entrant among dictation apps, so the site does
 not lead with what every dictation app does (cleaning up ums). The hero names
 the jobs (speak into any app, transcribe meetings) and the privacy-minded user
-who wants processing that can stay on the Mac. The Traditional Chinese pages
-address Mac users who mix Chinese and English. This is a research hypothesis
-(vault: `Research/Competitors`, 2026-10-21 health check), not a validated
-segment; keep English copy true for every user. Meetings, mixed Chinese and
-English, and Claude Code / Codex refinement are shown on the homepage, not only
-in the changelog, guides or pricing.
+who wants processing that can stay on the Mac.
+Target segments are a decision adopted on 2026-10-22 (vault: `Strategy/`):
+the primary segment is Mac users who mix Chinese and English and care where
+their voice goes (Taiwan and Hong Kong knowledge workers and developers); the
+secondary segment is English dictation into AI coding agents (Claude Code,
+Codex, terminals) that reuses an existing subscription for refinement. The
+Traditional Chinese positioning is 中英混著講，說完就貼上；會議也能整理成逐字稿，一次買斷.
+English pages name both audiences without excluding English-only users, and
+every English claim stays true for them. Meetings, mixed Chinese and English,
+and Claude Code / Codex refinement are shown on the homepage, not only in the
+changelog, guides or pricing. "一次買斷" describes the license terms; never
+imply the official app is on sale before `siteLinks.checkout` is set.
 
 ## Product truth
 
@@ -76,18 +82,38 @@ in the changelog, guides or pricing.
   are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
   `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
   measurement is published.
-- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. First-run setup
-  marks SenseVoice, a small, fast download, as the best fit on a Mac set to
-  Chinese, English, Japanese or Korean (Whisper Large v3 Turbo otherwise); the
-  Models page and README mark the larger Qwen3-ASR 1.7B as best for mixed
-  Chinese and English. Say which recommendation is which, as the app does.
-  Chinese script defaults to Traditional with Taiwan vocabulary and can be
-  Simplified or Auto. Parakeet does not support Chinese. Never claim
-  mixed-language accuracy.
+- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. In 0.10.2,
+  first-run setup marks SenseVoice, a small, fast download, as the best fit on
+  a Mac set to Chinese, English, Japanese or Korean (Whisper Large v3 Turbo
+  otherwise), and the Models page describes the larger Qwen3-ASR 1.7B as best
+  for mixed Chinese and English. From the next version, first-run setup
+  recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice on 8 GB or
+  less, with Qwen still offered); English, Japanese and Korean keep SenseVoice;
+  the Models page labels Qwen3-ASR 1.7B "Best for mixed Chinese and English"
+  and calls SenseVoice smaller and faster but weaker with English terms in
+  Chinese speech. Say
+  which recommendation is which and which version has it.
+  Chinese script converts characters to Traditional by default and can be
+  Simplified or Auto; Taiwan vocabulary comes from refinement. Parakeet does
+  not support Chinese.
+- Mixed-language results come only from Airdraft's own measurement in
+  `eval/mixed-asr` (2026-10-21, one M4 Pro, ASCEND plus Taiwan-style TTS),
+  held in `src/data/mixed-asr.ts`. Quote it as Airdraft's measurement with its
+  date, method link and limits (five Hong Kong/Mainland speakers, synthetic
+  Taiwan voice, one Mac, refinement off). Never generalize it into an accuracy
+  claim or compare it with other apps.
+- Coding agents and terminals: Airdraft pastes once and never presses Return.
+  Terminal and iTerm2 are confirmed by read-back. Warp, Zed, Ghostty, kitty,
+  Alacritty and WezTerm draw their own text: 0.10.2 reports the paste as
+  unconfirmed and keeps the text on the clipboard; from the next version History
+  marks it "Pasted, unconfirmed" without an error. Claude Code / Codex
+  refinement runs the signed-in CLI without tools in a temporary folder and
+  sends the prompt to Anthropic or OpenAI; destination-specific prompt rules
+  need Read app context, which is off by default.
 - Published builds through 0.10.2 have an English interface. The Traditional
   Chinese interface is in the source and ships from the next release, following
   the macOS language setting; pages say "from the next version" without naming
-  one, and the meeting guide notes that 0.10.2 and earlier show English labels.
+  one, and the translated guides note that 0.10.2 and earlier show English labels.
   Rewrite these sentences when a release includes it. Translated pages quote app labels (buttons,
   settings, HUD states, Refined/Original, Meetings controls) with the app's
   zh-Hant values from its string catalogs (`src/data/app.ts` for shared
@@ -145,10 +171,11 @@ perspective. Bento tiles are one graphic and one line.
 
 ## Search and product guides
 
-The homepage links to a guide hub and five distinct guides: offline setup,
-local/cloud data flow, the free source build versus official app, private
-meeting transcription, and a dated comparison with VoiceInk, Handy, Typeless
-and Apple Dictation on macOS 27. The comparison cites each product's own pages
+The homepage links to a guide hub and seven distinct guides: mixed Chinese and
+English dictation (with the measurement above), dictating prompts into Claude
+Code, Codex and terminals, offline setup, local/cloud data flow, the free
+source build versus official app, private meeting transcription, and a dated
+comparison with VoiceInk, Handy, Typeless and Apple Dictation on macOS 27. The comparison cites each product's own pages
 or source with check dates, says where competitors are better, marks unknown
 cells "Not checked", includes whether each can be downloaded and tried today,
 and lists Airdraft's current gaps. Where its table does not fit, each product
@@ -178,8 +205,9 @@ published key and HTML before sending. It does not run during build or deploymen
 ## Languages
 
 English pages live at the root. Traditional Chinese (Taiwan) translations live
-under `/zh-tw/` with the same slug: the homepage, pricing, the meeting guide and
-the comparison guide (`translatedPaths` in `src/i18n/index.ts`). They use
+under `/zh-tw/` with the same slug: the homepage, pricing, the mixed-language,
+coding-agent, meeting and comparison guides (`translatedPaths` in
+`src/i18n/index.ts`). They use
 natural Taiwan wording and keep Airdraft, provider and model names in English;
 app labels follow the app's Traditional Chinese interface.
 Prices stay in US dollars from shared data. Untranslated pages (support,
@@ -200,7 +228,7 @@ Cloudflare Access is configured. Keep Worker development and preview URLs disabl
 ## Website analytics
 
 PostHog measures consented website visits, acquisition, performance and explicit
-pricing/source/build/demo/plan/checkout intent. Keep native dictation data outside
+pricing/source/build/guide/demo/plan/checkout intent. Keep native dictation data outside
 this integration. Collection is disabled until configured and allowed, honors
 GPC/DNT, and never enables replay, autocapture, text capture or person profiles.
 The privacy page explains the data and provides revocation. Clicks do not prove

@@ -109,6 +109,11 @@ const costGroups = [
 const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
 const comparison = href("/guides/compare-mac-dictation-apps/", locale);
 const meetingGuide = href("/guides/private-meeting-transcription/", locale);
+const mixedGuide = href("/guides/mixed-chinese-english-dictation/", locale);
+const agentGuide = href(
+  "/guides/dictate-to-claude-code-and-terminals/",
+  locale,
+);
 ---
 
 <Layout title={copy.title} description={copy.description}>
@@ -273,12 +278,15 @@ const meetingGuide = href("/guides/private-meeting-transcription/", locale);
           <Disclosure summary="雲端服務商怎麼收費？">
             <p>
               由服務商依用量直接向你收費，使用你存在 Keychain 裡的 API
-              金鑰。本機模型免費；Claude Code 與 Codex 使用你現有的訂閱方案。
+              金鑰。本機模型免費，中英混說該選哪一個，請看
+              <a href={mixedGuide}>本機模型實測</a>。Claude Code 與 Codex
+              使用你現有的訂閱方案，設定方式請看
+              <a href={agentGuide}>對 Claude Code 與終端機聽寫的指南</a>。
             </p>
           </Disclosure>
           <Disclosure summary="和其他聽寫 App 比起來如何？">
             <p>
-              請看附查核日期的
+              請看附查核日期的{" "}
               <a href={comparison}>
                 Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較
               </a>
@@ -328,8 +336,10 @@ const meetingGuide = href("/guides/private-meeting-transcription/", locale);
           <Disclosure summary="What do cloud providers cost?">
             <p>
               They bill you directly, per use, with your own API key kept in the
-              Keychain. Local models are free; Claude Code and Codex use your
-              existing subscription.
+              Keychain. Local models are free; see{" "}
+              <a href={mixedGuide}>which one fits mixed Chinese and English</a>.
+              Claude Code and Codex use your existing subscription; see{" "}
+              <a href={agentGuide}>dictating into coding agents</a>.
             </p>
           </Disclosure>
           <Disclosure summary="How does it compare with other apps?">
