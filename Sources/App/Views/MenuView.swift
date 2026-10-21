@@ -126,14 +126,15 @@ struct MenuView: View {
     }
 
     @ViewBuilder private var recoveryMenu: some View {
-        if container.pipeline.hasRecoverableRecording {
+        if let pending = container.pipeline.latestPendingDictation {
+            // Acts on the newest kept recording; Home lists how many others wait.
             Menu(String(localized: "Recover Last Dictation")) {
                 Button(String(localized: "Review Last Dictation…")) { show(.home) }
-                    .help(container.pipeline.lastIssue ?? String(localized: "Review the saved recording."))
+                    .help(pending.issue)
                 Divider()
-                Button(String(localized: "Retry Transcription")) { container.pipeline.retryRecording() }
+                Button(String(localized: "Retry Transcription")) { container.pipeline.retryRecording(pending.id) }
                     .disabled(container.pipeline.isBusy)
-                Button(String(localized: "Discard Recording")) { container.pipeline.discardRecording() }
+                Button(String(localized: "Discard Recording")) { container.pipeline.discardRecording(pending.id) }
                     .disabled(container.pipeline.isBusy)
             }
         } else if let issue = container.pipeline.lastIssue {

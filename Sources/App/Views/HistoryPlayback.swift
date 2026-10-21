@@ -78,8 +78,8 @@ struct HistoryTranscriptionReview: View {
             }
             Spacer(minLength: 0)
             HStack {
-                if container.pipeline.hasRecoverableRecording {
-                    Button("Retry") { container.pipeline.retryRecording() }.disabled(container.pipeline.isBusy)
+                if let pending = container.pipeline.pendingRecordings.last(where: \.isReview) {
+                    Button("Retry") { container.pipeline.retryRecording(pending.id) }.disabled(container.pipeline.isBusy)
                 }
                 Spacer()
                 Button(container.pipeline.isBusy ? "Cancel" : "Close") { dismiss() }

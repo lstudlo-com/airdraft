@@ -49,6 +49,17 @@ public struct DictationTimings: Sendable, Equatable {
     public init() {}
 }
 
+/// A failed recording kept in memory until the user retries or discards it.
+public struct PendingRecording: Identifiable, Sendable, Equatable {
+    public let id: UUID
+    public let createdAt: Date
+    public let seconds: Double
+    /// The failure shown with this recording's recovery actions.
+    public internal(set) var issue: String
+    /// Kept by History's retranscription sheet, not by a dictation.
+    public let isReview: Bool
+}
+
 /// Record -> transcribe -> (refine) -> dictionary -> insert -> history.
 /// The LLM is best-effort: any failure or timeout falls back to the raw
 /// transcript so dictation never blocks on a slow model.
@@ -57,7 +68,21 @@ public struct DictationTimings: Sendable, Equatable {
 public final class DictationPipeline {
     public private(set) var state: PipelineState = .idle
     public private(set) var lastIssue: String?
-    public private(set) var hasRecoverableRecording = false
+    /// Failed recordings waiting for explicit retry or discard, oldest first.
+    public var pendingRecordings: [PendingRecording] { recoveries.map(\.info) }
+    public var hasRecoverableRecording: Bool { !recoveries.isEmpty }
+    /// The newest dictation recovery: Home and the menu act on this one.
+    public var latestPendingDictation: PendingRecording? { recoveries.last { !$0.info.isReview }?.info }
+    /// New dictation stays available while failed recordings wait. Bound their
+    /// memory: at most three recordings or 15 minutes of 16 kHz audio (~58 MB),
+    /// then ask for a retry or discard instead of dropping audio.
+    public static let maximumPendingRecordings = 3
+    public static let maximumPendingRecordingSeconds: Double = 900
+    public var canKeepAnotherRecording: Bool {
+        let dictations = recoveries.filter { !$0.info.isReview }
+        return dictations.count < Self.maximumPendingRecordings
+            && dictations.reduce(0) { $0 + $1.info.seconds } < Self.maximumPendingRecordingSeconds
+    }
     public private(set) var historyStorageError: String?
     public private(set) var isSavingHistory = false
     /// A delivered dictation is still saving history and publishing its outcome.
@@ -97,7 +122,17 @@ public final class DictationPipeline {
     }
     private var recordingAtStart: RecordingSnapshot?
     private let sendScript: @Sendable (String, String) async throws -> Void
-    private var recovery: (samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, reviewOnly: Bool, output: OutputSnapshot)?
+    private struct Recovery {
+        var info: PendingRecording
+        let samples: [Float]
+        var context: AppContext
+        var target: InsertionTarget?
+        var reviewOnly: Bool
+        let output: OutputSnapshot
+    }
+    private var recoveries: [Recovery] = []
+    /// The recovery an explicit retry is processing, keyed by its generation.
+    private var retryingRecovery: (token: UUID, id: UUID)?
     private var unsavedHistory: [(record: DictationRecord, samples: [Float]?)] = []
     private let historyDirectory: URL?
     public private(set) var historyStore: HistoryStore?
@@ -231,8 +266,9 @@ public final class DictationPipeline {
                 let target = self.insertionTargetAtStart
                 let output = self.recordingAtStart?.output
                 self.cancel()
-                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output) }
-                self.fail(reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module)))
+                let message = reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module))
+                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, issue: message) }
+                self.fail(message, openRecovery: !samples.isEmpty)
             }
         }
     }
@@ -296,8 +332,9 @@ public final class DictationPipeline {
             fail(reason)
             return
         }
-        guard !hasRecoverableRecording else {
-            fail(String(localized: "A recording is waiting for retry. Open Airdraft to retry or discard it before recording again.", bundle: .module))
+        guard canKeepAnotherRecording else {
+            // Never drop kept audio to make room; ask for a retry or discard instead.
+            fail(String(localized: "Several recordings are waiting for retry. Open Airdraft to retry or discard one before recording again.", bundle: .module), openRecovery: true)
             return
         }
         let token = UUID()
@@ -315,7 +352,7 @@ public final class DictationPipeline {
     public func startFromAutomation() async throws {
         if isRecording { return }
         guard !isBusy else { throw RecordingPrerequisiteError(String(localized: "Airdraft is already starting or processing a recording.", bundle: .module)) }
-        guard !hasRecoverableRecording else { throw RecordingPrerequisiteError(String(localized: "Retry or discard the saved recording in Airdraft first.", bundle: .module)) }
+        guard canKeepAnotherRecording else { throw RecordingPrerequisiteError(String(localized: "Retry or discard the saved recording in Airdraft first.", bundle: .module)) }
         try Task.checkCancellation()
         startRecording()
         let token = recordingRequestID
@@ -563,7 +600,9 @@ public final class DictationPipeline {
     }
 
     private func retranscribe(loadSamples: @escaping @Sendable () throws -> [Float]) {
-        guard !isBusy, !hasRecoverableRecording else { return }
+        guard !isBusy else { return }
+        // One review at a time: its recovery belongs to the sheet that started it.
+        recoveries.removeAll { $0.info.isReview }
         generation = UUID()
         discardRefinementPreparation()
         stopRequestedAt = nil
@@ -590,6 +629,8 @@ public final class DictationPipeline {
     }
 
     public func dismissReview() {
+        // The reviewed audio stays in History; closing the sheet ends its recovery.
+        recoveries.removeAll { $0.info.isReview }
         if reviewGeneration == generation {
             cancel()
             reviewOutcome = nil
@@ -707,8 +748,8 @@ public final class DictationPipeline {
         guard state != .inserting else { return }
         stopPreview()
         generation = UUID()
-        recovery = nil
-        hasRecoverableRecording = false
+        // Kept recordings survive cancellation; only an explicit discard removes them.
+        retryingRecovery = nil
         releaseTask?.cancel()
         discardRefinementPreparation()
         releaseSpeechSessionPin()
@@ -727,32 +768,58 @@ public final class DictationPipeline {
 
     public func dismissIssue() { lastIssue = nil }
 
-    public func discardRecording() {
-        guard !isBusy else { return }
-        recovery = nil
-        hasRecoverableRecording = false
-        lastIssue = nil
+    /// Discards `id`, or the newest kept recording when `id` is nil.
+    public func discardRecording(_ id: UUID? = nil) {
+        guard !isBusy, let index = recoveryIndex(id) else { return }
+        let removed = recoveries.remove(at: index)
+        if lastIssue == removed.info.issue || recoveries.isEmpty { lastIssue = nil }
         set(.idle)
     }
 
-    public func retryRecording() {
-        guard !isBusy, let recovery else { return }
+    /// Retries `id`, or the newest kept recording when `id` is nil. Current
+    /// processing settings apply; the original delivery target and policy stay.
+    public func retryRecording(_ id: UUID? = nil) {
+        guard !isBusy, let index = recoveryIndex(id) else { return }
+        let recovery = recoveries[index]
         let snapshot = recordingSnapshot(output: recovery.output)
         generation = UUID()
         discardRefinementPreparation()
         stopRequestedAt = nil
         let token = generation
+        retryingRecovery = (token, recovery.info.id)
         if recovery.reviewOnly { reviewGeneration = token }
         set(.transcribing)
         processingTask = Task {
-            await process(samples: recovery.samples, seconds: recovery.seconds,
+            await process(samples: recovery.samples, seconds: recovery.info.seconds,
                           context: recovery.context, target: recovery.target, token: token, snapshot: snapshot, reviewOnly: recovery.reviewOnly)
         }
     }
 
-    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false, output: OutputSnapshot? = nil) {
-        recovery = (samples, Double(samples.count) / AudioRecorder.sampleRate, context, target, reviewOnly, output ?? recordingAtStart?.output ?? selectedOutput())
-        hasRecoverableRecording = true
+    private func recoveryIndex(_ id: UUID?) -> Int? {
+        guard let id else { return recoveries.indices.last }
+        return recoveries.firstIndex { $0.info.id == id }
+    }
+
+    /// Keeps failed audio. A failed retry replaces its own entry and becomes the newest.
+    private func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false,
+                        output: OutputSnapshot? = nil, issue: String, replacing id: UUID? = nil) {
+        var isReview = reviewOnly && reviewGeneration == generation
+        if let id, let index = recoveries.firstIndex(where: { $0.info.id == id }) {
+            isReview = recoveries[index].info.isReview
+            recoveries.remove(at: index)
+        }
+        if isReview { recoveries.removeAll { $0.info.isReview } }
+        let info = PendingRecording(id: id ?? UUID(), createdAt: Date(), seconds: Double(samples.count) / AudioRecorder.sampleRate,
+                                    issue: issue, isReview: isReview)
+        recoveries.append(Recovery(info: info, samples: samples, context: context, target: target, reviewOnly: reviewOnly,
+                                   output: output ?? recordingAtStart?.output ?? selectedOutput()))
+    }
+
+    /// Successful or silent processing resolves the recovery a retry was processing.
+    private func resolveRecovery(for token: UUID) {
+        guard let retrying = retryingRecovery, retrying.token == token else { return }
+        retryingRecovery = nil
+        recoveries.removeAll { $0.info.id == retrying.id }
     }
 
     /// Saves pending dictations. Calls are serialized: a caller that arrives
@@ -838,16 +905,17 @@ public final class DictationPipeline {
                 }
                 unsavedHistory.removeFirst()
             }
-            if var saved = recovery {
+            recoveries = recoveries.map { saved in
+                var saved = saved
                 saved.context = .empty; saved.target = nil; saved.reviewOnly = true
-                recovery = saved
+                return saved
             }
         } else if scope.removesHistory {
             unsavedHistory = []
         } else {
             unsavedHistory = unsavedHistory.map { ($0.record, nil) }
         }
-        if scope.removesAudio { recovery = nil; hasRecoverableRecording = false }
+        if scope.removesAudio { recoveries = []; retryingRecovery = nil }
         if scope.removesHistory {
             lastOutcome = nil; reviewOutcome = nil; lastIssue = nil; historyStorageError = nil
         }
@@ -878,8 +946,7 @@ public final class DictationPipeline {
         // hallucinate on them; never let that text reach delivery or history.
         // Use exact silence, not a volume threshold that could reject quiet speech.
         guard samples.contains(where: { $0 != 0 }) else {
-            recovery = nil
-            hasRecoverableRecording = false
+            resolveRecovery(for: token)
             lastIssue = nil
             set(.idle)
             return
@@ -917,14 +984,16 @@ public final class DictationPipeline {
             }
         } catch {
             guard isCurrent(token) else { return }
-            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: output)
-            fail(String(localized: "Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.", bundle: .module))
+            let message = String(localized: "Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.", bundle: .module)
+            let retried = retryingRecovery?.token == token ? retryingRecovery?.id : nil
+            retryingRecovery = nil
+            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: output, issue: message, replacing: retried)
+            fail(message, openRecovery: !reviewOnly)
             return
         }
         guard isCurrent(token) else { return }
         refinementPreparation?.prefixTask?.cancel()
-        recovery = nil
-        hasRecoverableRecording = false
+        resolveRecovery(for: token)
         lastIssue = nil
         guard !transcript.isEmpty else {
             set(.idle)
@@ -1174,10 +1243,11 @@ public final class DictationPipeline {
         onStateChange?(new)
     }
 
-    private func fail(_ message: String) {
+    /// `openRecovery` shows Home when this failure kept audio for retry.
+    private func fail(_ message: String, openRecovery: Bool = false) {
         lastIssue = message
         set(.failed(message))
-        if hasRecoverableRecording && recovery?.reviewOnly != true { onRecordingBlocked?() }
+        if openRecovery { onRecordingBlocked?() }
         resetLater(after: 4)
     }
 

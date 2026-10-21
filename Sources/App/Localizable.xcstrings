@@ -559,6 +559,16 @@
         }
       }
     },
+    "%lld other recordings are also waiting for retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 %lld 段錄音也在等待重試。"
+          }
+        }
+      }
+    },
     "%lld recordings; approximately %@ of managed files." : {
       "localizations" : {
         "en" : {
@@ -1323,6 +1333,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "另一份 Airdraft 正在執行。變更權限前請先結束它："
+          }
+        }
+      }
+    },
+    "Another recording is also waiting for retry." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有一段錄音也在等待重試。"
           }
         }
       }
@@ -8042,16 +8062,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢視上一次聽寫⋯"
-          }
-        }
-      }
-    },
-    "Review the saved recording." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "檢視已儲存的錄音。"
           }
         }
       }

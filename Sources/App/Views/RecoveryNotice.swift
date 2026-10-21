@@ -66,28 +66,61 @@ struct StorageNotice: View {
 struct DictationRecovery: View {
     @Environment(AppContainer.self) private var container
 
+    private struct RecoveryCard {
+        let id: UUID?
+        let issue: String
+        let others: Int
+    }
+
+    /// The newest kept dictation; older ones surface after it is retried or discarded.
+    private var recoveryCard: RecoveryCard? {
+        if let pending = container.pipeline.latestPendingDictation {
+            let others = container.pipeline.pendingRecordings.filter { !$0.isReview }.count - 1
+            return RecoveryCard(id: pending.id, issue: pending.issue, others: others)
+        }
+        // Debug renders: AIRDRAFT_RENDER_PENDING_RECORDINGS=<count> uses NOTICE as the failure.
+        if let count = RenderMode.value("PENDING_RECORDINGS").flatMap(Int.init), count > 0,
+           let issue = RenderMode.value("NOTICE") {
+            return RecoveryCard(id: nil, issue: issue, others: count - 1)
+        }
+        return nil
+    }
+
+    private func message(for card: RecoveryCard) -> String {
+        switch card.others {
+        case ..<1: return card.issue
+        case 1: return card.issue + " " + String(localized: "Another recording is also waiting for retry.")
+        default: return card.issue + " " + String(localized: "\(card.others) other recordings are also waiting for retry.")
+        }
+    }
+
     var body: some View {
-        if let message = RenderMode.value("NOTICE") ?? container.pipeline.lastIssue {
-            InlineNotice(message) {
+        let card = recoveryCard
+        if let card {
+            // The kept recording keeps its own failure text after later dictations.
+            InlineNotice(message(for: card)) {
                 HStack(spacing: Theme.controlSpacing) {
-                    if container.pipeline.hasRecoverableRecording {
-                        Button("Retry") { container.pipeline.retryRecording() }
-                            .help("Retry transcription")
-                        Menu {
-                            Button("Change Provider") { container.navigation.page = .models }
-                            Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording() }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                        }
-                        .menuStyle(.borderlessButton)
-                        .fixedSize()
-                        .accessibilityLabel("Recording recovery options")
-                    } else {
-                        Button("Dismiss") { container.pipeline.dismissIssue() }
+                    Button("Retry") { container.pipeline.retryRecording(card.id) }
+                        .help("Retry transcription")
+                    Menu {
+                        Button("Change Provider") { container.navigation.page = .models }
+                        Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording(card.id) }
+                    } label: {
+                        Image(systemName: "ellipsis")
                     }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .accessibilityLabel("Recording recovery options")
                 }
                 .buttonStyle(SoftButtonStyle())
                 .disabled(container.pipeline.isBusy)
+            }
+        }
+        if let message = RenderMode.value("NOTICE") ?? container.pipeline.lastIssue, message != card?.issue {
+            InlineNotice(message) {
+                Button("Dismiss") { container.pipeline.dismissIssue() }
+                    .buttonStyle(SoftButtonStyle())
+                    .disabled(container.pipeline.isBusy)
             }
         }
         if let message = container.pipeline.historyStorageError {

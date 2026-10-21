@@ -507,7 +507,7 @@ private struct HistoryRecordRow: View {
             HistoryRecordingControls(asset: asset, playback: playback, busy: container.pipeline.isBusy,
                                      exporting: state.exporting, play: play, save: saveAudio,
                                      reveal: revealAudio,
-                                     retranscribe: !container.pipeline.isBusy && !container.pipeline.hasRecoverableRecording ? retranscribe : nil,
+                                     retranscribe: !container.pipeline.isBusy ? retranscribe : nil,
                                      delete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory ? { revealAndPresent(.audioDeletion) } : nil,
                                      accessibilityOnly: accessibilityOnly)
         }
@@ -563,7 +563,7 @@ private struct HistoryRecordRow: View {
             playback.stop(); state.showMediaImport = true
             return
         }
-        guard !container.pipeline.isBusy, !container.pipeline.hasRecoverableRecording else { return }
+        guard !container.pipeline.isBusy else { return }
         playback.stop()
         guard let asset = entry.asset else { return }
         container.pipeline.retranscribe(asset)

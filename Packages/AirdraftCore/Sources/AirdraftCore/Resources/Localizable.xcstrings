@@ -415,16 +415,6 @@
         }
       }
     },
-    "A recording is waiting for retry. Open Airdraft to retry or discard it before recording again." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有一段錄音正在等待重試。請先打開 Airdraft 重試或捨棄它，再重新錄音。"
-          }
-        }
-      }
-    },
     "API key removed." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3115,6 +3105,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請在「模型」中設定潤稿 CLI，或將其關閉。"
+          }
+        }
+      }
+    },
+    "Several recordings are waiting for retry. Open Airdraft to retry or discard one before recording again." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有數段錄音正在等待重試。請先打開 Airdraft 重試或捨棄其中一段，再重新錄音。"
           }
         }
       }
