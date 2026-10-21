@@ -237,19 +237,20 @@ final class RefinerCompatibilityTests: XCTestCase {
     }
 }
 
-final class RefinerCompatibilityFixture: @unchecked Sendable {
-    enum Mode { case unsupported, failure, incomplete, malformed, supported, requiresOptions }
-    private struct State {
+final class RefinerCompatibilityFixture: Sendable {
+    enum Mode: Sendable { case unsupported, failure, incomplete, malformed, supported, requiresOptions }
+    private struct State: Sendable {
         var mode: Mode
-        var bodies: [[String: Any]] = []
+        /// Request bodies stay Data under the lock; JSON objects are decoded per read.
+        var bodies: [Data] = []
         var failWarm = false
         var withholdWarm = false
     }
-    private let state: OSAllocatedUnfairLock<State>
+    private let state: Locked<State>
     let url: URL
     let session: URLSession
     private let wire: String
-    var bodies: [[String: Any]] { state.withLock { $0.bodies } }
+    var bodies: [[String: Any]] { state.value.bodies.map { try! JSONSerialization.jsonObject(with: $0) as! [String: Any] } }
     var mode: Mode { get { state.withLock { $0.mode } } set { state.withLock { $0.mode = newValue } } }
     var failWarm: Bool { get { state.withLock { $0.failWarm } } set { state.withLock { $0.failWarm = newValue } } }
     var withholdWarm: Bool { get { state.withLock { $0.withholdWarm } } set { state.withLock { $0.withholdWarm = newValue } } }
@@ -258,7 +259,7 @@ final class RefinerCompatibilityFixture: @unchecked Sendable {
         self.wire = wire
         let identifier = UUID().uuidString.lowercased()
         url = URL(string: loopback ? "http://localhost:1234/\(identifier)/v1" : "https://\(identifier).invalid/v1")!
-        state = OSAllocatedUnfairLock(initialState: State(mode: mode))
+        state = Locked(State(mode: mode))
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [RefinerCompatibilityFixtureProtocol.self]
         session = URLSession(configuration: config)
@@ -287,7 +288,7 @@ final class RefinerCompatibilityFixture: @unchecked Sendable {
         }
         let body = try JSONSerialization.jsonObject(with: bytes) as! [String: Any]
         let (mode, failWarm, withholdWarm) = state.withLock { state in
-            state.bodies.append(body)
+            state.bodies.append(bytes)
             return (state.mode, state.failWarm, state.withholdWarm)
         }
         if body["max_tokens"] as? Int == 1 {
@@ -308,7 +309,7 @@ final class RefinerCompatibilityFixture: @unchecked Sendable {
 }
 
 private final class RefinerCompatibilityFixtureProtocol: URLProtocol {
-    static let fixtures = OSAllocatedUnfairLock(initialState: [String: RefinerCompatibilityFixture]())
+    static let fixtures = Locked<[String: RefinerCompatibilityFixture]>([:])
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {

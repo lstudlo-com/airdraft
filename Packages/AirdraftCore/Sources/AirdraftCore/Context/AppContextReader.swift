@@ -29,7 +29,8 @@ public final class AppContextReader {
 
     /// Shows the system prompt the first time.
     public static func requestAccessibility() {
-        let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        // kAXTrustedCheckOptionPrompt is a mutable C global; its value is this literal.
+        let key = "AXTrustedCheckOptionPrompt"
         _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 

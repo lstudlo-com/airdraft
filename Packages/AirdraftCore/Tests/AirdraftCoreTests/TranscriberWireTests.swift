@@ -12,7 +12,7 @@ final class TranscriberWireTests: XCTestCase {
         super.tearDown()
     }
 
-    private func session(_ handler: @escaping (URLRequest) throws -> (Int, String)) -> URLSession {
+    private func session(_ handler: @escaping @Sendable (URLRequest) throws -> (Int, String)) -> URLSession {
         SpeechURLProtocol.handler = handler
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [SpeechURLProtocol.self]
@@ -505,6 +505,7 @@ final class TranscriberWireTests: XCTestCase {
         let s = sonioxSession(requests: requests, status: "processing", onPoll: { polled.fulfill() })
         defer { s.invalidateAndCancel() }
         let engine = SonioxTranscriber(apiKey: "key", session: s, pollInterval: 0.05)
+        let samples = samples
         let task = Task { try await engine.transcribe(samples: samples, hints: .init()) }
         await fulfillment(of: [polled], timeout: 2)
         task.cancel()
@@ -530,7 +531,7 @@ final class TranscriberWireTests: XCTestCase {
     }
 
     private func sonioxSession(requests: RequestLog, status: String = "completed", createStatus: Int = 201,
-                               deleteStatus: Int = 204, onPoll: (() -> Void)? = nil) -> URLSession {
+                               deleteStatus: Int = 204, onPoll: (@Sendable () -> Void)? = nil) -> URLSession {
         let file = fileID, job = jobID
         return session { request in
             XCTAssertTrue(request.value(forHTTPHeaderField: "Authorization")?.hasPrefix("Bearer ") == true)
@@ -559,11 +560,11 @@ private final class RequestLog: @unchecked Sendable {
 }
 
 private final class SpeechURLProtocol: URLProtocol {
-    private static let lock = NSLock()
-    private static var callback: ((URLRequest) throws -> (Int, String))?
-    static var handler: ((URLRequest) throws -> (Int, String))? {
-        get { lock.lock(); defer { lock.unlock() }; return callback }
-        set { lock.lock(); defer { lock.unlock() }; callback = newValue }
+    typealias Handler = @Sendable (URLRequest) throws -> (Int, String)
+    private static let callback = Locked<Handler?>(nil)
+    static var handler: Handler? {
+        get { callback.value }
+        set { callback.value = newValue }
     }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }

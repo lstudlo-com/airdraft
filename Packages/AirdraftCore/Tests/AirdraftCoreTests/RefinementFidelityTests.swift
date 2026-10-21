@@ -300,11 +300,10 @@ private actor FixedRefiner: Refiner {
     }
 }
 
-private final class SpeechLines: @unchecked Sendable {
-    private let lock = NSLock()
-    private var lines: [String]
-    init(_ lines: [String]) { self.lines = lines }
-    func next() -> String { lock.withLock { lines.count > 1 ? lines.removeFirst() : lines[0] } }
+private final class SpeechLines: Sendable {
+    private let lines: Locked<[String]>
+    init(_ lines: [String]) { self.lines = Locked(lines) }
+    func next() -> String { lines.withLock { $0.count > 1 ? $0.removeFirst() : $0[0] } }
 }
 
 private struct FixedSpeech: Transcriber {
@@ -316,6 +315,8 @@ private struct FixedSpeech: Transcriber {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class SilentFixtureRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var levelHandler: (@Sendable (Float) -> Void)?

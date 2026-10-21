@@ -236,9 +236,19 @@ final class OpenRouterTests: XCTestCase {
 }
 
 private final class OpenRouterTestProtocol: URLProtocol {
-    static var requests: [URLRequest] = []
-    static var statuses: [Int] = []
-    static var reply = ""
+    private static let state = Locked((requests: [URLRequest](), statuses: [Int](), reply: ""))
+    static var requests: [URLRequest] {
+        get { state.value.requests }
+        set { state.withLock { $0.requests = newValue } }
+    }
+    static var statuses: [Int] {
+        get { state.value.statuses }
+        set { state.withLock { $0.statuses = newValue } }
+    }
+    static var reply: String {
+        get { state.value.reply }
+        set { state.withLock { $0.reply = newValue } }
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -254,11 +264,13 @@ private final class OpenRouterTestProtocol: URLProtocol {
             stream.close()
             captured.httpBody = data
         }
-        Self.requests.append(captured)
-        let status = Self.statuses.isEmpty ? 500 : Self.statuses.removeFirst()
+        let (status, reply) = Self.state.withLock { state -> (Int, String) in
+            state.requests.append(captured)
+            return (state.statuses.isEmpty ? 500 : state.statuses.removeFirst(), state.reply)
+        }
         let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(Self.reply.utf8))
+        client?.urlProtocol(self, didLoad: Data(reply.utf8))
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}

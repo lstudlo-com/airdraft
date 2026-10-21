@@ -221,25 +221,23 @@ private final class LanguagePipelineFixture {
     }
 }
 
-private final class LanguagePipelineProbe: @unchecked Sendable {
-    struct Invocation {
+private final class LanguagePipelineProbe: Sendable {
+    struct Invocation: Sendable {
         let config: ASRConfig
         let language: String?
         let vocabulary: [String]
         let script: ChineseScript
         let sampleCount: Int
     }
-    private let lock = NSLock()
-    private var events: [String: Int] = [:]
-    private var calls: [Invocation] = []
-    func note(_ event: String) { lock.withLock { events[event, default: 0] += 1 } }
-    func count(_ event: String) -> Int { lock.withLock { events[event, default: 0] } }
-    var invocations: [Invocation] { lock.withLock { calls } }
+    private let events = Locked<[String: Int]>([:])
+    private let calls = Locked<[Invocation]>([])
+    func note(_ event: String) { events.withLock { $0[event, default: 0] += 1 } }
+    func count(_ event: String) -> Int { events.value[event, default: 0] }
+    var invocations: [Invocation] { calls.value }
     func record(config: ASRConfig, hints: TranscriptionHints, sampleCount: Int) {
-        lock.withLock {
-            calls.append(.init(config: config, language: hints.language, vocabulary: hints.vocabulary,
-                               script: hints.chineseScript, sampleCount: sampleCount))
-        }
+        let call = Invocation(config: config, language: hints.language, vocabulary: hints.vocabulary,
+                              script: hints.chineseScript, sampleCount: sampleCount)
+        calls.withLock { $0.append(call) }
     }
 }
 
@@ -254,6 +252,8 @@ private struct LanguageFixtureSpeech: Transcriber {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class LanguageRecorder: AudioRecording, @unchecked Sendable {
     let probe: LanguagePipelineProbe
     var isRecording = false

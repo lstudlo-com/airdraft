@@ -26,11 +26,11 @@ final class PipelineAutomationTests: XCTestCase {
     }
 
     func testExpiryCannotInterruptAnAlreadyStartedRecording() async throws {
-        var allowed = true
-        let fixture = try Fixture(accessCheck: { if !allowed { throw LicenseError.accessRequired } })
+        let allowed = Locked(true)
+        let fixture = try Fixture(accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
         defer { fixture.cleanUp() }
         try await fixture.pipeline.startFromAutomation()
-        allowed = false
+        allowed.value = false
         try fixture.pipeline.stopFromAutomation()
         try await finished(fixture)
         XCTAssertEqual(fixture.probe.scripts.count, 1)
@@ -38,14 +38,14 @@ final class PipelineAutomationTests: XCTestCase {
     }
 
     func testCapturedAudioRemainsRecoverableAfterAccessExpires() async throws {
-        var allowed = true
+        let allowed = Locked(true)
         let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]),
-                                  accessCheck: { if !allowed { throw LicenseError.accessRequired } })
+                                  accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
         defer { fixture.cleanUp() }
         try await fixture.pipeline.startFromAutomation()
         try fixture.pipeline.stopFromAutomation()
         try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        allowed = false
+        allowed.value = false
         fixture.pipeline.retryRecording()
         try await finished(fixture)
         XCTAssertEqual(fixture.probe.scripts.count, 1)
@@ -894,10 +894,12 @@ final class PipelineAutomationTests: XCTestCase {
             let probe = AutomationDeliveryProbe(failing: scriptFails)
             self.probe = probe
             let transcriber: any Transcriber = engine ?? speech
+            var refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)?
+            if let refiner { refinerBuilder = { _ in refiner } }
             let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Automation tests must not read credentials")
                 return nil
-            }, transcriberBuilder: { _ in transcriber }, refinerBuilder: refiner.map { refiner in { _ in refiner } },
+            }, transcriberBuilder: { _ in transcriber }, refinerBuilder: refinerBuilder,
                now: { clock?.now ?? Date() })
             self.factory = factory
             let profiles = ProfileStore(directory: directory)
@@ -950,23 +952,28 @@ private enum AutomationTestError: Error, LocalizedError {
     }
 }
 
-private final class AutomationDeliveryProbe: @unchecked Sendable {
-    struct ScriptCall: Equatable { let text: String; let path: String }
-    private let lock = NSLock()
+private final class AutomationDeliveryProbe: Sendable {
+    struct ScriptCall: Equatable, Sendable { let text: String; let path: String }
     private let failing: Bool
-    var blockedRecordings = 0
-    private var calls: [ScriptCall] = []
-    private var insertions: [String] = []
-    var scripts: [ScriptCall] { lock.withLock { calls } }
-    var insertedTexts: [String] { lock.withLock { insertions } }
+    private let blocked = Locked(0)
+    private let calls = Locked<[ScriptCall]>([])
+    private let insertions = Locked<[String]>([])
+    var blockedRecordings: Int {
+        get { blocked.value }
+        set { blocked.value = newValue }
+    }
+    var scripts: [ScriptCall] { calls.value }
+    var insertedTexts: [String] { insertions.value }
     init(failing: Bool) { self.failing = failing }
-    func insert(_ text: String) { lock.withLock { insertions.append(text) } }
+    func insert(_ text: String) { insertions.withLock { $0.append(text) } }
     func send(_ text: String, path: String) throws {
-        lock.withLock { calls.append(ScriptCall(text: text, path: path)) }
+        calls.withLock { $0.append(ScriptCall(text: text, path: path)) }
         if failing { throw AutomationTestError.scriptFailed }
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class AutomationTestRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var startCount = 0
@@ -985,18 +992,17 @@ private final class AutomationTestRecorder: AudioRecording, @unchecked Sendable 
 }
 
 /// Holds refinement until released; cancellation ends the wait.
-private final class GatedRefiner: Refiner, @unchecked Sendable {
+private final class GatedRefiner: Refiner, Sendable {
     let id = "automation-gated-refiner"
-    private let lock = NSLock()
-    private var _started = false
-    private var _release = false
-    var started: Bool { lock.withLock { _started } }
+    private let _started = Locked(false)
+    private let _release = Locked(false)
+    var started: Bool { _started.value }
     var release: Bool {
-        get { lock.withLock { _release } }
-        set { lock.withLock { _release = newValue } }
+        get { _release.value }
+        set { _release.value = newValue }
     }
     func refine(_ request: RefineRequest) async throws -> RefineResult {
-        lock.withLock { _started = true }
+        _started.value = true
         while !release {
             try Task.checkCancellation()
             try await Task.sleep(for: .milliseconds(5))
@@ -1038,19 +1044,21 @@ private actor AutomationSpeech: Transcriber {
 }
 
 /// Deliberately ignores task cancellation to model a late permission/preflight response.
-private final class AutomationStartupGate: @unchecked Sendable {
-    private let lock = NSLock()
-    private var calls = 0
-    private var released = false
-    private var continuation: CheckedContinuation<Void, Never>?
-    var callCount: Int { lock.withLock { calls } }
+private final class AutomationStartupGate: Sendable {
+    private struct State: Sendable {
+        var calls = 0
+        var released = false
+        var continuation: CheckedContinuation<Void, Never>?
+    }
+    private let state = Locked(State())
+    var callCount: Int { state.value.calls }
 
     func enter() async {
         await withCheckedContinuation { pending in
-            let shouldWait = lock.withLock {
-                calls += 1
-                guard calls == 1, !released else { return false }
-                continuation = pending
+            let shouldWait = state.withLock { state in
+                state.calls += 1
+                guard state.calls == 1, !state.released else { return false }
+                state.continuation = pending
                 return true
             }
             if !shouldWait { pending.resume() }
@@ -1058,10 +1066,10 @@ private final class AutomationStartupGate: @unchecked Sendable {
     }
 
     func release() {
-        let pending = lock.withLock { () -> CheckedContinuation<Void, Never>? in
-            released = true
-            let pending = continuation
-            continuation = nil
+        let pending = state.withLock { state -> CheckedContinuation<Void, Never>? in
+            state.released = true
+            let pending = state.continuation
+            state.continuation = nil
             return pending
         }
         pending?.resume()

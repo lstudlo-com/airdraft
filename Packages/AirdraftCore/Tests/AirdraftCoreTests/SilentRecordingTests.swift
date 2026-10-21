@@ -79,11 +79,10 @@ final class SilentRecordingTests: XCTestCase {
     }
 }
 
-private final class SilenceCounter: @unchecked Sendable {
-    private let lock = NSLock()
-    private var count = 0
-    var value: Int { lock.lock(); defer { lock.unlock() }; return count }
-    func increment() { lock.lock(); defer { lock.unlock() }; count += 1 }
+private final class SilenceCounter: Sendable {
+    private let count = Locked(0)
+    var value: Int { count.value }
+    func increment() { count.withLock { $0 += 1 } }
 }
 
 private actor QuietSpeech: Transcriber {

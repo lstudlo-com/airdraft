@@ -7,7 +7,9 @@ public actor WhisperKitTranscriber: Transcriber {
     public nonisolated let id: String
     private let variant: String
     private var pipe: WhisperKit?
-    private var loading: Task<WhisperKit, Error>?
+    /// WhisperKit is not Sendable, so the shared load publishes into this actor
+    /// instead of returning the instance across isolation domains.
+    private var loading: Task<Void, Error>?
 
     /// - Parameter variant: WhisperKit variant name, e.g. `large-v3-v20240930_turbo`.
     public init(variant: String) {
@@ -94,28 +96,42 @@ public actor WhisperKitTranscriber: Transcriber {
 
     private func loadedPipe() async throws -> WhisperKit {
         if let pipe { return pipe }
-        if loading == nil {
+        let task: Task<Void, Error>
+        if let loading { task = loading }
+        else {
             guard LocalModels.isInstalled(ASRConfig(kind: .whisperKit, whisperModel: variant)) else { throw TranscriberError.modelNotDownloaded }
-            let config = WhisperKitConfig(
-                model: variant,
-                modelFolder: LocalModels.whisperFolder(for: variant).path,
-                tokenizerFolder: LocalModels.whisperTokenizerFolder,
-                verbose: false,
-                logLevel: .error,
-                prewarm: true,
-                load: true,
-                download: false
-            )
-            loading = Task { try await WhisperKit(config) }
+            // Unstructured: a waiter that stops waiting does not cancel the shared load.
+            task = Task { try await self.load() }
+            loading = task
         }
         do {
-            let loaded = try await loading!.value
-            pipe = loaded
-            loading = nil
-            return loaded
+            try await task.value
         } catch {
-            loading = nil
+            if loading == task { loading = nil }
             throw error
         }
+        if loading == task { loading = nil }
+        // unload() ran while this load finished: never publish late readiness.
+        guard let pipe else { throw CancellationError() }
+        return pipe
+    }
+
+    private func load() async throws {
+        let config = WhisperKitConfig(
+            model: variant,
+            modelFolder: LocalModels.whisperFolder(for: variant).path,
+            tokenizerFolder: LocalModels.whisperTokenizerFolder,
+            verbose: false,
+            logLevel: .error,
+            prewarm: true,
+            load: true,
+            download: false
+        )
+        let loaded = try await WhisperKit(config)
+        guard !Task.isCancelled else {
+            await loaded.unloadModels()
+            throw CancellationError()
+        }
+        pipe = loaded
     }
 }

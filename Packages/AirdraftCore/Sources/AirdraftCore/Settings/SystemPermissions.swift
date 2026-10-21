@@ -24,7 +24,8 @@ public final class SystemPermissions {
         checkAccessibility: @escaping () -> Bool = { AXIsProcessTrusted() },
         checkMicrophone: @escaping () -> AVAuthorizationStatus = { AVCaptureDevice.authorizationStatus(for: .audio) },
         promptAccessibility: @escaping () -> Void = {
-            let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+            // kAXTrustedCheckOptionPrompt is a mutable C global; its value is this literal.
+            let key = "AXTrustedCheckOptionPrompt"
             _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
         }
     ) {

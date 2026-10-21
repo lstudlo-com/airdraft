@@ -282,6 +282,8 @@ final class PipelinePreviewTests: XCTestCase {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class PreviewTestRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var failOnStart = false
@@ -306,40 +308,37 @@ private final class PreviewTestRecorder: AudioRecording, @unchecked Sendable {
     func cancel() { isRecording = false; samples = [] }
 }
 
-private final class PreviewTestBuilder: @unchecked Sendable {
-    private let lock = NSLock()
-    private var builtSessions: [PreviewTestSession] = []
-    private var builtLocales: [String] = []
-    var sessions: [PreviewTestSession] { lock.withLock { builtSessions } }
-    var locales: [String] { lock.withLock { builtLocales } }
+private final class PreviewTestBuilder: Sendable {
+    private let built = Locked((sessions: [PreviewTestSession](), locales: [String]()))
+    var sessions: [PreviewTestSession] { built.value.sessions }
+    var locales: [String] { built.value.locales }
 
     func build(locale: String, onText: @escaping @Sendable (String) -> Void,
                onIssue: @escaping @Sendable (String) -> Void) -> PreviewTestSession {
         let session = PreviewTestSession(onText: onText, onIssue: onIssue)
-        lock.withLock {
-            builtSessions.append(session)
-            builtLocales.append(locale)
+        built.withLock {
+            $0.sessions.append(session)
+            $0.locales.append(locale)
         }
         return session
     }
 }
 
-private final class PreviewTestSession: SpeechPreviewSession, @unchecked Sendable {
-    private let lock = NSLock()
-    private var appendedChunks: [[Float]] = []
-    private var cancellations = 0
+private final class PreviewTestSession: SpeechPreviewSession, Sendable {
+    private let appendedChunks = Locked<[[Float]]>([])
+    private let cancellations = Locked(0)
     private let onText: @Sendable (String) -> Void
     private let onIssue: @Sendable (String) -> Void
-    var chunks: [[Float]] { lock.withLock { appendedChunks } }
-    var cancelCount: Int { lock.withLock { cancellations } }
+    var chunks: [[Float]] { appendedChunks.value }
+    var cancelCount: Int { cancellations.value }
 
     init(onText: @escaping @Sendable (String) -> Void, onIssue: @escaping @Sendable (String) -> Void) {
         self.onText = onText
         self.onIssue = onIssue
     }
 
-    func append(_ samples: [Float]) { lock.withLock { appendedChunks.append(samples) } }
-    func cancel() { lock.withLock { cancellations += 1 } }
+    func append(_ samples: [Float]) { appendedChunks.withLock { $0.append(samples) } }
+    func cancel() { cancellations.withLock { $0 += 1 } }
     // Deliberately remain callable after cancel to model late framework callbacks.
     func sendText(_ text: String) { onText(text) }
     func sendIssue(_ issue: String) { onIssue(issue) }

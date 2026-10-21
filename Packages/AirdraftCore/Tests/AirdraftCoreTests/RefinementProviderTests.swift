@@ -146,8 +146,16 @@ final class RefinementProviderTests: XCTestCase {
 }
 
 private final class RefinementURLProtocol: URLProtocol {
-    static var requests: [[String: Any]] = []
-    static var statuses: [Int] = []
+    /// Request bodies stay Data under the lock; JSON objects are decoded per read.
+    private static let state = Locked((bodies: [Data](), statuses: [Int]()))
+    static var requests: [[String: Any]] {
+        get { state.value.bodies.map { (try? JSONSerialization.jsonObject(with: $0)) as? [String: Any] ?? [:] } }
+        set { state.withLock { $0.bodies = newValue.map { (try? JSONSerialization.data(withJSONObject: $0)) ?? Data() } } }
+    }
+    static var statuses: [Int] {
+        get { state.value.statuses }
+        set { state.withLock { $0.statuses = newValue } }
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -164,8 +172,10 @@ private final class RefinementURLProtocol: URLProtocol {
             }
             body = data
         } else { body = Data() }
-        Self.requests.append((try? JSONSerialization.jsonObject(with: body)) as? [String: Any] ?? [:])
-        let status = Self.statuses.isEmpty ? 500 : Self.statuses.removeFirst()
+        let status = Self.state.withLock { state -> Int in
+            state.bodies.append(body)
+            return state.statuses.isEmpty ? 500 : state.statuses.removeFirst()
+        }
         let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         let reply = status == 200 ? #"{"choices":[{"finish_reason":"stop","message":{"content":"今天下午開會。","reasoning":"not the answer"}}]}"# : #"{"error":{"message":"test rejection"}}"#

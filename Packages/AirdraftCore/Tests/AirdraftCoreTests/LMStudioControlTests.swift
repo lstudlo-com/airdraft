@@ -89,12 +89,12 @@ final class LMStudioControlTests: XCTestCase {
         return try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
     }
 
-    private final class Fixture: @unchecked Sendable {
+    private final class Fixture: Sendable {
         let base = URL(string: "http://localhost:1234/v1")!
         let control: LMStudioControl
         private let id = UUID().uuidString
         private let state: LMStudioFixtureProtocol.State
-        var requests: [URLRequest] { state.lock.withLock { state.requests } }
+        var requests: [URLRequest] { state.requests.value }
 
         init(status: Int = 200) {
             state = LMStudioFixtureProtocol.State(status: status)
@@ -103,33 +103,31 @@ final class LMStudioControlTests: XCTestCase {
             config.httpAdditionalHeaders = ["X-Airdraft-Fixture": id]
             let fixtureID = id
             let fixtureState = state
-            LMStudioFixtureProtocol.lock.withLock { LMStudioFixtureProtocol.states[fixtureID] = fixtureState }
+            LMStudioFixtureProtocol.states.withLock { $0[fixtureID] = fixtureState }
             control = LMStudioControl(session: URLSession(configuration: config))
         }
 
-        deinit { _ = LMStudioFixtureProtocol.lock.withLock { LMStudioFixtureProtocol.states.removeValue(forKey: id) } }
+        deinit { LMStudioFixtureProtocol.states.withLock { _ = $0.removeValue(forKey: id) } }
     }
 }
 
 private final class LMStudioFixtureProtocol: URLProtocol {
-    final class State: @unchecked Sendable {
-        let lock = NSLock()
+    final class State: Sendable {
         let status: Int
-        var requests: [URLRequest] = []
+        let requests = Locked<[URLRequest]>([])
         init(status: Int) { self.status = status }
     }
-    static let lock = NSLock()
-    static var states: [String: State] = [:]
+    static let states = Locked<[String: State]>([:])
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         guard let id = request.value(forHTTPHeaderField: "X-Airdraft-Fixture"),
-              let state = Self.lock.withLock({ Self.states[id] }) else {
+              let state = Self.states.value[id] else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
         }
-        state.lock.withLock { state.requests.append(request) }
+        state.requests.withLock { $0.append(request) }
         let body: String
         switch request.url?.path {
         case "/api/v1/models/load": body = #"{"instance_id":"loaded-3"}"#

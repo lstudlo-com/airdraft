@@ -21,7 +21,9 @@ public enum Keychain {
         }
     }
 
-    private static let store = CredentialStore()
+    /// A fresh production seam per call: its closures only call Security.framework,
+    /// and a value (not a shared static) needs no Sendable stored state.
+    private static var store: CredentialStore { CredentialStore() }
 
     /// Compatibility convenience for callers that only need an optional value.
     public static func get(_ account: String) -> String? { try? read(account) }

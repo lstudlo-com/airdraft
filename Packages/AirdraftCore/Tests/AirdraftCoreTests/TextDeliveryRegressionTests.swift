@@ -1152,11 +1152,10 @@ private actor FlakySpeech: Transcriber {
     }
 }
 
-private final class SpeechScript: @unchecked Sendable {
-    private let lock = NSLock()
-    private var texts: [String]
-    init(_ texts: [String]) { self.texts = texts }
-    func next() -> String { lock.withLock { texts.count > 1 ? texts.removeFirst() : texts[0] } }
+private final class SpeechScript: Sendable {
+    private let texts: Locked<[String]>
+    init(_ texts: [String]) { self.texts = Locked(texts) }
+    func next() -> String { texts.withLock { $0.count > 1 ? $0.removeFirst() : $0[0] } }
 }
 
 private struct ScriptedSpeech: Transcriber {
@@ -1168,6 +1167,8 @@ private struct ScriptedSpeech: Transcriber {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class DeliveryRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var starts = 0

@@ -419,13 +419,13 @@ final class PolarLicenseWireTests: XCTestCase {
         let client = PolarLicenseClient(configuration: config, session: session)
         let installation = UUID()
         let receipt = "{\"id\":\"\(UUID())\",\"organization_id\":\"\(organization)\",\"benefit_id\":\"\(benefit)\",\"status\":\"granted\",\"expires_at\":null,\"activation\":{\"id\":\"\(activation)\"}}"
-        var operations: [String] = []
+        let operations = Locked<[String]>([])
         LicenseURLProtocol.handler = { request in
             XCTAssertEqual(request.url?.scheme, "https")
             XCTAssertEqual(request.url?.host, "sandbox-api.polar.sh")
             XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
             let operation = request.url!.lastPathComponent
-            operations.append(operation)
+            operations.withLock { $0.append(operation) }
             switch operation {
             case "activate": return (200, "{\"id\":\"\(activation)\",\"license_key\":\(receipt)}")
             case "deactivate": return (204, "")
@@ -435,10 +435,10 @@ final class PolarLicenseWireTests: XCTestCase {
         _ = try await client.validate(key: "sandbox-fixture", activationID: activation, installationID: installation)
         _ = try await client.activate(key: "sandbox-fixture", installationID: installation)
         try await client.deactivate(key: "sandbox-fixture", activationID: activation)
-        XCTAssertEqual(operations, ["validate", "activate", "deactivate"])
-        var requests = 0
+        XCTAssertEqual(operations.value, ["validate", "activate", "deactivate"])
+        let requests = Locked(0)
         LicenseURLProtocol.handler = { request in
-            requests += 1
+            requests.withLock { $0 += 1 }
             XCTAssertEqual(request.url?.host, "sandbox-api.polar.sh")
             return (503, "")
         }
@@ -446,14 +446,14 @@ final class PolarLicenseWireTests: XCTestCase {
             _ = try await client.validate(key: "sandbox-fixture", activationID: activation, installationID: installation)
             XCTFail("Unavailable sandbox must not succeed")
         } catch { XCTAssertEqual(error as? LicenseError, .unavailable) }
-        XCTAssertEqual(requests, 1)
+        XCTAssertEqual(requests.value, 1)
         let mixed = PolarConfiguration(organizationID: organization, benefitIDs: [benefit],
             checkoutURL: licenseConfig.checkoutURL, portalURL: config.portalURL, environment: .sandbox)
         do {
             _ = try await PolarLicenseClient(configuration: mixed, session: session).activate(key: "fixture", installationID: installation)
             XCTFail("Mixed environment must fail before making a request")
         } catch { XCTAssertEqual(error as? LicenseError, .notConfigured) }
-        XCTAssertEqual(requests, 1)
+        XCTAssertEqual(requests.value, 1)
     }
 
     @MainActor func testBothPlansPersistTheirOwnBenefitAndRejectOtherProductsBeforeActivation() async throws {
@@ -465,14 +465,14 @@ final class PolarLicenseWireTests: XCTestCase {
         defer { session.invalidateAndCancel() }
         let client = PolarLicenseClient(configuration: config, session: session)
         for issuedBenefit in [benefit, fiveMacBenefit, UUID()] {
-            var allocations = 0
+            let allocations = Locked(0)
             let receipt = "{\"id\":\"\(UUID())\",\"organization_id\":\"\(organization)\",\"benefit_id\":\"\(issuedBenefit)\",\"status\":\"granted\",\"expires_at\":null,\"activation\":{\"id\":\"\(activation)\"}}"
             LicenseURLProtocol.handler = { request in
                 let body = try! JSONSerialization.jsonObject(with: Self.body(request)) as! [String: Any]
                 XCTAssertNil(body["benefit_id"])
                 XCTAssertEqual(body["organization_id"] as? String, organization.uuidString)
                 if request.url?.lastPathComponent == "activate" {
-                    allocations += 1
+                    allocations.withLock { $0 += 1 }
                     return (200, "{\"id\":\"\(activation)\",\"license_key\":\(receipt)}")
                 }
                 return (200, receipt)
@@ -482,7 +482,7 @@ final class PolarLicenseWireTests: XCTestCase {
             await store.load()
             await store.activate("fixture-key")
             if config.benefitIDs.contains(issuedBenefit) {
-                XCTAssertEqual(allocations, 1)
+                XCTAssertEqual(allocations.value, 1)
                 XCTAssertEqual(store.access, .licensed)
                 XCTAssertEqual(store.record?.grant?.benefitID, issuedBenefit)
                 LicenseURLProtocol.handler = { _ in (503, "") }
@@ -493,7 +493,7 @@ final class PolarLicenseWireTests: XCTestCase {
                 XCTAssertTrue(restarted.isOffline)
                 XCTAssertEqual(restarted.record?.grant?.benefitID, issuedBenefit)
             } else {
-                XCTAssertEqual(allocations, 0)
+                XCTAssertEqual(allocations.value, 0)
                 XCTAssertNil(store.record?.grant)
                 XCTAssertEqual(store.record?.activationPending, false)
                 XCTAssertFalse(store.access.allowsUse)
@@ -560,7 +560,11 @@ final class PolarLicenseWireTests: XCTestCase {
 }
 
 private final class LicenseURLProtocol: URLProtocol {
-    static var handler: ((URLRequest) -> (Int, String))!
+    private static let callback = Locked<(@Sendable (URLRequest) -> (Int, String))?>(nil)
+    static var handler: (@Sendable (URLRequest) -> (Int, String))! {
+        get { callback.value }
+        set { callback.value = newValue }
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
