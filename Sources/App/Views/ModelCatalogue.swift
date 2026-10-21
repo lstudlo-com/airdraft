@@ -314,6 +314,7 @@ struct ModelMetric: View {
         .help(detail)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(title): \(label). \(detail)")
+        .accessibilityAddTraits(.isStaticText)
     }
 }
 
@@ -452,6 +453,7 @@ struct ExperimentalModelsDisclosure: View {
 
 struct ModelRow: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.colorSchemeContrast) private var contrast
     let entry: ModelEntry
     /// The recommendation for this Mac's language and memory.
     var bestFit = false
@@ -484,7 +486,8 @@ struct ModelRow: View {
                     HStack(spacing: 8) {
                         Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 14))
-                            .foregroundStyle(selected ? Color.accentColor : Color.secondary.opacity(installed ? 0.6 : 0.3))
+                            .foregroundStyle(selected ? Color.accentColor
+                                             : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
                         ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 6) {
@@ -494,7 +497,7 @@ struct ModelRow: View {
                             if let highlight = entry.highlight {
                                 Text("\(Image(systemName: "star.fill")) \(highlight)")
                                     .appFont(.supporting, weight: .medium)
-                                    .foregroundStyle(.primary.opacity(0.75))
+                                    .mutedForeground(0.75)
                             }
                             tierAndTags
                             loadStateLabel

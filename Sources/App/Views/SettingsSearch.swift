@@ -190,6 +190,7 @@ struct SettingsSearchField: View {
                 .textFieldStyle(.plain)
                 .appFont(.body)
                 .focused($focused)
+                .help("Search section names, settings and descriptions. Return or arrows moves between matches.")
                 .accessibilityLabel("Search settings")
                 .accessibilityIdentifier("settings.search")
                 .onSubmit { search.move(by: NSApp.currentEvent?.modifierFlags.contains(.shift) == true ? -1 : 1) }
@@ -225,13 +226,12 @@ struct SettingsSearchField: View {
         .padding(.horizontal, 9)
         .frame(width: 270, height: SoftControl.height)
         .background { SoftInsetTrack(shape: SoftControl.shape) }
-        .overlay { SoftControl.shape.strokeBorder(focused ? Color.accentColor.opacity(0.65) : .clear, lineWidth: 1.5).allowsHitTesting(false) }
+        .overlay { SoftControl.shape.strokeBorder(focused ? Color.accentColor.opacity(0.65) : .clear, lineWidth: 1.5).allowsHitTesting(false).accessibilityHidden(true) }
         .background {
             Button("Find Setting") { focused = true }
                 .keyboardShortcut("f", modifiers: .command)
                 .hidden().accessibilityHidden(true)
         }
-        .help("Search section names, settings and descriptions. Return or arrows moves between matches.")
     }
 
     private var resultLabel: String {

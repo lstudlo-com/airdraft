@@ -5,6 +5,7 @@ import SwiftUI
 
 struct HomePage: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var period: Period = .all
     @State private var overview: HistoryStore.Overview = .empty
     @State private var hasLoadedOverview = false
@@ -101,7 +102,7 @@ struct HomePage: View {
         let expanded = showsStatus || issues > 0 || isFirstRun
         return Card(spacing: Theme.controlSpacing) {
             Button {
-                withAnimation(.snappy) { showsStatus.toggle() }
+                withAnimation(reduceMotion ? nil : .snappy) { showsStatus.toggle() }
             } label: {
                 HStack(spacing: Theme.controlSpacing) {
                     StatusDot(ok: issues == 0)
@@ -308,7 +309,8 @@ struct HomePage: View {
         }
         if hasLoadedOverview {
             recent = latest
-            withAnimation(.snappy(duration: 0.6)) { overview = next }
+            // Reduce Motion: new bars and values appear in place.
+            withAnimation(reduceMotion ? nil : .snappy(duration: 0.6)) { overview = next }
         } else {
             // Commit real bars before their entrance. Animating the replacement
             // of the five placeholder bars raced the hero's startup animation.
@@ -376,6 +378,7 @@ struct AppShareRow: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(share.name), \(share.words) words, \(Int((fraction * 100).rounded())) percent")
+        .accessibilityAddTraits(.isStaticText)
     }
 }
 

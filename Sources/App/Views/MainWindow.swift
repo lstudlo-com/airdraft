@@ -41,6 +41,7 @@ final class Navigation {
 
 struct MainWindowView: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var profileSelection: UUID?
     var microphoneRenderLevel: Float?
     @State private var activeOverlay: WindowOverlay?
@@ -87,14 +88,19 @@ struct MainWindowView: View {
                 overlayFocus: $overlayFocus
             )
             .frame(width: container.navigation.sidebarCollapsed ? Theme.sidebarCollapsedWidth : Theme.sidebarWidth)
+            // VoiceOver reads the sidebar before the page; geometric order would put the
+            // page heading, which sits higher than the first destination, ahead of it.
+            .accessibilitySortPriority(1)
             page.contentIsland()
         }
         .disabled(activeOverlay != nil)
-        .accessibilityHidden(activeOverlay != nil)
+        // Conditional hiding must not emit `accessibilityHidden(false)`: that would
+        // re-expose every decorative surface below it that hides itself.
+        .accessibilityHidden(true, isEnabled: activeOverlay != nil)
         .overlay(alignment: .topLeading) {
             let collapsed = container.navigation.sidebarCollapsed
             Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
                     container.navigation.sidebarCollapsed.toggle()
                 }
             } label: {
@@ -114,7 +120,7 @@ struct MainWindowView: View {
             .accessibilityLabel(collapsed ? "Expand Sidebar" : "Collapse Sidebar")
             .accessibilityIdentifier("sidebar.toggle")
             .disabled(activeOverlay != nil)
-            .accessibilityHidden(activeOverlay != nil)
+            .accessibilityHidden(true, isEnabled: activeOverlay != nil)
         }
         .background(SidebarBackground())
         .background(WindowChromeView(onPointerDown: clearOverlayFocus))

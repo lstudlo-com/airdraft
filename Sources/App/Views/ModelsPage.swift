@@ -327,6 +327,7 @@ struct ModelsPage: View {
                     SettingRow(title: "Endpoint") {
                         TextField("Endpoint", text: $settings.asr.baseURL).softField()
                             .labelsHidden().frame(width: Theme.fieldWidth)
+                            .accessibilityLabel("Endpoint")
                     }
                     RowDivider()
                     ModelField(title: "Model", model: $settings.asr.model, baseURL: settings.asr.baseURL, apiKeyRef: settings.asr.apiKeyRef, speechOnly: true)

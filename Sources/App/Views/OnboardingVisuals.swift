@@ -79,6 +79,7 @@ struct OnboardingKeyCaps: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Shortcut \(OnboardingKeyNames.spoken(hotkey))")
         .accessibilityValue(lit.isEmpty ? Text("Not pressed") : lit.count == hotkey.keyCaps.count ? Text("Pressed") : Text("Partly pressed"))
+        .accessibilityAddTraits(.isImage)
     }
 }
 
@@ -111,6 +112,7 @@ struct OnboardingWelcomeDemo: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(behavior.instructionVerb) \(OnboardingKeyNames.spoken(hotkey)), speak, then \(behavior == .hold ? String(localized: "let go") : String(localized: "press again")). Your words appear where you were typing.")
+        .accessibilityAddTraits(.isImage)
     }
 
     private func panel<Content: View>(_ number: Int, title: LocalizedStringResource, active: Bool,
@@ -219,9 +221,7 @@ struct OnboardingVoiceWell: View {
             samples.removeFirst()
             samples.append(value.isFinite ? value : 0)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Microphone level")
-        .accessibilityValue("\(MicrophoneLevelMeter.steps(for: level)) of 10")
+        .levelMeterAccessibility(String(localized: "Microphone level"), level: level)
     }
 }
 
@@ -256,6 +256,7 @@ struct OnboardingAccessibilitySwitch: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("In System Settings, turn on the switch next to Airdraft")
+        .accessibilityAddTraits(.isImage)
     }
 }
 

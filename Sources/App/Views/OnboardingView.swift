@@ -339,7 +339,7 @@ private struct OnboardingRail: View {
                 .padding(.horizontal, NavigationStyle.destinationInset + 6)
                 .padding(.bottom, Theme.pagePadding)
                 .opacity(progress.step == .done ? 0 : 1)
-                .accessibilityHidden(progress.step == .done)
+                .accessibilityHidden(true, isEnabled: progress.step == .done)
         }
         .padding(.horizontal, Theme.sidebarContentInset)
         .frame(width: Theme.sidebarWidth, alignment: .leading)

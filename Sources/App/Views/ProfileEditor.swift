@@ -57,6 +57,7 @@ struct ProfileEditor<Chooser: View>: View {
                         .frame(minHeight: 28)
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel("Current dictation profile")
+                        .accessibilityAddTraits(.isStaticText)
                     } else {
                         Button("Use Profile") { container.profiles.setActive(current.id) }
                             .buttonStyle(SoftButtonStyle())

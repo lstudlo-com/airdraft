@@ -272,6 +272,7 @@ struct MediaDocumentEditor: View {
                     } label: {
                         Text("\(document.speakerName(turn.speaker)) \(Image(systemName: "chevron.down"))")
                             .appFont(.detail, weight: .semibold).contentShape(Rectangle())
+                            .accessibilityLabel(Text(verbatim: document.speakerName(turn.speaker)))
                     }
                     .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize().disabled(!editable)
                     .help("Assign speaker")
@@ -289,6 +290,7 @@ struct MediaDocumentEditor: View {
             } else {
                 TextField("Transcript", text: Binding(get: { document.turns[index].text }, set: { document.turns[index].editedText = $0; dirty = true }), axis: .vertical)
                     .appFont(.body).textFieldStyle(.plain).disabled(!editable)
+                    .accessibilityLabel(Text("Transcript at \(HistoryRecordingControls.time(turn.start))"))
             }
         }
     }

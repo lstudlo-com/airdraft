@@ -486,6 +486,8 @@ private struct HistoryRecordRow: View {
             }
         }
         .accessibilityElement(children: .contain)
+        // Names the card, so its Copy, Details and Delete buttons have context in VoiceOver.
+        .accessibilityLabel(Text(verbatim: entry.metadata))
         .accessibilityIdentifier("history.entry.\(entry.id)")
     }
 
@@ -819,7 +821,7 @@ struct HistoryCard<RecordingControls: View>: View {
                 }
                 Text(entry.metadata)
                     .appFont(.annotation)
-                    .foregroundStyle(Color.primary.opacity(0.65))
+                    .mutedForeground(0.65)
                     .lineLimit(1)
                 Spacer()
                 HStack(spacing: 14) {

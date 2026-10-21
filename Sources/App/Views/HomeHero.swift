@@ -18,6 +18,7 @@ struct HomeHero: View {
     private var isReady: Bool { content != .loading }
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pointer: CGFloat?
     @State private var hoveredIndex: Int?
@@ -408,7 +409,8 @@ struct HomeHero: View {
                                          startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.035), lineWidth: 0.5)
+                    // Increase Contrast adds an explicit edge, like the cards and controls.
+                    .strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.035), lineWidth: 0.5)
             )
     }
 }

@@ -263,6 +263,7 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(option.1)
+                .accessibilityValue(selected ? Text("Selected") : Text("Not selected"))
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
@@ -337,6 +338,8 @@ struct SoftSlider: View {
     let step: Double
     /// Seeking can use a larger keyboard increment without reducing pointer precision.
     var keyboardStep: Double? = nil
+    /// What VoiceOver reads for a value, such as "0:12 of 1:05"; plain numbers otherwise.
+    var valueDescription: ((Double) -> String)? = nil
 
     @Environment(\.isEnabled) private var isEnabled
     @FocusState private var focused: Bool
@@ -368,7 +371,7 @@ struct SoftSlider: View {
         .opacity(isEnabled ? 1 : 0.5)
         .accessibilityElement()
         .accessibilityLabel(Text(title))
-        .accessibilityValue(value.formatted(.number.precision(.fractionLength(0...2))))
+        .accessibilityValue(valueDescription?(value) ?? value.formatted(.number.precision(.fractionLength(0...2))))
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment: set(value + step)

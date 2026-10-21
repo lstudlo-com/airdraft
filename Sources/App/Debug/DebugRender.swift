@@ -34,6 +34,10 @@ enum DebugRender {
             SpatialHUDVerification.run(to: dir)
             return
         }
+        if pageName == "a11y-audit" {
+            AccessibilityAudit.run(to: dir)
+            return
+        }
         if pageName == "menu" {
             MenuVerification.run(to: dir)
             return
@@ -220,7 +224,10 @@ enum DebugRender {
         }
         let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
         for page in pages {
-            for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", NSAppearance.Name.aqua)] {
+            // `AIRDRAFT_RENDER_CONTRAST=1` renders the Increase Contrast appearances.
+            let highContrast = env["AIRDRAFT_RENDER_CONTRAST"] == "1"
+            for (suffix, appearance) in [("dark", highContrast ? NSAppearance.Name.accessibilityHighContrastDarkAqua : .darkAqua),
+                                         ("light", highContrast ? NSAppearance.Name.accessibilityHighContrastAqua : .aqua)] {
                 container.navigation.page = page
                 let root = Group {
                     if pageName.hasPrefix("license-") {
@@ -262,6 +269,14 @@ enum DebugRender {
                     }
                 }.environment(container).environment(\.openRouterPreviewEndpoints, previewEndpoints)
                     .textSize(from: container.settings)
+                    // Accessibility display settings as SwiftUI sees them, without changing the system's.
+                    .transformEnvironment(\._colorSchemeContrast) { if highContrast { $0 = .increased } }
+                    .transformEnvironment(\._accessibilityReduceTransparency) {
+                        if env["AIRDRAFT_RENDER_REDUCE_TRANSPARENCY"] == "1" { $0 = true }
+                    }
+                    .transformEnvironment(\._accessibilityReduceMotion) {
+                        if env["AIRDRAFT_RENDER_REDUCE_MOTION"] == "1" { $0 = true }
+                    }
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
                 var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)

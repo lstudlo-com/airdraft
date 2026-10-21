@@ -292,23 +292,18 @@
         }
       }
     },
-    "%@ level, %lld of 10" : {
+    "%@ level" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ level, %2$lld of 10"
-          }
-        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@音量，%2$lld/10"
+            "value" : "%@音量"
           }
         }
       }
     },
     "%@ of %@" : {
+      "comment" : "Playback position for VoiceOver",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -8109,6 +8104,16 @@
         }
       }
     },
+    "Replace with" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取代為"
+          }
+        }
+      }
+    },
     "Replace with…" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10280,6 +10285,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "逐字稿版本"
+          }
+        }
+      }
+    },
+    "Transcript at %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的逐字稿"
           }
         }
       }

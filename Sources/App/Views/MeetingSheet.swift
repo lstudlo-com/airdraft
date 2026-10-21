@@ -137,9 +137,7 @@ struct MeetingRecordingStatus: View {
             Spacer(minLength: 0)
             Text(received ? "Receiving" : "Waiting for audio").supportingText()
             MicrophoneLevelMeter(level: level)
-                .accessibilityHidden(false)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(title) level, \(MicrophoneLevelMeter.steps(for: level)) of 10")
+                .levelMeterAccessibility(String(localized: "\(title) level"), level: level)
         }
     }
 }

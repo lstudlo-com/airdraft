@@ -175,6 +175,7 @@ struct MicrophoneSelectionOverlay: View {
 
 struct MicrophoneLevelMeter: View {
     let level: Float
+    @Environment(\.colorSchemeContrast) private var contrast
 
     static func steps(for level: Float) -> Int {
         guard level.isFinite else { return 0 }
@@ -189,6 +190,8 @@ struct MicrophoneLevelMeter: View {
                     .fill(LinearGradient(
                         colors: step <= Self.steps(for: level)
                             ? [Color.primary.opacity(0.85), Color.primary.opacity(0.6)]
+                            // Increase Contrast keeps the empty cells distinct from the well.
+                            : contrast == .increased ? [Color.primary.opacity(0.28), Color.primary.opacity(0.22)]
                             : [Color.primary.opacity(0.10), Color.primary.opacity(0.06)],
                         startPoint: .topLeading, endPoint: .bottomTrailing))
                     .overlay {
@@ -202,6 +205,16 @@ struct MicrophoneLevelMeter: View {
         .background { NeumorphicSurface(shape: Capsule(), inset: true, depth: 1.5) }
         .fixedSize()
         .accessibilityHidden(true)
+    }
+}
+
+extension View {
+    /// A live level as a native level indicator: its name and "3 of 10" for VoiceOver.
+    func levelMeterAccessibility(_ label: String, level: Float) -> some View {
+        accessibilityRepresentation {
+            ProgressView(value: Double(MicrophoneLevelMeter.steps(for: level)), total: 10) { Text(label) }
+                .accessibilityValue(Text("\(MicrophoneLevelMeter.steps(for: level)) of 10"))
+        }
     }
 }
 

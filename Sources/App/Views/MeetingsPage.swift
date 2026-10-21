@@ -235,6 +235,7 @@ private struct MeetingLibraryCard: View {
             .frame(height: SoftControl.height)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(status.text)
+            .accessibilityAddTraits(.isStaticText)
             actions
         }
     }
@@ -258,7 +259,7 @@ private struct MeetingLibraryCard: View {
     @ViewBuilder private func transcript(_ document: TranscriptDocument) -> some View {
         if !document.text.isEmpty {
             Text(String(document.text.prefix(400)))
-                .appFont(.body).foregroundStyle(.primary.opacity(0.85))
+                .appFont(.body).mutedForeground(0.85)
                 .lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
         } else if document.transcriptionComplete {
             Text("No speech detected.").supportingText()
@@ -382,11 +383,13 @@ private struct MeetingPlaybackRow: View {
         if active {
             HistoryPlaybackProgress(playback: playback)
         } else {
-            SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1)
+            SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
+                       valueDescription: { HistoryRecordingControls.position($0, of: asset.duration) })
                 .disabled(true)
                 .help("Play the recording to seek")
             Text("0:00 / \(HistoryRecordingControls.time(asset.duration))")
                 .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                .accessibilityHidden(true)
         }
     }
 }

@@ -110,11 +110,12 @@ struct DictationRecovery: View {
                         Button("Change Provider") { container.navigation.page = .models }
                         Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording(card.id) }
                     } label: {
+                        // Named inside the label: outside it, VoiceOver also reads the symbol's name.
                         Image(systemName: "ellipsis")
+                            .accessibilityLabel("Recording recovery options")
                     }
                     .menuStyle(.borderlessButton)
                     .fixedSize()
-                    .accessibilityLabel("Recording recovery options")
                 }
                 .buttonStyle(SoftButtonStyle())
                 .disabled(container.pipeline.isBusy)

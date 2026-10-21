@@ -26,10 +26,12 @@ struct VocabularyPage: View {
             Card {
             HStack(spacing: 10) {
                 TextField("New word or mis-hearing", text: $word)
+                    .accessibilityLabel("New word or mis-hearing")
                     .focused($focusWord)
                     .softField(focused: focusWord)
                     .onSubmit(add)
                 TextField("Replace with…", text: $replacement)
+                    .accessibilityLabel("Replace with")
                     .softField()
                     .frame(width: 220)
                     .onSubmit(add)

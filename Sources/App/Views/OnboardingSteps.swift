@@ -134,6 +134,8 @@ struct OnboardingSpeechStep: View {
             .accessibilityLabel(Text(verbatim: entry.id == speech.recommendedID
                 ? "\(entry.title), \(String(localized: "Best fit")). \(tradeoff(entry))" : "\(entry.title). \(tradeoff(entry))"))
             .accessibilityValue(selectable ? (selected ? Text("Selected") : Text("Not selected")) : Text(verbatim: ""))
+            // Ignoring the children drops the button role; restore it, or read a single choice as text.
+            .accessibilityAddTraits(selectable ? .isButton : .isStaticText)
             .accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityIdentifier("onboarding.speech-option.\(entry.id)")
             if selected { downloadAction }

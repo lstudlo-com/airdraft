@@ -57,13 +57,13 @@ struct ProfilesPage: View {
                 } label: {
                     Image(systemName: "ellipsis")
                         .frame(width: 16)
+                        .accessibilityLabel("Profile actions")
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .fixedSize()
                 .softControlSurface()
                 .help("Profile actions")
-                .accessibilityLabel("Profile actions")
             }
         }
         .onAppear {

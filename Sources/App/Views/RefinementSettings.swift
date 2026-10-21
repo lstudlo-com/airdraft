@@ -129,6 +129,7 @@ struct RefinementSettings: View {
         RowDivider()
         SettingRow(title: "Base URL") {
             TextField("Base URL", text: $settings.llm.baseURL).softField()
+                .accessibilityLabel("Base URL")
                 .labelsHidden().frame(width: Theme.fieldWidth)
         }
         RowDivider()
@@ -278,6 +279,7 @@ struct APIKeyField: View {
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
                     .softField().frame(width: Theme.fieldWidth).disabled(editor.isBusy)
+                    .accessibilityLabel("API key")
                 Button("Save") {
                     guard !RenderMode.excludesCredentials else { return }
                     Task { await editor.save() }
