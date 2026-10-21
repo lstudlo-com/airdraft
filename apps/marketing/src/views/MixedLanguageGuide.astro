@@ -34,7 +34,7 @@ const columns = zh
       "英文大小寫正確",
       "轉錄時間中位數",
       "下載大小",
-      "記憶體",
+      "實測記憶體峰值",
     ]
   : [
       "Model",
@@ -44,7 +44,7 @@ const columns = zh
       "English case kept",
       "Median time",
       "Download",
-      "Memory",
+      "Measured peak memory",
     ];
 const cells = (row: (typeof mixedAsrResults)[number]) => [
   percent(row.mer),
@@ -69,13 +69,13 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           <dt>Qwen3-ASR 1.7B：多數 16 GB 以上的 Mac</dt>
           <dd>
             在我們的測量中錯誤最少，保留較多英文詞，英文維持原本的大小寫，也會加上標點。下載
-            2.44 GB，轉錄時約占用 2.4 GB 記憶體。
+            2.44 GB，轉錄時實測記憶體峰值約 2.4 GB。
           </dd>
         </div>
         <div>
           <dt>SenseVoice：8 GB 的 Mac，或還要跑本機潤稿模型時</dt>
           <dd>
-            下載 166 MB、記憶體不到 1
+            下載 166 MB、實測記憶體峰值不到 1
             GB，也是最快的。但英文詞比較弱：測量中約有一半英文詞沒有保留，英文以全大寫輸出，而且不加標點。
           </dd>
         </div>
@@ -162,6 +162,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         秒的語音轉成文字所花的時間，測量時這台 Mac
         同時在編譯其他程式，只適合相互比較。Whisper 使用 Neural
         Engine，部分記憶體不在 App 的行程裡，無法和其他模型比較。
+      </p>
+      <p>
+        下載大小照下一個版本「模型」頁列出的數字，是各模型固定版本檔案的總和，以十進位單位計算，不是實測的傳輸量。記憶體是轉錄時
+        App 行程實測峰值的中位數。
       </p>
     </Surface>
 
@@ -260,7 +264,8 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           <dd>
             It made the fewest errors in our measurement, kept more English
             terms in their original case, and adds punctuation. It is a 2.44 GB
-            download and uses about 2.4 GB of memory while transcribing.
+            download, and its measured peak memory while transcribing was about
+            2.4 GB.
           </dd>
         </div>
         <div>
@@ -268,10 +273,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
             SenseVoice: Macs with 8 GB, or alongside a local refinement model
           </dt>
           <dd>
-            It is a 166 MB download, uses under 1 GB of memory and was the
-            fastest. It is weaker with English terms: it lost about half of them
-            in our measurement, writes English in capitals and adds no
-            punctuation.
+            It is a 166 MB download, its measured peak memory stayed under 1 GB,
+            and it was the fastest. It is weaker with English terms: it lost
+            about half of them in our measurement, writes English in capitals
+            and adds no punctuation.
           </dd>
         </div>
         <div>
@@ -366,6 +371,12 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         models with each other only. Whisper runs on the Neural Engine and keeps
         part of its memory outside the app’s process, so its memory is not
         comparable.
+      </p>
+      <p>
+        Download sizes are the totals the next version’s Models page lists for
+        each model’s pinned files, in decimal units, not measured transfers.
+        Memory is the measured median peak of the app’s process while
+        transcribing.
       </p>
     </Surface>
 

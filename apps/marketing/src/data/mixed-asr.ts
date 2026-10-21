@@ -23,7 +23,12 @@ export const mixedAsrStudy = {
 export interface MixedAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
-  /** The download size the app lists for the pinned files (next version). */
+  /**
+   * The download size the next version's Models page shows, character for
+   * character: ByteCountFormatter's decimal total of the pinned files
+   * (Packages/AirdraftCore/.../local-pinned-models.json), or the fixed label
+   * for the sherpa-onnx archives. A listed size, not a measured transfer.
+   */
   download: string;
   /** Mixed error rate on ASCEND, language Auto, as a percentage. */
   mer: number;
@@ -35,7 +40,7 @@ export interface MixedAsrResult {
   ttsCaseKept: number;
   /** Median ASR time per ASCEND utterance after loading, milliseconds. */
   medianMs: number;
-  /** Median peak memory of the app process, or null when not comparable. */
+  /** Measured median peak memory of the app process, or null when not comparable. */
   memory: string | null;
 }
 
@@ -64,7 +69,7 @@ export const mixedAsrResults: MixedAsrResult[] = [
   },
   {
     model: "Qwen3-ASR 0.6B",
-    download: "713 MB",
+    download: "712.8 MB",
     mer: 10.7,
     englishKept: 73,
     ttsMer: 5.9,
@@ -84,7 +89,7 @@ export const mixedAsrResults: MixedAsrResult[] = [
   },
   {
     model: "Whisper Large v3 Turbo",
-    download: "1.5 GB",
+    download: "1.64 GB",
     mer: 21.1,
     englishKept: 68,
     ttsMer: 6.3,
