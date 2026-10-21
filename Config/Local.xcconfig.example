@@ -1,0 +1,9 @@
+// Copy this file to Config/Local.xcconfig (git-ignored) and set your own team ID
+// (Xcode > Settings > Accounts, or the Membership page of your Apple Developer
+// account). A free personal team works for local builds.
+//
+// python3 scripts/generate-project.py creates Config/Local.xcconfig for the
+// maintainer's pinned release team when that certificate is installed. Release
+// builds always use scripts/release-signing.json instead of this file.
+DEVELOPMENT_TEAM = ABCDE12345
+CODE_SIGN_IDENTITY = Apple Development

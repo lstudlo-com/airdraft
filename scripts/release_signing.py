@@ -25,6 +25,12 @@ def preflight():
     return POLICY["certificateSHA1"]
 
 
+def build_settings(identity):
+    """Command-line signing for release builds; overrides any local xcconfig team."""
+    return [f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual",
+            f"DEVELOPMENT_TEAM={POLICY['teamID']}", "ENABLE_HARDENED_RUNTIME=YES"]
+
+
 def designated_requirement(app):
     output = command("codesign", "-d", "-r-", app)
     text = (output.stdout + output.stderr).decode()

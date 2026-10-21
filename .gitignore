@@ -40,3 +40,6 @@ apps/*/.wrangler/
 
 # Python release tooling
 __pycache__/
+
+# Personal code-signing team (Config/Local.xcconfig.example)
+/Config/Local.xcconfig

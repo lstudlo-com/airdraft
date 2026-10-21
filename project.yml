@@ -6,14 +6,16 @@ options:
   createIntermediateGroups: true
   developmentLanguage: en
   xcodeVersion: "26.0"
+# Source builds sign ad-hoc unless the git-ignored Config/Local.xcconfig names a
+# team (see Config/Local.xcconfig.example). Releases pass the pinned identity
+# from scripts/release-signing.json on the command line instead.
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
 settings:
   base:
     SWIFT_VERSION: "5.0"
     MACOSX_DEPLOYMENT_TARGET: "15.0"
-    CODE_SIGN_STYLE: Automatic
-    # Match the identity already used by the installed development build.
-    DEVELOPMENT_TEAM: WTUFL68AK9
-    CODE_SIGN_IDENTITY: "Apple Development"
     # Blocks code injection into a process that holds Microphone and Accessibility access.
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_STRICT_CONCURRENCY: minimal

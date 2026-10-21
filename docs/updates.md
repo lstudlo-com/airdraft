@@ -44,8 +44,12 @@ remain the supported public distribution path. The current certificate expires
 on March 15, 2027; packaging stops when fewer than 30 days remain. Renew it
 deliberately and verify compatibility with the previous designated requirement
 before changing the policy. Never replace it automatically or fall back to ad-hoc.
-Debug builds use Apple Development signing with a separate
-`com.lstudlo.app.airdraft.debug` identity and the name **Airdraft Debug**. They do
+Debug builds use a separate `com.lstudlo.app.airdraft.debug` identity and the
+name **Airdraft Debug**. Builds from source sign ad-hoc unless the git-ignored
+`Config/Local.xcconfig` names a team (see `Config/Local.xcconfig.example`);
+`scripts/generate-project.py` creates it for the pinned team on a Mac that holds
+the pinned certificate. Release builds ignore it and pass the pinned identity,
+team and Hardened Runtime explicitly. They do
 not install public Sparkle releases. See [Accessibility access](accessibility.md)
 for migration and recovery steps when System Settings shows an enabled switch
 but the running app is untrusted.

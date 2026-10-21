@@ -897,6 +897,16 @@
         }
       }
     },
+    "Acknowledgements" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "致謝"
+          }
+        }
+      }
+    },
     "Activate This Mac" : {
       "localizations" : {
         "zh-Hant" : {
@@ -6407,6 +6417,16 @@
         }
       }
     },
+    "Open-source licenses" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開源授權條款"
+          }
+        }
+      }
+    },
     "OpenRouter model page" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10604,6 +10624,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢視全部"
+          }
+        }
+      }
+    },
+    "View Licenses" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢視授權條款"
           }
         }
       }
