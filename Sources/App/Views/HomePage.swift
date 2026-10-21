@@ -85,7 +85,7 @@ struct HomePage: View {
         let llm = container.settings.llm
         let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
-        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.name)"
+        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.displayName)"
     }
 
     /// Exact identifiers stay available on hover for diagnosis.
@@ -403,19 +403,24 @@ struct RecentRow: View {
             AppIcon(bundleId: record.appBundleId, size: 22)
             VStack(alignment: .leading, spacing: 3) {
                 Text(record.finalText).font(.system(size: 13)).lineLimit(2)
-                HStack(spacing: 6) {
-                    if let app = record.appName { Text(app) }
-                    Text("· \(record.mode)")
-                    Text("· \(record.asrMs + record.llmMs) ms")
-                }
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                // One run of text, so every separator has the same spacing in each language.
+                Text(metadata)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             }
             Spacer(minLength: Theme.controlSpacing)
             Text(timeLabel)
                 .font(.system(size: 11.5).monospacedDigit())
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// App, profile and processing time, joined as in History.
+    private var metadata: String {
+        var parts = record.appName.map { [$0] } ?? []
+        parts.append(RefinementProfile.displayName(forSavedName: record.mode))
+        parts.append(DurationLabel.milliseconds(record.asrMs + record.llmMs))
+        return parts.joined(separator: " · ")
     }
 
     private var timeLabel: String {

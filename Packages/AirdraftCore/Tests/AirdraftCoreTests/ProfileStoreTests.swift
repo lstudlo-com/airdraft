@@ -175,4 +175,38 @@ extension ProfileStoreTests {
         XCTAssertNil(openRouter.unavailableReason)
         XCTAssertEqual(openRouter.applying(to: ASRConfig()).speechModelID, "custom/new-speech")
     }
+
+    /// Built-in names are shown through the catalog until renamed; stored names, ids,
+    /// prompts and history keep the English name.
+    func testBuiltInDisplayNamesFollowTheCatalogUntilRenamed() {
+        let dir = tempDir()
+        let store = ProfileStore(directory: dir)
+        let localized = ["Clean": String(localized: "Clean", bundle: .module), "Concise": String(localized: "Concise", bundle: .module),
+                         "Summary": String(localized: "Summary", bundle: .module), "Verbatim": String(localized: "Verbatim", bundle: .module)]
+        for profile in store.profiles {
+            XCTAssertEqual(profile.displayName, localized[profile.name], profile.name)
+            XCTAssertEqual(RefinementProfile.displayName(forSavedName: profile.name), localized[profile.name])
+        }
+
+        var clean = store.activeProfile
+        clean.name = "My clean"
+        store.update(clean)
+        let reloaded = ProfileStore(directory: dir)
+        XCTAssertEqual(reloaded.activeProfile.name, "My clean")
+        XCTAssertEqual(reloaded.activeProfile.displayName, "My clean", "A renamed built-in keeps the user's name")
+        XCTAssertEqual(reloaded.profiles[1].name, "Concise", "Display mapping never rewrites stored names")
+
+        reloaded.resetProfile(id: RefinementProfile.cleanID)
+        XCTAssertEqual(reloaded.activeProfile.displayName, localized["Clean"])
+
+        // A user profile that happens to share a built-in name is shown as typed.
+        let custom = RefinementProfile(name: "Clean", instructions: "x")
+        XCTAssertEqual(custom.displayName, "Clean")
+        XCTAssertEqual(RefinementProfile.displayName(forSavedName: "Notes"), "Notes")
+
+        // Prompts keep the stored English name.
+        let request = RefineRequest(transcript: "hi", profile: reloaded.profiles[1], baseRules: reloaded.baseRules,
+                                    context: .empty, family: .general, dictionary: [])
+        XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("PROFILE Concise"))
+    }
 }

@@ -1,0 +1,39 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Start dictation in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 ${applicationName} 開始聽寫"
+          }
+        }
+      }
+    },
+    "Stop dictation in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 ${applicationName} 停止聽寫"
+          }
+        }
+      }
+    },
+    "Cancel dictation in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 ${applicationName} 取消聽寫"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -20,8 +20,8 @@ struct HotkeyRecorderView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .help("Reset to \(Hotkey.controlOption.displayString)")
-                .accessibilityLabel("Reset shortcut to \(Hotkey.controlOption.displayString)")
+                .help("Reset to \(Hotkey.controlOption.localizedDisplayString)")
+                .accessibilityLabel("Reset shortcut to \(Hotkey.controlOption.localizedDisplayString)")
             }
             if recording {
                 Text("Press a key or combination…  Esc cancels")

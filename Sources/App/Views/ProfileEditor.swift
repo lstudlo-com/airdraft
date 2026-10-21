@@ -40,7 +40,7 @@ struct ProfileEditor<Chooser: View>: View {
                         .accessibilityIdentifier("profiles.name")
                         .onSubmit(commitName)
                         .onExitCommand {
-                            nameDraft = current.name
+                            nameDraft = current.displayName
                             nameFocused = false
                         }
                         .onChange(of: nameFocused) { _, focused in
@@ -74,12 +74,12 @@ struct ProfileEditor<Chooser: View>: View {
                 }
             }
             .onAppear {
-                nameDraft = current.name
+                nameDraft = current.displayName
                 showTask = !current.task.isEmpty
                 focusNameIfRequested()
             }
             .onDisappear(perform: commitName)
-            .onChange(of: current.name) { _, name in
+            .onChange(of: current.displayName) { _, name in
                 if !nameFocused { nameDraft = name }
             }
             .onChange(of: current.task) { _, task in
@@ -116,13 +116,14 @@ struct ProfileEditor<Chooser: View>: View {
     }
 
     /// An empty draft restores the saved name rather than leaving the profile untitled.
+    /// An unedited built-in name stays stored in English and shown localized.
     private func commitName() {
         let name = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else {
-            nameDraft = current.name
+            nameDraft = current.displayName
             return
         }
-        if name != current.name {
+        if name != current.displayName {
             var updated = current
             updated.name = name
             container.profiles.update(updated)

@@ -40,7 +40,7 @@ struct MeetingSheet: View {
                     container.meeting?.start(applicationID: selection.selectedID, microphoneID: container.settings.microphone.uid,
                         microphone: includeMicrophone, microphoneChannel: container.settings.microphone.channelIndex ?? 0, sourceName: selection.selectedName)
                     dismiss()
-                }.buttonStyle(SoftButtonStyle(prominent: true))
+                }.primaryButtonStyle()
                     .disabled(container.pipeline.isBusy || container.meeting == nil || selection.unavailable)
                     .accessibilityIdentifier("meeting.start")
             }
@@ -119,7 +119,7 @@ struct MeetingRecordingStatus: View {
                 Spacer(minLength: 0)
                 if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
                 else if meeting.state == .recording {
-                    Button("Stop and Save") { Task { await meeting.stop() } }.buttonStyle(SoftButtonStyle(prominent: true))
+                    Button("Stop and Save") { Task { await meeting.stop() } }.primaryButtonStyle()
                         .accessibilityIdentifier("meeting.stop")
                 } else { ProgressView().controlSize(.small) }
             }

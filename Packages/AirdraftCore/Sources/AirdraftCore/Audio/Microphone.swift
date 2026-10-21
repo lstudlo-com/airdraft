@@ -31,6 +31,12 @@ public struct MicrophonePreference: Codable, Equatable, Sendable {
     public var channelIndex: Int?
     public static let systemDefault = MicrophonePreference(uid: nil, name: "System default")
 
+    /// The interface name. The saved name stays English; System Default is localized and
+    /// device names are shown as Core Audio reports them.
+    public var displayName: String {
+        uid == nil ? String(localized: "System Default", bundle: .module, comment: "The microphone macOS currently uses") : name
+    }
+
     public init(uid: String?, name: String, channelIndex: Int? = nil) {
         self.uid = uid
         self.name = name

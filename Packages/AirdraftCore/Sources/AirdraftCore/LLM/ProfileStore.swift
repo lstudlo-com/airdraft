@@ -59,7 +59,7 @@ public final class ProfileStore {
     @discardableResult
     public func addNew() -> RefinementProfile {
         let base = activeProfile
-        let name = uniqueName(base.usesLLM ? "\(base.name) copy" : "New profile")
+        let name = uniqueName(base.usesLLM ? Self.copyName(base) : String(localized: "New profile", bundle: .module))
         return add(RefinementProfile(
             name: name,
             symbol: base.symbol,
@@ -75,7 +75,7 @@ public final class ProfileStore {
     public func duplicate(id: UUID) -> RefinementProfile? {
         guard let source = profiles.first(where: { $0.id == id }) else { return nil }
         return add(RefinementProfile(
-            name: uniqueName("\(source.name) copy"), symbol: source.symbol,
+            name: uniqueName(Self.copyName(source)), symbol: source.symbol,
             usesLLM: source.usesLLM, task: source.task, instructions: source.instructions,
             speechModel: source.speechModel
         ))
@@ -130,10 +130,10 @@ public final class ProfileStore {
         do { p = try JSONDecoder().decode(Persisted.self, from: Data(contentsOf: fileURL)) }
         catch {
             if let backup = UnreadableFile.setAside(fileURL) {
-                persistenceError = "Profiles could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Defaults are shown until you restore your file."
+                persistenceError = String(localized: "Profiles could not be read. The original is preserved as \(backup.lastPathComponent) in the data folder. Defaults are shown until you restore your file.", bundle: .module)
             } else {
                 unreadableOriginal = true
-                persistenceError = "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft."
+                persistenceError = String(localized: "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft.", bundle: .module)
             }
             return
         }
@@ -165,6 +165,11 @@ public final class ProfileStore {
             persistenceError = String(localized: "Changes are not saved. Keep Airdraft open and retry after checking storage.", bundle: .module) + " " + error.localizedDescription
             return false
         }
+    }
+
+    /// A new profile's name is the user's own text, so it starts in the interface language.
+    private static func copyName(_ source: RefinementProfile) -> String {
+        String(localized: "\(source.displayName) copy", bundle: .module, comment: "Name of a duplicated profile")
     }
 
     private func uniqueName(_ base: String) -> String {

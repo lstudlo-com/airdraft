@@ -96,7 +96,7 @@ struct OnboardingView: View {
                 Text("Try the keys first, or continue when you are ready.").supportingText()
             }
             Button(continueTitle, action: advance)
-                .primaryButtonStyle().controlSize(.large)
+                .primaryButtonStyle()
                 .keyboardShortcut(.defaultAction)
                 .disabled(!canContinue || busy)
                 .accessibilityIdentifier("onboarding.continue")

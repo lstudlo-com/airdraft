@@ -11,6 +11,7 @@ final class LocalizationCatalogTests: XCTestCase {
     private static let catalogs = [
         "Sources/App/Localizable.xcstrings",
         "Sources/App/InfoPlist.xcstrings",
+        "Sources/App/AppShortcuts.xcstrings",
         "Packages/AirdraftCore/Sources/AirdraftCore/Resources/Localizable.xcstrings",
     ]
 
@@ -44,12 +45,33 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertTrue(problems.isEmpty, problems.sorted().joined(separator: "\n"))
     }
 
+    /// Siri and Shortcuts reject an App Shortcut phrase without the app name, in any language.
+    func testAppShortcutPhrasesKeepTheApplicationName() throws {
+        let url = Self.repository.appendingPathComponent("Sources/App/AppShortcuts.xcstrings")
+        let catalog = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let strings = try XCTUnwrap(catalog["strings"] as? [String: [String: Any]])
+        XCTAssertEqual(Set(strings.keys), ["Start dictation in ${applicationName}", "Stop dictation in ${applicationName}",
+                                           "Cancel dictation in ${applicationName}"])
+        for (key, entry) in strings {
+            XCTAssertTrue(key.contains("${applicationName}"), key)
+            let localizations = try XCTUnwrap(entry["localizations"] as? [String: [String: Any]], key)
+            for (language, localization) in localizations {
+                let value = (localization["stringUnit"] as? [String: Any])?["value"] as? String ?? ""
+                XCTAssertEqual(value.components(separatedBy: "${applicationName}").count, 2, "\(language): \(value)")
+            }
+        }
+    }
+
     func testCoreBundleResolvesTraditionalChinese() throws {
         XCTAssertTrue(Bundle.module.localizations.contains("zh-Hant"), "\(Bundle.module.localizations)")
         let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hant", ofType: "lproj"))
         let chinese = try XCTUnwrap(Bundle(path: path))
         XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "關閉")
         XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼簿")
+        // Built-in profile names and a modifier key's side are shown in the interface language.
+        XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
+        XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
+        XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
         // The test process runs in English: Core copy keeps its exact source wording.
         XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
     }

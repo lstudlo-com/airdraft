@@ -19,6 +19,8 @@ struct HistoryPage: View {
     @State private var loading = false
     @State private var hasMore = false
     @State private var errorMessage: String?
+    /// The last read failed: show only its notice, never the empty state beneath it.
+    @State private var loadFailed = false
     private let pageSize = min(10_000, max(1, Int(RenderMode.value("HISTORY_COUNT") ?? "") ?? 200))
     @State private var query = ""
     @State private var recordingsOnly = RenderMode.value("RECORDINGS_ONLY") == "1"
@@ -52,12 +54,12 @@ struct HistoryPage: View {
                 if snapshot.entries.isEmpty {
                     if loading {
                         ProgressView("Loading History…").controlSize(.small).padding(.top, Theme.pagePadding)
-                    } else {
-                    EmptyNote(query.isEmpty ? (recordingsOnly ? "No saved recordings." : "No history yet.") : "No matches.")
-                        .padding(.top, Theme.pagePadding)
-                    if recordingsOnly && query.isEmpty && container.settings.audioRetention == .off {
-                        Text("Turn on Keep Recordings to save future dictations.").supportingText()
-                    }
+                    } else if !loadFailed {
+                        EmptyNote(query.isEmpty ? (recordingsOnly ? "No saved recordings." : "No history yet.") : "No matches.")
+                            .padding(.top, Theme.pagePadding)
+                        if recordingsOnly && query.isEmpty && container.settings.audioRetention == .off {
+                            Text("Turn on Keep Recordings to save future dictations.").supportingText()
+                        }
                     }
                 } else {
                     HStack(alignment: .top, spacing: Theme.controlSpacing) {
@@ -109,8 +111,15 @@ struct HistoryPage: View {
     }
 
     private func reload(append: Bool = false) async {
+        // Renders: `HISTORY_ERROR=<message>` shows an unreadable History, as on Home.
+        if RenderMode.isActive, let message = RenderMode.value("HISTORY_ERROR") {
+            errorMessage = String(localized: "History could not be read.") + " " + message
+            loadFailed = true
+            return
+        }
         guard let history = container.history else {
             errorMessage = String(localized: "History storage is unavailable. Restart Airdraft after checking available disk space.")
+            loadFailed = true
             return
         }
         if append && loading { return }
@@ -149,13 +158,15 @@ struct HistoryPage: View {
             hasMore = result.1 != nil
             nextOffset = result.1
             errorMessage = nil
+            loadFailed = false
             if scroll.currentRecordID.flatMap({ snapshot.indexByID[$0] }) == nil {
                 scroll.currentRecordID = snapshot.entries.first?.id
                 scroll.entryPosition.scrollTo(edge: .top)
             }
         } catch {
             guard loadID == token else { return }
-            errorMessage = String(localized: "History could not be loaded.") + " " + error.localizedDescription
+            errorMessage = String(localized: "History could not be read.") + " " + error.localizedDescription
+            loadFailed = true
         }
     }
 }
@@ -853,9 +864,9 @@ struct HistoryCard<RecordingControls: View>: View {
             row(String(localized: "Audio"), entry.audioAvailable ? String(localized: "Saved locally") : String(localized: "Unavailable"))
             row(String(localized: "App"), [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
             if let url = record.url { row("URL", url) }
-            row(String(localized: "Profile"), "\(record.mode) · \(record.family)")
-            row(String(localized: "Speech"), String(localized: "\(record.asrEngine) · \(record.asrMs) ms"))
-            row(String(localized: "Refinement"), record.llmEngine.map { String(localized: "\($0) · \(record.llmMs) ms") } ?? String(localized: "skipped"))
+            row(String(localized: "Profile"), "\(RefinementProfile.displayName(forSavedName: record.mode)) · \(record.family)")
+            row(String(localized: "Speech"), "\(record.asrEngine) · \(DurationLabel.milliseconds(record.asrMs))")
+            row(String(localized: "Refinement"), record.llmEngine.map { "\($0) · \(DurationLabel.milliseconds(record.llmMs))" } ?? String(localized: "skipped"))
             if let e = record.error { row(String(localized: "Error"), e) }
             if record.outputDestination == TextOutputDestination.script.rawValue {
                 row(String(localized: "Script delivery"), record.outputSucceeded == true ? String(localized: "completed") : String(localized: "failed or interrupted"))

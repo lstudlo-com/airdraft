@@ -47,6 +47,17 @@
         }
       }
     },
+    "%@ copy" : {
+      "comment" : "Name of a duplicated profile",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 副本"
+          }
+        }
+      }
+    },
     "%@ does not support %@. Choose a supported language on Models or another speech model." : {
       "localizations" : {
         "en" : {
@@ -1055,6 +1066,16 @@
         }
       }
     },
+    "Choose a script using its absolute file path." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請使用絕對檔案路徑選擇腳本。"
+          }
+        }
+      }
+    },
     "Choose a speech model in Models." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1071,6 +1092,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "經典"
+          }
+        }
+      }
+    },
+    "Clean" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整理"
           }
         }
       }
@@ -1121,6 +1153,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壓縮的 Core ML 權重。"
+          }
+        }
+      }
+    },
+    "Concise" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "精簡"
           }
         }
       }
@@ -1957,6 +2000,17 @@
         }
       }
     },
+    "Left %@" : {
+      "comment" : "A modifier key on the left side of the keyboard, e.g. Left ⌥",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左 %@"
+          }
+        }
+      }
+    },
     "Light" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2283,6 +2337,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要處理"
+          }
+        }
+      }
+    },
+    "New profile" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新模式"
           }
         }
       }
@@ -2653,6 +2717,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按下"
+          }
+        }
+      }
+    },
+    "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取或備份模式。為保護原始檔案，已暫停儲存。請檢查資料夾權限並重新打開 Airdraft。"
+          }
+        }
+      }
+    },
+    "Profiles could not be read. The original is preserved as %@ in the data folder. Defaults are shown until you restore your file." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取模式。原始檔案已在資料夾中保留為 %@。在你復原該檔案前，會先顯示預設值。"
           }
         }
       }
@@ -3039,6 +3123,17 @@
         }
       }
     },
+    "Right %@" : {
+      "comment" : "A modifier key on the right side of the keyboard, e.g. Right ⌥",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右 %@"
+          }
+        }
+      }
+    },
     "Runs on the Neural Engine." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3295,6 +3390,17 @@
         }
       }
     },
+    "Summary" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要"
+          }
+        }
+      }
+    },
     "Summary cancelled. The transcript is unchanged." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3341,6 +3447,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 與 NL 之間切換。此模式不支援華語；會忽略「語言」設定。"
+          }
+        }
+      }
+    },
+    "System Default" : {
+      "comment" : "The microphone macOS currently uses",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統預設"
           }
         }
       }
@@ -4071,6 +4188,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "依模型而異"
+          }
+        }
+      }
+    },
+    "Verbatim" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字"
           }
         }
       }

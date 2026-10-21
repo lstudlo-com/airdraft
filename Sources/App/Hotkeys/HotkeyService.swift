@@ -74,7 +74,7 @@ final class HotkeyService {
             let ok = carbon.register(hotkey)
             backend = ok ? .carbon : .none
             isActive = ok
-            statusText = ok ? String(localized: "Active (\(hotkey.displayString))") : String(localized: "Could not register \(hotkey.displayString); another app may own it.")
+            statusText = ok ? String(localized: "Active (\(hotkey.localizedDisplayString))") : String(localized: "Could not register \(hotkey.localizedDisplayString); another app may own it.")
             Self.log.notice("hotkey backend=carbon active=\(ok, privacy: .public) key=\(hotkey.displayString, privacy: .public)")
             return
         }
@@ -111,10 +111,10 @@ final class HotkeyService {
         }
         isActive = active
         statusText = active
-            ? String(localized: "Active (\(hotkey.displayString))")
+            ? String(localized: "Active (\(hotkey.localizedDisplayString))")
             : permissions.accessibilityGranted
                 ? String(localized: "Permission granted, but the shortcut monitor is unavailable. Quit and reopen Airdraft.")
-                : String(localized: "Waiting for Accessibility permission (needed for \(hotkey.displayString))")
+                : String(localized: "Waiting for Accessibility permission (needed for \(hotkey.localizedDisplayString))")
     }
 
     private func press() {

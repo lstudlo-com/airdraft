@@ -38,7 +38,7 @@ struct ProfilePromptPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            Text("Prompt for \(profile.name)").font(.system(size: 18, weight: .semibold))
+            Text("Prompt for \(profile.displayName)").font(.system(size: 18, weight: .semibold))
             ScrollView {
                 Text(prompt)
                     .font(.system(size: 12, design: .monospaced))

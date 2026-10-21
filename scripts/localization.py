@@ -22,6 +22,7 @@ LANGUAGES = ("zh-Hant",)
 CATALOGS = {
     "app": ROOT / "Sources/App/Localizable.xcstrings",
     "infoplist": ROOT / "Sources/App/InfoPlist.xcstrings",
+    "appshortcuts": ROOT / "Sources/App/AppShortcuts.xcstrings",
     "core": ROOT / "Packages/AirdraftCore/Sources/AirdraftCore/Resources/Localizable.xcstrings",
 }
 SOURCES = {
