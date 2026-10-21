@@ -1,4 +1,9 @@
-# Accessibility access
+# Accessibility
+
+This document covers two topics: the macOS Accessibility *permission* that
+dictation needs to insert text (the first sections), and how the app itself works
+with assistive technologies and display settings (see
+[Assistive technologies and display settings](#assistive-technologies-and-display-settings)).
 
 macOS grants access to a particular app identity. Two switches labelled Airdraft
 do not prove that the currently running binary is trusted. Airdraft checks
@@ -196,3 +201,120 @@ References:
 - [Apple DTS on ad-hoc signing and TCC](https://developer.apple.com/forums/thread/125438)
 - [Apple Developer ID distribution](https://developer.apple.com/developer-id/)
 - [Rectangle's Accessibility recovery procedure](https://github.com/rxhanson/Rectangle#try-resetting-the-macos-accessibility-permissions-for-rectangle)
+
+## Assistive technologies and display settings
+
+Audited October 2026 (AD-078) on macOS 27 with the macOS 27 SDK, by code review
+and by reading the accessibility tree of the app's own windows. VoiceOver itself
+was not turned on and no system accessibility setting was changed; the live
+walkthrough below is still required.
+
+### Text size
+
+Settings > Appearance > Text size offers Default, Large and Larger, which multiply
+every shared text style by 1.0, 1.12 and 1.24. Default keeps the design sizes.
+Views set type through `.appFont(TextStyle)` (`Sources/App/Views/Typography.swift`);
+the window root and every sheet presented from it inherit the scale, and History
+transcripts remeasure their six-line bound with the scaled AppKit font.
+
+macOS gives SwiftUI no Dynamic Type for app text: on macOS 27, `Font.body` and
+`NSFont.preferredFont(forTextStyle: .body)` stay 13 pt for every
+`dynamicTypeSize`, and the environment reports `.large` by default. The
+System Settings per-app text size applies only to apps Apple names there and has
+no public API. Airdraft therefore scales its own tokens. If SwiftUI ever reports a
+larger `dynamicTypeSize`, the app uses the larger of that and the user's choice
+(`.xLarge` = Large, `.xxLarge` or more = Larger); this path could not be exercised
+without changing system settings.
+
+Not scaled: SF Symbols and brand marks (fixed point sizes, aligned by their rows),
+the recording HUD (its 82 by 22 well and 34-point capsule are fixed), the native
+menu-bar menu, the onboarding key-cap artwork and the Settings HUD previews,
+which must match the real HUD.
+
+### VoiceOver audit
+
+`--render-window a11y-audit <dir>` (Debug, with `--e2e-local`) opens every page,
+both sidebar overlays, the collapsed sidebar, all six onboarding steps and the
+License sheet at Default and Larger, walks the real accessibility tree, writes one
+dump per surface and fails on:
+
+- an interactive element (button, switch, slider, picker, menu, text field, link,
+  disclosure) without a name; a placeholder does not count;
+- a control named after an SF Symbol ("Up and down chevrons", "Ellipsis");
+- a visible image without a name, or an element without a role;
+- missing expectations: page titles and section titles are headings, the Home
+  period filter is a named menu with its choice as value, Text size exposes one
+  Selected option, and History cards are named groups.
+
+Findings fixed in this audit:
+
+| Finding | Fix |
+|---|---|
+| `accessibilityHidden(activeOverlay != nil)` emitted `hidden(false)`, which re-exposed every self-hidden decorative surface below it (sidebar well, island, control faces) as unnamed `AXUnknown` elements | `accessibilityHidden(true, isEnabled:)` for conditional hiding |
+| Menus took an SF Symbol's description as their name; AppKit ignores SwiftUI's hidden flag on symbols inside a menu label | Page filters draw a plain template chevron; icon menus name the image itself |
+| Status dots, level meters, app shares, key caps, illustrations, model metrics and the single onboarding speech choice were labelled but role-less | Image, level-indicator (`ProgressView` representation) or static-text roles; the speech choice keeps its button role |
+| Vocabulary, Base URL, Endpoint, model ID and API key fields were named only by placeholders | Explicit labels |
+| Playback sliders read a raw number of seconds; the visible time duplicated it | `SoftSlider(valueDescription:)` reads "0:12 of 1:05"; the duplicate text is hidden |
+| Segmented options exposed only the selected trait | Selected / Not selected values, like the theme tiles |
+| Section titles were plain text; History card actions (Copy, Details, Delete) had no context | Section titles are headings; each card is a group named by its time, app and status |
+| Geometric order read the page heading before the sidebar | The sidebar has a higher sort priority: sidebar, sidebar toggle, page heading, page content |
+| The search field's tooltip attached to its decorative surfaces | The tooltip belongs to the text field |
+
+Already correct and kept: the sidebar destinations (selected trait, tooltips),
+microphone and account buttons; `SoftSwitch` (a native toggle representation with
+its value); `SoftSlider` (adjustable, arrow keys); `SettingsNumberStepper` buttons and typed
+field; Home waveform bars (buttons named by app and time, value with words, speed
+and expansion); model rows (one "Use …" button per row with Selected value,
+separate rating text and Download/Delete buttons, native `List` rows); the History
+timeline (headings per day, Jump to dictation buttons, the current entry
+selected, rotor entries and evicted timestamps removed, asserted by the History
+navigation fixture); recovery notices (message and actions in reading order,
+asserted by the native-ui fixture); and modal overlay focus return.
+
+### Increase Contrast, Reduce Motion and Reduce Transparency
+
+- Increase Contrast: raised surfaces, inset tracks, wells, the island and
+  `RowDivider` already strengthened their edges. Added: an edge on status dots,
+  pill tags (with primary text) and the Home hero; darker empty cells in level
+  meters and model rating meters; near-full-strength muted text; visible
+  unselected model indicators. Renders accept `AIRDRAFT_RENDER_CONTRAST=1`
+  (high-contrast appearance plus SwiftUI's increased contrast). Native `List`
+  rows take contrast from the system rather than from a render override, so their
+  Increase Contrast look is verified by code review only.
+- Reduce Motion: every spatial animation has a branch. Added for the Home
+  readiness disclosure, overview updates, sidebar collapse and settings
+  disclosures. Opacity fades remain. The sidebar well, segmented thumbs,
+  switches, waveform entrance, onboarding demonstrations, download progress, HUD
+  motion and previews already had branches. `AIRDRAFT_RENDER_REDUCE_MOTION=1`
+  sets the environment in renders.
+- Reduce Transparency: the progressive header blur is the only translucent
+  surface and becomes the opaque island color; overlays and sheets are opaque.
+  `AIRDRAFT_RENDER_REDUCE_TRANSPARENCY=1` sets the environment in renders.
+
+### Manual VoiceOver walkthrough (required)
+
+The audit proves names, roles and values exist; it cannot judge how VoiceOver
+speaks or navigates them. A person must run this with VoiceOver on (Command-F5)
+before claiming the app is VoiceOver-ready:
+
+1. Navigate the sidebar with VO-arrows: brand, seven destinations (current one
+   announced as selected), microphone (with device), License, footer. Open the
+   microphone overlay; each device reads its name and input level; Escape returns
+   focus to the microphone button.
+2. On each page, use the rotor's Headings list: the page title and every section
+   title should appear.
+3. Home: the period filter reads "Statistics period, All time, menu button";
+   interact with the waveform and activate a bar; the transcript appears and
+   Escape closes it.
+4. Settings: toggle a switch, move the Temperature slider with VO-arrows, change
+   Text size and confirm the window rescales without losing the scroll position,
+   use the search field, and step a numeric setting.
+5. Models: move through table rows, select a model, start and cancel a download.
+6. History: jump with the timeline buttons; each card announces its time and app
+   before Copy, Details and Delete; play a kept recording and seek with the slider.
+7. Onboarding (Set Up Airdraft…): every step's controls, the key caps' pressed
+   state while holding the shortcut, and the practice field.
+8. License sheet and a destructive confirmation: focus lands inside the sheet and
+   returns to its trigger.
+9. Repeat 1–4 at Text size Larger, with Increase Contrast, Reduce Motion and
+   Reduce Transparency each turned on in System Settings.
