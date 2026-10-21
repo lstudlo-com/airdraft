@@ -28,7 +28,11 @@ struct SetupReadiness {
     let container: AppContainer
     private var keys: SetupCredentialPresence { container.credentialPresence }
 
-    var issueCount: Int {
+    /// Setup rows plus the license and kept-recording bounds the pipeline enforces,
+    /// so Home never says Ready while the shortcut would be refused.
+    var issueCount: Int { setupIssueCount + blockers.count }
+
+    var setupIssueCount: Int {
         [container.hotkeys.isActive, outputReady, microphoneReady, speechTone != .attention, refinementTone != .attention]
             .filter { !$0 }.count
     }
@@ -36,8 +40,60 @@ struct SetupReadiness {
     var summary: String {
         let issues = issueCount
         if issues == 0 { return String(localized: "Ready to dictate") }
-        if issues == 1 { return String(localized: "1 setup step needs attention") }
-        return String(localized: "\(issues) setup steps need attention")
+        if blockers.isEmpty {
+            if issues == 1 { return String(localized: "1 setup step needs attention") }
+            return String(localized: "\(issues) setup steps need attention")
+        }
+        if issues == 1, let blocker = blockers.first {
+            switch blocker {
+            case .license(.needsTrial): return String(localized: "Start your free trial to dictate")
+            case .license: return String(localized: "A license is needed to dictate")
+            case .waitingRecordings: return String(localized: "Recordings are waiting for retry")
+            }
+        }
+        return String(localized: "\(issues) items need attention")
+    }
+
+    /// The sidebar footer names the kind of work Home is waiting on.
+    var footerTitle: LocalizedStringResource {
+        setupIssueCount == 0 && blockers == [.waitingRecordings] ? "Recordings Waiting" : "Finish Setup"
+    }
+
+    // MARK: Pipeline blockers
+
+    var blockers: [DictationBlocker] {
+        DictationBlocker.current(license: container.license.access, canKeepAnotherRecording: canKeepAnotherRecording)
+    }
+
+    var licenseBlocker: LicenseStore.Access? {
+        for case .license(let access) in blockers { return access }
+        return nil
+    }
+
+    var recordingsBlocked: Bool { blockers.contains(.waitingRecordings) }
+
+    /// The pipeline's own bound. Debug renders fill it with `AIRDRAFT_RENDER_PENDING_RECORDINGS`.
+    private var canKeepAnotherRecording: Bool {
+        if let count = RenderMode.value("PENDING_RECORDINGS").flatMap(Int.init) {
+            return count < DictationPipeline.maximumPendingRecordings
+        }
+        return container.pipeline.canKeepAnotherRecording
+    }
+
+    var licenseDetail: String {
+        switch licenseBlocker {
+        case .needsTrial: String(localized: "Start a free trial or enter a license key")
+        case .expired: String(localized: "Your trial or license has ended")
+        case .revoked: String(localized: "This license is no longer active")
+        case .locked: String(localized: "License needs Keychain access")
+        case .clockChanged: String(localized: "Correct the date and time to continue your trial")
+        case .unconfigured: String(localized: "This build is missing its licensing configuration")
+        default: ""
+        }
+    }
+
+    var recordingsDetail: String {
+        String(localized: "Retry or discard a waiting recording above to record again")
     }
 
     var outputReady: Bool {

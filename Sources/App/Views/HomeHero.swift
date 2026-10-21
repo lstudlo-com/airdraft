@@ -10,11 +10,12 @@ struct HomeHero: View {
     let hotkey: Hotkey
     let behavior: HotkeyBehavior
     var triggerDelayMilliseconds = 0
-    var isReady = true
     var canDictate = true
-    /// No dictation has been saved yet: the metrics would all read zero, so the
-    /// hero explains what fills it instead.
-    var isFirstRun = false
+    /// History decides between metrics and a headline. Before the first saved
+    /// dictation the metrics would all read zero, so the hero explains what fills
+    /// it; an unreadable History is never shown as a first run.
+    var content: HomeHistoryContent = .metrics
+    private var isReady: Bool { content != .loading }
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -35,8 +36,10 @@ struct HomeHero: View {
 
     var body: some View {
         VStack(spacing: Theme.sectionSpacing) {
-            if isFirstRun {
+            if content == .firstDictation {
                 firstRunHeadline
+            } else if content == .unavailable {
+                unavailableHeadline
             } else {
                 HStack(alignment: .top, spacing: Theme.controlSpacing) {
                     HeroMetric(value: stats.wordsPerMinute.formatted(), unit: String(localized: "WPM"), label: "Average speed")
@@ -114,6 +117,25 @@ struct HomeHero: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
         .accessibilityIdentifier("home.first-run")
+    }
+
+    /// Same height as the metric row. The notice below the hero offers Reload History.
+    private var unavailableHeadline: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("History unavailable")
+                .font(.system(size: 18, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text("Your speed, words and time saved return when History can be read.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("home.history-unavailable")
     }
 
     private var selectedPulse: HistoryStore.Overview.Pulse? {
@@ -344,7 +366,8 @@ struct HomeHero: View {
                     }
                 }
             } else if overview.pulses.isEmpty && !canDictate {
-                Text("Complete setup below before your first dictation.")
+                content == .firstDictation ? Text("Complete setup below before your first dictation.")
+                    : Text("Resolve the items below to dictate.")
             } else if overview.pulses.isEmpty {
                 HStack(spacing: 6) {
                     Text(behavior.instructionVerb(triggerDelayMilliseconds: triggerDelayMilliseconds))
@@ -526,7 +549,7 @@ struct HeroMetric: View {
 }
 
 #Preview("Hero · first run") {
-    HomeHero(overview: .empty, periodTitle: "All time", hotkey: .controlOption, behavior: .hold, isFirstRun: true)
+    HomeHero(overview: .empty, periodTitle: "All time", hotkey: .controlOption, behavior: .hold, content: .firstDictation)
         .padding(Theme.pagePadding)
         .frame(width: 720)
 }

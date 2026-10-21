@@ -422,14 +422,14 @@ struct SidebarView: View {
     }
 
     /// Home's readiness decides this line, so the sidebar never says Ready while
-    /// Home lists setup steps that still need attention.
+    /// Home lists setup steps, a license or waiting recordings that need attention.
     @ViewBuilder private var footerLabel: some View {
         let readiness = container.readiness
         if readiness.issueCount > 0 {
             Button { container.navigation.page = .home } label: {
                 HStack(spacing: 6) {
                     StatusDot(.attention).accessibilityHidden(true)
-                    Text("Finish Setup").lineLimit(1)
+                    Text(readiness.footerTitle).lineLimit(1)
                 }
                 .contentShape(Rectangle())
             }

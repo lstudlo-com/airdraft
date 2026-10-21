@@ -651,6 +651,10 @@ struct OnboardingRefinementChoice: View {
 
     private var llm: LLMConfig { container.settings.llm }
     private var available: Bool { availability == .available }
+    /// The saved active profile, not practice's temporary override. A profile that
+    /// skips refinement, such as Verbatim, keeps the transcript whatever provider is set.
+    private var profile: RefinementProfile { container.profiles.activeProfile }
+    private var keepsExactWords: Bool { !profile.usesLLM }
 
     var body: some View {
         SettingsCard {
@@ -677,7 +681,10 @@ struct OnboardingRefinementChoice: View {
     }
 
     private var title: Text {
-        switch llm.kind {
+        if keepsExactWords {
+            return profile.name.isEmpty ? Text("This profile keeps your exact words") : Text("\(profile.name) keeps your exact words")
+        }
+        return switch llm.kind {
         case .none: available ? Text("Tidy your words with Apple Intelligence") : Text("Let AI tidy your words")
         case .appleIntelligence: Text("Apple Intelligence tidies your words")
         default: Text("Your words are tidied by \(llm.displayName)")
@@ -685,7 +692,19 @@ struct OnboardingRefinementChoice: View {
     }
 
     private var detail: Text {
-        switch llm.kind {
+        if keepsExactWords {
+            return switch llm.kind {
+            case .none where available:
+                Text("This profile skips tidying. Apple Intelligence can tidy profiles that use refinement, on this Mac with no key.")
+            case .none:
+                Text("This profile skips tidying. To tidy words, set up refinement in Models and use a profile that refines.")
+            case .appleIntelligence:
+                Text("This profile skips tidying. Apple Intelligence tidies profiles that use refinement.")
+            default:
+                Text("This profile skips tidying. \(llm.displayName) tidies profiles that use refinement.")
+            }
+        }
+        return switch llm.kind {
         case .none:
             available ? Text("Removes filler words and fixes punctuation. It runs on this Mac, with no key or download.")
                 : AppleIntelligenceSetup.explanation(availability)

@@ -240,6 +240,16 @@
         }
       }
     },
+    "%@ keeps your exact words" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」會保留你說的每個字"
+          }
+        }
+      }
+    },
     "%@ left in your trial" : {
       "localizations" : {
         "zh-Hant" : {
@@ -529,6 +539,16 @@
         }
       }
     },
+    "%lld items need attention" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有 %lld 個項目需要處理"
+          }
+        }
+      }
+    },
     "%lld languages" : {
       "localizations" : {
         "zh-Hant" : {
@@ -773,6 +793,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CLI 至少 60 秒；逾時則使用原始文字"
+          }
+        }
+      }
+    },
+    "A license is needed to dictate" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要授權才能聽寫"
           }
         }
       }
@@ -2677,6 +2707,16 @@
         }
       }
     },
+    "Correct the date and time to continue your trial" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請修正日期與時間以繼續試用"
+          }
+        }
+      }
+    },
     "Could not delete the model files: %@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -4137,6 +4177,16 @@
         }
       }
     },
+    "History unavailable" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用記錄"
+          }
+        }
+      }
+    },
     "History…" : {
       "localizations" : {
         "zh-Hant" : {
@@ -4858,6 +4908,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "授權碼"
+          }
+        }
+      }
+    },
+    "License needs Keychain access" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授權需要存取鑰匙圈"
           }
         }
       }
@@ -7474,6 +7534,26 @@
         }
       }
     },
+    "Recordings Waiting" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音待處理"
+          }
+        }
+      }
+    },
+    "Recordings are waiting for retry" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有錄音正在等待重試"
+          }
+        }
+      }
+    },
     "Recordings could not be loaded." : {
       "localizations" : {
         "zh-Hant" : {
@@ -8031,6 +8111,16 @@
         }
       }
     },
+    "Resolve the items below to dictate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先處理下方項目再聽寫。"
+          }
+        }
+      }
+    },
     "Restore Defaults" : {
       "localizations" : {
         "zh-Hant" : {
@@ -8163,6 +8253,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新轉錄"
+          }
+        }
+      }
+    },
+    "Retry or discard a waiting recording above to record again" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請重試或捨棄上方等待中的錄音，才能再次錄音"
           }
         }
       }
@@ -9219,6 +9319,16 @@
         }
       }
     },
+    "Start a free trial or enter a license key" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始免費試用或輸入授權金鑰"
+          }
+        }
+      }
+    },
     "Start fresh" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9235,6 +9345,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用目前的語音模型與潤稿模式開始錄音。"
+          }
+        }
+      }
+    },
+    "Start your free trial to dictate" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始免費試用以使用聽寫"
           }
         }
       }
@@ -9645,6 +9765,16 @@
         }
       }
     },
+    "This build is missing its licensing configuration" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本缺少授權設定"
+          }
+        }
+      }
+    },
     "This cannot be undone." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9665,12 +9795,72 @@
         }
       }
     },
+    "This license is no longer active" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此授權已失效"
+          }
+        }
+      }
+    },
     "This only clears the saved activation on this Mac. It cannot release a device slot in Polar. For a rotated key, use Update Key instead." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "這只會清除這台 Mac 上已儲存的啟用資訊，無法釋放 Polar 中的裝置名額。若已更換授權碼，請改用「更新授權碼」。"
+          }
+        }
+      }
+    },
+    "This profile keeps your exact words" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式會保留你說的每個字"
+          }
+        }
+      }
+    },
+    "This profile skips tidying. %@ tidies profiles that use refinement." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式不整理文字。%@ 會整理使用潤稿的模式。"
+          }
+        }
+      }
+    },
+    "This profile skips tidying. Apple Intelligence can tidy profiles that use refinement, on this Mac with no key." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式不整理文字。Apple Intelligence 可以在這台 Mac 上整理使用潤稿的模式，不需要金鑰。"
+          }
+        }
+      }
+    },
+    "This profile skips tidying. Apple Intelligence tidies profiles that use refinement." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式不整理文字。Apple Intelligence 會整理使用潤稿的模式。"
+          }
+        }
+      }
+    },
+    "This profile skips tidying. To tidy words, set up refinement in Models and use a profile that refines." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式不整理文字。若要整理文字，請在「模型」中設定潤稿，並使用會潤稿的模式。"
           }
         }
       }
@@ -10488,6 +10678,16 @@
         }
       }
     },
+    "Waiting recordings" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待中的錄音"
+          }
+        }
+      }
+    },
     "Welcome" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10628,12 +10828,32 @@
         }
       }
     },
+    "Your speed, words and time saved return when History can be read." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可以讀取記錄後，這裡會再次顯示你的速度、字數和節省的時間。"
+          }
+        }
+      }
+    },
     "Your trial has ended" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的試用期已結束"
+          }
+        }
+      }
+    },
+    "Your trial or license has ended" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的試用或授權已結束"
           }
         }
       }

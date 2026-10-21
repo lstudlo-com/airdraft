@@ -407,8 +407,13 @@ verification status belong in the vault (see below).
   Empty-state strokes are decorative. The four headline values use 23-point type.
   Before the first saved dictation, the hero replaces its zero metrics with a
   same-height first-dictation headline; the metric row stays hidden until history
-  loads. Home's readiness card, hero and the sidebar footer share `SetupReadiness`;
-  the footer shows Finish Setup (opening Home) whenever Home reports setup issues.
+  loads. Only a loaded, empty History is a first run (`HomeHistoryContent`): a failed
+  read or missing store shows History Unavailable and an error-aware Recent card.
+  Home's readiness card, hero and the sidebar footer share `SetupReadiness`, which
+  also reports the pipeline's blockers (`DictationBlocker`): an official build's
+  missing trial/license (Trial & License…) and full kept-recording bounds (retry or
+  discard). A pending license read is not a blocker. The footer opens Home: Finish
+  Setup, or Recordings Waiting when that is the only issue.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. Buttons and menu items
@@ -811,11 +816,15 @@ ignoring saved profile bindings without mutating them. Restore returning users'
 refinement and output settings on exit and after restart. Ready offers refinement
 after practice: when the system reports Apple Intelligence available, one click
 selects it (Turn Off reverts it); otherwise explain the system reason plainly and
-keep Open Models. Never ask for a key, download or prompt there, and never replace
+keep Open Models. When the saved active profile skips refinement (Verbatim), say
+it keeps exact words and that the provider tidies profiles that refine; never
+change profiles there. Never ask for a key, download or prompt there, and never replace
 a returning user's other provider. `AppSettings.chooseRefinement` updates the
 practice restore snapshot while practice runs. Availability uses
 `AppleIntelligenceRefiner.availability`; renders and fixtures inject it with
-`AIRDRAFT_RENDER_APPLE_INTELLIGENCE` (`onboarding-done-ai-*` render states).
+`AIRDRAFT_RENDER_APPLE_INTELLIGENCE` (`onboarding-done-ai-*` render states; a
+`-verbatim` suffix activates Verbatim). Home renders take `AIRDRAFT_RENDER_LICENSE`,
+`AIRDRAFT_RENDER_PENDING_RECORDINGS` and `AIRDRAFT_RENDER_HISTORY_ERROR`.
 Onboarding key caps size to their printed key name and never truncate it. Never execute a saved
 script during practice. Renders and fixtures never load models. Use isolated
 preview containers for the `onboarding-*` Debug renders; `native-ui` walks the
