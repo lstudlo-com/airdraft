@@ -4131,16 +4131,6 @@
         }
       }
     },
-    "History could not be loaded." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法載入記錄。"
-          }
-        }
-      }
-    },
     "History could not be read." : {
       "localizations" : {
         "zh-Hant" : {
