@@ -80,7 +80,7 @@ enum ModelCatalogue {
         ModelEntry(
             id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
-            note: String(localized: "Fastest.")
+            note: String(localized: "Smaller and faster; weaker with English terms in Chinese speech.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
@@ -116,6 +116,33 @@ enum ModelCatalogue {
                           brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
                           speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
                           note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }
+    }
+}
+
+extension LocalSpeechRecommendation.Model {
+    var catalogueID: String {
+        switch self {
+        case .qwen3Large: "qwen3:1.7b"
+        case .senseVoice: "sherpa:senseVoice"
+        case .whisperTurbo: "whisper:turbo"
+        }
+    }
+}
+
+extension ModelCatalogue {
+    /// One recommendation for first-run setup and Models (AD-074). Renders inject
+    /// the system language and memory so both cases can be inspected on any Mac.
+    static var recommendation: LocalSpeechRecommendation {
+        let language = RenderMode.value("SYSTEM_LANGUAGE") ?? LocalSpeechRecommendation.systemLanguageCode
+        return .recommend(languageCode: language, physicalMemory: physicalMemory)
+    }
+
+    static var physicalMemory: UInt64 {
+        RenderMode.value("MEMORY_GB").flatMap { UInt64($0) }.map { $0 << 30 } ?? ProcessInfo.processInfo.physicalMemory
+    }
+
+    static func entry(_ model: LocalSpeechRecommendation.Model) -> ModelEntry {
+        entries.first { $0.id == model.catalogueID }!
     }
 }
 

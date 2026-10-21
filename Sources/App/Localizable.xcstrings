@@ -220,6 +220,22 @@
         }
       }
     },
+    "%@ download. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ download. %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載大小 %1$@。%2$@"
+          }
+        }
+      }
+    },
     "%@ is no longer available. Choose another app." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1763,6 +1779,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "華語準確度最佳，支援 20 多種方言。"
+          }
+        }
+      }
+    },
+    "Best fit" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合"
           }
         }
       }
@@ -3777,16 +3803,6 @@
         }
       }
     },
-    "Fastest." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最快。"
-          }
-        }
-      }
-    },
     "Final text" : {
       "localizations" : {
         "zh-Hant" : {
@@ -5557,6 +5573,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法取得模型；請輸入模型 ID。"
+          }
+        }
+      }
+    },
+    "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中英夾雜時最準確。使用約 2.5 GB 記憶體。"
           }
         }
       }
@@ -7354,6 +7380,16 @@
         }
       }
     },
+    "Recommended because this Mac has %@ of memory, leaving room for your other apps." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 有 %@ 記憶體，因此推薦這個模型，為其他 App 保留空間。"
+          }
+        }
+      }
+    },
     "Record Meeting" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9079,6 +9115,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "少於此字數時略過潤稿"
+          }
+        }
+      }
+    },
+    "Small and fast, and works well on any Mac." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小巧快速，在任何 Mac 上都很好用。"
+          }
+        }
+      }
+    },
+    "Smaller and faster; weaker with English terms in Chinese speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "較小、較快；中文夾雜英文詞時較弱。"
           }
         }
       }
