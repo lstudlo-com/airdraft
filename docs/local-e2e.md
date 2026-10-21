@@ -177,6 +177,9 @@ history; it is not proof of cursor insertion. Both replay and ordinary file
 transcription report `timings` for setup, model preparation, CLI warmup, prompt prefix,
 remaining preparation wait, refinement request, postprocessing, delivery,
 history and total processing. `stopToDeliveryMs` is null when output is disabled.
+`pressToCaptureMs` runs from recording start (shortcut acceptance after any Trigger
+Delay, or an automation start) to the first captured buffer; the replay stands in
+the file's first chunk for that buffer, and file transcription reports null.
 
 Optional refinement accepts only `codex`, `claudeCode`, `appleIntelligence` or
 `openAICompatible`; the last requires a loopback `--e2e-endpoint` and optional

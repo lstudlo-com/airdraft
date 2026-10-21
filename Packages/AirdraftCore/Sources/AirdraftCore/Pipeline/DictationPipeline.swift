@@ -46,6 +46,9 @@ public struct DictationTimings: Sendable, Equatable {
     public var historyMs = 0
     public var processingMs = 0
     public var stopToDeliveryMs: Int?
+    /// Shortcut acceptance to the first captured audio buffer; nil for
+    /// file, review and retry processing.
+    public var pressToCaptureMs: Int?
     public init() {}
 }
 
@@ -208,6 +211,17 @@ public final class DictationPipeline {
     /// Keeps the session's local speech engine out of idle unloading.
     var speechSessionPin: (token: UUID, pin: UUID)?
     var stopRequestedAt: TimeInterval?
+    /// One recording request's press-to-capture measurement.
+    struct CaptureLatency {
+        let token: UUID
+        let acceptedAt: TimeInterval
+        var pressToCaptureMs: Int?
+        var engineID: String?
+    }
+    var captureLatency: CaptureLatency?
+    /// The session whose capture started before its recording state, while the
+    /// destination and app context are being read.
+    var startingCapture: UUID?
     var insertionTargetAtStart: InsertionTarget?
     /// The recording was started for onboarding practice's own editor.
     var practiceDeliveryAtStart = false

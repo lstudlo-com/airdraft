@@ -138,10 +138,11 @@ extension DictationPipeline {
         let processingStarted = ProcessInfo.processInfo.systemUptime
         let stopRequested = stopRequestedAt
         var timings = DictationTimings()
+        timings.pressToCaptureMs = pressToCaptureMs(for: token)
         defer {
             discardRefinementPreparation(for: token)
             releaseSpeechSessionPin(for: token)
-            Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1)")
+            Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1) pressToCaptureMs=\(timings.pressToCaptureMs ?? -1)")
         }
         // Muted/digital-silence recordings contain no speech. Some recognizers
         // hallucinate on them; never let that text reach delivery or history.

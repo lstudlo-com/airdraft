@@ -84,6 +84,7 @@ enum RefinementLatencyVerification {
             "processingMs": timings.processingMs,
         ]
         result["stopToDeliveryMs"] = timings.stopToDeliveryMs.map { $0 as Any } ?? NSNull()
+        result["pressToCaptureMs"] = timings.pressToCaptureMs.map { $0 as Any } ?? NSNull()
         return result
     }
 
@@ -106,7 +107,17 @@ enum RefinementLatencyVerification {
         var levelHandler: (@Sendable (Float) -> Void)?
         var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
         init(samples: [Float]) { self.samples = samples }
-        func start(microphone: MicrophonePreference) throws { lock.withLock { recording = true } }
+        func start(microphone: MicrophonePreference) throws {
+            lock.withLock { recording = true }
+            // The file's first chunk stands in for the first device buffer, so
+            // the replay reports press-to-capture through production startup.
+            let handler = levelHandler
+            let first = Array(samples.prefix(Int(AudioRecorder.sampleRate / 10)))
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard self?.isRecording == true else { return }
+                handler?(AudioLevel.meter(first))
+            }
+        }
         func stop() -> [Float] { lock.withLock { recording = false }; return samples }
         func cancel() { lock.withLock { recording = false } }
     }

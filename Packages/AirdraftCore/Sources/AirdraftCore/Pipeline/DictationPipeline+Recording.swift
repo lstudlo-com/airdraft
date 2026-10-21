@@ -26,10 +26,16 @@ extension DictationPipeline {
         let token = UUID()
         recordingRequestID = token
         generation = token
+        // Shortcut acceptance (after any Trigger Delay) or an automation start.
+        captureLatency = CaptureLatency(token: token, acceptedAt: ProcessInfo.processInfo.systemUptime)
         recordingRequest = Task {
             await beginRecording(token: token)
-            // Every early return or cancellation before capture ends the pin.
-            if !(isCurrent(token) && isRecording) { releaseSpeechSessionPin(for: token) }
+            // Every early return or cancellation before the recording state ends
+            // the pin and any capture that had already started.
+            if !(isCurrent(token) && isRecording) {
+                if startingCapture == token, generation == token { abandonStartingCapture() }
+                releaseSpeechSessionPin(for: token)
+            }
             if recordingRequestID == token { recordingRequest = nil }
         }
     }
@@ -160,24 +166,10 @@ extension DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        // Practice's own editor is inside Airdraft, which is never a paste target.
-        let practice = needsInsertion && settings.isOnboardingPractice && practiceTarget?.acceptsDictation == true
-        let insertionTarget = needsInsertion && !practice ? await inserter.captureTarget() : nil
-        guard isCurrent(token) else { return }
-        var context = snapshot.useAppContext ? contextReader.read() : .empty
-        if let recentFinals, context.recentDictations.isEmpty {
-            context.recentDictations = await recentFinals.finals(for: context.bundleId)
-            guard isCurrent(token) else { return }
-        }
-        guard recordingSnapshot() == snapshot else {
-            fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
-            onRecordingBlocked?()
-            return
-        }
-        recordingAtStart = snapshot
-        insertionTargetAtStart = insertionTarget
-        practiceDeliveryAtStart = practice
-        contextAtStart = context
+        // Every prerequisite has passed, so capture starts now and buffers the
+        // speech that follows the press. The destination and app context are
+        // captured while audio is recorded; any exit before the recording state
+        // stops the microphone again and discards that audio.
         wireRecorder(for: token)
         startPreview(for: token)
         do {
@@ -188,19 +180,55 @@ extension DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        recordingStartedAt = Date()
+        let captureStarted = ProcessInfo.processInfo.systemUptime
+        let captureStartedAt = Date()
+        startingCapture = token
+        captureLatency?.engineID = asr.engineID
+        // Practice's own editor is inside Airdraft, which is never a paste target.
+        let practice = needsInsertion && settings.isOnboardingPractice && practiceTarget?.acceptsDictation == true
+        let insertionTarget = needsInsertion && !practice ? await inserter.captureTarget() : nil
+        // A cancelled or replaced session already stopped this capture.
+        guard isCurrent(token) else { return }
+        var context = snapshot.useAppContext ? contextReader.read() : .empty
+        if let recentFinals, context.recentDictations.isEmpty {
+            context.recentDictations = await recentFinals.finals(for: context.bundleId)
+            guard isCurrent(token) else { return }
+        }
+        guard recordingSnapshot() == snapshot else {
+            abandonStartingCapture()
+            fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
+            onRecordingBlocked?()
+            return
+        }
+        startingCapture = nil
+        recordingAtStart = snapshot
+        insertionTargetAtStart = insertionTarget
+        practiceDeliveryAtStart = practice
+        contextAtStart = context
+        // The timer and the limit count from the start of capture, so buffered
+        // audio never takes a recording past its effective limit.
+        recordingStartedAt = captureStartedAt
         stopRequestedAt = nil
         levelHistory = []
         set(.recording)
         startRefinementPreparation(context: contextAtStart, snapshot: snapshot, token: token)
 
         let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
+        let remaining = max(0, Double(limit) - (ProcessInfo.processInfo.systemUptime - captureStarted))
         autoStopTask?.cancel()
         autoStopTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(limit))
+            try? await Task.sleep(for: .seconds(remaining))
             guard let self, self.isCurrent(token) else { return }
             self.finishRecording()
         }
+    }
+
+    /// Stops capture that began before the recording state, discarding its audio.
+    func abandonStartingCapture() {
+        guard startingCapture != nil else { return }
+        startingCapture = nil
+        stopPreview()
+        if recorder.isRecording { recorder.cancel() }
     }
 
     /// Keep capturing briefly after the key is released: people let go while
@@ -268,6 +296,7 @@ extension DictationPipeline {
         stopping = false
         autoStopTask?.cancel()
         processingTask?.cancel()
+        startingCapture = nil
         if recorder.isRecording { recorder.cancel() }
         recordingStartedAt = nil
         recordingAtStart = nil
@@ -277,9 +306,14 @@ extension DictationPipeline {
     // MARK: - Recorder callbacks and live preview
 
     func wireRecorder(for token: UUID) {
+        let firstBuffer = FirstBufferClock()
         recorder.levelHandler = { [weak self] level in
+            // Stamped on the audio thread, before the hop to the main actor.
+            let first = firstBuffer.markFirst()
             Task { @MainActor in
-                guard let self, self.isCurrent(token), self.isRecording else { return }
+                guard let self, self.isCurrent(token) else { return }
+                if let first { self.noteFirstBuffer(at: first, token: token) }
+                guard self.isRecording else { return }
                 self.levelHistory.append(level)
                 if self.levelHistory.count > Self.levelHistoryLength {
                     self.levelHistory.removeFirst(self.levelHistory.count - Self.levelHistoryLength)
@@ -288,7 +322,16 @@ extension DictationPipeline {
         }
         recorder.interruptionHandler = { [weak self] reason in
             Task { @MainActor in
-                guard let self, self.isCurrent(token), self.isRecording else { return }
+                guard let self, self.isCurrent(token) else { return }
+                if self.startingCapture == token {
+                    // The input failed while the destination was being captured.
+                    // Less than the capture deadline was recorded; nothing is kept.
+                    self.cancel()
+                    self.fail(String(localized: "Could not start recording: \(reason.localizedDescription)", bundle: .module))
+                    self.onRecordingBlocked?()
+                    return
+                }
+                guard self.isRecording else { return }
                 let samples = self.recorder.stop()
                 let context = self.contextAtStart
                 let target = self.insertionTargetAtStart
@@ -331,5 +374,38 @@ extension DictationPipeline {
         previewText = ""
         previewIssue = nil
         previewEnabledForRecording = false
+    }
+
+    // MARK: - Press-to-capture timing
+
+    /// Records how long the session took from shortcut acceptance to its first
+    /// captured audio buffer. Durations and engine identifiers only.
+    func noteFirstBuffer(at uptime: TimeInterval, token: UUID) {
+        guard var latency = captureLatency, latency.token == token, latency.pressToCaptureMs == nil else { return }
+        latency.pressToCaptureMs = Int(max(0, uptime - latency.acceptedAt) * 1000)
+        captureLatency = latency
+        let engine = latency.engineID ?? "unknown"
+        Self.log.notice("recording timing pressToCaptureMs=\(latency.pressToCaptureMs ?? -1) asrEngine=\(engine, privacy: .public)")
+    }
+
+    /// The session's press-to-capture duration, once its first buffer arrived.
+    func pressToCaptureMs(for token: UUID) -> Int? {
+        captureLatency?.token == token ? captureLatency?.pressToCaptureMs : nil
+    }
+}
+
+/// The first audio buffer's arrival time, stamped once on the audio thread.
+final class FirstBufferClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stamped = false
+
+    /// The current uptime for the first call only; nil afterwards.
+    func markFirst() -> TimeInterval? {
+        let now = ProcessInfo.processInfo.systemUptime
+        return lock.withLock {
+            guard !stamped else { return nil }
+            stamped = true
+            return now
+        }
     }
 }
