@@ -303,7 +303,7 @@ struct MediaDocumentEditor: View {
                 Button("Summarize…") { confirmSummary = true }.buttonStyle(SoftButtonStyle()).disabled(!editable || dirty)
                     .help(dirty ? "Save changes before summarizing" : "Create a summary with your refinement provider")
             }
-            Button("Save Changes") { save() }.buttonStyle(SoftButtonStyle(prominent: true)).disabled(!dirty || !editable)
+            Button("Save Changes") { save() }.primaryButtonStyle().disabled(!dirty || !editable)
                 .keyboardShortcut("s", modifiers: .command)
         }
     }

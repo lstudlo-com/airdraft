@@ -95,7 +95,7 @@ struct MediaImportSheet: View {
                     container.navigation.page = .meetings
                     dismiss()
                 }
-                .buttonStyle(SoftButtonStyle(prominent: true))
+                .primaryButtonStyle()
                 .accessibilityIdentifier("media.transcribe")
                 .disabled(container.media == nil || container.pipeline.isBusy || installing || checking || needsModels || validationIssue != nil)
             }

@@ -67,7 +67,7 @@ struct MeetingsPage: View {
                 .help("Transcribe an audio or video file")
                 .accessibilityIdentifier("meetings.import")
             Button("Record Meeting") { container.meeting?.isPresented = true }
-                .buttonStyle(SoftButtonStyle(prominent: true)).disabled(container.pipeline.isBusy || container.meeting == nil)
+                .primaryButtonStyle().disabled(container.pipeline.isBusy || container.meeting == nil)
                 .accessibilityIdentifier("meetings.record")
         }
         .task(id: query) {

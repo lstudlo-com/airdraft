@@ -340,10 +340,11 @@ the system accent; editing fields show an accent ring. Buttons, menu buttons,
 pickers, segmented tracks, search fields and text inputs share one shape,
 `SoftControl.shape`: 8-point continuous corners, never a capsule or circle.
 Segmented thumbs sit concentric 2 points inside their track; only switch and
-slider tracks stay round. Meetings' primary actions use the prominent variant of
+slider tracks stay round. Every primary action, in onboarding, License, Meetings
+and Settings, uses `.primaryButtonStyle()`: the prominent variant of
 `SoftButtonStyle`, preserving the raised face and pressed well with blue fill and
-white type. Other primary actions keep the native prominent button, given the
-same radius by `.primaryButtonStyle()`. The same lighting covers selected sidebar
+white type, and keeping that color when the window is not key. Native link
+buttons and the menu-bar menu stay native. The same lighting covers selected sidebar
 destinations, the sidebar microphone capsule, each device's ten-cell input meter,
 shortcut keycaps, appearance preview frames, Home's app-usage tracks and the
 recording HUD.

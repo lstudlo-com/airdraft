@@ -604,10 +604,11 @@ extension View {
         modifier(SoftControlSurface(pressed: pressed, tint: tint))
     }
 
-    /// The single primary action: the native prominent bezel on the shared control radius.
+    /// The single primary action everywhere, including onboarding, License and Meetings:
+    /// the raised soft button with a blue face. Unlike the native prominent bezel it
+    /// keeps its color when the window is not key.
     func primaryButtonStyle() -> some View {
-        buttonStyle(.borderedProminent)
-            .buttonBorderShape(.roundedRectangle(radius: SoftControl.radius))
+        buttonStyle(SoftButtonStyle(prominent: true))
     }
 }
 
