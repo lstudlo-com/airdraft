@@ -11,6 +11,8 @@ struct HomePage: View {
     @State private var recent: [DictationRecord] = []
     @State private var showsStatus = false
     @State private var historyReadError: String?
+    /// False when History failed to read or could not be opened.
+    @State private var historyAvailable = true
 
     enum Period: String, CaseIterable, Identifiable {
         case all, week, today
@@ -37,8 +39,7 @@ struct HomePage: View {
             // opens the readiness card directly beneath it.
             HomeHero(overview: overview, periodTitle: period.title, hotkey: container.settings.hotkey,
                      behavior: container.settings.hotkeyBehavior, triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds,
-                     isReady: hasLoadedOverview, canDictate: setupIssues == 0,
-                     isFirstRun: hasLoadedOverview && recent.isEmpty && overview.pulses.isEmpty)
+                     canDictate: setupIssues == 0, content: historyContent)
 
             DictationRecovery()
             if let historyReadError { StorageNotice(message: historyReadError, actionTitle: "Reload History") { Task { await reload() } } }
@@ -62,6 +63,13 @@ struct HomePage: View {
         .refreshesSetupCredentials(container)
         .onChange(of: container.pipeline.lastOutcome) { _, _ in Task { await reload() } }
     }
+
+    private var historyContent: HomeHistoryContent {
+        HomeHistoryContent(loaded: hasLoadedOverview, available: historyAvailable,
+                           hasDictations: !recent.isEmpty || !overview.pulses.isEmpty)
+    }
+
+    private var isFirstRun: Bool { historyContent == .firstDictation }
 
     // MARK: Readiness
 
@@ -90,7 +98,7 @@ struct HomePage: View {
 
     private var readinessCard: some View {
         let issues = setupIssues
-        let expanded = showsStatus || issues > 0 || (hasLoadedOverview && overview.stats.dictations == 0)
+        let expanded = showsStatus || issues > 0 || isFirstRun
         return Card(spacing: Theme.controlSpacing) {
             Button {
                 withAnimation(.snappy) { showsStatus.toggle() }
@@ -129,7 +137,7 @@ struct HomePage: View {
             if expanded {
                 RowDivider()
                 healthRows
-                if hasLoadedOverview && overview.stats.dictations == 0 {
+                if isFirstRun {
                     Text(container.settings.outputDestination == .script
                          ? "Use your shortcut. Results go to your script and History."
                          : "Place your cursor, then use your shortcut to dictate.")
@@ -140,6 +148,17 @@ struct HomePage: View {
     }
 
     @ViewBuilder private var healthRows: some View {
+        // Pipeline blockers lead: they refuse the shortcut even when setup is complete.
+        if readiness.licenseBlocker != nil {
+            HealthRow(ok: false, title: "License", detail: readiness.licenseDetail) {
+                Button("Trial & License…") { container.showLicense() }.buttonStyle(SoftButtonStyle())
+            }
+            RowDivider()
+        }
+        if readiness.recordingsBlocked {
+            HealthRow(ok: false, title: "Waiting recordings", detail: readiness.recordingsDetail) {}
+            RowDivider()
+        }
         HealthRow(ok: container.hotkeys.isActive, title: "Shortcut", detail: container.hotkeys.statusText) {
             if container.hotkeys.needsAccessibility {
                 Button("Grant Accessibility…") { container.openAccessibilitySettings() }.buttonStyle(SoftButtonStyle())
@@ -234,7 +253,10 @@ struct HomePage: View {
 
     private var recentCard: some View {
         Card(spacing: Theme.controlSpacing) {
-            if recent.isEmpty {
+            if !historyAvailable {
+                // An unreadable History is not an empty one.
+                EmptyNote("History could not be read.")
+            } else if recent.isEmpty {
                 EmptyNote("No dictations yet.")
             } else {
                 ForEach(Array(recent.enumerated()), id: \.element.id) { index, record in
@@ -248,6 +270,13 @@ struct HomePage: View {
     private func reload() async {
         // Renders can show the first-run state without touching the user's history.
         if RenderMode.isActive {
+            // `HISTORY_ERROR=<message>` shows an unreadable History.
+            if let message = RenderMode.value("HISTORY_ERROR") {
+                historyReadError = String(localized: "History could not be read.") + " " + message
+                historyAvailable = false
+                hasLoadedOverview = true
+                return
+            }
             let empty = RenderMode.value("EMPTY_HISTORY") != nil
             overview = empty ? .empty : (try? container.history?.overview(days: period.days, calendarDay: period == .today)) ?? .empty
             recent = empty ? [] : (try? container.history?.recent(limit: 3)) ?? []
@@ -255,6 +284,7 @@ struct HomePage: View {
             return
         }
         guard let history = container.history else {
+            historyAvailable = false
             hasLoadedOverview = true
             return
         }
@@ -271,8 +301,10 @@ struct HomePage: View {
         case .success(let values):
             (next, latest) = values
             historyReadError = nil
+            historyAvailable = true
         case .failure(let error):
             historyReadError = String(localized: "History could not be read.") + " " + error.localizedDescription
+            historyAvailable = false
             hasLoadedOverview = true
             return
         }

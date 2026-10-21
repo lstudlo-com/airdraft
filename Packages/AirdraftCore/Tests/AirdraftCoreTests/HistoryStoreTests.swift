@@ -2,6 +2,15 @@ import XCTest
 @testable import AirdraftCore
 
 final class HistoryStoreTests: XCTestCase {
+    func testHomeShowsFirstDictationOnlyForLoadedEmptyHistory() {
+        XCTAssertEqual(HomeHistoryContent(loaded: false, available: true, hasDictations: false), .loading)
+        XCTAssertEqual(HomeHistoryContent(loaded: true, available: true, hasDictations: false), .firstDictation)
+        XCTAssertEqual(HomeHistoryContent(loaded: true, available: true, hasDictations: true), .metrics)
+        // A failed read or a missing store is not a new user's first run.
+        XCTAssertEqual(HomeHistoryContent(loaded: true, available: false, hasDictations: false), .unavailable)
+        XCTAssertEqual(HomeHistoryContent(loaded: false, available: false, hasDictations: false), .unavailable)
+    }
+
     func testSaveAndSearch() throws {
         let store = try HistoryStore(inMemory: true)
         let record = DictationRecord(

@@ -52,7 +52,11 @@ enum DebugRender {
             container = LicensePreview.container(String(pageName.dropFirst("license-".count)))
         } else if pageName.hasPrefix("onboarding-") {
             container = PreviewData.container
-            let state = String(pageName.dropFirst("onboarding-".count))
+            // `-verbatim` makes the saved active profile skip refinement, like Verbatim.
+            let fullState = String(pageName.dropFirst("onboarding-".count))
+            let verbatim = fullState.hasSuffix("-verbatim")
+            let state = verbatim ? String(fullState.dropLast("-verbatim".count)) : fullState
+            if verbatim { container.profiles.setActive(RefinementProfile.verbatimID) }
             let step: OnboardingProgress.Step = state == "cloud" ? .speech
                 : state.hasPrefix("permissions") ? .permissions
                 : state.hasPrefix("practice") ? .practice
@@ -120,6 +124,9 @@ enum DebugRender {
             if env["AIRDRAFT_RENDER_DETACHED_AUDIO"] == "1" {
                 try? container.history?.deleteHistoryKeepingAudio()
             }
+        } else if let scenario = env["AIRDRAFT_RENDER_LICENSE"] {
+            // Home and the sidebar under an official build's license: `none` (no trial yet), `expired`, ….
+            container = LicensePreview.container(scenario)
         } else if env["AIRDRAFT_RENDER_SAMPLE_DATA"] == "1" {
             container = PreviewData.container
         } else if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {

@@ -222,6 +222,30 @@ private actor LicenseFixtureClient: PolarLicensing {
         XCTAssertEqual(store.access, .needsTrial)
     }
 
+    func testHomeReadinessReportsWhatTheAccessCheckWouldRefuse() async throws {
+        let community = LicenseStore(distribution: .community, configuration: nil, storage: MemoryLicenseStorage())
+        XCTAssertEqual(DictationBlocker.current(license: community.access, canKeepAnotherRecording: true), [],
+                       "Self-built editions are always allowed")
+
+        let store = LicenseStore(distribution: .official, configuration: licenseConfig,
+                                 storage: MemoryLicenseStorage(LicenseRecord()), client: LicenseFixtureClient())
+        XCTAssertEqual(store.access, .loading)
+        XCTAssertEqual(DictationBlocker.current(license: store.access, canKeepAnotherRecording: true), [],
+                       "A launch read in flight is joined by the access check, not reported as missing")
+        await store.load()
+        XCTAssertEqual(DictationBlocker.current(license: store.access, canKeepAnotherRecording: true), [.license(.needsTrial)],
+                       "Skipping setup without a trial must not read as ready")
+        await store.startTrial()
+        guard case .trial = store.access else { return XCTFail("Trial did not start") }
+        XCTAssertEqual(DictationBlocker.current(license: store.access, canKeepAnotherRecording: true), [])
+        XCTAssertEqual(DictationBlocker.current(license: store.access, canKeepAnotherRecording: false), [.waitingRecordings])
+
+        for access: LicenseStore.Access in [.unconfigured, .expired, .revoked, .locked, .clockChanged] {
+            XCTAssertEqual(DictationBlocker.current(license: access, canKeepAnotherRecording: false),
+                           [.license(access), .waitingRecordings])
+        }
+    }
+
     private func waitFor(_ condition: () async -> Bool) async throws {
         for _ in 0..<300 {
             if await condition() { return }
