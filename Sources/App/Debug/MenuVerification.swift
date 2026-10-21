@@ -30,7 +30,13 @@ enum MenuVerification {
         // Expected titles come from the same catalogs, so the fixture passes in
         // every shipped language and fails when a title stays untranslated.
         func L(_ key: String.LocalizationValue) -> String { String(localized: key) }
-        let profileName = app.profiles.activeProfile.name
+        let profileName = app.profiles.activeProfile.displayName
+        let storedProfileName = app.profiles.activeProfile.name
+        // An unrenamed built-in shows its catalog name; its stored name stays English.
+        if app.profiles.activeProfile.id == RefinementProfile.cleanID, storedProfileName == "Clean" {
+            let english = (Bundle.main.preferredLocalizations.first ?? "en").hasPrefix("en")
+            precondition(english == (profileName == "Clean"), "Built-in profile names must be localized in the menu: \(profileName)")
+        }
         // Runtime text passed as `.verbatim` is never looked up as a catalog key,
         // even when it matches one ("Settings…" is translated in zh-Hant).
         precondition(String(localized: LocalizedStringResource.verbatim("Settings…")) == "Settings…",
@@ -110,7 +116,7 @@ enum MenuVerification {
         precondition(titles(long).contains(L("Microphone: \(L("Unavailable"))")))
         precondition(titles(long).first(where: { $0.hasPrefix(L("Profile: \("")")) })?.hasSuffix("…") == true)
         record("long-and-missing", long)
-        profile.name = profileName
+        profile.name = storedProfileName
         app.profiles.update(profile)
         settings.microphone = .systemDefault
 

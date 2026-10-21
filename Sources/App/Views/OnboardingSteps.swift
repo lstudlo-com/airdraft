@@ -713,7 +713,7 @@ struct OnboardingRefinementChoice: View {
 
     private var title: Text {
         if keepsExactWords {
-            return profile.name.isEmpty ? Text("This profile keeps your exact words") : Text("\(profile.name) keeps your exact words")
+            return profile.name.isEmpty ? Text("This profile keeps your exact words") : Text("\(profile.displayName) keeps your exact words")
         }
         return switch llm.kind {
         case .none: available ? Text("Tidy your words with Apple Intelligence") : Text("Let AI tidy your words")

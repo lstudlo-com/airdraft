@@ -85,7 +85,7 @@ struct HomePage: View {
         let llm = container.settings.llm
         let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
-        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.name)"
+        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.displayName)"
     }
 
     /// Exact identifiers stay available on hover for diagnosis.
@@ -407,7 +407,7 @@ struct RecentRow: View {
                 Text(record.finalText).font(.system(size: 13)).lineLimit(2)
                 HStack(spacing: 6) {
                     if let app = record.appName { Text(app) }
-                    Text("· \(record.mode)")
+                    Text("· \(RefinementProfile.displayName(forSavedName: record.mode))")
                     Text("· \(record.asrMs + record.llmMs) ms")
                 }
                 .font(.system(size: 11))

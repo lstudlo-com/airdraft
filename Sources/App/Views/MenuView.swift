@@ -61,15 +61,15 @@ struct MenuView: View {
 
         MicrophonePicker(title: MenuTitle.fit(String(localized: "Microphone: \(microphoneLabel)")), fitsMenu: true)
 
-        Picker(MenuTitle.fit(String(localized: "Profile: \(container.profiles.activeProfile.name)")), selection: Binding(
+        Picker(MenuTitle.fit(String(localized: "Profile: \(container.profiles.activeProfile.displayName)")), selection: Binding(
             get: { container.profiles.activeProfileID },
             set: { container.profiles.setActive($0) }
         )) {
             ForEach(container.profiles.profiles) { profile in
-                Text(MenuTitle.fit(profile.name)).help(profile.name).tag(profile.id)
+                Text(MenuTitle.fit(profile.displayName)).help(profile.displayName).tag(profile.id)
             }
         }
-        .help(String(localized: "Profile: \(container.profiles.activeProfile.name). Changes apply to the next dictation."))
+        .help(String(localized: "Profile: \(container.profiles.activeProfile.displayName). Changes apply to the next dictation."))
 
         Menu(MenuTitle.fit(String(localized: "Refinement: \(refinementLabel)"))) {
             if !container.profiles.activeProfile.usesLLM {

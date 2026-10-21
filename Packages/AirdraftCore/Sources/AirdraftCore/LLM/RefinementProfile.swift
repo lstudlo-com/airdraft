@@ -85,4 +85,29 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
     public static func defaultProfile(id: UUID) -> RefinementProfile? {
         defaults.first { $0.id == id }
     }
+
+    /// The name shown in the interface. A built-in keeps its stored English name, which
+    /// prompts, history and persistence use, and shows it localized until the user
+    /// renames it; every other name is shown as typed.
+    public var displayName: String {
+        guard isBuiltIn, let builtIn = Self.defaultProfile(id: id), name == builtIn.name else { return name }
+        return Self.localizedBuiltInName(id: id) ?? name
+    }
+
+    /// History saves the profile's name, not its id: an unrenamed built-in's stored
+    /// name is shown localized and any other saved name as written.
+    public static func displayName(forSavedName name: String) -> String {
+        guard let builtIn = defaults.first(where: { $0.name == name }) else { return name }
+        return localizedBuiltInName(id: builtIn.id) ?? name
+    }
+
+    private static func localizedBuiltInName(id: UUID) -> String? {
+        switch id {
+        case cleanID: String(localized: "Clean", bundle: .module, comment: "Built-in refinement profile name")
+        case conciseID: String(localized: "Concise", bundle: .module, comment: "Built-in refinement profile name")
+        case summaryID: String(localized: "Summary", bundle: .module, comment: "Built-in refinement profile name")
+        case verbatimID: String(localized: "Verbatim", bundle: .module, comment: "Built-in refinement profile name")
+        default: nil
+        }
+    }
 }

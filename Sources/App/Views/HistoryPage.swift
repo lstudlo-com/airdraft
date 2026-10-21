@@ -853,7 +853,7 @@ struct HistoryCard<RecordingControls: View>: View {
             row(String(localized: "Audio"), entry.audioAvailable ? String(localized: "Saved locally") : String(localized: "Unavailable"))
             row(String(localized: "App"), [record.appName, record.windowTitle].compactMap { $0 }.joined(separator: " — "))
             if let url = record.url { row("URL", url) }
-            row(String(localized: "Profile"), "\(record.mode) · \(record.family)")
+            row(String(localized: "Profile"), "\(RefinementProfile.displayName(forSavedName: record.mode)) · \(record.family)")
             row(String(localized: "Speech"), String(localized: "\(record.asrEngine) · \(record.asrMs) ms"))
             row(String(localized: "Refinement"), record.llmEngine.map { String(localized: "\($0) · \(record.llmMs) ms") } ?? String(localized: "skipped"))
             if let e = record.error { row(String(localized: "Error"), e) }

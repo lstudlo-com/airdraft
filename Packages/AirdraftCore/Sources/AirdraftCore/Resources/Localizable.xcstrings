@@ -47,6 +47,17 @@
         }
       }
     },
+    "%@ copy" : {
+      "comment" : "Name of a duplicated profile",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 副本"
+          }
+        }
+      }
+    },
     "%@ does not support %@. Choose a supported language on Models or another speech model." : {
       "localizations" : {
         "en" : {
@@ -1065,6 +1076,17 @@
         }
       }
     },
+    "Clean" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整理"
+          }
+        }
+      }
+    },
     "Clinical vocabulary" : {
       "localizations" : {
         "zh-Hant" : {
@@ -1111,6 +1133,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壓縮的 Core ML 權重。"
+          }
+        }
+      }
+    },
+    "Concise" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "精簡"
           }
         }
       }
@@ -2277,6 +2310,16 @@
         }
       }
     },
+    "New profile" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新模式"
+          }
+        }
+      }
+    },
     "Night Wave" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3275,6 +3318,17 @@
         }
       }
     },
+    "Summary" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要"
+          }
+        }
+      }
+    },
     "Summary cancelled. The transcript is unchanged." : {
       "localizations" : {
         "zh-Hant" : {
@@ -4051,6 +4105,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "依模型而異"
+          }
+        }
+      }
+    },
+    "Verbatim" : {
+      "comment" : "Built-in refinement profile name",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字"
           }
         }
       }
