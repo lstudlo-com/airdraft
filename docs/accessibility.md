@@ -120,7 +120,11 @@ attribute](https://github.com/electron/electron/blob/main/docs/tutorial/accessib
 and keeps waiting, within the 1.5-second capture deadline, for its field and
 caret. Native editors also get a readiness wait when they reject that web
 attribute, but once their caretless focus stays unchanged for 250 ms capture
-accepts the app-level target so recording is not delayed. Before delivery, wait
+accepts the app-level target so recording is not delayed. Such a target can only
+be confirmed for apps that expose a caret. Only editors that draw their own text,
+listed once in `TextInserter.selfDrawingEditorBundlePrefixes`, report their paste
+as sent unverified; any other caretless app keeps the transcript on the clipboard
+with a recovery notice. Before delivery, wait
 for the original destination even if the app is already frontmost. Individual
 AX calls retain their 300 ms timeout.
 

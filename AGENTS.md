@@ -640,7 +640,12 @@ verification status belong in the vault (see below).
   require the same focused field and selection before inserting, then post exactly
   one paste. Editors that draw their own text (Zed, Warp, GPU terminals) never expose
   a caret: verify the same process, its focused window and no foreign system focus
-  instead; a missing caret alone must not block paste. Never probe editor
+  instead; a missing caret alone must not block paste. Only the bundle prefixes in
+  `TextInserter.selfDrawingEditorBundlePrefixes` (Warp, Zed, Ghostty, kitty,
+  Alacritty, WezTerm; keep the list there alone) count as such editors. Every
+  other caretless target (Finder, Preview, System Settings, a page without a
+  focused field, an Electron app that never exposed its caret) still gets its one
+  paste but keeps the transcript on the clipboard with the recovery notice. Never probe editor
   compatibility with an AX text write; both saved insertion methods use paste.
   Read application and system-wide focus with matching process ownership. When
   Electron has not exposed its editor, request `AXManualAccessibility` and await
@@ -670,9 +675,9 @@ verification status belong in the vault (see below).
   receiver with a caret is slow, ignores paste or exposes no readable text, keep
   the transcript on the clipboard and show a recovery notice instead of silently
   dismissing the HUD. Record the notice with undelivered History status. A
-  validated caretless editor cannot confirm its one paste: report it as sent
+  validated self-drawing editor cannot confirm its one paste: report it as sent
   unverified, never as failed. The HUD finishes as after delivery with no notice
-  or error; History stores `inserted` false with cursor `outputSucceeded` true
+  or error (a refinement fallback says the raw text was pasted, not inserted); History stores `inserted` false with cursor `outputSucceeded` true
   (`deliveryStatus` `.sentUnverified`, shown as Pasted, unconfirmed), and the
   displaced clipboard returns after `unverifiedRestoreDelay` (2 s) unless newer
   content replaced it. Read-back accepts only editor-normalized line endings,
@@ -684,8 +689,9 @@ verification status belong in the vault (see below).
   inserter owns the delayed clipboard restore, and a newer paste takes over the
   clipboard the old one displaced, so an earlier restore never overwrites a newer
   dictation. History saving and the outcome run in an ordered delivery tail
-  (`isFinishingDelivery`); quit waits for it (bounded) and restores the clipboard
-  at once, and data cleanup and meeting start wait for it too. A shortcut rejected
+  (`isFinishingDelivery`); quit waits for it (bounded) and restores a confirmed
+  paste's clipboard at once, but waits out an unverified paste's remaining 2 s
+  delay so a busy receiver never reads the old clipboard; data cleanup and meeting start wait for it too. A shortcut rejected
   by media, meeting or maintenance work shows its reason in the HUD; a copy blocked
   by another copy's data lease names that cause. Every quit request waits for
   pending delivery again; no flag may persist across a cancelled quit. From 0.4.2, release preparation checks actual TextEdit

@@ -1103,6 +1103,7 @@ public final class DictationPipeline {
         var deliveryError: String?
         var inserted = false
         var outputSucceeded = false
+        var sentUnverified = false
         var reportedDelivery = false
         let reportDelivery: () -> Void = { [weak self] in
             guard let self, self.isCurrent(token), !reportedDelivery else { return }
@@ -1119,6 +1120,7 @@ public final class DictationPipeline {
                     result = await inserter.insert(final, method: output.insertionMethod, target: target,
                                                    onDelivered: reportDelivery)
                 }
+                sentUnverified = result.delivery == .sentUnverified
                 // `inserted` records only confirmed text. A paste sent to a
                 // validated caretless editor succeeded without confirmation.
                 inserted = result.didInsert
@@ -1141,7 +1143,9 @@ public final class DictationPipeline {
         if llmError != nil, notice == nil {
             let reason = llmRejected ? String(localized: "Refinement didn't match your speech", bundle: .module) : String(localized: "Refinement unavailable", bundle: .module)
             notice = outputSucceeded
-                ? (output.destination == .script ? String(localized: "\(reason); raw text sent to script.", bundle: .module) : String(localized: "\(reason); raw text inserted.", bundle: .module))
+                ? (output.destination == .script ? String(localized: "\(reason); raw text sent to script.", bundle: .module)
+                    : sentUnverified ? String(localized: "\(reason); raw text pasted.", bundle: .module)
+                    : String(localized: "\(reason); raw text inserted.", bundle: .module))
                 : String(localized: "\(reason); raw text is available in History.", bundle: .module)
         }
 

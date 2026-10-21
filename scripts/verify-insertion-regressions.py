@@ -11,7 +11,8 @@ import sys
 # AX-write cases were retired with the AX text-write path. The gate now
 # covers one paste for both persisted settings plus cancellation during handoff.
 # Caretless cases cover editors that draw their own text, such as Zed and Warp;
-# their paste is sent unverified rather than reported as failed.
+# their paste is sent unverified rather than reported as failed. Other caretless
+# apps (Finder, an Electron app without a caret) keep the recovery outcome.
 REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testIgnoredPasteKeepsRecoveryTextAndDoesNotReportDelivery()',
     'TextDeliveryRegressionTests/testDelayedPasteReportsDeliveryOnlyAfterExpectedTextArrives()',
@@ -28,6 +29,11 @@ REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testCancellationAfterCaretlessPasteKeepsSingleDeliveryAndRestore()',
     'TextDeliveryRegressionTests/testCaretEditorUnreadablePasteThroughPipelineKeepsRecovery()',
     'TextDeliveryRegressionTests/testEditorNormalizedPasteStillConfirmsDelivery()',
+    # Only allowlisted self-drawing editors are sent unverified (AD-064 review).
+    'TextDeliveryRegressionTests/testOnlySelfDrawingEditorsAreSentUnverified()',
+    'TextDeliveryRegressionTests/testCaretlessNonEditorThroughPipelineKeepsRecoveryNoticeAndUndeliveredHistory()',
+    'TextDeliveryRegressionTests/testCaretlessPasteAfterRefinementFailureSaysRawTextPasted()',
+    'TextDeliveryRegressionTests/testQuitWaitsOutUnverifiedPasteBeforeRestoringClipboard()',
     'HistoryStoreTests/testDeliveryStatusRoundTripsWithoutSchemaChange()',
     'TextInsertionTests/testUnconfirmedPasteDoesNotOverwriteNewClipboardOrClaimItKeptText()',
     'TextInsertionTests/testCancellationAfterUnconfirmedPasteKeepsRecoveryText()',

@@ -16,8 +16,8 @@ public enum InsertionMethod: String, Codable, CaseIterable, Sendable, Identifiab
 public enum TextDeliveryStatus: String, Sendable, Codable {
     /// The original field shows the text (or a script completed).
     case delivered
-    /// One paste reached a validated destination that exposes no text to read
-    /// back, such as Warp, Zed and other editors that draw their own text.
+    /// One paste reached a validated editor that draws its own text and exposes
+    /// none to read back (`TextInserter.drawsOwnText`: Warp, Zed, GPU terminals).
     /// Not a failure: there is simply nothing that could confirm it.
     case sentUnverified
     /// Nothing was sent, or a paste that could have been confirmed was not.
@@ -30,7 +30,7 @@ public struct InsertionResult: Sendable, Equatable {
     public let notice: String?
     /// Recovery messages stay readable; an intentional copy is only a confirmation.
     public var noticeRequiresAttention = true
-    /// False only for a paste into a validated caretless destination.
+    /// False only for a paste into a validated editor that draws its own text.
     public var isVerified = true
     public var delivery: TextDeliveryStatus {
         method == .clipboardOnly ? .notDelivered : (isVerified ? .delivered : .sentUnverified)
@@ -43,8 +43,9 @@ public struct InsertionResult: Sendable, Equatable {
 
 /// Local insertion identity, never serialized or sent to a provider.
 /// With `element` and `selection`, delivery requires that field and caret.
-/// Editors that draw their own text (Zed, Warp, other GPU terminals) expose
-/// no caret; their target is the process and its focused window instead.
+/// Without them the target is the process and its focused window: editors that
+/// draw their own text (Zed, Warp, other GPU terminals), but also any app that
+/// exposed no caret in time, such as Finder or a page without a focused field.
 @MainActor
 public struct InsertionTarget {
     let processID: Int32
@@ -52,6 +53,9 @@ public struct InsertionTarget {
     let element: AXUIElement?
     let selection: CFRange?
     var window: AXUIElement? = nil
+
+    /// No field and caret could be captured, so read-back cannot confirm a paste.
+    var isCaretless: Bool { element == nil || selection == nil }
 }
 
 /// Puts text at the cursor of the app the user was dictating into.
@@ -137,15 +141,40 @@ public final class TextInserter {
         let changeCount: Int
         let items: ClipboardItems
         let task: Task<Void, Never>
+        /// Nothing confirmed that the receiver read the clipboard yet.
+        let waitsForReceiver: Bool
     }
     private var pendingRestoration: PendingRestoration?
     /// True while a confirmed or unverified paste's text still waits to be
     /// replaced by the clipboard it displaced.
     public var hasPendingClipboardRestoration: Bool { pendingRestoration != nil }
-    /// A caretless destination cannot prove it read the clipboard, so its
-    /// restore waits longer than a confirmed paste's: a busy receiver still
-    /// reads the transcript, not the clipboard it displaced.
+    /// A caretless editor cannot prove it read the clipboard, so its restore
+    /// waits longer than a confirmed paste's: a busy receiver still reads the
+    /// transcript, not the clipboard it displaced. Quit waits it out too.
     public var unverifiedRestoreDelay: TimeInterval = 2.0
+
+    /// Bundle-ID prefixes of editors and terminals that draw their own text and
+    /// never publish a caret through Accessibility. This is the only place the
+    /// list lives. A caretless target from one of these apps gets one paste that
+    /// is reported as sent unverified. Every other caretless target (Finder,
+    /// Preview, System Settings, a web page without a focused field, an Electron
+    /// app that never exposed its editor) keeps the transcript on the clipboard
+    /// with a recovery notice. Terminal and iTerm2 publish a caret, so they are
+    /// verified by read-back instead and are not listed.
+    public static let selfDrawingEditorBundlePrefixes = [
+        "dev.warp.Warp",            // Warp (Stable, Preview)
+        "dev.zed.Zed",              // Zed (Stable, Preview, Nightly)
+        "com.mitchellh.ghostty",    // Ghostty
+        "net.kovidgoyal.kitty",     // kitty
+        "org.alacritty",            // Alacritty
+        "com.github.wez.wezterm",   // WezTerm
+    ]
+
+    /// True for an app in `selfDrawingEditorBundlePrefixes`.
+    public static func drawsOwnText(bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return selfDrawingEditorBundlePrefixes.contains { bundleID.hasPrefix($0) }
+    }
     /// A posted event has no acknowledgement. Wait only for read-only evidence
     /// from the original field; an unobservable or slow receiver keeps the text.
     var confirmationTimeout: Duration = .seconds(1)
@@ -199,7 +228,7 @@ public final class TextInserter {
         }
         return await insertViaPaste(text, pasteboard: environment.pasteboard,
                                     postPaste: environment.postPaste, confirmation: confirmation,
-                                    unverifiable: target.element == nil || target.selection == nil,
+                                    unverifiable: target.isCaretless && Self.drawsOwnText(bundleID: target.bundleID),
                                     onDelivered: onDelivered)
     }
 
@@ -457,9 +486,10 @@ public final class TextInserter {
         return String(scalars)
     }
 
-    /// `unverifiable` marks a validated destination that exposes no text or
-    /// caret (Warp, Zed, GPU terminals): once its one paste is posted, nothing
+    /// `unverifiable` marks a validated editor that draws its own text and
+    /// exposes no caret (`drawsOwnText`): once its one paste is posted, nothing
     /// could confirm it, so it is sent unverified rather than reported as failed.
+    /// Any other target without confirmation keeps the text on the clipboard.
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
                         postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
                         unverifiable: Bool = false,
@@ -507,7 +537,8 @@ public final class TextInserter {
             Self.log.notice("insert: paste sent to caretless destination; unverifiable")
             onDelivered?()
             scheduleRestoration(of: pasteboard, items: saved, ownedChange: ourChange,
-                                at: started.advanced(by: .seconds(max(0, unverifiedRestoreDelay))))
+                                at: started.advanced(by: .seconds(max(0, unverifiedRestoreDelay))),
+                                waitsForReceiver: true)
             return InsertionResult(method: .paste, notice: nil, isVerified: false)
         }
         return await Task { @MainActor in
@@ -530,10 +561,12 @@ public final class TextInserter {
     }
 
     /// Waits for the delayed restore, or with `immediately` performs it now.
-    /// Delivery was already confirmed, so quitting need not wait out the delay.
+    /// A confirmed paste's text is already in its field, so quitting need not
+    /// wait out its delay. An unverified paste may still be read by a busy
+    /// receiver, so its restore keeps its (at most `unverifiedRestoreDelay`) wait.
     public func finishClipboardRestoration(immediately: Bool = false) async {
         guard let pending = pendingRestoration else { return }
-        if immediately {
+        if immediately && !pending.waitsForReceiver {
             pending.task.cancel()
             completeRestoration(pending.id)
         } else {
@@ -542,7 +575,8 @@ public final class TextInserter {
     }
 
     private func scheduleRestoration(of pasteboard: NSPasteboard, items: ClipboardItems,
-                                     ownedChange: Int, at deadline: ContinuousClock.Instant) {
+                                     ownedChange: Int, at deadline: ContinuousClock.Instant,
+                                     waitsForReceiver: Bool = false) {
         pendingRestoration?.task.cancel()
         let id = UUID()
         let task = Task { @MainActor [weak self] in
@@ -552,7 +586,7 @@ public final class TextInserter {
             self?.completeRestoration(id)
         }
         pendingRestoration = PendingRestoration(id: id, pasteboard: pasteboard, changeCount: ownedChange,
-                                                items: items, task: task)
+                                                items: items, task: task, waitsForReceiver: waitsForReceiver)
     }
 
     private func completeRestoration(_ id: UUID) {
