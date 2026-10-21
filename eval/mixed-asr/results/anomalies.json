@@ -1,0 +1,187 @@
+{
+ "whisper_empty_first_attempt": [
+  {
+   "config": "whisper:turbo auto",
+   "id": "ascend-tes-01153",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "passed",
+   "retry1_final": "基本上都是一些business related project.",
+   "retry2": "passed",
+   "retry2_final": "基本上都是一些business related的project."
+  },
+  {
+   "config": "whisper:turbo auto",
+   "id": "ascend-val-00929",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "passed",
+   "retry1_final": "萊頓大學校園是分散在Lydon這個城市的各個角落,這一塊那一塊。",
+   "retry2": "failed",
+   "retry2_final": null
+  },
+  {
+   "config": "whisper:turbo zh",
+   "id": "ascend-tes-00678",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "failed",
+   "retry1_final": null,
+   "retry2": "failed",
+   "retry2_final": null
+  },
+  {
+   "config": "whisper:turbo zh",
+   "id": "ascend-val-00368",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "failed",
+   "retry1_final": null,
+   "retry2": "passed",
+   "retry2_final": "Action文是讓我感覺到很刺激,然後Emotion的這些,"
+  },
+  {
+   "config": "whisper:turbo zh",
+   "id": "ascend-val-00687",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "passed",
+   "retry1_final": "Problem 就是他的",
+   "retry2": "passed",
+   "retry2_final": "Problem,就是他的"
+  },
+  {
+   "config": "whisper:turbo zh",
+   "id": "tw19",
+   "first": "Pipeline failed or timed out: idle",
+   "retry1": "passed",
+   "retry1_final": "孫廖酷的米開田跑到一半就翻了。",
+   "retry2": "passed",
+   "retry2_final": "孫廖酷的迷迫迫跑到一半就翻了。"
+  }
+ ],
+ "repeat_checks": [
+  {
+   "model": "qwen3:0.6b",
+   "language": "zh",
+   "id": "tw08",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 24054,
+   "peak_footprint": 18499684296,
+   "final": "是爸爸在克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里"
+  },
+  {
+   "model": "qwen3:0.6b",
+   "language": "zh",
+   "id": "tw08",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 24253,
+   "peak_footprint": 18556159944,
+   "final": "是爸爸在克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里"
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "id": "tw08",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 655,
+   "peak_footprint": 2638809968,
+   "final": "Забавно, що вони так добре використовують свої власні слова."
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "id": "tw08",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 445,
+   "peak_footprint": 2489649936,
+   "final": "Забавно, що вони так добре використовують свої власні слова."
+  },
+  {
+   "model": "qwen3:0.6b",
+   "language": "zh",
+   "id": "twm08",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 259,
+   "peak_footprint": 1382041592,
+   "final": "記得把 Docker Image Push 到 Registry。"
+  },
+  {
+   "model": "qwen3:0.6b",
+   "language": "zh",
+   "id": "twm08",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 196,
+   "peak_footprint": 1282213784,
+   "final": "記得把 Docker Image Push 到 Registry。"
+  },
+  {
+   "model": "qwen3:0.6b",
+   "language": "auto",
+   "id": "twm08",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 198,
+   "peak_footprint": 1305003952,
+   "final": "記得把 Docker Image Push 到 Registry。"
+  },
+  {
+   "model": "qwen3:0.6b",
+   "language": "auto",
+   "id": "twm08",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 200,
+   "peak_footprint": 1304692632,
+   "final": "記得把 Docker Image Push 到 Registry。"
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "id": "ascend-tes-00143",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 59,
+   "peak_footprint": 1042270176,
+   "final": "那但那個 I G I N G 是不是只有之後打算留香港的人才能"
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "id": "ascend-tes-00143",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 57,
+   "peak_footprint": 899073944,
+   "final": "那但那個 I G I N G 是不是只有之後打算留香港的人才能"
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "id": "ascend-tes-00143",
+   "rep": 0,
+   "status": "passed",
+   "asrMs": 352,
+   "peak_footprint": 2555005712,
+   "final": "那但那個i n g i n g是不是只有之後打算留香港的人才？"
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "id": "ascend-tes-00143",
+   "rep": 1,
+   "status": "passed",
+   "asrMs": 352,
+   "peak_footprint": 2598751040,
+   "final": "那但那個i n g i n g是不是只有之後打算留香港的人才？"
+  }
+ ],
+ "notes": [
+  "Whisper first attempts are scored; retries show the empty outcome is nondeterministic (WhisperKit temperature fallback).",
+  "Qwen3-ASR 0.6B with zh on tw08 (Reed voice) repeats until maxTokens=1024: ~24 s and ~18.5 GB peak footprint, reproducible.",
+  "Qwen3-ASR 1.7B Auto on the same tw08 clip returns Ukrainian text, reproducible; zh avoids it.",
+  "Whisper turbo's first load from a new model path took 87.6 s (Core ML/ANE specialization); later loads ~1.3 s.",
+  "Baseline app process without a model: ~22 MB peak footprint, ~100 MB max RSS (inventory action)."
+ ]
+}
