@@ -36,10 +36,10 @@ struct HistoryRecordingControls: View {
                     .disabled(true)
                     .help("Play the recording to seek")
                 Text("0:00 / \(Self.time(asset.duration))")
-                    .font(.system(size: 10)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                    .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
             }
             Button(exporting ? "Saving…" : "Save Audio…", action: save)
-                .font(.system(size: 11))
+                .appFont(.supporting)
                 .buttonStyle(SoftButtonStyle())
                 .disabled(exporting)
                 .accessibilityIdentifier("recording.save.\(asset.id)")
@@ -77,6 +77,6 @@ struct HistoryPlaybackProgress: View {
                    range: 0...max(0.01, playback.duration), step: 0.1, keyboardStep: 5)
             .accessibilityValue("\(HistoryRecordingControls.time(playback.currentTime)) of \(HistoryRecordingControls.time(playback.duration))")
         Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
-            .font(.system(size: 10)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+            .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
     }
 }

@@ -25,7 +25,7 @@ struct HotkeyRecorderView: View {
             }
             if recording {
                 Text("Press a key or combination…  Esc cancels")
-                    .font(.system(size: 12, weight: .medium))
+                    .appFont(.detail, weight: .medium)
                     .foregroundStyle(Color.accentColor)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)

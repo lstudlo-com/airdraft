@@ -40,8 +40,8 @@ struct MediaImportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            Text("Transcribe Recording").font(.system(size: 18, weight: .semibold))
-            Text(request.title).font(.system(size: 13)).lineLimit(2)
+            Text("Transcribe Recording").appFont(.title)
+            Text(request.title).appFont(.body).lineLimit(2)
                 .accessibilityIdentifier("media.source")
             SettingsCard {
                 SettingRow(title: "Process audio") {

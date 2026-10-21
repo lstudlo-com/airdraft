@@ -188,7 +188,7 @@ struct SettingsSearchField: View {
                 .accessibilityHidden(true)
             TextField("Search settings", text: $search.query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .appFont(.body)
                 .focused($focused)
                 .accessibilityLabel("Search settings")
                 .accessibilityIdentifier("settings.search")
@@ -202,7 +202,7 @@ struct SettingsSearchField: View {
                 }
             if search.isSearching {
                 Text(resultLabel)
-                    .font(.system(size: 11)).monospacedDigit()
+                    .appFont(.supporting).monospacedDigit()
                     .foregroundStyle(.secondary)
                     .fixedSize()
                     .accessibilityLabel(resultDescription)

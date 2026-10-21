@@ -220,13 +220,15 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
     @ViewBuilder var accuracy: Accuracy
     @ViewBuilder var cost: Cost
     @ViewBuilder var accessory: Accessory
+    /// Rating columns widen with the text size so headings and values never break mid-word.
+    @Environment(\.textScale) private var scale
 
     var body: some View {
         HStack(alignment: .center, spacing: Theme.controlSpacing) {
             identity.frame(maxWidth: .infinity, alignment: .leading)
-            speed.frame(width: 56, alignment: .leading)
-            accuracy.frame(width: 64, alignment: .leading)
-            cost.frame(width: 76, alignment: .leading)
+            speed.frame(width: 56 * scale, alignment: .leading)
+            accuracy.frame(width: 64 * scale, alignment: .leading)
+            cost.frame(width: 76 * scale, alignment: .leading)
             accessory.frame(width: 20)
         }
     }
@@ -292,7 +294,7 @@ struct ModelTableHeader: View {
         } accessory: {
             Color.clear.frame(height: 1)
         }
-        .font(.system(size: 12, weight: .medium))
+        .appFont(.detail, weight: .medium)
         .foregroundStyle(.secondary)
         .padding(Theme.cardPadding)
     }
@@ -307,7 +309,7 @@ struct ModelMetric: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             SegmentMeter(fraction: fraction)
-            Text(label).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+            Text(label).appFont(.supporting).monospacedDigit().foregroundStyle(.secondary)
         }
         .help(detail)
         .accessibilityElement(children: .ignore)
@@ -334,7 +336,7 @@ struct CloudModelRow: View {
                         .foregroundStyle(selected ? Color.accentColor : .secondary)
                     ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(model.title).font(.system(size: 13, weight: .medium))
+                        Text(model.title).appFont(.body, weight: .medium)
                         Text(preset.name).supportingText()
                     }
                     .fixedSize(horizontal: false, vertical: true)
@@ -349,7 +351,7 @@ struct CloudModelRow: View {
                             detail: model.qualityDetail + " " + (model.wordErrorRate == nil ? String(localized: "No numeric rating is available.")
                                 : String(localized: "WER is word error rate; lower is better.")))
             } cost: {
-                Text(model.price).font(.system(size: 12)).monospacedDigit().foregroundStyle(.secondary)
+                Text(model.price).appFont(.detail).monospacedDigit().foregroundStyle(.secondary)
                     .help(model.billing)
             } accessory: {
                 Color.clear.frame(height: 1)
@@ -392,7 +394,7 @@ struct LocalModelGroupHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+            Text(title).appFont(.detail, weight: .semibold).foregroundStyle(.secondary)
                 .accessibilityAddTraits(.isHeader)
             if header == .recommendedForMemory {
                 Text("The smaller model comes first because this Mac has 8 GB of memory or less.").supportingText()
@@ -429,7 +431,7 @@ struct ExperimentalModelsDisclosure: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 14)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Experimental models (\(count))").font(.system(size: 13, weight: .medium))
+                    Text("Experimental models (\(count))").appFont(.body, weight: .medium)
                     Text(searching ? String(localized: "Search results include experimental models.")
                          : String(localized: "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly."))
                         .supportingText().fixedSize(horizontal: false, vertical: true)
@@ -486,12 +488,12 @@ struct ModelRow: View {
                         ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 6) {
-                                Text(entry.title).font(.system(size: 13, weight: .medium))
+                                Text(entry.title).appFont(.body, weight: .medium)
                                 if bestFit { PillTag(text: "BEST FIT") }
                             }
                             if let highlight = entry.highlight {
                                 Text("\(Image(systemName: "star.fill")) \(highlight)")
-                                    .font(.system(size: 11, weight: .medium))
+                                    .appFont(.supporting, weight: .medium)
                                     .foregroundStyle(.primary.opacity(0.75))
                             }
                             tierAndTags
@@ -521,7 +523,7 @@ struct ModelRow: View {
                 ModelDownloadProgress(progress: progress).padding(.leading, 56)
             }
             if let error = error ?? downloadError {
-                Text(error).font(.system(size: 11.5)).foregroundStyle(.orange).padding(.leading, 56)
+                Text(error).appFont(.annotation).foregroundStyle(.orange).padding(.leading, 56)
             }
         }
         .padding(Theme.cardPadding)
@@ -568,7 +570,7 @@ struct ModelRow: View {
             case .ready:
                 HStack(spacing: 5) {
                     Circle().fill(Color.green).frame(width: 6, height: 6)
-                    Text("In memory").font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    Text("In memory").appFont(.annotation).foregroundStyle(.secondary)
                 }
                 .help(container.settings.idleUnloadMinutes == 0
                     ? "Loaded in RAM. Stays loaded until you unload it, switch models, or quit the app."
@@ -576,10 +578,10 @@ struct ModelRow: View {
             case .loading:
                 HStack(spacing: 5) {
                     ProgressView().controlSize(.mini)
-                    Text("Loading…").font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    Text("Loading…").appFont(.annotation).foregroundStyle(.secondary)
                 }
             case .failed(let message):
-                Text("Load failed").font(.system(size: 11.5)).foregroundStyle(.orange).help(message)
+                Text("Load failed").appFont(.annotation).foregroundStyle(.orange).help(message)
             case .notLoaded:
                 EmptyView()
             }
@@ -590,9 +592,9 @@ struct ModelRow: View {
     private var storageLabel: some View {
         switch entry.storage {
         case .download(let size):
-            Text(size).font(.system(size: 12)).foregroundStyle(.secondary).monospacedDigit()
+            Text(size).appFont(.detail).foregroundStyle(.secondary).monospacedDigit()
         case .builtIn:
-            Text("Built in").font(.system(size: 12)).foregroundStyle(.secondary)
+            Text("Built in").appFont(.detail).foregroundStyle(.secondary)
         }
     }
 

@@ -104,11 +104,11 @@ struct HomeHero: View {
     private var firstRunHeadline: some View {
         VStack(alignment: .leading, spacing: 4) {
             (canDictate ? Text("Ready for your first dictation") : Text("Almost ready to dictate"))
-                .font(.system(size: 18, weight: .semibold))
+                .appFont(.title)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Text("Your speed, words and time saved appear here after you dictate.")
-                .font(.system(size: 12))
+                .appFont(.detail)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
@@ -123,11 +123,11 @@ struct HomeHero: View {
     private var unavailableHeadline: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("History unavailable")
-                .font(.system(size: 18, weight: .semibold))
+                .appFont(.title)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Text("Your speed, words and time saved return when History can be read.")
-                .font(.system(size: 12))
+                .appFont(.detail)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
@@ -259,7 +259,7 @@ struct HomeHero: View {
             .overlay(alignment: .top) {
                 if let hovered, let pulse = bars[hovered].pulse {
                     Text(pulse.date, format: .dateTime.month(.abbreviated).day().hour().minute())
-                        .font(.system(size: 10.5, weight: .medium).monospacedDigit())
+                        .appFont(.caption, weight: .medium).monospacedDigit()
                         .foregroundStyle(.secondary)
                         .fixedSize()
                         .position(x: layout.center(of: hovered), y: -10)
@@ -378,7 +378,7 @@ struct HomeHero: View {
                 Text("\(defaultCaption) · Click a bar to read")
             }
         }
-        .font(.system(size: 12).monospacedDigit())
+        .appFont(.detail).monospacedDigit()
         .foregroundStyle(.secondary)
         .lineLimit(1)
     }
@@ -434,7 +434,7 @@ private struct HomeHeroTranscript: View {
             HStack(spacing: Theme.controlSpacing) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(pulse.appName ?? String(localized: "Unknown app"))
-                        .font(.system(size: 13, weight: .medium))
+                        .appFont(.body, weight: .medium)
                         .lineLimit(1)
                     Text(pulse.date, format: .dateTime.month(.abbreviated).day().hour().minute())
                         .supportingText()
@@ -520,19 +520,19 @@ struct HeroMetric: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
-                    .font(.system(size: 23, weight: .semibold, design: .rounded))
+                    .appFont(.metric)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 if let unit {
                     Text(unit)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .appFont(.body, weight: .semibold, design: .rounded)
                         .foregroundStyle(.secondary)
                 }
             }
             Text(label)
-                .font(.system(size: 12))
+                .appFont(.detail)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }

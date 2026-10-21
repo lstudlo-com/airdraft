@@ -75,6 +75,8 @@ struct MainWindowView: View {
                   Date().timeIntervalSince(verified) >= 86_400 else { return }
             Task { await license.refresh() }
         }
+        // Outermost, so sheets presented from here inherit the text size too.
+        .textSize(from: container.settings)
     }
 
     private var mainContent: some View {
@@ -312,7 +314,7 @@ struct SidebarView: View {
                         .accessibilityHidden(true)
                     if !isCollapsed {
                         Text(container.microphones.label(container.settings.microphone))
-                            .font(.system(size: 13))
+                            .appFont(.body)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Image(systemName: "chevron.up.chevron.down")
@@ -334,7 +336,8 @@ struct SidebarView: View {
             .padding(.horizontal, NavigationStyle.destinationInset)
             .padding(.top, 8)
             .disabled(container.pipeline.isBusy)
-            .help("Change microphone. Your choice is saved as the default.")
+            // The name can truncate in the sidebar, notably at larger text sizes; the tooltip keeps it whole.
+            .help("\(container.microphones.label(container.settings.microphone)). Change microphone; your choice is saved as the default.")
             .accessibilityLabel("Microphone: \(container.microphones.label(container.settings.microphone))")
             .accessibilityIdentifier("sidebar.microphone")
             .focusable()
@@ -399,7 +402,7 @@ struct SidebarView: View {
                             .sidebarSelectionIconAnchor(page)
                         if !isCollapsed {
                             Text(page.title)
-                                .font(.system(size: 13, weight: .regular))
+                                .appFont(.body)
                                 .lineLimit(1)
                             Spacer(minLength: 0)
                         }
@@ -439,7 +442,7 @@ struct SidebarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .font(.system(size: 11, weight: .medium))
+            .appFont(.supporting, weight: .medium)
             .foregroundStyle(.secondary)
             .help(readiness.summary)
             .accessibilityLabel(readiness.summary)
@@ -447,9 +450,10 @@ struct SidebarView: View {
             .accessibilityIdentifier("sidebar.finish-setup")
         } else {
             Text(footerLine)
-                .font(.system(size: 11))
+                .appFont(.supporting)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .help(footerLine)
                 .accessibilityIdentifier("sidebar.footer-status")
         }
     }

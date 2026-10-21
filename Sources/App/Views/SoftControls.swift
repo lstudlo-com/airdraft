@@ -248,7 +248,7 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
                     }
                 } label: {
                     Text(option.1)
-                        .font(.system(size: small ? 11 : 12, weight: selected ? .semibold : .regular))
+                        .appFont(small ? .supporting : .detail, weight: selected ? .semibold : .regular)
                         .foregroundStyle(selected ? .primary : .secondary)
                         .lineLimit(1)
                         .padding(.horizontal, small ? 9 : 11)

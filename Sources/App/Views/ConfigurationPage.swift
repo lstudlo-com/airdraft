@@ -31,6 +31,12 @@ struct ConfigurationPage: View {
                         }
                     }
                     RowDivider()
+                    SettingRow(title: "Text size", subtitle: "The menu and recording window keep their size") {
+                        SoftSegmentedPicker("Text size", selection: $settings.textSize,
+                            options: TextSizePreference.allCases.map { ($0, $0.title) }, width: 240)
+                            .accessibilityIdentifier("settings.textSize")
+                    }
+                    RowDivider()
                     AppIconSettingRow(title: "Light app icon", selection: $settings.appIcons.light,
                                       subtitle: "Dock icon while Airdraft is open")
                     RowDivider()

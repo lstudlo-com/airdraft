@@ -59,7 +59,7 @@ struct HistoryTranscriptionReview: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
             HStack {
-                Text("Retranscription").font(.title2.weight(.semibold))
+                Text("Retranscription").appFont(.headline)
                 Spacer()
                 if container.pipeline.isBusy { ProgressView().controlSize(.small) }
             }
@@ -74,7 +74,7 @@ struct HistoryTranscriptionReview: View {
                 EmptyNote("No speech detected.")
             }
             if let issue = container.pipeline.lastIssue {
-                Text(issue).font(.callout).textSelection(.enabled)
+                Text(issue).appFont(.detail).textSelection(.enabled)
             }
             Spacer(minLength: 0)
             HStack {

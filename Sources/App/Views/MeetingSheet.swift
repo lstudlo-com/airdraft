@@ -11,7 +11,7 @@ struct MeetingSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            Text("Record Meeting").font(.system(size: 18, weight: .semibold))
+            Text("Record Meeting").appFont(.title)
             SettingsCard {
                 SettingRow(title: "App audio") {
                     Button { choosingApp = true } label: {
@@ -63,7 +63,7 @@ private struct MeetingSourceChoices: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.controlSpacing) {
             HStack {
-                Text("App audio").font(.system(size: 13, weight: .semibold))
+                Text("App audio").appFont(.body, weight: .semibold)
                 Spacer()
                 Button("Refresh") { Task { await selection.load() } }.buttonStyle(SoftButtonStyle()).disabled(selection.loading)
             }
@@ -100,7 +100,7 @@ private struct MeetingSourceChoices: View {
     private func sourceButton(_ title: String, id: Int32?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack { Text(title).lineLimit(1); Spacer(); if selection.selectedID == id { Image(systemName: "checkmark") } }
-                .font(.system(size: 13)).frame(maxWidth: .infinity).frame(height: rowHeight).contentShape(Rectangle())
+                .appFont(.body).frame(maxWidth: .infinity).frame(height: rowHeight).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title).help(title)
             .accessibilityIdentifier("meeting.source.\(id.map(String.init) ?? "all")")
     }
@@ -113,8 +113,8 @@ struct MeetingRecordingStatus: View {
             HStack(spacing: Theme.controlSpacing) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : "Recording Meeting")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text(HistoryRecordingControls.time(meeting.elapsed)).font(.system(size: 23, weight: .medium)).monospacedDigit()
+                        .appFont(.body, weight: .semibold)
+                    Text(HistoryRecordingControls.time(meeting.elapsed)).appFont(.metric, weight: .medium, design: .default).monospacedDigit()
                 }
                 Spacer(minLength: 0)
                 if meeting.state == .starting { Button("Cancel") { meeting.cancelStart() }.buttonStyle(SoftButtonStyle()) }
@@ -133,7 +133,7 @@ struct MeetingRecordingStatus: View {
     }
     private func captureRow(_ title: String, received: Bool, level: Float) -> some View {
         HStack(spacing: Theme.controlSpacing) {
-            Text(title).font(.system(size: 13)).lineLimit(1)
+            Text(title).appFont(.body).lineLimit(1)
             Spacer(minLength: 0)
             Text(received ? "Receiving" : "Waiting for audio").supportingText()
             MicrophoneLevelMeter(level: level)

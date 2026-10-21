@@ -26,7 +26,7 @@ struct AutomationSettings: View {
                         VStack(alignment: .trailing, spacing: 6) {
                             if !settings.outputScriptPath.isEmpty {
                                 Text(URL(fileURLWithPath: settings.outputScriptPath).lastPathComponent)
-                                    .font(.caption).lineLimit(1).truncationMode(.middle)
+                                    .appFont(.caption2).lineLimit(1).truncationMode(.middle)
                                     .help(settings.outputScriptPath)
                             }
                             Button("Choose Script…", action: chooseScript).buttonStyle(SoftButtonStyle())

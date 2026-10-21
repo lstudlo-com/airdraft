@@ -76,10 +76,10 @@ struct OnboardingView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.system(size: 25, weight: .semibold)).tracking(-0.5)
+            Text(title).appFont(.display).tracking(-0.5)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+            Text(subtitle).appFont(.body).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -323,7 +323,7 @@ private struct OnboardingRail: View {
                ![.speech, .practice].contains(progress.step) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Downloading \(speech.entry.title)")
-                        .font(.system(size: 11, weight: .medium))
+                        .appFont(.supporting, weight: .medium)
                         .lineLimit(1)
                     ModelDownloadProgress(progress: current)
                 }
@@ -333,7 +333,7 @@ private struct OnboardingRail: View {
                 .accessibilityIdentifier("onboarding.rail-download")
             }
             Button("Set Up Later") { progress.dismiss() }
-                .buttonStyle(.link).font(.system(size: 12))
+                .buttonStyle(.link).appFont(.detail)
                 .disabled(container.pipeline.isBusy)
                 .help("Your progress is saved. Reopen it from the Airdraft menu with Set Up Airdraft.")
                 .padding(.horizontal, NavigationStyle.destinationInset + 6)
@@ -356,7 +356,7 @@ private struct OnboardingRail: View {
                     .frame(width: NavigationStyle.iconIslandSize)
                     .sidebarSelectionIconAnchor(step)
                 Text(step.title)
-                    .font(.system(size: 13))
+                    .appFont(.body)
                     .foregroundStyle(current || passed ? .primary : .secondary)
                     .lineLimit(1)
                 Spacer(minLength: 0)

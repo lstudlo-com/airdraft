@@ -18,7 +18,7 @@ struct VocabularyPage: View {
             }
             if let entry = removedEntry {
                 HStack {
-                    Text("Vocabulary removed").font(.system(size: 12.5)).foregroundStyle(.secondary)
+                    Text("Vocabulary removed").appFont(.control, weight: .regular).foregroundStyle(.secondary)
                     Spacer()
                     Button("Undo") { container.dictionary.restore(entry); removedEntry = nil }.buttonStyle(SoftButtonStyle())
                 }
@@ -113,15 +113,15 @@ private struct VocabularyLine: View {
     var body: some View {
         HStack(spacing: 14) {
             if let alias = row.alias {
-                Text(alias).font(.system(size: 14)).frame(width: 220, alignment: .leading)
+                Text(alias).appFont(.heading, weight: .regular).frame(width: 220, alignment: .leading)
                 Image(systemName: "arrow.right")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 20, height: 20)
                     .background(Circle().fill(Color.primary.opacity(0.08)))
-                Text(row.term).font(.system(size: 14, weight: .medium))
+                Text(row.term).appFont(.heading, weight: .medium)
             } else {
-                Text(row.term).font(.system(size: 14, weight: .medium))
+                Text(row.term).appFont(.heading, weight: .medium)
             }
             Spacer()
             Button(action: onDelete) { Image(systemName: "trash").font(.system(size: 13)) }

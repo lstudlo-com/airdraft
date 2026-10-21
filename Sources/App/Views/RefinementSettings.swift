@@ -274,7 +274,7 @@ struct APIKeyField: View {
             HStack(spacing: 8) {
                 if let console {
                     Button("Get a Key") { NSWorkspace.shared.open(console) }
-                        .buttonStyle(.link).font(.system(size: 12)).fixedSize()
+                        .buttonStyle(.link).appFont(.detail).fixedSize()
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
                     .softField().frame(width: Theme.fieldWidth).disabled(editor.isBusy)

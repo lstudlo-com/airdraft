@@ -250,7 +250,7 @@ struct ModelsPage: View {
                                 .foregroundStyle(.orange)
                         }
                     }
-                    .font(.system(size: 12))
+                    .appFont(.detail)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }

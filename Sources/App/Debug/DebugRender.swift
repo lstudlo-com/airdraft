@@ -261,6 +261,7 @@ enum DebugRender {
                                            ? Float(env["AIRDRAFT_RENDER_MIC_LEVEL"] ?? "") ?? 0.42 : nil)
                     }
                 }.environment(container).environment(\.openRouterPreviewEndpoints, previewEndpoints)
+                    .textSize(from: container.settings)
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
                 var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)

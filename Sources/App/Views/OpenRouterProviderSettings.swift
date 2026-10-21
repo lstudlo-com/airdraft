@@ -110,7 +110,7 @@ struct OpenRouterProviderSettings: View {
                             Text(measurement(endpoint.throughput, unit: "tokens/s"))
                                 .monospacedDigit().foregroundStyle(.secondary)
                         }
-                        .font(.system(size: 12.5))
+                        .appFont(.control, weight: .regular)
                     }
                 }
             } else if let endpoint = relatedEndpoints.first {
@@ -129,7 +129,7 @@ struct OpenRouterProviderSettings: View {
                     Text("Updated \(refreshedAt.formatted(date: .omitted, time: .shortened))")
                 }
             }
-            .font(.system(size: 11.5)).foregroundStyle(.secondary)
+            .appFont(.annotation).foregroundStyle(.secondary)
         }
         .task(id: taskKey) { await refresh() }
     }
@@ -163,8 +163,8 @@ struct OpenRouterProviderSettings: View {
     /// Value above label, as in the other metric displays.
     private func metric(_ label: String, value: String, help: String = "") -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value).font(.system(size: 13, weight: .medium)).monospacedDigit()
-            Text(label).font(.system(size: 11.5)).foregroundStyle(.secondary)
+            Text(value).appFont(.body, weight: .medium).monospacedDigit()
+            Text(label).appFont(.annotation).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)

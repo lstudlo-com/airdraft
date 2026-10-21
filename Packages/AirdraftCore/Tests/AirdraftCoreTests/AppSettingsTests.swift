@@ -132,6 +132,24 @@ final class AppSettingsTests: XCTestCase {
         }
     }
 
+    func testTextSizeDefaultsToStandardPersistsAndIgnoresUnknownValues() throws {
+        try withDefaults { defaults in
+            XCTAssertEqual(AppSettings(defaults: defaults).textSize, .standard)
+            XCTAssertEqual(TextSizePreference.standard.scale, 1)
+            XCTAssertEqual(TextSizePreference.allCases.map(\.scale), [1, 1.12, 1.24])
+            for size in TextSizePreference.allCases {
+                let settings = AppSettings(defaults: defaults)
+                settings.textSize = size
+                XCTAssertEqual(AppSettings(defaults: defaults).textSize, size)
+            }
+            AppSettings(defaults: defaults).appearance = .dark
+            defaults.set(Data("\"huge\"".utf8), forKey: "settings.textSize")
+            let reloaded = AppSettings(defaults: defaults)
+            XCTAssertEqual(reloaded.textSize, .standard)
+            XCTAssertEqual(reloaded.appearance, .dark)
+        }
+    }
+
     func testTriggerDelayDefaultsOffPersistsAndClamps() throws {
         try withDefaults { defaults in
             let settings = AppSettings(defaults: defaults)

@@ -146,7 +146,7 @@ struct MicrophoneSelectionOverlay: View {
                         .frame(width: 12)
                         .accessibilityHidden(true)
                     Text(title)
-                        .font(.system(size: 13))
+                        .appFont(.body)
                         .lineLimit(1)
                         .truncationMode(.middle)
                     Spacer(minLength: 0)

@@ -10,7 +10,7 @@ struct HistoryTranscript: NSViewRepresentable {
     func makeNSView(context: Context) -> BackingView { BackingView() }
 
     func updateNSView(_ view: BackingView, context: Context) {
-        view.configure(content: content, expanded: expanded)
+        view.configure(content: content, expanded: expanded, scale: context.environment.textScale)
         view.onToggle = { expanded.toggle() }
     }
 
@@ -24,6 +24,7 @@ struct HistoryTranscript: NSViewRepresentable {
         var onToggle: (() -> Void)?
         private var content: HistoryTextContent?
         private var expanded = false
+        private var scale: CGFloat = 1
         private var createdToggle: NSButton?
         private var lastMeasurement: (width: CGFloat, result: Measurement)?
         /// Before the first layout an accessed toggle starts visible, as a native control would.
@@ -53,20 +54,23 @@ struct HistoryTranscript: NSViewRepresentable {
         var toggle: NSButton {
             if let createdToggle { return createdToggle }
             let toggle = NSButton(title: expanded ? String(localized: "Show Less") : String(localized: "Show More"), target: self, action: #selector(toggleExpansion))
-            Self.configureToggle(toggle)
+            Self.configureToggle(toggle, scale: scale)
             toggle.isHidden = !showsToggle
             addSubview(toggle)
             createdToggle = toggle
             return toggle
         }
 
-        func configure(content: HistoryTextContent, expanded: Bool) {
-            guard self.content != content || self.expanded != expanded else { return }
+        func configure(content: HistoryTextContent, expanded: Bool, scale: CGFloat = 1) {
+            guard self.content != content || self.expanded != expanded || self.scale != scale else { return }
             self.content = content
             self.expanded = expanded
+            if self.scale != scale, let createdToggle { Self.configureToggle(createdToggle, scale: scale) }
+            self.scale = scale
+            textField.font = TextStyle.transcript.nsFont(scale: scale)
             textField.maximumNumberOfLines = expanded ? 0 : 6
             textField.attributedStringValue = NSAttributedString(string: expanded ? content.full : content.preview,
-                                                                 attributes: Self.attributes)
+                                                                 attributes: Self.attributes(scale: scale))
             createdToggle?.title = expanded ? String(localized: "Show Less") : String(localized: "Show More")
             lastMeasurement = nil
             invalidateIntrinsicContentSize()
@@ -76,8 +80,8 @@ struct HistoryTranscript: NSViewRepresentable {
         func measure(width: CGFloat) -> Measurement {
             if let lastMeasurement, lastMeasurement.width == width { return lastMeasurement.result }
             guard let content else { return Measurement(textHeight: 0, buttonSize: .zero, showsToggle: false) }
-            let measured = Self.measure(content, expanded: expanded, width: width)
-            let result = Measurement(textHeight: measured.textHeight, buttonSize: Self.toggleSize(expanded: expanded),
+            let measured = Self.measure(content, expanded: expanded, width: width, scale: scale)
+            let result = Measurement(textHeight: measured.textHeight, buttonSize: Self.toggleSize(expanded: expanded, scale: scale),
                                      showsToggle: measured.showsToggle)
             lastMeasurement = (width, result)
             return result
@@ -101,14 +105,14 @@ struct HistoryTranscript: NSViewRepresentable {
 
         // MARK: Shared measurement
 
-        private static let attributes: [NSAttributedString.Key: Any] = {
+        private static func attributes(scale: CGFloat) -> [NSAttributedString.Key: Any] {
             let style = NSMutableParagraphStyle()
             style.lineSpacing = 3
-            return [.font: NSFont.systemFont(ofSize: 14), .foregroundColor: NSColor.labelColor, .paragraphStyle: style]
-        }()
+            return [.font: TextStyle.transcript.nsFont(scale: scale), .foregroundColor: NSColor.labelColor, .paragraphStyle: style]
+        }
 
         private static func configureLabel(_ field: NSTextField) {
-            field.font = .systemFont(ofSize: 14)
+            field.font = TextStyle.transcript.nsFont(scale: 1)
             field.isEditable = false
             field.isBezeled = false
             field.drawsBackground = false
@@ -117,10 +121,10 @@ struct HistoryTranscript: NSViewRepresentable {
             field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         }
 
-        private static func configureToggle(_ toggle: NSButton) {
+        private static func configureToggle(_ toggle: NSButton, scale: CGFloat) {
             toggle.isBordered = false
             toggle.bezelStyle = .inline
-            toggle.font = .systemFont(ofSize: 12)
+            toggle.font = TextStyle.detail.nsFont(scale: scale)
             toggle.contentTintColor = .linkColor
             toggle.setAccessibilityIdentifier("history.expand")
         }
@@ -131,13 +135,19 @@ struct HistoryTranscript: NSViewRepresentable {
             return field
         }()
 
-        private static var toggleSizes: [Bool: CGSize] = [:]
+        private struct ToggleKey: Hashable {
+            let expanded: Bool
+            let scale: CGFloat
+        }
 
-        private static func toggleSize(expanded: Bool) -> CGSize {
-            if let size = toggleSizes[expanded] { return size }
+        private static var toggleSizes: [ToggleKey: CGSize] = [:]
+
+        private static func toggleSize(expanded: Bool, scale: CGFloat) -> CGSize {
+            let key = ToggleKey(expanded: expanded, scale: scale)
+            if let size = toggleSizes[key] { return size }
             let toggle = NSButton(title: expanded ? String(localized: "Show Less") : String(localized: "Show More"), target: nil, action: nil)
-            configureToggle(toggle)
-            toggleSizes[expanded] = toggle.fittingSize
+            configureToggle(toggle, scale: scale)
+            toggleSizes[key] = toggle.fittingSize
             return toggle.fittingSize
         }
 
@@ -145,29 +155,38 @@ struct HistoryTranscript: NSViewRepresentable {
             let text: String
             let expanded: Bool
             let width: CGFloat
+            let scale: CGFloat
         }
 
         /// Lazy rows are recreated whenever they scroll back into view. Text and
         /// width determine the result, so measurements outlive the views.
         private static var measurements: [Key: (textHeight: CGFloat, showsToggle: Bool)] = [:]
 
-        private static func textHeight(_ text: String, lines: Int, width: CGFloat) -> CGFloat {
+        private static func textHeight(_ text: String, lines: Int, width: CGFloat, scale: CGFloat) -> CGFloat {
             let field = measuringField
+            field.font = TextStyle.transcript.nsFont(scale: scale)
             field.maximumNumberOfLines = lines
-            field.attributedStringValue = NSAttributedString(string: text, attributes: attributes)
+            field.attributedStringValue = NSAttributedString(string: text, attributes: attributes(scale: scale))
             let bounds = NSRect(x: 0, y: 0, width: width, height: .greatestFiniteMagnitude)
             return ceil(field.cell?.cellSize(forBounds: bounds).height ?? 0)
         }
 
-        /// Six unconstrained lines; anything shorter cannot have a seventh.
-        private static let sixLineHeight = textHeight((1...6).map(String.init).joined(separator: "\n"), lines: 0, width: 10_000)
+        /// Six unconstrained lines at each text size; anything shorter cannot have a seventh.
+        private static var sixLineHeights: [CGFloat: CGFloat] = [:]
 
-        private static func measure(_ content: HistoryTextContent, expanded: Bool, width: CGFloat) -> (textHeight: CGFloat, showsToggle: Bool) {
-            let key = Key(text: expanded ? content.full : content.preview, expanded: expanded, width: width)
+        private static func sixLineHeight(scale: CGFloat) -> CGFloat {
+            if let height = sixLineHeights[scale] { return height }
+            let height = textHeight((1...6).map(String.init).joined(separator: "\n"), lines: 0, width: 10_000, scale: scale)
+            sixLineHeights[scale] = height
+            return height
+        }
+
+        private static func measure(_ content: HistoryTextContent, expanded: Bool, width: CGFloat, scale: CGFloat) -> (textHeight: CGFloat, showsToggle: Bool) {
+            let key = Key(text: expanded ? content.full : content.preview, expanded: expanded, width: width, scale: scale)
             if let result = measurements[key] { return result }
-            let height = textHeight(key.text, lines: expanded ? 0 : 6, width: width)
+            let height = textHeight(key.text, lines: expanded ? 0 : 6, width: width, scale: scale)
             let showsToggle = expanded || content.hasOmittedTail ||
-                (height + 1 >= sixLineHeight && textHeight(content.preview, lines: 7, width: width) > height + 1)
+                (height + 1 >= sixLineHeight(scale: scale) && textHeight(content.preview, lines: 7, width: width, scale: scale) > height + 1)
             if measurements.count >= 1_000 { measurements.removeAll(keepingCapacity: true) }
             measurements[key] = (height, showsToggle)
             return (height, showsToggle)

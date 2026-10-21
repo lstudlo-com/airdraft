@@ -499,6 +499,16 @@
         }
       }
     },
+    "%@. Change microphone; your choice is saved as the default." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@。更改麥克風；你的選擇會儲存為預設值。"
+          }
+        }
+      }
+    },
     "%@. Saved as Airdraft's default microphone. Finish the current operation before switching." : {
       "localizations" : {
         "zh-Hant" : {
@@ -2019,16 +2029,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改保留期限"
-          }
-        }
-      }
-    },
-    "Change microphone. Your choice is saved as the default." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改麥克風。你的選擇會儲存為預設值。"
           }
         }
       }
@@ -4848,6 +4848,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語言尚未安裝"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "comment" : "Text size",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大"
+          }
+        }
+      }
+    },
+    "Larger" : {
+      "comment" : "Text size",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更大"
           }
         }
       }
@@ -9801,6 +9823,16 @@
         }
       }
     },
+    "Text size" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字大小"
+          }
+        }
+      }
+    },
     "That was a real dictation. Try one more in your own words, or continue." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9827,6 +9859,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "就是這樣。按一下開始，再按一次即插入。"
+          }
+        }
+      }
+    },
+    "The menu and recording window keep their size" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選單和錄音視窗維持原本大小"
           }
         }
       }

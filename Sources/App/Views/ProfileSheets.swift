@@ -8,7 +8,7 @@ struct BaseSystemPromptEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            Text("Base system prompt").font(.system(size: 20, weight: .semibold))
+            Text("Base system prompt").appFont(.sheetTitle)
             Text("Shared across AI profiles; profile instructions are added automatically.")
                 .supportingText()
             ProfileTextEditor(title: String(localized: "Base system prompt"), text: $draft, height: 320, showsTitle: false)
@@ -38,10 +38,10 @@ struct ProfilePromptPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-            Text("Prompt for \(profile.displayName)").font(.system(size: 18, weight: .semibold))
+            Text("Prompt for \(profile.displayName)").appFont(.title)
             ScrollView {
                 Text(prompt)
-                    .font(.system(size: 12, design: .monospaced))
+                    .appFont(.detail, design: .monospaced)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

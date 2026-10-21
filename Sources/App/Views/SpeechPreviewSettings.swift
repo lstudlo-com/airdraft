@@ -27,7 +27,7 @@ struct SpeechPreviewSettings: View {
                     if let progress = job?.progress {
                         HStack {
                             ProgressView().controlSize(.small)
-                            Text(progress.currentFile).font(.caption).lineLimit(1)
+                            Text(progress.currentFile).appFont(.caption2).lineLimit(1)
                             Button("Cancel") { container.downloads.cancel(config) }
                                 .buttonStyle(SoftButtonStyle()).disabled(job?.cancelling == true)
                         }
