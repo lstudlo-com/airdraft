@@ -10,7 +10,8 @@ import sys
 # contract update; test discovery alone must not silently shrink this gate.
 # AX-write cases were retired with the AX text-write path. The gate now
 # covers one paste for both persisted settings plus cancellation during handoff.
-# Caretless cases cover editors that draw their own text, such as Zed and Warp.
+# Caretless cases cover editors that draw their own text, such as Zed and Warp;
+# their paste is sent unverified rather than reported as failed.
 REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testIgnoredPasteKeepsRecoveryTextAndDoesNotReportDelivery()',
     'TextDeliveryRegressionTests/testDelayedPasteReportsDeliveryOnlyAfterExpectedTextArrives()',
@@ -20,7 +21,14 @@ REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testConfirmedPasteReplacesUTF16SelectionAndPreservesSurroundingText()',
     'TextDeliveryRegressionTests/testIgnoredPasteThroughPipelineKeepsNoticeClipboardAndUndeliveredHistory()',
     'TextDeliveryRegressionTests/testIgnoredPasteAfterRefinementKeepsFinalTextAndRecoveryNotice()',
-    'TextDeliveryRegressionTests/testCaretlessIgnoredPasteAfterRefinementKeepsRecovery()',
+    # A validated caretless paste is sent unverified: no error, clipboard restored.
+    'TextDeliveryRegressionTests/testCaretlessIgnoredPasteAfterRefinementIsSentUnverified()',
+    'TextDeliveryRegressionTests/testCaretlessPasteThroughPipelineIsSentUnverifiedWithoutError()',
+    'TextDeliveryRegressionTests/testCaretlessPasteRestoresClipboardLaterUnlessReplaced()',
+    'TextDeliveryRegressionTests/testCancellationAfterCaretlessPasteKeepsSingleDeliveryAndRestore()',
+    'TextDeliveryRegressionTests/testCaretEditorUnreadablePasteThroughPipelineKeepsRecovery()',
+    'TextDeliveryRegressionTests/testEditorNormalizedPasteStillConfirmsDelivery()',
+    'HistoryStoreTests/testDeliveryStatusRoundTripsWithoutSchemaChange()',
     'TextInsertionTests/testUnconfirmedPasteDoesNotOverwriteNewClipboardOrClaimItKeptText()',
     'TextInsertionTests/testCancellationAfterUnconfirmedPasteKeepsRecoveryText()',
     'TextDeliveryRegressionTests/testCaptureFollowsAppSwitchBeforeRecordingStarts()',

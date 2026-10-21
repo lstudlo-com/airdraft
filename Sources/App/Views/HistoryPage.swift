@@ -860,10 +860,18 @@ struct HistoryCard<RecordingControls: View>: View {
             if record.outputDestination == TextOutputDestination.script.rawValue {
                 row(String(localized: "Script delivery"), record.outputSucceeded == true ? String(localized: "completed") : String(localized: "failed or interrupted"))
             } else {
-                row(String(localized: "Inserted"), record.inserted ? String(localized: "yes") : String(localized: "no"))
+                row(String(localized: "Inserted"), insertionStatus)
             }
         }
         .font(.system(size: 12))
+    }
+
+    private var insertionStatus: String {
+        switch record.deliveryStatus {
+        case .delivered: String(localized: "yes")
+        case .sentUnverified: String(localized: "Pasted; this app doesn't expose text to confirm it")
+        case .notDelivered: String(localized: "no")
+        }
     }
 
     private func row(_ k: String, _ v: String) -> some View {

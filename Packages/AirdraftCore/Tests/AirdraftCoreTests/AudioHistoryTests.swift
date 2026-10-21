@@ -67,6 +67,7 @@ final class AudioHistoryTests: XCTestCase {
         XCTAssertNil(migrated.audioFilename)
         XCTAssertNil(migrated.outputDestination)
         XCTAssertNil(migrated.outputSucceeded)
+        XCTAssertEqual(migrated.deliveryStatus, .delivered, "A pre-destination row keeps its inserted flag")
         XCTAssertFalse(FileManager.default.fileExists(atPath: recordings.path))
         let withAudio = try store.save(record(), samples: [0, 0.5, -0.5])
         XCTAssertNotNil(store.audioURL(for: withAudio))

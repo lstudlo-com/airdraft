@@ -202,6 +202,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
         let result = await inserter.insert(Editor.dictation, target: target)
         XCTAssertFalse(editor.webEnabled)
         XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(result.delivery, .delivered, "A native caret, once exposed, still confirms delivery")
         XCTAssertNil(result.notice)
         XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
@@ -216,6 +217,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
         editor.onFocusRead = { if editor.focusReads >= 3 { editor.focusAvailable = true } }
         let result = await inserter.insert(Editor.dictation, target: target)
         XCTAssertEqual(result.method, .paste)
+        XCTAssertEqual(result.delivery, .delivered)
         XCTAssertNil(result.notice)
         XCTAssertEqual(editor.activations, 0)
         XCTAssertEqual(editor.pasted, [Editor.dictation])
@@ -366,7 +368,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
 
     /// Zed, Warp and other editors that draw their own text publish no caret:
     /// no focused element, a container without selection attributes, or a
-    /// text role without a readable range. Each must still receive one paste.
+    /// text role without a readable range. Each must still receive one paste,
+    /// reported as sent but unverifiable rather than as a failed delivery.
     func testCaretlessEditorPastesIntoItsFocusedWindow() async throws {
         for shape in ["no focused element", "container", "text without range"] {
             let editor = Editor()
@@ -386,13 +389,100 @@ final class TextDeliveryRegressionTests: XCTestCase {
             XCTAssertNil(target.selection, shape)
             var delivered = 0
             let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
-            XCTAssertFalse(result.didInsert, shape)
-            XCTAssertNotNil(result.notice, shape)
+            XCTAssertEqual(result.delivery, .sentUnverified, shape)
+            XCTAssertFalse(result.didInsert, "\(shape): nothing confirmed the text")
+            XCTAssertTrue(result.wasSent, shape)
+            XCTAssertNil(result.notice, "\(shape): an unverifiable paste is not an error")
             XCTAssertEqual(editor.activations, 0, shape)
             XCTAssertEqual(editor.pasted, [Editor.dictation], shape)
-            XCTAssertEqual(delivered, 0, shape)
-            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation, shape)
+            XCTAssertEqual(editor.posts, 1, "\(shape): never repeat the paste")
+            XCTAssertEqual(delivered, 1, "\(shape): the HUD finishes as after delivery")
+            XCTAssertTrue(inserter.hasPendingClipboardRestoration, shape)
+            await inserter.finishClipboardRestoration()
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard,
+                           "\(shape): the user's clipboard returns; the transcript stays in History")
         }
+    }
+
+    /// A caretless destination cannot prove it read the clipboard, so its
+    /// restore waits longer than a confirmed paste's and yields to a newer copy.
+    func testCaretlessPasteRestoresClipboardLaterUnlessReplaced() async throws {
+        for replaced in [false, true] {
+            let editor = Editor()
+            defer { editor.close() }
+            editor.range = nil
+            let inserter = editor.inserter()
+            inserter.restoreDelay = 0
+            inserter.unverifiedRestoreDelay = 0.3
+            let target = await inserter.captureTarget()
+            let result = await inserter.insert(Editor.dictation, target: target)
+            XCTAssertEqual(result.delivery, .sentUnverified)
+            try await Task.sleep(for: .milliseconds(100))
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation,
+                           "A slow receiver still reads the transcript after the confirmed-paste delay")
+            if replaced {
+                editor.clipboard.clearContents()
+                editor.clipboard.setString("Copied by the user", forType: .string)
+            }
+            await inserter.finishClipboardRestoration()
+            XCTAssertEqual(editor.clipboard.string(forType: .string), replaced ? "Copied by the user" : Editor.previousClipboard)
+            XCTAssertEqual(editor.posts, 1)
+        }
+    }
+
+    /// Cancellation after posting cannot undo the paste. The unverified result
+    /// and its pending restore stay owned by the inserter.
+    func testCancellationAfterCaretlessPasteKeepsSingleDeliveryAndRestore() async throws {
+        let editor = Editor()
+        defer { editor.close() }
+        editor.focusAvailable = false
+        let inserter = editor.inserter()
+        let target = await inserter.captureTarget()
+        var task: Task<InsertionResult, Never>?
+        editor.onPost = { task?.cancel() }
+        task = Task { @MainActor in await inserter.insert(Editor.dictation, target: target) }
+        let result = await task!.value
+        XCTAssertEqual(result.delivery, .sentUnverified)
+        XCTAssertEqual(editor.posts, 1)
+        await inserter.finishClipboardRestoration()
+        XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
+    }
+
+    /// Only line endings, typographic quotes and non-breaking spaces may differ.
+    func testEditorNormalizedPasteStillConfirmsDelivery() async throws {
+        let cases = [
+            ("Say \"hi\", it's done", "Say \u{201C}hi\u{201D}, it\u{2019}s done"),
+            ("First line\nSecond line", "First line\r\nSecond line"),
+            ("Price 10 kg", "Price 10\u{00A0}kg"),
+        ]
+        for (text, stored) in cases {
+            let editor = Editor()
+            defer { editor.close() }
+            editor.replacement = stored
+            let inserter = editor.inserter()
+            let target = await inserter.captureTarget()
+            var delivered = 0
+            let result = await inserter.insert(text, target: target) { delivered += 1 }
+            XCTAssertEqual(result.delivery, .delivered, stored)
+            XCTAssertNil(result.notice, stored)
+            XCTAssertEqual(delivered, 1, stored)
+            XCTAssertEqual(editor.posts, 1, stored)
+        }
+        // Any other change, including auto-indent or dropped words, stays unconfirmed.
+        for stored in ["First line\n    Second line", "Say hi, it's done", "say \"hi\", it's done"] {
+            let editor = Editor()
+            defer { editor.close() }
+            editor.replacement = stored
+            let inserter = editor.inserter()
+            let target = await inserter.captureTarget()
+            let text = stored.hasPrefix("First") ? "First line\nSecond line" : "Say \"hi\", it's done"
+            let result = await inserter.insert(text, target: target) { XCTFail("\(stored) must not confirm") }
+            XCTAssertEqual(result.delivery, .notDelivered, stored)
+            XCTAssertNotNil(result.notice, stored)
+            XCTAssertEqual(editor.clipboard.string(forType: .string), text, stored)
+        }
+        XCTAssertTrue(TextInserter.equivalentDeliveredText("a\rb\r\n", "a\nb\n"))
+        XCTAssertFalse(TextInserter.equivalentDeliveredText("a b", "a  b"))
     }
 
     func testCaretlessEditorIsReactivatedBeforePaste() async throws {
@@ -404,8 +494,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
         editor.frontmostPID = 999
         editor.activationDelay = .milliseconds(100)
         let result = await inserter.insert(Editor.dictation, target: target)
-        XCTAssertFalse(result.didInsert)
-        XCTAssertNotNil(result.notice)
+        XCTAssertEqual(result.delivery, .sentUnverified)
+        XCTAssertNil(result.notice)
         XCTAssertEqual(editor.activations, 1)
         XCTAssertEqual(editor.pasted, [Editor.dictation])
     }
@@ -513,8 +603,19 @@ final class TextDeliveryRegressionTests: XCTestCase {
         try await verifyPipelineDelivery(dropPaste: true, refinementEnabled: true)
     }
 
-    func testCaretlessIgnoredPasteAfterRefinementKeepsRecovery() async throws {
+    func testCaretlessPasteThroughPipelineIsSentUnverifiedWithoutError() async throws {
+        try await verifyPipelineDelivery(caretless: true)
+    }
+
+    /// A caretless editor that ignores the paste cannot be told apart from one
+    /// that accepted it. The text stays in History, without a recovery notice.
+    func testCaretlessIgnoredPasteAfterRefinementIsSentUnverified() async throws {
         try await verifyPipelineDelivery(dropPaste: true, refinementEnabled: true, caretless: true)
+    }
+
+    /// A caret editor whose read-back fails keeps today's recovery outcome.
+    func testCaretEditorUnreadablePasteThroughPipelineKeepsRecovery() async throws {
+        try await verifyPipelineDelivery(unreadable: true)
     }
 
     func testHoldShortcutImmediatelyAfterConfirmedDeliveryStartsRecording() async throws {
@@ -632,12 +733,14 @@ final class TextDeliveryRegressionTests: XCTestCase {
 
     private func verifyPipelineDelivery(copyWithinApp: Bool = false, permissionLost: Bool = false,
                                         refinementFails: Bool = false, dropPaste: Bool = false,
-                                        refinementEnabled: Bool = false, caretless: Bool = false) async throws {
+                                        refinementEnabled: Bool = false, caretless: Bool = false,
+                                        unreadable: Bool = false) async throws {
         let editor = Editor()
         defer { editor.close() }
         if copyWithinApp { editor.bundleID = try XCTUnwrap(Bundle.main.bundleIdentifier) }
         editor.dropPaste = dropPaste
         if caretless { editor.range = nil }
+        if unreadable { editor.unreadableValue = true; editor.unreadableTextRange = true }
         let suite = "airdraft.delivery-regression.\(UUID().uuidString)"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
@@ -668,17 +771,20 @@ final class TextDeliveryRegressionTests: XCTestCase {
         if permissionLost { editor.trusted = false }
         pipeline.stopAndProcess()
         for _ in 0..<200 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
-        let copiedOnly = copyWithinApp || permissionLost || dropPaste
-        XCTAssertEqual(editor.pasted, copiedOnly ? [] : [Editor.dictation])
+        let unconfirmed = (dropPaste && !caretless) || unreadable
+        let copiedOnly = copyWithinApp || permissionLost || unconfirmed
+        // An unreadable caret editor receives the paste; it just cannot confirm it.
+        let received = !(copyWithinApp || permissionLost || dropPaste)
+        XCTAssertEqual(editor.pasted, received ? [Editor.dictation] : [])
         XCTAssertEqual(delivered, copiedOnly ? 0 : 1)
         if copiedOnly {
             XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
-            let notice = dropPaste
+            let notice = unconfirmed
                 ? "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again."
                 : (copyWithinApp ? "Copied to clipboard" : "Accessibility is off, text copied")
             XCTAssertEqual(pipeline.state, .notice(notice,
                                                   requiresAttention: !copyWithinApp))
-            if dropPaste {
+            if unconfirmed {
                 XCTAssertEqual(editor.posts, 1)
                 XCTAssertEqual(try history.recent(limit: 1).first?.error, notice)
             }
@@ -686,10 +792,17 @@ final class TextDeliveryRegressionTests: XCTestCase {
             XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three seconds")
         } else {
             XCTAssertNil(pipeline.lastIssue)
+            XCTAssertEqual(pipeline.state, .idle, "Delivered and unverifiable pastes show no notice")
+            XCTAssertEqual(editor.posts, 1)
+            await pipeline.finishPendingDelivery()
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard,
+                           "The user's clipboard returns after delivery")
         }
         let record = try XCTUnwrap(history.recent(limit: 1).first)
-        XCTAssertEqual(record.inserted, !copiedOnly)
+        XCTAssertEqual(record.inserted, !copiedOnly && !caretless)
         XCTAssertEqual(record.outputSucceeded, !copiedOnly)
+        XCTAssertEqual(record.deliveryStatus, copiedOnly ? .notDelivered : (caretless ? .sentUnverified : .delivered))
+        if caretless, !refinementFails { XCTAssertNil(record.error, "An unverifiable paste records no error") }
         XCTAssertEqual(record.rawTranscript, Editor.dictation)
         XCTAssertEqual(record.finalText, Editor.dictation)
         if refinementEnabled { XCTAssertEqual(record.refinedText, Editor.dictation) }
@@ -840,6 +953,7 @@ private final class Editor {
     var posts = 0
     var pasted: [String] = []
     var onFocusRead: (() -> Void)?
+    var onPost: (() -> Void)?
 
     init() {
         currentField = field
@@ -892,6 +1006,7 @@ private final class Editor {
             return self.webEnabled
         }, postPaste: {
             self.posts += 1
+            self.onPost?()
             if self.dropPaste { return true }
             if let delay = self.pasteDelay {
                 Task { @MainActor in
@@ -908,6 +1023,7 @@ private final class Editor {
         })
         let inserter = TextInserter(environment: environment)
         inserter.restoreDelay = 0
+        inserter.unverifiedRestoreDelay = 0
         inserter.confirmationTimeout = .milliseconds(50)
         return inserter
     }

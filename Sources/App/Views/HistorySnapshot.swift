@@ -66,6 +66,8 @@ struct HistorySnapshot: Sendable {
                 if let app = record.appName { metadata.append(app) }
                 if record.outputDestination == TextOutputDestination.script.rawValue {
                     metadata.append(record.outputSucceeded == true ? String(localized: "Sent to script") : String(localized: "Script failed"))
+                } else if record.deliveryStatus == .sentUnverified {
+                    metadata.append(String(localized: "Pasted, unconfirmed", comment: "History status: a paste was sent to an app that exposes no text to confirm it"))
                 }
                 metadata += [record.mode, String(localized: "\(String(format: "%.0f", record.audioSeconds)) s", comment: "Audio duration in seconds")]
             }

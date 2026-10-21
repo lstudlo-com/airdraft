@@ -26,11 +26,14 @@ The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
 Before accepting a successful Xcode exit, it checks the actual xcresult with
-`verify-insertion-regressions.py`. All 49 mandatory insertion cases must be present
+`verify-insertion-regressions.py`. All 62 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline
-fixtures. Ignored/partial/unobservable pastes must retain recovery text without
-reporting delivery; delayed reads, cancellation, newer clipboard ownership and
-successful refinement followed by a dropped terminal paste are covered too.
+fixtures. Ignored/partial/unobservable pastes into a field with a caret must
+retain recovery text without reporting delivery; delayed reads, cancellation,
+newer clipboard ownership and editor-normalized line endings, quotes and
+non-breaking spaces are covered too. A paste into a validated caretless editor
+(Warp, Zed) is sent unverified: no error, the HUD finishes, History records the
+separate status and the user's clipboard returns unless something newer replaced it.
 Missing, skipped and failed cases stop validation. The JSON evidence is
 saved as `insertion-regressions.json`; release preparation runs the same gate for
 both test scopes before building the release artifact.
