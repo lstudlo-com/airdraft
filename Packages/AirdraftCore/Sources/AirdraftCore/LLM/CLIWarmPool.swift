@@ -4,7 +4,7 @@ import os
 /// A Claude Code process started while the user is still speaking, waiting on
 /// stdin for the transcript. Session setup and auth (~1.3 s) then overlap with
 /// recording and transcription instead of being paid after them.
-final class CLISession: @unchecked Sendable {
+final class CLISession: Sendable {
     let key: String
     private let process = Process()
     private let stdin = Pipe(), stdout = Pipe()

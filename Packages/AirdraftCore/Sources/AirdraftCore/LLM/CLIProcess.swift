@@ -1,6 +1,7 @@
 import Darwin
 import Foundation
 import os
+import Synchronization
 
 /// Process plumbing shared by CLI refinement, warm sessions and model discovery.
 /// Output is drained while the child runs (a full pipe cannot stall it), deadlines
@@ -207,20 +208,19 @@ enum CLIProcess {
 }
 
 /// Cancellation and launch share one lock, so an already cancelled run cannot start a child.
-final class RunCancellation: @unchecked Sendable {
-    private let lock = OSAllocatedUnfairLock()
-    private var cancelled = false
+final class RunCancellation: Sendable {
+    private let cancelled = Mutex(false)
 
-    func cancel() { lock.withLock { cancelled = true } }
+    func cancel() { cancelled.withLock { $0 = true } }
 
     func checkCancellation() throws {
-        try lock.withLock {
+        try cancelled.withLock { (cancelled: inout Bool) throws -> Void in
             if cancelled { throw CancellationError() }
         }
     }
 
     func start(_ process: Process) throws {
-        try lock.withLock {
+        try cancelled.withLock { (cancelled: inout Bool) throws -> Void in
             if cancelled { throw CancellationError() }
             try process.run()
         }

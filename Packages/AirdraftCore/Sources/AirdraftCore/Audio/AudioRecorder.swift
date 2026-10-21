@@ -42,6 +42,11 @@ public extension AudioRecording {
     var samplesHandler: (@Sendable ([Float]) -> Void)? { get { nil } set {} }
 }
 
+/// Unchecked: the AVAudioEngine route, observers and interruption handler are
+/// configured on the main thread by the owner, while the realtime tap touches
+/// only `samples`, `converter`, `recording` and the sample/level callbacks under `lock`.
+/// AVAudioEngine/AVAudioConverter are not Sendable, and an actor hop is not
+/// allowed on the realtime audio thread.
 public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     public static let sampleRate: Double = 16_000
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "recorder")
@@ -53,6 +58,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     private var converter: AVAudioConverter?
     private var samples: [Float] = []
     private var sampleCallback: (@Sendable ([Float]) -> Void)?
+    private var levelCallback: (@Sendable (Float) -> Void)?
     private let lock = NSLock()
     private var recording = false
     private var monitoringOnly = false
@@ -66,7 +72,12 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     }
 
     /// Called on the audio thread with the RMS level of each buffer (0...1).
-    public var levelHandler: (@Sendable (Float) -> Void)?
+    /// Stored under the capture lock: the owner replaces it on the main thread
+    /// while a late tap block may still be reading it on the audio thread.
+    public var levelHandler: (@Sendable (Float) -> Void)? {
+        get { lock.withLock { levelCallback } }
+        set { lock.withLock { levelCallback = newValue } }
+    }
     /// Delivered on the main queue if the active input is interrupted.
     public var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
     public private(set) var activeMicrophone: Microphone?
@@ -316,6 +327,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
 
         if !monitoringOnly { samples.append(contentsOf: chunk) }
         let preview = monitoringOnly ? nil : sampleCallback
+        let levelHandler = levelCallback
         lock.unlock()
         if !chunk.isEmpty { preview?(chunk) }
 

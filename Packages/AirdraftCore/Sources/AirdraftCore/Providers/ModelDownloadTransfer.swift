@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// Reports bytes while URLSession writes to disk, without buffering model weights in memory.
 enum ModelDownloadTransfer {
@@ -81,34 +82,36 @@ enum ModelDownloadTransfer {
         } onCancel: { delegate.cancel() }
     }
 
-    private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, Sendable {
         let progress: @Sendable (Int64, Int64?) -> Void
-        // The lock bridges Swift task cancellation and URLSession's serial delegate queue.
-        private let lock = NSLock()
-        private var task: URLSessionDownloadTask?
-        private var continuation: CheckedContinuation<(URL, URLResponse), Error>?
-        private var cancelled = false
-        // These fields are used only by the serial delegate queue.
-        private var lastReport = Date.distantPast
-        private var result: (URL, URLResponse)?
-        private var fileError: Error?
+        private struct State {
+            // Bridges Swift task cancellation and URLSession's serial delegate queue.
+            var task: URLSessionDownloadTask?
+            var continuation: CheckedContinuation<(URL, URLResponse), Error>?
+            var cancelled = false
+            // Written only by the serial delegate queue; locked so the class stays Sendable.
+            var lastReport = Date.distantPast
+            var result: (URL, URLResponse)?
+            var fileError: Error?
+        }
+        private let state = Mutex(State())
 
         init(progress: @escaping @Sendable (Int64, Int64?) -> Void) { self.progress = progress }
 
         func start(_ task: URLSessionDownloadTask, continuation: CheckedContinuation<(URL, URLResponse), Error>) {
-            lock.lock()
-            self.task = task
-            self.continuation = continuation
-            let wasCancelled = cancelled
-            lock.unlock()
+            let wasCancelled = state.withLock { state in
+                state.task = task
+                state.continuation = continuation
+                return state.cancelled
+            }
             if wasCancelled { task.cancel() } else { task.resume() }
         }
 
         func cancel() {
-            lock.lock()
-            cancelled = true
-            let task = task
-            lock.unlock()
+            let task = state.withLock { state in
+                state.cancelled = true
+                return state.task
+            }
             task?.cancel()
         }
 
@@ -116,8 +119,12 @@ enum ModelDownloadTransfer {
                         didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
                         totalBytesExpectedToWrite: Int64) {
             let now = Date()
-            guard now.timeIntervalSince(lastReport) >= 0.1 || totalBytesWritten == totalBytesExpectedToWrite else { return }
-            lastReport = now
+            let report = state.withLock { state in
+                guard now.timeIntervalSince(state.lastReport) >= 0.1 || totalBytesWritten == totalBytesExpectedToWrite else { return false }
+                state.lastReport = now
+                return true
+            }
+            guard report else { return }
             progress(totalBytesWritten, totalBytesExpectedToWrite > 0 ? totalBytesExpectedToWrite : nil)
         }
 
@@ -128,17 +135,17 @@ enum ModelDownloadTransfer {
             do {
                 guard let response = downloadTask.response else { throw URLError(.badServerResponse) }
                 try FileManager.default.moveItem(at: location, to: owned)
-                result = (owned, response)
-            } catch { fileError = error }
+                state.withLock { $0.result = (owned, response) }
+            } catch { state.withLock { $0.fileError = error } }
         }
 
         func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-            lock.lock()
-            let continuation = continuation
-            self.continuation = nil
-            self.task = nil
-            let wasCancelled = cancelled
-            lock.unlock()
+            let (continuation, wasCancelled, result, fileError) = state.withLock { state in
+                let continuation = state.continuation
+                state.continuation = nil
+                state.task = nil
+                return (continuation, state.cancelled, state.result, state.fileError)
+            }
             if let failure: Error = wasCancelled ? CancellationError() : (error ?? fileError) {
                 if let result { try? FileManager.default.removeItem(at: result.0) }
                 continuation?.resume(throwing: failure)

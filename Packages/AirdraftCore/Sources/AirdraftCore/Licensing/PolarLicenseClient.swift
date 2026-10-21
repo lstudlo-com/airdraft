@@ -220,7 +220,7 @@ public struct PolarLicenseClient: PolarLicensing {
 }
 
 /// License keys must never follow a redirect to another endpoint or host.
-private final class PolarRedirectPolicy: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+private final class PolarRedirectPolicy: NSObject, URLSessionTaskDelegate, Sendable {
     func urlSession(_ session: URLSession, task: URLSessionTask,
                     willPerformHTTPRedirection response: HTTPURLResponse,
                     newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
