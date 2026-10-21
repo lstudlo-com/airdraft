@@ -20,6 +20,22 @@ public struct AppleIntelligenceRefiner: Refiner {
         self.generate = generate
     }
 
+    /// The system's own availability, as a value that setup can explain in plain words.
+    public enum Availability: String, Sendable, CaseIterable {
+        case available, requiresNewerSystem, deviceNotEligible, notEnabled, modelNotReady, unavailable
+    }
+
+    public static var availability: Availability {
+        guard #available(macOS 26, *) else { return .requiresNewerSystem }
+        switch SystemLanguageModel.default.availability {
+        case .available: return .available
+        case .unavailable(.deviceNotEligible): return .deviceNotEligible
+        case .unavailable(.appleIntelligenceNotEnabled): return .notEnabled
+        case .unavailable(.modelNotReady): return .modelNotReady
+        case .unavailable: return .unavailable
+        }
+    }
+
     public static var unavailableReason: String? {
         guard #available(macOS 26, *) else { return String(localized: "Apple Intelligence requires macOS 26 or later.", bundle: .module) }
         switch SystemLanguageModel.default.availability {

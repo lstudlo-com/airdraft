@@ -611,6 +611,8 @@ struct OnboardingDoneStep: View {
             }
         }
 
+        OnboardingRefinementChoice(finish: finish)
+
         SettingsCard {
             tipLabel("menubar.rectangle", "Airdraft lives in the menu bar",
                 "Open History, Settings or switch microphones from the icon at the top of your screen.")
@@ -619,16 +621,6 @@ struct OnboardingDoneStep: View {
                 "If an app missed your words, copy them again from History.")
             RowDivider()
             tipLabel("escape", "Changed your mind?", "Press esc while recording and nothing is typed.")
-            RowDivider()
-            HStack(spacing: Theme.controlSpacing) {
-                tipLabel("sparkles", "Let AI tidy your words",
-                         "Remove filler words and fix punctuation with a refinement provider.")
-                Button("Open Models") {
-                    finish()
-                    container.navigation.page = .models
-                }
-                .buttonStyle(SoftButtonStyle())
-            }
         }
     }
 
@@ -646,5 +638,101 @@ struct OnboardingDoneStep: View {
             Spacer(minLength: 0)
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Setup's refinement choice, offered after practice so the user has just seen the raw
+/// transcript. On-device Apple Intelligence is one click; nothing here asks for a key,
+/// a download or a prompt. Every other provider stays in Models.
+struct OnboardingRefinementChoice: View {
+    @Environment(AppContainer.self) private var container
+    let finish: () -> Void
+    @State private var availability = AppleIntelligenceSetup.availability
+
+    private var llm: LLMConfig { container.settings.llm }
+    private var available: Bool { availability == .available }
+
+    var body: some View {
+        SettingsCard {
+            HStack(spacing: Theme.controlSpacing) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+                    .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 8, style: .continuous), inset: true, depth: 1.5) }
+                VStack(alignment: .leading, spacing: 2) {
+                    title.font(.system(size: 13, weight: .medium))
+                    detail.supportingText().fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("onboarding.refinement")
+                Spacer(minLength: Theme.controlSpacing)
+                action
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            // Someone who turns Apple Intelligence on in System Settings comes back to the choice.
+            availability = AppleIntelligenceSetup.availability
+        }
+    }
+
+    private var title: Text {
+        switch llm.kind {
+        case .none: available ? Text("Tidy your words with Apple Intelligence") : Text("Let AI tidy your words")
+        case .appleIntelligence: Text("Apple Intelligence tidies your words")
+        default: Text("Your words are tidied by \(llm.displayName)")
+        }
+    }
+
+    private var detail: Text {
+        switch llm.kind {
+        case .none:
+            available ? Text("Removes filler words and fixes punctuation. It runs on this Mac, with no key or download.")
+                : AppleIntelligenceSetup.explanation(availability)
+        case .appleIntelligence:
+            available ? Text("On this Mac. You can change or turn this off in Models.")
+                : AppleIntelligenceSetup.explanation(availability)
+        default: Text("You can change this in Models.")
+        }
+    }
+
+    @ViewBuilder private var action: some View {
+        switch llm.kind {
+        case .none where available:
+            Button("Use Apple Intelligence") { container.settings.chooseRefinement(.appleIntelligence) }
+                .buttonStyle(SoftButtonStyle())
+                .accessibilityIdentifier("onboarding.use-apple-intelligence")
+        case .appleIntelligence:
+            Button("Turn Off") { container.settings.chooseRefinement(.none) }
+                .buttonStyle(SoftButtonStyle())
+                .accessibilityIdentifier("onboarding.refinement-off")
+        default:
+            Button("Open Models") {
+                finish()
+                container.navigation.page = .models
+            }
+            .buttonStyle(SoftButtonStyle())
+            .accessibilityIdentifier("onboarding.refinement-models")
+        }
+    }
+}
+
+/// Apple Intelligence availability for setup, from the same system check refinement
+/// uses. Renders and fixtures inject it with `AIRDRAFT_RENDER_APPLE_INTELLIGENCE`.
+enum AppleIntelligenceSetup {
+    static var availability: AppleIntelligenceRefiner.Availability {
+        RenderMode.value("APPLE_INTELLIGENCE").flatMap(AppleIntelligenceRefiner.Availability.init(rawValue:))
+            ?? AppleIntelligenceRefiner.availability
+    }
+
+    static func explanation(_ availability: AppleIntelligenceRefiner.Availability) -> Text {
+        switch availability {
+        case .available: Text("Apple Intelligence is ready on this Mac.")
+        case .requiresNewerSystem: Text("Apple Intelligence needs macOS 26 or later. You can set up another way to tidy your words in Models.")
+        case .deviceNotEligible: Text("This Mac can’t run Apple Intelligence. You can set up another way to tidy your words in Models.")
+        case .notEnabled: Text("Turn on Apple Intelligence in System Settings, then come back here. Or set it up later in Models.")
+        case .modelNotReady: Text("Apple Intelligence is still getting ready on this Mac. Try again soon, or set it up later in Models.")
+        case .unavailable: Text("Apple Intelligence isn’t available right now. You can set up a way to tidy your words later in Models.")
+        }
     }
 }

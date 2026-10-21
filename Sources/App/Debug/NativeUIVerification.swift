@@ -375,19 +375,36 @@ enum NativeUIVerification {
         precondition(text(find(id: "onboarding.script", in: window)).contains("Try a message"),
                      "A second, free-form repetition follows the scripted sentence")
         capture(window, to: directory.appendingPathComponent("onboarding-practice-delivered.png"))
+        // Injected availability: the fixture never depends on this Mac's Apple Intelligence.
+        setenv("AIRDRAFT_RENDER_APPLE_INTELLIGENCE", "available", 1)
+        defer { unsetenv("AIRDRAFT_RENDER_APPLE_INTELLIGENCE") }
         next(.done)
         precondition(settings.onboarding.isComplete && settings.onboarding.isPresented && !settings.isOnboardingPractice)
         precondition(text(window).contains("Try it in a real app") || text(window).contains("TRY IT IN A REAL APP"))
         capture(window, to: directory.appendingPathComponent("onboarding-ready.png"))
+        precondition(settings.llm.kind == .none, "Practice restores refinement off before Ready")
+        precondition(press(id: "onboarding.use-apple-intelligence", in: window)); pump()
+        precondition(settings.llm.kind == .appleIntelligence, "One click chooses on-device refinement")
+        precondition(text(find(id: "onboarding.refinement", in: window)).contains("Apple Intelligence tidies your words"))
+        capture(window, to: directory.appendingPathComponent("onboarding-ready-refinement.png"))
+        precondition(press(id: "onboarding.refinement-off", in: window)); pump()
+        precondition(settings.llm.kind == .none, "Turn Off is the same one-click setting")
+        precondition(press(id: "onboarding.use-apple-intelligence", in: window)); pump()
         container.navigation.page = .history
         precondition(press(id: "onboarding.continue", in: window)); pump()
         precondition(!settings.onboarding.isPresented && container.navigation.page == .home)
         precondition(settings.onboarding.chosenSpeech == nil)
+        precondition(settings.llm.kind == .appleIntelligence, "Finishing keeps the refinement choice")
         close(window)
         settings.onboarding.present()
         precondition(settings.onboarding.step == .welcome && settings.onboarding.isComplete, "Replay starts again at Welcome")
+        settings.beginOnboardingPractice()
+        precondition(settings.llm.kind == .none, "Replayed practice still delivers the raw transcript")
+        settings.endOnboardingPractice()
+        precondition(settings.llm.kind == .appleIntelligence, "Leaving practice restores the choice")
         settings.onboarding.dismiss()
-        print("NATIVE_UI_PASS onboarding-flow six-steps named-shortcut typed-text-rejected delivery-completes ready-finishes replay")
+        settings.chooseRefinement(.none)
+        print("NATIVE_UI_PASS onboarding-flow six-steps named-shortcut typed-text-rejected delivery-completes ready-refinement-choice ready-finishes replay")
     }
 
     private static func verifyNotices(directory: URL) {

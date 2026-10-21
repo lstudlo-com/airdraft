@@ -23,6 +23,10 @@ struct OnboardingKeyCap: View {
                     .foregroundStyle(pressed ? Color.accentColor : .secondary)
             }
         }
+        .lineLimit(1)
+        // A cap is as wide as its printed name, never truncated to fit a narrow
+        // column: "control" must read in full beside its symbol.
+        .fixedSize()
         .foregroundStyle(pressed ? Color.accentColor : .primary)
         .padding(.horizontal, size * 0.2)
         .frame(minWidth: size, minHeight: size)

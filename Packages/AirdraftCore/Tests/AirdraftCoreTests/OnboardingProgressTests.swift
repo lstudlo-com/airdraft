@@ -85,6 +85,72 @@ import XCTest
         XCTAssertEqual(restored.outputDestination, .script)
     }
 
+    func testReadyRefinementChoiceSurvivesRestartAndReplayPractice() {
+        let name = "OnboardingTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let settings = AppSettings(defaults: defaults)
+        settings.onboarding.present()
+        settings.onboarding.move(to: .practice)
+        settings.beginOnboardingPractice()
+        settings.onboarding.noteDelivery()
+        settings.endOnboardingPractice()
+        XCTAssertTrue(settings.onboarding.complete())
+        XCTAssertEqual(settings.llm.kind, .none, "A new user's practice leaves refinement off")
+        // Ready: one click, applied immediately because practice has ended.
+        settings.chooseRefinement(.appleIntelligence)
+        XCTAssertEqual(settings.llm.kind, .appleIntelligence)
+        XCTAssertTrue(settings.llm.keyRef.isEmpty, "On-device cleanup needs no key")
+        settings.onboarding.finish()
+        let restarted = AppSettings(defaults: defaults)
+        XCTAssertEqual(restarted.llm.kind, .appleIntelligence)
+        // Replay after success: practice turns refinement off, then restores the choice.
+        restarted.onboarding.present()
+        XCTAssertEqual(restarted.onboarding.step, .welcome)
+        restarted.beginOnboardingPractice()
+        XCTAssertEqual(restarted.llm.kind, .none)
+        XCTAssertFalse(restarted.effectiveProfile(RefinementProfile.defaults[0]).usesLLM)
+        restarted.endOnboardingPractice()
+        XCTAssertEqual(restarted.llm.kind, .appleIntelligence)
+        restarted.beginOnboardingPractice()
+        XCTAssertEqual(AppSettings(defaults: defaults).llm.kind, .appleIntelligence,
+                       "Quitting during replayed practice restores the choice")
+        // Turning it off again is the same one-click setting.
+        let later = AppSettings(defaults: defaults)
+        later.chooseRefinement(.none)
+        XCTAssertEqual(AppSettings(defaults: defaults).llm.kind, .none)
+    }
+
+    func testRefinementChoiceDuringPracticeWaitsForPracticeToEnd() {
+        for returning in [false, true] {
+            let name = "OnboardingTests.\(UUID())"
+            let defaults = UserDefaults(suiteName: name)!
+            defer { defaults.removePersistentDomain(forName: name) }
+            if returning {
+                let original = AppSettings(defaults: defaults)
+                original.llm.select(.anthropic)
+                original.outputDestination = .script
+            }
+            let settings = AppSettings(defaults: defaults)
+            settings.beginOnboardingPractice()
+            settings.chooseRefinement(.appleIntelligence)
+            XCTAssertTrue(settings.isOnboardingPractice)
+            XCTAssertEqual(settings.llm.kind, .none, "Practice keeps delivering the raw transcript")
+            XCTAssertEqual(settings.outputDestination, .cursor)
+            XCTAssertEqual(AppSettings(defaults: defaults).llm.kind, .appleIntelligence,
+                           "A restart during practice applies the saved choice")
+            XCTAssertEqual(AppSettings(defaults: defaults).outputDestination, returning ? .script : .cursor)
+
+            let resumed = AppSettings(defaults: defaults)
+            resumed.beginOnboardingPractice()
+            resumed.chooseRefinement(.appleIntelligence)
+            resumed.endOnboardingPractice()
+            XCTAssertEqual(resumed.llm.kind, .appleIntelligence)
+            XCTAssertEqual(resumed.outputDestination, returning ? .script : .cursor,
+                           "Choosing refinement never changes the output setting")
+        }
+    }
+
     func testNewInstallResumesProgressButDoesNotClaimSuccess() {
         let name = "OnboardingTests.\(UUID())"
         let defaults = UserDefaults(suiteName: name)!

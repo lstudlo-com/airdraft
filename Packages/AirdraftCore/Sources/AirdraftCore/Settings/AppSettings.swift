@@ -178,8 +178,12 @@ public final class AppSettings {
     }
 
     private struct PracticeSettings: Codable {
-        let llm: LLMConfig
-        let output: TextOutputDestination
+        var llm: LLMConfig
+        var output: TextOutputDestination
+    }
+
+    private var practiceRestore: PracticeSettings? {
+        defaults.data(forKey: "onboarding.restore").flatMap { try? JSONDecoder().decode(PracticeSettings.self, from: $0) }
     }
 
     /// Keep returning users' setup, including script destinations, recoverable
@@ -196,11 +200,23 @@ public final class AppSettings {
 
     public func endOnboardingPractice() {
         isOnboardingPractice = false
-        guard let data = defaults.data(forKey: "onboarding.restore"),
-              let saved = try? JSONDecoder().decode(PracticeSettings.self, from: data) else { return }
+        guard let saved = practiceRestore else { return }
         llm = saved.llm
         outputDestination = saved.output
         defaults.removeObject(forKey: "onboarding.restore")
+    }
+
+    /// Setup's one-click refinement choice is the user's own saved setting. Practice
+    /// keeps its raw transcript, so a choice made while it runs is applied when
+    /// practice ends, including after a restart, instead of being overwritten.
+    public func chooseRefinement(_ kind: LLMProviderKind) {
+        guard isOnboardingPractice else {
+            llm.select(kind)
+            return
+        }
+        var saved = practiceRestore ?? PracticeSettings(llm: llm, output: outputDestination)
+        saved.llm.select(kind)
+        if let data = try? JSONEncoder().encode(saved) { defaults.set(data, forKey: "onboarding.restore") }
     }
 
     /// Practice uses its explicitly chosen speech setup without changing the

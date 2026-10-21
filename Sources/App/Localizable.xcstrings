@@ -1297,6 +1297,16 @@
         }
       }
     },
+    "Almost ready to dictate" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快要可以開始聽寫了"
+          }
+        }
+      }
+    },
     "Almost ready. Your model is still downloading." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1413,6 +1423,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外觀"
+          }
+        }
+      }
+    },
+    "Apple Intelligence is ready on this Mac." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 上的 Apple Intelligence 已就緒。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence is still getting ready on this Mac. Try again soon, or set it up later in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 上的 Apple Intelligence 仍在準備中。請稍後再試，或之後在「模型」中設定。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence isn’t available right now. You can set up a way to tidy your words later in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 目前無法使用。你可以之後在「模型」中設定整理文字的方式。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence needs macOS 26 or later. You can set up another way to tidy your words in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 需要 macOS 26 或以上版本。你可以在「模型」中設定其他整理文字的方式。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence tidies your words" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 會整理你的文字"
           }
         }
       }
@@ -3747,6 +3807,16 @@
         }
       }
     },
+    "Finish Setup" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成設定"
+          }
+        }
+      }
+    },
     "Finish dictating before checking for updates." : {
       "localizations" : {
         "zh-Hant" : {
@@ -6047,6 +6117,16 @@
         }
       }
     },
+    "On this Mac. You can change or turn this off in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這台 Mac 上執行。你可以在「模型」中更改或關閉。"
+          }
+        }
+      }
+    },
     "On-device" : {
       "localizations" : {
         "zh-Hant" : {
@@ -6283,6 +6363,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OpenRouter 沒有回傳語音模型。顯示精選選項。"
+          }
+        }
+      }
+    },
+    "Opens Home" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開首頁"
           }
         }
       }
@@ -7114,6 +7204,16 @@
         }
       }
     },
+    "Ready for your first dictation" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可以開始第一次聽寫了"
+          }
+        }
+      }
+    },
     "Ready to Resume" : {
       "localizations" : {
         "zh-Hant" : {
@@ -7681,22 +7781,22 @@
         }
       }
     },
-    "Remove filler words and fix punctuation with a refinement provider." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用潤稿供應商移除贅字並修正標點。"
-          }
-        }
-      }
-    },
     "Remove older saved dictation audio?" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "要移除較舊的已儲存聽寫音訊嗎？"
+          }
+        }
+      }
+    },
+    "Removes filler words and fixes punctuation. It runs on this Mac, with no key or download." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除贅字並修正標點。在這台 Mac 上執行，不需要金鑰或下載。"
           }
         }
       }
@@ -9495,6 +9595,16 @@
         }
       }
     },
+    "This Mac can’t run Apple Intelligence. You can set up another way to tidy your words in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 Mac 無法執行 Apple Intelligence。你可以在「模型」中設定其他整理文字的方式。"
+          }
+        }
+      }
+    },
     "This Mac: %@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9601,6 +9711,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "捨棄你剛才說的內容。"
+          }
+        }
+      }
+    },
+    "Tidy your words with Apple Intelligence" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 Apple Intelligence 整理你的文字"
           }
         }
       }
@@ -9866,6 +9986,26 @@
         }
       }
     },
+    "Turn Off" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        }
+      }
+    },
+    "Turn on Apple Intelligence in System Settings, then come back here. Or set it up later in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「系統設定」中開啟 Apple Intelligence，然後回到這裡。也可以之後在「模型」中設定。"
+          }
+        }
+      }
+    },
     "Turn on Keep Recordings to save future dictations." : {
       "localizations" : {
         "zh-Hant" : {
@@ -10098,6 +10238,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 App 預設值"
+          }
+        }
+      }
+    },
+    "Use Apple Intelligence" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Apple Intelligence"
           }
         }
       }
@@ -10398,6 +10548,16 @@
         }
       }
     },
+    "You can change this in Models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以在「模型」中更改。"
+          }
+        }
+      }
+    },
     "You can download it again later." : {
       "localizations" : {
         "zh-Hant" : {
@@ -10458,6 +10618,16 @@
         }
       }
     },
+    "Your speed, words and time saved appear here after you dictate." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聽寫後，這裡會顯示你的速度、字數和節省的時間。"
+          }
+        }
+      }
+    },
     "Your trial has ended" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10474,6 +10644,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的聲音絕不會離開這台 Mac。"
+          }
+        }
+      }
+    },
+    "Your words are tidied by %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的文字由 %@ 整理"
           }
         }
       }

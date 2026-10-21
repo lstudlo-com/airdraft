@@ -21,6 +21,14 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(config)), config)
     }
 
+    func testAvailabilityAgreesWithTheUnavailableReason() {
+        let availability = AppleIntelligenceRefiner.availability
+        XCTAssertEqual(availability == .available, AppleIntelligenceRefiner.unavailableReason == nil)
+        for value in AppleIntelligenceRefiner.Availability.allCases {
+            XCTAssertEqual(AppleIntelligenceRefiner.Availability(rawValue: value.rawValue), value)
+        }
+    }
+
     func testUsesExistingPromptAndRejectsEmptyOutput() async throws {
         let expectedSystem = PromptBuilder.systemPrompt(for: request)
         let expectedUser = PromptBuilder.userMessage(for: request)
