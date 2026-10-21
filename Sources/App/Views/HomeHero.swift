@@ -536,7 +536,9 @@ struct HeroMetric: View {
             Text(label)
                 .appFont(.detail)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                // Wraps rather than truncates at larger text sizes (已節省（全部時間）).
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)

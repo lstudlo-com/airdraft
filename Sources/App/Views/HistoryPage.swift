@@ -604,6 +604,8 @@ private struct HistoryTimeline: View {
     @State private var marks = HistoryTimelineMarks()
     @Namespace private var rotorNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 52 points at Default; day headings such as 10月22日 need more at larger text sizes.
+    @Environment(\.textScale) private var textScale
 
     var body: some View {
         ScrollView {
@@ -693,7 +695,7 @@ private struct HistoryTimeline: View {
         .onChange(of: scroll.entriesAtTop) { _, atTop in
             if atTop { position.scrollTo(edge: .top) }
         }
-        .frame(width: HistoryTimelineButton.columnWidth)
+        .frame(width: HistoryTimelineButton.columnWidth * textScale)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("History timeline")
         .accessibilityIdentifier("history.timeline")

@@ -225,6 +225,8 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
     var small = false
 
     @Namespace private var thumb
+    /// A fixed width grows with the text size so option labels never truncate.
+    @Environment(\.textScale) private var textScale
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -268,7 +270,7 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
             }
         }
         .padding(2)
-        .frame(width: width, height: small ? 22 : SoftControl.height)
+        .frame(width: width.map { $0 * textScale }, height: small ? 22 : SoftControl.height)
         .background { SoftInsetTrack(shape: SoftControl.shape) }
         // The thumb is an object inside the track: its light and shade stay within it.
         .clipShape(SoftControl.shape)

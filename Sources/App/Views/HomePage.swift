@@ -362,6 +362,8 @@ struct HealthRow<Trailing: View>: View {
 struct AppShareRow: View {
     let share: HistoryStore.Overview.AppShare
     let fraction: Double
+    /// Name and count columns grow with the text size; the track takes what remains.
+    @Environment(\.textScale) private var scale
 
     var body: some View {
         HStack(spacing: Theme.controlSpacing) {
@@ -369,12 +371,12 @@ struct AppShareRow: View {
             Text(share.name)
                 .appFont(.body, weight: .medium)
                 .lineLimit(1)
-                .frame(width: 116, alignment: .leading)
+                .frame(width: 116 * scale, alignment: .leading)
             NeumorphicUsageTrack(fraction: fraction)
             Text("\(share.words.formatted()) words")
                 .appFont(.detail).monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 88, alignment: .trailing)
+                .frame(width: 88 * scale, alignment: .trailing)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(share.name), \(share.words) words, \(Int((fraction * 100).rounded())) percent")

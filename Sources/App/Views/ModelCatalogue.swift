@@ -220,8 +220,10 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
     @ViewBuilder var accuracy: Accuracy
     @ViewBuilder var cost: Cost
     @ViewBuilder var accessory: Accessory
-    /// Rating columns widen with the text size so headings and values never break mid-word.
-    @Environment(\.textScale) private var scale
+    /// Rating columns widen at half the text-size step: enough for their headings
+    /// ("Accuracy" at Larger) while leaving the model names most of the row.
+    @Environment(\.textScale) private var textScale
+    private var scale: CGFloat { 1 + (textScale - 1) / 2 }
 
     var body: some View {
         HStack(alignment: .center, spacing: Theme.controlSpacing) {
@@ -490,9 +492,17 @@ struct ModelRow: View {
                                              : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
                         ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 6) {
-                                Text(entry.title).appFont(.body, weight: .medium)
-                                if bestFit { PillTag(text: "BEST FIT") }
+                            // At larger text sizes the tag moves below a long name instead
+                            // of squeezing it into a mid-word break.
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: 6) {
+                                    Text(entry.title).appFont(.body, weight: .medium).fixedSize()
+                                    if bestFit { PillTag(text: "BEST FIT") }
+                                }
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(entry.title).appFont(.body, weight: .medium)
+                                    if bestFit { PillTag(text: "BEST FIT") }
+                                }
                             }
                             if let highlight = entry.highlight {
                                 Text("\(Image(systemName: "star.fill")) \(highlight)")

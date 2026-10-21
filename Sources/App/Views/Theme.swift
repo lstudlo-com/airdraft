@@ -295,6 +295,7 @@ extension View {
 
 /// An editable numeric setting with the native stepper available for small changes.
 struct SettingsNumberStepper: View {
+    @Environment(\.textScale) private var textScale
     let title: String
     @Binding var value: Int
     let range: ClosedRange<Int>
@@ -320,7 +321,7 @@ struct SettingsNumberStepper: View {
                 .multilineTextAlignment(.trailing)
                 .focused($isEditing)
                 .softField(focused: isEditing)
-                .frame(width: 60)
+                .frame(width: 60 * textScale)
                 .onSubmit(commit)
                 .accessibilityLabel(title)
             Text(unit)
