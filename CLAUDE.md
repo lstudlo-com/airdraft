@@ -1314,7 +1314,8 @@ Each entry keeps its own failure text, insertion target and delivery policy; Hom
 the menu and retry act on the newest entry by ID, and a failed retry keeps the
 same entry as the newest. The bound is hard but shortens rather than blocks: a
 new recording captures at most min(its effective limit, 900 s − kept audio), stops
-there with a notice saying why, and is refused (message, Home) only when three
+there with a notice saying why (appended to the failure and its recovery issue
+when speech recognition then fails), and is refused (message, Home) only when three
 dictations are kept or less than 10 s remain. Never drop kept audio. A retry for a
 caretless target copies with a notice instead of re-activating and pasting into
 whatever that window shows now; caret targets are still verified by read-back.

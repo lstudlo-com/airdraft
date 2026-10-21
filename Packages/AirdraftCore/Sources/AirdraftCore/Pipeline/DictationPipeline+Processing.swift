@@ -142,6 +142,9 @@ extension DictationPipeline {
         defer {
             discardRefinementPreparation(for: token)
             releaseSpeechSessionPin(for: token)
+            // Silent, empty or cancelled sessions end without a notice; never leave
+            // their budget stop behind.
+            if keptBudgetStop?.token == token { keptBudgetStop = nil }
             Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1) pressToCaptureMs=\(timings.pressToCaptureMs ?? -1)")
         }
         // Muted/digital-silence recordings contain no speech. Some recognizers
@@ -222,7 +225,12 @@ extension DictationPipeline {
             }
         } catch {
             guard isCurrent(token) else { return nil }
-            let message = String(localized: "Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.", bundle: .module)
+            var message = String(localized: "Transcription failed: \(error.localizedDescription) Captured audio is kept for retry.", bundle: .module)
+            if let budget = keptBudgetStop, budget.token == token {
+                // AD-077: a recording shortened by kept audio says why with its failure too.
+                keptBudgetStop = nil
+                message += " " + keptBudgetStopNotice(seconds: budget.seconds)
+            }
             let retried = retryingRecovery?.token == token ? retryingRecovery?.id : nil
             retryingRecovery = nil
             retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, issue: message, replacing: retried)
