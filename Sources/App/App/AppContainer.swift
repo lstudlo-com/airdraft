@@ -16,7 +16,7 @@ final class AppContainer {
     struct DictationBoundary {
         var recorder: any AudioRecording
         var transcriberBuilder: @Sendable (ASRConfig) -> any Transcriber
-        var recordingPreflight: @MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void
+        var recordingPreflight: @MainActor @Sendable (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void
         var requestMicrophoneAccess: @Sendable () async -> Bool
     }
     #else
@@ -81,7 +81,7 @@ final class AppContainer {
 
     init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil,
          mediaRemoteCleanup: MediaJobRunner.RemoteCleanup? = nil,
-         recordingAccessCheck: (@MainActor () async throws -> Void)? = nil,
+         recordingAccessCheck: (@MainActor @Sendable () async throws -> Void)? = nil,
          permissions suppliedPermissions: SystemPermissions? = nil,
          dictationBoundary: DictationBoundary? = nil) {
         permissions = suppliedPermissions ?? SystemPermissions()
@@ -125,7 +125,7 @@ final class AppContainer {
         }
 
         #if DEBUG
-        var recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
+        var recordingPreflight: (@MainActor @Sendable (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
         if LocalE2E.isActive {
             recordingPreflight = { asr, llm, refinementEnabled, microphone, insertionEnabled in
                 try LocalE2E.checkRecording(asr: asr, llm: llm, refinementEnabled: refinementEnabled,
@@ -137,7 +137,7 @@ final class AppContainer {
         let requestMicrophoneAccess: @Sendable () async -> Bool = dictationBoundary?.requestMicrophoneAccess
             ?? { await AudioRecorder.requestMicrophoneAccess() }
         #else
-        let recordingPreflight: (@MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
+        let recordingPreflight: (@MainActor @Sendable (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
         let recorder: any AudioRecording = AudioRecorder()
         let requestMicrophoneAccess: @Sendable () async -> Bool = { await AudioRecorder.requestMicrophoneAccess() }
         #endif

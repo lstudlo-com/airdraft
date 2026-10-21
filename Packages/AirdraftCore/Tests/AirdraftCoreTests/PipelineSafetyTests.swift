@@ -139,6 +139,8 @@ final class PipelineSafetyTests: XCTestCase {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class TestRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var levelHandler: (@Sendable (Float) -> Void)?

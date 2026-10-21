@@ -207,6 +207,8 @@ final class FakeDesktop {
 
 /// Opening the device blocks briefly, like AVAudioEngine.start, and the first
 /// buffer arrives on another thread after its own delay.
+/// Unchecked: recording state is locked; handlers are set by the MainActor
+/// pipeline before start, and the delayed level callback uses a captured copy.
 final class LatencyRecorder: AudioRecording, @unchecked Sendable {
     static let startLatency: TimeInterval = 0.03
     static let bufferLatency: TimeInterval = 0.04

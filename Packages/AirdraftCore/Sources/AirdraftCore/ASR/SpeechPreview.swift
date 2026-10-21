@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import Speech
+import Synchronization
 
 public protocol SpeechPreviewSession: Sendable {
     func append(_ samples: [Float])
@@ -119,13 +120,17 @@ private final class PreviewSession: SpeechPreviewSession, Sendable {
 
 /// Synchronous lifetime gate shared by the audio callback and the asynchronous worker.
 /// Callback delivery is locked too: once cancel returns, no later callback can begin.
-final class SpeechPreviewControl: @unchecked Sendable {
+final class SpeechPreviewControl: Sendable {
     let audio: SpeechPreviewAudioQueue
+    /// onText/onIssue run while this is held, so nothing is delivered after cancel
+    /// returns. Recursive so such a callback can call back into this control.
     private let lock = NSRecursiveLock()
-    private var active = true
-    private var worker: Task<Void, Never>?
-    private var latestStart = -Double.infinity
-    private var latestText = ""
+    // Guarded by `lock`. Mutex cannot be re-entered, so these four fields are the
+    // only unchecked state; every other stored property is checked Sendable.
+    nonisolated(unsafe) private var active = true
+    nonisolated(unsafe) private var worker: Task<Void, Never>?
+    nonisolated(unsafe) private var latestStart = -Double.infinity
+    nonisolated(unsafe) private var latestText = ""
     private let onText: @Sendable (String) -> Void
     private let onIssue: @Sendable (String) -> Void
 
@@ -193,40 +198,41 @@ final class SpeechPreviewControl: @unchecked Sendable {
 
 /// A single-consumer queue bounded by audio duration, not by the number of chunks.
 /// Overflow drops the entire preview session instead of creating gaps in its audio.
-final class SpeechPreviewAudioQueue: @unchecked Sendable {
-    enum AppendResult: Equatable { case accepted, stopped, overflow, invalid }
-    private let lock = NSLock()
+final class SpeechPreviewAudioQueue: Sendable {
+    enum AppendResult: Equatable, Sendable { case accepted, stopped, overflow, invalid }
+    private struct State {
+        var chunks: [[Float]] = []
+        var sampleCount = 0
+        var stopped = false
+        var waiter: CheckedContinuation<[Float]?, Never>?
+    }
+    private let state = Mutex(State())
     private let maximumSamples: Int
-    private var chunks: [[Float]] = []
-    private var sampleCount = 0
-    private var stopped = false
-    private var waiter: CheckedContinuation<[Float]?, Never>?
 
     init(maximumSamples: Int = 32_000) { self.maximumSamples = max(1, maximumSamples) }
-    var pendingSampleCount: Int { lock.withLock { sampleCount } }
+    var pendingSampleCount: Int { state.withLock { $0.sampleCount } }
 
     func append(_ samples: [Float]) -> AppendResult {
-        var delivery: CheckedContinuation<[Float]?, Never>?
-        let result = lock.withLock { () -> AppendResult in
-            guard !stopped else { return .stopped }
-            guard !samples.isEmpty else { return .accepted }
+        let maximumSamples = maximumSamples
+        let (result, delivery) = state.withLock { state -> (AppendResult, CheckedContinuation<[Float]?, Never>?) in
+            guard !state.stopped else { return (.stopped, nil) }
+            guard !samples.isEmpty else { return (.accepted, nil) }
             let invalid = samples.count <= maximumSamples && !samples.allSatisfy(\.isFinite)
-            if samples.count > maximumSamples - sampleCount || invalid {
-                stopped = true
-                chunks.removeAll()
-                sampleCount = 0
-                delivery = waiter
-                waiter = nil
-                return invalid ? .invalid : .overflow
+            if samples.count > maximumSamples - state.sampleCount || invalid {
+                state.stopped = true
+                state.chunks.removeAll()
+                state.sampleCount = 0
+                let delivery = state.waiter
+                state.waiter = nil
+                return (invalid ? .invalid : .overflow, delivery)
             }
-            if let waiter {
-                delivery = waiter
-                self.waiter = nil
-            } else {
-                chunks.append(samples)
-                sampleCount += samples.count
+            if let waiter = state.waiter {
+                state.waiter = nil
+                return (.accepted, waiter)
             }
-            return .accepted
+            state.chunks.append(samples)
+            state.sampleCount += samples.count
+            return (.accepted, nil)
         }
         delivery?.resume(returning: result == .accepted ? samples : nil)
         return result
@@ -235,15 +241,15 @@ final class SpeechPreviewAudioQueue: @unchecked Sendable {
     func next() async -> [Float]? {
         await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
-                let immediate = lock.withLock { () -> (ready: Bool, samples: [Float]?) in
-                    if stopped { return (true, nil) }
-                    if !chunks.isEmpty {
-                        let chunk = chunks.removeFirst()
-                        sampleCount -= chunk.count
+                let immediate = state.withLock { state -> (ready: Bool, samples: [Float]?) in
+                    if state.stopped { return (true, nil) }
+                    if !state.chunks.isEmpty {
+                        let chunk = state.chunks.removeFirst()
+                        state.sampleCount -= chunk.count
                         return (true, chunk)
                     }
-                    precondition(waiter == nil, "Speech preview has one audio consumer")
-                    waiter = continuation
+                    precondition(state.waiter == nil, "Speech preview has one audio consumer")
+                    state.waiter = continuation
                     return (false, nil)
                 }
                 if immediate.ready { continuation.resume(returning: immediate.samples) }
@@ -254,12 +260,12 @@ final class SpeechPreviewAudioQueue: @unchecked Sendable {
     }
 
     func cancel() {
-        let pending = lock.withLock { () -> CheckedContinuation<[Float]?, Never>? in
-            stopped = true
-            chunks.removeAll()
-            sampleCount = 0
-            let pending = waiter
-            waiter = nil
+        let pending = state.withLock { state -> CheckedContinuation<[Float]?, Never>? in
+            state.stopped = true
+            state.chunks.removeAll()
+            state.sampleCount = 0
+            let pending = state.waiter
+            state.waiter = nil
             return pending
         }
         pending?.resume(returning: nil)

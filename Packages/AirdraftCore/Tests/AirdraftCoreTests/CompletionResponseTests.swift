@@ -27,7 +27,11 @@ final class CompletionResponseTests: XCTestCase {
 }
 
 private final class CompletionFixtureProtocol: URLProtocol {
-    static var body = ""
+    private static let reply = Locked("")
+    static var body: String {
+        get { reply.value }
+        set { reply.value = newValue }
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {

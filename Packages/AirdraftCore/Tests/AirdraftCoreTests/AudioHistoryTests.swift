@@ -216,8 +216,7 @@ final class AudioHistoryTests: XCTestCase {
         let first = try HistoryStore(directory: directory)
         let second = try HistoryStore(directory: directory)
         let input = record()
-        let errorsLock = NSLock()
-        var errors: [Error] = []
+        let errors = Locked<[any Error]>([])
         DispatchQueue.concurrentPerform(iterations: 60) { index in
             do {
                 if index.isMultiple(of: 3) {
@@ -226,9 +225,9 @@ final class AudioHistoryTests: XCTestCase {
                     let store = index.isMultiple(of: 2) ? first : second
                     try store.save(input, samples: [0, 0.5, -0.5])
                 }
-            } catch { errorsLock.withLock { errors.append(error) } }
+            } catch { errors.withLock { $0.append(error) } }
         }
-        XCTAssertTrue(errors.isEmpty, "\(errors)")
+        XCTAssertTrue(errors.value.isEmpty, "\(errors.value)")
         let saved = try first.recent()
         XCTAssertEqual(saved.count, 40)
         XCTAssertTrue(saved.allSatisfy { first.audioURL(for: $0) != nil })

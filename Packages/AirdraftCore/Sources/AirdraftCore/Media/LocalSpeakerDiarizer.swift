@@ -22,8 +22,10 @@ public enum LocalSpeakerDiarizer {
                 host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
             }
         }
-        guard result == KERN_SUCCESS else { return 0 }
-        return UInt64(statistics.free_count + statistics.inactive_count) * UInt64(vm_kernel_page_size)
+        // host_statistics64 counts host pages; vm_kernel_page_size is a mutable C global.
+        var pageSize: vm_size_t = 0
+        guard result == KERN_SUCCESS, host_page_size(mach_host_self(), &pageSize) == KERN_SUCCESS else { return 0 }
+        return UInt64(statistics.free_count + statistics.inactive_count) * UInt64(pageSize)
     }
     public static func identify(url: URL, duration: Double, progress: @escaping @Sendable (Double) -> Void) async throws -> [SpeakerInterval] {
         guard isInstalled else { throw MediaError.missingSpeakerModel }

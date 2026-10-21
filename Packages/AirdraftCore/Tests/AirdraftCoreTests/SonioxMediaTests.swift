@@ -5,7 +5,7 @@ final class SonioxMediaTests: XCTestCase {
     private let fileID = "11111111-1111-4111-8111-111111111111"
     private let jobID = "22222222-2222-4222-8222-222222222222"
     override func tearDown() { MediaHTTPFixture.handler = nil; super.tearDown() }
-    private func session(_ handler: @escaping (URLRequest) throws -> (Int, String)) -> URLSession {
+    private func session(_ handler: @escaping @Sendable (URLRequest) throws -> (Int, String)) -> URLSession {
         MediaHTTPFixture.handler = handler
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MediaHTTPFixture.self]
@@ -75,8 +75,12 @@ private actor Checkpoint {
     var ids: (String?, String?) = (nil, nil)
     func save(_ file: String?, _ job: String?) { ids = (file, job) }
 }
-private final class MediaHTTPFixture: URLProtocol, @unchecked Sendable {
-    static var handler: ((URLRequest) throws -> (Int, String))?
+private final class MediaHTTPFixture: URLProtocol {
+    private static let callback = Locked<(@Sendable (URLRequest) throws -> (Int, String))?>(nil)
+    static var handler: (@Sendable (URLRequest) throws -> (Int, String))? {
+        get { callback.value }
+        set { callback.value = newValue }
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {

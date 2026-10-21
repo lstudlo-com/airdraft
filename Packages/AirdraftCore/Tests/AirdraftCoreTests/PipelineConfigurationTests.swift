@@ -242,12 +242,11 @@ private final class ConfigurationTarget {
     }
 }
 
-private final class ConfigurationProbe: @unchecked Sendable {
-    private let lock = NSLock()
-    private var values: [LLMConfig] = []
-    var built: [LLMConfig] { lock.withLock { values } }
-    func append(_ value: LLMConfig) { lock.withLock { values.append(value) } }
-    func clear() { lock.withLock { values.removeAll() } }
+private final class ConfigurationProbe: Sendable {
+    private let values = Locked<[LLMConfig]>([])
+    var built: [LLMConfig] { values.value }
+    func append(_ value: LLMConfig) { values.withLock { $0.append(value) } }
+    func clear() { values.withLock { $0.removeAll() } }
 }
 private actor SpeechFailure {
     var remaining: Int
@@ -271,6 +270,8 @@ private struct ConfigurationRefiner: Refiner {
         return RefineResult(text: request.transcript, engine: id, latencyMs: 0, promptVersion: "fixture")
     }
 }
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class ConfigurationRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var levelHandler: (@Sendable (Float) -> Void)?

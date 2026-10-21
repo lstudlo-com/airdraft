@@ -129,7 +129,7 @@ public final class DataCleanupCoordinator {
 
 /// One writer owns the data directory for its entire lifetime, including reset.
 /// The lock file survives reset so another process cannot lock a different inode.
-public final class DataDirectoryLease: @unchecked Sendable {
+public final class DataDirectoryLease: Sendable {
     private let descriptor: Int32
     public let holdsLease = true
     public init(directory: URL) throws {

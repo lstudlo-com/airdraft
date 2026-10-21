@@ -88,6 +88,8 @@ final class RecordingPrerequisitesTests: XCTestCase {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class NeverStartRecorder: AudioRecording, @unchecked Sendable {
     var starts = 0
     var isRecording = false

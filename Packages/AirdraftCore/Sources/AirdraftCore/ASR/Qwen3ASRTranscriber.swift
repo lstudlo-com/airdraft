@@ -7,7 +7,9 @@ public actor Qwen3ASRTranscriber: Transcriber {
     public nonisolated let id: String
     private let modelId: String
     private var model: Qwen3ASRModel?
-    private var loading: Task<Qwen3ASRModel, Error>?
+    /// Qwen3ASRModel is not Sendable, so the shared load publishes into this actor
+    /// instead of returning the instance across isolation domains.
+    private var loading: Task<Void, Error>?
 
     public init(modelId: String) {
         self.modelId = modelId
@@ -75,19 +77,29 @@ public actor Qwen3ASRTranscriber: Transcriber {
 
     private func loadedModel() async throws -> Qwen3ASRModel {
         if let model { return model }
-        if loading == nil {
-            let modelId = self.modelId
+        let task: Task<Void, Error>
+        if let loading { task = loading }
+        else {
             guard LocalModels.hasQwen3(modelId) else { throw TranscriberError.modelNotDownloaded }
-            loading = Task { try await Qwen3ASRModel.fromPretrained(modelId: modelId, cacheDir: LocalModels.qwen3Folder(for: modelId), offlineMode: true) }
+            // Unstructured: a waiter that stops waiting does not cancel the shared load.
+            task = Task { try await self.load() }
+            loading = task
         }
         do {
-            let loaded = try await loading!.value
-            model = loaded
-            loading = nil
-            return loaded
+            try await task.value
         } catch {
-            loading = nil
+            if loading == task { loading = nil }
             throw error
         }
+        if loading == task { loading = nil }
+        // unload() ran while this load finished: never publish late readiness.
+        guard let model else { throw CancellationError() }
+        return model
+    }
+
+    private func load() async throws {
+        let loaded = try await Qwen3ASRModel.fromPretrained(modelId: modelId, cacheDir: LocalModels.qwen3Folder(for: modelId), offlineMode: true)
+        try Task.checkCancellation()
+        model = loaded
     }
 }

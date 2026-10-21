@@ -37,7 +37,7 @@ final class CLIWarmPoolTests: XCTestCase {
             withUnsafeCurrentTask { $0?.cancel() }
             await pool.prewarm(key: "cancelled", owner: UUID()) {
                 XCTFail("Cancelled warm preparation must not launch a process")
-                return try self.makeSession("exec /bin/sleep 30", key: "cancelled")
+                return try Self.makeSession("exec /bin/sleep 30", key: "cancelled")
             }
         }
         await cancelled.value
@@ -201,6 +201,10 @@ final class CLIWarmPoolTests: XCTestCase {
     }
 
     private func makeSession(_ script: String, key: String = "fixture") throws -> CLISession {
+        try Self.makeSession(script, key: key)
+    }
+
+    private static func makeSession(_ script: String, key: String = "fixture") throws -> CLISession {
         try CLISession(key: key, executable: "/bin/sh", arguments: ["-c", script],
                        environment: [:], workDir: FileManager.default.temporaryDirectory)
     }
@@ -211,9 +215,8 @@ final class CLIWarmPoolTests: XCTestCase {
     }
 }
 
-final class TestClock: @unchecked Sendable {
-    private let lock = NSLock()
-    private var value = Date(timeIntervalSinceReferenceDate: 800_000_000)
-    var now: Date { lock.withLock { value } }
-    func advance(_ seconds: TimeInterval) { lock.withLock { value = value.addingTimeInterval(seconds) } }
+final class TestClock: Sendable {
+    private let value = Locked(Date(timeIntervalSinceReferenceDate: 800_000_000))
+    var now: Date { value.value }
+    func advance(_ seconds: TimeInterval) { value.withLock { $0 = $0.addingTimeInterval(seconds) } }
 }

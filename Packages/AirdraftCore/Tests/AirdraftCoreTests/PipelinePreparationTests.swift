@@ -522,32 +522,34 @@ private actor PreparationGate {
     func release() { let current = waits; waits.removeAll(); current.forEach { $0.resume() } }
 }
 
-private final class PreparationProbe: @unchecked Sendable {
-    private let lock = NSLock()
-    private var builds: [LLMConfig] = []
-    private var preparations: [LLMConfig] = []
-    private var refinements: [(LLMConfig, RefineRequest)] = []
-    private var prefixPreparations: [(LLMConfig, RefineRequest, RefinementPreparationBackend, UUID)] = []
-    private var preparedValueUsed: [Bool] = []
-    private var outputs: [String] = []
-    var builtConfigs: [LLMConfig] { lock.withLock { builds } }
-    var preparedConfigs: [LLMConfig] { lock.withLock { preparations } }
-    var requests: [RefineRequest] { lock.withLock { refinements.map(\.1) } }
-    var requestModels: [String] { lock.withLock { refinements.map { $0.0.model } } }
-    var deliveries: [String] { lock.withLock { outputs } }
-    var prefixRequests: [RefineRequest] { lock.withLock { prefixPreparations.map(\.1) } }
-    var prefixBackends: [RefinementPreparationBackend] { lock.withLock { prefixPreparations.map(\.2) } }
-    var prefixOwners: [UUID] { lock.withLock { prefixPreparations.map(\.3) } }
-    var requestUsedPreparedValue: [Bool] { lock.withLock { preparedValueUsed } }
-    func built(_ config: LLMConfig) { lock.withLock { builds.append(config) } }
-    func prepared(_ config: LLMConfig) { lock.withLock { preparations.append(config) } }
+private final class PreparationProbe: Sendable {
+    private struct State: Sendable {
+        var builds: [LLMConfig] = []
+        var preparations: [LLMConfig] = []
+        var refinements: [(LLMConfig, RefineRequest)] = []
+        var prefixPreparations: [(LLMConfig, RefineRequest, RefinementPreparationBackend, UUID)] = []
+        var preparedValueUsed: [Bool] = []
+        var outputs: [String] = []
+    }
+    private let state = Locked(State())
+    var builtConfigs: [LLMConfig] { state.value.builds }
+    var preparedConfigs: [LLMConfig] { state.value.preparations }
+    var requests: [RefineRequest] { state.value.refinements.map(\.1) }
+    var requestModels: [String] { state.value.refinements.map { $0.0.model } }
+    var deliveries: [String] { state.value.outputs }
+    var prefixRequests: [RefineRequest] { state.value.prefixPreparations.map(\.1) }
+    var prefixBackends: [RefinementPreparationBackend] { state.value.prefixPreparations.map(\.2) }
+    var prefixOwners: [UUID] { state.value.prefixPreparations.map(\.3) }
+    var requestUsedPreparedValue: [Bool] { state.value.preparedValueUsed }
+    func built(_ config: LLMConfig) { state.withLock { $0.builds.append(config) } }
+    func prepared(_ config: LLMConfig) { state.withLock { $0.preparations.append(config) } }
     func prefixPrepared(_ request: RefineRequest, config: LLMConfig, backend: RefinementPreparationBackend, owner: UUID) {
-        lock.withLock { prefixPreparations.append((config, request, backend, owner)) }
+        state.withLock { $0.prefixPreparations.append((config, request, backend, owner)) }
     }
     func refined(_ request: RefineRequest, config: LLMConfig, prepared: Bool) {
-        lock.withLock { refinements.append((config, request)); preparedValueUsed.append(prepared) }
+        state.withLock { $0.refinements.append((config, request)); $0.preparedValueUsed.append(prepared) }
     }
-    func delivered(_ text: String) { lock.withLock { outputs.append(text) } }
+    func delivered(_ text: String) { state.withLock { $0.outputs.append(text) } }
 }
 
 private struct PreparationRefiner: Refiner {
@@ -602,6 +604,8 @@ private actor PreparationSpeech: Transcriber {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class PreparationRecorder: AudioRecording, @unchecked Sendable {
     var isRecording = false
     var samples: [Float]

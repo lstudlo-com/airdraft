@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// Startup, capture and cancellation. Recording prerequisites are checked
 /// before the microphone opens; every callback belongs to its session token.
@@ -399,14 +400,13 @@ extension DictationPipeline {
 }
 
 /// The first audio buffer's arrival time, stamped once on the audio thread.
-final class FirstBufferClock: @unchecked Sendable {
-    private let lock = NSLock()
-    private var stamped = false
+final class FirstBufferClock: Sendable {
+    private let stamped = Mutex(false)
 
     /// The current uptime for the first call only; nil afterwards.
     func markFirst() -> TimeInterval? {
         let now = ProcessInfo.processInfo.systemUptime
-        return lock.withLock {
+        return stamped.withLock { stamped in
             guard !stamped else { return nil }
             stamped = true
             return now

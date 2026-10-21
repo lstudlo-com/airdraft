@@ -25,6 +25,12 @@ public protocol MeetingCapturing: AnyObject, Sendable {
 
 /// Captures only audio outputs. No screen frames are retained and no output device is opened.
 /// Delegate and file writes share one bounded serial queue; UI receives throttled snapshots.
+///
+/// Unchecked: converter/track state is confined to `queue`, which is also the
+/// SCStream sample handler queue; `stream` and `microphoneChannel` are written
+/// only by the owner's sequential start/stop. SCStream, AVAudioConverter and
+/// AVAudioFormat are not Sendable, so the confinement cannot be expressed as an
+/// actor without copying every sample buffer off the capture queue.
 public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDelegate, MeetingCapturing, @unchecked Sendable {
     private let queue = DispatchQueue(label: "Airdraft.meeting.capture", qos: .userInitiated)
     private let writer: MeetingAudioWriter

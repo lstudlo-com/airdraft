@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 import PackageDescription
 
 let package = Package(
@@ -43,5 +43,6 @@ let package = Package(
             dependencies: ["AirdraftCore"]
         ),
     ],
-    swiftLanguageVersions: [.v5]
+    // Swift 6 language mode: complete data-race checking is an error, not a warning.
+    swiftLanguageModes: [.v6]
 )

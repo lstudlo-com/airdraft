@@ -774,8 +774,14 @@ verification status belong in the vault (see below).
 - The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
   `com.lightiichen.transcribar` preferences and credentials without overwriting current
   values. Keep `Application Support/Transcribar` for existing models and history.
-- Swift language mode is 5 on a Swift 6 compiler; keep `@MainActor` on UI-facing
-  classes and `Sendable` on protocol types.
+- `Packages/AirdraftCore` (library, CLI and tests) builds in Swift 6 language mode,
+  so data races are compile errors; the app target stays in Swift 5 mode with
+  minimal checking. Keep `@MainActor` on UI-facing classes and `Sendable` on
+  protocol types. Prefer actors, `Mutex` and `sending` to locks. Every
+  `@unchecked Sendable` or `nonisolated(unsafe)` names the lock or queue that
+  confines its state. Engine actors publish non-Sendable SDK models into their own
+  state instead of returning them from a `Task`; do not silence SDKs with
+  `@preconcurrency`. Test fixtures share mutable state through `Locked`.
 - Prompt changes bump `PromptBuilder.version` so history records stay comparable, and must be
   scored with `eval/run_correction_eval.py` on both `correction_cases.json` and the held-out
   `holdout_cases.json` (LM Studio running). Do not ship a prompt that loses a held-out case.

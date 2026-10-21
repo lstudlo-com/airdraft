@@ -128,12 +128,11 @@ final class SpeechPreviewTests: XCTestCase {
     }
 }
 
-private final class PreviewEvents: @unchecked Sendable {
-    private let lock = NSLock()
-    private var recordedTexts: [String] = []
-    private var recordedIssues: [String] = []
-    var texts: [String] { lock.withLock { recordedTexts } }
-    var issues: [String] { lock.withLock { recordedIssues } }
-    func text(_ value: String) { lock.withLock { recordedTexts.append(value) } }
-    func issue(_ value: String) { lock.withLock { recordedIssues.append(value) } }
+private final class PreviewEvents: Sendable {
+    private let recordedTexts = Locked<[String]>([])
+    private let recordedIssues = Locked<[String]>([])
+    var texts: [String] { recordedTexts.value }
+    var issues: [String] { recordedIssues.value }
+    func text(_ value: String) { recordedTexts.withLock { $0.append(value) } }
+    func issue(_ value: String) { recordedIssues.withLock { $0.append(value) } }
 }

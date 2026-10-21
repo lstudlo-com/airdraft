@@ -264,6 +264,8 @@ private actor StartupSpeech: Transcriber {
     }
 }
 
+/// Unchecked: test double driven only by the MainActor pipeline under test;
+/// it never touches its fields or handlers from another thread.
 private final class LocalPrerequisiteRecorder: AudioRecording, @unchecked Sendable {
     var starts = 0
     var isRecording = false

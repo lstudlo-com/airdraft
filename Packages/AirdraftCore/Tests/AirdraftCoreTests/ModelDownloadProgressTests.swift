@@ -175,15 +175,16 @@ final class ModelDownloadProgressTests: XCTestCase {
     }
 }
 
-private final class DownloadUpdates: @unchecked Sendable {
-    private let lock = NSLock()
-    private var items: [ModelDownloader.Progress] = []
-    func append(_ item: ModelDownloader.Progress) { lock.lock(); defer { lock.unlock() }; items.append(item) }
-    var values: [ModelDownloader.Progress] { lock.lock(); defer { lock.unlock() }; return items }
+private final class DownloadUpdates: Sendable {
+    private let items = Locked<[ModelDownloader.Progress]>([])
+    func append(_ item: ModelDownloader.Progress) { items.withLock { $0.append(item) } }
+    var values: [ModelDownloader.Progress] { items.value }
 }
 
 /// Real loopback HTTP, deliberately sending a file over several delegate callback intervals.
 /// Does not use URLProtocol, whose synthetic responses can bypass URLSession's disk writer.
+/// Unchecked: `connections` and `started` are touched only on `queue`, the
+/// NWListener/NWConnection callback queue; NWListener itself is not Sendable.
 private final class SlowModelServer: @unchecked Sendable {
     static let size = 1_048_576
     private let listener: NWListener

@@ -2,20 +2,25 @@ import XCTest
 @testable import AirdraftCore
 
 final class AdditionalCloudSpeechTests: XCTestCase {
-    private let samples: [Float] = [0, 0.2, -0.2]
-    private let jobID = "22222222-2222-4222-8222-222222222222"
+    // Static fixtures let @Sendable URLProtocol handlers use them without capturing the test case.
+    private static let samples: [Float] = [0, 0.2, -0.2]
+    private static let jobID = "22222222-2222-4222-8222-222222222222"
+    private var samples: [Float] { Self.samples }
+    private var jobID: String { Self.jobID }
     private let hints = TranscriptionHints(language: "zh-TW", vocabulary: ["Airdraft", "Airdraft", "", "C++"], chineseScript: .traditional)
 
     override func tearDown() { AdditionalSpeechURLProtocol.handler = nil; super.tearDown() }
 
-    private func session(_ handler: @escaping (URLRequest) throws -> AdditionalSpeechResponse?) -> URLSession {
+    private func session(_ handler: @escaping AdditionalSpeechURLProtocol.Handler) -> URLSession {
         AdditionalSpeechURLProtocol.handler = handler
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [AdditionalSpeechURLProtocol.self]
         return URLSession(configuration: config)
     }
 
-    private func body(_ request: URLRequest) -> Data {
+    private func body(_ request: URLRequest) -> Data { Self.body(request) }
+
+    private static func body(_ request: URLRequest) -> Data {
         if let data = request.httpBody { return data }
         guard let stream = request.httpBodyStream else { return Data() }
         stream.open(); defer { stream.close() }
@@ -113,17 +118,17 @@ final class AdditionalCloudSpeechTests: XCTestCase {
                 XCTAssertEqual(request.url?.host, "api.assemblyai.com")
                 XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "key")
                 if request.httpMethod == "DELETE" {
-                    XCTAssertEqual(request.url?.path, "/v2/transcript/\(self.jobID)"); deleted.fulfill(); return .init()
+                    XCTAssertEqual(request.url?.path, "/v2/transcript/\(Self.jobID)"); deleted.fulfill(); return .init()
                 }
                 switch request.url?.path {
                 case "/v2/upload":
-                    XCTAssertEqual(self.body(request), WAVEncoder.encode(samples: self.samples))
+                    XCTAssertEqual(Self.body(request), WAVEncoder.encode(samples: Self.samples))
                     return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
                 case "/v2/transcript":
-                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: self.body(request)) as? [String: Any])
+                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
                     XCTAssertEqual(payload["speech_models"] as? [String], [model])
-                    return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
-                default: return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
+                    return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
+                default: return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
                 }
             }
             defer { s.invalidateAndCancel() }
@@ -155,16 +160,17 @@ final class AdditionalCloudSpeechTests: XCTestCase {
             "{\"id\":\"\(jobID)\",\"status\":\"completed\",\"text\":\"Wrong model\",\"speech_model_used\":\"universal-3-5-pro\"}"
         ] {
             let deleted = expectation(description: "Failed preview job deleted")
-            var submittedModels: [[String]] = []
+            let submittedModels = Locked<[[String]]>([])
             let s = session { request in
                 if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
                 if request.url?.lastPathComponent == "upload" {
                     return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
                 }
                 if request.httpMethod == "POST" {
-                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: self.body(request)) as? [String: Any])
-                    submittedModels.append(try XCTUnwrap(payload["speech_models"] as? [String]))
-                    return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
+                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
+                    let models = try XCTUnwrap(payload["speech_models"] as? [String])
+                    submittedModels.withLock { $0.append(models) }
+                    return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
                 }
                 return .init(body: reply)
             }
@@ -177,7 +183,7 @@ final class AdditionalCloudSpeechTests: XCTestCase {
                 XCTAssertEqual(provider, "AssemblyAI")
                 XCTAssertTrue(message == "Preview unavailable" || message.contains("AssemblyAI used universal-3-5-pro"))
             } catch { XCTFail("\(error)") }
-            XCTAssertEqual(submittedModels, [["universal-3-6-pro-preview"]])
+            XCTAssertEqual(submittedModels.value, [["universal-3-6-pro-preview"]])
             await fulfillment(of: [deleted], timeout: 1)
         }
     }
@@ -201,7 +207,7 @@ final class AdditionalCloudSpeechTests: XCTestCase {
                 XCTAssertEqual(request.url?.query, "force=true"); deleted.fulfill(); return .init()
             }
             if request.httpMethod == "POST" {
-                let body = String(decoding: self.body(request), as: UTF8.self)
+                let body = String(decoding: Self.body(request), as: UTF8.self)
                 XCTAssertTrue(body.contains("name=\"data_file\""))
                 XCTAssertTrue(body.contains("Content-Type: application/json"))
                 return .init(status: 201, body: #"{"id":"fixture-job"}"#)
@@ -224,12 +230,13 @@ final class AdditionalCloudSpeechTests: XCTestCase {
                 if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
                 if request.url?.lastPathComponent == "upload" { return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#) }
                 if request.httpMethod == "POST" {
-                    return .init(body: kind == .assemblyAI ? "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}" : #"{"id":"fixture-job"}"#)
+                    return .init(body: kind == .assemblyAI ? "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}" : #"{"id":"fixture-job"}"#)
                 }
                 polling.fulfill(); return nil // Hold the poll until cancellation.
             }
             let engine: any Transcriber = kind == .assemblyAI ? AssemblyAITranscriber(apiKey: "key", session: s, pollInterval: 0.01) :
                 SpeechmaticsTranscriber(apiKey: "key", session: s, pollInterval: 0.01)
+            let (samples, hints) = (samples, hints)
             let task = Task { try await engine.transcribe(samples: samples, hints: hints) }
             await fulfillment(of: [polling], timeout: 2)
             task.cancel()
@@ -245,7 +252,7 @@ final class AdditionalCloudSpeechTests: XCTestCase {
         let s = session { request in
             if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
             if request.url?.lastPathComponent == "upload" { return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#) }
-            return .init(body: "{\"id\":\"\(self.jobID)\",\"status\":\"queued\"}")
+            return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
         }
         defer { s.invalidateAndCancel() }
         do {
@@ -280,6 +287,7 @@ final class AdditionalCloudSpeechTests: XCTestCase {
         let pending = expectation(description: "Gemini interaction pending"), deleted = expectation(description: "Cancelled Gemini file deleted")
         let s = geminiSession(deleted: deleted, response: "", pending: pending)
         defer { s.invalidateAndCancel() }
+        let (samples, hints) = (samples, hints)
         let task = Task { try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints) }
         await fulfillment(of: [pending], timeout: 2)
         task.cancel()
@@ -297,12 +305,12 @@ final class AdditionalCloudSpeechTests: XCTestCase {
                 if request.value(forHTTPHeaderField: "X-Goog-Upload-Command") == "start" {
                     return .init(headers: ["X-Goog-Upload-URL": "https://generativelanguage.googleapis.com/upload/v1beta/files?upload_id=fixture"])
                 }
-                XCTAssertEqual(self.body(request), WAVEncoder.encode(samples: self.samples))
+                XCTAssertEqual(Self.body(request), WAVEncoder.encode(samples: Self.samples))
                 return .init(body: #"{"file":{"name":"files/fixture","uri":"https://generativelanguage.googleapis.com/v1beta/files/fixture","state":"ACTIVE"}}"#)
             }
             XCTAssertEqual(request.url?.path, "/v1beta/interactions")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Api-Revision"), "2026-05-20")
-            let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: self.body(request)) as? [String: Any])
+            let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
             XCTAssertEqual(payload["store"] as? Bool, false)
             XCTAssertEqual(payload["model"] as? String, "gemini-3.5-transcribe")
             let generation = try XCTUnwrap(payload["generation_config"] as? [String: Any])
@@ -326,18 +334,18 @@ final class AdditionalCloudSpeechTests: XCTestCase {
     }
 }
 
-private struct AdditionalSpeechResponse {
+struct AdditionalSpeechResponse: Sendable {
     var status = 200
     var body = "{}"
     var headers: [String: String] = [:]
 }
 
-private final class AdditionalSpeechURLProtocol: URLProtocol {
-    private static let lock = NSLock()
-    private static var callback: ((URLRequest) throws -> AdditionalSpeechResponse?)?
-    static var handler: ((URLRequest) throws -> AdditionalSpeechResponse?)? {
-        get { lock.lock(); defer { lock.unlock() }; return callback }
-        set { lock.lock(); defer { lock.unlock() }; callback = newValue }
+final class AdditionalSpeechURLProtocol: URLProtocol {
+    typealias Handler = @Sendable (URLRequest) throws -> AdditionalSpeechResponse?
+    private static let callback = Locked<Handler?>(nil)
+    static var handler: Handler? {
+        get { callback.value }
+        set { callback.value = newValue }
     }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }

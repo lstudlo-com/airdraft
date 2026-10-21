@@ -112,6 +112,8 @@ final class ProviderTransportTests: XCTestCase {
 
 /// Loopback HTTP exercises Foundation's real redirect/cache behavior without
 /// provider adapters, credentials, app storage, or any audio device.
+/// Unchecked: `connections` and `started` are touched only on `queue`, the
+/// NWListener/NWConnection callback queue; test-visible counters use `lock`.
 private final class TransportServer: @unchecked Sendable {
     struct Response: Sendable {
         var status: Int

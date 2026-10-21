@@ -68,7 +68,9 @@ public enum AudioChunker {
 
     /// Async engines decode bounded windows sequentially. A failed or cancelled
     /// window must not return the successfully decoded prefix as a full transcript.
-    public static func transcribeAsync(
+    /// Runs on the caller's actor, so an engine actor can decode with its own
+    /// non-Sendable model state without sending the closure elsewhere.
+    nonisolated(nonsending) public static func transcribeAsync(
         _ samples: [Float], maxSeconds: Double,
         decode: ([Float]) async throws -> String
     ) async throws -> String {

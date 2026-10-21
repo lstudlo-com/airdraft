@@ -64,10 +64,10 @@ final class AudioChunkerTests: XCTestCase {
     }
 
     func testAsyncDecodingStopsAfterCancellationBeforeNextWindow() async {
-        var calls = 0
+        let calls = Locked(0)
         let task = Task {
             try await AudioChunker.transcribeAsync(Array(repeating: 0.1, count: 60 * 16_000), maxSeconds: 25) { _ in
-                calls += 1
+                calls.withLock { $0 += 1 }
                 withUnsafeCurrentTask { $0?.cancel() }
                 return "cancelled prefix"
             }
@@ -76,16 +76,15 @@ final class AudioChunkerTests: XCTestCase {
             _ = try await task.value
             XCTFail("Cancellation must not return a partial transcript")
         } catch is CancellationError {
-            XCTAssertEqual(calls, 1)
+            XCTAssertEqual(calls.value, 1)
         } catch { XCTFail("Unexpected error: \(error)") }
     }
 
     func testSynchronousDecodingStopsAfterCancellationBeforeNextWindow() async {
-        var calls = 0
+        let calls = Locked(0)
         let task = Task<String, Error> {
             try AudioChunker.transcribe(Array(repeating: 0.1, count: 74 * 16_000), maxSeconds: 25) { _ in
-                calls += 1
-                if calls == 1 { withUnsafeCurrentTask { $0?.cancel() } }
+                if calls.withLock({ $0 += 1; return $0 }) == 1 { withUnsafeCurrentTask { $0?.cancel() } }
                 return "cancelled prefix"
             }
         }
@@ -93,7 +92,7 @@ final class AudioChunkerTests: XCTestCase {
             _ = try await task.value
             XCTFail("Cancellation must stop later expensive decoder calls")
         } catch is CancellationError {
-            XCTAssertEqual(calls, 1)
+            XCTAssertEqual(calls.value, 1)
         } catch { XCTFail("Unexpected error: \(error)") }
     }
 }

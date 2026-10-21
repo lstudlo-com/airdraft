@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TranscribeCppKit
 
 /// Batch transcription through the official macOS transcribe.cpp runtime.
@@ -90,17 +91,18 @@ public actor GGUFTranscriber: Transcriber {
     }
 }
 
-private final class NativeCancellation: @unchecked Sendable {
-    private let lock = NSLock()
-    private var cancelled = false
-    func cancel() { lock.lock(); cancelled = true; lock.unlock() }
-    var isCancelled: Bool { lock.lock(); defer { lock.unlock() }; return cancelled }
+private final class NativeCancellation: Sendable {
+    private let cancelled = Mutex(false)
+    func cancel() { cancelled.withLock { $0 = true } }
+    var isCancelled: Bool { cancelled.withLock { $0 } }
 }
 
-private final class NativeModel: @unchecked Sendable {
+private final class NativeModel: Sendable {
     // One backend initialization per process, before any model is constructed.
     private static let backendStatus = transcribe_init_backends_default()
-    private let pointer: OpaquePointer
+    /// The native model handle is immutable after init and freed only in deinit.
+    /// transcribe.cpp allows one compute call per model; `runLock` serializes them.
+    nonisolated(unsafe) private let pointer: OpaquePointer
     private let runLock = NSLock()
     let windowSeconds: Double
 
