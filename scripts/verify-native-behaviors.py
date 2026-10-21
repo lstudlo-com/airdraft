@@ -580,6 +580,11 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str,
     print(result.stdout.strip(), flush=True)
 
 
+# Core files localize through SwiftPM's Bundle.module; compiled alone they read
+# the harness's main bundle, which yields the English source.
+MODULE_BUNDLE = "import Foundation\nextension Bundle { static let module = Bundle.main }\n"
+
+
 def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
     run_suite(directory, "hotkey-suspension", {
         "HotkeyService.swift": source("Sources/App/Hotkeys/HotkeyService.swift"),
@@ -588,10 +593,12 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
         "Hotkey.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/Hotkey.swift"),
         "HotkeyPressState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyPressState.swift"),
         "HotkeyTriggerState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyTriggerState.swift"),
+        "ModuleBundle.swift": MODULE_BUNDLE,
     }, HOTKEY_FIXTURE)
     run_suite(directory, "microphone-selection", {
         "MicrophoneStore.swift": source("Sources/App/App/MicrophoneStore.swift"),
         "Microphone.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Audio/Microphone.swift"),
+        "ModuleBundle.swift": MODULE_BUNDLE,
     }, MICROPHONE_FIXTURE)
     if skip_hud:
         print("SKIP: HUD visibility, --skip-hud selected", flush=True)
@@ -601,9 +608,7 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
             "HUDDisco.swift": source("Sources/App/HUD/HUDDisco.swift"),
             "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
-            # Core files localize through SwiftPM's Bundle.module; compiled alone
-            # they read the harness's main bundle, which yields the English source.
-            "ModuleBundle.swift": "import Foundation\nextension Bundle { static let module = Bundle.main }\n",
+            "ModuleBundle.swift": MODULE_BUNDLE,
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
