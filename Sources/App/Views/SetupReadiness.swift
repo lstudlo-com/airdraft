@@ -1,4 +1,5 @@
 import AirdraftCore
+import AppKit
 import SwiftUI
 
 /// Whether the current speech and refinement keys are saved. Home and the sidebar
@@ -22,11 +23,104 @@ final class SetupCredentialPresence {
     }
 }
 
-/// The one readiness model behind Home's setup card and hero and the sidebar footer.
+/// File-system and system-service facts behind readiness: whether the speech
+/// model's files are installed, whether the output script is usable, whether
+/// Apple Intelligence is available and whether the selected CLI exists. They are
+/// measured off the main actor whenever their inputs change, after a download
+/// finishes and when Airdraft becomes active, so Home and sidebar redraws never
+/// stat files, search PATH or query the system language model.
+@MainActor @Observable
+final class SetupFacts {
+    struct Inputs: Equatable, Sendable {
+        var speech: ASRConfig
+        /// Nil unless output goes to a script.
+        var scriptPath: String?
+        var llm: LLMConfig
+    }
+
+    struct Values: Equatable, Sendable {
+        var speechInstalled = false
+        var scriptIssue: String?
+        var appleIntelligenceIssue: String?
+        var cliMissing = false
+    }
+
+    private(set) var measured: (inputs: Inputs, values: Values)?
+    @ObservationIgnored private var refreshID = UUID()
+    @ObservationIgnored private var downloadSignature: [String: Bool] = [:]
+    @ObservationIgnored private var activationObserver: NSObjectProtocol?
+
+    /// The current values. Until the refresh for changed inputs lands (a few
+    /// milliseconds), this measures directly without storing, so a redraw never
+    /// shows facts about the previous model or script.
+    func values(for inputs: Inputs) -> Values {
+        if let measured, measured.inputs == inputs { return measured.values }
+        return Self.measure(inputs)
+    }
+
+    /// Measures off the main actor; a newer refresh rejects an older result.
+    func refresh(_ inputs: Inputs) async {
+        let token = UUID()
+        refreshID = token
+        let values = await Task.detached(priority: .userInitiated) { Self.measure(inputs) }.value
+        guard refreshID == token else { return }
+        if measured?.inputs != inputs || measured?.values != values { measured = (inputs, values) }
+    }
+
+    nonisolated static func measure(_ inputs: Inputs) -> Values {
+        var values = Values()
+        values.speechInstalled = !inputs.speech.kind.isLocal || LocalModels.isInstalled(inputs.speech)
+        values.scriptIssue = inputs.scriptPath.flatMap { ScriptDelivery.unavailableReason(path: $0) }
+        if inputs.llm.kind == .appleIntelligence { values.appleIntelligenceIssue = AppleIntelligenceRefiner.unavailableReason }
+        values.cliMissing = inputs.llm.kind.isCLI && inputs.llm.cliExecutable == nil
+        return values
+    }
+
+    /// Starts refreshing for `container`. Called once from `AppContainer.start()`.
+    func startRefreshing(_ container: AppContainer) {
+        guard activationObserver == nil else { return }
+        observeChanges({ [weak container] in
+            guard let container else { return }
+            _ = container.setupFactsInputs
+            // Finished, failed or cancelled downloads change installed files.
+            _ = container.downloads.jobs
+        }) { [weak self, weak container] in
+            guard let self, let container else { return }
+            let signature = container.downloads.jobs.mapValues { $0.progress == nil }
+            let inputs = container.setupFactsInputs
+            guard measured?.inputs != inputs || signature != downloadSignature else { return }
+            downloadSignature = signature
+            Task { await self.refresh(inputs) }
+        }
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { [weak self, weak container] _ in
+            // Files and system settings may have changed while Airdraft was inactive.
+            MainActor.assumeIsolated {
+                guard let self, let container else { return }
+                Task { await self.refresh(container.setupFactsInputs) }
+            }
+        }
+        Task { await refresh(container.setupFactsInputs) }
+    }
+}
+
+extension AppContainer {
+    var setupFactsInputs: SetupFacts.Inputs {
+        SetupFacts.Inputs(speech: speechConfig,
+                          scriptPath: settings.outputDestination == .script ? settings.outputScriptPath : nil,
+                          llm: settings.llm)
+    }
+}
+
+/// The one readiness model behind Home's setup card and hero and the sidebar
+/// footer. Everything it reads is in memory: file and system checks come from
+/// `SetupFacts`.
 @MainActor
 struct SetupReadiness {
     let container: AppContainer
     private var keys: SetupCredentialPresence { container.credentialPresence }
+    private var facts: SetupFacts.Values { container.setupFacts.values(for: container.setupFactsInputs) }
 
     /// Setup rows plus the license and kept-recording bounds the pipeline enforces,
     /// so Home never says Ready while the shortcut would be refused.
@@ -56,8 +150,17 @@ struct SetupReadiness {
 
     /// The sidebar footer names the kind of work Home is waiting on.
     var footerTitle: LocalizedStringResource {
-        setupIssueCount == 0 && blockers == [.waitingRecordings] ? "Recordings Waiting" : "Finish Setup"
+        guard setupIssueCount == 0, blockers.count == 1, let blocker = blockers.first else { return "Finish Setup" }
+        switch blocker {
+        case .waitingRecordings: return "Recordings Waiting"
+        case .license(.needsTrial): return "Start Trial"
+        case .license: return "License"
+        }
     }
+
+    /// The license is the only issue, so the footer opens the License sheet
+    /// instead of Home.
+    var footerOpensLicense: Bool { setupIssueCount == 0 && blockers.count == 1 && licenseBlocker != nil }
 
     // MARK: Pipeline blockers
 
@@ -98,9 +201,17 @@ struct SetupReadiness {
 
     var outputReady: Bool {
         container.settings.outputDestination == .script
-            ? ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath) == nil
+            ? facts.scriptIssue == nil
             : container.permissions.accessibilityGranted
     }
+
+    /// Home's Script output row: the problem, or the script's file name.
+    var scriptDetail: String {
+        facts.scriptIssue ?? URL(fileURLWithPath: container.settings.outputScriptPath).lastPathComponent
+    }
+
+    /// The selected speech model's files are on disk, or it needs none.
+    var speechInstalled: Bool { facts.speechInstalled }
 
     var microphoneReady: Bool {
         guard container.permissions.microphone == .authorized,
@@ -125,7 +236,7 @@ struct SetupReadiness {
             guard asr.kind.preset != nil else { return String(localized: "Custom endpoint") }
             return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
-        if !LocalModels.isInstalled(asr) { return String(localized: "Model not installed") }
+        if !facts.speechInstalled { return String(localized: "Model not installed") }
         if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
         return container.engineStatus.state(for: asr.engineID).label
     }
@@ -137,7 +248,7 @@ struct SetupReadiness {
         if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return .attention }
         let asr = container.speechConfig
         if !asr.kind.isLocal { return asr.kind.preset == nil || speechKeyPresent ? .ok : .attention }
-        guard LocalModels.isInstalled(asr) else { return .attention }
+        guard facts.speechInstalled else { return .attention }
         switch container.engineStatus.state(for: asr.engineID) {
         case .ready, .notLoaded: return .ok
         case .loading: return .busy
@@ -164,8 +275,8 @@ struct SetupReadiness {
     var refinementTone: StatusDot.Tone {
         let llm = container.settings.llm
         if llm.kind == .none || !container.effectiveProfile.usesLLM { return .inactive }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason == nil ? .ok : .attention }
-        if refinementNeedsKey || (llm.kind.isCLI && llm.cliExecutable == nil) { return .attention }
+        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue == nil ? .ok : .attention }
+        if refinementNeedsKey || facts.cliMissing { return .attention }
         switch container.models.llmStatus.state {
         case .unreachable, .failed: return .attention
         case .loading, .unknown: return .busy
@@ -176,7 +287,7 @@ struct SetupReadiness {
     var refinementDetail: String {
         let llm = container.settings.llm
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "Off · original transcript") }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? String(localized: "On-device · \(container.effectiveProfile.name)") }
+        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue ?? String(localized: "On-device · \(container.effectiveProfile.name)") }
         let state = refinementNeedsKey ? String(localized: "API key needed") : container.models.llmStatus.label
         return "\(state) · \(container.effectiveProfile.name)"
     }

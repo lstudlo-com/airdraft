@@ -6437,6 +6437,16 @@
         }
       }
     },
+    "Opens Trial & License" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開試用與授權"
+          }
+        }
+      }
+    },
     "Optional: summarize, translate, or set another task." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9305,6 +9315,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開始錄音"
+          }
+        }
+      }
+    },
+    "Start Trial" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始試用"
           }
         }
       }

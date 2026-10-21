@@ -168,9 +168,7 @@ struct HomePage: View {
         }
         RowDivider()
         if container.settings.outputDestination == .script {
-            HealthRow(ok: outputReady, title: "Script output",
-                      detail: ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath)
-                        ?? URL(fileURLWithPath: container.settings.outputScriptPath).lastPathComponent) {
+            HealthRow(ok: outputReady, title: "Script output", detail: readiness.scriptDetail) {
                 Button("Configure") { container.navigation.page = .configuration }.buttonStyle(SoftButtonStyle())
             }
         } else {
@@ -204,7 +202,7 @@ struct HomePage: View {
                     Button("Language Settings") { container.navigation.page = .models }
                         .buttonStyle(SoftButtonStyle())
                         .accessibilityIdentifier("home.speech-language-action")
-                } else if container.speechConfig.kind.isLocal, LocalModels.isInstalled(container.speechConfig) {
+                } else if container.speechConfig.kind.isLocal, readiness.speechInstalled {
                     Button("Load Model") { container.models.loadSpeechModel() }
                         .buttonStyle(SoftButtonStyle())
                         .disabled(container.pipeline.isBusy || container.engineStatus.state(for: container.speechConfig.engineID) == .loading)

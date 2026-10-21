@@ -424,10 +424,14 @@ struct SidebarView: View {
 
     /// Home's readiness decides this line, so the sidebar never says Ready while
     /// Home lists setup steps, a license or waiting recordings that need attention.
+    /// When the license is the only issue it names that step and opens the sheet.
     @ViewBuilder private var footerLabel: some View {
         let readiness = container.readiness
         if readiness.issueCount > 0 {
-            Button { container.navigation.page = .home } label: {
+            let opensLicense = readiness.footerOpensLicense
+            Button {
+                if opensLicense { container.showLicense() } else { container.navigation.page = .home }
+            } label: {
                 HStack(spacing: 6) {
                     StatusDot(.attention).accessibilityHidden(true)
                     Text(readiness.footerTitle).lineLimit(1)
@@ -439,7 +443,7 @@ struct SidebarView: View {
             .foregroundStyle(.secondary)
             .help(readiness.summary)
             .accessibilityLabel(readiness.summary)
-            .accessibilityHint("Opens Home")
+            .accessibilityHint(opensLicense ? Text("Opens Trial & License") : Text("Opens Home"))
             .accessibilityIdentifier("sidebar.finish-setup")
         } else {
             Text(footerLine)

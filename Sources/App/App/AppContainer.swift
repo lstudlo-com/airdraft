@@ -56,6 +56,8 @@ final class AppContainer {
     let microphones = MicrophoneStore()
     let downloads = ModelDownloadStore()
     let credentialPresence = SetupCredentialPresence()
+    /// File and system facts behind Home and sidebar readiness, refreshed off the main actor.
+    let setupFacts = SetupFacts()
     @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
         self?.pipeline.isBusy ?? false
     }
@@ -220,6 +222,7 @@ final class AppContainer {
         if cleanup.blocksWork || dataLease == nil { navigation.page = .configuration; showMainWindow() }
         observeAudioRetention()
         observeLivePreview()
+        setupFacts.startRefreshing(self)
         startupCompleted = true
     }
 
