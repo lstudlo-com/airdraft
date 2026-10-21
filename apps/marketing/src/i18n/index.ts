@@ -41,6 +41,8 @@ const zhPrefix = "/zh-tw";
 export const translatedPaths = [
   "/",
   "/pricing/",
+  "/guides/mixed-chinese-english-dictation/",
+  "/guides/dictate-to-claude-code-and-terminals/",
   "/guides/private-meeting-transcription/",
   "/guides/compare-mac-dictation-apps/",
 ] as const;

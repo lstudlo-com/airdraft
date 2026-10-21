@@ -352,13 +352,25 @@ const sources = [
       <ul>
         <li>語音辨識和潤稿各自選本機或雲端，例如本機辨識加上雲端潤稿。</li>
         <li>
-          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。第一次設定時，中文、英文、日文或韓文系統會建議下載小而快的
-          SenseVoice；中英混說時，模型頁把 Qwen3-ASR 1.7B
-          標為「最適合中英夾雜」，但下載較大。
+          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。0.10.2
+          的首次設定在中文、英文、日文或韓文系統上建議小而快的
+          SenseVoice，「模型」頁把較大的 Qwen3-ASR 1.7B
+          描述為「最適合中英夾雜」；下一個版本起，中文系統的首次設定改推薦
+          Qwen3-ASR 1.7B，SenseVoice 是較小、較快的選擇。見
+          <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+            中英混說的模型測量
+          </a>
+          。
         </li>
         <li>
           可以用你已付費的 Claude 或 ChatGPT 方案，透過 Claude Code 或 Codex
-          潤稿。
+          潤稿，也能直接對終端機裡的程式助理聽寫。見
+          <a
+            href={href("/guides/dictate-to-claude-code-and-terminals/", locale)}
+          >
+            對 Claude Code 與終端機聽寫
+          </a>
+          。
         </li>
         <li>
           <a href={href("/guides/private-meeting-transcription/", locale)}>
@@ -379,7 +391,10 @@ const sources = [
           macOS 的語言設定。
         </li>
         <li>選擇很多，第一次設定要挑模型。</li>
-        <li>尚未公布準確度或速度的測量。</li>
+        <li>
+          只公布了一次自己對本機模型的中英混說測量（一台
+          Mac、五位說話者），沒有和其他 App 比較過準確度或速度。
+        </li>
         <li>會議錄音沒有回音消除。</li>
       </ul>
       <div class="guide-actions">
@@ -496,14 +511,27 @@ const sources = [
         </li>
         <li>
           Local Chinese models (Qwen3-ASR, SenseVoice, FireRedASR2), with
-          Traditional or Simplified output. First-run setup suggests SenseVoice,
-          a small, fast download, on a Mac set to Chinese, English, Japanese or
-          Korean. For mixed Chinese and English, the Models page marks the
-          larger Qwen3-ASR 1.7B as the best fit.
+          Traditional or Simplified output. In 0.10.2, first-run setup suggests
+          SenseVoice, a small, fast download, on a Mac set to Chinese, English,
+          Japanese or Korean, and the Models page describes the larger Qwen3-ASR
+          1.7B as best for mixed Chinese and English. From the next version,
+          first-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese,
+          with SenseVoice as the smaller, faster option. See the{" "}
+          <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+            mixed-language model measurements
+          </a>
+          .
         </li>
         <li>
           Claude Code or Codex can refine text on the Claude or ChatGPT plan you
-          already pay for.
+          already pay for, and you can dictate prompts straight into coding
+          agents in a terminal. See{" "}
+          <a
+            href={href("/guides/dictate-to-claude-code-and-terminals/", locale)}
+          >
+            dictating into Claude Code and terminals
+          </a>
+          .
         </li>
         <li>
           <a href={href("/guides/private-meeting-transcription/", locale)}>
@@ -526,7 +554,11 @@ const sources = [
           English; the next version adds a Traditional Chinese interface.
         </li>
         <li>There are many choices, and first setup means picking models.</li>
-        <li>No accuracy or speed measurements have been published.</li>
+        <li>
+          The only published measurement is Airdraft’s own test of its local
+          models on mixed Chinese and English (one Mac, five speakers); there is
+          no accuracy or speed comparison with other apps.
+        </li>
         <li>Meeting recording has no echo cancellation.</li>
       </ul>
       <div class="guide-actions">

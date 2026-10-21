@@ -725,9 +725,12 @@ project.
 ### Product guides and sharing
 
 The homepage links to the guides after the interface section, using `GuideLinks`:
-offline setup, local/cloud data flow, source build versus official app,
-private meeting transcription, and the app comparison. The Traditional Chinese
-homepage lists its two translated guides and links the English hub. The
+mixed Chinese and English, coding agents and terminals, offline setup,
+local/cloud data flow, source build versus official app, private meeting
+transcription, and the app comparison. The Traditional Chinese homepage lists
+its four translated guides and links the English hub. The mixed-language
+results table reuses `.guide-table-wide`, so on narrow regions each model
+becomes a block of labelled rows. The
 comparison table (`.guide-table-wide`) keeps seven columns at `880px` minimum
 (`760px` on phones) inside its focusable scroll region, then lists sources with
 `time` check dates. The

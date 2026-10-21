@@ -85,12 +85,18 @@ const guide = guides.find(
     <h2 id="languages">Which model should I choose?</h2>
     <p>
       Language support belongs to the model. Parakeet TDT v3 supports English
-      and 24 other European languages, but not Mandarin or Cantonese. First-run
-      setup suggests SenseVoice, a small, fast download, on a Mac set to
-      Chinese, English, Japanese or Korean, and Whisper Large v3 Turbo
-      otherwise. For mixed Chinese and English, the Models page marks the larger
-      Qwen3-ASR 1.7B as the best fit. Choose your output script under Models →
-      Speech options → Chinese script.
+      and 24 other European languages, but not Mandarin or Cantonese. In 0.10.2,
+      first-run setup suggests SenseVoice, a small, fast download, on a Mac set
+      to Chinese, English, Japanese or Korean, and Whisper Large v3 Turbo
+      otherwise; the Models page describes the larger Qwen3-ASR 1.7B as best for
+      mixed Chinese and English. From the next version, a Mac set to Chinese
+      gets Qwen3-ASR 1.7B as the first-run recommendation, with SenseVoice as
+      the smaller, faster option. Airdraft’s{" "}
+      <a href="/guides/mixed-chinese-english-dictation/">
+        mixed-language measurements
+      </a>{" "}
+      show the trade-offs. Choose your output script under Models → Speech
+      options → Chinese script.
     </p>
     <p>
       Local processing uses your Mac's memory and compute. Model loading and
