@@ -74,11 +74,31 @@ public enum LocalModels {
         whisperKitRoot.appendingPathComponent(WhisperModelVariant(rawValue: variant)?.directoryName ?? "openai_whisper-\(variant)", isDirectory: true)
     }
 
-    /// True when the Core ML bundles for this variant are present.
+    /// True when the Core ML bundles for this variant are present, including every
+    /// file of its pinned revision.
     public static func hasWhisper(_ variant: String) -> Bool {
-        let folder = whisperFolder(for: variant)
+        hasWhisper(variant, at: whisperFolder(for: variant))
+    }
+
+    static func hasWhisper(_ variant: String, at folder: URL) -> Bool {
         let required = ["AudioEncoder.mlmodelc", "TextDecoder.mlmodelc", "MelSpectrogram.mlmodelc", "config.json"]
-        return required.allSatisfy { FileManager.default.fileExists(atPath: folder.appendingPathComponent($0).path) }
+        guard required.allSatisfy({ FileManager.default.fileExists(atPath: folder.appendingPathComponent($0).path) }) else { return false }
+        let artifact = WhisperModelVariant(rawValue: variant).flatMap(PinnedHubModelCatalog.whisper)
+        return artifact.map { hasPinnedFiles($0, at: folder) } ?? true
+    }
+
+    /// AD-074: pinned files download one at a time in manifest order, so an
+    /// interrupted download can leave the loader's key files in place while later
+    /// ones (generation_config.json, tokenizer_config.json, weight shards) are
+    /// missing. Each transfer moves a verified file into place, so a missing file,
+    /// not a truncated one, is what an interruption leaves; require every manifest
+    /// path as a nonempty regular file. Sizes are not compared, so installs from an
+    /// earlier revision stay usable; downloading again replaces mismatched files.
+    static func hasPinnedFiles(_ artifact: PinnedHubArtifact, at folder: URL) -> Bool {
+        artifact.files.allSatisfy { file in
+            let values = try? folder.appendingPathComponent(file.path).resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+            return values?.isRegularFile == true && (values?.fileSize ?? 0) > 0
+        }
     }
 
     public static var hasWhisperTokenizer: Bool {
@@ -130,9 +150,13 @@ public enum LocalModels {
         qwen3Root.appendingPathComponent(modelId, isDirectory: true)
     }
 
-    /// Weights plus tokenizer present.
+    /// Weights plus tokenizer present, and every file of a pinned choice.
     public static func hasQwen3(_ modelId: String) -> Bool {
-        hasQwen3(at: qwen3Folder(for: modelId))
+        hasQwen3(modelId, at: qwen3Folder(for: modelId))
+    }
+
+    static func hasQwen3(_ modelId: String, at folder: URL) -> Bool {
+        hasQwen3(at: folder) && (PinnedHubModelCatalog.qwen3(modelId).map { hasPinnedFiles($0, at: folder) } ?? true)
     }
 
     static func hasQwen3(at folder: URL) -> Bool {

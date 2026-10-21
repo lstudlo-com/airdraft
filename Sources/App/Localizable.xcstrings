@@ -5634,12 +5634,12 @@
         }
       }
     },
-    "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory." : {
+    "Most accurate when you mix Chinese and English. Uses about 2.4 GB of memory." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "中英夾雜時最準確。使用約 2.5 GB 記憶體。"
+            "value" : "中英夾雜時最準確。使用約 2.4 GB 記憶體。"
           }
         }
       }

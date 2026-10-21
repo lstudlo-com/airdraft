@@ -12,6 +12,10 @@ GGUF models load from `LocalModels.root/gguf/<catalogue-id>/`. Installation is a
 explicit `ModelDownloader` action. The transaction keeps an incomplete marker
 until every byte and digest is verified. A same-size corrupt cache is replaced
 only after its replacement is verified. Native inference never accesses the Hub.
+Pinned Qwen3-ASR and WhisperKit choices download file by file in manifest order;
+besides the same incomplete marker, they count as installed only when every
+pinned file is a nonempty regular file, so a download interrupted after the
+loader's key files (for example before `generation_config.json`) is not installed.
 The runtime is the official, checksum-pinned macOS XCFramework in
 `Packages/TranscribeCppKit`; ARM uses its embedded Metal backend and Intel CPU.
 No remote Swift package mirror or build-time native source compilation is needed.
