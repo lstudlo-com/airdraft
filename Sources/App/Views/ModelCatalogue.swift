@@ -53,15 +53,18 @@ struct ModelEntry: Identifiable {
 }
 
 enum ModelCatalogue {
+    /// Pinned bytes, so the label matches what the download actually fetches.
+    private static func qwenSize(_ model: String) -> String { PinnedHubModelCatalog.qwen3(model)?.sizeLabel ?? "" }
+
     static let entries: [ModelEntry] = [
         ModelEntry(
             id: "qwen3:1.7b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "2.3 GB"),
+            tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-1.7B-MLX-5bit")),
             note: String(localized: "Best for mixed Chinese and English.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
             id: "qwen3:0.6b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: "680 MB"),
+            tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-0.6B-MLX-4bit")),
             note: String(localized: "Low memory, very fast.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(

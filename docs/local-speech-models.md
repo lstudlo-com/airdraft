@@ -49,3 +49,31 @@ Distil-Whisper variants are English-only, including Auto (resolved to English).
 Their `distil-whisper_` folders differ from OpenAI's; all share the v3 tokenizer
 and native word timing. Orukeet uses its fixed upstream INT8 archive through the
 existing sherpa-onnx transducer, retaining the same European-language limitation.
+
+## Pinned Qwen3-ASR and Whisper downloads
+
+`PinnedHubModelCatalog` reads `local-pinned-models.json`: Qwen3-ASR 1.7B MLX 5-bit
+and 0.6B MLX 4-bit, all seven WhisperKit variants, and the shared
+`openai/whisper-large-v3` tokenizer files. Each entry has an immutable revision and
+every file's byte size and SHA-256. `ModelDownloader` installs them file by file
+through `ModelDownloadTransfer`, which checks size and digest before a file enters
+the model folder. Qwen no longer uses speech-swift's `fromPretrained` downloader,
+which fetched from Hub `main` and loaded the model just to download it. Loading
+still calls `fromPretrained(offlineMode: true)`. An ID without a pin is refused.
+
+Existing installs remain valid. `LocalModels` still judges completeness by required
+files, without hashing gigabytes at every check. A repeated download keeps each
+file that already matches its size and digest. A file with different bytes is
+replaced only after verified bytes arrive. Download size labels come from the
+manifest bytes (decimal units).
+
+`scripts/pin-hub-models.py` regenerates the manifest. LFS digests come from the
+Hub's LFS pointers. Small Git files are downloaded at the pinned revision, checked
+against their Git blob IDs and then hashed. `--installed <Models folder>` compares
+an existing installation read-only. The 2026-10-22 pins equal Hub `main` on that
+date and match the installed copies measured in `eval/mixed-asr/`: Qwen 1.7B
+`1645ca9`, Qwen 0.6B `bc441bd`, WhisperKit `0f63a78` (Turbo and tokenizer
+compared byte for byte), tokenizer `06f233f`. Other Whisper variants were pinned
+from Hub metadata and have not been downloaded. Moving a pin is deliberate:
+rerun the script, review the diff and repeat the Qwen3/Whisper self-tests.
+Cohere Transcribe and SpeakerKit still download from Hub `main`.
