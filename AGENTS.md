@@ -405,6 +405,10 @@ verification status belong in the vault (see below).
   History's selectable six-line transcript with Show More and full-text Copy.
   Clear selection when the period changes or the record leaves the overview.
   Empty-state strokes are decorative. The four headline values use 23-point type.
+  Before the first saved dictation, the hero replaces its zero metrics with a
+  same-height first-dictation headline; the metric row stays hidden until history
+  loads. Home's readiness card, hero and the sidebar footer share `SetupReadiness`;
+  the footer shows Finish Setup (opening Home) whenever Home reports setup issues.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. Buttons and menu items
@@ -579,10 +583,16 @@ verification status belong in the vault (see below).
   configuration. CLI warm sessions belong to one recording generation; discard
   them on cancellation, skipped refinement, ASR failure and short/empty capture.
   Expose separate model/prompt-prefix preparation, remaining wait, request, postprocess,
-  delivery and history durations. Stop-to-delivery ends at confirmed delivery,
+  delivery and history durations. Stop-to-delivery ends at confirmed delivery or a sent caretless paste,
   excluding clipboard restoration and history; file/review fixtures leave it nil.
   Idle speech unload defaults to 30 minutes. Models > Memory keeps user-selectable
-  5, 10, 30 minutes and Never; preserve explicitly saved choices.
+  5, 10, 30 minutes and Never; preserve explicitly saved choices. An active
+  dictation pins its local speech engine (`EngineFactory.pinForSession`) from
+  recording start until processing ends, bounded by the model-load timeout, the
+  effective recording limit and 300 processing seconds; releasing it restarts the
+  idle countdown. Pins block only idle unloading, never explicit switch, reset or
+  quit unloads. Warm CLI sessions owned by a recording live for the 600-second cap
+  plus 300 seconds; unowned sessions expire after 180 seconds.
   Downloads go through `ModelDownloader` (Models page). The Models table is data in
   `ModelCatalogue`; installed, loaded, download and delete all derive from each entry's `select`.
   Model downloads report received bytes during each file, and Whisper includes tokenizer
@@ -657,9 +667,17 @@ verification status belong in the vault (see below).
   the original field before reporting success or restoring the old clipboard;
   compare the full value or the inserted UTF-16 range with the resulting caret.
   These reads stay local, independent of optional refinement context. When a
-  receiver is slow, ignores paste or exposes no readable text/caret, keep the
-  transcript on the clipboard and show a recovery notice instead of silently
-  dismissing the HUD. Record the notice with undelivered History status. Never
+  receiver with a caret is slow, ignores paste or exposes no readable text, keep
+  the transcript on the clipboard and show a recovery notice instead of silently
+  dismissing the HUD. Record the notice with undelivered History status. A
+  validated caretless editor cannot confirm its one paste: report it as sent
+  unverified, never as failed. The HUD finishes as after delivery with no notice
+  or error; History stores `inserted` false with cursor `outputSucceeded` true
+  (`deliveryStatus` `.sentUnverified`, shown as Pasted, unconfirmed), and the
+  displaced clipboard returns after `unverifiedRestoreDelay` (2 s) unless newer
+  content replaced it. Read-back accepts only editor-normalized line endings,
+  curly quotes and non-breaking spaces. Statistics count every dictation
+  regardless of delivery status. Never
   repeat a posted paste. Once posted, confirmation and the restoration delay
   survive cancellation; preserve newer clipboard ownership and report copy
   failures accurately. Confirmed delivery releases the pipeline immediately: the
@@ -790,7 +808,15 @@ dictation will use and update Accessibility by themselves. Practice temporarily
 disables refinement and uses cursor insertion. It resolves the explicitly selected
 app-default speech config through the shared AppSettings resolver, temporarily
 ignoring saved profile bindings without mutating them. Restore returning users'
-refinement and output settings on exit and after restart. Never execute a saved
+refinement and output settings on exit and after restart. Ready offers refinement
+after practice: when the system reports Apple Intelligence available, one click
+selects it (Turn Off reverts it); otherwise explain the system reason plainly and
+keep Open Models. Never ask for a key, download or prompt there, and never replace
+a returning user's other provider. `AppSettings.chooseRefinement` updates the
+practice restore snapshot while practice runs. Availability uses
+`AppleIntelligenceRefiner.availability`; renders and fixtures inject it with
+`AIRDRAFT_RENDER_APPLE_INTELLIGENCE` (`onboarding-done-ai-*` render states).
+Onboarding key caps size to their printed key name and never truncate it. Never execute a saved
 script during practice. Renders and fixtures never load models. Use isolated
 preview containers for the `onboarding-*` Debug renders; `native-ui` walks the
 production flow with injected permissions and real key events.
@@ -801,7 +827,9 @@ Self-built editions are fully unlocked and do not install paid official Sparkle
 updates automatically. Official builds use a full-feature trial followed by a
 Polar license-key activation. Start the trial only on explicit user action,
 not during onboarding or model downloads. Gate new work through the pipeline's
-access check; never interrupt an active recording or lock history and recovery.
+access check; access checks join the launch receipt read (or start the same
+passive read) and wait at most five seconds. `.loading` reports
+`LicenseError.loading` and never presents the License sheet; never interrupt an active recording or lock history and recovery.
 Keep license receipt writes explicitly non-interactive (`allowInteraction: false`).
 Preserve activation IDs across key rotation; a rejected old key does not prove a
 remote device was removed. Show the same anonymous device label in the app and
@@ -1163,7 +1191,15 @@ actionable reason, even when the HUD is hidden. Refinement Off and Verbatim do n
 require refinement credentials; unexpected refinement errors still preserve raw text.
 Recording callbacks, release timers and asynchronous results belong to their session.
 Keep failed speech audio in memory for explicit retry or discard, and warn before
-quitting with recoverable audio or unsaved changes. Saving failures must stay visible.
+quitting with recoverable audio or unsaved changes. A kept recording never blocks
+new dictation: keep at most `DictationPipeline.maximumPendingRecordings` (3)
+dictation recoveries or `maximumPendingRecordingSeconds` (900) of audio, then
+refuse a new recording with a message and open Home instead of dropping audio.
+Each entry keeps its own failure text, insertion target and delivery policy; Home,
+the menu and retry act on the newest entry by ID, and a failed retry keeps the
+same entry as the newest. Cancellation never discards kept audio; only Discard
+Recording or audio cleanup does. History's failed review is a single separate
+entry cleared when its sheet closes. Saving failures must stay visible.
 Engine loading, inference and unloading share the factory lease. Downloads belong
 to `ModelDownloadStore`, survive page navigation, and cannot select incomplete files.
 A late download must not replace a newer provider choice. Release builds exclude
