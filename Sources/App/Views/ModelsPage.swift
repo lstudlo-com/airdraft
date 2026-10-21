@@ -110,7 +110,7 @@ struct ModelsPage: View {
         PageScaffold(.models) {
             if container.profiles.activeProfile.speechModel != nil {
                 SettingsCard {
-                    SettingRow(title: "\(container.profiles.activeProfile.name) uses its own speech model",
+                    SettingRow(title: "\(container.profiles.activeProfile.displayName) uses its own speech model",
                                subtitle: "Selections here change the app default.") {
                         Button("Profiles") { container.navigation.page = .profiles }
                             .buttonStyle(SoftButtonStyle())

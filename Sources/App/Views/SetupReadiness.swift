@@ -287,9 +287,9 @@ struct SetupReadiness {
     var refinementDetail: String {
         let llm = container.settings.llm
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "Off · original transcript") }
-        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue ?? String(localized: "On-device · \(container.effectiveProfile.name)") }
+        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue ?? String(localized: "On-device · \(container.effectiveProfile.displayName)") }
         let state = refinementNeedsKey ? String(localized: "API key needed") : container.models.llmStatus.label
-        return "\(state) · \(container.effectiveProfile.name)"
+        return "\(state) · \(container.effectiveProfile.displayName)"
     }
 }
 
