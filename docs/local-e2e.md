@@ -26,14 +26,17 @@ The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
 Before accepting a successful Xcode exit, it checks the actual xcresult with
-`verify-insertion-regressions.py`. All 62 mandatory insertion cases must be present
+`verify-insertion-regressions.py`. All 70 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline
 fixtures. Ignored/partial/unobservable pastes into a field with a caret must
 retain recovery text without reporting delivery; delayed reads, cancellation,
 newer clipboard ownership and editor-normalized line endings, quotes and
-non-breaking spaces are covered too. A paste into a validated caretless editor
-(Warp, Zed) is sent unverified: no error, the HUD finishes, History records the
-separate status and the user's clipboard returns unless something newer replaced it.
+non-breaking spaces are covered too. A paste into a validated editor that draws
+its own text (Warp, Zed and the other allowlisted terminals) is sent unverified:
+no error, the HUD finishes, History records the separate status and the user's
+clipboard returns unless something newer replaced it. Other caretless apps
+(Finder, an Electron app without a caret) keep the recovery outcome; retries of
+caretless recordings copy only; Try It delivers through its practice channel.
 Missing, skipped and failed cases stop validation. The JSON evidence is
 saved as `insertion-regressions.json`; release preparation runs the same gate for
 both test scopes before building the release artifact.
@@ -123,7 +126,8 @@ provider requests are used. Run it with a fresh data directory.
 `--render-window native-ui <output>` exercises production views and callbacks with
 fake microphone monitors: busy-state fencing, model/language readiness, practice
 restoration, the six-step onboarding walk (real key events lighting the
-shortcut caps, typed text rejected, delivery completing setup, Ready and replay),
+shortcut caps, typed text rejected, a practice dictation through the real pipeline
+with fake capture and speech completing setup, Ready and replay),
 notice actions and the failed-cleanup repair disclosure. Credential
 controls remain disabled and no credential operations run. Its absolute
 `AIRDRAFT_E2E_MODEL_ROOT` must be a fresh child of the supplied `--e2e-local` directory.

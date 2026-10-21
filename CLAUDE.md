@@ -640,7 +640,12 @@ verification status belong in the vault (see below).
   require the same focused field and selection before inserting, then post exactly
   one paste. Editors that draw their own text (Zed, Warp, GPU terminals) never expose
   a caret: verify the same process, its focused window and no foreign system focus
-  instead; a missing caret alone must not block paste. Never probe editor
+  instead; a missing caret alone must not block paste. Only the bundle prefixes in
+  `TextInserter.selfDrawingEditorBundlePrefixes` (Warp, Zed, Ghostty, kitty,
+  Alacritty, WezTerm; keep the list there alone) count as such editors. Every
+  other caretless target (Finder, Preview, System Settings, a page without a
+  focused field, an Electron app that never exposed its caret) still gets its one
+  paste but keeps the transcript on the clipboard with the recovery notice. Never probe editor
   compatibility with an AX text write; both saved insertion methods use paste.
   Read application and system-wide focus with matching process ownership. When
   Electron has not exposed its editor, request `AXManualAccessibility` and await
@@ -670,9 +675,9 @@ verification status belong in the vault (see below).
   receiver with a caret is slow, ignores paste or exposes no readable text, keep
   the transcript on the clipboard and show a recovery notice instead of silently
   dismissing the HUD. Record the notice with undelivered History status. A
-  validated caretless editor cannot confirm its one paste: report it as sent
+  validated self-drawing editor cannot confirm its one paste: report it as sent
   unverified, never as failed. The HUD finishes as after delivery with no notice
-  or error; History stores `inserted` false with cursor `outputSucceeded` true
+  or error (a refinement fallback says the raw text was pasted, not inserted); History stores `inserted` false with cursor `outputSucceeded` true
   (`deliveryStatus` `.sentUnverified`, shown as Pasted, unconfirmed), and the
   displaced clipboard returns after `unverifiedRestoreDelay` (2 s) unless newer
   content replaced it. Read-back accepts only editor-normalized line endings,
@@ -684,8 +689,9 @@ verification status belong in the vault (see below).
   inserter owns the delayed clipboard restore, and a newer paste takes over the
   clipboard the old one displaced, so an earlier restore never overwrites a newer
   dictation. History saving and the outcome run in an ordered delivery tail
-  (`isFinishingDelivery`); quit waits for it (bounded) and restores the clipboard
-  at once, and data cleanup and meeting start wait for it too. A shortcut rejected
+  (`isFinishingDelivery`); quit waits for it (bounded) and restores a confirmed
+  paste's clipboard at once, but waits out an unverified paste's remaining 2 s
+  delay so a busy receiver never reads the old clipboard; data cleanup and meeting start wait for it too. A shortcut rejected
   by media, meeting or maintenance work shows its reason in the HUD; a copy blocked
   by another copy's data lease names that cause. Every quit request waits for
   pending delivery again; no flag may persist across a cancelled quit. From 0.4.2, release preparation checks actual TextEdit
@@ -817,9 +823,17 @@ practice restore snapshot while practice runs. Availability uses
 `AppleIntelligenceRefiner.availability`; renders and fixtures inject it with
 `AIRDRAFT_RENDER_APPLE_INTELLIGENCE` (`onboarding-done-ai-*` render states).
 Onboarding key caps size to their printed key name and never truncate it. Never execute a saved
-script during practice. Renders and fixtures never load models. Use isolated
-preview containers for the `onboarding-*` Debug renders; `native-ui` walks the
-production flow with injected permissions and real key events.
+script during practice: Try It hides Retry, and a retry while practice runs only
+copies. Airdraft never pastes into itself, so Try It's editor receives practice
+dictations through the pipeline's explicit `PracticeDeliveryTarget` channel
+(`PracticeEditorChannel`), chosen at recording start only while Airdraft is active
+and that editor has focus; only that delivery or a real paste elsewhere completes
+the step. Outside practice a self-target stays copy-only. Renders and fixtures
+never load models. Use isolated preview containers for the `onboarding-*` Debug
+renders; `native-ui` walks the production flow with injected permissions and real
+key events, and completes Try It through the real pipeline with fake capture and
+speech (`AppContainer.DictationBoundary`). It never proves a real microphone or
+shortcut.
 
 ## Official-build licensing
 
@@ -1197,7 +1211,12 @@ dictation recoveries or `maximumPendingRecordingSeconds` (900) of audio, then
 refuse a new recording with a message and open Home instead of dropping audio.
 Each entry keeps its own failure text, insertion target and delivery policy; Home,
 the menu and retry act on the newest entry by ID, and a failed retry keeps the
-same entry as the newest. Cancellation never discards kept audio; only Discard
+same entry as the newest. The bound is hard: start a recording only while kept
+audio plus its effective recording limit fits 900 seconds. A retry for a
+caretless target copies with a notice instead of re-activating and pasting into
+whatever that window shows now; caret targets are still verified by read-back.
+A retry resolves its entry only once the result is delivered and held for History
+(or set as the review outcome), so cancelling during refinement keeps the audio. Cancellation never discards kept audio; only Discard
 Recording or audio cleanup does. History's failed review is a single separate
 entry cleared when its sheet closes. Saving failures must stay visible.
 Engine loading, inference and unloading share the factory lease. Downloads belong

@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import XCTest
 @testable import AirdraftCore
 
@@ -658,6 +659,73 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
     }
 
+    /// AD-063 review: the kept-audio bound is hard. A new recording starts only
+    /// while the kept audio plus its own effective limit still fits 900 seconds.
+    func testKeptAudioBoundLeavesRoomForAFullRecording() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Fits")]))
+        defer { fixture.cleanUp() }
+        fixture.recorder.sampleCount = 400 * 16_000
+        try await recordOnce(fixture)
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.first?.seconds, 400)
+        fixture.recorder.sampleCount = 16_000
+        fixture.settings.maxRecordingSeconds = 600
+        XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording, "400 s kept + 600 s limit exceeds the bound")
+        let starts = fixture.recorder.startCount
+        fixture.pipeline.startRecording()
+        XCTAssertEqual(fixture.recorder.startCount, starts, "No capture starts past the bound")
+        guard case .failed = fixture.pipeline.state else { return XCTFail("The refusal must be visible") }
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1, "No kept audio is dropped")
+        fixture.settings.maxRecordingSeconds = 500
+        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording, "400 s kept + 500 s limit fits exactly")
+        try await recordOnce(fixture)
+        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Fits"])
+    }
+
+    /// AD-063 review: a retry resolves its kept recording only once the result
+    /// is delivered and held for History. Cancelling during refinement keeps it.
+    func testCancellingRetryDuringRefinementKeepsTheRecording() async throws {
+        let refiner = GatedRefiner()
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered three words"), .text("Recovered three words")]),
+                                  refiner: refiner)
+        defer { fixture.cleanUp() }
+        fixture.settings.llm = LLMConfig(kind: .openAICompatible)
+        try await recordOnce(fixture)
+        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+        fixture.pipeline.retryRecording(kept.id)
+        try await waitUntil("Retry reaches refinement") { fixture.pipeline.state == .refining && refiner.started }
+        fixture.pipeline.cancel()
+        try await waitUntil("Cancelled retry settles") { !fixture.pipeline.isBusy }
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "Audio survives a cancelled retry after ASR")
+        XCTAssertTrue(fixture.probe.scripts.isEmpty)
+        XCTAssertEqual(try fixture.history.count(), 0)
+
+        refiner.release = true
+        fixture.pipeline.retryRecording(kept.id)
+        try await waitUntil("Second retry delivers") { fixture.probe.scripts.count == 1 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "A delivered retry resolves the recording")
+        XCTAssertEqual(try fixture.history.count(), 1)
+    }
+
+    /// Practice never runs a saved script: a retry while it runs copies only,
+    /// even when the kept recording's own destination was a script.
+    func testRetryDuringPracticeNeverRunsTheSavedScript() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
+        defer { fixture.cleanUp() }
+        try await recordOnce(fixture)
+        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+        fixture.settings.beginOnboardingPractice()
+        defer { fixture.settings.endOnboardingPractice() }
+        fixture.pipeline.retryRecording(kept.id)
+        try await waitUntil("Practice retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery && (try? fixture.history.count()) == 1 }
+        XCTAssertTrue(fixture.probe.scripts.isEmpty, "The kept recording's script never runs during practice")
+        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty, "Nothing is pasted")
+        XCTAssertEqual(fixture.clipboard.string(forType: .string), "Recovered words")
+        XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+        let record = try XCTUnwrap(fixture.history.recent().first)
+        XCTAssertEqual(record.outputSucceeded, false)
+        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+    }
+
     func testReviewRecoveryIsSeparateFromDictationRecoveries() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
         defer { fixture.cleanUp() }
@@ -748,8 +816,11 @@ final class PipelineAutomationTests: XCTestCase {
         let pipeline: DictationPipeline
         let probe: AutomationDeliveryProbe
         let factory: EngineFactory
+        /// Disposable: copy-only delivery never touches the user's clipboard.
+        let clipboard = NSPasteboard.withUniqueName()
 
         init(speech: AutomationSpeech = AutomationSpeech([.text("Final words")]), engine: (any Transcriber)? = nil,
+             refiner: (any Refiner)? = nil,
              clock: TestClock? = nil, scriptFails: Bool = false,
              startupGate: AutomationStartupGate? = nil, deliveryGate: AutomationStartupGate? = nil,
              permissionGate: AutomationStartupGate? = nil, microphoneGranted: Bool = true, executeScript: Bool = false,
@@ -779,13 +850,15 @@ final class PipelineAutomationTests: XCTestCase {
             let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Automation tests must not read credentials")
                 return nil
-            }, transcriberBuilder: { _ in transcriber }, now: { clock?.now ?? Date() })
+            }, transcriberBuilder: { _ in transcriber }, refinerBuilder: refiner.map { refiner in { _ in refiner } },
+               now: { clock?.now ?? Date() })
             self.factory = factory
             let profiles = ProfileStore(directory: directory)
             if verbatim { profiles.setActive(RefinementProfile.verbatimID) }
             self.profiles = profiles
             pipeline = DictationPipeline(settings: settings, dictionary: dictionary,
                 profiles: profiles, history: history, factory: factory, recorder: recorder,
+                inserter: TextInserter(pasteboard: clipboard),
                 insertText: { text, _, _ in
                     probe.insert(text)
                     return InsertionResult(method: .accessibility, notice: nil)
@@ -810,6 +883,7 @@ final class PipelineAutomationTests: XCTestCase {
         func cleanUp() {
             pipeline.cancel()
             pipeline.onOutputDelivered = nil
+            clipboard.releaseGlobally()
             do {
                 try history.close()
                 try FileManager.default.removeItem(at: directory)
@@ -851,6 +925,7 @@ private final class AutomationTestRecorder: AudioRecording, @unchecked Sendable 
     var startCount = 0
     var stopCount = 0
     var failOnStart = false
+    var sampleCount = 16_000
     var levelHandler: (@Sendable (Float) -> Void)?
     var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
     func start(microphone: MicrophonePreference) throws {
@@ -858,8 +933,29 @@ private final class AutomationTestRecorder: AudioRecording, @unchecked Sendable 
         if failOnStart { throw AudioRecorderError.microphoneUnavailable("Disconnected test input") }
         isRecording = true
     }
-    func stop() -> [Float] { stopCount += 1; isRecording = false; return [Float](repeating: 0.125, count: 16_000) }
+    func stop() -> [Float] { stopCount += 1; isRecording = false; return [Float](repeating: 0.125, count: sampleCount) }
     func cancel() { isRecording = false }
+}
+
+/// Holds refinement until released; cancellation ends the wait.
+private final class GatedRefiner: Refiner, @unchecked Sendable {
+    let id = "automation-gated-refiner"
+    private let lock = NSLock()
+    private var _started = false
+    private var _release = false
+    var started: Bool { lock.withLock { _started } }
+    var release: Bool {
+        get { lock.withLock { _release } }
+        set { lock.withLock { _release = newValue } }
+    }
+    func refine(_ request: RefineRequest) async throws -> RefineResult {
+        lock.withLock { _started = true }
+        while !release {
+            try Task.checkCancellation()
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        return RefineResult(text: request.transcript, engine: id, latencyMs: 0, promptVersion: "fixture")
+    }
 }
 
 private actor PinnedSpeech: Transcriber {

@@ -165,6 +165,16 @@
         }
       }
     },
+    "%@; raw text pasted." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已貼上原始文字。"
+          }
+        }
+      }
+    },
     "%@; raw text sent to script." : {
       "localizations" : {
         "zh-Hant" : {
@@ -2975,6 +2985,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置 App"
+          }
+        }
+      }
+    },
+    "Retried text copied. Paste it where you want it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷貝重試的文字；請貼到你想要的位置。"
           }
         }
       }
