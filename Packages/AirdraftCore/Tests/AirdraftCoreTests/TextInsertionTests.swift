@@ -205,6 +205,91 @@ final class TextInsertionTests: XCTestCase {
                        "The user's clipboard returns, not the earlier transcript")
     }
 
+    /// P3: an unverified paste cannot prove its receiver read the clipboard.
+    /// A slow terminal that reads it late must still get that dictation, so the
+    /// next paste waits out the receiver window before replacing the clipboard.
+    func testNextPasteWaitsOutAnUnverifiedReceiverWindow() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("User clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.restoreDelay = 0
+        inserter.unverifiedRestoreDelay = 0.4
+        let first = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard,
+                                                  postPaste: { true }, unverifiable: true)
+        XCTAssertEqual(first.delivery, .sentUnverified)
+        let firstPosted = ContinuousClock.now
+        // The slow receiver handles its paste event 300 ms later.
+        var lateRead: String?
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300))
+            lateRead = pasteboard.string(forType: .string)
+        }
+        var secondPostedAfter: Duration?
+        let second = await inserter.insertViaPaste("Second dictation", pasteboard: pasteboard, postPaste: {
+            secondPostedAfter = firstPosted.duration(to: .now)
+            return true
+        }, confirmation: { true })
+        XCTAssertTrue(second.didInsert)
+        XCTAssertEqual(lateRead, "First dictation", "The late reader gets its own dictation, not the newer one")
+        XCTAssertGreaterThanOrEqual(try XCTUnwrap(secondPostedAfter), .milliseconds(350),
+                                    "The newer paste waits for the unverified receiver window")
+        XCTAssertLessThan(try XCTUnwrap(secondPostedAfter), .seconds(2), "The wait stays bounded by that window")
+        await inserter.finishClipboardRestoration()
+        XCTAssertEqual(pasteboard.string(forType: .string), "User clipboard", "The user's clipboard still returns")
+    }
+
+    /// A confirmed paste, or an unverified one whose clipboard the user already
+    /// replaced, leaves no receiver to protect: the next paste does not wait.
+    func testNextPasteDoesNotWaitWithoutAnUnverifiedReceiver() async throws {
+        for replacedByUser in [false, true] {
+            let pasteboard = NSPasteboard.withUniqueName()
+            defer { pasteboard.releaseGlobally() }
+            pasteboard.setString("User clipboard", forType: .string)
+            let inserter = TextInserter()
+            inserter.restoreDelay = 5
+            inserter.unverifiedRestoreDelay = 5
+            _ = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard, postPaste: { true },
+                                              confirmation: replacedByUser ? nil : { true }, unverifiable: replacedByUser)
+            if replacedByUser {
+                pasteboard.clearContents()
+                pasteboard.setString("Copied by the user", forType: .string)
+            }
+            let started = ContinuousClock.now
+            let second = await inserter.insertViaPaste("Second dictation", pasteboard: pasteboard,
+                                                       postPaste: { true }, confirmation: { true })
+            XCTAssertTrue(second.didInsert)
+            XCTAssertLessThan(started.duration(to: .now), .milliseconds(500), "replaced=\(replacedByUser)")
+            await inserter.finishClipboardRestoration(immediately: true)
+            XCTAssertEqual(pasteboard.string(forType: .string), replacedByUser ? "Copied by the user" : "User clipboard")
+        }
+    }
+
+    /// Cancellation while waiting posts nothing and leaves the first restore intact.
+    func testCancellationWhileWaitingForUnverifiedReceiverPostsNothing() async throws {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("User clipboard", forType: .string)
+        let inserter = TextInserter()
+        inserter.unverifiedRestoreDelay = 0.4
+        _ = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard, postPaste: { true }, unverifiable: true)
+        var posts = 0
+        let task = Task { @MainActor in
+            await inserter.insertViaPaste("Second dictation", pasteboard: pasteboard, postPaste: {
+                posts += 1
+                return true
+            }, confirmation: { true })
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        task.cancel()
+        let result = await task.value
+        XCTAssertEqual(result.method, .clipboardOnly)
+        XCTAssertEqual(posts, 0)
+        XCTAssertEqual(pasteboard.string(forType: .string), "First dictation")
+        await inserter.finishClipboardRestoration()
+        XCTAssertEqual(pasteboard.string(forType: .string), "User clipboard")
+    }
+
     func testPendingRestoreKeepsAClipboardCopiedBeforeTheNextPaste() async throws {
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }

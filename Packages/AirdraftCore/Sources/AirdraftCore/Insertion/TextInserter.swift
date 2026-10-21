@@ -147,6 +147,8 @@ public final class TextInserter {
         let task: Task<Void, Never>
         /// Nothing confirmed that the receiver read the clipboard yet.
         let waitsForReceiver: Bool
+        /// When an unverified paste's receiver window ends (its restore deadline).
+        let deadline: ContinuousClock.Instant
     }
     private var pendingRestoration: PendingRestoration?
     /// True while a confirmed or unverified paste's text still waits to be
@@ -199,6 +201,11 @@ public final class TextInserter {
                        allowsUnconfirmedPaste: Bool = true,
                        onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         guard !Task.isCancelled, !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
+
+        // A previous unverified paste's receiver may still read the clipboard.
+        // Nothing new is written to it until that window has passed.
+        await waitForUnverifiedReceiver(of: environment.pasteboard)
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
 
         // Dictated while airdraft itself was in front: there is nowhere sensible to type.
         if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
@@ -514,6 +521,10 @@ public final class TextInserter {
                         postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
                         unverifiable: Bool = false,
                         onDelivered: (() -> Void)? = nil) async -> InsertionResult {
+        // A previous unverified paste's receiver may read the clipboard late;
+        // replacing it now could paste this newer text there instead.
+        await waitForUnverifiedReceiver(of: pasteboard)
+        guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         // A previous confirmed paste may still hold the clipboard. Its text is
         // already in its field, so take over the clipboard it displaced instead
         // of snapshotting that transcript; its delayed restore can never clobber
@@ -606,7 +617,24 @@ public final class TextInserter {
             self?.completeRestoration(id)
         }
         pendingRestoration = PendingRestoration(id: id, pasteboard: pasteboard, changeCount: ownedChange,
-                                                items: items, task: task, waitsForReceiver: waitsForReceiver)
+                                                items: items, task: task, waitsForReceiver: waitsForReceiver,
+                                                deadline: deadline)
+    }
+
+    /// Waits out a pending unverified paste's receiver window (at most
+    /// `unverifiedRestoreDelay` from that paste) while its text still owns
+    /// `pasteboard`. Nothing confirmed that receiver read it, so a slow
+    /// terminal could otherwise paste the next dictation in its place. A
+    /// confirmed paste, or a clipboard the user replaced, needs no wait.
+    func waitForUnverifiedReceiver(of pasteboard: NSPasteboard) async {
+        while let pending = pendingRestoration, pending.pasteboard === pasteboard, pending.waitsForReceiver,
+              pasteboard.changeCount == pending.changeCount, ContinuousClock.now < pending.deadline {
+            Self.log.notice("insert: waiting for an unverified paste's receiver window")
+            do { try await ContinuousClock().sleep(until: pending.deadline) } catch { return }
+            // The restore may have run, or another paste may now own the window.
+            guard pendingRestoration?.id == pending.id else { continue }
+            return
+        }
     }
 
     private func completeRestoration(_ id: UUID) {
