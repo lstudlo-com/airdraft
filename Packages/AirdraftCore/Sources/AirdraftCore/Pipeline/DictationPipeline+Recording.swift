@@ -101,6 +101,11 @@ extension DictationPipeline {
         let microphone = snapshot.microphone
         let output = snapshot.output
         let needsInsertion = insertionEnabled && output.destination == .cursor
+        // The recording limit, shortened when kept recordings use part of the
+        // memory bound. Fixed for this session: kept audio cannot grow meanwhile.
+        let limit = Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind))
+        let allowedSeconds = min(limit, availableRecordingSeconds)
+        let budgetLimited = allowedSeconds < limit
         // Read earlier dictations while startup checks run, before the destination is known.
         let recentFinals = snapshot.useAppContext ? prefetchRecentFinals(appBundleId: nil) : nil
         do {
@@ -126,8 +131,7 @@ extension DictationPipeline {
             if asr.kind.isLocal {
                 // Pin before checking readiness so the idle watch cannot unload
                 // the model between this check and the end of processing.
-                let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
-                let pin = await factory.pinForSession(asr.engineID, recordingSeconds: TimeInterval(limit))
+                let pin = await factory.pinForSession(asr.engineID, recordingSeconds: allowedSeconds)
                 guard isCurrent(token) else { await factory.releaseSessionPin(pin); return }
                 releaseSpeechSessionPin()
                 speechSessionPin = (token, pin)
@@ -213,12 +217,12 @@ extension DictationPipeline {
         set(.recording)
         startRefinementPreparation(context: contextAtStart, snapshot: snapshot, token: token)
 
-        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
-        let remaining = max(0, Double(limit) - (ProcessInfo.processInfo.systemUptime - captureStarted))
+        let remaining = max(0, allowedSeconds - (ProcessInfo.processInfo.systemUptime - captureStarted))
         autoStopTask?.cancel()
         autoStopTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(remaining))
             guard let self, self.isCurrent(token) else { return }
+            if budgetLimited { self.keptBudgetStop = (token, allowedSeconds) }
             self.finishRecording()
         }
     }

@@ -659,9 +659,11 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
     }
 
-    /// AD-063 review: the kept-audio bound is hard. A new recording starts only
-    /// while the kept audio plus its own effective limit still fits 900 seconds.
-    func testKeptAudioBoundLeavesRoomForAFullRecording() async throws {
+    /// AD-063 review, revised: the kept-audio bound stays hard, but a long
+    /// recording limit no longer blocks dictation. A new recording may capture
+    /// the budget that remains (900 s minus kept audio), so its own failure can
+    /// still be kept; recording is refused only when less than 10 s remain.
+    func testKeptAudioBoundShortensTheNextRecordingInsteadOfBlockingIt() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Fits")]))
         defer { fixture.cleanUp() }
         fixture.recorder.sampleCount = 400 * 16_000
@@ -669,16 +671,61 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(fixture.pipeline.pendingRecordings.first?.seconds, 400)
         fixture.recorder.sampleCount = 16_000
         fixture.settings.maxRecordingSeconds = 600
-        XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording, "400 s kept + 600 s limit exceeds the bound")
+        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording, "One long kept recording no longer blocks dictation")
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 500, "400 s kept leaves 500 s of a 600 s limit")
+        XCTAssertTrue(fixture.pipeline.keptAudioShortensNextRecording)
+        fixture.settings.maxRecordingSeconds = 300
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 300)
+        XCTAssertFalse(fixture.pipeline.keptAudioShortensNextRecording)
+        try await recordOnce(fixture)
+        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Fits"])
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1, "No kept audio is dropped")
+    }
+
+    /// Recording is refused, visibly and before capture, once less than the
+    /// shortest recording limit (10 s) remains within the bound.
+    func testKeptAudioBoundRefusesRecordingWithoutRoomLeft() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
+        defer { fixture.cleanUp() }
+        fixture.recorder.sampleCount = 600 * 16_000
+        try await recordOnce(fixture)
+        fixture.recorder.sampleCount = 295 * 16_000
+        try await recordOnce(fixture)
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.seconds), [600, 295])
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 5)
+        XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording)
         let starts = fixture.recorder.startCount
         fixture.pipeline.startRecording()
         XCTAssertEqual(fixture.recorder.startCount, starts, "No capture starts past the bound")
         guard case .failed = fixture.pipeline.state else { return XCTFail("The refusal must be visible") }
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1, "No kept audio is dropped")
-        fixture.settings.maxRecordingSeconds = 500
-        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording, "400 s kept + 500 s limit fits exactly")
+        do { try await fixture.pipeline.startFromAutomation(); XCTFail("Automation must not exceed the bound") } catch {}
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2, "No kept audio is dropped")
+        fixture.pipeline.discardRecording(fixture.pipeline.pendingRecordings[1].id)
+        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording)
+    }
+
+    /// A recording shortened by kept audio stops at the remaining budget, is
+    /// processed normally and says why it stopped.
+    func testRecordingStopsAtRemainingBudgetWithANotice() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Budget words")]))
+        defer { fixture.cleanUp() }
+        fixture.recorder.sampleCount = 400 * 16_000
         try await recordOnce(fixture)
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Fits"])
+        fixture.recorder.sampleCount = 16_000
+        // Leave half a second of budget so the auto-stop fires quickly.
+        fixture.pipeline.keptAudioBudgetSeconds = 400.5
+        fixture.pipeline.minimumRecordingWithinBudget = 0.1
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 0.5, accuracy: 0.001)
+        try await fixture.pipeline.startFromAutomation()
+        try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
+        try await waitUntil("Recording processed") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Budget words"])
+        guard case .notice(let message, let attention) = fixture.pipeline.state else {
+            return XCTFail("The early stop must be explained")
+        }
+        XCTAssertTrue(message.hasPrefix("Recording stopped at 0:01"), message)
+        XCTAssertTrue(attention)
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
     }
 
     /// AD-063 review: a retry resolves its kept recording only once the result

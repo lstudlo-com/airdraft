@@ -4,17 +4,44 @@ import Foundation
 /// discard, and History's review sheet retranscribes without delivery.
 extension DictationPipeline {
     /// New dictation stays available while failed recordings wait. Bound their
-    /// memory: at most three recordings or 15 minutes of 16 kHz audio (~58 MB),
-    /// then ask for a retry or discard instead of dropping audio. The bound is
-    /// hard: a new recording starts only while the kept audio plus its own
-    /// effective recording limit still fits, so a failure can always be kept.
+    /// memory: at most three kept dictations and 15 minutes of 16 kHz audio
+    /// (~58 MB) including the recording in progress. Kept audio is never dropped
+    /// to make room. Instead a new recording may capture only the budget that
+    /// remains, `availableRecordingSeconds`, so its own failure can always be
+    /// kept; it stops there with a notice saying why. Recording is refused (ask
+    /// for a retry or discard) only when the count is full or less than
+    /// `minimumBudgetedRecordingSeconds` remain.
     public static let maximumPendingRecordings = 3
     public static let maximumPendingRecordingSeconds: Double = 900
+    /// The shortest recording worth starting: Settings' lowest recording limit.
+    public static let minimumBudgetedRecordingSeconds = Double(SpeechInputLimits.recordingSecondsRange.lowerBound)
+
+    /// Seconds of kept dictation audio waiting for retry or discard.
+    var keptDictationSeconds: Double {
+        recoveries.filter { !$0.info.isReview }.reduce(0) { $0 + $1.info.seconds }
+    }
+
+    /// How long the next recording may capture: its effective limit, shortened
+    /// so kept audio plus this recording stays within the memory bound.
+    public var availableRecordingSeconds: Double {
+        let limit = Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind))
+        return min(limit, max(0, keptAudioBudgetSeconds - keptDictationSeconds))
+    }
+
+    /// True when kept audio, not the recording limit, will end the next recording.
+    public var keptAudioShortensNextRecording: Bool {
+        availableRecordingSeconds < Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind))
+    }
+
     public var canKeepAnotherRecording: Bool {
-        let dictations = recoveries.filter { !$0.info.isReview }
-        let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind)
-        return dictations.count < Self.maximumPendingRecordings
-            && dictations.reduce(0) { $0 + $1.info.seconds } + Double(limit) <= Self.maximumPendingRecordingSeconds
+        recoveries.filter { !$0.info.isReview }.count < Self.maximumPendingRecordings
+            && availableRecordingSeconds >= minimumRecordingWithinBudget
+    }
+
+    /// Shown when a recording stopped at the kept-audio budget instead of its limit.
+    func keptBudgetStopNotice(seconds: Double) -> String {
+        let duration = Duration.seconds(seconds.rounded()).formatted(.time(pattern: .minuteSecond))
+        return String(localized: "Recording stopped at \(duration) because recordings waiting for retry use the rest of the memory limit. Retry or discard them in Airdraft for longer recordings.", bundle: .module)
     }
 
     /// Review old audio without insertion, clipboard changes, or duplicate history.

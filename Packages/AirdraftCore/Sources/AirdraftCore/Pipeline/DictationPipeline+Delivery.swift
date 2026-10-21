@@ -85,6 +85,8 @@ extension DictationPipeline {
                         token: UUID, processingStarted: TimeInterval, timings: DictationTimings) {
         let output = snapshot.output
         var notice = report.notice
+        var noticeRequiresAttention = report.noticeRequiresAttention
+        defer { if keptBudgetStop?.token == token { keptBudgetStop = nil } }
         if refinement.llmError != nil, notice == nil {
             let reason = refinement.llmRejected ? String(localized: "Refinement didn't match your speech", bundle: .module) : String(localized: "Refinement unavailable", bundle: .module)
             notice = report.outputSucceeded
@@ -153,9 +155,14 @@ extension DictationPipeline {
                 self.isFinishingDelivery = false
             }
         }
+        if let budget = keptBudgetStop, budget.token == token {
+            // The recording ended early: say so before any delivery notice.
+            notice = [keptBudgetStopNotice(seconds: budget.seconds), notice].compactMap { $0 }.joined(separator: " ")
+            noticeRequiresAttention = true
+        }
         if let notice {
             lastIssue = notice
-            set(.notice(notice, requiresAttention: report.noticeRequiresAttention))
+            set(.notice(notice, requiresAttention: noticeRequiresAttention))
             resetLater(after: 3)
         } else {
             lastIssue = nil

@@ -219,6 +219,12 @@ public final class DictationPipeline {
         var engineID: String?
     }
     var captureLatency: CaptureLatency?
+    /// The kept-audio memory bound; tests shorten it.
+    var keptAudioBudgetSeconds = DictationPipeline.maximumPendingRecordingSeconds
+    var minimumRecordingWithinBudget = DictationPipeline.minimumBudgetedRecordingSeconds
+    /// The session whose auto-stop came from the kept-audio budget, with the
+    /// duration it was allowed.
+    var keptBudgetStop: (token: UUID, seconds: Double)?
     /// The session whose capture started before its recording state, while the
     /// destination and app context are being read.
     var startingCapture: UUID?

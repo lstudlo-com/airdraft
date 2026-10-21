@@ -2807,6 +2807,16 @@
         }
       }
     },
+    "Recording stopped at %@ because recordings waiting for retry use the rest of the memory limit. Retry or discard them in Airdraft for longer recordings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄音已在 %@ 停止，因為等待重試的錄音已用掉其餘的記憶體上限。請在 Airdraft 中重試或捨棄這些錄音，以便錄製更長的內容。"
+          }
+        }
+      }
+    },
     "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings." : {
       "localizations" : {
         "zh-Hant" : {
