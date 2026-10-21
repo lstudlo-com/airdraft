@@ -97,7 +97,7 @@ public struct PolarLicense: Decodable, Sendable {
 
 public enum LicenseError: Error, LocalizedError, Equatable, Sendable {
     case rejected, activationLimit, unavailable, invalidResponse, storage, storageLocked, notConfigured
-    case accessRequired, clockChanged, activationUncertain
+    case accessRequired, clockChanged, activationUncertain, loading
     public var errorDescription: String? {
         switch self {
         case .rejected: String(localized: "This license or device activation is no longer valid. Check your key and devices in the customer portal.", bundle: .module)
@@ -110,6 +110,7 @@ public enum LicenseError: Error, LocalizedError, Equatable, Sendable {
         case .accessRequired: String(localized: "Open License to start your trial or activate a purchased key. Your history remains available.", bundle: .module)
         case .clockChanged: String(localized: "The system clock moved backwards. Correct the date and time to continue your trial.", bundle: .module)
         case .activationUncertain: String(localized: "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again.", bundle: .module)
+        case .loading: String(localized: "Airdraft is still checking your license. Try again in a moment.", bundle: .module)
         }
     }
 }

@@ -79,14 +79,19 @@ public struct KeychainLicenseStorage: LicenseStorage {
     private let storage: any LicenseStorage
     private let client: (any PolarLicensing)?
     private let now: @Sendable () -> Date
+    private var loadTask: Task<Void, Never>?
+    /// New work arriving at launch waits this long for the passive receipt read.
+    private let initialLoadWait: TimeInterval
 
     public init(distribution: Distribution, configuration: PolarConfiguration?, storage: any LicenseStorage,
-                client: (any PolarLicensing)? = nil, now: @escaping @Sendable () -> Date = { Date() }) {
+                client: (any PolarLicensing)? = nil, now: @escaping @Sendable () -> Date = { Date() },
+                initialLoadWait: TimeInterval = 5) {
         self.distribution = distribution
         self.configuration = configuration
         self.storage = storage
         self.client = client ?? configuration.map { PolarLicenseClient(configuration: $0) }
         self.now = now
+        self.initialLoadWait = initialLoadWait
     }
 
     public var access: Access {
@@ -108,17 +113,39 @@ public struct KeychainLicenseStorage: LicenseStorage {
 
     /// Passive reads never authorize a Keychain dialog. Only the named UI action does.
     public func load(allowInteraction: Bool = false) async {
-        guard distribution == .official, configuration != nil, !isBusy else { return }
-        isBusy = true
-        defer { isBusy = false; loaded = true }
-        do {
-            record = try await storage.read(allowInteraction: allowInteraction) ?? LicenseRecord()
-            storageBlocked = false
-            message = nil
-        } catch {
-            storageBlocked = true
-            message = error.localizedDescription
+        // Join a read already in flight, such as one an access check started at launch.
+        if let loadTask {
+            await loadTask.value
+            guard allowInteraction else { return }
         }
+        await beginLoad(allowInteraction: allowInteraction)?.value
+    }
+
+    private func beginLoad(allowInteraction: Bool) -> Task<Void, Never>? {
+        guard distribution == .official, configuration != nil, !isBusy else { return nil }
+        isBusy = true
+        let task = Task { @MainActor in
+            defer { isBusy = false; loaded = true; loadTask = nil }
+            do {
+                record = try await storage.read(allowInteraction: allowInteraction) ?? LicenseRecord()
+                storageBlocked = false
+                message = nil
+            } catch {
+                storageBlocked = true
+                message = error.localizedDescription
+            }
+        }
+        loadTask = task
+        return task
+    }
+
+    /// Work that arrives before the launch read finishes joins it, or starts
+    /// the same passive read, instead of reporting a missing license. Never
+    /// authorizes a Keychain dialog. The wait is bounded; the read continues.
+    private func awaitInitialLoad() async {
+        guard distribution == .official, configuration != nil, !loaded else { return }
+        guard let task = loadTask ?? beginLoad(allowInteraction: false) else { return }
+        _ = try? await OperationDeadline.run(seconds: initialLoadWait) { await task.value }
     }
 
     public func startTrial() async {
@@ -136,7 +163,9 @@ public struct KeychainLicenseStorage: LicenseStorage {
     /// Called at the boundary of new work only. Never stops an active recording
     /// or blocks recovery, history, export, provider setup or model downloads.
     public func requireAccess() async throws {
+        await awaitInitialLoad()
         guard access.allowsUse else {
+            if access == .loading { throw LicenseError.loading }
             if access == .clockChanged { throw LicenseError.clockChanged }
             throw LicenseError.accessRequired
         }

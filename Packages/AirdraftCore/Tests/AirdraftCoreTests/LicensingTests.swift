@@ -23,6 +23,26 @@ private actor MemoryLicenseStorage: LicenseStorage {
     func fail(read: Bool = false, write: Bool = false) { failRead = read; failWrite = write }
 }
 
+/// Holds every read until released, like a slow Keychain at launch.
+private actor GatedLicenseStorage: LicenseStorage {
+    private let value: LicenseRecord?
+    private(set) var reads: [Bool] = []
+    private var released = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+    init(_ value: LicenseRecord?) { self.value = value }
+    func read(allowInteraction: Bool) async throws -> LicenseRecord? {
+        reads.append(allowInteraction)
+        if !released { await withCheckedContinuation { waiters.append($0) } }
+        return value
+    }
+    func write(_ record: LicenseRecord) throws {}
+    func release() {
+        released = true
+        waiters.forEach { $0.resume() }
+        waiters = []
+    }
+}
+
 private actor LicenseFixtureClient: PolarLicensing {
     var failure: LicenseError?
     var activationFailure: LicenseError?
@@ -141,6 +161,73 @@ private actor LicenseFixtureClient: PolarLicensing {
 
     private func make(_ storage: MemoryLicenseStorage, client: LicenseFixtureClient = .init(), date: Date = Date()) -> LicenseStore {
         LicenseStore(distribution: .official, configuration: licenseConfig, storage: storage, client: client, now: { date })
+    }
+
+    /// Work that arrives while the launch read runs must not see a missing license.
+    func testAccessCheckJoinsTheLaunchReadInsteadOfReportingMissingLicense() async throws {
+        let date = Date(timeIntervalSince1970: 2_000_000_000)
+        var trial = LicenseRecord()
+        trial.trialStartedAt = date
+        trial.trialEndsAt = date.addingTimeInterval(86_400)
+        trial.lastSeenAt = date
+        let storage = GatedLicenseStorage(trial)
+        let store = LicenseStore(distribution: .official, configuration: licenseConfig, storage: storage,
+                                 client: LicenseFixtureClient(), now: { date })
+        let launch = Task { await store.load() }
+        try await waitFor { await storage.reads.count == 1 }
+        XCTAssertEqual(store.access, .loading)
+        let check = Task { try await store.requireAccess() }
+        try await Task.sleep(for: .milliseconds(50))
+        await storage.release()
+        try await check.value
+        await launch.value
+        XCTAssertEqual(store.access, .trial(until: date.addingTimeInterval(86_400)))
+        let reads = await storage.reads
+        XCTAssertEqual(reads, [false], "The check joins the launch read and never asks for Keychain interaction")
+    }
+
+    func testAccessCheckBeforeLaunchStartsOnlyAPassiveReadAndLaunchJoinsIt() async throws {
+        let date = Date(timeIntervalSince1970: 2_000_000_000)
+        var trial = LicenseRecord()
+        trial.trialStartedAt = date
+        trial.trialEndsAt = date.addingTimeInterval(86_400)
+        let storage = GatedLicenseStorage(trial)
+        let store = LicenseStore(distribution: .official, configuration: licenseConfig, storage: storage,
+                                 client: LicenseFixtureClient(), now: { date })
+        let check = Task { try await store.requireAccess() }
+        try await waitFor { await storage.reads.count == 1 }
+        let launch = Task { await store.load() }
+        await storage.release()
+        try await check.value
+        await launch.value
+        let reads = await storage.reads
+        XCTAssertEqual(reads, [false])
+    }
+
+    func testStalledLaunchReadIsBoundedAndReportsLoadingNotAccessRequired() async throws {
+        let storage = GatedLicenseStorage(LicenseRecord())
+        let store = LicenseStore(distribution: .official, configuration: licenseConfig, storage: storage,
+                                 client: LicenseFixtureClient(), initialLoadWait: 0.1)
+        let started = Date()
+        do {
+            try await store.requireAccess()
+            XCTFail("Access is unknown until the read finishes")
+        } catch let error as LicenseError {
+            XCTAssertEqual(error, .loading, "A pending read must not open the License sheet as a missing license")
+        }
+        XCTAssertLessThan(Date().timeIntervalSince(started), 2)
+        XCTAssertEqual(store.access, .loading)
+        await storage.release()
+        await store.load()
+        XCTAssertEqual(store.access, .needsTrial)
+    }
+
+    private func waitFor(_ condition: () async -> Bool) async throws {
+        for _ in 0..<300 {
+            if await condition() { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTFail("Condition timed out")
     }
 
     func testCommunityAndUnconfiguredOfficialStayDistinct() async throws {

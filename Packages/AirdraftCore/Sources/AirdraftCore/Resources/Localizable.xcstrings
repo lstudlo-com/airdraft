@@ -525,6 +525,16 @@
         }
       }
     },
+    "Airdraft is still checking your license. Try again in a moment." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 仍在確認你的授權。請稍後再試。"
+          }
+        }
+      }
+    },
     "Allow Accessibility access in Settings." : {
       "localizations" : {
         "zh-Hant" : {

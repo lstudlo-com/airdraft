@@ -171,7 +171,9 @@ final class AppContainer {
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
             self.permissions.refresh()
-            if !self.license.access.allowsUse { self.license.isPresented = true }
+            // A launch read that is still running is not a missing license.
+            let access = self.license.access
+            if !access.allowsUse && access != .loading { self.license.isPresented = true }
             self.navigation.page = .home
             self.showMainWindow()
         }
