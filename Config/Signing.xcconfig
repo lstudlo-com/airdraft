@@ -1,0 +1,14 @@
+// Code signing for builds from source. Release signing does not use this file:
+// scripts/release.py passes the pinned identity from scripts/release-signing.json
+// on the command line and verifies the signed app afterwards.
+//
+// Without a team, builds are signed to run locally (ad-hoc), so anyone can build
+// from a fresh clone. macOS ties Microphone and Accessibility grants to the code
+// signature, and an ad-hoc signature changes with every build. Copy
+// Local.xcconfig.example to Local.xcconfig (git-ignored) to sign with your own
+// Apple Development team and keep those grants across rebuilds.
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = -
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

@@ -1,0 +1,713 @@
+{
+  "schema": 1,
+  "_comment": [
+    "Reviewed licenses for every resolved dependency. scripts/acknowledgements.py fails on a",
+    "new pin, binary target, native input, license file or unrecognized license text until",
+    "this file records it. Native components are the libraries statically linked into the",
+    "pinned sherpa-onnx archive (its cmake/*.cmake pins); texts are fetched from those pins."
+  ],
+  "swiftpm": {
+    "async-http-client": {
+      "name": "AsyncHTTPClient",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "compress-nio": {
+      "name": "CompressNIO",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "eventsource": {
+      "name": "EventSource",
+      "license": "MIT",
+      "files": {
+        "LICENSE.md": "MIT"
+      }
+    },
+    "fluidaudio": {
+      "name": "FluidAudio",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      },
+      "components": [
+        {
+          "name": "Japanese text frontend",
+          "license": "Apache-2.0 AND BSD-3-Clause AND MIT",
+          "files": {
+            "ThirdPartyLicenses/JapaneseG2P-LICENSE.md": "Apache-2.0 AND BSD-3-Clause AND MIT"
+          }
+        },
+        {
+          "name": "Kokoro ANE v3",
+          "license": "Apache-2.0",
+          "files": {
+            "ThirdPartyLicenses/KokoroANE-v3/NOTICE": "notice",
+            "ThirdPartyLicenses/KokoroANE-v3/conversion-LICENSE": "Apache-2.0",
+            "ThirdPartyLicenses/KokoroANE-v3/mattmireles-LICENSE": "Apache-2.0"
+          }
+        },
+        {
+          "name": "Spanish and French text frontends",
+          "license": "MIT",
+          "files": {
+            "ThirdPartyLicenses/KokoroAneSpanishFrenchG2P-LICENSE.md": "MIT"
+          }
+        },
+        {
+          "name": "NemoTextProcessing",
+          "license": "Apache-2.0",
+          "files": {
+            "ThirdPartyLicenses/NemoTextProcessing-LICENSE.md": "notice"
+          }
+        },
+        {
+          "name": "fastcluster",
+          "license": "BSD-2-Clause",
+          "files": {
+            "ThirdPartyLicenses/fastcluster-LICENSE.md": "BSD-2-Clause"
+          }
+        },
+        {
+          "name": "VBx",
+          "license": "Apache-2.0",
+          "files": {
+            "ThirdPartyLicenses/vbx-LICENSE.md": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    "grdb.swift": {
+      "name": "GRDB",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT"
+      },
+      "excluded": {
+        "SQLiteCustom/": "GRDB's optional custom SQLite build is not linked; Airdraft uses the system SQLite library."
+      }
+    },
+    "hummingbird": {
+      "name": "Hummingbird",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "hummingbird-websocket": {
+      "name": "Hummingbird WebSocket",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "mlx-swift": {
+      "name": "MLX Swift",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT"
+      },
+      "components": [
+        {
+          "name": "MLX",
+          "license": "MIT",
+          "source": "https://github.com/ml-explore/mlx",
+          "files": {
+            "Source/Cmlx/mlx/LICENSE": "MIT"
+          }
+        },
+        {
+          "name": "MLX C",
+          "license": "MIT",
+          "source": "https://github.com/ml-explore/mlx-c",
+          "files": {
+            "Source/Cmlx/mlx-c/LICENSE": "MIT"
+          }
+        },
+        {
+          "name": "{fmt}",
+          "license": "MIT",
+          "source": "https://github.com/fmtlib/fmt",
+          "files": {
+            "Source/Cmlx/fmt/LICENSE": "MIT"
+          }
+        },
+        {
+          "name": "JSON for Modern C++",
+          "license": "MIT",
+          "source": "https://github.com/nlohmann/json",
+          "files": {
+            "Source/Cmlx/json/LICENSE.MIT": "MIT"
+          }
+        },
+        {
+          "name": "metal-cpp",
+          "license": "Apache-2.0",
+          "source": "https://developer.apple.com/metal/cpp/",
+          "files": {
+            "Source/Cmlx/metal-cpp/LICENSE.txt": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    "mlx-swift-lm": {
+      "name": "MLX Swift LM",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT"
+      }
+    },
+    "sparkle": {
+      "name": "Sparkle",
+      "license": "MIT AND BSD-2-Clause AND Zlib",
+      "files": {
+        "LICENSE": "MIT AND BSD-2-Clause AND Zlib"
+      },
+      "components": [
+        {
+          "name": "ed25519",
+          "license": "Zlib",
+          "source": "https://github.com/orlp/ed25519",
+          "files": {
+            "Vendor/ed25519-sparkle/license.txt": "Zlib"
+          }
+        }
+      ]
+    },
+    "speech-swift": {
+      "name": "speech-swift",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "swift-algorithms": {
+      "name": "Swift Algorithms",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-argument-parser": {
+      "name": "Swift Argument Parser",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-asn1": {
+      "name": "SwiftASN1",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-async-algorithms": {
+      "name": "Swift Async Algorithms",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-atomics": {
+      "name": "Swift Atomics",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-certificates": {
+      "name": "Swift Certificates",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-collections": {
+      "name": "Swift Collections",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-configuration": {
+      "name": "Swift Configuration",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-crypto": {
+      "name": "Swift Crypto",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-distributed-tracing": {
+      "name": "Swift Distributed Tracing",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0"
+      }
+    },
+    "swift-http-structured-headers": {
+      "name": "Swift HTTP Structured Headers",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0"
+      }
+    },
+    "swift-http-types": {
+      "name": "Swift HTTP Types",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-huggingface": {
+      "name": "Swift Hugging Face",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "swift-jinja": {
+      "name": "Swift Jinja",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "swift-log": {
+      "name": "SwiftLog",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-metrics": {
+      "name": "SwiftMetrics",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-nio": {
+      "name": "SwiftNIO",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      },
+      "components": [
+        {
+          "name": "llhttp",
+          "license": "MIT",
+          "source": "https://github.com/nodejs/llhttp",
+          "files": {
+            "Sources/CNIOLLHTTP/LICENSE": "MIT"
+          }
+        }
+      ]
+    },
+    "swift-nio-extras": {
+      "name": "SwiftNIO Extras",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-nio-http2": {
+      "name": "SwiftNIO HTTP/2",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-nio-ssl": {
+      "name": "SwiftNIO SSL",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-nio-transport-services": {
+      "name": "SwiftNIO Transport Services",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0"
+      }
+    },
+    "swift-numerics": {
+      "name": "Swift Numerics",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-sdk": {
+      "name": "MCP Swift SDK",
+      "license": "Apache-2.0 AND MIT",
+      "files": {
+        "LICENSE": "Apache-2.0 AND MIT"
+      }
+    },
+    "swift-service-context": {
+      "name": "Swift Service Context",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-service-lifecycle": {
+      "name": "Swift Service Lifecycle",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "swift-syntax": {
+      "name": "SwiftSyntax",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-system": {
+      "name": "Swift System",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "files": {
+        "LICENSE.txt": "Apache-2.0 WITH Swift-exception"
+      }
+    },
+    "swift-transformers": {
+      "name": "Swift Transformers",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE": "Apache-2.0"
+      }
+    },
+    "swift-websocket": {
+      "name": "Swift WebSocket",
+      "license": "Apache-2.0",
+      "files": {
+        "LICENSE.txt": "Apache-2.0",
+        "NOTICE.txt": "notice"
+      }
+    },
+    "whisperkit": {
+      "name": "WhisperKit",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT",
+        "NOTICES": "notice"
+      }
+    },
+    "yyjson": {
+      "name": "yyjson",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT"
+      }
+    }
+  },
+  "binaryTargets": {
+    "fluidaudio/NemoTextProcessing": {
+      "name": "text-processing-rs (NemoTextProcessing)",
+      "version": "0.3.1",
+      "license": "Apache-2.0",
+      "source": "https://github.com/FluidInference/text-processing-rs",
+      "url": "https://github.com/FluidInference/text-processing-rs/releases/download/v0.3.1/NemoTextProcessing.xcframework.zip",
+      "files": {
+        "ThirdParty/licenses/text-processing-rs/LICENSE": "Apache-2.0",
+        "ThirdParty/licenses/text-processing-rs/NOTICE": "notice",
+        "ThirdParty/licenses/text-processing-rs/THIRD-PARTY-LICENSES.md": "notice"
+      }
+    },
+    "sherpaonnxkit/SherpaOnnxC": {
+      "coveredBy": "native"
+    },
+    "sherpaonnxkit/onnxruntime": {
+      "coveredBy": "native"
+    },
+    "sparkle/Sparkle": {
+      "coveredBy": "swiftpm"
+    },
+    "speech-swift/CSpeechCore": {
+      "name": "speech-core",
+      "version": "0.0.14",
+      "license": "Apache-2.0",
+      "source": "https://github.com/soniqo/speech-core",
+      "url": "https://github.com/soniqo/speech-core/releases/download/v0.0.14/SpeechCore.xcframework.zip",
+      "files": {
+        "ThirdParty/licenses/speech-core/LICENSE": "Apache-2.0",
+        "ThirdParty/licenses/speech-core/THIRD-PARTY-NOTICES.md": "notice"
+      }
+    },
+    "transcribecppkit/CTranscribe": {
+      "name": "transcribe.cpp",
+      "version": "0.2.4",
+      "license": "MIT",
+      "source": "https://github.com/handy-computer/transcribe.cpp",
+      "url": "https://github.com/handy-computer/transcribe.cpp/releases/download/v0.2.4/TranscribeCpp.xcframework.zip",
+      "files": {
+        "TranscribeCpp.xcframework/LICENSE": "MIT"
+      },
+      "components": [
+        {
+          "name": "ggml",
+          "license": "MIT",
+          "source": "https://github.com/ggml-org/ggml",
+          "files": {
+            "TranscribeCpp.xcframework/LICENSE.ggml": "MIT"
+          }
+        },
+        {
+          "name": "miniz",
+          "license": "MIT",
+          "source": "https://github.com/richgel999/miniz",
+          "files": {
+            "TranscribeCpp.xcframework/LICENSE.miniz": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "native": {
+    "SherpaOnnxC": {
+      "name": "sherpa-onnx",
+      "version": "1.13.8",
+      "license": "Apache-2.0",
+      "source": "https://github.com/k2-fsa/sherpa-onnx",
+      "files": {
+        "ThirdParty/licenses/sherpa-onnx/LICENSE": "Apache-2.0"
+      },
+      "components": [
+        {
+          "name": "kaldi-native-fbank",
+          "version": "1.22.3",
+          "license": "Apache-2.0",
+          "source": "https://github.com/csukuangfj/kaldi-native-fbank",
+          "files": {
+            "ThirdParty/licenses/kaldi-native-fbank/LICENSE": "Apache-2.0"
+          }
+        },
+        {
+          "name": "KISS FFT",
+          "version": "febd4ca",
+          "license": "BSD-3-Clause",
+          "source": "https://github.com/mborgerding/kissfft",
+          "files": {
+            "ThirdParty/licenses/kissfft/COPYING": "notice",
+            "ThirdParty/licenses/kissfft/BSD-3-Clause": "BSD-3-Clause"
+          }
+        },
+        {
+          "name": "kaldi-decoder",
+          "version": "0.3.0",
+          "license": "Apache-2.0",
+          "source": "https://github.com/k2-fsa/kaldi-decoder",
+          "files": {
+            "ThirdParty/licenses/kaldi-decoder/LICENSE": "Apache-2.0"
+          }
+        },
+        {
+          "name": "OpenFst",
+          "version": "1.8.5-2026-07-09",
+          "license": "Apache-2.0",
+          "source": "https://github.com/csukuangfj/openfst",
+          "files": {
+            "ThirdParty/licenses/openfst/COPYING": "Apache-2.0"
+          }
+        },
+        {
+          "name": "simple-sentencepiece",
+          "version": "0.7",
+          "license": "Apache-2.0",
+          "source": "https://github.com/pkufool/simple-sentencepiece",
+          "files": {
+            "ThirdParty/licenses/simple-sentencepiece/LICENSE": "Apache-2.0"
+          }
+        },
+        {
+          "name": "hclust-cpp",
+          "version": "2026-02-25",
+          "license": "BSD-2-Clause",
+          "source": "https://github.com/csukuangfj/hclust-cpp",
+          "files": {
+            "ThirdParty/licenses/hclust-cpp/LICENSE": "BSD-2-Clause"
+          }
+        },
+        {
+          "name": "JSON for Modern C++",
+          "version": "3.12.0",
+          "license": "MIT",
+          "source": "https://github.com/nlohmann/json",
+          "files": {
+            "ThirdParty/licenses/nlohmann-json/LICENSE.MIT": "MIT"
+          }
+        },
+        {
+          "name": "Eigen",
+          "version": "5.0.1",
+          "license": "MPL-2.0",
+          "source": "https://gitlab.com/libeigen/eigen",
+          "files": {
+            "ThirdParty/licenses/eigen/COPYING.MPL2": "MPL-2.0"
+          }
+        },
+        {
+          "name": "piper-phonemize",
+          "version": "f3ff95a",
+          "license": "MIT",
+          "source": "https://github.com/csukuangfj/piper-phonemize",
+          "files": {
+            "ThirdParty/licenses/piper-phonemize/LICENSE.md": "MIT",
+            "ThirdParty/licenses/piper-phonemize/uni-algo-LICENSE.md": "Unlicense OR MIT"
+          }
+        },
+        {
+          "name": "eSpeak NG",
+          "version": "ed530aa",
+          "license": "GPL-3.0-or-later AND Apache-2.0 AND BSD-2-Clause AND Unicode-DFS-2016",
+          "source": "https://github.com/csukuangfj/espeak-ng",
+          "files": {
+            "ThirdParty/licenses/espeak-ng/COPYING": "GPL-3.0-or-later",
+            "ThirdParty/licenses/espeak-ng/COPYING.APACHE": "Apache-2.0",
+            "ThirdParty/licenses/espeak-ng/COPYING.BSD2": "BSD-2-Clause",
+            "ThirdParty/licenses/espeak-ng/COPYING.UCD": "Unicode-DFS-2016"
+          }
+        }
+      ]
+    },
+    "onnxruntime": {
+      "name": "ONNX Runtime",
+      "version": "1.28.2",
+      "license": "MIT",
+      "source": "https://github.com/microsoft/onnxruntime",
+      "files": {
+        "ThirdParty/licenses/onnxruntime/LICENSE": "MIT",
+        "ThirdParty/licenses/onnxruntime/ThirdPartyNotices.txt": "notice"
+      }
+    }
+  },
+  "texts": {
+    "ThirdParty/licenses/eigen/COPYING.MPL2": {
+      "url": "https://gitlab.com/libeigen/eigen/-/raw/5.0.1/COPYING.MPL2",
+      "sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172"
+    },
+    "ThirdParty/licenses/espeak-ng/COPYING": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/espeak-ng/ed530aa113046142eb5115cf2fc9157854d0ffe1/COPYING",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    "ThirdParty/licenses/espeak-ng/COPYING.APACHE": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/espeak-ng/ed530aa113046142eb5115cf2fc9157854d0ffe1/COPYING.APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "ThirdParty/licenses/espeak-ng/COPYING.BSD2": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/espeak-ng/ed530aa113046142eb5115cf2fc9157854d0ffe1/COPYING.BSD2",
+      "sha256": "a8b0c1c7d7af6c0415c068be8cf373799d1a42b0707b79dc4ccfcaf593cd902d"
+    },
+    "ThirdParty/licenses/espeak-ng/COPYING.UCD": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/espeak-ng/ed530aa113046142eb5115cf2fc9157854d0ffe1/COPYING.UCD",
+      "sha256": "be029c50df83105a810e391778b6edcb522d6cb4b4e142332aca54437a499bf7"
+    },
+    "ThirdParty/licenses/hclust-cpp/LICENSE": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/hclust-cpp/2026-02-25/LICENSE",
+      "sha256": "e361d842da1d290351860ad6dcce2673a1e42e4f873a3ae1ff4eb92c6adaa882"
+    },
+    "ThirdParty/licenses/kaldi-decoder/LICENSE": {
+      "url": "https://raw.githubusercontent.com/k2-fsa/kaldi-decoder/v0.3.0/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "ThirdParty/licenses/kaldi-native-fbank/LICENSE": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/kaldi-native-fbank/v1.22.3/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "ThirdParty/licenses/kissfft/BSD-3-Clause": {
+      "url": "https://raw.githubusercontent.com/mborgerding/kissfft/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec/LICENSES/BSD-3-Clause",
+      "sha256": "4d6bcab46f27d6d0c878e8305d4bdcfe040d52bf6656b9771f04c9fb9902c0ed"
+    },
+    "ThirdParty/licenses/kissfft/COPYING": {
+      "url": "https://raw.githubusercontent.com/mborgerding/kissfft/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec/COPYING",
+      "sha256": "a2840585f8411be8e6826a31ef15ae65c950bd74a2437a73b013398a934ad0c6"
+    },
+    "ThirdParty/licenses/nlohmann-json/LICENSE.MIT": {
+      "url": "https://raw.githubusercontent.com/nlohmann/json/v3.12.0/LICENSE.MIT",
+      "sha256": "46a65cffd1ea955132d95a8dd921640714a8d6b537d2e4e482d31145ae95b603"
+    },
+    "ThirdParty/licenses/onnxruntime/LICENSE": {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.28.2/LICENSE",
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+    },
+    "ThirdParty/licenses/onnxruntime/ThirdPartyNotices.txt": {
+      "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.28.2/ThirdPartyNotices.txt",
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2"
+    },
+    "ThirdParty/licenses/openfst/COPYING": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/openfst/v1.8.5-2026-07-09/COPYING",
+      "sha256": "4300529197035fd3452350718a0b8cee984e9412c9932d7f35fcde849fc97a4b"
+    },
+    "ThirdParty/licenses/piper-phonemize/LICENSE.md": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/piper-phonemize/f3ff95afc03640bc1399e113e83361192a2fafb4/LICENSE.md",
+      "sha256": "13746d509d74e55ea2265fbef204bb7cdbf84a8315b0207e988326cb54387028"
+    },
+    "ThirdParty/licenses/piper-phonemize/uni-algo-LICENSE.md": {
+      "url": "https://raw.githubusercontent.com/csukuangfj/piper-phonemize/f3ff95afc03640bc1399e113e83361192a2fafb4/licenses/uni-algo/LICENSE.md",
+      "sha256": "c55648b02873556d6ab2de14938998101fda3a0f293337542af9196435def318"
+    },
+    "ThirdParty/licenses/sherpa-onnx/LICENSE": {
+      "url": "https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/v1.13.8/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "ThirdParty/licenses/simple-sentencepiece/LICENSE": {
+      "url": "https://raw.githubusercontent.com/pkufool/simple-sentencepiece/v0.7/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    "ThirdParty/licenses/speech-core/LICENSE": {
+      "url": "https://raw.githubusercontent.com/soniqo/speech-core/v0.0.14/LICENSE",
+      "sha256": "b28541bfc62c7a3473e995d629609a11732cfe9213d909aeb99fd0c352697f95"
+    },
+    "ThirdParty/licenses/speech-core/THIRD-PARTY-NOTICES.md": {
+      "url": "https://raw.githubusercontent.com/soniqo/speech-core/v0.0.14/THIRD-PARTY-NOTICES.md",
+      "sha256": "6469a94c22d995dfedd0033b90ec07db3f02bdd05f90845e0454132c8387d46a"
+    },
+    "ThirdParty/licenses/text-processing-rs/LICENSE": {
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/LICENSE",
+      "sha256": "ac84752611bfcb8e2f472b17f9cb18f5321c9a75c2a5445b766725b1de67790b"
+    },
+    "ThirdParty/licenses/text-processing-rs/NOTICE": {
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/NOTICE",
+      "sha256": "886143044515319a91f4447f9b447bb89089b4c9af847300f4b8de830c805852"
+    },
+    "ThirdParty/licenses/text-processing-rs/THIRD-PARTY-LICENSES.md": {
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/THIRD-PARTY-LICENSES.md",
+      "sha256": "14d21dbb0deb74aa7775f5803c36609aa6ef0c38c94fb03dbc95efb3645f7678"
+    }
+  },
+  "copies": {
+    "Sources/App/Resources/Sparkle-LICENSE.txt": {
+      "package": "sparkle",
+      "file": "LICENSE"
+    }
+  }
+}

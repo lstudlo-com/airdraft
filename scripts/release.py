@@ -16,7 +16,8 @@ import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 
-from release_signing import POLICY, inspect_app, inspect_dmg, preflight, validate_metadata
+from release_signing import (POLICY, build_settings as signing_settings, inspect_app, inspect_dmg,
+                             preflight, validate_metadata)
 from licensing import build_settings as licensing_settings, verify_app as verify_app_license
 from swiftpm_lock import restore as restore_resolution, verify as verify_resolution
 
@@ -277,6 +278,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     logged([sys.executable, source / "scripts/test-prompt-gate.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/verify-prompt.py"], source, output / "prompt.log")
     logged([sys.executable, source / "scripts/test-release.py"], source, output / "build.log")
+    logged([sys.executable, source / "scripts/test-acknowledgements.py"], source, output / "build.log")
     logged([sys.executable, source / "scripts/test-insertion-regressions.py"], source, output / "insertion.log")
     logged([sys.executable, source / "scripts/test-live-insertion.py"], source, output / "insertion.log")
     if test_scope == "full":
@@ -288,7 +290,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     common = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
               "-skipPackagePluginValidation", "-skipMacroValidation",
               "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
-              f"CODE_SIGN_IDENTITY={identity}", "CODE_SIGN_STYLE=Manual"]
+              *signing_settings(identity)]
     core_results = Path(tempfile.mkdtemp(prefix="core-tests-", dir=output)) / "tests.xcresult"
     logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO",
                      "-resultBundlePath", core_results] +
@@ -311,6 +313,9 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     app = Path(settings["TARGET_BUILD_DIR"]) / settings["FULL_PRODUCT_NAME"]
     verify_app_license(app, license_settings)
     derived = Path(settings["BUILD_DIR"]).parents[1]
+    # The bundled notices must match the exact SwiftPM checkouts this release linked.
+    logged([sys.executable, source / "scripts/acknowledgements.py", "check",
+            "--source-packages", derived / "SourcePackages"], source, output / "build.log")
     tools = derived / "SourcePackages/artifacts/sparkle/Sparkle/bin"
     signing = inspect_app(app)
     logged([sys.executable, source / "scripts/verify-updater.py", "--sparkle", tools.parent, "--ephemeral-key"],

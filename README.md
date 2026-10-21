@@ -1,319 +1,173 @@
 # Airdraft
 
-Personal, macOS-only voice dictation with LLM refinement. Hold a hotkey, speak,
-release; polished text lands at your cursor in whatever app is frontmost.
+Airdraft is a macOS menu-bar dictation app. Hold a shortcut, speak and release:
+Airdraft transcribes your speech, optionally cleans it up with a language model
+and inserts the text at the cursor in the app you are using.
 
-Both engines are pluggable and switchable at runtime in Settings:
+Speech recognition and refinement are chosen independently. Each can run on your
+Mac or use a cloud service with your own API key. If refinement fails or times
+out, Airdraft inserts the raw transcript instead of losing your dictation.
 
-| Stage | Local | Remote |
-|---|---|---|
-| Speech recognition | Qwen3-ASR 1.7B / 0.6B (MLX), FireRedASR2-AED and SenseVoice-small (sherpa-onnx), Cohere Transcribe 2B (MLX), Whisper Large v3 Turbo (Core ML), Apple SpeechAnalyzer (macOS 26) | Soniox v5, Groq Whisper v3 Turbo, ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3 |
-| Refinement | LM Studio / Ollama / llama-server / any OpenAI-compatible server; Claude Code and Codex CLIs on your own subscription | OpenAI, Anthropic, Google Gemini, OpenRouter — each through its own native API and key |
+The interface is available in English and Traditional Chinese (Taiwan) and
+follows your macOS language.
 
-The LLM is best-effort: a timeout or error inserts the raw transcript instead of blocking.
+## Features
 
-## License
+- **Dictation anywhere.** Hold-to-talk or toggle shortcuts, an optional hold
+  delay, a recording window with several visual styles, and verified insertion
+  at the cursor. When an app does not accept the text, it stays on the clipboard
+  with a recovery notice.
+- **Local speech models.** Whisper (WhisperKit, Core ML), Parakeet (sherpa-onnx
+  and Core ML), Qwen3-ASR and Cohere Transcribe (MLX), SenseVoice and FireRedASR2
+  (sherpa-onnx), GGUF models through transcribe.cpp, and Apple SpeechAnalyzer on
+  macOS 26. Models download only when you choose them in **Models**.
+- **Cloud speech services.** Soniox, Groq, ElevenLabs, OpenAI, Deepgram,
+  AssemblyAI, Cartesia, Speechmatics, xAI, Mistral, Google Gemini and OpenRouter,
+  each through its own transcription API, plus any OpenAI-compatible server.
+- **Refinement.** Apple Intelligence (on-device, macOS 26), LM Studio, Ollama,
+  llama-server or any OpenAI-compatible server, the Claude Code and Codex CLIs on
+  your own subscription, and OpenAI, Anthropic, Google Gemini, OpenRouter,
+  Groq and Cerebras with your own key.
+- **Profiles.** Every refinement behavior is an editable profile that can be
+  reset to its defaults. A profile can also choose its own speech model.
+- **Vocabulary.** Custom terms and replacements applied to every dictation.
+- **History.** Searchable local history, optional saved recordings with playback
+  and retranscription, and recovery for failed dictations.
+- **Meetings.** Record meeting audio from an app and your microphone, or import
+  audio and video files, then transcribe locally or in the cloud with speaker
+  labels, transcript versions and summaries.
+- **Automation.** Start, stop and cancel dictation from Apple Shortcuts, or send
+  the final text to your own script instead of the cursor.
 
-Unless a file states otherwise, original Airdraft code, documentation, and assets
-in this repository are licensed under [GPL-3.0-only](LICENSE). This means GPL
-version 3 specifically, without the "or later" option. Third-party dependencies,
-fonts, and downloaded model weights retain their own licenses.
+Data stays on your Mac unless you choose a cloud provider. API keys are stored in
+the macOS Keychain.
 
-## App
+## Editions
 
-Menu-bar app with a Superwhisper-style main window (Home, Profiles, Vocabulary,
-Settings, Models, History). Hold **⌃ ⌥** (Control + Option, default) to dictate; the
-recording pill appears at the bottom centre of the screen.
+Airdraft is free software under the [GNU General Public License v3.0 only](LICENSE).
 
-- Shortcuts: key combinations register through Carbon and need no permission.
-  Modifier-only keys (Right ⌥, fn) use a CGEventTap and need Accessibility.
-- Models: the Models page downloads every local model anonymously into
-  `~/Library/Application Support/Transcribar/Models/`; local engines load only from there.
-  Nothing needs to be typed.
-- Profiles: every LLM behaviour is an editable, resettable profile.
-- CLI refinement: model lists come from the installed Codex or Claude Code CLI,
-  including resolved Claude model IDs and hidden Codex entries. Refresh after a
-  CLI update; the pencil button accepts any other supported model ID or alias.
-  Thinking effort sits beside the model and lists that model's supported levels,
-  including Extra high and Max where available. A saved unsupported level
-  uses the nearest lower supported level; Off uses the minimum when required.
+- **Built from source (free).** Every feature is unlocked and nothing expires.
+  Self-built copies update from source; they do not install official builds.
+- **Official builds.** The maintainer publishes signed builds on
+  [GitHub Releases](https://github.com/lstudlo-com/airdraft/releases) with
+  automatic updates. Official builds offer a full-feature trial followed by a
+  paid license. Licenses are not on sale yet.
 
-Local model research is recorded in `docs/model-atlas.html`. The five current cloud APIs, their purposes, pricing and contracts are documented in [Cloud transcription](docs/transcription-apis.md).
-
-## Pipeline
-
-```
-hotkey ▸ record 16 kHz ▸ ASR ▸ context (app, cursor text, selection)
-       ▸ LLM refine (mode + app family + dictionary) ▸ dictionary post-pass
-       ▸ insert (Accessibility, else paste) ▸ SQLite history
-```
-
-Modes: `clean` (default), `concise`, `summary`, `verbatim` (no LLM).
-Selected text turns the utterance into an edit instruction for that text.
+Official builds are signed with the maintainer's Apple Development certificate
+and are **not notarized**. On first launch macOS may ask you to approve the app in
+System Settings > Privacy & Security.
 
 ## Requirements
 
-- macOS 15+, Apple Silicon (Qwen3-ASR runs on MLX). Xcode 26+ with the Metal
-  toolchain and Foundation Models SDK. On the first Xcode build, accept the
-  "Trust & Enable" prompt for the mlx-swift build plug-in.
-- `brew install xcodegen`
-- For local refinement: LM Studio with the server running (`lms server start`)
-  and a model loaded, or Ollama.
+- An Apple Silicon Mac with macOS 15 or later. Apple SpeechAnalyzer, Apple
+  Intelligence refinement and live preview require macOS 26.
+- Microphone access, and Accessibility access to insert text at the cursor.
+- For local refinement: LM Studio, Ollama or another OpenAI-compatible server,
+  or Apple Intelligence on a supported Mac.
 
-## Build
+## Build from source
 
-The repository uses [moon](https://moonrepo.dev/docs/setup-workspace) as a small
-task runner around Xcode. Install [proto](https://moonrepo.dev/docs/proto/install)
-once, then run these commands from the repository root:
+You need Xcode 26 or later with its Metal toolchain, Python 3.12 or later and
+Git. Node.js and pnpm are optional (see below).
 
 ```sh
-proto install                # installs pinned moon, Node, and pnpm
-moon run airdraft:prepare     # once after cloning: prepare native speech libraries
-moon run airdraft:build       # regenerates the Xcode project, then builds
-moon run airdraft:test        # regenerates the project, then runs core tests
+git clone https://github.com/lstudlo-com/airdraft.git
+cd airdraft
+
+# Once: install the Metal toolchain if Xcode does not have it yet.
+xcodebuild -showComponent MetalToolchain | grep -q 'Status: installed' \
+  || xcodebuild -downloadComponent MetalToolchain
+
+# Once: download and verify the pinned sherpa-onnx and ONNX Runtime libraries.
+bash scripts/make-sherpa-xcframeworks.sh
+
+# Generate the Xcode project. Without Homebrew's XcodeGen (brew install xcodegen),
+# --install-xcodegen downloads the pinned, checksum-verified release into dist/tools.
+python3 scripts/generate-project.py --install-xcodegen
+
+# Build the Debug app.
+xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
+  -skipPackagePluginValidation -skipMacroValidation \
+  -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile build
 ```
 
-`moon tasks` lists the native and marketing tasks. `.moon/workspace.yml` maps
-`airdraft` to the repository root and `marketing` to `apps/marketing`;
-each project's `moon.yml` defines its commands and dependencies. Xcode keeps
-its own incremental build cache in DerivedData. Moon caching is disabled for
-these tasks because the signed products live outside the repository; build
-and test also share a mutex so they cannot write to that build tree concurrently.
-
-With workspace dependencies installed, `pnpm build:app` builds the native app
-and `pnpm test:local` runs the credential-free regression suite. These commands
-resolve the workspace's pinned Moon without requiring a global installation.
-Project generation uses an installed XcodeGen or the existing
-`dist/tools/xcodegen/bin/xcodegen`; it does not download tools during a normal build.
-Public Swift packages use Xcode's `netrc` authorization provider to avoid
-Keychain authorization prompts.
-
-### Microphone selection
-
-Choose a microphone from the window toolbar, menu bar, or Settings →
-Microphone. Your choice becomes Airdraft's saved default. System default follows
-macOS; a specific device stays selected across restarts and reconnects. If it is
-unavailable, reconnect it or choose another input. Airdraft never silently
-substitutes another microphone. Finish dictation before switching devices.
-
-### App updates
-
-Airdraft uses Sparkle for **Check for Updates…**, daily background checks, and
-optional automatic downloads that install on quit. These controls are in
-Settings → Updates. Releases use a signed GitHub-hosted update feed; it
-is published with each release. Run `moon run airdraft:release-setup` once on the
-release Mac. Every push to `origin/main` then tests committed sources, builds the
-DMG locally, and uploads a draft. GitHub publishes it after the push succeeds.
-
-See [the update release procedure](docs/updates.md) for signing keys, Release
-builds, DMG packaging, and validation without a paid Apple developer membership.
-
-### Marketing website
-
-The Astro website lives in [`apps/marketing`](apps/marketing/README.md), initialized
-from Cloudflare's official Astro Framework Starter and served as static assets by
-Cloudflare Workers. It shares this Git repository and one pnpm workspace/lockfile;
-the native app retains its existing Xcode and Swift package layout.
+The first build resolves Swift packages and compiles MLX, so it takes a while.
+Open the result with:
 
 ```sh
-pnpm install
-pnpm dev:marketing            # http://localhost:4321
-pnpm check:marketing          # types and formatting
-pnpm build:marketing          # static production build
-pnpm preview:marketing        # build + local Cloudflare runtime
+open "$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
+  -showBuildSettings | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2; exit}')/Airdraft Debug.app"
 ```
 
-Website commands do not run Xcode. The website README documents the original C3
-command, local preview, production URL setting, and Cloudflare monorepo deployment.
-The GitHub workflow validates the website without publishing it.
-The private preview is deployed at [airdraft.app](https://airdraft.app), protected
-by Cloudflare Access using the existing L Studio Google login and owner allowlist.
+The Debug app is named **Airdraft Debug** and uses its own bundle identifier, so
+it does not replace an installed official build. You can also open
+`airdraft.xcodeproj` in Xcode and run the `airdraft` scheme.
 
-### Direct Xcode commands
+### Code signing
 
-Direct Xcode commands remain available:
+Builds from source are signed to run locally (ad-hoc) and need no Apple
+developer account. macOS ties Microphone and Accessibility permissions to the
+code signature, and an ad-hoc signature changes with every build, so you may need
+to grant Accessibility again after rebuilding. To keep permissions, sign with
+your own team (a free personal team works):
 
 ```sh
-scripts/make-sherpa-xcframeworks.sh   # once: repackages sherpa-onnx + onnxruntime static libs
-xcodegen generate          # regenerates airdraft.xcodeproj from project.yml
-open airdraft.xcodeproj     # pick your team under Signing, then Run
+cp Config/Local.xcconfig.example Config/Local.xcconfig   # then set DEVELOPMENT_TEAM
+python3 scripts/generate-project.py
 ```
 
-Command line (uses Xcode's own DerivedData, so there is one build tree):
+`Config/Local.xcconfig` is ignored by Git. Release builds never use it.
+
+### Tests
 
 ```sh
-xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation build
-xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test   # AirdraftCoreTests
+python3 scripts/test-local-e2e.py
 ```
 
-### Xcode Canvas previews
+This runs the credential-free regression suite: no API keys or cloud services
+are used. See [CONTRIBUTING.md](CONTRIBUTING.md) for the other checks.
 
-Open `HomePage.swift` or `HomeHero.swift` with the `airdraft` scheme and Debug
-configuration, then show the Canvas. Keep **Editor → Canvas → Use Legacy Previews
-Execution** off. Legacy preview builds can miss the installed Metal toolchain
-required by MLX on Xcode 27.
+### Optional: moon and pnpm
 
-`AirdraftCore` is a dynamic library, keeping the engine dependencies and native
-Sherpa archives out of the preview linker. This avoids duplicate native symbols
-and slow preview launches. Preview declarations use sample data from
-`Debug/PreviewData.swift`.
-
-## Headless harness
-
-`airdraft-cli` runs the same engines without the app, for evaluation and debugging
-(`eval/*.py` call it). It builds a separate SwiftPM tree in `Packages/AirdraftCore/.build`
-(~6 GB, git-ignored); delete it when you are done evaluating.
+The repository uses [moon](https://moonrepo.dev) as a small task runner around
+the same commands. With Node.js 24 and pnpm 10 (or [proto](https://moonrepo.dev/proto)
+and `proto install`), run `pnpm install` once, then:
 
 ```sh
-cd Packages/AirdraftCore && swift build --product airdraft-cli
-.build/debug/airdraft-cli refine "嗯 那個 我們今天要討論三件事 第一 專案進度 第二 預算問題" --family workChat
-.build/debug/airdraft-cli run clip.wav --sensevoice --dict "Floze=flows,flow's"
-.build/debug/airdraft-cli prompt --mode summary --family email      # print the exact prompt
+pnpm build:app      # moon run airdraft:build: regenerates the project and builds
+pnpm test:local     # moon run airdraft:test-local: the credential-free suite
 ```
-
-Speech: `--whisper [VARIANT]` (default), `--qwen3 [ID]`, `--cohere [ID]`, `--sensevoice`, `--firered`,
-`--apple [LOCALE]`, `--elevenlabs [MODEL]`, or `--url/--model` for an OpenAI-compatible API.
-Refinement: `--llm-url/--llm-model`, `--mode clean|concise|summary`,
-`--family email|workChat|personalChat|document|code|terminal|general`, `--script traditional|simplified|auto`.
-Context: `--app`, `--window`, `--page-url`, `--before`, `--after`, `--selected` (edit mode), `--recent "a||b"`.
-Keys: set `AIRDRAFT_ASR_KEY` and `AIRDRAFT_LLM_KEY` rather than passing `--key`/`--llm-key`,
-which other processes and your shell history can see.
-
-## Verification without a GUI
-
-Renders and self-tests exist only in Debug builds; Release builds ignore these
-arguments and variables.
-
-```sh
-APP="$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -packageAuthorizationProvider netrc -showBuildSettings | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2; exit}')/Airdraft Debug.app/Contents/MacOS/Airdraft Debug"
-"$APP" --e2e-local /tmp/airdraft-render --render-hud out.png
-"$APP" --e2e-local /tmp/airdraft-render --render-window all ./render
-"$APP" --e2e-local /tmp/airdraft-speech --e2e-action transcribe --e2e-audio /absolute/path/to/clip.wav --e2e-model apple
-/usr/bin/log show --last 5m --predicate 'subsystem == "com.lightiichen.airdraft"' --style compact
-```
-
-These isolated commands use disposable app data and a nil credential reader.
-File transcription is silent and disables cursor insertion. Actions fail with
-a nonzero exit status and write `result.json`; a requested refiner that falls
-back to raw text fails verification even though the pipeline preserves the text.
-See [local verification](docs/local-e2e.md) for downloads, cancellation and live
-preview. Legacy `AIRDRAFT_SELFTEST` modes use normal app data and settings.
-
-CLI integration checks are opt-in. The wire harness sends requests to a local
-test server, checks that refinement instructions replace coding instructions,
-and rejects any tool schemas. It does not use paid inference:
-
-```sh
-TEST_RUNNER_AIRDRAFT_TEST_INSTALLED_CLIS=1 \
-TEST_RUNNER_AIRDRAFT_CLI_WIRE_HARNESS="$PWD/scripts/verify-cli-requests.py" \
-xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test
-```
-
-Add `TEST_RUNNER_AIRDRAFT_TEST_LIVE_CLI=1` to also run one real cleanup through
-each signed-in CLI. For isolated UI renders, set `AIRDRAFT_RENDER_LLM=codex` or
-`claudeCode`, optionally `AIRDRAFT_RENDER_MODEL` and `AIRDRAFT_RENDER_EFFORT`,
-then run `--render-window all <dir> 1800`.
-
-Claude calls use `--system-prompt`, `--tools ""`, `--safe-mode`, `--restricted`
-and `--strict-mcp-config`; authentication stays enabled. Codex uses a temporary
-`model_instructions_file` and a model catalogue configured without tools, plus
-disabled skills, plugins, hooks, and environment/coding context. The installed
-Codex 0.153.4 still adds the user's global `AGENTS.md` despite
-`project_doc_max_bytes=0`; its built-in coding prompt and tool schemas are removed.
-The app does not alter the user's global CLI files or login.
-Codex Ultra and Claude Ultracode orchestrate workflows rather than selecting
-single-call thinking effort, so tool-free dictation does not offer them.
-
-## Known issues
-
-- **`swift build` cannot run MLX.** The Metal library is only compiled by Xcode, so
-  `airdraft-cli` built with `swift build` fails with "Failed to load the default metallib"
-  when using `--qwen3`. Use the app self-test (`AIRDRAFT_SELFTEST_ASR=qwen3:<modelId>`)
-  or build the CLI scheme with `xcodebuild`.
-- **Signing must be stable for Accessibility to stick.** Ad-hoc builds get a
-  cdhash-based code requirement, so every rebuild invalidates the grant even though
-  the toggle stays on. `project.yml` pins `DEVELOPMENT_TEAM`; after changing signing
-  run `tccutil reset Accessibility com.lstudlo.app.airdraft` and grant once more.
-- **Stale Hugging Face tokens.** A revoked `HF_TOKEN` or `~/.cache/huggingface/token`
-  turns public Hub downloads into 401s. The app's downloader never sends a token, so this
-  only affects other tools.
-- **Reasoning models think for seconds.** Gemma 4 / Qwen3 in LM Studio spend
-  10 to 60 s reasoning before a one-line cleanup. The refiner sends
-  `reasoning_effort: "none"` (and `chat_template_kwargs.enable_thinking=false`) and
-  retries without them on a 400, so keep "Disable model thinking" on.
-- **Whisper defaults to Simplified Chinese.** Models ▸ Speech options ▸ Chinese script
-  (default 繁體) biases the Whisper prompt, instructs the LLM to use Taiwan
-  vocabulary, and runs an ICU character conversion as a last pass.
 
 ## First run
 
-1. Grant Microphone when prompted.
-2. Grant Accessibility (System Settings ▸ Privacy & Security ▸ Accessibility).
-   Needed to insert text and read context. Re-grant after re-signing the app.
-3. Models: download a speech model (Qwen3-ASR 1.7B for mixed Chinese and English).
-   The first dictation after a download compiles the model for the Neural Engine and
-   can take a minute; the pill shows "Loading model".
-4. Models ▸ Refinement: preset "LM Studio (local)", pick the model from the list
-   (`lms server start` first). Press "Test".
-5. Hold ⌃ ⌥ (Control + Option, default), speak, release. Change the key under Settings ▸
-   Keyboard Shortcuts ▸ "Record shortcut" and press the key or combination. A modifier
-   on its own (Right ⌥, fn) also works but needs Accessibility; for fn set System
-   Settings ▸ Keyboard ▸ "Press 🌐 key to" to "Do Nothing".
+1. Follow the setup guide, or open **Models** and download a speech model.
+2. Grant Microphone access when asked, and Accessibility access in System
+   Settings > Privacy & Security > Accessibility.
+3. Hold Control and Option (the default shortcut), speak, and release. Change the
+   shortcut in Settings > Keyboard shortcuts.
+4. Optionally choose a refinement provider in **Models** > Refinement.
 
-## Layout
+App data lives in `~/Library/Application Support/Transcribar/`. The folder keeps
+the app's earlier name so existing models and history stay in place.
 
-```
-project.yml                     XcodeGen spec (app target, test scheme, Info.plist, entitlements)
-.moon/workspace.yml              moon workspace, one Airdraft project
-moon.yml                        prepare, generate, build and test tasks
-.prototools                      pinned moon version
-Sources/App/
-  App/          AirdraftApp, AppContainer (object graph), ModelLifecycle (what is in memory)
-  Hotkeys/      HotkeyService ▸ CarbonHotkey (combos) or EventTapHotkey (modifier-only)
-  HUD/          Recording pill
-  Views/        One file per page, ModelCatalogue, RefinementSettings (provider tiles), Theme
-  Debug/        Offscreen renders, self-tests
-  Assets.xcassets/AppIcon.appiconset   generated by scripts/render-app-icon.swift
-Packages/AirdraftCore/               Engine-agnostic core (SwiftPM)
-  Sources/AirdraftCore/
-    Audio/        AudioRecorder (16 kHz mono), AudioChunker, WAVEncoder, AudioFile
-    ASR/          Local engines, five cloud APIs and custom endpoint support
-    LLM/          Refiner protocol, PromptBuilder, profiles, LM Studio control,
-                  OpenAI-compatible / Anthropic / Gemini / CLI (Claude Code, Codex) refiners
-    Providers/    Configs and presets, EngineFactory, LocalModels, ModelDownloader, Keychain
-    Context/      AppContext, AppFamily, AppContextReader (Accessibility)
-    Insertion/    TextInserter (AX, paste fallback with clipboard restore)
-    Dictionary/   DictionaryStore (JSON), DictionaryPostProcessor, ChineseScriptConverter
-    History/      HistoryStore (GRDB / SQLite)
-    Pipeline/     DictationPipeline (state machine)
-    Settings/     AppSettings (UserDefaults; secrets in Keychain), Hotkey
-  Sources/airdraft-cli/
-  Tests/AirdraftCoreTests/
-Packages/SherpaOnnxKit/         Link-only wrapper around the repackaged sherpa-onnx static libraries
-eval/                           Prompt correction eval, LLM benchmarks, results
-```
+## Documentation
 
-Data lives in `~/Library/Application Support/Transcribar/` (`history.sqlite`,
-`dictionary.json`). API keys are stored in the login Keychain under the
-service `com.lstudlo.app.airdraft`.
+- [CONTRIBUTING.md](CONTRIBUTING.md): development setup, tests and conventions
+- [SECURITY.md](SECURITY.md): reporting a vulnerability
+- [docs/](docs/): design and implementation notes, for example
+  [cloud transcription](docs/transcription-apis.md),
+  [local speech models](docs/local-speech-models.md),
+  [meeting recording](docs/meeting-recording.md),
+  [automation](docs/automation.md) and [updates and releases](docs/updates.md)
+- `apps/marketing`: the source of the website at airdraft.app, currently a
+  private preview
 
-The app bundle identifier and Keychain service are `com.lstudlo.app.airdraft`.
-Legacy preferences and API keys migrate from `com.lightiichen.transcribar`; the
-data directory stays in place for existing models and history. macOS requires
-new Microphone and Accessibility grants after the identifier changes. The project, scheme and app are `airdraft`; the Swift module is `AirdraftCore`.
-Logs use `com.lightiichen.airdraft`, and self-tests use `AIRDRAFT_SELFTEST` and
-`AIRDRAFT_SELFTEST_ASR`. Evaluation fixtures retain their original sample text.
+## License
 
-## Adding a provider
-
-Implement `Transcriber` or `Refiner`, add a case to `ASRProviderKind` /
-`LLMProviderKind`, wire it in `EngineFactory`, and add a preset in
-`EndpointPreset`. Nothing else needs to change.
-
-## Roadmap
-
-- Streaming preview while speaking (WhisperKit streaming API)
-- Auto-learn dictionary entries from user edits after insertion
-- Apple Foundation Models refiner (macOS 26)
-- Native Anthropic Messages API refiner
-- LoRA fine-tune of a small local model on own history (raw ▸ final pairs)
+Unless a file states otherwise, Airdraft's code, documentation and assets are
+licensed under [GPL-3.0-only](LICENSE): GPL version 3, without the "or later"
+option. Third-party components keep their own licenses. The app lists them under
+Settings > Updates > Acknowledgements; the bundled file,
+`Sources/App/Resources/Acknowledgements.txt`, is generated by
+`scripts/acknowledgements.py`. Speech and language models you download are not
+part of Airdraft and keep their own licenses.

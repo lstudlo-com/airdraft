@@ -11,6 +11,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import acknowledgements
+import local_signing
 import release_signing
 
 spec = importlib.util.spec_from_file_location('release', Path(__file__).with_name('release.py'))
@@ -246,6 +248,55 @@ class ReleaseTests(unittest.TestCase):
             command.return_value.stderr = b'Signature=adhoc\nTeamIdentifier=not set\n'
             with self.assertRaisesRegex(RuntimeError, 'ad-hoc release'):
                 release_signing.inspect_app(Path('fixture.app'))
+
+    def test_release_builds_pin_the_identity_over_local_signing(self):
+        settings = release_signing.build_settings(release_signing.POLICY['certificateSHA1'])
+        self.assertIn(f"DEVELOPMENT_TEAM={release_signing.POLICY['teamID']}", settings)
+        self.assertIn(f"CODE_SIGN_IDENTITY={release_signing.POLICY['certificateSHA1']}", settings)
+        self.assertIn('CODE_SIGN_STYLE=Manual', settings)
+        self.assertIn('ENABLE_HARDENED_RUNTIME=YES', settings)
+        self.assertNotIn('CODE_SIGN_IDENTITY=-', settings)
+        source = Path(release.__file__).read_text()
+        self.assertIn('*signing_settings(identity)]', source)
+        self.assertNotIn('Local.xcconfig', source)
+
+    def test_committed_signing_config_defaults_to_ad_hoc_and_ignores_local_team(self):
+        root = Path(release.__file__).resolve().parents[1]
+        config = (root / 'Config/Signing.xcconfig').read_text()
+        self.assertIn('CODE_SIGN_IDENTITY = -', config)
+        self.assertRegex(config, r'(?m)^DEVELOPMENT_TEAM =\s*$')
+        self.assertIn('#include? "Local.xcconfig"', config)
+        self.assertIn('/Config/Local.xcconfig', (root / '.gitignore').read_text())
+        project = (root / 'project.yml').read_text()
+        self.assertNotIn('DEVELOPMENT_TEAM', project)
+        self.assertIn('ENABLE_HARDENED_RUNTIME: YES', project)
+
+    def test_local_signing_uses_pinned_team_only_when_its_certificate_is_installed(self):
+        policy = release_signing.POLICY
+        for listed, expected in ((policy['certificateSHA1'], 'pinned'), ('0' * 40, 'ad-hoc')):
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                (root / 'scripts').mkdir()
+                (root / 'scripts/release-signing.json').write_text(json.dumps(policy))
+                result = subprocess.CompletedProcess([], 0, stdout=f'  1) {listed} "Apple Development: x"\n')
+                state = local_signing.ensure_local_config(root, run=lambda *a, **k: result,
+                                                          log=lambda _: None, environ={})
+                self.assertEqual(state, expected)
+                local = root / 'Config/Local.xcconfig'
+                if expected == 'pinned':
+                    self.assertIn(f"DEVELOPMENT_TEAM = {policy['teamID']}", local.read_text())
+                    local.write_text('DEVELOPMENT_TEAM = OTHER\n')
+                    self.assertEqual(local_signing.ensure_local_config(root, run=lambda *a, **k: result,
+                                                                       log=lambda _: None, environ={}), 'existing')
+                    self.assertEqual(local.read_text(), 'DEVELOPMENT_TEAM = OTHER\n')
+                    local.unlink()
+                    self.assertEqual(local_signing.ensure_local_config(
+                        root, run=lambda *a, **k: result, log=lambda _: None,
+                        environ={'AIRDRAFT_LOCAL_SIGNING': 'ad-hoc'}), 'ad-hoc')
+                self.assertFalse(local.exists())
+
+    def test_bundled_acknowledgements_match_resolved_inputs(self):
+        self.assertTrue(acknowledgements.check_inputs(Path(release.__file__).resolve().parents[1]))
 
 if __name__ == '__main__':
     unittest.main()

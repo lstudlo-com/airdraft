@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 from licensing import build_settings, verify_app
+from local_signing import ensure_local_config
 from release import ROOT, xcodegen
 from swiftpm_lock import restore, verify
 
@@ -14,6 +15,7 @@ def main():
     # Validate before building. An unfinished sandbox must not borrow live IDs,
     # open production checkout, or fall back to an unlocked licensing test.
     settings = build_settings(ROOT / "scripts/licensing-sandbox.json", environment="sandbox")
+    ensure_local_config(ROOT)
     subprocess.run([str(xcodegen()), "generate"], cwd=ROOT, check=True)
     restore(ROOT)
     command = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
