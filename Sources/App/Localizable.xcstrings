@@ -6134,6 +6134,16 @@
         }
       }
     },
+    "Not yet tested end to end in Airdraft. Models you use or have downloaded stay listed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試。你正在使用或已下載的模型會持續列出。"
+          }
+        }
+      }
+    },
     "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly." : {
       "localizations" : {
         "zh-Hant" : {

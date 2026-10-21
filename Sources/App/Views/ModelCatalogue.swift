@@ -197,6 +197,33 @@ extension ModelCatalogue {
         return (recommended, rest.filter { $0.tier != .experimental }, rest.filter { $0.tier == .experimental })
     }
 
+    /// Recommended, then Verified (with built-in) rows, then the Experimental
+    /// disclosure. Collapsed, the group still lists the Experimental entries in
+    /// `keepVisible` (models in use, installed or downloading), so a model the user
+    /// relies on never disappears behind the disclosure (AD-071). Expanded or
+    /// searching, it lists every Experimental entry in catalogue order.
+    static func localItems(_ entries: [ModelEntry], recommendation: LocalSpeechRecommendation,
+                           keepVisible: Set<String>, expanded: Bool, searching: Bool) -> [LocalModelItem] {
+        let groups = grouped(entries, recommendation: recommendation)
+        var items: [LocalModelItem] = []
+        let recommendedHeader: LocalModelItem.Header = recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
+        for (index, entry) in groups.recommended.enumerated() {
+            items.append(.model(entry, header: index == 0 ? recommendedHeader : nil,
+                                bestFit: entry.id == recommendation.model.catalogueID))
+        }
+        for (index, entry) in groups.verified.enumerated() {
+            let labelled = !groups.recommended.isEmpty || !groups.experimental.isEmpty
+            items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, bestFit: false))
+        }
+        if !groups.experimental.isEmpty {
+            let kept = groups.experimental.filter { keepVisible.contains($0.id) }
+            items.append(.experimental(count: groups.experimental.count, kept: expanded ? 0 : kept.count,
+                                       expanded: expanded, searching: searching))
+            items += (expanded ? groups.experimental : kept).map { .model($0, header: nil, bestFit: false) }
+        }
+        return items
+    }
+
     /// One recommendation for first-run setup and Models (AD-074). Renders inject
     /// the system language and memory so both cases can be inspected on any Mac.
     static var recommendation: LocalSpeechRecommendation {
@@ -382,7 +409,8 @@ struct CloudModelRow: View {
 enum LocalModelItem: Identifiable {
     enum Header { case recommended, recommendedForMemory, verified }
     case model(ModelEntry, header: Header?, bestFit: Bool)
-    case experimental(count: Int, expanded: Bool, searching: Bool)
+    /// `kept` counts Experimental rows listed while collapsed because they are in use.
+    case experimental(count: Int, kept: Int, expanded: Bool, searching: Bool)
 
     var id: String {
         switch self {
@@ -421,6 +449,7 @@ struct LocalModelGroupHeader: View {
 /// models Airdraft has tested. Searching includes them without a click.
 struct ExperimentalModelsDisclosure: View {
     let count: Int
+    var kept = 0
     let expanded: Bool
     let searching: Bool
     let toggle: () -> Void
@@ -436,6 +465,7 @@ struct ExperimentalModelsDisclosure: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Experimental models (\(count))").appFont(.body, weight: .medium)
                     Text(searching ? String(localized: "Search results include experimental models.")
+                         : kept > 0 ? String(localized: "Not yet tested end to end in Airdraft. Models you use or have downloaded stay listed.")
                          : String(localized: "Not yet tested end to end in Airdraft. They may fail to load or transcribe poorly."))
                         .supportingText().fixedSize(horizontal: false, vertical: true)
                 }

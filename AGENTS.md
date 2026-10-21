@@ -289,7 +289,10 @@ verification status belong in the vault (see below).
   Only choosing a model selects its provider. Keep table headers fixed and cap the
   scrolling rows at `Theme.modelTableMaxHeight` (300 pt); short lists shrink to fit.
   The local table opens with Recommended for your language, then Verified and
-  built-in models, then a collapsed Experimental disclosure that search opens. Tiers
+  built-in models, then a collapsed Experimental disclosure that search opens.
+  Collapsed, it still lists Experimental models in use: the app default, the active
+  profile's binding, installed files (checked on a worker) and running downloads;
+  `models-performance` asserts this. Tiers
   are data in `ModelCatalogue.verificationEvidence` with a source per ID; promote a
   model only after an actual download, load and transcription.
   Long model tables use native List virtualization; group each row with its

@@ -90,7 +90,10 @@ same rule.
 
 The local table opens with "Recommended for your language", then Verified and
 built-in models, then a collapsed "Experimental models (N)" disclosure (AD-071).
-Searching includes Experimental rows without a click. Rows show the tier as a
+Searching includes Experimental rows without a click. While collapsed, the group
+still lists the Experimental models the user relies on: the app default, the active
+profile's speech model, installed models and running downloads, so a selected or
+downloaded model never disappears behind the disclosure. Rows show the tier as a
 symbol and word before their tags; Qwen3-ASR 1.7B also shows "Best for mixed
 Chinese and English". `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and
