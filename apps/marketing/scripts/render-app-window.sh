@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Renders the homepage's real app window (the interface section) from a Debug
 # build: the Settings page at the fixed 784-point width, light and dark,
-# with an isolated empty data directory (--e2e-local), so the sidebar reads
-# "Ready to dictate" and no history, usage count or personal setting appears.
+# with an isolated empty data directory (--e2e-local), so no history, usage
+# count or personal setting appears. The fixture never starts the shortcut, so
+# the sidebar footer reads "Finish Setup".
 # The renders are converted to grayscale, as the app looks with the system's
 # Graphite accent; the site carries no hue (scripts/check-neutral.mjs).
 #
