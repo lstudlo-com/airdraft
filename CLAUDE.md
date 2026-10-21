@@ -74,6 +74,18 @@ verification status belong in the vault (see below).
   is the canonical reviewed SwiftPM graph; every generation route restores it into
   the generated project. Xcode builds use `-onlyUsePackageVersionsFromResolvedFile`;
   release builds compare the final pins with that committed graph.
+- Third-party notices are generated: `scripts/acknowledgements.py generate` writes
+  `Sources/App/Resources/Acknowledgements.txt` and `Sparkle-LICENSE.txt` from
+  resolved SwiftPM checkouts, binary targets, native inputs and brand assets, using
+  the reviewed `ThirdParty/acknowledgements.json` and the pinned texts in
+  `ThirdParty/licenses/`. Never hand-edit the output. After changing
+  `Package.resolved`, a package manifest, native inputs or a `ModelBrand` image set,
+  build once, regenerate, and run `python3 -B scripts/test-acknowledgements.py`.
+  Unreviewed dependencies, license files or texts fail; CI and release preparation
+  reject stale notices. Settings > Updates > Acknowledgements opens the bundled file.
+  `python3 scripts/generate-project.py --install-xcodegen` is the explicit,
+  checksum-verified XcodeGen download for fresh clones; normal generation never
+  downloads.
 - `project.yml` is the source of truth for the Xcode project. After changing it run
   `xcodegen generate`. `airdraft.xcodeproj` is generated and git-ignored.
 - `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.
@@ -112,7 +124,14 @@ verification status belong in the vault (see below).
   The page and each release use a title followed by described change items, without
   a title summary. Preserve the version navigator, reduced-motion behavior and
   readable content without JavaScript.
-  Search contracts live in `apps/marketing/SEARCH.md`. Keep factual guide content,
+  Search contracts live in `apps/marketing/SEARCH.md`. Mixed-language accuracy
+  statements come only from `eval/mixed-asr` through
+  `apps/marketing/src/data/mixed-asr.ts`, quoted as Airdraft's dated own measurement
+  with its method link and limits; update both when the measurement is re-run.
+  Website guides that describe insertion or model recommendations name 0.10.2
+  versus next-version behaviour until a release includes it; when
+  `selfDrawingEditorBundlePrefixes` or the onboarding recommendation changes, update
+  the coding-agent and mixed-language guides together. Keep factual guide content,
   metadata and structured data aligned; never invent sale availability, reviews or
   ranking claims. The app comparison guide cites each product's own pages with
   check dates, states where competitors are better and marks unknown cells Not
@@ -121,7 +140,7 @@ verification status belong in the vault (see below).
   with canonical HTML routes. IndexNow defaults to a dry run; submission is a
   separate explicit command after publication, never a build side effect.
   Website analytics follow `apps/marketing/ANALYTICS.md`: consent before SDK
-  loading, explicit production configuration, anonymous event allowlists, no
+  loading, explicit production configuration, anonymous event allowlists (including slug-only `guide_clicked`), no
   native dictation data or replay, and privacy-page revocation. Keep event names,
   dashboard definitions and consent/data-filter regressions aligned. Website
   clicks measure intent, not installs or revenue.
@@ -258,6 +277,10 @@ verification status belong in the vault (see below).
   their heading pickers filter browsing without changing the active speech config.
   Only choosing a model selects its provider. Keep table headers fixed and cap the
   scrolling rows at `Theme.modelTableMaxHeight` (300 pt); short lists shrink to fit.
+  The local table opens with Recommended for your language, then Verified and
+  built-in models, then a collapsed Experimental disclosure that search opens. Tiers
+  are data in `ModelCatalogue.verificationEvidence` with a source per ID; promote a
+  model only after an actual download, load and transcription.
   Long model tables use native List virtualization; group each row with its
   separator as one cell. Short lists measure an eager stack and clamp geometry
   observations to the viewport cap. Preserve native accessibility scrolling;
@@ -384,7 +407,10 @@ verification status belong in the vault (see below).
   and selection cannot draw over Show More, the version picker or card actions.
   Verify the drawing boundary as well as the six-line measurement.
   Keep day groups, search, lazy card loading
-  and native card actions. The timeline follows the same filtered records. Refresh sidebar word totals after single/all history
+  and native card actions. Home Recent and History show durations through
+  `DurationLabel`: seconds, with one decimal below 10 s. A failed History read
+  shows only its Reload History notice, never the empty state;
+  `AIRDRAFT_RENDER_HISTORY_ERROR` applies to Home and History. The timeline follows the same filtered records. Refresh sidebar word totals after single/all history
   deletion and every completed save retry; reject stale asynchronous count results.
   Home's waveform well is 60 points tall with 24-point minimum horizontal inner insets.
   The hero card itself is raised: `SurfaceShadows` casts a soft highlight up-left
@@ -412,8 +438,11 @@ verification status belong in the vault (see below).
   Home's readiness card, hero and the sidebar footer share `SetupReadiness`, which
   also reports the pipeline's blockers (`DictationBlocker`): an official build's
   missing trial/license (Trial & License…) and full kept-recording bounds (retry or
-  discard). A pending license read is not a blocker. The footer opens Home: Finish
-  Setup, or Recordings Waiting when that is the only issue.
+  discard). A pending license read is not a blocker. The footer opens Home (Finish
+  Setup, or Recordings Waiting when that is the only issue), or the Trial & License
+  sheet (Start Trial / License) when the license is the only issue. File and system
+  checks behind readiness come from `SetupFacts`, measured off the main actor,
+  never in view bodies.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. Buttons and menu items
@@ -445,13 +474,12 @@ verification status belong in the vault (see below).
   popovers inherit: keyboard navigation never draws the system's blue focus ring
   around soft controls. It must sit on an ancestor; inside a `ButtonStyle` it has
   no effect, and `\.isFocused` does not reach a style either.
-  Meetings' Record Meeting, Start Recording, Stop and Save, Transcribe and
-  Save Changes use `SoftButtonStyle(prominent: true)`: blue fill, white type and
-  the same raised, pressed and disabled geometry as secondary buttons.
-  Header actions share the 28-point control height. Other primary controls keep
-  `.borderedProminent` through `.primaryButtonStyle()`, which applies the same
-  radius, and native link buttons. The
-  menu-bar menu stays native. Reuse `NeumorphicSurface` for the sidebar wells,
+  Every primary action, including onboarding, License, Settings and Meetings'
+  Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes, uses
+  `.primaryButtonStyle()`, which applies `SoftButtonStyle(prominent: true)`: blue
+  fill, white type and the same raised, pressed and disabled geometry as secondary
+  buttons, keeping its color when the window is not key. Header actions share the
+  28-point control height. Native link buttons and the menu-bar menu stay native. Reuse `NeumorphicSurface` for the sidebar wells,
   keycaps, meters, preview frames and Home tracks. Light comes from the top left in both appearances: raised surfaces
   highlight their top-left edge and cast shadows down-right; recessed surfaces
   shade the inner top-left edge and light the inner bottom-right edge.
@@ -598,7 +626,9 @@ verification status belong in the vault (see below).
   idle countdown. Pins block only idle unloading, never explicit switch, reset or
   quit unloads. Warm CLI sessions owned by a recording live for the 600-second cap
   plus 300 seconds; unowned sessions expire after 180 seconds.
-  Downloads go through `ModelDownloader` (Models page). The Models table is data in
+  Downloads go through `ModelDownloader` (Models page). Qwen3-ASR and WhisperKit
+  files come from `local-pinned-models.json` (immutable revision, bytes, SHA-256),
+  regenerated only with `scripts/pin-hub-models.py`; unpinned IDs are refused. The Models table is data in
   `ModelCatalogue`; installed, loaded, download and delete all derive from each entry's `select`.
   Model downloads report received bytes during each file, and Whisper includes tokenizer
   files in its byte total. Preparing, verification and unpacking use an indeterminate
@@ -693,7 +723,8 @@ verification status belong in the vault (see below).
   failures accurately. Confirmed delivery releases the pipeline immediately: the
   inserter owns the delayed clipboard restore, and a newer paste takes over the
   clipboard the old one displaced, so an earlier restore never overwrites a newer
-  dictation. History saving and the outcome run in an ordered delivery tail
+  dictation; after an unverified paste, the next insertion waits out that paste's
+  receiver window before writing the clipboard. History saving and the outcome run in an ordered delivery tail
   (`isFinishingDelivery`); quit waits for it (bounded) and restores a confirmed
   paste's clipboard at once, but waits out an unverified paste's remaining 2 s
   delay so a busy receiver never reads the old clipboard; data cleanup and meeting start wait for it too. A shortcut rejected
@@ -778,7 +809,13 @@ values, model or provider names, or keycap names, and never compare against
 displayed text. Native menus (`MenuBarExtra`, `NSHostingMenu`, app commands)
 resolve SwiftUI keys with an empty environment locale, so their titles, items and
 tooltips must be `String(localized:)` values; the menu fixture checks both
-languages. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. After a Debug
+languages. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. Built-in profiles keep
+their stored English names; the interface shows `RefinementProfile.displayName`
+(History: `displayName(forSavedName:)`), localized until renamed. Modifier-only
+shortcut labels localize only their side word through
+`Hotkey.displayCaps`/`localizedDisplayString`; `keyCaps`/`displayString` stay
+English for logs and matching. `Sources/App/AppShortcuts.xcstrings` holds App
+Shortcut phrases, and every translation keeps `${applicationName}`. After a Debug
 build, run `python3 scripts/localization.py sync`, translate new keys and run
 `check`; `audit` lists literals that bypass localization. `LocalizationCatalogTests`
 fails on missing, stale or placeholder-mismatched zh-Hant entries. Verify UI
@@ -809,6 +846,11 @@ dictation complete, and only Try It's real pipeline delivery records success.
 Existing setups do not open the flow automatically; replay after success starts
 at Welcome. Old three-step progress migrates without reopening a skipped setup.
 Speech offers On this Mac (recommended) or an online service with the user's key.
+`LocalSpeechRecommendation` picks the local model from the primary system language
+and physical memory: Chinese gets Qwen3-ASR 1.7B with SenseVoice as the smaller
+choice, reversed at 8 GB or less; English, Japanese and Korean get SenseVoice; other
+languages get Whisper Large v3 Turbo. Never recommend Qwen3-ASR 0.6B as a lighter
+default. Each choice shows its download size and a one-line trade-off.
 A local download starts only from an explicit action, continues through later
 steps with progress in the rail, and becomes the app default only when complete
 while setup is open; Set Up Later discards that pending choice. Shortcut practice
@@ -822,7 +864,8 @@ ignoring saved profile bindings without mutating them. Restore returning users'
 refinement and output settings on exit and after restart. Ready offers refinement
 after practice: when the system reports Apple Intelligence available, one click
 selects it (Turn Off reverts it); otherwise explain the system reason plainly and
-keep Open Models. When the saved active profile skips refinement (Verbatim), say
+keep Open Models; when Apple Intelligence is not enabled, offer Open System Settings
+(Apple Intelligence & Siri) and keep setup open. When the saved active profile skips refinement (Verbatim), say
 it keeps exact words and that the provider tidies profiles that refine; never
 change profiles there. Never ask for a key, download or prompt there, and never replace
 a returning user's other provider. `AppSettings.chooseRefinement` updates the
@@ -1058,7 +1101,14 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   recover the same input without clearing captured samples, and leave the Core
   Audio notification queue before engine operations. The microphone self-test
   must check interruption callbacks and resumed capture, not sample count alone.
-- Keep `DEVELOPMENT_TEAM` in `project.yml`; ad-hoc signing breaks Accessibility on every rebuild.
+- Source builds sign ad-hoc through `Config/Signing.xcconfig` unless the git-ignored
+  `Config/Local.xcconfig` names a team (`Config/Local.xcconfig.example`).
+  `scripts/generate-project.py` creates it for the pinned team when that certificate
+  is installed; keep running it in new worktrees so Debug builds keep a stable
+  identity and Accessibility grants. Never put a team in `project.yml`. Release
+  builds pass the pinned identity, team and Hardened Runtime from
+  `scripts/release-signing.json` on the command line and never read the local file.
+  `AIRDRAFT_LOCAL_SIGNING=ad-hoc` reproduces a contributor build.
 - MLX (Qwen3-ASR, Cohere) only works in Xcode-built products; `swift build` has no Metal library.
 - sherpa-onnx (FireRedASR2, SenseVoice) is linked through `Packages/SherpaOnnxKit`, whose
   `Vendor/` xcframeworks are generated by `scripts/make-sherpa-xcframeworks.sh` (run once after
@@ -1122,7 +1172,9 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 ## Production gate evidence
 
 Release preparation runs `scripts/test-prompt-gate.py` and `scripts/verify-prompt.py`
-against the committed export before packaging. Keep `eval/results/prompt-validation.json`
+against the committed export before packaging. It also runs
+`test-acknowledgements.py` and `acknowledgements.py check` against the release's
+SourcePackages. Keep `eval/results/prompt-validation.json`
 bound to the current prompt assembly and all three evaluation datasets; no per-case
 regressions are accepted, and every context-correction run must pass. Rebuild the CLI before collecting fresh three-run reports.
 Artifact signing checks require Hardened Runtime as well as the pinned identity.
@@ -1162,8 +1214,11 @@ text must not orphan or remove retained recordings. Keep asset metadata free of
 transcripts and app context, and clear links when audio is deleted. Recording
 queries filter before pagination and count missing files in continuation offsets.
 Export stored bytes under the deletion writer lease; exported copies are user-owned.
-See `docs/recording-storage.md`. Preserve audio in pending-save recovery. Run cleanup
-at launch, hourly, after saves and after retention changes. Playback has one owner
+See `docs/recording-storage.md`. Preserve audio in pending-save recovery. Run full audio
+cleanup at launch, hourly and after retention changes, never after each save; it
+reloads audio views only when it changed something. Word totals sum the stored
+`dictation.wordCount` (nullable; uncounted rows are counted from their text and
+backfilled on open). Playback has one owner
 and stops when recording, deleting, leaving History or cleaning up audio. History
 uses All/Recordings filters over one timeline; audio-only cards contain no deleted
 transcript. Play/pause and seek share one transport, and only the selected progress
@@ -1210,18 +1265,23 @@ Check recording prerequisites before opening the microphone or prewarming a
 refiner: permission, insertion access, selected device/channel, model installation
 and readiness, endpoint validity, and required speech/refinement credentials.
 Never prompt for a credential implicitly. A blocked attempt opens Home with an
-actionable reason, even when the HUD is hidden. Refinement Off and Verbatim do not
+actionable reason, even when the HUD is hidden. Open the microphone as soon as the
+prerequisites pass and capture the insertion target and app context while audio
+buffers; any exit before the recording state stops capture and discards that
+audio. The timer and limit count from capture start. Log `pressToCaptureMs`
+(acceptance to first buffer). Refinement Off and Verbatim do not
 require refinement credentials; unexpected refinement errors still preserve raw text.
 Recording callbacks, release timers and asynchronous results belong to their session.
 Keep failed speech audio in memory for explicit retry or discard, and warn before
 quitting with recoverable audio or unsaved changes. A kept recording never blocks
 new dictation: keep at most `DictationPipeline.maximumPendingRecordings` (3)
-dictation recoveries or `maximumPendingRecordingSeconds` (900) of audio, then
-refuse a new recording with a message and open Home instead of dropping audio.
+dictation recoveries or `maximumPendingRecordingSeconds` (900) of audio.
 Each entry keeps its own failure text, insertion target and delivery policy; Home,
 the menu and retry act on the newest entry by ID, and a failed retry keeps the
-same entry as the newest. The bound is hard: start a recording only while kept
-audio plus its effective recording limit fits 900 seconds. A retry for a
+same entry as the newest. The bound is hard but shortens rather than blocks: a
+new recording captures at most min(its effective limit, 900 s − kept audio), stops
+there with a notice saying why, and is refused (message, Home) only when three
+dictations are kept or less than 10 s remain. Never drop kept audio. A retry for a
 caretless target copies with a notice instead of re-activating and pasting into
 whatever that window shows now; caret targets are still verified by read-back.
 A retry resolves its entry only once the result is delivered and held for History
