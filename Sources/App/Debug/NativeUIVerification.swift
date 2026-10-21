@@ -24,6 +24,25 @@ enum NativeUIVerification {
     private final class SilentWindow: NSWindow {
         override func noResponder(for eventSelector: Selector) {}
     }
+    /// Fake capture: one second of constant non-silent samples, no microphone.
+    private final class PracticeRecorder: AudioRecording, @unchecked Sendable {
+        var isRecording = false
+        private(set) var starts = 0
+        var levelHandler: (@Sendable (Float) -> Void)?
+        var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
+        func start(microphone: MicrophonePreference) throws { isRecording = true; starts += 1 }
+        func stop() -> [Float] { isRecording = false; return [Float](repeating: 0.1, count: 16_000) }
+        func cancel() { isRecording = false }
+    }
+    /// Fake speech engine: never loads the presence-marker model files.
+    private struct PracticeSpeech: Transcriber {
+        static let text = "Hello from the practice fixture."
+        let id: String
+        func prepare() async throws {}
+        func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+            Transcript(text: Self.text, engine: id, latencyMs: 0)
+        }
+    }
 
     static func run(to directory: URL) {
         setbuf(stdout, nil)
@@ -43,11 +62,15 @@ enum NativeUIVerification {
         settings.llm.select(.none)
         settings.useAppContext = false
         let gate = AccessGate()
+        let recorder = PracticeRecorder()
         let container = AppContainer(settings: settings,
             dataDirectory: LocalE2E.directory.appendingPathComponent("native-ui-\(UUID())"),
             recordingAccessCheck: { await gate.wait() },
             permissions: SystemPermissions(checkAccessibility: { true }, checkMicrophone: { .authorized },
-                                           promptAccessibility: { preconditionFailure("Unexpected permission prompt") }))
+                                           promptAccessibility: { preconditionFailure("Unexpected permission prompt") }),
+            dictationBoundary: .init(recorder: recorder, transcriberBuilder: { PracticeSpeech(id: $0.engineID) },
+                                     recordingPreflight: { _, _, _, _, _ in },
+                                     requestMicrophoneAccess: { true }))
         container.microphones.useRenderDevices([
             Microphone(id: 100, uid: "fixture-main", name: "Fixture Main", inputChannelCount: 2),
             Microphone(id: 101, uid: "fixture-secondary", name: "Fixture Secondary"),
@@ -58,7 +81,7 @@ enum NativeUIVerification {
         verifyMicrophones(container, gate: gate, directory: directory)
         verifyReadiness(container, directory: directory)
         verifyPractice(container, directory: directory)
-        verifyOnboardingFlow(container, directory: directory)
+        verifyOnboardingFlow(container, gate: gate, recorder: recorder, directory: directory)
         verifyNotices(directory: directory)
         verifyCleanupRecovery(directory: directory)
         container.dictionary.add(DictionaryEntry(term: "Airdraft", aliases: ["air draft", "air draught"]))
@@ -310,7 +333,8 @@ enum NativeUIVerification {
 
     /// Walks the production onboarding from Welcome to Ready with injected permissions.
     /// Delivery is the pipeline's own callback; nothing records, loads or downloads.
-    private static func verifyOnboardingFlow(_ container: AppContainer, directory: URL) {
+    private static func verifyOnboardingFlow(_ container: AppContainer, gate: AccessGate, recorder: PracticeRecorder,
+                                             directory: URL) {
         let settings = container.settings
         settings.asr = ASRConfig(kind: .senseVoice, language: "en")
         let folder = LocalModels.folder(for: settings.asr)!
@@ -369,7 +393,32 @@ enum NativeUIVerification {
         editor.insertText("I typed this instead", replacementRange: NSRange(location: NSNotFound, length: 0)); pump()
         precondition(editor.string.contains("I typed this instead"))
         precondition(!enabled(find(id: "onboarding.continue", in: window)), "Typed text must never complete practice")
-        settings.onboarding.noteDelivery(); pump()
+        // The real pipeline path: practice channel at capture, fake one-second
+        // capture and speech, delivery, `onOutputDelivered` and `noteDelivery`.
+        // Nothing is pasted: the channel replaces target capture for practice.
+        container.practiceEditor.isAppActive = { true }
+        defer { container.practiceEditor.isAppActive = { NSApp.isActive } }
+        precondition(container.practiceEditor.acceptsDictation, "The focused practice editor must receive practice dictation")
+        let pipeline = container.pipeline
+        func waitFor(_ what: String, _ condition: () -> Bool) {
+            let deadline = Date().addingTimeInterval(10)
+            while !condition() && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.02)) }
+            precondition(condition(), "Timed out waiting for \(what); state \(pipeline.state)")
+        }
+        pipeline.startRecording()
+        waitFor("held startup") { gate.continuation != nil }
+        gate.release()
+        waitFor("recording") { pipeline.isRecording }
+        precondition(recorder.starts == 1)
+        pipeline.stopAndProcess()
+        waitFor("practice delivery") { !pipeline.isBusy && !pipeline.isFinishingDelivery }
+        pump()
+        precondition(editor.string == "I typed this instead " + PracticeSpeech.text,
+                     "The dictation reaches the practice editor, found \(editor.string)")
+        precondition(settings.onboarding.practiceDeliveries == 1, "Only the pipeline's delivery counts")
+        let saved = (try? container.history?.recent(limit: 1).first) ?? nil
+        precondition(saved?.finalText == PracticeSpeech.text && saved?.deliveryStatus == .delivered,
+                     "Practice delivery is recorded as delivered in History")
         precondition(enabled(find(id: "onboarding.continue", in: window)))
         precondition(text(find(id: "onboarding.practice-success", in: window)).contains("It worked"))
         precondition(text(find(id: "onboarding.script", in: window)).contains("Try a message"),
@@ -404,7 +453,7 @@ enum NativeUIVerification {
         precondition(settings.llm.kind == .appleIntelligence, "Leaving practice restores the choice")
         settings.onboarding.dismiss()
         settings.chooseRefinement(.none)
-        print("NATIVE_UI_PASS onboarding-flow six-steps named-shortcut typed-text-rejected delivery-completes ready-refinement-choice ready-finishes replay")
+        print("NATIVE_UI_PASS onboarding-flow six-steps named-shortcut typed-text-rejected pipeline-practice-delivery-completes ready-refinement-choice ready-finishes replay")
     }
 
     private static func verifyNotices(directory: URL) {

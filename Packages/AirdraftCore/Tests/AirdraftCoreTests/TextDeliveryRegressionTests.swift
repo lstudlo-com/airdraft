@@ -606,6 +606,96 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertFalse(inserter.hasPendingClipboardRestoration)
     }
 
+    /// A retry may run long after the recording; the caretless window may now
+    /// show anything. Retries copy instead of activating and pasting blindly.
+    func testRetryOfCaretlessRecordingCopiesWithoutPasting() async throws {
+        for selfDrawing in [true, false] {
+            let fixture = try RetryDeliveryFixture(caretless: true, bundleID: selfDrawing ? Editor.selfDrawingBundleID : "com.apple.finder")
+            defer { fixture.close() }
+            try await fixture.recordFailure()
+            fixture.editor.frontmostPID = 999
+            fixture.editor.focusedWindow = fixture.editor.otherWindow
+            fixture.pipeline.retryRecording()
+            try await fixture.waitUntilFinished()
+            XCTAssertEqual(fixture.editor.posts, 0, "No paste is posted for a retried caretless target")
+            XCTAssertEqual(fixture.editor.activations, 0, "The old app is not re-activated")
+            XCTAssertEqual(fixture.delivered, 0)
+            XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.dictation)
+            XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+            XCTAssertFalse(fixture.inserter.hasPendingClipboardRestoration, "Nothing restores over the copied text")
+            let record = try XCTUnwrap(fixture.history.recent(limit: 1).first)
+            XCTAssertEqual(record.deliveryStatus, .notDelivered)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "The copied result resolves the kept recording")
+        }
+    }
+
+    /// A retry into a field with a caret is still verified by read-back.
+    func testRetryOfCaretRecordingStillPastesAndConfirms() async throws {
+        let fixture = try RetryDeliveryFixture(caretless: false, bundleID: "test.editor")
+        defer { fixture.close() }
+        try await fixture.recordFailure()
+        fixture.pipeline.retryRecording()
+        try await fixture.waitUntilFinished()
+        XCTAssertEqual(fixture.editor.pasted, [Editor.dictation])
+        XCTAssertEqual(fixture.delivered, 1)
+        XCTAssertEqual(try fixture.history.recent(limit: 1).first?.deliveryStatus, .delivered)
+    }
+
+    /// AD-076 review: Try It's editor lives inside Airdraft, which is never a
+    /// paste target. The practice channel delivers the real pipeline's final
+    /// text to it, and only that delivery reports success.
+    func testPracticeDictationReachesPracticeEditorThroughPipeline() async throws {
+        for shape in ["accepted", "editor unfocused", "editor gone"] {
+            let fixture = try RetryDeliveryFixture(caretless: false, bundleID: try XCTUnwrap(Bundle.main.bundleIdentifier),
+                                                   speech: [.text(Editor.dictation)])
+            defer { fixture.close() }
+            let practice = PracticeEditor()
+            practice.accepting = shape != "editor unfocused"
+            fixture.pipeline.practiceTarget = practice
+            fixture.settings.outputDestination = .script
+            fixture.settings.outputScriptPath = "/nonexistent/never-run.sh"
+            fixture.settings.llm.select(.appleIntelligence)
+            fixture.settings.beginOnboardingPractice()
+            XCTAssertEqual(fixture.settings.outputDestination, .cursor, "Practice uses cursor insertion")
+            if shape == "editor gone" { practice.present = false }
+            try await fixture.record()
+            try await fixture.waitUntilFinished()
+            let record = try XCTUnwrap(fixture.history.recent(limit: 1).first)
+            XCTAssertEqual(fixture.editor.posts, 0, "\(shape): Airdraft never pastes into itself")
+            XCTAssertEqual(record.llmEngine, nil, "\(shape): practice refinement is off")
+            switch shape {
+            case "accepted":
+                XCTAssertEqual(practice.received, [Editor.dictation])
+                XCTAssertEqual(fixture.delivered, 1, "Real delivery reports success")
+                XCTAssertEqual(record.deliveryStatus, .delivered)
+                XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.previousClipboard,
+                               "The practice editor leaves the clipboard alone")
+                XCTAssertEqual(fixture.pipeline.state, .idle)
+            default:
+                XCTAssertTrue(practice.received.isEmpty, shape)
+                XCTAssertEqual(fixture.delivered, 0, "\(shape): a copy does not complete practice")
+                XCTAssertEqual(record.deliveryStatus, .notDelivered, shape)
+                XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.dictation, shape)
+                XCTAssertEqual(fixture.pipeline.state, .notice("Copied to clipboard", requiresAttention: false), shape)
+            }
+            fixture.settings.endOnboardingPractice()
+        }
+    }
+
+    /// Outside practice the self-target stays copy-only, even with a channel set.
+    func testPracticeChannelIsIgnoredOutsidePractice() async throws {
+        let fixture = try RetryDeliveryFixture(caretless: false, bundleID: try XCTUnwrap(Bundle.main.bundleIdentifier),
+                                               speech: [.text(Editor.dictation)])
+        defer { fixture.close() }
+        let practice = PracticeEditor()
+        fixture.pipeline.practiceTarget = practice
+        try await fixture.record()
+        try await fixture.waitUntilFinished()
+        XCTAssertTrue(practice.received.isEmpty)
+        XCTAssertEqual(fixture.delivered, 0)
+        XCTAssertEqual(fixture.pipeline.state, .notice("Copied to clipboard", requiresAttention: false))
+    }
+
     func testCancelledInsertionNeverChangesClipboardOrDestination() async throws {
         let editor = Editor()
         defer { editor.close() }
@@ -962,6 +1052,103 @@ private final class DeliveryPipelineFixture {
         editor.close()
         try? FileManager.default.removeItem(at: directory)
         UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+    }
+}
+
+/// A failed recording kept for retry, then retried into the disposable editor.
+@MainActor
+private final class RetryDeliveryFixture {
+    let editor = Editor()
+    let inserter: TextInserter
+    let recorder = DeliveryRecorder()
+    let history: HistoryStore
+    let settings: AppSettings
+    let pipeline: DictationPipeline
+    private(set) var delivered = 0
+    private let suite = "airdraft.retry-delivery.\(UUID().uuidString)"
+    private let directory: URL
+
+    init(caretless: Bool, bundleID: String, speech: [FlakySpeech.Response] = [.failure, .text(Editor.dictation)]) throws {
+        editor.bundleID = bundleID
+        if caretless { editor.focusAvailable = false }
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
+        settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
+        settings.asr = ASRConfig(kind: .parakeet)
+        settings.llm.select(.none)
+        settings.useAppContext = false
+        settings.livePreviewEnabled = false
+        history = try HistoryStore(directory: directory)
+        inserter = editor.inserter()
+        let flaky = FlakySpeech(speech)
+        pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
+            profiles: ProfileStore(directory: directory), history: history,
+            factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in
+                XCTFail("Delivery regression tests must not read credentials"); return nil
+            }, transcriberBuilder: { _ in flaky }, refinerBuilder: { _ in
+                XCTFail("Practice and retry fixtures never refine"); return nil
+            }), recorder: recorder,
+            inserter: inserter, recordingPreflight: { _, _, _, _, _ in }, requestMicrophoneAccess: { true })
+        pipeline.onOutputDelivered = { [weak self] in self?.delivered += 1 }
+    }
+
+    func record() async throws {
+        pipeline.startRecording()
+        for _ in 0..<400 where !pipeline.isRecording { try await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertTrue(pipeline.isRecording)
+        pipeline.stopAndProcess()
+    }
+
+    func recordFailure() async throws {
+        try await record()
+        for _ in 0..<400 where !pipeline.hasRecoverableRecording || pipeline.isBusy {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        XCTAssertTrue(pipeline.hasRecoverableRecording)
+        XCTAssertEqual(editor.posts, 0)
+    }
+
+    func waitUntilFinished() async throws {
+        try await Task.sleep(for: .milliseconds(20))
+        for _ in 0..<600 where pipeline.isBusy || pipeline.isFinishingDelivery {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        XCTAssertFalse(pipeline.isBusy)
+    }
+
+    func close() {
+        pipeline.cancel()
+        try? history.close()
+        editor.close()
+        try? FileManager.default.removeItem(at: directory)
+        UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+    }
+}
+
+@MainActor
+private final class PracticeEditor: PracticeDeliveryTarget {
+    var accepting = true
+    var present = true
+    private(set) var received: [String] = []
+    var acceptsDictation: Bool { accepting }
+    func insertDictation(_ text: String) -> Bool {
+        guard present else { return false }
+        received.append(text)
+        return true
+    }
+}
+
+private actor FlakySpeech: Transcriber {
+    enum Response: Sendable { case text(String), failure }
+    nonisolated let id = "delivery-regression-speech"
+    private var responses: [Response]
+    init(_ responses: [Response]) { self.responses = responses }
+    func prepare() async throws {}
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        let response = responses.count > 1 ? responses.removeFirst() : responses[0]
+        switch response {
+        case .failure: throw TranscriberError.timedOut
+        case let .text(text): return Transcript(text: text, engine: id, latencyMs: 0)
+        }
     }
 }
 

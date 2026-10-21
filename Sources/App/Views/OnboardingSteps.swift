@@ -421,6 +421,26 @@ enum FnKeyUsage {
 
 // MARK: Try It
 
+/// Try It's editor as the pipeline's practice destination. Airdraft never pastes
+/// into its own windows, so a practice dictation arrives here explicitly and only
+/// that real delivery completes the step. Typed text never goes through it.
+@MainActor
+final class PracticeEditorChannel: PracticeDeliveryTarget {
+    /// Appends a dictation to the editor's text; nil while Try It is not shown.
+    var insert: ((String) -> Void)?
+    var isFocused = false
+    /// The OS boundary. Fixtures inject it: their offscreen app is never active.
+    var isAppActive: () -> Bool = { NSApp.isActive }
+
+    var acceptsDictation: Bool { insert != nil && isFocused && isAppActive() }
+
+    func insertDictation(_ text: String) -> Bool {
+        guard let insert else { return false }
+        insert(text)
+        return true
+    }
+}
+
 struct OnboardingPracticeStep: View {
     @Environment(AppContainer.self) private var container
     let speech: OnboardingSpeechChoice
@@ -490,7 +510,8 @@ struct OnboardingPracticeStep: View {
         }
 
         status
-        DictationRecovery()
+        // A retry would deliver to its original destination, possibly a script.
+        DictationRecovery(allowsRetry: false)
         if let issue = container.pipeline.lastIssue {
             Text(issue).supportingText().textSelection(.enabled)
         }
@@ -523,8 +544,18 @@ struct OnboardingPracticeStep: View {
             .onAppear {
                 focused = true
                 monitor.start(container, consumesKey: false)
+                let text = $practiceText
+                container.practiceEditor.insert = { dictation in
+                    let separator = text.wrappedValue.isEmpty || text.wrappedValue.last?.isWhitespace == true ? "" : " "
+                    text.wrappedValue += separator + dictation
+                }
             }
-            .onDisappear { monitor.stop() }
+            .onDisappear {
+                monitor.stop()
+                container.practiceEditor.insert = nil
+                container.practiceEditor.isFocused = false
+            }
+            .onChange(of: focused, initial: true) { _, value in container.practiceEditor.isFocused = value }
             .onChange(of: container.settings.hotkey) { _, _ in monitor.start(container, consumesKey: false) }
     }
 

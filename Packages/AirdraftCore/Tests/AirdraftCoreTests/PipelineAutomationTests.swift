@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import XCTest
 @testable import AirdraftCore
 
@@ -705,6 +706,26 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(try fixture.history.count(), 1)
     }
 
+    /// Practice never runs a saved script: a retry while it runs copies only,
+    /// even when the kept recording's own destination was a script.
+    func testRetryDuringPracticeNeverRunsTheSavedScript() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
+        defer { fixture.cleanUp() }
+        try await recordOnce(fixture)
+        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+        fixture.settings.beginOnboardingPractice()
+        defer { fixture.settings.endOnboardingPractice() }
+        fixture.pipeline.retryRecording(kept.id)
+        try await waitUntil("Practice retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery && (try? fixture.history.count()) == 1 }
+        XCTAssertTrue(fixture.probe.scripts.isEmpty, "The kept recording's script never runs during practice")
+        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty, "Nothing is pasted")
+        XCTAssertEqual(fixture.clipboard.string(forType: .string), "Recovered words")
+        XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+        let record = try XCTUnwrap(fixture.history.recent().first)
+        XCTAssertEqual(record.outputSucceeded, false)
+        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+    }
+
     func testReviewRecoveryIsSeparateFromDictationRecoveries() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
         defer { fixture.cleanUp() }
@@ -795,6 +816,8 @@ final class PipelineAutomationTests: XCTestCase {
         let pipeline: DictationPipeline
         let probe: AutomationDeliveryProbe
         let factory: EngineFactory
+        /// Disposable: copy-only delivery never touches the user's clipboard.
+        let clipboard = NSPasteboard.withUniqueName()
 
         init(speech: AutomationSpeech = AutomationSpeech([.text("Final words")]), engine: (any Transcriber)? = nil,
              refiner: (any Refiner)? = nil,
@@ -835,6 +858,7 @@ final class PipelineAutomationTests: XCTestCase {
             self.profiles = profiles
             pipeline = DictationPipeline(settings: settings, dictionary: dictionary,
                 profiles: profiles, history: history, factory: factory, recorder: recorder,
+                inserter: TextInserter(pasteboard: clipboard),
                 insertText: { text, _, _ in
                     probe.insert(text)
                     return InsertionResult(method: .accessibility, notice: nil)
@@ -859,6 +883,7 @@ final class PipelineAutomationTests: XCTestCase {
         func cleanUp() {
             pipeline.cancel()
             pipeline.onOutputDelivered = nil
+            clipboard.releaseGlobally()
             do {
                 try history.close()
                 try FileManager.default.removeItem(at: directory)

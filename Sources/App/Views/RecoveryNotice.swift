@@ -65,6 +65,8 @@ struct StorageNotice: View {
 
 struct DictationRecovery: View {
     @Environment(AppContainer.self) private var container
+    /// Try It hides Retry: practice never delivers to a kept recording's destination.
+    var allowsRetry = true
 
     private struct RecoveryCard {
         let id: UUID?
@@ -100,8 +102,10 @@ struct DictationRecovery: View {
             // The kept recording keeps its own failure text after later dictations.
             InlineNotice(message(for: card)) {
                 HStack(spacing: Theme.controlSpacing) {
-                    Button("Retry") { container.pipeline.retryRecording(card.id) }
-                        .help("Retry transcription")
+                    if allowsRetry {
+                        Button("Retry") { container.pipeline.retryRecording(card.id) }
+                            .help("Retry transcription")
+                    }
                     Menu {
                         Button("Change Provider") { container.navigation.page = .models }
                         Button("Discard Recording", role: .destructive) { container.pipeline.discardRecording(card.id) }

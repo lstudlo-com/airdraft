@@ -823,9 +823,17 @@ practice restore snapshot while practice runs. Availability uses
 `AppleIntelligenceRefiner.availability`; renders and fixtures inject it with
 `AIRDRAFT_RENDER_APPLE_INTELLIGENCE` (`onboarding-done-ai-*` render states).
 Onboarding key caps size to their printed key name and never truncate it. Never execute a saved
-script during practice. Renders and fixtures never load models. Use isolated
-preview containers for the `onboarding-*` Debug renders; `native-ui` walks the
-production flow with injected permissions and real key events.
+script during practice: Try It hides Retry, and a retry while practice runs only
+copies. Airdraft never pastes into itself, so Try It's editor receives practice
+dictations through the pipeline's explicit `PracticeDeliveryTarget` channel
+(`PracticeEditorChannel`), chosen at recording start only while Airdraft is active
+and that editor has focus; only that delivery or a real paste elsewhere completes
+the step. Outside practice a self-target stays copy-only. Renders and fixtures
+never load models. Use isolated preview containers for the `onboarding-*` Debug
+renders; `native-ui` walks the production flow with injected permissions and real
+key events, and completes Try It through the real pipeline with fake capture and
+speech (`AppContainer.DictationBoundary`). It never proves a real microphone or
+shortcut.
 
 ## Official-build licensing
 
@@ -1204,7 +1212,9 @@ refuse a new recording with a message and open Home instead of dropping audio.
 Each entry keeps its own failure text, insertion target and delivery policy; Home,
 the menu and retry act on the newest entry by ID, and a failed retry keeps the
 same entry as the newest. The bound is hard: start a recording only while kept
-audio plus its effective recording limit fits 900 seconds.
+audio plus its effective recording limit fits 900 seconds. A retry for a
+caretless target copies with a notice instead of re-activating and pasting into
+whatever that window shows now; caret targets are still verified by read-back.
 A retry resolves its entry only once the result is delivered and held for History
 (or set as the review outcome), so cancelling during refinement keeps the audio. Cancellation never discards kept audio; only Discard
 Recording or audio cleanup does. History's failed review is a single separate

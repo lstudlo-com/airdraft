@@ -10,6 +10,15 @@ import os
 @MainActor
 @Observable
 final class AppContainer {
+    /// Replaces dictation's OS boundary for fixtures: capture, speech engine,
+    /// recording preflight and microphone access. Nil uses the real boundary.
+    struct DictationBoundary {
+        var recorder: any AudioRecording
+        var transcriberBuilder: @Sendable (ASRConfig) -> any Transcriber
+        var recordingPreflight: @MainActor (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void
+        var requestMicrophoneAccess: @Sendable () async -> Bool
+    }
+
     static let shared: AppContainer = {
         #if DEBUG
         // UI automation may relaunch a crashed copied bundle without its arguments.
@@ -51,6 +60,8 @@ final class AppContainer {
         self?.pipeline.isBusy ?? false
     }
     let navigation = Navigation()
+    /// Try It's editor, which receives practice dictations from the pipeline.
+    let practiceEditor = PracticeEditorChannel()
     private let escapeHotkey = CarbonHotkey()
     private var started = false
     @ObservationIgnored private var startupCompleted = false
@@ -63,7 +74,8 @@ final class AppContainer {
     init(settings suppliedSettings: AppSettings? = nil, dataDirectory: URL? = nil, license suppliedLicense: LicenseStore? = nil,
          mediaRemoteCleanup: MediaJobRunner.RemoteCleanup? = nil,
          recordingAccessCheck: (@MainActor () async throws -> Void)? = nil,
-         permissions suppliedPermissions: SystemPermissions? = nil) {
+         permissions suppliedPermissions: SystemPermissions? = nil,
+         dictationBoundary: DictationBoundary? = nil) {
         permissions = suppliedPermissions ?? SystemPermissions()
         hotkeys = HotkeyService(permissions: permissions)
         let dir = dataDirectory ?? AppSettings.supportDirectory
@@ -83,12 +95,13 @@ final class AppContainer {
         engineStatus = EngineStatus()
         #if DEBUG
         if LocalE2E.isActive {
-            factory = EngineFactory(status: engineStatus, credentialReader: { _ in nil })
+            factory = EngineFactory(status: engineStatus, credentialReader: { _ in nil },
+                                    transcriberBuilder: dictationBoundary?.transcriberBuilder)
         } else {
-            factory = EngineFactory(status: engineStatus)
+            factory = EngineFactory(status: engineStatus, transcriberBuilder: dictationBoundary?.transcriberBuilder)
         }
         #else
-        factory = EngineFactory(status: engineStatus)
+        factory = EngineFactory(status: engineStatus, transcriberBuilder: dictationBoundary?.transcriberBuilder)
         #endif
         dictionary = DictionaryStore(directory: readableDirectory)
         profiles = ProfileStore(directory: readableDirectory)
@@ -112,6 +125,7 @@ final class AppContainer {
             }
         }
         #endif
+        if let boundary = dictationBoundary { recordingPreflight = boundary.recordingPreflight }
         pipeline = DictationPipeline(
             settings: settings,
             dictionary: dictionary,
@@ -119,9 +133,12 @@ final class AppContainer {
             history: history,
             historyDirectory: dir,
             factory: factory,
+            recorder: dictationBoundary?.recorder ?? AudioRecorder(),
             recordingPreflight: recordingPreflight,
-            accessCheck: recordingAccessCheck ?? { try await license.requireAccess() }
+            accessCheck: recordingAccessCheck ?? { try await license.requireAccess() },
+            requestMicrophoneAccess: dictationBoundary?.requestMicrophoneAccess ?? { await AudioRecorder.requestMicrophoneAccess() }
         )
+        pipeline.practiceTarget = practiceEditor
         let mediaFactory = factory
         let mediaIsolated = isolatedData
         let mediaCredentialReader: @Sendable (String) async throws -> String? = { reference in
@@ -151,6 +168,12 @@ final class AppContainer {
         media?.onChange = { NotificationCenter.default.post(name: .historyEntriesChanged, object: nil) }
         // A copy without the data lease names that cause, not a cleanup in progress.
         if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance(reason: dataAccessIssue) }
+        // Wired here rather than in `start()` so fixtures exercise the same
+        // delivery feedback: the HUD finishes and Try It records real delivery.
+        pipeline.onOutputDelivered = { [weak self] in
+            self?.indicator?.deliveryCompleted()
+            self?.settings.onboarding.noteDelivery()
+        }
     }
 
     /// Call once from the app delegate.
@@ -165,10 +188,6 @@ final class AppContainer {
             disco: { [weak self] in self?.settings.hudDiscoEnabled ?? false },
             timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() })
         indicator = panel
-        pipeline.onOutputDelivered = { [weak panel, weak self] in
-            panel?.deliveryCompleted()
-            self?.settings.onboarding.noteDelivery()
-        }
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
             self.permissions.refresh()

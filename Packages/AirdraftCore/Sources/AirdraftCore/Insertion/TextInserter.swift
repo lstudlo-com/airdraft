@@ -25,7 +25,11 @@ public enum TextDeliveryStatus: String, Sendable, Codable {
 }
 
 public struct InsertionResult: Sendable, Equatable {
-    public enum Method: String, Sendable { case accessibility, paste, clipboardOnly }
+    public enum Method: String, Sendable {
+        case accessibility, paste, clipboardOnly
+        /// Onboarding practice's own editor received the text directly.
+        case practiceEditor
+    }
     public let method: Method
     public let notice: String?
     /// Recovery messages stay readable; an intentional copy is only a confirmation.
@@ -181,8 +185,18 @@ public final class TextInserter {
 
     public init() { environment = .live }
     init(environment: Environment) { self.environment = environment }
+    /// The live OS boundary with a disposable pasteboard (tests).
+    init(pasteboard: NSPasteboard) {
+        var environment = Environment.live
+        environment.pasteboard = pasteboard
+        self.environment = environment
+    }
 
+    /// `allowsUnconfirmedPaste` false (an explicit retry of a kept recording)
+    /// copies instead of pasting into a caretless target: its window may now
+    /// show something else, and nothing could confirm where the text went.
     public func insert(_ text: String, method: InsertionMethod = .auto, target: InsertionTarget? = nil,
+                       allowsUnconfirmedPaste: Bool = true,
                        onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         guard !Task.isCancelled, !text.isEmpty else { return InsertionResult(method: .clipboardOnly, notice: nil) }
 
@@ -190,6 +204,12 @@ public final class TextInserter {
         if let bundle = target?.bundleID, bundle == Bundle.main.bundleIdentifier {
             Self.log.notice("insert: target is airdraft, copied only")
             return copyOnly(text, notice: String(localized: "Copied to clipboard", bundle: .module), requiresAttention: false)
+        }
+
+        if let target, target.isCaretless, !allowsUnconfirmedPaste {
+            Self.log.notice("insert: retry for a caretless destination, copied only")
+            return copyOnly(text, notice: String(localized: "Retried text copied. Paste it where you want it.", bundle: .module),
+                            requiresAttention: false)
         }
 
         // Bring the original app back if focus moved while we were transcribing.
@@ -607,7 +627,8 @@ public final class TextInserter {
         return pasteboard.changeCount == pending.changeCount ? pending.items : nil
     }
 
-    private func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true) -> InsertionResult {
+    /// Copies `text` for the user to paste; nothing is posted.
+    func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true) -> InsertionResult {
         environment.pasteboard.clearContents()
         guard environment.pasteboard.setString(text, forType: .string),
               environment.pasteboard.string(forType: .string) == text else {

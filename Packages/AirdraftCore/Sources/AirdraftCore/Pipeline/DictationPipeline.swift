@@ -60,6 +60,18 @@ public struct PendingRecording: Identifiable, Sendable, Equatable {
     public let isReview: Bool
 }
 
+/// Airdraft never pastes into its own windows. Onboarding practice is the one
+/// exception: its editor receives a dictation's final text through this channel,
+/// so Try It completes only through the real pipeline.
+@MainActor
+public protocol PracticeDeliveryTarget: AnyObject {
+    /// True when a dictation starting now is meant for the practice editor:
+    /// Airdraft is active and that editor has keyboard focus.
+    var acceptsDictation: Bool { get }
+    /// Inserts the final text into the practice editor; false if it is gone.
+    func insertDictation(_ text: String) -> Bool
+}
+
 /// Record -> transcribe -> (refine) -> dictionary -> insert -> history.
 /// The LLM is best-effort: any failure or timeout falls back to the raw
 /// transcript so dictation never blocks on a slow model.
@@ -159,6 +171,8 @@ public final class DictationPipeline {
     public var prepareRefinement: ((LLMConfig) async throws -> RefinementPreparationBackend)?
     /// When false the final text is not inserted anywhere (self-tests).
     public var insertionEnabled = true
+    /// Onboarding practice's editor. Consulted only while practice runs.
+    public weak var practiceTarget: (any PracticeDeliveryTarget)?
 
     private let settings: AppSettings
     private let dictionary: DictionaryStore
@@ -201,6 +215,19 @@ public final class DictationPipeline {
     private var speechSessionPin: (token: UUID, pin: UUID)?
     private var stopRequestedAt: TimeInterval?
     private var insertionTargetAtStart: InsertionTarget?
+    /// The recording was started for onboarding practice's own editor.
+    private var practiceDeliveryAtStart = false
+    /// How cursor delivery treats one processing run.
+    private enum DeliveryPolicy {
+        /// Paste into the captured target; a caretless editor may be sent unverified.
+        case normal
+        /// An explicit retry: verified targets only, otherwise copy.
+        case retry
+        /// Onboarding practice's own editor.
+        case practice
+        /// Retries during practice never paste or run a script.
+        case copyOnly
+    }
     private var contextAtStart: AppContext = .empty
     private var processingTask: Task<Void, Never>?
     /// Returns a failure or notice to idle; replaced whenever the state changes.
@@ -477,7 +504,9 @@ public final class DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        let insertionTarget = needsInsertion ? await inserter.captureTarget() : nil
+        // Practice's own editor is inside Airdraft, which is never a paste target.
+        let practice = needsInsertion && settings.isOnboardingPractice && practiceTarget?.acceptsDictation == true
+        let insertionTarget = needsInsertion && !practice ? await inserter.captureTarget() : nil
         guard isCurrent(token) else { return }
         var context = snapshot.useAppContext ? contextReader.read() : .empty
         if let recentFinals, context.recentDictations.isEmpty {
@@ -491,6 +520,7 @@ public final class DictationPipeline {
         }
         recordingAtStart = snapshot
         insertionTargetAtStart = insertionTarget
+        practiceDeliveryAtStart = practice
         contextAtStart = context
         wireRecorder(for: token)
         startPreview(for: token)
@@ -561,7 +591,8 @@ public final class DictationPipeline {
         let ctx = contextAtStart
         let token = generation
         let target = insertionTargetAtStart
-        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx, target: target, token: token, snapshot: snapshot) }
+        let delivery: DeliveryPolicy = practiceDeliveryAtStart ? .practice : .normal
+        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx, target: target, token: token, snapshot: snapshot, delivery: delivery) }
     }
 
     /// Runs 16 kHz mono samples through transcription, refinement, dictionary and
@@ -781,6 +812,8 @@ public final class DictationPipeline {
 
     /// Retries `id`, or the newest kept recording when `id` is nil. Current
     /// processing settings apply; the original delivery target and policy stay.
+    /// A caretless target is copied instead of pasted, and a retry during
+    /// onboarding practice only copies: practice never runs a saved script.
     public func retryRecording(_ id: UUID? = nil) {
         guard !isBusy, let index = recoveryIndex(id) else { return }
         let recovery = recoveries[index]
@@ -792,9 +825,11 @@ public final class DictationPipeline {
         retryingRecovery = (token, recovery.info.id)
         if recovery.reviewOnly { reviewGeneration = token }
         set(.transcribing)
+        let delivery: DeliveryPolicy = settings.isOnboardingPractice ? .copyOnly : .retry
         processingTask = Task {
             await process(samples: recovery.samples, seconds: recovery.info.seconds,
-                          context: recovery.context, target: recovery.target, token: token, snapshot: snapshot, reviewOnly: recovery.reviewOnly)
+                          context: recovery.context, target: recovery.target, token: token, snapshot: snapshot,
+                          reviewOnly: recovery.reviewOnly, delivery: delivery)
         }
     }
 
@@ -937,7 +972,8 @@ public final class DictationPipeline {
 
     // MARK: - Processing
 
-    private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID, snapshot: RecordingSnapshot, reviewOnly: Bool = false) async {
+    private func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID,
+                         snapshot: RecordingSnapshot, reviewOnly: Bool = false, delivery: DeliveryPolicy = .normal) async {
         guard isCurrent(token) else { return }
         let processingStarted = ProcessInfo.processInfo.systemUptime
         let stopRequested = stopRequestedAt
@@ -1117,13 +1153,25 @@ public final class DictationPipeline {
             if let stopRequested { timings.stopToDeliveryMs = Self.elapsed(since: stopRequested) }
             self.onOutputDelivered?()
         }
-        if insertionEnabled {
+        if insertionEnabled, delivery == .copyOnly {
+            // Neither a paste nor the recording's saved script: copy for the user.
+            let result = inserter.copyOnly(final, notice: String(localized: "Retried text copied. Paste it where you want it.", bundle: .module),
+                                           requiresAttention: false)
+            notice = result.notice
+            noticeRequiresAttention = result.noticeRequiresAttention
+            if result.noticeRequiresAttention { deliveryError = result.notice }
+        } else if insertionEnabled {
             switch output.destination {
             case .cursor:
                 let result: InsertionResult
-                if let insertText { result = await insertText(final, output.insertionMethod, target) }
+                if delivery == .practice {
+                    result = practiceTarget?.insertDictation(final) == true
+                        ? InsertionResult(method: .practiceEditor, notice: nil)
+                        : inserter.copyOnly(final, notice: String(localized: "Copied to clipboard", bundle: .module), requiresAttention: false)
+                } else if let insertText { result = await insertText(final, output.insertionMethod, target) }
                 else {
                     result = await inserter.insert(final, method: output.insertionMethod, target: target,
+                                                   allowsUnconfirmedPaste: delivery != .retry,
                                                    onDelivered: reportDelivery)
                 }
                 sentUnverified = result.delivery == .sentUnverified

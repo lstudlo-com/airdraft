@@ -2989,6 +2989,16 @@
         }
       }
     },
+    "Retried text copied. Paste it where you want it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷貝重試的文字；請貼到你想要的位置。"
+          }
+        }
+      }
+    },
     "Retry or discard the saved recording in Airdraft first." : {
       "localizations" : {
         "zh-Hant" : {
