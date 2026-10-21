@@ -239,6 +239,7 @@ enum LocalE2E {
                         (outcome.llmSkippedReason == nil ? "passed" : "fallback")
                     report["audioSaved"] = record.audioFilename != nil
                     report["inserted"] = record.inserted
+                    report["delivery"] = record.deliveryStatus.rawValue
                     report["pipelineStatus"] = "passed"
                     let refinementPassed = report["refinementStatus"] as? String != "fallback"
                     report["status"] = refinementPassed ? "passed" : "failed"

@@ -18,6 +18,27 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try store.count(), 0)
     }
 
+    /// The unverified-paste status is derived from existing columns, so it
+    /// survives a save round trip and older rows keep their meaning.
+    func testDeliveryStatusRoundTripsWithoutSchemaChange() throws {
+        let store = try HistoryStore(inMemory: true)
+        func saved(inserted: Bool, destination: TextOutputDestination?, succeeded: Bool?) throws -> TextDeliveryStatus {
+            try store.save(DictationRecord(mode: "clean", family: "document", rawTranscript: "text", refinedText: "text",
+                finalText: "text", asrEngine: "test", audioSeconds: 1, asrMs: 1, llmMs: 1, inserted: inserted,
+                outputDestination: destination?.rawValue, outputSucceeded: succeeded))
+            return try XCTUnwrap(store.recent(limit: 1).first).deliveryStatus
+        }
+        XCTAssertEqual(try saved(inserted: true, destination: .cursor, succeeded: true), .delivered)
+        XCTAssertEqual(try saved(inserted: false, destination: .cursor, succeeded: true), .sentUnverified)
+        XCTAssertEqual(try saved(inserted: false, destination: .cursor, succeeded: false), .notDelivered)
+        XCTAssertEqual(try saved(inserted: false, destination: .script, succeeded: true), .delivered)
+        XCTAssertEqual(try saved(inserted: false, destination: .script, succeeded: false), .notDelivered)
+        XCTAssertEqual(try saved(inserted: true, destination: nil, succeeded: nil), .delivered)
+        XCTAssertEqual(try saved(inserted: false, destination: nil, succeeded: nil), .notDelivered)
+        // Statistics count every dictation whatever its delivery status.
+        XCTAssertEqual(try store.overview().stats.dictations, 7)
+    }
+
     func testOverviewSummarisesPeriodLocally() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!

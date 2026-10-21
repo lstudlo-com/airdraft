@@ -12,13 +12,33 @@ public enum InsertionMethod: String, Codable, CaseIterable, Sendable, Identifiab
     public var id: String { rawValue }
 }
 
+/// What the destination is known to have received.
+public enum TextDeliveryStatus: String, Sendable, Codable {
+    /// The original field shows the text (or a script completed).
+    case delivered
+    /// One paste reached a validated destination that exposes no text to read
+    /// back, such as Warp, Zed and other editors that draw their own text.
+    /// Not a failure: there is simply nothing that could confirm it.
+    case sentUnverified
+    /// Nothing was sent, or a paste that could have been confirmed was not.
+    case notDelivered
+}
+
 public struct InsertionResult: Sendable, Equatable {
     public enum Method: String, Sendable { case accessibility, paste, clipboardOnly }
     public let method: Method
     public let notice: String?
     /// Recovery messages stay readable; an intentional copy is only a confirmation.
     public var noticeRequiresAttention = true
-    public var didInsert: Bool { method != .clipboardOnly }
+    /// False only for a paste into a validated caretless destination.
+    public var isVerified = true
+    public var delivery: TextDeliveryStatus {
+        method == .clipboardOnly ? .notDelivered : (isVerified ? .delivered : .sentUnverified)
+    }
+    /// True only when the destination confirmed the text.
+    public var didInsert: Bool { delivery == .delivered }
+    /// True when the text reached the destination, confirmed or not.
+    public var wasSent: Bool { delivery != .notDelivered }
 }
 
 /// Local insertion identity, never serialized or sent to a provider.
@@ -119,9 +139,13 @@ public final class TextInserter {
         let task: Task<Void, Never>
     }
     private var pendingRestoration: PendingRestoration?
-    /// True while a confirmed paste's text still waits to be replaced by the
-    /// clipboard it displaced.
+    /// True while a confirmed or unverified paste's text still waits to be
+    /// replaced by the clipboard it displaced.
     public var hasPendingClipboardRestoration: Bool { pendingRestoration != nil }
+    /// A caretless destination cannot prove it read the clipboard, so its
+    /// restore waits longer than a confirmed paste's: a busy receiver still
+    /// reads the transcript, not the clipboard it displaced.
+    public var unverifiedRestoreDelay: TimeInterval = 2.0
     /// A posted event has no acknowledgement. Wait only for read-only evidence
     /// from the original field; an unobservable or slow receiver keeps the text.
     var confirmationTimeout: Duration = .seconds(1)
@@ -175,6 +199,7 @@ public final class TextInserter {
         }
         return await insertViaPaste(text, pasteboard: environment.pasteboard,
                                     postPaste: environment.postPaste, confirmation: confirmation,
+                                    unverifiable: target.element == nil || target.selection == nil,
                                     onDelivered: onDelivered)
     }
 
@@ -390,18 +415,54 @@ public final class TextInserter {
             guard self.environment.isTrusted(), self.environment.processID(field) == target.processID else { return false }
             if let before, let expected {
                 let (status, ref) = self.environment.readAttribute(field, kAXValueAttribute as CFString)
-                if status == .success, let value = ref as? String, value == expected {
-                    return value != before || Self.selectionMatches(finalCaret, self.selection(field))
+                if status == .success, let value = ref as? String {
+                    if value == expected {
+                        return value != before || Self.selectionMatches(finalCaret, self.selection(field))
+                    }
+                    // The editor normalized the pasted text, so its value must differ from before.
+                    if Self.equivalentDeliveredText(value, expected), !Self.equivalentDeliveredText(value, before) {
+                        return true
+                    }
                 }
             }
             // Some editors expose text by range without exposing AXValue.
             return Self.selectionMatches(finalCaret, self.selection(field)) &&
-                !Self.selectionMatches(range, finalCaret) && self.environment.readText(field, insertedRange) == text
+                !Self.selectionMatches(range, finalCaret) &&
+                self.environment.readText(field, insertedRange).map { Self.equivalentDeliveredText($0, text) } == true
         }
     }
 
+    /// Editors may store pasted text with their own line endings, typographic
+    /// quotes or non-breaking spaces. Only those presentation-equivalent forms
+    /// match; any other added, removed or changed character (auto-indent,
+    /// trimmed whitespace, a partial paste) still leaves delivery unconfirmed.
+    static func equivalentDeliveredText(_ lhs: String, _ rhs: String) -> Bool {
+        lhs == rhs || normalizedDeliveredText(lhs) == normalizedDeliveredText(rhs)
+    }
+
+    static func normalizedDeliveredText(_ text: String) -> String {
+        var scalars = String.UnicodeScalarView()
+        var previousWasCR = false
+        for scalar in text.unicodeScalars {
+            defer { previousWasCR = scalar == "\r" }
+            switch scalar {
+            case "\r": scalars.append("\n")
+            case "\n" where previousWasCR: continue
+            case "\u{2018}", "\u{2019}": scalars.append("'")
+            case "\u{201C}", "\u{201D}": scalars.append("\"")
+            case "\u{00A0}", "\u{202F}": scalars.append(" ")
+            default: scalars.append(scalar)
+            }
+        }
+        return String(scalars)
+    }
+
+    /// `unverifiable` marks a validated destination that exposes no text or
+    /// caret (Warp, Zed, GPU terminals): once its one paste is posted, nothing
+    /// could confirm it, so it is sent unverified rather than reported as failed.
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
                         postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
+                        unverifiable: Bool = false,
                         onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         // A previous confirmed paste may still hold the clipboard. Its text is
         // already in its field, so take over the clipboard it displaced instead
@@ -439,6 +500,16 @@ public final class TextInserter {
         let delay = restoreDelay
         let timeout = confirmationTimeout
         let started = ContinuousClock.now
+        if unverifiable {
+            // Nothing readable can confirm this paste, and it is never repeated.
+            // The transcript stays in History, so the user's clipboard returns
+            // as after a confirmed paste, a little later and only if unchanged.
+            Self.log.notice("insert: paste sent to caretless destination; unverifiable")
+            onDelivered?()
+            scheduleRestoration(of: pasteboard, items: saved, ownedChange: ourChange,
+                                at: started.advanced(by: .seconds(max(0, unverifiedRestoreDelay))))
+            return InsertionResult(method: .paste, notice: nil, isVerified: false)
+        }
         return await Task { @MainActor in
             let confirmed: Bool
             if let confirmation { confirmed = await Self.waitForMatch(timeout: timeout, matches: confirmation) }

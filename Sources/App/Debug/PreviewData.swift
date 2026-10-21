@@ -52,7 +52,9 @@ enum PreviewData {
                 appBundleId: app.id, appName: app.name, mode: "Clean", family: "document",
                 rawTranscript: text, refinedText: text, finalText: text, asrEngine: "preview",
                 audioSeconds: Double(words) / Double(110 + (index * 13) % 70) * 60,
-                asrMs: 400 + index * 11, llmMs: 900 + index * 23, inserted: true
+                asrMs: 400 + index * 11, llmMs: 900 + index * 23,
+                // One paste into an editor that exposes no text to confirm it.
+                inserted: index != 1, outputDestination: TextOutputDestination.cursor.rawValue, outputSucceeded: true
             ))
         }
     }

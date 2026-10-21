@@ -1119,11 +1119,13 @@ public final class DictationPipeline {
                     result = await inserter.insert(final, method: output.insertionMethod, target: target,
                                                    onDelivered: reportDelivery)
                 }
+                // `inserted` records only confirmed text. A paste sent to a
+                // validated caretless editor succeeded without confirmation.
                 inserted = result.didInsert
-                outputSucceeded = result.didInsert
+                outputSucceeded = result.wasSent
                 notice = result.notice
                 noticeRequiresAttention = result.noticeRequiresAttention
-                if !result.didInsert, result.noticeRequiresAttention { deliveryError = result.notice }
+                if !result.wasSent, result.noticeRequiresAttention { deliveryError = result.notice }
             case .script:
                 do {
                     try await sendScript(final, output.scriptPath)

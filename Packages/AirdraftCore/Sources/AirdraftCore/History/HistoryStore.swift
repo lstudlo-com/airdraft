@@ -23,11 +23,14 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     public var audioSeconds: Double
     public var asrMs: Int
     public var llmMs: Int
+    /// The destination field confirmed the text.
     public var inserted: Bool
     public var error: String?
     public var audioFilename: String?
     public var recordingID: String?
     public var outputDestination: String?
+    /// Output reached its destination without a detected failure. A cursor
+    /// paste sent unverified succeeded without `inserted`; see `deliveryStatus`.
     public var outputSucceeded: Bool?
 
     public init(
@@ -84,6 +87,18 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+
+    /// Derived from the stored columns, so older rows need no migration.
+    /// Cursor output that succeeded without confirmed insertion is a paste
+    /// sent to a caretless editor; earlier versions never stored that pair.
+    public var deliveryStatus: TextDeliveryStatus {
+        if outputDestination == TextOutputDestination.script.rawValue {
+            return outputSucceeded == true ? .delivered : .notDelivered
+        }
+        if inserted { return .delivered }
+        return outputDestination == TextOutputDestination.cursor.rawValue && outputSucceeded == true
+            ? .sentUnverified : .notDelivered
     }
 }
 

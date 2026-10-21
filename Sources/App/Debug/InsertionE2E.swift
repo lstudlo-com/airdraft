@@ -85,7 +85,8 @@ import AirdraftCore
         return ["action": "insert", "status": result.didInsert && result.notice == nil &&
                     actualTextMatches && delivered == 1 ? "passed" : "failed",
                 "targetBundle": bundleID, "requestedMethod": method,
-                "reportedMethod": result.method.rawValue, "notice": result.notice ?? "",
+                "reportedMethod": result.method.rawValue, "delivery": result.delivery.rawValue,
+                "notice": result.notice ?? "",
                 "actualTextMatches": actualTextMatches, "deliveryCallbacks": delivered,
                 "fixtureToken": id.uuidString, "binarySHA256": hashes]
     }

@@ -6413,6 +6413,27 @@
         }
       }
     },
+    "Pasted, unconfirmed" : {
+      "comment" : "History status: a paste was sent to an app that exposes no text to confirm it",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未確認"
+          }
+        }
+      }
+    },
+    "Pasted; this app doesn't expose text to confirm it" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上；此 App 未提供可確認的文字"
+          }
+        }
+      }
+    },
     "Pause" : {
       "localizations" : {
         "zh-Hant" : {
