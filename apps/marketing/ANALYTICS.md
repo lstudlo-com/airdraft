@@ -68,13 +68,19 @@ All events include `site=airdraft-marketing`, `environment=production` and
 | `source_clicked`, `build_instructions_clicked` | How much interest is there in self-building?                                                                 |
 | `license_plan_selected`                        | Which Mac count do visitors actively select?                                                                 |
 | `demo_started`, `demo_profile_selected`        | Do visitors intentionally try the authored samples and profiles?                                             |
+| `guide_clicked`                                | Which guides do visitors open from another page (English or Traditional Chinese)?                            |
 | `checkout_clicked`                             | Do pricing visitors follow an enabled checkout link? `plan` means the clicked offer, not the purchased plan. |
 | `support_clicked`, `release_clicked`           | Do visitors seek help or release details?                                                                    |
 
 `placement` is limited to header, hero, sample, footer, offer and content.
-`plan` is one-mac or three-macs. Demo events exclude autoplay. Disabled checkout
+`plan` is one-mac or three-macs. `guide` is one of the guide slugs in
+`guideSlugs` (both languages share a slug; `$pathname` tells the language);
+`src/data/guides.ts` and the test keep them aligned. Links to the page already
+open and to the guide hub are not guide clicks. Demo events exclude autoplay. Disabled checkout
 controls send nothing. No download event is invented while the site has no
-installer download CTA. Track a future verified download CTA separately from
+installer download CTA. The same link rules apply on every page in both
+languages: build, source, checkout, pricing (`/pricing/` or `/zh-tw/pricing/`)
+and guide links are classified by destination, not by page copy. Track a future verified download CTA separately from
 completed app installation. Actual revenue requires verified payment-side events
 and a separate identity/consent design; do not infer it from a redirect.
 
@@ -84,13 +90,17 @@ Use Web Analytics for visitors, sources, landing pages, bounce and Web Vitals.
 Keep project IP discarding enabled, web autocapture and session replay disabled,
 and Web Vitals enabled; the SDK applies the same restrictions after consent.
 Pin `pricing_clicked` and `build_instructions_clicked` as intent goals; enable a
-checkout goal only when sales open. Expect consent and blocker undercounting.
+checkout goal only when sales open. `guide_clicked` measures interest in a
+guide, not a step toward purchase. Expect consent and blocker undercounting.
 Direct pricing landings appear in pageviews even without `pricing_clicked`.
 
 [Airdraft website dashboard](https://us.posthog.com/project/645700/dashboard/2169951)
-uses eight saved insights with production/site
+uses nine saved insights with production/site
 filters, including acquisition, page popularity, source/build interest, demo
-use, plan interest and visit/pricing/checkout funnels. Unique visitors use
+use, guide interest, plan interest and visit/pricing/checkout funnels. The
+checkout funnel starts on either pricing page. It replaced the English-only
+"Pricing to checkout intent" insight; a rerun adds the new insights beside it,
+so delete the old one by hand. Unique visitors use
 anonymous IDs and the funnels use a one-day conversion window.
 
 ```sh

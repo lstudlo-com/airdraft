@@ -80,7 +80,13 @@ export const insights = [
     query: trend(["license_plan_selected"], "plan"),
   },
   {
-    name: "Pricing to checkout intent",
+    name: "Guide interest",
+    query: trend(["guide_clicked"], "guide"),
+  },
+  {
+    // Both pricing pages. Renamed when the Traditional Chinese page was
+    // added, so a rerun creates it beside the earlier English-only insight.
+    name: "Pricing pages to checkout intent",
     query: {
       kind: "InsightVizNode",
       source: {
@@ -89,7 +95,9 @@ export const insights = [
         series: [
           {
             ...series("$pageview"),
-            properties: [property("$pathname", "/pricing/")],
+            properties: [
+              property("$pathname", ["/pricing/", "/zh-tw/pricing/"]),
+            ],
           },
           series("checkout_clicked"),
         ],

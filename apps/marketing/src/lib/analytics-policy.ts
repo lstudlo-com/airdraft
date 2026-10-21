@@ -45,13 +45,37 @@ const paths = new Set([
   "/guides/free-source-or-official-app/",
   "/guides/private-meeting-transcription/",
   "/guides/compare-mac-dictation-apps/",
+  "/guides/mixed-chinese-english-dictation/",
+  "/guides/dictate-to-claude-code-and-terminals/",
   "/zh-tw/",
   "/zh-tw/pricing/",
   "/zh-tw/guides/private-meeting-transcription/",
   "/zh-tw/guides/compare-mac-dictation-apps/",
+  "/zh-tw/guides/mixed-chinese-english-dictation/",
+  "/zh-tw/guides/dictate-to-claude-code-and-terminals/",
 ]);
 export function safePath(path: string) {
   return paths.has(path) ? path : "/404/";
+}
+
+// Guide slugs, in both languages. Keep aligned with src/data/guides.ts
+// (test-analytics.mjs checks it). A guide link click reports only the slug.
+export const guideSlugs = [
+  "offline-dictation-on-mac",
+  "local-vs-cloud-dictation",
+  "free-source-or-official-app",
+  "private-meeting-transcription",
+  "compare-mac-dictation-apps",
+  "mixed-chinese-english-dictation",
+  "dictate-to-claude-code-and-terminals",
+] as const;
+
+/** The guide a same-site path opens, or undefined for any other page. */
+export function guideOf(path: string): string | undefined {
+  const slug = /^\/(?:zh-tw\/)?guides\/([a-z-]+)\/$/.exec(path)?.[1];
+  return slug && (guideSlugs as readonly string[]).includes(slug)
+    ? slug
+    : undefined;
 }
 
 export const events = [
@@ -65,6 +89,7 @@ export const events = [
   "license_plan_selected",
   "demo_started",
   "demo_profile_selected",
+  "guide_clicked",
   "support_clicked",
   "release_clicked",
 ] as const;
@@ -110,6 +135,7 @@ const categoricalProperties: Record<string, readonly string[]> = {
   plan: ["one-mac", "three-macs"],
   demo: ["waveform", "sample"],
   profile: ["clean", "concise", "summary"],
+  guide: guideSlugs,
 };
 const campaignKeys = [
   "utm_source",

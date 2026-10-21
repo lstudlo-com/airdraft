@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import * as policy from "../src/lib/analytics-policy.ts";
+import { guides, zhGuides } from "../src/data/guides.ts";
 import { setup, insights } from "./setup-posthog.mjs";
 
 test("production collection requires an explicit switch, public token and exact origin", () => {
@@ -128,6 +129,8 @@ function fixture({
   storageFails = false,
   origin = "https://airdraft.app",
   sdkFails = false,
+  siteLinks = {},
+  pathname = "/pricing/",
 } = {}) {
   const listeners = {};
   const stored = new Map();
@@ -177,7 +180,7 @@ function fixture({
     },
     require(name) {
       if (name.includes("analytics-policy")) return policy;
-      if (name.includes("data/site")) return { siteLinks: {} };
+      if (name.includes("data/site")) return { siteLinks };
       imports++;
       if (sdkFails) throw new Error("blocked SDK");
       return { default: client };
@@ -186,7 +189,7 @@ function fixture({
     location: {
       origin,
       hostname: new URL(origin).hostname,
-      pathname: "/pricing/",
+      pathname,
     },
     document: {
       querySelector: () => null,
@@ -338,4 +341,107 @@ test("dashboard setup is offline by default and reruns without duplicates", asyn
       request,
     ),
   );
+});
+
+test("guide links report only an allowlisted slug in either language", () => {
+  const slugs = [...guides, ...zhGuides].map((guide) => guide.slug);
+  assert.deepEqual(
+    [...new Set(slugs)].sort(),
+    [...policy.guideSlugs].sort(),
+    "guideSlugs must match src/data/guides.ts",
+  );
+  for (const guide of [...guides, ...zhGuides])
+    assert.equal(policy.guideOf(guide.href), guide.slug);
+  for (const path of [
+    "/guides/",
+    "/guides/unknown-guide/",
+    "/zh-tw/guides/",
+    "/pricing/",
+    "/guides/mixed-chinese-english-dictation/extra/",
+  ])
+    assert.equal(policy.guideOf(path), undefined, path);
+  const safe = policy.sanitizeEvent(
+    {
+      event: "guide_clicked",
+      properties: {
+        $pathname: "/zh-tw/",
+        guide: "mixed-chinese-english-dictation",
+        placement: "content",
+        text: "transcript",
+      },
+    },
+    true,
+  );
+  assert.equal(safe.properties.guide, "mixed-chinese-english-dictation");
+  assert.equal(safe.properties.$pathname, "/zh-tw/");
+  assert.equal("text" in safe.properties, false);
+  const unknown = policy.sanitizeEvent(
+    { event: "guide_clicked", properties: { guide: "private-notes" } },
+    true,
+  );
+  assert.equal("guide" in unknown.properties, false);
+});
+
+test("intent clicks are captured the same way on English and Chinese pages", async () => {
+  const siteLinks = {
+    source: "https://github.com/example/airdraft",
+    build: "https://github.com/example/airdraft#build",
+    issues: "https://github.com/example/airdraft/issues",
+    checkout: "",
+  };
+  for (const pathname of ["/", "/zh-tw/"]) {
+    const f = fixture({ choice: "granted", siteLinks, pathname });
+    await settle();
+    const click = (url, containers = []) => {
+      const link = new URL(url, "https://airdraft.app");
+      const target = new f.context.Element();
+      target.dataset = {};
+      Object.assign(target, {
+        href: link.href,
+        origin: link.origin,
+        pathname: link.pathname,
+      });
+      target.closest = (selector) =>
+        selector === "a[href]" || containers.includes(selector) ? target : null;
+      f.listeners.click({ target });
+    };
+    click(siteLinks.build, ["footer"]);
+    click(siteLinks.source, [".hero-actions"]);
+    click("/zh-tw/pricing/", ["#get-airdraft"]);
+    click("/pricing/#provider-costs");
+    click("/zh-tw/guides/dictate-to-claude-code-and-terminals/");
+    click("/guides/");
+    click(pathname);
+    const captured = f.calls
+      .filter((call) => call[0] === "capture" && call[1].event !== "$pageview")
+      .map((call) => [
+        call[1].event,
+        call[1].properties.placement,
+        call[1].properties.guide,
+        call[1].properties.$pathname,
+      ]);
+    assert.deepEqual(captured, [
+      ["build_instructions_clicked", "footer", undefined, pathname],
+      ["source_clicked", "hero", undefined, pathname],
+      ["pricing_clicked", "offer", undefined, pathname],
+      ["pricing_clicked", "content", undefined, pathname],
+      [
+        "guide_clicked",
+        "content",
+        "dictate-to-claude-code-and-terminals",
+        pathname,
+      ],
+    ]);
+  }
+});
+
+test("both pricing pages lead the checkout funnel", () => {
+  const funnel = insights.find(
+    (insight) => insight.name === "Pricing pages to checkout intent",
+  );
+  assert.deepEqual(funnel.query.source.series[0].properties[0].value, [
+    "/pricing/",
+    "/zh-tw/pricing/",
+  ]);
+  assert.ok(insights.some((insight) => insight.name === "Guide interest"));
 });
