@@ -9,8 +9,6 @@ struct HomePage: View {
     @State private var overview: HistoryStore.Overview = .empty
     @State private var hasLoadedOverview = false
     @State private var recent: [DictationRecord] = []
-    @State private var speechKeyPresent = false
-    @State private var refinementKeyPresent = false
     @State private var showsStatus = false
     @State private var historyReadError: String?
 
@@ -39,7 +37,8 @@ struct HomePage: View {
             // opens the readiness card directly beneath it.
             HomeHero(overview: overview, periodTitle: period.title, hotkey: container.settings.hotkey,
                      behavior: container.settings.hotkeyBehavior, triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds,
-                     isReady: hasLoadedOverview, canDictate: setupIssues == 0)
+                     isReady: hasLoadedOverview, canDictate: setupIssues == 0,
+                     isFirstRun: hasLoadedOverview && recent.isEmpty && overview.pulses.isEmpty)
 
             DictationRecovery()
             if let historyReadError { StorageNotice(message: historyReadError, actionTitle: "Reload History") { Task { await reload() } } }
@@ -60,29 +59,19 @@ struct HomePage: View {
                        options: Period.allCases.map { ($0, $0.title) })
         }
         .task(id: period) { await reload() }
-        .task(id: container.speechConfig.keyRef) { await refreshSpeechKey() }
-        .task(id: container.settings.llm.keyRef) { await refreshRefinementKey() }
-        .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { _ in
-            Task {
-                await refreshSpeechKey()
-                await refreshRefinementKey()
-            }
-        }
+        .refreshesSetupCredentials(container)
         .onChange(of: container.pipeline.lastOutcome) { _, _ in Task { await reload() } }
     }
 
     // MARK: Readiness
 
-    private var setupIssues: Int {
-        [container.hotkeys.isActive, outputReady, microphoneReady, speechTone != .attention, refinementTone != .attention]
-            .filter { !$0 }.count
-    }
-
-    private var outputReady: Bool {
-        container.settings.outputDestination == .script
-            ? ScriptDelivery.unavailableReason(path: container.settings.outputScriptPath) == nil
-            : container.permissions.accessibilityGranted
-    }
+    private var readiness: SetupReadiness { container.readiness }
+    private var setupIssues: Int { readiness.issueCount }
+    private var outputReady: Bool { readiness.outputReady }
+    private var microphoneReady: Bool { readiness.microphoneReady }
+    private var speechTone: StatusDot.Tone { readiness.speechTone }
+    private var refinementTone: StatusDot.Tone { readiness.refinementTone }
+    private var speechLanguageIssue: String? { readiness.speechLanguageIssue }
 
     private var pipelineSummary: String {
         let llm = container.settings.llm
@@ -109,7 +98,7 @@ struct HomePage: View {
                 HStack(spacing: Theme.controlSpacing) {
                     StatusDot(ok: issues == 0)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(issues == 0 ? "Ready to dictate" : issues == 1 ? "1 setup step needs attention" : "\(issues) setup steps need attention")
+                        Text(readiness.summary)
                             .font(.system(size: 13, weight: .medium))
                         Text(pipelineSummary)
                             .supportingText()
@@ -177,7 +166,7 @@ struct HomePage: View {
             }
         }
         RowDivider()
-        HealthRow(ok: microphoneReady, title: "Microphone", detail: microphoneDetail) {
+        HealthRow(ok: microphoneReady, title: "Microphone", detail: readiness.microphoneDetail) {
             if !microphoneReady {
                 Button(container.permissions.microphone == .notDetermined ? "Allow Microphone" : "Microphone Settings") {
                     if container.permissions.microphone == .notDetermined {
@@ -187,7 +176,7 @@ struct HomePage: View {
             }
         }
         RowDivider()
-        HealthRow(tone: speechTone, title: "Speech", detail: speechDetail) {
+        HealthRow(tone: speechTone, title: "Speech", detail: readiness.speechDetail) {
             if speechTone == .attention {
                 if container.effectiveProfile.speechModel?.unavailableReason != nil {
                     Button("Profiles") { container.navigation.page = .profiles }
@@ -205,7 +194,7 @@ struct HomePage: View {
                         container.navigation.page = .models
                     }.buttonStyle(SoftButtonStyle())
                 }
-            } else if speechLoadsOnDemand {
+            } else if readiness.speechLoadsOnDemand {
                 // Optional: dictation loads it anyway; this only saves the first wait.
                 Button("Load Model") { container.models.loadSpeechModel() }
                     .buttonStyle(SoftButtonStyle())
@@ -214,107 +203,14 @@ struct HomePage: View {
             }
         }
         RowDivider()
-        HealthRow(tone: refinementTone, title: "Refinement", detail: refinementDetail) {
+        HealthRow(tone: refinementTone, title: "Refinement", detail: readiness.refinementDetail) {
             if refinementTone == .attention {
-                Button(refinementNeedsKey ? "Add API Key" : "Models") { container.navigation.page = .models }
+                Button(readiness.refinementNeedsKey ? "Add API Key" : "Models") { container.navigation.page = .models }
                     .buttonStyle(SoftButtonStyle())
             } else {
                 Button("Profiles") { container.navigation.page = .profiles }.buttonStyle(SoftButtonStyle())
             }
         }
-    }
-
-    private var refinementNeedsKey: Bool {
-        container.effectiveProfile.usesLLM && container.settings.llm.kind.requiresKey && !refinementKeyPresent
-    }
-
-    /// Off is a valid choice, not a problem; a missing key, CLI or server is.
-    private var refinementTone: StatusDot.Tone {
-        let llm = container.settings.llm
-        if llm.kind == .none || !container.effectiveProfile.usesLLM { return .inactive }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason == nil ? .ok : .attention }
-        if refinementNeedsKey || (llm.kind.isCLI && llm.cliExecutable == nil) { return .attention }
-        switch container.models.llmStatus.state {
-        case .unreachable, .failed: return .attention
-        case .loading, .unknown: return .busy
-        default: return .ok
-        }
-    }
-
-    private var refinementDetail: String {
-        let llm = container.settings.llm
-        guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "Off · original transcript") }
-        if llm.kind == .appleIntelligence { return AppleIntelligenceRefiner.unavailableReason ?? String(localized: "On-device · \(container.effectiveProfile.name)") }
-        let state = refinementNeedsKey ? String(localized: "API key needed") : container.models.llmStatus.label
-        return "\(state) · \(container.effectiveProfile.name)"
-    }
-
-    private func refreshRefinementKey() async {
-        guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
-        let account = container.settings.llm.keyRef
-        let present = await Task.detached { Keychain.presence(account) == .saved }.value
-        guard account == container.settings.llm.keyRef, !Task.isCancelled else { return }
-        refinementKeyPresent = present
-    }
-
-    private var microphoneReady: Bool {
-        guard container.permissions.microphone == .authorized,
-              let device = container.microphones.selected(container.settings.microphone) else { return false }
-        let channel = container.settings.microphone.channelIndex ?? 0
-        return channel >= 0 && channel < device.inputChannelCount
-    }
-
-    private var microphoneDetail: String {
-        if container.permissions.microphone != .authorized { return String(localized: "Microphone permission needed") }
-        guard let device = container.microphones.selected(container.settings.microphone) else { return String(localized: "Selected microphone is unavailable") }
-        return microphoneReady ? device.name : String(localized: "Selected input channel is unavailable")
-    }
-
-    private var speechDetail: String {
-        if let reason = container.effectiveProfile.speechModel?.unavailableReason { return reason }
-        if let issue = speechLanguageIssue { return issue }
-        let asr = container.speechConfig
-        if !asr.kind.isLocal {
-            guard asr.kind.preset != nil else { return String(localized: "Custom endpoint") }
-            return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
-        }
-        if !LocalModels.isInstalled(asr) { return String(localized: "Model not installed") }
-        if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
-        return container.engineStatus.state(for: asr.engineID).label
-    }
-
-    /// An installed local model that is not in memory is ready: starting
-    /// dictation loads it. Only missing files, keys, bindings, languages or a
-    /// failed load need attention.
-    private var speechTone: StatusDot.Tone {
-        if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return .attention }
-        let asr = container.speechConfig
-        if !asr.kind.isLocal { return asr.kind.preset == nil || speechKeyPresent ? .ok : .attention }
-        guard LocalModels.isInstalled(asr) else { return .attention }
-        switch container.engineStatus.state(for: asr.engineID) {
-        case .ready, .notLoaded: return .ok
-        case .loading: return .busy
-        case .failed: return .attention
-        }
-    }
-
-    private var speechLoadsOnDemand: Bool {
-        let asr = container.speechConfig
-        return asr.kind.isLocal && container.engineStatus.state(for: asr.engineID) == .notLoaded
-            && speechTone == .ok
-    }
-
-    private var speechLanguageIssue: String? {
-        do { _ = try SpeechLanguagePolicy.resolve(container.speechConfig); return nil }
-        catch { return error.localizedDescription }
-    }
-
-    private func refreshSpeechKey() async {
-        guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
-        let account = container.speechConfig.keyRef
-        let present = await Task.detached { Keychain.presence(account) == .saved }.value
-        guard account == container.speechConfig.keyRef, !Task.isCancelled else { return }
-        speechKeyPresent = present
     }
 
     // MARK: Summary

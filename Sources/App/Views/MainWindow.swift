@@ -367,6 +367,7 @@ struct SidebarView: View {
             .padding(.bottom, 14)
         }
         .padding(.horizontal, Theme.sidebarContentInset)
+        .refreshesSetupCredentials(container)
         .task(id: container.pipeline.lastOutcome) { await refreshWordCount() }
         .onReceive(NotificationCenter.default.publisher(for: .historyEntriesChanged)) { _ in
             Task { await refreshWordCount() }
@@ -420,11 +421,32 @@ struct SidebarView: View {
         }
     }
 
-    private var footerLabel: some View {
-        Text(footerLine)
-            .font(.system(size: 11))
+    /// Home's readiness decides this line, so the sidebar never says Ready while
+    /// Home lists setup steps that still need attention.
+    @ViewBuilder private var footerLabel: some View {
+        let readiness = container.readiness
+        if readiness.issueCount > 0 {
+            Button { container.navigation.page = .home } label: {
+                HStack(spacing: 6) {
+                    StatusDot(.attention).accessibilityHidden(true)
+                    Text("Finish Setup").lineLimit(1)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.secondary)
-            .lineLimit(1)
+            .help(readiness.summary)
+            .accessibilityLabel(readiness.summary)
+            .accessibilityHint("Opens Home")
+            .accessibilityIdentifier("sidebar.finish-setup")
+        } else {
+            Text(footerLine)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .accessibilityIdentifier("sidebar.footer-status")
+        }
     }
 
     private var footerLine: String {

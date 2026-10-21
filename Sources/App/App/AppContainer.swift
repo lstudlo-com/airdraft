@@ -46,6 +46,7 @@ final class AppContainer {
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
     let downloads = ModelDownloadStore()
+    let credentialPresence = SetupCredentialPresence()
     @ObservationIgnored lazy var updates = AppUpdater { [weak self] in
         self?.pipeline.isBusy ?? false
     }

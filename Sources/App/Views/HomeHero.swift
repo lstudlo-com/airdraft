@@ -12,6 +12,9 @@ struct HomeHero: View {
     var triggerDelayMilliseconds = 0
     var isReady = true
     var canDictate = true
+    /// No dictation has been saved yet: the metrics would all read zero, so the
+    /// hero explains what fills it instead.
+    var isFirstRun = false
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -32,12 +35,18 @@ struct HomeHero: View {
 
     var body: some View {
         VStack(spacing: Theme.sectionSpacing) {
-            HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                HeroMetric(value: stats.wordsPerMinute.formatted(), unit: String(localized: "WPM"), label: "Average speed")
-                HeroMetric(value: stats.words.formatted(), label: "Words")
-                HeroMetric(value: stats.apps.formatted(), label: "Apps used")
-                HeroMetric(value: saved.value, unit: saved.unit, label: "Saved \(periodTitle.lowercased())")
-                    .help("Compared with typing the same words at 40 WPM")
+            if isFirstRun {
+                firstRunHeadline
+            } else {
+                HStack(alignment: .top, spacing: Theme.controlSpacing) {
+                    HeroMetric(value: stats.wordsPerMinute.formatted(), unit: String(localized: "WPM"), label: "Average speed")
+                    HeroMetric(value: stats.words.formatted(), label: "Words")
+                    HeroMetric(value: stats.apps.formatted(), label: "Apps used")
+                    HeroMetric(value: saved.value, unit: saved.unit, label: "Saved \(periodTitle.lowercased())")
+                        .help("Compared with typing the same words at 40 WPM")
+                }
+                // History decides between metrics and the first-run headline; never flash zeros.
+                .opacity(isReady ? 1 : 0)
             }
             VStack(spacing: Theme.controlSpacing) {
                 waveform
@@ -87,6 +96,25 @@ struct HomeHero: View {
     }
 
     private var stats: HistoryStore.Stats { overview.stats }
+
+    /// Same height as the metric row, so the hero keeps its shape after the first dictation.
+    private var firstRunHeadline: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            (canDictate ? Text("Ready for your first dictation") : Text("Almost ready to dictate"))
+                .font(.system(size: 18, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text("Your speed, words and time saved appear here after you dictate.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("home.first-run")
+    }
 
     private var selectedPulse: HistoryStore.Overview.Pulse? {
         overview.pulses.first { $0.id == selectedID }
@@ -498,7 +526,7 @@ struct HeroMetric: View {
 }
 
 #Preview("Hero · first run") {
-    HomeHero(overview: .empty, periodTitle: "All time", hotkey: .controlOption, behavior: .hold)
+    HomeHero(overview: .empty, periodTitle: "All time", hotkey: .controlOption, behavior: .hold, isFirstRun: true)
         .padding(Theme.pagePadding)
         .frame(width: 720)
 }
