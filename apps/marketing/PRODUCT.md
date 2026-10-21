@@ -90,7 +90,8 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice on 8 GB or
   less, with Qwen still offered); English, Japanese and Korean keep SenseVoice;
   the Models page labels Qwen3-ASR 1.7B "Best for mixed Chinese and English"
-  and calls SenseVoice smaller and faster but weaker with English terms. Say
+  and calls SenseVoice smaller and faster but weaker with English terms in
+  Chinese speech. Say
   which recommendation is which and which version has it.
   Chinese script converts characters to Traditional by default and can be
   Simplified or Auto; Taiwan vocabulary comes from refinement. Parakeet does

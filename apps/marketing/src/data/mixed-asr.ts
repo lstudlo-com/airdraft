@@ -23,6 +23,7 @@ export const mixedAsrStudy = {
 export interface MixedAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
+  /** The download size the app lists for the pinned files (next version). */
   download: string;
   /** Mixed error rate on ASCEND, language Auto, as a percentage. */
   mer: number;
@@ -43,7 +44,7 @@ export interface MixedAsrResult {
 export const mixedAsrResults: MixedAsrResult[] = [
   {
     model: "Qwen3-ASR 1.7B",
-    download: "2.3 GB",
+    download: "2.44 GB",
     mer: 8.9,
     englishKept: 76,
     ttsMer: 2.8,
@@ -63,7 +64,7 @@ export const mixedAsrResults: MixedAsrResult[] = [
   },
   {
     model: "Qwen3-ASR 0.6B",
-    download: "680 MB",
+    download: "713 MB",
     mer: 10.7,
     englishKept: 73,
     ttsMer: 5.9,
