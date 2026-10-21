@@ -75,10 +75,15 @@ class SwiftPMLockTests(unittest.TestCase):
         module.__file__ = str(self.root / "scripts/generate-project.py")
         generated = self.root / swiftpm_lock.GENERATED_LOCK
         with patch.object(module.shutil, "which", return_value="/fixture/xcodegen"), \
+             patch.object(module, "ensure_local_config") as signing, \
+             patch.object(module.sys, "argv", ["generate-project.py"]), \
              patch.object(module.subprocess, "run", return_value=subprocess.CompletedProcess([], 1)):
             self.assertEqual(module.main(), 1)
             self.assertFalse(generated.exists())
+            signing.assert_called_once()
         with patch.object(module.shutil, "which", return_value="/fixture/xcodegen"), \
+             patch.object(module, "ensure_local_config"), \
+             patch.object(module.sys, "argv", ["generate-project.py"]), \
              patch.object(module.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)):
             self.assertEqual(module.main(), 0)
             swiftpm_lock.verify(self.root)
