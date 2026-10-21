@@ -538,6 +538,51 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
     }
 
+    // MARK: - Session pins (AD-063)
+
+    func testLongRecordingKeepsItsSpeechModelPastTheIdleTimeout() async throws {
+        let clock = TestClock()
+        let engine = PinnedSpeech()
+        let fixture = try Fixture(engine: engine, clock: clock)
+        defer { fixture.cleanUp() }
+        await fixture.factory.setIdleUnloadMinutes(5)
+        defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
+
+        try await fixture.pipeline.startFromAutomation()
+        clock.advance(9 * 60)  // longer than the 5-minute idle setting
+        await fixture.factory.unloadIdle()
+        var counts = await engine.counts
+        XCTAssertEqual(counts.unloads, 0, "The recording's model stays resident")
+        try fixture.pipeline.stopFromAutomation()
+        try await finished(fixture)
+        counts = await engine.counts
+        XCTAssertEqual(counts.prepares, 1, "Stop must not reload the model")
+        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Pinned words"])
+
+        // The pin ends with the session; the idle countdown then applies again.
+        try await Task.sleep(for: .milliseconds(50))
+        clock.advance(6 * 60)
+        await fixture.factory.unloadIdle()
+        counts = await engine.counts
+        XCTAssertEqual(counts.unloads, 1)
+    }
+
+    func testCancelledRecordingReleasesItsSpeechModelPin() async throws {
+        let clock = TestClock()
+        let engine = PinnedSpeech()
+        let fixture = try Fixture(engine: engine, clock: clock)
+        defer { fixture.cleanUp() }
+        await fixture.factory.setIdleUnloadMinutes(5)
+        defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
+        try await fixture.pipeline.startFromAutomation()
+        fixture.pipeline.cancel()
+        try await Task.sleep(for: .milliseconds(50))
+        clock.advance(6 * 60)
+        await fixture.factory.unloadIdle()
+        let counts = await engine.counts
+        XCTAssertEqual(counts.unloads, 1)
+    }
+
     private func finished(_ fixture: Fixture) async throws {
         try await waitUntil("Dictation delivery and history finish") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
     }
@@ -568,8 +613,10 @@ final class PipelineAutomationTests: XCTestCase {
         let recorder: AutomationTestRecorder
         let pipeline: DictationPipeline
         let probe: AutomationDeliveryProbe
+        let factory: EngineFactory
 
-        init(speech: AutomationSpeech = AutomationSpeech([.text("Final words")]), scriptFails: Bool = false,
+        init(speech: AutomationSpeech = AutomationSpeech([.text("Final words")]), engine: (any Transcriber)? = nil,
+             clock: TestClock? = nil, scriptFails: Bool = false,
              startupGate: AutomationStartupGate? = nil, deliveryGate: AutomationStartupGate? = nil,
              permissionGate: AutomationStartupGate? = nil, microphoneGranted: Bool = true, executeScript: Bool = false,
              verbatim: Bool = false, accessCheck: @escaping @MainActor () async throws -> Void = {}) throws {
@@ -594,10 +641,12 @@ final class PipelineAutomationTests: XCTestCase {
             recorder = AutomationTestRecorder()
             let probe = AutomationDeliveryProbe(failing: scriptFails)
             self.probe = probe
+            let transcriber: any Transcriber = engine ?? speech
             let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
                 XCTFail("Automation tests must not read credentials")
                 return nil
-            }, transcriberBuilder: { _ in speech })
+            }, transcriberBuilder: { _ in transcriber }, now: { clock?.now ?? Date() })
+            self.factory = factory
             let profiles = ProfileStore(directory: directory)
             if verbatim { profiles.setActive(RefinementProfile.verbatimID) }
             self.profiles = profiles
@@ -677,6 +726,20 @@ private final class AutomationTestRecorder: AudioRecording, @unchecked Sendable 
     }
     func stop() -> [Float] { stopCount += 1; isRecording = false; return [Float](repeating: 0.125, count: 16_000) }
     func cancel() { isRecording = false }
+}
+
+private actor PinnedSpeech: Transcriber {
+    nonisolated let id = "automation-pinned-speech"
+    private var ready = false
+    private var prepares = 0
+    private var unloads = 0
+    var counts: (prepares: Int, unloads: Int) { (prepares, unloads) }
+    func isReady() -> Bool { ready }
+    func prepare() async throws { ready = true; prepares += 1 }
+    func unload() async { ready = false; unloads += 1 }
+    func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
+        Transcript(text: "Pinned words", engine: id, latencyMs: 1)
+    }
 }
 
 private actor AutomationSpeech: Transcriber {

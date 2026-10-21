@@ -172,6 +172,34 @@ final class CLIWarmPoolTests: XCTestCase {
         try await waitForExit(session)
     }
 
+    /// A long recording must not lose its warm session to the unowned idle limit.
+    func testOwnedSessionOutlivesUnownedIdleLimitUntilTheRecordingCapAndProcessing() async throws {
+        let clock = TestClock()
+        let pool = CLIWarmPool(now: { clock.now })
+        let owner = UUID()
+        let owned = try makeSession("exec /bin/sleep 30", key: "owned")
+        let unowned = try makeSession("exec /bin/sleep 30", key: "unowned")
+        let expiring = try makeSession("exec /bin/sleep 30", key: "expiring")
+        defer { owned.stop(); unowned.stop(); expiring.stop() }
+
+        await pool.prewarm(key: owned.key, owner: owner) { owned }
+        clock.advance(590)  // a recording close to the 600-second cap
+        let taken = await pool.take(key: owned.key, owner: owner)
+        XCTAssertTrue(taken === owned, "An owned warm session must survive a long recording")
+
+        await pool.prewarm(key: unowned.key) { unowned }
+        clock.advance(181)
+        let stale = await pool.take(key: unowned.key)
+        XCTAssertNil(stale, "Unowned warm sessions keep the 180-second idle limit")
+        try await waitForExit(unowned)
+
+        await pool.prewarm(key: expiring.key, owner: owner) { expiring }
+        clock.advance(TimeInterval(SpeechInputLimits.recordingSecondsRange.upperBound) + CLIWarmPool.ownedSessionProcessingSeconds + 1)
+        let leaked = await pool.take(key: expiring.key, owner: owner)
+        XCTAssertNil(leaked, "An owned session still has a hard lifetime bound")
+        try await waitForExit(expiring)
+    }
+
     private func makeSession(_ script: String, key: String = "fixture") throws -> CLISession {
         try CLISession(key: key, executable: "/bin/sh", arguments: ["-c", script],
                        environment: [:], workDir: FileManager.default.temporaryDirectory)
@@ -181,4 +209,11 @@ final class CLIWarmPoolTests: XCTestCase {
         for _ in 0..<200 where session.isAlive { try await Task.sleep(for: .milliseconds(10)) }
         XCTAssertFalse(session.isAlive)
     }
+}
+
+final class TestClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = Date(timeIntervalSinceReferenceDate: 800_000_000)
+    var now: Date { lock.withLock { value } }
+    func advance(_ seconds: TimeInterval) { lock.withLock { value = value.addingTimeInterval(seconds) } }
 }

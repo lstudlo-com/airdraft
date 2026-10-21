@@ -68,8 +68,22 @@ public actor CLIWarmPool {
     private var session: CLISession?
     private var owner: UUID?
     private var startedAt = Date.distantPast
-    /// A session waiting this long is stale (the user started recording and walked away).
-    private let maxIdle: TimeInterval = 180
+    /// An unowned session waiting this long is stale (nobody is recording for it).
+    private let maxIdle: TimeInterval
+    /// A session owned by a recording lives as long as that recording can:
+    /// the 600-second cap plus final ASR. Its owner discards it explicitly on
+    /// completion, cancellation, skipped refinement or failure.
+    private let maxOwnedAge: TimeInterval
+    private let now: @Sendable () -> Date
+    public static let ownedSessionProcessingSeconds: TimeInterval = 300
+
+    init(maxIdle: TimeInterval = 180,
+         maxOwnedAge: TimeInterval = TimeInterval(SpeechInputLimits.recordingSecondsRange.upperBound) + CLIWarmPool.ownedSessionProcessingSeconds,
+         now: @escaping @Sendable () -> Date = { Date() }) {
+        self.maxIdle = maxIdle
+        self.maxOwnedAge = maxOwnedAge
+        self.now = now
+    }
 
     private let log = Logger(subsystem: AppIdentity.logSubsystem, category: "cli")
 
@@ -85,7 +99,7 @@ public actor CLIWarmPool {
             guard !Task.isCancelled else { pending.stop(); return }
             session = pending
             owner = requestedOwner
-            startedAt = Date()
+            startedAt = now()
             log.notice("warm: session started key=\(key, privacy: .public)")
         } catch {
             log.error("warm: could not start session: \(error.localizedDescription, privacy: .public)")
@@ -119,7 +133,8 @@ public actor CLIWarmPool {
 
     private func discardIfStale() {
         guard let current = session else { return }
-        if !current.isAlive || Date().timeIntervalSince(startedAt) > maxIdle {
+        let limit = owner == nil ? maxIdle : maxOwnedAge
+        if !current.isAlive || now().timeIntervalSince(startedAt) > limit {
             current.stop()
             session = nil
             owner = nil

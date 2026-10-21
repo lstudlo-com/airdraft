@@ -43,10 +43,10 @@ public final class EngineStatus {
     public func setPreviewState(_ id: String, _ state: EngineLoadState) { set(id, state) }
     #endif
 
-    func set(_ id: String, _ state: EngineLoadState) {
+    func set(_ id: String, _ state: EngineLoadState, at date: Date = Date()) {
         states[id] = state
-        if state == .ready { lastUsedAt[id] = Date() }
+        if state == .ready { lastUsedAt[id] = date }
     }
 
-    func touch(_ id: String) { lastUsedAt[id] = Date() }
+    func touch(_ id: String, at date: Date = Date()) { lastUsedAt[id] = date }
 }

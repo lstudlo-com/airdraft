@@ -159,6 +159,8 @@ public final class DictationPipeline {
         var requestFinished = false
     }
     private var refinementPreparation: RefinementPreparation?
+    /// Keeps the session's local speech engine out of idle unloading.
+    private var speechSessionPin: (token: UUID, pin: UUID)?
     private var stopRequestedAt: TimeInterval?
     private var insertionTargetAtStart: InsertionTarget?
     private var contextAtStart: AppContext = .empty
@@ -303,6 +305,8 @@ public final class DictationPipeline {
         generation = token
         recordingRequest = Task {
             await beginRecording(token: token)
+            // Every early return or cancellation before capture ends the pin.
+            if !(isCurrent(token) && isRecording) { releaseSpeechSessionPin(for: token) }
             if recordingRequestID == token { recordingRequest = nil }
         }
     }
@@ -391,6 +395,13 @@ public final class DictationPipeline {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
             if asr.kind.isLocal {
+                // Pin before checking readiness so the idle watch cannot unload
+                // the model between this check and the end of processing.
+                let limit = SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind)
+                let pin = await factory.pinForSession(asr.engineID, recordingSeconds: TimeInterval(limit))
+                guard isCurrent(token) else { await factory.releaseSessionPin(pin); return }
+                releaseSpeechSessionPin()
+                speechSessionPin = (token, pin)
                 let engine = await factory.transcriber(for: asr)
                 let ready = await engine.isReady()
                 guard isCurrent(token) else { return }
@@ -502,6 +513,7 @@ public final class DictationPipeline {
 
         guard seconds >= 0.3 else {
             discardRefinementPreparation()
+            releaseSpeechSessionPin()
             set(.idle)
             return
         }
@@ -680,6 +692,12 @@ public final class DictationPipeline {
         Task { await CLIRefiner.discardPrewarm(owner: preparation.token) }
     }
 
+    private func releaseSpeechSessionPin(for token: UUID? = nil) {
+        guard let current = speechSessionPin, token == nil || current.token == token else { return }
+        speechSessionPin = nil
+        Task { [factory] in await factory.releaseSessionPin(current.pin) }
+    }
+
     private static func elapsed(since start: TimeInterval) -> Int {
         Int(max(0, ProcessInfo.processInfo.systemUptime - start) * 1000)
     }
@@ -693,6 +711,7 @@ public final class DictationPipeline {
         hasRecoverableRecording = false
         releaseTask?.cancel()
         discardRefinementPreparation()
+        releaseSpeechSessionPin()
         stopRequestedAt = nil
         recordingRequestID = UUID()
         recordingRequest?.cancel()
@@ -852,6 +871,7 @@ public final class DictationPipeline {
         var timings = DictationTimings()
         defer {
             discardRefinementPreparation(for: token)
+            releaseSpeechSessionPin(for: token)
             Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1)")
         }
         // Muted/digital-silence recordings contain no speech. Some recognizers

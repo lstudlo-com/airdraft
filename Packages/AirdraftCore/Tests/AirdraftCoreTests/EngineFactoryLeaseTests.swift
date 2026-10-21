@@ -247,6 +247,64 @@ final class EngineFactoryLeaseTests: XCTestCase {
         await busyFactory.unloadAll()
     }
 
+    /// Recordings longer than the idle setting must keep their speech model.
+    func testSessionPinKeepsRecordingEngineResidentPastIdleTimeout() async throws {
+        let config = ASRConfig(kind: .parakeet)
+        let speech = LeaseSpeech(id: config.engineID)
+        let status = EngineStatus()
+        let clock = TestClock()
+        let factory = EngineFactory(status: status, credentialReader: { _ in nil },
+                                    transcriberBuilder: { _ in speech }, now: { clock.now })
+        try await factory.prepare(config)
+        await factory.setIdleUnloadMinutes(5)
+        defer { Task { await factory.setIdleUnloadMinutes(0) } }
+
+        let pin = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+        clock.advance(9 * 60)
+        await factory.unloadIdle()
+        var events = await speech.snapshot()
+        XCTAssertFalse(events.contains(.unload), "A pinned engine survives the idle timeout")
+        XCTAssertEqual(status.state(for: config.engineID), .ready)
+
+        // The idle countdown restarts when the session ends.
+        await factory.releaseSessionPin(pin)
+        clock.advance(4 * 60)
+        await factory.unloadIdle()
+        events = await speech.snapshot()
+        XCTAssertFalse(events.contains(.unload), "Release refreshes the use timestamp")
+        clock.advance(2 * 60)
+        await factory.unloadIdle()
+        events = await speech.snapshot()
+        XCTAssertEqual(events.filter { $0 == .unload }.count, 1)
+        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+    }
+
+    func testLeakedSessionPinExpiresAfterLoadRecordingAndProcessingBounds() async throws {
+        let config = ASRConfig(kind: .parakeet)
+        let speech = LeaseSpeech(id: config.engineID)
+        let status = EngineStatus()
+        let clock = TestClock()
+        let factory = EngineFactory(status: status, modelLoadTimeout: 120, credentialReader: { _ in nil },
+                                    transcriberBuilder: { _ in speech }, now: { clock.now })
+        try await factory.prepare(config)
+        await factory.setIdleUnloadMinutes(5)
+        defer { Task { await factory.setIdleUnloadMinutes(0) } }
+
+        _ = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+        clock.advance(120 + 600 + EngineFactory.sessionPinProcessingSeconds - 1)
+        await factory.unloadIdle()
+        XCTAssertEqual(status.state(for: config.engineID), .ready)
+        clock.advance(2)
+        await factory.unloadIdle()
+        XCTAssertEqual(status.state(for: config.engineID), .notLoaded, "A pin never holds a model indefinitely")
+        // Explicit unloads (model switch, reset, quit) are never blocked by pins.
+        let second = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+        try await factory.prepare(config)
+        await factory.unloadAll()
+        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+        await factory.releaseSessionPin(second)
+    }
+
     private func factory(status: EngineStatus, timeout: TimeInterval = 120,
                          builder: @escaping @Sendable (ASRConfig) -> any Transcriber) -> EngineFactory {
         EngineFactory(status: status, modelLoadTimeout: timeout, credentialReader: { _ in

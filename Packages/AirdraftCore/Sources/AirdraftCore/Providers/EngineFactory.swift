@@ -18,18 +18,49 @@ public actor EngineFactory {
     private let transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)?
     private let refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)?
     private let credentialReader: @Sendable (String) throws -> String?
+    private let now: @Sendable () -> Date
+    /// Active dictation sessions keep their speech engine resident. Each pin
+    /// has a hard deadline so a leaked session cannot hold a model forever.
+    private var sessionPins: [UUID: (engineID: String, expiresAt: Date)] = [:]
+    /// Processing after the recording cap: final ASR, refinement and delivery.
+    public static let sessionPinProcessingSeconds: TimeInterval = 300
 
     public init(status: EngineStatus,
                 modelLoadTimeout: TimeInterval = 120,
                 credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) },
                 transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil,
-                refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)? = nil) {
+                refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)? = nil,
+                now: @escaping @Sendable () -> Date = { Date() }) {
         self.transcriberBuilder = transcriberBuilder
         self.refinerBuilder = refinerBuilder
         self.status = status
         self.modelLoadTimeout = modelLoadTimeout
         self.credentialReader = credentialReader
+        self.now = now
         Task { await self.startIdleWatch() }
+    }
+
+    /// Keeps `engineID` out of idle unloading while a dictation records and
+    /// processes. The pin lasts at most the model-load bound, the recording
+    /// limit and the processing allowance; explicit unloads (model switch,
+    /// reset, quit) still apply. Readiness is checked again at transcription.
+    public func pinForSession(_ engineID: String, recordingSeconds: TimeInterval) -> UUID {
+        let token = UUID()
+        let lifetime = modelLoadTimeout + max(0, recordingSeconds) + Self.sessionPinProcessingSeconds
+        sessionPins[token] = (engineID, now().addingTimeInterval(lifetime))
+        return token
+    }
+
+    /// Ends a session pin. The idle countdown restarts from the session's end.
+    public func releaseSessionPin(_ token: UUID) async {
+        guard let pin = sessionPins.removeValue(forKey: token) else { return }
+        if let engine = local[pin.engineID] { await markUsed(engine.id) }
+    }
+
+    private func activePinnedEngineIDs() -> Set<String> {
+        let date = now()
+        sessionPins = sessionPins.filter { $0.value.expiresAt > date }
+        return Set(sessionPins.values.map(\.engineID))
     }
 
     public func transcriber(for config: ASRConfig) -> any Transcriber {
@@ -223,7 +254,8 @@ public actor EngineFactory {
         await unloadAllExclusive(except: engine.id)
         try Task.checkCancellation()
         if await engine.isReady() {
-            await MainActor.run { status.set(engine.id, .ready) }
+            let date = now()
+            await MainActor.run { status.set(engine.id, .ready, at: date) }
             return engine
         }
         await onPreparing?()
@@ -237,7 +269,8 @@ public actor EngineFactory {
                 } onCancel: { preparation.cancel() }
             }
             try Task.checkCancellation()
-            await MainActor.run { status.set(engine.id, .ready) }
+            let date = now()
+            await MainActor.run { status.set(engine.id, .ready, at: date) }
             return engine
         } catch {
             let cancelled = Task.isCancelled || error is CancellationError
@@ -269,7 +302,8 @@ public actor EngineFactory {
     }
 
     public func markUsed(_ engineID: String) async {
-        await MainActor.run { status.touch(engineID) }
+        let date = now()
+        await MainActor.run { status.touch(engineID, at: date) }
     }
 
     public func unloadAll(except keep: String? = nil) async {
@@ -306,16 +340,21 @@ public actor EngineFactory {
         }
     }
 
-    private func unloadIdle() async {
+    /// One idle pass; the watch calls it every 30 seconds. Internal for tests.
+    func unloadIdle() async {
         guard idleUnloadMinutes > 0 else { return }
         _ = try? await serialize { await self.unloadIdleExclusive() }
     }
 
     private func unloadIdleExclusive() async {
         guard idleUnloadMinutes > 0 else { return }
-        let cutoff = Date().addingTimeInterval(-Double(idleUnloadMinutes) * 60)
+        let cutoff = now().addingTimeInterval(-Double(idleUnloadMinutes) * 60)
+        let pinned = activePinnedEngineIDs()
         let stale = await MainActor.run { status.lastUsedAt.filter { $0.value < cutoff }.map(\.key) }
-        for engine in local.values where stale.contains(engine.id) { await unload(engine) }
+        // Pins name the config's engine ID, which is also the cache key.
+        for (key, engine) in local where stale.contains(engine.id) && !pinned.contains(key) && !pinned.contains(engine.id) {
+            await unload(engine)
+        }
     }
 }
 
