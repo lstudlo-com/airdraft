@@ -32,6 +32,10 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     /// Output reached its destination without a detected failure. A cursor
     /// paste sent unverified succeeded without `inserted`; see `deliveryStatus`.
     public var outputSucceeded: Bool?
+    /// `DictationPipeline.approximateWordCount(finalText)`, stored when the row
+    /// is saved so totals never decode every transcript. Nil for rows written
+    /// before migration `v7-word-count` or by an older app version.
+    public internal(set) var wordCount: Int?
 
     public init(
         id: Int64? = nil,
@@ -213,7 +217,29 @@ public final class HistoryStore: Sendable {
         migrator.registerMigration("v6-meeting-metadata") { db in
             try db.alter(table: "recordingAsset") { table in table.add(column: "captureIssue", .text) }
         }
+        migrator.registerMigration("v7-word-count") { db in
+            // Nullable: an older app version can still insert rows, which totals
+            // count from their text until a later save or launch backfills them.
+            try db.alter(table: DictationRecord.databaseTableName) { t in t.add(column: "wordCount", .integer) }
+            // Keeps finding uncounted rows independent of history size.
+            try db.execute(sql: "CREATE INDEX dictation_uncounted ON dictation(id) WHERE wordCount IS NULL")
+            try Self.backfillWordCounts(db)
+        }
         try migrator.migrate(dbQueue)
+        // Rows an older version inserted after the migration have no count yet.
+        try dbQueue.write { db in try Self.backfillWordCounts(db) }
+    }
+
+    /// Stores the word count of rows that have none. Reads only those rows.
+    private static func backfillWordCounts(_ db: Database) throws {
+        let missing = try Row.fetchAll(db, sql: "SELECT id, finalText FROM dictation WHERE wordCount IS NULL")
+        guard !missing.isEmpty else { return }
+        let update = try db.makeStatement(sql: "UPDATE dictation SET wordCount = ? WHERE id = ?")
+        for row in missing {
+            let id: Int64 = row["id"]
+            let text: String = row["finalText"]
+            try update.execute(arguments: [DictationPipeline.approximateWordCount(text), id])
+        }
     }
 
     @discardableResult
@@ -223,6 +249,7 @@ public final class HistoryStore: Sendable {
             // An insert may only attach audio created by this store, never a supplied path.
             r.audioFilename = nil
             r.recordingID = nil
+            r.wordCount = DictationPipeline.approximateWordCount(r.finalText)
             var writtenURL: URL?
             do {
                 return try dbQueue.write { db in
@@ -302,10 +329,15 @@ public final class HistoryStore: Sendable {
     /// A nil cutoff removes saved dictation audio while retaining text history.
     /// Explicit media imports and meetings have independent retention.
     /// Every pass also reconciles missing references and unfinished/orphaned writes.
-    public func pruneAudio(olderThan cutoff: Date?) throws {
+    /// It examines every asset and file, so it runs at launch, hourly and after a
+    /// retention change, never per dictation. Returns how many assets it removed
+    /// or detached, so callers refresh audio views only when something changed.
+    @discardableResult
+    public func pruneAudio(olderThan cutoff: Date?) throws -> Int {
         try audioLock.withLock {
             try dbQueue.write { db in
                 var retained = Set<String>()
+                var changed = 0
                 for asset in try RecordingAsset.fetchAll(db) {
                     let expired = asset.source == .dictation && (cutoff.map { asset.createdAt < $0 } ?? true)
                     if expired {
@@ -315,9 +347,11 @@ public final class HistoryStore: Sendable {
                         continue
                     }
                     try detachAndDelete(asset, in: db)
+                    changed += 1
                 }
                 try db.execute(sql: "UPDATE dictation SET audioFilename = NULL WHERE recordingID IS NULL")
                 try removeOrphanAudio(retaining: retained)
+                return changed
             }
         }
     }
@@ -674,12 +708,39 @@ public final class HistoryStore: Sendable {
         public var minutesSaved: Int { max(0, Int(Double(words) / 40 - audioSeconds / 60)) }
     }
 
-    /// Aggregates over all history, or over the last `days` days.
-    public func stats(days: Int? = nil) throws -> Stats {
+    /// Aggregates over all history, or over the last `days` days, in SQL from
+    /// stored word counts. Only rows without a stored count read their text.
+    public func stats(days: Int? = nil, now: Date = Date()) throws -> Stats {
         try dbQueue.read { db in
-            let rows = try Self.rows(db, days: days, now: Date())
-            return Self.stats(rows)
+            let since = days.map { now.addingTimeInterval(-Double($0) * 86_400) }
+            let filter = since == nil ? "" : "WHERE createdAt >= ?"
+            let arguments: StatementArguments = since.map { [$0] } ?? []
+            guard let row = try Row.fetchOne(db, sql: """
+                SELECT COUNT(*) AS dictations, COALESCE(SUM(wordCount), 0) AS words,
+                       COALESCE(SUM(audioSeconds), 0) AS seconds,
+                       COUNT(DISTINCT COALESCE(appBundleId, appName)) AS apps
+                FROM dictation \(filter)
+                """, arguments: arguments) else { return Stats(dictations: 0, words: 0, audioSeconds: 0, apps: 0) }
+            let words: Int = row["words"]
+            return Stats(dictations: row["dictations"], words: words + (try Self.uncountedWords(db, since: since)),
+                         audioSeconds: row["seconds"], apps: row["apps"])
         }
+    }
+
+    /// Words dictated over all history: the sidebar total after every save.
+    public func totalWords() throws -> Int {
+        try dbQueue.read { db in
+            let stored = try Int.fetchOne(db, sql: "SELECT COALESCE(SUM(wordCount), 0) FROM dictation") ?? 0
+            return stored + (try Self.uncountedWords(db, since: nil))
+        }
+    }
+
+    /// Rows an older app version wrote after migration, before the next backfill.
+    private static func uncountedWords(_ db: Database, since: Date?) throws -> Int {
+        let texts = try String.fetchAll(db, sql: "SELECT finalText FROM dictation WHERE wordCount IS NULL"
+                                            + (since == nil ? "" : " AND createdAt >= ?"),
+                                        arguments: since.map { [$0] } ?? [])
+        return texts.reduce(0) { $0 + DictationPipeline.approximateWordCount($1) }
     }
 
     /// Everything the Home page summarises, computed locally from history.
@@ -720,7 +781,7 @@ public final class HistoryStore: Sendable {
                          pulseLimit: Int = 48, appLimit: Int = 3) throws -> Overview {
         try dbQueue.read { db in
             let rows = try Self.rows(db, days: days, now: now, since: calendarDay ? calendar.startOfDay(for: now) : nil)
-            let counted = rows.map { ($0, DictationPipeline.approximateWordCount($0.finalText)) }
+            let counted = rows.map { ($0, $0.wordCount ?? DictationPipeline.approximateWordCount($0.finalText)) }
 
             let pulses = counted.suffix(pulseLimit).compactMap { record, words -> Overview.Pulse? in
                 guard let id = record.id else { return nil }
@@ -757,7 +818,7 @@ public final class HistoryStore: Sendable {
     }
 
     private static func stats(_ rows: [DictationRecord]) -> Stats {
-        let words = rows.reduce(0) { $0 + DictationPipeline.approximateWordCount($1.finalText) }
+        let words = rows.reduce(0) { $0 + ($1.wordCount ?? DictationPipeline.approximateWordCount($1.finalText)) }
         let seconds = rows.reduce(0.0) { $0 + $1.audioSeconds }
         let apps = Set(rows.compactMap { $0.appBundleId ?? $0.appName }).count
         return Stats(dictations: rows.count, words: words, audioSeconds: seconds, apps: apps)

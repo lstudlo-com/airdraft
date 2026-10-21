@@ -149,3 +149,26 @@ The core suite completed 266 tests with four skips and zero failures. All pages
 were rendered at 784 × 600 and 784 × 1,000 in both appearances, with additional
 History checks in the collapsed sidebar. The live window check covers both scroll columns, bottom-to-top
 synchronization and pointer focus. No release or other Mac was verified.
+
+## Per-dictation history maintenance (AD-072)
+
+Each delivered dictation used to run a full saved-audio reconciliation inside
+the save's write transaction (fetching every asset and checking its file), and
+the sidebar's word total decoded every transcript. Both now avoid scanning the
+history: reconciliation runs at launch, hourly and after retention changes (see
+`recording-storage.md`), and totals sum the stored `wordCount` column.
+
+`HistoryMaintenanceBenchmarkTests` (opt-in with
+`TEST_RUNNER_AIRDRAFT_BENCHMARK=1`, size via
+`TEST_RUNNER_AIRDRAFT_BENCHMARK_HISTORY_COUNT`) measures the pipeline's own save
+path with saved audio and the word total. Debug build, Apple silicon,
+2026-10-22, medians of 15 runs:
+
+| Rows | Save before | Save after | Word total before | Word total after |
+|---|---|---|---|---|
+| 2,015 | 203 ms | 1.8 ms | 47 ms | 0.24 ms |
+| 10,015 | 1,342 ms | 1.7 ms | 232 ms | 2.6 ms |
+
+The full reconciliation itself still takes about 0.1 ms per asset (209 ms at
+2,000 assets, 1,096 ms at 10,000); it now runs off the dictation path.
+

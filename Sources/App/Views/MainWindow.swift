@@ -377,12 +377,13 @@ struct SidebarView: View {
         }
     }
 
-    /// Counted off the main actor after a save or deletion, never on redraw.
+    /// Summed in SQL from stored counts, off the main actor, after a save or
+    /// deletion; never on redraw. A newer refresh rejects an older result.
     private func refreshWordCount() async {
         guard let history = container.history else { return }
         let token = UUID()
         wordCountRefresh = token
-        let count = await Task.detached { (try? history.stats().words) ?? 0 }.value
+        let count = await Task.detached { (try? history.totalWords()) ?? 0 }.value
         guard !Task.isCancelled, wordCountRefresh == token else { return }
         wordsDictated = count
     }

@@ -399,4 +399,34 @@ final class AudioHistoryTests: XCTestCase {
         let reopened = try HistoryStore(directory: directory)
         XCTAssertEqual(try reopened.recordings().entries.first?.asset, entry.asset)
     }
+
+    /// AD-072: saving a dictation never scans every asset. Retention and orphan
+    /// reconciliation run through `pruneSavedAudio` (launch, hourly, retention
+    /// change), which refreshes audio views only when it changed something.
+    @MainActor
+    func testDictationSaveDoesNotRunFullAudioPrune() async throws {
+        let suite = "airdraft.prune.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
+        settings.audioRetention = .day
+        let store = try HistoryStore(directory: directory)
+        try store.save(record(date: Date().addingTimeInterval(-3 * 86_400)), samples: [0.1, 0.2])
+        let pipeline = DictationPipeline(settings: settings, dictionary: DictionaryStore(directory: directory),
+            profiles: ProfileStore(directory: directory), history: store, historyDirectory: directory,
+            factory: EngineFactory(status: EngineStatus(), credentialReader: { _ in nil }))
+        let revision = pipeline.audioRevision
+
+        pipeline.unsavedHistory.append((record(), [0.3, 0.4]))
+        await pipeline.retryHistorySave()
+        XCTAssertNil(pipeline.historyStorageError)
+        XCTAssertEqual(try store.recordings().entries.count, 2, "The save keeps the expired asset for the periodic pass")
+        XCTAssertEqual(pipeline.audioRevision, revision, "A save does not reload audio views")
+
+        await pipeline.pruneSavedAudio()
+        XCTAssertEqual(try store.recordings().entries.count, 1, "Retention removes the expired asset")
+        XCTAssertEqual(try files().count, 1)
+        XCTAssertEqual(pipeline.audioRevision, revision + 1)
+        await pipeline.pruneSavedAudio()
+        XCTAssertEqual(pipeline.audioRevision, revision + 1, "A pass that changes nothing keeps playback and views")
+    }
 }

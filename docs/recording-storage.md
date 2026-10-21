@@ -20,6 +20,14 @@ remove their new sidecar.
 | `delete(id:)` | Remove selected dictation | Remove its audio unless another dictation references it |
 | `deleteAll` | Remove all | Remove all, including detached assets |
 
+`pruneAudio` applies retention and reconciles every asset with its file,
+including missing references and unfinished or orphaned writes. It examines the
+whole `Recordings` directory, so the app runs it at launch, hourly and after a
+retention change, never after each dictation save. A save failure removes its
+own new sidecar; anything left behind is reconciled by the next pass. The pass
+reports how many assets it removed or detached, and audio views reload (stopping
+playback) only when that is nonzero or an earlier failure cleared.
+
 Dictation retention applies to detached dictation assets too. Imported and meeting
 assets are independent of dictation retention. Orphan cleanup retains every
 surviving asset filename, even after transcript deletion. Unknown files, directories
@@ -54,3 +62,13 @@ References: [GRDB migrations](https://swiftpackageindex.com/groue/GRDB.swift/doc
 [SQLite foreign keys](https://www.sqlite.org/foreignkeys.html).
 
 Settings cleanup and reset coordination are defined in `data-cleanup.md`.
+
+## Word totals
+
+`dictation.wordCount` stores `approximateWordCount(finalText)` when a row is
+saved (migration `v7-word-count` backfills existing rows). `stats` and
+`totalWords` sum it in SQL instead of decoding every transcript; the sidebar
+total refreshes after each save and deletion without scaling with history. The
+column is nullable so an older app version can still insert rows: totals count
+those rows from their text through the partial `dictation_uncounted` index, and
+opening the store backfills them. Measurements are in `history-performance.md`.

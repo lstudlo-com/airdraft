@@ -2,13 +2,17 @@ import Foundation
 
 /// History persistence, saved-audio cleanup and data maintenance fences.
 extension DictationPipeline {
+    /// Applies audio retention and reconciles missing or orphaned files. The
+    /// pass examines every asset, so the app runs it at launch, hourly and after
+    /// a retention change; saving a dictation never does. Audio views refresh
+    /// only when it changed something or recovered from an earlier failure.
     public func pruneSavedAudio() async {
         guard !isMaintainingData, let history else { return }
         let cutoff = settings.audioRetention.cutoff()
         do {
-            try await Task.detached { try history.pruneAudio(olderThan: cutoff) }.value
+            let changed = try await Task.detached { try history.pruneAudio(olderThan: cutoff) }.value
+            if changed > 0 || audioStorageError != nil { audioRevision += 1 }
             audioStorageError = nil
-            audioRevision += 1
         } catch { audioStorageError = String(localized: "Saved audio could not be removed.", bundle: .module) + " " + error.localizedDescription }
     }
 
@@ -42,7 +46,6 @@ extension DictationPipeline {
                 unsavedHistory.removeFirst()
             }
             historyStorageError = nil
-            await pruneSavedAudio()
         } catch {
             historyStorageError = String(localized: "History could not be saved. Your unsaved dictations remain in memory.", bundle: .module) + " " + error.localizedDescription
         }

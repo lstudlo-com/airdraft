@@ -1,3 +1,4 @@
+import GRDB
 import XCTest
 @testable import AirdraftCore
 
@@ -124,5 +125,89 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(data.count, 44 + 6)
         XCTAssertEqual(String(decoding: data.prefix(4), as: UTF8.self), "RIFF")
         XCTAssertEqual(String(decoding: data[8..<12], as: UTF8.self), "WAVE")
+    }
+
+    // MARK: - AD-072 stored word counts
+
+    private func dictation(_ text: String, app: String? = "com.example.editor", date: Date = Date()) -> DictationRecord {
+        DictationRecord(createdAt: date, appBundleId: app, appName: app.map { _ in "Editor" }, mode: "clean",
+                        family: "document", rawTranscript: text, refinedText: text, finalText: text,
+                        asrEngine: "test", audioSeconds: 6, asrMs: 1, llmMs: 1, inserted: true)
+    }
+
+    /// Totals come from counts stored at save time and equal per-row counting.
+    func testWordTotalsUseStoredCountsAndMatchTextCounting() throws {
+        let store = try HistoryStore(inMemory: true)
+        let now = Date()
+        let texts = ["Ship the build today.", "會議改到星期四下午", "Mixed 中文 and English words 123", ""]
+        for (index, text) in texts.enumerated() {
+            let saved = try store.save(dictation(text, app: index == 3 ? nil : "app.\(index % 2)",
+                                                 date: now.addingTimeInterval(-Double(index) * 2 * 86_400)))
+            XCTAssertEqual(saved.wordCount, DictationPipeline.approximateWordCount(text))
+        }
+        let expected = texts.map(DictationPipeline.approximateWordCount)
+        XCTAssertEqual(try store.totalWords(), expected.reduce(0, +))
+        let all = try store.stats(now: now)
+        XCTAssertEqual(all, HistoryStore.Stats(dictations: 4, words: expected.reduce(0, +), audioSeconds: 24, apps: 2))
+        // The period filter is the same as before: the last `days` days from now.
+        let recent = try store.stats(days: 3, now: now)
+        XCTAssertEqual(recent.dictations, 2)
+        XCTAssertEqual(recent.words, expected[0] + expected[1])
+        XCTAssertEqual(try store.overview(now: now).stats, all)
+        XCTAssertEqual(try store.recent(limit: 4).map(\.wordCount), expected.map(Optional.some))
+    }
+
+    /// Rows written without a count (by an older version, or before migration)
+    /// are still counted from their text, then backfilled when the store opens.
+    func testUncountedRowsAreCountedAndBackfilledOnOpen() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let text = "Four words right here"
+        do {
+            let store = try HistoryStore(directory: directory)
+            try store.save(dictation(text))
+            try store.save(dictation("two words"))
+            // An older app version inserts rows without the new column.
+            try store.dbQueue.write { db in
+                try db.execute(sql: """
+                    INSERT INTO dictation (createdAt, mode, family, rawTranscript, refinedText, finalText,
+                                           asrEngine, audioSeconds, asrMs, llmMs, inserted)
+                    VALUES (?, 'clean', 'document', ?, ?, ?, 'old', 1, 1, 1, 1)
+                    """, arguments: [Date(), text, text, text])
+            }
+            XCTAssertEqual(try store.totalWords(), 10, "Uncounted rows are counted from their text")
+            XCTAssertEqual(try store.stats().words, 10)
+            try store.close()
+        }
+        let reopened = try HistoryStore(directory: directory)
+        let uncounted = try reopened.dbQueue.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM dictation WHERE wordCount IS NULL")
+        }
+        XCTAssertEqual(uncounted, 0)
+        XCTAssertEqual(try reopened.totalWords(), 10)
+        try reopened.close()
+    }
+
+    /// A database from before `v7-word-count` gains the column and its counts.
+    func testWordCountMigrationBackfillsExistingHistory() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        do {
+            let store = try HistoryStore(directory: directory)
+            for text in ["one", "one two", "會議"] { try store.save(dictation(text)) }
+            // Return the schema to v6: no column, index or migration record.
+            try store.dbQueue.write { db in
+                try db.execute(sql: """
+                    DROP INDEX dictation_uncounted;
+                    ALTER TABLE dictation DROP COLUMN wordCount;
+                    DELETE FROM grdb_migrations WHERE identifier = 'v7-word-count';
+                    """)
+            }
+            try store.close()
+        }
+        let migrated = try HistoryStore(directory: directory)
+        XCTAssertEqual(try migrated.recent().map(\.wordCount).sorted { ($0 ?? 0) < ($1 ?? 0) }, [1, 2, 2])
+        XCTAssertEqual(try migrated.totalWords(), 5)
+        try migrated.close()
     }
 }
