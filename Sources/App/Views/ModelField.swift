@@ -21,6 +21,7 @@ struct ModelField: View {
             HStack(spacing: 6) {
                 if models.isEmpty {
                     TextField("Model ID", text: $model).softField().frame(width: Theme.fieldWidth)
+                        .accessibilityLabel(Text(title))
                 } else {
                     SoftPicker(title, selection: $model, width: Theme.fieldWidth) {
                         ForEach(models, id: \.self) { Text($0).tag($0) }

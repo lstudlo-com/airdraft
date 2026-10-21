@@ -225,6 +225,8 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
     var small = false
 
     @Namespace private var thumb
+    /// A fixed width grows with the text size so option labels never truncate.
+    @Environment(\.textScale) private var textScale
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -248,7 +250,7 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
                     }
                 } label: {
                     Text(option.1)
-                        .font(.system(size: small ? 11 : 12, weight: selected ? .semibold : .regular))
+                        .appFont(small ? .supporting : .detail, weight: selected ? .semibold : .regular)
                         .foregroundStyle(selected ? .primary : .secondary)
                         .lineLimit(1)
                         .padding(.horizontal, small ? 9 : 11)
@@ -263,11 +265,12 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(option.1)
+                .accessibilityValue(selected ? Text("Selected") : Text("Not selected"))
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
         .padding(2)
-        .frame(width: width, height: small ? 22 : SoftControl.height)
+        .frame(width: width.map { $0 * textScale }, height: small ? 22 : SoftControl.height)
         .background { SoftInsetTrack(shape: SoftControl.shape) }
         // The thumb is an object inside the track: its light and shade stay within it.
         .clipShape(SoftControl.shape)
@@ -337,6 +340,8 @@ struct SoftSlider: View {
     let step: Double
     /// Seeking can use a larger keyboard increment without reducing pointer precision.
     var keyboardStep: Double? = nil
+    /// What VoiceOver reads for a value, such as "0:12 of 1:05"; plain numbers otherwise.
+    var valueDescription: ((Double) -> String)? = nil
 
     @Environment(\.isEnabled) private var isEnabled
     @FocusState private var focused: Bool
@@ -368,7 +373,7 @@ struct SoftSlider: View {
         .opacity(isEnabled ? 1 : 0.5)
         .accessibilityElement()
         .accessibilityLabel(Text(title))
-        .accessibilityValue(value.formatted(.number.precision(.fractionLength(0...2))))
+        .accessibilityValue(valueDescription?(value) ?? value.formatted(.number.precision(.fractionLength(0...2))))
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment: set(value + step)

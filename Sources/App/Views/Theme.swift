@@ -50,7 +50,6 @@ enum Theme {
     static let overlayPadding: CGFloat = 8
     static let overlayRowInset: CGFloat = 10
     static let overlayRadius: CGFloat = NavigationStyle.cornerRadius + overlayPadding
-    static let supportingFont = Font.system(size: 11, weight: .regular)
     /// Width of text fields and model pickers in settings rows.
     static let fieldWidth: CGFloat = 240
     /// The page island is a mid-tone at the Home hero's surface gray (0.91–0.89 light,
@@ -274,9 +273,11 @@ struct SectionTitle<Trailing: View>: View {
     var body: some View {
         HStack {
             Text(text)
-                .font(.system(size: 14, weight: .semibold))
+                .appFont(.heading)
                 .foregroundStyle(.secondary)
                 .padding(.leading, Theme.sectionTitleLeadingInset)
+                // Section headings are VoiceOver headings, for rotor navigation between sections.
+                .accessibilityAddTraits(.isHeader)
             Spacer()
             trailing
         }
@@ -294,6 +295,7 @@ extension View {
 
 /// An editable numeric setting with the native stepper available for small changes.
 struct SettingsNumberStepper: View {
+    @Environment(\.textScale) private var textScale
     let title: String
     @Binding var value: Int
     let range: ClosedRange<Int>
@@ -319,7 +321,7 @@ struct SettingsNumberStepper: View {
                 .multilineTextAlignment(.trailing)
                 .focused($isEditing)
                 .softField(focused: isEditing)
-                .frame(width: 60)
+                .frame(width: 60 * textScale)
                 .onSubmit(commit)
                 .accessibilityLabel(title)
             Text(unit)
@@ -413,16 +415,31 @@ struct SettingRow<Trailing: View>: View {
 
     private var label: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 13, weight: .medium))
+            Text(title).appFont(.body, weight: .medium)
             if let subtitle { Text(subtitle).supportingText() }
         }
     }
 }
 
+/// Quiet text that a fixed opacity would leave too faint under Increase Contrast.
+private struct MutedForeground: ViewModifier {
+    @Environment(\.colorSchemeContrast) private var contrast
+    let opacity: Double
+
+    func body(content: Content) -> some View {
+        content.foregroundStyle(Color.primary.opacity(contrast == .increased ? max(opacity, 0.9) : opacity))
+    }
+}
+
 extension View {
+    /// Primary text at a reduced opacity, raised to near full strength with Increase Contrast.
+    func mutedForeground(_ opacity: Double) -> some View {
+        modifier(MutedForeground(opacity: opacity))
+    }
+
     /// Descriptions stay smaller and quieter than the setting they explain.
     func supportingText() -> some View {
-        font(Theme.supportingFont)
+        appFont(.supporting)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -451,7 +468,7 @@ struct KeyCap: View {
     let text: String
     var body: some View {
         Text(text)
-            .font(.system(size: 11.5, weight: .medium, design: .rounded))
+            .appFont(.annotation, weight: .medium, design: .rounded)
             .foregroundStyle(.primary)
             .padding(.horizontal, 7)
             .padding(.vertical, 3.5)
@@ -491,18 +508,22 @@ struct IconBadge: View {
 }
 
 struct PillTag: View {
+    @Environment(\.colorSchemeContrast) private var contrast
     let text: String
     init(text: LocalizedStringResource) { self.text = String(localized: text) }
     init(verbatim: String) { text = verbatim }
     var body: some View {
         Text(text)
-            .font(.system(size: 9.5, weight: .semibold))
+            .appFont(.tag)
             .tracking(0.4)
             .fixedSize()
-            .foregroundStyle(.secondary)
+            .foregroundStyle(contrast == .increased ? .primary : .secondary)
             .padding(.horizontal, 5)
             .padding(.vertical, 1.5)
-            .background(Capsule().fill(Color.primary.opacity(0.07)))
+            .background(Capsule().fill(Color.primary.opacity(contrast == .increased ? 0.12 : 0.07)))
+            .overlay {
+                if contrast == .increased { Capsule().strokeBorder(Color.primary.opacity(0.45), lineWidth: 0.5) }
+            }
     }
 }
 
@@ -530,7 +551,7 @@ struct ChoiceTile<Preview: View>: View {
                             .strokeBorder(selected ? Color.accentColor : .clear, lineWidth: 2)
                     )
                 Text(title)
-                    .font(.system(size: 12, weight: selected ? .semibold : .regular))
+                    .appFont(.detail, weight: selected ? .semibold : .regular)
                     .foregroundStyle(selected ? .primary : .secondary)
             }
             .contentShape(Rectangle())
@@ -557,7 +578,7 @@ struct SoftButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.system(size: 12.5, weight: .medium))
+                .appFont(.control)
                 .softControlSurface(pressed: configuration.isPressed,
                                     tint: prominent ? Color(red: 0.05, green: 0.36, blue: 0.73) : nil)
                 .foregroundStyle(prominent ? Color.white : Color.primary)
@@ -634,21 +655,34 @@ struct PageFilter<Selection: Hashable>: View {
             }
         } label: {
             HStack(spacing: 8) {
-                Text(options.first { $0.0 == selection }?.1 ?? String(localized: title))
+                Text(current)
                     .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 9, weight: .medium))
+                Image(nsImage: Self.chevron)
+                    .renderingMode(.template)
                     .foregroundStyle(.secondary)
             }
-            .font(.system(size: 12.5, weight: .medium))
+            .appFont(.control)
             .foregroundStyle(.primary)
         }
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(current)
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
         .softControlSurface()
-        .accessibilityLabel(Text(title))
-        .accessibilityValue(options.first { $0.0 == selection }?.1 ?? String(localized: title))
+    }
+
+    private var current: String { options.first { $0.0 == selection }?.1 ?? String(localized: title) }
+
+    /// The chevron as a plain template image. AppKit names a menu button after any SF Symbol
+    /// in its label ("Up and down chevrons"), ignoring SwiftUI's hidden flag; a drawn copy
+    /// carries no symbol name, so VoiceOver reads only the filter's title and choice.
+    private static var chevron: NSImage {
+        let symbol = NSImage(systemSymbolName: "chevron.up.chevron.down", accessibilityDescription: nil)!
+            .withSymbolConfiguration(.init(pointSize: 9, weight: .medium))!
+        let image = NSImage(size: symbol.size, flipped: false) { rect in symbol.draw(in: rect); return true }
+        image.isTemplate = true
+        return image
     }
 }
 
@@ -661,14 +695,15 @@ struct SoftMenuButton<Content: View, Label: View>: View {
     var body: some View {
         Menu { content } label: {
             label
-                .font(.system(size: 12.5, weight: .medium))
+                .appFont(.control)
                 .foregroundStyle(.primary)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(title))
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
         .softControlSurface()
-        .accessibilityLabel(Text(title))
     }
 }
 
@@ -718,7 +753,7 @@ struct PageScaffold<Content: View, Accessory: View>: View {
     private var header: some View {
         HStack(spacing: Theme.controlSpacing) {
             Text(page.title)
-                .font(.system(size: 18, weight: .semibold))
+                .appFont(.title)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: Theme.controlSpacing)
             accessory
@@ -776,13 +811,15 @@ private struct PageHeaderBackdrop: View {
 
 /// Five-segment meter used in the model table.
 struct SegmentMeter: View {
+    @Environment(\.colorSchemeContrast) private var contrast
     /// nil means unmeasured, distinct from a measured zero.
     let fraction: Double?
     var body: some View {
         HStack(spacing: 2) {
             ForEach(0..<5, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1.5)
-                    .fill(Color.primary.opacity(0.12))
+                    // Increase Contrast keeps unfilled segments visible against the card.
+                    .fill(Color.primary.opacity(contrast == .increased ? 0.3 : 0.12))
                     .overlay(alignment: .leading) {
                         if let fraction {
                             RoundedRectangle(cornerRadius: 1.5)
@@ -804,7 +841,9 @@ struct SearchField: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
-            TextField(String(localized: placeholder), text: $text).textFieldStyle(.plain).font(.system(size: 13))
+                .accessibilityHidden(true)
+            TextField(String(localized: placeholder), text: $text).textFieldStyle(.plain).appFont(.body)
+                .accessibilityLabel(Text(placeholder))
         }
         .padding(.horizontal, 9)
         .frame(height: SoftControl.height)
@@ -816,6 +855,7 @@ struct SearchField: View {
 /// The one status indicator: setup checks, permissions, model and server state.
 struct StatusDot: View {
     enum Tone { case ok, attention, busy, inactive }
+    @Environment(\.colorSchemeContrast) private var contrast
     let tone: Tone
 
     init(_ tone: Tone) { self.tone = tone }
@@ -825,7 +865,12 @@ struct StatusDot: View {
         Circle()
             .fill(color)
             .frame(width: 8, height: 8)
+            .overlay {
+                // Increase Contrast: an edge keeps pale tones (yellow, gray) visible on light surfaces.
+                if contrast == .increased { Circle().strokeBorder(Color.primary.opacity(0.55), lineWidth: 0.75) }
+            }
             .accessibilityLabel(label)
+            .accessibilityAddTraits(.isImage)
     }
 
     private var color: Color {
@@ -885,9 +930,18 @@ extension View {
 
 struct SettingsDisclosureStyle: DisclosureGroupStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SettingsDisclosure(configuration: configuration)
+    }
+}
+
+private struct SettingsDisclosure: View {
+    let configuration: DisclosureGroupStyleConfiguration
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                withAnimation(.snappy) { configuration.isExpanded.toggle() }
+                withAnimation(reduceMotion ? nil : .snappy) { configuration.isExpanded.toggle() }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.right")
@@ -896,7 +950,7 @@ struct SettingsDisclosureStyle: DisclosureGroupStyle {
                         .accessibilityHidden(true)
                     configuration.label
                 }
-                .font(.system(size: 12, weight: .medium))
+                .appFont(.detail, weight: .medium)
                 .foregroundStyle(.secondary)
                 .contentShape(Rectangle())
             }
@@ -925,7 +979,7 @@ struct OverlayPanel<Content: View>: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .appFont(.body, weight: .semibold)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button(action: onClose) {

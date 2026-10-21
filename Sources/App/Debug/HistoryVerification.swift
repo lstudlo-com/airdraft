@@ -77,6 +77,18 @@ enum HistoryVerification {
         precondition(!view.measure(width: 430).showsToggle, "Exactly six lines must not offer expansion")
         view.configure(content: HistoryTextContent(sixLines.full + "\nSeventh line"), expanded: false)
         precondition(view.measure(width: 430).showsToggle, "The seventh line must offer expansion")
+        // The Larger text size remeasures with its own font: six larger lines still fit
+        // without Show More, a seventh still offers it, and both are taller than at Default.
+        let defaultSix = view.measure(width: 430).textHeight
+        view.configure(content: sixLines, expanded: false, scale: 1.24)
+        precondition(!view.measure(width: 430).showsToggle, "Six lines at Larger must not offer expansion")
+        view.configure(content: HistoryTextContent(sixLines.full + "\nSeventh line"), expanded: false, scale: 1.24)
+        let larger = view.measure(width: 430)
+        precondition(larger.showsToggle && larger.textHeight > defaultSix * 1.15,
+                     "Larger text must remeasure the six-line bound with the larger font")
+        precondition(view.textField.font?.pointSize == TextStyle.transcript.size * 1.24 || view.textField.font?.pointSize == 17.4)
+        view.configure(content: HistoryTextContent(sixLines.full + "\nSeventh line"), expanded: false)
+        precondition(view.measure(width: 430).textHeight == defaultSix, "Returning to Default must restore its measurement")
         var toggled = false
         view.onToggle = { toggled = true }
         view.toggle.performClick(nil)

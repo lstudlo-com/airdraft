@@ -64,7 +64,7 @@ private struct DownloadProgressLabel: View {
             }
             Text(progress.currentFile).lineLimit(1).truncationMode(.middle)
         }
-        .font(.system(size: 11))
+        .appFont(.supporting)
         .foregroundStyle(.secondary)
         .help([progress.detail, progress.currentFile].filter { !$0.isEmpty }.joined(separator: " · "))
     }

@@ -57,6 +57,7 @@ struct ProfileEditor<Chooser: View>: View {
                         .frame(minHeight: 28)
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel("Current dictation profile")
+                        .accessibilityAddTraits(.isStaticText)
                     } else {
                         Button("Use Profile") { container.profiles.setActive(current.id) }
                             .buttonStyle(SoftButtonStyle())
@@ -143,12 +144,12 @@ struct ProfileTextEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
             if showsTitle {
-                Text(title).font(.system(size: 13, weight: .medium))
+                Text(title).appFont(.body, weight: .medium)
             }
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {
                     Text(placeholder)
-                        .font(.system(size: 13))
+                        .appFont(.body)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 17)
                         .padding(.vertical, 12)
@@ -156,7 +157,7 @@ struct ProfileTextEditor: View {
                         .accessibilityHidden(true)
                 }
                 TextEditor(text: $text)
-                    .font(.system(size: 13))
+                    .appFont(.body)
                     .lineSpacing(3)
                     .scrollContentBackground(.hidden)
                     .padding(12)

@@ -11,11 +11,11 @@ struct MediaDocumentCard<RecordingControls: View>: View {
     var body: some View {
         Card(spacing: Theme.controlSpacing) {
             HStack {
-                Text(document.title).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                Text(document.title).appFont(.body, weight: .medium).lineLimit(1)
                 Spacer()
                 MediaDocumentStatus(document: document)
             }
-            if !preview.isEmpty { Text(String(preview.prefix(500))).font(.system(size: 13)).lineLimit(4) }
+            if !preview.isEmpty { Text(String(preview.prefix(500))).appFont(.body).lineLimit(4) }
             else if document.transcriptionComplete { Text("No speech detected.").supportingText() }
             MediaDocumentActions(document: document, open: open)
             recordingControls
@@ -109,7 +109,7 @@ struct MediaDocumentEditor: View {
                     }
                     if let summary = document.summary {
                         PageSection("Summary") {
-                            Card { Text(summary).font(.system(size: 13)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                            Card { Text(summary).appFont(.body).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                         }
                     }
                     if document.transcriptionComplete { speakers }
@@ -175,7 +175,7 @@ struct MediaDocumentEditor: View {
             HStack(alignment: .top, spacing: Theme.controlSpacing) {
                 VStack(alignment: .leading, spacing: 3) {
                     TextField("Title", text: $document.title)
-                        .font(.system(size: 18, weight: .semibold)).textFieldStyle(.plain)
+                        .appFont(.title).textFieldStyle(.plain)
                         .focused($titleFocused).onSubmit { titleFocused = false }
                         .disabled(!editable).help("Rename transcript")
                         .accessibilityLabel("Transcript title")
@@ -262,7 +262,7 @@ struct MediaDocumentEditor: View {
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
                 if showOriginal {
-                    Text(document.speakerName(turn.originalSpeaker)).font(.system(size: 12, weight: .semibold))
+                    Text(document.speakerName(turn.originalSpeaker)).appFont(.detail, weight: .semibold)
                 } else {
                     Menu {
                         Button("Unknown Speaker") { document.turns[index].speaker = nil; dirty = true }
@@ -271,24 +271,26 @@ struct MediaDocumentEditor: View {
                         }
                     } label: {
                         Text("\(document.speakerName(turn.speaker)) \(Image(systemName: "chevron.down"))")
-                            .font(.system(size: 12, weight: .semibold)).contentShape(Rectangle())
+                            .appFont(.detail, weight: .semibold).contentShape(Rectangle())
+                            .accessibilityLabel(Text(verbatim: document.speakerName(turn.speaker)))
                     }
                     .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize().disabled(!editable)
                     .help("Assign speaker")
                 }
                 Button(HistoryRecordingControls.time(turn.start)) { seek(turn.start) }
-                    .buttonStyle(.plain).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+                    .buttonStyle(.plain).appFont(.supporting).monospacedDigit().foregroundStyle(.secondary)
                     .disabled(audioURL == nil || !editable)
                     .help("Play from this timestamp")
                 Spacer(minLength: 0)
                 if turn.overlapping { Text("Overlapping speech").supportingText() }
             }
             if showOriginal {
-                Text(turn.originalText).font(.system(size: 13)).textSelection(.enabled)
+                Text(turn.originalText).appFont(.body).textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 TextField("Transcript", text: Binding(get: { document.turns[index].text }, set: { document.turns[index].editedText = $0; dirty = true }), axis: .vertical)
-                    .font(.system(size: 13)).textFieldStyle(.plain).disabled(!editable)
+                    .appFont(.body).textFieldStyle(.plain).disabled(!editable)
+                    .accessibilityLabel(Text("Transcript at \(HistoryRecordingControls.time(turn.start))"))
             }
         }
     }
@@ -352,6 +354,6 @@ private struct MediaEditorClock: View {
     let playback: RecordingPlayback
     var body: some View {
         Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
-            .font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+            .appFont(.supporting).monospacedDigit().foregroundStyle(.secondary).fixedSize()
     }
 }

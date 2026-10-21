@@ -26,6 +26,21 @@ public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiabl
     }
 }
 
+/// Interface text size. macOS gives SwiftUI no Dynamic Type for most text, so the
+/// app scales its shared typography tokens itself. Titles are localized by the app.
+public enum TextSizePreference: String, Codable, CaseIterable, Sendable, Identifiable {
+    case standard, large, larger
+    public var id: String { rawValue }
+    /// Multiplier for every shared text style; `standard` keeps the design sizes.
+    public var scale: Double {
+        switch self {
+        case .standard: return 1
+        case .large: return 1.12
+        case .larger: return 1.24
+        }
+    }
+}
+
 public enum HUDStyle: String, Codable, CaseIterable, Sendable, Identifiable {
     /// The original scrolling waveform.
     case classic
@@ -121,6 +136,7 @@ public final class AppSettings {
     }
     public var appearance: AppearanceMode { didSet { persist("appearance", appearance) } }
     public var appIcons: AppIconPreferences { didSet { persist("appIcons", appIcons) } }
+    public var textSize: TextSizePreference { didSet { persist("textSize", textSize) } }
     /// Unload local speech models after this many idle minutes. 0 = keep loaded.
     public var idleUnloadMinutes: Int { didSet { persist("idleUnloadMinutes", idleUnloadMinutes) } }
     /// Ask LM Studio to unload the LLM when the app quits.
@@ -158,6 +174,7 @@ public final class AppSettings {
         maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
         appearance = Self.load("appearance", from: defaults) ?? .auto
         appIcons = Self.load("appIcons", from: defaults) ?? AppIconPreferences()
+        textSize = Self.load("textSize", from: defaults) ?? .standard
         idleUnloadMinutes = Self.load("idleUnloadMinutes", from: defaults) ?? 30
         unloadLLMOnQuit = Self.load("unloadLLMOnQuit", from: defaults) ?? true
         let savedHUDStyle: String? = Self.load("hudStyle", from: defaults)

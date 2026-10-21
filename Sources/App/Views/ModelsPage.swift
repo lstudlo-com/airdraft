@@ -250,7 +250,7 @@ struct ModelsPage: View {
                                 .foregroundStyle(.orange)
                         }
                     }
-                    .font(.system(size: 12))
+                    .appFont(.detail)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -327,6 +327,7 @@ struct ModelsPage: View {
                     SettingRow(title: "Endpoint") {
                         TextField("Endpoint", text: $settings.asr.baseURL).softField()
                             .labelsHidden().frame(width: Theme.fieldWidth)
+                            .accessibilityLabel("Endpoint")
                     }
                     RowDivider()
                     ModelField(title: "Model", model: $settings.asr.model, baseURL: settings.asr.baseURL, apiKeyRef: settings.asr.apiKeyRef, speechOnly: true)

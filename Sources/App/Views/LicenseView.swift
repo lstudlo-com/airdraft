@@ -52,11 +52,11 @@ struct LicenseView: View {
                 topBar
                 VStack(alignment: .leading, spacing: 6) {
                     Text(summary.title)
-                        .font(.system(size: 17, weight: .semibold))
+                        .appFont(.headline)
                         .accessibilityAddTraits(.isHeader)
                     if let detail = summary.detail {
                         Text(detail)
-                            .font(.system(size: 13))
+                            .appFont(.body)
                             .foregroundStyle(.secondary)
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
@@ -129,7 +129,7 @@ struct LicenseView: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 keyField(replacement: false, prominent: false)
-                Link("Find My License", destination: config.portalURL).font(.system(size: 12))
+                Link("Find My License", destination: config.portalURL).appFont(.detail)
             }
         }
     }
@@ -158,7 +158,7 @@ struct LicenseView: View {
                 if revoked { Button("I Removed This Device…") { confirmForget = true } }
             }
             .buttonStyle(.plain)
-            .font(.system(size: 12))
+            .appFont(.detail)
             .foregroundStyle(.secondary)
         }
     }

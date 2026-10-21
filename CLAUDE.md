@@ -234,6 +234,17 @@ verification status belong in the vault (see below).
   Use `PageSection` and `SettingsCard` for settings sections, including Settings
   and Models. The card owns the outer padding; rows inside it must not add another
   vertical inset. Use shared spacing tokens instead of page-specific values.
+  Text uses the `TextStyle` tokens in `Typography.swift` through `.appFont(_:)`,
+  never a fixed `.system(size:)`; symbols, brand marks, the HUD and the native
+  menu keep fixed sizes. Settings > Appearance > Text size (Default, Large,
+  Larger: 1.0/1.12/1.24) scales the tokens because macOS applies no Dynamic Type
+  to SwiftUI text; Default keeps the design sizes. At Larger, copy wraps rather
+  than truncates in the 784-point window, and fixed text columns grow with the
+  scale. Every control has a VoiceOver name (not just a placeholder) and state;
+  never emit `accessibilityHidden(false)` (use `accessibilityHidden(true,
+  isEnabled:)`), never let an SF Symbol name a menu, and give labelled composites
+  a role. Section titles are headings. Spatial animation has a Reduce Motion
+  branch; see `docs/accessibility.md`.
   Descriptions use the shared `.supportingText()` style: 11-point regular,
   secondary text below 13-point setting titles. Keep each description to one short
   phrase when possible; retain essential privacy, cost and recovery information.
@@ -378,8 +389,8 @@ verification status belong in the vault (see below).
   scroll-edge separators; only Reduce Transparency gets an opaque header. Keep
   the 24-point content inset inside scrolling content, including both History
   columns, and preserve vertical positions on collapse.
-  History has a compact 52-point timeline beside its independently scrolling
-  cards. Timeline day headings always show calendar dates such as Sep 25;
+  History has a compact 52-point timeline (widened by the Text size scale)
+  beside its independently scrolling cards. Timeline day headings always show calendar dates such as Sep 25;
   reserve Today and Yesterday for the main card column. One time-and-tick button
   jumps to each entry; the current entry stays
   highlighted as the cards scroll. Returning the cards to the top also restores
@@ -1063,6 +1074,13 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - Download progress: `python3 scripts/verify-download-progress.py --output <dir>`
   checks live fill interpolation, paused transfers, stage changes and the Reduce
   Motion branch in both appearances, using the production view in a disposable window.
+- Accessibility (Debug): `airdraft --e2e-local <disposable-dir> --render-window a11y-audit <out>`
+  walks the real AX tree of every page, overlay, onboarding step and License at
+  Default and Larger text sizes and fails on unnamed or symbol-named controls,
+  unnamed images, role-less elements and missing headings/labels. Renders accept
+  `AIRDRAFT_RENDER_TEXT_SIZE=standard|large|larger`, `AIRDRAFT_RENDER_CONTRAST=1`,
+  `AIRDRAFT_RENDER_REDUCE_MOTION=1` and `AIRDRAFT_RENDER_REDUCE_TRANSPARENCY=1`.
+  A live VoiceOver walkthrough remains manual.
 - Menu (Debug): `airdraft --e2e-local <disposable-dir> --render-window menu <out>`
   verifies the production native menu, provider/profile state, width fitting,
   processing and retained-recording actions; captures light/dark menu windows.

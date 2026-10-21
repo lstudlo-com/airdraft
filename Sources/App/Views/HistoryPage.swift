@@ -37,7 +37,7 @@ struct HistoryPage: View {
                     Button("Keep Recordings: \(container.settings.audioRetention.title)") {
                         container.navigation.page = .configuration
                     }
-                    .font(.system(size: 11))
+                    .appFont(.supporting)
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
                     .help("Change recording retention in Settings")
@@ -407,7 +407,7 @@ private struct HistoryRecordRow: View {
                 } else {
                     Card(spacing: Theme.controlSpacing) {
                         HStack {
-                            Text("Recording").font(.system(size: 13, weight: .medium))
+                            Text("Recording").appFont(.body, weight: .medium)
                             Spacer()
                             Text(entry.time).supportingText()
                         }
@@ -451,7 +451,7 @@ private struct HistoryRecordRow: View {
         return VStack(alignment: .leading) {
             if let heading = entry.heading { Text(heading).accessibilityAddTraits(.isHeader) }
             if let document = entry.document {
-                Text(document.title).font(.system(size: 13, weight: .medium))
+                Text(document.title).appFont(.body, weight: .medium)
                 Text(entry.finalText.preview.isEmpty && document.transcriptionComplete ? String(localized: "No speech detected.") : entry.finalText.preview).lineLimit(4)
                 MediaDocumentStatus(document: document)
                 MediaDocumentActions(document: document) { revealAndPresent(.media) }
@@ -486,6 +486,8 @@ private struct HistoryRecordRow: View {
             }
         }
         .accessibilityElement(children: .contain)
+        // Names the card, so its Copy, Details and Delete buttons have context in VoiceOver.
+        .accessibilityLabel(Text(verbatim: entry.metadata))
         .accessibilityIdentifier("history.entry.\(entry.id)")
     }
 
@@ -602,6 +604,8 @@ private struct HistoryTimeline: View {
     @State private var marks = HistoryTimelineMarks()
     @Namespace private var rotorNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 52 points at Default; day headings such as 10月22日 need more at larger text sizes.
+    @Environment(\.textScale) private var textScale
 
     var body: some View {
         ScrollView {
@@ -610,7 +614,7 @@ private struct HistoryTimeline: View {
                     VStack(alignment: .leading, spacing: 0) {
                         if let heading = entry.timelineHeading {
                             Text(heading)
-                                .font(.system(size: 10, weight: .medium))
+                                .appFont(.caption2, weight: .medium)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, minHeight: Theme.sectionTitleMinHeight, alignment: .leading)
@@ -691,7 +695,7 @@ private struct HistoryTimeline: View {
         .onChange(of: scroll.entriesAtTop) { _, atTop in
             if atTop { position.scrollTo(edge: .top) }
         }
-        .frame(width: HistoryTimelineButton.columnWidth)
+        .frame(width: HistoryTimelineButton.columnWidth * textScale)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("History timeline")
         .accessibilityIdentifier("history.timeline")
@@ -769,7 +773,7 @@ private struct HistoryTimelineButton: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(entry.time)
-                    .font(.system(size: 10, weight: selected ? .semibold : .regular))
+                    .appFont(.caption2, weight: selected ? .semibold : .regular)
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
@@ -818,8 +822,8 @@ struct HistoryCard<RecordingControls: View>: View {
                                         options: [(false, String(localized: "Refined")), (true, String(localized: "Original"))], small: true)
                 }
                 Text(entry.metadata)
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(Color.primary.opacity(0.65))
+                    .appFont(.annotation)
+                    .mutedForeground(0.65)
                     .lineLimit(1)
                 Spacer()
                 HStack(spacing: 14) {
@@ -837,7 +841,7 @@ struct HistoryCard<RecordingControls: View>: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 13))
+                .appFont(.body)
                 .foregroundStyle(.secondary)
             }
             if entry.audioAvailable {
@@ -874,7 +878,7 @@ struct HistoryCard<RecordingControls: View>: View {
                 row(String(localized: "Inserted"), insertionStatus)
             }
         }
-        .font(.system(size: 12))
+        .appFont(.detail)
     }
 
     private var insertionStatus: String {

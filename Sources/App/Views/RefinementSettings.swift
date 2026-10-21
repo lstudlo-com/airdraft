@@ -6,6 +6,7 @@ import SwiftUI
 /// settings required by the selected provider here.
 struct RefinementSettings: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.textScale) private var textScale
     @State private var testResult = ""
     @State private var testTask: Task<Void, Never>?
     @State private var testID = UUID()
@@ -43,7 +44,8 @@ struct RefinementSettings: View {
                     SettingRow(title: "Temperature") {
                         HStack {
                             SoftSlider(title: "Temperature", value: $settings.llm.temperature, range: 0...1, step: 0.1).frame(width: 160)
-                            Text(String(format: "%.1f", settings.llm.temperature)).monospacedDigit().frame(width: 28)
+                            Text(String(format: "%.1f", settings.llm.temperature)).monospacedDigit().frame(width: 28 * textScale)
+                                .accessibilityHidden(true)
                         }
                     }
                     RowDivider()
@@ -129,6 +131,7 @@ struct RefinementSettings: View {
         RowDivider()
         SettingRow(title: "Base URL") {
             TextField("Base URL", text: $settings.llm.baseURL).softField()
+                .accessibilityLabel("Base URL")
                 .labelsHidden().frame(width: Theme.fieldWidth)
         }
         RowDivider()
@@ -274,10 +277,11 @@ struct APIKeyField: View {
             HStack(spacing: 8) {
                 if let console {
                     Button("Get a Key") { NSWorkspace.shared.open(console) }
-                        .buttonStyle(.link).font(.system(size: 12)).fixedSize()
+                        .buttonStyle(.link).appFont(.detail).fixedSize()
                 }
                 SecureField(needsAccess ? "Saved key needs approval" : "Enter API key", text: $editor.value)
                     .softField().frame(width: Theme.fieldWidth).disabled(editor.isBusy)
+                    .accessibilityLabel("API key")
                 Button("Save") {
                     guard !RenderMode.excludesCredentials else { return }
                     Task { await editor.save() }

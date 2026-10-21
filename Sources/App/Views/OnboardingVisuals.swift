@@ -79,6 +79,7 @@ struct OnboardingKeyCaps: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Shortcut \(OnboardingKeyNames.spoken(hotkey))")
         .accessibilityValue(lit.isEmpty ? Text("Not pressed") : lit.count == hotkey.keyCaps.count ? Text("Pressed") : Text("Partly pressed"))
+        .accessibilityAddTraits(.isImage)
     }
 }
 
@@ -111,6 +112,7 @@ struct OnboardingWelcomeDemo: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(behavior.instructionVerb) \(OnboardingKeyNames.spoken(hotkey)), speak, then \(behavior == .hold ? String(localized: "let go") : String(localized: "press again")). Your words appear where you were typing.")
+        .accessibilityAddTraits(.isImage)
     }
 
     private func panel<Content: View>(_ number: Int, title: LocalizedStringResource, active: Bool,
@@ -121,12 +123,12 @@ struct OnboardingWelcomeDemo: View {
                 .frame(height: 64)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("\(number)")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .appFont(.supporting, weight: .semibold, design: .rounded)
                     .foregroundStyle(.secondary)
                     .frame(width: 18, height: 18)
                     .background { NeumorphicSurface(shape: Circle(), inset: true, depth: 1.2) }
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .appFont(.detail, weight: .medium)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -181,7 +183,7 @@ private struct OnboardingTypedLine: View {
     var body: some View {
         HStack(spacing: 1) {
             Text(text.isEmpty ? " " : text)
-                .font(.system(size: 11.5))
+                .appFont(.annotation)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
             if caret {
@@ -219,9 +221,7 @@ struct OnboardingVoiceWell: View {
             samples.removeFirst()
             samples.append(value.isFinite ? value : 0)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Microphone level")
-        .accessibilityValue("\(MicrophoneLevelMeter.steps(for: level)) of 10")
+        .levelMeterAccessibility(String(localized: "Microphone level"), level: level)
     }
 }
 
@@ -239,7 +239,7 @@ struct OnboardingAccessibilitySwitch: View {
                 Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
                     .frame(width: 22, height: 22)
-                Text("Airdraft").font(.system(size: 13))
+                Text("Airdraft").appFont(.body)
                 Spacer(minLength: 12)
                 ZStack(alignment: on ? .trailing : .leading) {
                     SoftInsetTrack(shape: Capsule())
@@ -256,6 +256,7 @@ struct OnboardingAccessibilitySwitch: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("In System Settings, turn on the switch next to Airdraft")
+        .accessibilityAddTraits(.isImage)
     }
 }
 
@@ -277,7 +278,7 @@ struct OnboardingChoiceCard: View {
                         .font(.system(size: 14))
                         .frame(width: 30, height: 30)
                         .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 9, style: .continuous), inset: true, depth: 1.5) }
-                    Text(title).font(.system(size: 14, weight: .semibold))
+                    Text(title).appFont(.heading)
                     Spacer(minLength: 4)
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 16))

@@ -121,7 +121,7 @@ struct DataCleanupProgress: View {
             Text(container.dataAccessIssue != nil ? String(localized: "Data Unavailable") :
                  container.cleanup.finishedScope == .reset ? String(localized: "App Reset Complete")
                  : container.cleanup.pendingScope?.title ?? String(localized: "Removing Data"))
-                .font(.system(size: 18, weight: .semibold))
+                .appFont(.title)
             if let issue = container.dataAccessIssue {
                 Text(issue).textSelection(.enabled)
             } else if container.cleanup.isRunning {

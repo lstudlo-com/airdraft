@@ -23,20 +23,20 @@ struct AccessibilityPermissionHelp: View {
         VStack(alignment: .leading, spacing: 16) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Allow Airdraft to insert text").font(.system(size: 20, weight: .semibold))
+                    Text("Allow Airdraft to insert text").appFont(.sheetTitle)
                     Text(container.permissions.accessibilityGranted
                          ? "macOS now grants this running copy Accessibility access."
                          : "macOS has not granted this running copy access. An enabled switch for another copy or an older build does not confirm access for this one.")
                         .foregroundStyle(.secondary)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(installation.name).font(.system(size: 13, weight: .semibold))
+                        Text(installation.name).appFont(.body, weight: .semibold)
                         Text(installation.path).textSelection(.enabled)
                         Button("Show This Copy in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
                         }.buttonStyle(.link)
                     }
-                    .font(.system(size: 13))
+                    .appFont(.body)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background {
@@ -46,19 +46,19 @@ struct AccessibilityPermissionHelp: View {
                     if !installation.otherCopies.isEmpty {
                         Text(String(localized: "Another copy is running. Quit it before changing permissions:")
                              + "\n" + installation.otherCopies.joined(separator: "\n"))
-                            .font(.system(size: 13)).foregroundStyle(.secondary).textSelection(.enabled)
+                            .appFont(.body).foregroundStyle(.secondary).textSelection(.enabled)
                     }
 
                     if !container.permissions.accessibilityGranted {
                         Text("Open System Settings and enable this copy under Privacy & Security → Accessibility.")
-                        Text("If its switch is already on").font(.system(size: 13, weight: .semibold))
+                        Text("If its switch is already on").appFont(.body, weight: .semibold)
                         Text("1. Quit every running copy of Airdraft.\n2. Turn off and remove the old Airdraft entries with the minus button.\n3. Add the copy you installed in Applications with the plus button, then enable it.\n4. Reopen that same copy of Airdraft.")
-                            .font(.system(size: 13)).lineSpacing(4)
+                            .appFont(.body).lineSpacing(4)
                         Text("If you opened Airdraft from the DMG, drag it into Applications and eject the DMG first. Removing an Accessibility entry does not delete your dictation history or settings.")
-                            .font(.system(size: 13)).foregroundStyle(.secondary)
+                            .appFont(.body).foregroundStyle(.secondary)
                         if installation.isAdHoc {
                             Text("This release uses ad-hoc signing. macOS may require these steps again after an update.")
-                                .font(.system(size: 13)).foregroundStyle(.secondary)
+                                .appFont(.body).foregroundStyle(.secondary)
                         }
                     }
                 }

@@ -29,7 +29,7 @@ struct OnboardingWelcomeStep: View {
                 .frame(width: 28, height: 28)
                 .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 8, style: .continuous), inset: true, depth: 1.5) }
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13, weight: .medium))
+                Text(title).appFont(.body, weight: .medium)
                 Text(detail).supportingText()
             }
             Spacer(minLength: 0)
@@ -119,7 +119,7 @@ struct OnboardingSpeechStep: View {
                     ModelBrandIcon(brand: entry.brand)
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 6) {
-                            Text(entry.title).font(.system(size: 13, weight: .medium))
+                            Text(entry.title).appFont(.body, weight: .medium)
                             if entry.id == speech.recommendedID { PillTag(text: "BEST FIT") }
                         }
                         Text(tradeoff(entry)).supportingText().fixedSize(horizontal: false, vertical: true)
@@ -134,6 +134,8 @@ struct OnboardingSpeechStep: View {
             .accessibilityLabel(Text(verbatim: entry.id == speech.recommendedID
                 ? "\(entry.title), \(String(localized: "Best fit")). \(tradeoff(entry))" : "\(entry.title). \(tradeoff(entry))"))
             .accessibilityValue(selectable ? (selected ? Text("Selected") : Text("Not selected")) : Text(verbatim: ""))
+            // Ignoring the children drops the button role; restore it, or read a single choice as text.
+            .accessibilityAddTraits(selectable ? .isButton : .isStaticText)
             .accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityIdentifier("onboarding.speech-option.\(entry.id)")
             if selected { downloadAction }
@@ -162,7 +164,7 @@ struct OnboardingSpeechStep: View {
     @ViewBuilder private var downloadAction: some View {
         if speech.localInstalled {
             Label("Downloaded", systemImage: "checkmark.circle.fill")
-                .font(.system(size: 12)).foregroundStyle(.secondary)
+                .appFont(.detail).foregroundStyle(.secondary)
         } else if speech.download?.progress != nil {
             Button("Cancel") { container.downloads.cancel(speech.localConfig) }
                 .buttonStyle(SoftButtonStyle())
@@ -325,7 +327,7 @@ struct OnboardingPermissionsStep: View {
         HStack(spacing: Theme.controlSpacing) {
             StatusDot(ok: ready)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 13, weight: .medium))
+                Text(title).appFont(.body, weight: .medium)
                 (ready ? Text("Allowed") : Text(detail)).supportingText()
             }
             Spacer()
@@ -337,11 +339,11 @@ struct OnboardingPermissionsStep: View {
     private func instruction(_ number: Int, _ text: LocalizedStringResource) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("\(number)")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .appFont(.supporting, weight: .semibold, design: .rounded)
                 .foregroundStyle(.secondary)
                 .frame(width: 18, height: 18)
                 .background { NeumorphicSurface(shape: Circle(), inset: true, depth: 1.2) }
-            Text(text).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
+            Text(text).appFont(.body).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -375,7 +377,7 @@ struct OnboardingShortcutStep: View {
                              : "\(verb) \(OnboardingKeyNames.spoken(hotkey)).")
                     }
                 }
-                .font(.system(size: 13, weight: .medium))
+                .appFont(.body, weight: .medium)
                 .foregroundStyle(practiced ? .secondary : .primary)
                 .accessibilityIdentifier("onboarding.shortcut-status")
             }
@@ -521,7 +523,7 @@ struct OnboardingPracticeStep: View {
             SettingsCard {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Start your free trial to try dictation").font(.system(size: 13, weight: .medium))
+                        Text("Start your free trial to try dictation").appFont(.body, weight: .medium)
                         Text("All features are included. Or activate a license you already have.").supportingText()
                     }
                     Spacer()
@@ -532,18 +534,18 @@ struct OnboardingPracticeStep: View {
 
         Card(padding: 20, spacing: 10) {
             Text(progress.practiceDeliveries == 0 ? "READ THIS ALOUD" : "NOW SAY ANYTHING")
-                .font(.system(size: 10, weight: .semibold)).tracking(0.8)
+                .appFont(.caption2, weight: .semibold).tracking(0.8)
                 .foregroundStyle(.secondary)
             Text(progress.practiceDeliveries == 0 ? "“\(Self.sentence)”"
                  : "Try a message you might send today. Speak naturally, with pauses if you like.")
-                .font(.system(size: progress.practiceDeliveries == 0 ? 19 : 15, weight: .medium))
+                .appFont(size: progress.practiceDeliveries == 0 ? 19 : TextStyle.emphasis.size, weight: .medium)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("onboarding.script")
             HStack(spacing: 10) {
-                Text(verb).font(.system(size: 13))
+                Text(verb).appFont(.body)
                 OnboardingKeyCaps(hotkey: container.settings.hotkey, lit: monitor.rehearsal.litCaps, size: 28)
                 Text(container.settings.hotkeyBehavior == .hold ? "and speak. Let go to insert." : "and speak. Press again to insert.")
-                    .font(.system(size: 13)).foregroundStyle(.secondary)
+                    .appFont(.body).foregroundStyle(.secondary)
             }
             .padding(.top, 4)
         }
@@ -555,7 +557,7 @@ struct OnboardingPracticeStep: View {
                   ? "It worked. The small window at the bottom of your screen shows when Airdraft is listening."
                   : "Nice. Continue when you’re ready, or keep practicing.",
                   systemImage: "checkmark.circle.fill")
-                .font(.system(size: 13)).foregroundStyle(.secondary)
+                .appFont(.body).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("onboarding.practice-success")
         } else {
@@ -572,7 +574,7 @@ struct OnboardingPracticeStep: View {
 
     private var practiceBox: some View {
         TextEditor(text: $practiceText)
-            .font(.system(size: 16))
+            .appFont(.statistic)
             .scrollContentBackground(.hidden)
             .padding(Theme.cardPadding)
             .frame(minHeight: 130, idealHeight: 150)
@@ -587,7 +589,7 @@ struct OnboardingPracticeStep: View {
                 if practiceText.isEmpty {
                     Text(pendingDownload?.progress != nil ? "Almost ready. Your model is still downloading."
                          : focused ? "Now \(verb.lowercased()) your shortcut and speak." : "Click here first.")
-                        .font(.system(size: 14)).foregroundStyle(.secondary)
+                        .appFont(.heading, weight: .regular).foregroundStyle(.secondary)
                         .padding(22).allowsHitTesting(false)
                 }
             }
@@ -680,12 +682,12 @@ struct OnboardingDoneStep: View {
         let settings = container.settings
         Card(padding: 20, spacing: 14) {
             Text("TRY IT IN A REAL APP")
-                .font(.system(size: 10, weight: .semibold)).tracking(0.8)
+                .appFont(.caption2, weight: .semibold).tracking(0.8)
                 .foregroundStyle(.secondary)
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Open Notes, Mail or a chat, click where you would type, and use your shortcut.")
-                        .font(.system(size: 15, weight: .medium))
+                        .appFont(.emphasis, weight: .medium)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(settings.hotkeyBehavior == .hold ? "Hold while you speak, then let go." : "Press to start, press again when you finish.")
                         .supportingText()
@@ -716,7 +718,7 @@ struct OnboardingDoneStep: View {
                 .frame(width: 28, height: 28)
                 .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 8, style: .continuous), inset: true, depth: 1.5) }
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13, weight: .medium))
+                Text(title).appFont(.body, weight: .medium)
                 Text(detail).supportingText().fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -749,7 +751,7 @@ struct OnboardingRefinementChoice: View {
                     .frame(width: 28, height: 28)
                     .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 8, style: .continuous), inset: true, depth: 1.5) }
                 VStack(alignment: .leading, spacing: 2) {
-                    title.font(.system(size: 13, weight: .medium))
+                    title.appFont(.body, weight: .medium)
                     detail.supportingText().fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)

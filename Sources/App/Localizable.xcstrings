@@ -292,23 +292,18 @@
         }
       }
     },
-    "%@ level, %lld of 10" : {
+    "%@ level" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ level, %2$lld of 10"
-          }
-        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@音量，%2$lld/10"
+            "value" : "%@音量"
           }
         }
       }
     },
     "%@ of %@" : {
+      "comment" : "Playback position for VoiceOver",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -495,6 +490,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@。%2$@ %3$@"
+          }
+        }
+      }
+    },
+    "%@. Change microphone; your choice is saved as the default." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@。更改麥克風；你的選擇會儲存為預設值。"
           }
         }
       }
@@ -2019,16 +2024,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改保留期限"
-          }
-        }
-      }
-    },
-    "Change microphone. Your choice is saved as the default." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改麥克風。你的選擇會儲存為預設值。"
           }
         }
       }
@@ -4848,6 +4843,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語言尚未安裝"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "comment" : "Text size",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大"
+          }
+        }
+      }
+    },
+    "Larger" : {
+      "comment" : "Text size",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更大"
           }
         }
       }
@@ -8087,6 +8104,16 @@
         }
       }
     },
+    "Replace with" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取代為"
+          }
+        }
+      }
+    },
     "Replace with…" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9801,6 +9828,16 @@
         }
       }
     },
+    "Text size" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字大小"
+          }
+        }
+      }
+    },
     "That was a real dictation. Try one more in your own words, or continue." : {
       "localizations" : {
         "zh-Hant" : {
@@ -9827,6 +9864,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "就是這樣。按一下開始，再按一次即插入。"
+          }
+        }
+      }
+    },
+    "The menu and recording window keep their size" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選單和錄音視窗維持原本大小"
           }
         }
       }
@@ -10238,6 +10285,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "逐字稿版本"
+          }
+        }
+      }
+    },
+    "Transcript at %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的逐字稿"
           }
         }
       }

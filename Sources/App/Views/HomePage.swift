@@ -5,6 +5,7 @@ import SwiftUI
 
 struct HomePage: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var period: Period = .all
     @State private var overview: HistoryStore.Overview = .empty
     @State private var hasLoadedOverview = false
@@ -101,13 +102,13 @@ struct HomePage: View {
         let expanded = showsStatus || issues > 0 || isFirstRun
         return Card(spacing: Theme.controlSpacing) {
             Button {
-                withAnimation(.snappy) { showsStatus.toggle() }
+                withAnimation(reduceMotion ? nil : .snappy) { showsStatus.toggle() }
             } label: {
                 HStack(spacing: Theme.controlSpacing) {
                     StatusDot(ok: issues == 0)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(readiness.summary)
-                            .font(.system(size: 13, weight: .medium))
+                            .appFont(.body, weight: .medium)
                         Text(pipelineSummary)
                             .supportingText()
                             .accessibilityIdentifier("home.pipeline-summary")
@@ -119,7 +120,7 @@ struct HomePage: View {
                     if issues == 0 {
                         HStack(spacing: 6) {
                             Text(container.settings.hotkeyBehavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds))
-                                .font(.system(size: 12)).foregroundStyle(.secondary)
+                                .appFont(.detail).foregroundStyle(.secondary)
                             KeyCaps(hotkey: container.settings.hotkey)
                         }
                         Image(systemName: "chevron.down")
@@ -308,7 +309,8 @@ struct HomePage: View {
         }
         if hasLoadedOverview {
             recent = latest
-            withAnimation(.snappy(duration: 0.6)) { overview = next }
+            // Reduce Motion: new bars and values appear in place.
+            withAnimation(reduceMotion ? nil : .snappy(duration: 0.6)) { overview = next }
         } else {
             // Commit real bars before their entrance. Animating the replacement
             // of the five placeholder bars raced the hero's startup animation.
@@ -344,7 +346,7 @@ struct HealthRow<Trailing: View>: View {
         HStack(spacing: Theme.controlSpacing) {
             StatusDot(tone)
             VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.system(size: 13, weight: .medium))
+                Text(title).appFont(.body, weight: .medium)
                 Text(detail).supportingText()
             }
             Spacer(minLength: Theme.controlSpacing)
@@ -360,22 +362,25 @@ struct HealthRow<Trailing: View>: View {
 struct AppShareRow: View {
     let share: HistoryStore.Overview.AppShare
     let fraction: Double
+    /// Name and count columns grow with the text size; the track takes what remains.
+    @Environment(\.textScale) private var scale
 
     var body: some View {
         HStack(spacing: Theme.controlSpacing) {
             AppIcon(bundleId: share.bundleId, size: 20)
             Text(share.name)
-                .font(.system(size: 13, weight: .medium))
+                .appFont(.body, weight: .medium)
                 .lineLimit(1)
-                .frame(width: 116, alignment: .leading)
+                .frame(width: 116 * scale, alignment: .leading)
             NeumorphicUsageTrack(fraction: fraction)
             Text("\(share.words.formatted()) words")
-                .font(.system(size: 12).monospacedDigit())
+                .appFont(.detail).monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 88, alignment: .trailing)
+                .frame(width: 88 * scale, alignment: .trailing)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(share.name), \(share.words) words, \(Int((fraction * 100).rounded())) percent")
+        .accessibilityAddTraits(.isStaticText)
     }
 }
 
@@ -385,10 +390,10 @@ struct SummaryFact: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .appFont(.statistic, weight: .semibold, design: .rounded)
                 .monospacedDigit()
                 .contentTransition(.numericText())
-            Text(label).font(.system(size: 11.5)).foregroundStyle(.secondary)
+            Text(label).appFont(.annotation).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -402,15 +407,15 @@ struct RecentRow: View {
         HStack(alignment: .top, spacing: Theme.controlSpacing) {
             AppIcon(bundleId: record.appBundleId, size: 22)
             VStack(alignment: .leading, spacing: 3) {
-                Text(record.finalText).font(.system(size: 13)).lineLimit(2)
+                Text(record.finalText).appFont(.body).lineLimit(2)
                 // One run of text, so every separator has the same spacing in each language.
                 Text(metadata)
-                    .font(.system(size: 11))
+                    .appFont(.supporting)
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: Theme.controlSpacing)
             Text(timeLabel)
-                .font(.system(size: 11.5).monospacedDigit())
+                .appFont(.annotation).monospacedDigit()
                 .foregroundStyle(.secondary)
         }
     }

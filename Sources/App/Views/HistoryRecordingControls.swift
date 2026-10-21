@@ -32,22 +32,25 @@ struct HistoryRecordingControls: View {
             if active {
                 HistoryPlaybackProgress(playback: playback)
             } else {
-                SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1)
+                SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
+                           valueDescription: { Self.position($0, of: asset.duration) })
                     .disabled(true)
                     .help("Play the recording to seek")
                 Text("0:00 / \(Self.time(asset.duration))")
-                    .font(.system(size: 10)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                    .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                    // The slider's value already reads the position.
+                    .accessibilityHidden(true)
             }
             Button(exporting ? "Saving…" : "Save Audio…", action: save)
-                .font(.system(size: 11))
+                .appFont(.supporting)
                 .buttonStyle(SoftButtonStyle())
                 .disabled(exporting)
                 .accessibilityIdentifier("recording.save.\(asset.id)")
             if accessibilityOnly { fileActions }
             else {
-                Menu { fileActions } label: { Image(systemName: "ellipsis") }
+                Menu { fileActions } label: { Image(systemName: "ellipsis").accessibilityLabel("Recording Actions") }
                     .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                    .help("Recording actions").accessibilityLabel("Recording Actions")
+                    .help("Recording actions")
             }
         }
     }
@@ -59,6 +62,11 @@ struct HistoryRecordingControls: View {
             Divider()
             Button("Delete Recording Only…", role: .destructive, action: delete)
         }
+    }
+
+    /// Spoken playback position: "0:12 of 1:05".
+    static func position(_ seconds: Double, of duration: Double) -> String {
+        String(localized: "\(time(seconds)) of \(time(duration))", comment: "Playback position for VoiceOver")
     }
 
     static func time(_ seconds: Double) -> String {
@@ -74,9 +82,10 @@ struct HistoryPlaybackProgress: View {
     let playback: RecordingPlayback
     var body: some View {
         SoftSlider(title: "Playback position", value: Binding(get: { playback.currentTime }, set: { playback.seek(to: $0) }),
-                   range: 0...max(0.01, playback.duration), step: 0.1, keyboardStep: 5)
-            .accessibilityValue("\(HistoryRecordingControls.time(playback.currentTime)) of \(HistoryRecordingControls.time(playback.duration))")
+                   range: 0...max(0.01, playback.duration), step: 0.1, keyboardStep: 5,
+                   valueDescription: { HistoryRecordingControls.position($0, of: playback.duration) })
         Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
-            .font(.system(size: 10)).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+            .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+            .accessibilityHidden(true)
     }
 }
