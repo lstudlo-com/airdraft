@@ -232,6 +232,13 @@ const sources = [
     checked: "2026-10-21",
   },
   {
+    label: zh
+      ? "Handy 原始碼：模型清單（2026 年 9 月 19 日的 8f9cf53）"
+      : "Handy source: model catalog (8f9cf53, September 19, 2026)",
+    url: "https://github.com/cjpais/Handy/blob/8f9cf53cd1410cda26beea39ff802ac306e39585/src-tauri/src/catalog/catalog.json",
+    checked: "2026-10-22",
+  },
+  {
     label: zh ? "Typeless 價格" : "Typeless pricing",
     url: "https://www.typeless.com/pricing",
     checked: "2026-10-21",
@@ -352,12 +359,12 @@ const sources = [
       <ul>
         <li>語音辨識和潤稿各自選本機或雲端，例如本機辨識加上雲端潤稿。</li>
         <li>
-          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。0.10.2
-          的首次設定在中文、英文、日文或韓文系統上建議小而快的
-          SenseVoice，「模型」頁把較大的 Qwen3-ASR 1.7B
-          描述為「最適合中英夾雜」；下一個版本起，中文系統的首次設定改推薦
-          Qwen3-ASR 1.7B，SenseVoice 是較小、較快的選擇；記憶體 8 GB 以下的 Mac
-          則先推薦 SenseVoice，仍可選 Qwen3-ASR 1.7B。見
+          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。從
+          0.11.0 起，中文系統的首次設定推薦 Qwen3-ASR
+          1.7B，「模型」頁標為「最適合中英夾雜」，SenseVoice
+          是較小、較快的選擇；記憶體 8 GB 以下的 Mac 則先推薦 SenseVoice，仍可選
+          Qwen3-ASR 1.7B。Handy 的模型清單同樣列出本機的 Qwen3-ASR 0.6B、1.7B 與
+          SenseVoice Small。見
           <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
             中英混說的模型測量
           </a>
@@ -386,11 +393,7 @@ const sources = [
       <h2 id="gaps">Airdraft 目前還缺什麼</h2>
       <ul>
         <li>官方 App 尚未開賣，也還沒有經過公證的公開安裝檔。</li>
-        <li>
-          只支援
-          Mac，沒有手機版。目前發布的版本只有英文介面；下一個版本起支援英文與繁體中文介面，跟隨
-          macOS 的語言設定。
-        </li>
+        <li>只支援 Mac，沒有手機版。</li>
         <li>選擇很多，第一次設定要挑模型。</li>
         <li>
           只公布了一次自己對本機模型的中英混說測量（一台
@@ -512,14 +515,13 @@ const sources = [
         </li>
         <li>
           Local Chinese models (Qwen3-ASR, SenseVoice, FireRedASR2), with
-          Traditional or Simplified output. In 0.10.2, first-run setup suggests
-          SenseVoice, a small, fast download, on a Mac set to Chinese, English,
-          Japanese or Korean, and the Models page describes the larger Qwen3-ASR
-          1.7B as best for mixed Chinese and English. From the next version,
-          first-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese,
-          with SenseVoice as the smaller, faster option; on a Mac with 8 GB of
-          memory or less it recommends SenseVoice first and still offers
-          Qwen3-ASR 1.7B. See the{" "}
+          Traditional or Simplified output. From 0.11.0, first-run setup
+          recommends Qwen3-ASR 1.7B on a Mac set to Chinese, labelled “Best for
+          mixed Chinese and English” in Models, with SenseVoice as the smaller,
+          faster option; on a Mac with 8 GB of memory or less it recommends
+          SenseVoice first and still offers Qwen3-ASR 1.7B. Handy’s model
+          catalog also lists local Qwen3-ASR 0.6B and 1.7B and SenseVoice Small.
+          See the{" "}
           <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
             mixed-language model measurements
           </a>
@@ -552,10 +554,7 @@ const sources = [
           The official app is not on sale, and there is no notarized public
           installer yet.
         </li>
-        <li>
-          It runs only on the Mac, with no phone app. Published builds are in
-          English; the next version adds a Traditional Chinese interface.
-        </li>
+        <li>It runs only on the Mac, with no phone app.</li>
         <li>There are many choices, and first setup means picking models.</li>
         <li>
           The only published measurement is Airdraft’s own test of its local

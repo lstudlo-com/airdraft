@@ -24,7 +24,7 @@ export interface MixedAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
   /**
-   * The download size the next version's Models page shows, character for
+   * The download size the 0.11.0 Models page shows, character for
    * character: ByteCountFormatter's decimal total of the pinned files
    * (Packages/AirdraftCore/.../local-pinned-models.json), or the fixed label
    * for the sherpa-onnx archives. A listed size, not a measured transfer.

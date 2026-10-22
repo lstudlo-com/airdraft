@@ -11,9 +11,9 @@ import { href, type Locale } from "../i18n";
  * src/data/mixed-asr.ts (eval/mixed-asr in the repository) and are presented
  * as Airdraft's own measurement on one Mac, with its method and limits. App
  * behavior follows SpeechLanguagePolicy, ChineseScriptConverter, PromptBuilder
- * and the onboarding recommendation; 0.10.2 and next-version behavior stay
- * distinguished ("from the next version" without naming one). App labels in
- * the zh-TW page are the app's zh-Hant catalog values, quoted with 「」.
+ * and the onboarding recommendation as of 0.11.0; 0.10.2's recommendation is
+ * named only where it differs. App labels in the zh-TW page are the app's
+ * zh-Hant catalog values, quoted with 「」.
  */
 interface Props {
   locale: Locale;
@@ -60,7 +60,7 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="一句話裡夾著英文術語時，記憶體夠的 Mac 選 Qwen3-ASR 1.7B，記憶體吃緊時選 SenseVoice。以下是 Airdraft 自己在一台 Mac 上測量五個本機模型的結果、方法與限制。App 介面從下一個版本起支援繁體中文；0.10.2 及更早的版本只顯示英文，下文的名稱照繁體中文介面書寫。"
+    intro="一句話裡夾著英文術語時，記憶體夠的 Mac 選 Qwen3-ASR 1.7B，記憶體吃緊時選 SenseVoice。以下是 Airdraft 自己在一台 Mac 上測量五個本機模型的結果、方法與限制。App 介面從 0.11.0 起支援繁體中文，跟隨 macOS 的語言設定；0.10.2 及更早的版本只顯示英文。下文的名稱照繁體中文介面書寫。"
   >
     <Surface class="guide-section">
       <h2 id="choose">該選哪個模型？</h2>
@@ -97,17 +97,13 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
     <Surface class="guide-section">
       <h2 id="app-recommendation">App 會推薦哪一個？</h2>
       <p>
-        0.10.2 的首次設定，在系統語言為中文、英文、日文或韓文的 Mac 上建議
-        SenseVoice，其他語言建議 Whisper Large v3 Turbo；「模型」頁把 Qwen3-ASR
-        1.7B 描述為「最適合中英夾雜」。
-      </p>
-      <p>
-        下一個版本起，系統語言為中文的 Mac 首次設定會推薦 Qwen3-ASR 1.7B；記憶體
+        從 0.11.0 起，系統語言為中文的 Mac 首次設定會推薦 Qwen3-ASR 1.7B；記憶體
         8 GB 以下的 Mac 改推薦 SenseVoice，仍可選 Qwen3-ASR
-        1.7B。英文、日文與韓文維持 SenseVoice。「模型」頁也會在 Qwen3-ASR 1.7B
-        上顯示「最適合中英夾雜」標籤，並說明
+        1.7B。英文、日文與韓文推薦 SenseVoice，其他語言推薦 Whisper Large v3
+        Turbo。「模型」頁在 Qwen3-ASR 1.7B 上顯示「最適合中英夾雜」標籤，並說明
         SenseVoice「較小、較快；中文夾雜英文詞時較弱。」按下「下載」之前不會下載任何模型。
       </p>
+      <p>0.10.2 的首次設定在系統語言為中文的 Mac 上也建議 SenseVoice。</p>
     </Surface>
 
     <Surface class="guide-section">
@@ -164,7 +160,8 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         Engine，部分記憶體不在 App 的行程裡，無法和其他模型比較。
       </p>
       <p>
-        下載大小照下一個版本「模型」頁列出的數字，是各模型固定版本檔案的總和，以十進位單位計算，不是實測的傳輸量。記憶體是轉錄時
+        下載大小照
+        0.11.0「模型」頁列出的數字，是各模型固定版本檔案的總和，以十進位單位計算，不是實測的傳輸量。記憶體是轉錄時
         App 行程實測峰值的中位數。
       </p>
     </Surface>
@@ -206,8 +203,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           GPU 較弱的 Mac 上會明顯變慢。
         </li>
         <li>
-          Qwen3-ASR 與 Whisper 的模型檔來自 Hugging Face 的最新版本，App
-          沒有固定版本。
+          Qwen3-ASR 與 Whisper 的模型檔在測量時取自 Hugging Face
+          的最新版本；記錄下來的 SHA-256 與 0.11.0
+          固定並驗證的版本清單一致，所以就是 App 現在下載的同一批檔案。
         </li>
         <li>結果是未經潤稿的辨識輸出。Cohere Transcribe 沒有測。</li>
         <li>這是 Airdraft 模型之間的比較，不是和其他聽寫 App 的比較。</li>
@@ -298,19 +296,17 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
     <Surface class="guide-section">
       <h2 id="app-recommendation">What does the app recommend?</h2>
       <p>
-        In 0.10.2, first-run setup suggests SenseVoice on a Mac set to Chinese,
-        English, Japanese or Korean, and Whisper Large v3 Turbo otherwise. The
-        Models page describes Qwen3-ASR 1.7B as best for mixed Chinese and
-        English.
+        From 0.11.0, first-run setup recommends Qwen3-ASR 1.7B on a Mac set to
+        Chinese. On a Mac with 8 GB of memory or less it recommends SenseVoice
+        and still offers Qwen3-ASR 1.7B. English, Japanese and Korean get
+        SenseVoice, and other languages Whisper Large v3 Turbo. The Models page
+        labels Qwen3-ASR 1.7B “Best for mixed Chinese and English” and describes
+        SenseVoice as smaller and faster but weaker with English terms in
+        Chinese speech. Nothing downloads until you click Download.
       </p>
       <p>
-        From the next version, first-run setup recommends Qwen3-ASR 1.7B on a
-        Mac set to Chinese. On a Mac with 8 GB of memory or less it recommends
-        SenseVoice and still offers Qwen3-ASR 1.7B. English, Japanese and Korean
-        keep SenseVoice. The Models page also labels Qwen3-ASR 1.7B “Best for
-        mixed Chinese and English” and describes SenseVoice as smaller and
-        faster but weaker with English terms in Chinese speech. Nothing
-        downloads until you click Download.
+        In 0.10.2, first-run setup suggested SenseVoice on a Mac set to Chinese
+        too.
       </p>
     </Surface>
 
@@ -373,10 +369,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         comparable.
       </p>
       <p>
-        Download sizes are the totals the next version’s Models page lists for
-        each model’s pinned files, in decimal units, not measured transfers.
-        Memory is the measured median peak of the app’s process while
-        transcribing.
+        Download sizes are the totals the 0.11.0 Models page lists for each
+        model’s pinned files, in decimal units, not measured transfers. Memory
+        is the measured median peak of the app’s process while transcribing.
       </p>
     </Surface>
 
@@ -424,8 +419,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           Qwen3-ASR will be noticeably slower on Macs with smaller GPUs.
         </li>
         <li>
-          Qwen3-ASR and Whisper model files come from the latest Hugging Face
-          version; the app does not pin them.
+          Qwen3-ASR and Whisper model files were taken from the latest Hugging
+          Face version when measured. Their recorded SHA-256 digests match the
+          revisions 0.11.0 pins and verifies, so they are the same files the app
+          downloads now.
         </li>
         <li>
           The results are speech output without refinement. Cohere Transcribe

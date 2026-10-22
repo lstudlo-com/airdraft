@@ -10,8 +10,8 @@ import { href, type Locale } from "../i18n";
  * Delivery follows TextInserter (selfDrawingEditorBundlePrefixes, read-back
  * confirmation, explicit-retry copy), destination rules follow AppFamily and
  * the app-context setting, and CLI refinement follows CLIRefiner and the root
- * README. 0.10.2 and next-version behavior stay distinguished ("from the next
- * version" without naming one). App labels in the zh-TW page are the app's
+ * README. Behavior described is 0.11.0's; 0.10.2 and earlier are named only
+ * where they differ. App labels in the zh-TW page are the app's
  * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
  * (Verbatim, Claude Code, Codex) stay as the app shows them.
  */
@@ -28,7 +28,7 @@ const zh = locale === "zh-tw";
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="在 Claude Code、Codex 或任何終端機裡按住快速鍵、說出提示詞再放開，Airdraft 會把文字貼到提示列，但不會按 Return，送出前你可以先檢查。潤稿也可以透過 Claude Code 或 Codex CLI，沿用你已付費的方案。App 介面從下一個版本起支援繁體中文；0.10.2 及更早的版本只顯示英文，下文的名稱照繁體中文介面書寫。"
+    intro="在 Claude Code、Codex 或任何終端機裡按住快速鍵、說出提示詞再放開，Airdraft 會把文字貼到提示列，但不會按 Return，送出前你可以先檢查。潤稿也可以透過 Claude Code 或 Codex CLI，沿用你已付費的方案。App 介面從 0.11.0 起支援繁體中文，跟隨 macOS 的語言設定；0.10.2 及更早的版本只顯示英文。下文的名稱照繁體中文介面書寫。"
   >
     <Surface class="guide-section">
       <h2 id="delivery">文字怎麼進到終端機？</h2>
@@ -46,13 +46,14 @@ const zh = locale === "zh-tw";
           和視窗，只貼上一次，絕不重貼。
         </li>
         <li>
-          0.10.2 無法確認這些 App 的貼上，即使文字已經出現，也會顯示「Paste
-          couldn't be
-          confirmed」並把文字留在剪貼簿。下一個版本起，這類聽寫在「記錄」中標為「已貼上，未確認」，不再顯示錯誤，剪貼簿會稍晚才還原成原本的內容。
+          從 0.11.0
+          起，這類聽寫在「記錄」中標為「已貼上，未確認」，不會顯示錯誤，剪貼簿會稍晚才還原成原本的內容。0.10.2
+          即使文字已經出現，也會顯示「Paste couldn't be
+          confirmed」並把文字留在剪貼簿。
         </li>
         <li>
           錄音後你切換了視窗或輸入欄位時，Airdraft
-          改為拷貝，不會貼到別的地方。下一個版本起，重試保留的錄音時，這些 App
+          改為拷貝，不會貼到別的地方。重試保留的錄音時，這些 App
           也會改為拷貝，因為沒有辦法確認文字會落在哪裡。
         </li>
       </ul>
@@ -210,17 +211,16 @@ const zh = locale === "zh-tw";
           app and window are still in front, pastes once and never repeats it.
         </li>
         <li>
-          In 0.10.2, a paste into these apps can’t be confirmed, so Airdraft
-          says “Paste couldn’t be confirmed” and keeps the text on the clipboard
-          even when it arrived. From the next version, History marks these
-          dictations “Pasted, unconfirmed” without an error, and your clipboard
-          is restored a little later than usual.
+          From 0.11.0, History marks these dictations “Pasted, unconfirmed”
+          without an error, and your clipboard is restored a little later than
+          usual. In 0.10.2, Airdraft says “Paste couldn’t be confirmed” and
+          keeps the text on the clipboard even when it arrived.
         </li>
         <li>
           If the window or field changed after recording, Airdraft copies the
-          text instead of pasting it somewhere else. From the next version, an
-          explicit retry of a kept recording also copies instead of pasting into
-          these apps, because nothing could confirm where the text would land.
+          text instead of pasting it somewhere else. An explicit retry of a kept
+          recording also copies instead of pasting into these apps, because
+          nothing could confirm where the text would land.
         </li>
       </ul>
     </Surface>

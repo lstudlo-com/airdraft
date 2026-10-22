@@ -82,17 +82,15 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
   `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
   measurement is published.
-- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. In 0.10.2,
-  first-run setup marks SenseVoice, a small, fast download, as the best fit on
-  a Mac set to Chinese, English, Japanese or Korean (Whisper Large v3 Turbo
-  otherwise), and the Models page describes the larger Qwen3-ASR 1.7B as best
-  for mixed Chinese and English. From the next version, first-run setup
-  recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice on 8 GB or
-  less, with Qwen still offered); English, Japanese and Korean keep SenseVoice;
-  the Models page labels Qwen3-ASR 1.7B "Best for mixed Chinese and English"
-  and calls SenseVoice smaller and faster but weaker with English terms in
-  Chinese speech. Say
-  which recommendation is which and which version has it.
+- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. From 0.11.0,
+  first-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice
+  on 8 GB or less, with Qwen still offered); English, Japanese and Korean get
+  SenseVoice and other languages Whisper Large v3 Turbo; the Models page labels
+  Qwen3-ASR 1.7B "Best for mixed Chinese and English" and calls SenseVoice
+  smaller and faster but weaker with English terms in Chinese speech. 0.10.2
+  suggested SenseVoice on a Mac set to Chinese too; name it only where the
+  older recommendation matters. Qwen3-ASR and Whisper downloads are pinned to
+  verified revisions from 0.11.0.
   Chinese script converts characters to Traditional by default and can be
   Simplified or Auto; Taiwan vocabulary comes from refinement. Parakeet does
   not support Chinese.
@@ -104,17 +102,15 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   claim or compare it with other apps.
 - Coding agents and terminals: Airdraft pastes once and never presses Return.
   Terminal and iTerm2 are confirmed by read-back. Warp, Zed, Ghostty, kitty,
-  Alacritty and WezTerm draw their own text: 0.10.2 reports the paste as
-  unconfirmed and keeps the text on the clipboard; from the next version History
-  marks it "Pasted, unconfirmed" without an error. Claude Code / Codex
+  Alacritty and WezTerm draw their own text: from 0.11.0 History marks the
+  paste "Pasted, unconfirmed" without an error (0.10.2 reported it as
+  unconfirmed and kept the text on the clipboard). Claude Code / Codex
   refinement runs the signed-in CLI without tools in a temporary folder and
   sends the prompt to Anthropic or OpenAI; destination-specific prompt rules
   need Read app context, which is off by default.
-- Published builds through 0.10.2 have an English interface. The Traditional
-  Chinese interface is in the source and ships from the next release, following
-  the macOS language setting; pages say "from the next version" without naming
-  one, and the translated guides note that 0.10.2 and earlier show English labels.
-  Rewrite these sentences when a release includes it. Translated pages quote app labels (buttons,
+- From 0.11.0 the app ships English and Traditional Chinese interfaces,
+  following the macOS language setting; builds through 0.10.2 are English only,
+  and the translated guides say so. Translated pages quote app labels (buttons,
   settings, HUD states, Refined/Original, Meetings controls) with the app's
   zh-Hant values from its string catalogs (`src/data/app.ts` for shared
   labels); a label without a catalog entry, including the built-in profile

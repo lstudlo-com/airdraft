@@ -8,11 +8,68 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-14.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-22.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-11-0",
+    version: "0.11.0",
+    date: "2026-10-22",
+    title: "Traditional Chinese interface and dependable delivery",
+    changes: [
+      {
+        title: "Use Airdraft in Traditional Chinese",
+        description:
+          "The interface, native menus and App Shortcut phrases are available in Traditional Chinese (Taiwan) and follow the macOS language setting. Built-in profile names appear in the interface language until you rename them.",
+      },
+      {
+        title: "Dictate again right after a paste",
+        description:
+          "A shortcut pressed while the clipboard was being restored or History was saving could be ignored. Airdraft is now ready as soon as delivery is confirmed, and a newer paste never brings back an older clipboard.",
+      },
+      {
+        title: "Paste into terminals that draw their own text",
+        description:
+          "Warp, Zed, Ghostty, kitty, Alacritty and WezTerm get one paste without an error, and History marks it Pasted, unconfirmed. Your clipboard returns after two seconds. Other apps without a visible cursor still keep the text on the clipboard with a recovery notice.",
+      },
+      {
+        title: "Keep dictating while recordings wait",
+        description:
+          "A recording kept after a speech failure no longer blocks new dictation. Up to three recordings or 15 minutes of audio wait for retry or discard; when little room remains, the next recording stops early and says why.",
+      },
+      {
+        title: "Clearer setup on Home and in onboarding",
+        description:
+          "Home counts an installed speech model as ready even before it loads, and names trial, license and kept-recording blockers. Try It now completes with a real dictation, and Ready offers Apple Intelligence refinement when the Mac supports it.",
+      },
+      {
+        title: "Recommended and verified local models",
+        description:
+          "A Mac set to Chinese is recommended Qwen3-ASR 1.7B, or SenseVoice first with 8 GB of memory or less. Models opens with that recommendation and verified models, with the rest under Experimental. Qwen3-ASR and Whisper downloads are pinned and checked by size and SHA-256 before installation.",
+      },
+      {
+        title: "Adjust text size",
+        description:
+          "Settings > Appearance > Text size offers Default, Large and Larger, and text wraps instead of clipping at larger sizes. Every control now has a VoiceOver name and state.",
+      },
+      {
+        title: "Start and save dictations faster",
+        description:
+          "The microphone opens as soon as setup checks pass, refinement prepares while you speak, and saving a dictation no longer scans stored audio. A long recording keeps its local speech model loaded until processing ends.",
+      },
+      {
+        title: "Build Airdraft from source more easily",
+        description:
+          "Settings > Updates > Acknowledgements lists third-party notices, and source builds now launch without the project's signing team.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.11.0-build.BUILD",
+    },
+  },
   {
     id: "0-10-2",
     version: "0.10.2",

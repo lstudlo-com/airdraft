@@ -2,8 +2,8 @@ import type { Locale } from "../i18n";
 
 /**
  * App interface labels the site quotes, as the app shows them in each
- * language. The Traditional Chinese interface ships from the release after
- * 0.10.2 and follows the macOS language setting; the zh-tw values are the
+ * language. The Traditional Chinese interface ships from 0.11.0 and follows
+ * the macOS language setting; the zh-tw values are the
  * zh-Hant entries in Sources/App/Localizable.xcstrings (and AirdraftCore's
  * catalog). Look each
  * English key up there before adding or changing one; a label without a
