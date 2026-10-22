@@ -54,8 +54,12 @@ with tempfile.TemporaryDirectory(prefix="airdraft-keychain-test-") as directory:
     source.write_text(SWIFT)
     core = ROOT / "Packages/AirdraftCore/Sources/AirdraftCore"
     binary = temp / "fixture"
+    # Core files localize through SwiftPM's Bundle.module; compiled alone they
+    # read the fixture's main bundle, which yields the English source strings.
+    shim = temp / "ModuleBundle.swift"
+    shim.write_text("import Foundation\nextension Bundle { static let module = Bundle.main }\n")
     run("swiftc", "-swift-version", "5", core / "Settings/AppIdentity.swift",
-        core / "Providers/Keychain.swift", source, "-o", binary,
+        core / "Providers/Keychain.swift", shim, source, "-o", binary,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     identity = json.loads((ROOT / "scripts/release-signing.json").read_text())["certificateSHA1"]
     apps = []
