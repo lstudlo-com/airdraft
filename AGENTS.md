@@ -101,9 +101,8 @@ verification status belong in the vault (see below).
   `translatedPaths` in `src/i18n/index.ts` drives reciprocal hreflang, sitemap
   alternates and the language switch. Add a translation to `_redirects`, the
   analytics path allowlist and `llms.txt` together; translated pages quote the
-  app's zh-Hant catalog labels. Until a published build includes the Traditional
-  Chinese interface, zh-TW pages say it arrives in the next version and that
-  published builds show English labels; rewrite those sentences with that release.
+  app's zh-Hant catalog labels. The Traditional Chinese interface ships from
+  0.11.0; pages may note that 0.10.2 and earlier show English labels.
   Translated pages mark links to English-only pages （英文）, and their header
   folds its links into the menu up to 700 px. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
@@ -128,10 +127,10 @@ verification status belong in the vault (see below).
   statements come only from `eval/mixed-asr` through
   `apps/marketing/src/data/mixed-asr.ts`, quoted as Airdraft's dated own measurement
   with its method link and limits; update both when the measurement is re-run.
-  Website guides that describe insertion or model recommendations name 0.10.2
-  versus next-version behaviour until a release includes it; when
+  Website guides that describe insertion or model recommendations describe the
+  current release and name a version only where older behaviour differed; when
   `selfDrawingEditorBundlePrefixes` or the onboarding recommendation changes, update
-  the coding-agent and mixed-language guides together. Keep factual guide content,
+  the coding-agent and mixed-language guides in the same release. Keep factual guide content,
   metadata and structured data aligned; never invent sale availability, reviews or
   ranking claims. The app comparison guide cites each product's own pages with
   check dates, states where competitors are better and marks unknown cells Not

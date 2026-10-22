@@ -187,8 +187,9 @@ indistinguishable for Qwen3-ASR 1.7B on real speech.
   on an 8 GB Mac that may also run a local refinement LLM.
 - Load times assume a warm OS file cache. A true cold start after reboot
   (`purge` needs sudo) was not measured.
-- Qwen3-ASR and Whisper weights come from Hub `main` (unpinned by the app). The
-  local file digests are recorded.
+- Qwen3-ASR and Whisper weights came from Hub `main` at measurement time, when the
+  app did not pin them. The recorded file digests match the revisions that 0.11.0
+  pins and verifies in `local-pinned-models.json`.
 
 ## Reproduce
 
