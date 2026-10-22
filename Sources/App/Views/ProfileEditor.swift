@@ -10,6 +10,8 @@ struct ProfileEditor<Chooser: View>: View {
     @Binding var nameFocusRequest: UUID?
     @ViewBuilder var chooser: Chooser
     @State private var nameDraft = ""
+    /// Why the last typed name was refused; cleared by the next accepted name.
+    @State private var nameError: String?
     @State private var showTask = false
     @FocusState private var nameFocused: Bool
 
@@ -30,7 +32,7 @@ struct ProfileEditor<Chooser: View>: View {
     var body: some View {
         PageSection("Profile", trailing: { chooser }) {
             SettingsCard {
-                SettingRow(title: "Name") {
+                SettingRow(title: "Name", detail: nameError) {
                     TextField("Profile name", text: $nameDraft)
                         .softField()
                         .labelsHidden()
@@ -76,6 +78,7 @@ struct ProfileEditor<Chooser: View>: View {
             }
             .onAppear {
                 nameDraft = current.displayName
+                nameError = nil
                 showTask = !current.task.isEmpty
                 focusNameIfRequested()
             }
@@ -117,19 +120,15 @@ struct ProfileEditor<Chooser: View>: View {
     }
 
     /// An empty draft restores the saved name rather than leaving the profile untitled.
-    /// An unedited built-in name stays stored in English and shown localized.
+    /// An unedited built-in name stays stored in English and shown localized; a typed
+    /// name is shown as typed. A name another profile uses is refused with a reason.
     private func commitName() {
-        let name = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else {
-            nameDraft = current.displayName
-            return
+        if case .duplicate(let other) = container.profiles.rename(id: current.id, to: nameDraft) {
+            nameError = String(localized: "“\(other)” is already used by another profile.")
+        } else {
+            nameError = nil
         }
-        if name != current.displayName {
-            var updated = current
-            updated.name = name
-            container.profiles.update(updated)
-        }
-        nameDraft = name
+        nameDraft = current.displayName
     }
 }
 

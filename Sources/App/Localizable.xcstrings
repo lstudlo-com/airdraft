@@ -5634,12 +5634,12 @@
         }
       }
     },
-    "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory." : {
+    "Most accurate when you mix Chinese and English. Uses about 2.4 GB of memory." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "中英夾雜時最準確。使用約 2.5 GB 記憶體。"
+            "value" : "中英夾雜時最準確。使用約 2.4 GB 記憶體。"
           }
         }
       }
@@ -6130,6 +6130,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未在 Airdraft 中完整測試，可能無法載入或轉錄品質不佳。"
+          }
+        }
+      }
+    },
+    "Not yet tested end to end in Airdraft. Models you use or have downloaded stay listed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未在 Airdraft 中完整測試。你正在使用或已下載的模型會持續列出。"
           }
         }
       }
@@ -11513,6 +11523,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」"
+          }
+        }
+      }
+    },
+    "“%@” is already used by another profile." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一個模式已使用「%@」這個名稱。"
           }
         }
       }

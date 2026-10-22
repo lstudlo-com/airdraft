@@ -30,7 +30,9 @@ xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
   `-onlyUsePackageVersionsFromResolvedFile`; do not pass `-derivedDataPath`.
 - Builds are signed ad-hoc unless `Config/Local.xcconfig` names your team (see
   `Config/Local.xcconfig.example`). With a stable team, macOS keeps Microphone
-  and Accessibility permissions across rebuilds.
+  and Accessibility permissions across rebuilds. Ad-hoc builds are
+  development-only and run without Hardened Runtime; team-signed builds keep it.
+  `python3 scripts/verify-adhoc-launch.py` builds and launches a fresh ad-hoc clone.
 
 ## Tests
 

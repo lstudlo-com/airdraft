@@ -269,7 +269,22 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('/Config/Local.xcconfig', (root / '.gitignore').read_text())
         project = (root / 'project.yml').read_text()
         self.assertNotIn('DEVELOPMENT_TEAM', project)
-        self.assertIn('ENABLE_HARDENED_RUNTIME: YES', project)
+        # A project-level setting would override the xcconfig and turn Hardened
+        # Runtime on for team-less ad-hoc builds, whose frameworks dyld then refuses.
+        self.assertNotIn('ENABLE_HARDENED_RUNTIME', project)
+
+    def test_hardened_runtime_follows_the_signing_team(self):
+        root = Path(release.__file__).resolve().parents[1]
+        config = (root / 'Config/Signing.xcconfig').read_text()
+        self.assertIn('AIRDRAFT_HARDENED_RUNTIME_ADHOC = NO', config)
+        self.assertIn('ENABLE_HARDENED_RUNTIME = $(AIRDRAFT_HARDENED_RUNTIME_$(DEVELOPMENT_TEAM:default=ADHOC)'
+                      ':default=YES)', config)
+        self.assertLess(config.index('ENABLE_HARDENED_RUNTIME ='), config.index('#include? "Local.xcconfig"'))
+        for local in ((root / 'Config/Local.xcconfig.example').read_text(),
+                      local_signing.local_config(release_signing.POLICY['teamID'])):
+            self.assertRegex(local, r'(?m)^ENABLE_HARDENED_RUNTIME = YES$')
+        self.assertIn('ENABLE_HARDENED_RUNTIME=YES', release_signing.build_settings('0' * 40))
+        self.assertTrue((root / 'scripts/verify-adhoc-launch.py').is_file())
 
     def test_local_signing_uses_pinned_team_only_when_its_certificate_is_installed(self):
         policy = release_signing.POLICY

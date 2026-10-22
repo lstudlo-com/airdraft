@@ -147,7 +147,8 @@ struct OnboardingSpeechStep: View {
         let detail: String
         switch entry.id {
         case LocalSpeechRecommendation.Model.qwen3Large.catalogueID:
-            detail = String(localized: "Most accurate when you mix Chinese and English. Uses about 2.5 GB of memory.")
+            // Measured peak while transcribing (eval/mixed-asr/README.md); the website uses the same figure.
+            detail = String(localized: "Most accurate when you mix Chinese and English. Uses about 2.4 GB of memory.")
         case LocalSpeechRecommendation.Model.senseVoice.catalogueID where speech.recommendation.reason == .systemLanguage:
             // Its English-terms caveat concerns Chinese speech, so it would only confuse here.
             detail = String(localized: "Small and fast, and works well on any Mac.")

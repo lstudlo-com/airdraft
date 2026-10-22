@@ -86,7 +86,68 @@ enum ModelsPerformanceVerification {
         try! JSONSerialization.data(withJSONObject: results, options: [.prettyPrinted, .sortedKeys])
             .write(to: directory.appendingPathComponent("models-performance.json"))
         verifyShortTables()
+        verifyKeptExperimental(directory)
         print("MODELS_PERFORMANCE \(results)")
+    }
+
+    /// AD-071: a collapsed Experimental group still lists the models in use.
+    private static func verifyKeptExperimental(_ directory: URL) {
+        let entries = ModelCatalogue.entries
+        let recommendation = ModelCatalogue.recommendation
+        let selected = entries.first { $0.id == "sherpa:parakeet" }!
+        let downloading = entries.first { $0.id == "cohere" }!
+        precondition(selected.tier == .experimental && downloading.tier == .experimental)
+        let experimental = entries.filter { $0.tier == .experimental }.map(\.id)
+        func modelIDs(_ items: [LocalModelItem]) -> [String] {
+            items.compactMap { if case let .model(entry, _, _) = $0 { entry.id } else { nil } }
+        }
+        func kept(_ items: [LocalModelItem]) -> Int? {
+            items.lazy.compactMap { if case let .experimental(_, kept, _, _) = $0 { kept } else { nil } }.first
+        }
+        let hidden = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: [],
+                                               expanded: false, searching: false)
+        precondition(Set(modelIDs(hidden)).isDisjoint(with: experimental) && kept(hidden) == 0)
+        let keep: Set = [selected.id, downloading.id]
+        let collapsed = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: keep,
+                                                  expanded: false, searching: false)
+        let collapsedIDs = modelIDs(collapsed)
+        precondition(Set(collapsedIDs).intersection(experimental) == keep && kept(collapsed) == 2
+                     && collapsedIDs.count == Set(collapsedIDs).count, "In-use Experimental models must stay listed once")
+        let expanded = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: keep,
+                                                 expanded: true, searching: false)
+        precondition(modelIDs(expanded).sorted() == entries.map(\.id).sorted() && kept(expanded) == 0)
+
+        // The production page keeps the app default and a running download visible.
+        let suite = "airdraft.models-kept.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = AppSettings(defaults: defaults)
+        settings.llm.select(.none)
+        selected.select(&settings.asr)
+        let container = AppContainer(settings: settings, dataDirectory: directory.appendingPathComponent("kept-data"))
+        container.downloads.setPreviewProgress(.init(fraction: 0.4, currentFile: "model.safetensors"),
+                                               for: downloading.config(from: settings.asr))
+        container.navigation.page = .models
+        let host = NSHostingView(rootView: MainWindowView().environment(container))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 784, height: 600),
+                              styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
+        window.contentView = host
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        host.layoutSubtreeIfNeeded()
+        let table = nativeTables(host).first { $0.numberOfRows > 6 }!
+        precondition(table.numberOfRows < expanded.count, "Experimental models must start collapsed")
+        rows = []
+        active = true
+        for row in 0..<table.numberOfRows {
+            table.scrollRowToVisible(row)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+            host.layoutSubtreeIfNeeded()
+        }
+        active = false
+        precondition(rows.isSuperset(of: keep), "Collapsed Models must list the selected and downloading models")
+        window.orderOut(nil)
+        window.contentView = nil
+        print("MODELS_KEPT_EXPERIMENTAL PASS rows=\(table.numberOfRows) expanded=\(expanded.count)")
     }
 
     private static func verifyShortTables() {

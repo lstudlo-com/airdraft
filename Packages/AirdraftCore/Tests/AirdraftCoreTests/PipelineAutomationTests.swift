@@ -728,6 +728,30 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
     }
 
+    /// AD-077: a budget-shortened recording whose speech recognition fails keeps
+    /// the reason it stopped early in the failure and in its recovery issue.
+    func testBudgetStopReasonSurvivesASpeechFailure() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
+        defer { fixture.cleanUp() }
+        fixture.recorder.sampleCount = 400 * 16_000
+        try await recordOnce(fixture)
+        fixture.recorder.sampleCount = 16_000
+        fixture.pipeline.keptAudioBudgetSeconds = 400.5
+        fixture.pipeline.minimumRecordingWithinBudget = 0.1
+        try await fixture.pipeline.startFromAutomation()
+        try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
+        try await waitUntil("Recording processed") { !fixture.pipeline.isBusy }
+        guard case .failed(let message) = fixture.pipeline.state else {
+            return XCTFail("The speech failure must be visible")
+        }
+        XCTAssertTrue(message.hasPrefix("Transcription failed:"), message)
+        XCTAssertTrue(message.contains("Recording stopped at 0:01"), "The early stop must be explained: \(message)")
+        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2)
+        XCTAssertTrue(try XCTUnwrap(fixture.pipeline.pendingRecordings.last).issue.contains("Recording stopped at 0:01"))
+        XCTAssertNil(fixture.pipeline.keptBudgetStop, "The reason is reported once")
+        XCTAssertTrue(fixture.probe.scripts.isEmpty)
+    }
+
     /// AD-063 review: a retry resolves its kept recording only once the result
     /// is delivered and held for History. Cancelling during refinement keeps it.
     func testCancellingRetryDuringRefinementKeepsTheRecording() async throws {

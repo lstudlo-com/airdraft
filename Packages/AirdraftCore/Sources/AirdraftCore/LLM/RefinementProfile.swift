@@ -18,6 +18,13 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
     public var isBuiltIn: Bool
     /// Nil follows the app's speech selection. Older profile files omit this key.
     public var speechModel: ProfileSpeechModel?
+    /// The user typed this name, so it is shown exactly as typed, even when it
+    /// equals a built-in's stored English name (AD-079). Older files omit the key.
+    public var nameIsCustom = false
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, symbol, usesLLM, task, instructions, isBuiltIn, speechModel, nameIsCustom
+    }
 
     public init(
         id: UUID = UUID(),
@@ -37,6 +44,19 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         self.instructions = instructions
         self.isBuiltIn = isBuiltIn
         self.speechModel = speechModel
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        symbol = try container.decode(String.self, forKey: .symbol)
+        usesLLM = try container.decode(Bool.self, forKey: .usesLLM)
+        task = try container.decode(String.self, forKey: .task)
+        instructions = try container.decode(String.self, forKey: .instructions)
+        isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
+        speechModel = try container.decodeIfPresent(ProfileSpeechModel.self, forKey: .speechModel)
+        nameIsCustom = try container.decodeIfPresent(Bool.self, forKey: .nameIsCustom) ?? false
     }
 
     public func speechConfig(default appDefault: ASRConfig) -> ASRConfig {
@@ -88,10 +108,12 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
 
     /// The name shown in the interface. A built-in keeps its stored English name, which
     /// prompts, history and persistence use, and shows it localized until the user
-    /// renames it; every other name is shown as typed.
-    public var displayName: String {
-        guard isBuiltIn, let builtIn = Self.defaultProfile(id: id), name == builtIn.name else { return name }
-        return Self.localizedBuiltInName(id: id) ?? name
+    /// renames it; every other name, and any name the user typed, is shown as typed.
+    public var displayName: String { displayName(localizingBuiltIn: Self.localizedBuiltInName) }
+
+    func displayName(localizingBuiltIn localize: (UUID) -> String?) -> String {
+        guard isBuiltIn, !nameIsCustom, let builtIn = Self.defaultProfile(id: id), name == builtIn.name else { return name }
+        return localize(id) ?? name
     }
 
     /// History saves the profile's name, not its id: an unrenamed built-in's stored
@@ -101,7 +123,7 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         return localizedBuiltInName(id: builtIn.id) ?? name
     }
 
-    private static func localizedBuiltInName(id: UUID) -> String? {
+    static func localizedBuiltInName(id: UUID) -> String? {
         switch id {
         case cleanID: String(localized: "Clean", bundle: .module, comment: "Built-in refinement profile name")
         case conciseID: String(localized: "Concise", bundle: .module, comment: "Built-in refinement profile name")

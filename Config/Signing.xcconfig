@@ -11,4 +11,13 @@ CODE_SIGN_STYLE = Automatic
 CODE_SIGN_IDENTITY = -
 DEVELOPMENT_TEAM =
 
+// Hardened Runtime blocks code injection into a process that holds Microphone and
+// Accessibility access. It also enables library validation, which loads only
+// frameworks signed with the app's own Team ID. An ad-hoc signature has no Team ID,
+// so dyld would refuse the app's own frameworks: team-less ad-hoc builds are
+// development-only and run without it. Every build signed with a team keeps it, and
+// releases pass ENABLE_HARDENED_RUNTIME=YES and verify the flag after signing.
+AIRDRAFT_HARDENED_RUNTIME_ADHOC = NO
+ENABLE_HARDENED_RUNTIME = $(AIRDRAFT_HARDENED_RUNTIME_$(DEVELOPMENT_TEAM:default=ADHOC):default=YES)
+
 #include? "Local.xcconfig"

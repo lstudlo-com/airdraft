@@ -8,7 +8,9 @@ options:
   xcodeVersion: "26.0"
 # Source builds sign ad-hoc unless the git-ignored Config/Local.xcconfig names a
 # team (see Config/Local.xcconfig.example). Releases pass the pinned identity
-# from scripts/release-signing.json on the command line instead.
+# from scripts/release-signing.json on the command line instead. Hardened Runtime
+# lives in Config/Signing.xcconfig: on for team-signed builds and releases, off
+# for team-less ad-hoc builds whose frameworks library validation would reject.
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
@@ -16,8 +18,6 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MACOSX_DEPLOYMENT_TARGET: "15.0"
-    # Blocks code injection into a process that holds Microphone and Accessibility access.
-    ENABLE_HARDENED_RUNTIME: YES
     SWIFT_STRICT_CONCURRENCY: minimal
     # String Catalogs: the compiler extracts localizable literals during builds.
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES

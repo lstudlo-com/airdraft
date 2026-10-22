@@ -9,6 +9,7 @@ struct ModelsPage: View {
     @State private var cloudProvider: ASRProviderKind?
     /// Experimental models stay one click away; searching always includes them.
     @State private var showsExperimental = false
+    @State private var installedExperimentalIDs: Set<String> = []
     @State private var initialized = false
     @State private var openRouterModels: [SpeechModelInfo] = []
     @State private var openRouterLoading = false
@@ -39,26 +40,35 @@ struct ModelsPage: View {
     /// Recommended, then Verified (with built-in) rows, then the Experimental
     /// disclosure and, when open or searching, its rows. Each item is one list cell.
     private var localItems: [LocalModelItem] {
-        let recommendation = ModelCatalogue.recommendation
-        let groups = ModelCatalogue.grouped(localModels, recommendation: recommendation)
-        var items: [LocalModelItem] = []
-        let recommendedHeader: LocalModelItem.Header = recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
-        for (index, entry) in groups.recommended.enumerated() {
-            items.append(.model(entry, header: index == 0 ? recommendedHeader : nil,
-                                bestFit: entry.id == recommendation.model.catalogueID))
-        }
-        for (index, entry) in groups.verified.enumerated() {
-            let labelled = !groups.recommended.isEmpty || !groups.experimental.isEmpty
-            items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, bestFit: false))
-        }
-        if !groups.experimental.isEmpty {
-            let expanded = showsExperimental || isSearching
-            items.append(.experimental(count: groups.experimental.count, expanded: expanded, searching: isSearching))
-            if expanded {
-                items += groups.experimental.map { .model($0, header: nil, bestFit: false) }
+        ModelCatalogue.localItems(localModels, recommendation: ModelCatalogue.recommendation,
+                                  keepVisible: keptVisibleExperimentalIDs,
+                                  expanded: showsExperimental || isSearching, searching: isSearching)
+    }
+
+    /// Experimental entries the user relies on stay listed while the group is
+    /// collapsed: the app default, the active profile's model, running downloads
+    /// and installed files (checked on a worker).
+    private var keptVisibleExperimentalIDs: Set<String> {
+        let asr = container.settings.asr
+        let speech = container.speechConfig
+        var ids = installedExperimentalIDs
+        for entry in ModelCatalogue.entries where entry.tier == .experimental {
+            if entry.isSelected(asr) || entry.isSelected(speech)
+                || container.downloads.jobs[entry.config(from: asr).engineID] != nil {
+                ids.insert(entry.id)
             }
         }
-        return items
+        return ids
+    }
+
+    private func refreshInstalledExperimental() async {
+        let asr = container.settings.asr
+        let candidates = ModelCatalogue.entries.filter { $0.tier == .experimental }.map { ($0.id, $0.config(from: asr)) }
+        let installed = await Task.detached(priority: .utility) {
+            Set(candidates.filter { LocalModels.isInstalled($0.1) }.map(\.0))
+        }.value
+        guard !Task.isCancelled else { return }
+        installedExperimentalIDs = installed
     }
 
     private var localProviders: [String] {
@@ -137,8 +147,8 @@ struct ModelsPage: View {
                                 case let .model(entry, header, bestFit):
                                     if let header { LocalModelGroupHeader(header: header) }
                                     ModelRow(entry: entry, bestFit: bestFit)
-                                case let .experimental(count, expanded, searching):
-                                    ExperimentalModelsDisclosure(count: count, expanded: expanded, searching: searching) {
+                                case let .experimental(count, kept, expanded, searching):
+                                    ExperimentalModelsDisclosure(count: count, kept: kept, expanded: expanded, searching: searching) {
                                         showsExperimental.toggle()
                                     }
                                 }
@@ -152,6 +162,8 @@ struct ModelsPage: View {
                     .id("\(localProvider ?? "all")|\(query)")
                     EmptyNote("Relative ratings; results vary by Mac, language and audio.")
                 }
+                // Finished or cancelled downloads change which files are installed.
+                .task(id: container.downloads.jobs.keys.sorted()) { await refreshInstalledExperimental() }
             }
 
             if filter != .local, !RenderMode.excludesCredentials {

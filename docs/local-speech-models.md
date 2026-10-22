@@ -12,6 +12,10 @@ GGUF models load from `LocalModels.root/gguf/<catalogue-id>/`. Installation is a
 explicit `ModelDownloader` action. The transaction keeps an incomplete marker
 until every byte and digest is verified. A same-size corrupt cache is replaced
 only after its replacement is verified. Native inference never accesses the Hub.
+Pinned Qwen3-ASR and WhisperKit choices download file by file in manifest order;
+besides the same incomplete marker, they count as installed only when every
+pinned file is a nonempty regular file, so a download interrupted after the
+loader's key files (for example before `generation_config.json`) is not installed.
 The runtime is the official, checksum-pinned macOS XCFramework in
 `Packages/TranscribeCppKit`; ARM uses its embedded Metal backend and Intel CPU.
 No remote Swift package mirror or build-time native source compilation is needed.
@@ -90,7 +94,10 @@ same rule.
 
 The local table opens with "Recommended for your language", then Verified and
 built-in models, then a collapsed "Experimental models (N)" disclosure (AD-071).
-Searching includes Experimental rows without a click. Rows show the tier as a
+Searching includes Experimental rows without a click. While collapsed, the group
+still lists the Experimental models the user relies on: the app default, the active
+profile's speech model, installed models and running downloads, so a selected or
+downloaded model never disappears behind the disclosure. Rows show the tier as a
 symbol and word before their tags; Qwen3-ASR 1.7B also shows "Best for mixed
 Chinese and English". `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and

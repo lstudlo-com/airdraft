@@ -5,5 +5,10 @@
 // python3 scripts/generate-project.py creates Config/Local.xcconfig for the
 // maintainer's pinned release team when that certificate is installed. Release
 // builds always use scripts/release-signing.json instead of this file.
+//
+// Team-signed builds keep Hardened Runtime, which blocks code injection into a
+// process holding Microphone and Accessibility access. Team-less ad-hoc builds
+// run without it (development only; see Config/Signing.xcconfig).
 DEVELOPMENT_TEAM = ABCDE12345
 CODE_SIGN_IDENTITY = Apple Development
+ENABLE_HARDENED_RUNTIME = YES
