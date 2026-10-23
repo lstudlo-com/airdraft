@@ -556,6 +556,16 @@
         }
       }
     },
+    "Airdraft's list of reviewed model downloads is missing or damaged, so Qwen3-ASR and Whisper models can't be downloaded. Reinstall Airdraft to restore it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已審核模型下載清單遺失或損毀，因此無法下載 Qwen3-ASR 與 Whisper 模型。請重新安裝 Airdraft 以還原。"
+          }
+        }
+      }
+    },
     "Allow Accessibility access in Settings." : {
       "localizations" : {
         "zh-Hant" : {
