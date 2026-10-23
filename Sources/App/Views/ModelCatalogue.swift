@@ -10,6 +10,8 @@ struct ModelEntry: Identifiable {
     let vendor: String
     let provider: String
     let brand: ModelBrand
+    /// Runtime tags such as Core ML or a GGUF quantization. Languages come from
+    /// `SpeechLanguagePolicy` through `languages`.
     let tags: [String]
     let speed: Int      // 1...5 relative rating; 0 means unrated
     let accuracy: Int   // 1...5 relative rating; 0 means unrated
@@ -58,10 +60,55 @@ struct ModelEntry: Identifiable {
         return ModelCatalogue.verificationEvidence[id] == nil ? .experimental : .verified
     }
 
-    /// A short visible strength, shown under the title in Models.
+    /// The visible strength of an entry outside the recommended set.
     var highlight: String? {
         id == LocalSpeechRecommendation.Model.qwen3Large.catalogueID
             ? String(localized: "Best for mixed Chinese and English") : nil
+    }
+
+    /// Supported languages with full names, the user's language first; nil when
+    /// macOS owns them (Apple Speech). Cached, since names are formatted per code.
+    @MainActor var languages: SpeechLanguageList? {
+        if let cached = ModelCatalogue.languageCache[id] { return cached }
+        let list = SpeechLanguageList.supported(by: config(from: ASRConfig()), preferredLanguage: ModelCatalogue.systemLanguage)
+        ModelCatalogue.languageCache[id] = .some(list)
+        return list
+    }
+
+    /// The compact language form shown in the row, such as
+    /// "Mandarin Chinese, English and 28 more".
+    @MainActor var languageSummary: String {
+        guard let list = languages else { return String(localized: "Languages set in macOS") }
+        guard list.remaining > 0 else { return list.shown.formatted(.list(type: .and)) }
+        return String(localized: "\(list.shown[0]), \(list.shown[1]) and \(list.remaining) more")
+    }
+
+    /// Every supported language, for the tooltip.
+    @MainActor var languageDetail: String {
+        guard let list = languages else { return String(localized: "Uses the Apple Speech locale chosen in Speech options.") }
+        if list.names.count == 1 { return String(localized: "Supports \(list.names[0]) only.") }
+        return String(localized: "Supports \(list.names.count) languages: \(list.names.formatted(.list(type: .and)))")
+    }
+}
+
+extension LocalModelShortlist.Role {
+    /// The one visible label a recommended-set row shows.
+    func label(for reason: LocalSpeechRecommendation.Reason) -> (symbol: String, text: String) {
+        switch self {
+        case .recommended:
+            switch reason {
+            case .mixedChineseEnglish: ("star.fill", String(localized: "Best for mixed Chinese and English"))
+            case .limitedMemory: ("star.fill", String(localized: "Best fit for this Mac's memory"))
+            case .systemLanguage: ("star.fill", String(localized: "Best fit for your language"))
+            }
+        case .faster: ("hare", String(localized: "Smaller and faster"))
+        case .smaller: ("arrow.down.forward.and.arrow.up.backward", String(localized: "Smaller download"))
+        case .fullSize: ("scope", String(localized: "Full-size model, larger download"))
+        case .singleLanguage: ("text.bubble", String(localized: "Built for one language"))
+        case .mixedChineseEnglish: ("character.bubble", String(localized: "Best for mixed Chinese and English"))
+        case .mandarin: ("scope", String(localized: "Best Mandarin accuracy, 20+ dialects"))
+        case .multilingual: ("globe", String(localized: "More languages, larger download"))
+        }
     }
 }
 
@@ -97,73 +144,61 @@ enum ModelCatalogue {
     static let entries: [ModelEntry] = [
         ModelEntry(
             id: "qwen3:1.7b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 4, accuracy: 5, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-1.7B-MLX-5bit")),
+            tags: [], speed: 4, accuracy: 5, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-1.7B-MLX-5bit")),
             note: String(localized: "Best for mixed Chinese and English.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
             id: "qwen3:0.6b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
-            tags: ["ZH", "EN", "+28"], speed: 5, accuracy: 3, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-0.6B-MLX-4bit")),
+            tags: [], speed: 5, accuracy: 3, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-0.6B-MLX-4bit")),
             note: String(localized: "Low memory, very fast.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-0.6B-MLX-4bit" },
         ModelEntry(
             id: "sherpa:fireRed", vendor: "FireRed · ONNX", provider: "FireRed", brand: .fireRed,
-            tags: ["ZH", "EN"], speed: 3, accuracy: 5, storage: .download(sizeLabel: SherpaTranscriber.Model.fireRed.sizeLabel),
+            tags: [], speed: 3, accuracy: 5, storage: .download(sizeLabel: SherpaTranscriber.Model.fireRed.sizeLabel),
             note: String(localized: "Best Mandarin accuracy, 20+ dialects.")
         ) { $0.kind = .fireRed },
         ModelEntry(
             id: "cohere", vendor: "Cohere · MLX", provider: "Cohere", brand: .cohere,
-            tags: ["EN", "ZH", "+12"], speed: 4, accuracy: 5, storage: .download(sizeLabel: "1.6 GB"),
+            tags: [], speed: 4, accuracy: 5, storage: .download(sizeLabel: "1.6 GB"),
             note: String(localized: "Best open English model.")
         ) { $0.kind = .cohere; $0.cohereModel = "aufklarer/Cohere-Transcribe-2B-MLX-5bit" },
         ModelEntry(
             id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
-            tags: ["ZH", "YUE", "EN", "JA", "KO"], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
+            tags: [], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
             note: String(localized: "Smaller and faster; weaker with English terms in Chinese speech.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
-            tags: ["EN", "+24"], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
+            tags: [], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
             note: String(localized: "25 European languages. Does not support Chinese.")
         ) { $0.kind = .parakeet },
         ModelEntry(
             id: "apple", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
-            tags: ["ZH-TW", "EN"], speed: 5, accuracy: 3, storage: .builtIn,
+            tags: [], speed: 5, accuracy: 3, storage: .builtIn,
             note: String(localized: "macOS manages language assets.")
         ) { $0.kind = .apple },
     ] + WhisperModelVariant.allCases.map { variant in
         ModelEntry(id: variant == .turbo ? "whisper:turbo" : "whisper:\(variant.rawValue)", vendor: variant.isEnglishOnly ? "Hugging Face · Core ML" : "OpenAI · Core ML",
                    provider: variant.isEnglishOnly ? "Hugging Face" : "OpenAI", brand: variant.isEnglishOnly ? .huggingFace : .openAI,
-                   tags: (variant.isEnglishOnly ? ["EN"] : [String(localized: "100 languages")]) + ["Core ML"], speed: variant == .turbo ? 3 : 0,
+                   tags: ["Core ML"], speed: variant == .turbo ? 3 : 0,
                    accuracy: variant == .turbo ? 3 : 0, storage: .download(sizeLabel: variant.sizeLabel),
                    note: variant.note) { $0.kind = .whisperKit; $0.whisperModel = variant.rawValue }
     } + [
         ModelEntry(id: "sherpa:orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
-                   tags: [String(localized: "25 languages"), "ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
+                   tags: ["ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
                    note: String(localized: "25 European languages; no Chinese support.")) { $0.kind = .orukeet }
     ] + CoreMLSpeechModelCatalog.models.map { model in
         ModelEntry(id: "coreml:\(model.id)", vendor: "\(model.creator) · Core ML", provider: model.creator,
                    brand: model.creator == "Moondream" ? .moondream : model.creator == "Fermion Research" ? .fermion : .nvidia,
-                   tags: (model.languages.count == 1 ? [model.languages[0].uppercased()] : [String(localized: "\(model.languages.count) languages")]) + ["Core ML"],
+                   tags: ["Core ML"],
                    speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
             $0.kind = .fluidAudio; $0.model = model.id
         }
     } + GGUFModelCatalog.models.map { model in
-        let languages = model.supportedLanguages
-        let tags = languages.count <= 5 ? languages.map { $0.uppercased() } : [String(localized: "\(languages.count) languages")]
-        return ModelEntry(id: "gguf:\(model.id)", vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
-                          brand: ModelBrand(rawValue: model.brand)!, tags: tags + ["GGUF \(model.quantization)"],
+        ModelEntry(id: "gguf:\(model.id)", vendor: "\(model.creator) · GGUF \(model.quantization)", provider: model.creator,
+                          brand: ModelBrand(rawValue: model.brand)!, tags: ["GGUF \(model.quantization)"],
                           speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel),
                           note: model.languageCapabilities.summary) { $0.kind = .transcribeCpp; $0.model = model.id }
-    }
-}
-
-extension LocalSpeechRecommendation.Model {
-    var catalogueID: String {
-        switch self {
-        case .qwen3Large: "qwen3:1.7b"
-        case .senseVoice: "sherpa:senseVoice"
-        case .whisperTurbo: "whisper:turbo"
-        }
     }
 }
 
@@ -187,53 +222,72 @@ extension ModelCatalogue {
         return evidence
     }()
 
-    /// Recommended first, then the rest of the verified and built-in entries,
+    /// The shortlist first, then the rest of the verified and built-in entries,
     /// then Experimental ones, each in catalogue order.
-    static func grouped(_ entries: [ModelEntry], recommendation: LocalSpeechRecommendation)
-        -> (recommended: [ModelEntry], verified: [ModelEntry], experimental: [ModelEntry]) {
-        let order = ([recommendation.model] + recommendation.alternatives).map(\.catalogueID)
-        let recommended = order.compactMap { id in entries.first { $0.id == id } }
+    static func grouped(_ entries: [ModelEntry], shortlist: LocalModelShortlist)
+        -> (recommended: [(ModelEntry, LocalModelShortlist.Role)], verified: [ModelEntry], experimental: [ModelEntry]) {
+        let recommended = shortlist.picks.compactMap { pick in entries.first { $0.id == pick.id }.map { ($0, pick.role) } }
+        let order = Set(shortlist.ids)
         let rest = entries.filter { !order.contains($0.id) }
         return (recommended, rest.filter { $0.tier != .experimental }, rest.filter { $0.tier == .experimental })
     }
 
-    /// Recommended, then Verified (with built-in) rows, then the Experimental
-    /// disclosure. Collapsed, the group still lists the Experimental entries in
-    /// `keepVisible` (models in use, installed or downloading), so a model the user
-    /// relies on never disappears behind the disclosure (AD-071). Expanded or
-    /// searching, it lists every Experimental entry in catalogue order.
-    static func localItems(_ entries: [ModelEntry], recommendation: LocalSpeechRecommendation,
-                           keepVisible: Set<String>, expanded: Bool, searching: Bool) -> [LocalModelItem] {
-        let groups = grouped(entries, recommendation: recommendation)
+    /// AD-071. By default (`showsAll` off, not searching) Models lists only the
+    /// compact recommended set, then "Your models": the entries in `inUse` (app
+    /// default, profile binding, installed or downloading) that the set does not
+    /// show. Showing all models, or searching, lists Recommended, then Verified
+    /// (with built-in) rows, then the Experimental disclosure. Collapsed, that
+    /// group still lists the Experimental entries in `inUse`, so a model the user
+    /// relies on never disappears. Expanded or searching, it lists every
+    /// Experimental entry in catalogue order.
+    static func localItems(_ entries: [ModelEntry], shortlist: LocalModelShortlist, inUse: Set<String>,
+                           showsAll: Bool, expanded: Bool, searching: Bool) -> [LocalModelItem] {
+        let groups = grouped(entries, shortlist: shortlist)
         var items: [LocalModelItem] = []
-        let recommendedHeader: LocalModelItem.Header = recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
-        for (index, entry) in groups.recommended.enumerated() {
-            items.append(.model(entry, header: index == 0 ? recommendedHeader : nil,
-                                bestFit: entry.id == recommendation.model.catalogueID))
+        let recommendedHeader: LocalModelItem.Header = shortlist.recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
+        for (index, (entry, role)) in groups.recommended.enumerated() {
+            items.append(.model(entry, header: index == 0 ? recommendedHeader : nil, role: role))
+        }
+        guard showsAll || searching else {
+            let yours = shortlist.inUse(catalogueOrder: entries.map(\.id), inUse: inUse)
+            for (index, id) in yours.enumerated() {
+                guard let entry = entries.first(where: { $0.id == id }) else { continue }
+                items.append(.model(entry, header: index == 0 ? .yourModels : nil, role: nil))
+            }
+            return items
         }
         for (index, entry) in groups.verified.enumerated() {
             let labelled = !groups.recommended.isEmpty || !groups.experimental.isEmpty
-            items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, bestFit: false))
+            items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, role: nil))
         }
         if !groups.experimental.isEmpty {
-            let kept = groups.experimental.filter { keepVisible.contains($0.id) }
-            items.append(.experimental(count: groups.experimental.count, kept: expanded ? 0 : kept.count,
-                                       expanded: expanded, searching: searching))
-            items += (expanded ? groups.experimental : kept).map { .model($0, header: nil, bestFit: false) }
+            let kept = groups.experimental.filter { inUse.contains($0.id) }
+            let open = expanded || searching
+            items.append(.experimental(count: groups.experimental.count, kept: open ? 0 : kept.count,
+                                       expanded: open, searching: searching))
+            items += (open ? groups.experimental : kept).map { .model($0, header: nil, role: nil) }
         }
         return items
     }
 
     /// One recommendation for first-run setup and Models (AD-074). Renders inject
     /// the system language and memory so both cases can be inspected on any Mac.
-    static var recommendation: LocalSpeechRecommendation {
-        let language = RenderMode.value("SYSTEM_LANGUAGE") ?? LocalSpeechRecommendation.systemLanguageCode
-        return .recommend(languageCode: language, physicalMemory: physicalMemory)
+    static var recommendation: LocalSpeechRecommendation { shortlist.recommendation }
+
+    /// The compact set Models opens with (AD-071), for the same language and memory.
+    static var shortlist: LocalModelShortlist {
+        .make(languageCode: systemLanguage, physicalMemory: physicalMemory)
+    }
+
+    static var systemLanguage: String? {
+        RenderMode.value("SYSTEM_LANGUAGE") ?? LocalSpeechRecommendation.systemLanguageCode
     }
 
     static var physicalMemory: UInt64 {
         RenderMode.value("MEMORY_GB").flatMap { UInt64($0) }.map { $0 << 30 } ?? ProcessInfo.processInfo.physicalMemory
     }
+
+    @MainActor static var languageCache: [String: SpeechLanguageList?] = [:]
 
     static func entry(_ model: LocalSpeechRecommendation.Model) -> ModelEntry {
         entries.first { $0.id == model.catalogueID }!
@@ -264,12 +318,15 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
 }
 
 /// Keep headings visible while the measured row content scrolls within one cap.
-/// Short and empty results use only the space they need.
+/// Short and empty results use only the space they need. The compact
+/// recommended set (`capped` false) shows its few rows without an inner scroll.
 struct ModelTable<Rows: View>: View {
     let cost: String
     let rowCount: Int
+    var capped = true
     @ViewBuilder var rows: Rows
     @State private var contentHeight = Theme.modelTableMaxHeight
+    private var maxHeight: CGFloat { capped ? Theme.modelTableMaxHeight : .infinity }
 
     var body: some View {
         Card(padding: 0) {
@@ -292,13 +349,13 @@ struct ModelTable<Rows: View>: View {
                 } else {
                     ScrollView(.vertical) {
                         VStack(spacing: 0) { rows }
-                            .onGeometryChange(for: CGFloat.self) {
-                                min($0.size.height, Theme.modelTableMaxHeight)
+                            .onGeometryChange(for: CGFloat.self) { [maxHeight] in
+                                min($0.size.height, maxHeight)
                             } action: { contentHeight = $0 }
                     }
                 }
             }
-            .frame(height: min(contentHeight, Theme.modelTableMaxHeight))
+            .frame(height: rowCount > 6 ? Theme.modelTableMaxHeight : min(contentHeight, maxHeight))
             .scrollBounceBehavior(.basedOnSize)
             #if DEBUG
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
@@ -407,8 +464,9 @@ struct CloudModelRow: View {
 
 /// One cell of the local models table (AD-071).
 enum LocalModelItem: Identifiable {
-    enum Header { case recommended, recommendedForMemory, verified }
-    case model(ModelEntry, header: Header?, bestFit: Bool)
+    enum Header { case recommended, recommendedForMemory, yourModels, verified }
+    /// `role` is set for the compact recommended set and names its one label.
+    case model(ModelEntry, header: Header?, role: LocalModelShortlist.Role?)
     /// `kept` counts Experimental rows listed while collapsed because they are in use.
     case experimental(count: Int, kept: Int, expanded: Bool, searching: Bool)
 
@@ -440,6 +498,7 @@ struct LocalModelGroupHeader: View {
     private var title: String {
         switch header {
         case .recommended, .recommendedForMemory: String(localized: "Recommended for your language")
+        case .yourModels: String(localized: "Your models")
         case .verified: String(localized: "Verified")
         }
     }
@@ -487,8 +546,8 @@ struct ModelRow: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.colorSchemeContrast) private var contrast
     let entry: ModelEntry
-    /// The recommendation for this Mac's language and memory.
-    var bestFit = false
+    /// Why the entry is in the compact recommended set, if it is.
+    var role: LocalModelShortlist.Role?
     @State private var error: String?
     @State private var installed = false
     @State private var checkingInstallation = true
@@ -522,20 +581,11 @@ struct ModelRow: View {
                                              : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
                         ModelBrandIcon(brand: entry.brand)
                         VStack(alignment: .leading, spacing: 4) {
-                            // At larger text sizes the tag moves below a long name instead
-                            // of squeezing it into a mid-word break.
-                            ViewThatFits(in: .horizontal) {
-                                HStack(spacing: 6) {
-                                    Text(entry.title).appFont(.body, weight: .medium).fixedSize()
-                                    if bestFit { PillTag(text: "BEST FIT") }
-                                }
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(entry.title).appFont(.body, weight: .medium)
-                                    if bestFit { PillTag(text: "BEST FIT") }
-                                }
-                            }
-                            if let highlight = entry.highlight {
-                                Text("\(Image(systemName: "star.fill")) \(highlight)")
+                            Text(entry.title).appFont(.body, weight: .medium)
+                            // One visible label: why the model is recommended, or
+                            // its strength elsewhere in the table.
+                            if let label = strengthLabel {
+                                Text("\(Image(systemName: label.symbol)) \(label.text)")
                                     .appFont(.supporting, weight: .medium)
                                     .mutedForeground(0.75)
                             }
@@ -583,26 +633,33 @@ struct ModelRow: View {
         }
     }
 
-    /// Tier first, as a compact symbol and word, then the language and runtime tags.
+    private var strengthLabel: (symbol: String, text: String)? {
+        if let role { return role.label(for: ModelCatalogue.recommendation.reason) }
+        return entry.highlight.map { ("star.fill", $0) }
+    }
+
+    /// Tier first, as a compact symbol and word, then the languages by name and
+    /// runtime tags. The tooltip lists every supported language.
     private var tierAndTags: some View {
-        let tags = entry.tags.joined(separator: " · ")
+        let details = ([entry.languageSummary] + entry.tags).joined(separator: " · ")
         return Group {
             if let tier = entry.tier {
-                Text("\(Image(systemName: tier.symbol)) \(tier.title) · \(tags)")
-                    .help(tier.detail)
+                Text("\(Image(systemName: tier.symbol)) \(tier.title) · \(details)")
             } else {
-                Text(tags)
+                Text(details)
             }
         }
         .supportingText()
+        .fixedSize(horizontal: false, vertical: true)
+        .help([entry.tier?.detail, entry.languageDetail].compactMap { $0 }.joined(separator: " "))
     }
 
     private var accessibilityLabel: String {
         var parts = [String(localized: "Use \(entry.title)"), entry.provider]
-        if bestFit { parts.append(String(localized: "Best fit")) }
-        if let highlight = entry.highlight { parts.append(highlight) }
+        if let label = strengthLabel { parts.append(label.text) }
         if let tier = entry.tier { parts.append(tier.title) }
-        parts.append(entry.tags.joined(separator: ", "))
+        parts.append(entry.languageSummary)
+        parts += entry.tags
         return parts.joined(separator: ", ")
     }
 

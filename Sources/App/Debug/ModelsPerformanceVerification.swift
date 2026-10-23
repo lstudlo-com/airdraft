@@ -18,8 +18,10 @@ enum ModelsPerformanceVerification {
         let ids = Set(ModelCatalogue.entries.map(\.id))
         let unknown = Set(ModelCatalogue.verificationEvidence.keys).subtracting(ids)
         precondition(unknown.isEmpty, "Verification evidence names unknown models: \(unknown.sorted())")
+        verifyShortlists(ids)
         let laziness = ProcessInfo.processInfo.environment["AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS"] == "1"
-        // Laziness is measured over the whole catalogue, so open the Experimental group.
+        // Laziness is measured over the whole catalogue, so show all models and
+        // open the Experimental group. Otherwise Models opens with its compact set.
         if laziness { setenv("AIRDRAFT_RENDER_SHOW_EXPERIMENTAL", "1", 1) }
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let suite = "airdraft.models-performance.\(UUID().uuidString)"
@@ -27,7 +29,11 @@ enum ModelsPerformanceVerification {
         defer { defaults.removePersistentDomain(forName: suite); active = false }
         let settings = AppSettings(defaults: defaults)
         settings.llm.select(.none)
+        settings.showsAllLocalModels = laziness
         let container = AppContainer(settings: settings, dataDirectory: directory.appendingPathComponent("data"))
+        // The shortlist plus the app default and any models in the disposable model root.
+        let installed = ModelCatalogue.entries.filter { $0.isDownloadable && LocalModels.isInstalled($0.config(from: settings.asr)) }
+        let compactLimit = ModelCatalogue.shortlist.picks.count + 1 + installed.count
         var results: [[String: Any]] = []
         for height in [600.0, 1000.0] {
             for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -58,8 +64,12 @@ enum ModelsPerformanceVerification {
                 }
                 let result: [String: Any] = ["appearance": name, "height": height,
                     "layoutMs": timings, "materializedLocalRows": counts,
-                    "catalogueRows": ModelCatalogue.entries.count]
+                    "catalogueRows": ModelCatalogue.entries.count, "showsAllLocalModels": laziness]
                 results.append(result)
+                if !laziness {
+                    precondition(counts.allSatisfy { $0 > 0 && $0 <= compactLimit },
+                                 "Models must open with the compact recommended set: \(counts)")
+                }
                 if laziness {
                     precondition(counts.allSatisfy { $0 > 0 && $0 < ModelCatalogue.entries.count / 2 },
                                  "Models must not materialize the entire catalogue on navigation")
@@ -86,35 +96,67 @@ enum ModelsPerformanceVerification {
         try! JSONSerialization.data(withJSONObject: results, options: [.prettyPrinted, .sortedKeys])
             .write(to: directory.appendingPathComponent("models-performance.json"))
         verifyShortTables()
+        // The in-use checks start from the default, collapsed page.
+        unsetenv("AIRDRAFT_RENDER_SHOW_EXPERIMENTAL")
         verifyKeptExperimental(directory)
         print("MODELS_PERFORMANCE \(results)")
     }
 
-    /// AD-071: a collapsed Experimental group still lists the models in use.
+    /// AD-071: every language and memory case opens with a few verified
+    /// models from the catalogue, the recommendation first.
+    private static func verifyShortlists(_ ids: Set<String>) {
+        let entries = Dictionary(uniqueKeysWithValues: ModelCatalogue.entries.map { ($0.id, $0) })
+        for language in ["zh-Hant-TW", "zh-Hans", "en-US", "ja-JP", "ko-KR", "fr-FR", "de", "th", "ar", ""] {
+            for gigabytes in [4, 8, 16, 64] as [UInt64] {
+                let shortlist = LocalModelShortlist.make(languageCode: language, physicalMemory: gigabytes << 30)
+                precondition((1...3).contains(shortlist.picks.count) && shortlist.picks.first?.role == .recommended)
+                for id in shortlist.ids {
+                    precondition(entries[id]?.tier == .verified, "Shortlist \(language) \(gigabytes) GB names \(id), which is not a Verified model")
+                }
+            }
+        }
+        print("MODELS_SHORTLIST PASS")
+    }
+
+    private static func modelIDs(_ items: [LocalModelItem]) -> [String] {
+        items.compactMap { if case let .model(entry, _, _) = $0 { entry.id } else { nil } }
+    }
+
+    /// AD-071: the compact set and a collapsed Experimental group still list
+    /// the models in use.
     private static func verifyKeptExperimental(_ directory: URL) {
         let entries = ModelCatalogue.entries
-        let recommendation = ModelCatalogue.recommendation
+        let shortlist = ModelCatalogue.shortlist
         let selected = entries.first { $0.id == "sherpa:parakeet" }!
         let downloading = entries.first { $0.id == "cohere" }!
         precondition(selected.tier == .experimental && downloading.tier == .experimental)
         let experimental = entries.filter { $0.tier == .experimental }.map(\.id)
-        func modelIDs(_ items: [LocalModelItem]) -> [String] {
-            items.compactMap { if case let .model(entry, _, _) = $0 { entry.id } else { nil } }
-        }
         func kept(_ items: [LocalModelItem]) -> Int? {
             items.lazy.compactMap { if case let .experimental(_, kept, _, _) = $0 { kept } else { nil } }.first
         }
-        let hidden = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: [],
-                                               expanded: false, searching: false)
-        precondition(Set(modelIDs(hidden)).isDisjoint(with: experimental) && kept(hidden) == 0)
         let keep: Set = [selected.id, downloading.id]
-        let collapsed = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: keep,
-                                                  expanded: false, searching: false)
+        // Compact: the shortlist, then the models in use, each once; no Experimental group.
+        let compact = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: keep.union(shortlist.ids.prefix(1)),
+                                                showsAll: false, expanded: false, searching: false)
+        precondition(modelIDs(compact) == shortlist.ids + entries.map(\.id).filter(keep.contains) && kept(compact) == nil,
+                     "The compact set must list the shortlist and then the models in use once")
+        precondition(modelIDs(ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
+                                                        showsAll: false, expanded: false, searching: false)) == shortlist.ids)
+        // Searching always searches the whole catalogue.
+        let searching = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
+                                                  showsAll: false, expanded: false, searching: true)
+        precondition(modelIDs(searching).sorted() == entries.map(\.id).sorted(), "Search must include every model")
+        let hidden = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
+                                               showsAll: true, expanded: false, searching: false)
+        precondition(Set(modelIDs(hidden)).isDisjoint(with: experimental) && kept(hidden) == 0)
+        precondition(Array(modelIDs(hidden).prefix(shortlist.ids.count)) == shortlist.ids)
+        let collapsed = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: keep,
+                                                  showsAll: true, expanded: false, searching: false)
         let collapsedIDs = modelIDs(collapsed)
         precondition(Set(collapsedIDs).intersection(experimental) == keep && kept(collapsed) == 2
                      && collapsedIDs.count == Set(collapsedIDs).count, "In-use Experimental models must stay listed once")
-        let expanded = ModelCatalogue.localItems(entries, recommendation: recommendation, keepVisible: keep,
-                                                 expanded: true, searching: false)
+        let expanded = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: keep,
+                                                 showsAll: true, expanded: true, searching: false)
         precondition(modelIDs(expanded).sorted() == entries.map(\.id).sorted() && kept(expanded) == 0)
 
         // The production page keeps the app default and a running download visible.
@@ -128,10 +170,22 @@ enum ModelsPerformanceVerification {
         container.downloads.setPreviewProgress(.init(fraction: 0.4, currentFile: "model.safetensors"),
                                                for: downloading.config(from: settings.asr))
         container.navigation.page = .models
+        precondition(!settings.showsAllLocalModels, "Models must open with the compact set")
+        rows = []
+        active = true
         let host = NSHostingView(rootView: MainWindowView().environment(container))
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 784, height: 600),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 784, height: 1000),
                               styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
         window.contentView = host
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        host.layoutSubtreeIfNeeded()
+        active = false
+        precondition(rows.isSuperset(of: keep.union(shortlist.ids)) && rows.count < entries.count / 2,
+                     "Compact Models must list the shortlist plus the selected and downloading models: \(rows.sorted())")
+        // The full list is remembered and still keeps in-use Experimental models.
+        settings.showsAllLocalModels = true
+        precondition(AppSettings(defaults: defaults).showsAllLocalModels, "Show All Models must be remembered")
+        window.setContentSize(NSSize(width: 784, height: 600))
         RunLoop.main.run(until: Date().addingTimeInterval(0.3))
         host.layoutSubtreeIfNeeded()
         let table = nativeTables(host).first { $0.numberOfRows > 6 }!
@@ -169,6 +223,20 @@ enum ModelsPerformanceVerification {
             precondition(count == 92 ? abs(height - Theme.modelTableMaxHeight) < 1 : height < Theme.modelTableMaxHeight)
             window.contentView = nil
         }
+        // AD-071: the compact recommended set shows all of its rows without an inner scroll.
+        measuringViewport = true
+        viewportHeight = 0
+        let host = NSHostingView(rootView: ModelTable(cost: "Storage", rowCount: 5, capped: false) {
+            ForEach(0..<5, id: \.self) { index in Text("Model \(index)").frame(height: 100) }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 536, height: 900),
+                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.contentView = host
+        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        host.layoutSubtreeIfNeeded()
+        measuringViewport = false
+        precondition(abs(viewportHeight - 500) < 1, "The compact set must not scroll inside the table: \(viewportHeight)")
+        window.contentView = nil
     }
 
     private static func nativeTables(_ view: NSView) -> [NSTableView] {

@@ -155,10 +155,14 @@ These fixtures never open audio devices, play audio or request permissions.
 `--render-window models-performance <output>` measures production Home-to-Models
 layout at 784 × 600 and 784 × 1000 in both appearances, using disposable data.
 It records layout milliseconds and materialized local rows for five visits per
-case, checks empty/short/capped table heights and saves JSON/PNGs. It also
-requires a collapsed Experimental group to keep the selected and downloading
-Experimental models listed. Set
-`AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS=1` to require bounded initial row creation.
+case, checks empty/short/capped table heights and the uncapped compact set, and
+saves JSON/PNGs. Models opens with its compact recommended set (AD-071): the
+fixture requires only the shortlist and in-use rows on navigation, Verified
+shortlist models for every language and memory case, the selected and downloading
+Experimental models in both the compact set and a collapsed Experimental group,
+search over the whole catalogue and a remembered Show All Models choice. Set
+`AIRDRAFT_RENDER_VERIFY_MODEL_LAZINESS=1` to measure the full list and require
+bounded initial row creation.
 Verify table scrolling and provider/search filters in the live window as well. No models are loaded,
 cloud calls made or credentials read.
 `verify-native-ui-controls.py` separately exercises the production slider and

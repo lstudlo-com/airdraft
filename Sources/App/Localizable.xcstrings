@@ -446,6 +446,22 @@
         }
       }
     },
+    "%@, %@ and %lld more" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@ and %3$lld more"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@、%2$@及另外 %3$lld 種"
+          }
+        }
+      }
+    },
     "%@, %lld words, %lld percent" : {
       "localizations" : {
         "en" : {
@@ -566,16 +582,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有 %lld 個項目需要處理"
-          }
-        }
-      }
-    },
-    "%lld languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 種語言"
           }
         }
       }
@@ -768,16 +774,6 @@
         }
       }
     },
-    "100 languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "100 種語言"
-          }
-        }
-      }
-    },
     "25 European languages. Does not support Chinese." : {
       "localizations" : {
         "zh-Hant" : {
@@ -794,16 +790,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "25 種歐洲語言；不支援中文。"
-          }
-        }
-      }
-    },
-    "25 languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "25 種語言"
           }
         }
       }
@@ -1798,6 +1784,16 @@
         }
       }
     },
+    "Best Mandarin accuracy, 20+ dialects" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "華語準確度最佳，支援 20 多種方言"
+          }
+        }
+      }
+    },
     "Best Mandarin accuracy, 20+ dialects." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1814,6 +1810,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最適合"
+          }
+        }
+      }
+    },
+    "Best fit for this Mac's memory" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合這台 Mac 的記憶體"
+          }
+        }
+      }
+    },
+    "Best fit for your language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最適合你的語言"
           }
         }
       }
@@ -1854,6 +1870,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "簡短摘要⋯"
+          }
+        }
+      }
+    },
+    "Built for one language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "專為單一語言打造"
           }
         }
       }
@@ -2868,6 +2894,16 @@
         }
       }
     },
+    "Create Summary" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作摘要"
+          }
+        }
+      }
+    },
     "Create a summary with your refinement provider" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3329,16 +3365,6 @@
       }
     },
     "Detect Automatically" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動偵測"
-          }
-        }
-      }
-    },
-    "Detect automatically" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -4114,6 +4140,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可完整使用至 %@。不會自動扣款。"
+          }
+        }
+      }
+    },
+    "Full-size model, larger download" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整尺寸模型，下載檔較大"
           }
         }
       }
@@ -4927,6 +4963,16 @@
         }
       }
     },
+    "Languages set in macOS" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言由 macOS 管理"
+          }
+        }
+      }
+    },
     "Large" : {
       "comment" : "Text size",
       "localizations" : {
@@ -5101,6 +5147,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "淺色 App 圖像"
+          }
+        }
+      }
+    },
+    "List every local model, with provider filters and experimental models." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列出所有本機模型，包括供應商篩選與實驗性模型。"
+          }
+        }
+      }
+    },
+    "List only the recommended models and the models you use." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只列出推薦模型與你使用的模型。"
           }
         }
       }
@@ -5720,6 +5786,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法取得模型；請輸入模型 ID。"
+          }
+        }
+      }
+    },
+    "More languages, larger download" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援更多語言，下載檔較大"
           }
         }
       }
@@ -9266,6 +9342,16 @@
         }
       }
     },
+    "Show All Models (%lld)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示所有模型（%lld）"
+          }
+        }
+      }
+    },
     "Show Less" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9292,6 +9378,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示更多"
+          }
+        }
+      }
+    },
+    "Show Recommended Only" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只顯示推薦模型"
           }
         }
       }
@@ -9406,12 +9502,32 @@
         }
       }
     },
+    "Smaller and faster" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "較小、較快"
+          }
+        }
+      }
+    },
     "Smaller and faster; weaker with English terms in Chinese speech." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "較小、較快；中文夾雜英文詞時較弱。"
+          }
+        }
+      }
+    },
+    "Smaller download" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載檔較小"
           }
         }
       }
@@ -9482,6 +9598,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "講者 %@ 的名稱"
+          }
+        }
+      }
+    },
+    "Speaker labels are estimates. Assign each passage below to correct them." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "講者標籤僅為估計。請為下方各段落指定講者以修正。"
           }
         }
       }
@@ -9878,12 +10004,48 @@
         }
       }
     },
+    "Summarize…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作摘要⋯"
+          }
+        }
+      }
+    },
     "Summary" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "摘要"
+          }
+        }
+      }
+    },
+    "Supports %@ only." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅支援%@。"
+          }
+        }
+      }
+    },
+    "Supports %lld languages: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Supports %1$lld languages: %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援 %lld 種語言：%@"
           }
         }
       }
@@ -10919,6 +11081,16 @@
         }
       }
     },
+    "Uses the Apple Speech locale chosen in Speech options." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用「語音選項」中選擇的 Apple 語音地區。"
+          }
+        }
+      }
+    },
     "Uses this fixed language for recognition." : {
       "localizations" : {
         "zh-Hant" : {
@@ -11231,6 +11403,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "麥克風的實體輸入"
+          }
+        }
+      }
+    },
+    "Your models" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的模型"
           }
         }
       }

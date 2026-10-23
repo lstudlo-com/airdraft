@@ -92,18 +92,33 @@ Turbo. Qwen3-ASR 0.6B is never the lighter default because it can loop until its
 token cap and spike memory. Onboarding's Speech step and the Models table use the
 same rule.
 
-The local table opens with "Recommended for your language", then Verified and
-built-in models, then a collapsed "Experimental models (N)" disclosure (AD-071).
-Searching includes Experimental rows without a click. While collapsed, the group
-still lists the Experimental models the user relies on: the app default, the active
-profile's speech model, installed models and running downloads, so a selected or
-downloaded model never disappears behind the disclosure. Rows show the tier as a
-symbol and word before their tags; Qwen3-ASR 1.7B also shows "Best for mixed
-Chinese and English". `ModelCatalogue.verificationEvidence` lists the Verified
+By default the local table shows a compact set (AD-071): "Recommended for your
+language" lists `LocalModelShortlist` for the system language and memory (the
+`LocalSpeechRecommendation` model first, then at most two curated Verified
+alternatives that differ by size, speed or language reach), followed by "Your
+models": the app default, the active profile's speech model, installed models and
+running downloads the set does not already show. "Show All Models (N)" below the
+table reveals the full list with the provider filter and is remembered in
+`AppSettings.showsAllLocalModels` (key `models.showsAllLocalModels`, outside the
+`settings.` keys). The compact set shows all of its rows without an inner scroll
+unless it exceeds six rows. Searching always searches the whole catalogue,
+including language names.
+The full list opens with the same "Recommended for your language" rows, then
+Verified and built-in models, then a collapsed "Experimental models (N)"
+disclosure. Searching includes Experimental rows without a click. While collapsed,
+the group still lists the Experimental models the user relies on, so a selected
+or downloaded model never disappears behind the disclosure. Each row shows one
+strength label (the recommendation reason or the alternative's role, such as
+"Smaller and faster"; Qwen3-ASR 1.7B elsewhere shows "Best for mixed Chinese and
+English"), then the tier as a symbol and word, the languages by full name (the
+user's language and English first, up to two names and a count) and runtime
+tags. The tooltip lists every supported language. `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and
 used for transcription in the 2026-10-12 local coverage verification, plus
 SenseVoice, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
 `eval/mixed-asr/`. Promote a model only with the same kind of evidence. The
-`models-performance` fixture rejects IDs that are not in the catalogue. Renders accept
-`AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB` and
-`AIRDRAFT_RENDER_SHOW_EXPERIMENTAL=1`.
+`models-performance` fixture rejects IDs that are not in the catalogue and
+shortlist models that are not Verified. Renders accept
+`AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB`,
+`AIRDRAFT_RENDER_SHOW_ALL_MODELS=1` and `AIRDRAFT_RENDER_SHOW_EXPERIMENTAL=1`
+(which also shows all models).

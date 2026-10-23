@@ -9,7 +9,7 @@ struct ModelsPage: View {
     @State private var cloudProvider: ASRProviderKind?
     /// Experimental models stay one click away; searching always includes them.
     @State private var showsExperimental = false
-    @State private var installedExperimentalIDs: Set<String> = []
+    @State private var installedIDs: Set<String> = []
     @State private var initialized = false
     @State private var openRouterModels: [SpeechModelInfo] = []
     @State private var openRouterLoading = false
@@ -28,31 +28,35 @@ struct ModelsPage: View {
         }
     }
 
+    /// The provider filter belongs to the full list; the compact set ignores it.
     private var localModels: [ModelEntry] {
-        ModelCatalogue.entries.filter {
-            (localProvider == nil || $0.provider == localProvider) &&
-                matches([$0.title, $0.provider, $0.vendor, $0.note] + $0.tags)
+        let provider = container.settings.showsAllLocalModels ? localProvider : nil
+        return ModelCatalogue.entries.filter {
+            (provider == nil || $0.provider == provider) &&
+                matches([$0.title, $0.provider, $0.vendor, $0.note] + $0.tags + ($0.languages?.names ?? []))
         }
     }
 
     private var isSearching: Bool { !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
-    /// Recommended, then Verified (with built-in) rows, then the Experimental
-    /// disclosure and, when open or searching, its rows. Each item is one list cell.
+    /// AD-071: the compact recommended set plus the user's models, or, when
+    /// showing all models or searching, Recommended, then Verified (with
+    /// built-in) rows, then the Experimental disclosure and, when open or
+    /// searching, its rows. Each item is one list cell.
     private var localItems: [LocalModelItem] {
-        ModelCatalogue.localItems(localModels, recommendation: ModelCatalogue.recommendation,
-                                  keepVisible: keptVisibleExperimentalIDs,
-                                  expanded: showsExperimental || isSearching, searching: isSearching)
+        ModelCatalogue.localItems(localModels, shortlist: ModelCatalogue.shortlist, inUse: inUseIDs,
+                                  showsAll: container.settings.showsAllLocalModels,
+                                  expanded: showsExperimental, searching: isSearching)
     }
 
-    /// Experimental entries the user relies on stay listed while the group is
-    /// collapsed: the app default, the active profile's model, running downloads
-    /// and installed files (checked on a worker).
-    private var keptVisibleExperimentalIDs: Set<String> {
+    /// Entries the user relies on stay listed in the compact set and in a
+    /// collapsed Experimental group: the app default, the active profile's
+    /// model, running downloads and installed files (checked on a worker).
+    private var inUseIDs: Set<String> {
         let asr = container.settings.asr
         let speech = container.speechConfig
-        var ids = installedExperimentalIDs
-        for entry in ModelCatalogue.entries where entry.tier == .experimental {
+        var ids = installedIDs
+        for entry in ModelCatalogue.entries {
             if entry.isSelected(asr) || entry.isSelected(speech)
                 || container.downloads.jobs[entry.config(from: asr).engineID] != nil {
                 ids.insert(entry.id)
@@ -61,14 +65,33 @@ struct ModelsPage: View {
         return ids
     }
 
-    private func refreshInstalledExperimental() async {
+    /// Built-in Apple Speech is always available, so it only counts when in use.
+    private func refreshInstalled() async {
         let asr = container.settings.asr
-        let candidates = ModelCatalogue.entries.filter { $0.tier == .experimental }.map { ($0.id, $0.config(from: asr)) }
+        let candidates = ModelCatalogue.entries.filter(\.isDownloadable).map { ($0.id, $0.config(from: asr)) }
         let installed = await Task.detached(priority: .utility) {
             Set(candidates.filter { LocalModels.isInstalled($0.1) }.map(\.0))
         }.value
         guard !Task.isCancelled else { return }
-        installedExperimentalIDs = installed
+        installedIDs = installed
+    }
+
+    /// Shows or hides the full local catalogue; the choice is remembered.
+    private var showAllModelsButton: some View {
+        let showsAll = container.settings.showsAllLocalModels
+        return Button {
+            container.settings.showsAllLocalModels.toggle()
+        } label: {
+            if showsAll {
+                Text("Show Recommended Only")
+            } else {
+                Text("Show All Models (\(ModelCatalogue.entries.count))")
+            }
+        }
+        .buttonStyle(SoftButtonStyle())
+        .help(showsAll ? String(localized: "List only the recommended models and the models you use.")
+              : String(localized: "List every local model, with provider filters and experimental models."))
+        .accessibilityIdentifier("models.show-all")
     }
 
     private var localProviders: [String] {
@@ -129,13 +152,16 @@ struct ModelsPage: View {
             }
             if filter != .cloud {
                 PageSection("Speech on this Mac", trailing: {
-                    SoftPicker("Local speech provider", selection: $localProvider, width: 160) {
-                        Text("All").tag(String?.none)
-                        ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
+                    if settings.showsAllLocalModels {
+                        SoftPicker("Local speech provider", selection: $localProvider, width: 160) {
+                            Text("All").tag(String?.none)
+                            ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
+                        }
                     }
                 }) {
                     let items = localItems
-                    ModelTable(cost: String(localized: "Storage"), rowCount: items.count) {
+                    ModelTable(cost: String(localized: "Storage"), rowCount: items.count,
+                               capped: settings.showsAllLocalModels || isSearching) {
                         if items.isEmpty {
                             EmptyNote("No local models match your search.")
                                 .padding(Theme.cardPadding)
@@ -144,9 +170,9 @@ struct ModelsPage: View {
                             VStack(spacing: 0) {
                                 if index > 0 { RowDivider() }
                                 switch item {
-                                case let .model(entry, header, bestFit):
+                                case let .model(entry, header, role):
                                     if let header { LocalModelGroupHeader(header: header) }
-                                    ModelRow(entry: entry, bestFit: bestFit)
+                                    ModelRow(entry: entry, role: role)
                                 case let .experimental(count, kept, expanded, searching):
                                     ExperimentalModelsDisclosure(count: count, kept: kept, expanded: expanded, searching: searching) {
                                         showsExperimental.toggle()
@@ -159,11 +185,16 @@ struct ModelsPage: View {
                             .listRowBackground(Color.clear)
                         }
                     }
-                    .id("\(localProvider ?? "all")|\(query)")
-                    EmptyNote("Relative ratings; results vary by Mac, language and audio.")
+                    .id("\(settings.showsAllLocalModels)|\(localProvider ?? "all")|\(query)")
+                    HStack(alignment: .center, spacing: Theme.controlSpacing) {
+                        EmptyNote("Relative ratings; results vary by Mac, language and audio.")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                        if !isSearching { showAllModelsButton }
+                    }
                 }
                 // Finished or cancelled downloads change which files are installed.
-                .task(id: container.downloads.jobs.keys.sorted()) { await refreshInstalledExperimental() }
+                .task(id: container.downloads.jobs.keys.sorted()) { await refreshInstalled() }
             }
 
             if filter != .local, !RenderMode.excludesCredentials {
@@ -225,6 +256,10 @@ struct ModelsPage: View {
                 }
                 localProvider = RenderMode.value("LOCAL_PROVIDER")
                 showsExperimental = RenderMode.value("SHOW_EXPERIMENTAL") == "1"
+                // Renders of the full table: SHOW_ALL_MODELS=1, or the Experimental group.
+                if RenderMode.isActive, let value = RenderMode.value("SHOW_ALL_MODELS") ?? (showsExperimental ? "1" : nil) {
+                    settings.showsAllLocalModels = value == "1"
+                }
                 cloudProvider = RenderMode.value("CLOUD_PROVIDER").flatMap(ASRProviderKind.init(rawValue:))
                 query = RenderMode.value("MODEL_QUERY") ?? ""
                 initialized = true
@@ -476,7 +511,7 @@ enum SpeechLanguage {
 
     static func choices(including current: String) -> [Choice] {
         let codes = ["en", "zh", "ja", "ko", "es", "fr", "de", "it", "pt", "ru", "vi", "th", "id"]
-        var list = [Choice(code: "", name: String(localized: "Detect automatically"))] + codes.map { Choice(code: $0, name: name($0)) }
+        var list = [Choice(code: "", name: String(localized: "Detect Automatically"))] + codes.map { Choice(code: $0, name: name($0)) }
         if !current.isEmpty, !codes.contains(current) { list.append(Choice(code: current, name: String(localized: "\(name(current)) (custom)"))) }
         return list
     }
