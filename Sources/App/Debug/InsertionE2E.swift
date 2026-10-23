@@ -25,7 +25,27 @@ import AirdraftCore
          "binarySHA256": try binaryHashes()]
     }
 
-    static func run(bundleID: String?, token: String?, method: String?, field: String? = nil) async throws -> [String: Any] {
+    private static func placeCaretAfterMarker(_ marker: String, owner expected: pid_t) async throws {
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.3)
+        var ref: CFTypeRef?
+        var owner: pid_t = 0
+        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+              let ref, CFGetTypeID(ref) == AXUIElementGetTypeID(),
+              AXUIElementGetPid(ref as! AXUIElement, &owner) == .success, owner == expected,
+              fieldText(ref as! AXUIElement, mode: .exact) == marker else {
+            throw Failure("The field must contain only the exact disposable fixture marker.")
+        }
+        var range = CFRange(location: marker.utf16.count, length: 0)
+        guard let value = AXValueCreate(.cfRange, &range),
+              AXUIElementSetAttributeValue(ref as! AXUIElement, kAXSelectedTextRangeAttribute as CFString, value) == .success else {
+            throw Failure("Place the fixture caret immediately after its marker.")
+        }
+        try await Task.sleep(for: .milliseconds(200))
+    }
+
+    static func run(bundleID: String?, token: String?, method: String?, field: String? = nil,
+                    placeCaret: Bool = false) async throws -> [String: Any] {
         guard let bundleID, !bundleID.isEmpty, let token, let id = UUID(uuidString: token),
               let method, let insertionMethod = InsertionMethod(rawValue: method) else {
             throw Failure("Provide --e2e-target-bundle, --e2e-insertion-token UUID and --e2e-insertion-method auto|paste.")
@@ -42,6 +62,10 @@ import AirdraftCore
         let hashes = try binaryHashes()
         let marker = "Airdraft insertion fixture \(id.uuidString)"
         let text = " Delivery \(id.uuidString) succeeded."
+        // Stands in for the user's click after a document opens with its caret
+        // at the start: a selection change on the disposable field only, before
+        // the production capture, never a text write.
+        if placeCaret, mode == .exact { try await placeCaretAfterMarker(marker, owner: app.processIdentifier) }
         let inserter = TextInserter()
         guard let target = await inserter.captureTarget() else { throw Failure("Could not capture the fixture target.") }
         // Text before the marker that must stay unchanged (suffix mode only).
@@ -112,8 +136,9 @@ import AirdraftCore
         // Return the displaced clipboard before the fixture process exits; an
         // unverified paste keeps its receiver window first.
         await inserter.finishClipboardRestoration()
+        // A self-drawing editor that publishes a caret may confirm its paste.
         let passed = mode == .none
-            ? result.delivery == .sentUnverified && result.method == .paste
+            ? (result.delivery == .sentUnverified || result.delivery == .delivered) && result.method == .paste
             : result.didInsert && actualTextMatches
         return ["action": "insert", "status": passed && result.notice == nil && delivered == 1 ? "passed" : "failed",
                 "targetBundle": bundleID, "requestedMethod": method,

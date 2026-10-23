@@ -26,7 +26,7 @@ The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
 Before accepting a successful Xcode exit, it checks the actual xcresult with
-`verify-insertion-regressions.py`. All 70 mandatory insertion cases must be present
+`verify-insertion-regressions.py`. All 71 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline
 fixtures. Ignored/partial/unobservable pastes into a field with a caret must
 retain recovery text without reporting delivery; delayed reads, cancellation,

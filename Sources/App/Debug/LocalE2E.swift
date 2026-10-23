@@ -109,7 +109,8 @@ enum LocalE2E {
                 case "insert":
                     report = try await InsertionE2E.run(bundleID: argument("--e2e-target-bundle"),
                         token: argument("--e2e-insertion-token"), method: argument("--e2e-insertion-method"),
-                        field: argument("--e2e-insertion-field"))
+                        field: argument("--e2e-insertion-field"),
+                        placeCaret: CommandLine.arguments.contains("--e2e-insertion-place-caret"))
                 case "inventory":
                     report["models"] = ModelCatalogue.entries.map { entry in
                         let config = entry.config(from: app.settings.asr)

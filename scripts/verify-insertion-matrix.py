@@ -59,6 +59,9 @@ class Target:
     preparation: str
     # Open the receiver script with `open -a` (only where the app runs it).
     opens_receiver: bool = False
+    # `open` options that start a new window running the receiver command
+    # (appended last), for terminals that take a command at launch.
+    receiver_launch: tuple = ()
     instructions: str = ""
 
 
@@ -82,8 +85,8 @@ TARGETS = (
            instructions="Open a new Warp window and run the receiver command below, then click into it."),
     Target("Zed", ("dev.zed.Zed", "dev.zed.Zed-Preview", "dev.zed.Zed-Nightly"), "document",
            instructions="Click at the very end of the marker line in the opened file. Close it without saving."),
-    Target("Ghostty", ("com.mitchellh.ghostty",), "receiver",
-           instructions="Open a new Ghostty window and run the receiver command below, then click into it."),
+    Target("Ghostty", ("com.mitchellh.ghostty",), "receiver", receiver_launch=("-n", "--args", "-e"),
+           instructions="Click into the new Ghostty window that shows the marker."),
     Target("Terminal", ("com.apple.Terminal",), "receiver", opens_receiver=True,
            instructions="Click into the new Terminal window that shows the marker."),
     Target("iTerm2", ("com.googlecode.iterm2",), "receiver",
@@ -180,7 +183,10 @@ def evaluate(case, report, hashes, evidence=None):
         if not (report.get("status") == "passed" and report.get("delivery") == "delivered"
                 and report.get("actualTextMatches") is True):
             return "failed", f"delivery {report.get('delivery')!r} without the expected field text"
-    elif not (report.get("status") == "passed" and report.get("delivery") == "sentUnverified"):
+    # A self-drawing terminal that publishes a caret (Ghostty 1.3) may confirm
+    # its paste; the receiver's evidence below still proves exactly one paste.
+    elif not (report.get("status") == "passed" and report.get("delivery") in
+              (("sentUnverified", "delivered") if case["preparation"] == "receiver" else ("sentUnverified",))):
         return "failed", f"expected the documented sent-unverified paste, saw {report.get('delivery')!r}"
     if case["preparation"] == "receiver":
         if evidence is None:
@@ -243,7 +249,13 @@ def frontmost_bundle():
                               capture_output=True, text=True, timeout=5).stdout
     except (OSError, subprocess.TimeoutExpired):
         return None
-    match = re.search(r'"CFBundleIdentifier"="([^"]+)"', info)
+    return parse_lsappinfo_bundle(info)
+
+
+def parse_lsappinfo_bundle(info):
+    """Bundle ID from `lsappinfo info -only bundleid`: older systems print
+    `"CFBundleIdentifier"="…"`, macOS 27 prints `bundleID="…"`."""
+    match = re.search(r'"CFBundleIdentifier"="([^"]+)"', info) or re.search(r'\bbundleID="([^"]+)"', info)
     return match.group(1) if match else None
 
 
@@ -295,6 +307,9 @@ def prepare_field(case, target, app_path, fixture):
         command.chmod(0o700)
         if target.opens_receiver:
             subprocess.run(["open", "-a", str(app_path), str(command)], check=True)
+        elif target.receiver_launch:
+            options, launch = target.receiver_launch[:-2], target.receiver_launch[-2:]
+            subprocess.run(["open", *options, "-a", str(app_path), *launch, str(command)], check=True)
         else:
             steps.append(f"Receiver command: '{command}'")
     else:
@@ -321,6 +336,10 @@ def run_case(case, target, app_path, debug_app, hashes, args, log=print):
     arguments = ["--e2e-action", "insert", "--e2e-target-bundle", case["bundleID"],
                  "--e2e-insertion-token", case["token"], "--e2e-insertion-method", case["method"],
                  "--e2e-insertion-field", case["fieldMode"]]
+    if case["preparation"] == "document" and case["fieldMode"] == "exact":
+        # Opened documents put the caret before the marker; the fixture moves it
+        # to the end (a selection change on the disposable field, before capture).
+        arguments.append("--e2e-insertion-place-caret")
     report = run_action(debug_app, Path(case["data"]), arguments, args.launch, args.timeout)
     evidence = None
     if receiver:

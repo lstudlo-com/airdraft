@@ -97,6 +97,12 @@ class InsertionMatrixTests(unittest.TestCase):
         self.assertNotIn('com.apple.Terminal', source)
         self.assertEqual(matrix.self_drawing_prefixes({'selfDrawingEditorBundlePrefixes': ['x.y']}), ['x.y'])
 
+    def testReadsFrontmostBundleFromBothLsappinfoFormats(self):
+        self.assertEqual(matrix.parse_lsappinfo_bundle('"CFBundleIdentifier"="com.apple.TextEdit"'), 'com.apple.TextEdit')
+        modern = '[ NULL ]  ASN:0x0-0x6c06c: (in front) \n    bundleID="com.google.Chrome"\n    bundle path=[ NULL ] \n'
+        self.assertEqual(matrix.parse_lsappinfo_bundle(modern), 'com.google.Chrome')
+        self.assertIsNone(matrix.parse_lsappinfo_bundle('[ NULL ]'))
+
     def testPlansFreshCasesWithGateReportsOnlyForTextEditAndChrome(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -140,6 +146,11 @@ class InsertionMatrixTests(unittest.TestCase):
                                      'failed')
             # A self-drawing editor that reports confirmed delivery contradicts its documented outcome.
             self.assertEqual(matrix.evaluate(zed, self.report(zed, hashes, delivery='delivered'), hashes)[0], 'failed')
+            # Ghostty 1.3 publishes a caret and may confirm; its receiver still proves one paste.
+            self.assertEqual(matrix.evaluate(ghostty, self.report(ghostty, hashes, delivery='delivered'), hashes, one)[0],
+                             'passed')
+            self.assertEqual(matrix.evaluate(ghostty, self.report(ghostty, hashes, delivery='delivered'), hashes, twice)[0],
+                             'failed')
             self.assertEqual(matrix.evaluate(textedit, None, hashes)[0], 'failed')
             refused = {'action': 'insert', 'status': 'failed', 'error': 'The requested fixture app is not frontmost.'}
             self.assertEqual(matrix.evaluate(textedit, refused, hashes)[0], 'unverified')

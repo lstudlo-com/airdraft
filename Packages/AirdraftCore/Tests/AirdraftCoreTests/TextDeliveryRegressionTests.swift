@@ -585,6 +585,32 @@ final class TextDeliveryRegressionTests: XCTestCase {
         }
     }
 
+    /// Ghostty 1.3 publishes a field and caret but draws the pasted text itself:
+    /// the caret is still validated, an echoed paste is confirmed, and one the
+    /// field never shows is sent unverified instead of failing (AD-002 matrix).
+    func testSelfDrawingEditorWithCaretIsSentUnverifiedWhenReadBackFails() async throws {
+        for echoes in [false, true] {
+            let editor = Editor()
+            defer { editor.close() }
+            editor.bundleID = "com.mitchellh.ghostty"
+            if !echoes { editor.dropPaste = true }
+            let inserter = editor.inserter()
+            inserter.confirmationTimeout = .milliseconds(200)
+            inserter.unverifiedRestoreDelay = 0.05
+            let captured = await inserter.captureTarget()
+            let target = try XCTUnwrap(captured)
+            XCTAssertNotNil(target.selection, "the caret is captured and validated")
+            var delivered = 0
+            let result = await inserter.insert(Editor.dictation, target: target) { delivered += 1 }
+            XCTAssertEqual(editor.posts, 1, "never retry the paste")
+            XCTAssertNil(result.notice)
+            XCTAssertEqual(delivered, 1)
+            XCTAssertEqual(result.delivery, echoes ? .delivered : .sentUnverified)
+            await inserter.finishClipboardRestoration()
+            XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.previousClipboard)
+        }
+    }
+
     /// Quit restores a confirmed paste's clipboard at once, but waits out the
     /// remaining unverified delay so a busy caretless receiver can still read it.
     func testQuitWaitsOutUnverifiedPasteBeforeRestoringClipboard() async throws {

@@ -256,6 +256,7 @@ public final class TextInserter {
         return await insertViaPaste(text, pasteboard: environment.pasteboard,
                                     postPaste: environment.postPaste, confirmation: confirmation,
                                     unverifiable: target.isCaretless && Self.drawsOwnText(bundleID: target.bundleID),
+                                    unconfirmedIsUnverified: !target.isCaretless && Self.drawsOwnText(bundleID: target.bundleID),
                                     onDelivered: onDelivered)
     }
 
@@ -516,10 +517,14 @@ public final class TextInserter {
     /// `unverifiable` marks a validated editor that draws its own text and
     /// exposes no caret (`drawsOwnText`): once its one paste is posted, nothing
     /// could confirm it, so it is sent unverified rather than reported as failed.
-    /// Any other target without confirmation keeps the text on the clipboard.
+    /// `unconfirmedIsUnverified` marks such an editor that does publish a caret
+    /// (Ghostty 1.3): its field and caret are validated and read back, but text
+    /// it draws itself may never appear there, so a missing confirmation is sent
+    /// unverified as well. Any other target without confirmation keeps the text
+    /// on the clipboard.
     func insertViaPaste(_ text: String, pasteboard: NSPasteboard = .general,
                         postPaste: (() -> Bool)? = nil, confirmation: (() -> Bool)? = nil,
-                        unverifiable: Bool = false,
+                        unverifiable: Bool = false, unconfirmedIsUnverified: Bool = false,
                         onDelivered: (() -> Void)? = nil) async -> InsertionResult {
         // A previous unverified paste's receiver may read the clipboard late;
         // replacing it now could paste this newer text there instead.
@@ -559,6 +564,7 @@ public final class TextInserter {
         // of the cancelled dictation; it never posts another key. Restoration
         // is scheduled separately so delivery returns as soon as it is confirmed.
         let delay = restoreDelay
+        let unverifiedDelay = unverifiedRestoreDelay
         let timeout = confirmationTimeout
         let started = ContinuousClock.now
         if unverifiable {
@@ -576,6 +582,14 @@ public final class TextInserter {
             let confirmed: Bool
             if let confirmation { confirmed = await Self.waitForMatch(timeout: timeout, matches: confirmation) }
             else { confirmed = false }
+            if !confirmed, unconfirmedIsUnverified {
+                Self.log.notice("insert: self-drawing editor did not echo the paste; unverifiable")
+                onDelivered?()
+                self.scheduleRestoration(of: pasteboard, items: saved, ownedChange: ourChange,
+                                         at: started.advanced(by: .seconds(max(0, unverifiedDelay))),
+                                         waitsForReceiver: true)
+                return InsertionResult(method: .paste, notice: nil, isVerified: false)
+            }
             guard confirmed else {
                 let kept = pasteboard.changeCount == ourChange
                 Self.log.notice("insert: paste unconfirmed; recovery clipboard retained=\(kept, privacy: .public)")

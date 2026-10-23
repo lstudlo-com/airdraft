@@ -33,6 +33,8 @@ REQUIRED_TESTS = (
     'TextDeliveryRegressionTests/testEditorNormalizedPasteStillConfirmsDelivery()',
     # Only allowlisted self-drawing editors are sent unverified (AD-064 review).
     'TextDeliveryRegressionTests/testOnlySelfDrawingEditorsAreSentUnverified()',
+    # A self-drawing editor that publishes a caret (Ghostty 1.3) is still sent unverified (AD-002 matrix).
+    'TextDeliveryRegressionTests/testSelfDrawingEditorWithCaretIsSentUnverifiedWhenReadBackFails()',
     'TextDeliveryRegressionTests/testCaretlessNonEditorThroughPipelineKeepsRecoveryNoticeAndUndeliveredHistory()',
     'TextDeliveryRegressionTests/testCaretlessPasteAfterRefinementFailureSaysRawTextPasted()',
     'TextDeliveryRegressionTests/testQuitWaitsOutUnverifiedPasteBeforeRestoringClipboard()',
