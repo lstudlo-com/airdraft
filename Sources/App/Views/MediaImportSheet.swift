@@ -54,7 +54,7 @@ struct MediaImportSheet: View {
                     RowDivider()
                     SettingRow(title: "Model") {
                         SoftPicker("Transcription model", selection: Binding(get: { configuration.selectedModelID }, set: { configuration.selectModelChoice($0) }), width: 220) {
-                            ForEach(MediaConfiguration.modelChoices) { model in Text(model.title).tag(model.id) }
+                            ForEach(MediaConfiguration.modelChoices(keeping: configuration.selectedModelID)) { model in Text(model.title).tag(model.id) }
                         }.accessibilityIdentifier("media.model")
                     }
                 }

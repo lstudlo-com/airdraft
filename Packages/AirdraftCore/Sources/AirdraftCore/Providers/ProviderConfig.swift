@@ -4,7 +4,11 @@ public enum ASRProviderKind: String, Codable, CaseIterable, Sendable, Identifiab
     case qwen3
     case fireRed
     case cohere
+    /// SenseVoice Cantonese: the 2025-09-09 WSYue fine-tune. Its raw value and
+    /// engine ID predate the multilingual artifact and stay unchanged.
     case senseVoice
+    /// SenseVoice: the original multilingual SenseVoiceSmall (2024-07-17).
+    case senseVoiceMultilingual
     case parakeet
     case whisperKit
     case fluidAudio
@@ -378,6 +382,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .cohere: return "cohere-transcribe:\(cohereModel)"
         case .fireRed: return "sherpa-onnx:fireRed"
         case .senseVoice: return "sherpa-onnx:senseVoice"
+        case .senseVoiceMultilingual: return "sherpa-onnx:senseVoiceMultilingual"
         case .parakeet: return "sherpa-onnx:parakeet"
         case .apple: return "apple-speech:\(effectiveAppleLocale)"
         case .elevenLabs: return "elevenlabs:\(speechModelID)"
@@ -436,7 +441,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .qwen3: return "Qwen3-ASR · \((qwen3Model as NSString).lastPathComponent)"
         case .fireRed: return "FireRedASR2-AED"
         case .cohere: return "Cohere Transcribe · \((cohereModel as NSString).lastPathComponent)"
-        case .senseVoice: return "SenseVoice-small"
+        case .senseVoice: return "SenseVoice-small-yue (WSYue, 2025-09-09)"
+        case .senseVoiceMultilingual: return "SenseVoice-small (2024-07-17)"
         case .parakeet: return "Parakeet TDT v3"
         case .apple: return "Apple Speech · \(appleLocale)"
         case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
@@ -464,7 +470,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         case .cohere:
             return cohereModel == "aufklarer/Cohere-Transcribe-2B-MLX-5bit"
                 ? "Cohere Transcribe" : (cohereModel as NSString).lastPathComponent
-        case .senseVoice: return "SenseVoice"
+        case .senseVoice: return "SenseVoice Cantonese"
+        case .senseVoiceMultilingual: return "SenseVoice"
         case .parakeet: return "Parakeet TDT v3"
         case .apple: return "Apple Speech"
         case .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
@@ -479,7 +486,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
     public var modelSource: String? {
         switch kind {
         case .qwen3, .cohere: return "MLX"
-        case .fireRed, .senseVoice, .parakeet, .orukeet: return "ONNX"
+        case .fireRed, .senseVoice, .senseVoiceMultilingual, .parakeet, .orukeet: return "ONNX"
         case .whisperKit, .fluidAudio: return "Core ML"
         case .transcribeCpp: return GGUFModelCatalog.model(model).map { "GGUF \($0.quantization)" } ?? "GGUF"
         case .apple: return nil

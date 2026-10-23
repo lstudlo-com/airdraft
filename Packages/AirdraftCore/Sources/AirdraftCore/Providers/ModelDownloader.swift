@@ -118,6 +118,7 @@ public actor ModelDownloader {
         case .cohere: try await downloadCohere(modelId: config.cohereModel, progress: progress)
         case .fireRed: try await downloadSherpa(model: .fireRed, progress: progress)
         case .senseVoice: try await downloadSherpa(model: .senseVoice, progress: progress)
+        case .senseVoiceMultilingual: try await downloadSherpa(model: .senseVoiceMultilingual, progress: progress)
         case .parakeet: try await downloadSherpa(model: .parakeet, progress: progress)
         case .apple:
             progress(Progress(fraction: nil, currentFile: String(localized: "Installing language…", bundle: .module)))
@@ -177,6 +178,9 @@ public actor ModelDownloader {
     /// Verify before touching the installation root, including an existing model.
     static func installSherpaArchive(_ downloaded: URL, model: SherpaTranscriber.Model,
                                     root: URL, progress: ProgressHandler) async throws {
+        // Pinned by URL, exact bytes and SHA-256: a different size fails before hashing.
+        let size = (try? downloaded.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init)
+        guard size == model.archiveBytes else { throw DownloadError.checksumMismatch }
         if let checksum = model.archiveSHA256 {
             progress(Progress(fraction: nil, currentFile: String(localized: "Verifying archive…", bundle: .module)))
             try verifySHA256(of: downloaded, expected: checksum)

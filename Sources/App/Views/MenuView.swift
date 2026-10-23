@@ -215,7 +215,7 @@ struct MenuView: View {
         case .qwen3: return "Qwen3-ASR"
         case .fireRed: return "FireRedASR2"
         case .cohere: return "Cohere"
-        case .senseVoice: return "SenseVoice"
+        case .senseVoice, .senseVoiceMultilingual: return "SenseVoice"
         case .parakeet: return "Parakeet"
         case .orukeet: return "Orukeet"
         case .fluidAudio: return CoreMLSpeechModelCatalog.model(container.speechConfig.model)?.creator ?? String(localized: "Core ML speech")

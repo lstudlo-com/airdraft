@@ -14,7 +14,7 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
         case .qwen3: model = config.qwen3Model
         case .cohere: model = config.cohereModel
         case .whisperKit: model = config.whisperModel
-        case .apple, .parakeet, .fireRed, .senseVoice, .orukeet: model = ""
+        case .apple, .parakeet, .fireRed, .senseVoice, .senseVoiceMultilingual, .orukeet: model = ""
         default: model = config.model
         }
         baseURL = kind == .openAICompatible ? config.baseURL : nil
@@ -28,7 +28,7 @@ public struct ProfileSpeechModel: Codable, Sendable, Equatable, Hashable {
         case .qwen3: config.qwen3Model = model
         case .cohere: config.cohereModel = model
         case .whisperKit: config.whisperModel = model
-        case .apple, .parakeet, .fireRed, .senseVoice, .orukeet: break
+        case .apple, .parakeet, .fireRed, .senseVoice, .senseVoiceMultilingual, .orukeet: break
         default:
             config.model = model
             if kind == .elevenLabs { config.elevenLabsModel = model }

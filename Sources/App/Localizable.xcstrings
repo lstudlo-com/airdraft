@@ -3470,6 +3470,22 @@
         }
       }
     },
+    "Cantonese fine-tune of SenseVoice. Weak with English; no Japanese or Korean." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SenseVoice 的粤语微调版本。英语较弱；不支持日语和韩语。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SenseVoice 的粵語微調版本。英文較弱；不支援日文與韓文。"
+          }
+        }
+      }
+    },
     "Catalog unavailable; showing saved choices. Try Refresh." : {
       "localizations" : {
         "zh-Hans" : {
@@ -15798,18 +15814,18 @@
         }
       }
     },
-    "Small and fast for Chinese; weaker with English and other languages." : {
+    "Small and fast. Weaker with English terms in Chinese speech." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "识别中文小巧快速；英语和其他语言较弱。"
+            "value" : "小巧快速。中文夹杂英文词时较弱。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "中文辨識小巧快速；英文和其他語言較弱。"
+            "value" : "小巧快速。中文夾雜英文詞時較弱。"
           }
         }
       }

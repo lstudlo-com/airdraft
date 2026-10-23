@@ -23,6 +23,7 @@ public enum LocalModels {
         case .cohere: return hasCohere(config.cohereModel)
         case .fireRed: return hasSherpa(.fireRed)
         case .senseVoice: return hasSherpa(.senseVoice)
+        case .senseVoiceMultilingual: return hasSherpa(.senseVoiceMultilingual)
         case .parakeet: return hasSherpa(.parakeet)
         case .apple: return AppleSpeechTranscriber.isAvailable
         case .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
@@ -41,6 +42,7 @@ public enum LocalModels {
         case .cohere: return cohereFolder(for: config.cohereModel)
         case .fireRed: return sherpaFolder(for: .fireRed)
         case .senseVoice: return sherpaFolder(for: .senseVoice)
+        case .senseVoiceMultilingual: return sherpaFolder(for: .senseVoiceMultilingual)
         case .parakeet: return sherpaFolder(for: .parakeet)
         case .apple, .openAICompatible, .openAI, .openRouter, .groq, .elevenLabs, .deepgram, .soniox,
              .assemblyAI, .cartesia, .speechmatics, .xAI, .mistral, .gemini: return nil

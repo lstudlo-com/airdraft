@@ -82,6 +82,39 @@ from Hub metadata and have not been downloaded. Moving a pin is deliberate:
 rerun the script, review the diff and repeat the Qwen3/Whisper self-tests.
 Cohere Transcribe and SpeakerKit still download from Hub `main`.
 
+## SenseVoice artifacts
+
+Two sherpa-onnx SenseVoice archives exist, each pinned by URL, exact bytes and
+SHA-256 in `SherpaTranscriber.Model` and checked before unpacking:
+
+- **SenseVoice** (`senseVoiceMultilingual`, catalogue `sherpa:senseVoiceMultilingual`,
+  engine `sherpa-onnx:senseVoiceMultilingual`): the original FunAudioLLM
+  SenseVoiceSmall, `sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17`,
+  163,002,883 bytes. Mandarin, Cantonese, English, Japanese and Korean.
+- **SenseVoice Cantonese** (`senseVoice`, catalogue `sherpa:senseVoice`, engine
+  `sherpa-onnx:senseVoice`): `…-int8-2025-09-09`, converted from ASLP-lab WSYue-ASR
+  `sensevoice_small_yue`, a Cantonese fine-tune, 165,783,878 bytes. Through 0.11.0
+  this was the only SenseVoice, so its raw values, engine ID, folder and Meetings
+  `LocalModel` raw value are unchanged: existing app defaults, profile bindings,
+  history engine IDs and saved documents keep the same model and files. Its
+  language policy offers Cantonese, Mandarin and English; Japanese and Korean are
+  rejected with a Models recovery message (AD-083: no kana, CER 76% and 77%).
+  It is retired: Models, Profiles, onboarding and Meetings list it only while it
+  is in use (app default, profile binding, installed or downloading).
+
+The AD-083 follow-up (`eval/eja-asr/` and `eval/mixed-asr/`, 2026-10-24) measured
+both through the app. The fine-tune was under one point better on FLEURS
+Cantonese and worse on Mandarin, English, Japanese and Korean. Preparation builds
+the SenseVoice recognizer for the language the recording will use
+(`SherpaTranscriber.anticipate`), so an explicit language does not rebuild it on
+the first dictation and live preview finds it warm; a later language change
+still rebuilds it.
+
+Offline decoders split long audio with `AudioChunker`: windows never exceed the
+engine's limit, the last window keeps at least 3 s (the previous cut moves
+earlier instead), and windows meeting between Han or kana characters are joined
+without a space; Latin, Hangul and digits keep one space.
+
 ## Recommendations and tiers in Models
 
 `LocalSpeechRecommendation` (Core) picks the first-run model from the primary
@@ -90,10 +123,8 @@ SenseVoice as the smaller alternative. On 8 GB or less the order reverses.
 English gets Parakeet TDT v2 (Core ML) on every Mac, with Qwen3-ASR 1.7B as the
 multilingual alternative. Japanese and Korean get Qwen3-ASR 1.7B with Whisper
 Large v3 Turbo as the lower-memory alternative; on 8 GB or less the order
-reverses. These come from AD-083 (`eval/eja-asr/`, FLEURS read speech): the
-shipped SenseVoice archive is a Cantonese fine-tune that lost Japanese kana and
-most Korean and had 32% English WER, so it is not recommended or shortlisted for
-these languages. Other languages get Whisper Large v3 Turbo. Qwen3-ASR 0.6B is
+reverses. These come from AD-083 (`eval/eja-asr/`, FLEURS read speech). Other
+languages get Whisper Large v3 Turbo. Qwen3-ASR 0.6B is
 never the lighter default because it can loop until its token cap and spike
 memory. Onboarding's Speech step and the Models table use the same rule; each
 onboarding choice shows its download size and a one-line trade-off that depends
@@ -122,9 +153,10 @@ user's language and English first, up to two names and a count) and runtime
 tags. The tooltip lists every supported language. `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and
 used for transcription in the 2026-10-12 local coverage verification, plus
-SenseVoice, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
+SenseVoice Cantonese, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
 `eval/mixed-asr/`; Parakeet TDT v2, Parakeet Japanese and Whisper Large v3 now
-cite `eval/eja-asr/`, where they were downloaded and measured again. Promote a model only with the same kind of evidence. The
+cite `eval/eja-asr/`, where they were downloaded and measured again, and the
+multilingual SenseVoice cites the 2026-10-24 follow-up in both studies. Promote a model only with the same kind of evidence. The
 `models-performance` fixture rejects IDs that are not in the catalogue and
 shortlist models that are not Verified. Renders accept
 `AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB`,

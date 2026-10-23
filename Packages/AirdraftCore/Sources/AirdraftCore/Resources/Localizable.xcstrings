@@ -1596,6 +1596,22 @@
         }
       }
     },
+    "Cantonese and Mandarin. Weak with English; no Japanese or Korean." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粤语和普通话。英语较弱；不支持日语和韩语。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粵語與華語。英文較弱；不支援日文與韓文。"
+          }
+        }
+      }
+    },
     "Captured audio is kept for retry." : {
       "localizations" : {
         "zh-Hans" : {

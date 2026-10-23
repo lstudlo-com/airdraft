@@ -82,7 +82,7 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
 public struct MediaConfiguration: Codable, Sendable, Equatable {
     public enum Engine: String, Codable, Sendable, CaseIterable { case local, soniox }
     public enum LocalModel: String, Codable, CaseIterable, Sendable {
-        case whisperTurbo, whisperLargeV3, whisperTurboCompressed, qwenLarge, qwenSmall, cohere, senseVoice, fireRed, parakeet, apple, orukeet, gguf, coreML, whisperDistilLargeV3, whisperDistilCompressed, whisperDistilTurbo, whisperDistilTurboCompressed
+        case whisperTurbo, whisperLargeV3, whisperTurboCompressed, qwenLarge, qwenSmall, cohere, senseVoiceMultilingual, senseVoice, fireRed, parakeet, apple, orukeet, gguf, coreML, whisperDistilLargeV3, whisperDistilCompressed, whisperDistilTurbo, whisperDistilTurboCompressed
         public var title: String {
             switch self {
             case .whisperTurbo: return WhisperModelVariant.turbo.title
@@ -91,7 +91,9 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             case .qwenLarge: return "Qwen3-ASR 1.7B"
             case .qwenSmall: return "Qwen3-ASR 0.6B"
             case .cohere: return "Cohere Transcribe 2B"
-            case .senseVoice: return "SenseVoice Small"
+            case .senseVoiceMultilingual: return "SenseVoice Small"
+            // The raw value predates the multilingual artifact; saved documents keep it.
+            case .senseVoice: return "SenseVoice Cantonese"
             case .fireRed: return "FireRedASR2"
             case .parakeet: return "Parakeet TDT v3"
             case .whisperDistilLargeV3: return WhisperModelVariant.distilLargeV3.title
@@ -110,6 +112,7 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
             case .qwenLarge, .qwenSmall: return .qwen3
             case .cohere: return .cohere
             case .senseVoice: return .senseVoice
+            case .senseVoiceMultilingual: return .senseVoiceMultilingual
             case .fireRed: return .fireRed
             case .parakeet: return .parakeet
             case .orukeet: return .orukeet
@@ -162,8 +165,13 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
         public let id: String
         public let title: String
     }
-    public static var modelChoices: [ModelChoice] {
-        LocalModel.allCases.filter { $0 != .gguf && $0 != .coreML }.map { .init(id: $0.rawValue, title: $0.title) }
+    /// Retired: kept for saved documents and settings only (AD-083 follow-up).
+    public static let retiredModels: Set<LocalModel> = [.senseVoice]
+    public static var modelChoices: [ModelChoice] { modelChoices(keeping: nil) }
+    /// Every offered choice, plus a retired one when it is the current selection.
+    public static func modelChoices(keeping selectedID: String?) -> [ModelChoice] {
+        LocalModel.allCases.filter { $0 != .gguf && $0 != .coreML && (!retiredModels.contains($0) || $0.rawValue == selectedID) }
+            .map { .init(id: $0.rawValue, title: $0.title) }
             + CoreMLSpeechModelCatalog.models.map { .init(id: "coreml:\($0.id)", title: "\($0.title) · Core ML") }
             + GGUFModelCatalog.models.map { .init(id: "gguf:\($0.id)", title: "\($0.title) · GGUF") }
     }

@@ -69,6 +69,6 @@ final class LocalSpeechRecommendationTests: XCTestCase {
         XCTAssertEqual(Set(LocalSpeechRecommendation.Model.allCases.map(\.rawValue)),
                        ["qwen3Large", "senseVoice", "whisperTurbo", "parakeetEnglish"])
         XCTAssertEqual(LocalSpeechRecommendation.Model.allCases.map(\.catalogueID),
-                       ["qwen3:1.7b", "sherpa:senseVoice", "whisper:turbo", "coreml:parakeet-v2"])
+                       ["qwen3:1.7b", "sherpa:senseVoiceMultilingual", "whisper:turbo", "coreml:parakeet-v2"])
     }
 }
