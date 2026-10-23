@@ -55,6 +55,35 @@ final class RefinementFidelityTests: XCTestCase {
             recentDictations: [], allowsLanguageChange: false), .changesLanguage)
     }
 
+    /// The p15 Japanese check: under the Traditional script rule the model returned
+    /// Chinese for Japanese speech, which kept the CJK share and passed unnoticed.
+    func testRejectsJapaneseOrKoreanSpeechReturnedAsChinese() {
+        XCTAssertEqual(RefinementFidelity.violation(
+            output: "來週的會議中，將彙整並分享國內的銷售數字。",
+            transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
+            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+        XCTAssertEqual(RefinementFidelity.violation(
+            output: "新的廣告效果，我們來月再觀察一下。", transcript: "あの、新しい広告の効果は来月まで様子を見ましょう。",
+            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+        XCTAssertEqual(RefinementFidelity.violation(
+            output: "我們明天開會吧。", transcript: "내일 회의를 합시다",
+            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+        XCTAssertEqual(RefinementFidelity.violation(
+            output: "明日会議をしましょう。", transcript: "我們明天開會吧",
+            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+        // Cleanup that keeps the language passes, including kanji-only fragments.
+        XCTAssertNil(RefinementFidelity.violation(
+            output: "来週の会議では、国内の売上の数字をまとめて共有します。",
+            transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
+            recentDictations: [], allowsLanguageChange: false))
+        XCTAssertNil(RefinementFidelity.violation(
+            output: "내일 회의를 합시다.", transcript: "내일 회의를 합시다",
+            recentDictations: [], allowsLanguageChange: false))
+        XCTAssertNil(RefinementFidelity.violation(
+            output: "東京大学", transcript: "東京大学",
+            recentDictations: [], allowsLanguageChange: false))
+    }
+
     func testAcceptsCleanupThatKeepsMixedLanguage() {
         XCTAssertNil(RefinementFidelity.violation(
             output: "另外我也想問你，Numorphism style 的凹陷跟凸起效果用英文應該怎麼表達？",

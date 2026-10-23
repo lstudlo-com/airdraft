@@ -61,8 +61,29 @@ public enum RefinementFidelity {
         return (cjk, other)
     }
 
+    /// Kana and Hangul tell Japanese and Korean apart from Chinese, which all
+    /// count as CJK above: a Japanese transcript returned as Chinese keeps its
+    /// CJK share while losing every kana.
+    static func scriptMarks(_ text: String) -> (kana: Int, hangul: Int) {
+        var kana = 0, hangul = 0
+        for scalar in text.unicodeScalars {
+            switch scalar.value {
+            case 0x3040...0x309F, 0x30A0...0x30FF, 0x31F0...0x31FF, 0xFF66...0xFF9F: kana += 1
+            case 0xAC00...0xD7AF, 0x1100...0x11FF, 0x3130...0x318F: hangul += 1
+            default: break
+            }
+        }
+        return (kana, hangul)
+    }
+
     static func languageChanged(from transcript: String, to output: String) -> Bool {
+        let heardMarks = scriptMarks(transcript), producedMarks = scriptMarks(output)
+        if heardMarks.kana >= 3 && producedMarks.kana == 0 { return true }
+        if heardMarks.hangul >= 2 && producedMarks.hangul == 0 { return true }
         let heard = scriptCounts(transcript), produced = scriptCounts(output)
+        // Chinese speech returned as Japanese or Korean.
+        if heardMarks.kana == 0 && heard.cjk >= 4 && producedMarks.kana >= 3 { return true }
+        if heardMarks.hangul == 0 && heard.cjk >= 4 && producedMarks.hangul >= 2 { return true }
         if heard.cjk >= 2 && produced.cjk == 0 { return true }
         if heard.cjk == 0 && heard.other >= 2 && produced.cjk >= 2 { return true }
         let heardTotal = heard.cjk + heard.other, producedTotal = produced.cjk + produced.other
