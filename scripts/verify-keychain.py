@@ -12,6 +12,13 @@ SWIFT = r'''
 import Foundation
 import Security
 
+@diagnose(DeprecatedDeclaration, as: ignored)
+func fileKeychainInteractionAllowed() -> Bool {
+    var allowed: DarwinBoolean = false
+    precondition(SecKeychainGetUserInteractionAllowed(&allowed) == errSecSuccess)
+    return allowed.boolValue
+}
+
 let mode = CommandLine.arguments[1]
 let prefix = CommandLine.arguments[2]
 let accounts = (0..<8).map { "keychain-selftest.\(prefix).\($0)" }
@@ -20,6 +27,14 @@ if mode == "create" {
         precondition(Keychain.set("fixture-only", for: account))
     }
     print("PASS: created eight fixture keys with the writer identity")
+    // License receipts write without interaction: add, then update in place.
+    let silent = "keychain-selftest.\(prefix).silent"
+    precondition(Keychain.set("fixture-silent", for: silent, allowInteraction: false))
+    precondition(Keychain.set("fixture-silent-2", for: silent, allowInteraction: false))
+    let silentValue = try Keychain.read(silent)
+    precondition(silentValue == "fixture-silent-2")
+    precondition(Keychain.delete(silent) && Keychain.presence(silent) == .missing)
+    print("PASS: non-interactive add, update and passive read of a fixture key succeed for its owner")
 } else if mode == "cleanup" {
     for account in accounts { precondition(Keychain.delete(account)) }
     print("PASS: removed only this run's fixture keys")
@@ -27,8 +42,7 @@ if mode == "create" {
     for account in accounts { let value = try Keychain.read(account); precondition(value == "fixture-only") }
     print("PASS: rebuilt app with the same signing identity reads all eight keys without reauthorization")
 } else if mode == "read" {
-    var before: DarwinBoolean = false
-    precondition(SecKeychainGetUserInteractionAllowed(&before) == errSecSuccess)
+    let before = fileKeychainInteractionAllowed()
     for account in accounts {
         precondition(Keychain.presence(account) == .saved)
         do {
@@ -38,9 +52,7 @@ if mode == "create" {
             // Expected: return an actionable state, without a password prompt.
         } catch { fatalError("Unexpected Keychain failure") }
     }
-    var after: DarwinBoolean = false
-    precondition(SecKeychainGetUserInteractionAllowed(&after) == errSecSuccess)
-    precondition(before.boolValue == after.boolValue)
+    precondition(before == fileKeychainInteractionAllowed())
     print("PASS: eight protected keys returned authorizationRequired silently; metadata checks succeeded; interaction policy restored")
 }
 '''
@@ -58,9 +70,15 @@ with tempfile.TemporaryDirectory(prefix="airdraft-keychain-test-") as directory:
     # read the fixture's main bundle, which yields the English source strings.
     shim = temp / "ModuleBundle.swift"
     shim.write_text("import Foundation\nextension Bundle { static let module = Bundle.main }\n")
-    run("swiftc", "-swift-version", "5", core / "Settings/AppIdentity.swift",
-        core / "Providers/Keychain.swift", shim, source, "-o", binary,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    build = subprocess.run(["swiftc", "-swift-version", "5", str(core / "Settings/AppIdentity.swift"),
+                            str(core / "Providers/Keychain.swift"), str(shim), str(source), "-o", str(binary)],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if build.returncode != 0:
+        raise SystemExit("FAIL: fixture did not compile:\n" + build.stderr)
+    deprecated = [line for line in build.stderr.splitlines() if "Keychain.swift" in line and "deprecated" in line]
+    if deprecated:
+        raise SystemExit("FAIL: Keychain.swift has unscoped deprecation warnings:\n" + "\n".join(deprecated))
+    print("PASS: Keychain.swift compiles without deprecation warnings", flush=True)
     identity = json.loads((ROOT / "scripts/release-signing.json").read_text())["certificateSHA1"]
     apps = []
     for role in ("writer", "reader", "successor"):

@@ -1,4 +1,5 @@
 import Foundation
+import LocalAuthentication
 import Security
 
 /// Login-keychain credentials. Passive access never opens an authorization dialog.
@@ -70,11 +71,17 @@ struct CredentialStore {
     var update: ([String: Any], [String: Any]) -> OSStatus = { SecItemUpdate($0 as CFDictionary, $1 as CFDictionary) }
     var remove: ([String: Any]) -> OSStatus = { SecItemDelete($0 as CFDictionary) }
 
-    // The file-based keychain ignores the SecItem/LAContext no-UI controls.
-    // Scope its process-wide switch and serialize every operation using it.
-    // See docs/keychain-access.md, including Chromium's FB16959400 workaround.
+    // Two layers keep passive access silent. Every non-interactive query carries
+    // an LAContext with `interactionNotAllowed`, the supported SecItem control,
+    // which data-protection items and authentication-UI prompts honor. The
+    // file-based login keychain, where these items live, ignores it for ACL
+    // dialogs (FB16959400), so its process-wide switch is still scoped here and
+    // every operation using it is serialized. That switch has no non-deprecated
+    // replacement for file-based items; the warning is silenced only on this
+    // function. See docs/keychain-access.md.
     private static let lock = NSRecursiveLock()
 
+    @diagnose(DeprecatedDeclaration, as: ignored)
     static func withInteraction<T>(_ allowed: Bool, operation: () throws -> T) throws -> T {
         lock.lock()
         defer { lock.unlock() }
@@ -90,7 +97,7 @@ struct CredentialStore {
         do {
             return try Self.withInteraction(false) {
                 for service in [Keychain.service, AppIdentity.legacyBundleID] {
-                    var query = match(account, service: service)
+                    var query = match(account, service: service, allowInteraction: false)
                     query[kSecReturnAttributes as String] = true
                     query[kSecMatchLimit as String] = kSecMatchLimitOne
                     let (status, _) = copy(query)
@@ -105,16 +112,16 @@ struct CredentialStore {
     func read(_ account: String, allowInteraction: Bool = false) throws -> String? {
         guard !account.isEmpty else { return nil }
         return try Self.withInteraction(allowInteraction) {
-            if let current = try read(account, service: Keychain.service) { return current }
+            if let current = try read(account, service: Keychain.service, allowInteraction: allowInteraction) { return current }
             // Only errSecItemNotFound reaches here. Denied/locked/current errors
             // must never fall through to a stale credential or overwrite it.
-            guard let legacy = try read(account, service: AppIdentity.legacyBundleID) else { return nil }
+            guard let legacy = try read(account, service: AppIdentity.legacyBundleID, allowInteraction: allowInteraction) else { return nil }
             if allowInteraction {
                 var attrs = match(account, service: Keychain.service)
                 attrs[kSecValueData as String] = Data(legacy.utf8)
                 let status = add(attrs)
                 if status == errSecDuplicateItem {
-                    return try read(account, service: Keychain.service)
+                    return try read(account, service: Keychain.service, allowInteraction: allowInteraction)
                 }
                 try Self.check(status)
             }
@@ -122,8 +129,8 @@ struct CredentialStore {
         }
     }
 
-    private func read(_ account: String, service: String) throws -> String? {
-        var query = match(account, service: service)
+    private func read(_ account: String, service: String, allowInteraction: Bool) throws -> String? {
+        var query = match(account, service: service, allowInteraction: allowInteraction)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         let (status, item) = copy(query)
@@ -138,12 +145,12 @@ struct CredentialStore {
     func set(_ value: String, for account: String, allowInteraction: Bool = true) -> Bool {
         guard !account.isEmpty else { return false }
         return (try? Self.withInteraction(allowInteraction) {
-            let query = match(account, service: Keychain.service)
             let values = [kSecValueData as String: Data(value.utf8)]
-            let status = update(query, values)
+            let status = update(match(account, service: Keychain.service, allowInteraction: allowInteraction), values)
             if status == errSecSuccess { return true }
             guard status == errSecItemNotFound else { return false }
-            return add(query.merging(values) { _, new in new }) == errSecSuccess
+            // Add takes item attributes, not a search context.
+            return add(match(account, service: Keychain.service).merging(values) { _, new in new }) == errSecSuccess
         }) ?? false
     }
 
@@ -153,16 +160,25 @@ struct CredentialStore {
             // Remove legacy first. If approval is denied, keep the current key;
             // otherwise a later read could resurrect the old legacy credential.
             for service in [AppIdentity.legacyBundleID, Keychain.service] {
-                let status = remove(match(account, service: service))
+                let status = remove(match(account, service: service, allowInteraction: allowInteraction))
                 guard status == errSecSuccess || status == errSecItemNotFound else { return false }
             }
             return true
         }) ?? false
     }
 
-    private func match(_ account: String, service: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: service, kSecAttrAccount as String: account]
+    /// Items stay in the file-based login keychain: `kSecUseDataProtectionKeychain`
+    /// is deliberately unset, because existing items and their ACLs live there.
+    /// Searches made without interaction carry a context that forbids UI.
+    private func match(_ account: String, service: String, allowInteraction: Bool = true) -> [String: Any] {
+        var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                    kSecAttrService as String: service, kSecAttrAccount as String: account]
+        if !allowInteraction {
+            let context = LAContext()
+            context.interactionNotAllowed = true
+            query[kSecUseAuthenticationContext as String] = context
+        }
+        return query
     }
 
     private static func check(_ status: OSStatus) throws {
