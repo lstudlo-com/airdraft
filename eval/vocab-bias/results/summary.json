@@ -1,0 +1,240 @@
+{
+ "measured": "2026-10-23",
+ "base_commit": "9e93a8f",
+ "machine": "Mac16,8 Apple M4 Pro, 48 GB, macOS 27.0.1",
+ "route": "Debug app LocalE2E --e2e-action transcribe --e2e-prepare, one process per utterance, isolated data and AIRDRAFT_E2E_MODEL_ROOT (APFS clones of installed models)",
+ "corpus": "eval/vocab-bias/corpus.json: 18 en (Samantha) + 11 zh (Meijia) macOS say utterances, 22-term dictionary of preferred spellings, 2 noise-only silence clips; audio SHA-256 in /tmp/airdraft-wave/vocab/audio/hashes.json",
+ "app_builds": {
+  "v4": "production source of this change (source.diff SHA-256 ce3561102a1e19af61d2017450604349017bc8a704c564a935e4b4aa7c1303e9)",
+  "v3": "before the Qwen echo/silence guard and with Apple contextualStrings wired (Apple rows only)",
+  "v5w": "v4 plus an uncommitted WhisperKit glossary-prompt experiment"
+ },
+ "models": {
+  "sherpa:parakeet": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8 (tokens.txt d58544679ea4..., encoder acfc2b445637...)",
+  "qwen3:1.7b": "aufklarer/Qwen3-ASR-1.7B-MLX-5bit",
+  "qwen3:0.6b": "aufklarer/Qwen3-ASR-0.6B-MLX-4bit",
+  "whisper:turbo": "openai_whisper-large-v3-v20240930_turbo (Core ML)",
+  "apple": "SpeechTranscriber en-US, preset .transcription"
+ },
+ "results": {
+  "v4/qwen3_0.6b-off": {
+   "en": {
+    "TER": 0.0919,
+    "term_exact": "7/19",
+    "term_fold": "9/19",
+    "final_exact": "9/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0935,
+    "term_exact": "1/9",
+    "term_fold": "1/9",
+    "final_exact": "1/9",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "1/2",
+   "silence_text": 1,
+   "asrMs_median": 233
+  },
+  "v4/qwen3_0.6b-on": {
+   "en": {
+    "TER": 0.0378,
+    "term_exact": "14/19",
+    "term_fold": "15/19",
+    "final_exact": "15/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0647,
+    "term_exact": "3/9",
+    "term_fold": "4/9",
+    "final_exact": "4/9",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "1/2",
+   "silence_text": 1,
+   "asrMs_median": 248
+  },
+  "v4/qwen3_1.7b-off": {
+   "en": {
+    "TER": 0.0541,
+    "term_exact": "8/19",
+    "term_fold": "11/19",
+    "final_exact": "11/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0719,
+    "term_exact": "1/9",
+    "term_fold": "2/9",
+    "final_exact": "2/9",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 2,
+   "asrMs_median": 301
+  },
+  "v4/qwen3_1.7b-on": {
+   "en": {
+    "TER": 0.0541,
+    "term_exact": "14/19",
+    "term_fold": "14/19",
+    "final_exact": "14/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0504,
+    "term_exact": "6/9",
+    "term_fold": "6/9",
+    "final_exact": "6/9",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 2,
+   "asrMs_median": 315
+  },
+  "v4/sherpa_parakeet-off": {
+   "en": {
+    "TER": 0.1459,
+    "term_exact": "2/19",
+    "term_fold": "4/19",
+    "final_exact": "4/19",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "2/2",
+   "silence_text": 0,
+   "asrMs_median": 96.0
+  },
+  "v4/sherpa_parakeet-on": {
+   "en": {
+    "TER": 0.0486,
+    "term_exact": "14/19",
+    "term_fold": "14/19",
+    "final_exact": "14/19",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "2/2",
+   "silence_text": 0,
+   "asrMs_median": 109.0
+  },
+  "v4/sherpa_parakeet-on-junk": {
+   "en": {
+    "TER": 0.1351,
+    "term_exact": "2/19",
+    "term_fold": "5/19",
+    "final_exact": "2/19",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "2/2",
+   "silence_text": 0,
+   "asrMs_median": 109.0
+  },
+  "v4/whisper_turbo-off": {
+   "en": {
+    "TER": 0.0,
+    "term_exact": "1/2",
+    "term_fold": "2/2",
+    "final_exact": "2/2",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 2,
+   "asrMs_median": 525.5
+  },
+  "v4/whisper_turbo-on": {
+   "en": {
+    "TER": 0.0,
+    "term_exact": "1/2",
+    "term_fold": "2/2",
+    "final_exact": "2/2",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 2,
+   "asrMs_median": 520.5
+  },
+  "v3/apple-off": {
+   "en": {
+    "TER": 0.1149,
+    "term_exact": "3/18",
+    "term_fold": "6/18",
+    "final_exact": "6/18",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 0,
+   "asrMs_median": 106
+  },
+  "v3/apple-on": {
+   "en": {
+    "TER": 0.1149,
+    "term_exact": "3/18",
+    "term_fold": "6/18",
+    "final_exact": "6/18",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 0,
+   "asrMs_median": 99
+  },
+  "v5w/whisper_turbo-off-glossary": {
+   "en": {
+    "TER": 0.0378,
+    "term_exact": "10/19",
+    "term_fold": "14/19",
+    "final_exact": "14/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0935,
+    "term_exact": "1/9",
+    "term_fold": "2/9",
+    "final_exact": "1/9",
+    "failed": 0
+   },
+   "false_terms": 0,
+   "silence_pass": "0/2",
+   "silence_text": 2,
+   "asrMs_median": 536
+  },
+  "v5w/whisper_turbo-on-glossary": {
+   "en": {
+    "TER": 0.0324,
+    "term_exact": "17/19",
+    "term_fold": "18/19",
+    "final_exact": "18/19",
+    "failed": 0
+   },
+   "zh": {
+    "TER": 0.0635,
+    "term_exact": "5/8",
+    "term_fold": "5/8",
+    "final_exact": "5/8",
+    "failed": 1
+   },
+   "false_terms": 0,
+   "silence_pass": "1/2",
+   "silence_text": 1,
+   "asrMs_median": 1262.0
+  }
+ },
+ "notes": [
+  "TER = token error rate on the raw transcript (WER for en, MER for zh). term_exact = expected terms present with exact spelling/case in the raw transcript; final_exact after dictionary post-processing.",
+  "v3 silence_pass values are invalid (shared data directory); v4/v5w use a fresh directory per silence run.",
+  "Silence text without vocabulary (Qwen 'Okay.'/'The.', Whisper '.') is pre-existing baseline behavior, unchanged by this work.",
+  "v3 qwen3 'on' silence runs echoed the vocabulary list ('Airdraft, Supabase, PostHog, ...'); v4 adds the near-silence gate and echo re-decode, after which on == off.",
+  "Whisper glossary prompt (v5w): term gains but one zh utterance returned an empty transcript (zh08), Simplified-script drift (zh02), cross-term substitution (zh04 '陳惟科技') and 2.4x latency; not shipped.",
+  "Apple SpeechTranscriber AnalysisContext.contextualStrings: identical output with and without terms; not shipped."
+ ]
+}

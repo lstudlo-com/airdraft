@@ -112,6 +112,12 @@ struct ConfigurationPage: View {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.softSwitch)
                     }
                     RowDivider()
+                    SettingRow(title: "Vocabulary in speech recognition",
+                               subtitle: "Supported on-device models favor your spellings. Online services always receive them.") {
+                        Toggle("Vocabulary in speech recognition", isOn: $settings.vocabularyBiasesOnDeviceSpeech)
+                            .labelsHidden().toggleStyle(.softSwitch)
+                    }
+                    RowDivider()
                     SettingRow(title: "Maximum recording", subtitle: "Auto-stops and transcribes; 10 min maximum") {
                         SettingsNumberStepper(
                             title: "Maximum recording",

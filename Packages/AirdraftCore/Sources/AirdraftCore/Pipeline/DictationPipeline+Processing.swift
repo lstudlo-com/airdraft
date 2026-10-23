@@ -202,6 +202,15 @@ extension DictationPipeline {
                        processingStarted: processingStarted, timings: timings)
     }
 
+    /// Speech hints from the recording's captured dictionary and vocabulary choice.
+    /// Preferred spellings only; aliases stay with the LLM and post-processing.
+    func speechHints(for snapshot: RecordingSnapshot, language: String?) -> TranscriptionHints {
+        TranscriptionHints(language: language,
+                           vocabulary: DictionaryPostProcessor.vocabulary(snapshot.dictionary),
+                           chineseScript: snapshot.asr.chineseScript,
+                           biasOnDeviceSpeech: snapshot.vocabularyBiasesOnDeviceSpeech)
+    }
+
     /// Recognises speech with the captured configuration. A failure keeps the
     /// audio for retry and returns nil, as does a session that is no longer current.
     func transcribe(_ samples: [Float], context: AppContext, target: InsertionTarget?, token: UUID,
@@ -214,11 +223,9 @@ extension DictationPipeline {
             let language = try SpeechLanguagePolicy.resolve(asrConfig)
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
             startRefinementPreparation(context: context, snapshot: snapshot, token: token)
-            let hints = TranscriptionHints(
-                language: language.language,
-                vocabulary: DictionaryPostProcessor.vocabulary(snapshot.dictionary),
-                chineseScript: asrConfig.chineseScript
-            )
+            let hints = speechHints(for: snapshot, language: language.language)
+            // The factory prepares an unloaded model before inference (AD-081).
+            SherpaTranscriber.anticipate(hints)
             return try await factory.transcribe(samples, hints: hints, config: asrConfig) { @MainActor [weak self] in
                 guard let self, self.isCurrent(token) else { return }
                 self.set(.preparingModel)

@@ -167,6 +167,9 @@ recording fixture; cancellation evidence then includes the actual processing
 state and elapsed time, distinguishing inference from startup.
 `--e2e-expect-silence` asserts no outcome/history for a silent fixture.
 `--e2e-profile` selects a built-in or fixture profile by name.
+`--e2e-vocabulary-bias on|off` sets Settings > Behavior > Vocabulary in speech
+recognition; the fixture's `dictionary.json` in the `--e2e-local` directory
+supplies the terms. `eval/vocab-bias/run_eval.py` uses it to compare both states.
 
 Add `--e2e-recording-ms 3000` to replay the same file through recording startup,
 allow refinement preparation to overlap that lead time, then stop through the

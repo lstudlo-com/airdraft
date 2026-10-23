@@ -131,6 +131,8 @@ public final class DictationPipeline {
         let baseRules: String
         let dictionary: [DictionaryEntry]
         let useAppContext: Bool
+        /// Captured with the dictionary so a toggle mid-recording applies to the next one.
+        var vocabularyBiasesOnDeviceSpeech = true
     }
     var recordingAtStart: RecordingSnapshot?
     let sendScript: @Sendable (String, String) async throws -> Void

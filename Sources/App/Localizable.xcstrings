@@ -9748,6 +9748,16 @@
         }
       }
     },
+    "Supported on-device models favor your spellings. Online services always receive them." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援的裝置端模型會優先採用你的拼寫。線上服務一律會收到這些詞彙。"
+          }
+        }
+      }
+    },
     "Switch already on, or Airdraft is missing from the list?" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10891,6 +10901,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "詞彙與字體轉換仍會套用"
+          }
+        }
+      }
+    },
+    "Vocabulary in speech recognition" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音辨識使用詞彙"
           }
         }
       }

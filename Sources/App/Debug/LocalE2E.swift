@@ -97,6 +97,10 @@ enum LocalE2E {
                     app.settings.asr.language = locale
                 }
                 if let language = argument("--e2e-language") { app.settings.asr.language = language }
+                if let bias = argument("--e2e-vocabulary-bias") {
+                    guard ["on", "off"].contains(bias) else { throw E2EError.unknownAction }
+                    app.settings.vocabularyBiasesOnDeviceSpeech = bias == "on"
+                }
                 switch action {
                 case "architecture":
                     report["status"] = await ArchitectureVerification.run() ? "passed" : "failed"
@@ -172,6 +176,12 @@ enum LocalE2E {
                             let engine = await app.factory.transcriber(for: app.settings.asr)
                             guard await engine.isReady() else { throw E2EError.missingModel }
                         }
+                        // Mirror recording start: the prewarm builds the decoder the
+                        // captured vocabulary choice needs (AD-081).
+                        SherpaTranscriber.anticipate(TranscriptionHints(
+                            language: try SpeechLanguagePolicy.resolve(app.settings.asr).language,
+                            vocabulary: DictionaryPostProcessor.vocabulary(app.dictionary.entries),
+                            biasOnDeviceSpeech: app.settings.vocabularyBiasesOnDeviceSpeech))
                         try await app.factory.prepare(app.settings.asr)
                         report["prepared"] = true
                     }

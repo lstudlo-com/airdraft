@@ -90,7 +90,8 @@ extension DictationPipeline {
         return RecordingSnapshot(asr: profile.speechConfig(default: settings.asr), profile: profile,
                                  llm: settings.llm, microphone: settings.microphone,
                                  output: output ?? selectedOutput(), baseRules: profiles.baseRules,
-                                 dictionary: dictionary.entries, useAppContext: settings.useAppContext)
+                                 dictionary: dictionary.entries, useAppContext: settings.useAppContext,
+                                 vocabularyBiasesOnDeviceSpeech: settings.vocabularyBiasesOnDeviceSpeech)
     }
 
     func beginRecording(token: UUID) async {
@@ -118,7 +119,7 @@ extension DictationPipeline {
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason)
             }
-            _ = try SpeechLanguagePolicy.resolve(asr)
+            let language = try SpeechLanguagePolicy.resolve(asr)
             if let recordingPreflight {
                 try await recordingPreflight(asr, llm, profile.usesLLM, microphone, needsInsertion)
             } else {
@@ -130,6 +131,8 @@ extension DictationPipeline {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
             if asr.kind.isLocal {
+                // AD-081: a prewarm builds the decoder these captured hints need.
+                SherpaTranscriber.anticipate(speechHints(for: snapshot, language: language.language))
                 // Pin before checking readiness so the idle watch cannot unload
                 // the model between this check and the end of processing.
                 let pin = await factory.pinForSession(asr.engineID, recordingSeconds: allowedSeconds)

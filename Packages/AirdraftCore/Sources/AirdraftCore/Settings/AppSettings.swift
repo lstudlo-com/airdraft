@@ -124,6 +124,11 @@ public final class AppSettings {
     public var outputDestination: TextOutputDestination { didSet { persist("outputDestination", outputDestination) } }
     public var outputScriptPath: String { didSet { persist("outputScriptPath", outputScriptPath) } }
     public var useAppContext: Bool { didSet { persist("useAppContext", useAppContext) } }
+    /// AD-081: offer Vocabulary terms to on-device speech models that support
+    /// biasing. Cloud keyword fields always receive them.
+    public var vocabularyBiasesOnDeviceSpeech: Bool {
+        didSet { persist("vocabularyBiasesOnDeviceSpeech", vocabularyBiasesOnDeviceSpeech) }
+    }
     public var maxRecordingSeconds: Int {
         didSet {
             let clamped = SpeechInputLimits.clampedRecordingSeconds(maxRecordingSeconds)
@@ -170,6 +175,7 @@ public final class AppSettings {
         outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
         outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""
         useAppContext = Self.load("useAppContext", from: defaults) ?? false
+        vocabularyBiasesOnDeviceSpeech = Self.load("vocabularyBiasesOnDeviceSpeech", from: defaults) ?? true
         let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
         appearance = Self.load("appearance", from: defaults) ?? .auto
