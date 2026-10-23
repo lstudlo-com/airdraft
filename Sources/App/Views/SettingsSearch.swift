@@ -110,7 +110,6 @@ struct SettingsSearchDocumentsKey: PreferenceKey {
 
 struct SettingsSearchScaffold<Content: View>: View {
     @Bindable var search: SettingsSearchState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -134,9 +133,14 @@ struct SettingsSearchScaffold<Content: View>: View {
             .onChange(of: search.scrollRequest) { _, _ in
                 guard let id = search.selectedID else { return }
                 // Centering keeps the matched row below the sticky header's blur.
-                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) {
-                    proxy.scrollTo(id, anchor: .center)
-                }
+                // The jump is never animated: after an animated scrollTo, SwiftUI
+                // keeps a stale offset for this scroll view (105 points short at
+                // the page end on macOS 27) and the next focus or accessibility
+                // update moves the page back, hiding the result. Reduce Motion
+                // therefore needs no separate branch.
+                var jump = Transaction()
+                jump.disablesAnimations = true
+                withTransaction(jump) { proxy.scrollTo(id, anchor: .center) }
             }
         }
     }

@@ -187,7 +187,13 @@ enum SettingsSearchVerification {
     private static func verifyVisible(_ search: SettingsSearchState, in host: NSView, scroll: NSScrollView) {
         guard let id = search.selectedID else { preconditionFailure("No selected result") }
         let identifier = "settings.row.\(id.section).\(id.title)"
+        // Reading the accessibility tree runs a SwiftUI focus update that
+        // reapplies the scroll view's stored offset, as VoiceOver does. A settled
+        // result must stay where the user sees it.
+        let settled = scroll.contentView.bounds.origin
         let elements = descendants(host.window!)
+        precondition(scroll.contentView.bounds.origin == settled,
+                     "An accessibility update moved the settled result: \(settled.y) -> \(scroll.contentView.bounds.origin.y)")
         guard let row = elements.first(where: { value($0, "accessibilityIdentifier") as? String == identifier }) else {
             print("AX_ROWS", elements.map { "\(type(of: $0)): \(value($0, "accessibilityIdentifier") ?? "nil") \(value($0, "accessibilityLabel") ?? "")" })
             preconditionFailure("Result must be accessible: \(identifier)")
