@@ -922,7 +922,8 @@ and Local releases below.
 - `DictionaryPostProcessor.apply` runs last, after the LLM. Do not move it.
 - Refinement output passes `RefinementFidelity` before delivery. A result that
   repeats an earlier same-app dictation the new speech does not resemble, or that
-  changes the transcript's language without a profile TASK or selected text, is
+  changes the transcript's language without a profile TASK or selected text (losing
+  every kana or Hangul character, or gaining them from Chinese speech, counts), is
   discarded for the raw transcript and recorded as a refinement error. Prompts get
   recent dictations only as `<recent_terms>` (names and technical terms), never
   sentences: small models returned them instead of the new speech, and each copy
@@ -1023,7 +1024,11 @@ changes in zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale zh_CN`) and zh-Han
 (`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) renders as well as English.
 Unsaved Chinese script and Apple Speech/live-preview locale defaults follow the
 first Chinese preferred language (`ChineseScript.systemDefault`: Simplified with
-zh-CN, otherwise Traditional); never rewrite saved choices.
+zh-CN, otherwise Traditional; Auto on a Mac whose first language is Japanese or
+Korean and that lists no Chinese); never rewrite saved choices. Refinement gets no
+Chinese script rule when Japanese or Korean is the selected speech language
+(`ASRConfig.refinementScript`): under the Traditional rule models translated
+Japanese into Chinese.
 
 ## Trigger Delay
 
