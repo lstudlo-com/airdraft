@@ -135,6 +135,7 @@ jobs:
       - name: Verify the release and vault script contracts
         run: |
           python3 -B scripts/test-insertion-regressions.py
+          python3 -B scripts/test-live-insertion.py
           python3 -B scripts/test-release.py
           python3 -B scripts/test-acknowledgements.py
 
