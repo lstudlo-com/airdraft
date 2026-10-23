@@ -1550,6 +1550,16 @@
         }
       }
     },
+    "Accurate, fast and light on memory. English only." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "準確、快速，而且很省記憶體。僅支援英文。"
+          }
+        }
+      }
+    },
     "Acknowledgements" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2330,6 +2340,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快好了。你的模型仍在下載中。"
+          }
+        }
+      }
+    },
+    "Also recognizes 29 other languages. Uses about 3 GB of memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "也能辨識其他 29 種語言。使用約 3 GB 記憶體。"
           }
         }
       }
@@ -8559,6 +8579,16 @@
         }
       }
     },
+    "Light on memory and recognizes many languages. Its first start can take a minute." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "很省記憶體，可辨識多種語言。第一次啟動可能要一分鐘左右。"
+          }
+        }
+      }
+    },
     "List every local model, with provider filters and experimental models." : {
       "localizations" : {
         "zh-Hans" : {
@@ -9592,6 +9622,26 @@
         }
       }
     },
+    "More accurate for %@, but uses about 3 GB of memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辨識%@更準確，但使用約 3 GB 記憶體。"
+          }
+        }
+      }
+    },
+    "More accurate, uses more memory" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "較準確，使用較多記憶體"
+          }
+        }
+      }
+    },
     "More languages, larger download" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9604,6 +9654,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "支援更多語言，下載檔較大"
+          }
+        }
+      }
+    },
+    "Most accurate for %@ in Airdraft's tests. Uses about 3 GB of memory." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Airdraft 的測試中辨識%@最準確。使用約 3 GB 記憶體。"
           }
         }
       }
@@ -10730,6 +10790,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置端"
+          }
+        }
+      }
+    },
+    "On-device Apple Speech; final model unchanged" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "裝置端 Apple 語音；最終模型不變"
           }
         }
       }
@@ -15702,6 +15772,16 @@
         }
       }
     },
+    "Small and fast for Chinese; weaker with English and other languages." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中文辨識小巧快速；英文和其他語言較弱。"
+          }
+        }
+      }
+    },
     "Small and fast, and works well on any Mac." : {
       "localizations" : {
         "zh-Hans" : {
@@ -18229,6 +18309,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在使用此模式時套用"
+          }
+        }
+      }
+    },
+    "Uses less memory" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用較少記憶體"
           }
         }
       }

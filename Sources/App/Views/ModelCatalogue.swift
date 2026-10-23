@@ -108,6 +108,8 @@ extension LocalModelShortlist.Role {
         case .mixedChineseEnglish: ("character.bubble", String(localized: "Best for mixed Chinese and English"))
         case .mandarin: ("scope", String(localized: "Best Mandarin accuracy, 20+ dialects"))
         case .multilingual: ("globe", String(localized: "More languages, larger download"))
+        case .moreAccurate: ("scope", String(localized: "More accurate, uses more memory"))
+        case .lessMemory: ("memorychip", String(localized: "Uses less memory"))
         }
     }
 }
@@ -165,7 +167,8 @@ enum ModelCatalogue {
         ModelEntry(
             id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: [], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
-            note: String(localized: "Smaller and faster; weaker with English terms in Chinese speech.")
+            // AD-083: the shipped archive is a Cantonese fine-tune; English, Japanese and Korean failed.
+            note: String(localized: "Small and fast for Chinese; weaker with English and other languages.")
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
@@ -188,10 +191,12 @@ enum ModelCatalogue {
                    tags: ["ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
                    note: String(localized: "25 European languages; no Chinese support.")) { $0.kind = .orukeet }
     ] + CoreMLSpeechModelCatalog.models.map { model in
-        ModelEntry(id: "coreml:\(model.id)", vendor: "\(model.creator) · Core ML", provider: model.creator,
+        // AD-083 (eval/eja-asr): Parakeet TDT v2 matched Qwen3-ASR 1.7B on English at a tenth of its latency.
+        let rated = model.id == "parakeet-v2"
+        return ModelEntry(id: "coreml:\(model.id)", vendor: "\(model.creator) · Core ML", provider: model.creator,
                    brand: model.creator == "Moondream" ? .moondream : model.creator == "Fermion Research" ? .fermion : .nvidia,
-                   tags: ["Core ML"],
-                   speed: 0, accuracy: 0, storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
+                   tags: ["Core ML"], speed: rated ? 5 : 0, accuracy: rated ? 5 : 0,
+                   storage: .download(sizeLabel: model.sizeLabel), note: model.languageCapabilities.summary) {
             $0.kind = .fluidAudio; $0.model = model.id
         }
     } + GGUFModelCatalog.models.map { model in
@@ -209,6 +214,7 @@ extension ModelCatalogue {
     static let verificationEvidence: [String: String] = {
         let coverage = "Vault Records/Verification/2026-10-12 Local Speech Model Coverage"
         let mixed = "eval/mixed-asr (2026-10-21, source 2242fb4)"
+        let fleurs = "eval/eja-asr (2026-10-24, source 7f79be0)"
         var evidence = Dictionary(uniqueKeysWithValues: [
             "coreml:parakeet-v2", "coreml:parakeet-v3", "coreml:parakeet-v3-int4", "coreml:parakeet-ultra",
             "coreml:parakeet-redux", "coreml:phonon-2", "coreml:parakeet-110m", "coreml:parakeet-ja",
@@ -218,6 +224,10 @@ extension ModelCatalogue {
         ].map { ($0, coverage) })
         for id in ["qwen3:1.7b", "qwen3:0.6b", "sherpa:senseVoice", "sherpa:fireRed", "whisper:turbo"] {
             evidence[id] = mixed
+        }
+        // Downloaded through the app, loaded and measured on English, Japanese and Korean.
+        for id in ["coreml:parakeet-v2", "coreml:parakeet-ja", "whisper:large-v3"] {
+            evidence[id] = fleurs
         }
         return evidence
     }()

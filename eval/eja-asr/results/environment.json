@@ -1,0 +1,98 @@
+{
+ "date": "2026-10-24",
+ "source_commit": "7f79be0 (integration base; measurement build had no AD-083 source changes)",
+ "build": "Debug, xcodebuild (Xcode 27.0, 27A266a), LocalE2E --e2e-action transcribe --e2e-prepare",
+ "hardware": {
+  "model": "Mac16,8",
+  "chip": "Apple M4 Pro (10 performance + 4 efficiency cores)",
+  "memory_gb": 48,
+  "macos": "27.0.1 (26A434)"
+ },
+ "conditions": "Machine shared with other agent sessions running Xcode builds. 1-minute load average per run is in the raw run files: median 5.9, p90 10.3. Latency is therefore conservative and noisy; compare models, not absolute numbers.",
+ "system_languages": {
+  "en": "-AppleLanguages (en-US)",
+  "ja": "-AppleLanguages (ja-JP)",
+  "ko": "-AppleLanguages (ko-KR)"
+ },
+ "app_defaults_used": {
+  "chinese_script": "traditional (ASRConfig default)",
+  "refinement": "off",
+  "insertion": "disabled",
+  "app_context": "off",
+  "dictionary": "empty",
+  "vocabulary_bias": "default"
+ },
+ "corpus": "eval/eja-asr/manifest.json (google/fleurs test, revision 70bb2e8, 60 utterances per language)",
+ "models": {
+  "sherpa:senseVoice": {
+   "artifact": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09.tar.bz2",
+   "archive_sha256": "7305f7905bfcf77fa0b39388a313f3da35c68d971661a65475b56fb2162c8e63",
+   "model.int8.onnx_sha256": "12ca1a2ae7ecf3e0019ef2822307ee0b5cadc9196569e379b4c4026f8205276d",
+   "upstream": "README: converted from https://huggingface.co/ASLP-lab/WSYue-ASR/tree/main/sensevoice_small_yue (a Cantonese fine-tune)",
+   "obtained": "LocalE2E --e2e-action download (hash before unpack) into the isolated root"
+  },
+  "sherpa:senseVoice@2024 (evaluation only)": {
+   "artifact": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+   "archive_sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e (matches the GitHub release asset digest)",
+   "model.int8.onnx_sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51",
+   "upstream": "README: converted from https://github.com/FunAudioLLM/SenseVoice (original SenseVoiceSmall)",
+   "obtained": "curl from the k2-fsa/sherpa-onnx asr-models release, digest checked, staged under the shipped folder name in a separate model root (models-sv2024). Not an app route."
+  },
+  "qwen3:1.7b": {
+   "model.safetensors_sha256": "4c3dd2e56a6fa3523bc996e728b7011362af317c6b0616c8d78bb1b8d9ff600e",
+   "pinned": true,
+   "obtained": "APFS clone of the user's install"
+  },
+  "qwen3:0.6b": {
+   "model.safetensors_sha256": "70c7e67e588062adce4f10796e47ad42ead51c6671eda61a0987eae38ca95ddf",
+   "pinned": true,
+   "obtained": "APFS clone of the user's install"
+  },
+  "whisper:turbo": {
+   "AudioEncoder_weight_sha256": "98daf651a919978e28fe185daf55ce2f70085a8e59fa07fe8a4d08c87d368ae4",
+   "pinned": true,
+   "obtained": "APFS clone of the user's install"
+  },
+  "whisper:large-v3": {
+   "AudioEncoder_weight_sha256": "eb07bab32dcd62ce653b5b288bd6c27bdc5a538be309f242e33ed05e1cb53457",
+   "pinned": true,
+   "obtained": "LocalE2E --e2e-action download"
+  },
+  "cohere": {
+   "model.safetensors_sha256": "47f0366a92beff0db347a8372f8e496ecb3aa8d17efe79216d8e36b278c97eeb",
+   "obtained": "APFS clone of the user's install (not downloaded in this study)"
+  },
+  "sherpa:parakeet": {
+   "encoder.int8.onnx_sha256": "acfc2b4456377e15d04f0243af540b7fe7c992f8d898d751cf134c3a55fd2247",
+   "obtained": "APFS clone of the user's install"
+  },
+  "coreml:parakeet-v2": {
+   "repository": "FluidInference/parakeet-tdt-0.6b-v2-coreml",
+   "revision": "ee09c569 (local-coreml-models.json)",
+   "download_bytes": 464413247,
+   "obtained": "LocalE2E --e2e-action download (per-file size and SHA-256)"
+  },
+  "coreml:parakeet-ja": {
+   "repository": "FluidInference/parakeet-0.6b-ja-coreml",
+   "revision": "2952296f (local-coreml-models.json)",
+   "download_bytes": 619065246,
+   "obtained": "LocalE2E --e2e-action download (per-file size and SHA-256)"
+  }
+ },
+ "first_load_from_new_path_s": {
+  "note": "process wall time of the first run per model path minus the median warm run (Core ML compiles per path)",
+  "whisper:turbo": 76,
+  "whisper:large-v3": 21.5,
+  "coreml:parakeet-v2": 13.0,
+  "coreml:parakeet-ja": 10.1,
+  "qwen3:1.7b": "<1",
+  "sherpa:senseVoice": "<0.1",
+  "cohere": "<0.5"
+ },
+ "not_measured": [
+  "Apple Speech (needs OS language assets and could prompt; skipped under the permission rules)",
+  "Distil-Whisper, Parakeet v3 Core ML, GGUF models",
+  "true cold start after reboot",
+  "lower-memory Macs"
+ ]
+}

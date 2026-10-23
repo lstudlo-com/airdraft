@@ -7,6 +7,7 @@ extension LocalSpeechRecommendation.Model {
         case .qwen3Large: "qwen3:1.7b"
         case .senseVoice: "sherpa:senseVoice"
         case .whisperTurbo: "whisper:turbo"
+        case .parakeetEnglish: "coreml:parakeet-v2"
         }
     }
 }
@@ -36,6 +37,10 @@ public struct LocalModelShortlist: Equatable, Sendable {
         case mandarin
         /// Recognizes many more languages than the recommendation.
         case multilingual
+        /// More accurate than the memory-limited recommendation, using more memory.
+        case moreAccurate
+        /// Needs much less memory than the recommendation.
+        case lessMemory
     }
 
     public struct Pick: Equatable, Sendable {
@@ -58,7 +63,7 @@ public struct LocalModelShortlist: Equatable, Sendable {
         // The recommendation's own alternatives come first; curated candidates
         // fill the remaining places, skipping duplicates of the recommendation.
         let suggested = recommendation.alternatives.map { model in
-            Candidate(id: model.catalogueID, role: role(of: model), large: false)
+            Candidate(id: model.catalogueID, role: role(of: model, beside: recommendation), large: false)
         }
         var picks = [Pick(id: recommendation.model.catalogueID, role: .recommended)]
         for candidate in suggested + candidates(for: LocalSpeechRecommendation.normalized(languageCode))
@@ -82,33 +87,36 @@ public struct LocalModelShortlist: Equatable, Sendable {
         let large: Bool
     }
 
-    private static func role(of model: LocalSpeechRecommendation.Model) -> Role {
+    /// The label of a recommendation's own alternative, which depends on what
+    /// it is compared with.
+    private static func role(of model: LocalSpeechRecommendation.Model,
+                             beside recommendation: LocalSpeechRecommendation) -> Role {
         switch model {
-        case .qwen3Large: .mixedChineseEnglish
+        case .qwen3Large:
+            switch recommendation.model {
+            case .senseVoice: .mixedChineseEnglish
+            case .whisperTurbo: .moreAccurate
+            case .parakeetEnglish, .qwen3Large: .multilingual
+            }
         case .senseVoice: .faster
-        case .whisperTurbo: .multilingual
+        case .whisperTurbo: recommendation.model == .qwen3Large ? .lessMemory : .multilingual
+        case .parakeetEnglish: .singleLanguage
         }
     }
 
     /// Verified models only (`ModelCatalogue.verificationEvidence`); the
     /// models-performance fixture asserts it for every language below.
     private static func candidates(for language: String?) -> [Candidate] {
-        let turbo = "whisper:turbo", largeV3 = "whisper:large-v3", senseVoice = "sherpa:senseVoice"
+        let largeV3 = "whisper:large-v3", senseVoice = "sherpa:senseVoice"
         switch language {
         case "zh":
             return [Candidate(id: senseVoice, role: .faster, large: false),
                     Candidate(id: "sherpa:fireRed", role: .mandarin, large: false)]
-        case "en":
-            return [Candidate(id: "coreml:parakeet-v2", role: .singleLanguage, large: false),
-                    Candidate(id: turbo, role: .multilingual, large: false),
-                    Candidate(id: senseVoice, role: .faster, large: false)]
-        case "ja":
-            return [Candidate(id: "coreml:parakeet-ja", role: .singleLanguage, large: false),
-                    Candidate(id: turbo, role: .multilingual, large: false),
-                    Candidate(id: senseVoice, role: .faster, large: false)]
-        case "ko":
-            return [Candidate(id: turbo, role: .multilingual, large: false),
-                    Candidate(id: senseVoice, role: .faster, large: false)]
+        case "en", "ja", "ko":
+            // AD-083: the recommendation and its alternative cover these. The
+            // shipped SenseVoice failed on all three languages, and Parakeet
+            // Japanese dropped a whole sentence from 3 of 60 FLEURS clips.
+            return []
         case let code? where europeanLanguages.contains(code):
             return [Candidate(id: "coreml:parakeet-v3", role: .smaller, large: false),
                     Candidate(id: largeV3, role: .fullSize, large: true)]
