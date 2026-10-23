@@ -88,6 +88,7 @@ public actor EngineFactory {
         case .cohere: engine = CohereTranscriber(modelId: config.cohereModel)
         case .fireRed: engine = SherpaTranscriber(model: .fireRed)
         case .senseVoice: engine = SherpaTranscriber(model: .senseVoice)
+        case .senseVoiceMultilingual: engine = SherpaTranscriber(model: .senseVoiceMultilingual)
         case .parakeet: engine = SherpaTranscriber(model: .parakeet)
         case .apple: engine = AppleSpeechTranscriber(locale: config.effectiveAppleLocale)
         case .openAI:

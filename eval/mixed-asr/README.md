@@ -295,3 +295,62 @@ However, it removes the spaces between English and Chinese in 126 of 140
 outputs and ends English sentences with full-width `？`/`。`. Adopting it needs
 a space-preserving realignment and an explicit, pinned, optional download in
 Models. It remains a follow-up.
+
+## 2026-10-24 follow-up: the original multilingual SenseVoice
+
+AD-083 found that the SenseVoice archive measured above (sherpa-onnx int8
+2025-09-09) is converted from ASLP-lab WSYue-ASR `sensevoice_small_yue`, a
+Cantonese fine-tune. Airdraft now also installs the original SenseVoiceSmall
+(int8 2024-07-17, pinned by URL, bytes and SHA-256) as "SenseVoice"
+(`sherpa:senseVoiceMultilingual`); the fine-tune keeps `sherpa:senseVoice` as
+"SenseVoice Cantonese". Both, plus Qwen3-ASR 1.7B, were rerun through the same
+production route from a working tree on `0196926` (`run_matrix.py --followup`):
+ASCEND and the Meijia set, Auto and zh, at one build. The corpus was regenerated
+with `prepare_corpus.py`; `manifest.json` did not change. The original artifact
+was installed with the app's `--e2e-action download`. `score.py --followup` writes
+`results/followup-2026-10-24/`; the AD-074 and AD-082 result files are unchanged.
+The output guards (AD-082) are active in every row here.
+
+| Corpus | Model | Lang | MER | CER | WER | EN keep | p50 ms |
+|---|---|---|---|---|---|---|---|
+| ASCEND | SenseVoice | Auto | 0.126 | 0.097 | 0.429 | 59.3% | 52 |
+| ASCEND | SenseVoice | zh | 0.136 | 0.104 | 0.460 | 54.9% | 52 |
+| ASCEND | SenseVoice Cantonese | Auto | 0.136 | 0.093 | 0.509 | 52.6% | 52 |
+| ASCEND | SenseVoice Cantonese | zh | 0.137 | 0.092 | 0.522 | 50.9% | 52 |
+| ASCEND | Qwen3-ASR 1.7B | Auto | 0.089 | 0.077 | 0.243 | 76.1% | 292 |
+| ASCEND | Qwen3-ASR 1.7B | zh | 0.089 | 0.082 | 0.217 | 78.8% | 300 |
+| Meijia | SenseVoice | Auto | 0.122 | 0.026 | 0.506 | 57.5% | 45 |
+| Meijia | SenseVoice | zh | 0.117 | 0.026 | 0.483 | 59.8% | 46 |
+| Meijia | SenseVoice Cantonese | Auto | 0.103 | 0.026 | 0.483 | 58.6% | 45 |
+| Meijia | SenseVoice Cantonese | zh | 0.117 | 0.024 | 0.552 | 51.7% | 45 |
+| Meijia | Qwen3-ASR 1.7B | Auto | 0.028 | 0.003 | 0.138 | 89.7% | 255 |
+| Meijia | Qwen3-ASR 1.7B | zh | 0.028 | 0.009 | 0.115 | 90.8% | 264 |
+
+CIs are in `summary.json`. The SenseVoice Cantonese and Qwen3-ASR rows equal the
+AD-074 rows to three decimals. Paired (`paired_vs_sensevoice_auto`, keyed by
+`vs`; negative MER is better):
+
+| Corpus | Comparison | ΔMER (95% CI) | ΔEN keep (95% CI) |
+|---|---|---|---|
+| ASCEND | SenseVoice − SenseVoice Cantonese, Auto | −0.010 (−0.026…+0.007) | +6.6 pt (−2.0…+14.8) |
+| Meijia | SenseVoice − SenseVoice Cantonese, Auto | +0.019 (−0.019…+0.056) | −1.1 pt (−12.9…+10.5) |
+| ASCEND | Qwen3-ASR 1.7B − SenseVoice, Auto | −0.037 (−0.053…−0.021) | +16.8 pt (+8.9…+24.9) |
+| Meijia | Qwen3-ASR 1.7B − SenseVoice, Auto | −0.094 (−0.134…−0.055) | +32.2 pt (+20.0…+43.5) |
+| ASCEND | SenseVoice zh − SenseVoice Auto | +0.010 (+0.002…+0.019) | −4.4 pt (−8.6…−0.5) |
+
+On mixed Mandarin–English the two SenseVoice artifacts are statistically tied.
+Together with FLEURS (`eval/eja-asr/`, same date: the original is 2.8 points
+better on Mandarin, the fine-tune 0.8 points better on Cantonese, and the
+fine-tune fails on Japanese, Korean and English), "SenseVoice" now means the
+original model and the fine-tune is retired for new users. Qwen3-ASR 1.7B stays
+the Chinese recommendation, with SenseVoice first on Macs with 8 GB or less.
+With an explicit zh, SenseVoice's latency now equals Auto (52 ms p50 on ASCEND,
+against 414 ms in AD-074): preparation builds the recognizer for the recording's
+language.
+
+```sh
+W=/tmp/airdraft-wave/sensevoice-fixes/work
+python3 -I eval/mixed-asr/prepare_corpus.py --work "$W"
+python3 -I eval/mixed-asr/run_matrix.py --app "$APP" --work "$W" --followup
+python3 -I eval/mixed-asr/score.py --work "$W" --followup
+```

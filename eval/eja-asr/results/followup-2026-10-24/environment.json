@@ -1,0 +1,45 @@
+{
+ "date": "2026-10-24",
+ "source": "claude/sensevoice-fixes worktree on base 0196926, uncommitted measurement build; the source diff is kept as evidence (eval-source.diff). Later changes on the branch before commit (Korean terminal mark, hotword fallback, retired catalogue flag, tests, catalogs) do not change these outputs' scored tokens.",
+ "build": "Debug, xcodebuild (Xcode 27.0), LocalE2E --e2e-action transcribe --e2e-prepare",
+ "hardware": {
+  "model": "Mac16,8",
+  "chip": "Apple M4 Pro",
+  "memory_gb": 48,
+  "macos": "27.0.1"
+ },
+ "conditions": "Shared with other agent sessions running builds; latency is relative.",
+ "system_languages": {
+  "en": "en-US",
+  "ja": "ja-JP",
+  "ko": "ko-KR",
+  "yue": "zh-Hant-HK",
+  "zh": "zh-Hant-TW"
+ },
+ "corpora": {
+  "eja": "manifest.json (unchanged AD-083 audio, cloned from the AD-083 work directory)",
+  "chinese": "manifest-chinese.json: google/fleurs test yue_hant_hk and cmn_hans_cn at revision 70bb2e8, parquet SHA-256 checked, same selection rule, 60 each"
+ },
+ "models": {
+  "sherpa:senseVoiceMultilingual": {
+   "artifact": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+   "archive_bytes": 163002883,
+   "archive_sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+   "model.int8.onnx_sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51",
+   "obtained": "LocalE2E --e2e-action download --e2e-model sherpa:senseVoiceMultilingual (size and SHA-256 checked before unpacking) into the disposable model root"
+  },
+  "sherpa:senseVoice": {
+   "artifact": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09.tar.bz2 (WSYue sensevoice_small_yue)",
+   "model.int8.onnx_sha256": "12ca1a2ae7ecf3e0019ef2822307ee0b5cadc9196569e379b4c4026f8205276d",
+   "obtained": "APFS clone of the AD-083 copy, which the app's download path installed"
+  },
+  "qwen3:1.7b": {
+   "model.safetensors_sha256": "4c3dd2e56a6fa3523bc996e728b7011362af317c6b0616c8d78bb1b8d9ff600e",
+   "obtained": "APFS clone of the AD-083 copy"
+  },
+  "coreml:parakeet-ja": {
+   "revision": "2952296f (local-coreml-models.json)",
+   "obtained": "APFS clone of the AD-083 download"
+  }
+ }
+}

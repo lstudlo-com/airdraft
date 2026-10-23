@@ -108,10 +108,18 @@ public enum SpeechLanguagePolicy {
             // https://github.com/FireRedTeam/FireRedASR2S (AED recognizer, not FireRedLID)
             return capability("FireRedASR2", ["en", "zh"], true, .notApplied,
                               String(localized: "Automatically recognizes Mandarin and English; selection does not limit recognition.", bundle: .module))
-        case .senseVoice:
-            // https://huggingface.co/FunAudioLLM/SenseVoiceSmall
+        case .senseVoiceMultilingual:
+            // https://huggingface.co/FunAudioLLM/SenseVoiceSmall, sherpa-onnx int8 2024-07-17.
+            // AD-083 follow-up measured every language through the app route (eval/eja-asr).
             return capability("SenseVoice", ["en", "ja", "ko", "yue", "zh"], true, .forced,
                               String(localized: "Mandarin, Cantonese, English, Japanese and Korean.", bundle: .module))
+        case .senseVoice:
+            // The 2025-09-09 archive is ASLP-lab WSYue-ASR sensevoice_small_yue, a
+            // Cantonese fine-tune. AD-083 (eval/eja-asr): Japanese lost every kana
+            // (CER 76%) and Korean most text (77%), so those are not offered;
+            // English remains, at 32% WER. Mandarin and Cantonese: eval/mixed-asr.
+            return capability("SenseVoice Cantonese", ["en", "yue", "zh"], true, .forced,
+                              String(localized: "Cantonese and Mandarin. Weak with English; no Japanese or Korean.", bundle: .module))
         case .parakeet:
             return capability("Parakeet TDT v3", parakeetLanguages, true, .notApplied,
                               String(localized: "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support.", bundle: .module))

@@ -76,7 +76,7 @@ public enum ModelSpeechPreview {
     /// cloud provider stay unavailable.
     public static func supports(_ asr: ASRConfig) -> Bool {
         switch asr.kind {
-        case .parakeet, .senseVoice, .orukeet: return true
+        case .parakeet, .senseVoice, .senseVoiceMultilingual, .orukeet: return true
         default: return false
         }
     }

@@ -95,4 +95,81 @@ final class AudioChunkerTests: XCTestCase {
             XCTAssertEqual(calls.value, 1)
         } catch { XCTFail("Unexpected error: \(error)") }
     }
+
+    // MARK: AD-083 follow-up: tiny tails and window joins
+
+    /// ja-2000 was 15.06 s at Parakeet's 15 s cap: the old split left a 0.06 s
+    /// tail that decoded alone as noise. The last window now keeps at least
+    /// the minimum tail, and no window exceeds the engine's limit.
+    func testTinyTailMovesTheCutEarlierWithinTheWindowLimit() {
+        let samples = [Float](repeating: 0.2, count: Int(15.06 * 16_000))
+        for chunks in [AudioChunker.split(samples, maxSeconds: 15)] {
+            XCTAssertEqual(chunks.count, 2)
+            XCTAssertTrue(chunks.allSatisfy { $0.samples.count <= 15 * 16_000 })
+            XCTAssertGreaterThanOrEqual(chunks[1].samples.count, 3 * 16_000)
+            XCTAssertEqual(chunks.reduce(0) { $0 + $1.samples.count }, samples.count)
+        }
+    }
+
+    func testTailCutPrefersSilenceInsideTheAllowedRange() {
+        // Two "sentences" with a pause at 7.0-7.4 s; the audio is 15.06 s long.
+        var samples = [Float](repeating: 0.3, count: Int(15.06 * 16_000))
+        for i in Int(7.0 * 16_000)..<Int(7.4 * 16_000) { samples[i] = 0 }
+        let chunks = AudioChunker.split(samples, maxSeconds: 15)
+        XCTAssertEqual(chunks.count, 2)
+        XCTAssertTrue((7.0...7.4).contains(chunks[1].startSeconds), "cut at \(chunks[1].startSeconds)")
+    }
+
+    func testSynchronousAndAsyncDecodingShareTheBoundedSplit() async throws {
+        let samples = [Float](repeating: 0.1, count: Int(25.5 * 16_000))
+        var asyncSizes: [Int] = []
+        _ = try await AudioChunker.transcribeAsync(samples, maxSeconds: 25) { asyncSizes.append($0.count); return "a" }
+        var syncSizes: [Int] = []
+        _ = try AudioChunker.transcribe(samples, maxSeconds: 25) { syncSizes.append($0.count); return "a" }
+        XCTAssertEqual(asyncSizes, syncSizes)
+        XCTAssertEqual(syncSizes.count, 2, "The synchronous variant no longer merges a tail beyond its window")
+        XCTAssertTrue(syncSizes.allSatisfy { $0 <= 25 * 16_000 })
+        XCTAssertGreaterThanOrEqual(syncSizes.last!, 3 * 16_000)
+        XCTAssertEqual(syncSizes.reduce(0, +), samples.count)
+    }
+
+    func testLongTailKeepsTheOldCutAndZeroMinimumKeepsMeetingsSplit() {
+        // With at least the minimum left over, the cut search is unchanged.
+        let long = [Float](repeating: 0.1, count: 40 * 16_000)
+        XCTAssertEqual(AudioChunker.split(long, maxSeconds: 25).map(\.samples.count),
+                       AudioChunker.split(long, maxSeconds: 25, minTailSeconds: 0).map(\.samples.count))
+        // Meetings passes 0 and keeps the latest quiet point, here at 24.5 s.
+        var media = [Float](repeating: 0.3, count: Int(25.06 * 16_000))
+        for i in Int(24.5 * 16_000)..<Int(24.8 * 16_000) { media[i] = 0 }
+        XCTAssertTrue((24.5...24.8).contains(AudioChunker.split(media, maxSeconds: 25, minTailSeconds: 0)[1].startSeconds))
+        XCTAssertLessThan(AudioChunker.split(media, maxSeconds: 25)[1].startSeconds, 22.07)
+    }
+
+    func testWindowsJoinWithoutSpacesBetweenChineseOrJapaneseCharacters() {
+        XCTAssertEqual(AudioChunker.join(["船室の位置を確認してください。", "氷の中を突き進む"]), "船室の位置を確認してください。氷の中を突き進む")
+        XCTAssertEqual(AudioChunker.join(["今天先開會", "然後再討論"]), "今天先開會然後再討論")
+        XCTAssertEqual(AudioChunker.join(["カタカナ", "ひらがな", "漢字"]), "カタカナひらがな漢字")
+        XCTAssertEqual(AudioChunker.join(["first window.", "Second window"]), "first window. Second window")
+        XCTAssertEqual(AudioChunker.join(["我等一下把 PR", "merge 到 main"]), "我等一下把 PR merge 到 main")
+        XCTAssertEqual(AudioChunker.join(["部署到 main", "branch 之後"]), "部署到 main branch 之後")
+        XCTAssertEqual(AudioChunker.join(["회의를 시작합니다", "다음 안건"]), "회의를 시작합니다 다음 안건", "Korean keeps word spacing")
+        XCTAssertEqual(AudioChunker.join(["only"]), "only")
+        XCTAssertEqual(AudioChunker.join([]), "")
+    }
+
+    func testDecodersJoinJapaneseWindowsWithoutASpace() async throws {
+        let samples = [Float](repeating: 0.1, count: 20 * 16_000)
+        var index = 0
+        let text = try await AudioChunker.transcribeAsync(samples, maxSeconds: 15) { _ in
+            index += 1
+            return index == 1 ? "冬に北バルト海を横断する場合は、" : " 船室の位置を確認してください。 "
+        }
+        XCTAssertEqual(text, "冬に北バルト海を横断する場合は、船室の位置を確認してください。")
+        index = 0
+        let latin = try AudioChunker.transcribe(samples, maxSeconds: 15) { _ in
+            index += 1
+            return index == 1 ? "first" : "second"
+        }
+        XCTAssertEqual(latin, "first second")
+    }
 }

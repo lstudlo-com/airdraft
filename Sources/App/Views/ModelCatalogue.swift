@@ -17,13 +17,16 @@ struct ModelEntry: Identifiable, Sendable {
     let accuracy: Int   // 1...5 relative rating; 0 means unrated
     let storage: Storage
     let note: String
+    /// Kept only for existing installs: listed while it is in use (default,
+    /// profile binding, installed or downloading), never offered otherwise.
+    let retired: Bool
     /// Points a speech config at this model.
     let select: @Sendable (inout ASRConfig) -> Void
 
     /// The title comes from Core's `ASRConfig.modelDisplayName`, the name Home,
     /// Profiles and the menu show, so the Models table cannot drift from it.
     init(id: String, vendor: String, provider: String, brand: ModelBrand, tags: [String], speed: Int, accuracy: Int,
-         storage: Storage, note: String, select: @escaping @Sendable (inout ASRConfig) -> Void) {
+         storage: Storage, note: String, retired: Bool = false, select: @escaping @Sendable (inout ASRConfig) -> Void) {
         var config = ASRConfig()
         select(&config)
         self.id = id
@@ -36,6 +39,7 @@ struct ModelEntry: Identifiable, Sendable {
         self.accuracy = accuracy
         self.storage = storage
         self.note = note
+        self.retired = retired
         self.select = select
     }
 
@@ -165,10 +169,19 @@ enum ModelCatalogue {
             note: String(localized: "Best open English model.")
         ) { $0.kind = .cohere; $0.cohereModel = "aufklarer/Cohere-Transcribe-2B-MLX-5bit" },
         ModelEntry(
-            id: "sherpa:senseVoice", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
+            id: "sherpa:senseVoiceMultilingual", vendor: "FunAudioLLM · ONNX", provider: "Alibaba", brand: .alibaba,
+            tags: [], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoiceMultilingual.sizeLabel),
+            note: String(localized: "Small and fast. Weaker with English terms in Chinese speech.")
+        ) { $0.kind = .senseVoiceMultilingual },
+        // Through 0.11.0 this Cantonese fine-tune (WSYue, sherpa-onnx 2025-09-09)
+        // was the only SenseVoice; its ID keeps existing selections exact. The
+        // AD-083 follow-up found it no clearer for Cantonese than the original
+        // (FLEURS CER 8.7% against 9.5%) and worse elsewhere, so it is retired.
+        ModelEntry(
+            id: "sherpa:senseVoice", vendor: "ASLP-lab · ONNX", provider: "Alibaba", brand: .alibaba,
             tags: [], speed: 5, accuracy: 3, storage: .download(sizeLabel: SherpaTranscriber.Model.senseVoice.sizeLabel),
-            // AD-083: the shipped archive is a Cantonese fine-tune; English, Japanese and Korean failed.
-            note: String(localized: "Small and fast for Chinese; weaker with English and other languages.")
+            note: String(localized: "Cantonese fine-tune of SenseVoice. Weak with English; no Japanese or Korean."),
+            retired: true
         ) { $0.kind = .senseVoice },
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
@@ -229,6 +242,9 @@ extension ModelCatalogue {
         for id in ["coreml:parakeet-v2", "coreml:parakeet-ja", "whisper:large-v3"] {
             evidence[id] = fleurs
         }
+        // Installed through the app's pinned download, loaded and measured on
+        // FLEURS en/ja/ko/yue/cmn and ASCEND (AD-083 follow-up).
+        evidence["sherpa:senseVoiceMultilingual"] = "eval/eja-asr and eval/mixed-asr follow-up (2026-10-24, base 0196926)"
         return evidence
     }()
 
@@ -252,6 +268,7 @@ extension ModelCatalogue {
     /// Experimental entry in catalogue order.
     static func localItems(_ entries: [ModelEntry], shortlist: LocalModelShortlist, inUse: Set<String>,
                            showsAll: Bool, expanded: Bool, searching: Bool) -> [LocalModelItem] {
+        let entries = offered(entries, inUse: inUse)
         let groups = grouped(entries, shortlist: shortlist)
         var items: [LocalModelItem] = []
         let recommendedHeader: LocalModelItem.Header = shortlist.recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
@@ -278,6 +295,11 @@ extension ModelCatalogue {
             items += (open ? groups.experimental : kept).map { .model($0, header: nil, role: nil) }
         }
         return items
+    }
+
+    /// Every entry except retired ones the user does not rely on.
+    static func offered(_ entries: [ModelEntry], inUse: Set<String>) -> [ModelEntry] {
+        entries.filter { !$0.retired || inUse.contains($0.id) }
     }
 
     /// One recommendation for first-run setup and Models (AD-074). Renders inject

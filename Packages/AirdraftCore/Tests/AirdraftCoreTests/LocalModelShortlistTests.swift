@@ -12,9 +12,9 @@ final class LocalModelShortlistTests: XCTestCase {
     func testEachLanguageAndMemoryGetsADeterministicCuratedSet() {
         typealias P = LocalModelShortlist.Pick
         let cases: [(String?, UInt64, [P])] = [
-            ("zh-Hant-TW", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "sherpa:senseVoice", role: .faster),
+            ("zh-Hant-TW", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "sherpa:senseVoiceMultilingual", role: .faster),
                                       P(id: "sherpa:fireRed", role: .mandarin)]),
-            ("zh-Hans", 8 * gib, [P(id: "sherpa:senseVoice", role: .recommended), P(id: "qwen3:1.7b", role: .mixedChineseEnglish),
+            ("zh-Hans", 8 * gib, [P(id: "sherpa:senseVoiceMultilingual", role: .recommended), P(id: "qwen3:1.7b", role: .mixedChineseEnglish),
                                   P(id: "sherpa:fireRed", role: .mandarin)]),
             ("en-US", 16 * gib, [P(id: "coreml:parakeet-v2", role: .recommended), P(id: "qwen3:1.7b", role: .multilingual)]),
             ("en-GB", 8 * gib, [P(id: "coreml:parakeet-v2", role: .recommended), P(id: "qwen3:1.7b", role: .multilingual)]),

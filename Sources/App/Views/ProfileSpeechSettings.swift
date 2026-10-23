@@ -14,7 +14,11 @@ struct ProfileSpeechSettings: View {
     private var config: ASRConfig { selection?.applying(to: container.settings.asr) ?? container.settings.asr }
 
     private var localChoices: [Choice] {
-        ModelCatalogue.entries.map {
+        // A retired model stays choosable only where it is already in use.
+        let asr = container.settings.asr
+        return ModelCatalogue.entries.filter {
+            !$0.retired || $0.isSelected(asr) || selection == ProfileSpeechModel(config: $0.config(from: asr))
+        }.map {
             Choice(title: "\($0.title) · \($0.vendor)", selection: ProfileSpeechModel(config: $0.config(from: container.settings.asr)))
         }
     }

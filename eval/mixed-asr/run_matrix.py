@@ -11,6 +11,10 @@ production pipeline resolves SpeechLanguagePolicy, applies the Chinese script
 (ASRConfig default: Traditional) and dictionary post-processing. Utterances are
 the outer loop and configurations the inner loop, so background load affects
 all models alike. Results are resumable JSON files under <work>/runs.
+
+2026-10-24 follow-up: `--followup` runs FOLLOWUP (both SenseVoice artifacts and
+Qwen3-ASR 1.7B, at one build) on ASCEND and the Meijia set into
+<work>/runs-followup, without the load-time probe.
 """
 import argparse, json, os, pathlib, re, subprocess, time
 
@@ -24,11 +28,19 @@ CONFIGS = [
     ("whisper:turbo", "auto"), ("whisper:turbo", "zh"),
     ("sherpa:fireRed", "auto"),
 ]
+# sherpa:senseVoice is the shipped Cantonese fine-tune (2025-09-09) and
+# sherpa:senseVoiceMultilingual the original SenseVoiceSmall (2024-07-17).
+FOLLOWUP = [
+    ("sherpa:senseVoice", "auto"), ("sherpa:senseVoice", "zh"),
+    ("sherpa:senseVoiceMultilingual", "auto"), ("sherpa:senseVoiceMultilingual", "zh"),
+    ("qwen3:1.7b", "auto"), ("qwen3:1.7b", "zh"),
+]
+FOLLOWUP_CORPORA = {"ascend", "tw-tts-meijia"}
 
 
 def run_app(app, work, model, language, audio, data_dir, prepare=True):
     data_dir.mkdir(parents=True, exist_ok=True)
-    env = {"HOME": os.environ["HOME"], "PATH": os.environ["PATH"], "TMPDIR": os.environ.get("TMPDIR", "/tmp"),
+    env = {"HOME": os.environ["HOME"], "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "TMPDIR": os.environ.get("TMPDIR", "/tmp"),
            "AIRDRAFT_E2E_MODEL_ROOT": str(work / "models")}
     command = ["/usr/bin/time", "-l", str(app / "Contents/MacOS/Airdraft Debug"), "--e2e-local", str(data_dir),
                "--e2e-action", "transcribe", "--e2e-model", model, "--e2e-language", language,
@@ -53,13 +65,18 @@ def main():
     parser.add_argument("--app", required=True, type=pathlib.Path)
     parser.add_argument("--work", required=True, type=pathlib.Path)
     parser.add_argument("--load-reps", type=int, default=3)
+    parser.add_argument("--followup", action="store_true")
     args = parser.parse_args()
     items = json.loads((HERE / "manifest.json").read_text())["items"]
     runs = args.work / "runs"
+    configs = CONFIGS
+    if args.followup:
+        runs, configs, args.load_reps = args.work / "runs-followup", FOLLOWUP, 0
+        items = [i for i in items if i["corpus"] in FOLLOWUP_CORPORA]
     # Load time: asrMs without --e2e-prepare (load + inference) minus asrMs with it,
     # on the same file, OS file cache warm. Alternated per repetition.
-    probe = next(i for i in items if i["id"] == "tw01")
-    for model in sorted({m for m, _ in CONFIGS}):
+    probe = next((i for i in items if i["id"] == "tw01"), None)
+    for model in sorted({m for m, _ in configs}):
         for rep in range(args.load_reps):
             for prepare in (False, True):
                 out = runs / "load" / f"{model.replace(':', '_')}-{rep}-{'prep' if prepare else 'cold'}.json"
@@ -73,7 +90,7 @@ def main():
                 print("load", model, rep, prepare, result["asrMs"], result["status"], flush=True)
     for index, item in enumerate(items):
         audio = args.work / "audio" / item["corpus"] / f"{item['id']}.wav"
-        for model, language in CONFIGS:
+        for model, language in configs:
             tag = f"{model.replace(':', '_')}-{language}"
             out = runs / tag / f"{item['id']}.json"
             if out.exists() and json.loads(out.read_text()).get("status") == "passed":

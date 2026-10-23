@@ -13,11 +13,18 @@ languages. The ASRConfig default script (Traditional) is unchanged, as for a new
 install. Utterances are the outer loop and configurations the inner loop, so
 background load affects all models alike. Results are resumable JSON files
 under <work>/runs/<lang>/<config>/<id>.json.
+
+2026-10-24 follow-up (`--followup`): the app now installs the original
+multilingual SenseVoice as `sherpa:senseVoiceMultilingual`, and the shipped
+Cantonese fine-tune keeps `sherpa:senseVoice`. FOLLOWUP lists the reruns
+(SenseVoice for en/ja/ko, Parakeet Japanese after the window fixes) and the
+FLEURS Cantonese/Mandarin set from manifest-chinese.json. Results go to
+<work>/runs-followup/, so the AD-083 runs stay untouched.
 """
 import argparse, json, os, pathlib, re, subprocess, time
 
 HERE = pathlib.Path(__file__).resolve().parent
-SYSTEM_LANGUAGE = {"en": "en-US", "ja": "ja-JP", "ko": "ko-KR"}
+SYSTEM_LANGUAGE = {"en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "yue": "zh-Hant-HK", "zh": "zh-Hant-TW"}
 # (model catalogue ID, --e2e-language). Only languages each model's
 # SpeechLanguagePolicy supports. Models with manualControl .notApplied (Parakeet)
 # ignore the setting and run once; Cohere has no Auto.
@@ -41,6 +48,16 @@ CONFIGS = {
 # 2025-09-09 archive is converted from the Cantonese fine-tune ASLP-lab/WSYue-ASR.
 SENSEVOICE_2024 = "sherpa:senseVoice@2024"
 SENSEVOICE_2024_ROOT = "models-sv2024"
+SV_MULTI, SV_YUE = "sherpa:senseVoiceMultilingual", "sherpa:senseVoice"
+FOLLOWUP = {
+    "en": [(SV_MULTI, "auto"), (SV_MULTI, "en")],
+    "ja": [(SV_MULTI, "auto"), (SV_MULTI, "ja"), ("coreml:parakeet-ja", "auto")],
+    "ko": [(SV_MULTI, "auto"), (SV_MULTI, "ko")],
+    "yue": [(SV_YUE, "auto"), (SV_YUE, "yue"), (SV_MULTI, "auto"), (SV_MULTI, "yue"),
+            ("qwen3:1.7b", "auto"), ("qwen3:1.7b", "yue")],
+    "zh": [(SV_YUE, "auto"), (SV_YUE, "zh"), (SV_MULTI, "auto"), (SV_MULTI, "zh"),
+           ("qwen3:1.7b", "auto"), ("qwen3:1.7b", "zh")],
+}
 
 
 def run_app(app, work, model, language, audio, data_dir, system_language, prepare=True):
@@ -81,14 +98,18 @@ def main():
     parser.add_argument("--languages", default="en,ja,ko")
     parser.add_argument("--configs", help="comma list of model:language; default: all for each language")
     parser.add_argument("--ids", help="comma list of utterance IDs")
+    parser.add_argument("--followup", action="store_true",
+                        help="2026-10-24 follow-up configurations (FOLLOWUP) into <work>/runs-followup")
+    parser.add_argument("--manifest", default="manifest.json", help="manifest-chinese.json for yue/zh")
     parser.add_argument("--sensevoice-2024", action="store_true",
                         help="run only the evaluation-only original SenseVoice (Auto and the explicit language)")
     args = parser.parse_args()
-    items = json.loads((HERE / "manifest.json").read_text())["items"]
+    items = json.loads((HERE / args.manifest).read_text())["items"]
+    runs_dir = "runs-followup" if args.followup else "runs"
     wanted_ids = set(args.ids.split(",")) if args.ids else None
     only = {tuple(c.rsplit(":", 1)) for c in args.configs.split(",")} if args.configs else None
     for lang in args.languages.split(","):
-        configs = [c for c in CONFIGS[lang] if only is None or c in only]
+        configs = [c for c in (FOLLOWUP if args.followup else CONFIGS)[lang] if only is None or c in only]
         if args.sensevoice_2024:
             configs = [(SENSEVOICE_2024, "auto"), (SENSEVOICE_2024, lang)]
         for index, item in enumerate(i for i in items if i["language"] == lang):
@@ -97,7 +118,7 @@ def main():
             audio = args.work / "audio" / item["corpus"] / f"{item['id']}.wav"
             for model, language in configs:
                 tag = f"{model.replace(':', '_').replace('@', '_')}-{language}"
-                out = args.work / "runs" / lang / tag / f"{item['id']}.json"
+                out = args.work / runs_dir / lang / tag / f"{item['id']}.json"
                 if out.exists():
                     continue
                 out.parent.mkdir(parents=True, exist_ok=True)

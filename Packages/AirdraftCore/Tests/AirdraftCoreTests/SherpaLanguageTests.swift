@@ -14,7 +14,7 @@ final class SherpaLanguageTests: XCTestCase {
             ("en-US", "en"), ("yue", "yue"), ("ja", "ja"), ("ko", "ko"),
         ]
         for (requested, expected) in cases {
-            let configuration = try Configuration(model: .senseVoice, hints: .init(language: requested))
+            let configuration = try Configuration(model: .senseVoiceMultilingual, hints: .init(language: requested))
             try configuration.withCConfiguration(folder: fixtureFolder, files: ["model.int8.onnx", "tokens.txt"]) { native in
                 let language = try XCTUnwrap(native.model_config.sense_voice.language)
                 XCTAssertEqual(String(cString: language), expected, "Requested: \(requested ?? "nil")")

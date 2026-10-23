@@ -5,7 +5,7 @@ extension LocalSpeechRecommendation.Model {
     public var catalogueID: String {
         switch self {
         case .qwen3Large: "qwen3:1.7b"
-        case .senseVoice: "sherpa:senseVoice"
+        case .senseVoice: "sherpa:senseVoiceMultilingual"
         case .whisperTurbo: "whisper:turbo"
         case .parakeetEnglish: "coreml:parakeet-v2"
         }
@@ -107,7 +107,7 @@ public struct LocalModelShortlist: Equatable, Sendable {
     /// Verified models only (`ModelCatalogue.verificationEvidence`); the
     /// models-performance fixture asserts it for every language below.
     private static func candidates(for language: String?) -> [Candidate] {
-        let largeV3 = "whisper:large-v3", senseVoice = "sherpa:senseVoice"
+        let largeV3 = "whisper:large-v3", senseVoice = LocalSpeechRecommendation.Model.senseVoice.catalogueID
         switch language {
         case "zh":
             return [Candidate(id: senseVoice, role: .faster, large: false),

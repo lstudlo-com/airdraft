@@ -85,7 +85,7 @@ struct ModelsPage: View {
             if showsAll {
                 Text("Show Recommended Only")
             } else {
-                Text("Show All Models (\(ModelCatalogue.entries.count))")
+                Text("Show All Models (\(ModelCatalogue.offered(ModelCatalogue.entries, inUse: inUseIDs).count))")
             }
         }
         .buttonStyle(SoftButtonStyle())

@@ -219,7 +219,7 @@ struct OnboardingView: View {
 @MainActor @Observable
 final class OnboardingSpeechChoice {
     var useCloud = false
-    var localChoice = "sherpa:senseVoice"
+    var localChoice = ModelCatalogue.recommendation.model.catalogueID
     var cloudChoice: ASRProviderKind = .groq
     private(set) var recommendation = ModelCatalogue.recommendation
     var recommendedID: String { recommendation.model.catalogueID }

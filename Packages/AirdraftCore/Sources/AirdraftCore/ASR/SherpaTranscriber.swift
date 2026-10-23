@@ -1,4 +1,5 @@
 import Foundation
+import os
 import SherpaOnnxC
 import Synchronization
 
@@ -6,15 +7,26 @@ import Synchronization
 /// Models load from `LocalModels.sherpaFolder`; installation is explicit.
 public actor SherpaTranscriber: Transcriber {
     public enum Model: String, Sendable, CaseIterable {
+        /// The 2025-09-09 sherpa-onnx archive, converted from ASLP-lab WSYue-ASR
+        /// `sensevoice_small_yue`, a Cantonese fine-tune (shown as "SenseVoice
+        /// Cantonese"). Through 0.11.0 it was the only SenseVoice, so its ID keeps
+        /// existing selections, profile bindings and history engine IDs exact.
         case senseVoice
+        /// The original multilingual SenseVoiceSmall (FunAudioLLM, sherpa-onnx int8
+        /// 2024-07-17), shown as "SenseVoice" (AD-083 follow-up).
+        case senseVoiceMultilingual
         case fireRed
         case parakeet
         case orukeet
+
+        /// Both SenseVoice artifacts share the decoder, language tokens and text normalization.
+        public var isSenseVoice: Bool { self == .senseVoice || self == .senseVoiceMultilingual }
 
         /// Folder name under LocalModels.sherpaRoot and the release archive to fetch.
         public var folderName: String {
             switch self {
             case .senseVoice: return "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09"
+            case .senseVoiceMultilingual: return "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17"
             case .fireRed: return "sherpa-onnx-fire-red-asr2-zh_en-int8-2026-02-26"
             case .orukeet: return "sherpa-onnx-orukeet-v0.1.0-int8"
             case .parakeet: return "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8"
@@ -31,8 +43,22 @@ public actor SherpaTranscriber: Transcriber {
         public var sizeLabel: String {
             switch self {
             case .senseVoice: return "166 MB"
+            case .senseVoiceMultilingual: return "163 MB"
             case .fireRed: return "840 MB"
             case .parakeet, .orukeet: return "487 MB"
+            }
+        }
+
+        /// Exact archive bytes (GitHub release asset size, or the Hub's linked size
+        /// for Orukeet), checked before the digest so a truncated or different
+        /// download fails with a clear size mismatch.
+        var archiveBytes: Int64 {
+            switch self {
+            case .senseVoice: return 165_783_878
+            case .senseVoiceMultilingual: return 163_002_883
+            case .fireRed: return 838_589_068
+            case .parakeet: return 487_170_055
+            case .orukeet: return 486_807_585
             }
         }
 
@@ -40,6 +66,7 @@ public actor SherpaTranscriber: Transcriber {
         var archiveSHA256: String? {
             switch self {
             case .senseVoice: return "7305f7905bfcf77fa0b39388a313f3da35c68d971661a65475b56fb2162c8e63"
+            case .senseVoiceMultilingual: return "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e"
             case .fireRed: return "43015b3f1643a5688b4821e8ed323473d38b798c4ec291471fe00df1bcfc4f1c"
             case .orukeet: return "f9191f30178cc9122ce2f023bf9fefafc822028307b0efa4caff645ba3fe8d0a"
             case .parakeet: return "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf"
@@ -49,7 +76,7 @@ public actor SherpaTranscriber: Transcriber {
         /// ONNX files the model needs, matched by prefix inside its folder.
         var onnxPrefixes: [String] {
             switch self {
-            case .senseVoice: return ["model"]
+            case .senseVoice, .senseVoiceMultilingual: return ["model"]
             case .fireRed: return ["encoder", "decoder"]
             case .parakeet, .orukeet: return ["encoder", "decoder", "joiner"]
             }
@@ -76,6 +103,7 @@ public actor SherpaTranscriber: Transcriber {
         deinit { SherpaOnnxDestroyOfflineRecognizer(pointer) }
     }
 
+    static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "sherpa")
     public nonisolated let id: String
     private let model: Model
     private let modelDirectory: URL
@@ -89,14 +117,23 @@ public actor SherpaTranscriber: Transcriber {
     /// prewarm then builds the recognizer the dictation will use instead of
     /// rebuilding it after recording.
     private static let anticipatedHotwordDecoding = Mutex(false)
+    /// The language the next recognizer is built for. SenseVoice fixes its
+    /// language at construction, so a prewarm for Auto followed by a dictation
+    /// with an explicit language rebuilt it (about 350 ms) on the first
+    /// dictation after every load. Speech language is a shared setting, so one
+    /// value serves every model; nil means Auto.
+    private static let anticipatedLanguage = Mutex<String?>(nil)
 
     /// Call with the recording's captured hints before prewarming the model.
     public static func anticipate(_ hints: TranscriptionHints) {
         let wanted = !hints.onDeviceVocabulary.isEmpty
         anticipatedHotwordDecoding.withLock { $0 = wanted }
+        let language = hints.language
+        anticipatedLanguage.withLock { $0 = language }
     }
 
     static var anticipatesHotwordDecoding: Bool { anticipatedHotwordDecoding.withLock { $0 } }
+    static var anticipatedLanguageHint: String? { anticipatedLanguage.withLock { $0 } }
 
     public init(model: Model) {
         self.model = model
@@ -124,8 +161,7 @@ public actor SherpaTranscriber: Transcriber {
         try Task.checkCancellation()
         // A factory prepare precedes each transcription. Keep a warm recognizer's
         // language here; the next transcription resolves its own current hint.
-        let configuration = try recognizerConfiguration
-            ?? RecognizerConfiguration(model: model, hotwordDecoding: Self.anticipatesHotwordDecoding)
+        let configuration = try recognizerConfiguration ?? Self.anticipatedConfiguration(for: model)
         _ = try loadedRecognizer(configuration: configuration)
     }
 
@@ -143,7 +179,8 @@ public actor SherpaTranscriber: Transcriber {
         let configuration = try RecognizerConfiguration(model: model, hints: hints)
         Self.anticipate(hints)
         let recognizer = try loadedRecognizer(configuration: configuration)
-        let hotwords = configuration.hotwordDecoding
+        // The loaded recognizer may have fallen back to greedy decoding.
+        let hotwords = recognizerConfiguration?.hotwordDecoding == true
             ? tokenVocabulary.flatMap { Self.hotwords(hints.onDeviceVocabulary, vocabulary: $0) } : nil
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
@@ -152,7 +189,7 @@ public actor SherpaTranscriber: Transcriber {
             Self.decode($0, with: recognizer.pointer, hotwords: hotwords)
         }
         var adjustments: [TranscriptAdjustment] = []
-        if model == .senseVoice || model == .fireRed {
+        if model.isSenseVoice || model == .fireRed {
             // AD-082: these decoders write English in capitals and never punctuate.
             (text, adjustments) = SpokenTextNormalizer.normalizeCapitalizedOutput(text, vocabulary: hints.vocabulary)
         }
@@ -173,11 +210,38 @@ public actor SherpaTranscriber: Transcriber {
         return result.pointee.text.map { String(cString: $0) } ?? ""
     }
 
-    private func loadedRecognizer(configuration: RecognizerConfiguration) throws -> Recognizer {
+    private func loadedRecognizer(configuration requested: RecognizerConfiguration) throws -> Recognizer {
         let folder = modelDirectory
         guard !FileManager.default.fileExists(atPath: folder.appendingPathComponent(LocalModels.incompleteMarker).path),
               LocalModels.hasSherpa(model, at: folder) else { throw TranscriberError.modelNotDownloaded }
-        if let recognizer, recognizerConfiguration == configuration { return recognizer }
+        if let recognizer, recognizerConfiguration == requested { return recognizer }
+        var configuration = requested
+        var vocabulary: TokenVocabulary?
+        var scoredVocabulary: URL?
+        if requested.hotwordDecoding {
+            // sherpa-onnx encodes hotword text with a scored BPE vocabulary
+            // (modeling_unit "bpe"). The NeMo archives ship tokens.txt only, so
+            // the scored list goes to a temporary file outside the verified
+            // model folder and is deleted once the recognizer has read it.
+            // Vocabulary bias is optional: an unreadable tokens.txt or an
+            // unwritable temporary file falls back to greedy decoding instead
+            // of failing the dictation. The log names no vocabulary text.
+            do {
+                let tokensURL = folder.appendingPathComponent("tokens.txt")
+                let tokens = try hotwordVocabularyOverride.map { try $0(tokensURL) } ?? TokenVocabulary(contentsOf: tokensURL)
+                guard !tokens.pieces.isEmpty else { throw HotwordSetupError.emptyVocabulary }
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("airdraft-hotword-vocab-\(UUID().uuidString).txt")
+                try tokens.scoredVocabulary().write(to: url, atomically: true, encoding: .utf8)
+                vocabulary = tokens
+                scoredVocabulary = url
+            } catch {
+                Self.log.error("engine=\(self.id, privacy: .public) hotword setup failed (\(String(describing: type(of: error)), privacy: .public)); using greedy decoding")
+                configuration = requested.withoutHotwords
+                if let recognizer, recognizerConfiguration == configuration { return recognizer }
+            }
+        }
+        defer { if let scoredVocabulary { try? FileManager.default.removeItem(at: scoredVocabulary) } }
         // SenseVoice fixes its language when the recognizer is constructed.
         // Release the old model before rebuilding so a language change cannot
         // retain the old decoder or temporarily double its memory use.
@@ -186,21 +250,6 @@ public actor SherpaTranscriber: Transcriber {
         tokenVocabulary = nil
         try Task.checkCancellation()
         let files = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
-        var vocabulary: TokenVocabulary?
-        var scoredVocabulary: URL?
-        if configuration.hotwordDecoding {
-            // sherpa-onnx encodes hotword text with a scored BPE vocabulary
-            // (modeling_unit "bpe"). The NeMo archives ship tokens.txt only, so
-            // the scored list goes to a temporary file outside the verified
-            // model folder and is deleted once the recognizer has read it.
-            let tokens = try TokenVocabulary(contentsOf: folder.appendingPathComponent("tokens.txt"))
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("airdraft-hotword-vocab-\(UUID().uuidString).txt")
-            try tokens.scoredVocabulary().write(to: url, atomically: true, encoding: .utf8)
-            vocabulary = tokens
-            scoredVocabulary = url
-        }
-        defer { if let scoredVocabulary { try? FileManager.default.removeItem(at: scoredVocabulary) } }
         let pointer = configuration.withCConfiguration(folder: folder, files: files, bpeVocabulary: scoredVocabulary?.path) {
             SherpaOnnxCreateOfflineRecognizer(&$0)
         }
@@ -210,6 +259,27 @@ public actor SherpaTranscriber: Transcriber {
         recognizerConfiguration = configuration
         tokenVocabulary = vocabulary
         return created
+    }
+
+    private enum HotwordSetupError: Error { case emptyVocabulary }
+
+    /// Tests inject a failing vocabulary reader; production reads the model folder.
+    private var hotwordVocabularyOverride: (@Sendable (URL) throws -> TokenVocabulary)?
+    func setHotwordVocabularyReader(_ reader: (@Sendable (URL) throws -> TokenVocabulary)?) { hotwordVocabularyOverride = reader }
+    /// The configuration of the loaded recognizer, for tests.
+    var loadedConfiguration: RecognizerConfiguration? { recognizerConfiguration }
+
+    /// The recognizer a cold prepare builds: the captured vocabulary choice and
+    /// language. A language this model cannot use (the shared setting can be
+    /// stale after a model switch) falls back to Auto, so preparation never
+    /// fails on it; transcription validates the real language itself.
+    static func anticipatedConfiguration(for model: Model) throws -> RecognizerConfiguration {
+        let hotwords = anticipatesHotwordDecoding
+        if let language = anticipatedLanguageHint,
+           let configuration = try? RecognizerConfiguration(model: model, language: language, hotwordDecoding: hotwords) {
+            return configuration
+        }
+        return try RecognizerConfiguration(model: model, hotwordDecoding: hotwords)
     }
 
     /// sherpa-onnx boost added to each matched hotword token.
@@ -243,18 +313,34 @@ public actor SherpaTranscriber: Transcriber {
             try self.init(model: model, hints: .init(), hotwordDecoding: hotwordDecoding)
         }
 
+        init(model: Model, language: String?, hotwordDecoding: Bool) throws {
+            try self.init(model: model, hints: .init(language: language), hotwordDecoding: hotwordDecoding)
+        }
+
         private init(model: Model, hints: TranscriptionHints, hotwordDecoding: Bool) throws {
             self.model = model
             self.hotwordDecoding = hotwordDecoding && model.supportsHotwords
             let kind: ASRProviderKind
             switch model {
             case .senseVoice: kind = .senseVoice
+            case .senseVoiceMultilingual: kind = .senseVoiceMultilingual
             case .fireRed: kind = .fireRed
             case .parakeet: kind = .parakeet
             case .orukeet: kind = .orukeet
             }
             let config = ASRConfig(kind: kind, language: hints.language ?? "")
             language = try SpeechLanguagePolicy.resolve(config).language
+        }
+
+        /// The same recognizer with greedy decoding, for an unusable hotword setup.
+        var withoutHotwords: RecognizerConfiguration {
+            RecognizerConfiguration(model: model, language: language, hotwords: false)
+        }
+
+        private init(model: Model, language: String?, hotwords: Bool) {
+            self.model = model
+            self.language = language
+            self.hotwordDecoding = hotwords
         }
 
         func withCConfiguration<Value>(folder: URL, files: [String], bpeVocabulary: String? = nil,
@@ -279,7 +365,7 @@ public actor SherpaTranscriber: Transcriber {
             config.model_config.num_threads = 4
             config.model_config.provider = c("cpu")
             switch model {
-            case .senseVoice:
+            case .senseVoice, .senseVoiceMultilingual:
                 config.model_config.model_type = c("sense_voice")
                 config.model_config.sense_voice.model = c(onnx("model"))
                 config.model_config.sense_voice.language = c(language ?? "auto")

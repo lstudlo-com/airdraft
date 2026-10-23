@@ -142,10 +142,17 @@ enum ModelsPerformanceVerification {
                      "The compact set must list the shortlist and then the models in use once")
         precondition(modelIDs(ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
                                                         showsAll: false, expanded: false, searching: false)) == shortlist.ids)
-        // Searching always searches the whole catalogue.
+        // Searching always searches the whole catalogue, except retired entries
+        // nobody uses; a retired entry in use is listed like any other.
+        let offered = ModelCatalogue.offered(entries, inUse: []).map(\.id)
+        let retired = entries.filter(\.retired).map(\.id)
+        precondition(retired == ["sherpa:senseVoice"] && Set(offered).isDisjoint(with: retired))
         let searching = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
                                                   showsAll: false, expanded: false, searching: true)
-        precondition(modelIDs(searching).sorted() == entries.map(\.id).sorted(), "Search must include every model")
+        precondition(modelIDs(searching).sorted() == offered.sorted(), "Search must include every offered model")
+        let retiredInUse = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: Set(retired),
+                                                     showsAll: false, expanded: false, searching: false)
+        precondition(modelIDs(retiredInUse) == shortlist.ids + retired, "A retired model in use must stay listed")
         let hidden = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: [],
                                                showsAll: true, expanded: false, searching: false)
         precondition(Set(modelIDs(hidden)).isDisjoint(with: experimental) && kept(hidden) == 0)
@@ -157,7 +164,7 @@ enum ModelsPerformanceVerification {
                      && collapsedIDs.count == Set(collapsedIDs).count, "In-use Experimental models must stay listed once")
         let expanded = ModelCatalogue.localItems(entries, shortlist: shortlist, inUse: keep,
                                                  showsAll: true, expanded: true, searching: false)
-        precondition(modelIDs(expanded).sorted() == entries.map(\.id).sorted() && kept(expanded) == 0)
+        precondition(modelIDs(expanded).sorted() == offered.sorted() && kept(expanded) == 0)
 
         // The production page keeps the app default and a running download visible.
         let suite = "airdraft.models-kept.\(UUID().uuidString)"

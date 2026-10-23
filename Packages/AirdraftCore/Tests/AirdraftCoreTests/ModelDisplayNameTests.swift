@@ -12,7 +12,8 @@ final class ModelDisplayNameTests: XCTestCase {
                        "Qwen3-ASR 0.6B · MLX")
         XCTAssertEqual(ASRConfig(kind: .cohere).displayName, "Cohere Transcribe · MLX")
         XCTAssertEqual(ASRConfig(kind: .fireRed).displayName, "FireRedASR2 · ONNX")
-        XCTAssertEqual(ASRConfig(kind: .senseVoice).displayName, "SenseVoice · ONNX")
+        XCTAssertEqual(ASRConfig(kind: .senseVoiceMultilingual).displayName, "SenseVoice · ONNX")
+        XCTAssertEqual(ASRConfig(kind: .senseVoice).displayName, "SenseVoice Cantonese · ONNX")
         XCTAssertEqual(ASRConfig(kind: .parakeet).displayName, "Parakeet TDT v3 · ONNX")
         XCTAssertEqual(ASRConfig(kind: .orukeet).displayName, "Orukeet · ONNX")
         XCTAssertEqual(ASRConfig(kind: .apple).displayName, "Apple Speech")
@@ -112,7 +113,8 @@ final class ModelDisplayNameTests: XCTestCase {
             (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"), "Qwen3-ASR 0.6B"),
             (ASRConfig(kind: .cohere), "Cohere Transcribe"),
             (ASRConfig(kind: .fireRed), "FireRedASR2"),
-            (ASRConfig(kind: .senseVoice), "SenseVoice"),
+            (ASRConfig(kind: .senseVoiceMultilingual), "SenseVoice"),
+            (ASRConfig(kind: .senseVoice), "SenseVoice Cantonese"),
             (ASRConfig(kind: .parakeet), "Parakeet TDT v3"),
             (ASRConfig(kind: .orukeet), "Orukeet"),
             (ASRConfig(kind: .apple), "Apple Speech"),

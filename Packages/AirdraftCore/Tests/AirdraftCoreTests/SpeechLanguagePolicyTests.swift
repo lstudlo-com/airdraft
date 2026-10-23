@@ -36,15 +36,37 @@ final class SpeechLanguagePolicyTests: XCTestCase {
     }
 
     func testSenseVoiceAcceptsItsFiveLanguagesAndCanonicalCantonese() throws {
-        XCTAssertEqual(SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .senseVoice)).supportedLanguages,
+        XCTAssertEqual(SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .senseVoiceMultilingual)).supportedLanguages,
                        ["en", "ja", "ko", "yue", "zh"])
         for language in ["en", "ja", "ko", "yue", "zh"] {
+            XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoiceMultilingual, language: language)).language, language)
+        }
+        for kind in [ASRProviderKind.senseVoiceMultilingual, .senseVoice] {
+            XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: kind, language: "yue-HK")).language, "yue")
+            XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: kind, language: "zh-yue")).language, "yue")
+            XCTAssertNil(try SpeechLanguagePolicy.resolve(ASRConfig(kind: kind, language: "auto")).language)
+            XCTAssertThrowsError(try SpeechLanguagePolicy.resolve(ASRConfig(kind: kind, language: "fr")))
+        }
+    }
+
+    /// AD-083: the 2025-09-09 archive is a Cantonese fine-tune that wrote no kana
+    /// for Japanese (CER 76%) and lost most Korean (77%). Its policy must not claim them.
+    func testSenseVoiceCantoneseArtifactDoesNotClaimJapaneseOrKorean() throws {
+        let cantonese = SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .senseVoice))
+        XCTAssertEqual(cantonese.modelName, "SenseVoice Cantonese")
+        XCTAssertEqual(cantonese.supportedLanguages, ["en", "yue", "zh"])
+        XCTAssertEqual(cantonese.manualControl, .forced)
+        XCTAssertEqual(cantonese.supportsAutomatic, true)
+        for language in ["ja", "ko"] {
+            XCTAssertThrowsError(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: language))) { error in
+                XCTAssertEqual(error as? SpeechLanguageError,
+                               .unsupportedLanguage(language: language, model: "SenseVoice Cantonese"))
+            }
+        }
+        for language in ["en", "yue", "zh"] {
             XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: language)).language, language)
         }
-        XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: "yue-HK")).language, "yue")
-        XCTAssertEqual(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: "zh-yue")).language, "yue")
-        XCTAssertNil(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: "auto")).language)
-        XCTAssertThrowsError(try SpeechLanguagePolicy.resolve(ASRConfig(kind: .senseVoice, language: "fr")))
+        XCTAssertEqual(SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .senseVoiceMultilingual)).modelName, "SenseVoice")
     }
 
     func testFireRedUsesJointRecognitionAndRejectsUnlistedLanguages() throws {

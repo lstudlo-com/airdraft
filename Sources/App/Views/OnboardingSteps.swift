@@ -95,7 +95,9 @@ struct OnboardingSpeechStep: View {
             RowDivider()
             SettingRow(title: "Use a different model") {
                 SoftPicker("Speech model", selection: $speech.localChoice, width: 210) {
-                    ForEach(ModelCatalogue.entries.filter(\.isDownloadable)) { Text($0.title).tag($0.id) }
+                    ForEach(ModelCatalogue.entries.filter { $0.isDownloadable && (!$0.retired || $0.id == speech.localChoice) }) {
+                        Text($0.title).tag($0.id)
+                    }
                 }
                 .disabled(busy)
             }

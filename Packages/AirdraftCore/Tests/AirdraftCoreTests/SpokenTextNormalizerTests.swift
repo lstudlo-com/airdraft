@@ -52,8 +52,12 @@ final class SpokenTextNormalizerTests: XCTestCase {
         XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("你可以先 review 一下我的 code 嗎"), "你可以先 review 一下我的 code 嗎？")
         XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("Can you review my code before lunch"), "Can you review my code before lunch?")
         XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("The deployment failed again"), "The deployment failed again.")
+        // Korean ends sentences with a period, not the CJK full stop; Japanese keeps 。.
+        XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("회의를 지금 바로 시작합니다"), "회의를 지금 바로 시작합니다.")
+        XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("오늘 會議 자료를 확인합니다"), "오늘 會議 자료를 확인합니다.")
+        XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation("今日は会議があります"), "今日は会議があります。")
         // Already punctuated, too short to be a sentence, or ending in a symbol.
-        for text in ["好的。", "OK", "好", "main branch", "Done!", "版本 2.0)", "我覺得，"] {
+        for text in ["好的。", "OK", "好", "main branch", "Done!", "版本 2.0)", "我覺得，", "네 알겠습니다."] {
             XCTAssertEqual(SpokenTextNormalizer.addTerminalPunctuation(text), text)
         }
     }

@@ -10,6 +10,11 @@ public enum AudioChunker {
         public let startSeconds: Double
     }
 
+    /// Windows never exceed `maxSeconds`. When the audio after a full window
+    /// would be shorter than `minTailSeconds`, the cut moves earlier instead, so
+    /// the last window keeps at least that much audio: a lone ~0.06 s tail made
+    /// Parakeet Japanese decode noise (AD-083 ja-2000, 15.06 s at a 15 s cap).
+    /// Every sample is kept exactly once, in order.
     public static func split(
         _ samples: [Float],
         sampleRate: Int = 16_000,
@@ -23,18 +28,19 @@ public enum AudioChunker {
 
         let frame = sampleRate * frameMs / 1000
         let searchLen = Int(searchWindowSeconds * Double(sampleRate))
+        // A minimum longer than half a window could not be honoured on both sides.
+        let minTail = min(Int(max(0, minTailSeconds) * Double(sampleRate)), maxLen / 2)
         var chunks: [Chunk] = []
         var start = 0
         while start < samples.count {
             let remaining = samples.count - start
-            // A short remainder would become a tiny chunk the model may return
-            // empty for; keep it with the current window instead.
-            if remaining <= maxLen + Int(minTailSeconds * Double(sampleRate)) {
+            if remaining <= maxLen {
                 chunks.append(Chunk(samples: Array(samples[start...]), startSeconds: Double(start) / Double(sampleRate)))
                 break
             }
-            // Find the quietest frame in [start+maxLen-search, start+maxLen).
-            let windowEnd = start + maxLen
+            // Latest allowed cut: a full window, or earlier so the rest keeps minTail.
+            let windowEnd = start + min(maxLen, remaining - minTail)
+            // Find the quietest frame in [windowEnd-search, windowEnd).
             let searchStart = max(start + frame, windowEnd - searchLen)
             var bestCut = windowEnd
             var bestEnergy = Float.greatestFiniteMagnitude
@@ -63,7 +69,7 @@ public enum AudioChunker {
             try Task.checkCancellation()
             if !text.isEmpty { parts.append(text) }
         }
-        return parts.joined(separator: chunks.count > 1 ? " " : "")
+        return join(parts)
     }
 
     /// Async engines decode bounded windows sequentially. A failed or cancelled
@@ -75,7 +81,7 @@ public enum AudioChunker {
         decode: ([Float]) async throws -> String
     ) async throws -> String {
         try Task.checkCancellation()
-        let chunks = split(samples, maxSeconds: maxSeconds, minTailSeconds: 0)
+        let chunks = split(samples, maxSeconds: maxSeconds)
         var parts: [String] = []
         for chunk in chunks {
             try Task.checkCancellation()
@@ -83,6 +89,39 @@ public enum AudioChunker {
             try Task.checkCancellation()
             if !text.isEmpty { parts.append(text) }
         }
-        return parts.joined(separator: " ")
+        return join(parts)
+    }
+
+    /// Joins window texts. Chinese and Japanese are written without spaces, so
+    /// windows meet directly when both sides of the boundary are Han, kana or
+    /// CJK punctuation; every other boundary (Latin, Hangul, digits) keeps one space.
+    static func join(_ parts: [String]) -> String {
+        var result = ""
+        for part in parts {
+            if let last = result.unicodeScalars.last, let first = part.unicodeScalars.first,
+               !(isUnspacedScript(last) && isUnspacedScript(first)) {
+                result += " "
+            }
+            result += part
+        }
+        return result
+    }
+
+    /// Han ideographs, kana and the CJK punctuation and full-width forms written with them.
+    static func isUnspacedScript(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.value {
+        case 0x3000...0x303F,   // CJK symbols and punctuation (。、「」)
+             0x3040...0x30FF,   // Hiragana, Katakana
+             0x31F0...0x31FF,   // Katakana phonetic extensions
+             0x3400...0x4DBF,   // CJK extension A
+             0x4E00...0x9FFF,   // CJK unified ideographs
+             0xF900...0xFAFF,   // CJK compatibility ideographs
+             0xFF01...0xFF0F, 0xFF1A...0xFF20, 0xFF5B...0xFF65, // full-width punctuation, half-width katakana marks
+             0xFF66...0xFF9F,   // half-width katakana
+             0x20000...0x3134F: // CJK extensions B–H
+            return true
+        default:
+            return false
+        }
     }
 }

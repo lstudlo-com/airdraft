@@ -1,0 +1,13 @@
+model,language,corpus,utterances,failures,mer,mer_ci95,cer_han,wer_latin,english_retention,english_dropped_utts,chinese_lost_utts,raw_simplified_utts,uppercase_latin_utts,punctuated_utts,latency_ms_median,latency_ms_p90,rtf_median,latency_fit_ms,peak_footprint_mb_max,max_rss_mb_max,english_retention_case_exact
+qwen3:1.7b,auto,ascend,100,0,0.0894,0.0725-0.1080,0.0773,0.2434,0.7611,7,0,94,3,100,292,443,0.0707,"{""intercept"": 110, ""per_audio_second"": 43}",2977,1962,
+qwen3:1.7b,auto,tw-tts-meijia,40,0,0.0282,0.0116-0.0482,0.0029,0.1379,0.8966,0,0,38,8,40,255,289,0.0743,"{""intercept"": 122, ""per_audio_second"": 40}",2550,1959,0.8046
+qwen3:1.7b,zh,ascend,100,0,0.0894,0.0721-0.1081,0.0818,0.2168,0.7876,7,0,67,3,100,300,463,0.072,"{""intercept"": 114, ""per_audio_second"": 44}",3083,1961,
+qwen3:1.7b,zh,tw-tts-meijia,40,0,0.0282,0.0117-0.0471,0.0088,0.1149,0.908,0,0,18,7,40,264,292,0.0781,"{""intercept"": 159, ""per_audio_second"": 32}",2535,1959,0.8276
+sherpa:senseVoice,auto,ascend,100,0,0.1355,0.1133-0.1595,0.0928,0.5088,0.5265,8,0,94,3,100,52,89,0.0124,"{""intercept"": 16, ""per_audio_second"": 9}",1005,1097,
+sherpa:senseVoice,auto,tw-tts-meijia,40,0,0.1033,0.0742-0.1333,0.0265,0.4828,0.5862,0,0,38,3,40,45,50,0.0132,"{""intercept"": 14, ""per_audio_second"": 9}",985,1076,0.5747
+sherpa:senseVoice,zh,ascend,100,0,0.1372,0.1143-0.1607,0.0921,0.5221,0.5088,9,0,94,4,100,52,95,0.0124,"{""intercept"": 17, ""per_audio_second"": 9}",994,1086,
+sherpa:senseVoice,zh,tw-tts-meijia,40,0,0.1174,0.0911-0.1457,0.0236,0.5517,0.5172,0,0,38,3,40,45,50,0.0133,"{""intercept"": 13, ""per_audio_second"": 9}",985,1077,0.5057
+sherpa:senseVoiceMultilingual,auto,ascend,100,0,0.126,0.1053-0.1480,0.0966,0.4292,0.5929,8,0,94,3,100,52,93,0.0124,"{""intercept"": 16, ""per_audio_second"": 9}",1020,1112,
+sherpa:senseVoiceMultilingual,auto,tw-tts-meijia,40,0,0.1221,0.0862-0.1606,0.0265,0.5057,0.5747,0,0,38,9,40,45,51,0.0132,"{""intercept"": 11, ""per_audio_second"": 10}",993,1084,0.5517
+sherpa:senseVoiceMultilingual,zh,ascend,100,0,0.1355,0.1136-0.1588,0.1037,0.4602,0.5487,11,0,94,3,100,52,93,0.0123,"{""intercept"": 16, ""per_audio_second"": 9}",1006,1098,
+sherpa:senseVoiceMultilingual,zh,tw-tts-meijia,40,0,0.1174,0.0802-0.1576,0.0265,0.4828,0.5977,0,0,38,8,40,46,51,0.0132,"{""intercept"": 9, ""per_audio_second"": 11}",993,1085,0.5632

@@ -1,0 +1,682 @@
+{
+ "summary": [
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.0894,
+   "mer_ci95": [
+    0.0725,
+    0.108
+   ],
+   "cer_han": 0.0773,
+   "wer_latin": 0.2434,
+   "english_retention": 0.7611,
+   "english_dropped_utts": 7,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 94,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 100,
+   "latency_ms_median": 292,
+   "latency_ms_p90": 443,
+   "rtf_median": 0.0707,
+   "latency_fit_ms": {
+    "intercept": 110,
+    "per_audio_second": 43
+   },
+   "peak_footprint_mb_max": 2977,
+   "max_rss_mb_max": 1962
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.0282,
+   "mer_ci95": [
+    0.0116,
+    0.0482
+   ],
+   "cer_han": 0.0029,
+   "wer_latin": 0.1379,
+   "english_retention": 0.8966,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 38,
+   "uppercase_latin_utts": 8,
+   "punctuated_utts": 40,
+   "latency_ms_median": 255,
+   "latency_ms_p90": 289,
+   "rtf_median": 0.0743,
+   "latency_fit_ms": {
+    "intercept": 122,
+    "per_audio_second": 40
+   },
+   "peak_footprint_mb_max": 2550,
+   "max_rss_mb_max": 1959,
+   "english_retention_case_exact": 0.8046
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.0894,
+   "mer_ci95": [
+    0.0721,
+    0.1081
+   ],
+   "cer_han": 0.0818,
+   "wer_latin": 0.2168,
+   "english_retention": 0.7876,
+   "english_dropped_utts": 7,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 67,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 100,
+   "latency_ms_median": 300,
+   "latency_ms_p90": 463,
+   "rtf_median": 0.072,
+   "latency_fit_ms": {
+    "intercept": 114,
+    "per_audio_second": 44
+   },
+   "peak_footprint_mb_max": 3083,
+   "max_rss_mb_max": 1961
+  },
+  {
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.0282,
+   "mer_ci95": [
+    0.0117,
+    0.0471
+   ],
+   "cer_han": 0.0088,
+   "wer_latin": 0.1149,
+   "english_retention": 0.908,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 18,
+   "uppercase_latin_utts": 7,
+   "punctuated_utts": 40,
+   "latency_ms_median": 264,
+   "latency_ms_p90": 292,
+   "rtf_median": 0.0781,
+   "latency_fit_ms": {
+    "intercept": 159,
+    "per_audio_second": 32
+   },
+   "peak_footprint_mb_max": 2535,
+   "max_rss_mb_max": 1959,
+   "english_retention_case_exact": 0.8276
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.1355,
+   "mer_ci95": [
+    0.1133,
+    0.1595
+   ],
+   "cer_han": 0.0928,
+   "wer_latin": 0.5088,
+   "english_retention": 0.5265,
+   "english_dropped_utts": 8,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 94,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 100,
+   "latency_ms_median": 52,
+   "latency_ms_p90": 89,
+   "rtf_median": 0.0124,
+   "latency_fit_ms": {
+    "intercept": 16,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 1005,
+   "max_rss_mb_max": 1097
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.1033,
+   "mer_ci95": [
+    0.0742,
+    0.1333
+   ],
+   "cer_han": 0.0265,
+   "wer_latin": 0.4828,
+   "english_retention": 0.5862,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 38,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 40,
+   "latency_ms_median": 45,
+   "latency_ms_p90": 50,
+   "rtf_median": 0.0132,
+   "latency_fit_ms": {
+    "intercept": 14,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 985,
+   "max_rss_mb_max": 1076,
+   "english_retention_case_exact": 0.5747
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.1372,
+   "mer_ci95": [
+    0.1143,
+    0.1607
+   ],
+   "cer_han": 0.0921,
+   "wer_latin": 0.5221,
+   "english_retention": 0.5088,
+   "english_dropped_utts": 9,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 94,
+   "uppercase_latin_utts": 4,
+   "punctuated_utts": 100,
+   "latency_ms_median": 52,
+   "latency_ms_p90": 95,
+   "rtf_median": 0.0124,
+   "latency_fit_ms": {
+    "intercept": 17,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 994,
+   "max_rss_mb_max": 1086
+  },
+  {
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.1174,
+   "mer_ci95": [
+    0.0911,
+    0.1457
+   ],
+   "cer_han": 0.0236,
+   "wer_latin": 0.5517,
+   "english_retention": 0.5172,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 38,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 40,
+   "latency_ms_median": 45,
+   "latency_ms_p90": 50,
+   "rtf_median": 0.0133,
+   "latency_fit_ms": {
+    "intercept": 13,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 985,
+   "max_rss_mb_max": 1077,
+   "english_retention_case_exact": 0.5057
+  },
+  {
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "auto",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.126,
+   "mer_ci95": [
+    0.1053,
+    0.148
+   ],
+   "cer_han": 0.0966,
+   "wer_latin": 0.4292,
+   "english_retention": 0.5929,
+   "english_dropped_utts": 8,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 94,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 100,
+   "latency_ms_median": 52,
+   "latency_ms_p90": 93,
+   "rtf_median": 0.0124,
+   "latency_fit_ms": {
+    "intercept": 16,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 1020,
+   "max_rss_mb_max": 1112
+  },
+  {
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.1221,
+   "mer_ci95": [
+    0.0862,
+    0.1606
+   ],
+   "cer_han": 0.0265,
+   "wer_latin": 0.5057,
+   "english_retention": 0.5747,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 38,
+   "uppercase_latin_utts": 9,
+   "punctuated_utts": 40,
+   "latency_ms_median": 45,
+   "latency_ms_p90": 51,
+   "rtf_median": 0.0132,
+   "latency_fit_ms": {
+    "intercept": 11,
+    "per_audio_second": 10
+   },
+   "peak_footprint_mb_max": 993,
+   "max_rss_mb_max": 1084,
+   "english_retention_case_exact": 0.5517
+  },
+  {
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "ascend",
+   "utterances": 100,
+   "failures": 0,
+   "mer": 0.1355,
+   "mer_ci95": [
+    0.1136,
+    0.1588
+   ],
+   "cer_han": 0.1037,
+   "wer_latin": 0.4602,
+   "english_retention": 0.5487,
+   "english_dropped_utts": 11,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 94,
+   "uppercase_latin_utts": 3,
+   "punctuated_utts": 100,
+   "latency_ms_median": 52,
+   "latency_ms_p90": 93,
+   "rtf_median": 0.0123,
+   "latency_fit_ms": {
+    "intercept": 16,
+    "per_audio_second": 9
+   },
+   "peak_footprint_mb_max": 1006,
+   "max_rss_mb_max": 1098
+  },
+  {
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "utterances": 40,
+   "failures": 0,
+   "mer": 0.1174,
+   "mer_ci95": [
+    0.0802,
+    0.1576
+   ],
+   "cer_han": 0.0265,
+   "wer_latin": 0.4828,
+   "english_retention": 0.5977,
+   "english_dropped_utts": 0,
+   "chinese_lost_utts": 0,
+   "raw_simplified_utts": 38,
+   "uppercase_latin_utts": 8,
+   "punctuated_utts": 40,
+   "latency_ms_median": 46,
+   "latency_ms_p90": 51,
+   "rtf_median": 0.0132,
+   "latency_fit_ms": {
+    "intercept": 9,
+    "per_audio_second": 11
+   },
+   "peak_footprint_mb_max": 993,
+   "max_rss_mb_max": 1085,
+   "english_retention_case_exact": 0.5632
+  }
+ ],
+ "paired_vs_sensevoice_auto": [
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "ascend",
+   "mer_delta": -0.0461,
+   "mer_delta_ci95": [
+    -0.0638,
+    -0.03
+   ],
+   "retention_delta": 0.2345,
+   "retention_delta_ci95": [
+    0.168,
+    0.3042
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0751,
+   "mer_delta_ci95": [
+    -0.1049,
+    -0.0459
+   ],
+   "retention_delta": 0.3103,
+   "retention_delta_ci95": [
+    0.2088,
+    0.4091
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": -0.0461,
+   "mer_delta_ci95": [
+    -0.0637,
+    -0.0297
+   ],
+   "retention_delta": 0.2611,
+   "retention_delta_ci95": [
+    0.1929,
+    0.3333
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0751,
+   "mer_delta_ci95": [
+    -0.104,
+    -0.0483
+   ],
+   "retention_delta": 0.3218,
+   "retention_delta_ci95": [
+    0.2353,
+    0.4111
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": 0.0017,
+   "mer_delta_ci95": [
+    -0.0039,
+    0.0076
+   ],
+   "retention_delta": -0.0177,
+   "retention_delta_ci95": [
+    -0.0457,
+    0.0098
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": 0.0141,
+   "mer_delta_ci95": [
+    0.0023,
+    0.029
+   ],
+   "retention_delta": -0.069,
+   "retention_delta_ci95": [
+    -0.125,
+    -0.0227
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "auto",
+   "corpus": "ascend",
+   "mer_delta": -0.0096,
+   "mer_delta_ci95": [
+    -0.0262,
+    0.007
+   ],
+   "retention_delta": 0.0664,
+   "retention_delta_ci95": [
+    -0.0199,
+    0.1476
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": 0.0188,
+   "mer_delta_ci95": [
+    -0.0188,
+    0.0561
+   ],
+   "retention_delta": -0.0115,
+   "retention_delta_ci95": [
+    -0.1294,
+    0.1053
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": 0.0,
+   "mer_delta_ci95": [
+    -0.0172,
+    0.0176
+   ],
+   "retention_delta": 0.0221,
+   "retention_delta_ci95": [
+    -0.05,
+    0.0977
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoice auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": 0.0141,
+   "mer_delta_ci95": [
+    -0.0208,
+    0.052
+   ],
+   "retention_delta": 0.0115,
+   "retention_delta_ci95": [
+    -0.0879,
+    0.129
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "ascend",
+   "mer_delta": -0.0366,
+   "mer_delta_ci95": [
+    -0.053,
+    -0.021
+   ],
+   "retention_delta": 0.1681,
+   "retention_delta_ci95": [
+    0.0891,
+    0.2488
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "qwen3:1.7b",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0939,
+   "mer_delta_ci95": [
+    -0.1342,
+    -0.0545
+   ],
+   "retention_delta": 0.3218,
+   "retention_delta_ci95": [
+    0.2,
+    0.4353
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": -0.0366,
+   "mer_delta_ci95": [
+    -0.0507,
+    -0.0232
+   ],
+   "retention_delta": 0.1947,
+   "retention_delta_ci95": [
+    0.1271,
+    0.2696
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "qwen3:1.7b",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0939,
+   "mer_delta_ci95": [
+    -0.1332,
+    -0.0552
+   ],
+   "retention_delta": 0.3333,
+   "retention_delta_ci95": [
+    0.2209,
+    0.4382
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "corpus": "ascend",
+   "mer_delta": 0.0096,
+   "mer_delta_ci95": [
+    -0.007,
+    0.0262
+   ],
+   "retention_delta": -0.0664,
+   "retention_delta_ci95": [
+    -0.1476,
+    0.0199
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoice",
+   "language": "auto",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0188,
+   "mer_delta_ci95": [
+    -0.0561,
+    0.0188
+   ],
+   "retention_delta": 0.0115,
+   "retention_delta_ci95": [
+    -0.1053,
+    0.1294
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": 0.0112,
+   "mer_delta_ci95": [
+    -0.0061,
+    0.0292
+   ],
+   "retention_delta": -0.0841,
+   "retention_delta_ci95": [
+    -0.1703,
+    0.0041
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoice",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0047,
+   "mer_delta_ci95": [
+    -0.0421,
+    0.0323
+   ],
+   "retention_delta": -0.0575,
+   "retention_delta_ci95": [
+    -0.1707,
+    0.0465
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "ascend",
+   "mer_delta": 0.0096,
+   "mer_delta_ci95": [
+    0.0016,
+    0.0188
+   ],
+   "retention_delta": -0.0442,
+   "retention_delta_ci95": [
+    -0.0857,
+    -0.0049
+   ]
+  },
+  {
+   "vs": "sherpa:senseVoiceMultilingual auto",
+   "model": "sherpa:senseVoiceMultilingual",
+   "language": "zh",
+   "corpus": "tw-tts-meijia",
+   "mer_delta": -0.0047,
+   "mer_delta_ci95": [
+    -0.0186,
+    0.0072
+   ],
+   "retention_delta": 0.023,
+   "retention_delta_ci95": [
+    -0.0349,
+    0.0899
+   ]
+  }
+ ],
+ "tw_tts_by_voice": [],
+ "load": {}
+}

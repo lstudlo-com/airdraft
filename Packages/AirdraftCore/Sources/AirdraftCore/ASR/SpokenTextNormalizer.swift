@@ -180,14 +180,23 @@ public enum SpokenTextNormalizer {
                                                      "was", "were", "what", "why", "how", "where", "when", "who", "which", "shall", "may"]
 
     /// Adds one sentence-final mark to unpunctuated text of three or more tokens:
-    /// `。` (or `？` after 嗎) when the last sentence has Chinese characters,
+    /// `。` (or `？` after 嗎) when the text has Chinese characters or kana,
+    /// `.` when Hangul dominates (Korean ends sentences with a period, not `。`),
     /// otherwise `.` (or `?` for an English question). Short fragments stay bare.
     public static func addTerminalPunctuation(_ text: String) -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let last = trimmed.last, !terminalMarks.contains(last), last.isLetter || last.isNumber else { return text }
         guard TranscriptRepetition.units(trimmed).count >= 3 else { return text }
-        let hasHan = trimmed.unicodeScalars.contains { [.han, .kana, .hangul].contains(WritingScript.of($0)) }
-        if hasHan {
+        var hanOrKana = 0, hangul = 0
+        for scalar in trimmed.unicodeScalars {
+            switch WritingScript.of(scalar) {
+            case .han, .kana: hanOrKana += 1
+            case .hangul: hangul += 1
+            default: break
+            }
+        }
+        if hangul > hanOrKana { return trimmed + "." }
+        if hanOrKana > 0 {
             return trimmed + (last == "嗎" || last == "吗" ? "？" : "。")
         }
         let firstWord = trimmed.split(whereSeparator: { !$0.isLetter && $0 != "'" }).first.map { $0.lowercased() } ?? ""
