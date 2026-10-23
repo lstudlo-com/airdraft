@@ -17,11 +17,23 @@ extension DictationPipeline {
 
     /// A script can have external side effects, so it is never retried and never
     /// falls back to pasting when its completion is uncertain.
+    ///
+    /// Returns nil when the session was cancelled while an earlier unverified
+    /// paste still owned the clipboard: nothing of this dictation was written.
     func deliver(_ final: String, output: OutputSnapshot, target: InsertionTarget?, token: UUID,
                  delivery: DeliveryPolicy, stopRequested: TimeInterval?,
-                 timings: inout DictationTimings) async -> DeliveryReport {
+                 timings: inout DictationTimings) async -> DeliveryReport? {
         set(.inserting)
         let deliveryStarted = ProcessInfo.processInfo.systemUptime
+        if insertionEnabled, delivery == .copyOnly || output.destination == .cursor {
+            // An earlier unverified paste's receiver may still read the clipboard,
+            // so nothing is written until its window ends (at most
+            // `unverifiedRestoreDelay`). Cancel stays available during this wait.
+            deliveryAwaitingClipboard = true
+            await inserter.waitForPendingReceiver()
+            deliveryAwaitingClipboard = false
+            guard isCurrent(token), !Task.isCancelled else { return nil }
+        }
         var report = DeliveryReport()
         var reportedDelivery = false
         var stopToDeliveryMs: Int?

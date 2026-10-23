@@ -228,6 +228,11 @@ public final class DictationPipeline {
     /// The session whose capture started before its recording state, while the
     /// destination and app context are being read.
     var startingCapture: UUID?
+    /// Delivery is waiting for an earlier unverified paste's receiver window
+    /// and has written nothing yet, so it can still be cancelled.
+    var deliveryAwaitingClipboard = false
+    /// A delivery has begun writing; its outcome must be recorded, so cancel waits.
+    var deliveryCommitted: Bool { state == .inserting && !deliveryAwaitingClipboard }
     var insertionTargetAtStart: InsertionTarget?
     /// The recording was started for onboarding practice's own editor.
     var practiceDeliveryAtStart = false

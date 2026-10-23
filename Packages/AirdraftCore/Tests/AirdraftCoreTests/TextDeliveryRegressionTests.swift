@@ -834,6 +834,41 @@ final class TextDeliveryRegressionTests: XCTestCase {
         fixture.pipeline.endDataMaintenance()
     }
 
+    /// AD-064: after an unverified paste, the next delivery waits for that
+    /// paste's receiver window before writing the clipboard. Cancel works during
+    /// the wait: nothing is pasted afterwards, nothing reaches History, and the
+    /// earlier paste's clipboard restore keeps its delay.
+    func testCancelWhileWaitingForUnverifiedReceiverDeliversNothing() async throws {
+        let fixture = try DeliveryPipelineFixture(texts: ["First dictation", "Second dictation"], caretless: true)
+        defer { fixture.close() }
+        fixture.inserter.unverifiedRestoreDelay = 3
+        try await fixture.dictate(toggle: false)
+        try await fixture.waitUntilReleased()
+        XCTAssertEqual(fixture.editor.pasted, ["First dictation"])
+        XCTAssertTrue(fixture.inserter.hasPendingClipboardRestoration)
+
+        try await fixture.dictate(toggle: false)
+        for _ in 0..<600 where fixture.pipeline.state != .inserting { try await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertEqual(fixture.pipeline.state, .inserting)
+        XCTAssertFalse(fixture.pipeline.deliveryCommitted, "Waiting for the clipboard writes nothing yet")
+        try fixture.pipeline.cancelFromAutomation()
+        XCTAssertEqual(fixture.pipeline.state, .idle, "Cancel is accepted during the wait")
+        XCTAssertFalse(fixture.pipeline.isBusy)
+
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertEqual(fixture.editor.pasted, ["First dictation"], "Nothing is pasted after cancel")
+        XCTAssertEqual(fixture.editor.posts, 1)
+        XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), "First dictation",
+                       "The unverified paste still owns the clipboard for its receiver")
+        XCTAssertTrue(fixture.inserter.hasPendingClipboardRestoration)
+        await fixture.pipeline.finishPendingDelivery()
+        XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.previousClipboard,
+                       "The displaced clipboard still returns after the receiver window")
+        XCTAssertEqual(try fixture.history.recent(limit: 5).map(\.finalText), ["First dictation"])
+        XCTAssertEqual(fixture.delivered, 1)
+        XCTAssertEqual(fixture.outcomes, ["First dictation"])
+    }
+
     func testShortcutDuringExclusiveWorkShowsReasonInsteadOfDroppingPress() async throws {
         let fixture = try DeliveryPipelineFixture(texts: ["Unused"])
         defer { fixture.close() }
@@ -1007,7 +1042,11 @@ private final class DeliveryPipelineFixture {
     private let suite = "airdraft.delivery-tail.\(UUID().uuidString)"
     private let directory: URL
 
-    init(texts: [String]) throws {
+    init(texts: [String], caretless: Bool = false) throws {
+        if caretless {
+            editor.bundleID = Editor.selfDrawingBundleID
+            editor.range = nil
+        }
         directory = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
         settings.asr = ASRConfig(kind: .parakeet)

@@ -74,7 +74,7 @@ extension DictationPipeline {
     }
 
     public func cancelFromAutomation() throws {
-        guard state != .inserting else {
+        guard !deliveryCommitted else {
             throw RecordingPrerequisiteError(String(localized: "Text delivery has started and cannot be cancelled safely.", bundle: .module))
         }
         cancel()
@@ -286,7 +286,8 @@ extension DictationPipeline {
 
     public func cancel() {
         // Once a write begins, finish recording its outcome before accepting a new session.
-        guard state != .inserting else { return }
+        guard !deliveryCommitted else { return }
+        deliveryAwaitingClipboard = false
         stopPreview()
         generation = UUID()
         // Kept recordings survive cancellation; only an explicit discard removes them.
