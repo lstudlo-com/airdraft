@@ -233,7 +233,9 @@ struct SoftPicker<Value: Hashable, Content: View>: View {
             Group(subviews: content) { choices in
                 if let choice = choices.first(where: { $0.containerValues.hasTag(selection) }) {
                     ZStack(alignment: .leading) {
-                        nativePicker.opacity(0)
+                        // Not zero: SwiftUI drops fully transparent views from the
+                        // accessibility tree, and the native picker must stay there.
+                        nativePicker.opacity(0.001)
                         choice
                             .appFont(.body)
                             .foregroundStyle(.primary)

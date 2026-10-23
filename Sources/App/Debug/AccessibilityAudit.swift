@@ -116,6 +116,10 @@ enum AccessibilityAudit {
             }
         case .configuration:
             if headings.count < 6 { problems.append("Settings sections must be headings (found \(headings.count))") }
+            // SoftPicker draws its own label above the default size; the native
+            // picker must stay in the tree with its name and current value.
+            let pickers = nodes.filter { $0.role == "AXPopUpButton" && !$0.name.isEmpty && !$0.value.isEmpty }
+            if pickers.count < 4 { problems.append("Settings menu pickers must expose name and value (found \(pickers.count))") }
             guard let picker = nodes.firstIndex(where: { $0.identifier == "settings.textSize" }) else {
                 problems.append("missing Text size picker"); break
             }
