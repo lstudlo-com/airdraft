@@ -116,6 +116,39 @@ final class PinnedHubModelTests: XCTestCase {
         } catch { XCTFail("Unexpected error: \(error)") }
     }
 
+    /// AD-074: a missing or malformed bundled manifest must not crash the app at
+    /// first use. Its downloads fail with an actionable error instead.
+    func testDamagedManifestFailsGracefullyWithActionableError() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        func manifest(_ contents: String?) throws -> PinnedHubModelCatalog.Manifest {
+            guard let contents else { return .init(url: directory.appendingPathComponent("missing.json")) }
+            let url = directory.appendingPathComponent(UUID().uuidString + ".json")
+            try Data(contents.utf8).write(to: url)
+            return .init(url: url)
+        }
+        let entry = #"{"id":"qwen3:a","repository":"r/a","revision":"0123456789abcdef0123456789abcdef01234567","directory":"","files":[]}"#
+        let damaged = [try manifest(nil), PinnedHubModelCatalog.Manifest(url: nil), try manifest("{not json"),
+                       try manifest("[]"), try manifest("[\(entry),\(entry)]")]
+        for catalog in damaged {
+            XCTAssertTrue(catalog.artifacts.isEmpty)
+            XCTAssertNil(catalog.artifact("qwen3:a"))
+            XCTAssertThrowsError(try catalog.require("qwen3:a", model: "a")) { error in
+                XCTAssertTrue(error is PinnedHubManifestError, "\(error)")
+                XCTAssertTrue(error.localizedDescription.contains("Reinstall Airdraft"), error.localizedDescription)
+            }
+        }
+        // A readable manifest still refuses IDs it does not review.
+        let valid = try manifest("[\(entry)]")
+        XCTAssertNil(valid.error)
+        XCTAssertEqual(try valid.require("qwen3:a", model: "a").id, "qwen3:a")
+        XCTAssertThrowsError(try valid.require("qwen3:b", model: "b")) { error in
+            guard case ModelDownloader.DownloadError.unpinned("b") = error else { return XCTFail("\(error)") }
+        }
+        XCTAssertNil(PinnedHubModelCatalog.manifestError, "The bundled manifest is valid")
+    }
+
     // MARK: Helpers
 
     private func artifact(files: [(String, Data)]) throws -> PinnedHubArtifact {

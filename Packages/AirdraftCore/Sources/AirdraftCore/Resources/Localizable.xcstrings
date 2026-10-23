@@ -146,12 +146,12 @@
         }
       }
     },
-    "%@ needs an explicit speech language. Choose a supported language on Models or select a model with Auto Detect." : {
+    "%@ needs an explicit speech language. Choose a supported language on Models or select a model that detects the language automatically." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 需要指定語音語言。請在「模型」中選擇支援的語言，或選擇具備自動偵測的模型。"
+            "value" : "%@ 需要指定語音語言。請在「模型」中選擇支援的語言，或選擇能自動偵測語言的模型。"
           }
         }
       }
@@ -206,22 +206,22 @@
         }
       }
     },
-    "%lld languages. Auto Detect or a selected language." : {
+    "%lld languages." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 種語言。自動偵測或使用選取的語言。"
+            "value" : "%lld 種語言。"
           }
         }
       }
     },
-    "%lld languages. Select a language; Auto Detect is unavailable." : {
+    "%lld languages. Choose one; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 種語言。請選擇語言；無法自動偵測。"
+            "value" : "%lld 種語言。請選擇一種；無法自動偵測。"
           }
         }
       }
@@ -296,22 +296,22 @@
         }
       }
     },
-    "13 languages, including Mandarin. Auto Detect available." : {
+    "13 languages, including Mandarin." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "13 種語言，包含華語。可自動偵測。"
+            "value" : "13 種語言，包含華語。"
           }
         }
       }
     },
-    "14 languages, including Mandarin. Select a language; Auto Detect is unavailable." : {
+    "14 languages, including Mandarin. Choose one; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "14 種語言，包含華語。請選擇語言；無法自動偵測。"
+            "value" : "14 種語言，包含華語。請選擇一種；無法自動偵測。"
           }
         }
       }
@@ -326,7 +326,7 @@
         }
       }
     },
-    "18 languages, including Mandarin. Auto Detect supports language switching." : {
+    "18 languages, including Mandarin. Automatic detection supports language switching." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -376,12 +376,12 @@
         }
       }
     },
-    "30 languages, including Mandarin and Cantonese. Auto Detect available." : {
+    "30 languages, including Mandarin and Cantonese." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "30 種語言，包含華語與粵語。可自動偵測。"
+            "value" : "30 種語言，包含華語與粵語。"
           }
         }
       }
@@ -442,6 +442,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "託管的 Whisper Large v3 Turbo 選項，可用你自己的音訊比較辨識效果。"
+          }
+        }
+      }
+    },
+    "A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選取的語言僅作為提示。"
           }
         }
       }
@@ -563,6 +573,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Airdraft 仍在確認你的授權。請稍後再試。"
+          }
+        }
+      }
+    },
+    "Airdraft's list of reviewed model downloads is missing or damaged, so Qwen3-ASR and Whisper models can't be downloaded. Reinstall Airdraft to restore it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已審核模型下載清單遺失或損毀，因此無法下載 Qwen3-ASR 與 Whisper 模型。請重新安裝 Airdraft 以還原。"
           }
         }
       }
@@ -737,17 +757,7 @@
         }
       }
     },
-    "Auto Detect available. A selected language is a hint." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可自動偵測。選取的語言僅作為提示。"
-          }
-        }
-      }
-    },
-    "Auto Detect chooses one predominant language and works best with 60 seconds of speech." : {
+    "Automatic detection chooses one predominant language and works best with 60 seconds of speech." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -757,7 +767,7 @@
         }
       }
     },
-    "Auto Detect has its own language coverage; select a language if needed." : {
+    "Automatic detection has its own language coverage; select a language if needed." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -767,17 +777,7 @@
         }
       }
     },
-    "Auto Detect or a selected language." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動偵測或使用選取的語言。"
-          }
-        }
-      }
-    },
-    "Auto Detect selects one dominant language." : {
+    "Automatic detection picks one dominant language." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -787,7 +787,7 @@
         }
       }
     },
-    "Auto Detect supports language switching. A selected language is a hint." : {
+    "Automatic detection supports language switching. A selected language is a hint." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -797,7 +797,7 @@
         }
       }
     },
-    "Auto Detect supports mixed languages. A selected language is a hint." : {
+    "Automatic detection supports mixed languages. A selected language is a hint." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -917,7 +917,7 @@
         }
       }
     },
-    "Batch recognition with dictionary terms. Auto Detect selects the predominant language." : {
+    "Batch recognition with dictionary terms. Automatic detection selects the predominant language." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -1593,6 +1593,16 @@
         }
       }
     },
+    "Enable Apple Intelligence in System Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「系統設定」中啟用 Apple Intelligence。"
+          }
+        }
+      }
+    },
     "English-only distilled Whisper weights." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1603,7 +1613,7 @@
         }
       }
     },
-    "Enhanced recognition. Auto Detect chooses one predominant language." : {
+    "Enhanced recognition. Automatic detection chooses one predominant language." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -1883,7 +1893,7 @@
         }
       }
     },
-    "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here." : {
+    "Ink-Whisper is the file model. Automatic detection and streaming Ink-2 are unavailable here." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -1959,6 +1969,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用後會嘗試刪除工作。沒有工作的上傳檔案依供應商的保留政策處理。"
+          }
+        }
+      }
+    },
+    "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已接受金鑰。所選語音模型列於 OpenRouter 的公開目錄中。語音存取權與計費尚未驗證。"
           }
         }
       }
@@ -2214,12 +2234,12 @@
         }
       }
     },
-    "Mandarin, Cantonese, English, Japanese and Korean. Auto Detect available." : {
+    "Mandarin, Cantonese, English, Japanese and Korean." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "華語、粵語、英文、日文與韓文。可自動偵測。"
+            "value" : "華語、粵語、英文、日文與韓文。"
           }
         }
       }
@@ -2865,6 +2885,16 @@
         }
       }
     },
+    "Recognizes English only." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅辨識英文。"
+          }
+        }
+      }
+    },
     "Recognizes language switches within speech, including Chinese and English." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3248,12 +3278,12 @@
         }
       }
     },
-    "Select a speech language. Auto Detect is unavailable for the file endpoint." : {
+    "Select a speech language; automatic detection is unavailable for the file endpoint." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請選擇語音語言。檔案端點無法自動偵測。"
+            "value" : "請選擇語音語言；檔案端點無法自動偵測。"
           }
         }
       }
@@ -3475,7 +3505,7 @@
         }
       }
     },
-    "Supports Mandarin. Auto Detect and language hints through OpenRouter are unverified." : {
+    "Supports Mandarin. Automatic detection and language hints through OpenRouter are unverified." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -3485,7 +3515,7 @@
         }
       }
     },
-    "Supports Mandarin. Auto Detect through OpenRouter is unverified." : {
+    "Supports Mandarin. Automatic detection through OpenRouter is unverified." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -3552,6 +3582,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "API 金鑰遭拒。請在供應商主控台檢查金鑰及其權限。"
+          }
+        }
+      }
+    },
+    "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 金鑰有效，但此模型不在目前的公開語音目錄中。請重新整理目錄或選擇其他模型。"
           }
         }
       }
@@ -4136,6 +4176,16 @@
         }
       }
     },
+    "Unavailable speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用的語音模型"
+          }
+        }
+      }
+    },
     "Unavailable · check Apple Intelligence in System Settings" : {
       "localizations" : {
         "zh-Hant" : {
@@ -4216,7 +4266,7 @@
         }
       }
     },
-    "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech." : {
+    "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Automatic detection works best with at least 60 seconds of speech." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -4226,12 +4276,12 @@
         }
       }
     },
-    "Uses the selected Apple Speech locale. Auto Detect is unavailable." : {
+    "Uses the selected Apple Speech locale; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用所選的 Apple 語音地區語言。無法自動偵測。"
+            "value" : "使用所選的 Apple 語音地區語言；無法自動偵測。"
           }
         }
       }

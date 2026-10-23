@@ -74,7 +74,7 @@ extension DictationPipeline {
     }
 
     public func cancelFromAutomation() throws {
-        guard state != .inserting else {
+        guard !deliveryCommitted else {
             throw RecordingPrerequisiteError(String(localized: "Text delivery has started and cannot be cancelled safely.", bundle: .module))
         }
         cancel()
@@ -188,6 +188,7 @@ extension DictationPipeline {
         let captureStarted = ProcessInfo.processInfo.systemUptime
         let captureStartedAt = Date()
         startingCapture = token
+        startingCaptureStartedAt = captureStarted
         captureLatency?.engineID = asr.engineID
         // Practice's own editor is inside Airdraft, which is never a paste target.
         let practice = needsInsertion && settings.isOnboardingPractice && practiceTarget?.acceptsDictation == true
@@ -226,12 +227,33 @@ extension DictationPipeline {
             if budgetLimited { self.keptBudgetStop = (token, allowedSeconds) }
             self.finishRecording()
         }
+        if let pending = pendingStartupStop, pending.token == token {
+            pendingStartupStop = nil
+            finishReleasedStartup(releasedAt: pending.releasedAt, captureStarted: captureStarted, token: token)
+        }
+    }
+
+    /// The hold was released while the destination was still being captured.
+    /// Keep the release grace, then process only the audio up to it.
+    private func finishReleasedStartup(releasedAt: TimeInterval, captureStarted: TimeInterval, token: UUID) {
+        stopRequestedAt = releasedAt
+        stopping = true
+        let end = releasedAt + Self.releaseGraceSeconds
+        releaseTask = Task { @MainActor in
+            let wait = end - ProcessInfo.processInfo.systemUptime
+            if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+            guard self.isCurrent(token) else { return }
+            self.stopping = false
+            self.finishRecording(keepingSeconds: end - captureStarted)
+        }
     }
 
     /// Stops capture that began before the recording state, discarding its audio.
     func abandonStartingCapture() {
         guard startingCapture != nil else { return }
         startingCapture = nil
+        startingCaptureStartedAt = nil
+        pendingStartupStop = nil
         stopPreview()
         if recorder.isRecording { recorder.cancel() }
     }
@@ -239,9 +261,20 @@ extension DictationPipeline {
     /// Keep capturing briefly after the key is released: people let go while
     /// the last syllable is still sounding.
     public static let releaseGraceSeconds: Double = 0.35
+    /// Shorter recordings are discarded as accidental presses.
+    public static let minimumRecordingSeconds: Double = 0.3
 
     public func stopAndProcess() {
         if recordingRequest != nil && !isRecording {
+            // Released while the microphone was already open but the destination
+            // was still being captured (an Electron editor can take 1.5 s). Speech
+            // already held is processed once the destination resolves; a release
+            // before capture began, or a tap, cancels as before.
+            if startingCapture == generation, pendingStartupStop?.token != generation, let started = startingCaptureStartedAt,
+               ProcessInfo.processInfo.systemUptime - started >= Self.minimumRecordingSeconds {
+                pendingStartupStop = (generation, ProcessInfo.processInfo.systemUptime)
+                return
+            }
             cancel()
             return
         }
@@ -257,20 +290,26 @@ extension DictationPipeline {
         }
     }
 
-    func finishRecording() {
+    /// `keepingSeconds` drops audio captured after a release that arrived
+    /// before the recording state began.
+    func finishRecording(keepingSeconds: Double? = nil) {
         guard state == .recording, let snapshot = recordingAtStart else { return }
         if stopRequestedAt == nil { stopRequestedAt = ProcessInfo.processInfo.systemUptime }
         autoStopTask?.cancel()
         releaseTask?.cancel()
         stopping = false
         stopPreview()
-        let samples = recorder.stop()
+        var samples = recorder.stop()
+        if let keepingSeconds {
+            let kept = max(0, Int(keepingSeconds * AudioRecorder.sampleRate))
+            if samples.count > kept { samples.removeLast(samples.count - kept) }
+        }
         recordingAtStart = nil
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         lastRecordingDuration = seconds
         recordingStartedAt = nil
 
-        guard seconds >= 0.3 else {
+        guard seconds >= Self.minimumRecordingSeconds else {
             discardRefinementPreparation()
             releaseSpeechSessionPin()
             set(.idle)
@@ -286,7 +325,8 @@ extension DictationPipeline {
 
     public func cancel() {
         // Once a write begins, finish recording its outcome before accepting a new session.
-        guard state != .inserting else { return }
+        guard !deliveryCommitted else { return }
+        deliveryAwaitingClipboard = false
         stopPreview()
         generation = UUID()
         // Kept recordings survive cancellation; only an explicit discard removes them.
@@ -302,6 +342,8 @@ extension DictationPipeline {
         autoStopTask?.cancel()
         processingTask?.cancel()
         startingCapture = nil
+        startingCaptureStartedAt = nil
+        pendingStartupStop = nil
         if recorder.isRecording { recorder.cancel() }
         recordingStartedAt = nil
         recordingAtStart = nil

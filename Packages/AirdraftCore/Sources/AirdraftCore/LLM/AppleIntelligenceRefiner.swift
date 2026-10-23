@@ -42,7 +42,7 @@ public struct AppleIntelligenceRefiner: Refiner {
         case .available: return nil
         case .unavailable(.deviceNotEligible): return String(localized: "This Mac does not support Apple Intelligence.", bundle: .module)
         case .unavailable(.appleIntelligenceNotEnabled):
-            return "Enable Apple Intelligence in System Settings."
+            return String(localized: "Enable Apple Intelligence in System Settings.", bundle: .module)
         case .unavailable(.modelNotReady):
             return String(localized: "Apple Intelligence preparing · check System Settings", bundle: .module)
         case .unavailable: return String(localized: "Unavailable · check Apple Intelligence in System Settings", bundle: .module)

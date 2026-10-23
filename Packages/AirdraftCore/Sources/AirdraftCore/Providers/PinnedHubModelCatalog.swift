@@ -41,18 +41,61 @@ public struct PinnedHubArtifact: Codable, Sendable, Identifiable, Equatable {
     }
 }
 
-public enum PinnedHubModelCatalog {
-    public static let artifacts: [PinnedHubArtifact] = {
-        guard let url = Bundle.module.url(forResource: "local-pinned-models", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let artifacts = try? JSONDecoder().decode([PinnedHubArtifact].self, from: data) else {
-            preconditionFailure("The bundled pinned model manifest is missing or invalid.")
-        }
-        return artifacts
-    }()
-    private static let byID = Dictionary(uniqueKeysWithValues: artifacts.map { ($0.id, $0) })
+/// The bundled manifest could not be read: the app bundle is damaged or incomplete.
+/// Downloads that need it fail with this actionable error instead of crashing;
+/// installed models and every other engine keep working.
+public struct PinnedHubManifestError: Error, LocalizedError, Equatable, Sendable {
+    public let detail: String
+    public var errorDescription: String? {
+        String(localized: "Airdraft's list of reviewed model downloads is missing or damaged, so Qwen3-ASR and Whisper models can't be downloaded. Reinstall Airdraft to restore it.", bundle: .module)
+    }
+}
 
-    public static func qwen3(_ modelId: String) -> PinnedHubArtifact? { byID["qwen3:\(modelId)"] }
-    public static func whisper(_ variant: WhisperModelVariant) -> PinnedHubArtifact? { byID["whisper:\(variant.rawValue)"] }
-    public static var whisperTokenizer: PinnedHubArtifact? { byID["whisper-tokenizer"] }
+public enum PinnedHubModelCatalog {
+    /// The parsed manifest, or why it is unavailable.
+    struct Manifest: Sendable {
+        let artifacts: [PinnedHubArtifact]
+        let error: PinnedHubManifestError?
+        private let byID: [String: PinnedHubArtifact]
+
+        init(url: URL?) {
+            do {
+                guard let url else { throw PinnedHubManifestError(detail: "not bundled") }
+                let artifacts = try JSONDecoder().decode([PinnedHubArtifact].self, from: Data(contentsOf: url))
+                let byID = Dictionary(artifacts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+                guard !artifacts.isEmpty, byID.count == artifacts.count else {
+                    throw PinnedHubManifestError(detail: artifacts.isEmpty ? "empty" : "duplicate IDs")
+                }
+                self.init(artifacts: artifacts, byID: byID, error: nil)
+            } catch {
+                self.init(artifacts: [], byID: [:], error: error as? PinnedHubManifestError
+                    ?? PinnedHubManifestError(detail: String(describing: error)))
+            }
+        }
+
+        private init(artifacts: [PinnedHubArtifact], byID: [String: PinnedHubArtifact], error: PinnedHubManifestError?) {
+            self.artifacts = artifacts
+            self.byID = byID
+            self.error = error
+        }
+
+        func artifact(_ id: String) -> PinnedHubArtifact? { byID[id] }
+
+        /// The artifact, the manifest's own failure, or `unpinned` for an ID it does not review.
+        func require(_ id: String, model: String) throws -> PinnedHubArtifact {
+            if let artifact = byID[id] { return artifact }
+            if let error { throw error }
+            throw ModelDownloader.DownloadError.unpinned(model)
+        }
+    }
+
+    static let bundled = Manifest(url: Bundle.module.url(forResource: "local-pinned-models", withExtension: "json"))
+
+    public static var artifacts: [PinnedHubArtifact] { bundled.artifacts }
+    /// Non-nil when the bundled manifest is missing or invalid.
+    public static var manifestError: PinnedHubManifestError? { bundled.error }
+
+    public static func qwen3(_ modelId: String) -> PinnedHubArtifact? { bundled.artifact("qwen3:\(modelId)") }
+    public static func whisper(_ variant: WhisperModelVariant) -> PinnedHubArtifact? { bundled.artifact("whisper:\(variant.rawValue)") }
+    public static var whisperTokenizer: PinnedHubArtifact? { bundled.artifact("whisper-tokenizer") }
 }

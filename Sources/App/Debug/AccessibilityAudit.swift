@@ -60,7 +60,12 @@ enum AccessibilityAudit {
         container.navigation.sidebarCollapsed = false
         var violations: [String] = []
         var surfaces = 0
+        let savedTextSize = container.settings.textSize
+        defer { container.settings.textSize = savedTextSize }
         for size in [TextSizePreference.standard, .larger] {
+            // The main window applies the saved preference itself, which would
+            // override an outer environment; set the preview suite's value.
+            container.settings.textSize = size
             func audit<V: View>(_ name: String, _ root: V, height: CGFloat = 720,
                                 expect: ([Node]) -> [String] = { _ in [] }) {
                 let window = show(root.environment(container).textSize(size), height: height)
@@ -120,6 +125,10 @@ enum AccessibilityAudit {
             }
         case .configuration:
             if headings.count < 6 { problems.append("Settings sections must be headings (found \(headings.count))") }
+            // SoftPicker draws its own label above the default size; the native
+            // picker must stay in the tree with its name and current value.
+            let pickers = nodes.filter { $0.role == "AXPopUpButton" && !$0.name.isEmpty && !$0.value.isEmpty }
+            if pickers.count < 4 { problems.append("Settings menu pickers must expose name and value (found \(pickers.count))") }
             guard let picker = nodes.firstIndex(where: { $0.identifier == "settings.textSize" }) else {
                 problems.append("missing Text size picker"); break
             }

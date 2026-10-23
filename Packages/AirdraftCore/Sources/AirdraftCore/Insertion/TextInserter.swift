@@ -621,6 +621,12 @@ public final class TextInserter {
                                                 deadline: deadline)
     }
 
+    /// Waits out an earlier unverified paste's receiver window on the inserter's
+    /// pasteboard before a delivery writes to it. Returns early on cancellation.
+    public func waitForPendingReceiver() async {
+        await waitForUnverifiedReceiver(of: environment.pasteboard)
+    }
+
     /// Waits out a pending unverified paste's receiver window (at most
     /// `unverifiedRestoreDelay` from that paste) while its text still owns
     /// `pasteboard`. Nothing confirmed that receiver read it, so a slow

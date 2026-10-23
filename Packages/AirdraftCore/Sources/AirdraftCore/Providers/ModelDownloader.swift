@@ -132,7 +132,7 @@ public actor ModelDownloader {
     /// never download again.
     public func downloadQwen3(modelId: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("qwen3:\(modelId)") {
-            guard let artifact = PinnedHubModelCatalog.qwen3(modelId) else { throw DownloadError.unpinned(modelId) }
+            let artifact = try PinnedHubModelCatalog.bundled.require("qwen3:\(modelId)", model: modelId)
             progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
             try await ModelDownloadTransfer.install(artifact.transferFiles(into: LocalModels.qwen3Folder(for: modelId)),
                                                     progress: progress)
@@ -208,12 +208,12 @@ public actor ModelDownloader {
     /// immutable revision with its size and SHA-256.
     public func downloadWhisper(variant: String, progress: @escaping ProgressHandler) async throws {
         try await exclusive("whisper:\(variant)") {
-            guard let choice = WhisperModelVariant(rawValue: variant),
-                  let artifact = PinnedHubModelCatalog.whisper(choice) else { throw DownloadError.unpinned(variant) }
+            guard let choice = WhisperModelVariant(rawValue: variant) else { throw DownloadError.unpinned(variant) }
+            let artifact = try PinnedHubModelCatalog.bundled.require("whisper:\(choice.rawValue)", model: variant)
             progress(Progress(fraction: nil, currentFile: String(localized: "Preparing download…", bundle: .module)))
             var files = try artifact.transferFiles(into: LocalModels.whisperFolder(for: variant))
             if !LocalModels.hasWhisperTokenizer {
-                guard let tokenizer = PinnedHubModelCatalog.whisperTokenizer else { throw DownloadError.unpinned("whisper-tokenizer") }
+                let tokenizer = try PinnedHubModelCatalog.bundled.require("whisper-tokenizer", model: "whisper-tokenizer")
                 files += try tokenizer.transferFiles(into: LocalModels.whisperTokenizerFolder)
             }
             try await ModelDownloadTransfer.install(files, progress: progress)

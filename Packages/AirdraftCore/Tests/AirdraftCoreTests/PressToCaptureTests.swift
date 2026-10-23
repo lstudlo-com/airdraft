@@ -60,7 +60,7 @@ final class PressToCaptureTests: XCTestCase {
         let fixture = try LatencyFixture(destination: .caretlessEditor)
         defer { fixture.close() }
         try await startCapturing(fixture)
-        fixture.pipeline.stopAndProcess()   // A hold released this early cancels.
+        fixture.pipeline.stopAndProcess()   // A tap released this early cancels.
         XCTAssertFalse(fixture.recorder.isRecording)
         XCTAssertEqual(fixture.pipeline.state, .idle)
         try await Task.sleep(for: .milliseconds(350))
@@ -70,6 +70,47 @@ final class PressToCaptureTests: XCTestCase {
         // The next press starts cleanly on the same recorder.
         _ = try await fixture.measureStart()
         XCTAssertEqual(fixture.recorder.starts, 2)
+    }
+
+    /// AD-077: a hold released after speaking, while an app switch is still
+    /// settling, keeps the speech: it is processed once the destination is
+    /// captured, without the audio recorded after the release grace.
+    func testHoldReleasedDuringDestinationCaptureProcessesCapturedSpeech() async throws {
+        let fixture = try LatencyFixture(destination: .caretlessEditor)
+        defer { fixture.close() }
+        fixture.desktop.frontmost = false
+        try await startCapturing(fixture)
+        try await Task.sleep(for: .milliseconds(400))
+        fixture.pipeline.stopAndProcess()
+        XCTAssertTrue(fixture.recorder.isRecording, "Captured speech is kept, not discarded")
+        XCTAssertTrue(fixture.pipeline.isBusy)
+        try await Task.sleep(for: .milliseconds(300))
+        fixture.desktop.frontmost = true
+        for _ in 0..<1500 where fixture.pipeline.lastOutcome == nil { try await Task.sleep(for: .milliseconds(2)) }
+        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Latency words")
+        XCTAssertEqual(fixture.recorder.cancels, 0)
+        XCTAssertFalse(fixture.recorder.isRecording)
+        // The recorder returns one second; the session keeps capture start to release plus grace.
+        XCTAssertGreaterThan(fixture.pipeline.lastRecordingDuration, 0.7)
+        XCTAssertLessThan(fixture.pipeline.lastRecordingDuration, 0.99, "Audio after the release grace is dropped")
+    }
+
+    /// Cancel after such a release still discards the startup capture.
+    func testCancelAfterReleaseDuringDestinationCaptureDiscardsAudio() async throws {
+        let fixture = try LatencyFixture(destination: .caretlessEditor)
+        defer { fixture.close() }
+        fixture.desktop.frontmost = false
+        try await startCapturing(fixture)
+        try await Task.sleep(for: .milliseconds(400))
+        fixture.pipeline.stopAndProcess()
+        fixture.pipeline.cancel()
+        XCTAssertFalse(fixture.recorder.isRecording)
+        XCTAssertEqual(fixture.pipeline.state, .idle)
+        fixture.desktop.frontmost = true
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertFalse(fixture.pipeline.isRecording, "The cancelled startup never reaches recording")
+        XCTAssertNil(fixture.pipeline.lastOutcome)
+        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
     }
 
     func testSetupChangeDuringDestinationCaptureStopsTheMicrophone() async throws {

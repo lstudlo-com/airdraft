@@ -28,6 +28,7 @@ enum ArchitectureVerification {
             try await verifyMaintenanceStateCallbacks()
             try await verifyBlockedCopy()
             try verifyPracticeWiring()
+            try await verifySetupFactsStayOffMain()
             print("ARCHITECTURE_FIXTURE_PASS all")
             return true
         } catch {
@@ -46,6 +47,43 @@ enum ArchitectureVerification {
         await fixture.app.performCleanup(.historyAndAudio)
         try require(!fixture.app.cleanupRecoveryKeyReferences.isEmpty, "Missing explicit provider-access recovery route")
         try await verify(fixture.app)
+    }
+
+    /// AD-077: readiness reads `SetupFacts` in view bodies. Unmeasured inputs
+    /// are pending instead of being measured on the main actor, measurements
+    /// run off it once per refresh, and earlier inputs keep their last result.
+    private static func verifySetupFactsStayOffMain() async throws {
+        final class Probe: @unchecked Sendable {   // Guarded by `lock`.
+            private let lock = NSLock()
+            private var all = 0, onMain = 0
+            func record() { lock.withLock { all += 1; if Thread.isMainThread { onMain += 1 } } }
+            var counts: (all: Int, onMain: Int) { lock.withLock { (all, onMain) } }
+        }
+        let probe = Probe()
+        let facts = SetupFacts(measurer: { _ in
+            probe.record()
+            var values = SetupFacts.Values()
+            values.speechInstalled = true
+            return values
+        }, measuresDuringRenders: false)
+        let local = SetupFacts.Inputs(speech: ASRConfig(kind: .senseVoice), scriptPath: "/tmp/airdraft-fixture.sh",
+                                      llm: LLMConfig(kind: .appleIntelligence))
+        var values = facts.values(for: local)
+        try require(values.pending == [.speech, .script, .appleIntelligence], "Unmeasured facts must be pending, got \(values.pending)")
+        try require(probe.counts.all == 0, "A redraw must never measure")
+        await facts.refresh(local)
+        for _ in 0..<50 { values = facts.values(for: local) }
+        try require(values.pending.isEmpty && values.speechInstalled, "The refreshed result is kept for its inputs")
+        try require(probe.counts == (1, 0), "One off-main measurement per refresh, got \(probe.counts)")
+
+        // Changing only refinement keeps the speech and script facts already known.
+        let remote = SetupFacts.Inputs(speech: local.speech, scriptPath: local.scriptPath, llm: LLMConfig(kind: .none))
+        values = facts.values(for: remote)
+        try require(values.pending.isEmpty && values.speechInstalled, "Unchanged inputs keep their facts, got \(values.pending)")
+        await facts.refresh(remote)
+        values = facts.values(for: local)
+        try require(values.pending.isEmpty, "Switching back shows the last-known facts")
+        try require(probe.counts == (2, 0), "Reads between refreshes never measure, got \(probe.counts)")
     }
 
     private static func require(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {

@@ -195,8 +195,8 @@ extension DictationPipeline {
         }
 
         // 4. Deliver once, then 5. hand persistence to the delivery tail.
-        let report = await deliver(final, output: snapshot.output, target: target, token: token,
-                                   delivery: delivery, stopRequested: stopRequested, timings: &timings)
+        guard let report = await deliver(final, output: snapshot.output, target: target, token: token,
+                                         delivery: delivery, stopRequested: stopRequested, timings: &timings) else { return }
         finishDelivery(report, transcript: transcript, refinement: refinement, final: final, samples: samples,
                        seconds: seconds, context: context, snapshot: snapshot, token: token,
                        processingStarted: processingStarted, timings: timings)
