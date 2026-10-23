@@ -862,11 +862,13 @@ final class TextDeliveryRegressionTests: XCTestCase {
 
     /// AD-064: after an unverified paste, the next delivery waits for that
     /// paste's receiver window before writing the clipboard. Cancel works during
-    /// the wait: nothing is pasted afterwards, nothing reaches History, and the
-    /// earlier paste's clipboard restore keeps its delay.
-    func testCancelWhileWaitingForUnverifiedReceiverDeliversNothing() async throws {
+    /// the wait: nothing is pasted afterwards and the earlier paste's clipboard
+    /// restore keeps its delay, but the cancelled dictation is never lost: its
+    /// text and audio reach History as not delivered.
+    func testCancelWhileWaitingForUnverifiedReceiverPastesNothingAndKeepsTheText() async throws {
         let fixture = try DeliveryPipelineFixture(texts: ["First dictation", "Second dictation"], caretless: true)
         defer { fixture.close() }
+        fixture.pipeline.settings.audioRetention = .forever
         fixture.inserter.unverifiedRestoreDelay = 3
         try await fixture.dictate(toggle: false)
         try await fixture.waitUntilReleased()
@@ -882,6 +884,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
         XCTAssertFalse(fixture.pipeline.isBusy)
 
         try await Task.sleep(for: .milliseconds(300))
+        XCTAssertEqual(fixture.pipeline.state, .idle, "The cancelled session never shows a notice afterwards")
         XCTAssertEqual(fixture.editor.pasted, ["First dictation"], "Nothing is pasted after cancel")
         XCTAssertEqual(fixture.editor.posts, 1)
         XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), "First dictation",
@@ -890,9 +893,17 @@ final class TextDeliveryRegressionTests: XCTestCase {
         await fixture.pipeline.finishPendingDelivery()
         XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.previousClipboard,
                        "The displaced clipboard still returns after the receiver window")
-        XCTAssertEqual(try fixture.history.recent(limit: 5).map(\.finalText), ["First dictation"])
-        XCTAssertEqual(fixture.delivered, 1)
-        XCTAssertEqual(fixture.outcomes, ["First dictation"])
+        let records = try fixture.history.recent(limit: 5)
+        XCTAssertEqual(records.map(\.finalText), ["Second dictation", "First dictation"], "The cancelled text is kept")
+        let cancelled = try XCTUnwrap(records.first)
+        XCTAssertFalse(cancelled.inserted)
+        XCTAssertEqual(cancelled.outputSucceeded, false, "History shows it as not delivered")
+        XCTAssertEqual(cancelled.error, "Cancelled before delivery. The text was not pasted.")
+        XCTAssertFalse(try fixture.history.audioSamples(for: cancelled).isEmpty, "Its audio follows the retention setting")
+        XCTAssertNil(fixture.pipeline.historyStorageError)
+        XCTAssertEqual(fixture.delivered, 1, "Only the first dictation was delivered")
+        XCTAssertEqual(fixture.outcomes, ["First dictation", "Second dictation"])
+        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "A saved dictation is not also kept for retry")
     }
 
     func testShortcutDuringExclusiveWorkShowsReasonInsteadOfDroppingPress() async throws {
