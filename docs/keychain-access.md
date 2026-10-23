@@ -34,18 +34,36 @@ may need the user's approval once for the stable release identity.
 ## macOS constraint
 
 The existing items are in the file-based login Keychain. Apple's data-protection
-Keychain is a different implementation with entitlement and provisioning rules;
-changing to it would be a separate migration. The SecItem/LAContext no-UI options
-do not reliably suppress file-based Keychain dialogs. Chromium documents this
-as FB16959400 and uses `SecKeychainSetUserInteractionAllowed` with restoration.
-AirDraft scopes that switch under one lock shared by its credential operations,
-restores the previous setting even on failure, and fails closed if it cannot set
-it. The deprecated API is intentional for these existing items.
+Keychain is a different implementation with entitlement and provisioning rules
+(`keychain-access-groups` or an application identifier), its own access-group
+model instead of per-item ACLs, and no view of file-based items. Moving to it
+would hide every saved key until a separate migration copied it, and the copy
+would need one approved read per item. Queries therefore leave
+`kSecUseDataProtectionKeychain` unset.
+
+Passive access uses two controls:
+
+- Every non-interactive search, update and delete carries an `LAContext` with
+  `interactionNotAllowed`, through `kSecUseAuthenticationContext`. This is the
+  supported SecItem control. Data-protection items and authentication-UI prompts
+  honor it. Add attributes carry no context.
+- The file-based Keychain ignores that context, and the deprecated
+  `kSecUseAuthenticationUI` values, for its ACL dialogs. Chromium documents this
+  as FB16959400 and keeps `SecKeychainSetUserInteractionAllowed` with
+  restoration. Airdraft scopes that process-wide switch under one lock shared by
+  its credential operations, restores the previous setting even on failure, and
+  fails closed if it cannot set it. It has no non-deprecated replacement for
+  these items. `CredentialStore.withInteraction` is the only caller, and
+  `@diagnose(DeprecatedDeclaration, as: ignored)` silences the warning on that
+  function alone, so new deprecated calls elsewhere still warn. Remove the
+  switch only after Apple fixes FB16959400 or after a data-protection migration.
 
 `python3 scripts/verify-keychain.py` creates eight disposable fixture entries with
 one certificate-signed app, reads them with a rebuilt app sharing its identity,
 and queries them from another identity. The successor must read them silently;
-the other identity must get authorization-required errors without dialogs.
+the other identity must get authorization-required errors without dialogs. The
+writer also adds and updates one key without interaction, as license receipts
+do, and the build must report no deprecation warning in `Keychain.swift`.
 Only the fixture entries are removed. This check runs in the local release gate.
 It does not prove permission continuity on a different Mac.
 

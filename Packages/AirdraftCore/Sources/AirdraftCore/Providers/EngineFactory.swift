@@ -12,6 +12,8 @@ public actor EngineFactory {
     private var idleUnloadMinutes = 30
     private var local: [String: any Transcriber] = [:]
     private var operationTail: Task<Void, Never>?
+    /// Lease operations queued or running. Memory pressure never waits behind one.
+    private var leaseOperations = 0
     private var idleTask: Task<Void, Never>?
     private let modelLoadTimeout: TimeInterval
     private var retiringLoads: [String: Task<Void, Never>] = [:]
@@ -234,14 +236,20 @@ public actor EngineFactory {
 
     private func serialize<Value: Sendable>(_ operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
         let previous = operationTail
+        leaseOperations += 1
         let task = Task {
             await previous?.value
             try Task.checkCancellation()
             return try await operation()
         }
-        operationTail = Task { _ = try? await task.value }
+        operationTail = Task {
+            _ = try? await task.value
+            self.leaveLease()
+        }
         return try await withTaskCancellationHandler { try await task.value } onCancel: { task.cancel() }
     }
+
+    private func leaveLease() { leaseOperations -= 1 }
 
     private func prepareExclusive(_ config: ASRConfig, onPreparing: (@Sendable () async -> Void)? = nil) async throws -> any Transcriber {
         try Task.checkCancellation()
@@ -346,6 +354,28 @@ public actor EngineFactory {
         _ = try? await serialize { await self.unloadIdleExclusive() }
     }
 
+    fileprivate func unloadForMemoryPressureExclusive(minimumIdleSeconds: TimeInterval) async -> MemoryPressureUnload {
+        var result = MemoryPressureUnload()
+        let cutoff = now().addingTimeInterval(-max(0, minimumIdleSeconds))
+        let pinned = activePinnedEngineIDs()
+        let (lastUsed, pendingLoads) = await MainActor.run { [local] in
+            (status.lastUsedAt, Set(local.values.map(\.id).filter { status.hasPendingLoad(for: $0) }))
+        }
+        for (key, engine) in local.sorted(by: { $0.key < $1.key }) {
+            guard retiringLoads[engine.id] == nil, !pendingLoads.contains(engine.id),
+                  await engine.isReady() else { continue }
+            if pinned.contains(key) || pinned.contains(engine.id) {
+                result.keptPinned.append(engine.id)
+            } else if let used = lastUsed[engine.id], used > cutoff {
+                result.keptRecent.append(engine.id)
+            } else {
+                await unload(engine)
+                result.unloaded.append(engine.id)
+            }
+        }
+        return result
+    }
+
     private func unloadIdleExclusive() async {
         guard idleUnloadMinutes > 0 else { return }
         let cutoff = now().addingTimeInterval(-Double(idleUnloadMinutes) * 60)
@@ -356,6 +386,30 @@ public actor EngineFactory {
             await unload(engine)
         }
     }
+}
+
+extension EngineFactory {
+    /// Frees resident local speech models under system memory pressure.
+    /// Never waits behind the lease: an active load or inference (or one queued
+    /// for it) skips the pass, so loads finish and inference keeps its model.
+    /// Pinned engines, retiring loads and engines used within
+    /// `minimumIdleSeconds` stay. Logs engine IDs and durations only.
+    public func unloadForMemoryPressure(minimumIdleSeconds: TimeInterval) async -> MemoryPressureUnload {
+        let started = ProcessInfo.processInfo.systemUptime
+        guard leaseOperations == 0 else {
+            Self.pressureLog.notice("memoryPressure skipped=busy")
+            return MemoryPressureUnload(skippedBusy: true)
+        }
+        // No await separates the check above from entering the lease, so this
+        // pass is first in line and nothing can start a load before it runs.
+        let result = (try? await serialize { await self.unloadForMemoryPressureExclusive(minimumIdleSeconds: minimumIdleSeconds) })
+            ?? MemoryPressureUnload(skippedBusy: true)
+        let elapsed = Int((ProcessInfo.processInfo.systemUptime - started) * 1000)
+        Self.pressureLog.notice("memoryPressure unloaded=\(result.unloaded.joined(separator: ","), privacy: .public) keptPinned=\(result.keptPinned.joined(separator: ","), privacy: .public) keptRecent=\(result.keptRecent.joined(separator: ","), privacy: .public) skippedBusy=\(result.skippedBusy, privacy: .public) durationMs=\(elapsed)")
+        return result
+    }
+
+    private static let pressureLog = Logger(subsystem: AppIdentity.logSubsystem, category: "models")
 }
 
 /// Preserves the engine contracts and the pipeline's raw-text fallback while

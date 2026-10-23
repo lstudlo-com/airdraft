@@ -1,6 +1,20 @@
+import LocalAuthentication
 import Security
 import XCTest
 @testable import AirdraftCore
+
+/// Reads the file-based keychain's process-wide switch that `CredentialStore`
+/// scopes; the API has no non-deprecated equivalent for file-based items.
+@diagnose(DeprecatedDeclaration, as: ignored)
+private func fileKeychainInteractionAllowed() -> Bool {
+    var allowed: DarwinBoolean = true
+    XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&allowed), errSecSuccess)
+    return allowed.boolValue
+}
+
+private func forbidsInteraction(_ query: [String: Any]) -> Bool {
+    (query[kSecUseAuthenticationContext as String] as? LAContext)?.interactionNotAllowed == true
+}
 
 final class KeychainAccessTests: XCTestCase {
     func testPresenceUsesOnlyMetadataAndNeverMigrates() {
@@ -9,9 +23,9 @@ final class KeychainAccessTests: XCTestCase {
             calls += 1
             XCTAssertNil(query[kSecReturnData as String])
             XCTAssertEqual(query[kSecReturnAttributes as String] as? Bool, true)
-            var allowed: DarwinBoolean = true
-            XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&allowed), errSecSuccess)
-            XCTAssertFalse(allowed.boolValue)
+            XCTAssertFalse(fileKeychainInteractionAllowed())
+            XCTAssertTrue(forbidsInteraction(query), "Metadata queries must carry a no-UI context")
+            XCTAssertNil(query[kSecUseDataProtectionKeychain as String], "Items stay in the file-based login keychain")
             return (errSecSuccess, [:])
         }, add: { _ in XCTFail("No migration during inspection"); return errSecSuccess })
         XCTAssertEqual(store.presence("llm.example"), .saved)
@@ -60,15 +74,15 @@ final class KeychainAccessTests: XCTestCase {
     }
 
     func testPassiveWritesNeverAllowInteractionForUpdateAddOrDelete() {
-        func assertNoInteraction() {
-            var allowed: DarwinBoolean = true
-            XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&allowed), errSecSuccess)
-            XCTAssertFalse(allowed.boolValue)
-        }
+        func assertNoInteraction() { XCTAssertFalse(fileKeychainInteractionAllowed()) }
         // All credential operations are injected. No real item is read or changed.
-        let store = CredentialStore(add: { _ in assertNoInteraction(); return errSecSuccess },
-            update: { _, _ in assertNoInteraction(); return errSecItemNotFound },
-            remove: { _ in assertNoInteraction(); return errSecSuccess })
+        let store = CredentialStore(add: { attributes in
+                assertNoInteraction()
+                XCTAssertNil(attributes[kSecUseAuthenticationContext as String], "Add takes attributes, not a search context")
+                return errSecSuccess
+            },
+            update: { query, _ in assertNoInteraction(); XCTAssertTrue(forbidsInteraction(query)); return errSecItemNotFound },
+            remove: { query in assertNoInteraction(); XCTAssertTrue(forbidsInteraction(query)); return errSecSuccess })
         XCTAssertTrue(store.set("receipt", for: "fixture", allowInteraction: false))
         XCTAssertTrue(store.delete("fixture", allowInteraction: false))
         let denied = CredentialStore(add: { _ in XCTFail("Must not add after denied update"); return errSecSuccess },
@@ -87,14 +101,23 @@ final class KeychainAccessTests: XCTestCase {
     }
 
     func testInteractionPolicyRestoredEvenWhenOperationThrows() throws {
-        var before: DarwinBoolean = false
-        XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&before), errSecSuccess)
+        let before = fileKeychainInteractionAllowed()
         XCTAssertThrowsError(try CredentialStore.withInteraction(false) {
             throw Keychain.AccessError.failure(errSecDecode)
         })
-        var after: DarwinBoolean = false
-        XCTAssertEqual(SecKeychainGetUserInteractionAllowed(&after), errSecSuccess)
-        XCTAssertEqual(before.boolValue, after.boolValue)
+        XCTAssertEqual(before, fileKeychainInteractionAllowed())
+    }
+
+    func testOnlyExplicitAccessReadsMayShowAuthorizationUI() throws {
+        var contexts: [Bool] = []
+        let store = CredentialStore(copy: { query in
+            contexts.append(forbidsInteraction(query))
+            XCTAssertEqual(fileKeychainInteractionAllowed(), !forbidsInteraction(query))
+            return (errSecSuccess, Data("fixture".utf8))
+        })
+        XCTAssertEqual(try store.read("llm.example"), "fixture")
+        XCTAssertEqual(try store.read("llm.example", allowInteraction: true), "fixture")
+        XCTAssertEqual(contexts, [true, false], "Passive reads forbid UI; Allow access may authorize")
     }
 
     func testMalformedCurrentKeyDoesNotFallBack() {

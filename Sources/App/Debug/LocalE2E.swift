@@ -246,6 +246,12 @@ enum LocalE2E {
                     if !refinementPassed {
                         report["error"] = "Requested refinement did not complete. The pipeline preserved the original transcript."
                     }
+                case "capture-latency":
+                    // Real default input, only with existing microphone access; never requests it.
+                    let trials = argument("--e2e-trials").flatMap(Int.init) ?? 5
+                    let hold = argument("--e2e-recording-ms").flatMap(Int.init) ?? 600
+                    guard (1...20).contains(trials), (300...5_000).contains(hold) else { throw E2EError.unknownAction }
+                    report = try await CaptureLatencyVerification.run(app: app, trials: trials, holdMilliseconds: hold)
                 case "preview":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
                     let locale = argument("--e2e-locale") ?? "en-US"
