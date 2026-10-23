@@ -117,11 +117,14 @@ struct HomePage: View {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(readiness.summary)
                             .appFont(.body, weight: .medium)
-                        Text(pipelineSummary)
+                        // A separator stays at the end of the line it follows when the summary wraps.
+                        Text(pipelineSummary.replacingOccurrences(of: " · ", with: "\u{00A0}· ")
+                            .replacingOccurrences(of: " → ", with: "\u{00A0}→ "))
                             .supportingText()
                             .accessibilityIdentifier("home.pipeline-summary")
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                            // Long model and host names wrap instead of losing
+                            // their middle, at every text size.
+                            .fixedSize(horizontal: false, vertical: true)
                             .help(pipelineHelp)
                     }
                     Spacer(minLength: Theme.controlSpacing)
