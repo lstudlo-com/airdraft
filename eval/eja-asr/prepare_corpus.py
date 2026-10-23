@@ -15,6 +15,12 @@ Selection, per language (deterministic, no model output involved):
 FLEURS publishes no speaker IDs, so speaker spread cannot be controlled.
 
 Audio stays under --work; only manifest.json is written into the repository.
+
+  python3 -I eval/eja-asr/prepare_corpus.py --work <dir> --set chinese
+
+builds the 2026-10-24 SenseVoice follow-up corpus instead (manifest-chinese.json):
+Cantonese (yue_hant_hk) and Mandarin (cmn_hans_cn) from the same FLEURS revision,
+with the same selection rule.
 """
 import argparse, hashlib, json, pathlib, sys, urllib.request
 
@@ -25,6 +31,13 @@ PARQUETS = {  # test split only; LFS SHA-256 digests from the Hub at REVISION
     "ja_jp": "e954b67e934b9a31d7a74a070a75225379660d50c8d1aacdb755852c57f23e6b",
     "ko_kr": "1a8319fc61c7996e8c15acde633786de97054e28ae1e463eb13901716176a7ec",
 }
+# Follow-up set (--set chinese): Cantonese and Mandarin Chinese, same revision.
+CHINESE_PARQUETS = {
+    "yue_hant_hk": "48e9772174c16500920b8dca35e9c4073831c337a3490c442070a0902a86e553",
+    "cmn_hans_cn": "87c0aebbe183f3a36ac87b5c3421b6ab57036824744ff695029a3f858e7622fd",
+}
+# Airdraft language code and utterance ID prefix per FLEURS config.
+LANGUAGE = {"en_us": "en", "ja_jp": "ja", "ko_kr": "ko", "yue_hant_hk": "yue", "cmn_hans_cn": "zh"}
 PER_LANGUAGE = 60
 MAX_SHARE = 0.6
 MIN_SECONDS, MAX_SECONDS = 2.0, 20.0
@@ -67,11 +80,14 @@ def main():
     import pyarrow.parquet as pq
     parser = argparse.ArgumentParser()
     parser.add_argument("--work", required=True, type=pathlib.Path)
+    parser.add_argument("--set", choices=["eja", "chinese"], default="eja")
     args = parser.parse_args()
+    parquets = CHINESE_PARQUETS if args.set == "chinese" else PARQUETS
+    manifest_name = "manifest-chinese.json" if args.set == "chinese" else "manifest.json"
     dl = args.work / "dl" / "fleurs"
     dl.mkdir(parents=True, exist_ok=True)
     items, pools = [], {}
-    for lang, digest in PARQUETS.items():
+    for lang, digest in parquets.items():
         parquet = dl / f"{lang}-test.parquet"
         if not parquet.exists():
             urllib.request.urlretrieve(
@@ -84,18 +100,18 @@ def main():
         out = args.work / "audio" / lang
         out.mkdir(parents=True, exist_ok=True)
         for row in sorted(picked, key=lambda r: r["id"]):
-            uid = f"{lang[:2]}-{row['id']}"
+            uid = f"{LANGUAGE[lang]}-{row['id']}"
             wav = out / f"{uid}.wav"
             wav.write_bytes(row["audio"]["bytes"])
             items.append({
-                "id": uid, "corpus": lang, "language": lang[:2], "fleurs_id": row["id"],
+                "id": uid, "corpus": lang, "language": LANGUAGE[lang], "fleurs_id": row["id"],
                 "source_file": pathlib.PurePosixPath(row["path"]).name,
                 "reference": row["raw_transcription"], "reference_normalized_by_fleurs": row["transcription"],
                 "gender": row["gender"], "duration": round(row["num_samples"] / 16000, 3),
                 "audio_sha256": sha256(wav),
             })
     manifest = {
-        "dataset": "google/fleurs", "revision": REVISION, "split": "test", "parquets": PARQUETS,
+        "dataset": "google/fleurs", "revision": REVISION, "split": "test", "parquets": parquets,
         "license": "CC BY 4.0",
         "attribution": "FLEURS: Conneau et al., 'FLEURS: Few-shot Learning Evaluation of Universal Representations of Speech', "
                        "SLT 2022. https://huggingface.co/datasets/google/fleurs. Transcriptions reproduced under CC BY 4.0.",
@@ -106,8 +122,8 @@ def main():
                 "gender is the dataset's 0/1 field. reference is raw_transcription (cased, punctuated).",
         "items": items,
     }
-    (HERE / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
-    print({lang: sum(i["corpus"] == lang for i in items) for lang in PARQUETS}, "pools", pools)
+    (HERE / manifest_name).write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
+    print({lang: sum(i["corpus"] == lang for i in items) for lang in parquets}, "pools", pools)
 
 
 if __name__ == "__main__":

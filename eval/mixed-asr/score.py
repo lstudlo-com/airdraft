@@ -14,6 +14,11 @@ MER = edit distance over the combined token sequence / reference tokens.
 CER = edit distance over Han tokens only; WER = over Latin tokens only.
 Retention = reference Latin tokens found in the hypothesis (multiset), / reference
 Latin tokens. Case-exact retention (tw-tts only) compares original-case words.
+
+`--followup` (2026-10-24) scores <work>/runs-followup into results/followup-2026-10-24/,
+pairing every configuration against both SenseVoice artifacts under Auto:
+sherpa:senseVoice (the shipped Cantonese fine-tune) and
+sherpa:senseVoiceMultilingual (the original SenseVoiceSmall).
 """
 import argparse, collections, csv, json, pathlib, random, re, statistics, subprocess, tempfile, unicodedata
 
@@ -100,11 +105,14 @@ def bootstrap(rows, key_err, key_ref, seed=74, n=2000):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--work", required=True, type=pathlib.Path)
+    parser.add_argument("--followup", action="store_true")
     args = parser.parse_args()
     manifest = json.loads((HERE / "manifest.json").read_text())
     items = {i["id"]: i for i in manifest["items"]}
-    runs = [json.loads(p.read_text()) for p in sorted((args.work / "runs").glob("*/*.json")) if p.parent.name != "load"]
-    loads = [json.loads(p.read_text()) for p in sorted((args.work / "runs/load").glob("*.json"))]
+    runs_dir = args.work / ("runs-followup" if args.followup else "runs")
+    baselines = [("sherpa:senseVoice", "auto")] + ([("sherpa:senseVoiceMultilingual", "auto")] if args.followup else [])
+    runs = [json.loads(p.read_text()) for p in sorted(runs_dir.glob("*/*.json")) if p.parent.name != "load"]
+    loads = [json.loads(p.read_text()) for p in sorted((runs_dir / "load").glob("*.json"))]
 
     texts = [items[r["id"]]["reference"] for r in runs] + [r.get("final") or "" for r in runs] + [r.get("raw") or "" for r in runs]
     converted = to_traditional(texts)
@@ -182,10 +190,10 @@ def main():
     index = {(r["model"], r["language"], r["id"]): r for r in rows}
     def score_of(r):
         return r if r["status"] == "passed" else {**r, "err": r["ref_tokens"], "kept_lat": 0}
-    for (model, language, corpus), group in sorted(groups.items()):
-        if (model, language) == ("sherpa:senseVoice", "auto"):
+    for baseline, (model, language, corpus), group in [(b, k, g) for b in baselines for k, g in sorted(groups.items())]:
+        if (model, language) == baseline:
             continue
-        pairs = [(score_of(index[("sherpa:senseVoice", "auto", r["id"])]), score_of(r)) for r in group]
+        pairs = [(score_of(index[(*baseline, r["id"])]), score_of(r)) for r in group]
         rng = random.Random(74)
         def delta(sample, key, ref_key):
             ref = sum(a[ref_key] for a, _ in sample)
@@ -195,7 +203,7 @@ def main():
             sample = [pairs[rng.randrange(len(pairs))] for _ in pairs]
             mer.append(delta(sample, "err", "ref_tokens"))
             keep.append(delta(sample, "kept_lat", "ref_lat"))
-        paired.append({"model": model, "language": language, "corpus": corpus,
+        paired.append({"vs": " ".join(baseline), "model": model, "language": language, "corpus": corpus,
                        "mer_delta": round(delta(pairs, "err", "ref_tokens"), 4),
                        "mer_delta_ci95": [round(percentile(mer, 0.025), 4), round(percentile(mer, 0.975), 4)],
                        "retention_delta": round(delta(pairs, "kept_lat", "ref_lat"), 4),
@@ -221,8 +229,8 @@ def main():
         load[model] = {"load_ms_median": round(statistics.median(diffs)) if diffs else None, "load_ms_samples": diffs,
                        "process_wall_s_median": round(statistics.median(walls), 2) if walls else None}
 
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
+    results = HERE / "results" / ("followup-2026-10-24" if args.followup else "")
+    results.mkdir(parents=True, exist_ok=True)
     (results / "summary.json").write_text(json.dumps({"summary": summary, "paired_vs_sensevoice_auto": paired, "tw_tts_by_voice": by_voice, "load": load}, ensure_ascii=False, indent=1) + "\n")
     with open(results / "summary.csv", "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(summary[0].keys()) + ["english_retention_case_exact"], extrasaction="ignore")
@@ -238,11 +246,13 @@ def main():
         for row in sorted(rows, key=lambda r: (r["corpus"], r["id"], r["model"], r["language"])):
             writer.writerow({**row, "final": row["final"][:300]})
     for entry in summary:
-        print(f"{entry['corpus']:7} {entry['model']:18} {entry['language']:4} MER {entry['mer']:.3f} "
+        print(f"{entry['corpus']:7} {entry['model']:30} {entry['language']:4} MER {entry['mer']:.3f} "
               f"CER {entry['cer_han']:.3f} WER {entry['wer_latin']:.3f} keep {entry['english_retention']:.3f} "
               f"drop {entry['english_dropped_utts']} lost {entry['chinese_lost_utts']} fail {entry['failures']} "
               f"p50 {entry['latency_ms_median']}ms rtf {entry['rtf_median']} mem {entry['peak_footprint_mb_max']}MB")
     print(json.dumps(load, indent=1))
+    for pair in paired:
+        print("paired", pair)
 
 
 if __name__ == "__main__":

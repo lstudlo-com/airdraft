@@ -26,6 +26,13 @@ Error rate = sum of edit distances / sum of reference tokens over the set.
 95% CIs: 2000 bootstrap resamples of utterances (seed 83). Paired deltas
 resample the same utterances for both systems. A failed or empty run counts
 as a full deletion.
+
+`--followup` (2026-10-24) scores <work>/runs-followup (both manifests) into
+results/followup-2026-10-24/. Cantonese (yue) and Mandarin (zh) are CER over
+characters after ICU Hans-Hant on reference and hypothesis (eval/mixed-asr's
+to_traditional.swift), because FLEURS Mandarin references are Simplified and
+the app delivers Traditional by default. `--ad083 <work>` adds that study's
+runs for the same utterances under "<model>@ad083" for before/after pairs.
 """
 import argparse, collections, csv, json, pathlib, random, re, statistics, unicodedata
 
@@ -45,6 +52,29 @@ PAIRS = [
     ("ko", ("qwen3:1.7b", "ko"), ("whisper:turbo", "ko")),
     ("ko", ("qwen3:1.7b", "ko"), ("cohere", "ko")),
 ]
+SV, SVM = "sherpa:senseVoice", "sherpa:senseVoiceMultilingual"
+FOLLOWUP_PAIRS = [
+    ("en", (SVM, "auto"), ("sherpa:senseVoice@2024@ad083", "auto")),
+    ("ja", (SVM, "auto"), ("sherpa:senseVoice@2024@ad083", "auto")),
+    ("ko", (SVM, "auto"), ("sherpa:senseVoice@2024@ad083", "auto")),
+    ("en", (SVM, "auto"), ("sherpa:senseVoice@ad083", "auto")),
+    ("ja", (SVM, "auto"), ("sherpa:senseVoice@ad083", "auto")),
+    ("ko", (SVM, "auto"), ("sherpa:senseVoice@ad083", "auto")),
+    ("ja", (SVM, "auto"), ("qwen3:1.7b@ad083", "auto")),
+    ("ko", (SVM, "auto"), ("qwen3:1.7b@ad083", "auto")),
+    ("ja", (SVM, "auto"), ("whisper:turbo@ad083", "auto")),
+    ("ko", (SVM, "auto"), ("whisper:turbo@ad083", "auto")),
+    ("ja", ("coreml:parakeet-ja@ad083", "auto"), ("coreml:parakeet-ja", "auto")),
+    ("yue", (SV, "auto"), (SVM, "auto")),
+    ("yue", (SV, "yue"), (SVM, "yue")),
+    ("yue", (SVM, "auto"), ("qwen3:1.7b", "auto")),
+    ("yue", (SVM, "yue"), ("qwen3:1.7b", "yue")),
+    ("zh", (SV, "auto"), (SVM, "auto")),
+    ("zh", (SV, "zh"), (SVM, "zh")),
+    ("zh", (SVM, "auto"), ("qwen3:1.7b", "auto")),
+    ("zh", (SVM, "zh"), ("qwen3:1.7b", "zh")),
+]
+AD083_MODELS = {"sherpa_senseVoice", "sherpa_senseVoice_2024", "qwen3_1.7b", "whisper_turbo", "coreml_parakeet-ja"}
 
 
 def clean(text):
@@ -55,6 +85,15 @@ def clean(text):
 def tokens(text, language):
     text = clean(text)
     return text.split() if language == "en" else [c for c in text if not c.isspace()]
+
+
+def traditional(strings):
+    """ICU Hans-Hant through eval/mixed-asr's helper (the app's converter transform)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("mixed_score", HERE.parent / "mixed-asr" / "score.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.to_traditional(strings)
 
 
 def distance(a, b):
@@ -99,6 +138,8 @@ def script_ok(text, language):
         return re.search(r"[぀-ヿ]", text) is not None
     if language == "ko":
         return re.search(r"[가-힣]", text) is not None
+    if language in ("yue", "zh"):
+        return re.search(r"[一-鿿]", text) is not None
     letters = [c for c in text if c.isalpha()]
     return bool(letters) and sum(c.isascii() for c in letters) >= 0.9 * len(letters)
 
@@ -106,15 +147,31 @@ def script_ok(text, language):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--work", required=True, type=pathlib.Path)
+    parser.add_argument("--followup", action="store_true")
+    parser.add_argument("--ad083", type=pathlib.Path, help="AD-083 work directory, for before/after pairs")
     args = parser.parse_args()
     items = {i["id"]: i for i in json.loads((HERE / "manifest.json").read_text())["items"]}
-    runs = [json.loads(p.read_text()) for p in sorted((args.work / "runs").glob("*/*/*.json"))]
+    if args.followup:
+        items.update({i["id"]: i for i in json.loads((HERE / "manifest-chinese.json").read_text())["items"]})
+    runs = [json.loads(p.read_text()) for p in sorted((args.work / ("runs-followup" if args.followup else "runs")).glob("*/*/*.json"))]
+    if args.followup and args.ad083:
+        for path in sorted((args.ad083 / "runs").glob("*/*/*.json")):
+            if path.parent.name.rsplit("-", 1)[0] in AD083_MODELS:
+                run = json.loads(path.read_text())
+                run["model"] = run["model"] + "@ad083"
+                runs.append(run)
+    chinese = [r for r in runs if items[r["id"]]["language"] in ("yue", "zh")]
+    if chinese:
+        texts = [items[r["id"]]["reference"] for r in chinese] + [r.get("final") or "" for r in chinese] + [r.get("raw") or "" for r in chinese]
+        converted, n = traditional(texts), len(chinese)
+        for index, run in enumerate(chinese):
+            run["reference_hant"], run["final_hant"], run["raw_hant"] = converted[index], converted[n + index], converted[2 * n + index]
     rows = []
     for run in runs:
         item = items[run["id"]]
         lang = item["language"]
         ok = run["status"] == "passed"
-        ref = tokens(item["reference"], lang)
+        ref = tokens(run.get("reference_hant", item["reference"]), lang)
         row = {"id": run["id"], "lang": lang, "model": run["model"], "setting": run["language"],
                "status": run["status"], "duration": item["duration"], "ref": len(ref),
                "digits": bool(re.search(r"\d", item["reference"])),
@@ -123,11 +180,11 @@ def main():
                "peak_footprint": run.get("peak_footprint"), "loadavg1": run.get("loadavg1"),
                "final": run.get("final") or "", "raw": run.get("raw") or "", "reference": item["reference"]}
         for key in ("final", "raw"):
-            hyp = tokens(row[key], lang) if ok else []
+            hyp = tokens(run.get(f"{key}_hant", row[key]), lang) if ok else []
             row["err" if key == "final" else "err_raw"] = distance(ref, hyp)
         # Lost speech: the output keeps less than 70% of the reference length
         # (a dropped sentence, or no text at all).
-        row["truncated"] = len(tokens(row["raw"], lang) if ok else []) < 0.7 * len(ref)
+        row["truncated"] = len(tokens(run.get("raw_hant", row["raw"]), lang) if ok else []) < 0.7 * len(ref)
         row["empty"] = not ok or not row["final"].strip()
         row["wrong_script"] = ok and bool(row["raw"].strip()) and not script_ok(row["raw"], lang)
         row["converted"] = ok and row["raw"] != row["final"]
@@ -194,7 +251,7 @@ def main():
             settings.append({"lang": lang, "model": model, "explicit_minus_auto_raw": delta, "ci95": ci})
 
     pairs = []
-    for lang, first, second in PAIRS:
+    for lang, first, second in (FOLLOWUP_PAIRS if args.followup else PAIRS):
         a, b = groups.get((lang, *first)), groups.get((lang, *second))
         if not a or not b:
             continue
@@ -206,8 +263,8 @@ def main():
         pairs.append({"lang": lang, "first": " ".join(first), "second": " ".join(second), "second_minus_first": delta,
                       "ci95": ci, "clean_second_minus_first": clean_delta, "clean_ci95": clean_ci, "clean_utterances": len(clean_ids)})
 
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
+    results = HERE / "results" / ("followup-2026-10-24" if args.followup else "")
+    results.mkdir(parents=True, exist_ok=True)
     (results / "summary.json").write_text(json.dumps(
         {"summary": summary, "paired_vs_sensevoice_auto": comparisons, "explicit_vs_auto": settings, "decision_pairs": pairs},
         ensure_ascii=False, indent=1) + "\n")
@@ -219,7 +276,7 @@ def main():
         for row in sorted(rows, key=lambda r: (r["lang"], r["id"], r["model"], r["setting"])):
             writer.writerow({**row, "final": row["final"][:400], "raw": row["raw"][:400]})
     for e in summary:
-        print(f"{e['lang']} {e['model']:24} {e['setting']:4} n={e['utterances']:2} {e['metric']} {e['error']:.3f} "
+        print(f"{e['lang']} {e['model']:32} {e['setting']:4} n={e['utterances']:2} {e['metric']} {e['error']:.3f} "
               f"{e['error_ci95']} raw {e['error_raw']:.3f} {e['error_raw_ci95']} nodig {e['error_no_digits']} clean(raw) {e['error_clean']} "
               f"fail {e['failures']} empty {e['empty']} trunc {e['truncated']} script {e['wrong_script']} conv {e['converted_by_script']} "
               f"asr {e['asr_ms_median']}/{e['asr_ms_p90']} proc {e['processing_ms_median']} "

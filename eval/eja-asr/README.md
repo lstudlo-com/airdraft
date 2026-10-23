@@ -239,3 +239,116 @@ python3 -I eval/eja-asr/score.py --work "$W"
 ```
 
 `run_matrix.py` skips runs that already have a result file.
+
+## 2026-10-24 follow-up: SenseVoice artifacts, Cantonese and Mandarin, window fixes
+
+Measured the same day on the same Mac from a working tree on `0196926`
+(branch `claude/sensevoice-fixes`). The tables above are unchanged. Results are in
+`results/followup-2026-10-24/` (`summary.json`, `utterances.csv`,
+`environment.json`); `score.py --followup --ad083 <AD-083 work>` adds the AD-083
+runs as `<model>@ad083` for before/after pairs.
+
+**What changed in the app.** Airdraft now installs the original multilingual
+SenseVoiceSmall (`sherpa:senseVoiceMultilingual`, sherpa-onnx int8 2024-07-17,
+pinned by URL, 163,002,883 bytes and SHA-256 `7d1efa21…d347e`) through its normal
+download path, which checks size and digest before unpacking. It is shown as
+"SenseVoice". The Cantonese fine-tune keeps its ID (`sherpa:senseVoice`, engine
+`sherpa-onnx:senseVoice`) and is shown as "SenseVoice Cantonese". Its language
+policy no longer offers Japanese or Korean. SenseVoice preparation now builds the
+recognizer for the recording's language, so an explicit language no longer
+rebuilds it on the first dictation. Long recordings no longer leave a tiny final
+window, and windows whose boundary sits between Han or kana characters are joined
+without a space.
+
+**Route and corpus.** As above (`run_matrix.py --followup`). en/ja/ko reuse the
+AD-083 audio, cloned from that work directory. `prepare_corpus.py --set chinese`
+adds `manifest-chinese.json`: FLEURS test `yue_hant_hk` (Cantonese, 60
+utterances, 680 s) and `cmn_hans_cn` (Mandarin, 60, 768 s), with the same
+revision, digest check and selection rule. The Cantonese run uses
+`-AppleLanguages (zh-Hant-HK)`, Mandarin `(zh-Hant-TW)`. Chinese is scored as CER
+over characters after ICU `Hans-Hant` on both reference and output (the FLEURS
+Mandarin references are Simplified; the app delivers Traditional by default).
+Qwen3-ASR 1.7B was rerun on the Chinese sets for comparison.
+
+**SenseVoice (multilingual) through the app route** reproduces the evaluation-only
+† rows exactly (every paired delta 0.0): English WER 6.9% Auto / 7.2% en, Japanese
+CER 5.2% / 5.2%, Korean CER 13.0% / 13.2% (4.0% / 4.1% on the clean subset).
+Against the Cantonese fine-tune (AD-083 runs): −25 pt (en), −71 pt (ja) and
+−64 pt (ko), all CIs exclude 0.
+
+Cantonese and Mandarin (FLEURS, model output, 60 utterances each):
+
+| Language | Model | Setting | CER (95% CI) | Clean subset | asrMs p50 / p90 | Peak MB p50 |
+|---|---|---|---|---|---|---|
+| yue | Qwen3-ASR 1.7B | Auto | 4.3% (3.1–5.5) | 4.0% | 562 / 1263 | 2917 |
+| yue | Qwen3-ASR 1.7B | yue | 5.0% (3.6–6.7) | 4.0% | 563 / 1298 | 2961 |
+| yue | SenseVoice Cantonese | Auto | 8.7% (6.4–11.4) | 5.6% | 108 / 172 | 881 |
+| yue | SenseVoice Cantonese | yue | 8.7% (6.5–11.5) | 5.6% | 110 / 170 | 883 |
+| yue | SenseVoice | Auto | 9.5% (7.1–12.4) | 6.1% | 110 / 174 | 895 |
+| yue | SenseVoice | yue | 9.2% (6.8–12.1) | 5.9% | 111 / 173 | 883 |
+| zh | Qwen3-ASR 1.7B | Auto | 8.0% (4.8–11.4) | 2.3% | 594 / 1532 | 3044 |
+| zh | Qwen3-ASR 1.7B | zh | 9.6% (6.0–13.4) | 2.4% | 646 / 1563 | 3081 |
+| zh | SenseVoice | Auto | 9.7% (6.4–13.3) | 3.8% | 128 / 179 | 892 |
+| zh | SenseVoice | zh | 9.6% (6.3–13.1) | 3.8% | 130 / 181 | 891 |
+| zh | SenseVoice Cantonese | Auto | 12.6% (8.7–16.6) | 4.0% | 130 / 181 | 886 |
+| zh | SenseVoice Cantonese | zh | 12.5% (8.6–16.5) | 3.8% | 129 / 182 | 891 |
+
+Paired differences (second minus first, model output):
+
+| Language | Comparison | Δ CER (95% CI) | Clean subset |
+|---|---|---|---|
+| yue | SenseVoice − SenseVoice Cantonese, Auto | +0.8 pt (+0.04…+1.7) | +0.6 pt (−0.3…+1.4) |
+| yue | SenseVoice − SenseVoice Cantonese, yue | +0.5 pt (−0.3…+1.2) | +0.3 pt (−0.6…+1.2) |
+| yue | Qwen3-ASR 1.7B − SenseVoice, Auto | −5.3 pt (−8.3…−2.8) | −2.1 pt (−3.6…−0.7) |
+| zh | SenseVoice − SenseVoice Cantonese, Auto | −2.8 pt (−4.6…−1.3) | −0.3 pt (−1.0…+0.5) |
+| zh | SenseVoice − SenseVoice Cantonese, zh | −2.9 pt (−4.7…−1.3) | 0.0 pt (−0.7…+0.9) |
+| zh | Qwen3-ASR 1.7B − SenseVoice, Auto | −1.8 pt (−3.4…−0.2) | −1.5 pt (−3.0…−0.1) |
+
+The fine-tune's Cantonese advantage is under one point and its CI touches zero
+except under Auto; on Mandarin it loses about three points, almost all of it on
+references with digits (number formatting), not on the clean subset. Neither
+SenseVoice is close to Qwen3-ASR 1.7B on Cantonese.
+
+**Latency.** With an explicit language, SenseVoice's `asrMs` p50 is now 104 ms
+(en), 157 ms (ja) and 124 ms (ko), against 458–484 ms in AD-083, where the
+recognizer built for Auto during preparation was rebuilt for the language.
+
+**Parakeet Japanese.** After the window fixes, CER is 6.0% (3.7–8.9) against
+6.4%, paired −0.35 pt (−0.77…−0.03). ja-2000 (15.06 s) is now two windows of
+at least 3 s and no longer ends in `ハッハッハッハッハッハ`, but its second window
+drops `氷の中を突き進む際に`. The three clips that lose a whole sentence (ja-1684
+9.3 s, ja-1900 14.94 s, ja-2006 12.66 s) are each a single window under the 15 s
+cap, so Airdraft's windowing is not the cause. Padding the same audio with
+0.5–1 s of leading or 1 s of trailing silence changes which sentence survives
+(ja-1900 kept both with 1 s of lead or tail; ja-2006 kept only the second with
+1 s of lead), which points to the FluidAudio `tdtJa` decoder or model. It is
+documented, not fixed; Parakeet Japanese stays out of the recommendations.
+
+### Decision
+
+- **"SenseVoice" is the original multilingual SenseVoiceSmall.** It is the
+  Chinese recommendation's smaller alternative and the 8 GB Chinese
+  recommendation (`LocalSpeechRecommendation`, catalogue ID
+  `sherpa:senseVoiceMultilingual`), Verified from this study.
+- **SenseVoice Cantonese is retired, not deleted.** It is not clearly better for
+  Cantonese, and it is worse for Mandarin, English, Japanese and Korean. Models,
+  Profiles, onboarding and Meetings list it only while it is in use (app default,
+  profile binding, installed or downloading). Existing selections keep the exact
+  engine ID and files; nothing is migrated or downloaded automatically.
+- **The Chinese recommendation holds:** Qwen3-ASR 1.7B first (better than
+  SenseVoice on Mandarin, −1.8 pt, and Cantonese, −5.3 pt), SenseVoice first at
+  8 GB or less (about 0.9 GB of memory against 3 GB, 5× faster).
+- Japanese and Korean recommendations were not changed. The multilingual
+  SenseVoice is statistically tied with Qwen3-ASR 1.7B under Auto (ja +1.0 pt for
+  Qwen, −0.9…+3.4; ko −1.4 pt, −3.7…+1.1) and better than Whisper Turbo on the
+  clean Japanese subset (+2.4 pt for Turbo, +0.2…+4.8) at about 150 ms and 0.9 GB;
+  it is a candidate for the 8 GB Japanese/Korean fallback (proposal, not applied).
+
+```sh
+W=/tmp/airdraft-wave/sensevoice-fixes/work
+python3 -I eval/eja-asr/prepare_corpus.py --work "$W" --set chinese
+"$APP/Contents/MacOS/Airdraft Debug" --e2e-local "$W/sessions/dl" --e2e-action download --e2e-model sherpa:senseVoiceMultilingual  # AIRDRAFT_E2E_MODEL_ROOT="$W/models"
+python3 -I eval/eja-asr/run_matrix.py --app "$APP" --work "$W" --followup --languages ja,en,ko
+python3 -I eval/eja-asr/run_matrix.py --app "$APP" --work "$W" --followup --manifest manifest-chinese.json --languages yue,zh
+python3 -I eval/eja-asr/score.py --work "$W" --followup --ad083 /tmp/airdraft-wave/ad083
+```

@@ -1,0 +1,841 @@
+id,corpus,model,language,status,duration,asrMs,ref_tokens,err,ref_han,err_han,ref_lat,err_lat,kept_lat,english_dropped,chinese_lost,raw_simplified,final
+ascend-tes-00055,ascend,qwen3:1.7b,auto,passed,3.0,256,13,0,13,0,0,0,0,False,False,True,嗯，運動啊，男生一般不都喜歡運動。
+ascend-tes-00055,ascend,qwen3:1.7b,zh,passed,3.0,278,13,0,13,0,0,0,0,False,False,True,嗯，運動啊，男生一般不都喜歡運動。
+ascend-tes-00055,ascend,sherpa:senseVoice,auto,passed,3.0,41,13,0,13,0,0,0,0,False,False,True,嗯運動啊男生一般不都喜歡運動。
+ascend-tes-00055,ascend,sherpa:senseVoice,zh,passed,3.0,40,13,0,13,0,0,0,0,False,False,True,嗯運動啊男生一般不都喜歡運動。
+ascend-tes-00055,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.0,41,13,0,13,0,0,0,0,False,False,True,嗯，運動啊男生一般不都喜歡運動。
+ascend-tes-00055,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.0,39,13,0,13,0,0,0,0,False,False,True,嗯，運動啊男生一般不都喜歡運動。
+ascend-tes-00132,ascend,qwen3:1.7b,auto,passed,2.77,215,13,4,12,4,1,1,0,True,False,True,大多數那周是在床上睡覺。
+ascend-tes-00132,ascend,qwen3:1.7b,zh,passed,2.77,239,13,4,12,4,1,1,0,True,False,False,大多數那周是在床上睡覺。
+ascend-tes-00132,ascend,sherpa:senseVoice,auto,passed,2.77,66,13,4,12,4,1,1,0,True,False,True,大多數那都是在床上睡覺。
+ascend-tes-00132,ascend,sherpa:senseVoice,zh,passed,2.77,41,13,4,12,4,1,1,0,True,False,True,大多數那都是在床上睡覺。
+ascend-tes-00132,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.77,40,13,4,12,4,1,1,0,True,False,True,大多數那都是在床上睡覺。
+ascend-tes-00132,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.77,42,13,4,12,4,1,1,0,True,False,True,大多數那都是在床上睡覺。
+ascend-tes-00143,ascend,qwen3:1.7b,auto,passed,4.86,347,23,5,22,4,1,1,0,False,False,True,那但那個i n g i n g是不是只有之後打算留香港的人才？
+ascend-tes-00143,ascend,qwen3:1.7b,zh,passed,4.86,342,23,5,22,4,1,1,0,False,False,True,那但那個i n g i n g是不是只有之後打算留香港的人才？
+ascend-tes-00143,ascend,sherpa:senseVoice,auto,passed,4.86,59,23,4,22,3,1,1,0,False,False,True,那但那個 I G I N G 是不是只有之後打算留香港的人才能。
+ascend-tes-00143,ascend,sherpa:senseVoice,zh,passed,4.86,58,23,4,22,3,1,1,0,False,False,True,那但那個 I G I N G 是不是只有之後打算留香港的人才能。
+ascend-tes-00143,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.86,59,23,4,22,3,1,1,0,False,False,True,那但那個inging是不是只有之後打算留香港的人才能。
+ascend-tes-00143,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.86,59,23,4,22,3,1,1,0,False,False,True,那但那個inging是不是只有之後打算留香港的人才能？
+ascend-tes-00150,ascend,qwen3:1.7b,auto,passed,2.76,252,12,3,11,3,1,0,1,False,False,True,想過，但是因為這陣子project有點多。
+ascend-tes-00150,ascend,qwen3:1.7b,zh,passed,2.76,259,12,3,11,3,1,0,1,False,False,False,想過，但是因為這陣子project有點多。
+ascend-tes-00150,ascend,sherpa:senseVoice,auto,passed,2.76,37,12,2,11,2,1,0,1,False,False,True,想過但是因為這算 project 有點多。
+ascend-tes-00150,ascend,sherpa:senseVoice,zh,passed,2.76,37,12,2,11,2,1,0,1,False,False,True,想過但是因為這算 project 有點多。
+ascend-tes-00150,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.76,36,12,3,11,3,1,0,1,False,False,True,想過，但是因為這陣子project有點多。
+ascend-tes-00150,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.76,38,12,3,11,3,1,0,1,False,False,True,想過，但是因為這陣子project有點多。
+ascend-tes-00229,ascend,qwen3:1.7b,auto,passed,3.99,265,12,1,9,1,3,0,3,False,False,True,但是我現在換major了，換成computer engineering了。
+ascend-tes-00229,ascend,qwen3:1.7b,zh,passed,3.99,266,12,1,9,1,3,0,3,False,False,True,但是我現在換major了，換成computer engineering了。
+ascend-tes-00229,ascend,sherpa:senseVoice,auto,passed,3.99,50,12,3,9,0,3,3,0,False,False,True,但是我現在換 maj了換成 co eginering。
+ascend-tes-00229,ascend,sherpa:senseVoice,zh,passed,3.99,51,12,3,9,0,3,3,0,False,False,True,但是我現在換 maj了換成 co eginering。
+ascend-tes-00229,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.99,48,12,2,9,0,3,2,1,False,False,True,但是我現在換 majorr了，換成comp engineering。
+ascend-tes-00229,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.99,51,12,3,9,0,3,3,0,False,False,True,但是我現在換mar了，換成comp engineeringine。
+ascend-tes-00232,ascend,qwen3:1.7b,auto,passed,4.56,342,15,1,12,1,3,0,3,False,False,True,在念啊，computer engineering。對，那U G的時候，我是在台灣。
+ascend-tes-00232,ascend,qwen3:1.7b,zh,passed,4.56,353,15,1,12,1,3,0,3,False,False,True,在念啊，computer engineering。對，那 U G 的時候，我是在台灣。
+ascend-tes-00232,ascend,sherpa:senseVoice,auto,passed,4.56,53,15,4,12,1,3,3,0,False,False,True,在念 campany enginerng 對 U計的時候我是在台灣。
+ascend-tes-00232,ascend,sherpa:senseVoice,zh,passed,4.56,52,15,4,12,1,3,3,0,False,False,True,在念 cabny eginerng 對 U劇的時候我是在台灣。
+ascend-tes-00232,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.56,52,15,3,12,2,3,1,2,False,False,True,在面c engineering對UG的時候，我是在台灣。
+ascend-tes-00232,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.56,54,15,3,12,2,3,1,2,False,False,True,在面呃c engineering對UG的時候，我是在台灣。
+ascend-tes-00233,ascend,qwen3:1.7b,auto,passed,3.44,245,12,0,9,0,3,0,3,False,False,True,對台灣的台灣大學National Taiwan University念。
+ascend-tes-00233,ascend,qwen3:1.7b,zh,passed,3.44,285,12,1,9,1,3,0,3,False,False,False,對，台灣的台灣大學 National Taiwan University 講。
+ascend-tes-00233,ascend,sherpa:senseVoice,auto,passed,3.44,44,12,4,9,3,3,1,2,False,False,True,對台灣的台灣大學 national台A灣 university面。
+ascend-tes-00233,ascend,sherpa:senseVoice,zh,passed,3.44,44,12,5,9,4,3,1,2,False,False,True,對台灣的台灣大學 national台I灣 university 裡面。
+ascend-tes-00233,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.44,43,12,4,9,3,3,2,1,False,False,True,對，台灣的台灣大學national台灣unity面。
+ascend-tes-00233,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.44,43,12,5,9,4,3,2,1,False,False,True,對，台灣的台灣大學national台灣unrsity裡面。
+ascend-tes-00249,ascend,qwen3:1.7b,auto,passed,4.82,286,14,0,13,0,1,0,1,False,False,True,對我們，我們 professor 大概也有七八十位。
+ascend-tes-00249,ascend,qwen3:1.7b,zh,passed,4.82,293,14,0,13,0,1,0,1,False,False,False,對，我們我們 professor 大概也有七八十位。
+ascend-tes-00249,ascend,sherpa:senseVoice,auto,passed,4.82,56,14,0,13,0,1,0,1,False,False,True,對我們我們 professor 大概也有七八十位。
+ascend-tes-00249,ascend,sherpa:senseVoice,zh,passed,4.82,56,14,0,13,0,1,0,1,False,False,True,對我們我們 professor 大概也有七八十位。
+ascend-tes-00249,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.82,59,14,0,13,0,1,0,1,False,False,True,對，我們我們professor大概也有七八十位。
+ascend-tes-00249,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.82,57,14,0,13,0,1,0,1,False,False,True,對，我們我們professor大概也有七八十位。
+ascend-tes-00255,ascend,qwen3:1.7b,auto,passed,5.78,376,27,2,26,2,1,0,1,False,False,True,來來當我們的 tutor，然後會帶我，就是一開始的時候會帶我們融入集體。
+ascend-tes-00255,ascend,qwen3:1.7b,zh,passed,5.78,388,27,2,26,2,1,0,1,False,False,True,來來當我們的 tutor，然後會帶我，就是一開始的時候會帶我們融入集體。
+ascend-tes-00255,ascend,sherpa:senseVoice,auto,passed,5.78,64,27,0,26,0,1,0,1,False,False,True,來來到我們的 tutor 然後會帶就是一開始的時候會帶我們融入集體。
+ascend-tes-00255,ascend,sherpa:senseVoice,zh,passed,5.78,65,27,1,26,0,1,1,0,False,False,True,來來到我們的 tuor 然後會帶就是一開始的時候會帶我們融入集體。
+ascend-tes-00255,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.78,66,27,2,26,1,1,1,0,False,False,True,來來到我們的ttor，然後會帶我就是一開始的時候會帶我們融入集體。
+ascend-tes-00255,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.78,65,27,2,26,1,1,1,0,False,False,True,來來到我們的ttor，然後會帶我就是一開始的時候會帶我們融入集體。
+ascend-tes-00264,ascend,qwen3:1.7b,auto,passed,3.94,326,17,0,14,0,3,0,3,False,False,True,所以你還蠻喜歡，也蠻習慣 Hong Kong life 嘛，就是。
+ascend-tes-00264,ascend,qwen3:1.7b,zh,passed,3.94,325,17,0,14,0,3,0,3,False,False,True,所以你還蠻喜歡，也蠻習慣 Hong Kong life 嘛，就是。
+ascend-tes-00264,ascend,sherpa:senseVoice,auto,passed,3.94,49,17,0,14,0,3,0,3,False,False,True,所以你還蠻喜歡也蠻習慣 Hong Kong life 嘛就是。
+ascend-tes-00264,ascend,sherpa:senseVoice,zh,passed,3.94,49,17,0,14,0,3,0,3,False,False,True,所以你還蠻喜歡也蠻習慣 Hong Kong life 嘛就是。
+ascend-tes-00264,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.94,49,17,2,14,0,3,2,1,False,False,True,所以你還蠻喜歡，也蠻習慣hcom life嘛，就是。
+ascend-tes-00264,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.94,48,17,2,14,1,3,2,1,False,False,True,所以你還蠻喜歡，也蠻習慣瘋com life嘛，就是。
+ascend-tes-00276,ascend,qwen3:1.7b,auto,passed,4.8,326,20,3,17,2,3,1,2,False,False,True,我我自己是之前在這邊exchange，就是我來這邊當exchange student。
+ascend-tes-00276,ascend,qwen3:1.7b,zh,passed,4.8,324,20,3,17,2,3,1,2,False,False,True,我我自己是之前在這邊 exchange，就是我來這邊當 exchange student。
+ascend-tes-00276,ascend,sherpa:senseVoice,auto,passed,4.8,56,20,4,17,1,3,3,0,False,False,True,我我自己是之前在這邊 extrane 就是我在這邊當 extrane student。
+ascend-tes-00276,ascend,sherpa:senseVoice,zh,passed,4.8,54,20,4,17,1,3,3,0,False,False,True,我我自己是之前在這邊 excraange 就是我在這邊當 excraange student。
+ascend-tes-00276,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.8,58,20,5,17,2,3,3,0,False,False,True,我我自己是之前在這邊exchan，就是我來這邊當exchan student。
+ascend-tes-00276,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.8,55,20,5,17,2,3,3,0,False,False,True,我我自己是之前在這邊exchan，就是我來這邊當exchan student。
+ascend-tes-00292,ascend,qwen3:1.7b,auto,passed,2.98,210,9,0,8,0,1,0,1,False,False,True,就吃的方面還算是normal。
+ascend-tes-00292,ascend,qwen3:1.7b,zh,passed,2.98,212,9,0,8,0,1,0,1,False,False,True,就吃的方面還算是normal。
+ascend-tes-00292,ascend,sherpa:senseVoice,auto,passed,2.98,40,9,0,8,0,1,0,1,False,False,True,就吃的方面還算是 normal。
+ascend-tes-00292,ascend,sherpa:senseVoice,zh,passed,2.98,41,9,0,8,0,1,0,1,False,False,True,就吃的方面還算是 normal。
+ascend-tes-00292,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.98,40,9,1,8,0,1,1,0,False,False,True,就吃的方面還算是nmal。
+ascend-tes-00292,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.98,40,9,1,8,0,1,1,0,False,False,True,就吃的方面還算是nmal。
+ascend-tes-00297,ascend,qwen3:1.7b,auto,passed,3.17,247,13,0,8,0,5,0,5,False,False,True,所以，我們現在開始 talk about our research topics。
+ascend-tes-00297,ascend,qwen3:1.7b,zh,passed,3.17,247,13,0,8,0,5,0,5,False,False,True,所以，我們現在開始 talk about our research topics。
+ascend-tes-00297,ascend,sherpa:senseVoice,auto,passed,3.17,41,13,0,8,0,5,0,5,False,False,True,所以我們現在開始 talk about our research topics。
+ascend-tes-00297,ascend,sherpa:senseVoice,zh,passed,3.17,41,13,0,8,0,5,0,5,False,False,True,所以我們現在開始 talk about our research topics。
+ascend-tes-00297,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.17,41,13,0,8,0,5,0,5,False,False,True,所以我們現在開始 talk about our research topics。
+ascend-tes-00297,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.17,42,13,0,8,0,5,0,5,False,False,True,所以我們現在開始talk about our research topics。
+ascend-tes-00304,ascend,qwen3:1.7b,auto,passed,7.26,419,26,2,23,0,3,2,2,False,False,True,就是這些 dialogue system，它其實是有任務去完成的，就不是像是一般的 chit chat。
+ascend-tes-00304,ascend,qwen3:1.7b,zh,passed,7.26,419,26,2,23,0,3,2,2,False,False,True,就是這些 dialogue system，它其實是有任務去完成的，就不是像是一般的 chit chat。
+ascend-tes-00304,ascend,sherpa:senseVoice,auto,passed,7.26,78,26,2,23,0,3,2,1,False,False,True,就是這些 dol system 它其實是有任務去完成的就不是像是一般的 chat。
+ascend-tes-00304,ascend,sherpa:senseVoice,zh,passed,7.26,80,26,2,23,0,3,2,1,False,False,True,就是這些 dol system 它其實是有任務去完成的就不是像是一般的 chat。
+ascend-tes-00304,ascend,sherpa:senseVoiceMultilingual,auto,passed,7.26,80,26,2,23,0,3,2,1,False,False,True,就是這些deal system，它其實是有任務去完成的，就不是像是一般的checha。
+ascend-tes-00304,ascend,sherpa:senseVoiceMultilingual,zh,passed,7.26,78,26,2,23,0,3,2,1,False,False,True,就是這些deal system，它其實是有任務去完成的，就不是像是一般的checha。
+ascend-tes-00311,ascend,qwen3:1.7b,auto,passed,5.88,312,17,1,16,1,1,0,1,False,False,True,然後啊，或者是去book一個電影的票啊，或者是。
+ascend-tes-00311,ascend,qwen3:1.7b,zh,passed,5.88,330,17,1,16,1,1,0,1,False,False,True,然後啊，或者是去book一個電影的票啊，或者是。
+ascend-tes-00311,ascend,sherpa:senseVoice,auto,passed,5.88,67,17,2,16,1,1,1,0,False,False,True,然後啊或者是去 B一個電影的票啊或者是。
+ascend-tes-00311,ascend,sherpa:senseVoice,zh,passed,5.88,66,17,2,16,1,1,1,0,False,False,True,然後啊或者是去 B一個電影的票啊或者是。
+ascend-tes-00311,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.88,67,17,1,16,1,1,0,1,False,False,True,然後啊或者是去book一個電影的票啊，或者是。
+ascend-tes-00311,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.88,68,17,1,16,1,1,0,1,False,False,True,然後啊或者是去book一個電影的票啊，或者是。
+ascend-tes-00328,ascend,qwen3:1.7b,auto,passed,4.82,271,12,1,9,1,3,1,2,False,False,True,對這一塊算比較easy的part，然後。
+ascend-tes-00328,ascend,qwen3:1.7b,zh,passed,4.82,271,12,1,9,1,3,1,2,False,False,False,對這一塊算比較easy的part，然後。
+ascend-tes-00328,ascend,sherpa:senseVoice,auto,passed,4.82,56,12,1,9,1,3,1,2,False,False,True,對這一塊算比較 easy 的 part 然後。
+ascend-tes-00328,ascend,sherpa:senseVoice,zh,passed,4.82,56,12,1,9,1,3,1,2,False,False,True,對這一塊算比較 easy 的 part然後。
+ascend-tes-00328,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.82,55,12,1,9,1,3,1,2,False,False,True,對，這一塊算比較easy的part。然後。
+ascend-tes-00328,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.82,55,12,1,9,1,3,1,2,False,False,True,對，這一塊算比較easy的part。然後。
+ascend-tes-00332,ascend,qwen3:1.7b,auto,passed,5.3,279,15,1,12,1,3,0,3,False,False,True,這個是我覺得比較 interesting 的 part 的的那個 topic。
+ascend-tes-00332,ascend,qwen3:1.7b,zh,passed,5.3,310,15,2,12,2,3,0,3,False,False,False,這一個是我覺得比較 interesting 的 part 的的那個 topic。
+ascend-tes-00332,ascend,sherpa:senseVoice,auto,passed,5.3,61,15,2,12,1,3,1,2,False,False,True,這個是我覺得比較 interesting 的那個 topic。
+ascend-tes-00332,ascend,sherpa:senseVoice,zh,passed,5.3,61,15,1,12,0,3,1,2,False,False,True,這個是我覺得比較 interesting 的的那個 topic。
+ascend-tes-00332,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.3,59,15,0,12,0,3,0,3,False,False,True,這個是我覺得比較interesting part的的那個topic。
+ascend-tes-00332,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.3,59,15,1,12,0,3,1,2,False,False,True,這個是我覺得比較interesting的的那個topic。
+ascend-tes-00347,ascend,qwen3:1.7b,auto,passed,6.92,389,21,0,15,0,6,0,6,False,False,True,我覺得 Hong Kong 這樣比較 in between，就是 Western 還有 Eastern 的的那種。
+ascend-tes-00347,ascend,qwen3:1.7b,zh,passed,6.92,412,21,2,15,2,6,0,6,False,False,False,我覺得 Hong Kong 這樣比較 in between，就是 Western 與 Eastern 的的那種。
+ascend-tes-00347,ascend,sherpa:senseVoice,auto,passed,6.92,75,21,2,15,2,6,0,6,False,False,True,我覺得 Hong Kong 將樣比較 in between 就是 western還有 eastern等的那種。
+ascend-tes-00347,ascend,sherpa:senseVoice,zh,passed,6.92,76,21,2,15,2,6,0,6,False,False,True,我覺得 Hong Kong 將樣比較 in between 就是 western還有 eastern的那種。
+ascend-tes-00347,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.92,76,21,7,15,3,6,4,2,False,False,True,我覺得hoong k將比較in between，就是wesstern還有ea等的那種。
+ascend-tes-00347,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.92,77,21,7,15,3,6,4,2,False,False,True,我覺得ho k將比較in between，就是wesstern還有ea等的那種。
+ascend-tes-00380,ascend,qwen3:1.7b,auto,passed,3.68,261,16,0,14,0,2,0,2,False,False,True,就professor，就第一個是這個學校的rank也不要。
+ascend-tes-00380,ascend,qwen3:1.7b,zh,passed,3.68,275,16,0,14,0,2,0,2,False,False,True,就 professor 就第一個是這個學校的 rank 也不要。
+ascend-tes-00380,ascend,sherpa:senseVoice,auto,passed,3.68,46,16,2,14,2,2,0,2,False,False,True,就 professor 就第一個是這學校的 rank 也比要。
+ascend-tes-00380,ascend,sherpa:senseVoice,zh,passed,3.68,47,16,3,14,3,2,0,2,False,False,True,就 professor 就第一個是這學校的 rank 也比較。
+ascend-tes-00380,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.68,46,16,0,14,0,2,0,2,False,False,True,就professor就第一個是這個學校的rank也不要。
+ascend-tes-00380,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.68,45,16,0,14,0,2,0,2,False,False,True,就professor就第一個是這個學校的rank也不要。
+ascend-tes-00394,ascend,qwen3:1.7b,auto,passed,3.841,247,8,0,6,0,2,0,2,False,False,True,我是說，就是 postgraduate 的 major。
+ascend-tes-00394,ascend,qwen3:1.7b,zh,passed,3.841,245,8,0,6,0,2,0,2,False,False,False,我是說，就是 postgraduate 的 major。
+ascend-tes-00394,ascend,sherpa:senseVoice,auto,passed,3.841,47,8,3,6,0,2,3,0,False,False,True,我是說就是 post graduate 的 maj。
+ascend-tes-00394,ascend,sherpa:senseVoice,zh,passed,3.841,46,8,4,6,1,2,3,0,False,False,True,我是說就是 post graduate 的美J。
+ascend-tes-00394,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.841,46,8,0,6,0,2,0,2,False,False,True,我是說就是postgraduate的 major。
+ascend-tes-00394,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.841,47,8,1,6,1,2,0,2,False,False,True,我是說就是postgraduate的 major覺。
+ascend-tes-00417,ascend,qwen3:1.7b,auto,passed,4.34,292,13,1,7,0,6,1,5,False,False,True,感覺還不錯，Robotics就是Robotics mixed with language application。
+ascend-tes-00417,ascend,qwen3:1.7b,zh,passed,4.34,313,13,1,7,0,6,1,5,False,False,False,感覺還不錯，robotics 就是 robotics mixed with language application。
+ascend-tes-00417,ascend,sherpa:senseVoice,auto,passed,4.34,52,13,1,7,0,6,1,5,False,False,True,感覺還不錯 robotics就是 robotics mix with langage application。
+ascend-tes-00417,ascend,sherpa:senseVoice,zh,passed,4.34,52,13,1,7,0,6,1,5,False,False,True,感覺還不錯 robotics就是 robotics mix with langage application。
+ascend-tes-00417,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.34,51,13,2,7,0,6,2,4,False,False,True,感覺還不錯，rootics就是 robototics mix with language application。
+ascend-tes-00417,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.34,52,13,2,7,0,6,2,4,False,False,True,感覺還不錯，robotics就是rooticsm with language application。
+ascend-tes-00489,ascend,qwen3:1.7b,auto,passed,2.64,199,10,1,9,1,1,1,0,True,False,True,我記得學校那個區那邊。
+ascend-tes-00489,ascend,qwen3:1.7b,zh,passed,2.64,200,10,1,9,1,1,1,0,True,False,True,我記得學校那個區那邊。
+ascend-tes-00489,ascend,sherpa:senseVoice,auto,passed,2.64,37,10,2,9,2,1,1,0,True,False,True,我記得學校那個居民那邊。
+ascend-tes-00489,ascend,sherpa:senseVoice,zh,passed,2.64,36,10,1,9,1,1,1,0,True,False,True,我記得學校那個民那邊。
+ascend-tes-00489,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.64,34,10,2,9,2,1,1,0,True,False,True,我記得學校那個居民那邊。
+ascend-tes-00489,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.64,37,10,1,9,1,1,1,0,True,False,True,我記得學校那個居那邊。
+ascend-tes-00616,ascend,qwen3:1.7b,auto,passed,6.56,430,30,2,29,2,1,0,1,False,False,True,嗯，但是像running啊，或者是舉重這種東西，就比較不可能，男男生肯定會比女。
+ascend-tes-00616,ascend,qwen3:1.7b,zh,passed,6.56,431,30,2,29,2,1,0,1,False,False,True,嗯，但是像running啊，或者是舉重這種東西，就比較不可能，男男生肯定會比女。
+ascend-tes-00616,ascend,sherpa:senseVoice,auto,passed,6.56,72,30,7,29,7,1,0,1,False,False,True,嗯但是像 running 啊或者是聚眾的這種東西就比較不可能男男生肯定會。
+ascend-tes-00616,ascend,sherpa:senseVoice,zh,passed,6.56,72,30,7,29,7,1,0,1,False,False,True,嗯但是像 running 啊或者是聚眾的這種東西就比較不可能男男生肯定會。
+ascend-tes-00616,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.56,71,30,3,29,3,1,0,1,False,False,True,嗯，但是像running啊或者是舉重這種東西，就比較不可能，男男生肯定會比虐。
+ascend-tes-00616,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.56,73,30,3,29,3,1,0,1,False,False,True,嗯，但是像running啊或者是舉重這種東西，就比較不可能，男男生肯定會比虐。
+ascend-tes-00639,ascend,qwen3:1.7b,auto,passed,3.68,239,12,0,10,0,2,0,2,False,False,False,你可以邀一些你的，就是female friends。
+ascend-tes-00639,ascend,qwen3:1.7b,zh,passed,3.68,232,12,0,10,0,2,0,2,False,False,False,你可以邀一些你的就是 female friends。
+ascend-tes-00639,ascend,sherpa:senseVoice,auto,passed,3.68,45,12,0,10,0,2,0,2,False,False,False,你可以邀一些你的就是 female friends。
+ascend-tes-00639,ascend,sherpa:senseVoice,zh,passed,3.68,47,12,0,10,0,2,0,2,False,False,False,你可以邀一些你的就是 female friends。
+ascend-tes-00639,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.68,46,12,1,10,0,2,1,1,False,False,False,你可以邀一些你的就是 femalele friends。
+ascend-tes-00639,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.68,45,12,1,10,0,2,1,1,False,False,False,你可以邀一些你的就是fele friends。
+ascend-tes-00657,ascend,qwen3:1.7b,auto,passed,4.06,268,16,1,14,1,2,0,2,False,False,True,就是特別不好掌控，那個就是你 bracket balance。
+ascend-tes-00657,ascend,qwen3:1.7b,zh,passed,4.06,269,16,1,14,1,2,0,2,False,False,True,就是特別不好掌控，那個就是你 bracket balance。
+ascend-tes-00657,ascend,sherpa:senseVoice,auto,passed,4.06,48,16,2,14,1,2,1,1,False,False,True,就是特別不好掌控那個就是你 brrake balance。
+ascend-tes-00657,ascend,sherpa:senseVoice,zh,passed,4.06,50,16,2,14,1,2,1,1,False,False,True,就是特別不好掌控那個就是你 brrake balance。
+ascend-tes-00657,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.06,47,16,2,14,1,2,1,1,False,False,True,就是特別不好掌控那個就是你braack balance。
+ascend-tes-00657,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.06,48,16,2,14,1,2,1,1,False,False,True,就是特別不好掌控那個就是你braack balance。
+ascend-tes-00672,ascend,qwen3:1.7b,auto,passed,5.94,292,12,0,10,0,2,0,2,False,False,True,對，就是那些一些 basketball 或者 soccer，對。
+ascend-tes-00672,ascend,qwen3:1.7b,zh,passed,5.94,308,12,0,10,0,2,0,2,False,False,True,對，就是那些一些 basketball 或者 soccer，對。
+ascend-tes-00672,ascend,sherpa:senseVoice,auto,passed,5.94,68,12,0,10,0,2,0,2,False,False,True,對就是那些一些 basketball 或者 soccer 對。
+ascend-tes-00672,ascend,sherpa:senseVoice,zh,passed,5.94,69,12,0,10,0,2,0,2,False,False,True,對就是那些一些 basketball 或者 soccer 對。
+ascend-tes-00672,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.94,68,12,1,10,0,2,1,1,False,False,True,對，就是那些一些baskeball或者soccer。對。
+ascend-tes-00672,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.94,68,12,0,10,0,2,0,2,False,False,True,對，就是那些一些basketball或者soccer。對。
+ascend-tes-00678,ascend,qwen3:1.7b,auto,passed,3.5,267,12,2,6,1,6,2,4,False,False,True,哎，first time你就可以enjoy這個sport。
+ascend-tes-00678,ascend,qwen3:1.7b,zh,passed,3.5,284,12,2,6,1,6,2,4,False,False,True,哎，first time 你就可以 enjoy 這個 sport。
+ascend-tes-00678,ascend,sherpa:senseVoice,auto,passed,3.5,44,12,4,6,1,6,3,3,False,False,True,first time 就可以 enjoy 這個 spor。
+ascend-tes-00678,ascend,sherpa:senseVoice,zh,passed,3.5,46,12,4,6,1,6,3,3,False,False,True,first time 就可以 enjoy 這個 spor。
+ascend-tes-00678,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.5,44,12,3,6,1,6,2,4,False,False,True,first time就可以 enjoy這個 sport。
+ascend-tes-00678,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.5,47,12,4,6,1,6,3,3,False,False,True,firs time就可以enjoy這個 sport。
+ascend-tes-00699,ascend,qwen3:1.7b,auto,passed,5.33,294,15,0,14,0,1,0,1,False,False,False,首先呢，他他就是打球的方式非常fancy。
+ascend-tes-00699,ascend,qwen3:1.7b,zh,passed,5.33,280,15,0,14,0,1,0,1,False,False,False,首先呢，他他就是打球的方式非常 fancy。
+ascend-tes-00699,ascend,sherpa:senseVoice,auto,passed,5.33,62,15,0,14,0,1,0,1,False,False,False,首先呢他他就是打球的方式非常 fancy。
+ascend-tes-00699,ascend,sherpa:senseVoice,zh,passed,5.33,60,15,1,14,0,1,1,0,False,False,False,首先呢他他就是打球的方式非常 facy。
+ascend-tes-00699,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.33,62,15,0,14,0,1,0,1,False,False,False,首先呢他他就是打球的方式非常fancy。
+ascend-tes-00699,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.33,62,15,0,14,0,1,0,1,False,False,False,首先呢他他就是打球的方式非常fancy。
+ascend-tes-00717,ascend,qwen3:1.7b,auto,passed,4.32,259,9,2,4,0,5,2,3,False,False,False,就是，f a famous Chinese player，姚明。
+ascend-tes-00717,ascend,qwen3:1.7b,zh,passed,4.32,253,9,1,4,1,5,1,4,False,False,False,就是非 a famous Chinese player，姚明。
+ascend-tes-00717,ascend,sherpa:senseVoice,auto,passed,4.32,52,9,2,4,1,5,2,4,False,False,False,就是 a famous Chinese player  y明。
+ascend-tes-00717,ascend,sherpa:senseVoice,zh,passed,4.32,51,9,1,4,0,5,1,4,False,False,False,就是 a famous Chinese player 姚明。
+ascend-tes-00717,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.32,52,9,3,4,2,5,3,4,False,False,False,就是 a famous Chinese player Yao M.
+ascend-tes-00717,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.32,51,9,3,4,0,5,3,2,False,False,False,就是呃fa chinese player姚明。
+ascend-tes-00764,ascend,qwen3:1.7b,auto,passed,5.62,303,14,0,12,0,2,0,2,False,False,True,那你，呃，當初為什麼選擇來UST讀master呢？
+ascend-tes-00764,ascend,qwen3:1.7b,zh,passed,5.62,314,14,0,12,0,2,0,2,False,False,True,那你，呃，當初為什麼選擇來UST讀master呢？
+ascend-tes-00764,ascend,sherpa:senseVoice,auto,passed,5.62,65,14,5,12,2,2,4,1,False,False,True,那你呃當初為什麼選擇來 us s tea do master。
+ascend-tes-00764,ascend,sherpa:senseVoice,zh,passed,5.62,65,14,5,12,2,2,4,1,False,False,True,那你呃當初為什麼選擇來 us s tea do master。
+ascend-tes-00764,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.62,66,14,1,12,1,2,1,2,False,False,True,那你呃當初為什麼選擇來usT do master呢？
+ascend-tes-00764,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.62,64,14,0,12,0,2,0,2,False,False,True,那你呃當初為什麼選擇來usT讀master呢？
+ascend-tes-00812,ascend,qwen3:1.7b,auto,passed,3.86,303,12,4,9,3,3,1,2,False,False,True,Yeah，而且還覺得，哦，我覺得，compared to，呃。
+ascend-tes-00812,ascend,qwen3:1.7b,zh,passed,3.86,313,12,4,9,3,3,1,2,False,False,True,Yeah，而且還覺得，哦，我覺得，compared to，呃。
+ascend-tes-00812,ascend,sherpa:senseVoice,auto,passed,3.86,46,12,6,9,4,3,2,1,False,False,True,H而且還覺得我覺得 comparled to。
+ascend-tes-00812,ascend,sherpa:senseVoice,zh,passed,3.86,46,12,6,9,4,3,2,1,False,False,True,Y而且還覺得我覺得 compalrled to呃。
+ascend-tes-00812,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.86,45,12,4,9,4,3,1,3,False,False,True,"Yeah,而且 I覺得我覺得 compare to."
+ascend-tes-00812,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.86,48,12,6,9,4,3,2,1,False,False,True,y，而且還覺得呃我覺得comp to呃。
+ascend-tes-00891,ascend,qwen3:1.7b,auto,passed,2.66,212,8,0,7,0,1,0,1,False,False,True,個人的 personalities，還有那個。
+ascend-tes-00891,ascend,qwen3:1.7b,zh,passed,2.66,211,8,0,7,0,1,0,1,False,False,False,個人的 personalities，還有那個。
+ascend-tes-00891,ascend,sherpa:senseVoice,auto,passed,2.66,36,8,1,7,0,1,1,0,False,False,True,個人的 personalty 還有那個。
+ascend-tes-00891,ascend,sherpa:senseVoice,zh,passed,2.66,36,8,1,7,0,1,1,0,False,False,True,個人的 personality還有那個。
+ascend-tes-00891,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.66,36,8,2,7,1,1,1,0,False,False,True,個人的person哦，還有那個。
+ascend-tes-00891,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.66,36,8,7,7,7,1,1,0,True,False,True,個人都不是那樣的意思，還有那個。
+ascend-tes-00920,ascend,qwen3:1.7b,auto,passed,3.84,254,15,0,14,0,1,0,1,False,False,True,其實我那時候非常的urgent，就是我到了。
+ascend-tes-00920,ascend,qwen3:1.7b,zh,passed,3.84,266,15,0,14,0,1,0,1,False,False,False,其實我那時候非常的 urgent，就是我到了。
+ascend-tes-00920,ascend,sherpa:senseVoice,auto,passed,3.84,47,15,0,14,0,1,0,1,False,False,True,其實我那時候非常的 urgent 就是我到了。
+ascend-tes-00920,ascend,sherpa:senseVoice,zh,passed,3.84,47,15,0,14,0,1,0,1,False,False,True,其實我那時候非常的 urgent 就是我到了。
+ascend-tes-00920,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.84,47,15,1,14,0,1,1,0,False,False,True,其實我那時候非常的 urgentent，就是我到了。
+ascend-tes-00920,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.84,47,15,1,14,0,1,1,0,False,False,True,其實我那時候非常的 urgentent，就是我到了。
+ascend-tes-00944,ascend,qwen3:1.7b,auto,passed,5.06,342,19,5,17,5,2,2,0,True,False,True,對，畢竟那邊搜搜的活動多一點，就有很多活動要參加。
+ascend-tes-00944,ascend,qwen3:1.7b,zh,passed,5.06,343,19,5,17,5,2,2,0,True,False,True,對，畢竟那邊搜搜的活動多一點，就有很多活動要參加。
+ascend-tes-00944,ascend,sherpa:senseVoice,auto,passed,5.06,60,19,7,17,7,2,2,0,True,False,True,對畢竟你身邊搜索的活動多一點就有很多活動要參加。
+ascend-tes-00944,ascend,sherpa:senseVoice,zh,passed,5.06,58,19,7,17,7,2,2,0,True,False,True,對畢竟你身邊搜索的活動多一點就有很多活動要參加。
+ascend-tes-00944,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.06,61,19,7,17,7,2,2,0,True,False,True,對，畢竟年身邊四捨的活動多一點，就有很多活動要參加。
+ascend-tes-00944,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.06,59,19,7,17,7,2,2,0,True,False,True,對，畢竟年身邊四捨的活動多一點，就有很多活動要參加。
+ascend-tes-00953,ascend,qwen3:1.7b,auto,passed,8.44,489,39,1,37,1,2,0,2,False,False,True,sandwiches，或者是其他的東西分給我們吃，然後我們就邊吃邊聽他分享，share他的一些，他們公司的一些東西。
+ascend-tes-00953,ascend,qwen3:1.7b,zh,passed,8.44,577,39,4,37,3,2,1,1,False,False,False,三文魚 cheese 或者是其他東西分給我們吃，然後我們就邊吃邊聽他分享，share 他的一些，他們公司的一些東西。
+ascend-tes-00953,ascend,sherpa:senseVoice,auto,passed,8.44,89,39,4,37,3,2,2,0,False,False,True,WCH或者是其他的東西分給我們吃然後我們就邊吃邊聽他分享需有他的一些他們公司的一些東西。
+ascend-tes-00953,ascend,sherpa:senseVoice,zh,passed,8.44,88,39,5,37,4,2,2,0,False,False,True,三WCH或者是其他的東西分給我們吃然後我們就邊吃邊聽他分享需有他的一些他們公司的一些東西。
+ascend-tes-00953,ascend,sherpa:senseVoiceMultilingual,auto,passed,8.44,88,39,6,37,4,2,2,0,False,False,True,s圍ches或者是其他東西分給我們吃。然後我們就邊吃邊聽他分享，需要有他的一些他們公司的一些東西。
+ascend-tes-00953,ascend,sherpa:senseVoiceMultilingual,zh,passed,8.44,89,39,5,37,4,2,2,0,False,False,True,三維ches或者是其他東西分給我們吃。然後我們就邊吃邊聽他分享，需要他的一些他們公司的一些東西。
+ascend-tes-00960,ascend,qwen3:1.7b,auto,passed,3.76,302,15,1,14,1,1,0,1,False,False,True,哦，那是，哎，你們剛開學不會拍那個portrait嗎？
+ascend-tes-00960,ascend,qwen3:1.7b,zh,passed,3.76,302,15,1,14,1,1,0,1,False,False,True,哦，那是，哎，你們剛開學不會拍那個portrait嗎？
+ascend-tes-00960,ascend,sherpa:senseVoice,auto,passed,3.76,49,15,3,14,2,1,1,0,False,False,True,哦那是誒你們剛開始不會拍那個 potrait。
+ascend-tes-00960,ascend,sherpa:senseVoice,zh,passed,3.76,48,15,2,14,1,1,1,0,False,False,True,哦那是誒你們剛開始不會拍那個 pjrait嗎？
+ascend-tes-00960,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.76,49,15,1,14,1,1,0,1,False,False,True,哦，那是誒，你們剛開始不會拍那個 portrait嗎？
+ascend-tes-00960,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.76,48,15,3,14,3,1,1,0,True,False,True,哦，那是誒，你們剛開始不會拍那個潑水嗎？
+ascend-tes-00963,ascend,qwen3:1.7b,auto,passed,3.21,292,13,3,12,3,1,0,1,False,False,True,正裝，然後去拍portrait，拍個人的，還有幾。
+ascend-tes-00963,ascend,qwen3:1.7b,zh,passed,3.21,296,13,3,12,3,1,0,1,False,False,False,正裝，然後去拍portrait，拍個人的，還有幾。
+ascend-tes-00963,ascend,sherpa:senseVoice,auto,passed,3.21,41,13,4,12,3,1,1,0,False,False,True,正裝然後去拍 poit 拍個人的還有幾。
+ascend-tes-00963,ascend,sherpa:senseVoice,zh,passed,3.21,43,13,4,12,3,1,1,0,False,False,True,正裝然後去拍 poit 拍個人的還有幾。
+ascend-tes-00963,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.21,41,13,5,12,5,1,1,0,True,False,True,正裝，然後去拍破水，拍個人的還有幾。
+ascend-tes-00963,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.21,42,13,5,12,5,1,1,0,True,False,True,正裝，然後去拍破水，拍個人的還有幾。
+ascend-tes-01030,ascend,qwen3:1.7b,auto,passed,5.67,341,23,1,20,1,3,0,3,False,False,True,我這個，我這個 self driving car，它的安全性能是有百分之九十五。
+ascend-tes-01030,ascend,qwen3:1.7b,zh,passed,5.67,355,23,1,20,1,3,0,3,False,False,True,我這個，我這個 self-driving car，它的安全性能是有百分之九十五。
+ascend-tes-01030,ascend,sherpa:senseVoice,auto,passed,5.67,66,23,0,20,0,3,0,3,False,False,True,我這個我這個 self driving car 它的安全性能只有百分之九十五。
+ascend-tes-01030,ascend,sherpa:senseVoice,zh,passed,5.67,66,23,0,20,0,3,0,3,False,False,True,我這個我這個 self driving car 它的安全性能只有百分之九十五。
+ascend-tes-01030,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.67,66,23,6,20,6,3,0,3,False,False,True,我這個我這個self driving car，它的安全性能只有95%。
+ascend-tes-01030,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.67,66,23,7,20,7,3,0,3,False,False,True,我這個我這個self driving car，它的安全性能是有95%。
+ascend-tes-01039,ascend,qwen3:1.7b,auto,passed,9.57,443,27,2,25,2,2,0,2,False,False,True,這個這個這個function，它是被它的enemy，它的被那些敵方的，就是對手公司。
+ascend-tes-01039,ascend,qwen3:1.7b,zh,passed,9.57,462,27,2,25,2,2,0,2,False,False,False,這個這個這個 function，它是被它的 enemy，它的被那些敵方的，就是對手公司。
+ascend-tes-01039,ascend,sherpa:senseVoice,auto,passed,9.57,99,27,0,25,0,2,0,2,False,False,True,這個這個這個 function 它是被他的 enemy 他的被那些敵方的就是對手公司。
+ascend-tes-01039,ascend,sherpa:senseVoice,zh,passed,9.57,99,27,0,25,0,2,0,2,False,False,True,這個這個這個 function 它是被他的 enemy 他的被那些敵方的就是對手公司。
+ascend-tes-01039,ascend,sherpa:senseVoiceMultilingual,auto,passed,9.57,97,27,1,25,0,2,1,1,False,False,True,這個這個這個functionction它是被他的enemy，他的被那些敵方的就是對手公司。
+ascend-tes-01039,ascend,sherpa:senseVoiceMultilingual,zh,passed,9.57,98,27,1,25,0,2,1,1,False,False,True,這個這個這個functionction它是被他的enemy，他的被那些敵方的就是對手公司。
+ascend-tes-01153,ascend,qwen3:1.7b,auto,passed,4.45,283,16,0,12,0,4,0,4,False,False,True,問題就是b基本上都是一些business related的project。
+ascend-tes-01153,ascend,qwen3:1.7b,zh,passed,4.45,285,16,0,12,0,4,0,4,False,False,False,問題就是B，基本上都是一些business related的project。
+ascend-tes-01153,ascend,sherpa:senseVoice,auto,passed,4.45,54,16,2,12,1,4,2,3,False,False,True,問題就是基本上都是一些 business related the project。
+ascend-tes-01153,ascend,sherpa:senseVoice,zh,passed,4.45,53,16,2,12,1,4,2,3,False,False,True,問題就是基本上都是一些 business related te project。
+ascend-tes-01153,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.45,53,16,2,12,1,4,2,2,False,False,True,問題就是必基本上都是一些bu related的 project。
+ascend-tes-01153,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.45,54,16,2,12,1,4,2,2,False,False,True,問題就是必基本上都是一些bus related的 project。
+ascend-tes-01185,ascend,qwen3:1.7b,auto,passed,3.51,298,20,4,18,4,2,2,0,True,False,True,對，反正我們就只能做一些這種比較煙薰帶過的東西。
+ascend-tes-01185,ascend,qwen3:1.7b,zh,passed,3.51,306,20,4,18,4,2,2,0,True,False,True,對，反正我們就只能做一些這種比較延續代購的東西。
+ascend-tes-01185,ascend,sherpa:senseVoice,auto,passed,3.51,48,20,2,18,0,2,2,0,False,False,True,對反正我們就只能做一些這種比較 entrael的東西。
+ascend-tes-01185,ascend,sherpa:senseVoice,zh,passed,3.51,47,20,2,18,0,2,2,0,False,False,True,對反正我們就只能做一些這種比較 entrael的東西。
+ascend-tes-01185,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.51,46,20,4,18,4,2,2,0,True,False,True,對，反正我們就只能做一些這種比較嚴垂待過的東西。
+ascend-tes-01185,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.51,46,20,4,18,4,2,2,0,True,False,True,對，反正我們就只能做一些這種比較嚴垂待過的東西。
+ascend-tes-01192,ascend,qwen3:1.7b,auto,passed,3.09,261,15,3,13,3,2,1,1,False,False,True,我們也只是，我們講的是privacy的問題，不。
+ascend-tes-01192,ascend,qwen3:1.7b,zh,passed,3.09,292,15,4,13,4,2,1,1,False,False,False,我們也只是，哦，我們講的是 privacy 的問題，不。
+ascend-tes-01192,ascend,sherpa:senseVoice,auto,passed,3.09,42,15,4,13,3,2,1,1,False,False,True,你們也只是我們講的是 privacy 的問題。
+ascend-tes-01192,ascend,sherpa:senseVoice,zh,passed,3.09,41,15,5,13,3,2,2,0,False,False,True,你們也只是我們講的是 privaccy 的問題。
+ascend-tes-01192,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.09,41,15,5,13,3,2,2,0,False,False,True,你們意思是我們講的是pricy的問題。
+ascend-tes-01192,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.09,39,15,4,13,3,2,1,1,False,False,True,你們意思是我們講的是privacy的問題。
+ascend-tes-01199,ascend,qwen3:1.7b,auto,passed,3.28,231,12,0,11,0,1,0,1,False,False,True,我當時學privacy的時候，也是覺得。
+ascend-tes-01199,ascend,qwen3:1.7b,zh,passed,3.28,236,12,0,11,0,1,0,1,False,False,True,我當時學privacy的時候，也是覺得。
+ascend-tes-01199,ascend,sherpa:senseVoice,auto,passed,3.28,45,12,1,11,0,1,1,0,False,False,True,我當時學 privaccy 的時候也是覺得。
+ascend-tes-01199,ascend,sherpa:senseVoice,zh,passed,3.28,45,12,1,11,0,1,1,0,False,False,True,我當時學 privaccy 的時候也是覺得。
+ascend-tes-01199,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.28,45,12,0,11,0,1,0,1,False,False,True,我當時學privacy的時候，也是覺得。
+ascend-tes-01199,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.28,45,12,0,11,0,1,0,1,False,False,True,我當時學privacy的時候，也是覺得。
+ascend-tes-01205,ascend,qwen3:1.7b,auto,passed,3.58,258,14,2,12,1,2,1,1,False,False,True,多大部分還是比較偏 finance finance 這一塊。
+ascend-tes-01205,ascend,qwen3:1.7b,zh,passed,3.58,265,14,2,12,1,2,1,1,False,False,True,多大部分還是比較偏 finance finance 這一塊。
+ascend-tes-01205,ascend,sherpa:senseVoice,auto,passed,3.58,45,14,2,12,1,2,1,1,False,False,True,多大部分還是比較偏 finance finance 這一塊。
+ascend-tes-01205,ascend,sherpa:senseVoice,zh,passed,3.58,46,14,2,12,1,2,1,1,False,False,True,多大部分還是比較偏 finance finance 這一塊。
+ascend-tes-01205,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.58,45,14,2,12,1,2,1,1,False,False,True,多大部分還是比較偏finance finance這一塊。
+ascend-tes-01205,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.58,45,14,3,12,1,2,2,1,False,False,True,多大部分還是比較偏finance financeance這一塊。
+ascend-tes-01247,ascend,qwen3:1.7b,auto,passed,4.7,256,14,0,13,0,1,0,1,False,False,True,手機的applications都會運用到定位的功能。
+ascend-tes-01247,ascend,qwen3:1.7b,zh,passed,4.7,265,14,0,13,0,1,0,1,False,False,False,手機的applications都會運用到定位的功能。
+ascend-tes-01247,ascend,sherpa:senseVoice,auto,passed,4.7,55,14,1,13,0,1,1,0,False,False,True,手機的 pulications 都會運用到定位的功能。
+ascend-tes-01247,ascend,sherpa:senseVoice,zh,passed,4.7,56,14,1,13,0,1,1,0,False,False,True,手機的 pulications 都會運用到定位的功能。
+ascend-tes-01247,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.7,56,14,1,13,0,1,1,0,False,False,True,手機的plics都會運用到定位的功能。
+ascend-tes-01247,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.7,57,14,1,13,0,1,1,0,False,False,True,手機的plics都會運用到定位的功能。
+ascend-tes-01254,ascend,qwen3:1.7b,auto,passed,2.76,226,11,0,10,0,1,0,1,False,False,True,香港，他們很注重privacy的問題。
+ascend-tes-01254,ascend,qwen3:1.7b,zh,passed,2.76,228,11,0,10,0,1,0,1,False,False,True,香港，他們很注重privacy的問題。
+ascend-tes-01254,ascend,sherpa:senseVoice,auto,passed,2.76,44,11,0,10,0,1,0,1,False,False,True,香港他們很注重 privacy 的問題。
+ascend-tes-01254,ascend,sherpa:senseVoice,zh,passed,2.76,38,11,0,10,0,1,0,1,False,False,True,香港他們很注重 privacy 的問題。
+ascend-tes-01254,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.76,39,11,0,10,0,1,0,1,False,False,True,香港他們很注重privacy的問題。
+ascend-tes-01254,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.76,39,11,0,10,0,1,0,1,False,False,True,香港他們很注重privacy的問題。
+ascend-tes-01282,ascend,qwen3:1.7b,auto,passed,3.7,280,15,3,14,2,1,1,0,False,False,True,他們還考慮到安全問題，因為阿里Pay，你去。
+ascend-tes-01282,ascend,qwen3:1.7b,zh,passed,3.7,293,15,3,14,2,1,1,0,False,False,False,他們還考慮到安全問題，因為阿里Pay你去。
+ascend-tes-01282,ascend,sherpa:senseVoice,auto,passed,3.7,49,15,3,14,2,1,1,0,False,False,True,他們還考慮到安全問題因為阿里 pa你去。
+ascend-tes-01282,ascend,sherpa:senseVoice,zh,passed,3.7,47,15,3,14,3,1,1,0,True,False,True,他們還考慮到安全問題因為阿里配你去。
+ascend-tes-01282,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.7,49,15,3,14,2,1,1,0,False,False,True,他們還考慮到安全問題，因為阿里pay你去。
+ascend-tes-01282,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.7,48,15,3,14,2,1,1,0,False,False,True,他們還考慮到安全問題，因為阿里pay你去。
+ascend-tes-01283,ascend,qwen3:1.7b,auto,passed,2.66,226,11,0,9,0,2,0,2,False,False,True,Sign in的話，只需要你的一個。
+ascend-tes-01283,ascend,qwen3:1.7b,zh,passed,2.66,236,11,0,9,0,2,0,2,False,False,True,sign in 的話，只需要你的一個。
+ascend-tes-01283,ascend,sherpa:senseVoice,auto,passed,2.66,38,11,2,9,0,2,2,0,False,False,True,S的話只需要你的一個。
+ascend-tes-01283,ascend,sherpa:senseVoice,zh,passed,2.66,35,11,2,9,0,2,2,0,False,False,True,S的話只需要你的一個。
+ascend-tes-01283,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.66,37,11,2,9,0,2,2,0,False,False,True,sin的話只需要你的一個。
+ascend-tes-01283,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.66,37,11,2,9,1,2,2,0,False,False,True,s映的話只需要你的一個。
+ascend-tes-01284,ascend,qwen3:1.7b,auto,passed,2.95,232,7,0,4,0,3,0,3,False,False,True,mobile phone number，還有你的嗯。
+ascend-tes-01284,ascend,qwen3:1.7b,zh,passed,2.95,226,7,0,4,0,3,0,3,False,False,False,mobile phone number，還有你的嗯。
+ascend-tes-01284,ascend,sherpa:senseVoice,auto,passed,2.95,40,7,1,4,0,3,1,2,False,False,True,mobile phone nuber 還有你的嗯。
+ascend-tes-01284,ascend,sherpa:senseVoice,zh,passed,2.95,41,7,3,4,1,3,2,1,False,False,True,M拜 fe number 還有你的嗯。
+ascend-tes-01284,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.95,40,7,1,4,0,3,1,2,False,False,True,mobilobile phone number還有你的嗯。
+ascend-tes-01284,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.95,42,7,2,4,1,3,1,2,False,False,True,mobil拜 phone number，還有你的嗯。
+ascend-tes-01290,ascend,qwen3:1.7b,auto,passed,2.5,214,11,0,9,0,2,0,2,False,False,True,Verification code輸進去之後就可以了。
+ascend-tes-01290,ascend,qwen3:1.7b,zh,passed,2.5,210,11,0,9,0,2,0,2,False,False,True,Verification code 輸進去之後就可以了。
+ascend-tes-01290,ascend,sherpa:senseVoice,auto,passed,2.5,38,11,2,9,0,2,2,0,False,False,True,berficion cod 輸進去之後就可以了。
+ascend-tes-01290,ascend,sherpa:senseVoice,zh,passed,2.5,38,11,2,9,0,2,2,0,False,False,True,burificion cod 輸進去之後就可以了。
+ascend-tes-01290,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.5,38,11,2,9,1,2,1,1,False,False,True,vefi code輸進去之後就可以。
+ascend-tes-01290,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.5,38,11,2,9,1,2,1,1,False,False,True,veification code輸進去之後就可以。
+ascend-val-00004,ascend,qwen3:1.7b,auto,passed,6.02,321,20,0,19,0,1,0,1,False,False,True,就是，其實主要的功能就是打電話，然後跟parents聯繫。
+ascend-val-00004,ascend,qwen3:1.7b,zh,passed,6.02,364,20,0,19,0,1,0,1,False,False,True,就是，其實主要的功能就是打電話，然後跟 parents 聯繫。
+ascend-val-00004,ascend,sherpa:senseVoice,auto,passed,6.02,69,20,0,19,0,1,0,1,False,False,True,就是其實主要的功能就是打電話然後跟 parents 聯繫。
+ascend-val-00004,ascend,sherpa:senseVoice,zh,passed,6.02,80,20,0,19,0,1,0,1,False,False,True,就是其實主要的功能就是打電話然後跟 parents 聯繫。
+ascend-val-00004,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.02,86,20,0,19,0,1,0,1,False,False,True,就是其實主要的功能就是打電話，然後跟parents聯繫。
+ascend-val-00004,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.02,68,20,0,19,0,1,0,1,False,False,True,就是其實主要的功能就是打電話，然後跟parents聯繫。
+ascend-val-00010,ascend,qwen3:1.7b,auto,passed,9.36,515,39,4,37,2,2,2,0,False,False,True,可能餐廳里啊，或者是在搭那個地鐵的時候，都看到小朋友們，其實有時候手上都會拿著smartphone在玩。
+ascend-val-00010,ascend,qwen3:1.7b,zh,passed,9.36,532,39,4,37,2,2,2,0,False,False,True,可能餐廳里啊，或者是在搭那個地鐵的時候，都看到小朋友們，其實有時候手上都會拿著smartphone在玩。
+ascend-val-00010,ascend,sherpa:senseVoice,auto,passed,9.36,98,39,3,37,2,2,1,1,False,False,True,可能餐廳里啊或者是在搭那個地鐵的時候都看到小朋友們其實有時候手上都會拿著 smart pone 在玩。
+ascend-val-00010,ascend,sherpa:senseVoice,zh,passed,9.36,98,39,4,37,2,2,2,0,False,False,True,可能餐廳里啊或者是在搭那個地鐵的時候都看到小朋友們其實有時候手上都會拿著 smarth pone 在玩。
+ascend-val-00010,ascend,sherpa:senseVoiceMultilingual,auto,passed,9.36,96,39,2,37,2,2,0,2,False,False,True,可能餐廳里啊，或者是在搭那個地鐵的時候，都看到小朋友們，其實有時候手上都會拿著smart phone在玩。
+ascend-val-00010,ascend,sherpa:senseVoiceMultilingual,zh,passed,9.36,97,39,2,37,2,2,0,2,False,False,True,可能餐廳里啊，或者是在搭那個地鐵的時候，都看到小朋友們，其實有時候手上都會拿著smart phone在玩。
+ascend-val-00015,ascend,qwen3:1.7b,auto,passed,6.92,444,28,4,24,1,4,3,1,False,False,True,那個 economic status 就是買不買得起這個 smartphone 給小朋友。如果買得起的話，我覺得。
+ascend-val-00015,ascend,qwen3:1.7b,zh,passed,6.92,480,28,2,24,1,4,1,3,False,False,False,那個 economic status 就是買不買得起這個 smart phone 給小朋友。如果買得起的話，我覺得。
+ascend-val-00015,ascend,sherpa:senseVoice,auto,passed,6.92,79,28,5,24,1,4,4,0,False,False,True,那個 enomic status 就買不買得起這個 smartrphone 嘅小朋友如果買得起的話我覺得。
+ascend-val-00015,ascend,sherpa:senseVoice,zh,passed,6.92,77,28,5,24,1,4,4,0,False,False,True,那個 enomic status 就買不買得起這個 smarrtrphne 跟小朋友如果買得起的話我覺得。
+ascend-val-00015,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.92,80,28,3,24,0,4,3,1,False,False,True,那個economic status就買不買得起這個 smartphonemar給小朋友。如果買得起的話，我覺得。
+ascend-val-00015,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.92,79,28,3,24,0,4,3,1,False,False,True,那個economic status就買不買得起這個marphone給小朋友。如果買得起的話，我覺得。
+ascend-val-00021,ascend,qwen3:1.7b,auto,passed,2.84,230,10,2,8,0,2,2,0,False,False,True,那如果有smartphone的話，其實。
+ascend-val-00021,ascend,qwen3:1.7b,zh,passed,2.84,241,10,0,8,0,2,0,2,False,False,True,那如果有 smart phone 的話，其實。
+ascend-val-00021,ascend,sherpa:senseVoice,auto,passed,2.84,40,10,2,8,0,2,2,0,False,False,True,那如果有 smarrtrphone 的話其實。
+ascend-val-00021,ascend,sherpa:senseVoice,zh,passed,2.84,42,10,2,8,0,2,2,0,False,False,True,那如果有 smartrphone 的話其實。
+ascend-val-00021,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.84,41,10,0,8,0,2,0,2,False,False,True,那如果有smart phone的話，其實。
+ascend-val-00021,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.84,41,10,0,8,0,2,0,2,False,False,True,那如果有smart phone的話，其實。
+ascend-val-00023,ascend,qwen3:1.7b,auto,passed,2.72,208,7,0,6,0,1,0,1,False,False,False,共同的topic可以聊。
+ascend-val-00023,ascend,qwen3:1.7b,zh,passed,2.72,212,7,0,6,0,1,0,1,False,False,False,共同的topic可以聊。
+ascend-val-00023,ascend,sherpa:senseVoice,auto,passed,2.72,39,7,0,6,0,1,0,1,False,False,False,共同的 topic 可以聊。
+ascend-val-00023,ascend,sherpa:senseVoice,zh,passed,2.72,39,7,0,6,0,1,0,1,False,False,False,共同的 topic 可以聊。
+ascend-val-00023,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.72,39,7,0,6,0,1,0,1,False,False,False,共同的topic可以聊。
+ascend-val-00023,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.72,42,7,0,6,0,1,0,1,False,False,False,共同的topic可以聊。
+ascend-val-00028,ascend,qwen3:1.7b,auto,passed,3.58,263,16,2,14,0,2,2,0,False,False,True,然後再來就是smartphone，它的功能有的時候。
+ascend-val-00028,ascend,qwen3:1.7b,zh,passed,3.58,275,16,0,14,0,2,0,2,False,False,True,然後再來就是 smart phone，它的功能有的時候。
+ascend-val-00028,ascend,sherpa:senseVoice,auto,passed,3.58,45,16,2,14,0,2,2,0,False,False,True,然後再來就是 smartphone 它的功能有的時候。
+ascend-val-00028,ascend,sherpa:senseVoice,zh,passed,3.58,45,16,2,14,0,2,2,0,False,False,True,然後再來就是 smartphone 它的功能有的時候。
+ascend-val-00028,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.58,46,16,0,14,0,2,0,2,False,False,True,然後再來就是smart phone，它的功能。有的時候。
+ascend-val-00028,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.58,46,16,0,14,0,2,0,2,False,False,True,然後再來就是smart phone，它的功能。有的時候。
+ascend-val-00035,ascend,qwen3:1.7b,auto,passed,5.69,340,19,4,18,3,1,1,0,False,False,True,呃，在跟French方面是他們，呃，有他們自己的溝通管道。
+ascend-val-00035,ascend,qwen3:1.7b,zh,passed,5.69,363,19,4,18,3,1,1,0,False,False,True,呃，在跟French方面是他們，呃，有他們自己的溝通管道。
+ascend-val-00035,ascend,sherpa:senseVoice,auto,passed,5.69,67,19,2,18,2,1,0,1,False,False,True,呃在跟 friends 方面是他們要有他們自己的溝通管道。
+ascend-val-00035,ascend,sherpa:senseVoice,zh,passed,5.69,67,19,2,18,2,1,0,1,False,False,True,呃在跟 friends 方面是他們要有他們自己的溝通管道。
+ascend-val-00035,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.69,68,19,3,18,2,1,1,0,False,False,True,呃，在跟fance方面是他們要有他們自己的溝通管道。
+ascend-val-00035,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.69,68,19,3,18,2,1,1,0,False,False,True,呃，在跟fance方面是他們要有他們自己的溝通管道。
+ascend-val-00043,ascend,qwen3:1.7b,auto,passed,7.2,432,26,1,23,1,3,0,3,False,False,True,沒有辦法有 self control，所以他們就會沈迷於一些手機的 games 啊，或者是。
+ascend-val-00043,ascend,qwen3:1.7b,zh,passed,7.2,463,26,1,23,1,3,0,3,False,False,True,沒有辦法有 self control，所以他們就會沈迷於一些手機的 games 啊，或者是。
+ascend-val-00043,ascend,sherpa:senseVoice,auto,passed,7.2,79,26,2,23,1,3,1,2,False,False,True,沒有辦法有 self control 所以他們就會沈迷於一些手機的 gan 啊或者是。
+ascend-val-00043,ascend,sherpa:senseVoice,zh,passed,7.2,80,26,2,23,1,3,1,2,False,False,True,沒有辦法有 self control 所以他們就會沈迷於一些手機的 gan 啊或者是。
+ascend-val-00043,ascend,sherpa:senseVoiceMultilingual,auto,passed,7.2,80,26,3,23,1,3,2,1,False,False,True,沒有辦法有self controll，所以他們就會沈迷於一些手機的gs啊，或者是。
+ascend-val-00043,ascend,sherpa:senseVoiceMultilingual,zh,passed,7.2,82,26,3,23,1,3,2,1,False,False,True,沒有辦法有self controll，所以他們就會沈迷於一些手機的gs啊，或者是。
+ascend-val-00057,ascend,qwen3:1.7b,auto,passed,3.26,349,13,0,9,0,4,0,4,False,False,True,所以 Candy Crush 就是一個 Kill Time 很好的。
+ascend-val-00057,ascend,qwen3:1.7b,zh,passed,3.26,357,13,0,9,0,4,0,4,False,False,True,所以 Candy Crush 就是一個 Kill Time 很好的。
+ascend-val-00057,ascend,sherpa:senseVoice,auto,passed,3.26,95,13,2,9,0,4,2,2,False,False,True,所以 candi CR 就是一個 kill time 很好的。
+ascend-val-00057,ascend,sherpa:senseVoice,zh,passed,3.26,100,13,2,9,0,4,2,2,False,False,True,所以 cand CR 就是一個 kill time 很好的。
+ascend-val-00057,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.26,91,13,3,9,0,4,3,1,False,False,True,所以candycraft就是一個Q time很好的。
+ascend-val-00057,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.26,85,13,2,9,0,4,2,2,False,False,True,所以candy card就是一個ki time很好的。
+ascend-val-00083,ascend,qwen3:1.7b,auto,passed,3.46,313,12,1,10,0,2,1,1,False,False,True,我以前也會玩一種 online games，叫做。
+ascend-val-00083,ascend,qwen3:1.7b,zh,passed,3.46,343,12,1,10,0,2,1,1,False,False,True,我以前也會玩一種 online games，叫做。
+ascend-val-00083,ascend,sherpa:senseVoice,auto,passed,3.46,58,12,2,10,0,2,2,0,False,False,True,我以前也會玩一種 oli gane 叫做。
+ascend-val-00083,ascend,sherpa:senseVoice,zh,passed,3.46,95,12,2,10,0,2,2,0,False,False,True,我以前也會玩一種 oli gane 叫做。
+ascend-val-00083,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.46,65,12,2,10,0,2,2,0,False,False,True,我以前也會玩一種onlike games叫做。
+ascend-val-00083,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.46,95,12,2,10,0,2,2,0,False,False,True,我以前也會玩一種onlike games叫做。
+ascend-val-00134,ascend,qwen3:1.7b,auto,passed,5.2,424,23,2,22,2,1,0,1,False,False,True,然後能源消耗是多少電？還有交通的燃油，有各種的factor。
+ascend-val-00134,ascend,qwen3:1.7b,zh,passed,5.2,403,23,2,22,2,1,0,1,False,False,True,然後能源消耗是多少電？還有交通的燃油，有各種的factor。
+ascend-val-00134,ascend,sherpa:senseVoice,auto,passed,5.2,86,23,2,22,2,1,0,1,False,False,True,然後能源消耗出多少電還有交通的燃油有各種的 factor。
+ascend-val-00134,ascend,sherpa:senseVoice,zh,passed,5.2,134,23,2,22,2,1,0,1,False,False,True,然後能源消耗出多少電還有交通的燃油有各種的 factor。
+ascend-val-00134,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.2,109,23,2,22,2,1,0,1,False,False,True,然後能源消耗是多少電，還有交通的燃油，有各種的factor。
+ascend-val-00134,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.2,102,23,2,22,2,1,0,1,False,False,True,然後能源消耗是多少電，還有交通的燃油，有各種的factor。
+ascend-val-00142,ascend,qwen3:1.7b,auto,passed,7.1,533,42,5,41,4,1,1,0,False,False,True,在一些比較大的公司，比如像CLP，或者是像一些建築公司，他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00142,ascend,qwen3:1.7b,zh,passed,7.1,528,42,5,41,4,1,1,0,False,False,True,在一些比較大的公司，比如像CLP，或者是像一些建築公司，他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00142,ascend,sherpa:senseVoice,auto,passed,7.1,162,42,6,41,5,1,1,0,False,False,True,在一些比較大的公司比較像 C L P 或者是像一些建築公司他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00142,ascend,sherpa:senseVoice,zh,passed,7.1,165,42,5,41,4,1,1,0,False,False,True,在一些比較大的公司比如像 C L P 或者是像一些建築公司他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00142,ascend,sherpa:senseVoiceMultilingual,auto,passed,7.1,123,42,6,41,5,1,1,0,False,False,True,在一些比較大的公司，比方像CLP或者是像一些建築公司，他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00142,ascend,sherpa:senseVoiceMultilingual,zh,passed,7.1,190,42,6,41,5,1,1,0,False,False,True,在一些比較大的公司，比方像CLP或者是像一些建築公司，他們下面會有一些這樣的部門去做他們自己的。
+ascend-val-00312,ascend,qwen3:1.7b,auto,passed,3.22,247,9,1,7,1,2,0,2,False,False,False,所以我就是都喝 black coffee。
+ascend-val-00312,ascend,qwen3:1.7b,zh,passed,3.22,231,9,1,7,1,2,0,2,False,False,False,所以我就是都喝 black coffee。
+ascend-val-00312,ascend,sherpa:senseVoice,auto,passed,3.22,64,9,1,7,1,2,0,2,False,False,False,所以我就是都喝 black coffee。
+ascend-val-00312,ascend,sherpa:senseVoice,zh,passed,3.22,76,9,1,7,1,2,0,2,False,False,False,所以我就是都喝 black coffee。
+ascend-val-00312,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.22,73,9,1,7,1,2,0,2,False,False,False,所以我就是都喝 black coffee。
+ascend-val-00312,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.22,66,9,1,7,1,2,0,2,False,False,False,所以我就是都喝black coffee。
+ascend-val-00315,ascend,qwen3:1.7b,auto,passed,3.36,226,8,4,7,4,1,1,0,True,False,True,那你就會喝一些拉茶。
+ascend-val-00315,ascend,qwen3:1.7b,zh,passed,3.36,224,8,4,7,4,1,1,0,True,False,False,那你就會喝一些拉茶。
+ascend-val-00315,ascend,sherpa:senseVoice,auto,passed,3.36,44,8,6,7,6,1,1,0,True,False,True,你種會一些辣圾。
+ascend-val-00315,ascend,sherpa:senseVoice,zh,passed,3.36,44,8,6,7,6,1,1,0,True,False,True,你種會和一些辣腿。
+ascend-val-00315,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.36,45,8,4,7,3,1,1,0,False,False,True,你就會喝一些辣te。
+ascend-val-00315,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.36,43,8,4,7,4,1,1,0,True,False,True,那就會喝一些辣腿。
+ascend-val-00338,ascend,qwen3:1.7b,auto,passed,3.1,239,6,6,4,6,2,2,0,True,False,True,你有抱過可阿拉貝爾嗎？
+ascend-val-00338,ascend,qwen3:1.7b,zh,passed,3.1,252,6,6,4,6,2,2,0,True,False,False,你有抱過酷阿拉貝爾嗎？
+ascend-val-00338,ascend,sherpa:senseVoice,auto,passed,3.1,41,6,6,4,6,2,2,0,True,False,True,你有報過可阿拉貝爾。
+ascend-val-00338,ascend,sherpa:senseVoice,zh,passed,3.1,42,6,6,4,6,2,2,0,True,False,True,你有報過可阿拉貝爾。
+ascend-val-00338,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.1,40,6,7,4,7,2,2,0,True,False,True,你有報過可阿拉貝爾嗎？
+ascend-val-00338,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.1,41,6,7,4,7,2,2,0,True,False,True,你有報過口阿拉貝爾嗎？
+ascend-val-00368,ascend,qwen3:1.7b,auto,passed,4.27,308,14,4,11,3,3,1,2,False,False,True,嗯，action movies讓我感覺到很刺激，然後emotion的這些。
+ascend-val-00368,ascend,qwen3:1.7b,zh,passed,4.27,323,14,4,11,3,3,1,2,False,False,True,嗯，action movies 讓我感覺到很刺激，然後 emotion 的這些。
+ascend-val-00368,ascend,sherpa:senseVoice,auto,passed,4.27,54,14,4,11,3,3,1,2,False,False,True,嗯 action m讓我感覺到很刺激然後 emotion 的這些。
+ascend-val-00368,ascend,sherpa:senseVoice,zh,passed,4.27,53,14,4,11,3,3,1,2,False,False,True,嗯 action m讓我感覺到很刺激然後 emotion 的這些。
+ascend-val-00368,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.27,52,14,5,11,4,3,1,2,False,False,True,嗯，action movie雖讓我感覺到很刺激，然後emotion的這些。
+ascend-val-00368,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.27,53,14,5,11,4,3,1,2,False,False,True,嗯，action movie雖讓我感覺到很刺激，然後emotion的這些。
+ascend-val-00405,ascend,qwen3:1.7b,auto,passed,3.96,309,18,2,17,2,1,0,1,False,False,True,所以上次跟你去台灣，我也寄給了自己一張postcard。
+ascend-val-00405,ascend,qwen3:1.7b,zh,passed,3.96,299,18,2,17,2,1,0,1,False,False,True,所以上次跟你去台灣，我也寄給了自己一張postcard。
+ascend-val-00405,ascend,sherpa:senseVoice,auto,passed,3.96,49,18,3,17,2,1,1,0,False,False,True,所以上次跟你去台灣我也寄給了自己一張 postard。
+ascend-val-00405,ascend,sherpa:senseVoice,zh,passed,3.96,49,18,2,17,2,1,0,1,False,False,True,所以上次跟你去台灣我也寄給了自己一張 postcard。
+ascend-val-00405,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.96,49,18,2,17,2,1,0,1,False,False,True,所以上次跟你去台灣，我也寄給了自己一張postcard。
+ascend-val-00405,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.96,49,18,3,17,3,1,0,1,False,False,True,所以上次跟你去台灣，我也寄給了自己一家postcard。
+ascend-val-00406,ascend,qwen3:1.7b,auto,passed,4.74,328,23,0,22,0,1,0,1,False,False,True,應該是去過多少個國家和地區就有多少個postcard，但好像有。
+ascend-val-00406,ascend,qwen3:1.7b,zh,passed,4.74,368,23,0,22,0,1,0,1,False,False,False,應該是去過多少個國家和地區就有多少個postcard，但好像有。
+ascend-val-00406,ascend,sherpa:senseVoice,auto,passed,4.74,58,23,2,22,0,1,2,0,False,False,True,應該是去過多少個國家和地區就有多少個 post car 但好像有。
+ascend-val-00406,ascend,sherpa:senseVoice,zh,passed,4.74,58,23,2,22,0,1,2,0,False,False,True,應該是去過多少個國家和地區就有多少個 post car 但好像有。
+ascend-val-00406,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.74,59,23,0,22,0,1,0,1,False,False,True,應該是去過多少個國家和地區就有多少個postcard，但好像有。
+ascend-val-00406,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.74,62,23,1,22,0,1,1,0,False,False,True,應該是去過多少個國家和地區就有多少個pocard，但好像有。
+ascend-val-00410,ascend,qwen3:1.7b,auto,passed,3.4,245,13,2,11,1,2,1,1,False,False,True,朋友圈記錄一下自己的postcard，但是。
+ascend-val-00410,ascend,qwen3:1.7b,zh,passed,3.4,248,13,2,11,1,2,1,1,False,False,True,朋友圈記錄一下自己的postcard，但是。
+ascend-val-00410,ascend,sherpa:senseVoice,auto,passed,3.4,45,13,3,11,1,2,2,0,False,False,True,朋友圈記錄一下自己的 postch 但是。
+ascend-val-00410,ascend,sherpa:senseVoice,zh,passed,3.4,46,13,3,11,1,2,2,0,False,False,True,朋友圈記錄一下自己的 postch 但是。
+ascend-val-00410,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.4,46,13,2,11,1,2,1,1,False,False,True,朋友圈記錄一下自己的postcard，但是。
+ascend-val-00410,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.4,45,13,2,11,1,2,1,1,False,False,True,朋友圈記錄一下自己的postcard，但是。
+ascend-val-00416,ascend,qwen3:1.7b,auto,passed,2.68,215,8,1,5,0,3,1,2,False,False,True,我們的exam的話，half half。
+ascend-val-00416,ascend,qwen3:1.7b,zh,passed,2.68,228,8,1,5,0,3,1,2,False,False,True,我們的 exam 的話， half half。
+ascend-val-00416,ascend,sherpa:senseVoice,auto,passed,2.68,38,8,2,5,2,3,2,1,False,False,True,我們的 exam 的話哈哈。
+ascend-val-00416,ascend,sherpa:senseVoice,zh,passed,2.68,38,8,2,5,2,3,2,1,False,False,True,我們的 exam 的話哈哈。
+ascend-val-00416,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.68,38,8,2,5,2,3,2,1,False,False,True,我們的exam的話哈哈。
+ascend-val-00416,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.68,39,8,2,5,2,3,2,1,False,False,True,我們的exam的話哈哈。
+ascend-val-00427,ascend,qwen3:1.7b,auto,passed,4.96,323,20,1,18,0,2,1,1,False,False,True,呃，有一些 good work，你覺得可以去，就沒有必要去做的嗎？
+ascend-val-00427,ascend,qwen3:1.7b,zh,passed,4.96,340,20,1,18,0,2,1,1,False,False,True,呃，有一些 good work，你覺得可以去，就沒有必要去做的嗎？
+ascend-val-00427,ascend,sherpa:senseVoice,auto,passed,4.96,60,20,1,18,0,2,1,1,False,False,True,呃有一些 group bork 你覺得可以去就沒有必要去做的嗎？
+ascend-val-00427,ascend,sherpa:senseVoice,zh,passed,4.96,60,20,1,18,0,2,1,1,False,False,True,呃有一些 group bork 你覺得可以去就沒有必要去做的嗎？
+ascend-val-00427,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.96,61,20,2,18,0,2,2,0,False,False,True,呃，有一些groupwork，你覺得可以去就沒有必要去做的嗎？
+ascend-val-00427,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.96,60,20,2,18,0,2,2,0,False,False,True,呃，有一些groupwork，你覺得可以去就沒有必要去做的嗎？
+ascend-val-00428,ascend,qwen3:1.7b,auto,passed,6.16,373,24,6,22,4,2,2,0,False,False,True,就你做過的一些 billboard，你覺得可以，被，啊刪掉或者就更改什麼？
+ascend-val-00428,ascend,qwen3:1.7b,zh,passed,6.16,385,24,6,22,4,2,2,0,False,False,True,就你做過的一些 billboard，你覺得可以，被啊刪掉或者就更改什麼？
+ascend-val-00428,ascend,sherpa:senseVoice,auto,passed,6.16,71,24,6,22,4,2,2,0,False,False,True,對你做過的一些 gorogm 你覺得可以被啊刪掉或者你個更改什。
+ascend-val-00428,ascend,sherpa:senseVoice,zh,passed,6.16,71,24,5,22,3,2,2,0,False,False,True,對你做過的一些 gobro 你覺得可以被啊刪掉或者個更改什。
+ascend-val-00428,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.16,72,24,6,22,6,2,1,1,False,False,True,對你做過的一些group里，你覺得可以被啊刪掉或者那個更改什麼。
+ascend-val-00428,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.16,72,24,6,22,4,2,2,0,False,False,True,對你做過的一些groupbook，你覺得可以被啊刪掉或者那個更改。
+ascend-val-00432,ascend,qwen3:1.7b,auto,passed,2.51,223,10,0,5,0,5,0,5,False,False,True,I think我覺得這個depends on the。
+ascend-val-00432,ascend,qwen3:1.7b,zh,passed,2.51,248,10,0,5,0,5,0,5,False,False,True,I think 我覺得這個 depends on the。
+ascend-val-00432,ascend,sherpa:senseVoice,auto,passed,2.51,36,10,0,5,0,5,0,5,False,False,True,I think 我覺得這個 depends on the。
+ascend-val-00432,ascend,sherpa:senseVoice,zh,passed,2.51,37,10,0,5,0,5,0,5,False,False,True,I think我覺得這個 depends on the。
+ascend-val-00432,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.51,38,10,0,5,0,5,0,5,False,False,True,I think我覺得這個 depends on the。
+ascend-val-00432,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.51,36,10,0,5,0,5,0,5,False,False,True,I think我覺得這個depends on the。
+ascend-val-00439,ascend,qwen3:1.7b,auto,passed,3.14,236,10,3,8,2,2,1,1,False,False,True,然後那個house就是professor就會有。
+ascend-val-00439,ascend,qwen3:1.7b,zh,passed,3.14,251,10,3,8,2,2,1,1,False,False,True,然後那個house就是professor就會有。
+ascend-val-00439,ascend,sherpa:senseVoice,auto,passed,3.14,41,10,2,8,0,2,2,0,False,False,True,啊那個 cous 就是 professo 就會有。
+ascend-val-00439,ascend,sherpa:senseVoice,zh,passed,3.14,40,10,1,8,0,2,1,1,False,False,True,啊那個 cous 就是 professor 就會有。
+ascend-val-00439,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.14,41,10,3,8,2,2,1,1,False,False,True,然後那個cos就是professor就會有。
+ascend-val-00439,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.14,42,10,1,8,0,2,1,1,False,False,True,啊，那個cos就是professor就會有。
+ascend-val-00441,ascend,qwen3:1.7b,auto,passed,4.14,304,16,3,15,3,1,0,1,False,False,True,就是他會，他呃，他有那個課有一個project是從。
+ascend-val-00441,ascend,qwen3:1.7b,zh,passed,4.14,309,16,3,15,3,1,0,1,False,False,True,就是他會，他呃，他有那個課有一個project是從。
+ascend-val-00441,ascend,sherpa:senseVoice,auto,passed,4.14,52,16,5,15,5,1,0,1,False,False,True,就是他會他呃他有這個各有一個 project 是從。
+ascend-val-00441,ascend,sherpa:senseVoice,zh,passed,4.14,51,16,5,15,5,1,0,1,False,False,True,就是他會他呃他有這個各有一個 project 是從。
+ascend-val-00441,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.14,52,16,4,15,4,1,0,1,False,False,True,就是他會他呃他有這個課有一個project是從。
+ascend-val-00441,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.14,51,16,4,15,4,1,0,1,False,False,True,就是他會他呃他有這個課有一個project是從。
+ascend-val-00451,ascend,qwen3:1.7b,auto,passed,3.8,261,10,1,8,1,2,0,2,False,False,True,每一星期都會有一個，呃，group meeting。
+ascend-val-00451,ascend,qwen3:1.7b,zh,passed,3.8,266,10,1,8,1,2,0,2,False,False,True,每一星期都會有一個，呃，group meeting。
+ascend-val-00451,ascend,sherpa:senseVoice,auto,passed,3.8,49,10,1,8,0,2,1,1,False,False,True,每星期都會有一個誒 good meeting。
+ascend-val-00451,ascend,sherpa:senseVoice,zh,passed,3.8,48,10,1,8,0,2,1,1,False,False,True,每星期都會有一個誒 good meeting。
+ascend-val-00451,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.8,50,10,0,8,0,2,0,2,False,False,True,每星期都會有一個呃group meeting。
+ascend-val-00451,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.8,50,10,2,8,1,2,1,1,False,False,True,每一星期都會有一個呃go meeting。
+ascend-val-00466,ascend,qwen3:1.7b,auto,passed,4.56,351,26,1,25,1,1,0,1,False,False,True,所以我們在每一個 topic 上面，其實不是說說很深入的去做這件事情。
+ascend-val-00466,ascend,qwen3:1.7b,zh,passed,4.56,348,26,1,25,1,1,0,1,False,False,True,所以我們在每一個 topic 上面，其實不是說說很深入的去做這件事情。
+ascend-val-00466,ascend,sherpa:senseVoice,auto,passed,4.56,56,26,1,25,1,1,0,1,False,False,True,所以我們在每一個 topic 上面其實不是說說很深入的去做這件事情。
+ascend-val-00466,ascend,sherpa:senseVoice,zh,passed,4.56,55,26,1,25,1,1,0,1,False,False,True,所以我們在每一個 topic 上面其實不是說說很深入的去做這件事情。
+ascend-val-00466,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.56,53,26,1,25,1,1,0,1,False,False,True,所以我們在每一個topic上面，其實不是說說很深入的去做這件事情。
+ascend-val-00466,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.56,54,26,1,25,1,1,0,1,False,False,True,所以我們在每一個topic上面，其實不是說說很深入的去做這件事情。
+ascend-val-00469,ascend,qwen3:1.7b,auto,passed,2.82,208,5,0,4,0,1,0,1,False,False,True,呃，我們的 topic 是。
+ascend-val-00469,ascend,qwen3:1.7b,zh,passed,2.82,206,5,0,4,0,1,0,1,False,False,True,呃，我們的 topic 是。
+ascend-val-00469,ascend,sherpa:senseVoice,auto,passed,2.82,41,5,0,4,0,1,0,1,False,False,True,呃我們的 topic 是。
+ascend-val-00469,ascend,sherpa:senseVoice,zh,passed,2.82,40,5,0,4,0,1,0,1,False,False,True,呃我們的 topic 是。
+ascend-val-00469,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.82,39,5,0,4,0,1,0,1,False,False,True,呃，我們的topic是。
+ascend-val-00469,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.82,41,5,0,4,0,1,0,1,False,False,True,呃，我們的topic是。
+ascend-val-00535,ascend,qwen3:1.7b,auto,passed,5.32,410,30,1,29,0,1,1,0,True,False,True,所以，我大學的英語水平是在下降的。其實，相比較高中來講，是在下降的。
+ascend-val-00535,ascend,qwen3:1.7b,zh,passed,5.32,397,30,1,29,0,1,1,0,True,False,True,所以，我大學的英語水平是在下降的。其實，相比較高中來講，是在下降的。
+ascend-val-00535,ascend,sherpa:senseVoice,auto,passed,5.32,62,30,4,29,3,1,1,0,True,False,True,以我大學的英語水平是在下降呢其實相比較高中來講是在下降。
+ascend-val-00535,ascend,sherpa:senseVoice,zh,passed,5.32,63,30,4,29,3,1,1,0,True,False,True,以我大學的英語水平是在下降呢其實相比較高中來講是在下降。
+ascend-val-00535,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.32,62,30,1,29,1,1,1,0,True,False,True,走所以我大學的英語水平是在下降的，其實相比較高中來講是在下降的。
+ascend-val-00535,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.32,61,30,1,29,1,1,1,0,True,False,True,走所以我大學的英語水平是在下降的，其實相比較高中來講是在下降的。
+ascend-val-00556,ascend,qwen3:1.7b,auto,passed,3.37,286,15,1,9,0,6,1,5,False,False,True,So we just translate in，翻譯成中文，然後挑選。
+ascend-val-00556,ascend,qwen3:1.7b,zh,passed,3.37,287,15,1,9,0,6,1,5,False,False,True,So we just translate in，翻譯成中文，然後挑選。
+ascend-val-00556,ascend,sherpa:senseVoice,auto,passed,3.37,44,15,4,9,0,6,4,2,False,False,True,o we JT tranlate in翻譯成中文然後挑選。
+ascend-val-00556,ascend,sherpa:senseVoice,zh,passed,3.37,43,15,4,9,0,6,4,2,False,False,True,o we JT translate I翻譯成中文然後挑選。
+ascend-val-00556,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.37,44,15,1,9,0,6,1,5,False,False,True,so we just translate in翻譯成中文，然後挑選。
+ascend-val-00556,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.37,43,15,1,9,0,6,1,5,False,False,True,so we just translate in翻譯成中文，然後挑選。
+ascend-val-00575,ascend,qwen3:1.7b,auto,passed,8.77,420,26,2,21,2,5,0,5,False,False,True,但至於這個 bedtimes 是不是一定要用來睡覺呢？我覺得就 depends on students themselves.
+ascend-val-00575,ascend,qwen3:1.7b,zh,passed,8.77,454,26,2,21,2,5,0,5,False,False,False,但至於這個 bedtimes 是不是一定要用來睡覺呢？我覺得就 depends on students themselves。
+ascend-val-00575,ascend,sherpa:senseVoice,auto,passed,8.77,93,26,5,21,3,5,2,4,False,False,True,至於這個 bad times 是不是一定要用來睡覺呢我覺得就 depends on students themselves。
+ascend-val-00575,ascend,sherpa:senseVoice,zh,passed,8.77,94,26,5,21,2,5,3,3,False,False,True,但至於這個 bad times 是不是一定要用來睡覺呢我覺得就 depends on students lhemsselves。
+ascend-val-00575,ascend,sherpa:senseVoiceMultilingual,auto,passed,8.77,93,26,5,21,2,5,3,3,False,False,True,但至於這個bed times是不是一定要用來睡覺呢？我覺得就depend on students themselves。
+ascend-val-00575,ascend,sherpa:senseVoiceMultilingual,zh,passed,8.77,93,26,4,21,2,5,2,4,False,False,True,但至於這個bed times是不是一定要用來睡覺呢？我覺得就depends on students themselves。
+ascend-val-00610,ascend,qwen3:1.7b,auto,passed,7.82,477,36,0,35,0,1,0,1,False,False,True,如果現在不休息，會導致他們下午非常sleepy的話，那他們就是應該用這個午覺時間來睡覺。
+ascend-val-00610,ascend,qwen3:1.7b,zh,passed,7.82,498,36,0,35,0,1,0,1,False,False,False,如果現在不休息，會導致他們下午非常 sleepy 的話，那他們就是應該用這個午覺時間來睡覺。
+ascend-val-00610,ascend,sherpa:senseVoice,auto,passed,7.82,87,36,0,35,0,1,0,1,False,False,True,如果現在不休息會導致他們下午非常 sleepy 的話那他們就是應該用這個午覺時間來睡覺。
+ascend-val-00610,ascend,sherpa:senseVoice,zh,passed,7.82,87,36,0,35,0,1,0,1,False,False,True,如果現在不休息會導致他們下午非常 sleepy 的話那他們就是應該用這個午覺時間來睡覺。
+ascend-val-00610,ascend,sherpa:senseVoiceMultilingual,auto,passed,7.82,85,36,1,35,1,1,0,1,False,False,True,如果現在不休息，會導致他們下午非常sleepy的話，那他們就是應該用這個午覺的時間來睡覺。
+ascend-val-00610,ascend,sherpa:senseVoiceMultilingual,zh,passed,7.82,85,36,1,35,1,1,0,1,False,False,True,如果現在不休息，會導致他們下午非常sleepy的話，那他們就是應該用這個午覺的時間來睡覺。
+ascend-val-00621,ascend,qwen3:1.7b,auto,passed,11.22,546,40,4,36,2,4,2,2,False,False,True,那那我想請問你在讀幼稚園的時候，以及你讀Elementary School的時候，是不是就已經有這個Bedtime的時間了呢？
+ascend-val-00621,ascend,qwen3:1.7b,zh,passed,11.22,569,40,4,36,2,4,2,2,False,False,True,那那我想請問你在讀幼稚園的時候，以及你讀 elementary school 的時候，是不是就已經有這個 bedtime 的時間了呢？
+ascend-val-00621,ascend,sherpa:senseVoice,auto,passed,11.22,114,40,2,36,0,4,2,2,False,False,True,那我也想請問你在讀幼稚園的時候以及你讀 elementy school 的時候是不是就已經有這個 bad time 的時間了呢。
+ascend-val-00621,ascend,sherpa:senseVoice,zh,passed,11.22,110,40,3,36,1,4,2,2,False,False,True,我也想請問你在讀幼稚園的時候以及你讀 elementy school 的時候是不是就已經有這個 bad time 的時間了呢。
+ascend-val-00621,ascend,sherpa:senseVoiceMultilingual,auto,passed,11.22,113,40,1,36,0,4,1,3,False,False,True,那我也想請問你在讀幼稚園的時候，以及你讀 elementary school的時候，是不是就已經有這個bedd time的時間了呢？
+ascend-val-00621,ascend,sherpa:senseVoiceMultilingual,zh,passed,11.22,113,40,2,36,0,4,2,2,False,False,True,那我也想請問你在讀幼稚園的時候，以及你讀 elementementary school的時候，是不是就已經有這個bedd time的時間了呢？
+ascend-val-00655,ascend,qwen3:1.7b,auto,passed,10.38,612,47,2,46,2,1,0,1,False,False,True,嗯，我也覺得游泳。然後我覺得你剛才說的那些有氧和無氧還很technical，我應該就是不知道太專業東西。我是根據自己的。
+ascend-val-00655,ascend,qwen3:1.7b,zh,passed,10.38,611,47,1,46,1,1,0,1,False,False,True,嗯，我也覺得游泳。然後我覺得你剛才說的那些有氧和無氧還很technical，我應該就是不知道太專業的東西。我是根據自己的。
+ascend-val-00655,ascend,sherpa:senseVoice,auto,passed,10.38,103,47,0,46,0,1,0,1,False,False,True,嗯我也覺得游泳然後我覺得你剛才說的那些有氧和無氧還很 technical 我應該就是不知道他專業的東西我是根據自己的。
+ascend-val-00655,ascend,sherpa:senseVoice,zh,passed,10.38,105,47,0,46,0,1,0,1,False,False,True,嗯我也覺得游泳然後我覺得你剛才說的那些有氧和無氧還很 technical 我應該就是不知道他專業的東西我是根據自己的。
+ascend-val-00655,ascend,sherpa:senseVoiceMultilingual,auto,passed,10.38,105,47,1,46,1,1,0,1,False,False,True,嗯，我也覺得游泳。然後我覺得你剛才說的那些有氧和無氧還很technical，我應該就是不知道他專業東西，我是根據自己的。
+ascend-val-00655,ascend,sherpa:senseVoiceMultilingual,zh,passed,10.38,105,47,1,46,1,1,0,1,False,False,True,嗯，我也覺得游泳。然後我覺得你剛才說的那些有氧和無氧還很technical，我應該就是不知道他專業東西，我是根據自己的。
+ascend-val-00671,ascend,qwen3:1.7b,auto,passed,12.1,681,36,3,22,2,14,1,13,False,False,True,"嗯，Actually, I love swimming from the bottom bottom of my heart. But, I think,呃，我的身體是是對游泳是抗拒的，因為我特別的怕水。"
+ascend-val-00671,ascend,qwen3:1.7b,zh,passed,12.1,651,36,3,22,2,14,1,13,False,False,True,"嗯，Actually, I love swimming from the bottom bottom of my heart. But, I think呃，我的身體是是對游泳是抗拒的，因為我特別的怕水。"
+ascend-val-00671,ascend,sherpa:senseVoice,auto,passed,12.1,121,36,5,22,2,14,3,11,False,False,True,actually I love swimming from the bottome of my heart but I think我的身體是是對游泳是抗拒的因為我特別的怕水。
+ascend-val-00671,ascend,sherpa:senseVoice,zh,passed,12.1,121,36,5,22,2,14,3,11,False,False,True,actually I love swimming from the bottome of my heart but I think 我的身體是是對游泳是抗拒的因為我特別的怕水。
+ascend-val-00671,ascend,sherpa:senseVoiceMultilingual,auto,passed,12.1,120,36,4,22,2,14,2,12,False,False,True,"Actually, I love swimming from the bottom of my heart, but I think我的身體是是對游泳是抗拒的，因為我特別的怕水."
+ascend-val-00671,ascend,sherpa:senseVoiceMultilingual,zh,passed,12.1,118,36,4,22,2,14,2,12,False,False,True,"嗯，actual,I love swimming from the bottom bottom of my heart, but I think嗯我的身體是是對游泳是抗拒的，因為我特別的怕水。"
+ascend-val-00687,ascend,qwen3:1.7b,auto,passed,2.78,210,5,0,4,0,1,0,1,False,False,False,呃，problem就是它的。
+ascend-val-00687,ascend,qwen3:1.7b,zh,passed,2.78,223,5,0,4,0,1,0,1,False,False,False,呃，problem 就是它的。
+ascend-val-00687,ascend,sherpa:senseVoice,auto,passed,2.78,40,5,1,4,1,1,0,1,False,False,False,呃 problem 就是他的。
+ascend-val-00687,ascend,sherpa:senseVoice,zh,passed,2.78,40,5,1,4,1,1,0,1,False,False,False,呃 problem 就是他的。
+ascend-val-00687,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.78,39,5,1,4,1,1,0,1,False,False,False,呃，problem就是他的。
+ascend-val-00687,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.78,40,5,1,4,1,1,0,1,False,False,False,呃，problem就是他的。
+ascend-val-00688,ascend,qwen3:1.7b,auto,passed,2.94,209,6,0,4,0,2,0,2,False,False,True,Reflection time會有點長。
+ascend-val-00688,ascend,qwen3:1.7b,zh,passed,2.94,217,6,0,4,0,2,0,2,False,False,False,Reflection time 會有點長。
+ascend-val-00688,ascend,sherpa:senseVoice,auto,passed,2.94,41,6,0,4,0,2,0,2,False,False,True,reflection time 會有點長。
+ascend-val-00688,ascend,sherpa:senseVoice,zh,passed,2.94,41,6,0,4,0,2,0,2,False,False,True,reflection time 會有點長。
+ascend-val-00688,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.94,41,6,1,4,0,2,1,1,False,False,True,refction time會有點長。
+ascend-val-00688,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.94,41,6,1,4,0,2,1,1,False,False,True,refction time會有點長。
+ascend-val-00729,ascend,qwen3:1.7b,auto,passed,3.94,252,10,0,5,0,5,0,5,False,False,True,所以這個 system 是 is forced or selected。
+ascend-val-00729,ascend,qwen3:1.7b,zh,passed,3.94,255,10,0,5,0,5,0,5,False,False,True,所以這個 system 是 is forced or selected。
+ascend-val-00729,ascend,sherpa:senseVoice,auto,passed,3.94,50,10,2,5,0,5,2,3,False,False,True,所以這個 system 是 is forctd or sellected。
+ascend-val-00729,ascend,sherpa:senseVoice,zh,passed,3.94,50,10,3,5,0,5,3,2,False,False,True,所以這個 system 是 I FRCT or sellected。
+ascend-val-00729,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.94,51,10,0,5,0,5,0,5,False,False,True,所以這個 system是is forced or selected.
+ascend-val-00729,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.94,49,10,1,5,0,5,1,4,False,False,True,所以這個stem是is forced or selected。
+ascend-val-00755,ascend,qwen3:1.7b,auto,passed,6.24,417,25,0,23,0,2,0,2,False,False,True,首先，這中間需要一個一個一個過程，就是，呃，一些 officer 或者一些 worker。
+ascend-val-00755,ascend,qwen3:1.7b,zh,passed,6.24,415,25,0,23,0,2,0,2,False,False,True,首先，這中間需要一個一個一個過程，就是，呃，一些 officer 或者一些 worker。
+ascend-val-00755,ascend,sherpa:senseVoice,auto,passed,6.24,69,25,1,23,1,2,0,2,False,False,True,首先就中間需要一個一個一個過程就是呃一些 officer 或者一些 worker。
+ascend-val-00755,ascend,sherpa:senseVoice,zh,passed,6.24,71,25,1,23,1,2,0,2,False,False,True,首先就中間需要一個一個一個過程就是呃一些 officer 或者一些 worker。
+ascend-val-00755,ascend,sherpa:senseVoiceMultilingual,auto,passed,6.24,70,25,1,23,1,2,0,2,False,False,True,首先這中間需要一個一個一個過程，就是呃一些officer或一些worker。
+ascend-val-00755,ascend,sherpa:senseVoiceMultilingual,zh,passed,6.24,69,25,2,23,2,2,0,2,False,False,True,首先就中間需要一個一個一個過程，就是呃一些officer或一些worker。
+ascend-val-00760,ascend,qwen3:1.7b,auto,passed,4.35,291,17,0,15,0,2,0,2,False,False,True,呃，就業發展嘛，但是如果已經在work position的一些。
+ascend-val-00760,ascend,qwen3:1.7b,zh,passed,4.35,300,17,0,15,0,2,0,2,False,False,True,呃，就業發展嘛，但是如果已經在 work position 的一些。
+ascend-val-00760,ascend,sherpa:senseVoice,auto,passed,4.35,54,17,0,15,0,2,0,2,False,False,True,呃就業發展嘛但是如果已經在 work position 的一些。
+ascend-val-00760,ascend,sherpa:senseVoice,zh,passed,4.35,54,17,0,15,0,2,0,2,False,False,True,呃就業發展嘛但是如果已經在 work position 的一些。
+ascend-val-00760,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.35,54,17,0,15,0,2,0,2,False,False,True,呃，就業發展嘛。但是如果已經在work position的一些。
+ascend-val-00760,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.35,53,17,0,15,0,2,0,2,False,False,True,呃，就業發展嘛。但是如果已經在work position的一些。
+ascend-val-00819,ascend,qwen3:1.7b,auto,passed,8.35,434,21,2,21,2,0,0,0,False,False,True,哦，但需要，呃，注意的是說，就是，嗯，你不能讓自己就是長期。
+ascend-val-00819,ascend,qwen3:1.7b,zh,passed,8.35,438,21,2,21,2,0,0,0,False,False,True,哦，但需要，呃，注意的是說，就是，嗯，你不能讓自己就是長期。
+ascend-val-00819,ascend,sherpa:senseVoice,auto,passed,8.35,89,21,1,21,1,0,0,0,False,False,True,但需要呃注意的是說就是嗯你不能讓自己就是長期。
+ascend-val-00819,ascend,sherpa:senseVoice,zh,passed,8.35,92,21,2,21,2,0,0,0,False,False,True,哦但需要呃注意的是說就是嗯你不能讓自己就是長期。
+ascend-val-00819,ascend,sherpa:senseVoiceMultilingual,auto,passed,8.35,93,21,1,21,1,0,0,0,False,False,True,呃，但需要呃注意的是說就是嗯你不能讓自己就是長期。
+ascend-val-00819,ascend,sherpa:senseVoiceMultilingual,zh,passed,8.35,91,21,1,21,1,0,0,0,False,False,True,呃，但需要呃注意的是說就是嗯你不能讓自己就是長期。
+ascend-val-00857,ascend,qwen3:1.7b,auto,passed,2.56,196,6,1,5,0,1,1,0,False,False,True,Short的非常大聲。
+ascend-val-00857,ascend,qwen3:1.7b,zh,passed,2.56,204,6,1,5,0,1,1,0,False,False,False,Short 的非常大聲。
+ascend-val-00857,ascend,sherpa:senseVoice,auto,passed,2.56,39,6,1,5,0,1,1,0,False,False,True,shot 的非常大聲。
+ascend-val-00857,ascend,sherpa:senseVoice,zh,passed,2.56,38,6,1,5,0,1,1,0,False,False,True,shot 的非常大聲。
+ascend-val-00857,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.56,38,6,1,5,0,1,1,0,False,False,True,short的非常大聲。
+ascend-val-00857,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.56,38,6,1,5,0,1,1,0,False,False,True,st的非常大聲。
+ascend-val-00925,ascend,qwen3:1.7b,auto,passed,10.02,544,32,0,31,0,1,0,1,False,False,True,嗯，去翻新一下，然後我們的，反正我走的時候，我們那個library還挺小挺破，聽說要重建。
+ascend-val-00925,ascend,qwen3:1.7b,zh,passed,10.02,551,32,0,31,0,1,0,1,False,False,True,嗯，去翻新一下，然後我們的，反正我走的時候，我們那個 library 還挺小挺破，聽說要重建。
+ascend-val-00925,ascend,sherpa:senseVoice,auto,passed,10.02,105,32,3,31,2,1,1,0,False,False,True,嗯去翻新一下然後我們的反正我走的時候我們那個 liberary 還輕消挺破聽說要重建。
+ascend-val-00925,ascend,sherpa:senseVoice,zh,passed,10.02,107,32,2,31,2,1,0,1,False,False,True,嗯去翻新一下然後我們的反正我走的時候我們那個 library 還輕消挺破聽說要重建。
+ascend-val-00925,ascend,sherpa:senseVoiceMultilingual,auto,passed,10.02,111,32,2,31,2,1,0,1,False,False,True,嗯，去翻新一下。然後我們的反正我走的時候，我們那個library還傾銷挺破，聽說要重建。
+ascend-val-00925,ascend,sherpa:senseVoiceMultilingual,zh,passed,10.02,105,32,2,31,2,1,0,1,False,False,True,嗯，去翻新一下。然後我們的反正我走的時候，我們那個library還輕銷挺破，聽說要重建。
+ascend-val-00929,ascend,qwen3:1.7b,auto,passed,10.85,590,35,9,33,8,2,2,0,False,False,True,嗯，is a呃，這在嗯萊頓呢大學就是校園呢是分散在萊頓這個城市的各個角落，這一塊那一塊。
+ascend-val-00929,ascend,qwen3:1.7b,zh,passed,10.85,598,35,9,33,8,2,2,0,False,False,True,嗯，is a呃，這在嗯萊頓呢大學就是校園呢是分散在萊頓這個城市的各個角落，這一塊那一塊。
+ascend-val-00929,ascend,sherpa:senseVoice,auto,passed,10.85,110,35,10,33,8,2,2,0,False,False,True,嗯 I呃萊頓呢大學就是校園那是分散在萊E這個城市的各個角落這一塊那一塊。
+ascend-val-00929,ascend,sherpa:senseVoice,zh,passed,10.85,109,35,9,33,7,2,2,0,False,False,True,嗯 I呃這萊頓呢大學就是校園那是分散在萊E這個城市的各個角落這一塊那一塊。
+ascend-val-00929,ascend,sherpa:senseVoiceMultilingual,auto,passed,10.85,108,35,9,33,7,2,2,0,False,False,True,嗯iss呃呃這在嗯萊頓呢大學就是校園那是分散在萊den這個城市的各個角落這一塊那一塊。
+ascend-val-00929,ascend,sherpa:senseVoiceMultilingual,zh,passed,10.85,110,35,9,33,7,2,2,0,False,False,True,嗯，is呃呃這在呃萊頓呢大學就是校園呢是分散在萊den這個城市的各個角落這一塊那一塊。
+ascend-val-00974,ascend,qwen3:1.7b,auto,passed,4.14,314,23,4,22,3,1,1,0,False,False,True,還是很peace，就人很少，相當於內地來講，尤其是你知道嗎？
+ascend-val-00974,ascend,qwen3:1.7b,zh,passed,4.14,321,23,4,22,3,1,1,0,False,False,True,還是很peace，就人很少，相當於內地來講，尤其是你知道嗎？
+ascend-val-00974,ascend,sherpa:senseVoice,auto,passed,4.14,52,23,7,22,6,1,1,0,False,False,True,還是很 pef就人很少相當於內地來講尤其是人。
+ascend-val-00974,ascend,sherpa:senseVoice,zh,passed,4.14,52,23,7,22,6,1,1,0,False,False,True,還是很 pef就人很少相當於內地來講尤其是人。
+ascend-val-00974,ascend,sherpa:senseVoiceMultilingual,auto,passed,4.14,52,23,5,22,5,1,0,1,False,False,True,還是很 peaceful，就人很少，相當於內地來講，尤其是人知。
+ascend-val-00974,ascend,sherpa:senseVoiceMultilingual,zh,passed,4.14,52,23,6,22,5,1,1,0,False,False,True,還是很pe，就人很少，相當於內地來講，尤其是人知。
+ascend-val-00980,ascend,qwen3:1.7b,auto,passed,7.26,436,37,2,34,2,3,1,2,False,False,True,啊，when we當我去那兒的時候就沒有什麼人，就我們在那個島轉的時候就沒有幾乎沒有看到人。
+ascend-val-00980,ascend,qwen3:1.7b,zh,passed,7.26,455,37,2,34,2,3,1,2,False,False,True,啊，when we 當我去那兒的時候就沒有什麼人，就我們在那個島轉的時候就沒有，幾乎沒有看到人。
+ascend-val-00980,ascend,sherpa:senseVoice,auto,passed,7.26,81,37,4,34,3,3,3,0,True,False,True,啊自當我去那兒時候就沒有什麼人就我們在那個島轉的時候就沒有幾乎沒有看到人。
+ascend-val-00980,ascend,sherpa:senseVoice,zh,passed,7.26,82,37,4,34,2,3,3,0,True,False,True,自當我去那兒時候就沒有什麼人就我們在那個島轉的時候就沒有幾乎沒有看到人。
+ascend-val-00980,ascend,sherpa:senseVoiceMultilingual,auto,passed,7.26,82,37,3,34,1,3,3,0,False,False,True,啊V當我去那的時候，就沒有什麼人，就我們在那個島轉的時候，就沒有幾乎沒有看到人。
+ascend-val-00980,ascend,sherpa:senseVoiceMultilingual,zh,passed,7.26,81,37,3,34,1,3,3,0,False,False,True,啊V當我去那的時候就沒有什麼人，就我們在那個島轉的時候，就沒有幾乎沒有看到人。
+ascend-val-00983,ascend,qwen3:1.7b,auto,passed,3.91,329,24,1,22,1,2,0,2,False,False,True,我覺得這是香港的另一面吧，然後再一個就是徒步，Go hiking嘛。
+ascend-val-00983,ascend,qwen3:1.7b,zh,passed,3.91,341,24,1,22,1,2,0,2,False,False,True,我覺得這是香港的另一面吧，然後再一個就是徒步，Go hiking嘛。
+ascend-val-00983,ascend,sherpa:senseVoice,auto,passed,3.91,48,24,5,22,5,2,2,0,True,False,True,我覺得這是香港的另一面吧然後再一就是徒步夠嗨挺。
+ascend-val-00983,ascend,sherpa:senseVoice,zh,passed,3.91,49,24,5,22,5,2,2,0,True,False,True,我覺得這是香港的另一面吧然後再一就是徒步夠嗨挺。
+ascend-val-00983,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.91,50,24,4,22,4,2,2,0,True,False,True,我覺得這是香港的另一面吧，然後再一個就是徒步夠嗨挺。
+ascend-val-00983,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.91,50,24,5,22,5,2,2,0,True,False,True,我覺得這是香港的另一面吧，然後再一就是徒步夠嗨挺。
+ascend-val-00996,ascend,qwen3:1.7b,auto,passed,2.67,232,12,2,11,2,1,0,1,False,False,True,我們的一些classmates，他們的話不太。
+ascend-val-00996,ascend,qwen3:1.7b,zh,passed,2.67,228,12,2,11,2,1,0,1,False,False,True,我們的一些 classmates，他們的話不太。
+ascend-val-00996,ascend,sherpa:senseVoice,auto,passed,2.67,39,12,2,11,1,1,1,0,False,False,True,我們的一些 castmae 他們好不太。
+ascend-val-00996,ascend,sherpa:senseVoice,zh,passed,2.67,37,12,2,11,1,1,1,0,False,False,True,我們的一些 castmate 他們好不太。
+ascend-val-00996,ascend,sherpa:senseVoiceMultilingual,auto,passed,2.67,39,12,1,11,1,1,0,1,False,False,True,我們的一些classmates，他們好不太。
+ascend-val-00996,ascend,sherpa:senseVoiceMultilingual,zh,passed,2.67,39,12,1,11,1,1,0,1,False,False,True,我們的一些classmates，他們好不太。
+ascend-val-01010,ascend,qwen3:1.7b,auto,passed,3.72,280,14,3,10,2,4,3,1,False,False,True,出去玩，因為本科很多啊，free time嘛，因
+ascend-val-01010,ascend,qwen3:1.7b,zh,passed,3.72,299,14,3,10,2,4,3,1,False,False,True,出去玩，因為本科很多啊，free time嘛，因
+ascend-val-01010,ascend,sherpa:senseVoice,auto,passed,3.72,48,14,6,10,3,4,3,1,False,False,True,初九版因為本科很多 free time 嘛 I。
+ascend-val-01010,ascend,sherpa:senseVoice,zh,passed,3.72,47,14,6,10,3,4,3,1,False,False,True,初九吧因為本科很多 free time 嘛 I。
+ascend-val-01010,ascend,sherpa:senseVoiceMultilingual,auto,passed,3.72,48,14,3,10,1,4,2,2,False,False,True,出去玩，因為本科很多 freeee time in。
+ascend-val-01010,ascend,sherpa:senseVoiceMultilingual,zh,passed,3.72,48,14,3,10,1,4,2,2,False,False,True,出去玩，因為本科很多 freeee time in。
+ascend-val-01127,ascend,qwen3:1.7b,auto,passed,5.71,383,31,0,30,0,1,0,1,False,False,True,所以非常，非常非常對比非常鮮明，所以我就不去健身房，那個LG三的健身房。
+ascend-val-01127,ascend,qwen3:1.7b,zh,passed,5.71,408,31,0,30,0,1,0,1,False,False,True,所以非常，非常非常對比非常鮮明，所以我就不去健身房，那個LG三的健身房。
+ascend-val-01127,ascend,sherpa:senseVoice,auto,passed,5.71,81,31,0,30,0,1,0,1,False,False,True,所以非常非常非常對比非常鮮明所以我就不去健身房那個 L G 三的健身房。
+ascend-val-01127,ascend,sherpa:senseVoice,zh,passed,5.71,69,31,0,30,0,1,0,1,False,False,True,所以非常非常非常對比非常鮮明所以我就不去健身房那個 L G 三的健身房。
+ascend-val-01127,ascend,sherpa:senseVoiceMultilingual,auto,passed,5.71,68,31,1,30,1,1,0,1,False,False,True,所以非常非常非常對比非常鮮明。所以我就不去健身房那個LG3的健身房。
+ascend-val-01127,ascend,sherpa:senseVoiceMultilingual,zh,passed,5.71,66,31,1,30,1,1,0,1,False,False,True,所以非常非常非常對比非常鮮明。所以我就不去健身房。那個LG3的健身房。
+twm01,tw-tts-meijia,qwen3:1.7b,auto,passed,3.572,264,10,0,6,0,4,0,4,False,False,False,我等一下把 PR merge 到 main branch。
+twm01,tw-tts-meijia,qwen3:1.7b,zh,passed,3.572,277,10,0,6,0,4,0,4,False,False,False,我等一下把 PR merge 到 main branch。
+twm01,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.572,45,10,2,6,0,4,2,3,False,False,False,我等一下把 PR r merge 到 man branch。
+twm01,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.572,45,10,2,6,0,4,2,3,False,False,False,我等一下把 PR r merge 到 man branch。
+twm01,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.572,45,10,1,6,0,4,1,3,False,False,False,我等一下把PR merge到man branch。
+twm01,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.572,47,10,1,6,0,4,1,3,False,False,False,我等一下把pR merge到man branch。
+twm02,tw-tts-meijia,qwen3:1.7b,auto,passed,3.83,289,11,0,9,0,2,0,2,False,False,True,這個 bug 在 production 上面才會出現。
+twm02,tw-tts-meijia,qwen3:1.7b,zh,passed,3.83,312,11,0,9,0,2,0,2,False,False,False,這個 bug 在 production 上面才會出現。
+twm02,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.83,49,11,1,9,1,2,1,1,False,False,True,這個包在 production 上面才會出現。
+twm02,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.83,51,11,1,9,1,2,1,1,False,False,True,這個包在 production 上面才會出現。
+twm02,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.83,68,11,1,9,0,2,1,1,False,False,True,這個bg在production上面才會出現。
+twm02,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.83,93,11,1,9,0,2,1,1,False,False,True,這個bg在production上面才會出現。
+twm03,tw-tts-meijia,qwen3:1.7b,auto,passed,3.569,283,12,1,9,0,3,1,2,False,False,True,幫我開一個 Gira Ticket 追蹤這個 issue。
+twm03,tw-tts-meijia,qwen3:1.7b,zh,passed,3.569,310,12,0,9,0,3,0,3,False,False,False,幫我開一個 Jira ticket 追蹤這個 issue。
+twm03,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.569,53,12,1,9,0,3,1,2,False,False,True,幫我開一個 gra ticket 追蹤這個 issue。
+twm03,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.569,53,12,2,9,0,3,2,1,False,False,True,幫我開一個 gra tickekt 追蹤這個 issue。
+twm03,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.569,47,12,2,9,0,3,2,1,False,False,True,幫我開一個gra ticket追蹤這個isue。
+twm03,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.569,46,12,2,9,0,3,2,1,False,False,True,幫我開一個gra ticket追蹤這個isue。
+twm04,tw-tts-meijia,qwen3:1.7b,auto,passed,4.234,292,14,0,12,0,2,0,2,False,False,True,明天早上十點有一個 meeting 要討論 roadmap。
+twm04,tw-tts-meijia,qwen3:1.7b,zh,passed,4.234,292,14,0,12,0,2,0,2,False,False,True,明天早上十點有一個 meeting 要討論 roadmap。
+twm04,tw-tts-meijia,sherpa:senseVoice,auto,passed,4.234,53,14,2,12,0,2,2,1,False,False,True,明天早上十點有一個 meeting 要討論 roald map。
+twm04,tw-tts-meijia,sherpa:senseVoice,zh,passed,4.234,54,14,2,12,0,2,2,1,False,False,True,明天早上十點有一個 meeting 要討論 roald map。
+twm04,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,4.234,54,14,3,12,1,2,2,1,False,False,True,明天早上10點，有一個meeting要討論road map。
+twm04,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,4.234,53,14,3,12,1,2,2,1,False,False,True,明天早上10點，有一個meeting要討論road map。
+twm05,tw-tts-meijia,qwen3:1.7b,auto,passed,3.073,254,11,1,9,0,2,1,1,False,False,True,你可以先 review 一下我的 call 嗎？
+twm05,tw-tts-meijia,qwen3:1.7b,zh,passed,3.073,262,11,1,9,0,2,1,1,False,False,True,你可以先 review 一下我的 call 嗎？
+twm05,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.073,41,11,1,9,0,2,1,1,False,False,True,你可以先 review 一下我的 calld 嗎？
+twm05,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.073,42,11,1,9,0,2,1,1,False,False,True,你可以先 review 一下我的 calld 嗎？
+twm05,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.073,44,11,0,9,0,2,0,2,False,False,True,你可以先review一下我的code嗎？
+twm05,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.073,43,11,0,9,0,2,0,2,False,False,True,你可以先review一下我的code嗎？
+twm06,tw-tts-meijia,qwen3:1.7b,auto,passed,4.036,271,13,0,10,0,3,0,3,False,False,True,我們下禮拜要 release 新版本的 iOS app。
+twm06,tw-tts-meijia,qwen3:1.7b,zh,passed,4.036,281,13,0,10,0,3,0,3,False,False,True,我們下禮拜要 release 新版本的 iOS app。
+twm06,tw-tts-meijia,sherpa:senseVoice,auto,passed,4.036,50,13,1,10,0,3,1,2,False,False,True,我們下禮拜要 release 新版本的 iOS S M。
+twm06,tw-tts-meijia,sherpa:senseVoice,zh,passed,4.036,50,13,1,10,0,3,1,2,False,False,True,我們下禮拜要 release 新版本的 iOS S M。
+twm06,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,4.036,52,13,2,10,0,3,2,1,False,False,True,我們下禮拜要release新版本的IOSM。
+twm06,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,4.036,52,13,2,10,0,3,2,1,False,False,True,我們下禮拜要release新版本的IOSM。
+twm07,tw-tts-meijia,qwen3:1.7b,auto,passed,3.412,250,10,0,7,0,3,0,3,False,False,True,這個 API 的 response time 有點太慢。
+twm07,tw-tts-meijia,qwen3:1.7b,zh,passed,3.412,262,10,0,7,0,3,0,3,False,False,False,這個 API 的 response time 有點太慢。
+twm07,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.412,46,10,0,7,0,3,0,3,False,False,True,這個 A P I 的 response time 有點太慢。
+twm07,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.412,43,10,0,7,0,3,0,3,False,False,True,這個 A P I 的 response time 有點太慢。
+twm07,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.412,45,10,0,7,0,3,0,3,False,False,True,這個API的response time有點太慢。
+twm07,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.412,46,10,1,7,0,3,1,2,False,False,True,這個API的respon time有點太慢。
+twm08,tw-tts-meijia,qwen3:1.7b,auto,passed,3.526,248,8,0,4,0,4,0,4,False,False,True,記得把 Docker image push 到 registry。
+twm08,tw-tts-meijia,qwen3:1.7b,zh,passed,3.526,252,8,0,4,0,4,0,4,False,False,False,記得把 Docker image push 到 registry。
+twm08,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.526,47,8,2,4,0,4,2,2,False,False,True,記得把 doer image  PH 到 registry。
+twm08,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.526,46,8,2,4,0,4,2,2,False,False,True,記得把 doer image  PH 到 registry。
+twm08,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.526,48,8,1,4,0,4,1,3,False,False,True,記得把doker image push到registry。
+twm08,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.526,48,8,2,4,0,4,2,2,False,False,True,記得把doker image pushush到registry。
+twm09,tw-tts-meijia,qwen3:1.7b,auto,passed,3.192,233,8,0,5,0,3,0,3,False,False,True,這個 function 的 return value 不對。
+twm09,tw-tts-meijia,qwen3:1.7b,zh,passed,3.192,236,8,0,5,0,3,0,3,False,False,False,這個 function 的 return value 不對。
+twm09,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.192,44,8,0,5,0,3,0,3,False,False,True,這個 function 的 return value 不對。
+twm09,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.192,43,8,1,5,0,3,1,2,False,False,True,這個 funtion 的 return value 不對。
+twm09,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.192,42,8,2,5,0,3,2,1,False,False,True,這個function的revalue不對。
+twm09,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.192,44,8,0,5,0,3,0,3,False,False,True,這個function的 return value不對。
+twm10,tw-tts-meijia,qwen3:1.7b,auto,passed,3.282,254,13,0,12,0,1,0,1,False,False,True,我已經把 deadline 往後延了一個禮拜。
+twm10,tw-tts-meijia,qwen3:1.7b,zh,passed,3.282,252,13,0,12,0,1,0,1,False,False,True,我已經把 deadline 往後延了一個禮拜。
+twm10,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.282,44,13,0,12,0,1,0,1,False,False,True,我已經把 deadline 往後延了一個禮拜。
+twm10,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.282,44,13,0,12,0,1,0,1,False,False,True,我已經把 deadline 往後延了一個禮拜。
+twm10,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.282,43,13,0,12,0,1,0,1,False,False,True,我已經把deadline往後延了一個禮拜。
+twm10,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.282,45,13,0,12,0,1,0,1,False,False,True,我已經把deadline往後延了一個禮拜。
+twm11,tw-tts-meijia,qwen3:1.7b,auto,passed,3.852,307,12,0,10,0,2,0,2,False,False,True,請把這份 slide 寄給 PM 確認一下。
+twm11,tw-tts-meijia,qwen3:1.7b,zh,passed,3.852,299,12,0,10,0,2,0,2,False,False,True,請把這份 slide 寄給 PM 確認一下。
+twm11,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.852,49,12,1,10,0,2,1,1,False,False,True,請把這份 slide 寄給 K M 確認一下。
+twm11,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.852,48,12,1,10,0,2,1,1,False,False,True,請把這份 slide 寄給 K M 確認一下。
+twm11,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.852,48,12,1,10,0,2,1,1,False,False,True,請把這份slide寄給KM確認一下。
+twm11,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.852,48,12,1,10,0,2,1,1,False,False,True,請把這份slide寄給KM確認一下。
+twm12,tw-tts-meijia,qwen3:1.7b,auto,passed,3.433,247,13,0,12,0,1,0,1,False,False,True,我們的KPI這一季好像沒有達到。
+twm12,tw-tts-meijia,qwen3:1.7b,zh,passed,3.433,250,13,0,12,0,1,0,1,False,False,True,我們的KPI這一季好像沒有達到。
+twm12,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.433,45,13,0,12,0,1,0,1,False,False,True,我們的 K P I 這一季好像沒有達到。
+twm12,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.433,45,13,0,12,0,1,0,1,False,False,True,我們的 K P I 這一季好像沒有達到。
+twm12,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.433,44,13,0,12,0,1,0,1,False,False,True,我們的KPI這一季好像沒有達到。
+twm12,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.433,46,13,0,12,0,1,0,1,False,False,True,我們的KPI這一季好像沒有達到。
+twm13,tw-tts-meijia,qwen3:1.7b,auto,passed,3.305,248,8,0,5,0,3,0,3,False,False,False,先跑一下 Unit Test，再 Deploy。
+twm13,tw-tts-meijia,qwen3:1.7b,zh,passed,3.305,253,8,0,5,0,3,0,3,False,False,False,先跑一下 Unit Test，再 Deploy。
+twm13,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.305,44,8,1,5,0,3,1,2,False,False,False,先跑一下 uniqite test 再 deploy。
+twm13,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.305,45,8,2,5,0,3,2,1,False,False,False,先跑一下 unite test 再 dloy。
+twm13,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.305,45,8,0,5,0,3,0,3,False,False,False,先跑一下unit test再deploy。
+twm13,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.305,43,8,0,5,0,3,0,3,False,False,False,先跑一下unit test再deploy。
+twm14,tw-tts-meijia,qwen3:1.7b,auto,passed,3.157,252,9,2,7,0,2,2,1,False,False,True,這個 feature 先放在 back log 裡面。
+twm14,tw-tts-meijia,qwen3:1.7b,zh,passed,3.157,262,9,0,7,0,2,0,2,False,False,True,這個 feature 先放在 backlog 裡面。
+twm14,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.157,42,9,0,7,0,2,0,2,False,False,True,這個 feature 先放在 backlog 裡面。
+twm14,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.157,42,9,1,7,0,2,1,1,False,False,True,這個 feature 先放在 backloug 裡面。
+twm14,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.157,44,9,1,7,0,2,1,1,False,False,True,這個feature先放在backclo裡面。
+twm14,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.157,44,9,1,7,0,2,1,1,False,False,True,這個feature先放在backclo裡面。
+twm15,tw-tts-meijia,qwen3:1.7b,auto,passed,3.556,250,13,1,11,0,2,1,1,False,False,True,可以幫我把 Google Sheets 的權限打開嗎？
+twm15,tw-tts-meijia,qwen3:1.7b,zh,passed,3.556,266,13,1,11,0,2,1,1,False,False,True,可以幫我把 Google Sheets 的權限打開嗎？
+twm15,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.556,46,13,1,11,0,2,1,1,False,False,True,可以幫我把 Google  SH的權限打開嗎？
+twm15,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.556,48,13,1,11,0,2,1,1,False,False,True,可以幫我把 Google  SH的權限打開嗎？
+twm15,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.556,47,13,2,11,0,2,2,0,False,False,True,可以幫我把googleshift的權限打開嗎？
+twm15,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.556,48,13,2,11,0,2,2,0,False,False,True,可以幫我把googleshift的權限打開嗎？
+twm16,tw-tts-meijia,qwen3:1.7b,auto,passed,3.165,260,10,0,8,0,2,0,2,False,False,True,我剛剛在 Slack 上面 tag 你了。
+twm16,tw-tts-meijia,qwen3:1.7b,zh,passed,3.165,272,10,0,8,0,2,0,2,False,False,True,我剛剛在 Slack 上面 tag 你了。
+twm16,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.165,43,10,2,8,1,2,2,0,False,False,True,我剛剛在 slag 上面插你了。
+twm16,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.165,42,10,2,8,1,2,2,0,False,False,True,我剛剛在 slag 上面插你了。
+twm16,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.165,44,10,2,8,0,2,2,0,False,False,True,我剛剛在slaag上面cha你了。
+twm16,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.165,44,10,2,8,0,2,2,0,False,False,True,我剛剛在slag上面cha你了。
+twm17,tw-tts-meijia,qwen3:1.7b,auto,passed,3.041,257,10,0,8,0,2,0,2,False,False,True,這個 design 的 layout 需要再調整。
+twm17,tw-tts-meijia,qwen3:1.7b,zh,passed,3.041,268,10,0,8,0,2,0,2,False,False,True,這個 design 的 layout 需要再調整。
+twm17,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.041,42,10,1,8,0,2,1,1,False,False,True,這個 design 的需要再調整。
+twm17,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.041,42,10,1,8,0,2,1,1,False,False,True,這個 design 的需要再調整。
+twm17,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.041,42,10,1,8,0,2,1,1,False,False,True,這個designed的 layout需要再調整。
+twm17,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.041,41,10,1,8,0,2,1,1,False,False,True,這個design的 layoutout需要再調整。
+twm18,tw-tts-meijia,qwen3:1.7b,auto,passed,3.259,237,10,0,8,0,2,0,2,False,False,True,下午我要跟 client 開一個 call。
+twm18,tw-tts-meijia,qwen3:1.7b,zh,passed,3.259,256,10,0,8,0,2,0,2,False,False,False,下午我要跟 client 開一個 call。
+twm18,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.259,43,10,1,8,1,2,1,1,False,False,True,下午我要跟 client 開一個號。
+twm18,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.259,44,10,1,8,1,2,1,1,False,False,True,下午我要跟 client 開一個號。
+twm18,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.259,43,10,1,8,0,2,1,1,False,False,True,下午我要跟client開一個ca。
+twm18,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.259,43,10,1,8,0,2,1,1,False,False,True,下午我要跟client開一個ca。
+twm19,tw-tts-meijia,qwen3:1.7b,auto,passed,3.688,255,12,1,10,0,2,1,1,False,False,True,資料庫的migration跑到一半就failed了。
+twm19,tw-tts-meijia,qwen3:1.7b,zh,passed,3.688,277,12,2,10,1,2,1,1,False,False,False,資料庫的 migration 跑到一半就 failed。
+twm19,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.688,49,12,1,10,0,2,1,1,False,False,True,資料庫的 miigration 跑到一半就 fail 了。
+twm19,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.688,49,12,1,10,0,2,1,1,False,False,True,資料庫的 miigration 跑到一半就 fail 了。
+twm19,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.688,47,12,0,10,0,2,0,2,False,False,True,資料庫的migration跑到一半就fail了。
+twm19,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.688,48,12,0,10,0,2,0,2,False,False,True,資料庫的migration跑到一半就fail了。
+twm20,tw-tts-meijia,qwen3:1.7b,auto,passed,3.212,279,9,2,6,0,3,2,2,False,False,True,我把 log 貼在 get job issue 裡面。
+twm20,tw-tts-meijia,qwen3:1.7b,zh,passed,3.212,278,9,2,6,0,3,2,2,False,False,True,我把 log 貼在 get job issue 裡面。
+twm20,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.212,42,9,4,6,1,3,3,0,False,False,True,我把了貼在 g jrob issu 裡面。
+twm20,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.212,44,9,4,6,1,3,3,0,False,False,True,我把了貼在 gi jrob isu 裡面。
+twm20,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.212,43,9,2,6,0,3,2,2,False,False,True,我把log貼在git job issue裡面。
+twm20,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.212,42,9,2,6,0,3,2,2,False,False,True,我把log貼在git job issue裡面。
+twm21,tw-tts-meijia,qwen3:1.7b,auto,passed,2.344,239,8,1,6,0,2,1,1,False,False,True,這個 spring 的 scope 太大了。
+twm21,tw-tts-meijia,qwen3:1.7b,zh,passed,2.344,239,8,1,6,0,2,1,1,False,False,True,這個 spring 的 scope 太大了。
+twm21,tw-tts-meijia,sherpa:senseVoice,auto,passed,2.344,37,8,3,6,1,2,3,0,False,False,True,這個 spring  the spo 太大了。
+twm21,tw-tts-meijia,sherpa:senseVoice,zh,passed,2.344,36,8,2,6,0,2,2,0,False,False,True,這個 spring 的 spo 太大了。
+twm21,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,2.344,36,8,2,6,1,2,2,1,False,False,True,這個spring the scope太大了。
+twm21,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,2.344,36,8,2,6,1,2,2,1,False,False,True,這個spring the scope太大了。
+twm22,tw-tts-meijia,qwen3:1.7b,auto,passed,3.885,287,10,0,8,0,2,0,2,False,False,True,我們用 React 跟 TypeScript 重寫前端。
+twm22,tw-tts-meijia,qwen3:1.7b,zh,passed,3.885,289,10,0,8,0,2,0,2,False,False,False,我們用 React 跟 TypeScript 重寫前端。
+twm22,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.885,50,10,3,8,1,2,3,0,False,False,True,我們用 reactn tive spri 重寫前端。
+twm22,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.885,50,10,3,8,1,2,3,0,False,False,True,我們用 reactn tive spri 重寫前端。
+twm22,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.885,51,10,2,8,0,2,2,1,False,False,True,我們用react跟tve script重寫前端。
+twm22,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.885,51,10,2,8,0,2,2,1,False,False,True,我們用react跟tve script重寫前端。
+twm23,tw-tts-meijia,qwen3:1.7b,auto,passed,3.766,255,12,0,10,0,2,0,2,False,False,True,幫我確認一下 server 的 CPU 使用率。
+twm23,tw-tts-meijia,qwen3:1.7b,zh,passed,3.766,265,12,0,10,0,2,0,2,False,False,False,幫我確認一下 server 的 CPU 使用率。
+twm23,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.766,48,12,0,10,0,2,0,2,False,False,True,幫我確認一下 server 的 C P U 使用率。
+twm23,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.766,49,12,2,10,0,2,2,1,False,False,True,幫我確認一下 server 的 c pu 使用率。
+twm23,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.766,49,12,1,10,0,2,1,1,False,False,True,幫我確認一下servver的CPU使用率。
+twm23,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.766,48,12,0,10,0,2,0,2,False,False,True,幫我確認一下server的CPU使用率。
+twm24,tw-tts-meijia,qwen3:1.7b,auto,passed,2.495,212,8,0,6,0,2,0,2,False,False,True,這個email要CC給主管。
+twm24,tw-tts-meijia,qwen3:1.7b,zh,passed,2.495,261,8,0,6,0,2,0,2,False,False,False,這個 email 要 CC 給主管。
+twm24,tw-tts-meijia,sherpa:senseVoice,auto,passed,2.495,35,8,0,6,0,2,0,2,False,False,True,這個 email 要 C C 給主管。
+twm24,tw-tts-meijia,sherpa:senseVoice,zh,passed,2.495,37,8,0,6,0,2,0,2,False,False,True,這個 email 要 C C 給主管。
+twm24,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,2.495,37,8,0,6,0,2,0,2,False,False,True,這個email要CC給主管。
+twm24,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,2.495,37,8,0,6,0,2,0,2,False,False,True,這個email要CC給主管。
+twm25,tw-tts-meijia,qwen3:1.7b,auto,passed,3.502,250,12,0,9,0,3,0,3,False,False,True,我覺得這個UI的font size太小了。
+twm25,tw-tts-meijia,qwen3:1.7b,zh,passed,3.502,284,12,0,9,0,3,0,3,False,False,True,我覺得這個 U I 的 font size 太小了。
+twm25,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.502,46,12,1,9,0,3,1,2,False,False,True,我覺得這個 U I 的 found size 太小了。
+twm25,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.502,45,12,1,9,0,3,1,2,False,False,True,我覺得這個 U I 的 found size 太小了。
+twm25,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.502,46,12,2,9,0,3,2,1,False,False,True,我覺得這個UI的fosize太小了。
+twm25,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.502,46,12,2,9,0,3,2,1,False,False,True,我覺得這個UI的fosize太小了。
+twm26,tw-tts-meijia,qwen3:1.7b,auto,passed,3.099,223,9,0,7,0,2,0,2,False,False,True,這次demo的feedback都還不錯。
+twm26,tw-tts-meijia,qwen3:1.7b,zh,passed,3.099,248,9,0,7,0,2,0,2,False,False,False,這次 demo 的 feedback 都還不錯。
+twm26,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.099,40,9,1,7,0,2,1,1,False,False,True,這次 deo 的 feedback 都還不錯。
+twm26,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.099,40,9,1,7,0,2,1,1,False,False,True,這次 de 的 feedback 都還不錯。
+twm26,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.099,41,9,1,7,0,2,1,1,False,False,True,這次del的feedback都還不錯。
+twm26,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.099,41,9,0,7,0,2,0,2,False,False,True,這次demo的feedback都還不錯。
+twm27,tw-tts-meijia,qwen3:1.7b,auto,passed,3.317,245,10,0,8,0,2,0,2,False,False,True,記得在 commit message 裡面寫清楚。
+twm27,tw-tts-meijia,qwen3:1.7b,zh,passed,3.317,263,10,1,8,1,2,0,2,False,False,False,記得在 commit message 內面寫清楚。
+twm27,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.317,43,10,0,8,0,2,0,2,False,False,True,記得在 commit message 裡面寫清楚。
+twm27,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.317,45,10,0,8,0,2,0,2,False,False,True,記得在 commit message 裡面寫清楚。
+twm27,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.317,43,10,0,8,0,2,0,2,False,False,True,記得在commit message裡面寫清楚。
+twm27,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.317,44,10,0,8,0,2,0,2,False,False,True,記得在commit message裡面寫清楚。
+twm28,tw-tts-meijia,qwen3:1.7b,auto,passed,3.795,265,12,0,10,0,2,0,2,False,False,True,這個 model 的 accuracy 大概百分之九十。
+twm28,tw-tts-meijia,qwen3:1.7b,zh,passed,3.795,263,12,0,10,0,2,0,2,False,False,False,這個 model 的 accuracy 大概百分之九十。
+twm28,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.795,48,12,1,10,0,2,1,1,False,False,True,這個 model 的 accurracy 大概百分之九十。
+twm28,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.795,49,12,1,10,0,2,1,1,False,False,True,這個 model 的 accurracy 大概百分之九十。
+twm28,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.795,49,12,6,10,5,2,1,1,False,False,True,這個model的 accuracycuracy大概90%。
+twm28,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.795,50,12,6,10,5,2,1,1,False,False,True,這個model的 accuracycuracy大概90%。
+twm29,tw-tts-meijia,qwen3:1.7b,auto,passed,4.083,270,12,0,10,0,2,0,2,False,False,True,我們要不要改用 Kubernetes 來管理 Container？
+twm29,tw-tts-meijia,qwen3:1.7b,zh,passed,4.083,262,12,0,10,0,2,0,2,False,False,False,我們要不要改用 Kubernetes 來管理 Container？
+twm29,tw-tts-meijia,sherpa:senseVoice,auto,passed,4.083,50,12,1,10,0,2,1,1,False,False,True,我們要不要改用 kbernetes 來管理 container。
+twm29,tw-tts-meijia,sherpa:senseVoice,zh,passed,4.083,50,12,1,10,0,2,1,1,False,False,True,我們要不要改用 kbernete 來管理 container。
+twm29,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,4.083,51,12,1,10,0,2,1,1,False,False,True,我們要不要改用Qbernetes來管理container？
+twm29,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,4.083,49,12,1,10,0,2,1,1,False,False,True,我們要不要改用Qbernetes來管理container？
+twm30,tw-tts-meijia,qwen3:1.7b,auto,passed,4.178,335,14,0,11,0,3,0,3,False,False,True,這個 bug 我已經 fix 好了，等一下發 PR。
+twm30,tw-tts-meijia,qwen3:1.7b,zh,passed,4.178,333,14,0,11,0,3,0,3,False,False,False,這個 bug 我已經 fix 好了，等一下發 PR。
+twm30,tw-tts-meijia,sherpa:senseVoice,auto,passed,4.178,52,14,1,11,1,3,1,2,False,False,True,這個八我已經 fix 好了等一下發 P R。
+twm30,tw-tts-meijia,sherpa:senseVoice,zh,passed,4.178,52,14,1,11,1,3,1,2,False,False,True,這個八我已經 fix 好了等一下發 P R。
+twm30,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,4.178,53,14,1,11,0,3,1,2,False,False,True,這個8我已經fix好了，等一下發PR。
+twm30,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,4.178,51,14,1,11,0,3,1,2,False,False,True,這個8我已經fix好了，等一下發PR。
+twm31,tw-tts-meijia,qwen3:1.7b,auto,passed,3.898,274,11,0,8,0,3,0,3,False,False,True,請在 Notion 上面更新一下 Meeting Notes。
+twm31,tw-tts-meijia,qwen3:1.7b,zh,passed,3.898,271,11,0,8,0,3,0,3,False,False,False,請在 Notion 上面更新一下 Meeting Notes。
+twm31,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.898,49,11,0,8,0,3,0,3,False,False,True,請在 Notion 上面更新一下 meeting notes。
+twm31,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.898,50,11,0,8,0,3,0,3,False,False,True,請在 Notion 上面更新一下 meeting notes。
+twm31,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.898,51,11,1,8,0,3,1,2,False,False,True,請在nion上面更新一下meeting notes。
+twm31,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.898,49,11,1,8,0,3,1,2,False,False,True,請在nion上面更新一下meeting notes。
+twm32,tw-tts-meijia,qwen3:1.7b,auto,passed,3.618,266,12,0,9,0,3,0,3,False,False,True,我先把這個 branch rebase 到最新的 main。
+twm32,tw-tts-meijia,qwen3:1.7b,zh,passed,3.618,272,12,1,9,0,3,1,2,False,False,True,我先把這個 branch rebased 到最新的 main。
+twm32,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.618,44,12,2,9,0,3,2,1,False,False,True,我先把這個 branch reba 到最新的 man。
+twm32,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.618,46,12,2,9,0,3,2,1,False,False,True,我先把這個 branch reba 到最新的 man。
+twm32,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.618,45,12,3,9,0,3,3,0,False,False,True,我先把這個branrease到最新的man。
+twm32,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.618,46,12,3,9,0,3,3,0,False,False,True,我先把這個brachrease到最新的man。
+twm33,tw-tts-meijia,qwen3:1.7b,auto,passed,2.883,227,10,0,9,0,1,0,1,False,False,True,客戶說：“他們的dashboard打不開。”
+twm33,tw-tts-meijia,qwen3:1.7b,zh,passed,2.883,238,10,0,9,0,1,0,1,False,False,True,客戶說：“他們的 dashboard 打不開。”
+twm33,tw-tts-meijia,sherpa:senseVoice,auto,passed,2.883,39,10,1,9,0,1,1,0,False,False,True,客戶說他們的 dashboar 打不開。
+twm33,tw-tts-meijia,sherpa:senseVoice,zh,passed,2.883,39,10,1,9,0,1,1,0,False,False,True,客戶說他們的 dashbord 打不開。
+twm33,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,2.883,40,10,0,9,0,1,0,1,False,False,True,客戶說他們的dashboard打不開。
+twm33,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,2.883,40,10,0,9,0,1,0,1,False,False,True,客戶說他們的dashboard打不開。
+twm34,tw-tts-meijia,qwen3:1.7b,auto,passed,3.551,265,10,0,8,0,2,0,2,False,False,True,這個 workflow 可以用 script 自動化。
+twm34,tw-tts-meijia,qwen3:1.7b,zh,passed,3.551,274,10,0,8,0,2,0,2,False,False,False,這個 workflow 可以用 script 自動化。
+twm34,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.551,47,10,3,8,0,2,3,0,False,False,True,這個 word flow 可以用 scri 自動化。
+twm34,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.551,47,10,3,8,0,2,3,0,False,False,True,這個 word flow 可以用 scri 自動化。
+twm34,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.551,48,10,1,8,0,2,1,1,False,False,True,這個wordflow可以用script自動化。
+twm34,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.551,47,10,1,8,0,2,1,1,False,False,True,這個wordflow可以用script自動化。
+twm35,tw-tts-meijia,qwen3:1.7b,auto,passed,2.713,238,10,0,9,0,1,0,1,False,False,True,我的 MacBook 記憶體不夠用了。
+twm35,tw-tts-meijia,qwen3:1.7b,zh,passed,2.713,258,10,0,9,0,1,0,1,False,False,False,我的 MacBook 記憶體不夠用了。
+twm35,tw-tts-meijia,sherpa:senseVoice,auto,passed,2.713,39,10,0,9,0,1,0,1,False,False,True,我的 MacBook 記憶體不夠用了。
+twm35,tw-tts-meijia,sherpa:senseVoice,zh,passed,2.713,37,10,0,9,0,1,0,1,False,False,True,我的 MacBook 記憶體不夠用了。
+twm35,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,2.713,38,10,3,9,1,1,2,0,False,False,True,我的mac book記一體不夠用了。
+twm35,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,2.713,39,10,3,9,1,1,2,0,False,False,True,我的mac book記一體不夠用了。
+twm36,tw-tts-meijia,qwen3:1.7b,auto,passed,3.277,265,11,1,9,1,2,1,1,False,False,True,可以把這個八的 priority 調高嗎？
+twm36,tw-tts-meijia,qwen3:1.7b,zh,passed,3.277,264,11,1,9,1,2,1,1,False,False,True,可以把這個八的 priority 調高嗎？
+twm36,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.277,44,11,1,9,1,2,1,1,False,False,True,可以把這個八的 priority 調高嗎？
+twm36,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.277,46,11,1,9,1,2,1,1,False,False,True,可以把這個八的 priority 調高嗎？
+twm36,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.277,43,11,0,9,0,2,0,2,False,False,True,可以把這個bug的priority調高嗎？
+twm36,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.277,45,11,0,9,0,2,0,2,False,False,True,可以把這個bug的priority調高嗎？
+twm37,tw-tts-meijia,qwen3:1.7b,auto,passed,3.54,291,12,0,11,0,1,0,1,False,False,True,這一版的 performance 比上一版好很多。
+twm37,tw-tts-meijia,qwen3:1.7b,zh,passed,3.54,291,12,0,11,0,1,0,1,False,False,False,這一版的 performance 比上一版好很多。
+twm37,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.54,47,12,0,11,0,1,0,1,False,False,True,這一版的 performance 比上一版好很多。
+twm37,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.54,47,12,0,11,0,1,0,1,False,False,True,這一版的 performance 比上一版好很多。
+twm37,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.54,45,12,0,11,0,1,0,1,False,False,True,這一版的performance比上一版好很多。
+twm37,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.54,46,12,0,11,0,1,0,1,False,False,True,這一版的performance比上一版好很多。
+twm38,tw-tts-meijia,qwen3:1.7b,auto,passed,2.318,215,7,2,6,0,1,2,0,False,False,True,下班前記得填time sheet。
+twm38,tw-tts-meijia,qwen3:1.7b,zh,passed,2.318,215,7,2,6,0,1,2,0,False,False,True,下班前記得填 time sheet。
+twm38,tw-tts-meijia,sherpa:senseVoice,auto,passed,2.318,36,7,2,6,1,1,1,0,False,False,True,下班前記得聽 timeshipt。
+twm38,tw-tts-meijia,sherpa:senseVoice,zh,passed,2.318,37,7,2,6,1,1,1,0,False,False,True,下班前記得聽 timeshipt。
+twm38,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,2.318,37,7,3,6,1,1,2,0,False,False,True,下班前記得停time shit。
+twm38,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,2.318,36,7,3,6,1,1,2,0,False,False,True,下班前記得停time shit。
+twm39,tw-tts-meijia,qwen3:1.7b,auto,passed,3.551,252,8,0,6,0,2,0,2,False,False,True,這個 endpoint 需要加上 authentication。
+twm39,tw-tts-meijia,qwen3:1.7b,zh,passed,3.551,255,8,0,6,0,2,0,2,False,False,True,這個 endpoint 需要加上 authentication。
+twm39,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.551,48,8,2,6,0,2,2,1,False,False,True,這個 en point 需要加上 authentication。
+twm39,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.551,46,8,2,6,0,2,2,1,False,False,True,這個 end point 需要加上 authentication。
+twm39,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.551,47,8,3,6,0,2,3,0,False,False,True,這個end point需要加上authentation。
+twm39,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.551,45,8,3,6,0,2,3,0,False,False,True,這個end point需要加上authentation。
+twm40,tw-tts-meijia,qwen3:1.7b,auto,passed,3.247,266,12,0,11,0,1,0,1,False,False,True,我們的 onboarding 流程要再簡化一點。
+twm40,tw-tts-meijia,qwen3:1.7b,zh,passed,3.247,291,12,0,11,0,1,0,1,False,False,False,我們的 onboarding 流程要再簡化一點。
+twm40,tw-tts-meijia,sherpa:senseVoice,auto,passed,3.247,43,12,0,11,0,1,0,1,False,False,True,我們的 onboarding 流程要再簡化一點。
+twm40,tw-tts-meijia,sherpa:senseVoice,zh,passed,3.247,43,12,1,11,0,1,1,0,False,False,True,我們的 oboarding 流程要再簡化一點。
+twm40,tw-tts-meijia,sherpa:senseVoiceMultilingual,auto,passed,3.247,44,12,0,11,0,1,0,1,False,False,True,我們的onboarding流程要再簡化一點。
+twm40,tw-tts-meijia,sherpa:senseVoiceMultilingual,zh,passed,3.247,43,12,0,11,0,1,0,1,False,False,True,我們的onboarding流程要再簡化一點。
