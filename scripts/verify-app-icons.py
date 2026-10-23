@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify native Dock icon updates using an existing Xcode Debug app and temporary settings."""
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -34,7 +35,10 @@ def main():
             if ".build" not in module.parts and "Tests" not in module.parts:
                 command += ["-I", str(module.parent)]
         subprocess.run(command, cwd=repo, check=True)
-        subprocess.run([str(executable), str(app)], cwd=repo, check=True, timeout=30)
+        # The fixture is not inside an app bundle, so SwiftPM's Debug resource
+        # lookup is pointed at the AirdraftCore bundle the build already made.
+        environment = dict(os.environ, PACKAGE_RESOURCE_BUNDLE_PATH=str(build))
+        subprocess.run([str(executable), str(app)], cwd=repo, check=True, timeout=30, env=environment)
 
 
 if __name__ == "__main__":

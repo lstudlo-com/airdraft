@@ -27,7 +27,16 @@ import SwiftUI
     var historyStorageError: String?
     var isBusy = false
     var isMaintainingData = false
+    // The delivery tail quit waits for (bounded); the fixture has none pending.
+    var hasPendingDelivery = false
+    var isFinishingDelivery = false
+    func finishPendingDelivery(flushClipboard: Bool) async {}
     func cancel() {}
+}
+// Core's bounded wait for the delivery tail; no tail is pending in these scenarios.
+enum OperationDeadline {
+    static func run<Value: Sendable>(seconds: TimeInterval,
+        operation: @escaping @Sendable () async throws -> Value) async throws -> Value { try await operation() }
 }
 @MainActor final class StoreFixture { var persistenceError: String? }
 @MainActor final class DownloadsFixture {
