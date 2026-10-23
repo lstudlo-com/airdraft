@@ -131,8 +131,13 @@ and Local releases below.
   extracted tree and version match the pin, otherwise the checksum-verified archive
   is downloaded into `dist/tools`, and a non-pinned `dist/tools/xcodegen` is
   refused. Normal generation still accepts any installed copy.
-- `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.
-  Run the tests (see Validation) before finishing any change there.
+- `Packages/AirdraftCore` holds all engine-agnostic logic and most tests.
+  `Tests/AirdraftAppTests` holds logic tests for App-only code: the bundle compiles
+  `Sources/App` itself instead of using the app as a test host, so tests never launch
+  Airdraft. Build containers through `IsolatedContainer` (temporary settings file and
+  data directory, injected permissions, a dictation boundary that refuses to record);
+  never read real preferences, history, Keychain or the microphone. Run the tests
+  (see Validation) before finishing a change in either place.
 - `Sources/App` is the SwiftUI shell: `App/` (entry point, `AppContainer`, `ModelLifecycle`),
   `Hotkeys/`, `HUD/`, `Views/` (one file per page, shared components in `Theme.swift`),
   `Debug/` (offscreen renders, self-tests).
@@ -174,6 +179,9 @@ and Local releases below.
   statements come only from `eval/mixed-asr` through
   `apps/marketing/src/data/mixed-asr.ts`, quoted as Airdraft's dated own measurement
   with its method link and limits; update both when the measurement is re-run.
+  English, Japanese and Korean accuracy statements come only from `eval/eja-asr`
+  through `apps/marketing/src/data/eja-asr.ts` (model output, shown in the offline
+  setup guide), quoted the same way; update both when the measurement is re-run.
   Website guides that describe insertion or model recommendations describe the
   current release and name a version only where older behaviour differed; when
   `selfDrawingEditorBundlePrefixes` or the onboarding recommendation changes, update
@@ -945,9 +953,13 @@ and Local releases below.
 - The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
   `com.lightiichen.transcribar` preferences and credentials without overwriting current
   values. Keep `Application Support/Transcribar` for existing models and history.
-- `Packages/AirdraftCore` (library, CLI and tests) builds in Swift 6 language mode,
-  so data races are compile errors; the app target stays in Swift 5 mode with
-  minimal checking. Keep `@MainActor` on UI-facing classes and `Sendable` on
+- `Packages/AirdraftCore` (library, CLI and tests), the app target and
+  `AirdraftAppTests` build in Swift 6 language mode, so data races are compile
+  errors; keep App sources at zero warnings in Debug and Release. AppKit, Carbon and
+  CoreGraphics callbacks delivered on the main thread enter the main actor with
+  `MainActor.assumeIsolated`; main-actor classes whose deinit touches non-Sendable
+  observer or listener state use `isolated deinit`. Debug fixtures reach AppKit's
+  informal accessibility attribute API only through `LegacyAccessibility`. Keep `@MainActor` on UI-facing classes and `Sendable` on
   protocol types. Prefer actors, `Mutex` and `sending` to locks. Every
   `@unchecked Sendable` or `nonisolated(unsafe)` names the lock or queue that
   confines its state. Engine actors publish non-Sendable SDK models into their own
@@ -1204,8 +1216,10 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   suites, including fake keys. It includes onboarding and isolated public licensing
   fixtures. Run `python3 scripts/verify-local-e2e-errors.py --app <Debug.app>` after
   changing the E2E harness: failed actions and failed report writes must exit nonzero.
+  It also runs the whole `AirdraftAppTests` target; the runner requires executed,
+  passing App cases (`app-tests.json`).
 - Tests: `xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug -skipPackagePluginValidation -skipMacroValidation test`
-  (runs `AirdraftCoreTests` inside the app's DerivedData). `cd Packages/AirdraftCore && swift test` also
+  (runs `AirdraftCoreTests` and `AirdraftAppTests` inside the app's DerivedData). `cd Packages/AirdraftCore && swift test` also
   works but builds a second ~6 GB tree in `Packages/AirdraftCore/.build`.
 - Build: the same command with `build`. Do not pass `-derivedDataPath`: a build tree inside the
   repo duplicates Xcode's and is how the repo grew to 10 GB.
