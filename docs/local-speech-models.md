@@ -87,10 +87,17 @@ Cohere Transcribe and SpeakerKit still download from Hub `main`.
 `LocalSpeechRecommendation` (Core) picks the first-run model from the primary
 system language and physical memory (AD-074). Chinese gets Qwen3-ASR 1.7B, with
 SenseVoice as the smaller alternative. On 8 GB or less the order reverses.
-English, Japanese and Korean get SenseVoice; other languages get Whisper Large v3
-Turbo. Qwen3-ASR 0.6B is never the lighter default because it can loop until its
-token cap and spike memory. Onboarding's Speech step and the Models table use the
-same rule.
+English gets Parakeet TDT v2 (Core ML) on every Mac, with Qwen3-ASR 1.7B as the
+multilingual alternative. Japanese and Korean get Qwen3-ASR 1.7B with Whisper
+Large v3 Turbo as the lower-memory alternative; on 8 GB or less the order
+reverses. These come from AD-083 (`eval/eja-asr/`, FLEURS read speech): the
+shipped SenseVoice archive is a Cantonese fine-tune that lost Japanese kana and
+most Korean and had 32% English WER, so it is not recommended or shortlisted for
+these languages. Other languages get Whisper Large v3 Turbo. Qwen3-ASR 0.6B is
+never the lighter default because it can loop until its token cap and spike
+memory. Onboarding's Speech step and the Models table use the same rule; each
+onboarding choice shows its download size and a one-line trade-off that depends
+on what it is compared with.
 
 By default the local table shows a compact set (AD-071): "Recommended for your
 language" lists `LocalModelShortlist` for the system language and memory (the
@@ -109,14 +116,15 @@ disclosure. Searching includes Experimental rows without a click. While collapse
 the group still lists the Experimental models the user relies on, so a selected
 or downloaded model never disappears behind the disclosure. Each row shows one
 strength label (the recommendation reason or the alternative's role, such as
-"Smaller and faster"; Qwen3-ASR 1.7B elsewhere shows "Best for mixed Chinese and
-English"), then the tier as a symbol and word, the languages by full name (the
+"Smaller and faster", "Uses less memory" or "More accurate, uses more memory";
+Qwen3-ASR 1.7B elsewhere shows "Best for mixed Chinese and English"), then the tier as a symbol and word, the languages by full name (the
 user's language and English first, up to two names and a count) and runtime
 tags. The tooltip lists every supported language. `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and
 used for transcription in the 2026-10-12 local coverage verification, plus
 SenseVoice, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
-`eval/mixed-asr/`. Promote a model only with the same kind of evidence. The
+`eval/mixed-asr/`; Parakeet TDT v2, Parakeet Japanese and Whisper Large v3 now
+cite `eval/eja-asr/`, where they were downloaded and measured again. Promote a model only with the same kind of evidence. The
 `models-performance` fixture rejects IDs that are not in the catalogue and
 shortlist models that are not Verified. Renders accept
 `AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB`,
