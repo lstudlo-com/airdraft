@@ -165,7 +165,9 @@ public final class AppSettings {
 
     private let defaults: UserDefaults
 
-    public init(defaults: UserDefaults = .standard) {
+    /// `preferredLanguages` only chooses defaults for settings that were never saved,
+    /// such as the Chinese script of a new setup.
+    public init(defaults: UserDefaults = .standard, preferredLanguages: [String] = Locale.preferredLanguages) {
         self.defaults = defaults
         if defaults === UserDefaults.standard, Bundle.main.bundleIdentifier == AppIdentity.bundleID {
             AppIdentity.importLegacyDefaults(into: defaults,
@@ -174,7 +176,8 @@ public final class AppSettings {
         let existingSetup = defaults.dictionaryRepresentation().keys.contains { $0.hasPrefix("settings.") }
         hadExistingSetup = existingSetup
         onboarding = OnboardingProgress(defaults: defaults, existingSetup: existingSetup)
-        asr = Self.load("asr", from: defaults) ?? ASRConfig()
+        let systemSpeech = ASRConfig.systemDefault(preferredLanguages: preferredLanguages)
+        asr = Self.load("asr", from: defaults) ?? systemSpeech
         llm = Self.load("llm", from: defaults) ?? LLMConfig()
         hotkey = Self.load("hotkey", from: defaults) ?? .controlOption
         hotkeyBehavior = Self.load("hotkeyBehavior", from: defaults) ?? .hold
@@ -197,7 +200,7 @@ public final class AppSettings {
         hudDiscoEnabled = Self.load("hudDiscoEnabled", from: defaults) ?? false
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
-        livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
+        livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? systemSpeech.chineseScript.appleMandarinLocale
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
         meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default
