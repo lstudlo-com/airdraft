@@ -82,15 +82,17 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
   `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
   measurement is published.
-- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. From 0.11.0,
-  first-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice
-  on 8 GB or less, with Qwen still offered); English, Japanese and Korean get
-  SenseVoice and other languages Whisper Large v3 Turbo; the Models page labels
-  Qwen3-ASR 1.7B "Best for mixed Chinese and English" and calls SenseVoice
-  smaller and faster but weaker with English terms in Chinese speech. 0.10.2
-  suggested SenseVoice on a Mac set to Chinese too; name it only where the
-  older recommendation matters. Qwen3-ASR and Whisper downloads are pinned to
-  verified revisions from 0.11.0.
+- Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. First-run setup
+  recommends Qwen3-ASR 1.7B on a Mac set to Chinese (SenseVoice on 8 GB or
+  less, with Qwen still offered); English gets Parakeet TDT v2 (Qwen3-ASR 1.7B
+  as the multilingual alternative); Japanese and Korean get Qwen3-ASR 1.7B
+  (Whisper Large v3 Turbo first on 8 GB or less); other languages get Whisper
+  Large v3 Turbo. The Models page labels Qwen3-ASR 1.7B "Best for mixed Chinese
+  and English" and describes SenseVoice as "Small and fast for Chinese; weaker
+  with English and other languages." 0.11.0 and earlier recommended SenseVoice
+  for English, Japanese and Korean, and 0.10.2 suggested it on a Mac set to
+  Chinese too; name them only where the older recommendation matters.
+  Qwen3-ASR and Whisper downloads are pinned to verified revisions from 0.11.0.
   Chinese script converts characters to Traditional by default and can be
   Simplified or Auto; Taiwan vocabulary comes from refinement. Parakeet does
   not support Chinese.
@@ -100,6 +102,13 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   date, method link and limits (five Hong Kong/Mainland speakers, synthetic
   Taiwan voice, one Mac, refinement off). Never generalize it into an accuracy
   claim or compare it with other apps.
+- English, Japanese and Korean results come only from Airdraft's own
+  measurement in `eval/eja-asr` (2026-10-24, one M4 Pro, Google FLEURS read
+  speech, 60 clips per language), held in `src/data/eja-asr.ts` and shown in
+  the offline setup guide. Quote model output with its date, method link and
+  limits (read Wikipedia sentences, not dictation; wide intervals; one Mac;
+  refinement off). Never generalize it into an accuracy claim, a ranking or a
+  comparison with other apps.
 - Coding agents and terminals: Airdraft pastes once and never presses Return.
   Terminal and iTerm2 are confirmed by read-back. Warp, Zed, Ghostty, kitty,
   Alacritty and WezTerm draw their own text: from 0.11.0 History marks the

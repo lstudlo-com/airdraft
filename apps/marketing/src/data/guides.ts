@@ -33,7 +33,7 @@ export const guides: Guide[] = [
     slug: "offline-dictation-on-mac",
     title: "Set up offline dictation on your Mac",
     description:
-      "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, model downloads, permissions and profile settings.",
+      "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
     summary:
       "Choose a speech model, keep cleanup local, and make your first dictation.",
     href: "/guides/offline-dictation-on-mac/",
