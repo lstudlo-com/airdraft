@@ -15,6 +15,9 @@ public final class ProfileStore {
     public private(set) var choosesProfileByApp = false
     /// At most one rule per app or family, in the order they were added.
     public private(set) var appRules: [AppProfileRule] = []
+    /// Rules a newer version wrote that this one cannot read, kept unchanged so
+    /// saving here never deletes them. Deleting their profile or Reset All drops them.
+    private var unreadableAppRules: [RawJSON] = []
 
     public private(set) var persistenceError: String?
     private var unreadableOriginal = false
@@ -193,6 +196,7 @@ public final class ProfileStore {
         if activeProfileID == id { activeProfileID = RefinementProfile.cleanID }
         // A rule never falls back to another profile silently; it is removed.
         appRules.removeAll { $0.profileID == id }
+        unreadableAppRules.removeAll { $0.ruleProfileID == id }
         save()
     }
 
@@ -221,6 +225,7 @@ public final class ProfileStore {
         activeProfileID = RefinementProfile.cleanID
         choosesProfileByApp = false
         appRules = []
+        unreadableAppRules = []
         save()
     }
 
@@ -254,6 +259,10 @@ public final class ProfileStore {
             guard loaded.contains(where: { $0.id == rule.profileID }), rule.match != .family(.general) else { return false }
             return seen.insert(rule.match).inserted
         }
+        // Unreadable rules naming a profile that no longer exists are dropped too.
+        unreadableAppRules = (p.appRules?.unreadable ?? []).filter { raw in
+            raw.ruleProfileID.map { id in loaded.contains { $0.id == id } } ?? true
+        }
     }
 
     public func retrySave() { save() }
@@ -264,7 +273,7 @@ public final class ProfileStore {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let p = Persisted(version: 1, baseRules: baseRules, profiles: profiles, activeProfileID: activeProfileID,
-                          choosesProfileByApp: choosesProfileByApp, appRules: LossyAppProfileRules(appRules))
+                          choosesProfileByApp: choosesProfileByApp, appRules: LossyAppProfileRules(appRules, unreadable: unreadableAppRules))
         do {
             let data = try encoder.encode(p)
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)

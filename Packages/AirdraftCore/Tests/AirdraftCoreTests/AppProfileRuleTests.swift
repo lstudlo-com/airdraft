@@ -152,6 +152,52 @@ final class AppProfileRuleTests: XCTestCase {
         XCTAssertEqual(store.selection(forApp: "com.apple.mail").profile.id, RefinementProfile.conciseID)
     }
 
+    /// A rule written by a newer version survives saving in this one, unchanged;
+    /// deleting its profile or Reset All removes it like any other rule.
+    func testUnreadableRulesAreWrittenBackUnchangedOnSave() throws {
+        let dir = tempDir()
+        let url = dir.appendingPathComponent("profiles.json")
+        let custom = ProfileStore(directory: dir).addNew()
+        let newer: [String: Any] = ["id": UUID().uuidString, "profileID": RefinementProfile.cleanID.uuidString,
+                                    "match": ["family": ["_0": "spreadsheet"]], "appName": "Numbers",
+                                    "priority": 2, "weight": 0.5, "enabled": true, "tags": ["a", NSNull()]]
+        let newerForCustom: [String: Any] = ["id": UUID().uuidString, "profileID": custom.id.uuidString,
+                                             "match": ["window": ["_0": "Inbox"]]]
+        let orphan: [String: Any] = ["id": UUID().uuidString, "profileID": UUID().uuidString,
+                                     "match": ["family": ["_0": "spreadsheet"]]]
+        var file = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        file["choosesProfileByApp"] = true
+        file["appRules"] = [newer, "not a rule", newerForCustom, orphan]
+        try JSONSerialization.data(withJSONObject: file).write(to: url)
+
+        func storedRules() throws -> [Any] {
+            let object = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+            return try XCTUnwrap(object?["appRules"] as? [Any])
+        }
+        let store = ProfileStore(directory: dir)
+        XCTAssertNil(store.persistenceError)
+        XCTAssertTrue(store.appRules.isEmpty)
+        // Any save writes the readable rules first, then the unreadable ones as read.
+        let added = try XCTUnwrap(store.addAppRule(.family(.email), profileID: RefinementProfile.conciseID))
+        var saved = try storedRules()
+        XCTAssertEqual(saved.count, 4, "The orphaned rule is dropped like a readable one")
+        XCTAssertEqual((saved[0] as? [String: Any])?["id"] as? String, added.id.uuidString)
+        XCTAssertEqual(saved[1] as? NSDictionary, newer as NSDictionary, "The newer rule is written back unchanged")
+        XCTAssertEqual(saved[2] as? String, "not a rule")
+        XCTAssertEqual(saved[3] as? NSDictionary, newerForCustom as NSDictionary)
+        let reloaded = ProfileStore(directory: dir)
+        XCTAssertEqual(reloaded.appRules, [added])
+        reloaded.setChoosesProfileByApp(false)
+        XCTAssertEqual(try storedRules().count, 4, "Rules stay saved while the switch is off")
+
+        reloaded.remove(id: custom.id)
+        saved = try storedRules()
+        XCTAssertEqual(saved.count, 3, "Deleting a profile removes the unreadable rule that names it")
+        XCTAssertFalse(saved.contains { ($0 as? NSDictionary) == newerForCustom as NSDictionary })
+        reloaded.resetAll()
+        XCTAssertTrue(try storedRules().isEmpty, "Reset All clears every rule")
+    }
+
     // MARK: Recording snapshot
 
     func testRecordingUsesTheFrontmostAppsRuleIncludingItsSpeechModelAndKeepsIt() async throws {
