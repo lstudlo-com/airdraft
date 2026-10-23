@@ -1,24 +1,24 @@
 {
-  "prompt_version": "p14",
+  "prompt_version": "p15",
   "model": "qwen/qwen3.8-27b",
-  "model_instance": "airdraft-release-eval-0110",
+  "model_instance": "airdraft-eval-p15",
   "datasets": {
     "correction_cases.json": {
-      "candidate": "p14-20261022-release0110-correction.json",
-      "candidate_sha256": "fa84a7a1dd1e4e1b5d5e28345a891909abe0ae55d4cef5230bd0712379453e17",
+      "candidate": "p15-20261024-correction.json",
+      "candidate_sha256": "36e2c22644b4125ac519fda8a50fa1827a4d8d7b81a15516ea69a395b6b06da4",
       "baseline": "p5-qwen38-correction.json",
       "baseline_sha256": "a9dfbd38a2c1dd8a2b314b27599a19b068b46c5c137e638ada8d3bf54a7e9e04"
     },
     "holdout_cases.json": {
-      "candidate": "p14-20261022-release0110-holdout.json",
-      "candidate_sha256": "badafd42bf2ed21b16a738d512bb939afccf4a791c27ea251ab56849253be465",
+      "candidate": "p15-20261024-holdout.json",
+      "candidate_sha256": "fe3f7082d9b2ede611f9c3d9158de7f7764329aeb5d67c4a5f6a7daa530a2323",
       "baseline": "p5-qwen38-holdout.json",
       "baseline_sha256": "6251b65c6f7c3b01cc5e9b7a58cbd427cd36a315f13a33b3c16c0a8a44e0d781"
     },
     "context_correction_cases.json": {
       "baseline": "p11-20260928-context.json",
-      "candidate": "p14-20261022-release0110-context.json",
-      "candidate_sha256": "9fe2d32ef637cca84b1b38bb2f77eafef805a1cad2cb67685a7a78f3406febfb",
+      "candidate": "p15-20261024-context.json",
+      "candidate_sha256": "a65a797a3ac8ba5bd4e9ce417e14af1c1ab21fd17749b9865cf1d3bc274a6d1c",
       "baseline_sha256": "ccb8f946f6d461cd45af56d841850f78b792701daf86c7dc3a1b1e1ce8685803"
     }
   }

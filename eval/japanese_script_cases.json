@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ja-kanji-traditional-target",
+    "family": "document",
+    "app": "Notes",
+    "raw": "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
+    "expect": ["国内", "数字"],
+    "forbid": ["國內", "數字"]
+  },
+  {
+    "id": "ja-kanji-chat",
+    "family": "workChat",
+    "app": "Slack",
+    "raw": "あの、新しい広告の効果は来月まで様子を見ましょう。",
+    "expect": ["広告", "効果", "様子"],
+    "forbid": ["廣告", "效果", "樣子"]
+  },
+  {
+    "id": "ja-kanji-code",
+    "family": "code",
+    "app": "Visual Studio Code",
+    "raw": "このプルリクエストは変数名を整理して、読み込みの処理を軽くしています。",
+    "expect": ["変数", "処理", "軽く"],
+    "forbid": ["變數", "處理", "輕く"]
+  }
+]
