@@ -1552,6 +1552,12 @@
     },
     "Accurate, fast and light on memory. English only." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准确、快速且占用内存少。仅支持英语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2346,6 +2352,12 @@
     },
     "Also recognizes 29 other languages. Uses about 3 GB of memory." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还能识别另外 29 种语言。约占用 3 GB 内存。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8581,6 +8593,12 @@
     },
     "Light on memory and recognizes many languages. Its first start can take a minute." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "占用内存少，可识别多种语言。首次启动可能需要一分钟。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9624,6 +9642,12 @@
     },
     "More accurate for %@, but uses about 3 GB of memory." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "识别%@更准确，但约占用 3 GB 内存。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9634,6 +9658,12 @@
     },
     "More accurate, uses more memory" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更准确，占用更多内存"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9660,6 +9690,12 @@
     },
     "Most accurate for %@ in Airdraft's tests. Uses about 3 GB of memory." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Airdraft 的测试中识别%@最准确。约占用 3 GB 内存。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10790,16 +10826,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置端"
-          }
-        }
-      }
-    },
-    "On-device Apple Speech; final model unchanged" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "裝置端 Apple 語音；最終模型不變"
           }
         }
       }
@@ -15774,26 +15800,16 @@
     },
     "Small and fast for Chinese; weaker with English and other languages." : {
       "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "中文辨識小巧快速；英文和其他語言較弱。"
-          }
-        }
-      }
-    },
-    "Small and fast, and works well on any Mac." : {
-      "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小巧快速，在任何 Mac 上都很好用。"
+            "value" : "识别中文小巧快速；英语和其他语言较弱。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小巧快速，在任何 Mac 上都很好用。"
+            "value" : "中文辨識小巧快速；英文和其他語言較弱。"
           }
         }
       }
@@ -15810,22 +15826,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "較小、較快"
-          }
-        }
-      }
-    },
-    "Smaller and faster; weaker with English terms in Chinese speech." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更小、更快；中文里夹杂英语词汇时表现较弱。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "較小、較快；中文夾雜英文詞時較弱。"
           }
         }
       }
@@ -18315,6 +18315,12 @@
     },
     "Uses less memory" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "占用内存较少"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
