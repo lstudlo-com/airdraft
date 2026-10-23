@@ -45,12 +45,16 @@ public struct Transcript: Sendable, Equatable {
     public var language: String?
     public var engine: String
     public var latencyMs: Int
+    /// Deterministic corrections the local output guards applied (AD-082).
+    public var adjustments: [TranscriptAdjustment]
 
-    public init(text: String, language: String? = nil, engine: String, latencyMs: Int) {
+    public init(text: String, language: String? = nil, engine: String, latencyMs: Int,
+                adjustments: [TranscriptAdjustment] = []) {
         self.text = text
         self.language = language
         self.engine = engine
         self.latencyMs = latencyMs
+        self.adjustments = adjustments
     }
 
     public var isEmpty: Bool { text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }

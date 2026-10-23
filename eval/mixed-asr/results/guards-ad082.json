@@ -1,0 +1,1975 @@
+{
+ "study": "AD-082 local ASR output guards",
+ "measured": "2026-10-23/24, Apple M4 Pro 48 GB, macOS 27.0.1",
+ "base_commit": "9e93a8f67cc999d4b112df6e958a1ef806f98107",
+ "method": "run_guards.py through LocalE2E --e2e-action transcribe --e2e-prepare (production pipeline, refinement off, insertion disabled, empty dictionary, Traditional script); system languages en-TW, zh-Hant-TW. 'before' full-corpus rows: fresh re-runs for SenseVoice/FireRed (98/98 re-run outputs identical to AD-074, rest copied from results/utterances.csv) and AD-074 first attempts for Qwen/Whisper; tw08, Whisper problem IDs and en-control were re-run fresh on base commit 9e93a8f. 'after' Whisper Auto: full run at the 0.2 probe threshold plus a re-run at the shipped 0.1 threshold of the only utterance whose logged probability fell in [0.1, 0.2) (ascend-val-00057). Concurrent Xcode/eval jobs ran on the same Mac, so latency is relative.",
+ "full_corpus": {
+  "before-full": {
+   "qwen3:0.6b zh | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 2,
+    "punctuated": 100,
+    "MER": 0.1057,
+    "ENkeep": 0.7478,
+    "caseExact": null,
+    "asrMsMedian": 243.5,
+    "asrMsMax": 545,
+    "peakMaxMB": 0
+   },
+   "qwen3:0.6b zh | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 2,
+    "punctuated": 40,
+    "MER": 0.0681,
+    "ENkeep": 0.7931,
+    "caseExact": 0.5862,
+    "asrMsMedian": 201.0,
+    "asrMsMax": 236,
+    "peakMaxMB": 0
+   },
+   "qwen3:1.7b auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 2,
+    "punctuated": 100,
+    "MER": 0.0894,
+    "ENkeep": 0.7611,
+    "caseExact": null,
+    "asrMsMedian": 300.0,
+    "asrMsMax": 688,
+    "peakMaxMB": 0
+   },
+   "qwen3:1.7b auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 40,
+    "MER": 0.0282,
+    "ENkeep": 0.8966,
+    "caseExact": 0.8046,
+    "asrMsMedian": 258.5,
+    "asrMsMax": 411,
+    "peakMaxMB": 0
+   },
+   "sherpa:fireRed auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 90,
+    "punctuated": 0,
+    "MER": 0.0928,
+    "ENkeep": 0.7478,
+    "caseExact": null,
+    "asrMsMedian": 630.5,
+    "asrMsMax": 1906,
+    "peakMaxMB": 3080
+   },
+   "sherpa:fireRed auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 40,
+    "punctuated": 0,
+    "MER": 0.0587,
+    "ENkeep": 0.7931,
+    "caseExact": 0.0805,
+    "asrMsMedian": 504.0,
+    "asrMsMax": 697,
+    "peakMaxMB": 0
+   },
+   "sherpa:senseVoice auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 84,
+    "punctuated": 0,
+    "MER": 0.1355,
+    "ENkeep": 0.5265,
+    "caseExact": null,
+    "asrMsMedian": 53.0,
+    "asrMsMax": 122,
+    "peakMaxMB": 1052
+   },
+   "sherpa:senseVoice auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 39,
+    "punctuated": 0,
+    "MER": 0.1033,
+    "ENkeep": 0.5862,
+    "caseExact": 0.069,
+    "asrMsMedian": 45.0,
+    "asrMsMax": 60,
+    "peakMaxMB": 0
+   },
+   "whisper:turbo auto | ascend": {
+    "runs": 100,
+    "empty": 2,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 7,
+    "allCaps": 2,
+    "punctuated": 34,
+    "MER": 0.2109,
+    "ENkeep": 0.6814,
+    "caseExact": null,
+    "asrMsMedian": 634.0,
+    "asrMsMax": 3094,
+    "peakMaxMB": 0
+   },
+   "whisper:turbo auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 27,
+    "MER": 0.0634,
+    "ENkeep": 0.7816,
+    "caseExact": 0.4828,
+    "asrMsMedian": 596.0,
+    "asrMsMax": 660,
+    "peakMaxMB": 0
+   },
+   "whisper:turbo zh | ascend": {
+    "runs": 100,
+    "empty": 3,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 4,
+    "allCaps": 3,
+    "punctuated": 87,
+    "MER": 0.2081,
+    "ENkeep": 0.6283,
+    "caseExact": null,
+    "asrMsMedian": 622,
+    "asrMsMax": 4051,
+    "peakMaxMB": 0
+   },
+   "whisper:turbo zh | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 40,
+    "MER": 0.0704,
+    "ENkeep": 0.7586,
+    "caseExact": 0.4943,
+    "asrMsMedian": 606.5,
+    "asrMsMax": 679,
+    "peakMaxMB": 0
+   }
+  },
+  "after-full": {
+   "qwen3:0.6b zh | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 2,
+    "punctuated": 100,
+    "MER": 0.1057,
+    "ENkeep": 0.7478,
+    "caseExact": null,
+    "asrMsMedian": 238.0,
+    "asrMsMax": 517,
+    "peakMaxMB": 1875
+   },
+   "qwen3:0.6b zh | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 2,
+    "punctuated": 40,
+    "MER": 0.0681,
+    "ENkeep": 0.7931,
+    "caseExact": 0.5862,
+    "asrMsMedian": 193.5,
+    "asrMsMax": 232,
+    "peakMaxMB": 1423
+   },
+   "qwen3:1.7b auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 2,
+    "punctuated": 100,
+    "MER": 0.0894,
+    "ENkeep": 0.7611,
+    "caseExact": null,
+    "asrMsMedian": 293.0,
+    "asrMsMax": 656,
+    "peakMaxMB": 3142
+   },
+   "qwen3:1.7b auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 40,
+    "MER": 0.0282,
+    "ENkeep": 0.8966,
+    "caseExact": 0.8046,
+    "asrMsMedian": 250.0,
+    "asrMsMax": 321,
+    "peakMaxMB": 2603
+   },
+   "sherpa:fireRed auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 2,
+    "punctuated": 100,
+    "MER": 0.0928,
+    "ENkeep": 0.7478,
+    "caseExact": null,
+    "asrMsMedian": 637.5,
+    "asrMsMax": 1924,
+    "peakMaxMB": 3173
+   },
+   "sherpa:fireRed auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 40,
+    "MER": 0.0587,
+    "ENkeep": 0.7931,
+    "caseExact": 0.7701,
+    "asrMsMedian": 526.0,
+    "asrMsMax": 638,
+    "peakMaxMB": 3063
+   },
+   "sherpa:senseVoice auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 0,
+    "allCaps": 1,
+    "punctuated": 100,
+    "MER": 0.1355,
+    "ENkeep": 0.5265,
+    "caseExact": null,
+    "asrMsMedian": 51.0,
+    "asrMsMax": 121,
+    "peakMaxMB": 1034
+   },
+   "sherpa:senseVoice auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 0,
+    "punctuated": 40,
+    "MER": 0.1033,
+    "ENkeep": 0.5862,
+    "caseExact": 0.5747,
+    "asrMsMedian": 44.5,
+    "asrMsMax": 53,
+    "peakMaxMB": 1033
+   },
+   "whisper:turbo auto | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 3,
+    "allCaps": 2,
+    "punctuated": 35,
+    "MER": 0.1856,
+    "ENkeep": 0.6858,
+    "caseExact": null,
+    "asrMsMedian": 637.5,
+    "asrMsMax": 6589,
+    "peakMaxMB": 250
+   },
+   "whisper:turbo auto | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 27,
+    "MER": 0.0634,
+    "ENkeep": 0.7816,
+    "caseExact": 0.4828,
+    "asrMsMedian": 595.0,
+    "asrMsMax": 631,
+    "peakMaxMB": 242
+   },
+   "whisper:turbo zh | ascend": {
+    "runs": 100,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": 1,
+    "allCaps": 3,
+    "punctuated": 88,
+    "MER": 0.1924,
+    "ENkeep": 0.6504,
+    "caseExact": null,
+    "asrMsMedian": 623.5,
+    "asrMsMax": 2672,
+    "peakMaxMB": 247
+   },
+   "whisper:turbo zh | tw-tts-meijia": {
+    "runs": 40,
+    "empty": 0,
+    "loop": 0,
+    "wrongScript": 0,
+    "zhLost": null,
+    "allCaps": 1,
+    "punctuated": 40,
+    "MER": 0.0704,
+    "ENkeep": 0.7586,
+    "caseExact": 0.4943,
+    "asrMsMedian": 607.5,
+    "asrMsMax": 642,
+    "peakMaxMB": 243
+   }
+  }
+ },
+ "tw08_loop_and_language": {
+  "before": [
+   {
+    "config": "qwen3:0.6b zh",
+    "rep": 0,
+    "asrMs": 25607,
+    "peak_footprint_MB": 18567,
+    "final": "是爸爸在克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克",
+    "guard": []
+   },
+   {
+    "config": "qwen3:0.6b zh",
+    "rep": 1,
+    "asrMs": 28537,
+    "peak_footprint_MB": 18545,
+    "final": "是爸爸在克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克里克",
+    "guard": []
+   },
+   {
+    "config": "qwen3:0.6b auto",
+    "rep": 0,
+    "asrMs": 314,
+    "peak_footprint_MB": 1378,
+    "final": "Is the battle of Korea pushed to the east?",
+    "guard": []
+   },
+   {
+    "config": "qwen3:0.6b auto",
+    "rep": 1,
+    "asrMs": 223,
+    "peak_footprint_MB": 1336,
+    "final": "Is the battle of Korea pushed to the east?",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b auto",
+    "rep": 0,
+    "asrMs": 1246,
+    "peak_footprint_MB": 2582,
+    "final": "Забавно, що вони так добре використовують свої власні слова.",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b auto",
+    "rep": 1,
+    "asrMs": 457,
+    "peak_footprint_MB": 2473,
+    "final": "Забавно, що вони так добре використовують свої власні слова.",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b zh",
+    "rep": 0,
+    "asrMs": 351,
+    "peak_footprint_MB": 2548,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b zh",
+    "rep": 1,
+    "asrMs": 348,
+    "peak_footprint_MB": 2435,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": []
+   }
+  ],
+  "after": [
+   {
+    "config": "qwen3:0.6b zh",
+    "rep": 0,
+    "asrMs": 1134,
+    "peak_footprint_MB": 1610,
+    "final": "是爸爸在克里",
+    "guard": [
+     "action=repetitionTrimmed applied=true audioSeconds=3.195438"
+    ]
+   },
+   {
+    "config": "qwen3:0.6b zh",
+    "rep": 1,
+    "asrMs": 1119,
+    "peak_footprint_MB": 1625,
+    "final": "是爸爸在克里",
+    "guard": [
+     "action=repetitionTrimmed applied=true audioSeconds=3.195438"
+    ]
+   },
+   {
+    "config": "qwen3:0.6b auto",
+    "rep": 0,
+    "asrMs": 219,
+    "peak_footprint_MB": 1399,
+    "final": "Is the battle of Korea pushed to the east?",
+    "guard": []
+   },
+   {
+    "config": "qwen3:0.6b auto",
+    "rep": 1,
+    "asrMs": 199,
+    "peak_footprint_MB": 1299,
+    "final": "Is the battle of Korea pushed to the east?",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b auto",
+    "rep": 0,
+    "asrMs": 822,
+    "peak_footprint_MB": 3058,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": [
+     "action=languageRetried applied=true audioSeconds=3.195438"
+    ]
+   },
+   {
+    "config": "qwen3:1.7b auto",
+    "rep": 1,
+    "asrMs": 688,
+    "peak_footprint_MB": 2878,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": [
+     "action=languageRetried applied=true audioSeconds=3.195438"
+    ]
+   },
+   {
+    "config": "qwen3:1.7b zh",
+    "rep": 0,
+    "asrMs": 292,
+    "peak_footprint_MB": 2467,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": []
+   },
+   {
+    "config": "qwen3:1.7b zh",
+    "rep": 1,
+    "asrMs": 291,
+    "peak_footprint_MB": 2490,
+    "final": "現在把這斯克里亞的push到這邊去。",
+    "guard": []
+   }
+  ]
+ },
+ "whisper_problem_ids_x3": {
+  "before": [
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 587,
+    "final": "at first time, you can enjoy this sport",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 556,
+    "final": "at first time, you can enjoy this sport",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 562,
+    "final": "at first time, you can enjoy this sport",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1103,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1091,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1107,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1746,
+    "final": "基本上都是一些business related的project.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1299,
+    "final": "基本上都是一些business related的project.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1411,
+    "final": "那如果有 smartphone 的話其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 2925,
+    "final": "that if you have smartphone",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 575,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 583,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 579,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 669,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 684,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 678,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1233,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1245,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1237,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 519,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 519,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 515,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 2616,
+    "final": "萊頓大學校園是分散在Lydon城市的各個角落,這一塊那一塊。在這一塊,這一塊。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 659,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 655,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 655,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1360,
+    "final": "at first time,你就可以 Enjoy這個 sport。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 4461,
+    "final": "at first time,就可以enjoy這個 sport.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 571,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 577,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 577,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 592,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 595,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 595,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 578,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 578,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 575,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 596,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 592,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 590,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 4081,
+    "final": "Action was 讓我感覺到很刺激,然後emotion的這些,",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 3445,
+    "final": "Action文是讓我感覺到很刺激,然後emotion的這些。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 753,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 740,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 737,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 773,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 763,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 749,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 3334,
+    "final": "孫耀酷著咪開停跑到一半就翻了。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "failed",
+    "asrMs": null,
+    "final": null,
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 2138,
+    "final": "孫要酷著咪在前跑到一半就翻了。",
+    "guard": []
+   }
+  ],
+  "after": [
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 3104,
+    "final": "at first time, you can enjoy this sport",
+    "guard": [
+     "probe=zh probability=0.848418",
+     "action=languageRetried applied=false audioSeconds=3.500000"
+    ]
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 2553,
+    "final": "at first time,你就可以enjoy這個spot。",
+    "guard": [
+     "probe=zh probability=0.848418",
+     "action=languageRetried applied=true audioSeconds=3.500000"
+    ]
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 3557,
+    "final": "at first time, you can enjoy this sport",
+    "guard": [
+     "probe=zh probability=0.848418",
+     "action=languageRetried applied=false audioSeconds=3.500000"
+    ]
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1532,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": [
+     "probe=zh probability=0.006051"
+    ]
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1526,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": [
+     "probe=zh probability=0.006051"
+    ]
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1502,
+    "final": "Go into personalities. Oh. I want to go... Thank you.",
+    "guard": [
+     "probe=zh probability=0.006051"
+    ]
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 2300,
+    "final": "本體,基本上都是一些business related的projects.",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1606,
+    "final": "基本上都是一些business related projects",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 4387,
+    "final": "基本上都是一些business related的projects.",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=4.450000"
+    ]
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 4159,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": [
+     "probe=zh probability=0.261183",
+     "action=languageRetried applied=true audioSeconds=2.840000"
+    ]
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 2284,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": [
+     "probe=zh probability=0.261183",
+     "action=languageRetried applied=true audioSeconds=2.840000"
+    ]
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 2437,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": [
+     "probe=zh probability=0.261183",
+     "action=languageRetried applied=true audioSeconds=2.840000"
+    ]
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 992,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": [
+     "probe=zh probability=0.144660"
+    ]
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 981,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": [
+     "probe=zh probability=0.144660"
+    ]
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 992,
+    "final": "So Candy Crush is a kill time, very good.",
+    "guard": [
+     "probe=zh probability=0.144660"
+    ]
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 688,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 683,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 690,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1651,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": [
+     "probe=zh probability=0.029318"
+    ]
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1647,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": [
+     "probe=zh probability=0.029318"
+    ]
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1628,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+    "guard": [
+     "probe=zh probability=0.029318"
+    ]
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 523,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 521,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 525,
+    "final": "problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 6589,
+    "final": "萊頓大學校園是分散在Lydon這個城市的各個角落,這一塊那一塊。這一塊是非常好。",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=10.850000"
+    ]
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 2474,
+    "final": "萊頓大學校園是分散在Lydon這個城市的各個角落,這一塊,那一塊。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 2686,
+    "final": "萊頓大學校園是分散在Liden這個城市的各個角落,這一塊那一塊,那一塊。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 640,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 647,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo auto",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 644,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1724,
+    "final": "at first time, 你就可以enjoying this sport,",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1767,
+    "final": "at first time, 就可以enjoy 這個Sport。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00678",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 2858,
+    "final": "at first time, you can enjoy this sport,",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 575,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 593,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-00891",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 574,
+    "final": "個人的personalities, I wanna go...",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 585,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 597,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-tes-01153",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 596,
+    "final": "基本上都是一些business related的project。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 583,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 574,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00021",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 572,
+    "final": "那如果有Smartphone的話,其實",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 590,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 611,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00057",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 593,
+    "final": "所以candy crack就是一個kill time 很好。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 2339,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=4.270000"
+    ]
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 4146,
+    "final": "Action movies 讓我感覺到很刺激然後Emotion的這些",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=4.270000"
+    ]
+   },
+   {
+    "id": "ascend-val-00368",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1732,
+    "final": "Action文的讓我感覺得很刺激,然後emotion的這些。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 741,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 742,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00671",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 741,
+    "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so afraid of water.",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 1096,
+    "final": "Problem 就是他的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 1050,
+    "final": "Problem 就是它的",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00687",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 1857,
+    "final": "problem 就是他的",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=2.780000"
+    ]
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 751,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 751,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "ascend-val-00929",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 753,
+    "final": "萊頓大學就是校園分散在Lydon這個城市的各個角落,這一塊那一塊。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 0,
+    "status": "passed",
+    "asrMs": 3161,
+    "final": "孫要褲子咪喘停跑到一半就翻了。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 1,
+    "status": "passed",
+    "asrMs": 3002,
+    "final": "孫料庫的迷迦艇跑到一半就翻了。",
+    "guard": []
+   },
+   {
+    "id": "tw19",
+    "config": "whisper:turbo zh",
+    "rep": 2,
+    "status": "passed",
+    "asrMs": 3830,
+    "final": "孫料庫的迷迦婷跑到一半就翻了",
+    "guard": [
+     "action=emptyRetried applied=true audioSeconds=3.276375"
+    ]
+   }
+  ]
+ },
+ "whisper_threshold_0_1_recheck": [
+  {
+   "id": "ascend-tes-00891",
+   "rep": 0,
+   "asrMs": 1495,
+   "final": "Go into personalities. Oh. I want to go... Thank you.",
+   "guard": [
+    "probe=zh probability=0.006051"
+   ]
+  },
+  {
+   "id": "ascend-tes-00891",
+   "rep": 1,
+   "asrMs": 1493,
+   "final": "Go into personalities. Oh. I want to go... Thank you.",
+   "guard": [
+    "probe=zh probability=0.006051"
+   ]
+  },
+  {
+   "id": "ascend-tes-00891",
+   "rep": 2,
+   "asrMs": 1494,
+   "final": "Go into personalities. Oh. I want to go... Thank you.",
+   "guard": [
+    "probe=zh probability=0.006051"
+   ]
+  },
+  {
+   "id": "ascend-val-00057",
+   "rep": 0,
+   "asrMs": 1535,
+   "final": "所以candy crack就是一個kill time 很好。",
+   "guard": [
+    "probe=zh probability=0.144660",
+    "action=languageRetried applied=true audioSeconds=3.260000"
+   ]
+  },
+  {
+   "id": "ascend-val-00057",
+   "rep": 1,
+   "asrMs": 1536,
+   "final": "所以candy crack就是一個kill time 很好。",
+   "guard": [
+    "probe=zh probability=0.144660",
+    "action=languageRetried applied=true audioSeconds=3.260000"
+   ]
+  },
+  {
+   "id": "ascend-val-00057",
+   "rep": 2,
+   "asrMs": 1540,
+   "final": "所以candy crack就是一個kill time 很好。",
+   "guard": [
+    "probe=zh probability=0.144660",
+    "action=languageRetried applied=true audioSeconds=3.260000"
+   ]
+  },
+  {
+   "id": "ascend-val-00671",
+   "rep": 0,
+   "asrMs": 1614,
+   "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+   "guard": [
+    "probe=zh probability=0.029318"
+   ]
+  },
+  {
+   "id": "ascend-val-00671",
+   "rep": 1,
+   "asrMs": 1624,
+   "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+   "guard": [
+    "probe=zh probability=0.029318"
+   ]
+  },
+  {
+   "id": "ascend-val-00671",
+   "rep": 2,
+   "asrMs": 1612,
+   "final": "Actually, I love swimming from the bottom of my heart, but I think my body is a bit of pressure. I'm so scared of water. Thank you.",
+   "guard": [
+    "probe=zh probability=0.029318"
+   ]
+  }
+ ],
+ "english_control": {
+  "before": {
+   "qwen3_1.7b-auto": {
+    "runs": 20,
+    "asrMsMedian": 275.5,
+    "guardActions": []
+   },
+   "qwen3_0.6b-auto": {
+    "runs": 20,
+    "asrMsMedian": 218.5,
+    "guardActions": []
+   },
+   "whisper_turbo-auto": {
+    "runs": 20,
+    "asrMsMedian": 584.0,
+    "guardActions": []
+   },
+   "sherpa_senseVoice-auto": {
+    "runs": 20,
+    "asrMsMedian": 45.5,
+    "guardActions": []
+   },
+   "sherpa_fireRed-auto": {
+    "runs": 20,
+    "asrMsMedian": 501.0,
+    "guardActions": []
+   }
+  },
+  "after": {
+   "qwen3_1.7b-auto": {
+    "runs": 20,
+    "asrMsMedian": 258.0,
+    "guardActions": []
+   },
+   "qwen3_0.6b-auto": {
+    "runs": 20,
+    "asrMsMedian": 212.5,
+    "guardActions": []
+   },
+   "whisper_turbo-auto": {
+    "runs": 20,
+    "asrMsMedian": 980.0,
+    "guardActions": []
+   },
+   "sherpa_senseVoice-auto": {
+    "runs": 20,
+    "asrMsMedian": 43.5,
+    "guardActions": []
+   },
+   "sherpa_fireRed-auto": {
+    "runs": 20,
+    "asrMsMedian": 510.5,
+    "guardActions": []
+   }
+  }
+ },
+ "whisper_probe_probabilities": [
+  {
+   "id": "ascend-tes-00678",
+   "corpus": "ascend",
+   "probability": 0.848418
+  },
+  {
+   "id": "ascend-tes-00891",
+   "corpus": "ascend",
+   "probability": 0.006051
+  },
+  {
+   "id": "ascend-val-00021",
+   "corpus": "ascend",
+   "probability": 0.261183
+  },
+  {
+   "id": "ascend-val-00057",
+   "corpus": "ascend",
+   "probability": 0.14466
+  },
+  {
+   "id": "ascend-val-00671",
+   "corpus": "ascend",
+   "probability": 0.029318
+  },
+  {
+   "id": "en01",
+   "corpus": "en-control",
+   "probability": 2.8e-05
+  },
+  {
+   "id": "en02",
+   "corpus": "en-control",
+   "probability": 7e-06
+  },
+  {
+   "id": "en03",
+   "corpus": "en-control",
+   "probability": 4.8e-05
+  },
+  {
+   "id": "en04",
+   "corpus": "en-control",
+   "probability": 5.6e-05
+  },
+  {
+   "id": "en05",
+   "corpus": "en-control",
+   "probability": 1.5e-05
+  },
+  {
+   "id": "en06",
+   "corpus": "en-control",
+   "probability": 1.1e-05
+  },
+  {
+   "id": "en07",
+   "corpus": "en-control",
+   "probability": 5e-06
+  },
+  {
+   "id": "en08",
+   "corpus": "en-control",
+   "probability": 3e-05
+  },
+  {
+   "id": "en09",
+   "corpus": "en-control",
+   "probability": 8e-06
+  },
+  {
+   "id": "en10",
+   "corpus": "en-control",
+   "probability": 1.3e-05
+  },
+  {
+   "id": "en11",
+   "corpus": "en-control",
+   "probability": 8e-06
+  },
+  {
+   "id": "en12",
+   "corpus": "en-control",
+   "probability": 0.000127
+  },
+  {
+   "id": "en13",
+   "corpus": "en-control",
+   "probability": 8e-06
+  },
+  {
+   "id": "en14",
+   "corpus": "en-control",
+   "probability": 1.4e-05
+  },
+  {
+   "id": "en15",
+   "corpus": "en-control",
+   "probability": 7e-06
+  },
+  {
+   "id": "en16",
+   "corpus": "en-control",
+   "probability": 0.000183
+  },
+  {
+   "id": "en17",
+   "corpus": "en-control",
+   "probability": 1.5e-05
+  },
+  {
+   "id": "en18",
+   "corpus": "en-control",
+   "probability": 9e-06
+  },
+  {
+   "id": "en19",
+   "corpus": "en-control",
+   "probability": 9e-06
+  },
+  {
+   "id": "en20",
+   "corpus": "en-control",
+   "probability": 1.5e-05
+  }
+ ],
+ "punctuation": {
+  "sherpa_senseVoice-auto": {
+   "utterances": 140,
+   "shipped_rule": {
+    "precision": 0.958,
+    "recall": 0.46,
+    "f1": 0.622,
+    "marks_ref": 250
+   },
+   "no_punctuation": {
+    "precision": 0,
+    "recall": 0.0,
+    "f1": 0,
+    "marks_ref": 250
+   },
+   "ct_transformer": {
+    "precision": 0.868,
+    "recall": 0.736,
+    "f1": 0.797,
+    "marks_ref": 250,
+    "token_changes": 0,
+    "latin_han_spaces_removed": 126,
+    "ms_median": 1.32
+   }
+  },
+  "sherpa_fireRed-auto": {
+   "utterances": 140,
+   "shipped_rule": {
+    "precision": 0.992,
+    "recall": 0.46,
+    "f1": 0.629,
+    "marks_ref": 276
+   },
+   "no_punctuation": {
+    "precision": 0,
+    "recall": 0.0,
+    "f1": 0,
+    "marks_ref": 276
+   },
+   "ct_transformer": {
+    "precision": 0.904,
+    "recall": 0.754,
+    "f1": 0.822,
+    "marks_ref": 276,
+    "token_changes": 0,
+    "latin_han_spaces_removed": 121,
+    "ms_median": 1.33
+   }
+  },
+  "ct_transformer_model": {
+   "archive": "sherpa-onnx-punct-ct-transformer-zh-en-vocab272727-2024-04-12-int8.tar.bz2",
+   "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/punctuation-models/",
+   "bytes": 64717756,
+   "sha256": "c0d5aa5f8eeb686032345e180bedf39319dc2e0556781c6264bcadba8328a6e1",
+   "load_ms": 72,
+   "adopted": false
+  }
+ }
+}

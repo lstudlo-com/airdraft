@@ -94,7 +94,8 @@ public actor WhisperKitTranscriber: Transcriber {
         } }
     }
 
-    private func loadedPipe() async throws -> WhisperKit {
+    /// Internal for the AD-082 output-guard hooks in WhisperKitTranscriber+Guards.swift.
+    func loadedPipe() async throws -> WhisperKit {
         if let pipe { return pipe }
         let task: Task<Void, Error>
         if let loading { task = loading }

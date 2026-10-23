@@ -1,0 +1,22 @@
+[
+ {"id": "en01", "text": "Please merge the pull request after the tests pass."},
+ {"id": "en02", "text": "The deployment failed because the database migration timed out."},
+ {"id": "en03", "text": "Can you review my code before lunch?"},
+ {"id": "en04", "text": "We should move the meeting to Thursday afternoon."},
+ {"id": "en05", "text": "The API returns an empty response when the token expires."},
+ {"id": "en06", "text": "I pushed the Docker image to the registry this morning."},
+ {"id": "en07", "text": "Let's add a unit test for the parser."},
+ {"id": "en08", "text": "The dashboard is loading slowly on mobile devices."},
+ {"id": "en09", "text": "Remember to update the release notes before Friday."},
+ {"id": "en10", "text": "This function should return a list instead of a dictionary."},
+ {"id": "en11", "text": "Send the slides to the product manager for approval."},
+ {"id": "en12", "text": "Our customer cannot sign in with their company account."},
+ {"id": "en13", "text": "I think the font size in the settings window is too small."},
+ {"id": "en14", "text": "The server CPU usage spiked to ninety percent last night."},
+ {"id": "en15", "text": "We need to rewrite the front end in TypeScript."},
+ {"id": "en16", "text": "Please open a ticket to track this issue."},
+ {"id": "en17", "text": "The new version improves battery life on older laptops."},
+ {"id": "en18", "text": "I will rebase my branch onto the latest main."},
+ {"id": "en19", "text": "Could you share the meeting notes in Notion?"},
+ {"id": "en20", "text": "The model accuracy is about ninety percent on the test set."}
+]
