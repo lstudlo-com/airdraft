@@ -34,7 +34,8 @@ public struct TranscriptionHints: Sendable {
     /// and dictionary aliases apply them after transcription.
     /// Only sent when Chinese is the selected language: with auto-detect a
     /// Chinese prompt pulls detection to Chinese and Whisper translates English
-    /// speech. `ChineseScriptConverter` still normalises the script afterwards.
+    /// speech. `ChineseScriptConverter` still normalises the script afterwards
+    /// (Japanese text with kana excepted).
     public var promptText: String? {
         guard let code = language?.trimmingCharacters(in: .whitespacesAndNewlines)
             .split(separator: "-").first?.lowercased(),

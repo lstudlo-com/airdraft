@@ -52,6 +52,20 @@ final class DictionaryPostProcessorTests: XCTestCase {
         XCTAssertEqual(ChineseScriptConverter.convert("我们", to: .auto), "我们")
     }
 
+    /// AD-083: Japanese kanji are not Simplified Chinese. With the default
+    /// Traditional script, ICU rewrote 国 as 國 in 59% of FLEURS Japanese sentences.
+    func testJapaneseTextKeepsItsKanji() {
+        for text in ["参列者の数が多すぎて、全員が国境に参加した。", "パリジャンは横柄で失礼だ", "ｶﾀｶﾅの国", "ㇰの学校"] {
+            XCTAssertEqual(ChineseScriptConverter.convert(text, to: .traditional), text)
+            XCTAssertEqual(ChineseScriptConverter.convert(text, to: .simplified), text)
+        }
+        // The katakana middle dot also separates Chinese names, so it still converts.
+        XCTAssertEqual(ChineseScriptConverter.convert("马丁・路德说过这个", to: .traditional), "馬丁・路德說過這個")
+        // Korean Hangul and mixed Chinese-English are unaffected.
+        XCTAssertEqual(ChineseScriptConverter.convert("국가 国家", to: .traditional), "국가 國家")
+        XCTAssertEqual(ChineseScriptConverter.convert("这个 bug 修好了", to: .traditional), "這個 bug 修好了")
+    }
+
     func testWhisperPromptLeadsWithScriptHint() {
         let hints = TranscriptionHints(language: "zh", vocabulary: ["Floze"], chineseScript: .traditional)
         XCTAssertEqual(hints.contextText, "以下是繁體中文的內容。 Floze")
