@@ -18,6 +18,10 @@ public struct CoreMLSpeechModel: Codable, Sendable, Identifiable, Equatable {
     public let languages: [String]
     public let files: [File]
     public var config: ASRConfig { ASRConfig(kind: .fluidAudio, model: id) }
+    /// Nil only for an entry that would fail catalogue review.
+    public func downloadURL(for file: File) -> URL? {
+        ModelCatalogueReview.downloadURL(repository: repository, revision: revision, path: file.path)
+    }
     public var bytes: Int64 { files.reduce(0) { $0 + $1.bytes } }
     public var sizeLabel: String { ByteCountFormatter.string(fromByteCount: bytes, countStyle: .decimal) }
     public var languageCapabilities: SpeechLanguageCapabilities {
@@ -29,14 +33,29 @@ public struct CoreMLSpeechModel: Codable, Sendable, Identifiable, Equatable {
 }
 
 public enum CoreMLSpeechModelCatalog {
-    public static let models: [CoreMLSpeechModel] = {
-        guard let url = Bundle.module.url(forResource: "local-coreml-models", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let models = try? JSONDecoder().decode([CoreMLSpeechModel].self, from: data) else {
-            preconditionFailure("The bundled Core ML speech catalogue is missing or invalid.")
+    static let bundled = catalog(url: Bundle.module.url(forResource: "local-coreml-models", withExtension: "json"))
+
+    /// Reviewed models; empty when the bundled catalogue is damaged.
+    public static var models: [CoreMLSpeechModel] { bundled.models }
+    /// Non-nil when the bundled catalogue is missing or fails review.
+    public static var catalogueError: ModelCatalogueError? { bundled.error }
+    public static func model(_ id: String) -> CoreMLSpeechModel? { bundled.model(id) }
+
+    static func catalog(url: URL?) -> BundledModelCatalog<CoreMLSpeechModel> {
+        BundledModelCatalog(url: url, catalogue: .coreML) { model in
+            guard ModelCatalogueReview.isSafeComponent(model.id) else { return "unsafe ID" }
+            guard ModelCatalogueReview.isRepository(model.repository) else { return "invalid repository" }
+            guard ModelCatalogueReview.isRevision(model.revision) else { return "unpinned revision" }
+            guard !model.languages.isEmpty else { return "no languages" }
+            guard !model.files.isEmpty else { return "no files" }
+            guard Set(model.files.map(\.path)).count == model.files.count else { return "duplicate files" }
+            for file in model.files {
+                guard ModelCatalogueReview.isSafeRelativePath(file.path) else { return "unsafe path \(file.path)" }
+                guard file.bytes > 0 else { return "missing size for \(file.path)" }
+                guard ModelCatalogueReview.isSHA256(file.sha256) else { return "invalid SHA-256 for \(file.path)" }
+                guard model.downloadURL(for: file) != nil else { return "invalid download URL for \(file.path)" }
+            }
+            return nil
         }
-        return models
-    }()
-    private static let byID = Dictionary(uniqueKeysWithValues: models.map { ($0.id, $0) })
-    public static func model(_ id: String) -> CoreMLSpeechModel? { byID[id] }
+    }
 }

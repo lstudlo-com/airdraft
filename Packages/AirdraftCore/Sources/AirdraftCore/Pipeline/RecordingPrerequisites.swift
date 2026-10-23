@@ -60,6 +60,7 @@ public enum RecordingPrerequisites {
             try reject(String(localized: "Input channel unavailable. Choose one in Settings.", bundle: .module)); return
         }
         if asr.kind.isLocal {
+            if let error = LocalModels.catalogueError(for: asr) { try reject(error.localizedDescription); return }
             guard environment.installed(asr) else {
                 try reject(String(localized: "Install the speech model in Models.", bundle: .module)); return
             }

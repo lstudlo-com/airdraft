@@ -290,7 +290,10 @@ struct SetupReadiness {
             return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
         if facts.pending.contains(.speech) { return String(localized: "Checking model files…") }
-        if !facts.speechInstalled { return String(localized: "Model not installed") }
+        if !facts.speechInstalled {
+            // A damaged bundled catalogue cannot be fixed by downloading.
+            return LocalModels.catalogueError(for: asr)?.localizedDescription ?? String(localized: "Model not installed")
+        }
         if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
         return container.engineStatus.state(for: asr.engineID).label
     }
