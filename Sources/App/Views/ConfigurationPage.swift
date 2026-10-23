@@ -150,12 +150,15 @@ struct ConfigurationPage: View {
                             }
                         }
                         if settings.livePreviewSource == .speechModel || search.isSearching {
-                            let reason = ModelSpeechPreview.unavailableReason(for: container.pipeline.speechConfig)
+                            let readiness = container.modelPreviewReadiness
                             RowDivider()
-                            SettingRow(title: "Preview model", detail: modelPreviewDetail(reason: reason)) {
-                                if reason != nil {
+                            SettingRow(title: "Preview model", detail: modelPreviewDetail(readiness)) {
+                                switch readiness {
+                                case .unavailable:
                                     Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
-                                } else {
+                                case .checking:
+                                    StatusDot(.busy)
+                                case .ready:
                                     StatusDot(settings.livePreviewEnabled && settings.livePreviewSource == .speechModel ? .ok : .inactive)
                                 }
                             }
@@ -264,11 +267,15 @@ private struct AppIconSettingRow: View {
 /// Tiny window mock-up for the theme picker.
 extension ConfigurationPage {
     /// The model preview row names the active profile's speech model, or why it cannot preview.
-    func modelPreviewDetail(reason: String?) -> String {
+    func modelPreviewDetail(_ readiness: ModelPreviewReadiness) -> String {
         let settings = container.settings
         if !settings.livePreviewEnabled { return String(localized: "Enable Show text while speaking") }
         if settings.livePreviewSource != .speechModel { return String(localized: "Choose Selected speech model as the preview source") }
-        return reason ?? container.pipeline.speechConfig.displayName
+        switch readiness {
+        case .unavailable(let reason): return reason
+        case .checking: return String(localized: "Checking model files…")
+        case .ready: return container.speechConfig.displayName
+        }
     }
 }
 

@@ -245,6 +245,8 @@ public final class DictationPipeline {
     var captureLatency: CaptureLatency?
     /// The kept-audio memory bound; tests shorten it.
     var keptAudioBudgetSeconds = DictationPipeline.maximumPendingRecordingSeconds
+    /// A provider's effective recording limit for the saved setting; tests shorten it.
+    var recordingLimitSeconds: (Int, ASRProviderKind) -> Int = { SpeechInputLimits.recordingSeconds($0, for: $1) }
     var minimumRecordingWithinBudget = DictationPipeline.minimumBudgetedRecordingSeconds
     /// The session whose auto-stop came from the kept-audio budget, with the
     /// duration it was allowed.

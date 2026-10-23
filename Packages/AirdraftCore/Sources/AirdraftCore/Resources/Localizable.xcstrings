@@ -1580,6 +1580,22 @@
         }
       }
     },
+    "Cancelled before delivery. The text was not pasted." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "送出前已取消，未貼上文字。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送前已取消，未粘贴文本。"
+          }
+        }
+      }
+    },
     "Cantonese" : {
       "localizations" : {
         "zh-Hans" : {

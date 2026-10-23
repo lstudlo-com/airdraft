@@ -128,4 +128,35 @@ final class SetupFactsTests: XCTestCase {
         XCTAssertEqual(facts.measurements.map { $0.inputs }, [fast])
         XCTAssertEqual(facts.values(for: slow).pending, [.speech])
     }
+
+    /// Settings' Preview model row (AD-084) reads only measured facts: a
+    /// redraw never stats the model folder, and an unmeasured model is Checking.
+    func testModelPreviewReadinessReadsOnlyMeasuredFacts() async {
+        let calls = Calls()
+        let missing = facts(installed: false, calls: calls)
+        let inputs = SetupFacts.Inputs(speech: sense, llm: off)
+        XCTAssertEqual(ModelPreviewReadiness.of(sense, facts: missing.values(for: inputs)), .checking)
+        guard case .unavailable(let unsupported) = ModelPreviewReadiness.of(whisper, facts: missing.values(for: .init(speech: whisper, llm: off))) else {
+            return XCTFail("An unsupported model needs no measurement to be unavailable")
+        }
+        XCTAssertTrue(unsupported.contains(whisper.displayName))
+        XCTAssertEqual(calls.count, 0, "Reading readiness must never measure")
+        await missing.refresh(inputs)
+        guard case .unavailable(let install) = ModelPreviewReadiness.of(sense, facts: missing.values(for: inputs)) else {
+            return XCTFail("A measured missing model asks for installation")
+        }
+        XCTAssertEqual(install, ModelSpeechPreview.unavailableReason(for: sense, installed: false))
+        let installed = facts(installed: true)
+        await installed.refresh(inputs)
+        XCTAssertEqual(ModelPreviewReadiness.of(sense, facts: installed.values(for: inputs)), .ready)
+        XCTAssertEqual(calls.count, 1)
+    }
+
+    func testContainerPreviewReadinessIsCheckingUntilMeasured() {
+        let isolated = IsolatedContainer()
+        defer { isolated.tearDown() }
+        isolated.container.settings.asr = sense
+        XCTAssertEqual(isolated.container.modelPreviewReadiness, .checking,
+                       "An unstarted container has measured nothing and must not stat files on read")
+    }
 }

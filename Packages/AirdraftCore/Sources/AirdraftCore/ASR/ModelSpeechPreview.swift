@@ -82,11 +82,19 @@ public enum ModelSpeechPreview {
     }
 
     /// Why the selected model cannot show live text, or nil when it can.
+    /// Stats the model folder: never call it from a view body (use the
+    /// `installed:` form with a fact measured off the main actor).
     public static func unavailableReason(for asr: ASRConfig) -> String? {
+        unavailableReason(for: asr, installed: supports(asr) && LocalModels.isInstalled(asr))
+    }
+
+    /// The same reason from an installed state already measured elsewhere;
+    /// reads no files.
+    public static func unavailableReason(for asr: ASRConfig, installed: Bool) -> String? {
         guard supports(asr) else {
             return String(localized: "Live text is unavailable for \(asr.displayName). Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet.", bundle: .module)
         }
-        guard LocalModels.isInstalled(asr) else {
+        guard installed else {
             return String(localized: "Install \(asr.displayName) in Models to see live text.", bundle: .module)
         }
         return nil

@@ -13,13 +13,20 @@ extension DictationPipeline {
         /// Output reached its destination, confirmed or sent unverified.
         var outputSucceeded = false
         var sentUnverified = false
+        /// Cancelled while an earlier unverified paste still owned the clipboard:
+        /// nothing was written, the session no longer owns the pipeline, and the
+        /// text goes to History as not delivered.
+        var cancelledBeforeWriting = false
     }
 
     /// A script can have external side effects, so it is never retried and never
     /// falls back to pasting when its completion is uncertain.
     ///
-    /// Returns nil when the session was cancelled while an earlier unverified
-    /// paste still owned the clipboard: nothing of this dictation was written.
+    /// Cancel is accepted while an earlier unverified paste still owns the
+    /// clipboard, and then nothing of this dictation is written. A fresh
+    /// dictation's text and audio still reach History, marked not delivered
+    /// (`cancelledBeforeWriting`). A retry returns nil: its kept recording stays
+    /// for another retry or discard, so nothing is lost or duplicated.
     func deliver(_ final: String, output: OutputSnapshot, target: InsertionTarget?, token: UUID,
                  delivery: DeliveryPolicy, stopRequested: TimeInterval?,
                  timings: inout DictationTimings) async -> DeliveryReport? {
@@ -32,7 +39,12 @@ extension DictationPipeline {
             deliveryAwaitingClipboard = true
             await inserter.waitForPendingReceiver()
             deliveryAwaitingClipboard = false
-            guard isCurrent(token), !Task.isCancelled else { return nil }
+            guard isCurrent(token), !Task.isCancelled else {
+                guard delivery == .normal || delivery == .practice else { return nil }
+                timings.deliveryMs = Self.elapsed(since: deliveryStarted)
+                let cancelled = String(localized: "Cancelled before delivery. The text was not pasted.", bundle: .module)
+                return DeliveryReport(notice: cancelled, deliveryError: cancelled, cancelledBeforeWriting: true)
+            }
         }
         var report = DeliveryReport()
         var reportedDelivery = false
@@ -141,6 +153,9 @@ extension DictationPipeline {
         // release the kept audio it was processing.
         resolveRecovery(for: token)
         discardRefinementPreparation(for: token)
+        // A cancelled session no longer owns the state, the HUD or the last
+        // issue, which a newer session may already use.
+        let ownsState = !report.cancelledBeforeWriting
         let historyStarted = ProcessInfo.processInfo.systemUptime
         let previousTail = deliveryTail
         let tailID = UUID()
@@ -167,6 +182,7 @@ extension DictationPipeline {
                 self.isFinishingDelivery = false
             }
         }
+        guard ownsState else { return }
         if let budget = keptBudgetStop, budget.token == token {
             // The recording ended early: say so before any delivery notice.
             notice = [keptBudgetStopNotice(seconds: budget.seconds), notice].compactMap { $0 }.joined(separator: " ")

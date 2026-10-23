@@ -90,29 +90,109 @@ public extension AppFamily {
 
 /// Decodes every readable rule and skips the rest, so a rule written by a newer
 /// version (an unknown family, say) never makes the whole profile file unreadable.
+/// Skipped elements are kept as raw JSON and written back unchanged after the
+/// readable rules, so saving in this version never deletes a newer version's rules.
 struct LossyAppProfileRules: Codable {
     var rules: [AppProfileRule]
+    /// Elements this version cannot read, in file order.
+    var unreadable: [RawJSON]
 
-    init(_ rules: [AppProfileRule]) { self.rules = rules }
+    init(_ rules: [AppProfileRule], unreadable: [RawJSON] = []) {
+        self.rules = rules
+        self.unreadable = unreadable
+    }
 
     init(from decoder: Decoder) throws {
         rules = []
+        unreadable = []
         guard var container = try? decoder.unkeyedContainer() else { return }
         while !container.isAtEnd {
             if let rule = try? container.decode(AppProfileRule.self) {
                 rules.append(rule)
-            } else if (try? container.decode(Skipped.self)) == nil {
+            } else if let raw = try? container.decode(RawJSON.self) {
+                unreadable.append(raw)
+            } else {
                 break
             }
         }
     }
 
     func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(rules)
+        var container = encoder.unkeyedContainer()
+        for rule in rules { try container.encode(rule) }
+        for raw in unreadable { try container.encode(raw) }
+    }
+}
+
+/// Any JSON value, decoded and re-encoded without interpretation. Numbers keep
+/// their integer or floating-point form; object keys keep their values.
+enum RawJSON: Codable, Equatable, Sendable {
+    case null
+    case bool(Bool)
+    case integer(Int64)
+    case number(Double)
+    case string(String)
+    case array([RawJSON])
+    case object([String: RawJSON])
+
+    init(from decoder: Decoder) throws {
+        if var array = try? decoder.unkeyedContainer() {
+            var values: [RawJSON] = []
+            while !array.isAtEnd { values.append(try array.decode(RawJSON.self)) }
+            self = .array(values)
+            return
+        }
+        if let object = try? decoder.container(keyedBy: Key.self) {
+            var values: [String: RawJSON] = [:]
+            for key in object.allKeys { values[key.stringValue] = try object.decode(RawJSON.self, forKey: key) }
+            self = .object(values)
+            return
+        }
+        let value = try decoder.singleValueContainer()
+        if value.decodeNil() { self = .null }
+        else if let bool = try? value.decode(Bool.self) { self = .bool(bool) }
+        else if let integer = try? value.decode(Int64.self) { self = .integer(integer) }
+        else if let number = try? value.decode(Double.self) { self = .number(number) }
+        else { self = .string(try value.decode(String.self)) }
     }
 
-    private struct Skipped: Decodable {
-        init(from decoder: Decoder) throws {}
+    func encode(to encoder: Encoder) throws {
+        switch self {
+        case .array(let values):
+            var array = encoder.unkeyedContainer()
+            for value in values { try array.encode(value) }
+        case .object(let values):
+            var object = encoder.container(keyedBy: Key.self)
+            for (key, value) in values { try object.encode(value, forKey: Key(key)) }
+        case .null:
+            var value = encoder.singleValueContainer()
+            try value.encodeNil()
+        case .bool(let bool):
+            var value = encoder.singleValueContainer()
+            try value.encode(bool)
+        case .integer(let integer):
+            var value = encoder.singleValueContainer()
+            try value.encode(integer)
+        case .number(let number):
+            var value = encoder.singleValueContainer()
+            try value.encode(number)
+        case .string(let string):
+            var value = encoder.singleValueContainer()
+            try value.encode(string)
+        }
+    }
+
+    /// The profile an unreadable rule names, when it names one this version can read.
+    var ruleProfileID: UUID? {
+        guard case .object(let values) = self, case .string(let id)? = values["profileID"] else { return nil }
+        return UUID(uuidString: id)
+    }
+
+    private struct Key: CodingKey {
+        let stringValue: String
+        init(_ string: String) { stringValue = string }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        var intValue: Int? { nil }
+        init?(intValue: Int) { nil }
     }
 }

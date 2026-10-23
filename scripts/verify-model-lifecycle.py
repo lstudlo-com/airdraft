@@ -64,21 +64,26 @@ enum MemoryPressureLevel: CustomStringConvertible {
     /// Fixture grace periods: warnings keep anything used this hour; critical keeps nothing.
     var minimumIdleSeconds: TimeInterval { self == .critical ? 0 : 3600 }
 }
-struct MemoryPressureUnload { var unloaded: [String] = [] }
+struct MemoryPressureUnload { var unloaded: [String] = []; var skippedBusy = false }
+enum MemoryPressurePassResult: Equatable { case completed, deferred }
 @MainActor final class MemoryPressureResponder {
     static var started = 0
     static var stopped = 0
-    init(respond: @escaping @MainActor (MemoryPressureLevel) async -> Void) {}
+    static var resumed = 0
+    init(respond: @escaping @MainActor (MemoryPressureLevel) async -> MemoryPressurePassResult) {}
     func start() { Self.started += 1 }
     func stop() { Self.stopped += 1 }
+    func resumeDeferred() { Self.resumed += 1 }
 }
 actor EngineFactory {
     var prepared: [String] = []
     var unloadCount = 0
     var pressurePasses: [TimeInterval] = []
+    var pressureLeaseBusy = false
+    func setPressureLeaseBusy(_ busy: Bool) { pressureLeaseBusy = busy }
     func unloadForMemoryPressure(minimumIdleSeconds: TimeInterval) async -> MemoryPressureUnload {
         pressurePasses.append(minimumIdleSeconds)
-        return MemoryPressureUnload()
+        return MemoryPressureUnload(skippedBusy: pressureLeaseBusy)
     }
     func prepare(_ config: ASRConfig) async throws { prepared.append(config.engineID) }
     func unloadAll() async { unloadCount += 1 }
@@ -711,12 +716,20 @@ func require(_ condition: @autoclosure () -> Bool, _ message: String) throws {
                 await lifecycle.loadLLMIfNeeded()
                 lifecycle.setDictationBusy(true)
                 let before = await factory.pressurePasses.count
-                await lifecycle.respondToMemoryPressure(.critical)
+                let busyResult = await lifecycle.respondToMemoryPressure(.critical)
                 let after = await factory.pressurePasses.count
                 try require(LMStudioControl.unloadCalls.isEmpty && after == before, "Pressure touched models while the pipeline was busy")
+                try require(busyResult == .deferred, "A pass skipped for busy work was not deferred")
+                let resumedBefore = MemoryPressureResponder.resumed
                 lifecycle.setDictationBusy(false)
                 for _ in 0..<50 { await Task.yield() }
-                await lifecycle.respondToMemoryPressure(.critical)
+                try require(MemoryPressureResponder.resumed > resumedBefore, "Ending busy work did not resume the deferred pass")
+                await factory.setPressureLeaseBusy(true)
+                let leaseResult = await lifecycle.respondToMemoryPressure(.warning)
+                try require(leaseResult == .deferred, "A pass that found the factory lease busy was not deferred")
+                await factory.setPressureLeaseBusy(false)
+                let idleResult = await lifecycle.respondToMemoryPressure(.critical)
+                try require(idleResult == .completed, "An idle pass was not completed")
                 try require(LMStudioControl.unloadCalls.map(\.id) == ["loaded-instance"], "Idle pressure pass did not free the app-loaded instance")
                 settings.unloadLLMOnQuit = false
                 await lifecycle.shutdown()

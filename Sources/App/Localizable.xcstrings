@@ -2366,6 +2366,22 @@
         }
       }
     },
+    "An app rule chooses the %@ profile, which uses this model. Choose another model in Profiles before deleting it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 規則選擇的「%@」模式使用這個模型。刪除前，請先在「模式」中選擇其他模型。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 规则选择的“%@”模式使用此模型。删除前，请先在“模式”中选择其他模型。"
+          }
+        }
+      }
+    },
     "An app's own rule comes before its family's" : {
       "localizations" : {
         "zh-Hans" : {

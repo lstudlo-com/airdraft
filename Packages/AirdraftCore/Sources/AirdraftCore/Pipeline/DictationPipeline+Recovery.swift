@@ -21,21 +21,35 @@ extension DictationPipeline {
         recoveries.filter { !$0.info.isReview }.reduce(0) { $0 + $1.info.seconds }
     }
 
-    /// How long the next recording may capture: its effective limit, shortened
-    /// so kept audio plus this recording stays within the memory bound.
+    /// Seconds of the kept-audio memory bound not used by kept recordings.
+    var remainingKeptAudioBudgetSeconds: Double { max(0, keptAudioBudgetSeconds - keptDictationSeconds) }
+
+    /// How long a recording transcribed by `asr` may capture: that provider's
+    /// effective limit, shortened so kept audio plus this recording stays within
+    /// the memory bound. A recording passes its snapshot's speech config, which
+    /// an app rule may choose instead of the chosen profile's.
+    func availableRecordingSeconds(for asr: ASRConfig) -> Double {
+        min(Double(recordingLimitSeconds(settings.maxRecordingSeconds, asr.kind)),
+            remainingKeptAudioBudgetSeconds)
+    }
+
+    /// How long the next recording may capture, with the speech config the
+    /// frontmost app's profile chooses (the same resolution recording uses).
     public var availableRecordingSeconds: Double {
-        let limit = Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind))
-        return min(limit, max(0, keptAudioBudgetSeconds - keptDictationSeconds))
+        availableRecordingSeconds(for: recordingSnapshot(app: frontmostBundleID()).asr)
     }
 
     /// True when kept audio, not the recording limit, will end the next recording.
     public var keptAudioShortensNextRecording: Bool {
-        availableRecordingSeconds < Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: speechConfig.kind))
+        let asr = recordingSnapshot(app: frontmostBundleID()).asr
+        return availableRecordingSeconds(for: asr) < Double(recordingLimitSeconds(settings.maxRecordingSeconds, asr.kind))
     }
 
+    /// Whether another dictation fits beside the kept ones. Only the memory
+    /// bound decides: every provider allows at least the shortest recording.
     public var canKeepAnotherRecording: Bool {
         recoveries.filter { !$0.info.isReview }.count < Self.maximumPendingRecordings
-            && availableRecordingSeconds >= minimumRecordingWithinBudget
+            && remainingKeptAudioBudgetSeconds >= minimumRecordingWithinBudget
     }
 
     /// Shown when a recording stopped at the kept-audio budget instead of its limit.
