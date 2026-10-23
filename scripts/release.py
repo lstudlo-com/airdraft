@@ -288,7 +288,28 @@ def live_insertion_evidence(source, output, debug_app, commit, unverified_reason
     return json.loads(report.read_text()) | {'commit': commit}
 
 
-def prepare(commit, test_scope="full", unverified_live_insertion=None):
+def insertion_matrix(source, output, debug_app, commit):
+    """Optional live matrix across installed editors; never replaces the mandatory gate.
+
+    Its TextEdit/Chrome cases are written into insertion-e2e/, where
+    verify-live-insertion.py then applies the unchanged four-case gate. The
+    summary is recorded separately; an incomplete matrix does not stop prepare.
+    """
+    directory = Path(tempfile.mkdtemp(prefix="insertion-matrix-", dir=output)) / "evidence"
+    print(f"Optional insertion matrix for {debug_app}; evidence: {directory}", flush=True)
+    code = subprocess.run([sys.executable, source / "scripts/verify-insertion-matrix.py", "--app", debug_app,
+                           "--output", directory, "--gate-reports", output / "insertion-e2e"], cwd=source).returncode
+    try:
+        summary = json.loads((directory / "matrix.json").read_text())
+    except (OSError, ValueError):
+        return {"status": "failed", "commit": commit, "error": f"matrix exited {code} without matrix.json"}
+    return {"status": summary.get("status"), "commit": commit, "evidence": str(directory),
+            "accessibilityTrusted": summary.get("accessibilityTrusted"),
+            "cases": [{key: case.get(key) for key in ("target", "bundleID", "method", "expectation", "status", "reason")}
+                      for case in summary.get("cases", [])]}
+
+
+def prepare(commit, test_scope="full", unverified_live_insertion=None, run_insertion_matrix=False):
     verification = verification_for(test_scope)
     if sys.platform != "darwin":
         raise RuntimeError("Release preparation requires the signing Mac")
@@ -342,6 +363,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     debug = next(item['buildSettings'] for item in json.loads(raw) if item['target'] == 'airdraft')
     debug_app = Path(debug['TARGET_BUILD_DIR']) / debug['FULL_PRODUCT_NAME']
     print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
+    matrix = insertion_matrix(source, output, debug_app, commit) if run_insertion_matrix else None
     live_insertion = live_insertion_evidence(source, output, debug_app, commit, unverified_live_insertion)
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     run(sys.executable, source / "scripts/native_inputs.py", "verify", "--vendor",
@@ -374,6 +396,8 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
                 "signing": signing, "verification": verification, "liveInsertion": live_insertion,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
+    if matrix is not None:
+        manifest["insertionMatrix"] = matrix
     validate_manifest(manifest, commit, tag)
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)
@@ -398,6 +422,12 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
         with notes.open('a') as note:
             note.write(f"\nLive insertion verification remains incomplete: {live_insertion['reason']} "
                        "Published under the user's policy to report unverified checks after release.\n")
+    if matrix is not None:
+        counts = {status: sum(case["status"] == status for case in matrix.get("cases", []))
+                  for status in ("passed", "unverified", "failed")}
+        with notes.open('a') as note:
+            note.write(f"\nOptional insertion matrix: {matrix['status']} ({counts['passed']} passed, "
+                       f"{counts['unverified']} unverified, {counts['failed']} failed).\n")
     # A draft creates no public tag. The workflow sets its final target after Git accepts the push.
     gh("release", "create", tag, archive, output / "appcast.xml", output / "release.json",
        "--repo", REPO, "--draft", "--target", "main", "--title", f"Airdraft {version} (build {build})",
@@ -460,6 +490,9 @@ def main():
     parser.add_argument('--unverified-live-insertion', metavar='REASON',
                         default=os.environ.get('AIRDRAFT_UNVERIFIED_LIVE_INSERTION'),
                         help='Apply the user release policy: record incomplete live insertion checks and continue')
+    parser.add_argument('--insertion-matrix', action='store_true',
+                        default=os.environ.get('AIRDRAFT_INSERTION_MATRIX') == '1',
+                        help='Also run the optional live insertion matrix (verify-insertion-matrix.py)')
     args = parser.parse_args()
     verification_for(args.test_scope)
     if args.command == "install-hook":
@@ -485,7 +518,7 @@ def main():
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        prepare(commit, args.test_scope, args.unverified_live_insertion)
+        prepare(commit, args.test_scope, args.unverified_live_insertion, args.insertion_matrix)
 
 
 if __name__ == "__main__":

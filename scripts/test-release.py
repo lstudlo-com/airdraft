@@ -420,6 +420,31 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn(status, ('enforced', 'not-enforced'))
         self.assertEqual(outcomes['control']['exit'], 0)
 
+    def test_optional_insertion_matrix_feeds_the_gate_directory_and_records_a_summary(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            calls = []
+
+            def fake_run(command, **kwargs):
+                calls.append([str(part) for part in command])
+                evidence = Path(command[command.index('--output') + 1])
+                evidence.mkdir(parents=True)
+                (evidence / 'matrix.json').write_text(json.dumps({'status': 'unverified', 'accessibilityTrusted': False,
+                    'cases': [{'target': 'TextEdit', 'bundleID': 'com.apple.TextEdit', 'method': 'auto',
+                               'expectation': 'confirmed', 'status': 'unverified', 'reason': 'no access',
+                               'token': 'not recorded'}]}))
+                return subprocess.CompletedProcess(command, 2)
+
+            with patch.object(release.subprocess, 'run', side_effect=fake_run):
+                summary = release.insertion_matrix(Path('/source'), output, Path('/Debug.app'), 'a' * 40)
+            self.assertEqual(calls[0][calls[0].index('--gate-reports') + 1], str(output / 'insertion-e2e'))
+            self.assertEqual(summary['status'], 'unverified')
+            self.assertEqual(summary['commit'], 'a' * 40)
+            self.assertNotIn('token', summary['cases'][0])
+            with patch.object(release.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1)):
+                self.assertEqual(release.insertion_matrix(Path('/source'), output, Path('/Debug.app'), 'a' * 40)['status'],
+                                 'failed')
+
     def test_bundled_acknowledgements_match_resolved_inputs(self):
         self.assertTrue(acknowledgements.check_inputs(Path(release.__file__).resolve().parents[1]))
 

@@ -209,6 +209,15 @@ policy. Release notes disclose the gap. Publication accepts this explicit record
 it does not count it as passed acceptance. Successful live evidence remains passed
 even when this option is supplied. Signing and artifact identity checks still run.
 
+`--insertion-matrix` (or `AIRDRAFT_INSERTION_MATRIX=1`) additionally runs the
+optional live matrix in `scripts/verify-insertion-matrix.py` against the candidate
+Debug build before the mandatory gate. Its TextEdit and Chrome cases are written
+into `insertion-e2e/`, where the unchanged four-case gate validates them; cases for
+other installed editors only add `insertionMatrix` to `release.json` and one line
+to the notes. An incomplete or failed matrix never stops preparation by itself.
+It needs the operator at the Mac to focus each prepared field; see
+[Local feature verification](local-e2e.md#live-insertion-matrix).
+
 A failed push leaves a draft, never a public release. Retrying reuses verified
 assets. A failed build blocks the push. The publisher refuses to publish a stale
 commit after main moves. Feature branch and tag pushes do not build releases.

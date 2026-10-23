@@ -110,6 +110,7 @@ Available `--e2e-action` values:
 | Action | Behavior |
 |---|---|
 | `inventory` | Local model installation paths and on-device refinement availability |
+| `accessibility` | Non-prompting `AXIsProcessTrusted` result, bundle path, binary hashes and the compiled `selfDrawingEditorBundlePrefixes` |
 | `architecture` | Actual AppContainer cleanup, journal recovery, single-writer and onboarding resolution with disposable stores and an injected remote-cleanup operation; no capture, credentials or provider calls |
 | `insert` | Production capture/insertion against an explicitly prepared disposable field in another app; verifies the actual resulting field value |
 | `download` | Explicit anonymous installation of `--e2e-model` into the isolated root |
@@ -217,6 +218,14 @@ the actual field value to match the expected insertion, one delivery callback
 and no notice. Posting a key event alone is not a pass. A failed fixture restores
 its recovery clipboard text only while it still owns that clipboard change.
 Never use an existing user draft or reset permissions to run this check.
+`--e2e-insertion-field` selects how the field is identified: `exact` (default,
+the release gate) requires the field to hold only the marker; `suffix` accepts
+earlier text before the marker, ignores trailing blank rows and requires that
+text to stay unchanged (a terminal showing the prompt-less receiver); `none` is
+the only mode, and the default, for an app in `selfDrawingEditorBundlePrefixes`.
+There the fixture reads no field and passes only on the documented outcome: one
+paste reported as sent unverified, one delivery callback and no notice. Every
+mode waits for the displaced clipboard to return before the fixture exits.
 
 Release preparation checks four live cases: TextEdit and Chrome, each with
 `auto` and `paste`, using fresh fixture tokens. Run each candidate Debug action
@@ -228,6 +237,61 @@ cannot be completed, the user's push-and-release policy applies: pass
 `--unverified-live-insertion REASON` to prepare and record the incomplete check
 instead of blocking publication. Report it after release. The original failed
 report remains intact. Unit tests or posted key events cannot replace live results.
+
+### Live insertion matrix
+
+`verify-insertion-matrix.py` repeats that fixture for every installed target
+among TextEdit, Chrome, Safari, Notes, VS Code, Slack, Warp, Zed, Ghostty,
+Terminal and iTerm2, once per saved insertion method:
+
+```sh
+python3 scripts/verify-insertion-matrix.py --app "$APP" --list
+python3 scripts/verify-insertion-matrix.py --app "$APP" --output /tmp/airdraft-insertion-matrix
+```
+
+Targets are detected by bundle ID in the application folders; nothing is
+installed. Each case gets a fresh UUID marker and its own `--e2e-local` directory.
+The Debug app is started through LaunchServices (`open -W -n -g`), so its own
+Accessibility grant applies and the fixture app stays frontmost; `--launch direct`
+runs the executable as a child process, whose permission belongs to the calling
+terminal. The script first runs `--e2e-action accessibility`. When that report
+says the Debug app is untrusted, or comes from another build, every case is
+UNVERIFIED and nothing is opened. Grant access once: System Settings > Privacy &
+Security > Accessibility, turn on Airdraft Debug (use + and choose the printed app
+path if it is missing), then rerun. The script never requests, grants or resets a
+permission, and uses no AppleScript, System Events or synthetic input.
+
+Fields are prepared as follows; the operator then clicks into the field, and the
+script waits until LaunchServices reports that app frontmost for one second:
+
+| Target | Preparation | Expected outcome |
+|---|---|---|
+| TextEdit, VS Code | `open -a` a temporary text file holding the marker; click at its end | Actual field text |
+| Chrome, Safari | `open -a` a local page whose field focuses itself with the caret at the end | Actual field text |
+| Notes, Slack | Printed steps: a new note, or your own DM's message box (never press Return), holding only the marker | Actual field text |
+| Terminal | `open -a` a receiver script | Actual text (suffix mode) and receiver evidence |
+| iTerm2 | Run the printed receiver command in a new window | Actual text (suffix mode) and receiver evidence |
+| Warp, Ghostty | Run the printed receiver command in a new window | Sent unverified and receiver evidence |
+| Zed | `open -a` a temporary text file; click at its end | Sent unverified; no readable text |
+
+The expected outcome comes from the build's own `selfDrawingEditorBundlePrefixes`.
+The terminal receiver clears the screen, prints only the marker, enables bracketed
+paste and focus reports, echoes each paste and writes `evidence.json`. A pass
+requires exactly one bracketed paste containing the inserted text. When the
+harness runs inside the target terminal app, the case also waits for the
+receiver's focus report; click another window and then the receiver. Close every
+fixture window without saving afterwards, and delete the Notes note or Slack draft.
+
+A case passes only with the build's binary hashes, its own token, one delivery,
+no notice and the expected field mode. A fixture error is always raised before
+any paste and is recorded as UNVERIFIED with its reason (for example a field that
+exposes no readable value); wrong text, extra deliveries, notices or recovery
+copies fail. `matrix.json` records every case. The exit status is 0 when all
+passed, 1 when any failed and 2 when the matrix is incomplete. `--no-launch
+REASON` records every planned case as UNVERIFIED without starting anything.
+Release prepare runs it only with `--insertion-matrix`, writing the TextEdit and
+Chrome cases into `insertion-e2e/` for the unchanged mandatory gate. Earlier
+attempts stay there; a failed earlier report still fails that gate.
 
 Before calling a locally reproduced bug fixed, verify the running build:
 
