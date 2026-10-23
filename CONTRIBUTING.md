@@ -43,7 +43,8 @@ python3 scripts/test-local-e2e.py      # or: pnpm test:local
 ```
 
 It must finish with no failures, including the mandatory insertion regressions
-it checks in the test results. It never uses API keys or cloud services. The
+it checks in the test results and the `AirdraftAppTests` logic tests for App
+code. It never uses API keys or cloud services. The
 complete `AirdraftCoreTests` suite (`xcodebuild ... test`) also contains
 credential and cloud-provider tests.
 

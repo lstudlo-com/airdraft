@@ -2,7 +2,9 @@
 """Run the explicitly credential-free native regression selection.
 
 The allowlist is intentional: running all AirdraftCoreTests also runs credential
-and cloud-provider tests. Live app actions are documented in docs/local-e2e.md.
+and cloud-provider tests. AirdraftAppTests runs whole: its logic tests use
+injected boundaries and disposable data, never credentials, the microphone or
+the user's preferences. Live app actions are documented in docs/local-e2e.md.
 """
 import argparse
 import json
@@ -49,6 +51,10 @@ HardeningTests/testCLIProcessDrainsLargeOutput
 EngineFactoryTests/testLocalEnginesAreCachedPerModel
 """.split()
 
+# App-only logic tests. The bundle compiles the App sources itself, so no test
+# launches Airdraft as a host; the whole target is credential-free.
+APP_TEST_TARGET = "AirdraftAppTests"
+
 # CI runners have no Apple Development identity. Unsigned builds are a CI-only
 # test route; release builds keep the pinned identity and Hardened Runtime.
 UNSIGNED_SETTINGS = ("CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO")
@@ -74,7 +80,31 @@ def credential_free_selection(suites=None, cases=None):
             raise RuntimeError(f"Invalid credential-free test selector: {name}")
         if name.split("/")[0] in EXCLUDED_SUITES or name == "AppIdentityTests":
             raise RuntimeError(f"Credential test is outside the selected scope: {name}")
-    return [f"-only-testing:AirdraftCoreTests/{name}" for name in names]
+    return [f"-only-testing:AirdraftCoreTests/{name}" for name in names] + [f"-only-testing:{APP_TEST_TARGET}"]
+
+
+def verify_app_tests(tree):
+    """Require that App tests ran and passed, so a scheme or selector change cannot drop them silently."""
+    results = []
+
+    def walk(node):
+        if isinstance(node, list):
+            for child in node:
+                walk(child)
+        elif isinstance(node, dict):
+            if (node.get('nodeType') == 'Test Case'
+                    and f"/{APP_TEST_TARGET}/" in node.get('nodeIdentifierURL', '')):
+                results.append((node.get('nodeIdentifier') or node.get('name'), node.get('result')))
+            for child in node.get('children', []):
+                walk(child)
+
+    walk(tree.get('testNodes', []))
+    if not results:
+        raise RuntimeError(f"No {APP_TEST_TARGET} test cases ran")
+    unsuccessful = sorted(name for name, result in results if result != 'Passed')
+    if unsuccessful:
+        raise RuntimeError(f"{APP_TEST_TARGET} cases did not pass: {', '.join(unsuccessful)}")
+    return {'target': APP_TEST_TARGET, 'passed': len(results)}
 
 
 def main():
@@ -131,6 +161,16 @@ def main():
         code = subprocess.run([sys.executable, str(root / 'scripts/verify-insertion-regressions.py'),
                                str(result), '--report', str(output / 'insertion-regressions.json')],
                               cwd=root, env=env).returncode
+    if code == 0:
+        tree = subprocess.run(['xcrun', 'xcresulttool', 'get', 'test-results', 'tests', '--path', str(result)],
+                              cwd=root, env=env, check=True, text=True, capture_output=True).stdout
+        try:
+            report = verify_app_tests(json.loads(tree))
+        except RuntimeError as error:
+            print(f"App test gate failed: {error}", file=sys.stderr)
+            return 1
+        (output / 'app-tests.json').write_text(json.dumps(report, indent=2) + "\n")
+        print(f"PASS: {report['passed']} {APP_TEST_TARGET} cases executed and passed", flush=True)
     return code
 
 

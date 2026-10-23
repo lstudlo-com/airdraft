@@ -108,6 +108,33 @@ targets:
           PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.debug
           PRODUCT_NAME: Airdraft Debug
           AIRDRAFT_DISPLAY_NAME: Airdraft Debug
+  # Logic tests for App-only code. The bundle compiles the App sources itself
+  # instead of loading the app as a test host, so no test launches Airdraft,
+  # reads its preferences or history, or starts hotkeys, the menu or the updater.
+  AirdraftAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Sources/App
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+          - "*.xcstrings"
+          - "Assets.xcassets"
+          - "Resources"
+      - path: Tests/AirdraftAppTests
+    dependencies:
+      - package: AirdraftCore
+        embed: true
+      - package: Sparkle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.apptests
+        PRODUCT_NAME: AirdraftAppTests
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSPrincipalClass: AirdraftAppTests.TestBundleSetup
+        # The app target owns string extraction for the catalogues.
+        SWIFT_EMIT_LOC_STRINGS: NO
 schemes:
   airdraft:
     build:
@@ -120,3 +147,4 @@ schemes:
       # Core tests build into the app's DerivedData instead of a second SwiftPM tree.
       targets:
         - package: AirdraftCore/AirdraftCoreTests
+        - AirdraftAppTests
