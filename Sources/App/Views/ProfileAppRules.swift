@@ -72,12 +72,7 @@ struct ProfileAppRules: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func title(_ rule: AppProfileRule) -> String {
-        switch rule.match {
-        case .family(let family): family.ruleTitle
-        case .app(let bundleID): InstalledApplications.entry(for: bundleID).name ?? rule.appName ?? bundleID
-        }
-    }
+    private func title(_ rule: AppProfileRule) -> String { AppRuleTitle.title(rule) }
 
     private func detail(_ rule: AppProfileRule) -> String? {
         switch rule.match {

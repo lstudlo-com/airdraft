@@ -84,9 +84,15 @@ public enum RecordingPrerequisites {
         }
     }
 
-    private static func validateEndpoint(_ value: String, stage: String) throws {
+    /// An HTTP(S) URL with a host; readiness uses the same test.
+    static func isValidEndpoint(_ value: String) -> Bool {
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
-              let host = url.host, !host.isEmpty else {
+              let host = url.host, !host.isEmpty else { return false }
+        return true
+    }
+
+    private static func validateEndpoint(_ value: String, stage: String) throws {
+        guard isValidEndpoint(value) else {
             throw RecordingPrerequisiteError(stage == "speech" ? String(localized: "Check the speech endpoint in Models.", bundle: .module)
                                              : String(localized: "Check the refinement endpoint in Models.", bundle: .module))
         }

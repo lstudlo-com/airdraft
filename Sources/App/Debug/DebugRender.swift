@@ -233,6 +233,19 @@ enum DebugRender {
             profiles.addAppRule(.app(bundleID: "com.apple.TextEdit"), profileID: RefinementProfile.conciseID, appName: "TextEdit")
             profiles.addAppRule(.app(bundleID: "com.example.removed-editor"), profileID: RefinementProfile.summaryID,
                                 appName: "Removed Editor")
+            // `RULE_SPEECH=<ASRProviderKind>[:model]` binds TextEdit's profile to that
+            // speech model; with the disposable model root it is not installed.
+            if let value = RenderMode.value("RULE_SPEECH") {
+                let parts = value.split(separator: ":", maxSplits: 1).map(String.init)
+                if let kind = ASRProviderKind(rawValue: parts[0]),
+                   var concise = profiles.profiles.first(where: { $0.id == RefinementProfile.conciseID }) {
+                    var config = container.settings.asr
+                    config.select(kind)
+                    if parts.count > 1 { config.selectModel(parts[1]) }
+                    concise.speechModel = ProfileSpeechModel(config: config)
+                    profiles.update(concise)
+                }
+            }
         }
         let pages: [Page] = pageName == "all" ? Page.allCases
             : [Page(rawValue: pageName == "profiles-by-app" ? Page.profiles.rawValue : pageName == "home-by-app" ? Page.home.rawValue : pageName) ?? .home]

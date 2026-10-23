@@ -351,6 +351,76 @@
         }
       }
     },
+    "%@ uses %@, which refines, but refinement isn't set up" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，此模式會潤稿，但潤稿尚未設定"
+          }
+        }
+      }
+    },
+    "%@ uses %@, whose speech API key is missing or locked" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，其語音 API 金鑰遺失或已鎖定"
+          }
+        }
+      }
+    },
+    "%@ uses %@, whose speech endpoint needs checking" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，其語音端點需要檢查"
+          }
+        }
+      }
+    },
+    "%@ uses %@, whose speech model doesn't support the selected language" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，其語音模型不支援所選語言"
+          }
+        }
+      }
+    },
+    "%@ uses %@, whose speech model is no longer available" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，其語音模型已無法使用"
+          }
+        }
+      }
+    },
+    "%@ uses %@, whose speech model isn't installed" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式，其語音模型尚未安裝"
+          }
+        }
+      }
+    },
+    "%@ uses %@. %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用「%@」模式。%@"
+          }
+        }
+      }
+    },
     "%@ uses its own speech model" : {
       "localizations" : {
         "zh-Hant" : {
@@ -618,6 +688,16 @@
         }
       }
     },
+    "%lld more app rules need setup." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 %lld 條 App 規則需要設定。"
+          }
+        }
+      }
+    },
     "%lld of 10" : {
       "localizations" : {
         "zh-Hant" : {
@@ -752,6 +832,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 次聽寫 · %@"
+          }
+        }
+      }
+    },
+    "1 more app rule needs setup." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 1 條 App 規則需要設定。"
           }
         }
       }
@@ -1532,6 +1622,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App 重置"
+          }
+        }
+      }
+    },
+    "App rules" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 規則"
           }
         }
       }
