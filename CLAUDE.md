@@ -924,7 +924,8 @@ and Local releases below.
   sentence; Whisper repeats bare dictionary terms on silence, so terms go only to
   dedicated keyword or context fields. Send that sentence only when Chinese is the
   selected speech language: under auto-detect it pulled English speech into a
-  Chinese translation. `ChineseScriptConverter` still normalises the script.
+  Chinese translation. `ChineseScriptConverter` still normalises the script; text
+  containing kana is Japanese and is never converted.
 - Secrets go in `Keychain` (service `com.lstudlo.app.airdraft`), never in UserDefaults,
   files, or logs.
 - Passive credential access must never prompt. Badges use `Keychain.presence`;
@@ -1038,9 +1039,12 @@ at Welcome. Old three-step progress migrates without reopening a skipped setup.
 Speech offers On this Mac (recommended) or an online service with the user's key.
 `LocalSpeechRecommendation` picks the local model from the primary system language
 and physical memory: Chinese gets Qwen3-ASR 1.7B with SenseVoice as the smaller
-choice, reversed at 8 GB or less; English, Japanese and Korean get SenseVoice; other
+choice, reversed at 8 GB or less; English gets Parakeet TDT v2 with Qwen3-ASR 1.7B
+as the multilingual choice; Japanese and Korean get Qwen3-ASR 1.7B with Whisper Large
+v3 Turbo as the lower-memory choice, reversed at 8 GB or less (`eval/eja-asr`); other
 languages get Whisper Large v3 Turbo. Never recommend Qwen3-ASR 0.6B as a lighter
-default. Each choice shows its download size and a one-line trade-off.
+default. Never recommend or shortlist the shipped SenseVoice archive, a Cantonese
+fine-tune, for English, Japanese or Korean. Each choice shows its download size and a one-line trade-off.
 A local download starts only from an explicit action, continues through later
 steps with progress in the rail, and becomes the app default only when complete
 while setup is open; Set Up Later discards that pending choice. Shortcut practice
