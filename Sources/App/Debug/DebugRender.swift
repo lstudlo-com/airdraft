@@ -133,6 +133,8 @@ enum DebugRender {
             container = LicensePreview.container(scenario)
         } else if env["AIRDRAFT_RENDER_SAMPLE_DATA"] == "1" {
             container = PreviewData.container
+            // Isolated preview settings; shows provider-dependent actions such as Summarize.
+            if let name = env["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) { container.settings.llm.select(kind) }
         } else if env["AIRDRAFT_RENDER_LLM"] != nil || env["AIRDRAFT_RENDER_ASR"] != nil {
             let settings = AppSettings(defaults: defaults)
             if let name = env["AIRDRAFT_RENDER_LLM"], let kind = LLMProviderKind(rawValue: name) { settings.llm.select(kind) }

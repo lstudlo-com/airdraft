@@ -90,6 +90,15 @@ enum AccessibilityAudit {
             }
             container.settings.onboarding.dismiss()
             audit("license", LicenseView(), height: 420)
+            // The transcript editor with its Recent names and Summarize menus (AD-086).
+            let llm = container.settings.llm
+            container.settings.llm.select(.openAICompatible)
+            try? container.history?.rememberSpeakerNames(["Morgan Lee", "林語晴"])
+            audit("media-editor", MediaDocumentEditor(initial: MediaPreview.document), height: 580, expect: { nodes in
+                ["Recent names for Speaker 1", "Summarize"].filter { label in !nodes.contains { $0.line.contains(label) } }
+                    .map { "missing \($0)" }
+            })
+            container.settings.llm = llm
         }
         let report = directory.appendingPathComponent("violations.txt")
         try? violations.joined(separator: "\n").write(to: report, atomically: true, encoding: .utf8)

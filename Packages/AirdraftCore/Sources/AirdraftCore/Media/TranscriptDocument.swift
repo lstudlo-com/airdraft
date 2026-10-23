@@ -30,6 +30,8 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
     public var turns: [TranscriptTurn] = []
     public var speakerNames: [String: String] = [:]
     public var summary: String?
+    /// The template that produced `summary`; nil for summaries made before templates.
+    public var summaryTemplate: MeetingSummaryTemplate?
     public var issue: String?
     public var remoteFileID: String?
     public var remoteJobID: String?
@@ -45,8 +47,32 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
     public var originalText: String { words.map(\.text).joined().trimmingCharacters(in: .whitespacesAndNewlines) }
     public var text: String { turns.isEmpty ? originalText : turns.map(\.text).joined(separator: "\n") }
     public func speakerName(_ id: String?) -> String {
-        guard let id else { return String(localized: "Unknown speaker", bundle: .module) }
-        return speakerNames[id] ?? "Speaker \(id)"
+        guard let id else { return Self.unknownSpeakerName }
+        // A cleared name falls back to the label instead of an empty speaker.
+        if let name = speakerNames[id], !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return name }
+        return "Speaker \(id)"
+    }
+    public static var unknownSpeakerName: String { String(localized: "Unknown speaker", bundle: .module) }
+    /// The label offered for a new speaker in the editor.
+    public static func defaultSpeakerName(_ id: String) -> String { String(localized: "Speaker \(id)", bundle: .module) }
+    /// One name per speaker ID: every passage assigned to that ID shows it, in
+    /// both transcript versions, because turns store the ID rather than the name.
+    public mutating func setSpeakerName(_ name: String, for id: String) {
+        speakerNames[id] = name
+    }
+    /// Names worth suggesting in later meetings: typed, single-line and not a default label.
+    public var rememberableSpeakerNames: [String] {
+        var seen: Set<String> = []
+        return speakerNames.keys.sorted().compactMap { id in
+            guard let name = SpeakerNameLibrary.rememberableName(speakerNames[id] ?? ""),
+                  seen.insert(SpeakerNameLibrary.key(name)).inserted else { return nil }
+            return name
+        }
+    }
+    /// Recent names not already given to another speaker in this document.
+    public func speakerNameSuggestions(_ recent: [String], for id: String) -> [String] {
+        let taken = Set(speakerNames.filter { $0.key != id }.compactMap { SpeakerNameLibrary.rememberableName($0.value) }.map(SpeakerNameLibrary.key))
+        return recent.filter { !taken.contains(SpeakerNameLibrary.key($0)) }
     }
     public mutating func rebuildTurns() {
         turns = TranscriptTurn.group(words)
@@ -253,9 +279,10 @@ public enum SpeakerReconciliation {
 }
 
 public enum MediaError: LocalizedError {
-    case invalidAudio, tooLong, unavailable, conflict, busy, missingSpeakerModel, insufficientMemory, unsupportedModel, noSpeakerActivity
+    case invalidAudio, tooLong, unavailable, conflict, busy, missingSpeakerModel, insufficientMemory, unsupportedModel, noSpeakerActivity, emptySummary
     public var errorDescription: String? {
         switch self {
+        case .emptySummary: return String(localized: "The refinement provider returned an empty summary. Try again or choose another template.", bundle: .module)
         case .noSpeakerActivity: return String(localized: "No speech regions were identified. Choose Without Speakers to transcribe the full recording.", bundle: .module)
         case .unsupportedModel: return String(localized: "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings.", bundle: .module)
         case .invalidAudio: return String(localized: "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file.", bundle: .module)

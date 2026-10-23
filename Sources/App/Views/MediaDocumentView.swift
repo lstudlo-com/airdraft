@@ -85,7 +85,9 @@ struct MediaDocumentEditor: View {
     @State private var confirmDelete = false
     @State private var showOriginal = false
     @State private var confirmClose = false
-    @State private var confirmSummary = false
+    @State private var summaryTemplate: MeetingSummaryTemplate?
+    /// Loaded on appear and after saving; never read from the store in a view body.
+    @State private var recentSpeakerNames: [String] = []
     @FocusState private var titleFocused: Bool
     init(initial: TranscriptDocument) { _document = State(initialValue: initial) }
     private static let pageSize = 100
@@ -109,6 +111,8 @@ struct MediaDocumentEditor: View {
                     }
                     if let summary = document.summary {
                         PageSection("Summary") {
+                            if let template = document.summaryTemplate { Text(template.title).supportingText() }
+                        } content: {
                             Card { Text(summary).appFont(.body).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                         }
                     }
@@ -136,6 +140,7 @@ struct MediaDocumentEditor: View {
             if let id = document.recordingID, let asset = try? container.history?.recording(id: id) {
                 audioURL = container.history?.audioURL(for: asset); duration = asset.duration
             }
+            loadRecentSpeakerNames()
         }
         // A sheet otherwise opens with the title as first responder and a blinking caret.
         .task { titleFocused = false }
@@ -152,12 +157,17 @@ struct MediaDocumentEditor: View {
                 }
             }
         } message: { Text("The recording stays in Meetings.") }
-        .confirmationDialog("Summarize this transcript?", isPresented: $confirmSummary, titleVisibility: .visible) {
-            Button("Create Summary") {
-                container.media?.summarize(id: document.id, configuration: container.settings.llm)
+        .confirmationDialog("Summarize this transcript?", isPresented: Binding(get: { summaryTemplate != nil }, set: { if !$0 { summaryTemplate = nil } }),
+                            titleVisibility: .visible, presenting: summaryTemplate) { template in
+            Button(Self.createTitle(template)) {
+                container.media?.summarize(id: document.id, configuration: container.settings.llm, template: template)
                 dismiss()
             }
-        } message: { Text("Uses your selected refinement provider and may send transcript text to that service. Provider charges may apply. The original transcript is kept.") }
+        } message: { _ in
+            Text(document.summary == nil
+                 ? String(localized: "Uses your selected refinement provider and may send transcript text to that service. Provider charges may apply. The original transcript is kept.")
+                 : String(localized: "Uses your selected refinement provider and may send transcript text to that service. Provider charges may apply. Replaces the current summary; the original transcript is kept."))
+        }
         .confirmationDialog("Discard unsaved changes?", isPresented: $confirmClose, titleVisibility: .visible) {
             Button("Discard Changes", role: .destructive) { dismiss() }
         }
@@ -211,7 +221,7 @@ struct MediaDocumentEditor: View {
         PageSection("Speakers") {
             Button("Add Speaker") {
                 let id = String((speakerIDs.compactMap(Int.init).max() ?? 0) + 1)
-                document.speakerNames[id] = String(localized: "Speaker \(id)"); dirty = true
+                document.setSpeakerName(TranscriptDocument.defaultSpeakerName(id), for: id); dirty = true
             }.buttonStyle(SoftButtonStyle()).disabled(!editable)
         } content: {
             if !speakerIDs.isEmpty {
@@ -219,16 +229,38 @@ struct MediaDocumentEditor: View {
                     ForEach(speakerIDs, id: \.self) { id in
                         if id != speakerIDs.first { RowDivider() }
                         SettingRow(title: "Speaker \(id)") {
-                            TextField("Name", text: Binding(get: { document.speakerNames[id] ?? "" }, set: { document.speakerNames[id] = $0; dirty = true }))
-                                .softField().frame(width: Theme.fieldWidth).disabled(!editable)
-                                .accessibilityLabel("Speaker \(id) name")
+                            HStack(spacing: 8) {
+                                // One name per speaker ID renames every passage assigned to it.
+                                TextField("Name", text: Binding(get: { document.speakerNames[id] ?? "" }, set: { document.setSpeakerName($0, for: id); dirty = true }))
+                                    .softField().frame(width: Theme.fieldWidth).disabled(!editable)
+                                    .accessibilityLabel("Speaker \(id) name")
+                                recentNamesMenu(for: id)
+                            }
                         }
                     }
                 }
             }
-            Text("Speaker labels are estimates. Assign each passage below to correct them.")
+            Text("Speaker labels are estimates. Assign each passage below to correct them. Saved names stay on this Mac as suggestions.")
                 .supportingText().padding(.leading, Theme.sectionTitleLeadingInset)
         }
+    }
+
+    private func recentNamesMenu(for id: String) -> some View {
+        let suggestions = document.speakerNameSuggestions(recentSpeakerNames, for: id)
+        return SoftMenuButton(title: "Recent names for Speaker \(id)") {
+            ForEach(suggestions, id: \.self) { name in
+                Button(name) { document.setSpeakerName(name, for: id); dirty = true }
+            }
+            if suggestions.isEmpty { Button("No Other Recent Names") {}.disabled(true) }
+            if !recentSpeakerNames.isEmpty {
+                Divider()
+                Button("Forget Recent Names") { forgetRecentSpeakerNames() }
+            }
+        } label: {
+            Text("Recent  \(Image(systemName: "chevron.down"))")
+        }
+        .disabled(!editable || recentSpeakerNames.isEmpty)
+        .help(recentSpeakerNames.isEmpty ? String(localized: "Names you save appear here in later meetings") : String(localized: "Use a recent name"))
     }
 
     private var transcript: some View {
@@ -302,8 +334,17 @@ struct MediaDocumentEditor: View {
             Spacer(minLength: 0)
             if dirty { Text("Unsaved changes").supportingText() }
             if container.settings.llm.kind != .none {
-                Button("Summarize…") { confirmSummary = true }.buttonStyle(SoftButtonStyle()).disabled(!editable || dirty)
-                    .help(dirty ? "Save changes before summarizing" : "Create a summary with your refinement provider")
+                SoftMenuButton(title: "Summarize") {
+                    ForEach(MeetingSummaryTemplate.allCases) { template in
+                        // Checked: the last template chosen, kept across transcripts and launches.
+                        Toggle(Self.menuTitle(template), isOn: Binding(get: { container.settings.meetingSummaryTemplate == template },
+                                                                        set: { _ in container.settings.meetingSummaryTemplate = template; summaryTemplate = template }))
+                    }
+                } label: {
+                    Text("Summarize  \(Image(systemName: "chevron.down"))")
+                }
+                .disabled(!editable || dirty)
+                .help(dirty ? "Save changes before summarizing" : "Create a summary with your refinement provider")
             }
             Button("Save Changes") { save() }.primaryButtonStyle().disabled(!dirty || !editable)
                 .keyboardShortcut("s", modifiers: .command)
@@ -319,7 +360,35 @@ struct MediaDocumentEditor: View {
             guard let history = container.history else { throw MediaError.unavailable }
             document = try history.updateDocument(document); dirty = false
             NotificationCenter.default.post(name: .historyEntriesChanged, object: nil)
-        } catch { issue = error.localizedDescription }
+        } catch { issue = error.localizedDescription; return }
+        // Suggestions are secondary: the transcript is already saved.
+        do { try container.history?.rememberSpeakerNames(document.rememberableSpeakerNames) }
+        catch { issue = String(localized: "Changes were saved, but speaker names could not be remembered:") + " " + error.localizedDescription }
+        loadRecentSpeakerNames()
+    }
+    private func loadRecentSpeakerNames() {
+        recentSpeakerNames = (try? container.history?.recentSpeakerNames()) ?? []
+    }
+    private func forgetRecentSpeakerNames() {
+        do { try container.history?.forgetSpeakerNames(); recentSpeakerNames = [] }
+        catch { issue = error.localizedDescription }
+    }
+    /// Whole phrases, so each language supplies its own ellipsis.
+    private static func menuTitle(_ template: MeetingSummaryTemplate) -> String {
+        switch template {
+        case .brief: String(localized: "Brief Summary…")
+        case .actionItems: String(localized: "Action Items…")
+        case .decisions: String(localized: "Decisions & Follow-ups…")
+        case .minutes: String(localized: "Meeting Minutes…")
+        }
+    }
+    private static func createTitle(_ template: MeetingSummaryTemplate) -> String {
+        switch template {
+        case .brief: String(localized: "Create Brief Summary")
+        case .actionItems: String(localized: "Create Action Items")
+        case .decisions: String(localized: "Create Decisions & Follow-ups")
+        case .minutes: String(localized: "Create Meeting Minutes")
+        }
     }
     private func seek(_ time: Double) {
         guard let audioURL, let id = document.recordingID else { return }

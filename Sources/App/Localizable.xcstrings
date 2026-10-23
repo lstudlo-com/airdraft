@@ -928,6 +928,16 @@
         }
       }
     },
+    "Action Items…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待辦事項⋯"
+          }
+        }
+      }
+    },
     "Activate This Mac" : {
       "localizations" : {
         "zh-Hant" : {
@@ -1838,6 +1848,16 @@
         }
       }
     },
+    "Brief Summary…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簡短摘要⋯"
+          }
+        }
+      }
+    },
     "Built in" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2044,6 +2064,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "改變主意了？"
+          }
+        }
+      }
+    },
+    "Changes were saved, but speaker names could not be remembered:" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更已儲存，但無法記住講者名稱："
           }
         }
       }
@@ -2798,12 +2828,42 @@
         }
       }
     },
-    "Create Summary" : {
+    "Create Action Items" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "製作摘要"
+            "value" : "製作待辦事項"
+          }
+        }
+      }
+    },
+    "Create Brief Summary" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作簡短摘要"
+          }
+        }
+      }
+    },
+    "Create Decisions & Follow-ups" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作決議與後續事項"
+          }
+        }
+      }
+    },
+    "Create Meeting Minutes" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作會議紀錄"
           }
         }
       }
@@ -2984,6 +3044,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要停用這台 Mac 嗎？"
+          }
+        }
+      }
+    },
+    "Decisions & Follow-ups…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "決議與後續事項⋯"
           }
         }
       }
@@ -3984,6 +4054,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "依照「模型」中的選擇"
+          }
+        }
+      }
+    },
+    "Forget Recent Names" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘記最近使用的名稱"
           }
         }
       }
@@ -5414,6 +5494,16 @@
         }
       }
     },
+    "Meeting Minutes…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會議紀錄⋯"
+          }
+        }
+      }
+    },
     "Meeting audio" : {
       "localizations" : {
         "zh-Hant" : {
@@ -5664,6 +5754,16 @@
         }
       }
     },
+    "Names you save appear here in later meetings" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你儲存的名稱會在之後的會議中出現在這裡"
+          }
+        }
+      }
+    },
     "Needs User Read permission" : {
       "localizations" : {
         "zh-Hant" : {
@@ -5770,6 +5870,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "很好！準備好就繼續，或繼續練習。"
+          }
+        }
+      }
+    },
+    "No Other Recent Names" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有其他最近使用的名稱"
           }
         }
       }
@@ -7467,12 +7577,32 @@
         }
       }
     },
+    "Recent  %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近  %@"
+          }
+        }
+      }
+    },
     "Recent endpoint uptime reported by OpenRouter." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OpenRouter 回報的近期端點正常運作時間。"
+          }
+        }
+      }
+    },
+    "Recent names for Speaker %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "講者 %@ 的最近名稱"
           }
         }
       }
@@ -9356,12 +9486,12 @@
         }
       }
     },
-    "Speaker labels are estimates. Assign each passage below to correct them." : {
+    "Speaker labels are estimates. Assign each passage below to correct them. Saved names stay on this Mac as suggestions." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "講者標籤僅為估計。請為下方各段落指定講者以修正。"
+            "value" : "講者標籤僅為估計。請為下方各段落指定講者以修正。儲存的名稱只會保留在這台 Mac 上作為建議。"
           }
         }
       }
@@ -9718,22 +9848,32 @@
         }
       }
     },
+    "Summarize" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作摘要"
+          }
+        }
+      }
+    },
+    "Summarize  %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "製作摘要  %@"
+          }
+        }
+      }
+    },
     "Summarize this transcript?" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "要為此逐字稿製作摘要嗎？"
-          }
-        }
-      }
-    },
-    "Summarize…" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "製作摘要⋯"
           }
         }
       }
@@ -10719,6 +10859,16 @@
         }
       }
     },
+    "Use a recent name" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用最近的名稱"
+          }
+        }
+      }
+    },
     "Use raw text if this host fails" : {
       "localizations" : {
         "zh-Hant" : {
@@ -10785,6 +10935,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用你自己向 Groq 或 OpenAI 等供應商申請的 API 金鑰。"
+          }
+        }
+      }
+    },
+    "Uses your selected refinement provider and may send transcript text to that service. Provider charges may apply. Replaces the current summary; the original transcript is kept." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用你選取的潤稿供應商，可能會將逐字稿文字傳送到該服務，並可能產生供應商費用。會取代目前的摘要；原始逐字稿會保留。"
           }
         }
       }

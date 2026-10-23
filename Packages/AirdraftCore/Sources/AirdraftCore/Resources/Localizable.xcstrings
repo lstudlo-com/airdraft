@@ -476,6 +476,17 @@
         }
       }
     },
+    "Action Items" : {
+      "comment" : "Meeting summary template",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待辦事項"
+          }
+        }
+      }
+    },
     "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again." : {
       "localizations" : {
         "zh-Hant" : {
@@ -912,6 +923,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用詞彙進行批次辨識。自動偵測會選擇主要語言。"
+          }
+        }
+      }
+    },
+    "Brief Summary" : {
+      "comment" : "Meeting summary template",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簡短摘要"
           }
         }
       }
@@ -1406,6 +1428,17 @@
         }
       }
     },
+    "Decisions & Follow-ups" : {
+      "comment" : "Meeting summary template",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "決議與後續事項"
+          }
+        }
+      }
+    },
     "Dedicated transcription in verbatim mode, with automatic language detection." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1454,12 +1487,12 @@
         }
       }
     },
-    "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay." : {
+    "Deletes all dictation history, meeting transcripts, remembered speaker names, recordings and interrupted meetings. Settings and models stay." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除所有聽寫記錄、會議逐字稿、錄音與中斷的會議。設定與模型會保留。"
+            "value" : "刪除所有聽寫記錄、會議逐字稿、記住的講者名稱、錄音與中斷的會議。設定與模型會保留。"
           }
         }
       }
@@ -1474,12 +1507,12 @@
         }
       }
     },
-    "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay." : {
+    "Deletes dictation history, all meeting transcripts and remembered speaker names. Recordings, settings and models stay." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除聽寫記錄與所有會議逐字稿。錄音、設定與模型會保留。"
+            "value" : "刪除聽寫記錄、所有會議逐字稿與記住的講者名稱。錄音、設定與模型會保留。"
           }
         }
       }
@@ -2217,6 +2250,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "中"
+          }
+        }
+      }
+    },
+    "Meeting Minutes" : {
+      "comment" : "Meeting summary template",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會議紀錄"
           }
         }
       }
@@ -3304,6 +3348,16 @@
         }
       }
     },
+    "Speaker %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "講者 %@"
+          }
+        }
+      }
+    },
     "Specialized for clinical terms, medication names and medical dictation." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3728,6 +3782,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄音或文件已無法使用。"
+          }
+        }
+      }
+    },
+    "The refinement provider returned an empty summary. Try again or choose another template." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "潤稿供應商回傳了空白摘要。請重試或選擇其他範本。"
           }
         }
       }

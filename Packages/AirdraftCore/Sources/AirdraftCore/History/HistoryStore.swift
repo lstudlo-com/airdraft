@@ -225,6 +225,14 @@ public final class HistoryStore: Sendable {
             try db.execute(sql: "CREATE INDEX dictation_uncounted ON dictation(id) WHERE wordCount IS NULL")
             try Self.backfillWordCounts(db)
         }
+        migrator.registerMigration("v8-speaker-names") { db in
+            // Names only (SpeakerNameLibrary): no transcript, document or voice data.
+            try db.create(table: "speakerName") { t in
+                t.primaryKey("key", .text)
+                t.column("name", .text).notNull()
+                t.column("lastUsedAt", .datetime).notNull().indexed()
+            }
+        }
         try migrator.migrate(dbQueue)
         // Rows an older version inserted after the migration have no count yet.
         try dbQueue.write { db in try Self.backfillWordCounts(db) }
@@ -441,6 +449,7 @@ public final class HistoryStore: Sendable {
                 try removeOrphanAudio(retaining: [])
                 _ = try DictationRecord.deleteAll(db)
                 try db.execute(sql: "DELETE FROM mediaDocument")
+                try db.execute(sql: "DELETE FROM speakerName")
                 _ = try RecordingAsset.deleteAll(db)
             }
             try dbQueue.vacuum()
@@ -453,6 +462,8 @@ public final class HistoryStore: Sendable {
             try dbQueue.write { db in
                 _ = try DictationRecord.deleteAll(db)
                 try db.execute(sql: "DELETE FROM mediaDocument")
+                // Speaker names come from transcripts, so text cleanup removes them too.
+                try db.execute(sql: "DELETE FROM speakerName")
             }
             try dbQueue.vacuum()
         }
