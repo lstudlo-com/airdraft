@@ -909,6 +909,12 @@
     },
     "Airdraft's list of reviewed Core ML speech models is missing or damaged, so these models can't be downloaded or used. Reinstall Airdraft to restore it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已审核 Core ML 语音模型列表缺失或已损坏，因此无法下载或使用这些模型。请重新安装 Airdraft 以恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -919,6 +925,12 @@
     },
     "Airdraft's list of reviewed GGUF speech models is missing or damaged, so these models can't be downloaded or used. Reinstall Airdraft to restore it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已审核 GGUF 语音模型列表缺失或已损坏，因此无法下载或使用这些模型。请重新安装 Airdraft 以恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",

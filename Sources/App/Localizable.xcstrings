@@ -521,6 +521,12 @@
     },
     "%@ uses %@, which refines, but refinement isn't set up" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，该模式会润色，但润色尚未设置"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -531,6 +537,12 @@
     },
     "%@ uses %@, whose speech API key is missing or locked" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，其语音 API 密钥缺失或已锁定"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -541,6 +553,12 @@
     },
     "%@ uses %@, whose speech endpoint needs checking" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，其语音端点需要检查"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -551,6 +569,12 @@
     },
     "%@ uses %@, whose speech model doesn't support the selected language" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，其语音模型不支持所选语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -561,6 +585,12 @@
     },
     "%@ uses %@, whose speech model is no longer available" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，其语音模型已不可用"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -571,6 +601,12 @@
     },
     "%@ uses %@, whose speech model isn't installed" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式，其语音模型尚未安装"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -581,6 +617,12 @@
     },
     "%@ uses %@. %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 使用“%@”模式。%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -996,6 +1038,12 @@
     },
     "%lld more app rules need setup." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 %lld 条 App 规则需要设置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1216,6 +1264,12 @@
     },
     "1 more app rule needs setup." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 1 条 App 规则需要设置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2474,6 +2528,12 @@
     },
     "App rules" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 规则"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
