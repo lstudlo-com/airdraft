@@ -86,7 +86,15 @@ struct HomePage: View {
         let llm = container.settings.llm
         let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
-        return "\(speech) → \(llm.displayName) · \(container.effectiveProfile.displayName)"
+        return "\(speech) → \(llm.displayName) · \(profileSummary)"
+    }
+
+    /// The chosen profile, noting app rules that choose another one (AD-080).
+    private var profileSummary: String {
+        let name = container.effectiveProfile.displayName
+        let profiles = container.profiles
+        guard profiles.choosesProfileByApp, !profiles.appRules.isEmpty, !container.settings.isOnboardingPractice else { return name }
+        return String(localized: "\(name), or by app", comment: "Home summary: the chosen profile, unless an app rule chooses another")
     }
 
     /// Exact identifiers stay available on hover for diagnosis.

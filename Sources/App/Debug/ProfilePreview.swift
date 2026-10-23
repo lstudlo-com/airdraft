@@ -62,6 +62,13 @@ enum ProfilePreview {
             speechModel: ProfileSpeechModel(config: cloudConfig)
         ))
         let width = Theme.windowWidth
+        // Rules shown by the by-app cases (AD-080). TextEdit is on every Mac; the
+        // missing app keeps the name it was added with.
+        container.profiles.addAppRule(.family(.terminal), profileID: RefinementProfile.verbatimID)
+        container.profiles.addAppRule(.family(.code), profileID: RefinementProfile.cleanID)
+        container.profiles.addAppRule(.app(bundleID: "com.apple.TextEdit"), profileID: custom.id, appName: "TextEdit")
+        container.profiles.addAppRule(.app(bundleID: "com.example.removed-editor"), profileID: RefinementProfile.conciseID,
+                                      appName: "Removed Editor")
         let cases: [(String, UUID, CGFloat, CGFloat)] = [
             ("clean", RefinementProfile.cleanID, width, 660),
             ("compact", RefinementProfile.cleanID, width, 600),
@@ -70,9 +77,12 @@ enum ProfilePreview {
             ("verbatim", RefinementProfile.verbatimID, width, 600),
             ("custom", custom.id, width, 600),
             ("bound-local", bound.id, width, 1000),
-            ("bound-cloud", cloud.id, width, 660)
+            ("bound-cloud", cloud.id, width, 660),
+            ("by-app", RefinementProfile.verbatimID, width, 1100),
+            ("by-app-off", RefinementProfile.verbatimID, width, 900)
         ]
         for (name, id, width, height) in cases {
+            container.profiles.setChoosesProfileByApp(name == "by-app")
             for (suffix, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
                 let root = MainWindowView(profileSelection: id).environment(container)
                 let host = NSHostingView(rootView: root)

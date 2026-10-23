@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import os
@@ -131,6 +132,8 @@ public final class DictationPipeline {
         let baseRules: String
         let dictionary: [DictionaryEntry]
         let useAppContext: Bool
+        /// The destination's bundle ID that chose `profile` (AD-080); nil without one.
+        var profileApp: String? = nil
     }
     var recordingAtStart: RecordingSnapshot?
     let sendScript: @Sendable (String, String) async throws -> Void
@@ -141,6 +144,8 @@ public final class DictationPipeline {
         var target: InsertionTarget?
         var reviewOnly: Bool
         let output: OutputSnapshot
+        /// The original destination app, so a retry resolves its app rule again.
+        var profileApp: String? = nil
     }
     var recoveries: [Recovery] = []
     /// The recovery an explicit retry is processing, keyed by its generation.
@@ -168,6 +173,14 @@ public final class DictationPipeline {
     public var prepareRefinement: ((LLMConfig) async throws -> RefinementPreparationBackend)?
     /// When false the final text is not inserted anywhere (self-tests).
     public var insertionEnabled = true
+    /// The frontmost app's bundle ID when a recording starts; nil for Airdraft
+    /// itself. Only this identifier chooses an app's profile, never window content.
+    public var frontmostBundleID: @MainActor () -> String? = {
+        guard let app = NSWorkspace.shared.frontmostApplication,
+              app.processIdentifier != ProcessInfo.processInfo.processIdentifier,
+              app.bundleIdentifier != Bundle.main.bundleIdentifier else { return nil }
+        return app.bundleIdentifier
+    }
     /// Onboarding practice's editor. Consulted only while practice runs.
     public weak var practiceTarget: (any PracticeDeliveryTarget)?
 

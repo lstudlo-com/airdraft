@@ -1137,6 +1137,17 @@
         }
       }
     },
+    "Code editors" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程式碼編輯器"
+          }
+        }
+      }
+    },
     "Completed" : {
       "localizations" : {
         "zh-Hant" : {
@@ -1514,6 +1525,17 @@
         }
       }
     },
+    "Documents and notes" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件與筆記"
+          }
+        }
+      }
+    },
     "Download cancelled. Retry to resume." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1556,6 +1578,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在下載權重⋯"
+          }
+        }
+      }
+    },
+    "Email" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "郵件"
           }
         }
       }
@@ -2561,6 +2594,17 @@
         }
       }
     },
+    "Other apps" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他 App"
+          }
+        }
+      }
+    },
     "Part %lld" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2607,6 +2651,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已暫停。繼續即可從上次儲存的階段接續。"
+          }
+        }
+      }
+    },
+    "Personal messages" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "個人訊息"
           }
         }
       }
@@ -3482,6 +3537,17 @@
         }
       }
     },
+    "Terminals" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終端機"
+          }
+        }
+      }
+    },
     "Text delivery has started and cannot be cancelled safely." : {
       "localizations" : {
         "zh-Hant" : {
@@ -4259,6 +4325,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請等媒體轉錄完成後再開始聽寫。"
+          }
+        }
+      }
+    },
+    "Work chat" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作聊天"
           }
         }
       }

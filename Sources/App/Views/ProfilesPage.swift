@@ -24,6 +24,7 @@ struct ProfilesPage: View {
                 }
                 .id(profile.id)
             }
+            ProfileAppRules(selectedProfileID: selectedProfile?.id ?? container.profiles.activeProfileID)
             PageSection("Base system prompt") {
                 SettingsCard {
                     SettingRow(
@@ -95,7 +96,7 @@ struct ProfilesPage: View {
                 }
             }
         } message: {
-            Text(confirmation?.message ?? "")
+            Text(confirmation?.message(in: container.profiles) ?? "")
         }
     }
 
@@ -181,11 +182,14 @@ private enum ProfileConfirmation {
         }
     }
 
-    var message: String {
+    @MainActor func message(in store: ProfileStore) -> String {
         switch self {
         case .reset: String(localized: "Your changes to this built-in profile will be replaced.")
-        case .delete: String(localized: "This cannot be undone.")
-        case .resetAll: String(localized: "Restores built-in profiles and the base system prompt. Profiles you created will be deleted.")
+        case .delete(let profile):
+            store.appRules.contains { $0.profileID == profile.id }
+                ? String(localized: "Its app rules are removed too. This cannot be undone.")
+                : String(localized: "This cannot be undone.")
+        case .resetAll: String(localized: "Restores built-in profiles and the base system prompt, and removes app rules. Profiles you created will be deleted.")
         }
     }
 }

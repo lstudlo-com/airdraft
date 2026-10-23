@@ -233,7 +233,7 @@ extension DictationPipeline {
             }
             let retried = retryingRecovery?.token == token ? retryingRecovery?.id : nil
             retryingRecovery = nil
-            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, issue: message, replacing: retried)
+            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, profileApp: snapshot.profileApp, issue: message, replacing: retried)
             fail(message, openRecovery: !reviewOnly)
             return nil
         }

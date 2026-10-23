@@ -200,6 +200,17 @@
         }
       }
     },
+    "%@ and similar apps" : {
+      "comment" : "Apps an app family rule matches",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 等 App"
+          }
+        }
+      }
+    },
     "%@ completed." : {
       "localizations" : {
         "zh-Hant" : {
@@ -474,6 +485,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@，由 %2$@ 託管，%3$@，速度：%4$@，%5$@"
+          }
+        }
+      }
+    },
+    "%@, or by app" : {
+      "comment" : "Home summary: the chosen profile, unless an app rule chooses another",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@，或依 App 選擇"
           }
         }
       }
@@ -998,6 +1020,26 @@
         }
       }
     },
+    "Add Rule" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入規則"
+          }
+        }
+      }
+    },
+    "Add Rule  %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入規則  %@"
+          }
+        }
+      }
+    },
     "Add Speaker" : {
       "localizations" : {
         "zh-Hant" : {
@@ -1378,6 +1420,16 @@
         }
       }
     },
+    "An app's own rule comes before its family's" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 本身的規則優先於所屬類別的規則"
+          }
+        }
+      }
+    },
     "An interrupted cleanup needs to finish before new work can start." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1434,6 +1486,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App"
+          }
+        }
+      }
+    },
+    "App Families" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 類別"
           }
         }
       }
@@ -1574,6 +1636,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用的 App"
+          }
+        }
+      }
+    },
+    "Apps without a rule use the profile in use" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有規則的 App 會使用目前使用中的模式"
           }
         }
       }
@@ -2198,6 +2270,16 @@
         }
       }
     },
+    "Choose App…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇 App⋯"
+          }
+        }
+      }
+    },
     "Choose Language" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2324,6 +2406,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇一個端點並停用備援，即可限制路由。"
+          }
+        }
+      }
+    },
+    "Choose profile by app" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 App 選擇模式"
           }
         }
       }
@@ -4689,6 +4781,16 @@
         }
       }
     },
+    "Its app rules are removed too. This cannot be undone." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "它的 App 規則也會一併移除。此動作無法復原。"
+          }
+        }
+      }
+    },
     "Jump to %@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -6014,6 +6116,16 @@
         }
       }
     },
+    "Not found on this Mac" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這台 Mac 上找不到"
+          }
+        }
+      }
+    },
     "Not installed. Download it in Models before dictating." : {
       "localizations" : {
         "zh-Hant" : {
@@ -6406,6 +6518,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開 Airdraft⋯"
+          }
+        }
+      }
+    },
+    "Open Apps" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已開啟的 App"
           }
         }
       }
@@ -7157,6 +7279,26 @@
         }
       }
     },
+    "Profile by app" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依 App 套用模式"
+          }
+        }
+      }
+    },
+    "Profile for %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的模式"
+          }
+        }
+      }
+    },
     "Profile instructions" : {
       "localizations" : {
         "zh-Hant" : {
@@ -7193,6 +7335,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模式：%@"
+          }
+        }
+      }
+    },
+    "Profile: %@ (auto)" : {
+      "comment" : "Menu title; the profile was chosen automatically for the frontmost app",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式：%@（自動）"
+          }
+        }
+      }
+    },
+    "Profile: %@ (auto: %@)" : {
+      "comment" : "Menu title; the profile was chosen automatically for the named app",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Profile: %1$@ (auto: %2$@)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式：%@（自動：%@）"
+          }
+        }
+      }
+    },
+    "Profile: %@, chosen by app for %@. Other apps use %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Profile: %1$@, chosen by app for %2$@. Other apps use %3$@."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式：%@，依 App 為 %@ 選擇。其他 App 使用 %@。"
           }
         }
       }
@@ -8014,12 +8200,32 @@
         }
       }
     },
+    "Remove Rule" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除規則"
+          }
+        }
+      }
+    },
     "Remove older saved dictation audio?" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "要移除較舊的已儲存聽寫音訊嗎？"
+          }
+        }
+      }
+    },
+    "Remove rule for %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除 %@ 的規則"
           }
         }
       }
@@ -8294,12 +8500,12 @@
         }
       }
     },
-    "Restores built-in profiles and the base system prompt. Profiles you created will be deleted." : {
+    "Restores built-in profiles and the base system prompt, and removes app rules. Profiles you created will be deleted." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "還原內建模式與基本系統提示詞。你建立的模式將被刪除。"
+            "value" : "還原內建模式與基本系統提示詞，並移除 App 規則。你建立的模式將被刪除。"
           }
         }
       }
@@ -8446,6 +8652,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢視上一次聽寫⋯"
+          }
+        }
+      }
+    },
+    "Rule priority" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "規則優先順序"
           }
         }
       }
@@ -10565,6 +10781,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未儲存的變更"
+          }
+        }
+      }
+    },
+    "Untitled profile" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未命名的模式"
           }
         }
       }
