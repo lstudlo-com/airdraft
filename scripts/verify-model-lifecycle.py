@@ -58,9 +58,28 @@ struct RefinementProfile {
 @MainActor @Observable final class ProfileStore {
     var activeProfile = RefinementProfile()
 }
+enum MemoryPressureLevel: CustomStringConvertible {
+    case warning, critical
+    var description: String { self == .critical ? "critical" : "warning" }
+    /// Fixture grace periods: warnings keep anything used this hour; critical keeps nothing.
+    var minimumIdleSeconds: TimeInterval { self == .critical ? 0 : 3600 }
+}
+struct MemoryPressureUnload { var unloaded: [String] = [] }
+@MainActor final class MemoryPressureResponder {
+    static var started = 0
+    static var stopped = 0
+    init(respond: @escaping @MainActor (MemoryPressureLevel) async -> Void) {}
+    func start() { Self.started += 1 }
+    func stop() { Self.stopped += 1 }
+}
 actor EngineFactory {
     var prepared: [String] = []
     var unloadCount = 0
+    var pressurePasses: [TimeInterval] = []
+    func unloadForMemoryPressure(minimumIdleSeconds: TimeInterval) async -> MemoryPressureUnload {
+        pressurePasses.append(minimumIdleSeconds)
+        return MemoryPressureUnload()
+    }
     func prepare(_ config: ASRConfig) async throws { prepared.append(config.engineID) }
     func unloadAll() async { unloadCount += 1 }
     func setIdleUnloadMinutes(_ minutes: Int) async {}
@@ -649,6 +668,57 @@ func require(_ condition: @autoclosure () -> Bool, _ message: String) throws {
                 let changed = try await lifecycle.prepareLLMBackend(config: settings.llm)
                 try require(changed == .unmanaged, "Completed preparation cached stale backend classification")
                 try require(LMStudioControl.snapshotCalls.count == 2 && LMStudioControl.loadCalls.isEmpty, "Fresh classification repeated discovery or loaded an unmanaged server")
+                await lifecycle.shutdown()
+            }),
+            ("memory pressure unloads only idle instances the app loaded", {
+                let settings = AppSettings()
+                let factory = EngineFactory()
+                let lifecycle = ModelLifecycle(settings: settings, factory: factory, engineStatus: EngineStatus())
+                let config = settings.llm
+                let startedBefore = MemoryPressureResponder.started
+                lifecycle.start()
+                for _ in 0..<50 { await Task.yield() }
+                try require(MemoryPressureResponder.started == startedBefore + 1, "Start did not observe memory pressure")
+                await lifecycle.loadLLMIfNeeded()
+                try require(LMStudioControl.loadCalls.count == 1, "Fixture did not load an app-owned instance")
+                await lifecycle.respondToMemoryPressure(.warning)
+                try require(LMStudioControl.unloadCalls.isEmpty, "A warning unloaded a recently used instance")
+                var passes = await factory.pressurePasses
+                try require(passes == [3600], "Speech did not receive the warning grace period")
+                await lifecycle.respondToMemoryPressure(.critical)
+                try require(LMStudioControl.unloadCalls == [.init(url: config.endpoint!, id: "loaded-instance")], "Critical pressure kept an idle app-owned instance")
+                try require(lifecycle.llmStatus.usedInstances.isEmpty, "Unloaded instance stayed tracked")
+                passes = await factory.pressurePasses
+                try require(passes == [3600, 0], "Speech did not receive the critical pass")
+                let stoppedBefore = MemoryPressureResponder.stopped
+                await lifecycle.shutdown()
+                try require(MemoryPressureResponder.stopped == stoppedBefore + 1, "Quit left memory-pressure observation running")
+                try require(LMStudioControl.unloadCalls.count == 1, "Quit repeated a completed pressure unload")
+            }),
+            ("memory pressure leaves user-loaded instances and busy pipelines alone", {
+                let settings = AppSettings()
+                let factory = EngineFactory()
+                let lifecycle = ModelLifecycle(settings: settings, factory: factory, engineStatus: EngineStatus())
+                lifecycle.start()
+                for _ in 0..<50 { await Task.yield() }
+                LMStudioControl.existing = ["user-loaded"]
+                await lifecycle.loadLLMIfNeeded()
+                await lifecycle.respondToMemoryPressure(.critical)
+                try require(LMStudioControl.unloadCalls.isEmpty, "Pressure unloaded an instance the app did not load")
+                LMStudioControl.existing = []
+                settings.llm.model = "app-loaded-model"
+                for _ in 0..<50 { await Task.yield() }
+                await lifecycle.loadLLMIfNeeded()
+                lifecycle.setDictationBusy(true)
+                let before = await factory.pressurePasses.count
+                await lifecycle.respondToMemoryPressure(.critical)
+                let after = await factory.pressurePasses.count
+                try require(LMStudioControl.unloadCalls.isEmpty && after == before, "Pressure touched models while the pipeline was busy")
+                lifecycle.setDictationBusy(false)
+                for _ in 0..<50 { await Task.yield() }
+                await lifecycle.respondToMemoryPressure(.critical)
+                try require(LMStudioControl.unloadCalls.map(\.id) == ["loaded-instance"], "Idle pressure pass did not free the app-loaded instance")
+                settings.unloadLLMOnQuit = false
                 await lifecycle.shutdown()
             }),
             ("non-native providers are classified without contacting an endpoint", {

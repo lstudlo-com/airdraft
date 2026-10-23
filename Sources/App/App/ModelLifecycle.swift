@@ -9,6 +9,8 @@ import os
 ///   idle engines unload after `idleUnloadMinutes`, quitting frees everything.
 /// - LLM (LM Studio): loaded by the app before the first refinement, switched
 ///   cleanly, and unloaded when the app quits.
+/// - Memory pressure: idle, unpinned speech models and LM Studio instances the
+///   app itself loaded are unloaded; nothing is touched while the pipeline works.
 @MainActor
 @Observable
 final class ModelLifecycle {
@@ -39,6 +41,10 @@ final class ModelLifecycle {
     private var llmPreparations: [UUID: LLMPreparation] = [:]
     private var llmStopping = false
     private var unloadPendingLLM = false
+    /// LM Studio instances this app loaded itself, with their last use. Memory
+    /// pressure only unloads these; instances the user loaded stay untouched.
+    private var appLoadedLLMInstances: [URL: [String: Date]] = [:]
+    private var memoryPressure: MemoryPressureResponder?
 
     func setDictationBusy(_ busy: Bool) {
         if busy && !dictationBusy { llmCleanupGeneration = UUID() }
@@ -63,6 +69,49 @@ final class ModelLifecycle {
         Task { await refreshLLMStatus() }
         observe()
         loadSpeechModel()
+        memoryPressure = MemoryPressureResponder { [weak self] level in
+            await self?.respondToMemoryPressure(level)
+        }
+        memoryPressure?.start()
+    }
+
+    // MARK: Memory pressure
+
+    /// One debounced pass. Pinned, loading and in-use models stay; so does
+    /// everything while dictation, media, meeting or cleanup work is running.
+    func respondToMemoryPressure(_ level: MemoryPressureLevel) async {
+        guard started, !llmStopping else { return }
+        guard !dictationBusy else {
+            Self.log.notice("memoryPressure level=\(level.description, privacy: .public) skipped=pipelineBusy")
+            return
+        }
+        let began = Date()
+        async let speech = factory.unloadForMemoryPressure(minimumIdleSeconds: level.minimumIdleSeconds)
+        let llm = await unloadAppLoadedLLMForMemoryPressure(minimumIdleSeconds: level.minimumIdleSeconds)
+        let speechResult = await speech
+        let elapsed = Int(Date().timeIntervalSince(began) * 1000)
+        Self.log.notice("memoryPressure level=\(level.description, privacy: .public) speech=\(speechResult.unloaded.count) llm=\(llm.joined(separator: ","), privacy: .public) durationMs=\(elapsed)")
+    }
+
+    private func unloadAppLoadedLLMForMemoryPressure(minimumIdleSeconds: TimeInterval) async -> [String] {
+        let generation = llmCleanupGeneration
+        let cutoff = Date().addingTimeInterval(-minimumIdleSeconds)
+        var unloaded: [String] = []
+        for (url, instances) in appLoadedLLMInstances {
+            for (id, lastUsed) in instances where lastUsed <= cutoff {
+                // A recording, preparation, switch cleanup or quit takes precedence.
+                guard !llmStopping, !dictationBusy, generation == llmCleanupGeneration,
+                      llmPreparations.isEmpty else { return unloaded }
+                do {
+                    try await unloadLLMInstance(id, at: url)
+                    unloaded.append(id)
+                } catch {
+                    Self.log.error("Memory-pressure LLM unload failed; retaining instance for cleanup retry")
+                }
+            }
+        }
+        if !unloaded.isEmpty { await refreshLLMStatus() }
+        return unloaded
     }
 
     // MARK: Speech
@@ -197,6 +246,7 @@ final class ModelLifecycle {
             }
             if sameManagedModel(config, settings.llm) { llmStatus.set(.loading) }
             let id = try await lmStudio.load(baseURL: url, modelKey: config.model)
+            appLoadedLLMInstances[url, default: [:]][id] = Date()
             markLLMUsed(id, config: config)
             guard preparationIsNeeded(config, token: token) else {
                 if (llmStopping && unloadPendingLLM)
@@ -245,12 +295,16 @@ final class ModelLifecycle {
 
     private func markLLMUsed(_ id: String, config: LLMConfig) {
         llmStatus.markUsed(id)
-        if let url = config.endpoint { usedLLMEndpoints[url, default: []].insert(id) }
+        if let url = config.endpoint {
+            usedLLMEndpoints[url, default: []].insert(id)
+            if appLoadedLLMInstances[url]?[id] != nil { appLoadedLLMInstances[url]?[id] = Date() }
+        }
     }
 
     private func forgetLLM(_ id: String, at url: URL) {
         usedLLMEndpoints[url]?.remove(id)
         deferredLLMInstances[url]?[id] = nil
+        appLoadedLLMInstances[url]?[id] = nil
         if !usedLLMEndpoints.values.contains(where: { $0.contains(id) }) { llmStatus.forget(id) }
     }
 
@@ -366,6 +420,7 @@ final class ModelLifecycle {
 
     /// Frees everything the app is responsible for. Bounded so quitting never hangs.
     func shutdown() async {
+        memoryPressure?.stop()
         speechLoadTask?.cancel()
         llmStopping = true
         unloadPendingLLM = settings.unloadLLMOnQuit
