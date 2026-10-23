@@ -27,10 +27,10 @@ struct HomeHero: View {
     @State private var grown = RenderMode.isActive
     @State private var flare = 0.0
 
-    private static let caretWidth: CGFloat = 5
-    private static let caretGap: CGFloat = 10
+    private nonisolated static let caretWidth: CGFloat = 5
+    private nonisolated static let caretGap: CGFloat = 10
     private static let wellHeight: CGFloat = 60
-    private static let wellHorizontalInset: CGFloat = 24
+    private nonisolated static let wellHorizontalInset: CGFloat = 24
     /// The tallest bar: two thirds of the original hero's, so the metrics lead.
     private static let barMax: CGFloat = 32
     private static let caretHeight: CGFloat = 38

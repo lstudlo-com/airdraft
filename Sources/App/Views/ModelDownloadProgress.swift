@@ -21,7 +21,7 @@ struct ModelDownloadProgress: View {
 private struct MeasuredDownloadProgress: View, Animatable {
     var progress: ModelDownloader.Progress
 
-    var animatableData: Double {
+    nonisolated var animatableData: Double {
         get { progress.fraction ?? 0 }
         set { progress.fraction = newValue }
     }

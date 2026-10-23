@@ -6,11 +6,11 @@ struct HistoryRecordingControls: View {
     let playback: RecordingPlayback
     let busy: Bool
     let exporting: Bool
-    let play: () -> Void
-    let save: () -> Void
-    let reveal: () -> Void
-    let retranscribe: (() -> Void)?
-    let delete: (() -> Void)?
+    let play: @MainActor () -> Void
+    let save: @MainActor () -> Void
+    let reveal: @MainActor () -> Void
+    let retranscribe: (@MainActor () -> Void)?
+    let delete: (@MainActor () -> Void)?
     var accessibilityOnly = false
 
     var body: some View {
@@ -65,11 +65,11 @@ struct HistoryRecordingControls: View {
     }
 
     /// Spoken playback position: "0:12 of 1:05".
-    static func position(_ seconds: Double, of duration: Double) -> String {
+    nonisolated static func position(_ seconds: Double, of duration: Double) -> String {
         String(localized: "\(time(seconds)) of \(time(duration))", comment: "Playback position for VoiceOver")
     }
 
-    static func time(_ seconds: Double) -> String {
+    nonisolated static func time(_ seconds: Double) -> String {
         let value = seconds.isFinite ? Int(max(0, min(seconds, 359_999))) : 0
         return value >= 3600 ? String(format: "%d:%02d:%02d", value / 3600, value / 60 % 60, value % 60)
                             : String(format: "%d:%02d", value / 60, value % 60)

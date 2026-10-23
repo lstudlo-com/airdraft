@@ -6,6 +6,7 @@ import SwiftUI
 /// Opens the production sheet and popover. No capture, playback, permissions or providers.
 @MainActor
 enum MeetingControlsVerification {
+    @MainActor
     private final class Sources {
         var pending: [CheckedContinuation<[MeetingAudioSource], Error>] = []
         func request() async throws -> [MeetingAudioSource] {
@@ -28,7 +29,7 @@ enum MeetingControlsVerification {
     static func run(to directory: URL) {
         precondition(LocalE2E.isActive && RenderMode.isActive)
         setbuf(stdout, nil)
-        NSApp.accessibilitySetValue(true, forAttribute: .init(rawValue: "AXEnhancedUserInterface"))
+        LegacyAccessibility.enableEnhancedUserInterface()
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let name = "airdraft.meeting-controls.\(UUID())"
         let defaults = UserDefaults(suiteName: name)!

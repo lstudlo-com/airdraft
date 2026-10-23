@@ -16,9 +16,9 @@ configFiles:
   Release: Config/Signing.xcconfig
 settings:
   base:
-    SWIFT_VERSION: "5.0"
+    # Swift 6 language mode: data races are compile errors, as in AirdraftCore.
+    SWIFT_VERSION: "6.0"
     MACOSX_DEPLOYMENT_TARGET: "15.0"
-    SWIFT_STRICT_CONCURRENCY: minimal
     # String Catalogs: the compiler extracts localizable literals during builds.
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     SWIFT_EMIT_LOC_STRINGS: YES

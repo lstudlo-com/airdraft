@@ -16,6 +16,7 @@ enum NativeUIVerification {
         func startLevelMonitoring(microphone: MicrophonePreference) throws { selection = microphone }
         func cancel() { cancelled = true }
     }
+    @MainActor
     private final class AccessGate {
         var continuation: CheckedContinuation<Void, Never>?
         func wait() async { await withCheckedContinuation { continuation = $0 } }
@@ -52,7 +53,7 @@ enum NativeUIVerification {
         precondition(LocalModels.root.standardizedFileURL.resolvingSymlinksInPath().path.hasPrefix(
             LocalE2E.directory.standardizedFileURL.resolvingSymlinksInPath().path + "/"),
             "The UI model fixture must stay inside its disposable E2E directory")
-        NSApp.accessibilitySetValue(true, forAttribute: NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface"))
+        LegacyAccessibility.enableEnhancedUserInterface()
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let suite = "airdraft.native-ui.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

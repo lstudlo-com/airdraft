@@ -10,7 +10,7 @@ enum SettingsSearchVerification {
     static func run(to directory: URL, discoOnly: Bool = false) {
         setbuf(stdout, nil)
         precondition(LocalE2E.isActive, "Use --e2e-local <disposable directory>")
-        NSApp.accessibilitySetValue(true, forAttribute: NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface"))
+        LegacyAccessibility.enableEnhancedUserInterface()
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let suite = "airdraft.settings-search.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!

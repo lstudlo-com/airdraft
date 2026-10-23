@@ -21,7 +21,7 @@ final class MicrophoneStore {
         }
     }
 
-    deinit {
+    isolated deinit {
         guard let listener else { return }
         for selector in [kAudioHardwarePropertyDevices, kAudioHardwarePropertyDefaultInputDevice] {
             var address = MicrophoneDevices.address(selector)

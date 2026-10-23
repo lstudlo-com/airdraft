@@ -2,9 +2,9 @@ import AppIntents
 import Foundation
 
 struct StartDictationIntent: AudioRecordingIntent {
-    static var title: LocalizedStringResource = "Start Dictation"
-    static var description = IntentDescription("Start recording with your current speech model and refinement profile.")
-    static var openAppWhenRun = false
+    static let title: LocalizedStringResource = "Start Dictation"
+    static let description = IntentDescription("Start recording with your current speech model and refinement profile.")
+    static let openAppWhenRun = false
     @available(macOS 26, *)
     static var supportedModes: IntentModes { .background }
 
@@ -18,9 +18,9 @@ struct StartDictationIntent: AudioRecordingIntent {
 }
 
 struct StopDictationIntent: AudioRecordingIntent {
-    static var title: LocalizedStringResource = "Stop Dictation"
-    static var description = IntentDescription("Stop recording and begin transcription. Processing and text delivery continue after this action returns.")
-    static var openAppWhenRun = false
+    static let title: LocalizedStringResource = "Stop Dictation"
+    static let description = IntentDescription("Stop recording and begin transcription. Processing and text delivery continue after this action returns.")
+    static let openAppWhenRun = false
     @available(macOS 26, *)
     static var supportedModes: IntentModes { .background }
 
@@ -34,9 +34,9 @@ struct StopDictationIntent: AudioRecordingIntent {
 }
 
 struct CancelDictationIntent: AudioRecordingIntent {
-    static var title: LocalizedStringResource = "Cancel Dictation"
-    static var description = IntentDescription("Cancel the current dictation and discard its unsaved audio. Text delivery cannot be cancelled once it begins.")
-    static var openAppWhenRun = false
+    static let title: LocalizedStringResource = "Cancel Dictation"
+    static let description = IntentDescription("Cancel the current dictation and discard its unsaved audio. Text delivery cannot be cancelled once it begins.")
+    static let openAppWhenRun = false
     @available(macOS 26, *)
     static var supportedModes: IntentModes { .background }
 

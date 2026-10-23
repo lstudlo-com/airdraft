@@ -221,7 +221,10 @@ def main() -> None:
         if declaration is None:
             raise RuntimeError("Production HistoryPlaybackProgress declaration not found")
         progress = history[declaration.start():]
-        formatter = re.search(r"    static func time\(_ seconds: Double\) -> String \{.*?\n    \}", history, re.S).group(0)
+        formatter = re.search(r"    (?:nonisolated )?static func time\(_ seconds: Double\) -> String \{.*?\n    \}", history, re.S)
+        if formatter is None:
+            raise RuntimeError("Production HistoryRecordingControls.time formatter not found")
+        formatter = formatter.group(0)
         fixture.write_text(FIXTURE + "\nenum HistoryRecordingControls {\n" + formatter + "\n}\n" + progress)
         # Compile the production motion definition, without sidebar-only dependencies.
         motion = directory / "SelectionMotion.swift"

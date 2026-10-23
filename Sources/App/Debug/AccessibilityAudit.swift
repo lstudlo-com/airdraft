@@ -55,7 +55,7 @@ enum AccessibilityAudit {
         setbuf(stdout, nil)
         precondition(LocalE2E.isActive && RenderMode.isActive, "Use --e2e-local with --render-window a11y-audit")
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        NSApp.accessibilitySetValue(true, forAttribute: NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface"))
+        LegacyAccessibility.enableEnhancedUserInterface()
         let container = PreviewData.container
         container.navigation.sidebarCollapsed = false
         var violations: [String] = []
@@ -222,10 +222,8 @@ enum AccessibilityAudit {
         ]
         func attribute(_ object: NSObject, _ key: String) -> Any? {
             if object.responds(to: NSSelectorFromString(key)) { return object.value(forKey: key) }
-            guard let name = legacy[key],
-                  object.responds(to: #selector(NSObject.accessibilityAttributeNames)),
-                  object.accessibilityAttributeNames().contains(NSAccessibility.Attribute(rawValue: name)) else { return nil }
-            return object.accessibilityAttributeValue(NSAccessibility.Attribute(rawValue: name))
+            guard let name = legacy[key] else { return nil }
+            return LegacyAccessibility.value(of: object, attribute: name)
         }
         func string(_ object: NSObject, _ key: String) -> String {
             let raw = attribute(object, key)
