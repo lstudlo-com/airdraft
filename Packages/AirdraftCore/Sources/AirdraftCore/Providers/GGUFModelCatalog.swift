@@ -21,8 +21,9 @@ public struct GGUFModel: Codable, Sendable, Identifiable, Equatable {
     public let license: String
     public let documentation: String
 
-    public var downloadURL: URL {
-        URL(string: "https://huggingface.co/\(repository)/resolve/\(revision)/\(filename)")!
+    /// Nil only for an entry that would fail catalogue review.
+    public var downloadURL: URL? {
+        ModelCatalogueReview.downloadURL(repository: repository, revision: revision, path: filename)
     }
     public var sizeLabel: String { ByteCountFormatter.string(fromByteCount: bytes, countStyle: .decimal) }
     public var config: ASRConfig { ASRConfig(kind: .transcribeCpp, model: id) }
@@ -55,14 +56,25 @@ public struct GGUFModel: Codable, Sendable, Identifiable, Equatable {
 }
 
 public enum GGUFModelCatalog {
-    public static let models: [GGUFModel] = {
-        guard let url = Bundle.module.url(forResource: "local-gguf-models", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let models = try? JSONDecoder().decode([GGUFModel].self, from: data) else {
-            preconditionFailure("The bundled local speech catalogue is missing or invalid.")
+    static let bundled = catalog(url: Bundle.module.url(forResource: "local-gguf-models", withExtension: "json"))
+
+    /// Reviewed models; empty when the bundled catalogue is damaged.
+    public static var models: [GGUFModel] { bundled.models }
+    /// Non-nil when the bundled catalogue is missing or fails review.
+    public static var catalogueError: ModelCatalogueError? { bundled.error }
+    public static func model(_ id: String) -> GGUFModel? { bundled.model(id) }
+
+    static func catalog(url: URL?) -> BundledModelCatalog<GGUFModel> {
+        BundledModelCatalog(url: url, catalogue: .gguf) { model in
+            guard ModelCatalogueReview.isSafeComponent(model.id) else { return "unsafe ID" }
+            guard ModelCatalogueReview.isRepository(model.repository) else { return "invalid repository" }
+            guard ModelCatalogueReview.isRevision(model.revision) else { return "unpinned revision" }
+            guard ModelCatalogueReview.isSafeComponent(model.filename) else { return "unsafe file name" }
+            guard model.bytes > 0 else { return "missing size" }
+            guard ModelCatalogueReview.isSHA256(model.sha256) else { return "invalid SHA-256" }
+            guard !model.languages.isEmpty else { return "no languages" }
+            guard model.downloadURL != nil else { return "invalid download URL" }
+            return nil
         }
-        return models
-    }()
-    private static let byID = Dictionary(uniqueKeysWithValues: models.map { ($0.id, $0) })
-    public static func model(_ id: String) -> GGUFModel? { byID[id] }
+    }
 }

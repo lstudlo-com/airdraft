@@ -907,6 +907,26 @@
         }
       }
     },
+    "Airdraft's list of reviewed Core ML speech models is missing or damaged, so these models can't be downloaded or used. Reinstall Airdraft to restore it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已審核 Core ML 語音模型清單遺失或損毀，因此無法下載或使用這些模型。請重新安裝 Airdraft 以還原。"
+          }
+        }
+      }
+    },
+    "Airdraft's list of reviewed GGUF speech models is missing or damaged, so these models can't be downloaded or used. Reinstall Airdraft to restore it." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已審核 GGUF 語音模型清單遺失或損毀，因此無法下載或使用這些模型。請重新安裝 Airdraft 以還原。"
+          }
+        }
+      }
+    },
     "Airdraft's list of reviewed model downloads is missing or damaged, so Qwen3-ASR and Whisper models can't be downloaded. Reinstall Airdraft to restore it." : {
       "localizations" : {
         "zh-Hans" : {

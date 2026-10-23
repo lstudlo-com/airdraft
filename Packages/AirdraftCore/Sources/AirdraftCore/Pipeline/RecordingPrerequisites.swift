@@ -60,6 +60,7 @@ public enum RecordingPrerequisites {
             try reject(String(localized: "Input channel unavailable. Choose one in Settings.", bundle: .module)); return
         }
         if asr.kind.isLocal {
+            if let error = LocalModels.catalogueError(for: asr) { try reject(error.localizedDescription); return }
             guard environment.installed(asr) else {
                 try reject(String(localized: "Install the speech model in Models.", bundle: .module)); return
             }
@@ -83,9 +84,15 @@ public enum RecordingPrerequisites {
         }
     }
 
-    private static func validateEndpoint(_ value: String, stage: String) throws {
+    /// An HTTP(S) URL with a host; readiness uses the same test.
+    static func isValidEndpoint(_ value: String) -> Bool {
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
-              let host = url.host, !host.isEmpty else {
+              let host = url.host, !host.isEmpty else { return false }
+        return true
+    }
+
+    private static func validateEndpoint(_ value: String, stage: String) throws {
+        guard isValidEndpoint(value) else {
             throw RecordingPrerequisiteError(stage == "speech" ? String(localized: "Check the speech endpoint in Models.", bundle: .module)
                                              : String(localized: "Check the refinement endpoint in Models.", bundle: .module))
         }

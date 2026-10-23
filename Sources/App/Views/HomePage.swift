@@ -117,11 +117,14 @@ struct HomePage: View {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(readiness.summary)
                             .appFont(.body, weight: .medium)
-                        Text(pipelineSummary)
+                        // A separator stays at the end of the line it follows when the summary wraps.
+                        Text(pipelineSummary.replacingOccurrences(of: " · ", with: "\u{00A0}· ")
+                            .replacingOccurrences(of: " → ", with: "\u{00A0}→ "))
                             .supportingText()
                             .accessibilityIdentifier("home.pipeline-summary")
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                            // Long model and host names wrap instead of losing
+                            // their middle, at every text size.
+                            .fixedSize(horizontal: false, vertical: true)
                             .help(pipelineHelp)
                     }
                     Spacer(minLength: Theme.controlSpacing)
@@ -236,6 +239,32 @@ struct HomePage: View {
             } else {
                 Button("Profiles") { container.navigation.page = .profiles }.buttonStyle(SoftButtonStyle())
             }
+        }
+        // A profile an app rule chooses can need its own model, key or refinement.
+        if let issue = readiness.appRuleIssues.first?.issue {
+            RowDivider()
+            HealthRow(ok: false, title: "App rules", detail: readiness.appRuleDetail) {
+                appRuleAction(issue)
+            }
+        }
+    }
+
+    /// The setup action Home already offers for the same problem on the Speech
+    /// or Refinement row.
+    @ViewBuilder private func appRuleAction(_ issue: AppRuleSetupIssue) -> some View {
+        switch issue {
+        case .speechModelUnavailable:
+            Button("Profiles") { container.navigation.page = .profiles }.buttonStyle(SoftButtonStyle())
+        case .speechLanguage:
+            Button("Language Settings") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+        case .speechModelMissing:
+            Button("Get Model") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+        case .speechEndpoint, .speechKeyMissing:
+            Button("API Key Settings") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+        case .refinement:
+            Button("Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+        case .speechCatalogue:
+            EmptyView()
         }
     }
 

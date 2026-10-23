@@ -8,18 +8,24 @@ import SwiftUI
 final class SetupCredentialPresence {
     private(set) var speechKeyPresent = false
     private(set) var refinementKeyPresent = false
+    /// Speech keys of profiles that app rules choose (AD-080), by reference.
+    /// A reference not yet checked is absent, which readiness shows as checking.
+    private(set) var ruleSpeechKeys: [String: Bool] = [:]
 
     /// Presence only: never reads a key value or prompts.
     func refresh(_ container: AppContainer) async {
         guard !RenderMode.isActive, !RenderMode.excludesCredentials else { return }
         let speech = container.speechConfig.keyRef
         let refinement = container.settings.llm.keyRef
+        let rules = container.appRuleSpeechKeyRefs
         let present = await Task.detached {
-            (Keychain.presence(speech) == .saved, Keychain.presence(refinement) == .saved)
+            (Keychain.presence(speech) == .saved, Keychain.presence(refinement) == .saved,
+             Dictionary(uniqueKeysWithValues: rules.map { ($0, Keychain.presence($0) == .saved) }))
         }.value
         guard !Task.isCancelled else { return }
         if container.speechConfig.keyRef == speech { speechKeyPresent = present.0 }
         if container.settings.llm.keyRef == refinement { refinementKeyPresent = present.1 }
+        if container.appRuleSpeechKeyRefs == rules { ruleSpeechKeys = present.2 }
     }
 }
 
@@ -36,6 +42,8 @@ final class SetupFacts {
         /// Nil unless output goes to a script.
         var scriptPath: String?
         var llm: LLMConfig
+        /// Other local speech models that app rules choose (AD-080).
+        var ruleSpeech: [ASRConfig] = []
     }
 
     struct Values: Equatable, Sendable {
@@ -43,12 +51,24 @@ final class SetupFacts {
         var scriptIssue: String?
         var appleIntelligenceIssue: String?
         var cliMissing = false
+        /// Installed state of each measured `Inputs.ruleSpeech` model; an
+        /// unmeasured model is absent and `pending` holds `.ruleSpeech`.
+        var ruleSpeech: [RuleSpeech] = []
         /// Facts not yet measured for the current inputs. Readiness shows them as
         /// being checked instead of measuring on the main actor.
         var pending: Set<Fact> = []
+
+        func ruleSpeechInstalled(_ config: ASRConfig) -> Bool? {
+            ruleSpeech.first { $0.config == config }?.installed
+        }
     }
 
-    enum Fact: Hashable, Sendable { case speech, script, appleIntelligence, cli }
+    struct RuleSpeech: Equatable, Sendable {
+        var config: ASRConfig
+        var installed: Bool
+    }
+
+    enum Fact: Hashable, Sendable { case speech, script, appleIntelligence, cli, ruleSpeech }
 
     /// Recent measurements, newest first, keyed by their inputs. Switching back
     /// to an earlier model or script shows its last-known facts until the
@@ -98,6 +118,14 @@ final class SetupFacts {
             values.cliMissing = known(.cli, { $0.llm.kind == kind && $0.llm.cliPaths[kind.rawValue] == inputs.llm.cliPaths[kind.rawValue] },
                                       \.cliMissing) ?? false
         }
+        for config in inputs.ruleSpeech {
+            let installed = measurements.lazy.compactMap { measurement -> Bool? in
+                if measurement.inputs.speech == config { return measurement.values.speechInstalled }
+                return measurement.values.ruleSpeechInstalled(config)
+            }.first
+            if let installed { values.ruleSpeech.append(RuleSpeech(config: config, installed: installed)) }
+            else { values.pending.insert(.ruleSpeech) }
+        }
         return values
     }
 
@@ -118,6 +146,7 @@ final class SetupFacts {
         values.scriptIssue = inputs.scriptPath.flatMap { ScriptDelivery.unavailableReason(path: $0) }
         if inputs.llm.kind == .appleIntelligence { values.appleIntelligenceIssue = AppleIntelligenceRefiner.unavailableReason }
         values.cliMissing = inputs.llm.kind.isCLI && inputs.llm.cliExecutable == nil
+        values.ruleSpeech = inputs.ruleSpeech.map { RuleSpeech(config: $0, installed: LocalModels.isInstalled($0)) }
         return values
     }
 
@@ -154,8 +183,13 @@ extension AppContainer {
     var setupFactsInputs: SetupFacts.Inputs {
         SetupFacts.Inputs(speech: speechConfig,
                           scriptPath: settings.outputDestination == .script ? settings.outputScriptPath : nil,
-                          llm: settings.llm)
+                          llm: settings.llm,
+                          ruleSpeech: AppRuleReadiness.localSpeechConfigs(appRuleSetups).filter { $0 != speechConfig })
     }
+
+    /// Profiles app rules choose whose setup differs from the chosen one's (AD-080).
+    var appRuleSetups: [AppRuleSetup] { AppRuleReadiness.setups(profiles: profiles, settings: settings) }
+    var appRuleSpeechKeyRefs: [String] { AppRuleReadiness.speechKeyRefs(appRuleSetups) }
 }
 
 /// The one readiness model behind Home's setup card and hero and the sidebar
@@ -173,7 +207,8 @@ struct SetupReadiness {
     var issueCount: Int { setupIssueCount + blockers.count }
 
     var setupIssueCount: Int {
-        [container.hotkeys.isActive, outputReady, microphoneReady, speechTone != .attention, refinementTone != .attention]
+        [container.hotkeys.isActive, outputReady, microphoneReady, speechTone != .attention, refinementTone != .attention,
+         appRuleIssues.isEmpty]
             .filter { !$0 }.count
     }
 
@@ -290,7 +325,10 @@ struct SetupReadiness {
             return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
         if facts.pending.contains(.speech) { return String(localized: "Checking model files…") }
-        if !facts.speechInstalled { return String(localized: "Model not installed") }
+        if !facts.speechInstalled {
+            // A damaged bundled catalogue cannot be fixed by downloading.
+            return LocalModels.catalogueError(for: asr)?.localizedDescription ?? String(localized: "Model not installed")
+        }
         if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
         return container.engineStatus.state(for: asr.engineID).label
     }
@@ -320,6 +358,52 @@ struct SetupReadiness {
     var speechLanguageIssue: String? {
         do { _ = try SpeechLanguagePolicy.resolve(container.speechConfig); return nil }
         catch { return error.localizedDescription }
+    }
+
+    // MARK: Profiles chosen by app (AD-080)
+
+    /// Rules whose profile would refuse dictation into their app, in rule order.
+    /// Facts still being measured are not issues.
+    var appRuleIssues: [(setup: AppRuleSetup, issue: AppRuleSetupIssue)] {
+        let setups = container.appRuleSetups
+        guard !setups.isEmpty else { return [] }
+        let facts = self.facts
+        let speech = container.speechConfig
+        let ruleFacts = AppRuleSetupFacts(
+            installed: { $0 == speech ? (facts.pending.contains(.speech) ? nil : facts.speechInstalled) : facts.ruleSpeechInstalled($0) },
+            keyPresent: { [keys] ref in keys.ruleSpeechKeys[ref] },
+            refinementKeyPresent: keys.refinementKeyPresent,
+            appleIntelligenceIssue: facts.appleIntelligenceIssue,
+            appleIntelligencePending: facts.pending.contains(.appleIntelligence),
+            cliMissing: facts.cliMissing,
+            cliPending: facts.pending.contains(.cli))
+        return setups.compactMap { setup in
+            guard case .issue(let issue) = AppRuleReadiness.status(of: setup, llm: container.settings.llm, facts: ruleFacts) else { return nil }
+            return (setup, issue)
+        }
+    }
+
+    /// Home's App rules row: the first blocked rule, naming its app and profile.
+    var appRuleDetail: String {
+        let issues = appRuleIssues
+        guard let first = issues.first else { return "" }
+        let app = AppRuleTitle.title(first.setup.rule)
+        let profile = first.setup.profile.displayName
+        let detail: String
+        switch first.issue {
+        case .speechModelUnavailable: detail = String(localized: "\(app) uses \(profile), whose speech model is no longer available")
+        case .speechCatalogue(let message): detail = String(localized: "\(app) uses \(profile). \(message)")
+        case .speechLanguage: detail = String(localized: "\(app) uses \(profile), whose speech model doesn't support the selected language")
+        case .speechModelMissing: detail = String(localized: "\(app) uses \(profile), whose speech model isn't installed")
+        case .speechEndpoint: detail = String(localized: "\(app) uses \(profile), whose speech endpoint needs checking")
+        case .speechKeyMissing: detail = String(localized: "\(app) uses \(profile), whose speech API key is missing or locked")
+        case .refinement: detail = String(localized: "\(app) uses \(profile), which refines, but refinement isn't set up")
+        }
+        switch issues.count {
+        case 1: return detail
+        case 2: return detail + " " + String(localized: "1 more app rule needs setup.")
+        default: return detail + " " + String(localized: "\(issues.count - 1) more app rules need setup.")
+        }
     }
 
     var refinementNeedsKey: Bool {
@@ -359,10 +443,21 @@ extension AppContainer {
     var readiness: SetupReadiness { SetupReadiness(container: self) }
 }
 
+/// A rule's app or family name, as the Profiles rule list shows it.
+enum AppRuleTitle {
+    @MainActor
+    static func title(_ rule: AppProfileRule) -> String {
+        switch rule.match {
+        case .family(let family): family.ruleTitle
+        case .app(let bundleID): InstalledApplications.entry(for: bundleID).name ?? rule.appName ?? bundleID
+        }
+    }
+}
+
 extension View {
     /// Keeps the shared key presence current for the selected speech and refinement keys.
     func refreshesSetupCredentials(_ container: AppContainer) -> some View {
-        task(id: "\(container.speechConfig.keyRef)\n\(container.settings.llm.keyRef)") {
+        task(id: "\(container.speechConfig.keyRef)\n\(container.settings.llm.keyRef)\n\(container.appRuleSpeechKeyRefs.joined(separator: ","))") {
             await container.credentialPresence.refresh(container)
         }
         .onReceive(NotificationCenter.default.publisher(for: Keychain.didChange).receive(on: DispatchQueue.main)) { _ in

@@ -95,21 +95,23 @@ public actor ModelDownloader {
     private func downloadFiles(_ config: ASRConfig, progress: @escaping ProgressHandler) async throws {
         switch config.kind {
         case .fluidAudio:
-            guard let entry = CoreMLSpeechModelCatalog.model(config.model), let folder = LocalModels.coreMLSpeechFolder(for: entry.id) else {
-                throw DownloadError.incomplete
-            }
-            let files = entry.files.map { file in
-                ModelDownloadTransfer.File(url: URL(string: "https://huggingface.co/\(entry.repository)/resolve/\(entry.revision)/\(file.path)")!,
-                                           destination: folder.appendingPathComponent(file.path), size: file.bytes, sha256: file.sha256)
+            // A damaged catalogue refuses with its reinstall message; nothing is installed from it.
+            let entry = try CoreMLSpeechModelCatalog.bundled.require(config.model)
+            guard let folder = LocalModels.coreMLSpeechFolder(for: entry.id) else { throw DownloadError.unpinned(config.model) }
+            let files = try entry.files.map { file in
+                guard let url = entry.downloadURL(for: file) else { throw DownloadError.unsafePath(file.path) }
+                return ModelDownloadTransfer.File(url: url, destination: folder.appendingPathComponent(file.path),
+                                                  size: file.bytes, sha256: file.sha256)
             }
             try await ModelDownloadTransfer.install(files, progress: progress)
         case .orukeet: try await downloadSherpa(model: .orukeet, progress: progress)
         case .transcribeCpp:
-            guard let entry = GGUFModelCatalog.model(config.model), let file = LocalModels.ggufFile(for: entry.id) else {
-                throw DownloadError.incomplete
+            let entry = try GGUFModelCatalog.bundled.require(config.model)
+            guard let file = LocalModels.ggufFile(for: entry.id), let url = entry.downloadURL else {
+                throw DownloadError.unpinned(config.model)
             }
             try await ModelDownloadTransfer.install([
-                .init(url: entry.downloadURL, destination: file, size: entry.bytes, sha256: entry.sha256)
+                .init(url: url, destination: file, size: entry.bytes, sha256: entry.sha256)
             ], progress: progress)
         case .whisperKit: try await downloadWhisper(variant: config.whisperModel, progress: progress)
         case .qwen3: try await downloadQwen3(modelId: config.qwen3Model, progress: progress)

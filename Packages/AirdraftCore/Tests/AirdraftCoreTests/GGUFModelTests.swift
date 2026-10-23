@@ -18,9 +18,9 @@ final class GGUFModelTests: XCTestCase {
             XCTAssertTrue(model.filename.hasSuffix(".gguf"))
             XCTAssertFalse(model.filename.contains("/"))
             XCTAssertFalse(model.id.contains("/"))
-            XCTAssertTrue(model.downloadURL.path.contains(model.revision))
+            XCTAssertTrue(try XCTUnwrap(model.downloadURL).path.contains(model.revision))
             XCTAssertFalse(model.supportedLanguages.isEmpty)
-            XCTAssertEqual(model.downloadURL.host, "huggingface.co")
+            XCTAssertEqual(model.downloadURL?.host, "huggingface.co")
         }
         for id in ["whisper-tiny", "whisper-large-v3", "breeze-asr-25", "moonshine-base-zh",
                    "canary-1b-v2", "gigaam-v3-rnnt", "fun-asr-mlt-nano-2512",
