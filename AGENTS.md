@@ -398,8 +398,10 @@ and Local releases below.
   bindings on duplication, and clear them on reset. Models edits the app default
   and shows when the active profile overrides it. Missing models or credentials
   require setup; never silently fall back to another speech model.
-  Keep Apple Speech locale available for an active Apple binding. Protect both
-  the app default and active profile model from deletion. Downloads must not
+  Keep Apple Speech locale available for an active Apple binding. Protect the app
+  default, the active profile's model and, with Choose profile by app on, every
+  model an app rule's profile binds from deletion; re-measure SetupFacts after
+  deleting files. Downloads must not
   change the app default while a profile override is active.
   Choose profile by app (`ProfileStore.choosesProfileByApp`, off by default) applies
   `AppProfileRule`s stored in profiles.json: one app by bundle ID, or an
@@ -415,7 +417,8 @@ and Local releases below.
   model and no unchecked refinement. Retries resolve current rules for the
   recording's original app; practice ignores rules. Deleting a profile removes its
   rules; Reset All clears them and turns the switch off; resetting a built-in keeps
-  them. Unreadable rules are skipped without setting the file aside; rules for
+  them. Unreadable rules are skipped without setting the file aside and written back
+  unchanged on save (deleting their profile or Reset All removes them); rules for
   missing profiles and duplicates are dropped on load. The menu titles an automatic
   profile `Profile: <name> (auto: <app>)` through `MenuTitle.profile`, from a
   frontmost-app tracker that ignores Airdraft, shortening the app name before the
@@ -790,7 +793,8 @@ and Local releases below.
   factory lease: any running or queued load or inference skips it. It also skips
   while dictation, media, meeting or cleanup work is busy and during quit or reset
   (quit stops listening), never reloads, and logs only engine IDs, counts and
-  durations. The next dictation loads the model again as usual.
+  durations. A skipped pass is not debounced: its highest level runs again when that
+  work ends or a lifecycle model load finishes, with the grace periods measured then. The next dictation loads the model again as usual.
   Downloads go through `ModelDownloader` (Models page). Qwen3-ASR and WhisperKit
   files come from `local-pinned-models.json` (immutable revision, bytes, SHA-256),
   regenerated only with `scripts/pin-hub-models.py`; unpinned IDs are refused. A
@@ -897,8 +901,9 @@ and Local releases below.
   dictation; after an unverified paste, the next insertion, including a copy-only
   retry, waits out that paste's receiver window before writing the clipboard.
   Cancel and the automation cancel are accepted during that wait: nothing is then
-  pasted or saved, and the earlier paste keeps the clipboard and its delayed
-  restore. Once writing starts, cancellation waits as before. History saving and the outcome run in an ordered delivery tail
+  pasted or copied, and the earlier paste keeps the clipboard and its delayed
+  restore. A fresh dictation is saved to History as not delivered (Cancelled before
+  delivery), with audio when retention allows; a cancelled retry keeps its recording. Once writing starts, cancellation waits as before. History saving and the outcome run in an ordered delivery tail
   (`isFinishingDelivery`); quit waits for it (bounded) and restores a confirmed
   paste's clipboard at once, but waits out an unverified paste's remaining 2 s
   delay so a busy receiver never reads the old clipboard; data cleanup and meeting start wait for it too. A shortcut rejected
@@ -1430,7 +1435,7 @@ and hints with the already loaded engine through `EngineFactory.transcribePrevie
 supported only for Parakeet, SenseVoice and Orukeet; other models and cloud
 providers show that live text is unavailable while recording continues, and
 Settings shows the active profile's model with its readiness or reason and Open
-Models. Dictation preview never loads, downloads or queues: it skips its tick while
+Models, reading installed state from `SetupFacts`. Dictation preview never loads, downloads or queues: it skips its tick while
 any lease operation runs or waits, never rebuilds a recognizer, and every other
 lease operation (load, final inference, media, unload) cancels it. Keep one decode
 in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window
@@ -1496,7 +1501,8 @@ Microphone dictation has a hard 600-second maximum. Keep Settings and persisted
 settings within `SpeechInputLimits.recordingSecondsRange` (10–600 seconds), with the
 300-second default and shorter user choices preserved. Clamp older saved values.
 The recording timer stops capture and processes once at the effective limit;
-shorter provider limits still apply. Imported audio keeps its provider input limits.
+shorter provider limits still apply. Recording limits and the kept-audio checks use
+the recording snapshot's speech config. Imported audio keeps its provider input limits.
 
 Check recording prerequisites before opening the microphone or prewarming a
 refiner: permission, insertion access, selected device/channel, model installation
