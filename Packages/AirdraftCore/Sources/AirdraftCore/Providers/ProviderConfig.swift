@@ -252,7 +252,12 @@ public enum ChineseScript: String, Codable, CaseIterable, Sendable, Identifiable
     /// The script a new setup starts with: Simplified when the first Chinese entry in
     /// the preferred languages is written in Simplified script (zh-Hans, zh-CN, zh-SG),
     /// otherwise Traditional. Only unsaved settings use it; saved choices are kept.
+    /// A Mac whose first language is Japanese or Korean, with no Chinese entry,
+    /// starts with Auto: converting its kanji or prompting refinement toward
+    /// Chinese script rewrites or translates Japanese.
     public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ChineseScript {
+        let codes = preferredLanguages.compactMap { Locale.Language(identifier: $0).languageCode?.identifier.lowercased() }
+        if let first = codes.first, ["ja", "ko"].contains(first), !codes.contains("zh") { return .auto }
         for identifier in preferredLanguages {
             let language = Locale.Language(identifier: identifier)
             guard language.languageCode?.identifier.lowercased() == "zh" else { continue }
@@ -360,6 +365,13 @@ public struct ASRConfig: Codable, Sendable, Equatable {
 
     /// Identity of the engine this config selects. Equal to the `id` of the
     /// transcriber EngineFactory builds for it, so the UI can look up load state.
+    /// The script rule refinement gets: none when Japanese or Korean is the
+    /// selected speech language, whose kanji or hanja must not become Chinese.
+    public var refinementScript: ChineseScript {
+        let code = language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return code.hasPrefix("ja") || code.hasPrefix("ko") ? .auto : chineseScript
+    }
+
     public var effectiveAppleLocale: String {
         // Mandarin follows the selected script: Simplified is zh-CN, not zh-TW.
         if language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "zh" {

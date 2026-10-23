@@ -314,8 +314,16 @@ final class AppSettingsTests: XCTestCase {
             XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .simplified, "\(languages)")
         }
         for languages in [["zh-Hant-TW"], ["zh-Hant"], ["zh-TW"], ["zh-HK"], ["en-TW", "zh-Hant-TW", "zh-Hans-CN"],
-                          ["en-US"], ["ja-JP", "fr-FR"], []] {
+                          ["en-US"], ["ja-JP", "zh-Hant-TW"], ["fr-FR", "ja-JP"], []] {
             XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .traditional, "\(languages)")
+        }
+        // Japanese and Korean Macs keep their kanji and hanja: no Chinese script rule.
+        for languages in [["ja-JP"], ["ja-JP", "fr-FR"], ["ko-KR"], ["ko", "en-US"]] {
+            XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .auto, "\(languages)")
+        }
+        for (language, script) in [("ja", ChineseScript.auto), ("ja-JP", .auto), ("ko", .auto), ("zh", .traditional),
+                                   ("", .traditional), ("en", .traditional)] {
+            XCTAssertEqual(ASRConfig(language: language, chineseScript: .traditional).refinementScript, script, language)
         }
         XCTAssertEqual(ChineseScript.simplified.appleMandarinLocale, "zh-CN")
         XCTAssertEqual(ChineseScript.traditional.appleMandarinLocale, "zh-TW")
