@@ -85,17 +85,24 @@ extension DictationPipeline {
                        insertionMethod: settings.insertionMethod)
     }
 
-    func recordingSnapshot(output: OutputSnapshot? = nil) -> RecordingSnapshot {
-        let profile = settings.effectiveProfile(profiles.activeProfile)
+    /// `app` is the destination's bundle ID: its app rule chooses the profile,
+    /// including the profile's speech model. Practice always uses the chosen profile.
+    func recordingSnapshot(output: OutputSnapshot? = nil, app: String? = nil) -> RecordingSnapshot {
+        let chosen = settings.isOnboardingPractice ? profiles.activeProfile : profiles.selection(forApp: app).profile
+        let profile = settings.effectiveProfile(chosen)
         return RecordingSnapshot(asr: profile.speechConfig(default: settings.asr), profile: profile,
                                  llm: settings.llm, microphone: settings.microphone,
                                  output: output ?? selectedOutput(), baseRules: profiles.baseRules,
-                                 dictionary: dictionary.entries, useAppContext: settings.useAppContext)
+                                 dictionary: dictionary.entries, useAppContext: settings.useAppContext,
+                                 profileApp: app)
     }
 
     func beginRecording(token: UUID) async {
         guard isCurrent(token) else { return }
-        let snapshot = recordingSnapshot()
+        // The frontmost app chooses its rule's profile before any setup check;
+        // `followCapturedApp` may adopt the captured destination below.
+        var profileApp = frontmostBundleID()
+        var snapshot = recordingSnapshot(app: profileApp)
         let asr = snapshot.asr
         let llm = snapshot.llm
         let profile = snapshot.profile
@@ -126,7 +133,7 @@ extension DictationPipeline {
                                                  microphone: microphone, insertionEnabled: needsInsertion)
             }
             guard isCurrent(token) else { return }
-            guard recordingSnapshot() == snapshot else {
+            guard recordingSnapshot(app: profileApp) == snapshot else {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
             if asr.kind.isLocal {
@@ -150,7 +157,7 @@ extension DictationPipeline {
                 }
             }
             guard isCurrent(token) else { return }
-            guard recordingSnapshot() == snapshot else {
+            guard recordingSnapshot(app: profileApp) == snapshot else {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             }
         } catch {
@@ -166,7 +173,7 @@ extension DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        guard recordingSnapshot() == snapshot else {
+        guard recordingSnapshot(app: profileApp) == snapshot else {
             fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
             return
@@ -200,7 +207,11 @@ extension DictationPipeline {
             context.recentDictations = await recentFinals.finals(for: context.bundleId)
             guard isCurrent(token) else { return }
         }
-        guard recordingSnapshot() == snapshot else {
+        if let followed = followCapturedApp(insertionTarget?.bundleID, from: profileApp, snapshot: snapshot) {
+            profileApp = followed.profileApp
+            snapshot = followed
+        }
+        guard recordingSnapshot(app: profileApp) == snapshot else {
             abandonStartingCapture()
             fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
@@ -246,6 +257,18 @@ extension DictationPipeline {
             self.stopping = false
             self.finishRecording(keepingSeconds: end - captureStarted)
         }
+    }
+
+    /// An app switch in flight at the press can leave the captured destination
+    /// different from the app that chose the profile. Follow the destination's
+    /// rule when it needs no setup that was not checked: the same speech model and
+    /// no newly required refinement. Otherwise the checked profile stays.
+    func followCapturedApp(_ captured: String?, from app: String?, snapshot: RecordingSnapshot) -> RecordingSnapshot? {
+        guard let captured, captured != app, recordingSnapshot(app: app) == snapshot else { return nil }
+        let followed = recordingSnapshot(app: captured)
+        guard followed.asr == snapshot.asr, followed.profile.speechModel?.unavailableReason == nil,
+              !followed.profile.usesLLM || snapshot.profile.usesLLM else { return nil }
+        return followed
     }
 
     /// Stops capture that began before the recording state, discarding its audio.
@@ -383,9 +406,10 @@ extension DictationPipeline {
                 let context = self.contextAtStart
                 let target = self.insertionTargetAtStart
                 let output = self.recordingAtStart?.output
+                let profileApp = self.recordingAtStart?.profileApp
                 self.cancel()
                 let message = reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module))
-                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, issue: message) }
+                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, profileApp: profileApp, issue: message) }
                 self.fail(message, openRecovery: !samples.isEmpty)
             }
         }

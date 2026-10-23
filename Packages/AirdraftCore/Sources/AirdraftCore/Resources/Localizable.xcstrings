@@ -156,6 +156,16 @@
         }
       }
     },
+    "%@ needs an explicit speech language. Choose a supported language on Models or select a model with Auto Detect." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要指定語音語言。請在「模型」中選擇支援的語言，或選擇具備自動偵測的模型。"
+          }
+        }
+      }
+    },
     "%@ received" : {
       "localizations" : {
         "zh-Hant" : {
@@ -216,12 +226,32 @@
         }
       }
     },
+    "%lld languages. Auto Detect or a selected language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。自動偵測或使用選取的語言。"
+          }
+        }
+      }
+    },
     "%lld languages. Choose one; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 種語言。請選擇一種；無法自動偵測。"
+          }
+        }
+      }
+    },
+    "%lld languages. Select a language; Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。請選擇語言；無法自動偵測。"
           }
         }
       }
@@ -306,6 +336,16 @@
         }
       }
     },
+    "13 languages, including Mandarin. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 種語言，包含華語。可自動偵測。"
+          }
+        }
+      }
+    },
     "14 languages, including Mandarin. Choose one; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hant" : {
@@ -316,12 +356,32 @@
         }
       }
     },
+    "14 languages, including Mandarin. Select a language; Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 種語言，包含華語。請選擇語言；無法自動偵測。"
+          }
+        }
+      }
+    },
     "18 languages" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "18 種語言"
+          }
+        }
+      }
+    },
+    "18 languages, including Mandarin. Auto Detect supports language switching." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "18 種語言，包含華語。自動偵測支援語言切換。"
           }
         }
       }
@@ -382,6 +442,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "30 種語言，包含華語與粵語。"
+          }
+        }
+      }
+    },
+    "30 languages, including Mandarin and Cantonese. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 種語言，包含華語與粵語。可自動偵測。"
           }
         }
       }
@@ -757,6 +827,76 @@
         }
       }
     },
+    "Auto Detect available. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可自動偵測。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Auto Detect chooses one predominant language and works best with 60 seconds of speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測會選擇一種主要語言，有 60 秒語音時效果最佳。"
+          }
+        }
+      }
+    },
+    "Auto Detect has its own language coverage; select a language if needed." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測有自己的語言範圍；必要時請選擇語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect or a selected language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測或使用選取的語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect selects one dominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測會選擇一種主要語言。"
+          }
+        }
+      }
+    },
+    "Auto Detect supports language switching. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測支援語言切換。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Auto Detect supports mixed languages. A selected language is a hint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動偵測支援多語混合。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
     "Automatic detection chooses one predominant language and works best with 60 seconds of speech." : {
       "localizations" : {
         "zh-Hant" : {
@@ -913,6 +1053,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "批次預覽版的語言範圍尚未驗證。選取的語言僅作為提示。"
+          }
+        }
+      }
+    },
+    "Batch recognition with dictionary terms. Auto Detect selects the predominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用詞彙進行批次辨識。自動偵測會選擇主要語言。"
           }
         }
       }
@@ -1155,6 +1305,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "雲端"
+          }
+        }
+      }
+    },
+    "Code editors" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程式碼編輯器"
           }
         }
       }
@@ -1487,6 +1648,16 @@
         }
       }
     },
+    "Deletes all dictation history, meeting transcripts, recordings and interrupted meetings. Settings and models stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除所有聽寫記錄、會議逐字稿、錄音與中斷的會議。設定與模型會保留。"
+          }
+        }
+      }
+    },
     "Deletes all dictation history, meeting transcripts, remembered speaker names, recordings and interrupted meetings. Settings and models stay." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1503,6 +1674,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除 App 資料、設定、模式、詞彙、供應商金鑰與已下載的模型，並重置此 App 的權限。完成後請結束 App 以重新設定。授權與試用記錄會保留。"
+          }
+        }
+      }
+    },
+    "Deletes dictation history and all meeting transcripts. Recordings, settings and models stay." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除聽寫記錄與所有會議逐字稿。錄音、設定與模型會保留。"
           }
         }
       }
@@ -1543,6 +1724,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目標已變更。已拷貝文字；請貼到你想要的位置。"
+          }
+        }
+      }
+    },
+    "Documents and notes" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件與筆記"
           }
         }
       }
@@ -1593,6 +1785,17 @@
         }
       }
     },
+    "Email" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "郵件"
+          }
+        }
+      }
+    },
     "Enable Apple Intelligence in System Settings." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1609,6 +1812,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "僅限英文的蒸餾 Whisper 權重。"
+          }
+        }
+      }
+    },
+    "Enhanced recognition. Auto Detect chooses one predominant language." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強化辨識。自動偵測會選擇一種主要語言。"
           }
         }
       }
@@ -1889,6 +2102,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "支援華語與英文夾雜；使用詞彙中的關鍵詞。"
+          }
+        }
+      }
+    },
+    "Ink-Whisper is the file model. Auto Detect and streaming Ink-2 are unavailable here." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ink-Whisper 是檔案模型。這裡無法使用自動偵測與串流 Ink-2。"
           }
         }
       }
@@ -2240,6 +2463,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "華語、粵語、英文、日文與韓文。"
+          }
+        }
+      }
+    },
+    "Mandarin, Cantonese, English, Japanese and Korean. Auto Detect available." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "華語、粵語、英文、日文與韓文。可自動偵測。"
           }
         }
       }
@@ -2625,6 +2858,17 @@
         }
       }
     },
+    "Other apps" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他 App"
+          }
+        }
+      }
+    },
     "Part %lld" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2671,6 +2915,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已暫停。繼續即可從上次儲存的階段接續。"
+          }
+        }
+      }
+    },
+    "Personal messages" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "個人訊息"
           }
         }
       }
@@ -3278,6 +3533,16 @@
         }
       }
     },
+    "Select a speech language. Auto Detect is unavailable for the file endpoint." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇語音語言。檔案端點無法自動偵測。"
+          }
+        }
+      }
+    },
     "Select a speech language; automatic detection is unavailable for the file endpoint." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3505,6 +3770,26 @@
         }
       }
     },
+    "Supports Mandarin. Auto Detect and language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援華語。透過 OpenRouter 的自動偵測與語言提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "Supports Mandarin. Auto Detect through OpenRouter is unverified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援華語。透過 OpenRouter 的自動偵測尚未驗證。"
+          }
+        }
+      }
+    },
     "Supports Mandarin. Automatic detection and language hints through OpenRouter are unverified." : {
       "localizations" : {
         "zh-Hant" : {
@@ -3562,6 +3847,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統擷取意外停止。最後儲存的部分可能不完整。"
+          }
+        }
+      }
+    },
+    "Terminals" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終端機"
           }
         }
       }
@@ -4266,12 +4562,32 @@
         }
       }
     },
+    "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Auto Detect works best with at least 60 seconds of speech." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用歐盟批次端點。使用後會嘗試刪除工作與音訊。語音至少 60 秒時，自動偵測效果最佳。"
+          }
+        }
+      }
+    },
     "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Automatic detection works best with at least 60 seconds of speech." : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用歐盟批次端點。使用後會嘗試刪除工作與音訊。語音至少 60 秒時，自動偵測效果最佳。"
+          }
+        }
+      }
+    },
+    "Uses the selected Apple Speech locale. Auto Detect is unavailable." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用所選的 Apple 語音地區語言。無法自動偵測。"
           }
         }
       }
@@ -4373,6 +4689,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請等媒體轉錄完成後再開始聽寫。"
+          }
+        }
+      }
+    },
+    "Work chat" : {
+      "comment" : "App family name for profile rules",
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作聊天"
           }
         }
       }

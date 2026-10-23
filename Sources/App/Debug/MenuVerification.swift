@@ -120,6 +120,47 @@ enum MenuVerification {
         app.profiles.update(profile)
         settings.microphone = .systemDefault
 
+        // Choose profile by app (AD-080): the frontmost app's rule names the
+        // profile and the app it followed; long names shorten within the width.
+        let summary = app.profiles.profiles.first { $0.id == RefinementProfile.summaryID }!
+        app.profiles.setChoosesProfileByApp(true)
+        let rule = app.profiles.addAppRule(.app(bundleID: "fixture.menu.editor"), profileID: summary.id, appName: "Fixture Editor")!
+        app.frontmostApp.override(.init(bundleID: "fixture.menu.editor", name: "Warp"))
+        let automatic = makeMenu()
+        let automaticTitle = L("Profile: \(summary.displayName) (auto: \("Warp"))")
+        precondition(titles(automatic).contains(automaticTitle), "Missing automatic profile title \(automaticTitle). Actual: \(titles(automatic))")
+        precondition(titles(submenu(automatic, automaticTitle)).contains(profileName), "The chosen profile stays selectable")
+        record("profile-by-app", automatic)
+        // A longer app name shortens before the profile name does.
+        app.frontmostApp.override(.init(bundleID: "fixture.menu.editor", name: "Fixture Editor With Long Name"))
+        guard let mediumTitle = titles(makeMenu()).first(where: { $0.hasPrefix(L("Profile: \(summary.displayName)")) }) else {
+            preconditionFailure("The profile name must stay whole when shortening the app suffices")
+        }
+        precondition(MenuTitle.fits(mediumTitle) && mediumTitle.contains("Fix") && mediumTitle.contains("…"),
+                     "Unexpected shortened app title: \(mediumTitle)")
+        report["profileByAppMediumTitle"] = mediumTitle
+        app.frontmostApp.override(.init(bundleID: "fixture.menu.editor", name: String(repeating: "Remarkably Long Editor ", count: 6)))
+        var longSummary = summary
+        longSummary.name = String(repeating: "Long automatic profile ", count: 6)
+        app.profiles.update(longSummary)
+        let longAutomatic = makeMenu()
+        guard let longTitle = titles(longAutomatic).first(where: { $0.hasPrefix(L("Profile: \("")")) }) else {
+            preconditionFailure("Missing Profile title. Actual: \(titles(longAutomatic))")
+        }
+        precondition(MenuTitle.fits(longTitle), "Automatic profile title exceeds the menu width: \(longTitle)")
+        precondition(longTitle.contains("Long") && longTitle.contains("Rem") && longTitle.contains("…"),
+                     "Both names must stay recognizable: \(longTitle)")
+        record("profile-by-app-long", longAutomatic, capture: false)
+        report["profileByAppLongTitle"] = longTitle
+        app.profiles.update(summary)
+        app.frontmostApp.override(.init(bundleID: "com.example.unruled", name: "Unruled"))
+        precondition(titles(makeMenu()).contains(L("Profile: \(profileName)")), "Apps without a rule use the chosen profile")
+        app.profiles.setChoosesProfileByApp(false)
+        app.frontmostApp.override(.init(bundleID: "fixture.menu.editor", name: "Fixture Editor"))
+        precondition(titles(makeMenu()).contains(L("Profile: \(profileName)")), "Off keeps the chosen profile everywhere")
+        app.profiles.removeAppRule(id: rule.id)
+        app.frontmostApp.override(nil)
+
         app.models.llmStatus.set(.remote)
         app.engineStatus.setPreviewState(app.speechConfig.engineID, .notLoaded)
         precondition(!titles(submenu(makeMenu(), L("Models"))).contains(L("Unload Models")))

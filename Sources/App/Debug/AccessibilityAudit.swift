@@ -82,6 +82,15 @@ enum AccessibilityAudit {
                 container.navigation.page = page
                 audit("page-\(page.rawValue)", MainWindowView(), expect: { expectations(for: page, $0) })
             }
+            // Profile by app (AD-080) rows exist only while the switch is on.
+            container.navigation.page = .profiles
+            container.profiles.setChoosesProfileByApp(true)
+            let rules = [container.profiles.addAppRule(.family(.terminal), profileID: RefinementProfile.verbatimID),
+                         container.profiles.addAppRule(.app(bundleID: "com.apple.TextEdit"), profileID: RefinementProfile.conciseID,
+                                                       appName: "TextEdit")].compactMap { $0 }
+            audit("page-profiles-by-app", MainWindowView(), height: 1100, expect: profileRuleExpectations)
+            for rule in rules { container.profiles.removeAppRule(id: rule.id) }
+            container.profiles.setChoosesProfileByApp(false)
             container.navigation.page = .home
             audit("overlay-microphone", MainWindowView(previewOverlay: .microphone, microphoneRenderLevel: 0.4))
             audit("overlay-account", MainWindowView(previewOverlay: .account))
@@ -110,6 +119,26 @@ enum AccessibilityAudit {
         for violation in violations { print("A11Y_VIOLATION \(violation)") }
         precondition(violations.isEmpty, "\(violations.count) accessibility violation(s); see \(report.path)")
         print("A11Y_AUDIT_PASS surfaces=\(surfaces) sizes=default,larger dumps=\(directory.path)")
+    }
+
+    /// The rule switch, each rule's profile picker and removal, and the Add Rule menu.
+    static func profileRuleExpectations(_ nodes: [Node]) -> [String] {
+        var problems: [String] = []
+        if !nodes.contains(where: { $0.role == "AXHeading" && $0.name == String(localized: "Profile by app") }) {
+            problems.append("Profile by app must be a heading")
+        }
+        if !nodes.contains(where: { $0.identifier == "profiles.byApp" && $0.name == String(localized: "Choose profile by app") }) {
+            problems.append("the Choose profile by app switch must be named")
+        }
+        if !nodes.contains(where: { $0.role == "AXMenuButton" && $0.name == String(localized: "Add Rule") }) {
+            problems.append("Add Rule must be a named menu button")
+        }
+        let terminals = AppFamily.terminal.ruleTitle
+        for name in [String(localized: "Profile for \(terminals)"), String(localized: "Remove rule for \(terminals)")]
+            where !nodes.contains(where: { $0.name == name }) {
+            problems.append("missing control named \(name)")
+        }
+        return problems
     }
 
     /// Specific labels and states this audit introduced, checked on the real tree.

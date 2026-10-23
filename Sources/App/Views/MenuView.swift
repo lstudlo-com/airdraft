@@ -61,7 +61,7 @@ struct MenuView: View {
 
         MicrophonePicker(title: MenuTitle.fit(String(localized: "Microphone: \(microphoneLabel)")), fitsMenu: true)
 
-        Picker(MenuTitle.fit(String(localized: "Profile: \(container.profiles.activeProfile.displayName)")), selection: Binding(
+        Picker(MenuTitle.profile(upcoming.profile.displayName, app: autoProfileApp), selection: Binding(
             get: { container.profiles.activeProfileID },
             set: { container.profiles.setActive($0) }
         )) {
@@ -69,10 +69,10 @@ struct MenuView: View {
                 Text(MenuTitle.fit(profile.displayName)).help(profile.displayName).tag(profile.id)
             }
         }
-        .help(String(localized: "Profile: \(container.profiles.activeProfile.displayName). Changes apply to the next dictation."))
+        .help(profileHelp)
 
         Menu(MenuTitle.fit(String(localized: "Refinement: \(refinementLabel)"))) {
-            if !container.profiles.activeProfile.usesLLM {
+            if !upcoming.profile.usesLLM {
                 Text(String(localized: "Off for this profile"))
                 Button(String(localized: "Profile Settings…")) { show(.profiles) }
                 Divider()
@@ -142,6 +142,22 @@ struct MenuView: View {
         }
     }
 
+    /// The profile the frontmost app's dictation uses: its app rule, else the chosen one.
+    private var upcoming: ProfileSelection { container.upcomingProfile }
+
+    /// The app an automatic profile follows; nil when the chosen profile applies.
+    private var autoProfileApp: String? {
+        upcoming.isAutomatic ? container.frontmostApp.current?.name : nil
+    }
+
+    private var profileHelp: String {
+        let name = upcoming.profile.displayName
+        guard let app = autoProfileApp else {
+            return String(localized: "Profile: \(name). Changes apply to the next dictation.")
+        }
+        return String(localized: "Profile: \(name), chosen by app for \(app). Other apps use \(container.profiles.activeProfile.displayName).")
+    }
+
     private var microphoneLabel: String {
         let preference = container.settings.microphone
         guard preference.uid != nil else { return String(localized: "Default") }
@@ -149,7 +165,7 @@ struct MenuView: View {
     }
 
     private var refinementLabel: String {
-        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
+        guard upcoming.profile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
         return refinementUnavailable ? String(localized: "Unavailable") : container.settings.llm.kind.shortTitle
     }
 
@@ -233,12 +249,12 @@ struct MenuView: View {
     }
 
     private var llmSummary: String {
-        guard container.profiles.activeProfile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
+        guard upcoming.profile.usesLLM, container.settings.llm.kind != .none else { return String(localized: "Off") }
         return "\(container.settings.llm.kind.shortTitle) · \(llmStateLabel)"
     }
 
     private var llmDetail: String {
-        guard container.profiles.activeProfile.usesLLM else { return String(localized: "Raw transcript; refinement is off for this profile.") }
+        guard upcoming.profile.usesLLM else { return String(localized: "Raw transcript; refinement is off for this profile.") }
         guard container.settings.llm.kind != .none else { return String(localized: "Raw transcript without refinement") }
         if container.settings.llm.kind == .appleIntelligence {
             return AppleIntelligenceRefiner.unavailableReason ?? String(localized: "Apple Intelligence · on-device")
@@ -271,6 +287,40 @@ enum MenuTitle {
     static let maxWidth: CGFloat = 190
     private static let font = NSFont.menuFont(ofSize: 0)
 
+    /// The Profile submenu title. An automatic profile names the app it follows;
+    /// a long title shortens the app name first, then the profile name, so both
+    /// stay recognizable within the menu width.
+    static func profile(_ name: String, app: String?) -> String {
+        guard let app else { return fit(String(localized: "Profile: \(name)")) }
+        func title(_ name: String, _ app: String) -> String {
+            String(localized: "Profile: \(name) (auto: \(app))", comment: "Menu title; the profile was chosen automatically for the named app")
+        }
+        let full = title(name, app)
+        if fits(full) { return full }
+        if let shortApp = shortened(app, keeping: 3, toFit: { fits(title(name, $0)) }) { return title(name, shortApp) }
+        let minimalApp = app.count > 3 ? String(app.prefix(3)) + "…" : app
+        if let shortName = shortened(name, keeping: 3, toFit: { fits(title($0, minimalApp)) }) { return title(shortName, minimalApp) }
+        // The app stays in the tooltip when even short names cannot fit.
+        return fit(String(localized: "Profile: \(name) (auto)", comment: "Menu title; the profile was chosen automatically for the frontmost app"))
+    }
+
+    /// The longest prefix of `text`, at least `minimum` characters, that fits once
+    /// an ellipsis is added; nil when even the minimum does not fit.
+    private static func shortened(_ text: String, keeping minimum: Int, toFit fitting: (String) -> Bool) -> String? {
+        let characters = Array(text)
+        guard characters.count > minimum else { return nil }
+        func prefix(_ count: Int) -> String {
+            String(characters[..<count]).trimmingCharacters(in: .whitespaces) + "…"
+        }
+        guard fitting(prefix(minimum)) else { return nil }
+        var low = minimum, high = characters.count - 1
+        while low < high {
+            let mid = (low + high + 1) / 2
+            if fitting(prefix(mid)) { low = mid } else { high = mid - 1 }
+        }
+        return prefix(low)
+    }
+
     static func fit(_ text: String) -> String {
         let line = text.split(whereSeparator: \.isNewline).joined(separator: " ")
         if fits(line) { return line }
@@ -298,7 +348,7 @@ enum MenuTitle {
         return cut.trimmingCharacters(in: .punctuationCharacters.union(.whitespaces)) + "…"
     }
 
-    private static func fits(_ text: String) -> Bool {
+    static func fits(_ text: String) -> Bool {
         (text as NSString).size(withAttributes: [.font: font]).width <= maxWidth
     }
 }

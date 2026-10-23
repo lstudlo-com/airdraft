@@ -111,7 +111,7 @@ extension DictationPipeline {
     public func retryRecording(_ id: UUID? = nil) {
         guard !isBusy, let index = recoveryIndex(id) else { return }
         let recovery = recoveries[index]
-        let snapshot = recordingSnapshot(output: recovery.output)
+        let snapshot = recordingSnapshot(output: recovery.output, app: recovery.profileApp)
         generation = UUID()
         discardRefinementPreparation()
         stopRequestedAt = nil
@@ -134,17 +134,20 @@ extension DictationPipeline {
 
     /// Keeps failed audio. A failed retry replaces its own entry and becomes the newest.
     func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false,
-                        output: OutputSnapshot? = nil, issue: String, replacing id: UUID? = nil) {
+                        output: OutputSnapshot? = nil, profileApp: String? = nil, issue: String, replacing id: UUID? = nil) {
         var isReview = reviewOnly && reviewGeneration == generation
+        var profileApp = profileApp
         if let id, let index = recoveries.firstIndex(where: { $0.info.id == id }) {
             isReview = recoveries[index].info.isReview
+            profileApp = profileApp ?? recoveries[index].profileApp
             recoveries.remove(at: index)
         }
         if isReview { recoveries.removeAll { $0.info.isReview } }
         let info = PendingRecording(id: id ?? UUID(), createdAt: Date(), seconds: Double(samples.count) / AudioRecorder.sampleRate,
                                     issue: issue, isReview: isReview)
         recoveries.append(Recovery(info: info, samples: samples, context: context, target: target, reviewOnly: reviewOnly,
-                                   output: output ?? recordingAtStart?.output ?? selectedOutput()))
+                                   output: output ?? recordingAtStart?.output ?? selectedOutput(),
+                                   profileApp: profileApp))
     }
 
     /// Successful or silent processing resolves the recovery a retry was

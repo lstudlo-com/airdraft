@@ -224,7 +224,18 @@ enum DebugRender {
             if pageName == "meetings" { try? MediaPreview.seedMeetings(history) }
             else { try? MediaPreview.seed(history) }
         }
-        let pages: [Page] = pageName == "all" ? Page.allCases : [Page(rawValue: pageName) ?? .home]
+        // Profiles with Choose profile by app on and sample rules (AD-080).
+        if pageName == "profiles-by-app" || pageName == "home-by-app" {
+            let profiles = container.profiles
+            profiles.setChoosesProfileByApp(true)
+            profiles.addAppRule(.family(.terminal), profileID: RefinementProfile.verbatimID)
+            profiles.addAppRule(.family(.code), profileID: RefinementProfile.cleanID)
+            profiles.addAppRule(.app(bundleID: "com.apple.TextEdit"), profileID: RefinementProfile.conciseID, appName: "TextEdit")
+            profiles.addAppRule(.app(bundleID: "com.example.removed-editor"), profileID: RefinementProfile.summaryID,
+                                appName: "Removed Editor")
+        }
+        let pages: [Page] = pageName == "all" ? Page.allCases
+            : [Page(rawValue: pageName == "profiles-by-app" ? Page.profiles.rawValue : pageName == "home-by-app" ? Page.home.rawValue : pageName) ?? .home]
         for page in pages {
             // `AIRDRAFT_RENDER_CONTRAST=1` renders the Increase Contrast appearances.
             let highContrast = env["AIRDRAFT_RENDER_CONTRAST"] == "1"
@@ -326,7 +337,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup", "media-import", "media-editor", "meeting-setup", "meeting-recording"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup", "media-import", "media-editor", "meeting-setup", "meeting-recording", "profiles-by-app", "home-by-app"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

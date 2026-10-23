@@ -49,6 +49,14 @@ final class AppContainer {
     let profiles: ProfileStore
     var effectiveProfile: RefinementProfile { settings.effectiveProfile(profiles.activeProfile) }
     var speechConfig: ASRConfig { settings.speechConfig(for: profiles.activeProfile) }
+    /// The app the next dictation would go to, for automatic profile labels.
+    let frontmostApp = FrontmostApplication()
+    /// The profile a dictation into the frontmost app would use (AD-080). Labels
+    /// only: the pipeline resolves the captured destination at recording start.
+    var upcomingProfile: ProfileSelection {
+        settings.isOnboardingPractice ? ProfileSelection(profile: profiles.activeProfile, rule: nil)
+            : profiles.selection(forApp: frontmostApp.current?.bundleID)
+    }
     var history: HistoryStore? { pipeline.historyStore }
     let engineStatus: EngineStatus
     let factory: EngineFactory

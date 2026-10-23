@@ -11,6 +11,10 @@ public final class ProfileStore {
     public private(set) var profiles: [RefinementProfile] = RefinementProfile.defaults
     public private(set) var baseRules: String = PromptBuilder.defaultBaseRules
     public private(set) var activeProfileID: UUID = RefinementProfile.cleanID
+    /// Choose profile by app (AD-080). Off by default; rules are kept while off.
+    public private(set) var choosesProfileByApp = false
+    /// At most one rule per app or family, in the order they were added.
+    public private(set) var appRules: [AppProfileRule] = []
 
     public private(set) var persistenceError: String?
     private var unreadableOriginal = false
@@ -21,6 +25,9 @@ public final class ProfileStore {
         var baseRules: String
         var profiles: [RefinementProfile]
         var activeProfileID: UUID
+        // Added in 0.12; older files omit both and older versions ignore them.
+        var choosesProfileByApp: Bool?
+        var appRules: LossyAppProfileRules?
     }
 
     public init(directory: URL) {
@@ -30,6 +37,17 @@ public final class ProfileStore {
 
     public var activeProfile: RefinementProfile {
         profiles.first { $0.id == activeProfileID } ?? profiles.first ?? RefinementProfile.defaults[0]
+    }
+
+    /// The profile a dictation into `bundleID` uses: an app's own rule, then its
+    /// family's rule, then the manually chosen profile. Only the bundle ID is used.
+    public func selection(forApp bundleID: String?) -> ProfileSelection {
+        guard choosesProfileByApp,
+              let rule = AppProfileRule.rule(for: bundleID, in: appRules),
+              let profile = profiles.first(where: { $0.id == rule.profileID }) else {
+            return ProfileSelection(profile: activeProfile, rule: nil)
+        }
+        return ProfileSelection(profile: profile, rule: rule)
     }
 
     public var baseRulesAreDefault: Bool { baseRules == PromptBuilder.defaultBaseRules }
@@ -44,6 +62,45 @@ public final class ProfileStore {
     public func setActive(_ id: UUID) {
         guard profiles.contains(where: { $0.id == id }) else { return }
         activeProfileID = id
+        save()
+    }
+
+    // MARK: - App rules
+
+    public func setChoosesProfileByApp(_ enabled: Bool) {
+        guard choosesProfileByApp != enabled else { return }
+        choosesProfileByApp = enabled
+        save()
+    }
+
+    /// Adds a rule, or points an existing rule for the same app or family at `profileID`.
+    @discardableResult
+    public func addAppRule(_ match: AppProfileRule.Match, profileID: UUID, appName: String? = nil) -> AppProfileRule? {
+        guard profiles.contains(where: { $0.id == profileID }) else { return nil }
+        if case .family(.general) = match { return nil }
+        if let index = appRules.firstIndex(where: { $0.match == match }) {
+            appRules[index].profileID = profileID
+            if let appName { appRules[index].appName = appName }
+            save()
+            return appRules[index]
+        }
+        let rule = AppProfileRule(match: match, profileID: profileID, appName: appName)
+        appRules.append(rule)
+        save()
+        return rule
+    }
+
+    public func setProfile(_ profileID: UUID, forRule id: UUID) {
+        guard profiles.contains(where: { $0.id == profileID }),
+              let index = appRules.firstIndex(where: { $0.id == id }),
+              appRules[index].profileID != profileID else { return }
+        appRules[index].profileID = profileID
+        save()
+    }
+
+    public func removeAppRule(id: UUID) {
+        guard appRules.contains(where: { $0.id == id }) else { return }
+        appRules.removeAll { $0.id == id }
         save()
     }
 
@@ -134,6 +191,8 @@ public final class ProfileStore {
         guard let p = profiles.first(where: { $0.id == id }), !p.isBuiltIn else { return }
         profiles.removeAll { $0.id == id }
         if activeProfileID == id { activeProfileID = RefinementProfile.cleanID }
+        // A rule never falls back to another profile silently; it is removed.
+        appRules.removeAll { $0.profileID == id }
         save()
     }
 
@@ -154,11 +213,14 @@ public final class ProfileStore {
         save()
     }
 
-    /// Restores every built-in profile and the base rules, and removes user profiles.
+    /// Restores every built-in profile and the base rules, and removes user profiles
+    /// and app rules.
     public func resetAll() {
         profiles = RefinementProfile.defaults
         baseRules = PromptBuilder.defaultBaseRules
         activeProfileID = RefinementProfile.cleanID
+        choosesProfileByApp = false
+        appRules = []
         save()
     }
 
@@ -185,6 +247,13 @@ public final class ProfileStore {
         profiles = loaded
         baseRules = p.baseRules.isEmpty ? PromptBuilder.defaultBaseRules : p.baseRules
         activeProfileID = loaded.contains(where: { $0.id == p.activeProfileID }) ? p.activeProfileID : RefinementProfile.cleanID
+        choosesProfileByApp = p.choosesProfileByApp ?? false
+        // Keep one rule per app or family, each naming a profile that exists.
+        var seen = Set<AppProfileRule.Match>()
+        appRules = (p.appRules?.rules ?? []).filter { rule in
+            guard loaded.contains(where: { $0.id == rule.profileID }), rule.match != .family(.general) else { return false }
+            return seen.insert(rule.match).inserted
+        }
     }
 
     public func retrySave() { save() }
@@ -194,7 +263,8 @@ public final class ProfileStore {
         guard !unreadableOriginal else { return false }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let p = Persisted(version: 1, baseRules: baseRules, profiles: profiles, activeProfileID: activeProfileID)
+        let p = Persisted(version: 1, baseRules: baseRules, profiles: profiles, activeProfileID: activeProfileID,
+                          choosesProfileByApp: choosesProfileByApp, appRules: LossyAppProfileRules(appRules))
         do {
             let data = try encoder.encode(p)
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
