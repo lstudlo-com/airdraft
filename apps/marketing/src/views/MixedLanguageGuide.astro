@@ -11,8 +11,9 @@ import { href, type Locale } from "../i18n";
  * src/data/mixed-asr.ts (eval/mixed-asr in the repository) and are presented
  * as Airdraft's own measurement on one Mac, with its method and limits. App
  * behavior follows SpeechLanguagePolicy, ChineseScriptConverter, PromptBuilder
- * and the onboarding recommendation as of 0.11.0; 0.10.2's recommendation is
- * named only where it differs. App labels in the zh-TW page are the app's
+ * and the current onboarding recommendation (AD-083 for English, Japanese and
+ * Korean); 0.11.0's and 0.10.2's recommendations are named only where they
+ * differ. App labels in the zh-TW page are the app's
  * zh-Hant catalog values, quoted with 「」.
  */
 interface Props {
@@ -97,13 +98,23 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
     <Surface class="guide-section">
       <h2 id="app-recommendation">App 會推薦哪一個？</h2>
       <p>
-        從 0.11.0 起，系統語言為中文的 Mac 首次設定會推薦 Qwen3-ASR 1.7B；記憶體
-        8 GB 以下的 Mac 改推薦 SenseVoice，仍可選 Qwen3-ASR
-        1.7B。英文、日文與韓文推薦 SenseVoice，其他語言推薦 Whisper Large v3
-        Turbo。「模型」頁在 Qwen3-ASR 1.7B 上顯示「最適合中英夾雜」標籤，並說明
-        SenseVoice「較小、較快；中文夾雜英文詞時較弱。」按下「下載」之前不會下載任何模型。
+        系統語言為中文的 Mac，首次設定會推薦 Qwen3-ASR 1.7B；記憶體 8 GB 以下的
+        Mac 改推薦 SenseVoice，仍可選 Qwen3-ASR 1.7B。英文推薦 Parakeet TDT
+        v2，並提供能辨識多種語言的 Qwen3-ASR 1.7B；日文與韓文推薦 Qwen3-ASR
+        1.7B，較省記憶體的 Whisper Large v3 Turbo 是另一個選擇，8 GB 以下的 Mac
+        則先推薦它；其他語言推薦 Whisper Large v3 Turbo。「模型」頁在 Qwen3-ASR
+        1.7B 上顯示「最適合中英夾雜」標籤，並說明
+        SenseVoice「中文辨識小巧快速；英文和其他語言較弱。」按下「下載」之前不會下載任何模型。
       </p>
-      <p>0.10.2 的首次設定在系統語言為中文的 Mac 上也建議 SenseVoice。</p>
+      <p>
+        0.11.0 及更早的版本為英文、日文與韓文推薦 SenseVoice；0.10.2
+        在系統語言為中文的 Mac 上也建議
+        SenseVoice。英文、日文與韓文的測量結果請看
+        <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
+          離線聽寫指南
+        </a>
+        （英文）。
+      </p>
     </Surface>
 
     <Surface class="guide-section">
@@ -209,6 +220,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           及更早的版本則是下載當時儲存庫裡的最新檔案。
         </li>
         <li>結果是未經潤稿的辨識輸出。Cohere Transcribe 沒有測。</li>
+        <li>
+          App 安裝的 SenseVoice
+          檔案，說明寫著是從粵語微調版本轉換而來；這裡的華語結果就是用這個檔案測的。
+        </li>
         <li>這是 Airdraft 模型之間的比較，不是和其他聽寫 App 的比較。</li>
       </ul>
     </Surface>
@@ -297,17 +312,24 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
     <Surface class="guide-section">
       <h2 id="app-recommendation">What does the app recommend?</h2>
       <p>
-        From 0.11.0, first-run setup recommends Qwen3-ASR 1.7B on a Mac set to
-        Chinese. On a Mac with 8 GB of memory or less it recommends SenseVoice
-        and still offers Qwen3-ASR 1.7B. English, Japanese and Korean get
-        SenseVoice, and other languages Whisper Large v3 Turbo. The Models page
-        labels Qwen3-ASR 1.7B “Best for mixed Chinese and English” and describes
-        SenseVoice as smaller and faster but weaker with English terms in
-        Chinese speech. Nothing downloads until you click Download.
+        First-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese. On a
+        Mac with 8 GB of memory or less it recommends SenseVoice and still
+        offers Qwen3-ASR 1.7B. English gets Parakeet TDT v2, with Qwen3-ASR 1.7B
+        as the multilingual alternative. Japanese and Korean get Qwen3-ASR 1.7B,
+        with Whisper Large v3 Turbo as the lower-memory alternative, which comes
+        first on a Mac with 8 GB or less. Other languages get Whisper Large v3
+        Turbo. The Models page labels Qwen3-ASR 1.7B “Best for mixed Chinese and
+        English” and describes SenseVoice as “Small and fast for Chinese; weaker
+        with English and other languages.” Nothing downloads until you click
+        Download.
       </p>
       <p>
-        In 0.10.2, first-run setup suggested SenseVoice on a Mac set to Chinese
-        too.
+        0.11.0 and earlier recommended SenseVoice for English, Japanese and
+        Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Airdraft’s{" "}
+        <a href="/guides/offline-dictation-on-mac/#measured">
+          English, Japanese and Korean measurement
+        </a>{" "}
+        is in the offline setup guide.
       </p>
     </Surface>
 
@@ -429,6 +451,11 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         <li>
           The results are speech output without refinement. Cohere Transcribe
           was not tested.
+        </li>
+        <li>
+          The SenseVoice archive the app installs says it was converted from a
+          Cantonese fine-tune; these Mandarin results were measured with that
+          archive.
         </li>
         <li>
           It compares Airdraft’s models with each other, not Airdraft with other

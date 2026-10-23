@@ -3,6 +3,7 @@ import GuideLayout from "../layouts/GuideLayout.astro";
 import Surface from "../components/ui/Surface.astro";
 import Button from "../components/ui/Button.astro";
 import { guidesFor } from "../data/guides";
+import { ejaAsrResults } from "../data/eja-asr";
 import { href, type Locale } from "../i18n";
 
 /**
@@ -10,8 +11,9 @@ import { href, type Locale } from "../i18n";
  * Delivery follows TextInserter (selfDrawingEditorBundlePrefixes, read-back
  * confirmation, explicit-retry copy), destination rules follow AppFamily and
  * the app-context setting, and CLI refinement follows CLIRefiner and the root
- * README. Behavior described is 0.11.0's; 0.10.2 and earlier are named only
- * where they differ. App labels in the zh-TW page are the app's
+ * README. Behavior described is 0.11.0's, plus the AD-083 speech
+ * recommendation; 0.11.0, 0.10.2 and earlier are named only where they differ.
+ * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-TW page are the app's
  * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
  * (Verbatim, Claude Code, Codex) stay as the app shows them.
  */
@@ -23,6 +25,11 @@ const guide = guidesFor(locale).find(
   (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
 )!;
 const zh = locale === "zh-tw";
+const english = ejaAsrResults.en;
+const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
+const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
+const percent = (value: number) => `${value.toFixed(1)}%`;
+const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 ---
 
 {zh ? (
@@ -175,7 +182,20 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="speech">語音模型怎麼選？</h2>
       <p>
-        只說英文時，Parakeet TDT v3 在本機執行，支援英文與 24
+        只說英文時，選 Parakeet TDT v2：系統語言為英文的
+        Mac，首次設定會推薦它。它只辨識英文。在 Airdraft
+        自己以朗讀英文做的測量中，它的詞錯誤率是 {percent(parakeet.auto.value)}
+        ，每段約 {about(parakeet.medianMs)}，和 Qwen3-ASR 1.7B 的{" "}
+        {percent(qwen.auto.value)} 在誤差範圍內；Qwen3-ASR 1.7B
+        也能辨識其他語言，使用約 3 GB
+        記憶體。測量用的是朗讀的維基百科句子，不是提示詞，方法與限制請看
+        <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
+          離線聽寫指南
+        </a>
+        （英文）。0.11.0 及更早的版本推薦 SenseVoice。
+      </p>
+      <p>
+        Parakeet TDT v3 支援英文與 24
         種其他歐洲語言，但不支援中文。提示詞裡中英混說時，請看
         <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
           中英混說的模型測量
@@ -341,9 +361,22 @@ const zh = locale === "zh-tw";
     <Surface class="guide-section">
       <h2 id="speech">Which speech model?</h2>
       <p>
-        For English-only prompts, Parakeet TDT v3 runs locally and supports
-        English and 24 other European languages, but not Chinese. If your
-        prompts mix Chinese and English, see the{" "}
+        For English-only prompts, choose Parakeet TDT v2: first-run setup
+        recommends it on a Mac set to English. It recognizes English only. In
+        Airdraft’s own measurement on read English it made{" "}
+        {percent(parakeet.auto.value)} word errors at about{" "}
+        {about(parakeet.medianMs)} per clip, within the margin of Qwen3-ASR
+        1.7B’s {percent(qwen.auto.value)}; Qwen3-ASR 1.7B also recognizes other
+        languages and uses about 3 GB of memory. The clips were read Wikipedia
+        sentences, not prompts; see the{" "}
+        <a href="/guides/offline-dictation-on-mac/#measured">
+          offline setup guide
+        </a>{" "}
+        for the method and limits. 0.11.0 and earlier recommended SenseVoice.
+      </p>
+      <p>
+        Parakeet TDT v3 supports English and 24 other European languages, but
+        not Chinese. If your prompts mix Chinese and English, see the{" "}
         <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
           mixed-language model measurements
         </a>

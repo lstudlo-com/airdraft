@@ -4,10 +4,55 @@ import Surface from "../../components/ui/Surface.astro";
 import Button from "../../components/ui/Button.astro";
 import { guides } from "../../data/guides";
 import { siteLinks } from "../../data/site";
+import {
+  ejaAsrMetric,
+  ejaAsrResults,
+  ejaAsrStudy,
+  type EjaAsrResult,
+  type EjaError,
+  type EjaLanguage,
+} from "../../data/eja-asr";
 
 const guide = guides.find(
   (entry) => entry.slug === "offline-dictation-on-mac",
 )!;
+// English, Japanese and Korean results come from src/data/eja-asr.ts
+// (eval/eja-asr in the repository), quoted as Airdraft's own measurement on
+// one Mac with its method and limits.
+const study = ejaAsrStudy;
+const languages = (
+  [
+    ["en", "English"],
+    ["ja", "Japanese"],
+    ["ko", "Korean"],
+  ] as [EjaLanguage, string][]
+).map(([code, name]) => ({
+  code,
+  name,
+  unit:
+    ejaAsrMetric[code] === "WER"
+      ? "word error rate (WER)"
+      : "character error rate (CER)",
+}));
+const columns = [
+  "Model",
+  "Errors, Detect Automatically",
+  "Errors, language set",
+  "Median time",
+  "Download",
+];
+const rate = (error: EjaError) =>
+  `${error.value.toFixed(1)}% (${error.ci[0].toFixed(1)}–${error.ci[1].toFixed(1)})`;
+const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
+const [parakeet, qwen] = ["Parakeet TDT v2", "Qwen3-ASR 1.7B"].map((model) =>
+  ejaAsrResults.en.find((row) => row.model === model)!,
+);
+const cells = (row: EjaAsrResult) => [
+  rate(row.auto),
+  row.explicit ? rate(row.explicit) : "Not used by this model",
+  `${row.medianMs} ms`,
+  row.download,
+];
 ---
 
 <GuideLayout
@@ -84,23 +129,160 @@ const guide = guides.find(
   <Surface class="guide-section">
     <h2 id="languages">Which model should I choose?</h2>
     <p>
-      Language support belongs to the model. Parakeet TDT v3 supports English
-      and 24 other European languages, but not Mandarin or Cantonese. From
-      0.11.0, first-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese,
-      with SenseVoice as the smaller, faster option; a Mac with 8 GB of memory
-      or less gets SenseVoice first and still offers Qwen3-ASR 1.7B. A Mac set
-      to English, Japanese or Korean gets SenseVoice, and other languages
-      Whisper Large v3 Turbo. Airdraft’s{" "}
-      <a href="/guides/mixed-chinese-english-dictation/">
-        mixed-language measurements
-      </a>{" "}
-      show the trade-offs. Choose your output script under Models → Speech
-      options → Chinese script.
+      Language support belongs to the model. First-run setup recommends a local
+      model from your Mac’s system language and memory. For English, Japanese,
+      Korean and Chinese it also offers one alternative:
+    </p>
+    <dl class="guide-decisions">
+      <div>
+        <dt>English: Parakeet TDT v2</dt>
+        <dd>
+          It recognizes English only. In Airdraft’s measurement its errors were
+          within the margin of Qwen3-ASR 1.7B’s, and it was much faster. Setup
+          offers Qwen3-ASR 1.7B as the alternative if you also speak other
+          languages; it uses about 3 GB of memory.
+        </dd>
+      </div>
+      <div>
+        <dt>Japanese and Korean: Qwen3-ASR 1.7B</dt>
+        <dd>
+          Whisper Large v3 Turbo is the lower-memory alternative and comes first
+          on a Mac with 8 GB of memory or less. Its first start can take a
+          minute.
+        </dd>
+      </div>
+      <div>
+        <dt>Chinese: Qwen3-ASR 1.7B</dt>
+        <dd>
+          SenseVoice is the smaller, faster alternative and comes first on a Mac
+          with 8 GB of memory or less. Airdraft’s{" "}
+          <a href="/guides/mixed-chinese-english-dictation/">
+            mixed-language measurements
+          </a>{" "}
+          show the trade-offs. Choose your output script under Models → Speech
+          options → Chinese script.
+        </dd>
+      </div>
+      <div>
+        <dt>Other languages: Whisper Large v3 Turbo</dt>
+        <dd>
+          Parakeet TDT v3 supports English and 24 other European languages, but
+          not Mandarin or Cantonese.
+        </dd>
+      </div>
+    </dl>
+    <p>
+      0.11.0 and earlier recommended SenseVoice for English, Japanese and
+      Korean, and 0.10.2 also suggested it on a Mac set to Chinese. The Models
+      page describes SenseVoice as “Small and fast for Chinese; weaker with
+      English and other languages.”
     </p>
     <p>
       Local processing uses your Mac's memory and compute. Model loading and
       transcription time vary with the model and hardware; the website's
       interactive sample is an illustration, not a speed test.
+    </p>
+  </Surface>
+
+  <Surface class="guide-section">
+    <h2 id="measured">Measured on English, Japanese and Korean</h2>
+    {languages.map((language) => (
+      <div
+        class="guide-table-scroll"
+        tabindex="0"
+        role="region"
+        aria-label={`Local model results on ${language.name}`}
+      >
+        <table class="guide-table guide-table-wide" role="table">
+          <caption>
+            {language.name}, {language.unit}. Airdraft’s own measurement,{" "}
+            {study.date}, on an Apple M4 Pro, refinement off. Lower is better;
+            95% intervals in parentheses.
+          </caption>
+          <thead role="rowgroup">
+            <tr role="row">
+              {columns.map((column) => (
+                <th scope="col" role="columnheader">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {ejaAsrResults[language.code].map((row) => (
+              <tr role="row">
+                <th scope="row" role="rowheader">
+                  {row.model}
+                </th>
+                {cells(row).map((cell, index) => (
+                  <td role="cell">
+                    <span class="cell-label" aria-hidden="true">
+                      {columns[index + 1]}
+                    </span>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ))}
+    <p>
+      English counts word errors; Japanese and Korean count character errors,
+      ignoring spaces. On English, Parakeet TDT v2 and Qwen3-ASR 1.7B are
+      statistically tied, and Parakeet took about {about(parakeet.medianMs)} per
+      clip instead of about {about(qwen.medianMs)}. On Japanese and Korean,
+      Qwen3-ASR 1.7B and Whisper Large v3 Turbo overlap with Language set to
+      Detect Automatically. Setting Language to Japanese or Korean lowered
+      Qwen3-ASR 1.7B’s errors by 1.7 and 1.8 points.
+    </p>
+    <p>
+      The SenseVoice archive the app installs dropped every kana in all 60
+      Japanese clips and lost most of the text in 50 of 60 Korean clips. Its
+      model notes say it was converted from a Cantonese fine-tune. Airdraft’s
+      mixed Chinese and English results were measured with the same archive and
+      still stand.
+    </p>
+    <p>
+      Median time is transcription after loading, measured while the Mac was
+      also running builds, so compare the models with each other only. Qwen3-ASR
+      1.7B’s measured peak memory was about 3 GB. Parakeet TDT v2 and Whisper
+      run through Core ML and keep part of their memory outside the app’s
+      process, so their memory is not comparable. Download sizes are the totals
+      the Models page lists, not measured transfers.
+    </p>
+    <h3>Limits of this measurement</h3>
+    <ul>
+      <li>
+        The clips are {study.utterancesPerLanguage} read Wikipedia sentences per
+        language from Google FLEURS, not dictation: longer sentences, many names
+        and numbers, few hesitations. FLEURS publishes no speaker IDs.
+      </li>
+      <li>
+        {study.utterancesPerLanguage} clips per language give wide intervals.
+        Numbers and kana or kanji spellings are not normalized, and some Korean
+        references contain bracketed glosses that nobody says.
+      </li>
+      <li>
+        It ran on one M4 Pro with 48 GB. Macs with 8 GB of memory or less were
+        not measured.
+      </li>
+      <li>
+        The results are speech output without refinement, before the Chinese
+        script conversion. In 0.11.0 and earlier the default Traditional script
+        also converted kanji in Japanese text, such as 国 to 國, adding about 2
+        points of errors; text that contains kana is now left unchanged.
+      </li>
+      <li>
+        It compares Airdraft’s models with each other, not Airdraft with other
+        dictation apps.
+      </li>
+    </ul>
+    <p>
+      Method, corpus selection and scripts:{" "}
+      <a href={study.methodURL}>eval/eja-asr in the source repository</a>,
+      measured at source commit {study.sourceCommit}.
     </p>
   </Surface>
 
