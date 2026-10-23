@@ -51,6 +51,8 @@ final class ModelLifecycle {
         dictationBusy = busy
         if !busy && started { handleSettingsChange() }
         if !busy && !llmStopping { cleanDeferredLLMInstances() }
+        // A pressure pass skipped while work was busy runs now, with its grace periods.
+        if !busy && !llmStopping { memoryPressure?.resumeDeferred() }
     }
 
     init(settings: AppSettings, factory: EngineFactory, engineStatus: EngineStatus, profiles: ProfileStore? = nil) {
@@ -70,7 +72,7 @@ final class ModelLifecycle {
         observe()
         loadSpeechModel()
         memoryPressure = MemoryPressureResponder { [weak self] level in
-            await self?.respondToMemoryPressure(level)
+            await self?.respondToMemoryPressure(level) ?? .completed
         }
         memoryPressure?.start()
     }
@@ -79,11 +81,16 @@ final class ModelLifecycle {
 
     /// One debounced pass. Pinned, loading and in-use models stay; so does
     /// everything while dictation, media, meeting or cleanup work is running.
-    func respondToMemoryPressure(_ level: MemoryPressureLevel) async {
-        guard started, !llmStopping else { return }
+    /// A pass skipped for busy work, or that found the factory lease busy, is
+    /// deferred: it runs again when that work ends (`setDictationBusy(false)` or
+    /// the end of a model load), never during quit or reset.
+    @discardableResult
+    func respondToMemoryPressure(_ level: MemoryPressureLevel) async -> MemoryPressurePassResult {
+        guard started else { return .completed }
+        guard !llmStopping else { return .deferred }
         guard !dictationBusy else {
             Self.log.notice("memoryPressure level=\(level.description, privacy: .public) skipped=pipelineBusy")
-            return
+            return .deferred
         }
         let began = Date()
         async let speech = factory.unloadForMemoryPressure(minimumIdleSeconds: level.minimumIdleSeconds)
@@ -91,6 +98,8 @@ final class ModelLifecycle {
         let speechResult = await speech
         let elapsed = Int(Date().timeIntervalSince(began) * 1000)
         Self.log.notice("memoryPressure level=\(level.description, privacy: .public) speech=\(speechResult.unloaded.count) llm=\(llm.joined(separator: ","), privacy: .public) durationMs=\(elapsed)")
+        // Work that began during the pass stopped the LLM part early.
+        return speechResult.skippedBusy || dictationBusy ? .deferred : .completed
     }
 
     private func unloadAppLoadedLLMForMemoryPressure(minimumIdleSeconds: TimeInterval) async -> [String] {
@@ -125,6 +134,8 @@ final class ModelLifecycle {
         speechLoadTask = Task {
             do { try await factory.prepare(config) }
             catch { Self.log.error("speech load failed: \(error.localizedDescription, privacy: .public)") }
+            // A pressure pass that found this load holding the lease runs now.
+            if !dictationBusy && !llmStopping { memoryPressure?.resumeDeferred() }
         }
     }
 

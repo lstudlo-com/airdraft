@@ -100,6 +100,7 @@ final class MemoryPressureTests: XCTestCase {
         let responder = MemoryPressureResponder(source: source, debounceSeconds: 60, now: { clock.now }) { level in
             passes.append(level)
             await gate.wait()
+            return .completed
         }
         responder.start()
         XCTAssertTrue(source.isStarted)
@@ -131,6 +132,77 @@ final class MemoryPressureTests: XCTestCase {
         await responder.currentPass?.value
         responder.stop()
         XCTAssertTrue(source.isCancelled)
+    }
+
+    /// A pass skipped for busy work is not stamped, so it neither debounces the
+    /// same level nor is lost: `resumeDeferred()` runs it once work ends.
+    func testDeferredPassIsNotDebouncedAndResumesWhenWorkEnds() async throws {
+        let clock = TestClock()
+        let source = FakePressureSource()
+        var passes: [MemoryPressureLevel] = []
+        var busy = true
+        let responder = MemoryPressureResponder(source: source, debounceSeconds: 60, now: { clock.now }) { level in
+            passes.append(level)
+            return busy ? .deferred : .completed
+        }
+        responder.start()
+        responder.resumeDeferred()
+        XCTAssertTrue(passes.isEmpty, "Nothing waits before the first event")
+
+        responder.receive(.warning)
+        try await waitUntil("Busy pass ran") { passes == [.warning] }
+        await responder.currentPass?.value
+        XCTAssertEqual(responder.deferredLevel, .warning)
+        // Work is still busy: the resumed pass is deferred again.
+        responder.resumeDeferred()
+        try await waitUntil("Resumed pass ran") { passes.count == 2 }
+        await responder.currentPass?.value
+        XCTAssertEqual(responder.deferredLevel, .warning)
+
+        // The same level inside the debounce window still runs: nothing was handled.
+        busy = false
+        responder.receive(.warning)
+        try await waitUntil("Undebounced pass ran") { passes.count == 3 }
+        await responder.currentPass?.value
+        XCTAssertNil(responder.deferredLevel, "A completed pass covers the deferred level")
+        responder.receive(.warning)
+        await Task.yield()
+        XCTAssertEqual(passes.count, 3, "A completed pass debounces as before")
+        responder.resumeDeferred()
+        await Task.yield()
+        XCTAssertEqual(passes.count, 3, "Nothing is waiting")
+
+        // A deferred escalation keeps its level and runs once when work ends.
+        busy = true
+        clock.advance(61)
+        responder.receive(.warning)
+        try await waitUntil("Warning deferred") { passes.count == 4 }
+        await responder.currentPass?.value
+        responder.receive(.critical)
+        try await waitUntil("Critical deferred") { passes.count == 5 }
+        await responder.currentPass?.value
+        XCTAssertEqual(responder.deferredLevel, .critical, "The highest deferred level waits")
+        busy = false
+        responder.resumeDeferred()
+        try await waitUntil("Deferred critical resumed") { passes.count == 6 }
+        await responder.currentPass?.value
+        XCTAssertEqual(passes.last, .critical)
+        XCTAssertNil(responder.deferredLevel)
+        responder.resumeDeferred()
+        await Task.yield()
+        XCTAssertEqual(passes.count, 6, "A resumed pass runs once")
+
+        // Stopping forgets a deferred pass.
+        busy = true
+        clock.advance(61)
+        responder.receive(.critical)
+        try await waitUntil("Deferred before stop") { passes.count == 7 }
+        await responder.currentPass?.value
+        responder.stop()
+        XCTAssertNil(responder.deferredLevel)
+        responder.resumeDeferred()
+        await Task.yield()
+        XCTAssertEqual(passes.count, 7)
     }
 
     // MARK: Helpers

@@ -54,10 +54,22 @@ public final class DispatchMemoryPressureSource: MemoryPressureSource, @unchecke
     }
 }
 
+/// Whether a memory-pressure pass freed what it could or had to stand aside.
+public enum MemoryPressurePassResult: Sendable, Equatable {
+    /// The pass ran; models still in use or within their grace period stayed.
+    case completed
+    /// Busy work (dictation, media, a meeting, cleanup or a factory lease) made
+    /// the pass touch nothing. Its level waits for `resumeDeferred()`.
+    case deferred
+}
+
 /// Debounces memory-pressure events into bounded model-unload passes.
 /// - One pass runs at a time; events during a pass coalesce into a single
 ///   follow-up only when they escalate past the running pass's level.
-/// - After a pass, the same or a lower level is ignored for `debounceSeconds`.
+/// - After a completed pass, the same or a lower level is ignored for
+///   `debounceSeconds`. A deferred pass is not stamped: its highest level waits
+///   until `resumeDeferred()` (called when busy work ends) runs it again, with
+///   the level's usual grace periods measured from then.
 @MainActor
 public final class MemoryPressureResponder {
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "models")
@@ -66,16 +78,18 @@ public final class MemoryPressureResponder {
     private let source: any MemoryPressureSource
     private let debounceSeconds: TimeInterval
     private let now: @Sendable () -> Date
-    private let respond: @MainActor (MemoryPressureLevel) async -> Void
+    private let respond: @MainActor (MemoryPressureLevel) async -> MemoryPressurePassResult
     private var running: (level: MemoryPressureLevel, task: Task<Void, Never>)?
     private var pending: MemoryPressureLevel?
     private var lastHandled: (level: MemoryPressureLevel, at: Date)?
+    /// The highest level whose pass was deferred by busy work.
+    public private(set) var deferredLevel: MemoryPressureLevel?
     private var started = false
 
     public init(source: any MemoryPressureSource = DispatchMemoryPressureSource(),
                 debounceSeconds: TimeInterval = MemoryPressureResponder.defaultDebounceSeconds,
                 now: @escaping @Sendable () -> Date = { Date() },
-                respond: @escaping @MainActor (MemoryPressureLevel) async -> Void) {
+                respond: @escaping @MainActor (MemoryPressureLevel) async -> MemoryPressurePassResult) {
         self.source = source
         self.debounceSeconds = debounceSeconds
         self.now = now
@@ -95,6 +109,17 @@ public final class MemoryPressureResponder {
         started = false
         source.cancel()
         pending = nil
+        deferredLevel = nil
+    }
+
+    /// Runs a pass deferred by busy work, now that the work has ended. Does
+    /// nothing when no pass waits, after `stop()`, or while a pass is running
+    /// (that pass's completion runs the waiting level).
+    public func resumeDeferred() {
+        guard started, running == nil, let level = deferredLevel else { return }
+        deferredLevel = nil
+        Self.log.debug("memory pressure \(level.description, privacy: .public) resumed after busy work")
+        run(level)
     }
 
     /// The running pass, for tests that must observe its completion.
@@ -115,18 +140,26 @@ public final class MemoryPressureResponder {
     }
 
     private func run(_ level: MemoryPressureLevel) {
-        lastHandled = (level, now())
+        let startedAt = now()
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
-            await self.respond(level)
-            self.finish()
+            let result = await self.respond(level)
+            self.finish(level, startedAt: startedAt, result: result)
         }
         running = (level, task)
     }
 
-    private func finish() {
+    private func finish(_ level: MemoryPressureLevel, startedAt: Date, result: MemoryPressurePassResult) {
         running = nil
-        guard let next = pending else { return }
+        switch result {
+        case .completed:
+            lastHandled = (level, startedAt)
+            // A completed pass at this level or higher covers a deferred one.
+            if let deferred = deferredLevel, deferred <= level { deferredLevel = nil }
+        case .deferred:
+            deferredLevel = max(deferredLevel ?? level, level)
+        }
+        guard started, let next = pending else { return }
         pending = nil
         run(next)
     }
