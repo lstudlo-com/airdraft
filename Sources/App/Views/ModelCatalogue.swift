@@ -568,8 +568,18 @@ struct ModelRow: View {
     private var downloadError: String? { container.downloads.jobs[entryConfig.engineID]?.error }
 
     private var entryConfig: ASRConfig { entry.config(from: container.settings.asr) }
-    private var isSelectedForUse: Bool {
-        entry.isSelected(container.settings.asr) || entry.isSelected(container.speechConfig)
+    /// Why dictation may use this model now, which protects its files.
+    private var use: SpeechModelUse? { container.speechModelUse(entry.isSelected) }
+    private var isSelectedForUse: Bool { use != nil }
+
+    private var deleteHelp: String {
+        switch use {
+        case nil: String(localized: "Delete downloaded files")
+        case .appRule(let profile)?:
+            String(localized: "An app rule chooses the \(profile) profile, which uses this model. Choose another model in Profiles before deleting it.")
+        case .appDefault?, .chosenProfile?:
+            String(localized: "Choose another model in Models or the active profile before deleting this one")
+        }
     }
 
     var body: some View {
@@ -732,7 +742,7 @@ struct ModelRow: View {
             Button { confirmDelete = true } label: { Image(systemName: "trash").font(.system(size: 13)) }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
-            .help(isSelectedForUse ? "Choose another model in Models or the active profile before deleting this one" : "Delete downloaded files")
+            .help(deleteHelp)
             .accessibilityLabel("Delete \(entry.title)")
             .disabled(isSelectedForUse || container.pipeline.isBusy || container.engineStatus.hasPendingLoad(for: entryConfig.engineID))
             .confirmationDialog("Delete \(entry.title)?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -760,6 +770,8 @@ struct ModelRow: View {
             self.error = String(localized: "Could not delete the model files: \(error.localizedDescription)")
         }
         installed = LocalModels.isInstalled(entryConfig)
+        // Home's Speech and App rules rows read measured facts: measure again now.
+        Task { await container.setupFacts.refresh(container.setupFactsInputs) }
     }
 
     private func download() {
@@ -777,5 +789,30 @@ struct ModelRow: View {
                 container.models.loadSpeechModel()
             }
         }
+    }
+}
+
+/// Why dictation may use a speech model now. Models never deletes the files of
+/// one in use: the app default, the chosen profile's binding, or, with Choose
+/// profile by app on, the binding of a profile an app rule chooses (AD-080).
+enum SpeechModelUse: Equatable {
+    case appDefault
+    case chosenProfile
+    /// The rule's profile, by its displayed name.
+    case appRule(profile: String)
+}
+
+extension AppContainer {
+    /// The first use of a speech model `matches` selects, or nil when no
+    /// dictation would use it. In memory only.
+    func speechModelUse(_ matches: (ASRConfig) -> Bool) -> SpeechModelUse? {
+        if matches(settings.asr) { return .appDefault }
+        if matches(speechConfig) { return .chosenProfile }
+        guard profiles.choosesProfileByApp else { return nil }
+        for rule in profiles.appRules {
+            guard let profile = profiles.profiles.first(where: { $0.id == rule.profileID }) else { continue }
+            if matches(profile.speechConfig(default: settings.asr)) { return .appRule(profile: profile.displayName) }
+        }
+        return nil
     }
 }
