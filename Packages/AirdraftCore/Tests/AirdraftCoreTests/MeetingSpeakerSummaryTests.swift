@@ -165,6 +165,42 @@ final class MeetingSpeakerSummaryTests: XCTestCase {
         XCTAssertEqual(sections.joined().filter { $0 == "b" }.count, 20_000)
     }
 
+    /// The tracked-length split must match the original character-by-character
+    /// split exactly, and stay fast for a long CJK meeting (review #5).
+    func testSectionsMatchCharacterSplitAndStayFast() {
+        func reference(_ document: TranscriptDocument, limit: Int) -> [String] {
+            var chunks: [String] = []; var current = ""
+            for turn in document.turns {
+                let line = document.speakerName(turn.speaker) + ": " + turn.text + "\n"
+                if current.count + line.count > limit, !current.isEmpty { chunks.append(current); current = "" }
+                for character in line {
+                    current.append(character)
+                    if current.count >= limit { chunks.append(current); current = "" }
+                }
+            }
+            if !current.isEmpty { chunks.append(current) }
+            return chunks
+        }
+        for (count, length) in [(3, 10), (40, 37), (25, 199), (12, 1_000)] {
+            var document = TranscriptDocument(recordingID: "fixture", title: "Split", configuration: .init())
+            document.words = (0..<count).map { .init(start: Double($0) * 2, end: Double($0) * 2 + 1,
+                text: String(repeating: $0 % 3 == 0 ? "會" : "a", count: length + $0), speaker: $0 % 2 == 0 ? "1" : "2") }
+            document.rebuildTurns()
+            for limit in [50, 200, 1_000] {
+                XCTAssertEqual(MeetingSummaryPrompt.sections(for: document, limit: limit), reference(document, limit: limit),
+                               "\(count)×\(length) at \(limit)")
+            }
+        }
+        var long = TranscriptDocument(recordingID: "fixture", title: "Long", configuration: .init())
+        long.words = (0..<300).map { .init(start: Double($0) * 2, end: Double($0) * 2 + 1,
+            text: String(repeating: "我們週五上線", count: 80), speaker: $0 % 2 == 0 ? "1" : "2") }
+        long.rebuildTurns()
+        let started = ContinuousClock.now
+        let sections = MeetingSummaryPrompt.sections(for: long)
+        XCTAssertLessThan(started.duration(to: .now), .seconds(1), "About 150,000 characters must split quickly")
+        XCTAssertEqual(sections.joined().count, long.turns.map { long.speakerName($0.speaker).count + 2 + $0.text.count + 1 }.reduce(0, +))
+    }
+
     // MARK: Runner
 
     private struct FakeRefiner: Refiner {

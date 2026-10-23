@@ -60,13 +60,20 @@ public enum MeetingSummaryPrompt {
     /// Speaker-labelled lines, never splitting a request beyond the limit;
     /// a single long edited turn is split on character boundaries.
     public static func sections(for document: TranscriptDocument, limit: Int = sectionCharacterLimit) -> [String] {
-        var chunks: [String] = []; var current = ""
+        // `String.count` walks the string, so the length is tracked alongside it.
+        var chunks: [String] = []; var current = ""; var length = 0
         for turn in document.turns {
             let line = document.speakerName(turn.speaker) + ": " + turn.text + "\n"
-            if current.count + line.count > limit, !current.isEmpty { chunks.append(current); current = "" }
+            let lineLength = line.count
+            if length + lineLength > limit, !current.isEmpty { chunks.append(current); current = ""; length = 0 }
+            if length + lineLength <= limit {
+                current += line; length += lineLength
+                if length >= limit { chunks.append(current); current = ""; length = 0 }
+                continue
+            }
             for character in line {
-                current.append(character)
-                if current.count >= limit { chunks.append(current); current = "" }
+                current.append(character); length += 1
+                if length >= limit { chunks.append(current); current = ""; length = 0 }
             }
         }
         if !current.isEmpty { chunks.append(current) }
