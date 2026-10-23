@@ -3,7 +3,7 @@ import Foundation
 /// Assembles the system + user messages. Static sections come first so a
 /// local server can reuse its KV-cache prefix across calls.
 public enum PromptBuilder {
-    public static let version = "p14"
+    public static let version = "p15"
 
     public static let defaultBaseRules = """
     You are a dictation post-processor. The input is what a speech recogniser heard; the output must be what the speaker meant to type.
@@ -69,9 +69,9 @@ public enum PromptBuilder {
 
         switch request.chineseScript {
         case .traditional:
-            parts.append("CHINESE SCRIPT: write all Chinese in Traditional Chinese with Taiwan vocabulary (軟體, 網路, 專案, 資料). Convert any Simplified characters in the transcript.")
+            parts.append("CHINESE SCRIPT: write all Chinese in Traditional Chinese with Taiwan vocabulary (軟體, 網路, 專案, 資料). Convert any Simplified characters in the transcript. Japanese (text with kana) keeps its own kanji; never convert it.")
         case .simplified:
-            parts.append("CHINESE SCRIPT: write all Chinese in Simplified Chinese. Convert any Traditional characters in the transcript.")
+            parts.append("CHINESE SCRIPT: write all Chinese in Simplified Chinese. Convert any Traditional characters in the transcript. Japanese (text with kana) keeps its own kanji; never convert it.")
         case .auto:
             break
         }
