@@ -156,11 +156,17 @@ extension View {
 /// A raised menu picker that replaces the native bezel. The native borderless picker shows
 /// the current choice and keeps VoiceOver and keyboard access; a transparent menu over the
 /// whole control opens the same choices for the pointer.
+///
+/// AppKit draws the native picker's title at 13 points whatever SwiftUI's font, so at a
+/// larger Text size the picker stays in place for VoiceOver and the keyboard but is drawn
+/// transparent, and the selected choice's own label is drawn at the scaled body size
+/// instead. Its width grows with the scale like the row titles beside it.
 struct SoftPicker<Value: Hashable, Content: View>: View {
     let title: String
     @Binding var selection: Value
     let width: CGFloat
     @ViewBuilder var content: Content
+    @Environment(\.textScale) private var textScale
 
     init(_ title: LocalizedStringResource, selection: Binding<Value>, width: CGFloat, @ViewBuilder content: () -> Content) {
         self.title = String(localized: title)
@@ -180,11 +186,7 @@ struct SoftPicker<Value: Hashable, Content: View>: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            Picker(title, selection: $selection) { content }
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .buttonStyle(.borderless)
-                .menuIndicator(.hidden)
+            currentChoice
                 .allowsHitTesting(false)
                 .padding(.trailing, 14)
             Menu {
@@ -210,9 +212,43 @@ struct SoftPicker<Value: Hashable, Content: View>: View {
                 .accessibilityHidden(true)
         }
         .padding(.horizontal, 11)
-        .frame(width: width, height: SoftControl.height)
+        .frame(width: TextStyle.scaled(width, by: textScale), height: SoftControl.height)
         .background { SoftRaisedSurface(shape: SoftControl.shape) }
         .contentShape(SoftControl.shape)
+    }
+
+    private var nativePicker: some View {
+        Picker(title, selection: $selection) { content }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .buttonStyle(.borderless)
+            .menuIndicator(.hidden)
+    }
+
+    /// The Default size keeps the native title exactly as designed.
+    @ViewBuilder private var currentChoice: some View {
+        if textScale == 1 {
+            nativePicker
+        } else {
+            Group(subviews: content) { choices in
+                if let choice = choices.first(where: { $0.containerValues.hasTag(selection) }) {
+                    ZStack(alignment: .leading) {
+                        nativePicker.opacity(0)
+                        choice
+                            .appFont(.body)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(.leading, 3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityHidden(true)
+                    }
+                } else {
+                    // A choice tagged in another type cannot be matched; keep AppKit's title.
+                    nativePicker
+                }
+            }
+        }
     }
 }
 

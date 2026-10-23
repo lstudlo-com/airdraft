@@ -60,7 +60,12 @@ enum AccessibilityAudit {
         container.navigation.sidebarCollapsed = false
         var violations: [String] = []
         var surfaces = 0
+        let savedTextSize = container.settings.textSize
+        defer { container.settings.textSize = savedTextSize }
         for size in [TextSizePreference.standard, .larger] {
+            // The main window applies the saved preference itself, which would
+            // override an outer environment; set the preview suite's value.
+            container.settings.textSize = size
             func audit<V: View>(_ name: String, _ root: V, height: CGFloat = 720,
                                 expect: ([Node]) -> [String] = { _ in [] }) {
                 let window = show(root.environment(container).textSize(size), height: height)
