@@ -7,12 +7,15 @@ Captures only this fixture's own window; no Accessibility/Screen Recording grant
 import argparse
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, required=True)
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(root / 'scripts'))
+from standalone_sources import BUNDLE_MODULE_SHIM, typography  # noqa: E402
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)
 
@@ -21,12 +24,13 @@ with tempfile.TemporaryDirectory(prefix='airdraft-progress-ui-') as temporary:
     downloader = (root / 'Packages/AirdraftCore/Sources/AirdraftCore/Providers/ModelDownloader.swift').read_text()
     start = downloader.index('    public struct Progress:')
     end = downloader.index('\n    public enum DownloadError:', start)
-    (scratch / 'Progress.swift').write_text('import Foundation\nenum ModelDownloader {\n' + downloader[start:end] + '\n}\n')
+    (scratch / 'Progress.swift').write_text(BUNDLE_MODULE_SHIM + 'enum ModelDownloader {\n' + downloader[start:end] + '\n}\n')
     view = (root / 'Sources/App/Views/ModelDownloadProgress.swift').read_text().replace('import AirdraftCore\n', '')
     # SwiftUI's Reduce Motion environment is read-only. Inject that one input
     # into the fixture without changing the user's system accessibility settings.
     view = view.replace('@Environment(\\.accessibilityReduceMotion) private var reduceMotion', 'var reduceMotion: Bool')
     (scratch / 'View.swift').write_text(view)
+    (scratch / 'Typography.swift').write_text(typography(root))
     fixture = r'''
 import AppKit
 import SwiftUI
@@ -134,5 +138,5 @@ private struct Fixture: View {
     (scratch / 'Fixture.swift').write_text(fixture)
     binary = scratch / 'verify-progress'
     subprocess.run(['xcrun', 'swiftc', '-parse-as-library', str(scratch / 'Progress.swift'),
-                    str(scratch / 'View.swift'), str(scratch / 'Fixture.swift'), '-o', str(binary)], check=True)
+                    str(scratch / 'View.swift'), str(scratch / 'Typography.swift'), str(scratch / 'Fixture.swift'), '-o', str(binary)], check=True)
     subprocess.run([str(binary), str(output)], check=True, timeout=40)

@@ -10,11 +10,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import re
+import sys
 import subprocess
 import tempfile
 
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts"))
+from standalone_sources import typography  # noqa: E402
 
 FIXTURE = r'''
 import AppKit
@@ -221,21 +224,26 @@ def main() -> None:
         if declaration is None:
             raise RuntimeError("Production HistoryPlaybackProgress declaration not found")
         progress = history[declaration.start():]
-        formatter = re.search(r"    (?:nonisolated )?static func time\(_ seconds: Double\) -> String \{.*?\n    \}", history, re.S)
-        if formatter is None:
-            raise RuntimeError("Production HistoryRecordingControls.time formatter not found")
-        formatter = formatter.group(0)
+        formatters = []
+        for name in ("position", "time"):
+            match = re.search(r"    (?:nonisolated )?static func " + name + r"\(_ seconds: Double.*?\) -> String \{.*?\n    \}", history, re.S)
+            if match is None:
+                raise RuntimeError(f"Production HistoryRecordingControls.{name} formatter not found")
+            formatters.append(match.group(0))
+        formatter = "\n".join(formatters)
         fixture.write_text(FIXTURE + "\nenum HistoryRecordingControls {\n" + formatter + "\n}\n" + progress)
         # Compile the production motion definition, without sidebar-only dependencies.
         motion = directory / "SelectionMotion.swift"
         navigation = (REPO / "Sources/App/Views/NavigationStyle.swift").read_text()
         motion.write_text(navigation.split("enum NavigationStyle {", 1)[0])
+        type_scale = directory / "Typography.swift"
+        type_scale.write_text(typography(REPO))
         binary = directory / "verify-controls"
         subprocess.run([
             "swiftc", "-parse-as-library",
             str(REPO / "Sources/App/Views/SoftControls.swift"),
             str(REPO / "Sources/App/Views/SurfaceShadows.swift"),
-            str(motion), str(fixture), "-o", str(binary),
+            str(motion), str(type_scale), str(fixture), "-o", str(binary),
         ], check=True)
         subprocess.run([str(binary), str(args.output.resolve())], check=True)
 
