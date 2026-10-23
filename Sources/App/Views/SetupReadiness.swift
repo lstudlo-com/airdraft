@@ -179,7 +179,30 @@ final class SetupFacts {
     }
 }
 
+/// Whether the chosen profile's speech model can show live text (AD-084),
+/// from `SetupFacts` only: Settings redraws never stat the model folder.
+enum ModelPreviewReadiness: Equatable {
+    case ready
+    /// The model's files are still being measured.
+    case checking
+    case unavailable(String)
+
+    /// `facts` must be the values for inputs whose `speech` is `speech`.
+    static func of(_ speech: ASRConfig, facts: SetupFacts.Values) -> ModelPreviewReadiness {
+        if !ModelSpeechPreview.supports(speech) || !facts.pending.contains(.speech),
+           let reason = ModelSpeechPreview.unavailableReason(for: speech, installed: facts.speechInstalled) {
+            return .unavailable(reason)
+        }
+        return facts.pending.contains(.speech) ? .checking : .ready
+    }
+}
+
 extension AppContainer {
+    /// Live-text readiness of the model `setupFactsInputs.speech` names.
+    var modelPreviewReadiness: ModelPreviewReadiness {
+        ModelPreviewReadiness.of(speechConfig, facts: setupFacts.values(for: setupFactsInputs))
+    }
+
     var setupFactsInputs: SetupFacts.Inputs {
         SetupFacts.Inputs(speech: speechConfig,
                           scriptPath: settings.outputDestination == .script ? settings.outputScriptPath : nil,
