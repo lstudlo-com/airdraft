@@ -141,13 +141,18 @@ public actor SherpaTranscriber: Transcriber {
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
         // are split at silences so memory and latency stay bounded.
-        let text = try AudioChunker.transcribe(samples, maxSeconds: 30) {
+        var text = try AudioChunker.transcribe(samples, maxSeconds: 30) {
             Self.decode($0, with: recognizer.pointer, hotwords: hotwords)
+        }
+        var adjustments: [TranscriptAdjustment] = []
+        if model == .senseVoice || model == .fireRed {
+            // AD-082: these decoders write English in capitals and never punctuate.
+            (text, adjustments) = SpokenTextNormalizer.normalizeCapitalizedOutput(text, vocabulary: hints.vocabulary)
         }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
         // Joint-language decoders return no detected language through this API.
         // Do not report an ignored language hint as recognition metadata.
-        return Transcript(text: text, language: configuration.language, engine: id, latencyMs: ms)
+        return Transcript(text: text, language: configuration.language, engine: id, latencyMs: ms, adjustments: adjustments)
     }
 
     private static func decode(_ samples: [Float], with recognizer: OpaquePointer, hotwords: String?) -> String {

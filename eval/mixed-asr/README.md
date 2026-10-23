@@ -206,3 +206,92 @@ python3 -I eval/mixed-asr/score.py --work "$W"
 
 `run_matrix.py` retries failed runs when restarted. To keep first-attempt
 scoring, keep failed run files before rerunning.
+
+## AD-082 follow-up: local output guards
+
+AD-082 adds deterministic guards to local speech output. This section records
+their before/after measurement, taken 2026-10-23/24 on the same Mac from base
+commit `9e93a8f`. The corpus came from `prepare_corpus.py`, and all 180 audio files
+match the manifest digests byte for byte. `run_guards.py` drives the same
+production route as above, `score_guards.py` scores it, `guard_log.py` attaches the
+app's text-free `asr-guard` log lines, and `punctuation_eval.py` compares
+punctuation. `english_control.json` adds 20 pure-English sentences, spoken by four
+macOS English voices, as a false-positive check. All results are in
+`results/guards-ad082.json`; the AD-074 files are unchanged. The system languages
+were en-TW and zh-Hant-TW.
+
+What the guards do:
+- **Qwen3-ASR decode budget**: `maxTokens` per chunk is 16 tokens per second of
+  audio plus 48, with a ceiling of 1024 (previously a fixed 1024).
+- **Loop trimming** for every local engine: a block of up to 10 tokens repeated
+  8× (one token), 6× (two tokens) or 4× and at least 12 tokens is cut to its
+  first occurrence. Ordinary emphasis such as `對對對` or `哈哈哈哈哈哈` is kept.
+- **Language sanity** under Auto, for local engines with a language control
+  (Qwen3-ASR, Whisper, SenseVoice, GGUF):
+  - When 30% or more of the letters are in a script none of the user's languages
+    use, the audio is decoded once more with the user's first non-English
+    language that the model supports. The retry is kept only when its script
+    fits the user's languages better.
+  - For Whisper, a Latin-only result triggers a check of Whisper's own
+    spoken-language distribution: one encoder pass. When P(zh) is 0.1 or more,
+    the audio is decoded once with zh, and that result is kept only when at
+    least 20% of its letters are Han.
+- **Empty Whisper output** on audible audio (at least 0.25 s above −40 dBFS) gets
+  one retry without the no-speech gate or prompt. Known filler hallucinations
+  such as "Thank you." are rejected.
+- Retries use the same model under the same lease, never another model. They
+  run only when the first decode took at most max(8 s, 1.5 × audio duration), and
+  a failed retry keeps the first result.
+- **SenseVoice/FireRedASR2 text**: all-capitals English gets natural case.
+  Dictionary terms, an acronym/product allowlist, vowel-less acronyms and
+  spelled letters keep their spelling, and English-only sentences start with a
+  capital. One sentence-final mark is added (`。`, `？` after 嗎, `.` or `?`) when
+  the text has at least three tokens and no final punctuation.
+
+Results (ASCEND 100 + Meijia 40, first attempt; MER is case-insensitive):
+
+| Config | Measure | Before | After |
+|---|---|---|---|
+| Qwen3-ASR 0.6B zh, tw08 ×2 | loop, asrMs, peak footprint | looped to 1,024 tokens, 25.6–28.5 s, 18.5 GB | `是爸爸在克里`, 1.1 s, 1.6 GB |
+| Qwen3-ASR 1.7B Auto, tw08 ×2 | output language | Ukrainian | Chinese (retried with zh, = the zh result) |
+| Qwen3-ASR 1.7B Auto / 0.6B zh | MER, EN keep (both corpora) | unchanged | unchanged |
+| Whisper v3 Turbo Auto, ASCEND | empty / Chinese lost / MER | 2 / 7 / 0.211 | 0 / 3 / 0.186 |
+| Whisper v3 Turbo zh, ASCEND | empty / Chinese lost / MER | 3 / 4 / 0.208 | 0 / 1 / 0.192 |
+| Whisper problem IDs ×3, zh | empty runs | 6 of 30 | 0 of 30 |
+| SenseVoice Auto, ASCEND | ALL-CAPS outputs / punctuated | 84 / 0 | 1 / 100 |
+| FireRedASR2, ASCEND | ALL-CAPS outputs / punctuated | 90 / 0 | 2 / 100 |
+| SenseVoice / FireRedASR2, Meijia | EN keep, exact case | 6.9% / 8.1% | 57.5% / 77.0% |
+| SenseVoice / FireRedASR2, English control | EN keep, exact case | 2.8% / 2.8% | 84.5% / 97.2% |
+
+The remaining ALL-CAPS outputs contain only acronyms (KPI, LG, CRP, WCH). MER and
+case-insensitive English retention are identical before and after for
+SenseVoice, FireRedASR2 and Qwen3-ASR.
+
+On the English control set, no guard changed any output. Whisper's probe gave
+P(zh) ≤ 0.0002 for all 20 English sentences, against 0.14–0.85 for the ASCEND
+utterances it had translated. Two translated utterances stay English: their
+P(zh) was 0.006 and 0.03, and their references are mostly English. One more
+(tes-00678) is fixed in 1 of 3 runs because Whisper's zh retry itself varies.
+
+**Cost.** The Whisper language probe runs only for Latin-only Auto results when
+the user also has a Chinese, Japanese or Korean system language. It adds about
+0.4 s to such a dictation: the English control median rose from 584 to 980 ms.
+On ASCEND it ran for 6 of 100 utterances. Every other configuration's latency is
+unchanged within noise.
+
+**Punctuation model (not adopted).** sherpa-onnx's offline CT-Transformer zh-en
+int8 model (`sherpa-onnx-punct-ct-transformer-zh-en-vocab272727-2024-04-12-int8`,
+64.7 MB, SHA-256 `c0d5aa5f…a6e1`) was run through the vendored C API in an
+evaluation-only harness. Qwen3-ASR 1.7B zh punctuation served as the proxy
+reference. F1 for punctuation after aligned tokens:
+
+| Method | SenseVoice | FireRedASR2 |
+|---|---|---|
+| Shipped final-mark rule (precision / recall / F1) | 0.96 / 0.46 / 0.62 | 0.99 / 0.46 / 0.63 |
+| CT-Transformer | 0.87 / 0.74 / 0.80 | 0.90 / 0.75 / 0.82 |
+
+It loads in 72 ms, runs in about 1.3 ms per utterance and changes no tokens.
+However, it removes the spaces between English and Chinese in 126 of 140
+outputs and ends English sentences with full-width `？`/`。`. Adopting it needs
+a space-preserving realignment and an explicit, pinned, optional download in
+Models. It remains a follow-up.

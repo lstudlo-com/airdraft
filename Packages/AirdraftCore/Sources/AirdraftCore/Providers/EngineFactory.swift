@@ -144,7 +144,9 @@ public actor EngineFactory {
             } else {
                 let result = try await engine.transcribe(samples: samples, hints: .init(language: language, chineseScript: config.chineseScript))
                 // Measured audio-segment bounds, never invented times for individual words.
-                words = result.isEmpty ? [] : [.init(start: offset, end: offset + Double(samples.count) / 16_000, text: result.text + " ", timing: .segment)]
+                // AD-082: a decoder loop inside a media window is cut to one occurrence.
+                let text = TranscriptRepetition.trimmed(result.text) ?? result.text
+                words = result.isEmpty ? [] : [.init(start: offset, end: offset + Double(samples.count) / 16_000, text: text + " ", timing: .segment)]
             }
             try Task.checkCancellation()
             await self.markUsed(engine.id)
@@ -224,7 +226,9 @@ public actor EngineFactory {
             let prepared = ProcessInfo.processInfo.systemUptime
             try Task.checkCancellation()
             await self.markUsed(engine.id)
-            var result = try await engine.transcribe(samples: samples, hints: effectiveHints)
+            // AD-082: empty, wrong-language and looping local output is checked inside the same lease.
+            var result = try await LocalASROutputGuard.transcribe(engine: engine, samples: samples,
+                                                                  hints: effectiveHints, config: config)
             try Task.checkCancellation()
             await self.markUsed(engine.id)
             let finished = ProcessInfo.processInfo.systemUptime

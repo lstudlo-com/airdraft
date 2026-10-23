@@ -45,7 +45,10 @@ public actor Qwen3ASRTranscriber: Transcriber {
         let model = try await loadedModel()
         let started = Date()
         let text = try AudioChunker.transcribe(samples, maxSeconds: 25) { chunk in
-            Self.decodeGuardingVocabulary(chunk, options: options, fallbackContext: fallback, terms: terms) {
+            // AD-082: a decoder loop stops at a duration-scaled cap, not 1,024 tokens.
+            var chunkOptions = options
+            chunkOptions.maxTokens = LocalASRDecodeBudget.qwenMaxTokens(sampleCount: chunk.count)
+            return Self.decodeGuardingVocabulary(chunk, options: chunkOptions, fallbackContext: fallback, terms: terms) {
                 model.transcribe(audio: $0, sampleRate: 16_000, options: $1)
             }
         }
@@ -76,8 +79,8 @@ public actor Qwen3ASRTranscriber: Transcriber {
             options.language = name
         }
         options.context = hints.contextText
-        // 448 tokens per chunk can cut fast or English-heavy speech mid-sentence.
-        options.maxTokens = 1024
+        // Upper bound only; transcribe() lowers it per chunk with the chunk's duration.
+        options.maxTokens = LocalASRDecodeBudget.qwenTokenCeiling
         return options
     }
 
