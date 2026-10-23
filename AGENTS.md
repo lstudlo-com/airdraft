@@ -684,7 +684,11 @@ and Local releases below.
   Cohere's pinned runtime requires an explicit supported language; never let Auto
   or an unknown code become English. Experimental unknown-language prompts are not
   a production Auto contract. SenseVoice rebuilds its recognizer when its effective
-  language changes. Qwen uses upstream language names in decoder options. Apple
+  language changes; preparation builds it for the recording's anticipated language.
+  Two SenseVoice artifacts exist: the original multilingual SenseVoiceSmall
+  (`senseVoiceMultilingual`, shown as SenseVoice) and the 2025-09-09 WSYue Cantonese
+  fine-tune, which keeps the `senseVoice` IDs, is shown as SenseVoice Cantonese, is
+  listed only while in use and offers no Japanese or Korean. Qwen uses upstream language names in decoder options. Apple
   exposes its effective fixed locale and asks the OS for supported equivalents;
   Apple Speech Mandarin follows the Chinese script (zh-CN for Simplified, zh-TW for
   Traditional). Joint-language models validate the user's intent without sending an
@@ -1061,8 +1065,8 @@ choice, reversed at 8 GB or less; English gets Parakeet TDT v2 with Qwen3-ASR 1.
 as the multilingual choice; Japanese and Korean get Qwen3-ASR 1.7B with Whisper Large
 v3 Turbo as the lower-memory choice, reversed at 8 GB or less (`eval/eja-asr`); other
 languages get Whisper Large v3 Turbo. Never recommend Qwen3-ASR 0.6B as a lighter
-default. Never recommend or shortlist the shipped SenseVoice archive, a Cantonese
-fine-tune, for English, Japanese or Korean. Each choice shows its download size and a one-line trade-off.
+default. Never recommend or shortlist SenseVoice Cantonese (the WSYue fine-tune);
+the Chinese 8 GB choice is the original multilingual SenseVoice. Each choice shows its download size and a one-line trade-off.
 A local download starts only from an explicit action, continues through later
 steps with progress in the rail, and becomes the app default only when complete
 while setup is open; Set Up Later discards that pending choice. Shortcut practice
@@ -1335,7 +1339,7 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
 - speech-swift has no releases and is pinned to a revision in `Packages/AirdraftCore/Package.swift`.
   Move the pin deliberately and re-run the Qwen3 and Cohere self-tests.
 - Speech engines kept on purpose: Parakeet TDT 0.6B v3 INT8, Qwen3-ASR 1.7B/0.6B, FireRedASR2-AED, Cohere Transcribe 2B,
-  SenseVoice-small, Whisper Large v3, standard and compressed Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
+  SenseVoice-small (original) and SenseVoice Cantonese (retired), Whisper Large v3, standard and compressed Turbo, Apple SpeechAnalyzer. Cloud APIs are Soniox v5, Groq Turbo,
   ElevenLabs Scribe v2, OpenAI GPT-Transcribe, Deepgram Nova-3, AssemblyAI Universal-3.5 Pro
   and Universal-3.6 Pro batch preview (`universal-3-6-pro-preview`),
   Cartesia Ink-Whisper, Speechmatics Enhanced, xAI Grok Voice Transcribe 2.0,
