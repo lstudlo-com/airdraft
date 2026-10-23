@@ -6,6 +6,8 @@ import os
 /// Key-combination hotkeys via Carbon `RegisterEventHotKey`. Needs no
 /// permission, delivers both press and release, and swallows the combo.
 /// Cannot express modifier-only keys or fn; those use the event tap.
+/// Main-actor only: Carbon delivers hot-key events on the main event target.
+@MainActor
 final class CarbonHotkey {
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hotkey")
     private static var registry: [UInt32: CarbonHotkey] = [:]
@@ -14,17 +16,17 @@ final class CarbonHotkey {
 
     private let id: UInt32
     private var ref: EventHotKeyRef?
-    var onPress: (() -> Void)?
-    var onRelease: (() -> Void)?
+    var onPress: (@MainActor () -> Void)?
+    var onRelease: (@MainActor () -> Void)?
 
     init() {
         id = CarbonHotkey.nextID
         CarbonHotkey.nextID += 1
     }
 
-    deinit { unregister() }
+    isolated deinit { unregister() }
 
-    static func canRegister(_ hotkey: Hotkey) -> Bool {
+    nonisolated static func canRegister(_ hotkey: Hotkey) -> Bool {
         !hotkey.isModifierOnly && hotkey.modifiers & Hotkey.maskSecondaryFn == 0
     }
 
@@ -72,15 +74,19 @@ final class CarbonHotkey {
                 event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                 nil, MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID
             )
-            guard let instance = CarbonHotkey.registry[hotKeyID.id] else { return noErr }
-            switch GetEventKind(event) {
-            case UInt32(kEventHotKeyPressed):
-                CarbonHotkey.log.notice("hotkey pressed")
-                instance.onPress?()
-            case UInt32(kEventHotKeyReleased):
-                CarbonHotkey.log.notice("hotkey released")
-                instance.onRelease?()
-            default: break
+            let kind = GetEventKind(event)
+            // The event dispatcher target delivers on the main thread.
+            MainActor.assumeIsolated {
+                guard let instance = CarbonHotkey.registry[hotKeyID.id] else { return }
+                switch kind {
+                case UInt32(kEventHotKeyPressed):
+                    CarbonHotkey.log.notice("hotkey pressed")
+                    instance.onPress?()
+                case UInt32(kEventHotKeyReleased):
+                    CarbonHotkey.log.notice("hotkey released")
+                    instance.onRelease?()
+                default: break
+                }
             }
             return noErr
         }, types.count, &types, nil, nil)

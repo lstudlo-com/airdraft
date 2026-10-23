@@ -3,8 +3,8 @@ import SwiftUI
 
 /// One downloadable or built-in speech model.
 /// Everything else (installed, loaded, download, delete) derives from `select`.
-struct ModelEntry: Identifiable {
-    enum Storage { case download(sizeLabel: String), builtIn }
+struct ModelEntry: Identifiable, Sendable {
+    enum Storage: Sendable { case download(sizeLabel: String), builtIn }
     let id: String
     let title: String
     let vendor: String
@@ -18,12 +18,12 @@ struct ModelEntry: Identifiable {
     let storage: Storage
     let note: String
     /// Points a speech config at this model.
-    let select: (inout ASRConfig) -> Void
+    let select: @Sendable (inout ASRConfig) -> Void
 
     /// The title comes from Core's `ASRConfig.modelDisplayName`, the name Home,
     /// Profiles and the menu show, so the Models table cannot drift from it.
     init(id: String, vendor: String, provider: String, brand: ModelBrand, tags: [String], speed: Int, accuracy: Int,
-         storage: Storage, note: String, select: @escaping (inout ASRConfig) -> Void) {
+         storage: Storage, note: String, select: @escaping @Sendable (inout ASRConfig) -> Void) {
         var config = ASRConfig()
         select(&config)
         self.id = id

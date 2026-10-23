@@ -7,14 +7,15 @@ import os
 /// Global hotkey via a CGEventTap. Supports modifier-only keys (Right ⌥, fn)
 /// as well as key combinations. Trigger Delay withholds ordinary key events
 /// until a hold qualifies, or replays a short press. Needs Accessibility.
-/// Main-thread only.
+/// Main-actor only: the tap's run-loop source, observers and timers run on main.
+@MainActor
 final class EventTapHotkey {
     private static let log = Logger(subsystem: AppIdentity.logSubsystem, category: "hotkey")
     var hotkey: Hotkey = .controlOption { didSet { releaseHeldKey(reason: "shortcut changed") } }
-    var onPress: (() -> Void)?
-    var onRelease: (() -> Void)?
+    var onPress: (@MainActor () -> Void)?
+    var onRelease: (@MainActor () -> Void)?
     var triggerDelayMilliseconds = 0
-    var shouldDelayPress: () -> Bool = { true }
+    var shouldDelayPress: @MainActor () -> Bool = { true }
     /// While true, events pass through untouched (used by the recorder UI).
     var suspended = false {
         didSet {
@@ -35,17 +36,20 @@ final class EventTapHotkey {
     private var bufferedTarget: pid_t?
     private var interruptionObservers: [NSObjectProtocol] = []
     private static let replayMarker: Int64 = 0x4144_5452_4947
+    /// Carries the tap callback's reply out of `MainActor.assumeIsolated`. It is
+    /// created and consumed on the main thread within one callback, never shared.
+    private struct TapReply: @unchecked Sendable { let event: Unmanaged<CGEvent>? }
 
     init() {
         for name in [NSWorkspace.didActivateApplicationNotification,
                      NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
             interruptionObservers.append(NSWorkspace.shared.notificationCenter.addObserver(
                 forName: name, object: nil, queue: .main
-            ) { [weak self] _ in self?.cancelPendingPress() })
+            ) { [weak self] _ in MainActor.assumeIsolated { self?.cancelPendingPress() } })
         }
     }
 
-    deinit {
+    isolated deinit {
         for observer in interruptionObservers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
         triggerTimer?.invalidate()
     }
@@ -57,8 +61,10 @@ final class EventTapHotkey {
         if !createTap() {
             retryTimer?.invalidate()
             let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
-                guard let self, self.tap == nil else { return }
-                if self.createTap() { self.retryTimer?.invalidate(); self.retryTimer = nil }
+                MainActor.assumeIsolated {
+                    guard let self, self.tap == nil else { return }
+                    if self.createTap() { self.retryTimer?.invalidate(); self.retryTimer = nil }
+                }
             }
             RunLoop.main.add(timer, forMode: .common)
             retryTimer = timer
@@ -131,10 +137,13 @@ final class EventTapHotkey {
             (1 << CGEventType.rightMouseDown.rawValue) |
             (1 << CGEventType.otherMouseDown.rawValue)
 
+        // The tap's run-loop source is on the main run loop.
         let callback: CGEventTapCallBack = { proxy, type, event, refcon in
             guard let refcon else { return Unmanaged.passUnretained(event) }
-            let monitor = Unmanaged<EventTapHotkey>.fromOpaque(refcon).takeUnretainedValue()
-            return monitor.handle(proxy: proxy, type: type, event: event)
+            return MainActor.assumeIsolated {
+                let monitor = Unmanaged<EventTapHotkey>.fromOpaque(refcon).takeUnretainedValue()
+                return TapReply(event: monitor.handle(proxy: proxy, type: type, event: event))
+            }.event
         }
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
@@ -253,9 +262,11 @@ final class EventTapHotkey {
         }
         guard triggerTimer == nil else { return }
         let timer = Timer(timeInterval: max(0, deadline - ProcessInfo.processInfo.systemUptime), repeats: false) { [weak self] _ in
-            guard let self else { return }
-            self.triggerTimer = nil
-            self.apply(self.trigger.fire(now: ProcessInfo.processInfo.systemUptime))
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.triggerTimer = nil
+                self.apply(self.trigger.fire(now: ProcessInfo.processInfo.systemUptime))
+            }
         }
         RunLoop.main.add(timer, forMode: .common)
         triggerTimer = timer

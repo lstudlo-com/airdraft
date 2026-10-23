@@ -517,11 +517,13 @@ private struct HistoryRecordRow: View {
 
     @ViewBuilder private func recordingControls(accessibilityOnly: Bool = false) -> some View {
         if let asset = entry.asset {
-            HistoryRecordingControls(asset: asset, playback: playback, busy: container.pipeline.isBusy,
+            let busy = container.pipeline.isBusy
+            let confirmAudioDeletion: @MainActor () -> Void = { revealAndPresent(.audioDeletion) }
+            HistoryRecordingControls(asset: asset, playback: playback, busy: busy,
                                      exporting: state.exporting, play: play, save: saveAudio,
                                      reveal: revealAudio,
-                                     retranscribe: !container.pipeline.isBusy ? retranscribe : nil,
-                                     delete: !container.pipeline.isBusy && !container.pipeline.isSavingHistory ? { revealAndPresent(.audioDeletion) } : nil,
+                                     retranscribe: !busy ? retranscribe : nil,
+                                     delete: !busy && !container.pipeline.isSavingHistory ? confirmAudioDeletion : nil,
                                      accessibilityOnly: accessibilityOnly)
         }
     }

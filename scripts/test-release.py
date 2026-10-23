@@ -73,6 +73,9 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('-only-testing:AirdraftCoreTests/CLIProcessTests', selection)
         self.assertIn('-only-testing:AirdraftCoreTests/TextDeliveryRegressionTests', selection)
         self.assertNotIn('-only-testing:AirdraftCoreTests/AppIdentityTests', selection)
+        # App logic tests are credential-free as a whole target.
+        self.assertEqual(selection[-1], '-only-testing:AirdraftAppTests')
+        self.assertEqual(selection.count('-only-testing:AirdraftAppTests'), 1)
         self.assertFalse(any('CredentialTests' in name or 'RefinerWireTests' in name for name in selection))
         self.assertFalse(any('SonioxMediaTests' in name or 'CredentialRemovalTests' in name for name in selection))
         self.assertEqual(release.core_test_selection(source, 'full'), [])
@@ -91,6 +94,24 @@ class ReleaseTests(unittest.TestCase):
         for names in ([], ['SafeTests', 'SafeTests'], ['*'], ['../SafeTests']):
             with self.subTest(names=names), self.assertRaises(RuntimeError):
                 select(names, [])
+
+    def test_app_test_gate_requires_executed_passing_app_cases(self):
+        runner = runpy.run_path(str(Path(__file__).with_name('test-local-e2e.py')))
+        verify = runner['verify_app_tests']
+
+        def tree(*cases, target='AirdraftAppTests'):
+            return {'testNodes': [{'nodeType': 'Unit test bundle', 'children': [
+                {'nodeType': 'Test Case', 'nodeIdentifier': name, 'result': result,
+                 'nodeIdentifierURL': f'test://com.apple.xcode/airdraft/{target}/Suite/{name}'}
+                for name, result in cases]}]}
+
+        self.assertEqual(verify(tree(('testA', 'Passed'), ('testB', 'Passed')))['passed'], 2)
+        for bad in [{'testNodes': []}, tree(('testA', 'Passed'), target='AirdraftCoreTests')]:
+            with self.subTest(tree=bad), self.assertRaisesRegex(RuntimeError, 'No AirdraftAppTests'):
+                verify(bad)
+        for status in ['Failed', 'Skipped', 'Expected Failure', None]:
+            with self.subTest(status=status), self.assertRaisesRegex(RuntimeError, 'did not pass'):
+                verify(tree(('testA', 'Passed'), ('testB', status)))
 
     def test_unknown_scope_never_expands_to_full_tests(self):
         with self.assertRaisesRegex(RuntimeError, 'Unknown release test scope'):

@@ -66,7 +66,7 @@ final class MeetingController {
         microphoneReceived = false; systemReceived = false; microphoneLevel = 0; systemLevel = 0
         microphoneEnabled = microphone; self.sourceName = sourceName; lastStatusAt = Date(); lastAudioAt = Date()
         generation = UUID(); let token = generation
-        task = Task {
+        task = Task { [self] in
             do {
                 try await accessCheck()
                 let free = try directory.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage

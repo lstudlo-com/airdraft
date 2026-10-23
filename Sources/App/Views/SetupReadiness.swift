@@ -82,7 +82,7 @@ final class SetupFacts {
     private let measuresDuringRenders: Bool
 
     /// Fixtures inject the measurement and turn off the render shortcut below.
-    init(measurer: @escaping @Sendable (Inputs) -> Values = SetupFacts.measure, measuresDuringRenders: Bool = true) {
+    init(measurer: @escaping @Sendable (Inputs) -> Values = { SetupFacts.measure($0) }, measuresDuringRenders: Bool = true) {
         self.measurer = measurer
         self.measuresDuringRenders = measuresDuringRenders
     }

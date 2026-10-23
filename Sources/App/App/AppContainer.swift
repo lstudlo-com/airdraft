@@ -142,8 +142,9 @@ final class AppContainer {
         }
         if let boundary = dictationBoundary { recordingPreflight = boundary.recordingPreflight }
         let recorder: any AudioRecording = dictationBoundary?.recorder ?? AudioRecorder()
-        let requestMicrophoneAccess: @Sendable () async -> Bool = dictationBoundary?.requestMicrophoneAccess
-            ?? { await AudioRecorder.requestMicrophoneAccess() }
+        let requestMicrophoneAccess: @Sendable () async -> Bool
+        if let boundary = dictationBoundary { requestMicrophoneAccess = boundary.requestMicrophoneAccess }
+        else { requestMicrophoneAccess = { await AudioRecorder.requestMicrophoneAccess() } }
         #else
         let recordingPreflight: (@MainActor @Sendable (ASRConfig, LLMConfig, Bool, MicrophonePreference, Bool) async throws -> Void)? = nil
         let recorder: any AudioRecording = AudioRecorder()
@@ -369,8 +370,9 @@ final class AppContainer {
     private func observeWindows() {
         let center = NotificationCenter.default
         center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { note in
-            guard let window = note.object as? NSWindow, Self.isAppWindow(window) else { return }
+            guard let window = note.object as? NSWindow else { return }
             MainActor.assumeIsolated {
+                guard Self.isAppWindow(window) else { return }
                 if NSApp.activationPolicy() != .regular {
                     NSApp.setActivationPolicy(.regular)
                     NSApp.activate()
@@ -378,8 +380,9 @@ final class AppContainer {
             }
         }
         center.addObserver(forName: NSWindow.willCloseNotification, object: nil, queue: .main) { note in
-            guard let closing = note.object as? NSWindow, Self.isAppWindow(closing) else { return }
+            guard let closing = note.object as? NSWindow else { return }
             MainActor.assumeIsolated {
+                guard Self.isAppWindow(closing) else { return }
                 let othersOpen = NSApp.windows.contains { $0 !== closing && $0.isVisible && Self.isAppWindow($0) }
                 if !othersOpen { NSApp.setActivationPolicy(.accessory) }
             }
@@ -387,7 +390,7 @@ final class AppContainer {
     }
 
     /// Titled document-style windows; excludes the HUD panel and menu-bar extras.
-    private nonisolated static func isAppWindow(_ window: NSWindow) -> Bool {
+    private static func isAppWindow(_ window: NSWindow) -> Bool {
         !(window is NSPanel) && window.styleMask.contains(.titled)
     }
 

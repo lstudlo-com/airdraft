@@ -102,7 +102,7 @@ extension EnvironmentValues {
 }
 
 struct SettingsSearchDocumentsKey: PreferenceKey {
-    static var defaultValue: [SettingsSearchDocument] = []
+    static let defaultValue: [SettingsSearchDocument] = []
     static func reduce(value: inout [SettingsSearchDocument], nextValue: () -> [SettingsSearchDocument]) {
         value.append(contentsOf: nextValue())
     }

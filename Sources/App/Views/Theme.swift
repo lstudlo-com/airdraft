@@ -111,7 +111,7 @@ struct WindowChromeView: NSViewRepresentable {
         var onPointerDown: () -> Void = {}
         private var pointerMonitor: Any?
 
-        deinit {
+        isolated deinit {
             if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
             NotificationCenter.default.removeObserver(self)
         }

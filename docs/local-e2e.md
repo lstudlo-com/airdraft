@@ -25,6 +25,14 @@ python3 -B scripts/test-prompt-gate.py -v
 The Xcode runner writes its exact command, log and xcresult to a fresh output
 directory. It uses the normal DerivedData tree and disables parallel test execution.
 `pnpm test:local` runs the same allowlist through Moon's serialized Xcode task.
+The selection also runs the whole `AirdraftAppTests` target: logic tests for
+App-only code (menu title fitting, layout constants, Settings search state,
+setup readiness and the frontmost-app label). That bundle compiles the App
+sources itself instead of using the app as a test host, so no test launches
+Airdraft, starts hotkeys, reads the user's preferences or history, or touches
+Keychain items; readiness tests use a disposable container with injected
+permissions and a dictation boundary that refuses to record. The runner requires
+at least one executed App case and no unsuccessful ones (`app-tests.json`).
 Before accepting a successful Xcode exit, it checks the actual xcresult with
 `verify-insertion-regressions.py`. All 71 mandatory insertion cases must be present
 and Passed, including the production capture-to-paste and context-off pipeline

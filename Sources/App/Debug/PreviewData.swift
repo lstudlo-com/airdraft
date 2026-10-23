@@ -47,7 +47,7 @@ enum PreviewData {
             let repeats = 1 + (index * 5) % 4 + (index % 9 == 0 ? 5 : 0)
             let text = Array(repeating: phrases[index % phrases.count], count: repeats).joined(separator: " ")
             let words = text.split(separator: " ").count
-            try? store.save(DictationRecord(
+            _ = try? store.save(DictationRecord(
                 createdAt: now.addingTimeInterval(-daysAgo * 86_400 - Double(index) * 600),
                 appBundleId: app.id, appName: app.name, mode: "Clean", family: "document",
                 rawTranscript: text, refinedText: text, finalText: text, asrEngine: "preview",
