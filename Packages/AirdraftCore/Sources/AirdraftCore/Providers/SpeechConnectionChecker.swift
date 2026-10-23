@@ -4,7 +4,7 @@ public struct SpeechConnectionResult: Sendable, Equatable {
     public let modelAvailable: Bool
     public var catalogIsPublic = false
     public var message: String {
-        if catalogIsPublic { return "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified." }
+        if catalogIsPublic { return String(localized: "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified.", bundle: .module) }
         return modelAvailable ? String(localized: "Connected. The selected model is listed for this key.", bundle: .module) : String(localized: "Connected. API key accepted.", bundle: .module)
     }
 }
@@ -24,7 +24,7 @@ public enum SpeechConnectionError: LocalizedError, Equatable {
         case .timedOut: return String(localized: "The connection timed out. Check your network and try again.", bundle: .module)
         case .network: return String(localized: "Could not reach the provider. Check your internet connection and try again.", bundle: .module)
         case .modelUnavailable: return String(localized: "The key connected, but the selected model was not listed. Check model access or choose another model.", bundle: .module)
-        case .openRouterModelUnlisted: return "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model."
+        case .openRouterModelUnlisted: return String(localized: "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model.", bundle: .module)
         case .server(let status): return String(localized: "The provider returned HTTP \(status). Try again later.", bundle: .module)
         }
     }

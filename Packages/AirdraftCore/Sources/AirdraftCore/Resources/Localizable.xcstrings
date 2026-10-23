@@ -1570,6 +1570,16 @@
         }
       }
     },
+    "Enable Apple Intelligence in System Settings." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「系統設定」中啟用 Apple Intelligence。"
+          }
+        }
+      }
+    },
     "English-only distilled Whisper weights." : {
       "localizations" : {
         "zh-Hant" : {
@@ -1936,6 +1946,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用後會嘗試刪除工作。沒有工作的上傳檔案依供應商的保留政策處理。"
+          }
+        }
+      }
+    },
+    "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已接受金鑰。所選語音模型列於 OpenRouter 的公開目錄中。語音存取權與計費尚未驗證。"
           }
         }
       }
@@ -3512,6 +3532,16 @@
         }
       }
     },
+    "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 金鑰有效，但此模型不在目前的公開語音目錄中。請重新整理目錄或選擇其他模型。"
+          }
+        }
+      }
+    },
     "The app data folder is not a regular local directory. Cleanup stopped without following its link." : {
       "localizations" : {
         "zh-Hant" : {
@@ -4078,6 +4108,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "極致"
+          }
+        }
+      }
+    },
+    "Unavailable speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用的語音模型"
           }
         }
       }

@@ -145,8 +145,8 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
         return selectedLocalModel == .gguf ? "gguf:\(ggufModel ?? "")" : selectedLocalModel.rawValue
     }
     public var selectedModelTitle: String {
-        if selectedLocalModel == .coreML { return CoreMLSpeechModelCatalog.model(coreMLModel ?? "")?.title ?? "Unavailable speech model" }
-        if selectedLocalModel == .gguf { return GGUFModelCatalog.model(ggufModel ?? "")?.title ?? "Unavailable speech model" }
+        if selectedLocalModel == .coreML { return CoreMLSpeechModelCatalog.model(coreMLModel ?? "")?.title ?? String(localized: "Unavailable speech model", bundle: .module) }
+        if selectedLocalModel == .gguf { return GGUFModelCatalog.model(ggufModel ?? "")?.title ?? String(localized: "Unavailable speech model", bundle: .module) }
         return selectedLocalModel.title
     }
     public mutating func selectModelChoice(_ id: String) {
