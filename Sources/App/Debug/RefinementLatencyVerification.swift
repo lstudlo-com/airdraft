@@ -42,7 +42,8 @@ enum RefinementLatencyVerification {
     static func makeSession(app: AppContainer, samples: [Float]) throws -> Session {
         guard LocalE2E.isActive, app.isolatedData, app.dataLease?.holdsLease == true,
               app.history != nil, !app.pipeline.isBusy, !samples.isEmpty,
-              !app.settings.livePreviewEnabled, !app.settings.useAppContext else {
+              !app.settings.livePreviewEnabled || app.settings.livePreviewSource == .speechModel,
+              !app.settings.useAppContext else {
             throw Failure.invalidSetup
         }
         let pipeline = DictationPipeline(settings: app.settings, dictionary: app.dictionary,
@@ -92,7 +93,7 @@ enum RefinementLatencyVerification {
         case invalidSetup, captureStopped
         var errorDescription: String? {
             switch self {
-            case .invalidSetup: return "Silent recording replay requires isolated local models and history, with app context and live preview disabled."
+            case .invalidSetup: return "Silent recording replay requires isolated local models and history, with app context disabled and live preview off or set to the selected speech model."
             case .captureStopped: return "The recording replay stopped before its requested lead time. Keep --e2e-recording-ms below the recording limit."
             }
         }
@@ -105,10 +106,27 @@ enum RefinementLatencyVerification {
         private var recording = false
         var isRecording: Bool { lock.withLock { recording } }
         var levelHandler: (@Sendable (Float) -> Void)?
+        /// Model live preview (AD-084) receives the file in real-time 100 ms chunks.
+        var samplesHandler: (@Sendable ([Float]) -> Void)?
         var interruptionHandler: (@Sendable (AudioRecorderError) -> Void)?
         init(samples: [Float]) { self.samples = samples }
         func start(microphone: MicrophonePreference) throws {
             lock.withLock { recording = true }
+            if let preview = samplesHandler {
+                let samples = samples
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    let chunk = Int(AudioRecorder.sampleRate / 10)
+                    let started = DispatchTime.now().uptimeNanoseconds
+                    var offset = 0
+                    while offset < samples.count, self?.isRecording == true {
+                        preview(Array(samples[offset..<min(offset + chunk, samples.count)]))
+                        offset += chunk
+                        let due = started + UInt64(offset) * 1_000_000_000 / UInt64(AudioRecorder.sampleRate)
+                        let now = DispatchTime.now().uptimeNanoseconds
+                        if due > now { usleep(useconds_t((due - now) / 1_000)) }
+                    }
+                }
+            }
             // The file's first chunk stands in for the first device buffer, so
             // the replay reports press-to-capture through production startup.
             let handler = levelHandler

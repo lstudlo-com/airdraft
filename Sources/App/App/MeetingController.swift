@@ -22,6 +22,17 @@ final class MeetingController {
     var issue: String?
     private(set) var recoveryIssue: String?
     var onBusyChanged: ((Bool) -> Void)?
+    /// Display-only live transcript (AD-084). The saved transcript still comes
+    /// from the post-recording job; this text is never stored.
+    private(set) var liveTranscriptActive = false
+    private(set) var liveText = ""
+    private(set) var liveIssue: String?
+    typealias LivePreviewStarter = @MainActor (@escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) async -> (any SpeechPreviewSession)?
+    /// Nil when live preview is off. Set by the container.
+    @ObservationIgnored var livePreviewStarter: LivePreviewStarter?
+    @ObservationIgnored private var liveTask: Task<Void, Never>?
+    @ObservationIgnored private var liveSession: (any SpeechPreviewSession)?
+    @ObservationIgnored private var liveMixer: MeetingPreviewMixer?
     @ObservationIgnored private let directory: URL
     @ObservationIgnored private let history: HistoryStore
     @ObservationIgnored private let canStart: () -> Bool
@@ -77,6 +88,7 @@ final class MeetingController {
                 try await capture.start(applicationID: applicationID, microphoneID: microphoneID, includeMicrophone: microphone, microphoneChannel: microphoneChannel)
                 try Task.checkCancellation()
                 state = .recording; lastAudioAt = Date(); lastStatusAt = Date()
+                startLiveTranscript(capture: capture, token: token)
                 activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .idleSystemSleepDisabled], reason: "Recording meeting audio")
                 let started = Date()
                 timer = Task { [weak self] in
@@ -105,6 +117,44 @@ final class MeetingController {
         }
     }
     func cancelStart() { task?.cancel() }
+
+    private func startLiveTranscript(capture: any MeetingCapturing, token: UUID) {
+        guard let starter = livePreviewStarter else { return }
+        liveTranscriptActive = true
+        liveText = ""; liveIssue = nil
+        // Callbacks belong to this recording; a later or stopped recording rejects them.
+        let onText: @Sendable (String) -> Void = { [weak self] text in
+            Task { @MainActor in
+                guard let self, self.generation == token, self.state == .recording, self.liveTranscriptActive else { return }
+                self.liveText = String(text.suffix(1_500)); self.liveIssue = nil
+            }
+        }
+        let onIssue: @Sendable (String) -> Void = { [weak self] issue in
+            Task { @MainActor in
+                guard let self, self.generation == token, self.state == .recording, self.liveTranscriptActive else { return }
+                self.liveText = ""; self.liveIssue = issue
+            }
+        }
+        liveTask = Task { [weak self] in
+            let session = await starter(onText, onIssue)
+            guard let session else { return }
+            guard let self, !Task.isCancelled, self.generation == token, self.state == .recording, self.liveTranscriptActive else {
+                session.cancel(); return
+            }
+            let mixer = MeetingPreviewMixer { session.append($0) }
+            self.liveSession = session
+            self.liveMixer = mixer
+            capture.previewAudioHandler = { track, samples, offset in mixer.append(samples, track: track, at: offset) }
+        }
+    }
+
+    private func stopLiveTranscript() {
+        liveTask?.cancel(); liveTask = nil
+        session?.previewAudioHandler = nil
+        liveMixer?.finish(); liveMixer = nil
+        liveSession?.cancel(); liveSession = nil
+        liveTranscriptActive = false; liveText = ""; liveIssue = nil
+    }
     private func interrupt(reason: String) async {
         if state == .starting { issue = reason; task?.cancel() }
         else { await stop(reason: reason) }
@@ -112,6 +162,8 @@ final class MeetingController {
     func stop(reason: String? = nil) async {
         guard state == .recording, let capture = session else { return }
         state = .finishing; timer?.cancel(); timer = nil
+        // Free the speech engine before saving; the saved transcript never uses this text.
+        stopLiveTranscript()
         do {
             let draft = try await capture.stop(reason: reason)
             let directory = directory; let history = history
@@ -137,6 +189,7 @@ final class MeetingController {
         }
     }
     private func finish() {
+        stopLiveTranscript()
         if let activity { ProcessInfo.processInfo.endActivity(activity); self.activity = nil }
         state = .idle; onBusyChanged?(false)
     }
@@ -147,8 +200,11 @@ final class MeetingController {
         while state == .finishing { try? await Task.sleep(for: .milliseconds(25)) }
     }
     #if DEBUG
-    func previewRecording(microphone: Float = 0.16, system: Float = 0.28, receiving: Bool = true) {
+    func previewRecording(microphone: Float = 0.16, system: Float = 0.28, receiving: Bool = true, liveText: String? = nil, liveIssue: String? = nil) {
         state = .recording; elapsed = 742
+        if liveText != nil || liveIssue != nil {
+            liveTranscriptActive = true; self.liveText = liveText ?? ""; self.liveIssue = liveIssue
+        }
         microphoneReceived = receiving; systemReceived = receiving
         microphoneLevel = microphone; systemLevel = system
     }

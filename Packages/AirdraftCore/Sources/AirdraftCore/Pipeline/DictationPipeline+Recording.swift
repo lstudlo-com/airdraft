@@ -117,6 +117,7 @@ extension DictationPipeline {
         let budgetLimited = allowedSeconds < limit
         // Read earlier dictations while startup checks run, before the destination is known.
         let recentFinals = snapshot.useAppContext ? prefetchRecentFinals(appBundleId: nil) : nil
+        var speechLanguage: String?
         do {
             try await accessCheck()
             guard isCurrent(token) else { return }
@@ -127,6 +128,7 @@ extension DictationPipeline {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason)
             }
             let language = try SpeechLanguagePolicy.resolve(asr)
+            speechLanguage = language.language
             if let recordingPreflight {
                 try await recordingPreflight(asr, llm, profile.usesLLM, microphone, needsInsertion)
             } else {
@@ -186,7 +188,7 @@ extension DictationPipeline {
         // captured while audio is recorded; any exit before the recording state
         // stops the microphone again and discards that audio.
         wireRecorder(for: token)
-        startPreview(for: token)
+        startPreview(for: token, request: ModelPreviewRequest(asr: asr, hints: speechHints(for: snapshot, language: speechLanguage)))
         do {
             try recorder.start(microphone: microphone)
         } catch {
@@ -307,6 +309,7 @@ extension DictationPipeline {
         guard state == .recording, !stopping else { return }
         stopRequestedAt = ProcessInfo.processInfo.systemUptime
         stopping = true
+        quiesceEnginePreview()
         let token = generation
         releaseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(Self.releaseGraceSeconds))
@@ -418,22 +421,44 @@ extension DictationPipeline {
         }
     }
 
-    func startPreview(for token: UUID) {
+    /// `request` carries the speech config and hints final transcription uses,
+    /// so model preview decodes with the same loaded recognizer (AD-084).
+    func startPreview(for token: UUID, request: ModelPreviewRequest) {
         stopPreview()
         guard settings.livePreviewEnabled, settings.hudStyle != .none else { return }
         previewEnabledForRecording = true
-        let session = previewBuilder(settings.livePreviewLocale, { [weak self] text in
+        let previewID = UUID()
+        previewGeneration = previewID
+        // Each callback belongs to this session: a stale, quiesced or cancelled
+        // session's late text or issue is rejected here, after its own gate.
+        let onText: @Sendable (String) -> Void = { [weak self] text in
             Task { @MainActor in
-                guard let self, self.isCurrent(token), self.isRecording, self.previewEnabledForRecording else { return }
+                guard let self, self.isCurrent(token), self.previewGeneration == previewID,
+                      self.isRecording, self.previewEnabledForRecording else { return }
                 self.previewText = String(text.suffix(500))
             }
-        }, { [weak self] issue in
+        }
+        let onIssue: @Sendable (String) -> Void = { [weak self] issue in
             Task { @MainActor in
-                guard let self, self.isCurrent(token), self.isRecording, self.previewEnabledForRecording else { return }
+                guard let self, self.isCurrent(token), self.previewGeneration == previewID,
+                      self.isRecording, self.previewEnabledForRecording else { return }
                 self.previewText = ""
                 self.previewIssue = issue
             }
-        })
+        }
+        let session: any SpeechPreviewSession
+        switch settings.livePreviewSource {
+        case .appleSpeech:
+            session = previewBuilder(settings.livePreviewLocale, onText, onIssue)
+        case .speechModel:
+            // An unsupported model shows why in the preview area; recording continues.
+            if let reason = modelPreviewAvailability(request.asr) {
+                previewIssue = reason
+                return
+            }
+            session = modelPreviewBuilder(request, onText, onIssue)
+            previewUsesSpeechEngine = true
+        }
         previewSession = session
         recorder.samplesHandler = { samples in session.append(samples) }
     }
@@ -441,10 +466,22 @@ extension DictationPipeline {
     /// Apply an explicit Off choice immediately without interrupting final capture.
     public func disableLivePreview() { stopPreview() }
 
-    func stopPreview() {
-        recorder.samplesHandler = nil
+    /// At release, stop model preview decodes so one already in flight finishes
+    /// during the release grace instead of delaying final inference. The last
+    /// text stays visible until the recording state ends.
+    func quiesceEnginePreview() {
+        guard previewUsesSpeechEngine else { return }
+        previewGeneration = UUID()
         previewSession?.cancel()
         previewSession = nil
+    }
+
+    func stopPreview() {
+        recorder.samplesHandler = nil
+        previewGeneration = UUID()
+        previewSession?.cancel()
+        previewSession = nil
+        previewUsesSpeechEngine = false
         previewText = ""
         previewIssue = nil
         previewEnabledForRecording = false

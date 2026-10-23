@@ -129,6 +129,10 @@ struct MeetingRecordingStatus: View {
                 RowDivider()
                 captureRow(String(localized: "Microphone"), received: meeting.microphoneReceived, level: meeting.microphoneLevel)
             }
+            if meeting.liveTranscriptActive && meeting.state == .recording {
+                RowDivider()
+                MeetingLiveTranscript(text: meeting.liveText, issue: meeting.liveIssue)
+            }
         }
     }
     private func captureRow(_ title: String, received: Bool, level: Float) -> some View {
@@ -139,5 +143,33 @@ struct MeetingRecordingStatus: View {
             MicrophoneLevelMeter(level: level)
                 .levelMeterAccessibility(String(localized: "\(title) level"), level: level)
         }
+    }
+}
+
+/// Display-only text while a meeting records (AD-084). Provisional text is
+/// replaced in place without animation; the saved transcript comes from Transcribe.
+struct MeetingLiveTranscript: View {
+    let text: String
+    let issue: String?
+
+    private var shown: String { issue ?? (text.isEmpty ? String(localized: "Listening…") : text) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Live transcript").appFont(.body, weight: .semibold)
+                .accessibilityAddTraits(.isHeader)
+            Text(shown)
+                .appFont(.body)
+                .foregroundStyle(issue == nil && !text.isEmpty ? Color.primary : Color.secondary)
+                .lineLimit(6)
+                .truncationMode(.head)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(Text("Live transcript"))
+                .accessibilityValue(Text(verbatim: shown))
+                .accessibilityIdentifier("meeting.liveTranscript")
+            Text("Preview only. Transcribe the recording for the saved transcript.").supportingText()
+        }
+        .transaction { $0.animation = nil }
     }
 }

@@ -14,6 +14,8 @@ public actor EngineFactory {
     private var operationTail: Task<Void, Never>?
     /// Lease operations queued or running. Memory pressure never waits behind one.
     private var leaseOperations = 0
+    /// Cancels the display-only preview decode holding the lease, if any (AD-084).
+    private var previewPreemption: (id: UUID, cancel: @Sendable () -> Void)?
     private var idleTask: Task<Void, Never>?
     private let modelLoadTimeout: TimeInterval
     private var retiringLoads: [String: Task<Void, Never>] = [:]
@@ -238,7 +240,35 @@ public actor EngineFactory {
         }
     }
 
-    private func serialize<Value: Sendable>(_ operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
+    /// Display-only live text from the recording's loaded local model (AD-084).
+    /// Never loads, downloads or queues: nil when the engine is not loaded or any
+    /// lease operation (load, final inference, media, unload) is queued or running.
+    /// Every other lease operation cancels it, so final inference waits at most for
+    /// one bounded native window decode that ignores cancellation.
+    public func transcribePreview(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig) async throws -> String? {
+        guard ModelSpeechPreview.supports(config), !samples.isEmpty else { return nil }
+        // No await separates these checks from entering the lease.
+        guard leaseOperations == 0, retiringLoads[config.engineID] == nil,
+              let engine = local[config.engineID] else { return nil }
+        return try await serialize(preview: true) { () async throws -> String? in
+            guard await engine.isReady() else { return nil }
+            if let sherpa = engine as? SherpaTranscriber, !(await sherpa.isWarm(for: hints)) { return nil }
+            try Task.checkCancellation()
+            let result = try await engine.transcribe(samples: samples, hints: hints)
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            let text = TranscriptRepetition.trimmed(result.text) ?? result.text
+            return ChineseScriptConverter.convert(text.trimmingCharacters(in: .whitespacesAndNewlines), to: hints.chineseScript)
+        }
+    }
+
+    private func serialize<Value: Sendable>(preview: Bool = false,
+                                            _ operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
+        // Final inference, loading and unloading always take precedence over preview.
+        if !preview, let preemption = previewPreemption {
+            previewPreemption = nil
+            preemption.cancel()
+        }
         let previous = operationTail
         leaseOperations += 1
         let task = Task {
@@ -246,6 +276,9 @@ public actor EngineFactory {
             try Task.checkCancellation()
             return try await operation()
         }
+        let previewID = UUID()
+        if preview { previewPreemption = (previewID, { task.cancel() }) }
+        defer { if preview, previewPreemption?.id == previewID { previewPreemption = nil } }
         operationTail = Task {
             _ = try? await task.value
             self.leaveLease()

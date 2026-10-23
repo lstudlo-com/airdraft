@@ -113,6 +113,13 @@ public actor SherpaTranscriber: Transcriber {
 
     public func isReady() async -> Bool { recognizer != nil }
 
+    /// True when `hints` decode with the loaded recognizer as is. Live preview
+    /// (AD-084) never rebuilds or reloads a recognizer for display-only text.
+    func isWarm(for hints: TranscriptionHints) -> Bool {
+        guard recognizer != nil, let configuration = try? RecognizerConfiguration(model: model, hints: hints) else { return false }
+        return configuration == recognizerConfiguration
+    }
+
     public func prepare() async throws {
         try Task.checkCancellation()
         // A factory prepare precedes each transcription. Keep a warm recognizer's

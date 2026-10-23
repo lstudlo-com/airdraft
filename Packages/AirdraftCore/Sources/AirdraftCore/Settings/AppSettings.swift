@@ -151,6 +151,8 @@ public final class AppSettings {
     public var hudTimer: HUDTimerOptions { didSet { persist("hudTimer", hudTimer) } }
     public var livePreviewEnabled: Bool { didSet { persist("livePreviewEnabled", livePreviewEnabled) } }
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
+    /// Apple Speech or the recording's own local model (AD-084). Meetings use it too.
+    public var livePreviewSource: LivePreviewSource { didSet { persist("livePreviewSource", livePreviewSource) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
     /// The last template chosen from a meeting transcript's Summarize menu.
@@ -198,6 +200,7 @@ public final class AppSettings {
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
+        livePreviewSource = Self.load("livePreviewSource", from: defaults) ?? .appleSpeech
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
         meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default

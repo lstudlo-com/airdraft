@@ -219,7 +219,25 @@ enum DebugRender {
             while result == nil { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
             if result != true { exit(1) }
         }
-        if pageName == "meeting-recording" { container.meeting?.previewRecording() }
+        if let source = env["AIRDRAFT_RENDER_PREVIEW_SOURCE"].flatMap(LivePreviewSource.init(rawValue:)) {
+            // AD-084: Settings > Live preview with a chosen source (isolated render settings).
+            container.settings.livePreviewEnabled = true
+            container.settings.livePreviewSource = source
+        }
+        if pageName == "meeting-recording" {
+            // AD-084: `text` or `issue` adds the display-only live transcript row.
+            let chinese = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+            switch env["AIRDRAFT_RENDER_LIVE_TRANSCRIPT"] {
+            case "text":
+                container.meeting?.previewRecording(liveText: chinese
+                    ? "我們下週一前完成預算審查，然後把最後的數字寄給財務團隊。接下來討論產品發表的時間表"
+                    : "We will finish the budget review before Monday, then send the final numbers to the finance team. Next, the launch timeline")
+            case "issue":
+                container.meeting?.previewRecording(liveIssue: ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: .whisperKit)))
+            default:
+                container.meeting?.previewRecording()
+            }
+        }
         if env["AIRDRAFT_RENDER_MEDIA"] == "1", let history = container.history {
             if pageName == "meetings" { try? MediaPreview.seedMeetings(history) }
             else { try? MediaPreview.seed(history) }
@@ -522,6 +540,17 @@ enum DebugRender {
         let previewRenderer = ImageRenderer(content: preview)
         previewRenderer.scale = 2
         if let rendered = previewRenderer.nsImage { images.append(rendered) }
+        // AD-084: model-driven live text (CJK, committed plus provisional tail),
+        // an unavailable model and the empty Listening state share the same box.
+        for sample in ["我們下週一前完成預算審查，然後把最後的數字寄給財務團隊。接下來討論產品發表的時間表",
+                       ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: .whisperKit)) ?? "", nil] as [String?] {
+            let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+                style: .classic, showPreview: true, sampleText: sample)
+                .padding(12).background(Color(white: 0.93))
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            if let rendered = renderer.nsImage { images.append(rendered) }
+        }
         let width = images.map(\.size.width).max() ?? 0
         let height = images.reduce(0) { $0 + $1.size.height }
         let sheet = NSImage(size: NSSize(width: width, height: height))

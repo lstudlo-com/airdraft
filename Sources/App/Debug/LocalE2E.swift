@@ -189,12 +189,27 @@ enum LocalE2E {
                         report["prepared"] = true
                     }
                     var processingStarted = ContinuousClock.now
+                    let livePreview = CommandLine.arguments.contains("--e2e-live-preview")
+                    if livePreview {
+                        // AD-084: the selected model's live text through production recording.
+                        guard recordingMilliseconds != nil else { throw E2EError.unknownAction }
+                        app.settings.livePreviewEnabled = true
+                        app.settings.livePreviewSource = .speechModel
+                        if app.settings.hudStyle == .none { app.settings.hudStyle = .classic }
+                    } else {
+                        app.settings.livePreviewEnabled = false
+                    }
                     if let milliseconds = recordingMilliseconds {
                         let session = try RefinementLatencyVerification.makeSession(app: app, samples: samples)
                         replay = session
                         pipeline = session.pipeline
                         actionPipeline = pipeline
+                        let observer = livePreview ? PreviewObserver(pipeline: pipeline) : nil
                         try await session.startAndStop(recordingMilliseconds: milliseconds)
+                        if let observer {
+                            let observed = observer.finish()
+                            report["livePreview"] = observed
+                        }
                         processingStarted = .now
                     } else {
                         actionPipeline = pipeline
@@ -228,6 +243,10 @@ enum LocalE2E {
                     let deadline = ContinuousClock.now.advanced(by: .seconds(240))
                     while pipeline.isBusy || pipeline.isFinishingDelivery, ContinuousClock.now < deadline {
                         try await Task.sleep(for: .milliseconds(100))
+                    }
+                    if livePreview {
+                        report["previewClearedAfterStop"] = pipeline.previewText.isEmpty && pipeline.previewIssue == nil &&
+                            !pipeline.previewEnabledForRecording
                     }
                     if CommandLine.arguments.contains("--e2e-expect-silence") {
                         report["historyEmpty"] = try app.history?.recent(limit: 1).isEmpty == true
@@ -289,6 +308,8 @@ enum LocalE2E {
                     report["stoppedCallbacks"] = before.texts == after.texts && before.issues == after.issues
                     report["status"] = !after.texts.isEmpty && after.issues.isEmpty &&
                         report["stoppedCallbacks"] as? Bool == true ? "passed" : "failed"
+                case "model-preview":
+                    report = try await modelPreview(app: app)
                 case "automation":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
                     let script = directory.appendingPathComponent("receive.sh")
@@ -383,6 +404,154 @@ enum LocalE2E {
             case .unknownAction: return "Unknown E2E action."
             case .pipeline(let state): return "Pipeline failed or timed out: \(state)"
             }
+        }
+    }
+
+    /// Samples the pipeline's published preview every 50 ms while it records.
+    @MainActor
+    private final class PreviewObserver {
+        private var texts: [String] = []
+        private var issues: [String] = []
+        private var firstTextMs: Int?
+        private var task: Task<Void, Never>?
+        init(pipeline: DictationPipeline) {
+            let started = ProcessInfo.processInfo.systemUptime
+            task = Task { @MainActor [weak self, weak pipeline] in
+                while !Task.isCancelled, let pipeline {
+                    if pipeline.isRecording, let self {
+                        let text = pipeline.previewText
+                        if !text.isEmpty, text != self.texts.last {
+                            self.texts.append(text)
+                            if self.firstTextMs == nil { self.firstTextMs = Int((ProcessInfo.processInfo.systemUptime - started) * 1000) }
+                        }
+                        if let issue = pipeline.previewIssue, issue != self.issues.last { self.issues.append(issue) }
+                    }
+                    try? await Task.sleep(for: .milliseconds(50))
+                }
+            }
+        }
+        func finish() -> [String: Any] {
+            task?.cancel()
+            return ["updates": texts.count, "lastText": texts.last ?? "", "texts": Array(texts.suffix(8)),
+                    "issues": issues, "firstTextMs": firstTextMs.map { $0 as Any } ?? NSNull()]
+        }
+    }
+
+    /// AD-084: the selected local model's live text on a file input, its cadence,
+    /// and the final transcript with and without preview contention.
+    private static func modelPreview(app: AppContainer) async throws -> [String: Any] {
+        guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
+        let asr = app.settings.asr
+        if let reason = ModelSpeechPreview.unavailableReason(for: asr) { throw E2EError.pipeline(reason) }
+        let samples = try AudioFile.load(path: path)
+        let hints = TranscriptionHints(language: try SpeechLanguagePolicy.resolve(asr).language,
+                                       vocabulary: DictionaryPostProcessor.vocabulary(app.dictionary.entries),
+                                       chineseScript: asr.chineseScript,
+                                       biasOnDeviceSpeech: app.settings.vocabularyBiasesOnDeviceSpeech)
+        func ms(_ start: ContinuousClock.Instant) -> Double {
+            let duration = start.duration(to: .now).components
+            return Double(duration.seconds) * 1_000 + Double(duration.attoseconds) / 1e15
+        }
+        var report: [String: Any] = ["engine": asr.engineID, "audioSeconds": Double(samples.count) / 16_000]
+        SherpaTranscriber.anticipate(hints)
+        let loadStart = ContinuousClock.now
+        try await app.factory.prepare(asr)
+        report["loadMs"] = ms(loadStart)
+        // 1. Final transcript without any preview.
+        let baselineStart = ContinuousClock.now
+        let baseline = try await app.factory.transcribe(samples, hints: hints, config: asr)
+        var baselineMs = [ms(baselineStart)]
+        for _ in 0..<2 {
+            let repeatStart = ContinuousClock.now
+            _ = try await app.factory.transcribe(samples, hints: hints, config: asr)
+            baselineMs.append(ms(repeatStart))
+        }
+        report["baselineFinalMs"] = baselineMs.sorted()[1]
+        report["baselineFinalRunsMs"] = baselineMs
+        report["baselineFinal"] = baseline.text
+
+        // 2. Real-time preview of the file (100 ms chunks), then final ASR at once.
+        let events = TimedEvents()
+        let request = ModelPreviewRequest(asr: asr, hints: hints)
+        let session = ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: app.factory, request: request),
+                                               onText: { events.text($0) }, onIssue: { events.issue($0) })
+        for offset in stride(from: 0, to: samples.count, by: 1600) {
+            session.append(Array(samples[offset..<min(offset + 1600, samples.count)]))
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        session.cancel()
+        let finalStart = ContinuousClock.now
+        let final = try await app.factory.transcribe(samples, hints: hints, config: asr)
+        report["finalAfterPreviewMs"] = ms(finalStart)
+        let metrics = session.metrics
+        let decodeMs = metrics.decodeSeconds.map { $0 * 1_000 }.sorted()
+        report["decodes"] = metrics.decodes
+        report["commits"] = metrics.commits
+        report["skippedBusy"] = metrics.skippedBusy
+        report["preempted"] = metrics.preempted
+        report["droppedSamples"] = metrics.droppedSamples
+        report["longestWindowSeconds"] = Double(metrics.longestWindowSamples) / 16_000
+        report["decodeMsMean"] = decodeMs.isEmpty ? 0 : decodeMs.reduce(0, +) / Double(decodeMs.count)
+        report["decodeMsP50"] = decodeMs.isEmpty ? 0 : decodeMs[decodeMs.count / 2]
+        report["decodeMsMax"] = decodeMs.last ?? 0
+        report["intervalMsMin"] = (metrics.intervals.min() ?? 0) * 1_000
+        report["intervalMsMean"] = metrics.intervals.isEmpty ? 0 : metrics.intervals.reduce(0, +) / Double(metrics.intervals.count) * 1_000
+        let snapshot = events.snapshot
+        report["previewUpdates"] = snapshot.texts.count
+        report["firstTextMs"] = snapshot.firstTextMs.map { $0 as Any } ?? NSNull()
+        report["previewTexts"] = Array(snapshot.texts.map(\.text).suffix(6))
+        report["previewIssues"] = snapshot.issues
+        report["finalAfterPreview"] = final.text
+        report["finalIdentical"] = final.text == baseline.text
+
+        // 3. Callbacks stop with the session.
+        session.append(samples)
+        try await Task.sleep(for: .milliseconds(300))
+        report["stoppedCallbacks"] = events.snapshot.texts.count == snapshot.texts.count
+
+        // 4. Final inference requested while a preview decode of a 9.5 s window may
+        // hold the lease. Each trial starts the final request at a different point.
+        var contendedMs: [Double] = []
+        var contendedIdentical = true
+        var contendedPreempted = 0
+        var contendedDecodes = 0
+        for delay in [20, 60, 100, 140, 180] {
+            let contended = ModelSpeechPreview.start(policy: ModelPreviewPolicy(minimumInterval: 0, minimumNewAudioSeconds: 0, pollSeconds: 0.005),
+                decode: ModelSpeechPreview.decoder(factory: app.factory, request: request),
+                onText: { _ in }, onIssue: { _ in })
+            contended.append(Array(samples.prefix(Int(9.5 * 16_000))))
+            try await Task.sleep(for: .milliseconds(delay))
+            let contendedStart = ContinuousClock.now
+            let contendedFinal = try await app.factory.transcribe(samples, hints: hints, config: asr)
+            contendedMs.append(ms(contendedStart))
+            contended.cancel()
+            contendedIdentical = contendedIdentical && contendedFinal.text == baseline.text
+            contendedPreempted += contended.metrics.preempted
+            contendedDecodes += contended.metrics.decodes
+        }
+        report["contendedFinalMs"] = contendedMs
+        report["contendedFinalExtraMsMax"] = (contendedMs.max() ?? 0) - (report["baselineFinalMs"] as? Double ?? 0)
+        report["contendedPreviewPreempted"] = contendedPreempted
+        report["contendedPreviewDecodes"] = contendedDecodes
+        report["contendedIdentical"] = contendedIdentical
+        report["status"] = snapshot.texts.count > 0 && snapshot.issues.isEmpty &&
+            report["finalIdentical"] as? Bool == true && report["contendedIdentical"] as? Bool == true &&
+            report["stoppedCallbacks"] as? Bool == true ? "passed" : "failed"
+        return report
+    }
+
+    private final class TimedEvents: @unchecked Sendable {
+        private let lock = NSLock()
+        private let started = ProcessInfo.processInfo.systemUptime
+        private var texts: [(ms: Int, text: String)] = []
+        private var issues: [String] = []
+        func text(_ value: String) {
+            let ms = Int((ProcessInfo.processInfo.systemUptime - started) * 1000)
+            lock.withLock { texts.append((ms, value)) }
+        }
+        func issue(_ value: String) { lock.withLock { issues.append(value) } }
+        var snapshot: (texts: [(ms: Int, text: String)], issues: [String], firstTextMs: Int?) {
+            lock.withLock { (texts: texts, issues: issues, firstTextMs: texts.first?.ms) }
         }
     }
 
