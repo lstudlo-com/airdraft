@@ -3,6 +3,12 @@
   "strings" : {
     "\"%@\" is not a valid speech language code. Choose a language on Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”不是有效的语音语言代码。请在“模型”中选择语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13,6 +19,12 @@
     },
     "$0.0045 per audio minute." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每分钟音频 0.0045 美元。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23,6 +35,12 @@
     },
     "$0.0045 per audio minute. Replaces the older GPT-4o transcription preset." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每分钟音频 0.0045 美元。替代旧的 GPT-4o 转录预设。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -39,6 +57,12 @@
             "value" : "%1$@ Audio cleanup also failed: %2$@. Retry clearing saved audio."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 音频清理也失败了：%2$@。请重试清除已保存的音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -50,6 +74,12 @@
     "%@ copy" : {
       "comment" : "Name of a duplicated profile",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 副本"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -64,6 +94,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ does not support %2$@. Choose a supported language on Models or another speech model."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 不支持%2$@。请在“模型”中选择支持的语言，或选择其他语音模型。"
           }
         },
         "zh-Hant" : {
@@ -82,6 +118,12 @@
             "value" : "%1$@ ended %2$@ seconds before the recording stopped."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@在录音停止前 %2$@ 秒结束。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -92,6 +134,12 @@
     },
     "%@ format changed during recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音期间%@格式已更改。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -108,6 +156,12 @@
             "value" : "%1$@ gap at %2$@ seconds (%3$@ seconds)."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@在 %2$@ 秒处中断（%3$@ 秒）。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -118,6 +172,12 @@
     },
     "%@ has no reviewed download. Choose a model from the Models list." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 没有经过审核的下载来源。请从“模型”列表中选择模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -128,6 +188,12 @@
     },
     "%@ is unavailable on this Mac. Choose a supported locale in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台 Mac 上无法使用 %@。请在“模型”中选择支持的区域语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -138,6 +204,12 @@
     },
     "%@ is unavailable. Reconnect it or choose another microphone." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”不可用。请重新连接，或选择其他麦克风。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -148,6 +220,12 @@
     },
     "%@ needs an explicit speech language. Choose a supported language on Models or select a model that detects the language automatically." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要指定语音语言。请在“模型”中选择支持的语言，或选择能自动检测语言的模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -158,6 +236,12 @@
     },
     "%@ received" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已接收 %@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -168,6 +252,12 @@
     },
     "%@; raw text inserted." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已插入原始文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -178,6 +268,12 @@
     },
     "%@; raw text is available in History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；原始文本可在“历史记录”中找到。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -188,6 +284,12 @@
     },
     "%@; raw text pasted." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已粘贴原始文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -198,6 +300,12 @@
     },
     "%@; raw text sent to script." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@；已将原始文本发送到脚本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -208,6 +316,12 @@
     },
     "%lld languages." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -218,6 +332,12 @@
     },
     "%lld languages. Choose one; automatic detection is unavailable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言。请选择一种；无法自动检测。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -228,6 +348,12 @@
     },
     "1 day" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 天"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -238,6 +364,12 @@
     },
     "10-second minimum billed per request. Inference speed does not include upload or network time." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次请求最少按 10 秒计费。推理速度不含上传或网络时间。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -248,6 +380,12 @@
     },
     "10-second minimum billed per request. USD per audio hour." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次请求最少按 10 秒计费。按每小时音频的美元价格计费。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -258,6 +396,12 @@
     },
     "10.3% word error" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10.3% 词错误率"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -268,6 +412,12 @@
     },
     "12% word error" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12% 词错误率"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -278,6 +428,12 @@
     },
     "13 languages" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 种语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -288,6 +444,12 @@
     },
     "13 languages, including Mandarin, with optional language hints." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 种语言，包括普通话，可选提供语言提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -298,6 +460,12 @@
     },
     "13 languages, including Mandarin." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "13 种语言，包括普通话。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -308,6 +476,12 @@
     },
     "14 languages, including Mandarin. Choose one; automatic detection is unavailable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 种语言，包括普通话。请选择一种；无法自动检测。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -318,6 +492,12 @@
     },
     "18 languages" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "18 种语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -328,6 +508,12 @@
     },
     "18 languages, including Mandarin. Automatic detection supports language switching." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "18 种语言，包括普通话。自动检测支持语言切换。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -338,6 +524,12 @@
     },
     "189× real time" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时速度的 189 倍"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -348,6 +540,12 @@
     },
     "216× real time" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时速度的 216 倍"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -358,6 +556,12 @@
     },
     "30 days" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 天"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -368,6 +572,12 @@
     },
     "30 languages, including Chinese. Language hints through OpenRouter are unverified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 种语言，包括中文。通过 OpenRouter 的语言提示尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -378,6 +588,12 @@
     },
     "30 languages, including Mandarin and Cantonese." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 种语言，包括普通话和粤语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -388,6 +604,12 @@
     },
     "60+ languages, including Chinese and English in the same sentence." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 多种语言，同一句中英混说也没问题。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -398,6 +620,12 @@
     },
     "7 days" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 天"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -408,6 +636,12 @@
     },
     "8 languages. Mandarin and Cantonese are unsupported." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 种语言。不支持普通话和粤语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -418,6 +652,12 @@
     },
     "90+ languages" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 多种语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -428,6 +668,12 @@
     },
     "A hosted GPT-Transcribe option for comparing recognition on your own audio." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "托管的 GPT-Transcribe 选项，可用你自己的音频比较识别效果。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -438,6 +684,12 @@
     },
     "A hosted Whisper Large v3 Turbo option for comparing recognition on your own audio." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "托管的 Whisper Large v3 Turbo 选项，可用你自己的音频比较识别效果。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -448,6 +700,12 @@
     },
     "A selected language is a hint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选语言仅作为提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -458,6 +716,12 @@
     },
     "API key removed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥已移除。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -468,6 +732,12 @@
     },
     "API key saved." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥已保存。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -478,6 +748,12 @@
     },
     "Accessibility is off, text copied" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辅助功能已关闭，文本已复制"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -489,6 +765,12 @@
     "Action Items" : {
       "comment" : "Meeting summary template",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待办事项"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -499,6 +781,12 @@
     },
     "Activation may have reserved a device slot. Open the customer portal and remove that pending device before trying again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "激活可能已占用一个设备名额。请打开客户门户，移除该待处理设备后再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -509,6 +797,12 @@
     },
     "Activation was refused. Check the license and available device slots in the customer portal." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "激活被拒绝。请在客户门户中检查许可证和可用的设备名额。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -519,6 +813,12 @@
     },
     "Add a refinement API key in Models, or turn refinement Off." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中添加润色 API 密钥，或关闭润色。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -529,6 +829,12 @@
     },
     "Add a speech API key in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中添加语音 API 密钥。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -539,6 +845,12 @@
     },
     "Add your %@ API key on the Models page." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”页面添加你的 %@ API 密钥。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -549,6 +861,12 @@
     },
     "Airdraft is already processing a recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 已在处理一段录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -559,6 +877,12 @@
     },
     "Airdraft is already starting or processing a recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 已在开始或处理一段录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -569,6 +893,12 @@
     },
     "Airdraft is still checking your license. Try again in a moment." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 仍在确认你的许可证。请稍后再试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -579,6 +909,12 @@
     },
     "Airdraft's list of reviewed model downloads is missing or damaged, so Qwen3-ASR and Whisper models can't be downloaded. Reinstall Airdraft to restore it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 的已审核模型下载列表缺失或已损坏，因此无法下载 Qwen3-ASR 和 Whisper 模型。请重新安装 Airdraft 以恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -589,6 +925,12 @@
     },
     "Allow Accessibility access in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中允许辅助功能权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -599,6 +941,12 @@
     },
     "Allow Microphone and Screen & System Audio Recording in System Settings, then try again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“系统设置”中允许“麦克风”和“录屏与系统录音”，然后再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -609,6 +957,12 @@
     },
     "Allow microphone access in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中允许访问麦克风。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -619,6 +973,12 @@
     },
     "Already recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -629,6 +989,12 @@
     },
     "An alternative recognition model to compare against Nova-3 for your recordings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用你的录音与 Nova-3 比较的另一个识别模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -639,6 +1005,12 @@
     },
     "Anthropic API key is missing. Add it under Models ▸ Refinement." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少 Anthropic API 密钥。请在“模型”▸“润色”中添加。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -649,6 +1021,12 @@
     },
     "App audio" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 音频"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -659,6 +1037,12 @@
     },
     "Apple Intelligence preparing · check System Settings" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 准备中 · 请检查“系统设置”"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -669,6 +1053,12 @@
     },
     "Apple Intelligence requires macOS 26 or later." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 需要 macOS 26 或更高版本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -679,6 +1069,12 @@
     },
     "Apple Speech does not support this preview language. Choose another language in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 语音不支持此预览语言。请在“设置”中选择其他语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -689,6 +1085,12 @@
     },
     "Apple Speech has no available audio format. Reload its language in Models and retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 语音没有可用的音频格式。请在“模型”中重新加载其语言后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -699,6 +1101,12 @@
     },
     "Apple Speech live preview is unavailable on this Mac. Turn off Live Preview in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台 Mac 上无法使用 Apple 语音实时预览。请在“设置”中关闭实时预览。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -709,6 +1117,12 @@
     },
     "Apple speech recognition needs macOS 26 or newer." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 语音识别需要 macOS 26 或更高版本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -719,6 +1133,12 @@
     },
     "Asynchronous processing adds job scheduling and polling." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "异步处理会增加任务调度和轮询时间。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -729,6 +1149,12 @@
     },
     "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频采集跟不上。录音已停止；已保存的音频可从“会议”中恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -739,6 +1165,12 @@
     },
     "Audio is sent to xAI. Check current model pricing and account limits before use." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频会发送到 xAI。使用前请确认当前的模型定价和账户限制。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -749,6 +1181,12 @@
     },
     "Auto" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -759,6 +1197,12 @@
     },
     "Automatic detection chooses one predominant language and works best with 60 seconds of speech." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测会选择一种主要语言，有 60 秒语音时效果最佳。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -769,6 +1213,12 @@
     },
     "Automatic detection has its own language coverage; select a language if needed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测有自己的语言范围；必要时请选择语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -779,6 +1229,12 @@
     },
     "Automatic detection picks one dominant language." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测会选择一种主要语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -789,6 +1245,12 @@
     },
     "Automatic detection supports language switching. A selected language is a hint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测支持语言切换。所选语言仅作为提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -799,6 +1261,12 @@
     },
     "Automatic detection supports mixed languages. A selected language is a hint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测支持多语言混合。所选语言仅作为提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -809,6 +1277,12 @@
     },
     "Automatic language detection and native keyterm hints." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检测语言，并支持原生关键词提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -819,6 +1293,12 @@
     },
     "Automatically recognizes %lld European languages; no Chinese support." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 %lld 种欧洲语言；不支持中文。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -829,6 +1309,12 @@
     },
     "Automatically recognizes %lld supported languages; selection has no effect." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 %lld 种支持的语言；选择语言不起作用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -839,6 +1325,12 @@
     },
     "Automatically recognizes 10 languages, excluding Chinese; selection has no effect." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 10 种语言，不含中文；选择语言不起作用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -849,6 +1341,12 @@
     },
     "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 25 种欧洲语言。选择语言不起作用；不支持中文。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -859,6 +1357,12 @@
     },
     "Automatically recognizes 25 European languages; no Chinese support." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 25 种欧洲语言；不支持中文。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -869,6 +1373,12 @@
     },
     "Automatically recognizes Mandarin and English; selection does not limit recognition." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别普通话和英语；选择语言不会限制识别。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -879,6 +1389,12 @@
     },
     "Automatically recognizes speech; language selection has no effect." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别语音；选择语言不起作用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -889,6 +1405,12 @@
     },
     "Base API rate. Paid keyterm prompting and audio-event tags are off; your dictionary still applies after refinement." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基础 API 费率。付费的关键词提示和音频事件标签已关闭；你的词汇在润色后仍会应用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -899,6 +1421,12 @@
     },
     "Batch preview" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批量预览版"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -909,6 +1437,12 @@
     },
     "Batch preview language coverage is unverified. A selected language is a hint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批量预览版的语言范围尚未验证。所选语言仅作为提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -919,6 +1453,12 @@
     },
     "Batch recognition with dictionary terms. Automatic detection selects the predominant language." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用词汇进行批量识别。自动检测会选择主要语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -930,6 +1470,12 @@
     "Brief Summary" : {
       "comment" : "Meeting summary template",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简短摘要"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -940,6 +1486,12 @@
     },
     "Broad language coverage" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言范围广"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -950,6 +1502,12 @@
     },
     "Broad language coverage; select a speech language before recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言范围广；录音前请先选择语音语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -960,6 +1518,12 @@
     },
     "Broad language support" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持多种语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -970,6 +1534,12 @@
     },
     "CLI not found" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到 CLI"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -980,6 +1550,12 @@
     },
     "Cantonese" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粤语"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -990,6 +1566,12 @@
     },
     "Captured audio is kept for retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已录制的音频会保留以供重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1000,6 +1582,12 @@
     },
     "Carved Wave" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "雕刻波形"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1010,6 +1598,12 @@
     },
     "Changes are not saved. Keep Airdraft open and retry after checking storage." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改尚未保存。请保持 Airdraft 打开，检查存储空间后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1020,6 +1614,12 @@
     },
     "Changes could not be saved:" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存更改："
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1030,6 +1630,12 @@
     },
     "Check the refinement endpoint in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中检查润色端点。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1040,6 +1646,12 @@
     },
     "Check the speech endpoint in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中检查语音端点。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1050,6 +1662,12 @@
     },
     "Checking…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1060,6 +1678,12 @@
     },
     "Choose Mandarin Chinese or Cantonese explicitly on Models instead of zh-HK." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中明确选择普通话或粤语，而不是 zh-HK。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1070,6 +1694,12 @@
     },
     "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 Airdraft 受管数据文件夹以外的文件夹，以便导出的副本在 App 清理后仍能保留。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1080,6 +1710,12 @@
     },
     "Choose a regular executable file." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择普通的可执行文件。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1090,6 +1726,12 @@
     },
     "Choose a script using its absolute file path." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用绝对文件路径选择脚本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1100,6 +1742,12 @@
     },
     "Choose a speech model in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中选择语音模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1110,6 +1758,12 @@
     },
     "Classic" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经典"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1121,6 +1775,12 @@
     "Clean" : {
       "comment" : "Built-in refinement profile name",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整理"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1131,6 +1791,12 @@
     },
     "Clinical vocabulary" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "临床词汇"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1141,6 +1807,12 @@
     },
     "Clipboard changed before paste. Your text is available in History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴前剪贴板已更改。你的文本可在“历史记录”中找到。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1151,6 +1823,12 @@
     },
     "Cloud" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1162,6 +1840,12 @@
     "Code editors" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码编辑器"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1172,6 +1856,12 @@
     },
     "Completed" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已完成"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1182,6 +1872,12 @@
     },
     "Compressed Core ML weights." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩的 Core ML 权重。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1193,6 +1889,12 @@
     "Concise" : {
       "comment" : "Built-in refinement profile name",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简洁"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1203,6 +1905,12 @@
     },
     "Connected. API key accepted." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接。API 密钥已被接受。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1213,6 +1921,12 @@
     },
     "Connected. The selected model is listed for this key." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接。所选模型在此密钥的可用列表中。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1223,6 +1937,12 @@
     },
     "Connection testing is unavailable for this provider." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此提供商不支持连接测试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1233,6 +1953,12 @@
     },
     "Copied to clipboard" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制到剪贴板"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1243,6 +1969,12 @@
     },
     "Core ML speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core ML 语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1253,6 +1985,12 @@
     },
     "Could not access Keychain (%d). Your saved key has not been removed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法访问钥匙串（%d）。你已保存的密钥未被移除。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1263,6 +2001,12 @@
     },
     "Could not communicate with the executable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法与可执行文件通信。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1273,6 +2017,12 @@
     },
     "Could not list model files (HTTP %lld)." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法列出模型文件（HTTP %lld）。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1283,6 +2033,12 @@
     },
     "Could not reach the provider. Check your internet connection and try again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到提供商。请检查网络连接后再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1293,6 +2049,12 @@
     },
     "Could not run the executable: %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法运行可执行文件：%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1303,6 +2065,12 @@
     },
     "Could not save the API key. The existing key was not replaced." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存 API 密钥。现有密钥未被替换。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1313,6 +2081,12 @@
     },
     "Could not save the license in Keychain. Access has not been changed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将许可证保存到钥匙串。访问权限未更改。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1323,6 +2097,12 @@
     },
     "Could not start recording: %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法开始录音：%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1333,6 +2113,12 @@
     },
     "Couldn't copy or paste. Your text is available in History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法复制或粘贴。你的文本可在“历史记录”中找到。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1343,6 +2129,12 @@
     },
     "Couldn't copy. Your text is available in History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法复制。你的文本可在“历史记录”中找到。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1353,6 +2145,12 @@
     },
     "Couldn't identify the destination app. Text copied; paste it where you want." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法识别目标 App。文本已复制；请粘贴到你想要的位置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1363,6 +2161,12 @@
     },
     "Couldn't paste, text copied" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法粘贴，文本已复制"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1373,6 +2177,12 @@
     },
     "Cube" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立方"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1383,6 +2193,12 @@
     },
     "Custom" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1401,6 +2217,12 @@
             "value" : "Custom server"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义服务器"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1411,6 +2233,12 @@
     },
     "Custom vocabulary" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义词汇"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1421,6 +2249,12 @@
     },
     "Dark" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1431,6 +2265,12 @@
     },
     "Deactivate this Mac before replacing its license key." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更换许可证密钥前，请先停用这台 Mac。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1442,6 +2282,12 @@
     "Decisions & Follow-ups" : {
       "comment" : "Meeting summary template",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "决议与后续事项"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1452,6 +2298,12 @@
     },
     "Dedicated transcription in verbatim mode, with automatic language detection." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以逐字模式专门转录，并自动检测语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1462,6 +2314,12 @@
     },
     "Deepgram states its non-Whisper models return results faster than its Whisper models. No comparable latency is published." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deepgram 表示其非 Whisper 模型返回结果比 Whisper 模型更快。未公布可比较的延迟数据。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1480,6 +2338,12 @@
             "value" : "Default model"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1490,6 +2354,12 @@
     },
     "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除所有听写和会议音频，包括中断的录音。已保存的文本、设置和模型会保留。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1500,6 +2370,12 @@
     },
     "Deletes all dictation history, meeting transcripts, remembered speaker names, recordings and interrupted meetings. Settings and models stay." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除所有听写历史记录、会议转录文本、记住的发言人名称、录音和中断的会议。设置和模型会保留。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1510,6 +2386,12 @@
     },
     "Deletes app data, settings, profiles, vocabulary, provider keys and downloaded models. Resets this app’s permissions. Quit when finished to restart setup. License and trial records stay." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除 App 数据、设置、模式、词汇、提供商密钥和已下载的模型，并重置此 App 的权限。完成后请退出 App 以重新设置。许可证和试用记录会保留。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1520,6 +2402,12 @@
     },
     "Deletes dictation history, all meeting transcripts and remembered speaker names. Recordings, settings and models stay." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除听写历史记录、所有会议转录文本和记住的发言人名称。录音、设置和模型会保留。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1530,6 +2418,12 @@
     },
     "Designed for noisy and far-field speech. Auto-detects one language; supports Mandarin." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专为嘈杂和远场语音设计。会自动检测一种语言；支持普通话。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1540,6 +2434,12 @@
     },
     "Destination changed. Text copied." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标已更改。文本已复制。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1550,6 +2450,12 @@
     },
     "Destination changed. Text copied; paste it where you want." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标已更改。文本已复制；请粘贴到你想要的位置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1561,6 +2467,12 @@
     "Documents and notes" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文档和笔记"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1571,6 +2483,12 @@
     },
     "Download cancelled. Retry to resume." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载已取消。重试即可继续。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1587,6 +2505,12 @@
             "value" : "Download of %1$@ failed (HTTP %2$lld)."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载“%1$@”失败（HTTP %2$lld）。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1597,6 +2521,12 @@
     },
     "Download the speaker model before identifying speakers." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "识别发言人前，请先下载发言人模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1607,6 +2537,12 @@
     },
     "Downloading weights…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下载权重…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1618,6 +2554,12 @@
     "Email" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邮件"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1628,6 +2570,12 @@
     },
     "Enable Apple Intelligence in System Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“系统设置”中启用 Apple Intelligence。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1638,6 +2586,12 @@
     },
     "English-only distilled Whisper weights." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅限英语的蒸馏版 Whisper 权重。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1648,6 +2602,12 @@
     },
     "Enhanced recognition. Automatic detection chooses one predominant language." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增强识别。自动检测会选择一种主要语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1658,6 +2618,12 @@
     },
     "Enter an API key before testing." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试前请先输入 API 密钥。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1668,6 +2634,12 @@
     },
     "Extra high" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超高"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1678,6 +2650,12 @@
     },
     "Failed: %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败：%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1688,6 +2666,12 @@
     },
     "Fast inference for short dictation; trades some accuracy for speed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "短听写推理快速；以部分准确率换取速度。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1698,6 +2682,12 @@
     },
     "Faster than Whisper" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "比 Whisper 更快"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1708,6 +2698,12 @@
     },
     "File recognition with an explicit language. Streaming-only models are separate." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以指定语言进行文件识别。仅支持流式的模型另行提供。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1718,6 +2714,12 @@
     },
     "Finish the current recording or media job first." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先完成当前的录音或媒体任务。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1728,6 +2730,12 @@
     },
     "Finish the interrupted cleanup before starting another one." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先完成中断的清理操作，再开始新的清理。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1738,6 +2746,12 @@
     },
     "Full-size multilingual model." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整尺寸的多语言模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1748,6 +2762,12 @@
     },
     "GGUF speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GGUF 语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1758,6 +2778,12 @@
     },
     "Gemini API key is missing. Add it under Models ▸ Refinement." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少 Gemini API 密钥。请在“模型”▸“润色”中添加。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1768,6 +2794,12 @@
     },
     "General speech" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通用语音"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1778,6 +2810,12 @@
     },
     "General speech recognition across varied languages and accents." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用于多种语言和口音的通用语音识别。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1788,6 +2826,12 @@
     },
     "Groq's benchmark. Faster and cheaper than Large v3, with a higher error rate." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 的基准测试。比 Large v3 更快更便宜，但错误率更高。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1798,6 +2842,12 @@
     },
     "Groq's benchmark. Lower error rate than Turbo; costs more per hour." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 的基准测试。错误率比 Turbo 低；每小时费用更高。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1808,6 +2858,12 @@
     },
     "Groq's published inference benchmark; excludes upload and network time. Results vary with audio." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groq 公布的推理基准测试；不含上传和网络时间。结果因音频而异。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1818,6 +2874,12 @@
     },
     "High" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1828,6 +2890,12 @@
     },
     "High accuracy" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高准确率"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1838,6 +2906,12 @@
     },
     "History could not be saved. Your unsaved dictations remain in memory." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存历史记录。未保存的听写仍保留在内存中。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1848,6 +2922,12 @@
     },
     "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史记录不可用。听写会保留在内存中直到保存。请重新保存或检查数据文件夹。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1858,6 +2938,12 @@
     },
     "History storage is unavailable. Check available disk space and reopen Airdraft." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史记录存储不可用。请检查可用磁盘空间并重新打开 Airdraft。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1868,6 +2954,12 @@
     },
     "Hold" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1878,6 +2970,12 @@
     },
     "Identifying Speakers" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在识别发言人"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1888,6 +2986,12 @@
     },
     "Identifying speakers" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在识别发言人"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1898,6 +3002,12 @@
     },
     "Improved recognition over original Whisper; accepts dictionary context as a text prompt." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "识别效果优于原版 Whisper；可接受词汇上下文作为文本提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1908,6 +3018,12 @@
     },
     "Improved vs Whisper" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "优于 Whisper"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1918,6 +3034,12 @@
     },
     "Includes Mandarin and English code-switching; uses dictionary keyterms." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持普通话与英语混说；使用词汇中的关键词。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1928,6 +3050,12 @@
     },
     "Ink-Whisper is the file model. Automatic detection and streaming Ink-2 are unavailable here." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ink-Whisper 是文件模型。这里无法使用自动检测和流式 Ink-2。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1938,6 +3066,12 @@
     },
     "Input %lld is unavailable on this microphone. Choose an input channel in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此麦克风上的输入 %lld 不可用。请在“设置”中选择输入声道。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1948,6 +3082,12 @@
     },
     "Input channel unavailable. Choose one in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入声道不可用。请在“设置”中选择一个。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1958,6 +3098,12 @@
     },
     "Insert at cursor" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在光标处插入"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1968,6 +3114,12 @@
     },
     "Install Apple Speech for %@ from Models, then start another recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请从“模型”安装 %@ 的 Apple 语音，然后开始新的录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1978,6 +3130,12 @@
     },
     "Install the speech model in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中安装语音模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1988,6 +3146,12 @@
     },
     "Installing language…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在安装语言…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1998,6 +3162,12 @@
     },
     "Job deletion is attempted after use. Uploads without a job follow provider retention." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用后会尝试删除任务。没有任务的上传文件按提供商的保留政策处理。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2008,6 +3178,12 @@
     },
     "Key accepted. Selected speech model is listed in OpenRouter's public catalog. Speech access and billing are not verified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密钥已被接受。所选语音模型在 OpenRouter 的公开目录中。语音访问权限和计费尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2018,6 +3194,12 @@
     },
     "Keyword hints from your dictionary and mixed-language recognition." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用词汇提供关键词提示，并支持多语言混合识别。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2028,6 +3210,12 @@
     },
     "LM Studio (local)" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LM Studio（本地）"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2038,6 +3226,12 @@
     },
     "Language assets are not installed. Open Models and load Apple Speech before retrying." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言资源尚未安装。请打开“模型”并加载 Apple 语音后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2048,6 +3242,12 @@
     },
     "Language coverage unverified. Select an explicit language." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言范围尚未验证。请指定语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2058,6 +3258,12 @@
     },
     "Language installed" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言已安装"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2068,6 +3274,12 @@
     },
     "Language support is unverified for this model and endpoint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型和端点的语言支持尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2078,6 +3290,12 @@
     },
     "Left" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左侧"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2089,6 +3307,12 @@
     "Left %@" : {
       "comment" : "A modifier key on the left side of the keyboard, e.g. Left ⌥",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左 %@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2099,6 +3323,12 @@
     },
     "Light" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2109,6 +3339,12 @@
     },
     "Live preview audio conversion failed. Start another recording to retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览的音频转换失败。请开始新的录音以重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2119,6 +3355,12 @@
     },
     "Live preview could not allocate an audio buffer. Start another recording to retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览无法分配音频缓冲区。请开始新的录音以重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2129,6 +3371,12 @@
     },
     "Live preview could not convert audio. Reload Apple Speech in Models and retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览无法转换音频。请在“模型”中重新加载 Apple 语音后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2139,6 +3387,12 @@
     },
     "Live preview could not keep up. Start another recording to retry, or turn off Live Preview. Final transcription is unaffected." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览跟不上。请开始新的录音以重试，或关闭实时预览。最终转录不受影响。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2149,6 +3403,12 @@
     },
     "Live preview could not prepare audio. Start another recording to retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览无法准备音频。请开始新的录音以重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2159,6 +3419,12 @@
     },
     "Live preview received invalid audio. Check the selected microphone and start another recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览收到无效的音频。请检查所选麦克风并开始新的录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2169,6 +3435,12 @@
     },
     "Live preview requires macOS 26 or later." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览需要 macOS 26 或更高版本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2179,6 +3451,12 @@
     },
     "Live preview stopped. Start another recording to retry; final transcription is still available." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览已停止。请开始新的录音以重试；最终转录仍可使用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2189,6 +3467,12 @@
     },
     "Live preview stopped: %@ Start another recording to retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览已停止：%@ 请开始新的录音以重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2199,6 +3483,12 @@
     },
     "Loaded" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加载"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2209,6 +3499,12 @@
     },
     "Loading…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2219,6 +3515,12 @@
     },
     "Local" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2229,6 +3531,12 @@
     },
     "Local / self-hosted" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地／自托管"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2239,6 +3547,12 @@
     },
     "Local speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2249,6 +3563,12 @@
     },
     "Low" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2259,6 +3579,12 @@
     },
     "Mandarin Chinese" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中文（普通话）"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2269,6 +3595,12 @@
     },
     "Mandarin, Cantonese, English, Japanese and Korean." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "普通话、粤语、英语、日语和韩语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2279,6 +3611,12 @@
     },
     "Max" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最高"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2289,6 +3627,12 @@
     },
     "Media files can be up to two hours long. Split this recording before importing it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体文件最长两小时。请先分割此录音再导入。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2299,6 +3643,12 @@
     },
     "Medium" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2310,6 +3660,12 @@
     "Meeting Minutes" : {
       "comment" : "Meeting summary template",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会议纪要"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2320,6 +3676,12 @@
     },
     "Microphone" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2330,6 +3692,12 @@
     },
     "Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风访问被拒绝。请在“系统设置”>“隐私与安全性”>“麦克风”中启用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2340,6 +3708,12 @@
     },
     "Microphone access was denied." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风访问被拒绝。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2350,6 +3724,12 @@
     },
     "Microphone unavailable. Choose an input in Settings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风不可用。请在“设置”中选择输入设备。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2360,6 +3740,12 @@
     },
     "Minimal" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2370,6 +3756,12 @@
     },
     "Mixed languages" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言混合"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2380,6 +3772,12 @@
     },
     "Models have different billing units. Check the selected model's OpenRouter page before use." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各模型的计费单位不同。使用前请查看所选模型的 OpenRouter 页面。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2390,6 +3788,12 @@
     },
     "Multilingual" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2400,6 +3804,12 @@
     },
     "Multilingual Whisper. Language hints through OpenRouter are unverified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言 Whisper。通过 OpenRouter 的语言提示尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2410,6 +3820,12 @@
     },
     "Multilingual transcription. Exact language coverage and hints are unverified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言转录。确切的语言范围和提示尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2420,6 +3836,12 @@
     },
     "Native transcription with automatic language detection and dictionary hints." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原生转录，支持自动语言检测和词汇提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2430,6 +3852,12 @@
     },
     "Needs attention" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要处理"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2440,6 +3868,12 @@
     },
     "New profile" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新模式"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2450,6 +3884,12 @@
     },
     "Night Wave" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜间波形"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2460,6 +3900,12 @@
     },
     "No app audio was received." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到 App 音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2470,6 +3916,12 @@
     },
     "No audio buffers were received. Check the selected app, microphone and permissions." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到任何音频缓冲区。请检查所选的 App、麦克风和权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2480,6 +3932,12 @@
     },
     "No audio was captured." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未录到任何音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2490,6 +3948,12 @@
     },
     "No comparable file-transcription latency is published. Upload and network time affect your wait." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未公布可比较的文件转录延迟。上传和网络时间会影响等待时间。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2500,6 +3964,12 @@
     },
     "No comparable transcription accuracy is published for this model." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型未公布可比较的转录准确率。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2510,6 +3980,12 @@
     },
     "No display is available for meeting audio capture. Connect a display and try again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用于采集会议音频的显示器。请连接显示器后再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2520,6 +3996,12 @@
     },
     "No microphone audio was received." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未收到麦克风音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2530,6 +4012,12 @@
     },
     "No speech regions were identified. Choose Without Speakers to transcribe the full recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未识别到语音片段。请选择“不识别发言人”以转录整段录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2540,6 +4028,12 @@
     },
     "Noisy audio" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "嘈杂音频"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2550,6 +4044,12 @@
     },
     "None" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2560,6 +4060,12 @@
     },
     "Not loaded" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未加载"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2570,6 +4076,12 @@
     },
     "Not published" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未公布"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2580,6 +4092,12 @@
     },
     "Not rated" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未评分"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2590,6 +4108,12 @@
     },
     "Off" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2600,6 +4124,12 @@
     },
     "Ollama (local)" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ollama（本地）"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2610,6 +4140,12 @@
     },
     "Open License to start your trial or activate a purchased key. Your history remains available." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开“许可证”以开始试用或激活已购买的密钥。你的历史记录仍可使用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2620,6 +4156,12 @@
     },
     "OpenAI reports improved word error rate and language recognition over original Whisper models, at a lower price than GPT-4o Transcribe." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI 表示其词错误率和语言识别优于原版 Whisper 模型，价格也比 GPT-4o Transcribe 低。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2630,6 +4172,12 @@
     },
     "OpenRouter lists this model's current price on its model page. Check the billing unit before use." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 在模型页面列出此模型当前的价格。使用前请确认计费单位。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2640,6 +4188,12 @@
     },
     "OpenRouter models may bill per audio second or by token. Check this model's current rate." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 模型可能按音频秒数或 token 计费。请确认此模型当前的费率。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2650,6 +4204,12 @@
     },
     "Orbit" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轨道"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2661,6 +4221,12 @@
     "Other apps" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他 App"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2671,6 +4237,12 @@
     },
     "Part %lld" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 部分"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2681,6 +4253,12 @@
     },
     "Paste couldn't be confirmed. Clipboard changed; recover your text from History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确认是否已粘贴。剪贴板已更改；请从“历史记录”中找回你的文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2691,6 +4269,12 @@
     },
     "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确认是否已粘贴。文本保留在剪贴板中；再次粘贴前请先检查目标位置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2701,6 +4285,12 @@
     },
     "Paused" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2711,6 +4301,12 @@
     },
     "Paused. Resume to continue from the last saved stage." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停。继续即可从上次保存的阶段接着处理。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2722,6 +4318,12 @@
     "Personal messages" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "个人消息"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2732,6 +4334,12 @@
     },
     "Polar could not be reached. Your saved license has been kept. Try again when connected." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到 Polar。已保留你保存的许可证。联网后请再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2742,6 +4350,12 @@
     },
     "Pre-recorded monolingual rate. Auto-detect chooses one language; use Soniox for code-switching. Paid keyterm prompting is off." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预录单语费率。自动检测会选择一种语言；多语言混说请使用 Soniox。付费的关键词提示已关闭。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2752,6 +4366,12 @@
     },
     "Pre-recorded pay-as-you-go: $0.0043 per minute. Optional add-ons are off." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预录按量付费：每分钟 0.0043 美元。可选附加功能已关闭。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2762,6 +4382,12 @@
     },
     "Pre-recorded pay-as-you-go: $0.0048 per minute. Deepgram hosts Whisper Large v2." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预录按量付费：每分钟 0.0048 美元。由 Deepgram 托管 Whisper Large v2。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2772,6 +4398,12 @@
     },
     "Pre-recorded pay-as-you-go: $0.0052 per minute. This is Nova-3 with multilingual mode enabled." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预录按量付费：每分钟 0.0052 美元。这是启用了多语言模式的 Nova-3。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2782,6 +4414,12 @@
     },
     "Pre-recorded preview. Language coverage and accuracy have not been verified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预录预览版。语言范围和准确率尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2792,6 +4430,12 @@
     },
     "Preparing Media" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在准备媒体"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2802,6 +4446,12 @@
     },
     "Preparing download…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在准备下载…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2812,6 +4462,12 @@
     },
     "Preparing model…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在准备模型…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2822,6 +4478,12 @@
     },
     "Preserves fillers and repetitions; supports native custom vocabulary. Refinement remains independent." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留口头禅和重复；支持原生自定义词汇。润色仍独立进行。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2832,6 +4494,12 @@
     },
     "Press" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2842,6 +4510,12 @@
     },
     "Profiles could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取或备份模式。为保护原始文件，已暂停保存。请检查数据文件夹权限并重新打开 Airdraft。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2852,6 +4526,12 @@
     },
     "Profiles could not be read. The original is preserved as %@ in the data folder. Defaults are shown until you restore your file." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取模式。原始文件已在数据文件夹中保留为 %@。在你恢复该文件之前，会先显示默认设置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2862,6 +4542,12 @@
     },
     "Published base API rate. Paid keyterm and entity-detection add-ons are off." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公布的基础 API 费率。付费的关键词和实体检测附加功能已关闭。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2872,6 +4558,12 @@
     },
     "Pure Wave" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纯净波形"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2882,6 +4574,12 @@
     },
     "Quality-focused transcription across 90+ languages and varied accents." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注重质量的转录，支持 90 多种语言和各种口音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2892,6 +4590,12 @@
     },
     "Quit other Airdraft or Transcribar copies that share this data folder, then retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请退出共用此数据文件夹的其他 Airdraft 或 Transcribar 副本，然后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2902,6 +4606,12 @@
     },
     "Qwen3-ASR does not support %@. Choose a supported language in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen3-ASR 不支持%@。请在“模型”中选择支持的语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2912,6 +4622,12 @@
     },
     "Ready" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就绪"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2922,6 +4638,12 @@
     },
     "Ready to transcribe" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可以转录"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2932,6 +4654,12 @@
     },
     "Recognizes %@ only." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅识别%@。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2942,6 +4670,12 @@
     },
     "Recognizes English only." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅识别英语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2952,6 +4686,12 @@
     },
     "Recognizes language switches within speech, including Chinese and English." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可识别语音中的语言切换，包括中文和英语。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2962,6 +4702,12 @@
     },
     "Recognizes mixed languages automatically. A selected language is a hint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别多语言混合。所选语言仅作为提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2972,6 +4718,12 @@
     },
     "Recording could not be opened." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2982,6 +4734,12 @@
     },
     "Recording could not start." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法开始录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2992,6 +4750,12 @@
     },
     "Recording did not start because setup changed. Try your shortcut again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由于设置已更改，录音未开始。请再按一次快捷键。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3002,6 +4766,12 @@
     },
     "Recording did not start." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音未开始。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3012,6 +4782,12 @@
     },
     "Recording is unavailable while Airdraft manages its data." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 正在管理数据，暂时无法录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3022,6 +4798,12 @@
     },
     "Recording startup timed out. Open Airdraft to check the selected model and permissions." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音启动超时。请打开 Airdraft 检查所选模型和权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3032,6 +4814,12 @@
     },
     "Recording stopped at %@ because recordings waiting for retry use the rest of the memory limit. Retry or discard them in Airdraft for longer recordings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音已在 %@ 停止，因为等待重试的录音已用掉其余的内存上限。请在 Airdraft 中重试或丢弃这些录音，以便录制更长的内容。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3042,6 +4830,12 @@
     },
     "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由于磁盘空间不足，录音已停止。请释放空间，然后从“会议”中恢复已保存的音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3052,6 +4846,12 @@
     },
     "Recovered after recording was interrupted; the final audio may be incomplete." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音中断后已恢复；最后的音频可能不完整。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3062,6 +4862,12 @@
     },
     "Refinement changed the language of the transcript." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色改变了转录文本的语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3072,6 +4878,12 @@
     },
     "Refinement didn't match your speech" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色结果与你说的内容不符"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3082,6 +4894,12 @@
     },
     "Refinement failed; the original transcript is shown." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色失败；已显示原始转录文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3092,6 +4910,12 @@
     },
     "Refinement key locked. Use Allow Access in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色密钥已锁定。请在“模型”中使用“允许访问”。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3108,6 +4932,12 @@
             "value" : "Refinement provider returned HTTP %1$lld%2$@"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色提供商返回 HTTP %1$lld%2$@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3118,6 +4948,12 @@
     },
     "Refinement repeated an earlier dictation instead of this one." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色重复了之前的听写，而不是这一次的内容。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3128,6 +4964,12 @@
     },
     "Refinement timed out." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色超时。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3138,6 +4980,12 @@
     },
     "Refinement unavailable" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法润色"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3148,6 +4996,12 @@
     },
     "Refused to download %@: it points outside the models folder." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拒绝下载“%@”：它指向模型文件夹以外的位置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3158,6 +5012,12 @@
     },
     "Removal could not be confirmed. Update a rotated key, or remove this device in the customer portal before forgetting it here." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确认是否已移除。请更新已更换的密钥，或先在客户门户中移除此设备，再在这里忘记它。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3168,6 +5028,12 @@
     },
     "Remove Audio Files" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除音频文件"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3178,6 +5044,12 @@
     },
     "Remove History" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除历史记录"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3188,6 +5060,12 @@
     },
     "Remove History and Audio Files" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除历史记录和音频文件"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3204,6 +5082,12 @@
             "value" : "Requested %1$@, but AssemblyAI used %2$@. Choose another model or retry."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请求使用 %1$@，但 AssemblyAI 使用了 %2$@。请选择其他模型或重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3214,6 +5098,12 @@
     },
     "Reset App" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置 App"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3224,6 +5114,12 @@
     },
     "Retried text copied. Paste it where you want it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制重试的文本。请粘贴到你想要的位置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3234,6 +5130,12 @@
     },
     "Retry or discard the saved recording in Airdraft first." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在 Airdraft 中重试或丢弃已保存的录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3244,6 +5146,12 @@
     },
     "Right" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右侧"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3255,6 +5163,12 @@
     "Right %@" : {
       "comment" : "A modifier key on the right side of the keyboard, e.g. Right ⌥",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右 %@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3265,6 +5179,12 @@
     },
     "Runs on the Neural Engine." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在神经网络引擎上运行。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3275,6 +5195,12 @@
     },
     "Saved audio could not be removed." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法移除已保存的音频。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3285,6 +5211,12 @@
     },
     "Script delivery failed or was interrupted. It may already have acted; it was not retried. Your text is kept in History." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本发送失败或中断。脚本可能已经执行；不会重试。你的文本保留在“历史记录”中。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3295,6 +5227,12 @@
     },
     "Script delivery failed: %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本发送失败：%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3305,6 +5243,12 @@
     },
     "Script delivery timed out. The script may have already acted on the text; it was not retried." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本发送超时。脚本可能已处理该文本；不会重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3315,6 +5259,12 @@
     },
     "Script exited with status %d." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本以状态 %d 退出。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3325,6 +5275,12 @@
     },
     "See pricing" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看定价"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3335,6 +5291,12 @@
     },
     "Select a speech language; automatic detection is unavailable for the file endpoint." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择语音语言；文件端点无法自动检测语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3345,6 +5307,12 @@
     },
     "Send to script" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送到脚本"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3355,6 +5323,12 @@
     },
     "Server not running" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器未运行"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3365,6 +5339,12 @@
     },
     "Set up the refinement CLI in Models, or turn it Off." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中设置润色 CLI，或将其关闭。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3375,6 +5355,12 @@
     },
     "Several recordings are waiting for retry. Open Airdraft to retry or discard one before recording again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有多段录音正在等待重试。请先打开 Airdraft 重试或丢弃其中一段，再重新录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3385,6 +5371,12 @@
     },
     "Silk" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丝带"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3395,6 +5387,12 @@
     },
     "Slower than Nova-3" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "比 Nova-3 慢"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3405,6 +5403,12 @@
     },
     "Smart punctuation, dates and numbers. Auto-detects the dominant language." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能标点、日期和数字。自动检测主要语言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3415,6 +5419,12 @@
     },
     "Some provider keys could not be removed (Keychain status %d). Completed removals stay removed; unlock Keychain and retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分提供商密钥无法移除（钥匙串状态 %d）。已完成的移除不会恢复；请解锁钥匙串后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3425,6 +5435,12 @@
     },
     "Sonic" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "声波"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3435,6 +5451,12 @@
     },
     "Speaker %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发言人 %@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3445,6 +5467,12 @@
     },
     "Specialized for clinical terms, medication names and medical dictation." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专为临床术语、药品名称和医疗听写设计。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3455,6 +5483,12 @@
     },
     "Speech key locked. Use Allow Access in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音密钥已锁定。请在“模型”中使用“允许访问”。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3465,6 +5499,12 @@
     },
     "Speech model is not downloaded. Download it on the Models page." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音模型尚未下载。请在“模型”页面下载。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3475,6 +5515,12 @@
     },
     "Speech model loading took too long. Try again or choose another model in Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音模型加载时间过长。请再试一次，或在“模型”中选择其他模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3491,6 +5537,12 @@
             "value" : "Speech provider returned HTTP %1$lld%2$@"
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音提供商返回 HTTP %1$lld%2$@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3501,6 +5553,12 @@
     },
     "Stop recording and wait for current work to finish before removing data." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除数据前，请先停止录音并等待当前工作完成。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3511,6 +5569,12 @@
     },
     "Stop the meeting recording before dictating." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先停止会议录音，再开始听写。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3521,6 +5585,12 @@
     },
     "Summarizing" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在生成摘要"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3532,6 +5602,12 @@
     "Summary" : {
       "comment" : "Built-in refinement profile name",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3542,6 +5618,12 @@
     },
     "Summary cancelled. The transcript is unchanged." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消摘要。转录文本未更改。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3552,6 +5634,12 @@
     },
     "Summary failed:" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要失败："
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3562,6 +5650,12 @@
     },
     "Supports Mandarin. Automatic detection and language hints through OpenRouter are unverified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持普通话。通过 OpenRouter 的自动检测和语言提示尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3572,6 +5666,12 @@
     },
     "Supports Mandarin. Automatic detection through OpenRouter is unverified." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持普通话。通过 OpenRouter 的自动检测尚未验证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3582,6 +5682,12 @@
     },
     "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL. Mandarin is not supported in this mode; the Language setting is ignored." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 和 NL 之间切换。此模式不支持普通话；会忽略“语言”设置。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3593,6 +5699,12 @@
     "System Default" : {
       "comment" : "The microphone macOS currently uses",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统默认"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3603,6 +5715,12 @@
     },
     "System audio capture was interrupted:" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统音频采集已中断："
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3613,6 +5731,12 @@
     },
     "System capture stopped unexpectedly. The saved tail may be incomplete." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统采集意外停止。最后保存的部分可能不完整。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3624,6 +5748,12 @@
     "Terminals" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "终端"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3634,6 +5764,12 @@
     },
     "Text delivery has started and cannot be cancelled safely." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文本发送已开始，无法安全取消。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3644,6 +5780,12 @@
     },
     "The API key was rejected. Check the key and its permissions in the provider console." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥被拒绝。请在提供商控制台中检查密钥及其权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3654,6 +5796,12 @@
     },
     "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 密钥有效，但此模型不在当前的公开语音目录中。请刷新目录或选择其他模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3664,6 +5812,12 @@
     },
     "The app data folder is not a regular local directory. Cleanup stopped without following its link." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 数据文件夹不是普通的本地目录。清理已停止，未跟随其链接。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3674,6 +5828,12 @@
     },
     "The audio clock changed. Recording stopped to preserve the saved timeline." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频时钟已更改。为保留已保存的时间线，录音已停止。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3684,6 +5844,12 @@
     },
     "The cleanup record could not be read. Keep Airdraft closed and check its data folder before removing anything." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取清理记录。移除任何内容前，请保持 Airdraft 关闭并检查其数据文件夹。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3694,6 +5860,12 @@
     },
     "The connection timed out. Check your network and try again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接超时。请检查网络后再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3704,6 +5876,12 @@
     },
     "The decoder truncated the result. Try a shorter recording." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解码器截断了结果。请尝试较短的录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3714,6 +5892,12 @@
     },
     "The executable closed its input before all text was delivered." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可执行文件在所有文本送达前就关闭了其输入。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3724,6 +5908,12 @@
     },
     "The key connected, but the selected model was not listed. Check model access or choose another model." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密钥已连接，但未列出所选模型。请检查模型访问权限或选择其他模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3734,6 +5924,12 @@
     },
     "The license response could not be verified. Your saved license has been kept." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法验证许可证响应。已保留你保存的许可证。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3744,6 +5940,12 @@
     },
     "The meeting recording could not be saved. Check disk access, then recover it from Meetings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存会议录音。请检查磁盘访问权限，然后从“会议”中恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3754,6 +5956,12 @@
     },
     "The microphone input changed. Record again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风输入已更改。请重新录音。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3764,6 +5972,12 @@
     },
     "The microphone's audio format is unavailable. Reconnect it or choose another microphone." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法获取麦克风的音频格式。请重新连接，或选择其他麦克风。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3774,6 +5988,12 @@
     },
     "The model archive failed its integrity check. Download it again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型压缩包未通过完整性检查。请重新下载。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3784,6 +6004,12 @@
     },
     "The model download is incomplete. Retry to finish the missing files." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型下载不完整。请重试以补全缺失的文件。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3794,6 +6020,12 @@
     },
     "The model folder is empty on Hugging Face." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hugging Face 上的模型文件夹是空的。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3804,6 +6036,12 @@
     },
     "The model page lists 30 languages and 22 Chinese dialects." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型页面列出了 30 种语言和 22 种中文方言。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3814,6 +6052,12 @@
     },
     "The model used in OpenRouter's transcription API example." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 转录 API 示例中使用的模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3824,6 +6068,12 @@
     },
     "The previous model load is still stopping. Choose another model, or restart Airdraft to retry this one." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之前的模型加载仍在停止中。请选择其他模型，或重新启动 Airdraft 以重试此模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3834,6 +6084,12 @@
     },
     "The provider does not publish comparable file-transcription latency. Upload and network time also affect your wait." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供商未公布可比较的文件转录延迟。上传和网络时间也会影响等待时间。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3844,6 +6100,12 @@
     },
     "The provider returned HTTP %lld. Try again later." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供商返回 HTTP %lld。请稍后再试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3854,6 +6116,12 @@
     },
     "The provider's rate or quota limit was reached. Check your account and try again later." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到提供商的速率或配额上限。请检查你的账户并稍后再试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3864,6 +6132,12 @@
     },
     "The recording contains invalid audio samples." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音包含无效的音频采样。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3874,6 +6148,12 @@
     },
     "The recording location is not a regular file or private folder." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音位置不是普通文件或私有文件夹。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3884,6 +6164,12 @@
     },
     "The recording or document is no longer available." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音或文档已不可用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3894,6 +6180,12 @@
     },
     "The refinement provider returned an empty summary. Try again or choose another template." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色提供商返回了空白摘要。请重试或选择其他模板。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3904,6 +6196,12 @@
     },
     "The refinement provider returned an unexpected response." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色提供商返回了意外的响应。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3914,6 +6212,12 @@
     },
     "The refinement provider returned empty text." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色提供商返回了空白文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3924,6 +6228,12 @@
     },
     "The refinement response was incomplete. The original transcript was kept." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "润色响应不完整。已保留原始转录文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3934,6 +6244,12 @@
     },
     "The selected meeting app is no longer running. Choose it again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选的会议 App 已不在运行。请重新选择。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3944,6 +6260,12 @@
     },
     "The selected microphone is unavailable. Choose a connected microphone in the sidebar." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选的麦克风不可用。请在边栏中选择已连接的麦克风。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3954,6 +6276,12 @@
     },
     "The selected script could not be found or read." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到或无法读取所选的脚本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3964,6 +6292,12 @@
     },
     "The selected script is not executable. Enable its execute permission." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选的脚本不可执行。请启用其执行权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3974,6 +6308,12 @@
     },
     "The service returned an unexpected response. Try again later." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务返回了意外的响应。请稍后再试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3984,6 +6324,12 @@
     },
     "The speech provider returned an unexpected response." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音提供商返回了意外的响应。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3994,6 +6340,12 @@
     },
     "The system clock moved backwards. Correct the date and time to continue your trial." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统时钟回退了。请校正日期和时间以继续试用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4004,6 +6356,12 @@
     },
     "The transcription job was %@." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转录任务状态：%@。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4014,6 +6372,12 @@
     },
     "There is not enough available memory to identify speakers in this recording. Close other apps and retry, or choose Without Speakers." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用内存不足，无法识别此录音中的发言人。请关闭其他 App 后重试，或选择“不识别发言人”。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4024,6 +6388,12 @@
     },
     "This Mac does not support Apple Intelligence." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台 Mac 不支持 Apple Intelligence。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4034,6 +6404,12 @@
     },
     "This document changed in another operation. Reopen it to load the latest version." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文档已在其他操作中更改。请重新打开以加载最新版本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4044,6 +6420,12 @@
     },
     "This file contains multiple audio tracks. Export the track you want as a separate audio file, then import it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件包含多个音轨。请将需要的音轨导出为单独的音频文件，然后再导入。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4054,6 +6436,12 @@
     },
     "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件没有可解码的音频。请尝试 WAV、M4A、MP3、MP4 或 MOV 文件。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4064,6 +6452,12 @@
     },
     "This key cannot run the connection check. Check account or model-read permissions in the provider console; speech access is separate." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此密钥无法执行连接检查。请在提供商控制台中检查账户或模型读取权限；语音访问权限是单独的。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4074,6 +6468,12 @@
     },
     "This license or device activation is no longer valid. Check your key and devices in the customer portal." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此许可证或设备激活已失效。请在客户门户中检查你的密钥和设备。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4084,6 +6484,12 @@
     },
     "This model is already downloading." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型已在下载。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4094,6 +6500,12 @@
     },
     "This official build is missing its licensing configuration. Contact Airdraft support." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此官方版本缺少许可证配置。请联系 Airdraft 支持。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4104,6 +6516,12 @@
     },
     "This profile's speech model is no longer available. Choose another model or Use App Default in Profiles." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模式的语音模型已不可用。请在“模式”中选择其他模型或“使用 App 默认设置”。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4114,6 +6532,12 @@
     },
     "This recording exceeds the upload limit. Choose another speech provider and retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此录音超过上传上限。请选择其他语音提供商后重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4124,6 +6548,12 @@
     },
     "This recording is no longer available." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此录音已不可用。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4134,6 +6564,12 @@
     },
     "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此已保存的转录使用了不支持的模型。请使用“会议”中列出的模型开始新的转录。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4144,6 +6580,12 @@
     },
     "This speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4154,6 +6596,12 @@
     },
     "Token-based estimate of $0.003 per minute; actual cost varies with audio and output." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 token 估算每分钟 0.003 美元；实际费用因音频和输出而异。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4164,6 +6612,12 @@
     },
     "Token-based estimate of $0.006 per minute; actual cost varies with audio and output." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 token 估算每分钟 0.006 美元；实际费用因音频和输出而异。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4174,6 +6628,12 @@
     },
     "Token-based estimate. Dictionary context can add cost. Audio and jobs are deleted after use when the API is reachable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 token 估算。词汇上下文可能增加费用。API 可访问时，使用后会删除音频和任务。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4184,6 +6644,12 @@
     },
     "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 token 估算。词汇上下文可能增加费用。API 可访问时，使用后会删除上传的音频和任务。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4194,6 +6660,12 @@
     },
     "Transcribes audio through OpenRouter's speech endpoint with a separate speech model choice." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 OpenRouter 的语音端点转录音频，并可单独选择语音模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4204,6 +6676,12 @@
     },
     "Transcribing" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转录中"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4214,6 +6692,12 @@
     },
     "Transcription failed: %@ Captured audio is kept for retry." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转录失败：%@ 已录制的音频会保留以供重试。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4224,6 +6708,12 @@
     },
     "Transcription took too long. Please try again." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转录时间过长。请再试一次。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4234,6 +6724,12 @@
     },
     "Ultra" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "极致"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4244,6 +6740,12 @@
     },
     "Unavailable speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用的语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4254,6 +6756,12 @@
     },
     "Unavailable · check Apple Intelligence in System Settings" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用 · 请在“系统设置”中检查 Apple Intelligence"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4264,6 +6772,12 @@
     },
     "Universal-3.5 Pro and Universal-3.6 Pro batch preview." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Universal-3.5 Pro 和 Universal-3.6 Pro 批量预览版。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4274,6 +6788,12 @@
     },
     "Unknown speaker" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知发言人"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4284,6 +6804,12 @@
     },
     "Unsupported batch model: %@. Choose a model on Models." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持的批量模型：%@。请在“模型”中选择模型。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4294,6 +6820,12 @@
     },
     "Unsupported sample rate." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持的采样率。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4304,6 +6836,12 @@
     },
     "Until deleted" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直到删除"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4314,6 +6852,12 @@
     },
     "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Voxtral Mini Latest。转录后仍会应用词汇替换。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4324,6 +6868,12 @@
     },
     "Uses a separate speech key. Interaction storage is off; uploaded-file deletion is attempted after use." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用单独的语音密钥。交互存储已关闭；使用后会尝试删除上传的文件。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4334,6 +6884,12 @@
     },
     "Uses the EU batch endpoint. Job and audio deletion are attempted after use. Automatic detection works best with at least 60 seconds of speech." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用欧盟批量端点。使用后会尝试删除任务和音频。语音至少 60 秒时，自动检测效果最佳。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4344,6 +6900,12 @@
     },
     "Uses the selected Apple Speech locale; automatic detection is unavailable." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用所选的 Apple 语音区域语言；无法自动检测。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4354,6 +6916,12 @@
     },
     "Uses your dictionary as keyword hints with the current transcription model." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用当前转录模型，将你的词汇作为关键词提示。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4364,6 +6932,12 @@
     },
     "Varies by model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因模型而异"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4375,6 +6949,12 @@
     "Verbatim" : {
       "comment" : "Built-in refinement profile name",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4385,6 +6965,12 @@
     },
     "Verbatim & multilingual" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字与多语言"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4395,6 +6981,12 @@
     },
     "Verifying archive…" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在验证压缩包…"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4405,6 +6997,12 @@
     },
     "Vocabulary could not be read or backed up. Saving is blocked to protect the original. Check the data folder permissions and reopen Airdraft." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取或备份词汇。为保护原始文件，已暂停保存。请检查数据文件夹权限并重新打开 Airdraft。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4415,6 +7013,12 @@
     },
     "Vocabulary could not be read. The original is preserved as %@ in the data folder. Recover that file before replacing it with an empty vocabulary." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取词汇。原始文件已在数据文件夹中保留为 %@。请先恢复该文件，再用空白词汇替换。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4425,6 +7029,12 @@
     },
     "Voxtral Mini transcription with an optional language hint, including Mandarin." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voxtral Mini 转录，可选提供语言提示，包括普通话。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4435,6 +7045,12 @@
     },
     "Wait for the media transcription to finish before dictating." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请等待媒体转录完成后再开始听写。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4446,6 +7062,12 @@
     "Work chat" : {
       "comment" : "App family name for profile rules",
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作聊天"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4456,6 +7078,12 @@
     },
     "Your license needs Keychain access. Choose Allow Access in License to restore it." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的许可证需要访问钥匙串。请在“许可证”中选择“允许访问”以恢复。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4466,6 +7094,12 @@
     },
     "Your saved API key needs access approval. Open Models and choose Allow access for this provider." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你保存的 API 密钥需要批准访问。请打开“模型”并为此提供商选择“允许访问”。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4476,6 +7110,12 @@
     },
     "Your saved key needs access approval." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你保存的密钥需要批准访问。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4486,6 +7126,12 @@
     },
     "default model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4502,6 +7148,12 @@
             "value" : "macOS could not open %1$@ (audio error %2$lld). Try System default or reconnect the microphone."
           }
         },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 无法打开“%1$@”（音频错误 %2$lld）。请尝试使用系统默认设备，或重新连接麦克风。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4512,6 +7164,12 @@
     },
     "macOS could not reset this app’s permissions." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 无法重置此 App 的权限。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",

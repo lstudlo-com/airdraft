@@ -38,10 +38,21 @@ enum MenuVerification {
             precondition(english == (profileName == "Clean"), "Built-in profile names must be localized in the menu: \(profileName)")
         }
         // Runtime text passed as `.verbatim` is never looked up as a catalog key,
-        // even when it matches one ("Settings…" is translated in zh-Hant).
+        // even when it matches one ("Settings…" is translated in zh-Hans and zh-Hant).
         precondition(String(localized: LocalizedStringResource.verbatim("Settings…")) == "Settings…",
                      "Verbatim text must not be translated")
-        report["language"] = Bundle.main.preferredLocalizations.first ?? "unknown"
+        let language = Bundle.main.preferredLocalizations.first ?? "unknown"
+        report["language"] = language
+        // A requested shipped language must resolve to itself, never fall back to
+        // another Chinese script or English, and its catalog must name the app commands.
+        if let requested = UserDefaults.standard.stringArray(forKey: "AppleLanguages")?.first,
+           Bundle.main.localizations.contains(requested) {
+            precondition(language == requested, "Requested \(requested) but the menu resolved \(language)")
+        }
+        let quitTitles = ["en": "Quit Airdraft", "zh-Hans": "退出 Airdraft", "zh-Hant": "結束 Airdraft"]
+        if let expected = quitTitles[language] {
+            precondition(L("Quit Airdraft") == expected, "Unexpected \(language) title: \(L("Quit Airdraft"))")
+        }
         func makeMenu() -> NSMenu {
             let menu = NSHostingMenu(rootView: MenuView().environment(app))
             menu.update()

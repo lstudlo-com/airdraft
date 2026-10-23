@@ -309,6 +309,42 @@ final class AppSettingsTests: XCTestCase {
         }
     }
 
+    func testChineseScriptDefaultFollowsTheFirstChineseSystemLanguage() {
+        for languages in [["zh-Hans-CN"], ["zh-Hans"], ["en-US", "zh-Hans-SG"], ["zh-CN"], ["zh_CN"], ["zh-SG"], ["zh"]] {
+            XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .simplified, "\(languages)")
+        }
+        for languages in [["zh-Hant-TW"], ["zh-Hant"], ["zh-TW"], ["zh-HK"], ["en-TW", "zh-Hant-TW", "zh-Hans-CN"],
+                          ["en-US"], ["ja-JP", "fr-FR"], []] {
+            XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .traditional, "\(languages)")
+        }
+        XCTAssertEqual(ChineseScript.simplified.appleMandarinLocale, "zh-CN")
+        XCTAssertEqual(ChineseScript.traditional.appleMandarinLocale, "zh-TW")
+        // The plain initializer and old settings blobs keep their fixed Traditional defaults.
+        XCTAssertEqual(ASRConfig().chineseScript, .traditional)
+        XCTAssertEqual(ASRConfig().appleLocale, "zh-TW")
+    }
+
+    func testNewSetupOnSimplifiedChineseSystemDefaultsToSimplifiedWithoutRewritingSavedChoices() throws {
+        try withDefaults { defaults in
+            let simplified = AppSettings(defaults: defaults, preferredLanguages: ["zh-Hans-CN"])
+            XCTAssertEqual(simplified.asr.chineseScript, .simplified)
+            XCTAssertEqual(simplified.asr.appleLocale, "zh-CN")
+            XCTAssertEqual(simplified.livePreviewLocale, "zh-CN")
+            XCTAssertNil(defaults.object(forKey: "settings.asr"), "Defaults are not written until the user changes them")
+            XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["zh-Hant-TW"]).asr.chineseScript, .traditional)
+            XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["en-US"]).livePreviewLocale, "zh-TW")
+
+            // A saved choice wins over the system language in both directions.
+            AppSettings(defaults: defaults, preferredLanguages: ["zh-Hans-CN"]).asr.chineseScript = .traditional
+            AppSettings(defaults: defaults, preferredLanguages: ["zh-Hans-CN"]).livePreviewLocale = "zh-TW"
+            let reloaded = AppSettings(defaults: defaults, preferredLanguages: ["zh-Hans-CN"])
+            XCTAssertEqual(reloaded.asr.chineseScript, .traditional)
+            XCTAssertEqual(reloaded.livePreviewLocale, "zh-TW")
+            reloaded.asr.chineseScript = .simplified
+            XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["zh-Hant-TW"]).asr.chineseScript, .simplified)
+        }
+    }
+
     func testAudioRetentionCutoffs() {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         XCTAssertNil(AudioRetention.off.cutoff(now: now))

@@ -12,6 +12,12 @@
             "value": "Airdraft uses the microphone for dictation and meeting recordings."
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft 使用麦克风进行听写和会议录音。"
+          }
+        },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
@@ -28,6 +34,12 @@
           "stringUnit": {
             "state": "new",
             "value": "Airdraft records audio from the meeting app you choose for transcription."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft 会录制你选择的会议 App 的音频，用于转录。"
           }
         },
         "zh-Hant": {

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Maintain and check Airdraft's String Catalogs.
 
-  check   Fail when a catalog key lacks a current zh-Hant translation, a
-          translation drops or adds a placeholder, or a key is stale.
+  check   Fail when a catalog key lacks a current translation in a shipped
+          language (zh-Hans, zh-Hant), a translation drops or adds a
+          placeholder, or a key is stale.
   sync    Merge the strings the compiler extracted during the last Debug build
           into the app and AirdraftCore catalogs (what Xcode's IDE does on build).
   audit   List Swift string literals that look like interface copy but were not
@@ -18,7 +19,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = ("zh-Hant",)
+LANGUAGES = ("zh-Hans", "zh-Hant")
 CATALOGS = {
     "app": ROOT / "Sources/App/Localizable.xcstrings",
     "infoplist": ROOT / "Sources/App/InfoPlist.xcstrings",
@@ -69,10 +70,11 @@ def check(_args):
         catalog = json.loads(path.read_text())
         source = catalog.get("sourceLanguage", "en")
         strings = catalog.get("strings", {})
-        translated = 0
+        translated = dict.fromkeys(LANGUAGES, 0)
         for key, entry in strings.items():
             if entry.get("shouldTranslate") is False or not key.strip():
-                translated += 1
+                for language in LANGUAGES:
+                    translated[language] += 1
                 continue
             if entry.get("extractionState") == "stale":
                 errors.append(f"{name}: stale key no longer used in source: {key!r}")
@@ -93,8 +95,9 @@ def check(_args):
                         errors.append(f"{name}: {language} placeholders differ from source: {key!r} -> {unit['value']!r}")
                         break
                 else:
-                    translated += 1
-        totals.append(f"{name}: {translated}/{len(strings)} keys translated")
+                    translated[language] += 1
+        counts = ", ".join(f"{language} {translated[language]}/{len(strings)}" for language in LANGUAGES)
+        totals.append(f"{name}: {counts} keys translated")
     print("\n".join(totals))
     for error in errors:
         print(error, file=sys.stderr)

@@ -2,9 +2,12 @@ import Foundation
 import XCTest
 @testable import AirdraftCore
 
-/// Every interface string ships in Traditional Chinese (Taiwan). New or changed English
-/// copy fails here until `scripts/localization.py sync` adds it and it is translated.
+/// Every interface string ships in Simplified Chinese (zh-Hans) and Traditional Chinese
+/// (Taiwan, zh-Hant). New or changed English copy fails here until
+/// `scripts/localization.py sync` adds it and it is translated into both.
 final class LocalizationCatalogTests: XCTestCase {
+    /// Shipped interface languages besides the English source, as in `scripts/localization.py`.
+    private static let languages = ["zh-Hans", "zh-Hant"]
     private static let repository = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
@@ -15,7 +18,7 @@ final class LocalizationCatalogTests: XCTestCase {
         "Packages/AirdraftCore/Sources/AirdraftCore/Resources/Localizable.xcstrings",
     ]
 
-    func testEveryCatalogKeyHasCurrentTraditionalChineseTranslation() throws {
+    func testEveryCatalogKeyHasCurrentChineseTranslations() throws {
         var problems: [String] = []
         for path in Self.catalogs {
             let url = Self.repository.appendingPathComponent(path)
@@ -30,15 +33,17 @@ final class LocalizationCatalogTests: XCTestCase {
                     continue
                 }
                 let localizations = entry["localizations"] as? [String: Any]
-                let unit = (localizations?["zh-Hant"] as? [String: Any])?["stringUnit"] as? [String: Any]
-                guard let value = unit?["value"] as? String, unit?["state"] as? String == "translated",
-                      !value.trimmingCharacters(in: .whitespaces).isEmpty else {
-                    problems.append("\(path): missing zh-Hant \(key)")
-                    continue
-                }
                 let source = (((localizations?["en"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String) ?? key
-                if Self.placeholders(value) != Self.placeholders(source) {
-                    problems.append("\(path): placeholders differ for \(key) -> \(value)")
+                for language in Self.languages {
+                    let unit = (localizations?[language] as? [String: Any])?["stringUnit"] as? [String: Any]
+                    guard let value = unit?["value"] as? String, unit?["state"] as? String == "translated",
+                          !value.trimmingCharacters(in: .whitespaces).isEmpty else {
+                        problems.append("\(path): missing \(language) \(key)")
+                        continue
+                    }
+                    if Self.placeholders(value) != Self.placeholders(source) {
+                        problems.append("\(path): \(language) placeholders differ for \(key) -> \(value)")
+                    }
                 }
             }
         }
@@ -55,6 +60,7 @@ final class LocalizationCatalogTests: XCTestCase {
         for (key, entry) in strings {
             XCTAssertTrue(key.contains("${applicationName}"), key)
             let localizations = try XCTUnwrap(entry["localizations"] as? [String: [String: Any]], key)
+            XCTAssertTrue(Set(Self.languages).isSubset(of: localizations.keys), "\(key): \(localizations.keys.sorted())")
             for (language, localization) in localizations {
                 let value = (localization["stringUnit"] as? [String: Any])?["value"] as? String ?? ""
                 XCTAssertEqual(value.components(separatedBy: "${applicationName}").count, 2, "\(language): \(value)")
@@ -74,6 +80,19 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
         // The test process runs in English: Core copy keeps its exact source wording.
         XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
+    }
+
+    func testCoreBundleResolvesSimplifiedChinese() throws {
+        XCTAssertTrue(Bundle.module.localizations.contains("zh-Hans"), "\(Bundle.module.localizations)")
+        let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hans", ofType: "lproj"))
+        let chinese = try XCTUnwrap(Bundle(path: path))
+        XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "关闭")
+        XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已复制到剪贴板")
+        // Built-in profile names and a modifier key's side are shown in the interface language.
+        XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
+        XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
+        XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
+        XCTAssertEqual(chinese.localizedString(forKey: "Microphone", value: nil, table: nil), "麦克风")
     }
 
     /// Argument types in order, ignoring positional reordering such as %2$@ before %1$@.

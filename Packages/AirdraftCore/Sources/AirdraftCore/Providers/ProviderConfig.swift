@@ -248,6 +248,22 @@ public enum ChineseScript: String, Codable, CaseIterable, Sendable, Identifiable
         case .simplified: return "简体中文"
         }
     }
+
+    /// The script a new setup starts with: Simplified when the first Chinese entry in
+    /// the preferred languages is written in Simplified script (zh-Hans, zh-CN, zh-SG),
+    /// otherwise Traditional. Only unsaved settings use it; saved choices are kept.
+    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ChineseScript {
+        for identifier in preferredLanguages {
+            let language = Locale.Language(identifier: identifier)
+            guard language.languageCode?.identifier.lowercased() == "zh" else { continue }
+            let script = language.script ?? Locale.Language(identifier: language.maximalIdentifier).script
+            return script == .hanSimplified ? .simplified : .traditional
+        }
+        return .traditional
+    }
+
+    /// Apple Speech locale for Mandarin written in this script.
+    public var appleMandarinLocale: String { self == .simplified ? "zh-CN" : "zh-TW" }
 }
 
 public struct ASRConfig: Codable, Sendable, Equatable {
@@ -298,6 +314,12 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         self.language = language
         self.chineseScript = chineseScript
         self.apiKeyRef = apiKeyRef
+    }
+
+    /// A new setup's speech config: Mandarin defaults follow the system's Chinese script.
+    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ASRConfig {
+        let script = ChineseScript.systemDefault(preferredLanguages: preferredLanguages)
+        return ASRConfig(appleLocale: script.appleMandarinLocale, chineseScript: script)
     }
 
     // Older settings blobs lack the new keys; decode them leniently.
