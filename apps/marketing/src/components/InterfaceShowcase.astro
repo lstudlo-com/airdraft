@@ -23,19 +23,21 @@ const { locale = "en" } = Astro.props;
  * parts and respond to the pointer (src/scripts/interface.ts).
  *
  * From 0.11.0 the app ships English and Traditional Chinese interfaces and
- * follows the macOS language. The screenshots are English renders, so the
- * translated alt text and caption say so. The specimens' sidebar and segmented labels are the
- * app's own in the page's language (src/data/app.ts).
+ * follows the macOS language. The script renders both, so each page shows the
+ * window in its own language (configuration-* and configuration-zh-tw-*).
+ * The specimens' sidebar and segmented labels are the app's own in the
+ * page's language (src/data/app.ts).
  */
 const width = 784;
 const height = 1000;
 const zh = locale === "zh-tw";
 const app = appLabels[locale];
+const image = zh ? "configuration-zh-tw" : "configuration";
 const copy = zh
   ? {
       title: "打開就想用的介面",
       intro: "凸起的按鍵、壓下的凹槽、刻出的分隔線，淺色深色都一樣。",
-      alt: "Airdraft 淺色模式的 Settings 頁面，截圖為英文介面：側邊欄旁是麥克風與外觀的凸起卡片，包括錄音視窗的六種樣式。",
+      alt: "Airdraft 淺色模式的「設定」頁面：側邊欄旁是麥克風與外觀的凸起卡片，包括錄音視窗的六種樣式。",
       compare: "比較淺色與深色外觀",
       half: "一半淺色，一半深色",
       allLight: "全部淺色",
@@ -43,7 +45,7 @@ const copy = zh
       mixed: "{light}% 淺色，{dark}% 深色",
       materials: "視窗中的材質",
       caption:
-        "以 Graphite 強調色從 App 算繪，畫面為英文介面。App 也提供繁體中文介面，跟隨 macOS 的語言設定。",
+        "以 Graphite 強調色從 App 的繁體中文介面算繪；介面語言跟隨 macOS 的設定。",
       drag: "拖曳即可比較淺色與深色。",
       press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
       select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
@@ -123,7 +125,9 @@ const callouts = [
   {
     side: "right",
     x: 664,
-    y: 678,
+    // The Traditional Chinese Text size description fits one line, so the
+    // recording-window previews sit 14 points higher in that render.
+    y: zh ? 664 : 678,
     title: "Reactive capsules",
     line: "Five styles follow your voice.",
   },
@@ -170,7 +174,7 @@ const destinations = [
         {(["light", "dark"] as const).map((appearance) => (
           <div class={`window-face window-${appearance}`}>
             <img
-              src={`/app/configuration-${appearance}.webp`}
+              src={`/app/${image}-${appearance}.webp`}
               width={width * 2}
               height={height * 2}
               alt={appearance === "light" ? copy.alt : ""}

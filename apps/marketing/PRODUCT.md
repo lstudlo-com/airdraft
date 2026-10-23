@@ -115,7 +115,8 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   zh-Hant values from its string catalogs (`src/data/app.ts` for shared
   labels); a label without a catalog entry, including the built-in profile
   names Clean, Concise, Summary and Verbatim, stays as the app shows it. The
-  homepage screenshots are English renders, and the translated pages say so.
+  homepage screenshots are rendered in each page's language from a Debug build
+  of the current release: English for English pages, zh-Hant for `/zh-tw/`.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
 - Changelog entries distinguish unreleased development, dated source history and
@@ -131,7 +132,8 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   usage counts, licensing terms, or a download or checkout URL.
 - Do not publish app renders that contain personal profiles, device names, history or usage counts.
   The homepage's interface section uses the Settings page rendered by
-  `scripts/render-app-window.sh` from an isolated empty data directory.
+  `scripts/render-app-window.sh` from an isolated empty data directory, in
+  English and Traditional Chinese.
 
 ## Design brief
 

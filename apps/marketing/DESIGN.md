@@ -494,8 +494,10 @@ Its heading and one-line intro are centered over the window, `72px` above it
 (`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the
-Graphite accent) in `public/app/`. Re-render it when the Settings page,
-sidebar or materials change. The source render is 784 by 1000 points so all six recording-window choices,
+Graphite accent) in `public/app/`: `configuration-*` in English and
+`configuration-zh-tw-*` in the app's Traditional Chinese interface for the
+`/zh-tw/` homepage, both from a Debug build of the current release.
+Re-render it when the Settings page, sidebar or materials change. The source render is 784 by 1000 points so all six recording-window choices,
 the Disco switch and the timer row fit. Disco is off in these grayscale screenshots.
 The window is `784px` wide at most, `16px`
 corners (`12px` on phones), raised with the hero's spread, with an inactive
