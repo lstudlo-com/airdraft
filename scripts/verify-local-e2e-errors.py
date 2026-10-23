@@ -33,6 +33,12 @@ def main():
             "--e2e-insertion-token", "not-a-uuid", "--e2e-insertion-method", "auto"]),
         ("insertion-invalid-method", "insert", ["--e2e-target-bundle", "com.apple.TextEdit",
             "--e2e-insertion-token", "F0B51C04-E469-480E-A757-740A1952CD44", "--e2e-insertion-method", "invalid"]),
+        ("insertion-invalid-field", "insert", ["--e2e-target-bundle", "com.apple.TextEdit",
+            "--e2e-insertion-token", "F0B51C04-E469-480E-A757-740A1952CD44", "--e2e-insertion-method", "auto",
+            "--e2e-insertion-field", "invalid"]),
+        ("insertion-self-drawing-field", "insert", ["--e2e-target-bundle", "dev.zed.Zed",
+            "--e2e-insertion-token", "F0B51C04-E469-480E-A757-740A1952CD44", "--e2e-insertion-method", "auto",
+            "--e2e-insertion-field", "exact"]),
         ("missing-audio", "transcribe", []),
         ("unwritable-report", "inventory", []),
     ]

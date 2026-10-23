@@ -104,9 +104,12 @@ enum LocalE2E {
                 switch action {
                 case "architecture":
                     report["status"] = await ArchitectureVerification.run() ? "passed" : "failed"
+                case "accessibility":
+                    report = try InsertionE2E.probe()
                 case "insert":
                     report = try await InsertionE2E.run(bundleID: argument("--e2e-target-bundle"),
-                        token: argument("--e2e-insertion-token"), method: argument("--e2e-insertion-method"))
+                        token: argument("--e2e-insertion-token"), method: argument("--e2e-insertion-method"),
+                        field: argument("--e2e-insertion-field"))
                 case "inventory":
                     report["models"] = ModelCatalogue.entries.map { entry in
                         let config = entry.config(from: app.settings.asr)

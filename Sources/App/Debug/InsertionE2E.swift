@@ -7,50 +7,74 @@ import AirdraftCore
 /// Exercises the real OS delivery boundary, only inside an explicitly prepared
 /// disposable field. Never use the user's normal draft as an insertion fixture.
 @MainActor enum InsertionE2E {
-    static func run(bundleID: String?, token: String?, method: String?) async throws -> [String: Any] {
+    /// How the fixture identifies its prepared field.
+    /// `exact`: the focused field contains only the marker (release gate).
+    /// `suffix`: the field's text, ignoring trailing whitespace, ends with the
+    /// marker (a terminal showing a prompt-less receiver); the caret follows it.
+    /// `none`: an editor in `TextInserter.selfDrawingEditorBundlePrefixes`,
+    /// which publishes no field; the documented outcome is a sent-unverified paste.
+    enum FieldMode: String { case exact, suffix, none }
+
+    /// Reports Accessibility trust without prompting (`AXIsProcessTrusted`),
+    /// with the binary hashes and the compiled self-drawing editor list, so a
+    /// harness can decide each case before preparing any field.
+    static func probe() throws -> [String: Any] {
+        ["action": "accessibility", "status": "passed", "trusted": AXIsProcessTrusted(),
+         "bundleIdentifier": Bundle.main.bundleIdentifier ?? "", "bundlePath": Bundle.main.bundlePath,
+         "selfDrawingEditorBundlePrefixes": TextInserter.selfDrawingEditorBundlePrefixes,
+         "binarySHA256": try binaryHashes()]
+    }
+
+    static func run(bundleID: String?, token: String?, method: String?, field: String? = nil) async throws -> [String: Any] {
         guard let bundleID, !bundleID.isEmpty, let token, let id = UUID(uuidString: token),
               let method, let insertionMethod = InsertionMethod(rawValue: method) else {
             throw Failure("Provide --e2e-target-bundle, --e2e-insertion-token UUID and --e2e-insertion-method auto|paste.")
+        }
+        let selfDrawing = TextInserter.drawsOwnText(bundleID: bundleID)
+        guard let mode = FieldMode(rawValue: field ?? (selfDrawing ? "none" : "exact")),
+              selfDrawing == (mode == .none) else {
+            throw Failure("Use --e2e-insertion-field exact|suffix for editors with a field; self-drawing editors use none.")
         }
         guard AXIsProcessTrusted() else { throw Failure("The running Debug app does not have Accessibility access.") }
         guard let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier == bundleID else {
             throw Failure("The requested fixture app is not frontmost.")
         }
-        let bundle = Bundle.main.bundleURL
-        let executable = Bundle.main.executableURL!
-        let binaries = [executable,
-            bundle.appendingPathComponent("Contents/Frameworks/AirdraftCore.framework/AirdraftCore"),
-            executable.deletingLastPathComponent().appendingPathComponent(executable.lastPathComponent + ".debug.dylib")]
-        let hashes = try Dictionary(uniqueKeysWithValues: binaries.map { url in
-            (url.lastPathComponent, SHA256.hash(data: try Data(contentsOf: url)).map { String(format: "%02x", $0) }.joined())
-        })
+        let hashes = try binaryHashes()
         let marker = "Airdraft insertion fixture \(id.uuidString)"
         let text = " Delivery \(id.uuidString) succeeded."
         let inserter = TextInserter()
         guard let target = await inserter.captureTarget() else { throw Failure("Could not capture the fixture target.") }
-        let system = AXUIElementCreateSystemWide()
-        AXUIElementSetMessagingTimeout(system, 0.3)
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
-              let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else {
-            throw Failure("The fixture has no accessible focused field.")
-        }
-        let field = ref as! AXUIElement
-        AXUIElementSetMessagingTimeout(field, 0.3)
-        var owner: pid_t = 0
-        guard AXUIElementGetPid(field, &owner) == .success, owner == app.processIdentifier,
-              NSWorkspace.shared.frontmostApplication?.processIdentifier == owner,
-              value(field) == marker else {
-            throw Failure("The field must contain only the exact disposable fixture marker.")
-        }
-        var selectionRef: CFTypeRef?
-        var range = CFRange()
-        guard AXUIElementCopyAttributeValue(field, kAXSelectedTextRangeAttribute as CFString, &selectionRef) == .success,
-              let selectionRef, CFGetTypeID(selectionRef) == AXValueGetTypeID(),
-              AXValueGetType(selectionRef as! AXValue) == .cfRange,
-              AXValueGetValue(selectionRef as! AXValue, .cfRange, &range),
-              range.location == marker.utf16.count, range.length == 0 else {
-            throw Failure("Place the fixture caret immediately after its marker.")
+        // Text before the marker that must stay unchanged (suffix mode only).
+        var prefix = ""
+        var field: AXUIElement?
+        if mode != .none {
+            let system = AXUIElementCreateSystemWide()
+            AXUIElementSetMessagingTimeout(system, 0.3)
+            var ref: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &ref) == .success,
+                  let ref, CFGetTypeID(ref) == AXUIElementGetTypeID() else {
+                throw Failure("The fixture has no accessible focused field.")
+            }
+            let focused = ref as! AXUIElement
+            AXUIElementSetMessagingTimeout(focused, 0.3)
+            var owner: pid_t = 0
+            guard AXUIElementGetPid(focused, &owner) == .success, owner == app.processIdentifier,
+                  NSWorkspace.shared.frontmostApplication?.processIdentifier == owner,
+                  let current = fieldText(focused, mode: mode), current.hasSuffix(marker),
+                  mode == .suffix || current == marker else {
+                throw Failure("The field must contain only the exact disposable fixture marker.")
+            }
+            prefix = String(current.dropLast(marker.count))
+            var selectionRef: CFTypeRef?
+            var range = CFRange()
+            guard AXUIElementCopyAttributeValue(focused, kAXSelectedTextRangeAttribute as CFString, &selectionRef) == .success,
+                  let selectionRef, CFGetTypeID(selectionRef) == AXValueGetTypeID(),
+                  AXValueGetType(selectionRef as! AXValue) == .cfRange,
+                  AXValueGetValue(selectionRef as! AXValue, .cfRange, &range),
+                  range.location == current.utf16.count, range.length == 0 else {
+                throw Failure("Place the fixture caret immediately after its marker.")
+            }
+            field = focused
         }
 
         // A failed production insertion intentionally leaves recovery text on
@@ -76,19 +100,48 @@ import AirdraftCore
         if result.method == .clipboardOnly, clipboard.string(forType: .string) == text {
             recoveryChange = clipboard.changeCount
         }
-        let expected = marker + text
-        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
-        while !Task.isCancelled, value(field) != expected, ContinuousClock.now < deadline {
-            try await Task.sleep(for: .milliseconds(25))
+        var actualTextMatches = false
+        if let field {
+            let expected = prefix + marker + text
+            let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+            while !Task.isCancelled, fieldText(field, mode: mode) != expected, ContinuousClock.now < deadline {
+                try await Task.sleep(for: .milliseconds(25))
+            }
+            actualTextMatches = fieldText(field, mode: mode) == expected
         }
-        let actualTextMatches = value(field) == expected
-        return ["action": "insert", "status": result.didInsert && result.notice == nil &&
-                    actualTextMatches && delivered == 1 ? "passed" : "failed",
+        // Return the displaced clipboard before the fixture process exits; an
+        // unverified paste keeps its receiver window first.
+        await inserter.finishClipboardRestoration()
+        let passed = mode == .none
+            ? result.delivery == .sentUnverified && result.method == .paste
+            : result.didInsert && actualTextMatches
+        return ["action": "insert", "status": passed && result.notice == nil && delivered == 1 ? "passed" : "failed",
                 "targetBundle": bundleID, "requestedMethod": method,
                 "reportedMethod": result.method.rawValue, "delivery": result.delivery.rawValue,
-                "notice": result.notice ?? "",
+                "notice": result.notice ?? "", "fieldMode": mode.rawValue, "selfDrawingEditor": selfDrawing,
+                "actualTextReadable": field != nil,
                 "actualTextMatches": actualTextMatches, "deliveryCallbacks": delivered,
                 "fixtureToken": id.uuidString, "binarySHA256": hashes]
+    }
+
+    private static func binaryHashes() throws -> [String: String] {
+        let bundle = Bundle.main.bundleURL
+        let executable = Bundle.main.executableURL!
+        let binaries = [executable,
+            bundle.appendingPathComponent("Contents/Frameworks/AirdraftCore.framework/AirdraftCore"),
+            executable.deletingLastPathComponent().appendingPathComponent(executable.lastPathComponent + ".debug.dylib")]
+        return try Dictionary(uniqueKeysWithValues: binaries.map { url in
+            (url.lastPathComponent, SHA256.hash(data: try Data(contentsOf: url)).map { String(format: "%02x", $0) }.joined())
+        })
+    }
+
+    /// The field's text; suffix mode ignores the trailing blank rows a terminal reports.
+    private static func fieldText(_ field: AXUIElement, mode: FieldMode) -> String? {
+        guard let text = value(field) else { return nil }
+        guard mode == .suffix else { return text }
+        var trimmed = Substring(text)
+        while let last = trimmed.last, last.isWhitespace { trimmed = trimmed.dropLast() }
+        return String(trimmed)
     }
 
     private static func value(_ field: AXUIElement) -> String? {

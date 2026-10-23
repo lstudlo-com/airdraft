@@ -53,7 +53,13 @@ team and Hardened Runtime explicitly. `Config/Signing.xcconfig` enables Hardened
 Runtime for every team-signed build and leaves it off for team-less ad-hoc builds:
 library validation would otherwise refuse their own frameworks, which carry no
 Team ID. Those builds are development-only; `scripts/verify-adhoc-launch.py`
-launches one from a disposable clone. They do
+launches one from a disposable clone. Its negative control re-signs a copy with
+Hardened Runtime and requires dyld to refuse it wherever the host enforces
+library validation, as measured first by a tiny ad-hoc + Hardened Runtime probe
+that links an ad-hoc dylib. Hosted CI VMs that do not enforce it (the probe
+launches) record the control as not applicable in `negative-control.json`; a probe
+that disagrees with the re-signed app fails in either direction, and
+`--require-library-validation` turns a non-enforcing host into a failure. They do
 not install public Sparkle releases. See [Accessibility access](accessibility.md)
 for migration and recovery steps when System Settings shows an enabled switch
 but the running app is untrusted.
@@ -111,8 +117,10 @@ installs `.git/hooks/pre-push`. It refuses to overwrite an unrelated hook. It do
 not change global Git configuration. Requirements: macOS, Xcode, Python 3.12+,
 `uv`, `gh auth login`, the pinned Apple signing certificate and its private key, and
 the existing Sparkle signing key. Public certificate fingerprints are committed;
-private keys stay in Keychain. XcodeGen 2.46.0 downloads
-locally with a pinned SHA-256 if it is missing from PATH.
+private keys stay in Keychain. Release preparation uses only the pinned XcodeGen
+2.46.0: a copy on PATH counts only when its whole extracted tree and version match
+the pin (`XCODEGEN_TREE_SHA256`), otherwise the archive downloads into `dist/tools`
+with its pinned SHA-256. A non-pinned `dist/tools/xcodegen` is refused, never used.
 
 Then commit and push normally:
 
@@ -200,6 +208,15 @@ as `unverified`, the exact commit, reason and `report-unverified-after-release`
 policy. Release notes disclose the gap. Publication accepts this explicit record;
 it does not count it as passed acceptance. Successful live evidence remains passed
 even when this option is supplied. Signing and artifact identity checks still run.
+
+`--insertion-matrix` (or `AIRDRAFT_INSERTION_MATRIX=1`) additionally runs the
+optional live matrix in `scripts/verify-insertion-matrix.py` against the candidate
+Debug build before the mandatory gate. Its TextEdit and Chrome cases are written
+into `insertion-e2e/`, where the unchanged four-case gate validates them; cases for
+other installed editors only add `insertionMatrix` to `release.json` and one line
+to the notes. An incomplete or failed matrix never stops preparation by itself.
+It needs the operator at the Mac to focus each prepared field; see
+[Local feature verification](local-e2e.md#live-insertion-matrix).
 
 A failed push leaves a draft, never a public release. Retrying reuses verified
 assets. A failed build blocks the push. The publisher refuses to publish a stale

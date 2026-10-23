@@ -42,9 +42,10 @@ jobs:
           xcodebuild -showComponent MetalToolchain
 
       - name: Install pinned XcodeGen
-        # Always downloads XcodeGen 2.46.0, verifies it against the release pin
-        # (XCODEGEN_SHA256 in scripts/release.py) and puts it first on PATH, so
-        # project generation never picks up a copy preinstalled on the image.
+        # Always downloads XcodeGen 2.46.0, verifies the archive against the
+        # release pin (XCODEGEN_SHA256 in scripts/release.py) and the extracted
+        # tree and version with release.pinned_xcodegen, then puts it first on
+        # PATH, so project generation never picks up a copy preinstalled on the image.
         run: |
           tools="$RUNNER_TEMP/xcodegen-2.46.0"
           mkdir -p "$tools"
@@ -53,7 +54,8 @@ jobs:
           expected=$(python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; print(release.XCODEGEN_SHA256)')
           echo "$expected  $tools/xcodegen.zip" | shasum -a 256 --check
           ditto -xk "$tools/xcodegen.zip" "$tools"
-          "$tools/xcodegen/bin/xcodegen" --version | grep -F '2.46.0'
+          python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; sys.exit(0 if release.pinned_xcodegen(sys.argv[1]) else 1)' \
+            "$tools/xcodegen/bin/xcodegen"
           echo "$tools/xcodegen/bin" >> "$GITHUB_PATH"
 
       - name: Cache native library archives
@@ -110,8 +112,10 @@ jobs:
           tail -3 "$log"
 
       - name: Launch the ad-hoc build
-        # dyld must load the app's own frameworks from a team-less signature; a
-        # Hardened Runtime negative control must be refused.
+        # dyld must load the app's own frameworks from a team-less signature. The
+        # Hardened Runtime negative control must be refused where the host
+        # enforces library validation; hosted VMs that do not (a tiny probe
+        # binary launches) record it as not applicable in negative-control.json.
         run: |
           app="$(xcodebuild -project airdraft.xcodeproj -scheme airdraft -configuration Debug \
             -showBuildSettings 2>/dev/null | awk -F' = ' '/ CODESIGNING_FOLDER_PATH = /{print $2; exit}')"
@@ -131,6 +135,7 @@ jobs:
       - name: Verify the release and vault script contracts
         run: |
           python3 -B scripts/test-insertion-regressions.py
+          python3 -B scripts/test-live-insertion.py
           python3 -B scripts/test-release.py
           python3 -B scripts/test-acknowledgements.py
 

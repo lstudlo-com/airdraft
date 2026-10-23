@@ -25,7 +25,11 @@ REPO = "lstudlo-com/airdraft"
 ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
 ROOT = Path(__file__).resolve().parents[1]
 ZERO = "0" * 40
+XCODEGEN_VERSION = "2.46.0"
+XCODEGEN_URL = f"https://github.com/yonaskolb/XcodeGen/releases/download/{XCODEGEN_VERSION}/xcodegen.zip"
 XCODEGEN_SHA256 = "4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806"
+# Digest of the extracted xcodegen/ tree (binary and SettingPresets), see xcodegen_tree_digest.
+XCODEGEN_TREE_SHA256 = "5bfb20739477e4fea4498ebf319da56f4250acdf366798f2bbcd0ece2979e8f9"
 TEST_SCOPES = ("full", "credential-free")
 
 
@@ -189,20 +193,55 @@ def download_and_verify(tag, commit, directory):
     return manifest
 
 
+def xcodegen_tree_digest(tree):
+    """SHA-256 over every file's relative path and content digest in an XcodeGen tree."""
+    digest = hashlib.sha256()
+    for path in sorted(item for item in Path(tree).rglob("*") if item.is_file()):
+        digest.update(path.relative_to(tree).as_posix().encode() + b"\0" + sha256(path).encode() + b"\n")
+    return digest.hexdigest()
+
+
+def pinned_xcodegen(executable):
+    """True only for <tree>/bin/xcodegen whose whole tree and version match the release pin."""
+    path = Path(executable).resolve()
+    if path.name != "xcodegen" or path.parent.name != "bin" or not path.is_file():
+        return False
+    if xcodegen_tree_digest(path.parent.parent) != XCODEGEN_TREE_SHA256:
+        return False
+    version = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=60)
+    return version.returncode == 0 and version.stdout.split() == ["Version:", XCODEGEN_VERSION]
+
+
 def xcodegen():
-    installed = shutil.which("xcodegen")
-    if installed:
-        return installed
+    """Return the pinned XcodeGen; never an arbitrary installed copy.
+
+    An XcodeGen on PATH is used only when it is the verified release tree (CI
+    puts the checksum-verified download there). Otherwise the pinned archive is
+    downloaded into dist/tools, checked against XCODEGEN_SHA256 and extracted;
+    the extracted tree must match XCODEGEN_TREE_SHA256 and report the version.
+    """
     directory = ROOT / "dist/tools"
     executable = directory / "xcodegen/bin/xcodegen"
-    if not executable.exists():
-        directory.mkdir(parents=True, exist_ok=True)
-        archive = directory / "xcodegen-2.46.0.zip"
-        run("curl", "--fail", "--location", "--retry", "3", "--output", archive,
-            "https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip")
-        if sha256(archive) != XCODEGEN_SHA256:
-            raise RuntimeError("XcodeGen download checksum mismatch")
-        run("ditto", "-xk", archive, directory)
+    installed = shutil.which("xcodegen")
+    if installed and pinned_xcodegen(installed):
+        return Path(installed)
+    if installed:
+        print(f"Ignoring {installed}: not the pinned XcodeGen {XCODEGEN_VERSION} release tree.", flush=True)
+    if executable.exists():
+        if pinned_xcodegen(executable):
+            return executable
+        raise RuntimeError(f"{executable.parent.parent} is not the pinned XcodeGen {XCODEGEN_VERSION}; "
+                           "remove it so release preparation can download the verified copy")
+    directory.mkdir(parents=True, exist_ok=True)
+    archive = directory / f"xcodegen-{XCODEGEN_VERSION}.zip"
+    if not archive.exists():
+        run("curl", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https",
+            "--retry", "3", "--output", archive, XCODEGEN_URL)
+    if sha256(archive) != XCODEGEN_SHA256:
+        raise RuntimeError("XcodeGen download checksum mismatch")
+    run("ditto", "-xk", archive, directory)
+    if not pinned_xcodegen(executable):
+        raise RuntimeError("Extracted XcodeGen does not match its pinned tree digest or version")
     return executable
 
 
@@ -249,7 +288,28 @@ def live_insertion_evidence(source, output, debug_app, commit, unverified_reason
     return json.loads(report.read_text()) | {'commit': commit}
 
 
-def prepare(commit, test_scope="full", unverified_live_insertion=None):
+def insertion_matrix(source, output, debug_app, commit):
+    """Optional live matrix across installed editors; never replaces the mandatory gate.
+
+    Its TextEdit/Chrome cases are written into insertion-e2e/, where
+    verify-live-insertion.py then applies the unchanged four-case gate. The
+    summary is recorded separately; an incomplete matrix does not stop prepare.
+    """
+    directory = Path(tempfile.mkdtemp(prefix="insertion-matrix-", dir=output)) / "evidence"
+    print(f"Optional insertion matrix for {debug_app}; evidence: {directory}", flush=True)
+    code = subprocess.run([sys.executable, source / "scripts/verify-insertion-matrix.py", "--app", debug_app,
+                           "--output", directory, "--gate-reports", output / "insertion-e2e"], cwd=source).returncode
+    try:
+        summary = json.loads((directory / "matrix.json").read_text())
+    except (OSError, ValueError):
+        return {"status": "failed", "commit": commit, "error": f"matrix exited {code} without matrix.json"}
+    return {"status": summary.get("status"), "commit": commit, "evidence": str(directory),
+            "accessibilityTrusted": summary.get("accessibilityTrusted"),
+            "cases": [{key: case.get(key) for key in ("target", "bundleID", "method", "expectation", "status", "reason")}
+                      for case in summary.get("cases", [])]}
+
+
+def prepare(commit, test_scope="full", unverified_live_insertion=None, run_insertion_matrix=False):
     verification = verification_for(test_scope)
     if sys.platform != "darwin":
         raise RuntimeError("Release preparation requires the signing Mac")
@@ -303,6 +363,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     debug = next(item['buildSettings'] for item in json.loads(raw) if item['target'] == 'airdraft')
     debug_app = Path(debug['TARGET_BUILD_DIR']) / debug['FULL_PRODUCT_NAME']
     print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
+    matrix = insertion_matrix(source, output, debug_app, commit) if run_insertion_matrix else None
     live_insertion = live_insertion_evidence(source, output, debug_app, commit, unverified_live_insertion)
     logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     run(sys.executable, source / "scripts/native_inputs.py", "verify", "--vendor",
@@ -335,6 +396,8 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
     manifest = {"commit": commit, "tag": tag, "version": version, "build": build,
                 "signing": signing, "verification": verification, "liveInsertion": live_insertion,
                 "sha256": {p.name: sha256(p) for p in [archive, output / "appcast.xml"]}}
+    if matrix is not None:
+        manifest["insertionMatrix"] = matrix
     validate_manifest(manifest, commit, tag)
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     subject = run("git", "show", "-s", "--format=%s", commit, capture=True)
@@ -359,6 +422,12 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None):
         with notes.open('a') as note:
             note.write(f"\nLive insertion verification remains incomplete: {live_insertion['reason']} "
                        "Published under the user's policy to report unverified checks after release.\n")
+    if matrix is not None:
+        counts = {status: sum(case["status"] == status for case in matrix.get("cases", []))
+                  for status in ("passed", "unverified", "failed")}
+        with notes.open('a') as note:
+            note.write(f"\nOptional insertion matrix: {matrix['status']} ({counts['passed']} passed, "
+                       f"{counts['unverified']} unverified, {counts['failed']} failed).\n")
     # A draft creates no public tag. The workflow sets its final target after Git accepts the push.
     gh("release", "create", tag, archive, output / "appcast.xml", output / "release.json",
        "--repo", REPO, "--draft", "--target", "main", "--title", f"Airdraft {version} (build {build})",
@@ -421,6 +490,9 @@ def main():
     parser.add_argument('--unverified-live-insertion', metavar='REASON',
                         default=os.environ.get('AIRDRAFT_UNVERIFIED_LIVE_INSERTION'),
                         help='Apply the user release policy: record incomplete live insertion checks and continue')
+    parser.add_argument('--insertion-matrix', action='store_true',
+                        default=os.environ.get('AIRDRAFT_INSERTION_MATRIX') == '1',
+                        help='Also run the optional live insertion matrix (verify-insertion-matrix.py)')
     args = parser.parse_args()
     verification_for(args.test_scope)
     if args.command == "install-hook":
@@ -446,7 +518,7 @@ def main():
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        prepare(commit, args.test_scope, args.unverified_live_insertion)
+        prepare(commit, args.test_scope, args.unverified_live_insertion, args.insertion_matrix)
 
 
 if __name__ == "__main__":
