@@ -203,9 +203,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           GPU 較弱的 Mac 上會明顯變慢。
         </li>
         <li>
-          Qwen3-ASR 與 Whisper 的模型檔在測量時取自 Hugging Face
-          的最新版本；記錄下來的 SHA-256 與 0.11.0
-          固定並驗證的版本清單一致，所以就是 App 現在下載的同一批檔案。
+          Airdraft 從 Hugging Face 的固定版本下載 Qwen3-ASR 與
+          Whisper，每個檔案在安裝前都會核對大小與 SHA-256。測量用的模型檔
+          SHA-256 與這些固定版本一致，所以結果對應的就是 App 安裝的檔案。0.10.2
+          及更早的版本則是下載當時儲存庫裡的最新檔案。
         </li>
         <li>結果是未經潤稿的辨識輸出。Cohere Transcribe 沒有測。</li>
         <li>這是 Airdraft 模型之間的比較，不是和其他聽寫 App 的比較。</li>
@@ -419,10 +420,11 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           Qwen3-ASR will be noticeably slower on Macs with smaller GPUs.
         </li>
         <li>
-          Qwen3-ASR and Whisper model files were taken from the latest Hugging
-          Face version when measured. Their recorded SHA-256 digests match the
-          revisions 0.11.0 pins and verifies, so they are the same files the app
-          downloads now.
+          Airdraft downloads Qwen3-ASR and Whisper from fixed Hugging Face
+          revisions and checks every file’s size and SHA-256 before installing
+          it. The measured model files have the same SHA-256 digests, so the
+          results apply to the files the app installs. 0.10.2 and earlier
+          downloaded whatever the repositories held at the time.
         </li>
         <li>
           The results are speech output without refinement. Cohere Transcribe
