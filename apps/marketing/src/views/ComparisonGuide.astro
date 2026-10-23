@@ -64,7 +64,7 @@ const rows: Row[] = zh
         price: "免費，接受贊助",
         available: "可以：免費下載",
         source: "開放原始碼（MIT）",
-        speech: "在你的裝置上",
+        speech: "在你的裝置上，包括 Qwen3-ASR 0.6B、1.7B 與 SenseVoice Small",
         cleanup: "可選後處理，本機或你設定的 API",
         meetings: "未查核",
         platforms: "Mac、Windows、Linux",
@@ -122,7 +122,8 @@ const rows: Row[] = zh
         price: "Free, with donations",
         available: "Yes: free download",
         source: "Open source (MIT)",
-        speech: "On your device",
+        speech:
+          "On your device, including Qwen3-ASR 0.6B and 1.7B and SenseVoice Small",
         cleanup: "Optional post-processing, locally or through an API you set",
         meetings: "Not checked",
         platforms: "Mac, Windows, Linux",
@@ -233,10 +234,10 @@ const sources = [
   },
   {
     label: zh
-      ? "Handy 原始碼：模型清單（2026 年 9 月 19 日的 8f9cf53）"
-      : "Handy source: model catalog (8f9cf53, September 19, 2026)",
-    url: "https://github.com/cjpais/Handy/blob/8f9cf53cd1410cda26beea39ff802ac306e39585/src-tauri/src/catalog/catalog.json",
-    checked: "2026-10-22",
+      ? "Handy 原始碼：v0.9.8 的模型清單"
+      : "Handy source: v0.9.8 model catalog",
+    url: "https://github.com/cjpais/Handy/blob/v0.9.8/src-tauri/src/catalog/catalog.json",
+    checked: "2026-10-24",
   },
   {
     label: zh ? "Typeless 價格" : "Typeless pricing",
@@ -287,7 +288,10 @@ const sources = [
         aria-label="聽寫 App 比較表"
       >
         <table class="guide-table guide-table-wide" role="table">
-          <caption>2026 年 10 月 21 日查核；「未查核」不代表沒有該功能</caption>
+          <caption>
+            2026 年 10 月 21 日查核，Handy 的語音模型於 10 月 24
+            日查核；「未查核」不代表沒有該功能
+          </caption>
           <thead role="rowgroup">
             <tr role="row">
               {columns.map((column) => (
@@ -363,8 +367,8 @@ const sources = [
           0.11.0 起，中文系統的首次設定推薦 Qwen3-ASR
           1.7B，「模型」頁標為「最適合中英夾雜」，SenseVoice
           是較小、較快的選擇；記憶體 8 GB 以下的 Mac 則先推薦 SenseVoice，仍可選
-          Qwen3-ASR 1.7B。Handy 的模型清單同樣列出本機的 Qwen3-ASR 0.6B、1.7B 與
-          SenseVoice Small。見
+          Qwen3-ASR 1.7B。Handy v0.9.8 的模型清單同樣提供本機的 Qwen3-ASR
+          0.6B、1.7B 與 SenseVoice Small。見
           <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
             中英混說的模型測量
           </a>
@@ -435,7 +439,8 @@ const sources = [
       >
         <table class="guide-table guide-table-wide" role="table">
           <caption>
-            Checked October 21, 2026. “Not checked” does not mean missing.
+            Checked October 21, 2026, and Handy’s speech models October 24. “Not
+            checked” does not mean missing.
           </caption>
           <thead role="rowgroup">
             <tr role="row">
@@ -519,9 +524,9 @@ const sources = [
           recommends Qwen3-ASR 1.7B on a Mac set to Chinese, labelled “Best for
           mixed Chinese and English” in Models, with SenseVoice as the smaller,
           faster option; on a Mac with 8 GB of memory or less it recommends
-          SenseVoice first and still offers Qwen3-ASR 1.7B. Handy’s model
-          catalog also lists local Qwen3-ASR 0.6B and 1.7B and SenseVoice Small.
-          See the{" "}
+          SenseVoice first and still offers Qwen3-ASR 1.7B. Handy v0.9.8’s model
+          catalog also offers local Qwen3-ASR 0.6B and 1.7B and SenseVoice
+          Small. See the{" "}
           <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
             mixed-language model measurements
           </a>
