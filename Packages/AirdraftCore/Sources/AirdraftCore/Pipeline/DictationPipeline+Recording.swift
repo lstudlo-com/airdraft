@@ -110,10 +110,12 @@ extension DictationPipeline {
         let microphone = snapshot.microphone
         let output = snapshot.output
         let needsInsertion = insertionEnabled && output.destination == .cursor
-        // The recording limit, shortened when kept recordings use part of the
-        // memory bound. Fixed for this session: kept audio cannot grow meanwhile.
-        let limit = Double(SpeechInputLimits.recordingSeconds(settings.maxRecordingSeconds, for: asr.kind))
-        let allowedSeconds = min(limit, availableRecordingSeconds)
+        // The recording limit of the provider that will transcribe (the
+        // snapshot's, which an app rule may choose), shortened when kept
+        // recordings use part of the memory bound. Fixed for this session: kept
+        // audio cannot grow meanwhile.
+        let limit = Double(recordingLimitSeconds(settings.maxRecordingSeconds, asr.kind))
+        let allowedSeconds = availableRecordingSeconds(for: asr)
         let budgetLimited = allowedSeconds < limit
         // Read earlier dictations while startup checks run, before the destination is known.
         let recentFinals = snapshot.useAppContext ? prefetchRecentFinals(appBundleId: nil) : nil

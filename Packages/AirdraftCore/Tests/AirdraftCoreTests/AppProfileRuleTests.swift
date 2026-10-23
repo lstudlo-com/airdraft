@@ -237,6 +237,49 @@ final class AppProfileRuleTests: XCTestCase {
         XCTAssertEqual(try fixture.history.recent().first?.mode, "Verbatim")
     }
 
+    /// The recording limit and the kept-audio bound come from the speech model
+    /// the recording's snapshot uses (here an app rule's), never from the chosen
+    /// profile's model, so provider limits match the engine that transcribes.
+    func testRecordingLimitFollowsTheSnapshotsSpeechModel() async throws {
+        let fixture = try RuleFixture()
+        defer { fixture.close() }
+        var summary = fixture.profiles.profiles.first { $0.id == RefinementProfile.summaryID }!
+        var bound = fixture.settings.asr
+        bound.select(.parakeet)
+        summary.speechModel = ProfileSpeechModel(config: bound)
+        fixture.profiles.update(summary)
+        fixture.profiles.setChoosesProfileByApp(true)
+        fixture.profiles.addAppRule(.family(.terminal), profileID: RefinementProfile.summaryID)
+        fixture.settings.maxRecordingSeconds = 600
+        fixture.pipeline.recordingLimitSeconds = { requested, kind in kind == .parakeet ? 1 : requested }
+        fixture.frontmost = "dev.warp.Warp"
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 1, "The rule's model sets the limit")
+        fixture.frontmost = "com.apple.mail"
+        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 600)
+        XCTAssertFalse(fixture.pipeline.keptAudioShortensNextRecording)
+
+        // A recording into the rule's app stops at its model's limit, with no kept-audio notice.
+        fixture.frontmost = "dev.warp.Warp"
+        try await fixture.pipeline.startFromAutomation()
+        XCTAssertEqual(fixture.preflightASR?.kind, .parakeet)
+        let deadline = ContinuousClock.now.advanced(by: .seconds(4))
+        while fixture.pipeline.isRecording, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertFalse(fixture.pipeline.isRecording, "The rule's model limit stops the recording")
+        try await fixture.waitIdle()
+        XCTAssertEqual(try fixture.history.recent().first?.asrEngine, bound.engineID)
+        XCTAssertEqual(fixture.pipeline.state, .idle, "A provider limit is not a kept-audio stop")
+
+        // The chosen profile's shorter limit does not shorten the rule's recording.
+        fixture.pipeline.recordingLimitSeconds = { requested, kind in kind == .senseVoice ? 1 : requested }
+        try await fixture.pipeline.startFromAutomation()
+        try await Task.sleep(for: .milliseconds(1_600))
+        XCTAssertTrue(fixture.pipeline.isRecording, "Only the transcribing engine's limit applies")
+        fixture.pipeline.stopAndProcess()
+        try await fixture.waitIdle()
+        XCTAssertEqual(fixture.pipeline.state, .idle)
+        XCTAssertEqual(try fixture.history.recent().count, 2)
+    }
+
     func testRuleChangeDuringStartupIsRejectedLikeAnyOtherSetupChange() async throws {
         let fixture = try RuleFixture()
         defer { fixture.close() }

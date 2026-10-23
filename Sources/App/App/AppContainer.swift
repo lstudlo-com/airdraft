@@ -270,6 +270,13 @@ final class AppContainer {
             // Esc cancels only while recording, so it never steals Esc elsewhere.
             if state == .recording { self.escapeHotkey.register(.escape) } else { self.escapeHotkey.unregister() }
         }
+        // A recording request is busy before its first state change: between the
+        // press and capture the snapshot's speech model (an app rule's, say) loads,
+        // and the chosen profile's preload must not replace it meanwhile.
+        observeChanges({ [weak self] in _ = self?.pipeline.isBusy }) { [weak self] in
+            guard let self else { return }
+            self.models.setDictationBusy(self.pipeline.isBusy || self.cleanup.isRunning)
+        }
     }
 
     /// Background intents can arrive during launch. Wait for the delegate's normal
