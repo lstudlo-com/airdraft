@@ -3,15 +3,25 @@
 Personal macOS menu-bar dictation app: speech ▸ LLM refinement ▸ insert at cursor.
 Not a Printage company repository; the workspace `dev-guidelines` skill does not apply here.
 
+External contributors: start with `CONTRIBUTING.md` and `docs/development.md`.
+This file is the complete engineering contract for the maintainer and coding
+agents; its Maintainer environment section applies only to the maintainer's Mac.
+
 ## Product goals
 
 `docs/PRODUCT.md` lists the goals the mature app must meet (quality UI, independent
 local/remote engines, preset-driven setup, editable and resettable refinement
 profiles). Read it before touching UI, settings, or prompt handling, and keep its
 status table current. That table records implemented behavior only; release and
-verification status belong in the vault (see below).
+verification status belong in the vault (see Maintainer environment).
 
-## External project resources
+## Maintainer environment
+
+This section describes the maintainer's Mac, knowledge base and checkout
+workflow. Coding agents working for the maintainer follow it; external
+contributors can skip it (see `CONTRIBUTING.md`).
+
+### Knowledge vault and project files
 
 - The canonical market research and product knowledge base is the iCloud Obsidian
   vault at `/Users/lightiichen/Library/Mobile Documents/iCloud~md~obsidian/Documents/Airdraft/`.
@@ -60,6 +70,34 @@ verification status belong in the vault (see below).
   Handy lives in `Handy/` from `https://github.com/cjpais/Handy`; VoiceInk lives in
   `VoiceInk/` from `https://github.com/Beingpax/VoiceInk`.
 
+### Checkouts and branches
+
+The main folder (this repository root) is where the user builds in Xcode and
+where releases are made. Keep it on `main`; it is the only checkout of `main`.
+
+- Start every session with `python3 scripts/check-checkout.py`. When it warns,
+  stop and tell the user; never build, render or verify from a stale checkout.
+  Debug builds run the same check as an Xcode build phase.
+- Do features and fixes in a separate worktree on a branch (`claude/<topic>`,
+  `codex/<topic>`) created from the latest `origin/main`. Only a single small
+  commit may go directly on `main` in the main folder, with no other session active.
+- In a new worktree, clone the main folder's `Packages/SherpaOnnxKit/Vendor` with
+  `cp -cR` and run `python3 scripts/generate-project.py` (see Structure).
+- When validated, rebase onto `origin/main`, fast-forward `main` in the main
+  folder, then remove the worktree and its branch.
+- Never leave unfinished work in the main folder. Commit it to a `wip/<topic>`
+  branch in a worktree and keep the main folder on `main`.
+- `dist/` is ignored and is deleted with its worktree. Before removing one, move
+  its `dist/validation/` and `dist/releases/` evidence into the main folder's
+  `dist/` without overwriting, and update vault notes that cite the old path.
+
+### Release Mac
+
+Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
+hook builds committed sources locally for every origin/main push. The GitHub
+workflow publishes the verified draft after the push succeeds. See `docs/updates.md`
+and Local releases below.
+
 ## Structure
 
 - Moon is a small task runner around the existing Xcode layout. `.prototools` pins
@@ -87,7 +125,12 @@ verification status belong in the vault (see below).
   checksum-verified XcodeGen download for fresh clones; normal generation never
   downloads.
 - `project.yml` is the source of truth for the Xcode project. After changing it run
-  `xcodegen generate`. `airdraft.xcodeproj` is generated and git-ignored.
+  `python3 scripts/generate-project.py` (bare `xcodegen` drifts the SwiftPM pins).
+  `airdraft.xcodeproj` is generated and git-ignored. Release preparation and CI
+  accept only the pinned XcodeGen 2.46.0: a copy on PATH counts only when its
+  extracted tree and version match the pin, otherwise the checksum-verified archive
+  is downloaded into `dist/tools`, and a non-pinned `dist/tools/xcodegen` is
+  refused. Normal generation still accepts any installed copy.
 - `Packages/AirdraftCore` holds all engine-agnostic logic and is the only place with tests.
   Run the tests (see Validation) before finishing any change there.
 - `Sources/App` is the SwiftUI shell: `App/` (entry point, `AppContainer`, `ModelLifecycle`),
@@ -113,10 +156,14 @@ verification status belong in the vault (see below).
   widths of 700px or less.
   The homepage's interface section shows the real Settings window; regenerate
   `public/app/` with `apps/marketing/scripts/render-app-window.sh` from a Debug
-  build (isolated empty data, grayscale) when that page, the sidebar or materials change.
+  build of the current release (isolated empty data, grayscale) when that page,
+  the sidebar or materials change; it renders English (`configuration-*`) for the
+  English pages and zh-Hant (`configuration-zh-tw-*`) for `/zh-tw/`.
   Capture at 784 by 1000 points so the recording choices, Disco and timer row
-  fit; keep the website frame dimensions and bottom-anchored callouts aligned.
-  Keep the generated WebP origin sidecars with those screenshots.
+  fit; keep the website frame dimensions and bottom-anchored callouts aligned,
+  with per-language callout positions where the layouts differ.
+  Keep the generated WebP origin sidecars with those screenshots. At 700px or
+  less, and with reduced motion, the light/dark divider rests at half.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
   Group rebuilds under their version and verify changes against the tagged sources.
@@ -239,7 +286,10 @@ verification status belong in the vault (see below).
   Larger: 1.0/1.12/1.24) scales the tokens because macOS applies no Dynamic Type
   to SwiftUI text; Default keeps the design sizes. At Larger, copy wraps rather
   than truncates in the 784-point window, and fixed text columns grow with the
-  scale. Every control has a VoiceOver name (not just a placeholder) and state;
+  scale. AppKit draws native menu-picker titles at 13 points, so above Default
+  `SoftPicker` draws the selected choice's label at the scaled body size and grows
+  its width; the native picker stays underneath at 0.001 opacity (never 0, which
+  drops it from the accessibility tree) for VoiceOver and the keyboard. Every control has a VoiceOver name (not just a placeholder) and state;
   never emit `accessibilityHidden(false)` (use `accessibilityHidden(true,
   isEnabled:)`), never let an SF Symbol name a menu, and give labelled composites
   a role. Section titles are headings. Spatial animation has a Reduce Motion
@@ -275,8 +325,11 @@ verification status belong in the vault (see below).
   highlights 4 pt inside the card edge with concentric 14 pt corners, scroll
   the active result clear of the sticky header, and support
   keyboard focus, previous/next, clear and no-match states. Search reveals conditional
-  controls with their prerequisites without changing settings. Reduce Motion skips
-  scroll animation; other pages remain unaffected.
+  controls with their prerequisites without changing settings. Result jumps are
+  never animated: an animated `scrollTo` leaves SwiftUI's stored offset behind and
+  the next focus or accessibility update pulls the result out of view, so Reduce
+  Motion needs no separate branch. The settings-search fixture asserts that walking
+  the accessibility tree leaves a settled result in place; other pages remain unaffected.
   Keep settings copy purposeful: do not add descriptions that merely restate the
   selected provider, that a list is showing models, or other facts already obvious
   from the control. Keep concise text when it changes a decision or explains an
@@ -285,10 +338,22 @@ verification status belong in the vault (see below).
   fixed-width invisible frame. Provider selection uses one compact picker, not
   a grid of decorative provider cards. Both speech tables default to All providers;
   their heading pickers filter browsing without changing the active speech config.
-  Only choosing a model selects its provider. Keep table headers fixed and cap the
-  scrolling rows at `Theme.modelTableMaxHeight` (300 pt); short lists shrink to fit.
-  The local table opens with Recommended for your language, then Verified and
-  built-in models, then a collapsed Experimental disclosure that search opens.
+  Only choosing a model selects its provider. Models' local section opens with a
+  compact set from `LocalModelShortlist`: the recommendation plus at most two
+  curated Verified alternatives (never Qwen3-ASR 0.6B), deterministic per language
+  and memory, then Your models (app default, active profile binding, installed and
+  downloading models it does not already show). Show All Models (N) reveals the
+  full table and the provider filter, which appears only there; the choice persists
+  in `AppSettings.showsAllLocalModels` without counting as an existing setup, and the
+  button hides while searching. Search always covers the whole catalogue, including
+  language names. Each row shows one strength label, never an accuracy claim
+  Airdraft has not measured, and languages by full name (the user's language first)
+  with the complete list in the tooltip. Keep table headers fixed and cap the
+  scrolling rows of the full and cloud tables, and of any compact list over six
+  rows, at `Theme.modelTableMaxHeight` (300 pt); shorter lists show every row
+  without an inner scroll. The full local table opens with Recommended for your
+  language, then Verified and built-in models, then a collapsed Experimental
+  disclosure that search opens.
   Collapsed, it still lists Experimental models in use: the app default, the active
   profile's binding, installed files (checked on a worker) and running downloads;
   `models-performance` asserts this. Tiers
@@ -328,6 +393,26 @@ verification status belong in the vault (see below).
   Keep Apple Speech locale available for an active Apple binding. Protect both
   the app default and active profile model from deletion. Downloads must not
   change the app default while a profile override is active.
+  Choose profile by app (`ProfileStore.choosesProfileByApp`, off by default) applies
+  `AppProfileRule`s stored in profiles.json: one app by bundle ID, or an
+  `AppProfileRule.selectableFamilies` family (code editors, terminals, email, work
+  chat, personal messages, documents) classified from the bundle ID alone, never
+  from window content and independent of Read app context. Browsers have no family:
+  classifying them would need their URL. Rules point at existing profiles; never
+  ship preset rules or invent profiles for them. An app's own rule beats its
+  family's, which beats the chosen profile. Recording start resolves the frontmost
+  app before preflight and snapshots that profile, including its speech binding and
+  refinement opt-out; a rule change during startup is rejected as changed setup. It
+  follows a different captured destination only when that needs the same speech
+  model and no unchecked refinement. Retries resolve current rules for the
+  recording's original app; practice ignores rules. Deleting a profile removes its
+  rules; Reset All clears them and turns the switch off; resetting a built-in keeps
+  them. Unreadable rules are skipped without setting the file aside; rules for
+  missing profiles and duplicates are dropped on load. The menu titles an automatic
+  profile `Profile: <name> (auto: <app>)` through `MenuTitle.profile`, from a
+  frontmost-app tracker that ignores Airdraft, shortening the app name before the
+  profile name. `AppContainer.speechConfig`, Models and Profiles labels and
+  preloading still follow the chosen profile.
   The sidebar microphone overlay contains device choices with a live ten-cell
   meter at each row's trailing edge. Omit decorative descriptions and a separate
   meter card; retain actionable permission and device errors. Keep it compact:
@@ -455,7 +540,20 @@ verification status belong in the vault (see below).
   Setup, or Recordings Waiting when that is the only issue), or the Trial & License
   sheet (Start Trial / License) when the license is the only issue. File and system
   checks behind readiness come from `SetupFacts`, measured off the main actor,
-  never in view bodies.
+  never in view bodies; readiness reads only stored results (up to eight recent
+  ones per input combination), and a fact not yet measured shows as Checking
+  (busy, not a setup step) until the background refresh lands. Debug renders may
+  measure directly; the architecture fixture asserts this.
+  With Choose profile by app on, readiness also checks profiles that app rules
+  choose whose speech setup, model binding or refinement differs from the chosen
+  profile's (`AppRuleReadiness`, the same checks as the recording prerequisites),
+  measuring their model files through `SetupFacts` and checking rule keys for
+  presence only. An App rules row names the first blocked app and profile with the
+  existing setup action and counts toward the summary and sidebar footer.
+  Home's pipeline summary wraps at every text size instead of truncating, keeping
+  its ` · ` and ` → ` separators at the end of the line they follow. Home's
+  overview totals, longest dictation and per-app shares are aggregated in SQL from
+  stored word counts; only the latest waveform bars and uncounted rows read text.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. Buttons and menu items
@@ -579,9 +677,42 @@ verification status belong in the vault (see below).
   or an unknown code become English. Experimental unknown-language prompts are not
   a production Auto contract. SenseVoice rebuilds its recognizer when its effective
   language changes. Qwen uses upstream language names in decoder options. Apple
-  exposes its effective fixed locale and asks the OS for supported equivalents.
-  Joint-language models validate the user's intent without sending an ignored
-  forced-language parameter. Mandarin, Cantonese and Chinese script stay distinct.
+  exposes its effective fixed locale and asks the OS for supported equivalents;
+  Apple Speech Mandarin follows the Chinese script (zh-CN for Simplified, zh-TW for
+  Traditional). Joint-language models validate the user's intent without sending an
+  ignored forced-language parameter. Mandarin, Cantonese and Chinese script stay distinct.
+- Local speech output passes `LocalASROutputGuard` inside the engine lease before
+  refinement. Decoder loops are cut to one copy (one token repeated 8 times, two
+  tokens 6 times, longer blocks 4 times) for dictation and media windows; ordinary
+  emphasis survives. Qwen3-ASR chunk caps scale with audio (16 tokens per second
+  plus 48, at most 1024). Retries reuse the same model and lease, never switch
+  models, run only when the first decode was fast enough, keep the first result on
+  failure and propagate cancellation: an empty result on audible audio gets one
+  relaxed retry (Whisper without its no-speech gate or prompt, rejecting filler-only
+  output), and only under Auto a result mostly in a script none of the system
+  languages plus English use, or a Latin-only Whisper result whose own P(zh) is at
+  least 0.1, is decoded once more with the best explicit language the model
+  supports, kept only when it fits better. Record each correction on the transcript
+  and log it without text. SenseVoice and FireRedASR2 output gets natural-case
+  English (keeping dictionary spellings, known acronyms and spelled letters) and one
+  sentence-final mark for three or more tokens inside `SherpaTranscriber`, before
+  refinement, the Chinese script converter and the dictionary. Re-measure guard
+  changes with `eval/mixed-asr/run_guards.py` and `score_guards.py`, including the
+  English control set.
+- On-device vocabulary biasing goes only through `TranscriptionHints.onDeviceVocabulary`,
+  controlled by Settings > Behavior > Vocabulary in speech recognition (default on)
+  and captured at recording start. It sends preferred spellings only, never misheard
+  aliases, capped at 50 terms of at most 40 characters and four words, 600 characters
+  in total, without markup and limited to scripts the speech language uses. Only
+  Qwen3-ASR context and sherpa-onnx transducer hotwords (Parakeet, Orukeet) receive
+  it. Qwen drops the terms on near-silent chunks (about -50 dBFS) and decodes again
+  without them when the output is only the term list. Parakeet switches to its
+  hotword search mode only when terms apply, writes the spelling list to a temporary
+  file outside the model folder, and skips terms the model cannot spell. Whisper,
+  including GGUF Whisper, stays term-free: a guarded glossary prompt dropped and
+  translated utterances and slowed decoding (measurements in
+  `eval/vocab-bias/results/summary.json`). Apple Speech, SenseVoice, FireRedASR2, Cohere and FluidAudio
+  get no biasing. Cloud keyword fields and dictionary post-processing are unchanged.
 - Both stages are provider-agnostic. New engines implement `Transcriber` or `Refiner`,
   get a `*ProviderKind` case, and are wired in `EngineFactory`. Never hard-code a provider
   in the pipeline or views.
@@ -639,9 +770,21 @@ verification status belong in the vault (see below).
   idle countdown. Pins block only idle unloading, never explicit switch, reset or
   quit unloads. Warm CLI sessions owned by a recording live for the 600-second cap
   plus 300 seconds; unowned sessions expire after 180 seconds.
+  System memory pressure (`MemoryPressure`: warning or critical, repeated events at
+  the same or a lower level within 60 seconds dropped, a critical event during a
+  warning pass run once afterwards) unloads ready, unpinned local speech models
+  idle for at least 120 seconds (15 seconds when critical) and LM Studio instances
+  the app itself loaded, never ones the user loaded. A pass never waits behind the
+  factory lease: any running or queued load or inference skips it. It also skips
+  while dictation, media, meeting or cleanup work is busy and during quit or reset
+  (quit stops listening), never reloads, and logs only engine IDs, counts and
+  durations. The next dictation loads the model again as usual.
   Downloads go through `ModelDownloader` (Models page). Qwen3-ASR and WhisperKit
   files come from `local-pinned-models.json` (immutable revision, bytes, SHA-256),
-  regenerated only with `scripts/pin-hub-models.py`; unpinned IDs are refused. The Models table is data in
+  regenerated only with `scripts/pin-hub-models.py`; unpinned IDs are refused. A
+  missing, malformed, empty or duplicate-ID pinned manifest never crashes: those
+  downloads fail with a localized reinstall message while installed models keep
+  working. The Models table is data in
   `ModelCatalogue`; installed, loaded, download and delete all derive from each entry's `select`.
   Model downloads report received bytes during each file, and Whisper includes tokenizer
   files in its byte total. Preparing, verification and unpacking use an indeterminate
@@ -686,9 +829,12 @@ verification status belong in the vault (see below).
   work must never change a newer session or insert text. Capture the local insertion
   target independently of optional LLM context. When the editor exposes a caret,
   require the same focused field and selection before inserting, then post exactly
-  one paste. Editors that draw their own text (Zed, Warp, GPU terminals) never expose
-  a caret: verify the same process, its focused window and no foreign system focus
-  instead; a missing caret alone must not block paste. Only the bundle prefixes in
+  one paste. Editors that draw their own text (Zed, Warp, GPU terminals) usually
+  expose no caret: verify the same process, its focused window and no foreign system
+  focus instead; a missing caret alone must not block paste. One that does publish
+  a field and caret (Ghostty 1.3) keeps the normal field and caret validation; an
+  echoed paste is confirmed, and one its field never shows is sent unverified, not
+  failed (`testSelfDrawingEditorWithCaretIsSentUnverifiedWhenReadBackFails`). Only the bundle prefixes in
   `TextInserter.selfDrawingEditorBundlePrefixes` (Warp, Zed, Ghostty, kitty,
   Alacritty, WezTerm; keep the list there alone) count as such editors. Every
   other caretless target (Finder, Preview, System Settings, a page without a
@@ -715,7 +861,7 @@ verification status belong in the vault (see below).
   web/native focus, changed destinations, cancellation and context-off pipeline
   delivery through History.
   Local and release core runs must pass `verify-insertion-regressions.py` against
-  their actual xcresult; mandatory insertion cases cannot be missing or skipped.
+  their actual xcresult; its 71 mandatory insertion cases cannot be missing or skipped.
   A posted paste is not delivery confirmation. Read back the expected text from
   the original field before reporting success or restoring the old clipboard;
   compare the full value or the inserted UTF-16 range with the resulting caret.
@@ -736,8 +882,11 @@ verification status belong in the vault (see below).
   failures accurately. Confirmed delivery releases the pipeline immediately: the
   inserter owns the delayed clipboard restore, and a newer paste takes over the
   clipboard the old one displaced, so an earlier restore never overwrites a newer
-  dictation; after an unverified paste, the next insertion waits out that paste's
-  receiver window before writing the clipboard. History saving and the outcome run in an ordered delivery tail
+  dictation; after an unverified paste, the next insertion, including a copy-only
+  retry, waits out that paste's receiver window before writing the clipboard.
+  Cancel and the automation cancel are accepted during that wait: nothing is then
+  pasted or saved, and the earlier paste keeps the clipboard and its delayed
+  restore. Once writing starts, cancellation waits as before. History saving and the outcome run in an ordered delivery tail
   (`isFinishingDelivery`); quit waits for it (bounded) and restores a confirmed
   paste's clipboard at once, but waits out an unverified paste's remaining 2 s
   delay so a busy receiver never reads the old clipboard; data cleanup and meeting start wait for it too. A shortcut rejected
@@ -782,8 +931,16 @@ verification status belong in the vault (see below).
   reads distinguish missing from denied/locked. Only a selected-key Allow access
   action may authorize reading. Use `CredentialEditor` for key fields; never report
   Saved after a failed write or migrate over an inaccessible current item.
-  Keep the real signed-identity fixture test in `scripts/verify-keychain.py` in the
-  release gate. See `docs/keychain-access.md`.
+  Non-interactive searches, updates and deletes carry an `LAContext` with
+  `interactionNotAllowed`; adds carry none. Saved keys are file-based Keychain
+  items, which ignore that context (FB16959400), so the scoped
+  `SecKeychainSetUserInteractionAllowed` switch stays, called only from
+  `CredentialStore.withInteraction`, where `@diagnose(DeprecatedDeclaration, as:
+  ignored)` silences its warning; new deprecated calls elsewhere still warn. Leave
+  `kSecUseDataProtectionKeychain` unset: moving would hide every saved key until a
+  separate migration. Keep the real signed-identity fixture test in
+  `scripts/verify-keychain.py` in the release gate, including its silent add/update
+  step and no deprecation warning in `Keychain.swift`. See `docs/keychain-access.md`.
 - The bundle ID and Keychain service are `com.lstudlo.app.airdraft`. Import legacy
   `com.lightiichen.transcribar` preferences and credentials without overwriting current
   values. Keep `Application Support/Transcribar` for existing models and history.
@@ -807,7 +964,10 @@ verification status belong in the vault (see below).
 - LLM behaviours are `RefinementProfile`s in `ProfileStore`, never hard-coded modes.
   Built-ins have stable ids and must stay resettable to `RefinementProfile.defaults`.
 - Profiles shows the selected profile's Name, Dictation and Refine transcript card,
-  then its instructions, with the shared base system prompt in a separate last section.
+  then its speech model and instructions, then Profile by app (the switch, rule rows
+  with a profile picker and remove button, and a Rule priority row holding the Add
+  Rule menu of families, open apps and Choose App…; rules stay saved but hidden while
+  the switch is off), with the shared base system prompt in a separate last section.
   Show a warning before opening its editor; keep edits in a draft until Save, with
   Cancel and Restore defaults. Use the existing `ProfileStore.baseRules` pipeline.
 - Setup stays preset-driven: providers come from `EndpointPreset`, models from
@@ -815,8 +975,8 @@ verification status belong in the vault (see below).
 
 ## Localization
 
-The app ships English and Traditional Chinese (Taiwan, zh-Hant) through String
-Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
+The app ships English, Simplified Chinese (zh-Hans) and Traditional Chinese
+(Taiwan, zh-Hant), following the macOS language, through String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
 and AirdraftCore's `Resources/Localizable.xcstrings`. Write user-facing copy as
 localizable literals: SwiftUI `Text`/`Button` literals, the shared components'
 resource parameters, `String(localized:)` in the app and
@@ -827,8 +987,9 @@ ternary explicitly: the compiler extracts only the first branch of a
 values, model or provider names, or keycap names, and never compare against
 displayed text. Native menus (`MenuBarExtra`, `NSHostingMenu`, app commands)
 resolve SwiftUI keys with an empty environment locale, so their titles, items and
-tooltips must be `String(localized:)` values; the menu fixture checks both
-languages. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. Built-in profiles keep
+tooltips must be `String(localized:)` values; the menu fixture checks every
+shipped language, including the Quit title, and fails when a requested language
+falls back to another. `.verbatim(_:)` resolves in a table that never exists. Fixtures and accessibility identifiers stay English. Built-in profiles keep
 their stored English names; the interface shows `RefinementProfile.displayName`
 (History: `displayName(forSavedName:)`), localized until renamed. Renaming goes
 through `ProfileStore.rename`, which sets `nameIsCustom` so a typed name (even
@@ -838,11 +999,18 @@ shortcut labels localize only their side word through
 `Hotkey.displayCaps`/`localizedDisplayString`; `keyCaps`/`displayString` stay
 English for logs and matching. `Sources/App/AppShortcuts.xcstrings` holds App
 Shortcut phrases, and every translation keeps `${applicationName}`. After a Debug
-build, run `python3 scripts/localization.py sync`, translate new keys and run
-`check`; `audit` lists literals that bypass localization. `LocalizationCatalogTests`
-fails on missing, stale or placeholder-mismatched zh-Hant entries. Verify UI
-changes in zh-Hant renders (`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) as
-well as English.
+build, run `python3 scripts/localization.py sync`, translate new keys into both
+zh-Hans and zh-Hant and run `check`, which reports counts per language; `audit`
+lists literals that bypass localization. Translate zh-Hans directly with Mainland
+interface terms (设置, 默认, 菜单, 剪贴板, 快捷键, 复制, 润色 for refinement, 模式
+for profile), never by converting zh-Hant; zh-Hant uses Taiwan terms. Both keep “…”
+quotes and the existing glossary in the catalogs. `LocalizationCatalogTests` fails
+on missing, stale or placeholder-mismatched zh-Hans or zh-Hant entries. Verify UI
+changes in zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale zh_CN`) and zh-Hant
+(`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) renders as well as English.
+Unsaved Chinese script and Apple Speech/live-preview locale defaults follow the
+first Chinese preferred language (`ChineseScript.systemDefault`: Simplified with
+zh-CN, otherwise Traditional); never rewrite saved choices.
 
 ## Trigger Delay
 
@@ -952,28 +1120,6 @@ trial, purchase and key entry. Sandbox builds keep the Sandbox tag and Test
 Purchase.
 See `docs/licensing.md`; dashboard setup, mocks and renders do not verify an actual purchase.
 
-## Checkouts and branches
-
-The main folder (this repository root) is where the user builds in Xcode and
-where releases are made. Keep it on `main`; it is the only checkout of `main`.
-
-- Start every session with `python3 scripts/check-checkout.py`. When it warns,
-  stop and tell the user; never build, render or verify from a stale checkout.
-  Debug builds run the same check as an Xcode build phase.
-- Do features and fixes in a separate worktree on a branch (`claude/<topic>`,
-  `codex/<topic>`) created from the latest `origin/main`. Only a single small
-  commit may go directly on `main` in the main folder, with no other session active.
-- In a new worktree, clone the main folder's `Packages/SherpaOnnxKit/Vendor` with
-  `cp -cR` and run `python3 scripts/generate-project.py`; bare `xcodegen` drifts
-  the SwiftPM pins.
-- When validated, rebase onto `origin/main`, fast-forward `main` in the main
-  folder, then remove the worktree and its branch.
-- Never leave unfinished work in the main folder. Commit it to a `wip/<topic>`
-  branch in a worktree and keep the main folder on `main`.
-- `dist/` is ignored and is deleted with its worktree. Before removing one, move
-  its `dist/validation/` and `dist/releases/` evidence into the main folder's
-  `dist/` without overwriting, and update vault notes that cite the old path.
-
 ## Local releases
 
 For an authorized end-to-end release request, use the project-local
@@ -1009,9 +1155,6 @@ allowlist; signing, licensing configuration, updater installation, packaging and
 downloaded-artifact checks remain required. Updater fixtures use disposable
 Sparkle seeds through `--ephemeral-key`; packaging still uses the existing signing key.
 
-Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
-hook builds committed sources locally for every origin/main push. The GitHub
-workflow publishes the verified draft after the push succeeds. See `docs/updates.md`.
 Never override release signing with `CODE_SIGN_IDENTITY=-`. macOS permissions
 require a stable certificate-bound designated requirement; Sparkle signatures do
 not provide that identity. Keep `scripts/release-signing.json` pinned. Certificate
@@ -1085,9 +1228,12 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   checks live fill interpolation, paused transfers, stage changes and the Reduce
   Motion branch in both appearances, using the production view in a disposable window.
 - Accessibility (Debug): `airdraft --e2e-local <disposable-dir> --render-window a11y-audit <out>`
-  walks the real AX tree of every page, overlay, onboarding step and License at
-  Default and Larger text sizes and fails on unnamed or symbol-named controls,
-  unnamed images, role-less elements and missing headings/labels. Renders accept
+  walks the real AX tree of every page, overlay, onboarding step, License and the
+  meeting transcript editor at Default and Larger text sizes (the Larger pass sets
+  the preview settings' text size) and fails on unnamed or symbol-named controls,
+  unnamed images, role-less elements, pickers without names and values, and missing
+  headings/labels. Expected labels come from the string catalogs, so it runs in
+  every shipped language. Renders accept
   `AIRDRAFT_RENDER_TEXT_SIZE=standard|large|larger`, `AIRDRAFT_RENDER_CONTRAST=1`,
   `AIRDRAFT_RENDER_REDUCE_MOTION=1` and `AIRDRAFT_RENDER_REDUCE_TRANSPARENCY=1`.
   A live VoiceOver walkthrough remains manual.
@@ -1106,6 +1252,8 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   Views check `RenderMode`, never process arguments or `AIRDRAFT_RENDER_*` directly.
   `AIRDRAFT_RENDER_WIDTH` / `AIRDRAFT_RENDER_HEIGHT` set the window size (use a tall height to
   see lower sections); `AIRDRAFT_RENDER_EMPTY_HISTORY=1` shows Home's first-run state.
+  `profiles-by-app` and `home-by-app` render app rules; `home-by-app` takes
+  `AIRDRAFT_RENDER_RULE_SPEECH=<kind>[:model]` for a blocked rule's speech model.
   `AIRDRAFT_RENDER_SIDEBAR_COLLAPSED=1` renders the compact icon rail; compare
   it with the expanded sidebar at the same window height.
   `AIRDRAFT_RENDER_SAMPLE_DATA=1` uses isolated preview records. Verify the
@@ -1189,6 +1337,12 @@ it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview p
   revision, byte size and SHA-256. Verify both
   cached and new bytes before installation; failed or cancelled downloads keep the
   incomplete marker. Never copy a competitor's benchmark score into app ratings.
+  `BundledModelCatalog` reviews every GGUF and Core ML catalogue entry (safe IDs and
+  paths, owner/repo, 40-hex revision, positive sizes, SHA-256, languages, a buildable
+  URL). A missing or invalid bundled catalogue, or one failing entry, makes that
+  catalogue unavailable with a reinstall message in downloads, the recording check
+  and Home's Speech row instead of crashing; nothing from it is downloaded and other
+  engines keep working.
   Decode on a worker with one native compute operation per loaded model; retain the
   model until sessions end, signal cancellation through the abort callback and reject
   aborted/truncated prefixes. Native diarization is off; Meetings owns SpeakerKit
@@ -1233,13 +1387,32 @@ insertion must never execute scripts. See `docs/automation.md`.
 
 ## Live transcription preview
 
-Live preview uses a separate Apple Speech analyzer on macOS 26+ and the same
-16 kHz microphone chunks as final transcription. Its language is independent of
-the selected final ASR provider. Install assets explicitly in Models through
-`ModelDownloadStore`; preview never downloads or uses a cloud provider. Bound its
-audio queue and displayed text, replace provisional phrases, and cancel without
-waiting before final ASR. Reject callbacks from old sessions. Preview errors are
-nonfatal; preview text never reaches history, refinement, clipboard or scripts.
+Settings > Live preview chooses a Preview source (`LivePreviewSource`): Apple
+Speech (the default) or Selected speech model. Neither supplies the final transcript.
+Apple Speech preview uses a separate analyzer on macOS 26+ and the same 16 kHz
+microphone chunks as final transcription. Its language is independent of the
+selected final ASR provider, and Models shows its language section only while it
+is the source. Install assets explicitly in Models through `ModelDownloadStore`;
+preview never downloads or uses a cloud provider. Bound its audio queue and
+displayed text, replace provisional phrases, and cancel without waiting before
+final ASR. Reject callbacks from old sessions. Preview errors are nonfatal;
+preview text never reaches history, refinement, clipboard or scripts.
+Selected speech model: `ModelSpeechPreview` decodes the recording's captured config
+and hints with the already loaded engine through `EngineFactory.transcribePreview`,
+supported only for Parakeet, SenseVoice and Orukeet; other models and cloud
+providers show that live text is unavailable while recording continues, and
+Settings shows the active profile's model with its readiness or reason and Open
+Models. Dictation preview never loads, downloads or queues: it skips its tick while
+any lease operation runs or waits, never rebuilds a recognizer, and every other
+lease operation (load, final inference, media, unload) cancels it. Keep one decode
+in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window
+committed at its quietest frame, a 20 s buffer and 500 displayed characters
+(1,500 in meetings); a decode slower than 3 s stops the preview with a message.
+Shortcut release quiesces it inside the existing 0.35 s release grace, so final ASR
+runs once on the full capture. Meetings follow the same setting with a display-only
+Live transcript row (six lines, no animation) fed by `MeetingPreviewMixer`; with
+the model source, starting a meeting prepares the installed model but never
+downloads it, and the saved transcript still comes from Transcribe.
 
 ## Saved recording history
 
@@ -1303,9 +1476,13 @@ and readiness, endpoint validity, and required speech/refinement credentials.
 Never prompt for a credential implicitly. A blocked attempt opens Home with an
 actionable reason, even when the HUD is hidden. Open the microphone as soon as the
 prerequisites pass and capture the insertion target and app context while audio
-buffers; any exit before the recording state stops capture and discards that
-audio. The timer and limit count from capture start. Log `pressToCaptureMs`
-(acceptance to first buffer). Refinement Off and Verbatim do not
+buffers; any other exit before the recording state stops capture and discards
+that audio. A hold released after at least 0.3 s of captured audio while the
+destination is still being captured defers the stop: once the destination
+resolves, the speech is processed, trimmed to the release plus the 0.35 s grace.
+A shorter tap, a release before capture starts, the toggle's second press and an
+explicit cancel still cancel. The timer and limit count from capture start. Log
+`pressToCaptureMs` (acceptance to first buffer). Refinement Off and Verbatim do not
 require refinement credentials; unexpected refinement errors still preserve raw text.
 Recording callbacks, release timers and asynchronous results belong to their session.
 Keep failed speech audio in memory for explicit retry or discard, and warn before
@@ -1353,9 +1530,35 @@ intentional visual check; keep the default native layout, animation, timeout
 and disposable-pasteboard assertions active. `verify-updater.py --ephemeral-key` uses a
 disposable Sparkle seed and temporary update target. Record live, fixture,
 source-review and unavailable coverage separately. See `docs/local-e2e.md`.
-`.github/workflows/ci.yml` runs the unsigned build and `test-local-e2e.py
---unsigned` on the `xcode-27` GitHub image with Xcode 27.0. `--unsigned` is
-CI-only; release builds keep the pinned identity. Archives are cached, but the
+`--e2e-action capture-latency` is the one fixture that opens a real input: it reads
+the microphone authorization status before any audio API, runs on the default
+input only when access is already authorized (otherwise it reports unverified),
+never requests access or switches devices, and keeps no audio or history.
+`scripts/verify-insertion-matrix.py` is the optional live matrix across installed
+editors (TextEdit, Chrome, Safari, Notes, VS Code, Slack, Warp, Zed, Ghostty,
+Terminal, iTerm2), one case per saved method with a fresh marker. It first asks the
+Debug app through `--e2e-action accessibility` (never prompting) whether it is
+trusted and marks every case unverified otherwise. It reads both the older and the
+macOS 27 `lsappinfo` formats, places the caret after the marker in opened documents
+with `--e2e-insertion-place-caret` (a selection change on the disposable field
+before capture, never a text write), and starts Terminal's and Ghostty's receiver
+itself. `--e2e-insertion-field` modes are `exact` (the release gate), `suffix`
+(terminals) and `none` (self-drawing editors). Terminal receivers record bracketed
+pastes and a pass needs exactly one. Self-drawing editors pass when sent
+unverified, or confirmed when they publish a caret. It uses no AppleScript, System
+Events or synthetic input. Release `--insertion-matrix` (or
+`AIRDRAFT_INSERTION_MATRIX=1`) runs it before the unchanged four-case TextEdit/Chrome
+gate; other editors only add `insertionMatrix` to `release.json` and the notes.
+`.github/workflows/ci.yml` runs the unsigned build, `test-local-e2e.py
+--unsigned`, `verify-adhoc-launch.py` and the release, insertion-regression,
+live-insertion and acknowledgement script tests on the `xcode-27` GitHub image
+with Xcode 27.0. `--unsigned` is CI-only; release builds keep the pinned identity.
+The ad-hoc negative control (a Hardened Runtime re-signed copy that dyld must
+refuse) is mandatory where a tiny ad-hoc + Hardened Runtime probe shows the host
+enforces library validation; hosted VMs that do not record it as not applicable in
+`negative-control.json`, a probe that disagrees with the app fails either way, and
+`--require-library-validation` makes a non-enforcing host fail. CI verifies its
+XcodeGen download against the release pin. Archives are cached, but the
 Sherpa Vendor tree is rebuilt with hash checks each run. Lint workflows with
 actionlint plus shellcheck; `.github/actionlint.yaml` declares new hosted labels.
 
@@ -1381,6 +1584,24 @@ menu. New transcripts take the library's default title; the date stays in the
 metadata. The transcript editor keeps a fixed header (title, metadata, playback,
 version, Copy, Export) and footer (Delete, Summarize, Save Changes) around
 Summary, Speakers and a single Transcript card, and never opens with a focused title.
+Renaming a speaker renames every passage of that speaker ID in Edited, Original
+and exports without touching original words or assignments; a cleared name shows
+Speaker N. Each Speakers row offers a Recent menu from `SpeakerNameLibrary` (a
+`speakerName` table in history.sqlite): names only, matched ignoring case, width and
+accents, with last-used times, capped at 100 names of up to 60 characters, never
+transcript text, speaker IDs or voice embeddings. Save Changes records typed
+single-line names except default labels; a failed name write keeps the save and
+shows a notice. Recent omits names other speakers in the transcript already use and
+offers Forget Recent Names. Remove History and Remove History and Audio Files delete
+the names and Reset removes their database; audio-only cleanup keeps them.
+Summarize is a menu of four `MeetingSummaryTemplate`s (Brief Summary, Action Items,
+Decisions & Follow-ups, Meeting Minutes); the last choice is checked and saved in
+`AppSettings.meetingSummaryTemplate`, and a confirmation names the template and
+says when it replaces the current summary. Template names are localized; prompts
+stay English, ask for plain text in the transcript's own languages and never invent
+owners, dates or names. Keep the 8,000-character sections without a final merge
+request. Each summary records its template beside the Summary heading. A cancelled,
+failed or empty response leaves the transcript and earlier summary unchanged.
 
 ## Meeting capture
 

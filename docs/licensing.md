@@ -67,10 +67,11 @@ sub-addressing aliases.
    dedicated sandbox orders. Mocks and previews remain distinct from these checks.
 
 Sandbox merchant setup and test-card verification completed on 2026-09-29.
-Both plans issued keys that activated the Debug app. The two-device and
-five-device limits rejected the next activation; released slots were reusable.
+Both plans issued keys that activated the Debug app. The sandbox products then
+had two- and five-device limits (the production plans now allow one and three
+Macs); each limit rejected the next activation and released slots were reusable.
 Rotation kept the app's existing device, portal removal invalidated it, and a
-full sandbox refund with **Revoke Benefits** invalidated the five-Mac license.
+full sandbox refund with **Revoke Benefits** invalidated the five-device sandbox license.
 The test device was then deactivated from the app. See the vault record
 `Records/Verification/2026-09-29 Polar Sandbox Purchase Verification` for artifact
 identity, test scope and remaining release gates. No real payment was made.

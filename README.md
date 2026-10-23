@@ -8,8 +8,8 @@ Speech recognition and refinement are chosen independently. Each can run on your
 Mac or use a cloud service with your own API key. If refinement fails or times
 out, Airdraft inserts the raw transcript instead of losing your dictation.
 
-The interface is available in English and Traditional Chinese (Taiwan) and
-follows your macOS language.
+The interface is available in English, Simplified Chinese and Traditional
+Chinese (Taiwan) and follows your macOS language.
 
 ## Features
 
@@ -20,7 +20,8 @@ follows your macOS language.
 - **Local speech models.** Whisper (WhisperKit, Core ML), Parakeet (sherpa-onnx
   and Core ML), Qwen3-ASR and Cohere Transcribe (MLX), SenseVoice and FireRedASR2
   (sherpa-onnx), GGUF models through transcribe.cpp, and Apple SpeechAnalyzer on
-  macOS 26. Models download only when you choose them in **Models**.
+  macOS 26. **Models** opens with a short recommendation for your language and
+  Mac, with every model one click away; models download only when you choose them.
 - **Cloud speech services.** Soniox, Groq, ElevenLabs, OpenAI, Deepgram,
   AssemblyAI, Cartesia, Speechmatics, xAI, Mistral, Google Gemini and OpenRouter,
   each through its own transcription API, plus any OpenAI-compatible server.
@@ -29,13 +30,20 @@ follows your macOS language.
   your own subscription, and OpenAI, Anthropic, Google Gemini, OpenRouter,
   Groq and Cerebras with your own key.
 - **Profiles.** Every refinement behavior is an editable profile that can be
-  reset to its defaults. A profile can also choose its own speech model.
-- **Vocabulary.** Custom terms and replacements applied to every dictation.
+  reset to its defaults. A profile can also choose its own speech model, and
+  optional rules pick a profile by the app you dictate into.
+- **Vocabulary.** Custom terms and replacements applied to every dictation. Your
+  spellings can also guide on-device models that support it (Qwen3-ASR,
+  Parakeet and Orukeet).
+- **Live text.** Optionally see words while you speak, from Apple Speech or the
+  selected local model (Parakeet, SenseVoice or Orukeet). The final transcript
+  is unchanged.
 - **History.** Searchable local history, optional saved recordings with playback
   and retranscription, and recovery for failed dictations.
 - **Meetings.** Record meeting audio from an app and your microphone, or import
   audio and video files, then transcribe locally or in the cloud with speaker
-  labels, transcript versions and summaries.
+  labels, remembered speaker names, transcript versions and summaries in several
+  formats (brief summary, action items, decisions, minutes).
 - **Automation.** Start, stop and cancel dictation from Apple Shortcuts, or send
   the final text to your own script instead of the cursor.
 
@@ -60,14 +68,14 @@ System Settings > Privacy & Security.
 ## Requirements
 
 - An Apple Silicon Mac with macOS 15 or later. Apple SpeechAnalyzer, Apple
-  Intelligence refinement and live preview require macOS 26.
+  Intelligence refinement and Apple Speech live text require macOS 26.
 - Microphone access, and Accessibility access to insert text at the cursor.
 - For local refinement: LM Studio, Ollama or another OpenAI-compatible server,
   or Apple Intelligence on a supported Mac.
 
 ## Build from source
 
-You need Xcode 26 or later with its Metal toolchain, Python 3.12 or later and
+You need Xcode 27 or later with its Metal toolchain, Python 3.12 or later and
 Git. Node.js and pnpm are optional (see below).
 
 ```sh
@@ -155,7 +163,9 @@ the app's earlier name so existing models and history stay in place.
 
 ## Documentation
 
-- [CONTRIBUTING.md](CONTRIBUTING.md): development setup, tests and conventions
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute, tests and pull requests
+- [docs/development.md](docs/development.md): architecture rules, interface
+  conventions and the localization workflow
 - [SECURITY.md](SECURITY.md): reporting a vulnerability
 - [docs/](docs/): design and implementation notes, for example
   [cloud transcription](docs/transcription-apis.md),
