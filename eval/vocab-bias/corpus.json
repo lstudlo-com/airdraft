@@ -1,0 +1,44 @@
+{
+  "description": "AD-081 vocabulary-bias corpus. Synthetic macOS say speech; audio is generated into a scratch directory by prepare_corpus.py and never committed.",
+  "dictionary": [
+    "Airdraft", "Supabase", "PostHog", "Tailscale", "kubectl", "pnpm", "useEffect",
+    "WhisperKit", "Siobhan", "Saoirse", "Nguyen", "Grafana", "Vercel", "Ollama",
+    "SwiftUI", "LangChain", "Qwen", "林雅婷", "蕭郁蓁", "陳惟中", "晟崴科技", "鈺德"
+  ],
+  "voices": {"en": "Samantha", "zh": "Meijia"},
+  "items": [
+    {"id": "en01", "language": "en", "text": "Please open Airdraft and check whether the dictation finished.", "terms": ["Airdraft"]},
+    {"id": "en02", "language": "en", "text": "We moved the database from Firebase to Supabase last week.", "terms": ["Supabase"]},
+    {"id": "en03", "language": "en", "text": "PostHog shows that most users stop at the second onboarding step.", "terms": ["PostHog"]},
+    {"id": "en04", "language": "en", "text": "Connect the build machine to Tailscale before you start the release.", "terms": ["Tailscale"]},
+    {"id": "en05", "language": "en", "text": "Run kubectl get pods to see which services are still pending.", "terms": ["kubectl"]},
+    {"id": "en06", "language": "en", "text": "Install the dependencies with pnpm and then restart the dev server.", "terms": ["pnpm"]},
+    {"id": "en07", "language": "en", "text": "The useEffect hook runs again whenever the selected profile changes.", "terms": ["useEffect"]},
+    {"id": "en08", "language": "en", "text": "WhisperKit loads the Core ML model from the local folder.", "terms": ["WhisperKit"]},
+    {"id": "en09", "language": "en", "text": "Siobhan and Saoirse will review the design on Thursday.", "terms": ["Siobhan", "Saoirse"]},
+    {"id": "en10", "language": "en", "text": "Ask Nguyen to send the Grafana dashboard link to the team.", "terms": ["Nguyen", "Grafana"]},
+    {"id": "en11", "language": "en", "text": "We deploy the marketing site to Vercel and run the models in Ollama.", "terms": ["Vercel", "Ollama"]},
+    {"id": "en12", "language": "en", "text": "The new agent uses LangChain with a Qwen model running locally.", "terms": ["LangChain", "Qwen"]},
+    {"id": "en13", "language": "en", "text": "The settings window is built with SwiftUI and AppKit.", "terms": ["SwiftUI"]},
+    {"id": "en14", "language": "en", "text": "Please send me the meeting notes before lunch tomorrow.", "terms": []},
+    {"id": "en15", "language": "en", "text": "The weather was nice so we walked to the train station.", "terms": []},
+    {"id": "en16", "language": "en", "text": "Remember to restart the computer after the update finishes.", "terms": []},
+    {"id": "en17", "language": "en", "text": "Please open Airdraft and check whether the dictation finished.", "terms": ["Airdraft"], "trailing_silence_s": 8},
+    {"id": "en18", "language": "en", "text": "Run kubectl get pods to see which services are still pending.", "terms": ["kubectl"], "gain_db": -26},
+    {"id": "zh01", "language": "zh", "text": "請林雅婷把會議紀錄寄給大家。", "terms": ["林雅婷"]},
+    {"id": "zh02", "language": "zh", "text": "蕭郁蓁明天會負責測試新版本。", "terms": ["蕭郁蓁"]},
+    {"id": "zh03", "language": "zh", "text": "陳惟中說這個功能下週才會上線。", "terms": ["陳惟中"]},
+    {"id": "zh04", "language": "zh", "text": "晟崴科技的合約已經簽好了。", "terms": ["晟崴科技"]},
+    {"id": "zh05", "language": "zh", "text": "我們把資料庫從 Firebase 換成 Supabase。", "terms": ["Supabase"]},
+    {"id": "zh06", "language": "zh", "text": "打開 Airdraft 之後直接按快捷鍵就可以聽寫。", "terms": ["Airdraft"]},
+    {"id": "zh07", "language": "zh", "text": "網站部署在 Vercel 上面，數據看 PostHog。", "terms": ["Vercel", "PostHog"]},
+    {"id": "zh08", "language": "zh", "text": "鈺德的報價單在共用資料夾裡。", "terms": ["鈺德"]},
+    {"id": "zh09", "language": "zh", "text": "今天下午三點在會議室開會。", "terms": []},
+    {"id": "zh10", "language": "zh", "text": "記得在下班前把報告交出去。", "terms": []},
+    {"id": "zh11", "language": "zh", "text": "這家餐廳的牛肉麵很好吃。", "terms": []}
+  ],
+  "silence": [
+    {"id": "sil03", "seconds": 3, "noise_dbfs": -60},
+    {"id": "sil08", "seconds": 8, "noise_dbfs": -55}
+  ]
+}

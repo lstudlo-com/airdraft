@@ -1,5 +1,6 @@
 import Foundation
 import SherpaOnnxC
+import Synchronization
 
 /// Offline recognizers served by sherpa-onnx (ONNX Runtime on CPU).
 /// Models load from `LocalModels.sherpaFolder`; installation is explicit.
@@ -54,6 +55,11 @@ public actor SherpaTranscriber: Transcriber {
             }
         }
 
+        /// NeMo transducers accept per-stream hotwords through sherpa-onnx's
+        /// modified beam search (context graph). SenseVoice (CTC) and
+        /// FireRedASR2 (AED) have no biasing input in the offline C API.
+        public var supportsHotwords: Bool { self == .parakeet || self == .orukeet }
+
         func onnxFilename(for prefix: String, in names: [String]) -> String? {
             if self == .parakeet || self == .orukeet {
                 let filename = "\(prefix).int8.onnx"
@@ -75,6 +81,22 @@ public actor SherpaTranscriber: Transcriber {
     private let modelDirectory: URL
     private var recognizer: Recognizer?
     private var recognizerConfiguration: RecognizerConfiguration?
+    /// Pieces of the loaded transducer's tokens.txt, for hotword coverage.
+    private var tokenVocabulary: TokenVocabulary?
+    /// Whether the next transducer recognizer should use hotword decoding.
+    /// `prepare()` has no hints, so recording start (and each transcription)
+    /// records the captured choice here. It survives idle unloading, and a
+    /// prewarm then builds the recognizer the dictation will use instead of
+    /// rebuilding it after recording.
+    private static let anticipatedHotwordDecoding = Mutex(false)
+
+    /// Call with the recording's captured hints before prewarming the model.
+    public static func anticipate(_ hints: TranscriptionHints) {
+        let wanted = !hints.onDeviceVocabulary.isEmpty
+        anticipatedHotwordDecoding.withLock { $0 = wanted }
+    }
+
+    static var anticipatesHotwordDecoding: Bool { anticipatedHotwordDecoding.withLock { $0 } }
 
     public init(model: Model) {
         self.model = model
@@ -95,13 +117,15 @@ public actor SherpaTranscriber: Transcriber {
         try Task.checkCancellation()
         // A factory prepare precedes each transcription. Keep a warm recognizer's
         // language here; the next transcription resolves its own current hint.
-        let configuration = try recognizerConfiguration ?? RecognizerConfiguration(model: model)
+        let configuration = try recognizerConfiguration
+            ?? RecognizerConfiguration(model: model, hotwordDecoding: Self.anticipatesHotwordDecoding)
         _ = try loadedRecognizer(configuration: configuration)
     }
 
     public func unload() async {
         recognizer = nil
         recognizerConfiguration = nil
+        tokenVocabulary = nil
     }
 
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
@@ -110,19 +134,25 @@ public actor SherpaTranscriber: Transcriber {
         // Validate before inspecting files or entering the native runtime, including
         // callers that use this adapter without the pipeline's preflight.
         let configuration = try RecognizerConfiguration(model: model, hints: hints)
+        Self.anticipate(hints)
         let recognizer = try loadedRecognizer(configuration: configuration)
+        let hotwords = configuration.hotwordDecoding
+            ? tokenVocabulary.flatMap { Self.hotwords(hints.onDeviceVocabulary, vocabulary: $0) } : nil
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
         // are split at silences so memory and latency stay bounded.
-        let text = try AudioChunker.transcribe(samples, maxSeconds: 30) { Self.decode($0, with: recognizer.pointer) }
+        let text = try AudioChunker.transcribe(samples, maxSeconds: 30) {
+            Self.decode($0, with: recognizer.pointer, hotwords: hotwords)
+        }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
         // Joint-language decoders return no detected language through this API.
         // Do not report an ignored language hint as recognition metadata.
         return Transcript(text: text, language: configuration.language, engine: id, latencyMs: ms)
     }
 
-    private static func decode(_ samples: [Float], with recognizer: OpaquePointer) -> String {
-        guard let stream = SherpaOnnxCreateOfflineStream(recognizer) else { return "" }
+    private static func decode(_ samples: [Float], with recognizer: OpaquePointer, hotwords: String?) -> String {
+        let created = hotwords.map { SherpaOnnxCreateOfflineStreamWithHotwords(recognizer, $0) } ?? SherpaOnnxCreateOfflineStream(recognizer)
+        guard let stream = created else { return "" }
         defer { SherpaOnnxDestroyOfflineStream(stream) }
         SherpaOnnxAcceptWaveformOffline(stream, 16_000, samples, Int32(samples.count))
         SherpaOnnxDecodeOfflineStream(recognizer, stream)
@@ -141,16 +171,46 @@ public actor SherpaTranscriber: Transcriber {
         // retain the old decoder or temporarily double its memory use.
         recognizer = nil
         recognizerConfiguration = nil
+        tokenVocabulary = nil
         try Task.checkCancellation()
         let files = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
-        let pointer = configuration.withCConfiguration(folder: folder, files: files) {
+        var vocabulary: TokenVocabulary?
+        var scoredVocabulary: URL?
+        if configuration.hotwordDecoding {
+            // sherpa-onnx encodes hotword text with a scored BPE vocabulary
+            // (modeling_unit "bpe"). The NeMo archives ship tokens.txt only, so
+            // the scored list goes to a temporary file outside the verified
+            // model folder and is deleted once the recognizer has read it.
+            let tokens = try TokenVocabulary(contentsOf: folder.appendingPathComponent("tokens.txt"))
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("airdraft-hotword-vocab-\(UUID().uuidString).txt")
+            try tokens.scoredVocabulary().write(to: url, atomically: true, encoding: .utf8)
+            vocabulary = tokens
+            scoredVocabulary = url
+        }
+        defer { if let scoredVocabulary { try? FileManager.default.removeItem(at: scoredVocabulary) } }
+        let pointer = configuration.withCConfiguration(folder: folder, files: files, bpeVocabulary: scoredVocabulary?.path) {
             SherpaOnnxCreateOfflineRecognizer(&$0)
         }
         guard let pointer else { throw TranscriberError.modelNotDownloaded }
         let created = Recognizer(pointer)
         recognizer = created
         recognizerConfiguration = configuration
+        tokenVocabulary = vocabulary
         return created
+    }
+
+    /// sherpa-onnx boost added to each matched hotword token.
+    static let hotwordScore: Float = 1.5
+
+    /// One phrase per term, separated by "/" (sherpa-onnx's per-stream line
+    /// separator). A term the model's pieces cannot spell is skipped, because
+    /// sherpa-onnx would otherwise boost the spellable prefix alone.
+    static func hotwords(_ terms: [String], vocabulary: TokenVocabulary) -> String? {
+        let phrases = terms.filter { term in
+            term.split(separator: " ").allSatisfy { vocabulary.canEncode("\u{2581}" + $0) }
+        }
+        return phrases.isEmpty ? nil : phrases.joined(separator: "/")
     }
 
     /// The same value owns native configuration and cache identity. Tests inspect
@@ -158,9 +218,22 @@ public actor SherpaTranscriber: Transcriber {
     struct RecognizerConfiguration: Equatable {
         let model: Model
         let language: String?
+        /// Modified beam search with a hotword context graph. Greedy search
+        /// otherwise, which is also the only method the other models accept.
+        let hotwordDecoding: Bool
 
         init(model: Model, hints: TranscriptionHints = .init()) throws {
+            try self.init(model: model, hints: hints,
+                          hotwordDecoding: model.supportsHotwords && !hints.onDeviceVocabulary.isEmpty)
+        }
+
+        init(model: Model, hotwordDecoding: Bool) throws {
+            try self.init(model: model, hints: .init(), hotwordDecoding: hotwordDecoding)
+        }
+
+        private init(model: Model, hints: TranscriptionHints, hotwordDecoding: Bool) throws {
             self.model = model
+            self.hotwordDecoding = hotwordDecoding && model.supportsHotwords
             let kind: ASRProviderKind
             switch model {
             case .senseVoice: kind = .senseVoice
@@ -172,7 +245,7 @@ public actor SherpaTranscriber: Transcriber {
             language = try SpeechLanguagePolicy.resolve(config).language
         }
 
-        func withCConfiguration<Value>(folder: URL, files: [String],
+        func withCConfiguration<Value>(folder: URL, files: [String], bpeVocabulary: String? = nil,
                                        _ body: (inout SherpaOnnxOfflineRecognizerConfig) throws -> Value) rethrows -> Value {
             func onnx(_ prefix: String) -> String {
                 model.onnxFilename(for: prefix, in: files).map { folder.appendingPathComponent($0).path } ?? ""
@@ -208,9 +281,72 @@ public actor SherpaTranscriber: Transcriber {
                 config.model_config.transducer.encoder = c(onnx("encoder"))
                 config.model_config.transducer.decoder = c(onnx("decoder"))
                 config.model_config.transducer.joiner = c(onnx("joiner"))
-                config.decoding_method = c("greedy_search")
+                if hotwordDecoding, let bpeVocabulary {
+                    // "bpe" without a vocabulary would dereference a null encoder
+                    // in sherpa-onnx, so both are set together or not at all.
+                    config.decoding_method = c("modified_beam_search")
+                    config.max_active_paths = 4
+                    config.hotwords_score = SherpaTranscriber.hotwordScore
+                    config.model_config.modeling_unit = c("bpe")
+                    config.model_config.bpe_vocab = c(bpeVocabulary)
+                } else {
+                    config.decoding_method = c("greedy_search")
+                }
             }
             return try body(&config)
+        }
+    }
+}
+
+extension SherpaTranscriber {
+    /// The SentencePiece pieces of a transducer's tokens.txt ("piece id" lines).
+    struct TokenVocabulary: Sendable, Equatable {
+        /// Pieces in file order; whitespace-bearing or malformed lines are skipped.
+        let pieces: [String]
+        private let byteSet: Set<[UInt8]>
+        private let longestPiece: Int
+
+        init(contentsOf url: URL) throws {
+            try self.init(text: String(contentsOf: url, encoding: .utf8))
+        }
+
+        init(text: String) {
+            var pieces: [String] = []
+            for line in text.split(whereSeparator: \.isNewline) {
+                let fields = line.split(separator: " ", omittingEmptySubsequences: false)
+                guard fields.count == 2, !fields[0].isEmpty, Int(fields[1]) != nil else { continue }
+                pieces.append(String(fields[0]))
+            }
+            self.pieces = pieces
+            byteSet = Set(pieces.map { Array($0.utf8) })
+            longestPiece = pieces.map(\.utf8.count).max() ?? 0
+        }
+
+        /// Whether `word` (with its leading "▁") splits entirely into pieces,
+        /// over UTF-8 bytes like the sherpa-onnx encoder.
+        func canEncode(_ word: String) -> Bool {
+            let bytes = Array(word.utf8)
+            guard !bytes.isEmpty, longestPiece > 0 else { return false }
+            var reachable = [Bool](repeating: false, count: bytes.count + 1)
+            reachable[0] = true
+            for start in 0..<bytes.count where reachable[start] {
+                for end in (start + 1)...min(bytes.count, start + longestPiece) where !reachable[end] {
+                    if byteSet.contains(Array(bytes[start..<end])) { reachable[end] = true }
+                }
+            }
+            return reachable[bytes.count]
+        }
+
+        /// "piece score" lines for sherpa-onnx's bundled simple-sentencepiece,
+        /// which picks the highest-scoring split. Every piece costs about 1, so
+        /// the split with the fewest pieces wins, ties going to the lower
+        /// (more frequent) token ID. The encoder exits the process on a
+        /// malformed line, so only validated pieces are written.
+        func scoredVocabulary() -> String {
+            let count = Float(max(pieces.count, 1))
+            return pieces.enumerated()
+                .map { "\($0.element) \(-1 - Float($0.offset) / count)" }
+                .joined(separator: "\n") + "\n"
         }
     }
 }

@@ -38,10 +38,16 @@ public actor Qwen3ASRTranscriber: Transcriber {
         resolvedHints.language = language
         let options = try Self.decodingOptions(for: resolvedHints,
             allowUnverifiedLanguage: resolved.capabilities.manualControl == .unknown)
+        let terms = resolvedHints.onDeviceVocabulary
+        var plainHints = resolvedHints
+        plainHints.biasOnDeviceSpeech = false
+        let fallback = plainHints.contextText
         let model = try await loadedModel()
         let started = Date()
-        let text = try AudioChunker.transcribe(samples, maxSeconds: 25) {
-            model.transcribe(audio: $0, sampleRate: 16_000, options: options)
+        let text = try AudioChunker.transcribe(samples, maxSeconds: 25) { chunk in
+            Self.decodeGuardingVocabulary(chunk, options: options, fallbackContext: fallback, terms: terms) {
+                model.transcribe(audio: $0, sampleRate: 16_000, options: $1)
+            }
         }
         let ms = Int(Date().timeIntervalSince(started) * 1000)
         return Transcript(text: text, language: language, engine: id, latencyMs: ms)
@@ -73,6 +79,20 @@ public actor Qwen3ASRTranscriber: Transcriber {
         // 448 tokens per chunk can cut fast or English-heavy speech mid-sentence.
         options.maxTokens = 1024
         return options
+    }
+
+    /// AD-081: the vocabulary is decoder context, which Qwen can return as the
+    /// transcript when a chunk holds no speech. Near-silent chunks decode
+    /// without it, and an output that only lists vocabulary terms is decoded
+    /// once more without it. `fallbackContext` keeps the script sentence.
+    static func decodeGuardingVocabulary(_ chunk: [Float], options: Qwen3DecodingOptions, fallbackContext: String?,
+                                         terms: [String], decode: ([Float], Qwen3DecodingOptions) -> String) -> String {
+        guard !terms.isEmpty else { return decode(chunk, options) }
+        var plain = options
+        plain.context = fallbackContext
+        if SpeechVocabulary.isNearSilent(chunk) { return decode(chunk, plain) }
+        let text = decode(chunk, options)
+        return SpeechVocabulary.echoesTerms(text, terms: terms) ? decode(chunk, plain) : text
     }
 
     private func loadedModel() async throws -> Qwen3ASRModel {

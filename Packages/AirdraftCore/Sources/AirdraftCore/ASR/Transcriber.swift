@@ -3,14 +3,28 @@ import Foundation
 public struct TranscriptionHints: Sendable {
     /// ISO 639-1 code, or nil for auto-detect.
     public var language: String?
-    /// Dictionary terms used to bias decoding.
+    /// Preferred dictionary spellings (never aliases). Cloud providers send
+    /// these through their own keyword fields.
     public var vocabulary: [String]
     public var chineseScript: ChineseScript
+    /// Settings > Vocabulary "Use in on-device recognition", captured with the
+    /// recording. Off keeps on-device decoding free of dictionary terms;
+    /// cloud keyword fields are unaffected.
+    public var biasOnDeviceSpeech: Bool
 
-    public init(language: String? = nil, vocabulary: [String] = [], chineseScript: ChineseScript = .auto) {
+    public init(language: String? = nil, vocabulary: [String] = [], chineseScript: ChineseScript = .auto,
+                biasOnDeviceSpeech: Bool = true) {
         self.language = language
         self.vocabulary = vocabulary
         self.chineseScript = chineseScript
+        self.biasOnDeviceSpeech = biasOnDeviceSpeech
+    }
+
+    /// Bounded, language-filtered terms for on-device runtimes with a measured
+    /// biasing input (Qwen3-ASR context, sherpa-onnx transducer hotwords).
+    /// Empty when biasing is off.
+    public var onDeviceVocabulary: [String] {
+        biasOnDeviceSpeech ? SpeechVocabulary.terms(vocabulary, language: language) : []
     }
 
     /// Whisper-style "initial prompt". A short sentence in the wanted script
@@ -34,7 +48,7 @@ public struct TranscriptionHints: Sendable {
 
     /// Context for engines with a dedicated hot-word context (Qwen3-ASR).
     public var contextText: String? {
-        let terms = vocabulary.filter { !$0.isEmpty }
+        let terms = onDeviceVocabulary
         let parts = [promptText, terms.isEmpty ? nil : terms.joined(separator: ", ")].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " ")
     }

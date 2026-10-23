@@ -134,6 +134,8 @@ public final class DictationPipeline {
         let useAppContext: Bool
         /// The destination's bundle ID that chose `profile` (AD-080); nil without one.
         var profileApp: String? = nil
+        /// Captured with the dictionary so a toggle mid-recording applies to the next one.
+        var vocabularyBiasesOnDeviceSpeech = true
     }
     var recordingAtStart: RecordingSnapshot?
     let sendScript: @Sendable (String, String) async throws -> Void
