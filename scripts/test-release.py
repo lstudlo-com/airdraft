@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 import runpy
+import shutil
 import subprocess
 import tarfile
 from pathlib import Path
@@ -18,6 +19,9 @@ import release_signing
 spec = importlib.util.spec_from_file_location('release', Path(__file__).with_name('release.py'))
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
+adhoc_spec = importlib.util.spec_from_file_location('adhoc', Path(__file__).with_name('verify-adhoc-launch.py'))
+adhoc = importlib.util.module_from_spec(adhoc_spec)
+adhoc_spec.loader.exec_module(adhoc)
 
 class ReleaseTests(unittest.TestCase):
     def test_export_uses_committed_native_verifier_before_linking_vendor(self):
@@ -309,6 +313,112 @@ class ReleaseTests(unittest.TestCase):
                         root, run=lambda *a, **k: result, log=lambda _: None,
                         environ={'AIRDRAFT_LOCAL_SIGNING': 'ad-hoc'}), 'ad-hoc')
                 self.assertFalse(local.exists())
+
+    def fake_xcodegen(self, root, version='2.46.0'):
+        """A disposable XcodeGen tree whose binary prints the given version."""
+        tree = root / 'xcodegen'
+        (tree / 'bin').mkdir(parents=True)
+        (tree / 'share/xcodegen/SettingPresets').mkdir(parents=True)
+        (tree / 'share/xcodegen/SettingPresets/base.yml').write_text('fixture: true\n')
+        binary = tree / 'bin/xcodegen'
+        binary.write_text(f'#!/bin/sh\necho "Version: {version}"\n')
+        binary.chmod(0o755)
+        return binary
+
+    def test_xcodegen_rejects_installed_copies_that_are_not_the_pinned_tree(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            pinned = self.fake_xcodegen(root / 'repo/dist/tools')
+            other = self.fake_xcodegen(root / 'homebrew')
+            (other.parents[1] / 'INSTALL_RECEIPT.json').write_text('{}')
+            digest = release.xcodegen_tree_digest(pinned.parents[1])
+            with patch.object(release, 'ROOT', root / 'repo'), \
+                    patch.object(release, 'XCODEGEN_TREE_SHA256', digest), \
+                    patch.object(release.shutil, 'which', return_value=str(other)), \
+                    patch.object(release, 'run') as run:
+                self.assertEqual(release.xcodegen(), pinned)
+                run.assert_not_called()
+            with patch.object(release, 'ROOT', root / 'repo'), \
+                    patch.object(release, 'XCODEGEN_TREE_SHA256', digest), \
+                    patch.object(release.shutil, 'which', return_value=str(pinned)):
+                self.assertEqual(release.xcodegen(), pinned)
+            # A pinned tree whose binary was swapped, or that reports another version, is refused.
+            pinned.write_text('#!/bin/sh\necho "Version: 2.46.0"\n# tampered\n')
+            with patch.object(release, 'ROOT', root / 'repo'), \
+                    patch.object(release, 'XCODEGEN_TREE_SHA256', digest), \
+                    patch.object(release.shutil, 'which', return_value=None):
+                with self.assertRaisesRegex(RuntimeError, 'not the pinned XcodeGen'):
+                    release.xcodegen()
+            wrong = self.fake_xcodegen(root / 'wrong-version', version='2.45.0')
+            with patch.object(release, 'XCODEGEN_TREE_SHA256', release.xcodegen_tree_digest(wrong.parents[1])):
+                self.assertFalse(release.pinned_xcodegen(wrong))
+
+    def test_xcodegen_download_requires_archive_checksum_and_tree_digest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+
+            def fake_run(*args, **kwargs):
+                if args[0] == 'curl':
+                    Path(args[args.index('--output') + 1]).write_bytes(b'not the release archive')
+                elif args[0] == 'ditto':
+                    self.fake_xcodegen(Path(args[-1]), version='9.9.9')
+
+            with patch.object(release, 'ROOT', root), \
+                    patch.object(release.shutil, 'which', return_value=None), \
+                    patch.object(release, 'run', side_effect=fake_run) as run:
+                with self.assertRaisesRegex(RuntimeError, 'checksum mismatch'):
+                    release.xcodegen()
+                curl = run.call_args_list[0].args
+                self.assertIn('=https', curl)
+                self.assertEqual(curl[-1], release.XCODEGEN_URL)
+            archive = root / f'dist/tools/xcodegen-{release.XCODEGEN_VERSION}.zip'
+            with patch.object(release, 'ROOT', root), \
+                    patch.object(release, 'XCODEGEN_SHA256', release.sha256(archive)), \
+                    patch.object(release.shutil, 'which', return_value=None), \
+                    patch.object(release, 'run', side_effect=fake_run):
+                with self.assertRaisesRegex(RuntimeError, 'tree digest or version'):
+                    release.xcodegen()
+
+    def test_xcodegen_pin_matches_ci(self):
+        workflow = (Path(release.__file__).resolve().parents[1] / '.github/workflows/ci.yml').read_text()
+        self.assertIn(release.XCODEGEN_URL, workflow)
+        self.assertIn('release.pinned_xcodegen', workflow)
+        self.assertIn(f'xcodegen-{release.XCODEGEN_VERSION}', workflow)
+
+    def test_adhoc_negative_control_follows_measured_library_validation(self):
+        self.assertEqual(adhoc.negative_control_decision('enforced', launched=False), 'refused')
+        self.assertEqual(adhoc.negative_control_decision('not-enforced', launched=True), 'not-applicable')
+        with self.assertRaisesRegex(RuntimeError, 'unexpectedly launched'):
+            adhoc.negative_control_decision('enforced', launched=True)
+        with self.assertRaisesRegex(RuntimeError, 'disagrees'):
+            adhoc.negative_control_decision('not-enforced', launched=False)
+
+    def test_library_validation_probe_classifies_dyld_outcomes(self):
+        refusal = ("dyld[1]: Library not loaded: @rpath/libprobe.dylib ... mapping process and mapped "
+                   "file (non-platform) have different Team IDs")
+        cases = [((0, ''), (0, ''), 'not-enforced'), ((0, ''), (134, refusal), 'enforced'),
+                 ((0, ''), (1, 'segmentation fault'), None), ((1, 'broken'), (0, ''), None)]
+        for control, probe, expected in cases:
+            def fake_run(command, **kwargs):
+                name = Path(command[0]).name
+                if name in ('control', 'probe'):
+                    code, output = control if name == 'control' else probe
+                    return subprocess.CompletedProcess(command, code, stdout='', stderr=output)
+                return subprocess.CompletedProcess(command, 0, stdout='', stderr='')
+            with self.subTest(control=control, probe=probe), tempfile.TemporaryDirectory() as temporary, \
+                    patch.object(adhoc.subprocess, 'run', side_effect=fake_run):
+                if expected is None:
+                    with self.assertRaises(RuntimeError):
+                        adhoc.library_validation_probe(Path(temporary) / 'probe')
+                else:
+                    self.assertEqual(adhoc.library_validation_probe(Path(temporary) / 'probe')[0], expected)
+
+    @unittest.skipUnless(shutil.which('xcrun') and shutil.which('codesign'), 'needs the Xcode toolchain')
+    def test_library_validation_probe_runs_on_this_host(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            status, outcomes = adhoc.library_validation_probe(Path(temporary) / 'probe')
+        self.assertIn(status, ('enforced', 'not-enforced'))
+        self.assertEqual(outcomes['control']['exit'], 0)
 
     def test_bundled_acknowledgements_match_resolved_inputs(self):
         self.assertTrue(acknowledgements.check_inputs(Path(release.__file__).resolve().parents[1]))

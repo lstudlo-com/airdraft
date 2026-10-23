@@ -14,8 +14,18 @@ directory and a Home render. It never touches this checkout's Local.xcconfig.
 `--app` verifies an existing ad-hoc build instead (CI). A negative control
 re-signs a copy with Hardened Runtime and requires dyld to refuse it, so the
 check cannot pass vacuously.
+
+The negative control depends on the host enforcing library validation. Hosted
+CI VMs can run with it relaxed (for example with System Integrity Protection
+disabled), so a tiny ad-hoc + Hardened Runtime probe executable that links an
+ad-hoc dylib measures enforcement first. Where the probe is refused, the
+negative control is mandatory. Where the probe launches, the negative control
+still runs and is recorded as not applicable, and it must launch as well: a
+probe that disagrees with the real app fails the check in both directions.
+`--require-library-validation` makes a non-enforcing host a failure.
 """
 import argparse
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -111,7 +121,7 @@ def launch(app, directory, timeout):
     return code, output, pngs
 
 
-def verify(app, work, timeout, negative):
+def verify(app, work, timeout, negative, require_enforcement=False):
     app = app.resolve(strict=True)
     run(["codesign", "--verify", "--deep", "--strict", str(app)])
     details, flags = signature(app)
@@ -125,16 +135,106 @@ def verify(app, work, timeout, negative):
         raise RuntimeError(f"ad-hoc app did not launch and render (exit {code}, renders {pngs}); "
                            f"see {work / 'launch/launch.log'}")
     print(f"PASS: ad-hoc build launched, loaded its frameworks and rendered {', '.join(pngs)}")
-    if negative:
+    if not negative:
+        print("SKIPPED: negative control (--skip-negative)")
+        return
+    evidence = {"host": host_facts()}
+    evidence_path = work / "negative-control.json"
+    try:
+        enforcement, evidence["probe"] = library_validation_probe(work / "library-validation-probe")
+        evidence["libraryValidation"] = enforcement
+        print(f"Library validation on this host: {enforcement} ({evidence['host'].get('csrutil', '')})", flush=True)
+        if enforcement != "enforced" and require_enforcement:
+            evidence["negativeControl"] = "failed"
+            raise RuntimeError("this host does not enforce library validation (--require-library-validation)")
         copy = work / "negative" / app.name
         copy.parent.mkdir()
         run(["ditto", str(app), str(copy)])
         run(["codesign", "--force", "--sign", "-", "--options", "runtime",
              "--preserve-metadata=identifier,entitlements", str(copy)], capture_output=True)
         code, output, _ = launch(copy, work / "negative/launch", timeout)
-        if code == 0 or not DYLD_FAILURE.search(output):
-            raise RuntimeError("negative control: ad-hoc + Hardened Runtime unexpectedly launched")
+        launched = code == 0 and not DYLD_FAILURE.search(output)
+        evidence["negativeLaunch"] = {"exit": code, "dyldRefusal": bool(DYLD_FAILURE.search(output))}
+        evidence["negativeControl"] = "failed"
+        evidence["negativeControl"] = negative_control_decision(enforcement, launched)
+    finally:
+        evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
+    if evidence["negativeControl"] == "refused":
         print("PASS: negative control (ad-hoc + Hardened Runtime) is refused by dyld")
+    else:
+        print("NOT APPLICABLE: negative control. This host does not enforce library validation: the "
+              "ad-hoc + Hardened Runtime probe and the re-signed app both launched. Recorded in "
+              f"{evidence_path}; a host that enforces it (the release Mac) still requires the refusal.")
+
+
+PROBE_LIBRARY = "int airdraft_probe(void) { return 42; }\n"
+PROBE_MAIN = "int airdraft_probe(void);\nint main(void) { return airdraft_probe() == 42 ? 0 : 3; }\n"
+
+
+def host_facts():
+    """Read-only host context for the evidence; never used to decide enforcement."""
+    facts = {}
+    for name, command in (("csrutil", ["csrutil", "status"]), ("productVersion", ["sw_vers", "-productVersion"])):
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            facts[name] = (result.stdout + result.stderr).strip()
+        except (OSError, subprocess.TimeoutExpired) as error:
+            facts[name] = f"unavailable: {error}"
+    return facts
+
+
+def library_validation_probe(directory, timeout=30):
+    """Measure whether dyld refuses an ad-hoc dylib in an ad-hoc Hardened Runtime process.
+
+    Returns "enforced" or "not-enforced" with evidence. An unsigned-runtime
+    control built from the same objects must launch, otherwise the probe
+    itself is broken and the check fails closed.
+    """
+    directory.mkdir(parents=True)
+    (directory / "library.c").write_text(PROBE_LIBRARY)
+    (directory / "main.c").write_text(PROBE_MAIN)
+    quiet = dict(capture_output=True, text=True, timeout=120)
+    subprocess.run(["xcrun", "clang", "-dynamiclib", "-o", "libprobe.dylib", "library.c",
+                    "-install_name", "@rpath/libprobe.dylib"], cwd=directory, check=True, **quiet)
+    for name in ("probe", "control"):
+        subprocess.run(["xcrun", "clang", "-o", name, "main.c", "-L.", "-lprobe",
+                        "-Wl,-rpath,@executable_path"], cwd=directory, check=True, **quiet)
+    signing = [("libprobe.dylib", []), ("control", []), ("probe", ["--options", "runtime"])]
+    for name, options in signing:
+        subprocess.run(["codesign", "--force", "--sign", "-", *options, "--identifier",
+                        f"com.lstudlo.airdraft.library-validation-probe.{name}", name],
+                       cwd=directory, check=True, **quiet)
+    outcomes = {}
+    for name in ("control", "probe"):
+        try:
+            result = subprocess.run([str(directory / name)], cwd=directory, capture_output=True,
+                                    text=True, timeout=timeout)
+            outcomes[name] = {"exit": result.returncode, "output": (result.stdout + result.stderr).strip()}
+        except subprocess.TimeoutExpired:
+            outcomes[name] = {"exit": None, "output": "timed out"}
+    if outcomes["control"]["exit"] != 0:
+        raise RuntimeError(f"library validation probe control did not run: {outcomes['control']}")
+    probe = outcomes["probe"]
+    if probe["exit"] == 0:
+        status = "not-enforced"
+    elif DYLD_FAILURE.search(probe["output"]):
+        status = "enforced"
+    else:
+        raise RuntimeError(f"library validation probe failed for another reason: {probe}")
+    return status, outcomes
+
+
+def negative_control_decision(enforcement, launched):
+    """Map the probe and the re-signed app's outcome to a recorded result."""
+    if enforcement == "enforced":
+        if launched:
+            raise RuntimeError("negative control: ad-hoc + Hardened Runtime unexpectedly launched "
+                               "although this host enforces library validation")
+        return "refused"
+    if not launched:
+        raise RuntimeError("negative control was refused although the library validation probe "
+                           "launched; the probe disagrees with the app")
+    return "not-applicable"
 
 
 def remove_derived_data(objroot, source):
@@ -156,6 +256,9 @@ def main():
     parser.add_argument("--timeout", type=int, default=180, help="launch deadline in seconds")
     parser.add_argument("--keep", action="store_true", help="keep the clone and its DerivedData")
     parser.add_argument("--skip-negative", action="store_true", help="skip the Hardened Runtime negative control")
+    parser.add_argument("--require-library-validation", action="store_true",
+                        help="fail instead of recording the negative control as not applicable on a host "
+                             "that does not enforce library validation")
     args = parser.parse_args()
     work = (args.output or Path(tempfile.mkdtemp(prefix="airdraft-adhoc-"))).resolve()
     work.mkdir(parents=True, exist_ok=True)
@@ -167,7 +270,7 @@ def main():
             app = args.app
         else:
             app, objroot = clone_and_build(work, work / "build.log")
-        verify(app, work, args.timeout, not args.skip_negative)
+        verify(app, work, args.timeout, not args.skip_negative, args.require_library_validation)
     finally:
         if objroot and not args.keep:
             remove_derived_data(objroot, work / "airdraft")

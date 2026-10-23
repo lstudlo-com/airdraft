@@ -25,7 +25,11 @@ REPO = "lstudlo-com/airdraft"
 ACCOUNT = "com.lstudlo.app.airdraft.sparkle"
 ROOT = Path(__file__).resolve().parents[1]
 ZERO = "0" * 40
+XCODEGEN_VERSION = "2.46.0"
+XCODEGEN_URL = f"https://github.com/yonaskolb/XcodeGen/releases/download/{XCODEGEN_VERSION}/xcodegen.zip"
 XCODEGEN_SHA256 = "4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806"
+# Digest of the extracted xcodegen/ tree (binary and SettingPresets), see xcodegen_tree_digest.
+XCODEGEN_TREE_SHA256 = "5bfb20739477e4fea4498ebf319da56f4250acdf366798f2bbcd0ece2979e8f9"
 TEST_SCOPES = ("full", "credential-free")
 
 
@@ -189,20 +193,55 @@ def download_and_verify(tag, commit, directory):
     return manifest
 
 
+def xcodegen_tree_digest(tree):
+    """SHA-256 over every file's relative path and content digest in an XcodeGen tree."""
+    digest = hashlib.sha256()
+    for path in sorted(item for item in Path(tree).rglob("*") if item.is_file()):
+        digest.update(path.relative_to(tree).as_posix().encode() + b"\0" + sha256(path).encode() + b"\n")
+    return digest.hexdigest()
+
+
+def pinned_xcodegen(executable):
+    """True only for <tree>/bin/xcodegen whose whole tree and version match the release pin."""
+    path = Path(executable).resolve()
+    if path.name != "xcodegen" or path.parent.name != "bin" or not path.is_file():
+        return False
+    if xcodegen_tree_digest(path.parent.parent) != XCODEGEN_TREE_SHA256:
+        return False
+    version = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=60)
+    return version.returncode == 0 and version.stdout.split() == ["Version:", XCODEGEN_VERSION]
+
+
 def xcodegen():
-    installed = shutil.which("xcodegen")
-    if installed:
-        return installed
+    """Return the pinned XcodeGen; never an arbitrary installed copy.
+
+    An XcodeGen on PATH is used only when it is the verified release tree (CI
+    puts the checksum-verified download there). Otherwise the pinned archive is
+    downloaded into dist/tools, checked against XCODEGEN_SHA256 and extracted;
+    the extracted tree must match XCODEGEN_TREE_SHA256 and report the version.
+    """
     directory = ROOT / "dist/tools"
     executable = directory / "xcodegen/bin/xcodegen"
-    if not executable.exists():
-        directory.mkdir(parents=True, exist_ok=True)
-        archive = directory / "xcodegen-2.46.0.zip"
-        run("curl", "--fail", "--location", "--retry", "3", "--output", archive,
-            "https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip")
-        if sha256(archive) != XCODEGEN_SHA256:
-            raise RuntimeError("XcodeGen download checksum mismatch")
-        run("ditto", "-xk", archive, directory)
+    installed = shutil.which("xcodegen")
+    if installed and pinned_xcodegen(installed):
+        return Path(installed)
+    if installed:
+        print(f"Ignoring {installed}: not the pinned XcodeGen {XCODEGEN_VERSION} release tree.", flush=True)
+    if executable.exists():
+        if pinned_xcodegen(executable):
+            return executable
+        raise RuntimeError(f"{executable.parent.parent} is not the pinned XcodeGen {XCODEGEN_VERSION}; "
+                           "remove it so release preparation can download the verified copy")
+    directory.mkdir(parents=True, exist_ok=True)
+    archive = directory / f"xcodegen-{XCODEGEN_VERSION}.zip"
+    if not archive.exists():
+        run("curl", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https",
+            "--retry", "3", "--output", archive, XCODEGEN_URL)
+    if sha256(archive) != XCODEGEN_SHA256:
+        raise RuntimeError("XcodeGen download checksum mismatch")
+    run("ditto", "-xk", archive, directory)
+    if not pinned_xcodegen(executable):
+        raise RuntimeError("Extracted XcodeGen does not match its pinned tree digest or version")
     return executable
 
 
