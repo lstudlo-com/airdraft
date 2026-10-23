@@ -169,7 +169,7 @@ struct HomePage: View {
         }
         RowDivider()
         if container.settings.outputDestination == .script {
-            HealthRow(ok: outputReady, title: "Script output", detail: readiness.scriptDetail) {
+            HealthRow(tone: readiness.scriptTone, title: "Script output", detail: readiness.scriptDetail) {
                 Button("Configure") { container.navigation.page = .configuration }.buttonStyle(SoftButtonStyle())
             }
         } else {

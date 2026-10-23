@@ -2108,6 +2108,16 @@
         }
       }
     },
+    "Checking Apple Intelligence…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在檢查 Apple Intelligence…"
+          }
+        }
+      }
+    },
     "Checking language assets…" : {
       "localizations" : {
         "zh-Hant" : {
@@ -2128,12 +2138,32 @@
         }
       }
     },
+    "Checking model files…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在檢查模型檔案…"
+          }
+        }
+      }
+    },
     "Checking models…" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在檢查模型⋯"
+          }
+        }
+      }
+    },
+    "Checking script…" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在檢查腳本…"
           }
         }
       }

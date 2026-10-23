@@ -43,28 +43,73 @@ final class SetupFacts {
         var scriptIssue: String?
         var appleIntelligenceIssue: String?
         var cliMissing = false
+        /// Facts not yet measured for the current inputs. Readiness shows them as
+        /// being checked instead of measuring on the main actor.
+        var pending: Set<Fact> = []
     }
 
-    private(set) var measured: (inputs: Inputs, values: Values)?
+    enum Fact: Hashable, Sendable { case speech, script, appleIntelligence, cli }
+
+    /// Recent measurements, newest first, keyed by their inputs. Switching back
+    /// to an earlier model or script shows its last-known facts until the
+    /// refresh for those inputs lands.
+    private(set) var measurements: [(inputs: Inputs, values: Values)] = []
+    private static let measurementLimit = 8
     @ObservationIgnored private var refreshID = UUID()
     @ObservationIgnored private var downloadSignature: [String: Bool] = [:]
     @ObservationIgnored private var activationObserver: NSObjectProtocol?
+    private let measurer: @Sendable (Inputs) -> Values
+    private let measuresDuringRenders: Bool
 
-    /// The current values. Until the refresh for changed inputs lands (a few
-    /// milliseconds), this measures directly without storing, so a redraw never
-    /// shows facts about the previous model or script.
+    /// Fixtures inject the measurement and turn off the render shortcut below.
+    init(measurer: @escaping @Sendable (Inputs) -> Values = SetupFacts.measure, measuresDuringRenders: Bool = true) {
+        self.measurer = measurer
+        self.measuresDuringRenders = measuresDuringRenders
+    }
+
+    /// The current values, never measured here: view bodies call this on every
+    /// redraw. Facts whose inputs have no measurement yet are `pending` until
+    /// the off-main refresh (started whenever the inputs change) lands.
     func values(for inputs: Inputs) -> Values {
-        if let measured, measured.inputs == inputs { return measured.values }
-        return Self.measure(inputs)
+        if let exact = measurements.first(where: { $0.inputs == inputs }) { return exact.values }
+        // Debug renders and fixtures draw once without starting refreshes.
+        if measuresDuringRenders, RenderMode.isActive { return measurer(inputs) }
+        var values = Values()
+        func known<T>(_ fact: Fact, _ relevant: (Inputs) -> Bool, _ value: (Values) -> T) -> T? {
+            guard let match = measurements.first(where: { relevant($0.inputs) }) else {
+                values.pending.insert(fact)
+                return nil
+            }
+            return value(match.values)
+        }
+        if !inputs.speech.kind.isLocal {
+            values.speechInstalled = true
+        } else if let installed = known(.speech, { $0.speech == inputs.speech }, \.speechInstalled) {
+            values.speechInstalled = installed
+        }
+        if inputs.scriptPath != nil {
+            values.scriptIssue = known(.script, { $0.scriptPath == inputs.scriptPath }, \.scriptIssue) ?? nil
+        }
+        if inputs.llm.kind == .appleIntelligence {
+            values.appleIntelligenceIssue = known(.appleIntelligence, { $0.llm.kind == .appleIntelligence }, \.appleIntelligenceIssue) ?? nil
+        }
+        if inputs.llm.kind.isCLI {
+            let kind = inputs.llm.kind
+            values.cliMissing = known(.cli, { $0.llm.kind == kind && $0.llm.cliPaths[kind.rawValue] == inputs.llm.cliPaths[kind.rawValue] },
+                                      \.cliMissing) ?? false
+        }
+        return values
     }
 
     /// Measures off the main actor; a newer refresh rejects an older result.
     func refresh(_ inputs: Inputs) async {
         let token = UUID()
         refreshID = token
-        let values = await Task.detached(priority: .userInitiated) { Self.measure(inputs) }.value
+        let measurer = measurer
+        let values = await Task.detached(priority: .userInitiated) { measurer(inputs) }.value
         guard refreshID == token else { return }
-        if measured?.inputs != inputs || measured?.values != values { measured = (inputs, values) }
+        if measurements.first?.inputs == inputs, measurements.first?.values == values { return }
+        measurements = [(inputs, values)] + measurements.filter { $0.inputs != inputs }.prefix(Self.measurementLimit - 1)
     }
 
     nonisolated static func measure(_ inputs: Inputs) -> Values {
@@ -88,7 +133,7 @@ final class SetupFacts {
             guard let self, let container else { return }
             let signature = container.downloads.jobs.mapValues { $0.progress == nil }
             let inputs = container.setupFactsInputs
-            guard measured?.inputs != inputs || signature != downloadSignature else { return }
+            guard measurements.first?.inputs != inputs || signature != downloadSignature else { return }
             downloadSignature = signature
             Task { await self.refresh(inputs) }
         }
@@ -115,7 +160,8 @@ extension AppContainer {
 
 /// The one readiness model behind Home's setup card and hero and the sidebar
 /// footer. Everything it reads is in memory: file and system checks come from
-/// `SetupFacts`.
+/// `SetupFacts`, and a fact still being measured shows as Checking (busy, not a
+/// setup step) rather than being measured during a redraw.
 @MainActor
 struct SetupReadiness {
     let container: AppContainer
@@ -199,18 +245,25 @@ struct SetupReadiness {
         String(localized: "Retry or discard a waiting recording above to record again")
     }
 
+    /// A script still being checked is not counted as a setup step.
     var outputReady: Bool {
         container.settings.outputDestination == .script
             ? facts.scriptIssue == nil
             : container.permissions.accessibilityGranted
     }
 
+    var scriptTone: StatusDot.Tone {
+        facts.pending.contains(.script) ? .busy : facts.scriptIssue == nil ? .ok : .attention
+    }
+
     /// Home's Script output row: the problem, or the script's file name.
     var scriptDetail: String {
-        facts.scriptIssue ?? URL(fileURLWithPath: container.settings.outputScriptPath).lastPathComponent
+        if facts.pending.contains(.script) { return String(localized: "Checking script…") }
+        return facts.scriptIssue ?? URL(fileURLWithPath: container.settings.outputScriptPath).lastPathComponent
     }
 
     /// The selected speech model's files are on disk, or it needs none.
+    /// False while they are still being checked.
     var speechInstalled: Bool { facts.speechInstalled }
 
     var microphoneReady: Bool {
@@ -236,6 +289,7 @@ struct SetupReadiness {
             guard asr.kind.preset != nil else { return String(localized: "Custom endpoint") }
             return speechKeyPresent ? String(localized: "API key saved") : String(localized: "API key missing or locked")
         }
+        if facts.pending.contains(.speech) { return String(localized: "Checking model files…") }
         if !facts.speechInstalled { return String(localized: "Model not installed") }
         if speechLoadsOnDemand { return String(localized: "Loads when you dictate") }
         return container.engineStatus.state(for: asr.engineID).label
@@ -248,6 +302,7 @@ struct SetupReadiness {
         if container.effectiveProfile.speechModel?.unavailableReason != nil || speechLanguageIssue != nil { return .attention }
         let asr = container.speechConfig
         if !asr.kind.isLocal { return asr.kind.preset == nil || speechKeyPresent ? .ok : .attention }
+        if facts.pending.contains(.speech) { return .busy }
         guard facts.speechInstalled else { return .attention }
         switch container.engineStatus.state(for: asr.engineID) {
         case .ready, .notLoaded: return .ok
@@ -275,8 +330,12 @@ struct SetupReadiness {
     var refinementTone: StatusDot.Tone {
         let llm = container.settings.llm
         if llm.kind == .none || !container.effectiveProfile.usesLLM { return .inactive }
-        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue == nil ? .ok : .attention }
+        if llm.kind == .appleIntelligence {
+            if facts.pending.contains(.appleIntelligence) { return .busy }
+            return facts.appleIntelligenceIssue == nil ? .ok : .attention
+        }
         if refinementNeedsKey || facts.cliMissing { return .attention }
+        if facts.pending.contains(.cli) { return .busy }
         switch container.models.llmStatus.state {
         case .unreachable, .failed: return .attention
         case .loading, .unknown: return .busy
@@ -287,7 +346,10 @@ struct SetupReadiness {
     var refinementDetail: String {
         let llm = container.settings.llm
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "Off · original transcript") }
-        if llm.kind == .appleIntelligence { return facts.appleIntelligenceIssue ?? String(localized: "On-device · \(container.effectiveProfile.displayName)") }
+        if llm.kind == .appleIntelligence {
+            if facts.pending.contains(.appleIntelligence) { return String(localized: "Checking Apple Intelligence…") }
+            return facts.appleIntelligenceIssue ?? String(localized: "On-device · \(container.effectiveProfile.displayName)")
+        }
         let state = refinementNeedsKey ? String(localized: "API key needed") : container.models.llmStatus.label
         return "\(state) · \(container.effectiveProfile.displayName)"
     }
