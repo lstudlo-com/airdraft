@@ -361,7 +361,11 @@ public struct ASRConfig: Codable, Sendable, Equatable {
     /// Identity of the engine this config selects. Equal to the `id` of the
     /// transcriber EngineFactory builds for it, so the UI can look up load state.
     public var effectiveAppleLocale: String {
-        AppleSpeechTranscriber.locale(forLanguage: language) ?? appleLocale
+        // Mandarin follows the selected script: Simplified is zh-CN, not zh-TW.
+        if language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "zh" {
+            return chineseScript.appleMandarinLocale
+        }
+        return AppleSpeechTranscriber.locale(forLanguage: language) ?? appleLocale
     }
 
     public var engineID: String {

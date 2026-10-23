@@ -7,6 +7,8 @@ final class SpeechAdapterLanguageTests: XCTestCase {
         XCTAssertEqual(ASRConfig(kind: .apple, appleLocale: "zh-TW", language: "en_GB").effectiveAppleLocale, "en-GB")
         XCTAssertEqual(ASRConfig(kind: .apple, appleLocale: "zh-TW", language: "").effectiveAppleLocale, "zh-TW")
         XCTAssertEqual(ASRConfig(kind: .apple, appleLocale: "en-US", language: "zh").effectiveAppleLocale, "zh-TW")
+        XCTAssertEqual(ASRConfig(kind: .apple, appleLocale: "en-US", language: "zh", chineseScript: .simplified).effectiveAppleLocale,
+                       "zh-CN", "Simplified Mandarin uses the Mainland locale")
     }
 
     func testQwenUsesOfficialLanguageNamesAndPreservesAuto() throws {
