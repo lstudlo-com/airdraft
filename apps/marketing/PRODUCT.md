@@ -88,23 +88,30 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   as the multilingual alternative); Japanese and Korean get Qwen3-ASR 1.7B
   (Whisper Large v3 Turbo first on 8 GB or less); other languages get Whisper
   Large v3 Turbo. The Models page labels Qwen3-ASR 1.7B "Best for mixed Chinese
-  and English" and describes SenseVoice as "Small and fast for Chinese; weaker
-  with English and other languages." 0.11.0 and earlier recommended SenseVoice
+  and English" and describes SenseVoice as "Small and fast. Weaker with English
+  terms in Chinese speech." 0.11.0 and earlier recommended SenseVoice
   for English, Japanese and Korean, and 0.10.2 suggested it on a Mac set to
   Chinese too; name them only where the older recommendation matters.
+  "SenseVoice" is the original multilingual SenseVoiceSmall (163 MB). 0.11.0 and
+  earlier installed the WSYue Cantonese fine-tune under that name; the app now
+  shows it as "SenseVoice Cantonese" (166 MB), keeps it working for existing
+  installs and lists it only while it is in use. Measurements of the old
+  artifact stay as dated history labelled SenseVoice Cantonese.
   Qwen3-ASR and Whisper downloads are pinned to verified revisions from 0.11.0.
   Chinese script converts characters to Traditional by default and can be
   Simplified or Auto; Taiwan vocabulary comes from refinement. Parakeet does
   not support Chinese.
 - Mixed-language results come only from Airdraft's own measurement in
-  `eval/mixed-asr` (2026-10-21, one M4 Pro, ASCEND plus Taiwan-style TTS),
+  `eval/mixed-asr` (2026-10-21, one M4 Pro, ASCEND plus Taiwan-style TTS;
+  SenseVoice from its 2026-10-24 follow-up of the original model),
   held in `src/data/mixed-asr.ts`. Quote it as Airdraft's measurement with its
   date, method link and limits (five Hong Kong/Mainland speakers, synthetic
   Taiwan voice, one Mac, refinement off). Never generalize it into an accuracy
   claim or compare it with other apps.
 - English, Japanese and Korean results come only from Airdraft's own
   measurement in `eval/eja-asr` (2026-10-24, one M4 Pro, Google FLEURS read
-  speech, 60 clips per language), held in `src/data/eja-asr.ts` and shown in
+  speech, 60 clips per language; the original SenseVoice from the same-day
+  follow-up), held in `src/data/eja-asr.ts` and shown in
   the offline setup guide. Quote model output with its date, method link and
   limits (read Wikipedia sentences, not dictation; wide intervals; one Mac;
   refinement off). Never generalize it into an accuracy claim, a ranking or a

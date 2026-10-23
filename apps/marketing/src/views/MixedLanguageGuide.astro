@@ -3,13 +3,20 @@ import GuideLayout from "../layouts/GuideLayout.astro";
 import Surface from "../components/ui/Surface.astro";
 import Button from "../components/ui/Button.astro";
 import { guidesFor } from "../data/guides";
-import { mixedAsrResults, mixedAsrStudy } from "../data/mixed-asr";
+import {
+  mixedAsrFollowup,
+  mixedAsrResults,
+  mixedAsrStudy,
+  type MixedAsrDelta,
+} from "../data/mixed-asr";
 import { href, type Locale } from "../i18n";
 
 /**
  * Mixed Chinese–English dictation, in each language. The numbers come from
  * src/data/mixed-asr.ts (eval/mixed-asr in the repository) and are presented
- * as Airdraft's own measurement on one Mac, with its method and limits. App
+ * as Airdraft's own measurement on one Mac, with its method and limits; the
+ * SenseVoice row is the 2026-10-24 follow-up of the original model, and the
+ * earlier row of the Cantonese fine-tune stays as dated history. App
  * behavior follows SpeechLanguagePolicy, ChineseScriptConverter, PromptBuilder
  * and the current onboarding recommendation (AD-083 for English, Japanese and
  * Korean); 0.11.0's and 0.10.2's recommendations are named only where they
@@ -25,7 +32,35 @@ const guide = guidesFor(locale).find(
 )!;
 const zh = locale === "zh-tw";
 const study = mixedAsrStudy;
+const followup = mixedAsrFollowup;
 const percent = (value: number) => `${value.toFixed(1)}%`;
+const points = (value: number) => Math.abs(value).toFixed(1);
+const signed = (value: number) =>
+  `${value < 0 ? "−" : "+"}${Math.abs(value).toFixed(1)}`;
+const interval = (delta: MixedAsrDelta) =>
+  zh
+    ? `95% 區間 ${signed(delta.ci[0])} 到 ${signed(delta.ci[1])}`
+    : `95% interval ${signed(delta.ci[0])} to ${signed(delta.ci[1])}`;
+const qwenGap = followup.qwenVsSenseVoice;
+const tie = followup.originalVsCantonese;
+const [qwenRow, senseVoiceRow, cantoneseRow] = [
+  "Qwen3-ASR 1.7B",
+  "SenseVoice",
+  "SenseVoice Cantonese",
+].map((model) => mixedAsrResults.find((row) => row.model === model)!);
+// The follow-up's SenseVoice Cantonese rows equal AD-074's to three decimals,
+// so the dated history row also serves the paired comparison.
+// Sentences with several numbers are assembled here so the page's line
+// breaks never put spaces inside the parentheses.
+const qwenGapText = zh
+  ? `Qwen3-ASR 1.7B 的錯誤比 SenseVoice 少（${percent(qwenRow.mer)} 對 ${percent(senseVoiceRow.mer)}，差 ${signed(qwenGap.errors.points)} 個百分點，${interval(qwenGap.errors)}），保留的英文詞多 ${points(qwenGap.englishKept.points)} 個百分點。`
+  : `Qwen3-ASR 1.7B made fewer errors than SenseVoice (${percent(qwenRow.mer)} against ${percent(senseVoiceRow.mer)}, a difference of ${signed(qwenGap.errors.points)} points, ${interval(qwenGap.errors)}) and kept ${points(qwenGap.englishKept.points)} points more English words.`;
+const caseText = zh
+  ? `App 現在會把 SenseVoice 與 FireRedASR2 輸出的全大寫英文改回一般大小寫，所以 ${study.followup.date} 那一列的英文大小寫比例較高；這來自 App，不是模型本身的差異：同一次測量中，粵語微調版本是 ${followup.cantoneseCaseKeptWithGuards}%。FireRedASR2 那一列是在這項改變之前測的。`
+  : `The app now turns SenseVoice’s and FireRedASR2’s all-capitals English back into normal case, which is why the ${study.followup.date} row keeps more English in its original case; the change comes from the app, not the model: the fine-tune measured ${followup.cantoneseCaseKeptWithGuards}% in the same run. The FireRedASR2 row predates this change.`;
+const tieText = zh
+  ? `真實語音 ${percent(senseVoiceRow.mer)} 對 ${percent(cantoneseRow.mer)}（${signed(tie.realErrors.points)} 個百分點，${interval(tie.realErrors)}），台灣用語句子 ${percent(senseVoiceRow.ttsMer)} 對 ${percent(cantoneseRow.ttsMer)}（${signed(tie.ttsErrors.points)} 個百分點，${interval(tie.ttsErrors)}）。`
+  : `${percent(senseVoiceRow.mer)} against ${percent(cantoneseRow.mer)} on real speech (${signed(tie.realErrors.points)} points, ${interval(tie.realErrors)}) and ${percent(senseVoiceRow.ttsMer)} against ${percent(cantoneseRow.ttsMer)} on the Taiwan-style sentences (${signed(tie.ttsErrors.points)} points, ${interval(tie.ttsErrors)}).`;
 const columns = zh
   ? [
       "模型",
@@ -76,8 +111,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         <div>
           <dt>SenseVoice：8 GB 的 Mac，或還要跑本機潤稿模型時</dt>
           <dd>
-            下載 166 MB、實測記憶體峰值不到 1
-            GB，也是最快的。但英文詞比較弱：測量中約有一半英文詞沒有保留，英文以全大寫輸出，而且不加標點。
+            下載 163 MB、實測記憶體峰值約 0.9
+            GB，也是最快的。但英文詞比較弱：在真實中英混說中保留了{" "}
+            {senseVoiceRow.englishKept}% 的英文詞，Qwen3-ASR 1.7B 是{" "}
+            {qwenRow.englishKept}%。
           </dd>
         </div>
         <div>
@@ -88,8 +125,7 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
             次沒有輸出任何文字。Qwen3-ASR 0.6B
             在一段音質很差的音檔上不斷重複同一段話，記憶體峰值約 18.5
             GB。FireRedASR2 的中文和 Qwen3-ASR 1.7B
-            接近，但英文全大寫、沒有標點，速度也屬最慢的一群，記憶體用量最大。Parakeet
-            不支援中文。
+            接近，但速度屬最慢的一群，記憶體用量最大。Parakeet 不支援中文。
           </dd>
         </div>
       </dl>
@@ -104,12 +140,14 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         1.7B，較省記憶體的 Whisper Large v3 Turbo 是另一個選擇，8 GB 以下的 Mac
         則先推薦它；其他語言推薦 Whisper Large v3 Turbo。「模型」頁在 Qwen3-ASR
         1.7B 上顯示「最適合中英夾雜」標籤，並說明
-        SenseVoice「中文辨識小巧快速；英文和其他語言較弱。」按下「下載」之前不會下載任何模型。
+        SenseVoice「小巧快速。中文夾雜英文詞時較弱。」按下「下載」之前不會下載任何模型。
       </p>
       <p>
         0.11.0 及更早的版本為英文、日文與韓文推薦 SenseVoice；0.10.2
-        在系統語言為中文的 Mac 上也建議
-        SenseVoice。英文、日文與韓文的測量結果請看
+        在系統語言為中文的 Mac 上也建議 SenseVoice。這些版本以 SenseVoice
+        之名安裝的是粵語微調版本：已安裝的會繼續運作，「模型」頁顯示為
+        SenseVoice Cantonese；新下載的 SenseVoice
+        是原始的多語言模型。英文、日文與韓文的測量結果請看
         <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
           離線聽寫指南
         </a>
@@ -127,8 +165,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
       >
         <table class="guide-table guide-table-wide" role="table">
           <caption>
-            Airdraft 自己的測量，{study.date}，Apple M4
-            Pro。「語言」設為「自動偵測」、繁體中文、不潤稿。錯誤率越低越好。
+            Airdraft 自己的測量，Apple M4 Pro，{study.date}；SenseVoice 為{" "}
+            {study.followup.date}
+            。「語言」設為「自動偵測」、繁體中文、不潤稿。錯誤率越低越好。
           </caption>
           <thead role="rowgroup">
             <tr role="row">
@@ -144,6 +183,7 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
               <tr role="row">
                 <th scope="row" role="rowheader">
                   {row.model}
+                  {row.note && <span class="row-note">{row.note[locale]}</span>}
                 </th>
                 {cells(row).map((cell, index) => (
                   <td role="cell">
@@ -159,10 +199,17 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         </table>
       </div>
       <p>
-        錯誤率是把參考文字裡每個中文字與英文詞都算一個單位，計算需要修改的比例。在真實的中英混說上，Qwen3-ASR
-        1.7B 的錯誤比 SenseVoice 少約 35%（8.9% 對 13.6%），保留的英文詞多 23
-        個百分點。台灣用語句子的結果方向相同。對 Qwen3-ASR 1.7B
+        錯誤率是把參考文字裡每個中文字與英文詞都算一個單位，計算需要修改的比例。在真實的中英混說上，
+        {qwenGapText}台灣用語句子的結果方向相同。對 Qwen3-ASR 1.7B
         來說，「語言」設「自動偵測」或「中文（華語）」在真實語音上沒有可區分的差異。
+      </p>
+      <p>
+        0.11.0 及更早的版本把 SenseVoice 的粵語微調版本當作 SenseVoice
+        安裝，本指南 {study.date} 的 SenseVoice 數字就是用它測的，也就是表中的
+        SenseVoice Cantonese。{study.followup.date}{" "}
+        重新測量時，原始模型和粵語微調版本在中英混說上沒有可區分的差異：
+        {tieText}
+        {caseText}
       </p>
       <p>
         轉錄時間是模型載入後、每段 2.5 到 15
@@ -171,9 +218,8 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         Engine，部分記憶體不在 App 的行程裡，無法和其他模型比較。
       </p>
       <p>
-        下載大小照
-        0.11.0「模型」頁列出的數字，是各模型固定版本檔案的總和，以十進位單位計算，不是實測的傳輸量。記憶體是轉錄時
-        App 行程實測峰值的中位數。
+        下載大小照「模型」頁列出的數字，是各模型固定版本檔案的總和，以十進位單位計算，不是實測的傳輸量。記憶體是轉錄時
+        App 行程實測峰值的中位數；SenseVoice 的數字來自同一天朗讀語音的測量。
       </p>
     </Surface>
 
@@ -195,11 +241,17 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           branch」，由 macOS 的 zh_TW 美佳語音念出。
         </li>
         <li>比較前統一字形、大小寫與標點；英文大小寫正確的比例另外計算。</li>
+        <li>
+          {study.followup.date} 以同樣流程重新測量 SenseVoice 與 SenseVoice
+          Cantonese，原始模型透過 App 自己的下載安裝，安裝前會核對大小與
+          SHA-256。
+        </li>
       </ul>
       <p>
         完整方法、每一句的結果與重現步驟在{" "}
         <a href={study.methodURL}>原始碼儲存庫的 eval/mixed-asr</a>
-        （英文），測量於原始碼 {study.sourceCommit}。
+        （英文），測量於原始碼 {study.sourceCommit}；SenseVoice 的後續測量使用以{" "}
+        {study.followup.sourceCommit} 為基礎的版本。
       </p>
     </Surface>
 
@@ -221,8 +273,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         </li>
         <li>結果是未經潤稿的辨識輸出。Cohere Transcribe 沒有測。</li>
         <li>
-          App 安裝的 SenseVoice
-          檔案，說明寫著是從粵語微調版本轉換而來；這裡的華語結果就是用這個檔案測的。
+          0.11.0 及更早的版本安裝的是 SenseVoice 的粵語微調版本，本指南先前的
+          SenseVoice 數字就是用它測的。表中的 SenseVoice 是 App
+          現在安裝的原始多語言模型。
         </li>
         <li>這是 Airdraft 模型之間的比較，不是和其他聽寫 App 的比較。</li>
       </ul>
@@ -287,10 +340,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
             SenseVoice: Macs with 8 GB, or alongside a local refinement model
           </dt>
           <dd>
-            It is a 166 MB download, its measured peak memory stayed under 1 GB,
-            and it was the fastest. It is weaker with English terms: it lost
-            about half of them in our measurement, writes English in capitals
-            and adds no punctuation.
+            It is a 163 MB download, its measured peak memory was about 0.9 GB,
+            and it was the fastest. It is weaker with English terms: on real
+            mixed speech it kept {senseVoiceRow.englishKept}% of them, against{" "}
+            {qwenRow.englishKept}% for Qwen3-ASR 1.7B.
           </dd>
         </div>
         <div>
@@ -301,9 +354,8 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
             all runs it returned no text on 6 of 360 first attempts. Qwen3-ASR
             0.6B repeated a phrase on one degraded clip until its limit, peaking
             at about 18.5 GB of memory. FireRedASR2 is close to Qwen3-ASR 1.7B
-            on Chinese but writes English in capitals without punctuation, is
-            among the slowest and used the most memory. Parakeet does not
-            support Chinese.
+            on Chinese but is among the slowest and used the most memory.
+            Parakeet does not support Chinese.
           </dd>
         </div>
       </dl>
@@ -319,13 +371,16 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         with Whisper Large v3 Turbo as the lower-memory alternative, which comes
         first on a Mac with 8 GB or less. Other languages get Whisper Large v3
         Turbo. The Models page labels Qwen3-ASR 1.7B “Best for mixed Chinese and
-        English” and describes SenseVoice as “Small and fast for Chinese; weaker
-        with English and other languages.” Nothing downloads until you click
+        English” and describes SenseVoice as “Small and fast. Weaker with
+        English terms in Chinese speech.” Nothing downloads until you click
         Download.
       </p>
       <p>
         0.11.0 and earlier recommended SenseVoice for English, Japanese and
-        Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Airdraft’s{" "}
+        Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Those
+        versions installed a Cantonese fine-tune as SenseVoice. If you have it,
+        it keeps working and Models lists it as SenseVoice Cantonese; a new
+        SenseVoice download is the original multilingual model. Airdraft’s{" "}
         <a href="/guides/offline-dictation-on-mac/#measured">
           English, Japanese and Korean measurement
         </a>{" "}
@@ -343,9 +398,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
       >
         <table class="guide-table guide-table-wide" role="table">
           <caption>
-            Airdraft’s own measurement, {study.date}, on an Apple M4 Pro.
-            Language set to Detect Automatically, Traditional script, refinement
-            off. Lower errors are better.
+            Airdraft’s own measurement on an Apple M4 Pro, {study.date}, and{" "}
+            {study.followup.date} for SenseVoice. Language set to Detect
+            Automatically, Traditional script, refinement off. Lower errors are
+            better.
           </caption>
           <thead role="rowgroup">
             <tr role="row">
@@ -361,6 +417,7 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
               <tr role="row">
                 <th scope="row" role="rowheader">
                   {row.model}
+                  {row.note && <span class="row-note">{row.note[locale]}</span>}
                 </th>
                 {cells(row).map((cell, index) => (
                   <td role="cell">
@@ -378,11 +435,16 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
       <p>
         The error rate counts each Chinese character and English word in the
         reference as one unit and measures the share that needed an edit. On
-        real mixed speech, Qwen3-ASR 1.7B made about 35% fewer errors than
-        SenseVoice (8.9% against 13.6%) and kept 23 points more English words.
-        The Taiwan-style sentences point the same way. For Qwen3-ASR 1.7B,
-        Language set to Detect Automatically or Mandarin Chinese made no
-        measurable difference on real speech.
+        real mixed speech, {qwenGapText} The Taiwan-style sentences point the
+        same way. For Qwen3-ASR 1.7B, Language set to Detect Automatically or
+        Mandarin Chinese made no measurable difference on real speech.
+      </p>
+      <p>
+        0.11.0 and earlier installed a Cantonese fine-tune of SenseVoice under
+        that name, and this guide’s {study.date} SenseVoice figures came from
+        it: the SenseVoice Cantonese row. Measured again on{" "}
+        {study.followup.date}, the original model and the fine-tune were
+        statistically tied on mixed speech: {tieText} {caseText}
       </p>
       <p>
         Median time is transcription after loading for clips of 2.5 to 15
@@ -392,9 +454,10 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         comparable.
       </p>
       <p>
-        Download sizes are the totals the 0.11.0 Models page lists for each
-        model’s pinned files, in decimal units, not measured transfers. Memory
-        is the measured median peak of the app’s process while transcribing.
+        Download sizes are the totals the Models page lists for each model’s
+        pinned files, in decimal units, not measured transfers. Memory is the
+        measured median peak of the app’s process while transcribing;
+        SenseVoice’s comes from the same day’s read-speech runs.
       </p>
     </Surface>
 
@@ -420,11 +483,18 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           Script, case and punctuation were normalized before comparison; the
           share of English words with their original case is counted separately.
         </li>
+        <li>
+          On {study.followup.date}, SenseVoice and SenseVoice Cantonese were
+          measured again through the same pipeline. The original model was
+          installed through the app’s own download, which checks its size and
+          SHA-256.
+        </li>
       </ul>
       <p>
         The full method, per-sentence results and steps to reproduce them are in{" "}
         <a href={study.methodURL}>eval/mixed-asr in the source repository</a>,
-        measured at source commit {study.sourceCommit}.
+        measured at source commit {study.sourceCommit}; the SenseVoice follow-up
+        used a build based on {study.followup.sourceCommit}.
       </p>
     </Surface>
 
@@ -453,9 +523,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
           was not tested.
         </li>
         <li>
-          The SenseVoice archive the app installs says it was converted from a
-          Cantonese fine-tune; these Mandarin results were measured with that
-          archive.
+          0.11.0 and earlier installed a Cantonese fine-tune of SenseVoice, and
+          this guide’s earlier SenseVoice numbers came from it. The SenseVoice
+          row is the original multilingual model that the app now installs.
         </li>
         <li>
           It compares Airdraft’s models with each other, not Airdraft with other

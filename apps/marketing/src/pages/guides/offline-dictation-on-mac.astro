@@ -18,7 +18,9 @@ const guide = guides.find(
 )!;
 // English, Japanese and Korean results come from src/data/eja-asr.ts
 // (eval/eja-asr in the repository), quoted as Airdraft's own measurement on
-// one Mac with its method and limits.
+// one Mac with its method and limits. The SenseVoice rows come from the
+// same-day follow-up of the original model; SenseVoice Cantonese is the
+// fine-tune that 0.11.0 and earlier installed.
 const study = ejaAsrStudy;
 const languages = (
   [
@@ -47,6 +49,13 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 const [parakeet, qwen] = ["Parakeet TDT v2", "Qwen3-ASR 1.7B"].map((model) =>
   ejaAsrResults.en.find((row) => row.model === model)!,
 );
+const [senseVoice, cantonese] = ["SenseVoice", "SenseVoice Cantonese"].map(
+  (model) =>
+    (["en", "ja", "ko"] as EjaLanguage[]).map((code) =>
+      ejaAsrResults[code].find((row) => row.model === model)!,
+    ),
+);
+const autoRate = (row: EjaAsrResult) => `${row.auto.value.toFixed(1)}%`;
 const cells = (row: EjaAsrResult) => [
   rate(row.auto),
   row.explicit ? rate(row.explicit) : "Not used by this model",
@@ -173,9 +182,12 @@ const cells = (row: EjaAsrResult) => [
     </dl>
     <p>
       0.11.0 and earlier recommended SenseVoice for English, Japanese and
-      Korean, and 0.10.2 also suggested it on a Mac set to Chinese. The Models
-      page describes SenseVoice as “Small and fast for Chinese; weaker with
-      English and other languages.”
+      Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Those
+      versions installed a Cantonese fine-tune as SenseVoice. If you have it, it
+      keeps working and Models lists it as SenseVoice Cantonese; a new
+      SenseVoice download is the original multilingual model, which the Models
+      page describes as “Small and fast. Weaker with English terms in Chinese
+      speech.”
     </p>
     <p>
       Local processing uses your Mac's memory and compute. Model loading and
@@ -213,6 +225,7 @@ const cells = (row: EjaAsrResult) => [
               <tr role="row">
                 <th scope="row" role="rowheader">
                   {row.model}
+                  {row.note && <span class="row-note">{row.note}</span>}
                 </th>
                 {cells(row).map((cell, index) => (
                   <td role="cell">
@@ -238,19 +251,29 @@ const cells = (row: EjaAsrResult) => [
       Qwen3-ASR 1.7B’s errors by 1.7 and 1.8 points.
     </p>
     <p>
-      The SenseVoice archive the app installs dropped every kana in all 60
-      Japanese clips and lost most of the text in 50 of 60 Korean clips. Its
-      model notes say it was converted from a Cantonese fine-tune. Airdraft’s
-      mixed Chinese and English results were measured with the same archive and
-      still stand.
+      SenseVoice Cantonese, which 0.11.0 and earlier installed as SenseVoice,
+      dropped every kana in all 60 Japanese clips and lost most of the text in
+      50 of 60 Korean clips. The original SenseVoice that the app now installs
+      made {autoRate(senseVoice[0])} word errors on English,{" "}
+      {autoRate(senseVoice[1])} character errors on Japanese and{" "}
+      {autoRate(senseVoice[2])} on Korean, against {autoRate(cantonese[0])},{" "}
+      {autoRate(cantonese[1])} and {autoRate(cantonese[2])} for the fine-tune,
+      with Language set to Detect Automatically. On Japanese and Korean it was
+      within the margin of Qwen3-ASR 1.7B; setup still recommends Qwen3-ASR 1.7B
+      and Whisper Large v3 Turbo for those languages. The{" "}
+      <a href="/guides/mixed-chinese-english-dictation/">
+        mixed Chinese and English guide
+      </a>{" "}
+      compares both SenseVoice models on mixed speech.
     </p>
     <p>
       Median time is transcription after loading, measured while the Mac was
       also running builds, so compare the models with each other only. Qwen3-ASR
-      1.7B’s measured peak memory was about 3 GB. Parakeet TDT v2 and Whisper
-      run through Core ML and keep part of their memory outside the app’s
-      process, so their memory is not comparable. Download sizes are the totals
-      the Models page lists, not measured transfers.
+      1.7B’s measured peak memory was about 3 GB, and SenseVoice’s about 0.9 GB.
+      Parakeet TDT v2 and Whisper run through Core ML and keep part of their
+      memory outside the app’s process, so their memory is not comparable.
+      Download sizes are the totals the Models page lists, not measured
+      transfers.
     </p>
     <h3>Limits of this measurement</h3>
     <ul>
@@ -282,7 +305,10 @@ const cells = (row: EjaAsrResult) => [
     <p>
       Method, corpus selection and scripts:{" "}
       <a href={study.methodURL}>eval/eja-asr in the source repository</a>,
-      measured at source commit {study.sourceCommit}.
+      measured at source commit {study.sourceCommit}. The original SenseVoice
+      was measured on the same clips on {study.followup.date}, with a build
+      based on {study.followup.sourceCommit}, after the app’s own download
+      checked its size and SHA-256.
     </p>
   </Surface>
 

@@ -140,6 +140,12 @@
   .guide-table .cell-label {
     display: none;
   }
+  .guide-table .row-note {
+    display: block;
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 400;
+  }
   .guide-table-wide :is(th, td) {
     padding-inline: 10px;
     font-size: var(--step--1);

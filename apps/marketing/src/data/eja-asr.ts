@@ -2,8 +2,9 @@ import { siteLinks } from "./site";
 
 /**
  * Airdraft's own measurement of local speech models on English, Japanese and
- * Korean read speech (AD-083). Every value comes from eval/eja-asr/README.md
- * and eval/eja-asr/results/summary.json in the repository; change them only
+ * Korean read speech (AD-083), with its same-day SenseVoice follow-up. Every
+ * value comes from eval/eja-asr/README.md and eval/eja-asr/results/summary.json
+ * (or results/followup-2026-10-24/summary.json) in the repository; change them only
  * together with a new measurement and its date. The guides quote these numbers
  * as Airdraft's measurement on one Mac, with its method and caveats, never as
  * a general accuracy claim, a ranking or a comparison with other apps.
@@ -16,6 +17,14 @@ export const ejaAsrStudy = {
   // Google FLEURS test split (CC BY 4.0): read Wikipedia sentences, not
   // dictation. 60 utterances per language.
   utterancesPerLanguage: 60,
+  // README "2026-10-24 follow-up": the original multilingual SenseVoice
+  // (sherpa:senseVoiceMultilingual), installed through the app's pinned
+  // download and run through the same route on the same clips, from a working
+  // tree based on 0196926.
+  followup: {
+    date: "2026-10-24",
+    sourceCommit: "0196926",
+  },
 };
 
 export type EjaLanguage = "en" | "ja" | "ko";
@@ -29,6 +38,8 @@ export interface EjaError {
 export interface EjaAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
+  /** A short line under the model's name, for rows that need their version or source. */
+  note?: string;
   /**
    * The download size the Models page lists, character for character:
    * ByteCountFormatter's decimal total of the pinned files, or the fixed
@@ -53,8 +64,10 @@ export const ejaAsrMetric: Record<EjaLanguage, "WER" | "CER"> = {
   ko: "CER",
 };
 
-// The models first-run setup recommends or offers for these languages, plus
-// the shipped SenseVoice that 0.11.0 and earlier recommended.
+// The models first-run setup recommends or offers for these languages, then
+// SenseVoice (the original multilingual model the app now installs, from the
+// follow-up) and SenseVoice Cantonese, the fine-tune that 0.11.0 and earlier
+// installed as "SenseVoice" and recommended (AD-083 rows).
 export const ejaAsrResults: Record<EjaLanguage, EjaAsrResult[]> = {
   en: [
     {
@@ -79,7 +92,18 @@ export const ejaAsrResults: Record<EjaLanguage, EjaAsrResult[]> = {
       medianMs: 698,
     },
     {
+      // followup summary.json sherpa:senseVoiceMultilingual: error_raw 0.0695
+      // (README: 6.9%) and 0.0724, asr_ms_median 105 (Auto).
       model: "SenseVoice",
+      note: "Original multilingual model",
+      download: "163 MB",
+      auto: { value: 6.9, ci: [5.1, 8.9] },
+      explicit: { value: 7.2, ci: [5.4, 9.3] },
+      medianMs: 105,
+    },
+    {
+      model: "SenseVoice Cantonese",
+      note: "0.11.0 and earlier",
       download: "166 MB",
       auto: { value: 32.4, ci: [26.9, 38.1] },
       explicit: { value: 31.6, ci: [26.2, 37.4] },
@@ -102,7 +126,17 @@ export const ejaAsrResults: Record<EjaLanguage, EjaAsrResult[]> = {
       medianMs: 940,
     },
     {
+      // error_raw 0.0517 and 0.052, asr_ms_median 153.
       model: "SenseVoice",
+      note: "Original multilingual model",
+      download: "163 MB",
+      auto: { value: 5.2, ci: [4.0, 6.6] },
+      explicit: { value: 5.2, ci: [3.9, 6.7] },
+      medianMs: 153,
+    },
+    {
+      model: "SenseVoice Cantonese",
+      note: "0.11.0 and earlier",
       download: "166 MB",
       auto: { value: 76.4, ci: [74.0, 78.6] },
       explicit: { value: 76.3, ci: [73.9, 78.6] },
@@ -125,7 +159,17 @@ export const ejaAsrResults: Record<EjaLanguage, EjaAsrResult[]> = {
       medianMs: 822,
     },
     {
+      // error_raw 0.1302 and 0.132, asr_ms_median 128.
       model: "SenseVoice",
+      note: "Original multilingual model",
+      download: "163 MB",
+      auto: { value: 13.0, ci: [9.0, 17.5] },
+      explicit: { value: 13.2, ci: [9.2, 17.8] },
+      medianMs: 128,
+    },
+    {
+      model: "SenseVoice Cantonese",
+      note: "0.11.0 and earlier",
       download: "166 MB",
       auto: { value: 77.4, ci: [74.2, 80.5] },
       explicit: { value: 77.8, ci: [74.7, 80.8] },
