@@ -148,6 +148,13 @@ public final class AppSettings {
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
+    /// AD-071: Models lists the whole local catalogue instead of the compact
+    /// recommended set. A view preference, kept outside the `settings.` keys so
+    /// it never counts as an existing setup.
+    public var showsAllLocalModels: Bool {
+        didSet { defaults.set(showsAllLocalModels, forKey: Self.showsAllLocalModelsKey) }
+    }
+    static let showsAllLocalModelsKey = "models.showsAllLocalModels"
 
     private let defaults: UserDefaults
 
@@ -185,6 +192,7 @@ public final class AppSettings {
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
+        showsAllLocalModels = defaults.bool(forKey: Self.showsAllLocalModelsKey)
         if savedHUDStyle == "mini" {
             persist("hudStyle", hudStyle)
         }
