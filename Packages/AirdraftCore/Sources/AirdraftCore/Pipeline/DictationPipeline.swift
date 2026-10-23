@@ -112,8 +112,17 @@ public final class DictationPipeline {
     public internal(set) var previewIssue: String?
     public internal(set) var previewEnabledForRecording = false
     var previewSession: (any SpeechPreviewSession)?
+    /// The session decodes with the recording's speech engine (AD-084).
+    var previewUsesSpeechEngine = false
+    /// Identifies the preview session whose callbacks may still update the HUD.
+    var previewGeneration = UUID()
     public typealias PreviewBuilder = @Sendable (String, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
     let previewBuilder: PreviewBuilder
+    /// Live text from the recording's own loaded local model (AD-084).
+    public typealias ModelPreviewBuilder = @Sendable (ModelPreviewRequest, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
+    let modelPreviewBuilder: ModelPreviewBuilder
+    /// Why the recording's model cannot preview; tests inject installation.
+    let modelPreviewAvailability: @Sendable (ASRConfig) -> String?
     public internal(set) var reviewOutcome: DictationOutcome?
     public internal(set) var audioStorageError: String?
     public internal(set) var audioRevision = 0
@@ -292,6 +301,8 @@ public final class DictationPipeline {
         factory: EngineFactory,
         recorder: any AudioRecording = AudioRecorder(),
         previewBuilder: @escaping PreviewBuilder = { SpeechPreview.start(locale: $0, onText: $1, onIssue: $2) },
+        modelPreviewBuilder: ModelPreviewBuilder? = nil,
+        modelPreviewAvailability: @escaping @Sendable (ASRConfig) -> String? = { ModelSpeechPreview.unavailableReason(for: $0) },
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
         insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
@@ -309,6 +320,11 @@ public final class DictationPipeline {
         self.factory = factory
         self.recorder = recorder
         self.previewBuilder = previewBuilder
+        self.modelPreviewAvailability = modelPreviewAvailability
+        self.modelPreviewBuilder = modelPreviewBuilder ?? { request, onText, onIssue in
+            ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: factory, request: request),
+                                     onText: onText, onIssue: onIssue)
+        }
         self.contextReader = contextReader ?? AppContextReader()
         self.inserter = inserter ?? TextInserter()
         self.insertText = insertText

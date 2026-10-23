@@ -3694,6 +3694,16 @@
         }
       }
     },
+    "Choose Apple Speech as the preview source" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請將預覽來源設為 Apple Speech"
+          }
+        }
+      }
+    },
     "Choose App…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -3738,6 +3748,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇腳本⋯"
+          }
+        }
+      }
+    },
+    "Choose Selected speech model as the preview source" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請將預覽來源設為「所選語音模型」"
           }
         }
       }
@@ -6058,6 +6078,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "編輯⋯"
+          }
+        }
+      }
+    },
+    "Enable Show text while speaking" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟「說話時顯示文字」"
           }
         }
       }
@@ -8455,6 +8485,16 @@
         }
       }
     },
+    "Live transcript" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時逐字稿"
+          }
+        }
+      }
+    },
     "Load" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10478,6 +10518,16 @@
         }
       }
     },
+    "On this Mac; final transcript unchanged" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這台 Mac 上處理；不影響最終逐字稿"
+          }
+        }
+      }
+    },
     "On-device" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11669,6 +11719,16 @@
         }
       }
     },
+    "Preview model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預覽模型"
+          }
+        }
+      }
+    },
     "Preview only" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11681,6 +11741,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "僅限預覽"
+          }
+        }
+      }
+    },
+    "Preview only. Transcribe the recording for the saved transcript." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅供預覽。請轉錄錄音以取得儲存的逐字稿。"
+          }
+        }
+      }
+    },
+    "Preview source" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預覽來源"
           }
         }
       }

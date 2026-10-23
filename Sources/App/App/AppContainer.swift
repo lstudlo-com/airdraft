@@ -180,6 +180,10 @@ final class AppContainer {
                 canStart: { !pipeline.isBusy && !pipeline.isSavingHistory && !pipeline.isFinishingDelivery },
                 accessCheck: { try await license.requireAccess() })
         } else { meeting = nil }
+        meeting?.livePreviewStarter = { [weak self] onText, onIssue in
+            guard let self else { return nil }
+            return await self.startMeetingLivePreview(onText: onText, onIssue: onIssue)
+        }
         meeting?.onBusyChanged = { [weak pipeline, weak models, weak cleanup] busy in
             pipeline?.isCapturingMeeting = busy
             models?.setDictationBusy(pipeline?.isBusy == true || cleanup?.isRunning == true)
@@ -289,6 +293,31 @@ final class AppContainer {
     func beginShutdown() {
         shutdownStarted = true
         audioCleanupTask?.cancel()
+    }
+
+    /// Meetings follow Settings > Live preview with the same source (AD-084).
+    /// Display only: the saved meeting transcript comes from the normal job.
+    private func startMeetingLivePreview(onText: @escaping @Sendable (String) -> Void,
+                                         onIssue: @escaping @Sendable (String) -> Void) async -> (any SpeechPreviewSession)? {
+        guard settings.livePreviewEnabled else { return nil }
+        switch settings.livePreviewSource {
+        case .appleSpeech:
+            return SpeechPreview.start(locale: settings.livePreviewLocale, onText: onText, onIssue: onIssue)
+        case .speechModel:
+            let asr = pipeline.speechConfig
+            let hints: TranscriptionHints
+            do {
+                hints = TranscriptionHints(language: try SpeechLanguagePolicy.resolve(asr).language,
+                                           vocabulary: DictionaryPostProcessor.vocabulary(dictionary.entries),
+                                           chineseScript: asr.chineseScript,
+                                           biasOnDeviceSpeech: settings.vocabularyBiasesOnDeviceSpeech)
+            } catch {
+                onIssue(error.localizedDescription)
+                return nil
+            }
+            return await ModelSpeechPreview.startForMeeting(asr: asr, hints: hints, factory: factory,
+                                                            onText: onText, onIssue: onIssue)
+        }
     }
 
     private func observeLivePreview() {

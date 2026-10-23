@@ -132,13 +132,33 @@ struct ConfigurationPage: View {
 
             PageSection("Live preview") {
                 SettingsCard {
-                    SettingRow(title: "Show text while speaking", subtitle: "On-device Apple Speech; final model unchanged") {
+                    SettingRow(title: "Show text while speaking", subtitle: "On this Mac; final transcript unchanged") {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
                     if settings.livePreviewEnabled || search.isSearching {
                         RowDivider()
-                        SettingRow(title: "Preview language", detail: !settings.livePreviewEnabled ? String(localized: "Enable Show text while speaking; choose a language in Models") : settings.hudStyle == .none ? String(localized: "Choose a recording window style") : String(localized: "Choose and install a language in Models")) {
-                            Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+                        SettingRow(title: "Preview source", detail: settings.livePreviewEnabled ? nil : String(localized: "Enable Show text while speaking")) {
+                            SoftPicker("Preview source", selection: $settings.livePreviewSource, width: 200) {
+                                ForEach(LivePreviewSource.allCases) { Text($0.title).tag($0) }
+                            }
+                            .disabled(!settings.livePreviewEnabled)
+                        }
+                        if settings.livePreviewSource == .appleSpeech || search.isSearching {
+                            RowDivider()
+                            SettingRow(title: "Preview language", detail: !settings.livePreviewEnabled ? String(localized: "Enable Show text while speaking; choose a language in Models") : settings.livePreviewSource != .appleSpeech ? String(localized: "Choose Apple Speech as the preview source") : settings.hudStyle == .none ? String(localized: "Choose a recording window style") : String(localized: "Choose and install a language in Models")) {
+                                Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+                            }
+                        }
+                        if settings.livePreviewSource == .speechModel || search.isSearching {
+                            let reason = ModelSpeechPreview.unavailableReason(for: container.pipeline.speechConfig)
+                            RowDivider()
+                            SettingRow(title: "Preview model", detail: modelPreviewDetail(reason: reason)) {
+                                if reason != nil {
+                                    Button("Open Models") { container.navigation.page = .models }.buttonStyle(SoftButtonStyle())
+                                } else {
+                                    StatusDot(settings.livePreviewEnabled && settings.livePreviewSource == .speechModel ? .ok : .inactive)
+                                }
+                            }
                         }
                     }
                 }
@@ -242,6 +262,16 @@ private struct AppIconSettingRow: View {
 }
 
 /// Tiny window mock-up for the theme picker.
+extension ConfigurationPage {
+    /// The model preview row names the active profile's speech model, or why it cannot preview.
+    func modelPreviewDetail(reason: String?) -> String {
+        let settings = container.settings
+        if !settings.livePreviewEnabled { return String(localized: "Enable Show text while speaking") }
+        if settings.livePreviewSource != .speechModel { return String(localized: "Choose Selected speech model as the preview source") }
+        return reason ?? container.pipeline.speechConfig.displayName
+    }
+}
+
 struct ThemePreview: View {
     let mode: AppearanceMode
 

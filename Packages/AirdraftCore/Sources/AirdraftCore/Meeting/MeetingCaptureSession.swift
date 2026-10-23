@@ -3,6 +3,7 @@ import AppKit
 import CoreMedia
 import Foundation
 import ScreenCaptureKit
+import Synchronization
 
 public struct MeetingAudioSource: Identifiable, Sendable, Hashable {
     public let id: Int32
@@ -21,6 +22,13 @@ public protocol MeetingCapturing: AnyObject, Sendable {
     var id: String { get }
     func start(applicationID: Int32?, microphoneID: String?, includeMicrophone: Bool, microphoneChannel: Int?) async throws
     func stop(reason: String?) async throws -> MeetingDraft
+    /// Display-only copy of each converted 16 kHz chunk with its track offset
+    /// (AD-084). Called on the capture queue after the chunk is written.
+    var previewAudioHandler: (@Sendable (MeetingTrack, [Float], Double) -> Void)? { get set }
+}
+
+public extension MeetingCapturing {
+    var previewAudioHandler: (@Sendable (MeetingTrack, [Float], Double) -> Void)? { get { nil } set {} }
 }
 
 /// Captures only audio outputs. No screen frames are retained and no output device is opened.
@@ -51,6 +59,11 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
     private var formats: [MeetingTrack: AVAudioFormat] = [:]
     private var failed = false
     private var microphoneChannel: Int?
+    private let previewHandler = Mutex<(@Sendable (MeetingTrack, [Float], Double) -> Void)?>(nil)
+    public var previewAudioHandler: (@Sendable (MeetingTrack, [Float], Double) -> Void)? {
+        get { previewHandler.withLock { $0 } }
+        set { previewHandler.withLock { $0 = newValue } }
+    }
     public init(directory: URL, microphone: Bool,
                 onStatus: @escaping @Sendable (MeetingCaptureStatus) -> Void,
                 onFailure: @escaping @Sendable (String) -> Void) throws {
@@ -143,7 +156,9 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             inputEnds[track] = offset + Double(CMSampleBufferGetNumSamples(sampleBuffer)) / format.sampleRate
             let samples = try normalize(sampleBuffer, track: track)
             if !samples.isEmpty {
-                try writer.append(samples, track: track, at: outputOffsets[track] ?? offset)
+                let at = outputOffsets[track] ?? offset
+                try writer.append(samples, track: track, at: at)
+                previewHandler.withLock { $0 }?(track, samples, at)
                 outputOffsets[track, default: offset] += Double(samples.count) / 16_000
                 lastReceived[track] = timestamp
                 levels[track] = AudioLevel.meter(samples)

@@ -221,7 +221,7 @@ struct ModelsPage: View {
                 RefinementSettings()
             }
 
-            if settings.livePreviewEnabled { SpeechPreviewSettings() }
+            if settings.livePreviewEnabled && settings.livePreviewSource == .appleSpeech { SpeechPreviewSettings() }
 
             PageSection("Memory") {
                 SettingsCard {

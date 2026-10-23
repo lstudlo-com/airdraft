@@ -116,6 +116,7 @@ Available `--e2e-action` values:
 | `download` | Explicit anonymous installation of `--e2e-model` into the isolated root |
 | `transcribe` | Real pipeline, local ASR, dictionary/conversion, SQLite and retained WAV; insertion disabled |
 | `preview` | Real Apple Speech preview, provisional text and callback cancellation |
+| `model-preview` | Selected-model live text (AD-084) on `--e2e-audio` in real-time 100 ms chunks through the factory's display-only lease: decode cadence and window bounds, callback stop, and the final transcript compared without preview, after preview and while a preview decode holds the lease |
 | `microphones` | Existing repeated hardware capture/reconfiguration self-test |
 | `automation` | Real Start/Cancel/Start/Stop intents, microphone capture and a disposable script receiver |
 | `capture-latency` | Real default-input `AudioRecorder` first-buffer time and production `pressToCaptureMs`, only when microphone access is already authorized |
@@ -189,7 +190,10 @@ supplies the terms. `eval/vocab-bias/run_eval.py` uses it to compare both states
 Add `--e2e-recording-ms 3000` to replay the same file through recording startup,
 allow refinement preparation to overlap that lead time, then stop through the
 production grace period. The recorder retains file PCM without opening a device
-or playing audio. App context and live preview must be off. This uses the same
+or playing audio. App context must be off; live preview must be off unless
+`--e2e-live-preview` turns on Selected speech model preview, which receives the
+file in real-time 100 ms chunks and reports the published text under
+`livePreview` (Apple Speech preview is never used here). This uses the same
 real local speech/refinement engines and history with insertion disabled, and
 accepts a lead time from 0 to 120000 ms below the configured recording limit.
 Its `recordingReplay.stopToOutcomeMs` includes the grace period, processing and

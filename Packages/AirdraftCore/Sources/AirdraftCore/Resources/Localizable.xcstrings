@@ -3112,6 +3112,16 @@
         }
       }
     },
+    "Install %@ in Models to see live text." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「模型」中安裝 %@ 以顯示即時文字。"
+          }
+        }
+      }
+    },
     "Install Apple Speech for %@ from Models, then start another recording." : {
       "localizations" : {
         "zh-Hans" : {
@@ -3449,6 +3459,16 @@
         }
       }
     },
+    "Live preview stopped because the speech model was too slow. Final transcription is unaffected." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音模型速度太慢，即時預覽已停止。最終轉錄不受影響。"
+          }
+        }
+      }
+    },
     "Live preview stopped. Start another recording to retry; final transcription is still available." : {
       "localizations" : {
         "zh-Hans" : {
@@ -3465,6 +3485,16 @@
         }
       }
     },
+    "Live preview stopped: %@ Final transcription is unaffected." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽已停止：%@ 最終轉錄不受影響。"
+          }
+        }
+      }
+    },
     "Live preview stopped: %@ Start another recording to retry." : {
       "localizations" : {
         "zh-Hans" : {
@@ -3477,6 +3507,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即時預覽已停止：%@ 請開始新的錄音以重試。"
+          }
+        }
+      }
+    },
+    "Live text is unavailable for %@. Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet." : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 無法顯示即時文字。請改用 Apple Speech 預覽，或使用 Parakeet、SenseVoice 或 Orukeet。"
+          }
+        }
+      }
+    },
+    "Live transcript unavailable: %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法顯示即時逐字稿：%@"
           }
         }
       }
@@ -5301,6 +5351,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請選擇語音語言；檔案端點無法自動偵測。"
+          }
+        }
+      }
+    },
+    "Selected speech model" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選語音模型"
           }
         }
       }
