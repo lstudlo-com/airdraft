@@ -777,51 +777,80 @@ public final class HistoryStore: Sendable {
                                            pulses: [], topApps: [], streakDays: 0, activeDays: 0, longestWords: 0)
     }
 
+    /// Aggregates in SQL from stored word counts and selects only the columns
+    /// each figure needs: full text is read only for the waveform's latest
+    /// pulses and for rows an older version left without a count.
     public func overview(days: Int? = nil, now: Date = Date(), calendar: Calendar = .current, calendarDay: Bool = false,
                          pulseLimit: Int = 48, appLimit: Int = 3) throws -> Overview {
         try dbQueue.read { db in
-            let rows = try Self.rows(db, days: days, now: now, since: calendarDay ? calendar.startOfDay(for: now) : nil)
-            let counted = rows.map { ($0, $0.wordCount ?? DictationPipeline.approximateWordCount($0.finalText)) }
+            let period = Self.period(days: days, now: now, since: calendarDay ? calendar.startOfDay(for: now) : nil)
+            let appKey = "COALESCE(appBundleId, appName)"
 
-            let pulses = counted.suffix(pulseLimit).compactMap { record, words -> Overview.Pulse? in
-                guard let id = record.id else { return nil }
-                return Overview.Pulse(id: id, date: record.createdAt, words: words,
-                               wordsPerMinute: record.audioSeconds > 1 ? Int(Double(words) / (record.audioSeconds / 60)) : 0,
-                               appName: record.appName, finalText: record.finalText)
+            // Rows written without a stored count, normally none after the backfill on open.
+            let uncounted = try Row.fetchAll(db, sql: """
+                SELECT appBundleId, appName, finalText FROM dictation
+                WHERE wordCount IS NULL AND \(period.condition)
+                """, arguments: period.arguments).map { row -> (key: String?, words: Int) in
+                let bundleId: String? = row["appBundleId"]
+                let name: String? = row["appName"]
+                return (bundleId ?? name, DictationPipeline.approximateWordCount(row["finalText"] ?? ""))
             }
 
+            guard let totals = try Row.fetchOne(db, sql: """
+                SELECT COUNT(*) AS dictations, COALESCE(SUM(wordCount), 0) AS words,
+                       COALESCE(SUM(audioSeconds), 0) AS seconds, COUNT(DISTINCT \(appKey)) AS apps,
+                       COALESCE(MAX(wordCount), 0) AS longest
+                FROM dictation WHERE \(period.condition)
+                """, arguments: period.arguments) else { return .empty }
+            let storedWords: Int = totals["words"]
+            let storedLongest: Int = totals["longest"]
+            let stats = Stats(dictations: totals["dictations"], words: storedWords + uncounted.reduce(0) { $0 + $1.words },
+                              audioSeconds: totals["seconds"], apps: totals["apps"])
+
+            // Latest pulses, oldest first. Only these rows read their delivered text.
+            let pulses = try Row.fetchAll(db, sql: """
+                SELECT id, createdAt, audioSeconds, appName, finalText, wordCount FROM dictation
+                WHERE \(period.condition) ORDER BY createdAt DESC, id DESC LIMIT ?
+                """, arguments: period.arguments + [max(0, pulseLimit)]).reversed().map { row -> Overview.Pulse in
+                let text: String = row["finalText"]
+                let words = (row["wordCount"] as Int?) ?? DictationPipeline.approximateWordCount(text)
+                let seconds: Double = row["audioSeconds"]
+                return Overview.Pulse(id: row["id"], date: row["createdAt"], words: words,
+                                      wordsPerMinute: seconds > 1 ? Int(Double(words) / (seconds / 60)) : 0,
+                                      appName: row["appName"], finalText: text)
+            }
+
+            // One row per app; its identity comes from the app's earliest dictation in the period.
             var shares: [String: Overview.AppShare] = [:]
-            for (record, words) in counted {
-                guard let key = record.appBundleId ?? record.appName else { continue }
-                shares[key, default: .init(bundleId: record.appBundleId, name: record.appName ?? key, words: 0)].words += words
+            for row in try Row.fetchAll(db, sql: """
+                SELECT \(appKey) AS appKey, appBundleId, appName, MIN(createdAt) AS firstAt,
+                       COALESCE(SUM(wordCount), 0) AS words
+                FROM dictation WHERE \(appKey) IS NOT NULL AND \(period.condition) GROUP BY \(appKey)
+                """, arguments: period.arguments) {
+                let key: String = row["appKey"]
+                shares[key] = .init(bundleId: row["appBundleId"], name: row["appName"] ?? key, words: row["words"])
             }
+            for row in uncounted { if let key = row.key { shares[key]?.words += row.words } }
             let topApps = shares.values
                 .sorted { $0.words != $1.words ? $0.words > $1.words : $0.name < $1.name }
                 .prefix(appLimit)
 
-            let allDates = try Date.fetchAll(db, DictationRecord.select(Column("createdAt")))
-            let activeDays = Set(rows.map { calendar.startOfDay(for: $0.createdAt) }).count
-            return Overview(stats: Self.stats(rows), pulses: Array(pulses), topApps: Array(topApps),
+            let periodDates = try Date.fetchAll(db, sql: "SELECT createdAt FROM dictation WHERE \(period.condition)",
+                                                arguments: period.arguments)
+            let allDates = try Date.fetchAll(db, sql: "SELECT createdAt FROM dictation")
+            return Overview(stats: stats, pulses: pulses, topApps: Array(topApps),
                             streakDays: Self.streak(allDates, now: now, calendar: calendar),
-                            activeDays: activeDays, longestWords: counted.map(\.1).max() ?? 0)
+                            activeDays: Set(periodDates.map { calendar.startOfDay(for: $0) }).count,
+                            longestWords: max(storedLongest, uncounted.map(\.words).max() ?? 0))
         }
     }
 
-    private static func rows(_ db: Database, days: Int?, now: Date, since: Date? = nil) throws -> [DictationRecord] {
-        var request = DictationRecord.order(Column("createdAt"), Column("id"))
-        if let since {
-            request = request.filter(Column("createdAt") >= since && Column("createdAt") <= now)
-        } else if let days {
-            request = request.filter(Column("createdAt") >= now.addingTimeInterval(-Double(days) * 86_400))
-        }
-        return try request.fetchAll(db)
-    }
-
-    private static func stats(_ rows: [DictationRecord]) -> Stats {
-        let words = rows.reduce(0) { $0 + ($1.wordCount ?? DictationPipeline.approximateWordCount($1.finalText)) }
-        let seconds = rows.reduce(0.0) { $0 + $1.audioSeconds }
-        let apps = Set(rows.compactMap { $0.appBundleId ?? $0.appName }).count
-        return Stats(dictations: rows.count, words: words, audioSeconds: seconds, apps: apps)
+    /// The overview's period as one SQL condition: the last `days` days, or
+    /// from `since` (the start of today) up to `now`.
+    private static func period(days: Int?, now: Date, since: Date?) -> (condition: String, arguments: StatementArguments) {
+        if let since { return ("createdAt >= ? AND createdAt <= ?", [since, now]) }
+        if let days { return ("createdAt >= ?", [now.addingTimeInterval(-Double(days) * 86_400)]) }
+        return ("1", [])
     }
 
     /// A streak survives until the end of the day after the last dictation.

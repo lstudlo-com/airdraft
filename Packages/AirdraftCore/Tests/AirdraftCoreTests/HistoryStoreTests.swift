@@ -87,6 +87,51 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try HistoryStore(inMemory: true).overview(now: now, calendar: calendar), .empty)
     }
 
+    /// AD-077: the overview aggregates in SQL. Rows without a stored count
+    /// (written by an older version) still count from their text, in totals,
+    /// app shares and the longest dictation; an app keeps its earliest name.
+    func testOverviewAggregatesIncludeUncountedRowsAndKeepAppIdentity() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let now = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
+        let store = try HistoryStore(inMemory: true)
+        func save(hoursAgo: Double, bundle: String?, name: String?, text: String) throws {
+            try store.save(DictationRecord(createdAt: now.addingTimeInterval(-hoursAgo * 3600), appBundleId: bundle,
+                appName: name, mode: "clean", family: "document", rawTranscript: text, refinedText: text,
+                finalText: text, asrEngine: "test", audioSeconds: 6, asrMs: 1, llmMs: 1, inserted: true))
+        }
+        try save(hoursAgo: 30, bundle: "test.mail", name: "Mail", text: "one two")
+        try save(hoursAgo: 20, bundle: "test.mail", name: "Mail Renamed", text: "one two three")
+        try save(hoursAgo: 10, bundle: nil, name: "Notes", text: "one")
+        try save(hoursAgo: 2, bundle: nil, name: nil, text: "one two")
+        // An older version's row: no stored count, so its text is counted.
+        let long = "one two three four five six seven"
+        try store.dbQueue.write { db in
+            try db.execute(sql: """
+                INSERT INTO dictation (createdAt, appBundleId, appName, mode, family, rawTranscript, refinedText,
+                                       finalText, asrEngine, audioSeconds, asrMs, llmMs, inserted)
+                VALUES (?, 'test.mail', 'Mail', 'clean', 'document', ?, ?, ?, 'old', 6, 1, 1, 1)
+                """, arguments: [now.addingTimeInterval(-3600), long, long, long])
+        }
+
+        let all = try store.overview(now: now, calendar: calendar, pulseLimit: 2, appLimit: 5)
+        XCTAssertEqual(all.stats, HistoryStore.Stats(dictations: 5, words: 15, audioSeconds: 30, apps: 2))
+        XCTAssertEqual(all.longestWords, 7, "The uncounted row is the longest")
+        XCTAssertEqual(all.topApps.map(\.name), ["Mail", "Notes"], "Earliest name; unnamed rows have no share")
+        XCTAssertEqual(all.topApps.map(\.words), [12, 1])
+        XCTAssertEqual(all.topApps.first?.bundleId, "test.mail")
+        XCTAssertEqual(all.pulses.map(\.finalText), ["one two", long], "Latest pulses, oldest first")
+        XCTAssertEqual(all.pulses.map(\.words), [2, 7])
+        XCTAssertEqual(all.activeDays, 2)
+        XCTAssertEqual(all.streakDays, 2)
+
+        let today = try store.overview(days: 1, now: now, calendar: calendar, calendarDay: true)
+        XCTAssertEqual(today.stats.dictations, 3, "Today starts at midnight in the calendar's time zone")
+        XCTAssertEqual(today.stats.words, 10)
+        XCTAssertEqual(today.activeDays, 1)
+        XCTAssertEqual(try store.overview(now: now, calendar: calendar, pulseLimit: 0).pulses, [])
+    }
+
     func testStreakSurvivesUntilTheDayAfter() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
