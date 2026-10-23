@@ -125,7 +125,7 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
         case .speechmatics:
             return [.init(id: "enhanced", title: "Enhanced", price: String(localized: "See pricing", bundle: .module),
                           billing: "https://portal.speechmatics.com", quality: String(localized: "Custom vocabulary", bundle: .module),
-                          qualityDetail: String(localized: "Batch recognition with dictionary terms. Auto Detect selects the predominant language.", bundle: .module), speed: String(localized: "Not published", bundle: .module), speedDetail: unpublished,
+                          qualityDetail: String(localized: "Batch recognition with dictionary terms. Automatic detection selects the predominant language.", bundle: .module), speed: String(localized: "Not published", bundle: .module), speedDetail: unpublished,
                           documentationURL: URL(string: "https://docs.speechmatics.com/speech-to-text/batch/quickstart")!)]
         case .xAI:
             return [.init(id: "grok-voice-transcribe-2.0", title: "Grok Voice Transcribe 2.0", price: String(localized: "See pricing", bundle: .module),

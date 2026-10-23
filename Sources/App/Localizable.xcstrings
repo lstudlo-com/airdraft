@@ -5309,7 +5309,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "供本機播放與重試。關閉會刪除音訊，保留文字。"
+            "value" : "供本機播放與重試；關閉只刪除音訊"
           }
         }
       }
@@ -5750,16 +5750,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新的授權碼"
-          }
-        }
-      }
-    },
-    "New word or mis-hearing" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新字詞或聽錯的字"
           }
         }
       }
@@ -9913,7 +9903,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選單和錄音視窗維持原本大小"
+            "value" : "選單與錄音視窗不縮放"
           }
         }
       }
@@ -11011,6 +11001,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不辨識講者"
+          }
+        }
+      }
+    },
+    "Word or misheard phrase" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字詞或聽錯的說法"
           }
         }
       }

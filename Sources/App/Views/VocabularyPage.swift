@@ -1,7 +1,7 @@
 import AirdraftCore
 import SwiftUI
 
-/// One input row: a word (or a mis-hearing) and, optionally, what to replace
+/// One input row: a word (or a misheard phrase) and, optionally, what to replace
 /// it with. The list reads like "super whisper → Superwhisper".
 struct VocabularyPage: View {
     @Environment(AppContainer.self) private var container
@@ -25,8 +25,8 @@ struct VocabularyPage: View {
             }
             Card {
             HStack(spacing: 10) {
-                TextField("New word or mis-hearing", text: $word)
-                    .accessibilityLabel("New word or mis-hearing")
+                TextField("Word or misheard phrase", text: $word)
+                    .accessibilityLabel("Word or misheard phrase")
                     .focused($focusWord)
                     .softField(focused: focusWord)
                     .onSubmit(add)

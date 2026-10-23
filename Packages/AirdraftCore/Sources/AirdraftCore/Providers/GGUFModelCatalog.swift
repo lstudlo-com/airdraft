@@ -37,9 +37,9 @@ public struct GGUFModel: Codable, Sendable, Identifiable, Equatable {
         } else if control == .notApplied {
             summary = String(localized: "Automatically recognizes \(supportedLanguages.count) supported languages; selection has no effect.", bundle: .module)
         } else if automatic {
-            summary = String(localized: "\(supportedLanguages.count) languages. Auto Detect or a selected language.", bundle: .module)
+            summary = String(localized: "\(supportedLanguages.count) languages.", bundle: .module)
         } else {
-            summary = String(localized: "\(supportedLanguages.count) languages. Select a language; Auto Detect is unavailable.", bundle: .module)
+            summary = String(localized: "\(supportedLanguages.count) languages. Choose one; automatic detection is unavailable.", bundle: .module)
         }
         return .init(modelName: title, supportedLanguages: supportedLanguages,
                      supportsAutomatic: automatic, manualControl: control, summary: summary)
