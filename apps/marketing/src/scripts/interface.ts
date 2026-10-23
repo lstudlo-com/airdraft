@@ -8,6 +8,8 @@
 // Resting CSS is the final state, so the section reads without JavaScript.
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+// The phone layout's breakpoint (styles/interface.css).
+const phone = matchMedia("(max-width: 700px)");
 
 function compare(frame: HTMLElement) {
   const range = frame.querySelector<HTMLInputElement>("[data-compare-range]");
@@ -52,10 +54,20 @@ function compare(frame: HTMLElement) {
   range.addEventListener("input", () => set(Number(range.value)));
 
   // The one-time sweep: hold the divider at the right edge until the window
-  // is half in view, then let it travel to the middle.
-  if (reduced.matches || !CSS.supports("transition-property", "--split"))
+  // is half in view, then let it travel to the middle. Phone-width windows
+  // skip it and rest at half, as without JavaScript: there the waiting
+  // divider would sit at the clipped right edge with half its key cut off.
+  if (
+    reduced.matches ||
+    phone.matches ||
+    !CSS.supports("transition-property", "--split")
+  )
     return;
   frame.classList.add("awaits-sweep");
+  // A window narrowed to phone width before the sweep plays rests at half.
+  phone.addEventListener("change", () => {
+    if (phone.matches && frame.classList.contains("awaits-sweep")) set(50);
+  });
   const watcher = new IntersectionObserver(
     ([entry]) => {
       if (!entry.isIntersecting) return;

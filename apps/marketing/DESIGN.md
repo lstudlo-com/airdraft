@@ -517,8 +517,10 @@ card, engraved divider, reactive capsules), joined by a leader ending in a
 graphite stud ringed with the chrome. The window rises with the scroll and the
 callouts draw out after it. Once, when the window is half in view, the divider
 sweeps from the right edge to the middle over `1200ms` on the selection curve
-(a smooth cubic, never linear); dragging follows the pointer directly and
-reduced motion rests it at half.
+(a smooth cubic, never linear); dragging follows the pointer directly.
+Reduced motion and phone widths (`700px` or less, where the waiting divider's
+key would sit cut in half at the clipped right edge) skip the sweep and rest it
+at half, as without JavaScript.
 
 Below it, three bento tiles are live specimens (`src/scripts/interface.ts`):
 large keycaps that sink on the pointer or the visitor's ⌃⌥; the sidebar
