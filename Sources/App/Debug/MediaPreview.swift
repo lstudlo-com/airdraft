@@ -12,6 +12,8 @@ import Foundation
             .init(start: 14.7, end: 18.5, text: "Yes, and retries should resume from the last saved stage.", speaker: "2", overlapping: true)
         ]
         value.speakerNames = ["1": "Alex", "2": "Jamie"]
+        value.summary = "- Alex: keep the original text when speaker detection fails.\n- Jamie: make retries resume from the last saved stage."
+        value.summaryTemplate = .actionItems
         value.transcriptionComplete = true; value.diarizationComplete = true; value.stage = .completed
         value.rebuildTurns()
         return value
@@ -22,6 +24,8 @@ import Foundation
         saved.words = document.words; saved.turns = document.turns; saved.speakerNames = document.speakerNames
         saved.stage = .completed; saved.transcriptionComplete = true; saved.diarizationComplete = true
         _ = try history.updateDocument(saved)
+        // Names only, as the editor's Recent menu offers them.
+        try history.rememberSpeakerNames(["Morgan Lee", "林語晴", "Jamie", "Alex"])
     }
     static func seedMeetings(_ history: HistoryStore) throws {
         let now = Date()

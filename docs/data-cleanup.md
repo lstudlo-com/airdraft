@@ -7,7 +7,7 @@ Shortening dictation retention also asks before removing older audio.
 
 | Action | Deletes | Preserves |
 |---|---|---|
-| Remove History | Text, context, statistics and pending text saves | Independent recording assets, settings and models |
+| Remove History | Text, context, statistics, pending text saves and remembered meeting speaker names | Independent recording assets, settings and models |
 | Remove Audio Files | Managed audio and in-memory recovery samples | Saved and pending text, settings and models |
 | Remove History and Audio Files | Both preceding scopes | Settings, profiles, vocabulary, keys, models and permissions |
 | Reset App | Both scopes, app files/models/caches, preferences, profiles, vocabulary, provider keys and current app permission decisions | License/trial records, installed app, external originals and exported copies |

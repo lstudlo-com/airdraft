@@ -107,8 +107,28 @@ Original word text and timestamps remain alongside turns with optional edited
 text and speaker assignments. Completed documents support title edits, speaker
 renaming, reassignment, adding a speaker and Unknown Speaker. Edited/Original
 selects the displayed text and the version used by Copy and Export. Speaker
-display names are shared between versions. The editor shows 100 turns per page;
+display names are shared between versions. Turns store a speaker ID, so one name
+renames every passage of that speaker without editing the original words or
+`originalSpeaker`; a cleared name shows the default label. The editor shows 100 turns per page;
 timestamp buttons play the retained recording from that point when available.
+
+### Remembered speaker names
+
+Each Speakers row has a Recent menu with names saved in earlier transcripts,
+most recent first, omitting names another speaker in this document already
+uses. Choosing one only fills that speaker's name; it is saved with Save Changes
+like a typed name. After a successful save, typed single-line names of at most
+60 characters are remembered; default labels such as Speaker 2 and Unknown
+speaker are not. `SpeakerNameLibrary` keeps them in the `speakerName` table of
+`history.sqlite`: name, case/width/diacritic-insensitive key and last use only,
+bounded to 100 names. It stores no transcript text, document, recording or
+speaker IDs and no voice data. SpeakerKit exposes per-speaker centroid
+embeddings, but they are deliberately not persisted: they identify other
+people's voices and SpeakerKit defines no cross-session match threshold, so
+suggestions come from recent names only. Forget Recent Names clears the
+library without changing saved transcripts. Remove History, Remove History and
+Audio Files and Reset App delete it; audio-only cleanup keeps it. A failed
+library write after a successful save is reported without undoing the save.
 
 Save Changes uses the document revision. Closing a dirty editor asks before
 discarding changes. An unedited open document refreshes when processing completes; editing remains
@@ -120,12 +140,22 @@ IDs. Subtitle files preserve turn times and speaker labels. Original export
 removes per-turn edits and reassignment and omits the summary. Export cannot write
 inside the managed app-data directory.
 
-Summarize is an explicit action using the selected refinement provider, with a
-confirmation about text transfer and cost. It requires saved edits. Requests use
+Summarize is an explicit menu in the editor footer using the selected
+refinement provider. It offers four built-in `MeetingSummaryTemplate`s: Brief
+Summary (the original bullet format), Action Items, Decisions & Follow-ups and
+Meeting Minutes. Choosing one stores it in `AppSettings.meetingSummaryTemplate`
+(checked in the menu next time, across transcripts and launches) and opens a
+confirmation about text transfer and cost, which also says when it replaces the
+current summary. It requires saved edits. Template titles are localized; their
+prompts are English, assembled in `MeetingSummaryPrompt` with its own base rules
+and PromptBuilder's TASK line, and ask for plain-text output in the transcript's
+own language or languages, without invented owners, dates or names. Requests use
 sections of at most 8,000 characters, including splitting a long edited turn.
 Results remain ordered section summaries, with no unbounded final merge request.
-Meetings labels this operation Summarizing and offers Cancel. Cancellation or
-failure leaves the transcript unchanged.
+The document records `summaryTemplate`, shown beside the Summary heading; older
+summaries have none. Meetings labels this operation Summarizing and offers
+Cancel. Cancellation, failure or an empty response leaves the transcript and any
+earlier summary unchanged.
 
 ## Ownership and validation
 

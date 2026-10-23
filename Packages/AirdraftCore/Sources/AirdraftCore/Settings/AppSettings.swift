@@ -148,6 +148,8 @@ public final class AppSettings {
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
+    /// The last template chosen from a meeting transcript's Summarize menu.
+    public var meetingSummaryTemplate: MeetingSummaryTemplate { didSet { persist("meetingSummaryTemplate", meetingSummaryTemplate) } }
 
     private let defaults: UserDefaults
 
@@ -185,6 +187,7 @@ public final class AppSettings {
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? "zh-TW"
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
+        meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default
         if savedHUDStyle == "mini" {
             persist("hudStyle", hudStyle)
         }
