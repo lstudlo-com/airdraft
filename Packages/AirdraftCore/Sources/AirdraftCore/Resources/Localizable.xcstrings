@@ -3114,6 +3114,12 @@
     },
     "Install %@ in Models to see live text." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“模型”中安装 %@ 以显示实时文字。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3461,6 +3467,12 @@
     },
     "Live preview stopped because the speech model was too slow. Final transcription is unaffected." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音模型速度太慢，实时预览已停止。最终转录不受影响。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3487,6 +3499,12 @@
     },
     "Live preview stopped: %@ Final transcription is unaffected." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览已停止：%@ 最终转录不受影响。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3513,6 +3531,12 @@
     },
     "Live text is unavailable for %@. Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 无法显示实时文字。请改用 Apple Speech 预览，或使用 Parakeet、SenseVoice 或 Orukeet。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3523,6 +3547,12 @@
     },
     "Live transcript unavailable: %@" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法显示实时转录文本：%@"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5357,6 +5387,12 @@
     },
     "Selected speech model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选语音模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",

@@ -3696,6 +3696,12 @@
     },
     "Choose Apple Speech as the preview source" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请将预览来源设为 Apple Speech"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3754,6 +3760,12 @@
     },
     "Choose Selected speech model as the preview source" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请将预览来源设为“所选语音模型”"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6084,6 +6096,12 @@
     },
     "Enable Show text while speaking" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请开启“说话时显示文字”"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8487,6 +8505,12 @@
     },
     "Live transcript" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时转录文本"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10520,6 +10544,12 @@
     },
     "On this Mac; final transcript unchanged" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这台 Mac 上处理；不影响最终转录文本"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10540,22 +10570,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置端"
-          }
-        }
-      }
-    },
-    "On-device Apple Speech; final model unchanged" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设备端 Apple 语音；最终模型不变"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "裝置端 Apple 語音；最終模型不變"
           }
         }
       }
@@ -11721,6 +11735,12 @@
     },
     "Preview model" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览模型"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11747,6 +11767,12 @@
     },
     "Preview only. Transcribe the recording for the saved transcript." : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅供预览。请转录录音以获得保存的转录文本。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11757,6 +11783,12 @@
     },
     "Preview source" : {
       "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览来源"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
