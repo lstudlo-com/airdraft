@@ -117,6 +117,16 @@ Available `--e2e-action` values:
 | `preview` | Real Apple Speech preview, provisional text and callback cancellation |
 | `microphones` | Existing repeated hardware capture/reconfiguration self-test |
 | `automation` | Real Start/Cancel/Start/Stop intents, microphone capture and a disposable script receiver |
+| `capture-latency` | Real default-input `AudioRecorder` first-buffer time and production `pressToCaptureMs`, only when microphone access is already authorized |
+
+`capture-latency` reads `AVCaptureDevice.authorizationStatus` before any audio
+API and reports `unverified` with the reason unless it is `authorized`; it never
+requests access or changes the input device. It runs `--e2e-trials` (default 5)
+recorder trials, then the same number of production pipeline startups held for
+`--e2e-recording-ms` (default 600). Speech is a fixture that ignores the samples,
+history is absent and insertion is off, so no audio or speech content is kept.
+The report names the default input and whether it is Bluetooth. Launch the app
+with `open -n` so TCC attributes access to the Debug identity, not the shell.
 
 `architecture` exercises all cleanup scopes, old version-1 journals, remote-cleanup
 failure and retry, the lifetime data lease and practice configuration. Remote
