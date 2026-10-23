@@ -245,7 +245,12 @@ earlier text before the marker, ignores trailing blank rows and requires that
 text to stay unchanged (a terminal showing the prompt-less receiver); `none` is
 the only mode, and the default, for an app in `selfDrawingEditorBundlePrefixes`.
 There the fixture reads no field and passes only on the documented outcome: one
-paste reported as sent unverified, one delivery callback and no notice. Every
+paste reported as sent unverified (or confirmed, for a self-drawing editor that
+publishes a caret, such as Ghostty 1.3), one delivery callback and no notice.
+`--e2e-insertion-place-caret` (exact mode only) moves the caret after the marker
+before the production capture, standing in for the operator's click in a
+document that opened with its caret at the start. It is a selection change on
+the disposable field, never a text write. Every
 mode waits for the displaced clipboard to return before the fixture exits.
 
 Release preparation checks four live cases: TextEdit and Chrome, each with
@@ -283,16 +288,18 @@ path if it is missing), then rerun. The script never requests, grants or resets 
 permission, and uses no AppleScript, System Events or synthetic input.
 
 Fields are prepared as follows; the operator then clicks into the field, and the
-script waits until LaunchServices reports that app frontmost for one second:
+script waits until LaunchServices reports that app frontmost for one second. It
+reads both the older `lsappinfo` output and the macOS 27 format:
 
 | Target | Preparation | Expected outcome |
 |---|---|---|
-| TextEdit, VS Code | `open -a` a temporary text file holding the marker; click at its end | Actual field text |
+| TextEdit, VS Code | `open -a` a temporary text file holding the marker; click into it, and the fixture places the caret after the marker | Actual field text |
 | Chrome, Safari | `open -a` a local page whose field focuses itself with the caret at the end | Actual field text |
 | Notes, Slack | Printed steps: a new note, or your own DM's message box (never press Return), holding only the marker | Actual field text |
 | Terminal | `open -a` a receiver script | Actual text (suffix mode) and receiver evidence |
 | iTerm2 | Run the printed receiver command in a new window | Actual text (suffix mode) and receiver evidence |
-| Warp, Ghostty | Run the printed receiver command in a new window | Sent unverified and receiver evidence |
+| Warp | Run the printed receiver command in a new window | Sent unverified and receiver evidence |
+| Ghostty | `open -n` a new window running the receiver | Sent unverified, or confirmed because Ghostty 1.3 publishes a caret, and receiver evidence |
 | Zed | `open -a` a temporary text file; click at its end | Sent unverified; no readable text |
 
 The expected outcome comes from the build's own `selfDrawingEditorBundlePrefixes`.
