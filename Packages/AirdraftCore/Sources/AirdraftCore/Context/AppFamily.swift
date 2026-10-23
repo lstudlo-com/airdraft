@@ -43,6 +43,8 @@ public enum AppFamily: String, Codable, Sendable, CaseIterable {
         ("dev.warp.Warp", .terminal),
         ("com.mitchellh.ghostty", .terminal),
         ("net.kovidgoyal.kitty", .terminal),
+        ("org.alacritty", .terminal),
+        ("com.github.wez.wezterm", .terminal),
     ]
 
     private static let urlTable: [(host: String, family: AppFamily)] = [

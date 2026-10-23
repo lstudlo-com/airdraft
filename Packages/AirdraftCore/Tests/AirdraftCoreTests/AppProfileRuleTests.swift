@@ -33,6 +33,9 @@ final class AppProfileRuleTests: XCTestCase {
         XCTAssertEqual(store.selection(forApp: "DEV.WARP.warp").profile.id, RefinementProfile.verbatimID, "Bundle IDs match case-insensitively")
         XCTAssertEqual(store.selection(forApp: "com.googlecode.iterm2").profile.id, RefinementProfile.summaryID)
         XCTAssertEqual(store.selection(forApp: "com.googlecode.iterm2").rule?.match, .family(.terminal))
+        for terminal in ["org.alacritty", "com.github.wez.wezterm"] {
+            XCTAssertEqual(store.selection(forApp: terminal).rule?.match, .family(.terminal), terminal)
+        }
         XCTAssertEqual(store.selection(forApp: "com.apple.mail").profile.id, RefinementProfile.conciseID)
         XCTAssertFalse(store.selection(forApp: "com.apple.mail").isAutomatic)
         XCTAssertEqual(store.selection(forApp: nil).profile.id, RefinementProfile.conciseID)

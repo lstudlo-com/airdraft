@@ -78,7 +78,7 @@ public extension AppFamily {
     var ruleExamples: [String] {
         switch self {
         case .code: ["Visual Studio Code", "Cursor", "Windsurf", "Xcode", "JetBrains IDEs", "Zed", "Sublime Text"]
-        case .terminal: ["Terminal", "iTerm2", "Warp", "Ghostty", "kitty"]
+        case .terminal: ["Terminal", "iTerm2", "Warp", "Ghostty", "kitty", "Alacritty", "WezTerm"]
         case .email: ["Mail", "Outlook", "Spark"]
         case .workChat: ["Slack", "Microsoft Teams", "Discord", "Mattermost"]
         case .personalChat: ["Messages", "WhatsApp", "Telegram", "WeChat", "LINE", "Signal"]

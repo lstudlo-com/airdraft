@@ -608,16 +608,6 @@
         }
       }
     },
-    "%lld languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 種語言"
-          }
-        }
-      }
-    },
     "%lld models available" : {
       "localizations" : {
         "zh-Hant" : {
@@ -806,16 +796,6 @@
         }
       }
     },
-    "100 languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "100 種語言"
-          }
-        }
-      }
-    },
     "25 European languages. Does not support Chinese." : {
       "localizations" : {
         "zh-Hant" : {
@@ -832,16 +812,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "25 種歐洲語言；不支援中文。"
-          }
-        }
-      }
-    },
-    "25 languages" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "25 種語言"
           }
         }
       }
@@ -3046,16 +3016,6 @@
         }
       }
     },
-    "Create Summary" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "製作摘要"
-          }
-        }
-      }
-    },
     "Create a summary with your refinement provider" : {
       "localizations" : {
         "zh-Hant" : {
@@ -3517,16 +3477,6 @@
       }
     },
     "Detect Automatically" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動偵測"
-          }
-        }
-      }
-    },
-    "Detect automatically" : {
       "localizations" : {
         "zh-Hant" : {
           "stringUnit" : {
@@ -6068,16 +6018,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新的授權碼"
-          }
-        }
-      }
-    },
-    "New word or mis-hearing" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新字詞或聽錯的字"
           }
         }
       }
@@ -8786,16 +8726,6 @@
         }
       }
     },
-    "Restores built-in profiles and the base system prompt. Profiles you created will be deleted." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "還原內建模式與基本系統提示詞。你建立的模式將被刪除。"
-          }
-        }
-      }
-    },
     "Restricted" : {
       "localizations" : {
         "zh-Hant" : {
@@ -9898,16 +9828,6 @@
         }
       }
     },
-    "Speaker labels are estimates. Assign each passage below to correct them." : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "講者標籤僅為估計。請為下方各段落指定講者以修正。"
-          }
-        }
-      }
-    },
     "Speaker labels are estimates. Assign each passage below to correct them. Saved names stay on this Mac as suggestions." : {
       "localizations" : {
         "zh-Hant" : {
@@ -10296,16 +10216,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要為此逐字稿製作摘要嗎？"
-          }
-        }
-      }
-    },
-    "Summarize…" : {
-      "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "製作摘要⋯"
           }
         }
       }
