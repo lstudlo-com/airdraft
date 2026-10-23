@@ -323,7 +323,7 @@ final class AppSettingsTests: XCTestCase {
         }
         for (language, script) in [("ja", ChineseScript.auto), ("ja-JP", .auto), ("ko", .auto), ("zh", .traditional),
                                    ("", .traditional), ("en", .traditional)] {
-            XCTAssertEqual(ASRConfig(language: language, chineseScript: .traditional).refinementScript, script, language)
+            XCTAssertEqual(ASRConfig(language: language, chineseScript: .traditional).effectiveChineseScript, script, language)
         }
         XCTAssertEqual(ChineseScript.simplified.appleMandarinLocale, "zh-CN")
         XCTAssertEqual(ChineseScript.traditional.appleMandarinLocale, "zh-TW")

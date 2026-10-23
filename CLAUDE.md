@@ -1025,10 +1025,11 @@ changes in zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale zh_CN`) and zh-Han
 Unsaved Chinese script and Apple Speech/live-preview locale defaults follow the
 first Chinese preferred language (`ChineseScript.systemDefault`: Simplified with
 zh-CN, otherwise Traditional; Auto on a Mac whose first language is Japanese or
-Korean and that lists no Chinese); never rewrite saved choices. Refinement gets no
-Chinese script rule when Japanese or Korean is the selected speech language
-(`ASRConfig.refinementScript`): under the Traditional rule models translated
-Japanese into Chinese.
+Korean and that lists no Chinese); never rewrite saved choices. When Japanese or
+Korean is the selected speech language, `ASRConfig.effectiveChineseScript` is Auto
+for refinement, speech hints, previews, media windows and the deterministic
+converter: under the Traditional rule models translated Japanese into Chinese, and
+kanji-only text has no kana for the converter's guard.
 
 ## Trigger Delay
 

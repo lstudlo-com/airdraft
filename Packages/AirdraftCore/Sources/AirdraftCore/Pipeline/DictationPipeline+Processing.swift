@@ -43,7 +43,7 @@ extension DictationPipeline {
             context: context,
             family: AppFamily.classify(context),
             dictionary: snapshot.dictionary,
-            chineseScript: snapshot.asr.refinementScript
+            chineseScript: snapshot.asr.effectiveChineseScript
         )
         let preparation = RefinementPreparation(token: token)
         refinementPreparation = preparation
@@ -180,7 +180,7 @@ extension DictationPipeline {
 
         // 3. Script normalisation, then the dictionary always has the last word.
         let postStarted = ProcessInfo.processInfo.systemUptime
-        let normalised = ChineseScriptConverter.convert(refinement.refined, to: snapshot.asr.chineseScript)
+        let normalised = ChineseScriptConverter.convert(refinement.refined, to: snapshot.asr.effectiveChineseScript)
         let final = DictionaryPostProcessor.apply(normalised, entries: snapshot.dictionary)
         timings.postProcessingMs = Self.elapsed(since: postStarted)
 
@@ -207,7 +207,7 @@ extension DictationPipeline {
     func speechHints(for snapshot: RecordingSnapshot, language: String?) -> TranscriptionHints {
         TranscriptionHints(language: language,
                            vocabulary: DictionaryPostProcessor.vocabulary(snapshot.dictionary),
-                           chineseScript: snapshot.asr.chineseScript,
+                           chineseScript: snapshot.asr.effectiveChineseScript,
                            biasOnDeviceSpeech: snapshot.vocabularyBiasesOnDeviceSpeech)
     }
 
@@ -274,7 +274,7 @@ extension DictationPipeline {
             context: context,
             family: AppFamily.classify(context),
             dictionary: snapshot.dictionary,
-            chineseScript: snapshot.asr.refinementScript
+            chineseScript: snapshot.asr.effectiveChineseScript
         )
         let refinementStarted = ProcessInfo.processInfo.systemUptime
         let preparation = refinementPreparation

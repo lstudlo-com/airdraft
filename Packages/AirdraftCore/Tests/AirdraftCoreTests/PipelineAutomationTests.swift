@@ -52,6 +52,22 @@ final class PipelineAutomationTests: XCTestCase {
         XCTAssertEqual(try fixture.history.count(), 1)
     }
 
+    /// Kanji-only Japanese has no kana for the converter's guard; with Japanese
+    /// selected, the Traditional script setting must not rewrite it (review #1).
+    func testJapaneseSpeechKeepsKanjiUnderTraditionalScript() async throws {
+        let fixture = try Fixture(speech: AutomationSpeech([.text("会議室検索")]))
+        defer { fixture.cleanUp() }
+        fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
+
+        try await fixture.pipeline.startFromAutomation()
+        try fixture.pipeline.stopFromAutomation()
+        try await finished(fixture)
+
+        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["会議室検索"])
+        fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
+        XCTAssertEqual(fixture.settings.asr.effectiveChineseScript, .auto)
+    }
+
     func testScriptReceivesOnlyFinalTextAfterChineseConversionAndDictionary() async throws {
         let fixture = try Fixture(speech: AutomationSpeech([.text("汉语 floze")]))
         defer { fixture.cleanUp() }

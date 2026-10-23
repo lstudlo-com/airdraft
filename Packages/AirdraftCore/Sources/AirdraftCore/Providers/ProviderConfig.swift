@@ -363,11 +363,10 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         if kind.preset != nil, let current = selectedSpeechModel { selectModel(current.id) }
     }
 
-    /// Identity of the engine this config selects. Equal to the `id` of the
-    /// transcriber EngineFactory builds for it, so the UI can look up load state.
-    /// The script rule refinement gets: none when Japanese or Korean is the
-    /// selected speech language, whose kanji or hanja must not become Chinese.
-    public var refinementScript: ChineseScript {
+    /// The Chinese script that conversion, speech hints and refinement apply: Auto
+    /// when Japanese or Korean is the selected speech language, whose kanji or
+    /// hanja must never become Chinese script.
+    public var effectiveChineseScript: ChineseScript {
         let code = language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return code.hasPrefix("ja") || code.hasPrefix("ko") ? .auto : chineseScript
     }
@@ -380,6 +379,8 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         return AppleSpeechTranscriber.locale(forLanguage: language) ?? appleLocale
     }
 
+    /// Identity of the engine this config selects. Equal to the `id` of the
+    /// transcriber EngineFactory builds for it, so the UI can look up load state.
     public var engineID: String {
         switch kind {
         case .fluidAudio: return "fluidaudio:\(model)"

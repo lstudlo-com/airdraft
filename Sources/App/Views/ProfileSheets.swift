@@ -59,7 +59,7 @@ struct ProfilePromptPreview: View {
             transcript: "<transcription>", profile: profile,
             baseRules: container.profiles.baseRules, context: .empty, family: .general,
             dictionary: container.dictionary.entries,
-            chineseScript: container.settings.asr.chineseScript
+            chineseScript: container.settings.asr.effectiveChineseScript
         ))
     }
 }

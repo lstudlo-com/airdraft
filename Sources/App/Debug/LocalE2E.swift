@@ -447,7 +447,7 @@ enum LocalE2E {
         let samples = try AudioFile.load(path: path)
         let hints = TranscriptionHints(language: try SpeechLanguagePolicy.resolve(asr).language,
                                        vocabulary: DictionaryPostProcessor.vocabulary(app.dictionary.entries),
-                                       chineseScript: asr.chineseScript,
+                                       chineseScript: asr.effectiveChineseScript,
                                        biasOnDeviceSpeech: app.settings.vocabularyBiasesOnDeviceSpeech)
         func ms(_ start: ContinuousClock.Instant) -> Double {
             let duration = start.duration(to: .now).components

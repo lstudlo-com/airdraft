@@ -297,7 +297,9 @@ final class AppContainer {
     }
 
     /// Meetings follow Settings > Live preview with the same source (AD-084).
-    /// Display only: the saved meeting transcript comes from the normal job.
+    /// Display only: the saved meeting transcript comes from the normal job. The
+    /// preview keeps the dictation's vocabulary hints so it can reuse the warm
+    /// recognizer; the saved transcript may spell terms differently.
     private func startMeetingLivePreview(onText: @escaping @Sendable (String) -> Void,
                                          onIssue: @escaping @Sendable (String) -> Void) async -> (any SpeechPreviewSession)? {
         guard settings.livePreviewEnabled else { return nil }
@@ -310,7 +312,7 @@ final class AppContainer {
             do {
                 hints = TranscriptionHints(language: try SpeechLanguagePolicy.resolve(asr).language,
                                            vocabulary: DictionaryPostProcessor.vocabulary(dictionary.entries),
-                                           chineseScript: asr.chineseScript,
+                                           chineseScript: asr.effectiveChineseScript,
                                            biasOnDeviceSpeech: settings.vocabularyBiasesOnDeviceSpeech)
             } catch {
                 onIssue(error.localizedDescription)

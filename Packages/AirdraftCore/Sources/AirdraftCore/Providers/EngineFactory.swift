@@ -144,7 +144,7 @@ public actor EngineFactory {
             if let whisper = engine as? WhisperKitTranscriber {
                 words = try await whisper.transcribeWords(samples: samples, language: language, offset: offset)
             } else {
-                let result = try await engine.transcribe(samples: samples, hints: .init(language: language, chineseScript: config.chineseScript))
+                let result = try await engine.transcribe(samples: samples, hints: .init(language: language, chineseScript: config.effectiveChineseScript))
                 // Measured audio-segment bounds, never invented times for individual words.
                 // AD-082: a decoder loop inside a media window is cut to one occurrence.
                 let text = TranscriptRepetition.trimmed(result.text) ?? result.text
