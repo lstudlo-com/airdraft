@@ -19,6 +19,9 @@ from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
+# The site's languages (src/i18n/index.ts reads the same file): English at the
+# root, every other language under /<code>/ with the English slug.
+LANGUAGES = json.loads((ROOT / "src" / "i18n" / "locales.json").read_text())
 
 
 class Page(HTMLParser):
@@ -35,6 +38,7 @@ class Page(HTMLParser):
         self.schemas = []
         self.schema = ""
         self.language = None
+        self.direction = None
         self.og_alternates = []
         self.feed(source)
 
@@ -44,6 +48,7 @@ class Page(HTMLParser):
             self.ids.add(attrs["id"])
         if tag == "html":
             self.language = attrs.get("lang")
+            self.direction = attrs.get("dir")
         if tag == "meta":
             self.meta[attrs.get("name", attrs.get("property"))] = attrs.get("content", "")
             if attrs.get("property") == "og:locale:alternate":
@@ -119,12 +124,15 @@ def check(base_url=None):
     require(not pages.get("/404.html", home).hrefs("canonical"), "404 must not canonicalize missing paths.")
     titles, descriptions = set(), set()
     adjacency = {}
-    # Traditional Chinese (Taiwan) pages live under /zh-tw/; everything else is English.
+    prefixed = [language for language in LANGUAGES if language["code"] != "en"]
+    def locale_of(route):
+        return next((language for language in prefixed if route.startswith(f"/{language['code']}/")), LANGUAGES[0])
     def language_of(route):
-        return "zh-Hant-TW" if route.startswith("/zh-tw/") else "en"
-    og_locales = {"en": "en_US", "zh-Hant-TW": "zh_TW"}
+        return locale_of(route)["tag"]
+    og_locales = {language["tag"]: language["og"] for language in LANGUAGES}
     for route, page in pages.items():
         require(page.language == language_of(route), f"{route}: expected lang {language_of(route)}, got {page.language}.")
+        require(page.direction == locale_of(route)["dir"], f"{route}: expected dir {locale_of(route)['dir']}, got {page.direction}.")
         require(page.h1_count == 1, f"{route}: expected one H1, got {page.h1_count}.")
         adjacency[route] = set()
         for href in page.anchors:
@@ -175,18 +183,25 @@ def check(base_url=None):
     require(set(indexable) <= reachable, f"Orphan pages: {set(indexable) - reachable}")
     # Translated pages: every alternate set names each language version once,
     # includes the page itself, points x-default at the English page, and is
-    # identical on every member (reciprocal). Every /zh-tw/ page is a translation.
+    # identical on every member (reciprocal). Every page under a language
+    # prefix is a translation listed in locales.json, and every listed
+    # translation exists.
     alternate_sets = {}
     for route, page in indexable.items():
         alternates = {link["hreflang"]: link.get("href", "") for link in page.links if link.get("rel") == "alternate" and link.get("hreflang")}
         require(len(alternates) == len([link for link in page.links if link.get("rel") == "alternate" and link.get("hreflang")]), f"{route}: duplicate hreflang.")
-        if route.startswith("/zh-tw/"):
+        locale = locale_of(route)
+        if locale["code"] != "en":
             require(bool(alternates), f"{route}: translated page without hreflang alternates.")
+            require(route[len(locale["code"]) + 1:] in locale["paths"], f"{route}: translated page missing from locales.json.")
         if not alternates:
             continue
         alternate_sets[route] = alternates
         require(alternates.get(language_of(route)) == origin + route, f"{route}: hreflang set must include the page itself.")
-        require(set(alternates) >= {"en", "zh-Hant-TW", "x-default"}, f"{route}: hreflang set must name en, zh-Hant-TW and x-default.")
+        require({"en", "x-default"} <= set(alternates) and len(alternates) >= 3, f"{route}: hreflang set must name en, x-default and at least one translation.")
+        english_route = route[len(locale["code"]) + 1:] if locale["code"] != "en" else route
+        expected_languages = {"en", "x-default"} | {language["tag"] for language in prefixed if english_route in language["paths"]}
+        require(set(alternates) == expected_languages, f"{route}: hreflang set {sorted(alternates)} differs from locales.json {sorted(expected_languages)}.")
         require(alternates.get("x-default") == alternates.get("en"), f"{route}: x-default must be the English page.")
         for language, target in alternates.items():
             path = urlsplit(target).path
@@ -210,6 +225,9 @@ def check(base_url=None):
             location = entry.findtext("s:loc", "", namespace)
             sitemap_alternates[location] = {link.get("hreflang"): link.get("href") for link in entry.findall("x:link", namespace)}
     require(set(sitemap_urls) == {origin + route for route in indexable}, "Sitemap must contain exactly the indexable canonical HTML pages.")
+    for language in prefixed:
+        for path in language["paths"]:
+            require(f"/{language['code']}{path}" in indexable, f"locales.json lists /{language['code']}{path}, which was not built.")
     require(len(sitemap_urls) == len(set(sitemap_urls)), "Duplicate sitemap URL.")
     for route in indexable:
         expected = {language: target for language, target in alternate_sets.get(route, {}).items() if language != "x-default"}

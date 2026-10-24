@@ -1,0 +1,255 @@
+/* Languages: the header's language menu, the footer's language list and the
+   right-to-left adjustments for Arabic. Kept apart from global.css so the
+   shared header and page styles stay as they are; these rules join the same
+   cascade layers (declared in global.css) after it. */
+
+@layer components {
+  /* The globe key stands beside GitHub. On phones it moves into the menu
+     as its last row (SiteHeader.astro). */
+  .site-header .header-language {
+    anchor-name: --language-key;
+    padding-inline: 0;
+  }
+
+  /* A raised panel under the globe key, with one row per language named in
+     itself; the current language rests in the recessed well. A native
+     popover: Escape and an outside click close it and focus returns. */
+  .language-menu {
+    position: fixed;
+    inset: auto;
+    inset-block-start: calc(var(--header) - 6px);
+    inset-inline-end: max(var(--gutter), calc((100vw - 1120px) / 2));
+    width: min(280px, calc(100vw - 2 * var(--gutter)));
+    max-height: calc(100dvh - var(--header) - 16px);
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    border: 0;
+    color: var(--ink);
+  }
+  @supports (position-area: block-end) {
+    .language-menu {
+      position-anchor: --language-key;
+      position-area: block-end span-inline-start;
+      inset: auto;
+      margin-block-start: 10px;
+    }
+  }
+  .language-menu ul {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .language-option {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 10px 14px;
+    border-radius: var(--radius-well);
+    font-size: var(--step-0);
+    font-weight: 500;
+    color: var(--ink);
+    transition: background 160ms ease;
+  }
+  .language-option:hover {
+    background: rgb(128 128 128 / 0.1);
+  }
+  .language-option[aria-current] {
+    background: var(--well-soft);
+    box-shadow: var(--sink-chip);
+  }
+  /* "home page" beside a language without this page. */
+  .language-home {
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .language-menu:not(:popover-open) {
+    display: none;
+  }
+
+  /* The phone menu's Language row is a button styled like the links. */
+  button.menu-link {
+    width: 100%;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--step-1);
+    font-weight: 500;
+    text-align: start;
+    cursor: pointer;
+  }
+  .menu-language .nav-note {
+    color: var(--muted);
+  }
+
+  /* The footer's language list sits under its links, at the same end. */
+  .site-footer {
+    flex-wrap: wrap;
+  }
+  .footer-languages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px 18px;
+    flex-basis: 100%;
+  }
+  .footer-languages a {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .footer-languages a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .footer-languages a[aria-current] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Right to left. Logical properties put the flow-relative spacing on the
+     correct side; the light still comes from the top left, so shadows and
+     raised edges are unchanged. Arrows that point along the reading
+     direction turn round. */
+  [dir="rtl"] .skip-link {
+    left: auto;
+    inset-inline-start: 12px;
+  }
+  [dir="rtl"] .brand-caret {
+    margin-left: 0;
+    margin-inline-start: calc(20 * var(--u));
+  }
+  [dir="rtl"] .site-header .key-icon {
+    margin-left: 0;
+    margin-inline-start: 10px;
+  }
+  [dir="rtl"] .nav-cta,
+  [dir="rtl"] .site-header .menu-key {
+    margin-left: 0;
+    margin-inline-start: 6px;
+  }
+  [dir="rtl"] .menu-link .arrow {
+    margin-left: 0;
+    margin-inline-start: auto;
+  }
+  [dir="rtl"] .caret,
+  [dir="rtl"] .wave-caret {
+    margin-left: 0;
+    margin-inline-start: 3px;
+  }
+  [dir="rtl"] .wave-caret {
+    margin-inline-start: 6px;
+  }
+  [dir="rtl"] .offer-price > .price-unit {
+    margin-left: 0;
+    margin-inline-start: 0.15em;
+  }
+  [dir="rtl"]
+    :is(.preview, .art-field, .art-output, .art-card-front, .details-body) {
+    text-align: start;
+  }
+  [dir="rtl"] .details-body {
+    padding-right: 0;
+    padding-inline-end: 8px;
+  }
+  [dir="rtl"] .choice-island {
+    right: auto;
+    inset-inline-end: 6px;
+  }
+  [dir="rtl"] .art-mac-label {
+    left: auto;
+    inset-inline-start: 18px;
+  }
+  /* Arrows along the reading direction. */
+  [dir="rtl"] :is(.pipe-arrow, .stage-arrow) svg,
+  [dir="rtl"] .arrow.right {
+    scale: -1 1;
+  }
+  /* Pictures of the app keep its left-to-right layout: the window render,
+     its callouts at the window's own coordinates, the Home waveform (time
+     runs left to right, newest bar last), the recording pill and key caps
+     (⌃ before ⌥, as macOS prints shortcuts). */
+  [dir="rtl"] :is(.showcase-frame, .wave, .hud, .keys) {
+    direction: ltr;
+  }
+  [dir="rtl"] .callout-text {
+    direction: rtl;
+  }
+}
+
+@layer responsive {
+  /* Spaced languages mark English-only links with a word ("(inglés)"), so
+     their header links need more room: below 1180px the links centre
+     between the mark and the keys instead of on the window, and up to 900px
+     they fold into the menu, as translated headers do up to 700px. */
+  @media (min-width: 561px) and (max-width: 1180px) {
+    .site-header-longer .site-header-inner {
+      grid-template-columns: auto 1fr auto;
+    }
+    .site-header-longer .header-links {
+      justify-self: center;
+    }
+  }
+  @media (min-width: 561px) and (max-width: 900px) {
+    .site-header-longer .site-header-inner {
+      grid-template-columns: 1fr auto;
+    }
+    .site-header-longer .header-links {
+      display: none;
+    }
+  }
+  @supports selector(:popover-open) {
+    @media (min-width: 561px) and (max-width: 900px) {
+      .site-header-longer .header-source {
+        display: none;
+      }
+      .site-header-longer .menu-key {
+        display: inline-flex;
+      }
+      .site-header-longer .site-menu:popover-open {
+        display: grid;
+      }
+    }
+  }
+  /* The globe key is compact, so it stays in the header down to the
+     phone layout (global.css hid the old text link below 760px). */
+  @media (max-width: 760px) {
+    .site-header .header-language {
+      display: inline-flex;
+    }
+  }
+  @supports selector(:popover-open) {
+    @media (max-width: 560px) {
+      .site-header .header-language {
+        display: none;
+      }
+    }
+  }
+  @media (max-width: 700px) {
+    .footer-languages {
+      justify-content: flex-start;
+    }
+  }
+  /* Phones open it from the menu's Language row, under the header, across
+     the width. */
+  @media (max-width: 560px) {
+    .language-menu {
+      position-area: none;
+      inset: var(--header) var(--gutter) auto;
+      width: auto;
+      margin: 0;
+    }
+  }
+  @supports not selector(:popover-open) {
+    .language-menu {
+      display: none;
+    }
+  }
+}

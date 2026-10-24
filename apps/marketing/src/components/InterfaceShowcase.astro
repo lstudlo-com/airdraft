@@ -4,7 +4,8 @@ import Keys from "./ui/Keys.astro";
 import Section from "./ui/Section.astro";
 import "../styles/interface.css";
 import { appLabels } from "../data/app";
-import type { Locale } from "../i18n";
+import { interfaceReleased, type Locale } from "../i18n";
+import { messages } from "../i18n/messages";
 
 interface Props {
   locale?: Locale;
@@ -22,105 +23,53 @@ const { locale = "en" } = Astro.props;
  * (points on its 784 × 1000 frame). The specimens are built from the site's
  * parts and respond to the pointer (src/scripts/interface.ts).
  *
- * From 0.11.0 the app ships English and Traditional Chinese interfaces and
- * follows the macOS language. The script renders both, so each page shows the
- * window in its own language (configuration-* and configuration-zh-tw-*).
+ * The app follows the macOS language. The script renders English and
+ * Traditional Chinese (configuration-* and configuration-zh-tw-*); the other
+ * languages show the English window and say so in the caption until their
+ * renders exist.
  * The specimens' sidebar and segmented labels are the app's own in the
  * page's language (src/data/app.ts).
  */
 const width = 784;
 const height = 1000;
+// Renders exist in English and Traditional Chinese; the other languages
+// show the English window until theirs are rendered.
 const zh = locale === "zh-tw";
 const app = appLabels[locale];
 const image = zh ? "configuration-zh-tw" : "configuration";
-const copy = zh
-  ? {
-      title: "打開就想用的介面",
-      intro: "凸起的按鍵、壓下的凹槽、刻出的分隔線，淺色深色都一樣。",
-      alt: "Airdraft 淺色模式的「設定」頁面：側邊欄旁是麥克風與外觀的凸起卡片，包括錄音視窗的六種樣式。",
-      compare: "比較淺色與深色外觀",
-      half: "一半淺色，一半深色",
-      allLight: "全部淺色",
-      allDark: "全部深色",
-      mixed: "{light}% 淺色，{dark}% 深色",
-      materials: "視窗中的材質",
-      caption:
-        "以 Graphite 強調色從 App 的繁體中文介面算繪；介面語言跟隨 macOS 的設定。",
-      drag: "拖曳即可比較淺色與深色。",
-      press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
-      select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
-      travel: ["有行程的控制項", "旋鈕與滑塊在軌道裡滑動。"],
-      keysLabel: "Control Option",
-    }
-  : {
-      title: "An interface you’ll love to open",
-      intro:
-        "Raised keys, pressed wells and carved grooves, in light and dark.",
-      alt: "Airdraft’s Settings page in light mode: a sidebar beside raised cards for the microphone and appearance, including the six recording-window styles.",
-      compare: "Compare light and dark appearance",
-      half: "Half light, half dark",
-      allLight: "All light",
-      allDark: "All dark",
-      mixed: "{light}% light, {dark}% dark",
-      materials: "Materials in the window",
-      caption: "Rendered from the app with the Graphite accent.",
-      drag: "Drag to compare light and dark.",
-      press: ["Keys that press in", "Hold ⌃⌥ on your keyboard to press them."],
-      select: [
-        "Selection that slides",
-        "The well moves first; the icon’s island follows.",
-      ],
-      travel: [
-        "Controls with travel",
-        "Knobs and thumbs slide inside their tracks.",
-      ],
-      keysLabel: "Control Option",
-    };
-const calloutText: Record<string, [string, string]> = zh
-  ? {
-      "Carved mark": ["刻出的標誌", "波形是刻進去的。"],
-      "Pressed well": ["壓下的凹槽", "目前的頁面沉進去。"],
-      "Raised button": ["凸起的按鈕", "控制項站起來等你按。"],
-      "Raised card": ["凸起的卡片", "每個區塊浮在頁面上。"],
-      "Engraved divider": ["刻線分隔", "各列以溝槽分開。"],
-      "Reactive capsules": ["會反應的膠囊", "五種樣式跟著你的聲音動。"],
-    }
-  : {};
+const copy = messages[locale].interface;
+const note = interfaceReleased[locale] ? undefined : copy.unreleased;
+const gap = messages[locale].gap;
 const callouts = [
   {
     side: "left",
     x: 24,
     y: 68,
-    title: "Carved mark",
-    line: "Its waveform is cut in.",
+    title: "Carved mark" as const,
   },
   {
     side: "left",
     x: 16,
     y: 351,
-    title: "Pressed well",
-    line: "The current page sinks in.",
+    title: "Pressed well" as const,
   },
   {
     side: "left",
     x: 16,
     y: 929,
-    title: "Raised button",
-    line: "Controls stand up to press.",
+    title: "Raised button" as const,
   },
   {
     side: "right",
     x: 749,
     y: 168,
-    title: "Raised card",
-    line: "Each section lifts off the page.",
+    title: "Raised card" as const,
   },
   {
     side: "right",
     x: 734,
     y: 392,
-    title: "Engraved divider",
-    line: "Rows split by a groove.",
+    title: "Engraved divider" as const,
   },
   {
     side: "right",
@@ -128,15 +77,13 @@ const callouts = [
     // The Traditional Chinese Text size description fits one line, so the
     // recording-window previews sit 14 points higher in that render.
     y: zh ? 664 : 678,
-    title: "Reactive capsules",
-    line: "Five styles follow your voice.",
+    title: "Reactive capsules" as const,
   },
 ];
+// Each callout names a material at its point on the window; the copy is in
+// the page's language (src/i18n/messages).
 const shown = callouts.map((callout) => {
-  const [title, line] = calloutText[callout.title] ?? [
-    callout.title,
-    callout.line,
-  ];
+  const [title, line] = copy.callouts[callout.title];
   return { ...callout, title, line };
 });
 const percent = (value: number, of: number) =>
@@ -235,7 +182,8 @@ const destinations = [
     </div>
     <figcaption>
       {copy.caption}
-      {zh ? "" : " "}
+      {note && `${gap}${note}`}
+      {gap}
       <span class="js-only">{copy.drag}</span>
     </figcaption>
   </figure>

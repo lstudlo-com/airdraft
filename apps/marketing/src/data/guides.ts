@@ -12,6 +12,15 @@ export interface Guide {
 // guide's setup instructions and limits aligned with the native app.
 export const guides: Guide[] = [
   {
+    slug: "offline-dictation-on-mac",
+    title: "Set up offline dictation on your Mac",
+    description:
+      "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
+    summary:
+      "Choose a speech model for your language, keep cleanup local, and make your first dictation.",
+    href: "/guides/offline-dictation-on-mac/",
+  },
+  {
     slug: "mixed-chinese-english-dictation",
     title: "Dictate mixed Chinese and English on a Mac",
     description:
@@ -28,15 +37,6 @@ export const guides: Guide[] = [
     summary:
       "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
     href: "/guides/dictate-to-claude-code-and-terminals/",
-  },
-  {
-    slug: "offline-dictation-on-mac",
-    title: "Set up offline dictation on your Mac",
-    description:
-      "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
-    summary:
-      "Choose a speech model, keep cleanup local, and make your first dictation.",
-    href: "/guides/offline-dictation-on-mac/",
   },
   {
     slug: "local-vs-cloud-dictation",
@@ -113,5 +113,10 @@ export const zhGuides: Guide[] = [
   },
 ];
 
+/**
+ * The guides to list on a page in `locale`: the Traditional Chinese guides on
+ * Traditional Chinese pages; elsewhere the English guides, which other
+ * languages link to in English.
+ */
 export const guidesFor = (locale: Locale) =>
   locale === "zh-tw" ? zhGuides : guides;

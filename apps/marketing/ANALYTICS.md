@@ -40,7 +40,7 @@ consent. There is one manual `$pageview` per document after consent; this static
 site does not use ClientRouter. Do not also enable automatic pageviews. If
 ClientRouter is added, revise navigation handling and test duplicate capture.
 
-The notice offers equally styled Allow and Decline actions, in the page's language. `/privacy/` allows
+The notice offers equally styled Allow and Decline actions, in the page's language (`analytics` in `src/i18n/messages`). `/privacy/` allows
 revocation; consent is stored for 180 days. No PostHog script or request runs
 before consent or after an initial decline. GPC and DNT keep collection off.
 SDK opt-out and a final event gate handle withdrawal, including another tab and
@@ -53,7 +53,8 @@ disabled. The service still receives the network connection, so this is not a
 claim that no personal data can ever reach a processor.
 
 The event allowlist preserves anonymous/session IDs, browser and device types,
-known page paths (including the `/zh-tw/` translations) and numeric Web Vitals. It removes arbitrary properties,
+known page paths (every English page and each language's translations from
+`src/i18n/locales.json`) and numeric Web Vitals. It removes arbitrary properties,
 nested person/DOM data, query strings, hashes, referral paths and advertising
 click IDs. Only `utm_source`, `utm_medium`, `utm_campaign` and `utm_content` are
 accepted, with 1–80 ASCII letters, digits, underscores or hyphens. Never put
@@ -69,23 +70,24 @@ All events include `site=airdraft-marketing`, `environment=production` and
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `$pageview`, `$pageleave`                      | Which pages and referral sources attract visits? How long do consented visits last?                          |
 | `$web_vitals`                                  | Do LCP, INP, CLS or FCP show a performance problem?                                                          |
-| `pricing_clicked`                              | Which placements lead visitors to pricing (English or Traditional Chinese)?                                  |
+| `pricing_clicked`                              | Which placements lead visitors to pricing, in any language?                                                  |
 | `source_clicked`, `build_instructions_clicked` | How much interest is there in self-building?                                                                 |
 | `license_plan_selected`                        | Which Mac count do visitors actively select?                                                                 |
 | `demo_started`, `demo_profile_selected`        | Do visitors intentionally try the authored samples and profiles?                                             |
-| `guide_clicked`                                | Which guides do visitors open from another page (English or Traditional Chinese)?                            |
+| `guide_clicked`                                | Which guides do visitors open from another page, in any language?                                            |
 | `checkout_clicked`                             | Do pricing visitors follow an enabled checkout link? `plan` means the clicked offer, not the purchased plan. |
 | `support_clicked`, `release_clicked`           | Do visitors seek help or release details?                                                                    |
 
 `placement` is limited to header, hero, sample, footer, offer and content.
 `plan` is one-mac or three-macs. `guide` is one of the guide slugs in
-`guideSlugs` (both languages share a slug; `$pathname` tells the language);
+`guideSlugs` (every language shares a slug; `$pathname` tells the language);
 `src/data/guides.ts` and the test keep them aligned. Links to the page already
 open and to the guide hub are not guide clicks. Demo events exclude autoplay. Disabled checkout
 controls send nothing. No download event is invented while the site has no
-installer download CTA. The same link rules apply on every page in both
-languages: build, source, checkout, pricing (`/pricing/` or `/zh-tw/pricing/`)
-and guide links are classified by destination, not by page copy. Track a future verified download CTA separately from
+installer download CTA. The same link rules apply on every page in every
+language: build, source, checkout, pricing (`pricingPaths`: `/pricing/` and
+each `/<code>/pricing/`) and guide links are classified by destination, not
+by page copy. Track a future verified download CTA separately from
 completed app installation. Actual revenue requires verified payment-side events
 and a separate identity/consent design; do not infer it from a redirect.
 
@@ -103,9 +105,11 @@ Direct pricing landings appear in pageviews even without `pricing_clicked`.
 uses nine saved insights with production/site
 filters, including acquisition, page popularity, source/build interest, demo
 use, guide interest, plan interest and visit/pricing/checkout funnels. The
-checkout funnel starts on either pricing page. It replaced the English-only
-"Pricing to checkout intent" insight; a rerun adds the new insights beside it,
-so delete the old one by hand. Unique visitors use
+checkout funnel, "Pricing pages to checkout intent, all languages", starts on
+any pricing page (`pricingPaths`). It replaced the English and Traditional
+Chinese "Pricing pages to checkout intent" insight, which replaced the
+English-only "Pricing to checkout intent"; a rerun adds the new insight beside
+them, so delete the old ones by hand. Unique visitors use
 anonymous IDs and the funnels use a one-day conversion window.
 
 ```sh

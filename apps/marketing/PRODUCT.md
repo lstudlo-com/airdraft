@@ -15,17 +15,22 @@ Positioning: Airdraft is a late entrant among dictation apps, so the site does
 not lead with what every dictation app does (cleaning up ums). The hero names
 the jobs (speak into any app, transcribe meetings) and the privacy-minded user
 who wants processing that can stay on the Mac.
-Target segments are a decision adopted on 2026-10-22 (vault: `Strategy/`):
-the primary segment is Mac users who mix Chinese and English and care where
-their voice goes (Taiwan and Hong Kong knowledge workers and developers); the
-secondary segment is English dictation into AI coding agents (Claude Code,
-Codex, terminals) that reuses an existing subscription for refinement. The
-Traditional Chinese positioning is 中英混著講，說完就貼上；會議也能整理成逐字稿，一次買斷.
-English pages name both audiences without excluding English-only users, and
-every English claim stays true for them. Meetings, mixed Chinese and English,
-and Claude Code / Codex refinement are shown on the homepage, not only in the
-changelog, guides or pricing. "一次買斷" describes the license terms; never
-imply the official app is on sale before `siteLinks.checkout` is set.
+The site addresses an international audience in the app's interface
+languages: dictate in your own language, mixing in English or technical
+terms, with speech and refinement on the Mac or with your own provider. The
+English headline is "Speak in your language, English terms and all.
+Transcribe your meetings." Every claim stays true for an English-only user.
+Mixed Chinese and English remains one guide and one homepage example among
+others; dictation into AI coding agents (Claude Code, Codex, terminals) that
+reuses an existing subscription for refinement remains the second job shown.
+The Traditional Chinese positioning is unchanged:
+中英混著講，說完就貼上；會議也能整理成逐字稿，一次買斷. The segment decision
+of 2026-10-22 (vault: `Strategy/`) predates this international positioning;
+the vault records the current decision. Meetings, mixing English into
+another language, and Claude Code / Codex refinement are shown on the
+homepage, not only in the changelog, guides or pricing. "一次買斷" and its
+translations describe the license terms; never imply the official app is on
+sale before `siteLinks.checkout` is set.
 
 ## Product truth
 
@@ -51,13 +56,15 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   Licenses don't expire, updates to the purchased version are included, and the
   app offers a 14-day full-feature trial the user starts. While checkout is
   closed there is no build to try, so copy says the trial comes with the
-  official app once it is on sale (`siteLinks.checkout` switches it). `licenses` and
-  `licenseIncludes` in `src/data/site.ts` carry these facts; change them only with
-  the Polar products. Self-built editions stay complete and free.
+  official app once it is on sale (`siteLinks.checkout` switches it). `licenses`
+  in `src/data/site.ts` carries the prices and plan IDs; each language's
+  `license` and `pricing` copy in `src/i18n/messages` words them, including
+  the `licenseIncludes` lists. Change them only with the Polar products.
+  Self-built editions stay complete and free.
 - Purchase is not open yet (the merchant account is in test mode). License actions
   read "Not on sale yet" and stay disabled until `siteLinks.checkout` holds the
   production checkout link from `scripts/licensing-config.json`. The homepage's
-  Get Airdraft section says so in both languages.
+  Get Airdraft section says so in every language.
 - `src/data/site.ts` also controls optional content: the Buy Me a Coffee URL
   (support page) and the license link (footer). Until set, donation actions show a
   disabled "Not set up yet" key.
@@ -124,15 +131,23 @@ imply the official app is on sale before `siteLinks.checkout` is set.
   refinement runs the signed-in CLI without tools in a temporary folder and
   sends the prompt to Anthropic or OpenAI; destination-specific prompt rules
   need Read app context, which is off by default.
-- From 0.11.0 the app ships English and Traditional Chinese interfaces,
-  following the macOS language setting; builds through 0.10.2 are English only,
-  and the translated guides say so. Translated pages quote app labels (buttons,
-  settings, HUD states, Refined/Original, Meetings controls) with the app's
-  zh-Hant values from its string catalogs (`src/data/app.ts` for shared
-  labels); a label without a catalog entry, including the built-in profile
-  names Clean, Concise, Summary and Verbatim, stays as the app shows it. The
-  homepage screenshots are rendered in each page's language from a Debug build
-  of the current release: English for English pages, zh-Hant for `/zh-tw/`.
+- The app follows the macOS language setting. Traditional Chinese ships from
+  0.11.0 and Simplified Chinese from 0.12.0; builds through 0.10.2 are English
+  only, and the translated guides say so. Spanish, Japanese, French, Brazilian
+  Portuguese, Russian, Arabic, Hindi and Indonesian interfaces exist in the
+  app's catalogs (or the translators' catalog exports) but not yet in a
+  published release; their pages say the released app still shows English
+  (`interfaceReleased` in `src/i18n/index.ts`; turn a language on when its
+  release is published). Translated pages quote app labels (buttons,
+  settings, HUD states, Refined/Original, profile names, Meetings controls)
+  with the app's values for that language from its string catalogs
+  (`src/data/app.ts` for shared labels); a label without a catalog entry stays
+  as the app shows it. The English and Traditional Chinese pages keep the
+  built-in profile names Clean, Concise, Summary and Verbatim in English; the
+  app now localizes them, and the other languages use the catalog names. The
+  homepage screenshots are rendered from a Debug build of the current release:
+  English for English pages, zh-Hant for `/zh-tw/`; the other languages show
+  the English render and say so until theirs are rendered.
 - History is local, searchable, grouped by day, and flips between refined and original text.
   If refinement fails or times out, the raw transcript is inserted.
 - Changelog entries distinguish unreleased development, dated source history and
@@ -161,10 +176,11 @@ action. Raised keys and recessed wells explain the interaction. Keep readable
 contrast, a 13px text floor, visible keyboard focus, reduced-motion behavior,
 and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
 The first viewport is the hero alone, at every window size: the positioning
-headline (the jobs: "Speak into any app. Transcribe your meetings."; in
-Traditional Chinese the audience and jobs: 中英混著講，說完就貼上。會議也能整理成逐字稿。),
+headline (the jobs, in three phrases: "Speak in your language, English terms
+and all. Transcribe your meetings."; in Traditional and Simplified Chinese the
+audience and jobs: 中英混著講，說完就貼上。會議也能整理成逐字稿。),
 the "Get Airdraft", source and sample actions, three quiet facts (open source;
-processing can stay entirely on the Mac; macOS 15+ on Apple silicon), and Home's waveform card from the app
+on the Mac or with your own provider; macOS 15+ on Apple silicon), and Home's waveform card from the app
 (decorative bars, no metrics, the app's first-run caption); no paragraph. The
 caption works: holding ⌃⌥ or pressing the waveform plays a pretend dictation
 that adds a bar, without recording anything.
@@ -185,9 +201,10 @@ perspective. Bento tiles are one graphic and one line.
 
 ## Search and product guides
 
-The homepage links to a guide hub and seven distinct guides: mixed Chinese and
-English dictation (with the measurement above), dictating prompts into Claude
-Code, Codex and terminals, offline setup, local/cloud data flow, the free
+The homepage links to a guide hub and seven distinct guides: offline setup
+(choosing a model for your language), mixed Chinese and English dictation
+(with the measurement above), dictating prompts into Claude Code, Codex and
+terminals, local/cloud data flow, the free
 source build versus official app, private meeting transcription, and a dated
 comparison with VoiceInk, Handy, Typeless and Apple Dictation on macOS 27. The comparison cites each product's own pages
 or source with check dates, says where competitors are better, marks unknown
@@ -218,19 +235,28 @@ published key and HTML before sending. It does not run during build or deploymen
 
 ## Languages
 
-English pages live at the root. Traditional Chinese (Taiwan) translations live
-under `/zh-tw/` with the same slug: the homepage, pricing, the mixed-language,
-coding-agent, meeting and comparison guides (`translatedPaths` in
-`src/i18n/index.ts`). They use
-natural Taiwan wording and keep Airdraft, provider and model names in English;
-app labels follow the app's Traditional Chinese interface.
-Prices stay in US dollars from shared data. Untranslated pages (support,
-changelog, privacy, the other guides) stay English and are labelled （英文）
-where a translated page links to them, including the header, phone menu and
-footer; translated headers fold their links into the menu up to 700px to fit
-the labels. The header (above 760px), the phone menu and the footer offer the
-other language's version of the page; on an untranslated page the switch reads
-繁體中文首頁 (or English home) and leads to that homepage.
+The site's languages follow the app's interface languages. English pages live
+at the root; each translation lives under `/<code>/` with the English slug:
+`zh-tw` (Traditional Chinese, Taiwan), `zh-cn` (Simplified Chinese), `es`,
+`ja`, `fr`, `pt-br`, `ru`, `ar` (right to left), `hi` and `id`.
+`src/i18n/locales.json` lists each language's code, BCP 47 tag, Open Graph
+locale, own name, direction and translated paths; the search check, sitemap,
+analytics allowlist and i18n helpers all read it. Traditional Chinese
+translates the homepage, pricing, and the mixed-language, coding-agent,
+meeting and comparison guides; every other language translates the homepage
+and pricing. Copy lives in one file per language in `src/i18n/messages`.
+Translations use natural wording for their audience (Taiwan wording for
+zh-tw, Mainland interface terms for zh-cn: 设置, 快捷键, 润色, 模式) and keep
+Airdraft, provider and model names in English; app labels follow the app's
+interface in that language. Prices stay in US dollars from shared data.
+Untranslated pages (support, changelog, privacy, the guides a language lacks)
+stay English and are marked with the language's "(English)" word
+(（英文）, （英語）, (inglés)…) where a translated page links to them,
+including the header, phone menu, footer and guide cards. The header's globe
+key (and the phone menu's Language row) opens a language menu listing every
+language in its own name: this page in that language, or that language's
+homepage, noted, when this page is not translated. The footer lists the same
+links.
 
 ## Delivery
 

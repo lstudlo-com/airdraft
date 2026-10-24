@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import languages from "./src/i18n/locales.json" with { type: "json" };
 
 // The production domain is also the canonical URL for local previews.
 const configuredSite = process.env.SITE_URL?.trim() || "https://airdraft.app";
@@ -34,10 +35,12 @@ export default defineConfig({
     sitemap({
       filter: (page) => !excludedPaths.has(new URL(page).pathname),
       // Pairs each translated page with its English original by path
-      // (src/i18n/index.ts), as xhtml:link alternates in the sitemap.
+      // (src/i18n/locales.json), as xhtml:link alternates in the sitemap.
       i18n: {
         defaultLocale: "en",
-        locales: { en: "en", "zh-tw": "zh-Hant-TW" },
+        locales: Object.fromEntries(
+          languages.map((language) => [language.code, language.tag]),
+        ),
       },
     }),
   ],

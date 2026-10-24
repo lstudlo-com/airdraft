@@ -3,7 +3,7 @@ import GuideLayout from "../layouts/GuideLayout.astro";
 import Surface from "../components/ui/Surface.astro";
 import Button from "../components/ui/Button.astro";
 import { guidesFor } from "../data/guides";
-import { href, type Locale } from "../i18n";
+import { href, type GuideLocale } from "../i18n";
 
 /**
  * Private meeting transcription, in each language. Every statement follows
@@ -14,7 +14,7 @@ import { href, type Locale } from "../i18n";
  * aligned.
  */
 interface Props {
-  locale: Locale;
+  locale: GuideLocale;
 }
 const { locale } = Astro.props;
 const guide = guidesFor(locale).find(

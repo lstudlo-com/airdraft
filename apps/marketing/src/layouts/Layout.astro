@@ -15,7 +15,15 @@ import {
   socialImageAlt,
   type Breadcrumb,
 } from "../lib/seo";
-import { alternatesFor, languageTag, localeOf, ogLocale } from "../i18n";
+import {
+  alternatesFor,
+  direction,
+  languageTag,
+  localeOf,
+  ogLocale,
+} from "../i18n";
+import { messages } from "../i18n/messages";
+import "../styles/languages.css";
 
 interface Props {
   title?: string;
@@ -30,6 +38,7 @@ const {
   breadcrumbs = [],
 } = Astro.props;
 const locale = localeOf(Astro.url.pathname);
+const text = messages[locale];
 const canonical =
   Astro.site && !noindex
     ? canonicalURL(Astro.url.pathname, Astro.site)
@@ -56,7 +65,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
 ---
 
 <!doctype html>
-<html lang={languageTag[locale]}>
+<html lang={languageTag[locale]} dir={direction[locale]}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -94,9 +103,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={
-        locale === "zh-tw" ? "Airdraft 版本更新（英文）" : "Airdraft releases"
-      }
+      title={text.layout.rss}
       href="/changelog.xml"
     />
     <meta property="og:type" content="website" />
@@ -138,10 +145,13 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       // run before the first render, where "pagereveal" fires.
       addEventListener("pagereveal", (event) => {
         if (!event.viewTransition) return;
-        const linked = ["/pricing", "/support", "/changelog", "/zh-tw/pricing"];
+        // Pricing in any language (/pricing or /<language>/pricing).
+        const linked = ["/pricing", "/support", "/changelog"];
         const page = (url) => {
           try {
-            return new URL(url).pathname.replace(/\/$/, "");
+            return new URL(url).pathname
+              .replace(/\/$/, "")
+              .replace(/^\/[a-z]{2}(?:-[a-z]{2})?(?=\/pricing$)/, "");
           } catch {
             return "";
           }
@@ -166,7 +176,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
     FINISH: No invented release, price, license or measurement. Visible focus, reduced motion, useful without JavaScript.
     -->
     <a class="skip-link" href="#main">
-      {locale === "zh-tw" ? "跳到主要內容" : "Skip to content"}
+      {text.layout.skip}
     </a>
     <slot />
     <Analytics locale={locale} />

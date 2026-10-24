@@ -5,7 +5,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 import GuideLinks from "../components/GuideLinks.astro";
 import Section from "../components/ui/Section.astro";
 import type { Guide } from "../data/guides";
-import { localeOf } from "../i18n";
+import { localeOf, type GuideLocale } from "../i18n";
 import "../styles/guides.css";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 }
 
 const { guide, intro } = Astro.props;
-const locale = localeOf(guide.href);
+const locale = localeOf(guide.href) as GuideLocale;
 // The English guides have a hub; the translated guides hang from the
 // translated homepage until there is a translated hub.
 const breadcrumbs =

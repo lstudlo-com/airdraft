@@ -4,7 +4,7 @@ import Surface from "../components/ui/Surface.astro";
 import Button from "../components/ui/Button.astro";
 import { guidesFor } from "../data/guides";
 import { ejaAsrResults } from "../data/eja-asr";
-import { href, type Locale } from "../i18n";
+import { href, type GuideLocale } from "../i18n";
 
 /**
  * Dictating prompts into Claude Code, Codex and terminals, in each language.
@@ -18,7 +18,7 @@ import { href, type Locale } from "../i18n";
  * (Verbatim, Claude Code, Codex) stay as the app shows them.
  */
 interface Props {
-  locale: Locale;
+  locale: GuideLocale;
 }
 const { locale } = Astro.props;
 const guide = guidesFor(locale).find(

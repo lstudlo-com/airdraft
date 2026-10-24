@@ -1,0 +1,36 @@
+---
+import { href, isTranslated, type Locale } from "../i18n";
+import { messages, type LinkTarget, type Rich } from "../i18n/messages";
+
+/**
+ * A translated sentence with links (src/i18n/messages). A link to a page
+ * that has no version in this language leads to the English page, says so
+ * with the language's "(English)" mark and carries hreflang="en".
+ */
+interface Props {
+  parts: Rich;
+  locale: Locale;
+}
+const { parts, locale } = Astro.props;
+const targets: Record<LinkTarget, string> = {
+  pricing: "/pricing/",
+  guides: "/guides/",
+  meetingGuide: "/guides/private-meeting-transcription/",
+  mixedGuide: "/guides/mixed-chinese-english-dictation/",
+  agentGuide: "/guides/dictate-to-claude-code-and-terminals/",
+  offlineGuide: "/guides/offline-dictation-on-mac/",
+  comparison: "/guides/compare-mac-dictation-apps/",
+};
+---
+
+{parts.map((part) => {
+  if (typeof part === "string") return part;
+  const target = targets[part.link];
+  const english = !isTranslated(target, locale);
+  return (
+    <a href={href(target, locale)} hreflang={english ? "en" : undefined}>
+      {part.text}
+      {english && !part.plain && messages[locale].english}
+    </a>
+  );
+})}

@@ -3,7 +3,8 @@ import Button from "./ui/Button.astro";
 import Section from "./ui/Section.astro";
 import Surface from "./ui/Surface.astro";
 import { appLabels } from "../data/app";
-import { href, type Locale } from "../i18n";
+import { href, isTranslated, type Locale } from "../i18n";
+import { messages } from "../i18n/messages";
 import "../styles/meetings.css";
 
 /**
@@ -24,81 +25,17 @@ interface Props {
 }
 const { locale = "en" } = Astro.props;
 
-const copy = {
-  en: {
-    title: "Meetings, transcribed on your Mac",
-    intro:
-      "Record a call or import a file, then turn it into a transcript with speakers.",
-    sample: "Sample meeting transcript",
-    meeting: "Design review",
-    meta: "Oct 21 · 32:14 · Whisper Large v3 Turbo",
-    turns: [
-      [
-        appLabels.en.speaker(1),
-        "0:12",
-        "Let’s ship the onboarding changes on Thursday.",
-      ],
-      [
-        appLabels.en.speaker(2),
-        "0:31",
-        "Then I’ll update the screenshots before the release.",
-      ],
-    ],
-    points: [
-      [
-        "Record any app",
-        "One app or all app audio, plus your microphone. No screen video is kept.",
-      ],
-      [
-        "Or import a file",
-        "Audio or video up to two hours, with one audio track.",
-      ],
-      [
-        "Speakers, estimated locally",
-        "Optional speaker labels you can rename and reassign.",
-      ],
-      [
-        "Local unless you choose cloud",
-        "A local model keeps the audio here; Soniox uploads only after you confirm.",
-      ],
-      [
-        "Edit, then export",
-        "Keep the original beside your edits. Export TXT, JSON, SRT or VTT.",
-      ],
-    ],
-    guide: "Read the Meeting Guide",
-  },
-  "zh-tw": {
-    title: "會議錄音，在你的 Mac 上變成逐字稿",
-    intro: "錄下通話或匯入檔案，整理成標出講者的逐字稿。",
-    sample: "會議逐字稿範例",
-    meeting: "設計週會",
-    meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
-    turns: [
-      [
-        appLabels["zh-tw"].speaker(1),
-        "0:12",
-        "onboarding 的修改我們週四上線。",
-      ],
-      [
-        appLabels["zh-tw"].speaker(2),
-        "0:31",
-        "那我 release 前先把 screenshot 更新好。",
-      ],
-    ],
-    points: [
-      [
-        "錄下任何 App",
-        "單一 App 或所有 App 的聲音，可加上麥克風；不保留畫面。",
-      ],
-      ["也能匯入檔案", "音訊或影片，最長兩小時、單一音軌。"],
-      ["在本機估計講者", "可選擇標出講者，再自行改名或調整。"],
-      ["選本機模型就不上傳", "要用 Soniox 雲端轉錄時，確認之後才會上傳。"],
-      ["編輯後匯出", "原文與修改並存，可匯出 TXT、JSON、SRT 或 VTT。"],
-    ],
-    guide: "閱讀會議逐字稿指南",
-  },
-}[locale];
+const copy = messages[locale].meetings;
+const app = appLabels[locale];
+const turns = copy.turns.map(
+  ([speaker, time, text]) => [app.speaker(speaker), time, text] as const,
+);
+// The meeting guide is in English and Traditional Chinese.
+const guideHref = href("/guides/private-meeting-transcription/", locale);
+const guideInEnglish = !isTranslated(
+  "/guides/private-meeting-transcription/",
+  locale,
+);
 ---
 
 <Section id="meetings" title={copy.title} intro={copy.intro}>
@@ -123,7 +60,7 @@ const copy = {
         <span class="meeting-time">0:31</span>
       </div>
       <ol class="meeting-turns">
-        {copy.turns.map(([speaker, time, text]) => (
+        {turns.map(([speaker, time, text]) => (
           <li>
             <span class="meeting-speaker">
               <span class="chip-muted">{speaker}</span>
@@ -145,11 +82,13 @@ const copy = {
         ))}
       </dl>
       <Button
-        href={href("/guides/private-meeting-transcription/", locale)}
+        href={guideHref}
         variant="quiet"
         icon="right"
+        hreflang={guideInEnglish ? "en" : undefined}
       >
         {copy.guide}
+        {guideInEnglish && messages[locale].english}
       </Button>
     </Surface>
   </div>
