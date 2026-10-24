@@ -297,13 +297,12 @@ final class TextDeliveryRegressionTests: XCTestCase {
     func testCaptureWaitsForInitiallyValidButUnsettledEditor() async throws {
         let editor = Editor()
         defer { editor.close() }
-        let switchTask = Task { @MainActor in
-            try await Task.sleep(for: .milliseconds(20))
-            editor.currentField = editor.otherField
-        }
+        // The editor moves focus while capture is still confirming it: on its
+        // second focus read, independent of how fast the machine polls.
+        editor.onFocusRead = { if editor.focusReads == 2 { editor.currentField = editor.otherField } }
         let inserter = editor.inserter()
         let target = await inserter.captureTarget()
-        try await switchTask.value
+        editor.onFocusRead = nil
         let result = await inserter.insert(Editor.dictation, target: target)
         XCTAssertEqual(result.method, .paste)
         XCTAssertEqual(editor.pasted, [Editor.dictation])

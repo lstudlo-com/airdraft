@@ -307,6 +307,9 @@ public final class TextInserter {
         var element: AXUIElement?
         var range: CFRange?
         var stableSince: ContinuousClock.Instant?
+        // Consecutive identical reads: stability spans run-loop turns as well as
+        // time, so a slow machine that polls rarely still confirms the field twice.
+        var stableReads = 0
         var webAccessibility: Bool?
         var caretSettled = false
         _ = await waitForMatch(timeout: timeout) {
@@ -316,7 +319,7 @@ public final class TextInserter {
             let (next, selection) = readFocus()
             let sameField = (element == nil && next == nil) || (element != nil && next != nil && CFEqual(element!, next!))
             let sameSelection = (range == nil && selection == nil) || selectionMatches(range, selection)
-            if !sameField || !sameSelection { stableSince = nil }
+            if !sameField || !sameSelection { stableSince = nil; stableReads = 0 } else { stableReads += 1 }
             element = next
             range = selection
             let now = ContinuousClock.now
@@ -325,7 +328,7 @@ public final class TextInserter {
             if next != nil, selectionMatches(selection, selection) {
                 // AX and NSWorkspace can briefly expose the previous editor during
                 // activation. Yield the run loop and require a stable field/caret.
-                caretSettled = stable >= .milliseconds(50)
+                caretSettled = stable >= .milliseconds(50) && stableReads >= 2
                 return caretSettled
             }
             caretSettled = false
