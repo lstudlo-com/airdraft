@@ -113,10 +113,14 @@ def check(_args):
                     errors.append(f"{name}: {language} translation needs review ({bad[0].get('state')}): {key!r}")
                     continue
                 expected = placeholders(english)
-                for unit in units:
-                    if sorted(placeholders(unit["value"])) != sorted(expected):
-                        errors.append(f"{name}: {language} placeholders differ from source: {key!r} -> {unit['value']!r}")
-                        break
+                plural = entry["localizations"][language].get("variations", {}).get("plural", {})
+                forms = {category: form["stringUnit"]["value"] for category, form in plural.items()
+                         if "stringUnit" in form}
+                # A plural form may spell out its number ("one day"); `other` keeps every argument.
+                exact = [forms["other"]] if forms else [u["value"] for u in units]
+                if any(sorted(placeholders(value)) != sorted(expected) for value in exact) or any(
+                        not set(placeholders(value)) <= set(expected) for value in forms.values()):
+                    errors.append(f"{name}: {language} placeholders differ from source: {key!r} -> {units[0]['value']!r}")
                 else:
                     translated[language] += 1
         counts = ", ".join(f"{language} {translated[language]}/{len(strings)}" for language in LANGUAGES)

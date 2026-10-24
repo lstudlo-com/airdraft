@@ -49,11 +49,16 @@ enum MenuVerification {
            Bundle.main.localizations.contains(requested) {
             precondition(language == requested, "Requested \(requested) but the menu resolved \(language)")
         }
-        let quitTitles = ["en": "Quit Airdraft", "es": "Salir de Airdraft", "ja": "Airdraft を終了",
+        let quitTitles = ["en": "Quit Airdraft", "ar": "إنهاء Airdraft", "es": "Salir de Airdraft",
+                          "fr": "Quitter Airdraft", "hi": "Airdraft से बाहर निकलें", "id": "Keluar dari Airdraft",
+                          "ja": "Airdraft を終了", "pt-BR": "Encerrar o Airdraft", "ru": "Завершить Airdraft",
                           "zh-Hans": "退出 Airdraft", "zh-Hant": "結束 Airdraft"]
-        if let expected = quitTitles[language] {
-            precondition(L("Quit Airdraft") == expected, "Unexpected \(language) title: \(L("Quit Airdraft"))")
+        // Every shipped language needs an entry, so a new one cannot silently skip this check.
+        for shipped in Bundle.main.localizations where shipped != "Base" {
+            precondition(quitTitles[shipped] != nil, "Add \(shipped) to the menu fixture's Quit titles")
         }
+        let expected = quitTitles[language] ?? "Quit Airdraft"
+        precondition(L("Quit Airdraft") == expected, "Unexpected \(language) title: \(L("Quit Airdraft"))")
         func makeMenu() -> NSMenu {
             let menu = NSHostingMenu(rootView: MenuView().environment(app))
             menu.update()

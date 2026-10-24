@@ -35,6 +35,42 @@
             "state": "translated",
             "value": "Airdraft 會使用麥克風進行聽寫與會議錄音。"
           }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft memakai mikrofon untuk dikte dan rekaman rapat."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft использует микрофон для диктовки и записи встреч."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Airdraft usa o microfone para ditados e gravações de reuniões."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft utilise le micro pour la dictée et l’enregistrement des réunions."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft डिक्टेशन और मीटिंग रिकॉर्डिंग के लिए माइक्रोफ़ोन का उपयोग करता है।"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم Airdraft الميكروفون للإملاء وتسجيل الاجتماعات."
+          }
         }
       }
     },
@@ -70,6 +106,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Airdraft 會錄下您選擇的會議 App 音訊，用於轉錄。"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft merekam audio dari app rapat yang Anda pilih untuk ditranskripsi."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft записывает звук из выбранного приложения для встреч, чтобы расшифровать его."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Airdraft grava o áudio do app de reunião que você escolher para transcrevê-lo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft enregistre l’audio de l’app de réunion que vous choisissez afin de le transcrire."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft ट्रांसक्रिप्शन के लिए आपके चुने मीटिंग ऐप से ऑडियो रिकॉर्ड करता है।"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يسجّل Airdraft الصوت من تطبيق الاجتماعات الذي تختاره لتحويله إلى نص."
           }
         }
       }

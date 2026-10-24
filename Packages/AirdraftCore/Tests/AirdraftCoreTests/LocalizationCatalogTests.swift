@@ -2,15 +2,20 @@ import Foundation
 import XCTest
 @testable import AirdraftCore
 
-/// Every interface string ships in Spanish (es), Japanese (ja), Simplified Chinese
-/// (zh-Hans) and Traditional Chinese (Taiwan, zh-Hant). New or changed English copy
-/// fails here until `scripts/localization.py sync` adds it and it is translated into all four.
+/// Every interface string ships in each language of `Config/languages.json`. New or
+/// changed English copy fails here until `scripts/localization.py sync` adds it and it
+/// is translated into all of them.
 final class LocalizationCatalogTests: XCTestCase {
-    /// Shipped interface languages besides the English source, as in `scripts/localization.py`.
-    private static let languages = ["es", "ja", "zh-Hans", "zh-Hant"]
     private static let repository = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
+    /// Shipped interface languages besides the English source (`Config/languages.json`).
+    private static let languageConfig: [String: Any] = {
+        let url = repository.appendingPathComponent("Config/languages.json")
+        return (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [String: Any] ?? [:]
+    }()
+    private static let languages: [String] = ((languageConfig["languages"] as? [[String: Any]]) ?? [])
+        .compactMap { $0["code"] as? String }
     private static let catalogs = [
         "Sources/App/Localizable.xcstrings",
         "Sources/App/InfoPlist.xcstrings",
@@ -35,14 +40,24 @@ final class LocalizationCatalogTests: XCTestCase {
                 let localizations = entry["localizations"] as? [String: Any]
                 let source = (((localizations?["en"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String) ?? key
                 for language in Self.languages {
-                    let unit = (localizations?[language] as? [String: Any])?["stringUnit"] as? [String: Any]
-                    guard let value = unit?["value"] as? String, unit?["state"] as? String == "translated",
-                          !value.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    let localization = localizations?[language] as? [String: Any]
+                    let units = Self.units(localization)
+                    guard !units.isEmpty, units.allSatisfy({ $0.state == "translated"
+                        && !$0.value.trimmingCharacters(in: .whitespaces).isEmpty }) else {
                         problems.append("\(path): missing \(language) \(key)")
                         continue
                     }
-                    if Self.placeholders(value) != Self.placeholders(source) {
-                        problems.append("\(path): \(language) placeholders differ for \(key) -> \(value)")
+                    // A plural form may spell out its number ("one day"); `other` keeps every argument.
+                    let expected = Self.placeholders(source)
+                    for unit in units where unit.category == nil || unit.category == "other" {
+                        if Self.placeholders(unit.value) != expected {
+                            problems.append("\(path): \(language) placeholders differ for \(key) -> \(unit.value)")
+                        }
+                    }
+                    for unit in units where unit.category != nil && unit.category != "other" {
+                        if !Set(Self.placeholders(unit.value)).isSubset(of: expected) {
+                            problems.append("\(path): \(language) plural form adds a placeholder for \(key) -> \(unit.value)")
+                        }
                     }
                 }
             }
@@ -65,6 +80,18 @@ final class LocalizationCatalogTests: XCTestCase {
                 let value = (localization["stringUnit"] as? [String: Any])?["value"] as? String ?? ""
                 XCTAssertEqual(value.components(separatedBy: "${applicationName}").count, 2, "\(language): \(value)")
             }
+        }
+    }
+
+    func testShippedLanguagesMatchTheBundleLocalizations() throws {
+        XCTAssertGreaterThanOrEqual(Self.languages.count, 10, "Config/languages.json lists \(Self.languages)")
+        let project = try String(contentsOf: Self.repository.appendingPathComponent("project.yml"), encoding: .utf8)
+        let line = try XCTUnwrap(project.split(separator: "\n").first { $0.contains("CFBundleLocalizations:") })
+        let listed = line.split(separator: "[").last?.split(separator: "]").first?
+            .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } ?? []
+        XCTAssertEqual(Set(listed), Set(Self.languages + ["en"]))
+        for language in Self.languages {
+            XCTAssertTrue(Bundle.module.localizations.contains(language), "Core bundle lacks \(language): \(Bundle.module.localizations)")
         }
     }
 
@@ -109,6 +136,25 @@ final class LocalizationCatalogTests: XCTestCase {
             for (key, value) in values {
                 XCTAssertEqual(bundle.localizedString(forKey: key, value: nil, table: nil), value, "\(language): \(key)")
             }
+        }
+    }
+
+    private struct Unit {
+        let category: String?
+        let state: String
+        let value: String
+    }
+
+    /// The plain string unit, or every plural form of a language's localization.
+    private static func units(_ localization: [String: Any]?) -> [Unit] {
+        guard let localization else { return [] }
+        if let unit = localization["stringUnit"] as? [String: Any] {
+            return [Unit(category: nil, state: unit["state"] as? String ?? "", value: unit["value"] as? String ?? "")]
+        }
+        let plural = ((localization["variations"] as? [String: Any])?["plural"] as? [String: Any]) ?? [:]
+        return plural.compactMap { category, form in
+            guard let unit = (form as? [String: Any])?["stringUnit"] as? [String: Any] else { return nil }
+            return Unit(category: category, state: unit["state"] as? String ?? "", value: unit["value"] as? String ?? "")
         }
     }
 
