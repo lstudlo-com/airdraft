@@ -3108,7 +3108,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Butir tindakan"
+            "value" : "Butir Tindakan"
           }
         },
         "ru" : {
@@ -3620,7 +3620,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft masih memeriksa lisensi Anda. Coba lagi sebentar lagi."
+            "value" : "Airdraft masih memeriksa lisensi Anda. Coba lagi sesaat lagi."
           }
         },
         "ru" : {
@@ -6233,7 +6233,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ringkasan singkat"
+            "value" : "Ringkasan Singkat"
           }
         },
         "ru" : {
@@ -6809,7 +6809,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gelombang Ukir"
+            "value" : "Ombak Ukir"
           }
         },
         "ru" : {
@@ -9573,7 +9573,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keputusan & tindak lanjut"
+            "value" : "Keputusan & Tindak Lanjut"
           }
         },
         "ru" : {
@@ -12277,7 +12277,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mengenali pembicara"
+            "value" : "Mengenali Pembicara"
           }
         },
         "ru" : {
@@ -12469,7 +12469,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lebih baik dari Whisper"
+            "value" : "Lebih Baik dari Whisper"
           }
         },
         "ru" : {
@@ -15351,7 +15351,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Notulen rapat"
+            "value" : "Notulen Rapat"
           }
         },
         "ru" : {
@@ -16311,7 +16311,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gelombang Malam"
+            "value" : "Ombak Malam"
           }
         },
         "ru" : {
@@ -16823,7 +16823,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tidak ada bagian ucapan yang teridentifikasi. Pilih Tanpa pembicara untuk mentranskripsikan seluruh rekaman."
+            "value" : "Tidak ada bagian ucapan yang teridentifikasi. Pilih Tanpa Pembicara untuk mentranskripsikan seluruh rekaman."
           }
         },
         "ru" : {
@@ -18489,7 +18489,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Menyiapkan media"
+            "value" : "Menyiapkan Media"
           }
         },
         "ru" : {
@@ -19001,7 +19001,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gelombang Murni"
+            "value" : "Ombak Murni"
           }
         },
         "ru" : {
@@ -20409,7 +20409,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kunci penyempurnaan terkunci. Gunakan Izinkan akses di Model."
+            "value" : "Kunci penyempurnaan terkunci. Gunakan Izinkan Akses di Model."
           }
         },
         "ru" : {
@@ -20863,7 +20863,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hapus file audio"
+            "value" : "Hapus File Audio"
           }
         },
         "ru" : {
@@ -20927,7 +20927,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hapus riwayat"
+            "value" : "Hapus Riwayat"
           }
         },
         "ru" : {
@@ -20991,7 +20991,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hapus riwayat dan file audio"
+            "value" : "Hapus Riwayat dan File Audio"
           }
         },
         "ru" : {
@@ -21125,7 +21125,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atur ulang app"
+            "value" : "Atur Ulang App"
           }
         },
         "ru" : {
@@ -22726,7 +22726,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kunci ucapan terkunci. Gunakan Izinkan akses di Model."
+            "value" : "Kunci ucapan terkunci. Gunakan Izinkan Akses di Model."
           }
         },
         "ru" : {
@@ -23438,7 +23438,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Default sistem"
+            "value" : "Default Sistem"
           }
         },
         "ru" : {
@@ -24911,7 +24911,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pemuatan model sebelumnya masih dihentikan. Pilih model lain, atau mulai ulang Airdraft untuk mencoba model ini lagi."
+            "value" : "Pemuatan model sebelumnya masih sedang dihentikan. Pilih model lain, atau mulai ulang Airdraft untuk mencoba model ini lagi."
           }
         },
         "ru" : {
@@ -26127,7 +26127,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memori yang tersedia tidak cukup untuk mengenali pembicara dalam rekaman ini. Tutup app lain dan coba lagi, atau pilih Tanpa pembicara."
+            "value" : "Memori yang tersedia tidak cukup untuk mengenali pembicara dalam rekaman ini. Tutup app lain dan coba lagi, atau pilih Tanpa Pembicara."
           }
         },
         "ru" : {
@@ -26703,7 +26703,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Model ucapan profil ini tidak tersedia lagi. Pilih model lain atau Gunakan default app di Profil."
+            "value" : "Model ucapan profil ini tidak tersedia lagi. Pilih model lain atau Gunakan Default App di Profil."
           }
         },
         "ru" : {
@@ -28945,7 +28945,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lisensi Anda memerlukan akses Rantai Kunci. Pilih Izinkan akses di Lisensi untuk memulihkannya."
+            "value" : "Lisensi Anda memerlukan akses Rantai Kunci. Pilih Izinkan Akses di Lisensi untuk memulihkannya."
           }
         },
         "ru" : {
@@ -29009,7 +29009,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kunci API tersimpan Anda memerlukan persetujuan akses. Buka Model dan pilih Izinkan akses untuk penyedia ini."
+            "value" : "Kunci API tersimpan Anda memerlukan persetujuan akses. Buka Model dan pilih Izinkan Akses untuk penyedia ini."
           }
         },
         "ru" : {
@@ -29207,7 +29207,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS tidak dapat membuka %1$@ (kesalahan audio %2$lld). Coba Default sistem atau sambungkan ulang mikrofon."
+            "value" : "macOS tidak dapat membuka %1$@ (kesalahan audio %2$lld). Coba Default Sistem atau sambungkan ulang mikrofon."
           }
         },
         "ru" : {

@@ -642,5 +642,29 @@
  {
   "en": "Recommended",
   "id": "Disarankan"
+ },
+ {
+  "en": "Welcome",
+  "id": "Pengantar"
+ },
+ {
+  "en": "Carved Wave",
+  "id": "Ombak Ukir"
+ },
+ {
+  "en": "Night Wave",
+  "id": "Ombak Malam"
+ },
+ {
+  "en": "Pure Wave",
+  "id": "Ombak Murni"
+ },
+ {
+  "en": "Finish Setup",
+  "id": "Siapkan Dulu"
+ },
+ {
+  "en": "Hold to talk",
+  "id": "Tahan"
  }
 ]

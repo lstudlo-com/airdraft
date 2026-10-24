@@ -1,0 +1,570 @@
+{
+ "language": "ja",
+ "notes": "です/ます for sentences; buttons and menu items are noun or dictionary-form phrases without です/ます; headings and onboarding titles end without 。. Quote UI labels and page names with 「」. Half-width space between Japanese and Latin letters/digits (Airdraft を, 14 日, Apple Speech の), none around full-width punctuation. Full-width （）：、。; ellipsis …. Apple macOS Japanese terms: 設定, システム設定, キーボードショートカット, クリップボード, ペースト, ウインドウ, 書類, 書き出す, キーチェーン, プロバイダ, サーバ (no long vowel). Avoid あなたの; prefer お使いの or omit. Profile is モード (matches zh 模式 and fits the 180-pt sidebar at Larger text). Never translated: Airdraft, model/provider names, keycap names (Control, Option, Command, Shift, Fn, esc, Return), paths, identifiers, URLs, prompts.",
+ "terms": [
+  {
+   "en": "dictation",
+   "ja": "音声入力"
+  },
+  {
+   "en": "dictate",
+   "ja": "音声入力する"
+  },
+  {
+   "en": "Start Dictation",
+   "ja": "音声入力を開始"
+  },
+  {
+   "en": "refinement",
+   "ja": "整形"
+  },
+  {
+   "en": "refine",
+   "ja": "整形する"
+  },
+  {
+   "en": "tidy (your words)",
+   "ja": "テキストを整える"
+  },
+  {
+   "en": "profile",
+   "ja": "モード"
+  },
+  {
+   "en": "built-in profile",
+   "ja": "内蔵のモード"
+  },
+  {
+   "en": "Choose profile by app",
+   "ja": "アプリごとにモードを選択"
+  },
+  {
+   "en": "app rule",
+   "ja": "アプリのルール"
+  },
+  {
+   "en": "app family",
+   "ja": "アプリのカテゴリ"
+  },
+  {
+   "en": "speech model",
+   "ja": "音声モデル"
+  },
+  {
+   "en": "speech recognition",
+   "ja": "音声認識"
+  },
+  {
+   "en": "Speech (section/step)",
+   "ja": "音声認識"
+  },
+  {
+   "en": "speech language",
+   "ja": "音声の言語"
+  },
+  {
+   "en": "Speech options",
+   "ja": "音声のオプション"
+  },
+  {
+   "en": "local speech",
+   "ja": "ローカル音声認識"
+  },
+  {
+   "en": "cloud speech",
+   "ja": "クラウド音声認識"
+  },
+  {
+   "en": "transcript",
+   "ja": "文字起こし"
+  },
+  {
+   "en": "transcribe",
+   "ja": "文字起こし（する）"
+  },
+  {
+   "en": "retranscribe",
+   "ja": "再度文字起こし"
+  },
+  {
+   "en": "raw transcript / raw text",
+   "ja": "元の文字起こし / 元のテキスト"
+  },
+  {
+   "en": "history",
+   "ja": "履歴"
+  },
+  {
+   "en": "meeting",
+   "ja": "会議"
+  },
+  {
+   "en": "recording",
+   "ja": "録音"
+  },
+  {
+   "en": "Keep recordings",
+   "ja": "録音を保存"
+  },
+  {
+   "en": "vocabulary",
+   "ja": "語彙"
+  },
+  {
+   "en": "Word or misheard phrase",
+   "ja": "語句または聞き間違えた表現"
+  },
+  {
+   "en": "preferred spelling",
+   "ja": "優先する表記"
+  },
+  {
+   "en": "shortcut",
+   "ja": "ショートカット"
+  },
+  {
+   "en": "Keyboard shortcuts",
+   "ja": "キーボードショートカット"
+  },
+  {
+   "en": "Record Shortcut",
+   "ja": "キーを登録"
+  },
+  {
+   "en": "Hold (verb fragment)",
+   "ja": "長押し"
+  },
+  {
+   "en": "Press (verb fragment)",
+   "ja": "押下"
+  },
+  {
+   "en": "Hold to talk",
+   "ja": "長押しで話す"
+  },
+  {
+   "en": "Toggle",
+   "ja": "切り替え"
+  },
+  {
+   "en": "let go",
+   "ja": "離す"
+  },
+  {
+   "en": "Trigger Delay",
+   "ja": "トリガーの遅延"
+  },
+  {
+   "en": "modifier key",
+   "ja": "修飾キー"
+  },
+  {
+   "en": "microphone",
+   "ja": "マイク"
+  },
+  {
+   "en": "input channel",
+   "ja": "入力チャンネル"
+  },
+  {
+   "en": "System Default",
+   "ja": "システムのデフォルト"
+  },
+  {
+   "en": "Accessibility",
+   "ja": "アクセシビリティ"
+  },
+  {
+   "en": "permission",
+   "ja": "権限"
+  },
+  {
+   "en": "Allow Access",
+   "ja": "アクセスを許可"
+  },
+  {
+   "en": "System Settings",
+   "ja": "システム設定"
+  },
+  {
+   "en": "Privacy & Security",
+   "ja": "プライバシーとセキュリティ"
+  },
+  {
+   "en": "Settings (page)",
+   "ja": "設定"
+  },
+  {
+   "en": "Models (page)",
+   "ja": "モデル"
+  },
+  {
+   "en": "Home",
+   "ja": "ホーム"
+  },
+  {
+   "en": "Welcome",
+   "ja": "ようこそ"
+  },
+  {
+   "en": "Ready",
+   "ja": "準備完了"
+  },
+  {
+   "en": "Try It",
+   "ja": "試してみる"
+  },
+  {
+   "en": "Set Up Later",
+   "ja": "あとで設定"
+  },
+  {
+   "en": "Finish Setup",
+   "ja": "設定を完了"
+  },
+  {
+   "en": "Get Started",
+   "ja": "始める"
+  },
+  {
+   "en": "Continue",
+   "ja": "続ける"
+  },
+  {
+   "en": "Back",
+   "ja": "戻る"
+  },
+  {
+   "en": "Done",
+   "ja": "完了"
+  },
+  {
+   "en": "Cancel",
+   "ja": "キャンセル"
+  },
+  {
+   "en": "Delete",
+   "ja": "削除"
+  },
+  {
+   "en": "Remove",
+   "ja": "削除"
+  },
+  {
+   "en": "Discard",
+   "ja": "破棄"
+  },
+  {
+   "en": "Retry",
+   "ja": "再試行"
+  },
+  {
+   "en": "Copy",
+   "ja": "コピー"
+  },
+  {
+   "en": "paste",
+   "ja": "ペースト"
+  },
+  {
+   "en": "clipboard",
+   "ja": "クリップボード"
+  },
+  {
+   "en": "insert (text)",
+   "ja": "挿入 / 入力"
+  },
+  {
+   "en": "cursor",
+   "ja": "カーソル"
+  },
+  {
+   "en": "Export",
+   "ja": "書き出す"
+  },
+  {
+   "en": "Import…",
+   "ja": "読み込む…"
+  },
+  {
+   "en": "Show in Finder",
+   "ja": "Finder に表示"
+  },
+  {
+   "en": "Keychain",
+   "ja": "キーチェーン"
+  },
+  {
+   "en": "API key",
+   "ja": "API キー"
+  },
+  {
+   "en": "provider",
+   "ja": "プロバイダ"
+  },
+  {
+   "en": "endpoint",
+   "ja": "エンドポイント"
+  },
+  {
+   "en": "server",
+   "ja": "サーバ"
+  },
+  {
+   "en": "download",
+   "ja": "ダウンロード"
+  },
+  {
+   "en": "install",
+   "ja": "インストール"
+  },
+  {
+   "en": "load (model)",
+   "ja": "読み込む"
+  },
+  {
+   "en": "unload",
+   "ja": "アンロード"
+  },
+  {
+   "en": "On this Mac",
+   "ja": "この Mac"
+  },
+  {
+   "en": "on-device",
+   "ja": "デバイス上"
+  },
+  {
+   "en": "Online service",
+   "ja": "オンラインサービス"
+  },
+  {
+   "en": "Recommended",
+   "ja": "おすすめ"
+  },
+  {
+   "en": "Best fit",
+   "ja": "最適"
+  },
+  {
+   "en": "Verified",
+   "ja": "検証済み"
+  },
+  {
+   "en": "Experimental",
+   "ja": "試験的"
+  },
+  {
+   "en": "Speed",
+   "ja": "速度"
+  },
+  {
+   "en": "Accuracy",
+   "ja": "精度"
+  },
+  {
+   "en": "Storage",
+   "ja": "ストレージ"
+  },
+  {
+   "en": "memory",
+   "ja": "メモリ"
+  },
+  {
+   "en": "live preview",
+   "ja": "ライブプレビュー"
+  },
+  {
+   "en": "language assets",
+   "ja": "言語アセット"
+  },
+  {
+   "en": "locale (Apple Speech)",
+   "ja": "地域と言語"
+  },
+  {
+   "en": "Chinese script",
+   "ja": "中国語の表記"
+  },
+  {
+   "en": "Simplified / Traditional Chinese",
+   "ja": "簡体字 / 繁体字"
+  },
+  {
+   "en": "Mandarin Chinese",
+   "ja": "標準中国語"
+  },
+  {
+   "en": "Cantonese",
+   "ja": "広東語"
+  },
+  {
+   "en": "Detect Automatically / Auto",
+   "ja": "自動検出 / 自動"
+  },
+  {
+   "en": "Appearance",
+   "ja": "外観"
+  },
+  {
+   "en": "Theme",
+   "ja": "テーマ"
+  },
+  {
+   "en": "Light / Dark",
+   "ja": "ライト / ダーク"
+  },
+  {
+   "en": "Text size",
+   "ja": "テキストサイズ"
+  },
+  {
+   "en": "Large / Larger",
+   "ja": "大 / 特大"
+  },
+  {
+   "en": "app icon",
+   "ja": "アプリアイコン"
+  },
+  {
+   "en": "Pure Wave / Carved Wave / Night Wave",
+   "ja": "ピュアウェーブ / カーブドウェーブ / ナイトウェーブ"
+  },
+  {
+   "en": "recording window",
+   "ja": "録音ウインドウ"
+  },
+  {
+   "en": "Classic / Cube / Sonic / Orbit / Silk",
+   "ja": "クラシック / キューブ / ソニック / オービット / シルク"
+  },
+  {
+   "en": "Disco",
+   "ja": "ディスコ"
+  },
+  {
+   "en": "Show timer",
+   "ja": "タイマーを表示"
+  },
+  {
+   "en": "menu bar",
+   "ja": "メニューバー"
+  },
+  {
+   "en": "sidebar",
+   "ja": "サイドバー"
+  },
+  {
+   "en": "Collapse / Expand Sidebar",
+   "ja": "サイドバーを隠す / サイドバーを表示"
+  },
+  {
+   "en": "window",
+   "ja": "ウインドウ"
+  },
+  {
+   "en": "document",
+   "ja": "書類"
+  },
+  {
+   "en": "speaker",
+   "ja": "話者"
+  },
+  {
+   "en": "summary",
+   "ja": "要約"
+  },
+  {
+   "en": "Action Items",
+   "ja": "アクションアイテム"
+  },
+  {
+   "en": "Meeting Minutes",
+   "ja": "議事録"
+  },
+  {
+   "en": "license",
+   "ja": "ライセンス"
+  },
+  {
+   "en": "license key",
+   "ja": "ライセンスキー"
+  },
+  {
+   "en": "activate / activation",
+   "ja": "アクティベート / アクティベーション"
+  },
+  {
+   "en": "Deactivate This Mac",
+   "ja": "この Mac のアクティベーションを解除"
+  },
+  {
+   "en": "trial",
+   "ja": "試用（無料試用 / 試用期間）"
+  },
+  {
+   "en": "customer portal",
+   "ja": "カスタマーポータル"
+  },
+  {
+   "en": "device slot",
+   "ja": "デバイス枠"
+  },
+  {
+   "en": "update(s)",
+   "ja": "アップデート"
+  },
+  {
+   "en": "Acknowledgements",
+   "ja": "謝辞"
+  },
+  {
+   "en": "crash report",
+   "ja": "クラッシュレポート"
+  },
+  {
+   "en": "anonymous usage data",
+   "ja": "匿名の使用状況データ"
+  },
+  {
+   "en": "base system prompt",
+   "ja": "基本システムプロンプト"
+  },
+  {
+   "en": "instructions",
+   "ja": "指示"
+  },
+  {
+   "en": "Thinking effort",
+   "ja": "推論の強度"
+  },
+  {
+   "en": "fallback",
+   "ja": "予備"
+  },
+  {
+   "en": "script (executable)",
+   "ja": "スクリプト"
+  },
+  {
+   "en": "Send to script",
+   "ja": "スクリプトに送信"
+  },
+  {
+   "en": "filler words",
+   "ja": "言いよどみ / フィラー"
+  },
+  {
+   "en": "Clean / Concise / Summary / Verbatim",
+   "ja": "クリーン / 簡潔 / 要約 / 逐語"
+  },
+  {
+   "en": "WPM",
+   "ja": "語/分"
+  },
+  {
+   "en": "words",
+   "ja": "語"
+  }
+ ]
+}
