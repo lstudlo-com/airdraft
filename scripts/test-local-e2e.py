@@ -35,6 +35,7 @@ PinnedHubModelTests LocalSpeechRecommendationTests SenseVoiceArtifactTests Sense
 TextInsertionTests TextDeliveryRegressionTests AppContextTests PromptBuilderTests
 SilentRecordingTests PressToCaptureTests RefinementFidelityTests LocalizationCatalogTests
 EngineFactoryLeaseTests MemoryPressureTests OnboardingProgressTests LicensingTests PolarLicenseWireTests
+TelemetryTests TelemetryPipelineTests
 """.split()
 CASES = """
 AppIdentityTests/testDefaultsMigrationPreservesNewValuesAndRunsOnlyOnce

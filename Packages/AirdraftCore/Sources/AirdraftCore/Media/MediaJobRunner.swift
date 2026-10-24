@@ -14,6 +14,8 @@ public final class MediaJobRunner {
     public private(set) var cleanupKeyReferences: [String] = []
     public var onChange: (() -> Void)?
     public var onBusyChanged: ((Bool) -> Void)?
+    /// Counts completed transcriptions by engine family and duration range.
+    @ObservationIgnored public weak var telemetry: (any TelemetryRecording)?
     @ObservationIgnored private var task: Task<Void, Never>?
     public typealias WindowDecoder = @Sendable ([Float], Double, ASRConfig) async throws -> [TranscriptWord]
     public typealias SpeakerDecoder = @Sendable (URL, Double) async throws -> [SpeakerInterval]
@@ -212,6 +214,7 @@ public final class MediaJobRunner {
             try await persist { $0.words = SpeakerReconciliation.align($0.words, speakers: speakers); $0.diarizationComplete = true; $0.rebuildTurns() }
         }
         try await persist { $0.stage = .completed }
+        telemetry?.record(.meetingTranscribed(duration: .init(seconds: asset.duration), engine: .init(initial.configuration.asr.kind)))
         try await cleanRemote(documentID: initial.id)
     }
     private func identifySpeakers(url: URL, asset: RecordingAsset, documentID: String) async throws -> [SpeakerInterval] {

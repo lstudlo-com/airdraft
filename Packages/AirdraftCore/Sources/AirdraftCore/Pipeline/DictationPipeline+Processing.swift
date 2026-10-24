@@ -200,6 +200,10 @@ extension DictationPipeline {
         finishDelivery(report, transcript: transcript, refinement: refinement, final: final, samples: samples,
                        seconds: seconds, context: context, snapshot: snapshot, token: token,
                        processingStarted: processingStarted, timings: timings)
+        // Counted after delivery and the state change; onboarding practice is not counted.
+        if delivery == .normal || delivery == .retry {
+            reportCompletion(report, refinement: refinement, snapshot: snapshot, seconds: seconds, timings: timings)
+        }
     }
 
     /// Speech hints from the recording's captured dictionary and vocabulary choice.
@@ -241,6 +245,7 @@ extension DictationPipeline {
             let retried = retryingRecovery?.token == token ? retryingRecovery?.id : nil
             retryingRecovery = nil
             retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, profileApp: snapshot.profileApp, issue: message, replacing: retried)
+            if !reviewOnly { reportFailure(.speechError) }
             fail(message, openRecovery: !reviewOnly)
             return nil
         }

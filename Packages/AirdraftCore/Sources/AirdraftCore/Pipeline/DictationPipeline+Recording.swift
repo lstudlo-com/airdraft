@@ -124,7 +124,7 @@ extension DictationPipeline {
             try await accessCheck()
             guard isCurrent(token) else { return }
             if let reason = profile.speechModel?.unavailableReason {
-                throw RecordingPrerequisiteError(reason)
+                throw RecordingPrerequisiteError(reason, kind: .modelMissing)
             }
             if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason)
@@ -139,7 +139,7 @@ extension DictationPipeline {
             }
             guard isCurrent(token) else { return }
             guard recordingSnapshot(app: profileApp) == snapshot else {
-                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module), kind: .setupChanged)
             }
             if asr.kind.isLocal {
                 // AD-081: a prewarm builds the decoder these captured hints need.
@@ -165,10 +165,11 @@ extension DictationPipeline {
             }
             guard isCurrent(token) else { return }
             guard recordingSnapshot(app: profileApp) == snapshot else {
-                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module), kind: .setupChanged)
             }
         } catch {
             guard isCurrent(token) else { return }
+            reportFailure(Self.failureCategory(for: error))
             fail(error.localizedDescription)
             onRecordingBlocked?()
             return
@@ -176,6 +177,7 @@ extension DictationPipeline {
         let granted = await requestMicrophoneAccess()
         guard isCurrent(token) else { return }
         guard granted else {
+            reportFailure(.permission)
             fail(String(localized: "Microphone access denied. Enable it in System Settings > Privacy & Security > Microphone.", bundle: .module))
             onRecordingBlocked?()
             return
@@ -195,6 +197,7 @@ extension DictationPipeline {
             try recorder.start(microphone: microphone)
         } catch {
             stopPreview()
+            reportFailure(.recordingFailed)
             fail(String(localized: "Could not start recording: \(error.localizedDescription)", bundle: .module))
             onRecordingBlocked?()
             return
@@ -405,6 +408,7 @@ extension DictationPipeline {
                     // The input failed while the destination was being captured.
                     // Less than the capture deadline was recorded; nothing is kept.
                     self.cancel()
+                    self.reportFailure(.recordingFailed)
                     self.fail(String(localized: "Could not start recording: \(reason.localizedDescription)", bundle: .module))
                     self.onRecordingBlocked?()
                     return
@@ -418,6 +422,7 @@ extension DictationPipeline {
                 self.cancel()
                 let message = reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module))
                 if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, profileApp: profileApp, issue: message) }
+                self.reportFailure(.recordingFailed)
                 self.fail(message, openRecovery: !samples.isEmpty)
             }
         }

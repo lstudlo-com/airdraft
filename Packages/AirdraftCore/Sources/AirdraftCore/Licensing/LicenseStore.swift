@@ -75,6 +75,8 @@ public struct KeychainLicenseStorage: LicenseStorage {
     public private(set) var loaded = false
     public private(set) var storageBlocked = false
     public var isPresented = false
+    /// Counts trial starts and activations, never keys or device labels.
+    @ObservationIgnored public weak var telemetry: (any TelemetryRecording)?
     public var deviceLabel: String? { record.map { PolarLicenseClient.deviceLabel(for: $0.installationID) } }
     private let storage: any LicenseStorage
     private let client: (any PolarLicensing)?
@@ -156,8 +158,11 @@ public struct KeychainLicenseStorage: LicenseStorage {
         next.trialStartedAt = date
         next.trialEndsAt = date.addingTimeInterval(Double(configuration.trialDays) * 86_400)
         next.lastSeenAt = date
-        do { try await save(next); message = nil }
-        catch { message = error.localizedDescription }
+        do {
+            try await save(next)
+            message = nil
+            telemetry?.record(.license(.trialStarted))
+        } catch { message = error.localizedDescription }
     }
 
     /// Called at the boundary of new work only. Never stops an active recording
@@ -210,6 +215,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
             }
             isOffline = false
             message = nil
+            telemetry?.record(.license(.activated))
         } catch {
             if error as? LicenseError == .rejected || error as? LicenseError == .activationLimit {
                 next.activationPending = false
@@ -279,6 +285,7 @@ public struct KeychainLicenseStorage: LicenseStorage {
             try await save(next)
             isOffline = false
             message = nil
+            telemetry?.record(.license(.activated))
         } catch {
             if error as? LicenseError == .rejected {
                 grant.revoked = true

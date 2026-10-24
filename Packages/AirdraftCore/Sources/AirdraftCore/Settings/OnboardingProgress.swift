@@ -53,6 +53,8 @@ public final class OnboardingProgress {
     public var hasBeenDismissed: Bool { saved.dismissed }
     public var shouldPresentOnLaunch: Bool { !saved.dismissed && !saved.completed }
     public var chosenSpeech: ASRConfig? { saved.chosenSpeech }
+    /// Counts the first completion or skip of setup; replays are not counted.
+    @ObservationIgnored public weak var telemetry: (any TelemetryRecording)?
 
     public init(defaults: UserDefaults, existingSetup: Bool) {
         self.defaults = defaults
@@ -96,6 +98,7 @@ public final class OnboardingProgress {
     /// Records success after a real practice dictation and shows the final step.
     @discardableResult public func complete() -> Bool {
         guard deliveredDuringPractice else { return false }
+        if !saved.completed { telemetry?.record(.onboardingFinished(.completed)) }
         saved.completed = true
         saved.dismissed = true
         saved.step = .done
@@ -112,6 +115,7 @@ public final class OnboardingProgress {
     }
 
     public func dismiss() {
+        if !saved.completed, !saved.dismissed { telemetry?.record(.onboardingFinished(.skipped)) }
         saved.dismissed = true
         saved.chosenSpeech = nil
         isPresented = false

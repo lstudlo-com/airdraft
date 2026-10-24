@@ -11,6 +11,10 @@ public final class ModelDownloadStore {
         fileprivate let token: UUID
     }
     public private(set) var jobs: [String: Job] = [:]
+    /// Counts finished downloads by catalogue ID; the app maps a config to its
+    /// bundled catalogue entry, or `other`.
+    @ObservationIgnored public weak var telemetry: (any TelemetryRecording)?
+    @ObservationIgnored public var telemetryModelID: (ASRConfig) -> String = { _ in "other" }
     @ObservationIgnored private var tasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let download: @Sendable (ASRConfig, @escaping ModelDownloader.ProgressHandler) async throws -> Void
     @ObservationIgnored private let installed: @Sendable (ASRConfig) -> Bool
@@ -58,9 +62,11 @@ public final class ModelDownloadStore {
                 try Task.checkCancellation()
                 guard installed(config) else { throw ModelDownloader.DownloadError.incomplete }
                 jobs[id] = Job(progress: nil, token: token)
+                telemetry?.record(.modelDownloadFinished(model: telemetryModelID(config), outcome: .ok))
                 onComplete()
             } catch {
                 let cancelled = Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
+                telemetry?.record(.modelDownloadFinished(model: telemetryModelID(config), outcome: cancelled ? .cancelled : .failed))
                 jobs[id] = Job(progress: nil, error: cancelled ? String(localized: "Download cancelled. Retry to resume.", bundle: .module) : error.localizedDescription, token: token)
             }
         }

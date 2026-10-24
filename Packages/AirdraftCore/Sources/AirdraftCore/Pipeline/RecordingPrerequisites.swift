@@ -3,9 +3,15 @@ import AVFoundation
 import Foundation
 
 public struct RecordingPrerequisiteError: LocalizedError, Sendable {
+    /// Which prerequisite failed. Used only for anonymous failure categories.
+    public enum Kind: Sendable { case permission, microphone, modelMissing, credential, setup, setupChanged }
     public let message: String
+    public let kind: Kind
     public var errorDescription: String? { message }
-    public init(_ message: String) { self.message = message }
+    public init(_ message: String, kind: Kind = .setup) {
+        self.message = message
+        self.kind = kind
+    }
 }
 
 /// Cheap, noninteractive checks run before opening the microphone. A saved key
@@ -45,28 +51,30 @@ public enum RecordingPrerequisites {
                              microphone: MicrophonePreference, insertionEnabled: Bool,
                              environment: Environment = .live) throws {
         _ = try SpeechLanguagePolicy.resolve(asr)
-        func reject(_ message: String) throws { throw RecordingPrerequisiteError(message) }
+        func reject(_ message: String, _ kind: RecordingPrerequisiteError.Kind = .setup) throws {
+            throw RecordingPrerequisiteError(message, kind: kind)
+        }
         guard environment.microphoneAuthorized else {
-            try reject(String(localized: "Allow microphone access in Settings.", bundle: .module)); return
+            try reject(String(localized: "Allow microphone access in Settings.", bundle: .module), .permission); return
         }
         guard !insertionEnabled || environment.accessibilityAuthorized else {
-            try reject(String(localized: "Allow Accessibility access in Settings.", bundle: .module)); return
+            try reject(String(localized: "Allow Accessibility access in Settings.", bundle: .module), .permission); return
         }
         guard let device = microphone.resolve(in: environment.devices, systemDefaultID: environment.defaultDeviceID) else {
-            try reject(String(localized: "Microphone unavailable. Choose an input in Settings.", bundle: .module)); return
+            try reject(String(localized: "Microphone unavailable. Choose an input in Settings.", bundle: .module), .microphone); return
         }
         let channel = microphone.channelIndex ?? 0
         guard channel >= 0, channel < device.inputChannelCount else {
-            try reject(String(localized: "Input channel unavailable. Choose one in Settings.", bundle: .module)); return
+            try reject(String(localized: "Input channel unavailable. Choose one in Settings.", bundle: .module), .microphone); return
         }
         if asr.kind.isLocal {
-            if let error = LocalModels.catalogueError(for: asr) { try reject(error.localizedDescription); return }
+            if let error = LocalModels.catalogueError(for: asr) { try reject(error.localizedDescription, .modelMissing); return }
             guard environment.installed(asr) else {
-                try reject(String(localized: "Install the speech model in Models.", bundle: .module)); return
+                try reject(String(localized: "Install the speech model in Models.", bundle: .module), .modelMissing); return
             }
         } else {
             guard !asr.speechModelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                try reject(String(localized: "Choose a speech model in Models.", bundle: .module)); return
+                try reject(String(localized: "Choose a speech model in Models.", bundle: .module), .modelMissing); return
             }
             if asr.kind == .openAICompatible { try validateEndpoint(asr.baseURL, stage: "speech") }
             if asr.kind.preset != nil { try requireKey(asr.keyRef, stage: "speech", environment: environment) }
@@ -102,7 +110,8 @@ public enum RecordingPrerequisites {
         do { return try environment.readCredential(account) }
         catch {
             throw RecordingPrerequisiteError(stage == "speech" ? String(localized: "Speech key locked. Use Allow Access in Models.", bundle: .module)
-                                             : String(localized: "Refinement key locked. Use Allow Access in Models.", bundle: .module))
+                                             : String(localized: "Refinement key locked. Use Allow Access in Models.", bundle: .module),
+                                             kind: .credential)
         }
     }
 
@@ -110,7 +119,8 @@ public enum RecordingPrerequisites {
         guard let key = try readKey(account, stage: stage, environment: environment),
               !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw RecordingPrerequisiteError(stage == "refinement" ? String(localized: "Add a refinement API key in Models, or turn refinement Off.", bundle: .module)
-                                             : String(localized: "Add a speech API key in Models.", bundle: .module))
+                                             : String(localized: "Add a speech API key in Models.", bundle: .module),
+                                             kind: .credential)
         }
     }
 }

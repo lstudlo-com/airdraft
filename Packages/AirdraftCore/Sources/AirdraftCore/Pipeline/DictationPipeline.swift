@@ -194,6 +194,9 @@ public final class DictationPipeline {
     }
     /// Onboarding practice's editor. Consulted only while practice runs.
     public weak var practiceTarget: (any PracticeDeliveryTarget)?
+    /// Anonymous outcome counts (`+Telemetry`). The recorder decides whether
+    /// anything is sent; reporting never waits or changes the pipeline.
+    @ObservationIgnored public weak var telemetry: (any TelemetryRecording)?
 
     let settings: AppSettings
     let dictionary: DictionaryStore

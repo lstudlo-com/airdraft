@@ -164,6 +164,15 @@ public final class AppSettings {
         didSet { defaults.set(showsAllLocalModels, forKey: Self.showsAllLocalModelsKey) }
     }
     static let showsAllLocalModelsKey = "models.showsAllLocalModels"
+    /// The anonymous usage data answer. Kept outside the `settings.` keys so an
+    /// answer never counts as an existing setup; absent means undecided.
+    public var telemetryConsent: TelemetryConsent {
+        didSet {
+            if telemetryConsent == .undecided { defaults.removeObject(forKey: Self.telemetryConsentKey) }
+            else { defaults.set(telemetryConsent.rawValue, forKey: Self.telemetryConsentKey) }
+        }
+    }
+    static let telemetryConsentKey = "telemetry.consent"
 
     private let defaults: UserDefaults
 
@@ -208,6 +217,7 @@ public final class AppSettings {
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
         meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default
         showsAllLocalModels = defaults.bool(forKey: Self.showsAllLocalModelsKey)
+        telemetryConsent = defaults.string(forKey: Self.telemetryConsentKey).flatMap(TelemetryConsent.init(rawValue:)) ?? .undecided
         if savedHUDStyle == "mini" {
             persist("hudStyle", hudStyle)
         }

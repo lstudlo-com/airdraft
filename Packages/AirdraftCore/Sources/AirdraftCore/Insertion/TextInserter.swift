@@ -13,7 +13,7 @@ public enum InsertionMethod: String, Codable, CaseIterable, Sendable, Identifiab
 }
 
 /// What the destination is known to have received.
-public enum TextDeliveryStatus: String, Sendable, Codable {
+public enum TextDeliveryStatus: String, Sendable, Codable, CaseIterable {
     /// The original field shows the text (or a script completed).
     case delivered
     /// One paste reached a validated editor that draws its own text and exposes
