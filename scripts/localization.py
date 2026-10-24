@@ -2,7 +2,7 @@
 """Maintain and check Airdraft's String Catalogs.
 
   check   Fail when a catalog key lacks a current translation in a shipped
-          language (zh-Hans, zh-Hant), a translation drops or adds a
+          language (es, ja, zh-Hans, zh-Hant), a translation drops or adds a
           placeholder, or a key is stale.
   sync    Merge the strings the compiler extracted during the last Debug build
           into the app and AirdraftCore catalogs (what Xcode's IDE does on build).
@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = ("zh-Hans", "zh-Hant")
+LANGUAGES = ("es", "ja", "zh-Hans", "zh-Hant")
 CATALOGS = {
     "app": ROOT / "Sources/App/Localizable.xcstrings",
     "infoplist": ROOT / "Sources/App/InfoPlist.xcstrings",

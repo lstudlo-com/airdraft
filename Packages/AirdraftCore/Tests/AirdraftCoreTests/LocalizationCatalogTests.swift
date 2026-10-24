@@ -2,12 +2,12 @@ import Foundation
 import XCTest
 @testable import AirdraftCore
 
-/// Every interface string ships in Simplified Chinese (zh-Hans) and Traditional Chinese
-/// (Taiwan, zh-Hant). New or changed English copy fails here until
-/// `scripts/localization.py sync` adds it and it is translated into both.
+/// Every interface string ships in Spanish (es), Japanese (ja), Simplified Chinese
+/// (zh-Hans) and Traditional Chinese (Taiwan, zh-Hant). New or changed English copy
+/// fails here until `scripts/localization.py sync` adds it and it is translated into all four.
 final class LocalizationCatalogTests: XCTestCase {
     /// Shipped interface languages besides the English source, as in `scripts/localization.py`.
-    private static let languages = ["zh-Hans", "zh-Hant"]
+    private static let languages = ["es", "ja", "zh-Hans", "zh-Hant"]
     private static let repository = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
@@ -18,7 +18,7 @@ final class LocalizationCatalogTests: XCTestCase {
         "Packages/AirdraftCore/Sources/AirdraftCore/Resources/Localizable.xcstrings",
     ]
 
-    func testEveryCatalogKeyHasCurrentChineseTranslations() throws {
+    func testEveryCatalogKeyHasCurrentTranslations() throws {
         var problems: [String] = []
         for path in Self.catalogs {
             let url = Self.repository.appendingPathComponent(path)
@@ -93,6 +93,23 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
         XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
         XCTAssertEqual(chinese.localizedString(forKey: "Microphone", value: nil, table: nil), "麦克风")
+    }
+
+    func testCoreBundleResolvesSpanishAndJapanese() throws {
+        let expected: [String: [String: String]] = [
+            "es": ["Off": "Desactivado", "Copied to clipboard": "Copiado al portapapeles", "Clean": "Limpio",
+                   "Verbatim": "Literal", "Right %@": "%@ derecha", "Microphone": "Micrófono"],
+            "ja": ["Off": "オフ", "Copied to clipboard": "クリップボードにコピーしました", "Clean": "クリーン",
+                   "Verbatim": "逐語", "Right %@": "右 %@", "Microphone": "マイク"],
+        ]
+        for (language, values) in expected {
+            XCTAssertTrue(Bundle.module.localizations.contains(language), "\(Bundle.module.localizations)")
+            let path = try XCTUnwrap(Bundle.module.path(forResource: language, ofType: "lproj"), language)
+            let bundle = try XCTUnwrap(Bundle(path: path))
+            for (key, value) in values {
+                XCTAssertEqual(bundle.localizedString(forKey: key, value: nil, table: nil), value, "\(language): \(key)")
+            }
+        }
     }
 
     /// Argument types in order, ignoring positional reordering such as %2$@ before %1$@.

@@ -12,6 +12,18 @@
             "value": "Airdraft uses the microphone for dictation and meeting recordings."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft usa el micrófono para el dictado y la grabación de reuniones."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft は音声入力と会議の録音にマイクを使用します。"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -34,6 +46,18 @@
           "stringUnit": {
             "state": "new",
             "value": "Airdraft records audio from the meeting app you choose for transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft graba el audio de la app de reuniones que elijas para transcribirlo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Airdraft は、選択した会議アプリの音声を文字起こしのために録音します。"
           }
         },
         "zh-Hans": {

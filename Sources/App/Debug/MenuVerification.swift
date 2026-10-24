@@ -49,7 +49,8 @@ enum MenuVerification {
            Bundle.main.localizations.contains(requested) {
             precondition(language == requested, "Requested \(requested) but the menu resolved \(language)")
         }
-        let quitTitles = ["en": "Quit Airdraft", "zh-Hans": "退出 Airdraft", "zh-Hant": "結束 Airdraft"]
+        let quitTitles = ["en": "Quit Airdraft", "es": "Salir de Airdraft", "ja": "Airdraft を終了",
+                          "zh-Hans": "退出 Airdraft", "zh-Hant": "結束 Airdraft"]
         if let expected = quitTitles[language] {
             precondition(L("Quit Airdraft") == expected, "Unexpected \(language) title: \(L("Quit Airdraft"))")
         }
