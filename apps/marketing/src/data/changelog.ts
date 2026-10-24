@@ -14,6 +14,23 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-12-1",
+    version: "0.12.1",
+    date: "2026-10-24",
+    title: "Steadier insertion on busy Macs",
+    changes: [
+      {
+        title: "Confirm the destination more reliably",
+        description:
+          "Before recording, Airdraft checks that the text field and cursor have stopped changing. It now also reads them twice in a row, so a slow or busy Mac cannot accept a field that is still moving and later report that the destination changed.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.12.1-build.405",
+    },
+  },
+  {
     id: "0-12-0",
     version: "0.12.0",
     date: "2026-10-24",
