@@ -61,6 +61,12 @@ Airdraft is free software under the [GNU General Public License v3.0 only](LICEN
   automatic updates. Official builds offer a full-feature trial followed by a
   paid license. Licenses are not on sale yet.
 
+Builds from source never send usage data or crash reports. Official builds ask
+once whether to share anonymous usage counts and crash reports, send nothing
+unless you agree and never include your words, audio or app content; change the
+choice in Settings > Behavior. See [docs/telemetry.md](docs/telemetry.md) and the
+[privacy page](https://airdraft.app/privacy/#app-telemetry).
+
 Official builds are signed with the maintainer's Apple Development certificate
 and are **not notarized**. On first launch macOS may ask you to approve the app in
 System Settings > Privacy & Security.

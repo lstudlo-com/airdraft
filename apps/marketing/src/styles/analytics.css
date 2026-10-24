@@ -38,6 +38,16 @@
   .privacy-article p a {
     text-decoration: underline;
   }
+  .privacy-article ul {
+    padding-left: 24px;
+    list-style: disc;
+  }
+  .privacy-article li {
+    line-height: 1.7;
+  }
+  .privacy-article li + li {
+    margin-top: 8px;
+  }
   .analytics-status {
     margin-top: 12px;
     color: var(--muted);

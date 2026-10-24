@@ -130,6 +130,15 @@ without a Swift package checkout live in `ThirdParty/licenses/` with their pinne
 source URL and SHA-256. CI and release preparation fail when the notices are stale.
 Never hand-edit the generated files.
 
+## Privacy and telemetry
+
+Source builds, Debug builds and tests never send telemetry: the PostHog client
+exists only in official Release builds after the user agrees. Tests use the fake
+client in `TelemetryTests`; never point a build or test at a real PostHog project.
+A new event changes the closed `TelemetryEvent` enum, the `TelemetrySanitizer`
+allowlist, its tests, [docs/telemetry.md](docs/telemetry.md) and the website
+privacy page together, and must never carry free text, content or identifiers.
+
 ## Commits and pull requests
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/):

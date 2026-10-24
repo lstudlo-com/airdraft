@@ -1108,6 +1108,36 @@ key events, and completes Try It through the real pipeline with fake capture and
 speech (`AppContainer.DictationBoundary`). It never proves a real microphone or
 shortcut.
 
+## App telemetry
+
+Opt-in anonymous product events and crash reports go to PostHog only from an
+official, non-Debug build whose Info.plist carries a valid `AirdraftTelemetryToken`
+(`phc_…`) and `AirdraftTelemetryHost` (US or EU ingestion origin), and only after
+the user chose Share Anonymous Usage Data. Source, community, isolated, Sandbox and
+Debug builds never construct the client (`TelemetryService` returns none under
+`#if DEBUG`); prove this with the fake client, never by sending. `project.yml`
+keeps both settings empty; only `release.py` passes them from
+`scripts/telemetry-config.json` and verifies the built app, and `build-sandbox.py`
+verifies their absence. Switching PostHog projects changes only that file; the app
+shares the website's US project and tags every event `app=airdraft-mac`.
+`AppSettings.telemetryConsent` (`telemetry.consent`, outside the `settings.` keys)
+is undecided until answered. Ask with equal-weight Don’t Share and Share Anonymous
+Usage Data on onboarding's Ready step and Home, listing what is and is never sent
+with the privacy link; send nothing before an answer. Settings > Behavior holds the
+switch. Granting opts in and reports the grant; denying reports the denial, then
+flushes, opts out and closes. Launches without consent purge the SDK's local queue,
+anonymous ID and pending crash report. Events are the closed `TelemetryEvent` enum
+with enumerated or bucketed properties; `TelemetrySanitizer` validates them when
+recorded and again in `beforeSend`, which also drops other SDK events and strips
+device name, model, locale, time zone and similar SDK properties. Never send
+transcripts, audio, vocabulary, prompts, app names, bundle IDs, window titles, URLs,
+paths, endpoints, keys, custom model IDs or the Mac's name. Person profiles,
+identify, lifecycle/screen events, flags, swizzling and GeoIP stay off. Recording
+an event is fire-and-forget; pipeline behavior and timing must not change. Adding
+an event updates the enum, sanitizer schema, tests, `docs/telemetry.md` and the
+website privacy page together. IP discarding is a PostHog project setting; record
+its verified state in the vault. See `docs/telemetry.md`.
+
 ## Official-build licensing
 
 Self-built editions are fully unlocked and do not install paid official Sparkle

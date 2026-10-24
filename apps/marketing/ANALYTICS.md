@@ -4,6 +4,11 @@ PostHog measures the website's acquisition and intent funnel. This integration
 does not instrument the macOS app. A source link is not an install, a checkout
 click is not a sale, and the automatic sample animation is not engagement.
 
+The Mac app has its own opt-in telemetry in official builds, sent to the same
+project with `app=airdraft-mac` on every event; see `docs/telemetry.md` in the
+repository and the privacy page's `#app-telemetry` section. Filter website
+dashboards to exclude `app=airdraft-mac`, and keep both privacy sections accurate.
+
 ## Configuration
 
 Airdraft uses [US Cloud project 645700](https://us.posthog.com/project/645700/settings/project-details). Copy the public

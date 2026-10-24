@@ -247,3 +247,6 @@ this integration. Collection is disabled until configured and allowed, honors
 GPC/DNT, and never enables replay, autocapture, text capture or person profiles.
 The privacy page explains the data and provides revocation. Clicks do not prove
 installs or purchases. See `ANALYTICS.md` for event and deployment contracts.
+The Mac app's own opt-in usage data and crash reports are separate (official builds
+only, same PostHog project, tagged `app=airdraft-mac`); the privacy page's
+`#app-telemetry` section must match `docs/telemetry.md` in the repository.
