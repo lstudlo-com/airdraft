@@ -51,7 +51,8 @@ struct HomePage: View {
             }
 
             if !overview.topApps.isEmpty {
-                PageSection("Summary") { summaryCard }
+                PageSection(LocalizedStringResource("HomeSummaryHeading", defaultValue: "Summary",
+                                                comment: "Home section of dictation statistics, not a text summary")) { summaryCard }
             }
 
             PageSection("Recent") {

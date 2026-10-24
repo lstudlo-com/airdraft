@@ -111,7 +111,7 @@ extension EnvironmentValues {
 extension TextSizePreference {
     var title: String {
         switch self {
-        case .standard: return String(localized: "Default")
+        case .standard: return String(localized: "TextSizeDefault", defaultValue: "Default", comment: "Text size")
         case .large: return String(localized: "Large", comment: "Text size")
         case .larger: return String(localized: "Larger", comment: "Text size")
         }
