@@ -5,6 +5,7 @@ struct SpeechPreviewSettings: View {
     @Environment(AppContainer.self) private var container
     @State private var reason: String? = String(localized: "Checking language assets…")
     @State private var refreshID = UUID()
+    @State private var appleLocales: [String] = []
 
     private var config: ASRConfig {
         ASRConfig(kind: .apple, appleLocale: container.settings.livePreviewLocale, language: "")
@@ -17,11 +18,12 @@ struct SpeechPreviewSettings: View {
             SettingsCard {
                 SettingRow(title: "Apple Speech language", subtitle: "Preview only") {
                     SoftPicker("Preview language", selection: $settings.livePreviewLocale, width: 200) {
-                        ForEach(SpeechLanguage.appleLocales(including: settings.livePreviewLocale), id: \.code) {
-                            Text($0.name).tag($0.code)
+                        ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: settings.livePreviewLocale), id: \.self) {
+                            Text(SpeechLanguage.name($0)).tag($0)
                         }
                     }
                 }
+                .task { appleLocales = await AppleSpeechTranscriber.supportedLocaleIdentifiers() }
                 RowDivider()
                 SettingRow(title: "Language assets", detail: job?.error ?? reason ?? String(localized: "Ready")) {
                     if let progress = job?.progress {

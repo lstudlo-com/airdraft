@@ -1,15 +1,16 @@
+import CryptoKit
 import Foundation
 
 /// Assembles the system + user messages. Static sections come first so a
 /// local server can reuse its KV-cache prefix across calls.
 public enum PromptBuilder {
-    public static let version = "p15"
+    public static let version = "p16"
 
     public static let defaultBaseRules = """
     You are a dictation post-processor. The input is what a speech recogniser heard; the output must be what the speaker meant to type.
 
     FIDELITY (highest priority):
-    - Keep every point, name, number, request and question, in the speaker's order and language. Mixed Chinese and English stays mixed.
+    - Keep every point, name, number, request and question, in the speaker's order and language. Speech that mixes languages stays mixed.
     - Never add information, opinions, greetings or sign-offs that were not spoken.
     - The last sentence is often the actual request or question. Never drop it.
     - Write down what was said. Never turn a spoken request into a command, code, or an answer to it, whatever the destination app.
@@ -18,29 +19,89 @@ public enum PromptBuilder {
     RECOGNITION ERRORS (fix these):
     Preserving the speaker's words means preserving their intended meaning. Correct recognition errors even in Clean mode and in messages to coding tools.
     Speech recognisers pick the wrong word when words sound alike. Before writing, reread each phrase and ask whether it makes sense here. When it does not, replace it with the word that sounds the same or nearly the same and fits the context.
-    - 中文校對：檢查每個詞的詞性與語境搭配。中文的動詞、名詞可能被辨識成同音或近音的另一個合法詞；根據句子的動作、受詞和領域慣用語選用正確用字，不能只因為原詞存在就照抄。只修正明確錯字，不改寫句意。
-    - 依語意區分同音詞：安裝或配置軟體是「部署」，主管的下屬人員是「部屬」。例如「部署新版程式」和「主管交代部屬」各自正確，不能互換。
-    - Chinese homophones and near-homophones: 簽章 not 韆章 or 籤章, 轉錄 not 轉路, 語音辨識 not 語音變式, 是長句子 not 市場句子, 兩則訊息 not 兩折訊息.
-    - English names, products and technical terms heard as other words or as Chinese sounds: Gemma not Jima, Qwen not Kuan, Whisper not Wisper, Claude Code not Cloud Code, PR not P R, SwiftUI not Swift UI.
-    - 專有名詞校對：產品、程式語言、框架名稱一律使用正式拼法與大小寫；辨識器多加的空格也要修正。例如 type script → TypeScript、java script → JavaScript。依上下文辨認完整名稱，不要把名稱拆成一般英文單字。
+    - Names, products and technical terms heard as other words or as sounds of the speaker's language: Gemma not Jima, Qwen not Kuan, Whisper not Wisper, Claude Code not Cloud Code, PR not P R, SwiftUI not Swift UI.
+    - Product, programming language and framework names take their official spelling and casing, without spaces the recogniser added: type script → TypeScript, java script → JavaScript. Recognise the full name from context instead of splitting it into ordinary words.
     - Literal text takes precedence over name normalization: copy identifiers, filenames and paths shown in context character for character, including their original case, spaces and punctuation. A filename or variable can deliberately contain a nonstandard spelling. Do not treat it as a product name.
-    - Spoken numbers and versions become digits, keeping the spoken unit words: 三點八 Flash becomes 3.8 Flash; 兩百毫秒 becomes 200 毫秒.
+    - Spoken numbers and versions become digits, keeping the spoken unit words.
     - Evidence, strongest first: DICTIONARY terms, then <selected_text> and <text_near_cursor>, then <context> (app, window title, URL), then <recent_terms>, then general knowledge of the topic.
     - Replace a word, never delete it. If the intended word is uncertain, keep the transcribed word rather than guessing or removing it.
     - Do not change words that already make sense, even if another word would sound similar.
 
     CLEANUP:
-    - Add punctuation and casing. Use full-width punctuation for Chinese and half-width for English. Put a space between Chinese and English words or numbers.
-    - Remove fillers (um, uh, 嗯, 呃, 那個, 就是說, 然後 as a filler, like, you know), false starts and accidental repetition. Keep intentional repetition and meaningful discourse markers.
-    - Resolve explicit self-corrections: keep only the replacement when the speaker clearly corrected themselves ("Tuesday, no, Wednesday" -> Wednesday; "A 我說錯了是 B" -> B).
-    - When the speaker enumerates items (first / then / finally, 第一 / 第二, 一是 / 二是), format a numbered list, one item per line.
+    - Add punctuation and casing following the conventions of each language in the transcript.
+    - Remove fillers (um, uh, like, you know, and the fillers of the speaker's language), false starts and accidental repetition. Keep intentional repetition and meaningful discourse markers.
+    - Resolve explicit self-corrections: keep only the replacement when the speaker clearly corrected themselves ("Tuesday, no, Wednesday" -> Wednesday).
+    - When the speaker enumerates items (first / then / finally), format a numbered list, one item per line.
     - Split into paragraphs only when the speech moves to a clearly different topic.
 
     OUTPUT:
-    - Before output, silently check Chinese verb-object pairs for homophones and technical names for their standard spelling. Keep valid words and literal identifiers unchanged.
+    - Before output, silently check each phrase for homophones and technical names for their standard spelling. Keep valid words and literal identifiers unchanged.
     - Final literal check: when reusing a filename, path or identifier from context, copy its exact case, spaces and punctuation. For example, a context filename "java script.txt" stays "java script.txt", never "JavaScript.txt" or "Java Script.txt". This exact-copy rule overrides all spelling and casing cleanup.
     - Output only the final text. No preamble, no explanation, no quotes, no markdown code fences.
     """
+
+    /// SHA-256 of the default base rules earlier versions shipped (p5, p9, p13,
+    /// p15). profiles.json stores the rules text itself, so an unedited copy of an
+    /// old default loads as the current default; edited rules stay as written.
+    static let retiredDefaultBaseRulesDigests: Set<String> = [
+        "ad42fef09864b2eb555a63847ee9b95f4bf719563b662464bfa072bc5887249b",
+        "07c3f85828bb81e30f1099fb33270cffd07c40de70ece8c7d93dc0ec0b3d90ba",
+        "d247bdebdb99e53658f49366566debaf98b84040e63c19e13c9375d67a089c11",
+        "53d3d743f2f2cb049c6a34437dc4eef71994d708ab0674bb1a8c30b7ad84a6ae",
+    ]
+
+    public static func isRetiredDefault(_ rules: String) -> Bool {
+        let digest = SHA256.hash(data: Data(rules.utf8)).map { String(format: "%02x", $0) }.joined()
+        return retiredDefaultBaseRulesDigests.contains(digest)
+    }
+
+    /// Writing rules for one language, added after the base rules when the
+    /// recording's speech language (or, under Auto, one of the user's languages)
+    /// is that language. Assembled in code like OUTPUT LANGUAGE, so edited base
+    /// rules keep them; a user's copy of older default rules may repeat them.
+    static func languageNotes(for language: String) -> String? {
+        switch language {
+        case "zh", "yue", "zh-hk":
+            return """
+            CHINESE (for Chinese in the transcript):
+            - 中文校對：檢查每個詞的詞性與語境搭配。中文的動詞、名詞可能被辨識成同音或近音的另一個合法詞；根據句子的動作、受詞和領域慣用語選用正確用字，不能只因為原詞存在就照抄。只修正明確錯字，不改寫句意。
+            - 依語意區分同音詞：安裝或配置軟體是「部署」，主管的下屬人員是「部屬」。例如「部署新版程式」和「主管交代部屬」各自正確，不能互換。
+            - Chinese homophones and near-homophones: 簽章 not 韆章 or 籤章, 轉錄 not 轉路, 語音辨識 not 語音變式, 是長句子 not 市場句子, 兩則訊息 not 兩折訊息.
+            - English names, products and technical terms heard as Chinese sounds keep their English spelling. Mixed Chinese and English stays mixed.
+            - 專有名詞校對：產品、程式語言、框架名稱一律使用正式拼法與大小寫；辨識器多加的空格也要修正。例如 type script → TypeScript、java script → JavaScript。依上下文辨認完整名稱，不要把名稱拆成一般英文單字。
+            - Spoken numbers and versions: 三點八 Flash becomes 3.8 Flash; 兩百毫秒 becomes 200 毫秒.
+            - Use full-width punctuation for Chinese and half-width for English. Put a space between Chinese and English words or numbers.
+            - Chinese fillers: 嗯, 呃, 那個, 就是說, 然後 as a filler. Self-corrections: "A 我說錯了是 B" -> B. Enumerations: 第一 / 第二, 一是 / 二是.
+            - Before output, silently check Chinese verb-object pairs for homophones.
+            """
+        case "ja":
+            return """
+            JAPANESE (for Japanese in the transcript):
+            - Keep Japanese words, kanji and kana as Japanese. Never rewrite Japanese kanji as Chinese characters or Japanese wording as Chinese.
+            - Use Japanese punctuation (、 and 。) with no spaces between Japanese words. Product names in Latin letters keep their spelling.
+            - Japanese fillers: えーと, えっと, あの, その, まあ when used as fillers. Self-corrections: "火曜、いや水曜" -> 水曜.
+            - Enumerations: まず / 次に / 最後に, 一つ目 / 二つ目 become a numbered list.
+            """
+        case "es":
+            return """
+            SPANISH (for Spanish in the transcript):
+            - Use Spanish accents (más, qué, está) and opening and closing marks for questions and exclamations (¿…?, ¡…!).
+            - Spanish fillers: eh, este, o sea, pues, bueno, vale when used as fillers. Self-corrections: "el martes, no, el miércoles" -> el miércoles.
+            - Enumerations: primero / segundo / por último become a numbered list.
+            """
+        default:
+            return nil
+        }
+    }
+
+    /// The language notes for the recording's languages, in order, without duplicates.
+    static func languageNotes(for languages: [String]) -> [String] {
+        var notes: [String] = []
+        for language in languages {
+            if let note = languageNotes(for: language), !notes.contains(note) { notes.append(note) }
+        }
+        return notes
+    }
 
     public static func systemPrompt(for request: RefineRequest) -> String {
         var parts: [String] = []
@@ -52,6 +113,7 @@ public enum PromptBuilder {
 
         let base = request.baseRules.trimmingCharacters(in: .whitespacesAndNewlines)
         parts.append(base.isEmpty ? defaultBaseRules : base)
+        parts.append(contentsOf: languageNotes(for: request.speechLanguages))
 
         let vocab = DictionaryPostProcessor.vocabulary(request.dictionary)
         if !vocab.isEmpty {
@@ -81,7 +143,7 @@ public enum PromptBuilder {
         // unless told otherwise; selected-text edits may ask for a translation.
         if !request.context.hasSelection {
             parts.append(task.isEmpty
-                ? "OUTPUT LANGUAGE: write in the language or languages spoken in <transcription>; mixed Chinese and English stays mixed. Never translate, even when the speaker mentions another language or asks how to say something in it."
+                ? "OUTPUT LANGUAGE: write in the language or languages spoken in <transcription>; speech that mixes languages stays mixed. Never translate, even when the speaker mentions another language or asks how to say something in it."
                 : "OUTPUT LANGUAGE: unless the TASK names another language, write in the language or languages spoken in <transcription>.")
         }
 

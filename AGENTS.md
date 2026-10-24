@@ -356,7 +356,10 @@ and Local releases below.
   button hides while searching. Search always covers the whole catalogue, including
   language names. Each row shows one strength label, never an accuracy claim
   Airdraft has not measured, and languages by full name (the user's language first)
-  with the complete list in the tooltip. Keep table headers fixed and cap the
+  with the complete list in the tooltip. Language summaries state the model's own
+  coverage, never support relative to Chinese; Chinese-only strengths (Qwen3-ASR
+  1.7B's mixed Chinese and English) show only to users with a Chinese language
+  (`ModelCatalogue.speaksChinese`). Keep table headers fixed and cap the
   scrolling rows of the full and cloud tables, and of any compact list over six
   rows, at `Theme.modelTableMaxHeight` (300 pt); shorter lists show every row
   without an inner scroll. The full local table opens with Recommended for your
@@ -932,13 +935,21 @@ and Local releases below.
 - Refinement output passes `RefinementFidelity` before delivery. A result that
   repeats an earlier same-app dictation the new speech does not resemble, or that
   changes the transcript's language without a profile TASK or selected text (losing
-  every kana or Hangul character, or gaining them from Chinese speech, counts), is
-  discarded for the raw transcript and recorded as a refinement error. Prompts get
+  every kana or Hangul character, or gaining them from Chinese speech, losing or
+  gaining another non-Latin script such as Cyrillic, Arabic or Devanagari, or a
+  confident `NLLanguageRecognizer` change between Latin-script languages on 30 or
+  more letters, closely related pairs exempt, counts), is discarded for the raw transcript and recorded as a refinement error. Prompts get
   recent dictations only as `<recent_terms>` (names and technical terms), never
   sentences: small models returned them instead of the new speech, and each copy
   fed the next prompt. Recent dictations include delivered ones the delivery tail
   has not saved yet; read saved rows off the main actor. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
-  code so edited base rules keep it. Whisper prompts carry only the script
+  code so edited base rules keep it. Base rules are language-neutral; per-language
+  writing notes (Chinese, Japanese, Spanish) are assembled in code from
+  `ASRConfig.refinementLanguages` (the selected speech language, or the first three
+  preferred languages under Auto), computed the same way for the warm-up prefix and
+  the final request. An unedited copy of an older default loads as the current
+  default (`PromptBuilder.retiredDefaultBaseRulesDigests`); add the outgoing default's
+  digest whenever the default changes. Whisper prompts carry only the script
   sentence; Whisper repeats bare dictionary terms on silence, so terms go only to
   dedicated keyword or context fields. Send that sentence only when Chinese is the
   selected speech language: under auto-detect it pulled English speech into a
@@ -976,8 +987,9 @@ and Local releases below.
   state instead of returning them from a `Task`; do not silence SDKs with
   `@preconcurrency`. Test fixtures share mutable state through `Locked`.
 - Prompt changes bump `PromptBuilder.version` so history records stay comparable, and must be
-  scored with `eval/run_correction_eval.py` on both `correction_cases.json` and the held-out
-  `holdout_cases.json` (LM Studio running). Do not ship a prompt that loses a held-out case.
+  scored with `eval/run_correction_eval.py` on `correction_cases.json`, the held-out
+  `holdout_cases.json` and the Spanish, Japanese and English `multilingual_cases.json`
+  (LM Studio running). Do not ship a prompt that loses a held-out or multilingual case.
   Clean profiles and coding destinations must still correct recognition errors,
   including technical-name spelling and word boundaries. Preserve valid words and
   literal identifiers, commands and paths. Also run `context_correction_cases.json`
@@ -1031,14 +1043,21 @@ quotes and the existing glossary in the catalogs. `LocalizationCatalogTests` fai
 on missing, stale or placeholder-mismatched zh-Hans or zh-Hant entries. Verify UI
 changes in zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale zh_CN`) and zh-Hant
 (`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) renders as well as English.
-Unsaved Chinese script and Apple Speech/live-preview locale defaults follow the
-first Chinese preferred language (`ChineseScript.systemDefault`: Simplified with
-zh-CN, otherwise Traditional; Auto on a Mac whose first language is Japanese or
-Korean and that lists no Chinese); never rewrite saved choices. When Japanese or
-Korean is the selected speech language, `ASRConfig.effectiveChineseScript` is Auto
-for refinement, speech hints, previews, media windows and the deterministic
-converter: under the Traditional rule models translated Japanese into Chinese, and
-kanji-only text has no kana for the converter's guard.
+An unsaved Chinese script follows the first Chinese preferred language
+(`ChineseScript.systemDefault`: Simplified with zh-CN, otherwise Traditional, and
+Auto when no Chinese language is listed). Unsaved Apple Speech and live-preview
+locales are Mandarin in that script when a Chinese language is listed, otherwise the
+first preferred language with its region (`ASRConfig.systemAppleLocale`), which
+`AppleSpeechTranscriber.resolvedLocale` resolves to a supported locale of the same
+language; never rewrite saved choices. `ASRConfig.effectiveChineseScript` applies
+the saved script only to Mandarin, Cantonese and Auto (Apple Speech: its locale);
+every other selected speech language gets Auto for refinement, speech hints,
+previews, media windows and the deterministic converter: under the Traditional rule
+models translated Japanese into Chinese, kanji-only text has no kana for the
+converter's guard, and no other language may receive a Chinese rule. Models shows
+Chinese script only where it applies: Mandarin or Cantonese selected, or Auto for a
+user with a Chinese language or a saved script. Apple Speech and live-preview
+language pickers list every locale the OS supports, the user's languages first.
 
 ## Trigger Delay
 
@@ -1083,9 +1102,12 @@ disables refinement and uses cursor insertion. It resolves the explicitly select
 app-default speech config through the shared AppSettings resolver, temporarily
 ignoring saved profile bindings without mutating them. Restore returning users'
 refinement and output settings on exit and after restart. Ready offers refinement
-after practice: when the system reports Apple Intelligence available, one click
-selects it (Turn Off reverts it); otherwise explain the system reason plainly and
-keep Open Models; when Apple Intelligence is not enabled, offer Open System Settings
+after practice: when the system reports Apple Intelligence available and it can
+write the speech language (`AppleIntelligenceRefiner.unsupportedLanguageName`, the
+selected language or the first preferred one under Auto), one click selects it
+(Turn Off reverts it); otherwise explain the system reason or the unsupported
+language plainly and keep Open Models (renders inject a language code with
+`AIRDRAFT_RENDER_APPLE_INTELLIGENCE_UNSUPPORTED`); when Apple Intelligence is not enabled, offer Open System Settings
 (Apple Intelligence & Siri) and keep setup open. When the saved active profile skips refinement (Verbatim), say
 it keeps exact words and that the provider tidies profiles that refine; never
 change profiles there. Never ask for a key, download or prompt there, and never replace
@@ -1431,7 +1453,7 @@ Release preparation runs `scripts/test-prompt-gate.py` and `scripts/verify-promp
 against the committed export before packaging. It also runs
 `test-acknowledgements.py` and `acknowledgements.py check` against the release's
 SourcePackages. Keep `eval/results/prompt-validation.json`
-bound to the current prompt assembly and all three evaluation datasets; no per-case
+bound to the current prompt assembly and all four evaluation datasets; no per-case
 regressions are accepted, and every context-correction run must pass. Rebuild the CLI before collecting fresh three-run reports.
 Artifact signing checks require Hardened Runtime as well as the pinned identity.
 Public distribution additionally requires `scripts/verify-public-distribution.py`
@@ -1496,7 +1518,9 @@ See `docs/recording-storage.md`. Preserve audio in pending-save recovery. Run fu
 cleanup at launch, hourly and after retention changes, never after each save; it
 reloads audio views only when it changed something. Word totals sum the stored
 `dictation.wordCount` (nullable; uncounted rows are counted from their text and
-backfilled on open). Playback has one owner
+backfilled on open). `approximateWordCount`, also the refinement threshold, counts
+Chinese and Japanese characters, Korean and alphabetic words by spaces, and Thai,
+Lao, Khmer and Myanmar by dictionary word breaks. Playback has one owner
 and stops when recording, deleting, leaving History or cleaning up audio. History
 uses All/Recordings filters over one timeline; audio-only cards contain no deleted
 transcript. Play/pause and seek share one transport, and only the selected progress

@@ -133,8 +133,8 @@ public struct LocalModelShortlist: Equatable, Sendable {
 }
 
 /// A readable form of a model's language list (AD-071): up to two full language
-/// names, the user's language first, then English and other widely spoken
-/// languages, then a count of the rest. The full list
+/// names, the user's language first, then English and other languages by
+/// number of speakers, then a count of the rest. The full list
 /// belongs in a tooltip and the accessibility label.
 public struct SpeechLanguageList: Equatable, Sendable {
     /// Full localized names, the user's language and English first.
@@ -145,7 +145,7 @@ public struct SpeechLanguageList: Equatable, Sendable {
 
     public init(codes: [String], preferredLanguage: String?, nameFor: (String) -> String = SpeechLanguagePolicy.languageName) {
         let preferred = LocalSpeechRecommendation.normalized(preferredLanguage)
-        let priority = [preferred, "en", "zh", "es", "fr", "de", "ja", "ko", "pt"].compactMap { $0 }
+        let priority = [preferred].compactMap { $0 } + SpeechLanguagePolicy.widelySpokenLanguages
         var ordered: [String] = []
         for code in priority where codes.contains(code) && !ordered.contains(code) { ordered.append(code) }
         for code in codes where !ordered.contains(code) { ordered.append(code) }

@@ -23,8 +23,11 @@ struct RefinementSettings: View {
                         EmptyView()
                     }
                 case .appleIntelligence:
-                    SettingRow(title: "On-device cleanup", detail: AppleIntelligenceRefiner.unavailableReason ?? String(localized: "Ready · no key or server needed")) {
-                        StatusDot(ok: AppleIntelligenceRefiner.unavailableReason == nil)
+                    let unsupported = AppleIntelligenceSetup.unsupportedLanguageName(for: container.speechConfig)
+                    SettingRow(title: "On-device cleanup", detail: AppleIntelligenceRefiner.unavailableReason
+                               ?? unsupported.map { String(localized: "Can’t write \($0) yet; your words may stay as you said them") }
+                               ?? String(localized: "Ready · no key or server needed")) {
+                        StatusDot(ok: AppleIntelligenceRefiner.unavailableReason == nil && unsupported == nil)
                     }
                     RowDivider()
                     testRow
@@ -242,10 +245,12 @@ struct RefinementSettings: View {
             return
         }
         let req = RefineRequest(
-            transcript: "嗯 這是一個 測試 就是說 我們今天要 第一 買牛奶 第二 寫程式",
+            transcript: RefinementSample.transcript(for: container.speechConfig),
             profile: container.profiles.activeProfile,
             baseRules: container.profiles.baseRules,
-            context: .empty, family: .general, dictionary: []
+            context: .empty, family: .general, dictionary: [],
+            chineseScript: container.speechConfig.effectiveChineseScript,
+            speechLanguages: container.speechConfig.refinementLanguages()
         )
         do {
             let r = try await refiner.refine(req)

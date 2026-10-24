@@ -1,0 +1,204 @@
+[
+ {
+  "id": "es-filler-question",
+  "language": "es",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "eh este puedes revisar el pull request antes de las cinco",
+  "expect": [
+   "¿",
+   "pull request"
+  ],
+  "forbid": [
+   "Can you",
+   "Eh,"
+  ]
+ },
+ {
+  "id": "es-product-name",
+  "language": "es",
+  "script": "auto",
+  "family": "code",
+  "app": "Terminal",
+  "raw": "voy a usar cloud code para revisar el repositorio",
+  "expect": [
+   "Claude Code",
+   "repositorio"
+  ],
+  "forbid": [
+   "Cloud Code",
+   "I'm going"
+  ]
+ },
+ {
+  "id": "es-self-correction",
+  "language": "es",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "la reunión es el martes no perdón el miércoles a las diez",
+  "expect": [
+   "miércoles"
+  ],
+  "forbid": [
+   "martes",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "es-mixed-english",
+  "language": "es",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "mañana tengo un meeting con el team para revisar el deployment",
+  "expect": [
+   "meeting",
+   "deployment",
+   "añana"
+  ],
+  "forbid": [
+   "Tomorrow"
+  ]
+ },
+ {
+  "id": "es-list",
+  "language": "es",
+  "script": "auto",
+  "family": "document",
+  "app": "Notes",
+  "raw": "necesito tres cosas primero comprar leche segundo llamar a pedro y por último enviar el informe",
+  "expect": [
+   "leche",
+   "Pedro",
+   "informe"
+  ],
+  "forbid": [
+   "milk",
+   "First"
+  ]
+ },
+ {
+  "id": "es-asks-translation",
+  "language": "es",
+  "script": "auto",
+  "family": "general",
+  "raw": "cómo se dice gracias en inglés",
+  "expect": [
+   "gracias"
+  ],
+  "forbid": [
+   "Thank you",
+   "How do you"
+  ]
+ },
+ {
+  "id": "ja-filler",
+  "language": "ja",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "えーと 明日の会議は 十時からです",
+  "expect": [
+   "明日の会議"
+  ],
+  "forbid": [
+   "えーと",
+   "明天",
+   "會議"
+  ]
+ },
+ {
+  "id": "ja-product-name",
+  "language": "ja",
+  "script": "auto",
+  "family": "code",
+  "app": "Terminal",
+  "raw": "あの cloud code でこのバグを直してください",
+  "expect": [
+   "Claude Code",
+   "バグ"
+  ],
+  "forbid": [
+   "Cloud Code",
+   "請"
+  ]
+ },
+ {
+  "id": "ja-list",
+  "language": "ja",
+  "script": "auto",
+  "family": "document",
+  "app": "Notes",
+  "raw": "まず 資料を作って 次に 部長に送って 最後に 会議室を予約します",
+  "expect": [
+   "資料",
+   "部長",
+   "会議室"
+  ],
+  "forbid": [
+   "會議室",
+   "Prepare"
+  ]
+ },
+ {
+  "id": "ja-kanji-stays",
+  "language": "ja",
+  "script": "auto",
+  "family": "document",
+  "app": "Notes",
+  "raw": "来週の広告の効果を確認しましょう",
+  "expect": [
+   "広告",
+   "効果"
+  ],
+  "forbid": [
+   "廣告",
+   "效果"
+  ]
+ },
+ {
+  "id": "en-filler-question",
+  "language": "en",
+  "script": "auto",
+  "family": "general",
+  "raw": "um so can you uh send the draft to maya tomorrow",
+  "expect": [
+   "Maya",
+   "?"
+  ],
+  "forbid": [
+   "Um",
+   " uh "
+  ]
+ },
+ {
+  "id": "en-product-name",
+  "language": "en",
+  "script": "auto",
+  "family": "code",
+  "app": "Terminal",
+  "raw": "open cloud code and run the tests",
+  "expect": [
+   "Claude Code"
+  ],
+  "forbid": [
+   "Cloud Code"
+  ]
+ },
+ {
+  "id": "en-self-correction",
+  "language": "en",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "let's meet on tuesday no wednesday at ten",
+  "expect": [
+   "Wednesday"
+  ],
+  "forbid": [
+   "Tuesday"
+  ]
+ }
+]

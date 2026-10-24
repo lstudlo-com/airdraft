@@ -2,7 +2,9 @@
 """Runs eval/correction_cases.json through `airdraft-cli refine` and scores each case.
 
 A case passes when every `expect` substring is in the output and no `forbid`
-substring is. Usage: eval/run_correction_eval.py <label> [--model gemma4] [--runs 3]
+substring is. A case's `language` (default zh) chooses the prompt's language
+notes and its `script` (default traditional) the Chinese script, as the app
+derives them from the recording's speech settings. Usage: eval/run_correction_eval.py <label> [--model gemma4] [--runs 3]
 Use --cli <path> to evaluate an Xcode-built airdraft-cli without a SwiftPM build.
 Writes eval/results/<label>.json.
 """
@@ -41,7 +43,8 @@ for case in cases:
     runs = []
     for _ in range(args.runs):
         cmd = [str(args.cli), "refine", case["raw"], "--llm-model", args.model, "--family", case.get("family", "general"),
-               "--mode", case.get("profile", "clean"), "--script", "traditional", "--timeout", "90"]
+               "--mode", case.get("profile", "clean"), "--script", case.get("script", "traditional"),
+               "--language", case.get("language", "zh"), "--timeout", "90"]
         for key, flag in (("before", "before"), ("after", "after"), ("selected", "selected"), ("app", "app"),
                           ("window", "window"), ("url", "page-url"), ("recent", "recent")):
             if case.get(key):

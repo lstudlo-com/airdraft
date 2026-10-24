@@ -255,20 +255,26 @@ public enum ChineseScript: String, Codable, CaseIterable, Sendable, Identifiable
 
     /// The script a new setup starts with: Simplified when the first Chinese entry in
     /// the preferred languages is written in Simplified script (zh-Hans, zh-CN, zh-SG),
-    /// otherwise Traditional. Only unsaved settings use it; saved choices are kept.
-    /// A Mac whose first language is Japanese or Korean, with no Chinese entry,
-    /// starts with Auto: converting its kanji or prompting refinement toward
-    /// Chinese script rewrites or translates Japanese.
+    /// otherwise Traditional. A Mac that lists no Chinese language starts with Auto:
+    /// a Chinese script rule would rewrite Japanese kanji and steer refinement of
+    /// every other language toward Chinese. Only unsaved settings use it; saved
+    /// choices are kept.
     public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ChineseScript {
-        let codes = preferredLanguages.compactMap { Locale.Language(identifier: $0).languageCode?.identifier.lowercased() }
-        if let first = codes.first, ["ja", "ko"].contains(first), !codes.contains("zh") { return .auto }
         for identifier in preferredLanguages {
             let language = Locale.Language(identifier: identifier)
             guard language.languageCode?.identifier.lowercased() == "zh" else { continue }
             let script = language.script ?? Locale.Language(identifier: language.maximalIdentifier).script
             return script == .hanSimplified ? .simplified : .traditional
         }
-        return .traditional
+        return .auto
+    }
+
+    /// Whether a speech language can produce Chinese characters that this
+    /// setting should normalise: Mandarin, Cantonese and Auto.
+    public static func applies(toSpeechLanguage language: String) -> Bool {
+        let code = language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            .replacingOccurrences(of: "_", with: "-").split(separator: "-").first.map(String.init) ?? ""
+        return ["", "auto", "zh", "yue", "cmn"].contains(code)
     }
 
     /// Apple Speech locale for Mandarin written in this script.
@@ -325,10 +331,32 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         self.apiKeyRef = apiKeyRef
     }
 
-    /// A new setup's speech config: Mandarin defaults follow the system's Chinese script.
-    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ASRConfig {
+    /// A new setup's speech config: the Chinese script and the Apple Speech locale
+    /// follow the system's languages.
+    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages,
+                                     region: String? = Locale.current.region?.identifier) -> ASRConfig {
+        ASRConfig(appleLocale: systemAppleLocale(preferredLanguages: preferredLanguages, region: region),
+                  chineseScript: ChineseScript.systemDefault(preferredLanguages: preferredLanguages))
+    }
+
+    /// The Apple Speech and live-preview locale of a new setup: Mandarin in the
+    /// system's Chinese script when a Chinese language is preferred, otherwise the
+    /// first preferred language with its region (fr-FR, es-MX), and en-US without
+    /// any. The OS resolves an unsupported region to a supported one of the same
+    /// language (`AppleSpeechTranscriber.resolvedLocale`).
+    public static func systemAppleLocale(preferredLanguages: [String] = Locale.preferredLanguages,
+                                         region: String? = Locale.current.region?.identifier) -> String {
         let script = ChineseScript.systemDefault(preferredLanguages: preferredLanguages)
-        return ASRConfig(appleLocale: script.appleMandarinLocale, chineseScript: script)
+        if script != .auto { return script.appleMandarinLocale }
+        guard let first = preferredLanguages.first,
+              let code = Locale.Language(identifier: first).languageCode?.identifier.lowercased(), !code.isEmpty else {
+            return "en-US"
+        }
+        // es-419 names a region group, not a country; use the formatting region then.
+        let isCountry: (String) -> Bool = { $0.count == 2 && $0.allSatisfy(\.isLetter) }
+        let country = [Locale.Language(identifier: first).region?.identifier, region]
+            .compactMap { $0 }.first(where: isCountry)
+        return country.map { "\(code)-\($0.uppercased())" } ?? code
     }
 
     // Older settings blobs lack the new keys; decode them leniently.
@@ -367,12 +395,29 @@ public struct ASRConfig: Codable, Sendable, Equatable {
         if kind.preset != nil, let current = selectedSpeechModel { selectModel(current.id) }
     }
 
-    /// The Chinese script that conversion, speech hints and refinement apply: Auto
-    /// when Japanese or Korean is the selected speech language, whose kanji or
-    /// hanja must never become Chinese script.
+    /// The Chinese script that conversion, speech hints and refinement apply: the
+    /// saved script for Mandarin, Cantonese and Auto, and Auto for every other
+    /// selected speech language. Japanese kanji and Korean hanja must never become
+    /// Chinese script, and other languages get no Chinese rule in their prompts.
     public var effectiveChineseScript: ChineseScript {
-        let code = language.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return code.hasPrefix("ja") || code.hasPrefix("ko") ? .auto : chineseScript
+        // Apple Speech recognizes its fixed locale, which Auto would leave unset here.
+        ChineseScript.applies(toSpeechLanguage: kind == .apple ? effectiveAppleLocale : language) ? chineseScript : .auto
+    }
+
+    /// The languages refinement writes for this setup, which choose the prompt's
+    /// language notes: the selected speech language, or under Auto the user's
+    /// first three preferred languages. Captured with the recording's settings,
+    /// so the warm-up prompt prefix matches the final request.
+    public func refinementLanguages(preferredLanguages: [String] = Locale.preferredLanguages) -> [String] {
+        let selected = kind == .apple ? effectiveAppleLocale : language
+        if let code = (try? SpeechLanguagePolicy.canonicalLanguage(selected)) ?? nil { return [code] }
+        var codes: [String] = []
+        for identifier in preferredLanguages {
+            guard let code = (try? SpeechLanguagePolicy.canonicalLanguage(identifier)) ?? nil, !codes.contains(code) else { continue }
+            codes.append(code)
+            if codes.count == 3 { break }
+        }
+        return codes
     }
 
     public var effectiveAppleLocale: String {
@@ -801,7 +846,7 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
     public static let asr: [Speech] = [
         .init(kind: .soniox, name: "Soniox", modelTitle: "v5", baseURL: "https://api.soniox.com/v1",
               keyRef: "asr.soniox", purpose: "Value & mixed languages",
-              detail: String(localized: "60+ languages, including Chinese and English in the same sentence.", bundle: .module), price: "~$0.10/hr",
+              detail: String(localized: "60+ languages, including switches between them in one sentence.", bundle: .module), price: "~$0.10/hr",
               billingNote: String(localized: "Token-based estimate. Dictionary context can add cost. Uploaded audio and jobs are deleted after use when the API is reachable.", bundle: .module),
               consoleURL: URL(string: "https://console.soniox.com")!, pricingURL: URL(string: "https://soniox.com/pricing")!),
         .init(kind: .groq, name: "Groq", modelTitle: "Whisper v3 Turbo", baseURL: "https://api.groq.com/openai/v1",
@@ -851,7 +896,7 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
               consoleURL: URL(string: "https://console.x.ai")!, pricingURL: URL(string: "https://docs.x.ai/developers/model-capabilities/audio/speech-to-text")!),
         .init(kind: .mistral, name: "Mistral", modelTitle: "Voxtral Mini Transcribe", baseURL: "https://api.mistral.ai/v1",
               keyRef: "asr.mistral", purpose: "Compact multilingual transcription",
-              detail: String(localized: "13 languages, including Mandarin, with optional language hints.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
+              detail: String(localized: "13 languages, with optional language hints.", bundle: .module), price: String(localized: "See pricing", bundle: .module),
               billingNote: String(localized: "Uses Voxtral Mini Latest. Dictionary substitutions still apply after transcription.", bundle: .module),
               consoleURL: URL(string: "https://console.mistral.ai/api-keys")!, pricingURL: URL(string: "https://mistral.ai/pricing")!),
         .init(kind: .gemini, name: "Gemini", modelTitle: "Gemini 3.5 Transcribe", baseURL: "https://generativelanguage.googleapis.com/v1beta",

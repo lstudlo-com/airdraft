@@ -92,9 +92,9 @@ public enum AudioChunker {
         return join(parts)
     }
 
-    /// Joins window texts. Chinese and Japanese are written without spaces, so
-    /// windows meet directly when both sides of the boundary are Han, kana or
-    /// CJK punctuation; every other boundary (Latin, Hangul, digits) keeps one space.
+    /// Joins window texts. Chinese, Japanese, Thai, Lao, Khmer and Myanmar are
+    /// written without spaces, so windows meet directly when both sides of the
+    /// boundary use them; every other boundary (Latin, Hangul, digits) keeps one space.
     static func join(_ parts: [String]) -> String {
         var result = ""
         for part in parts {
@@ -107,8 +107,10 @@ public enum AudioChunker {
         return result
     }
 
-    /// Han ideographs, kana and the CJK punctuation and full-width forms written with them.
+    /// Han ideographs, kana and the CJK punctuation and full-width forms written
+    /// with them, and Thai, Lao, Khmer and Myanmar, which also use no spaces.
     static func isUnspacedScript(_ scalar: Unicode.Scalar) -> Bool {
+        if WritingScript.isUnspacedSoutheastAsian(scalar) { return true }
         switch scalar.value {
         case 0x3000...0x303F,   // CJK symbols and punctuation (。、「」)
              0x3040...0x30FF,   // Hiragana, Katakana

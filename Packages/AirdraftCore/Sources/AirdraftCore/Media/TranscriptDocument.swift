@@ -154,7 +154,7 @@ public struct MediaConfiguration: Codable, Sendable, Equatable {
     public static let supportedWhisperModel = "large-v3-v20240930_turbo"
     public mutating func selectLocalModel(_ model: LocalModel) {
         if model == .apple && selectedLocalModel != .apple {
-            appleLocale = ASRConfig(kind: .apple, appleLocale: appleLocale ?? ChineseScript.systemDefault().appleMandarinLocale,
+            appleLocale = ASRConfig(kind: .apple, appleLocale: appleLocale ?? ASRConfig.systemAppleLocale(),
                                     language: language).effectiveAppleLocale
             language = ""
         }

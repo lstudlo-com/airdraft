@@ -8,6 +8,9 @@ public struct RefineRequest: Sendable {
     public var family: AppFamily
     public var dictionary: [DictionaryEntry]
     public var chineseScript: ChineseScript
+    /// Canonical speech languages whose writing notes the prompt adds
+    /// (`ASRConfig.refinementLanguages`); empty adds none.
+    public var speechLanguages: [String]
 
     public init(
         transcript: String,
@@ -16,7 +19,8 @@ public struct RefineRequest: Sendable {
         context: AppContext,
         family: AppFamily,
         dictionary: [DictionaryEntry],
-        chineseScript: ChineseScript = .auto
+        chineseScript: ChineseScript = .auto,
+        speechLanguages: [String] = []
     ) {
         self.transcript = transcript
         self.profile = profile
@@ -25,6 +29,7 @@ public struct RefineRequest: Sendable {
         self.family = family
         self.dictionary = dictionary
         self.chineseScript = chineseScript
+        self.speechLanguages = speechLanguages
     }
 }
 

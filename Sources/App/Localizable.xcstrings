@@ -1342,34 +1342,18 @@
         }
       }
     },
-    "25 European languages. Does not support Chinese." : {
+    "25 European languages." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "25 种欧洲语言。不支持中文。"
+            "value" : "25 种欧洲语言。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "25 種歐洲語言。不支援中文。"
-          }
-        }
-      }
-    },
-    "25 European languages; no Chinese support." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "25 种欧洲语言；不支持中文。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "25 種歐洲語言；不支援中文。"
+            "value" : "25 種歐洲語言。"
           }
         }
       }
@@ -2670,6 +2654,38 @@
         }
       }
     },
+    "Apple Intelligence can’t write %@ yet, so your words may stay as you said them. You can change this in Models." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 暂时无法书写%@，你说的话可能会保持原样。你可以在“模型”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 暫時無法書寫%@，你說的話可能會保持原樣。你可以在「模型」中更改。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence can’t write %@ yet. You can set up another way to tidy your words in Models." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 暂时无法书写%@。你可以在“模型”中设置其他整理文字的方式。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 暫時無法書寫%@。你可以在「模型」中設定其他整理文字的方式。"
+          }
+        }
+      }
+    },
     "Apple Intelligence is ready on this Mac." : {
       "localizations" : {
         "zh-Hans" : {
@@ -3562,6 +3578,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SenseVoice 的粵語微調版本。英文較弱；不支援日文與韓文。"
+          }
+        }
+      }
+    },
+    "Can’t write %@ yet; your words may stay as you said them" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法书写%@；你说的话可能会保持原样"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫時無法書寫%@；你說的話可能會保持原樣"
           }
         }
       }
@@ -13087,6 +13119,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "講者 %@ 的最近名稱"
+          }
+        }
+      }
+    },
+    "Recognizes 30 languages." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可识别 30 种语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可辨識 30 種語言。"
           }
         }
       }

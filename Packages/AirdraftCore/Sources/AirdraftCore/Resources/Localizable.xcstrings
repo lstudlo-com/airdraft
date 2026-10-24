@@ -330,6 +330,38 @@
         }
       }
     },
+    "%lld languages. Automatic detection and language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言。通过 OpenRouter 的自动检测和语言提示尚未验证。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。透過 OpenRouter 的自動偵測與語言提示尚未驗證。"
+          }
+        }
+      }
+    },
+    "%lld languages. Automatic detection supports language switching." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言。自动检测支持语言切换。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。自動偵測支援語言切換。"
+          }
+        }
+      }
+    },
     "%lld languages. Choose one; automatic detection is unavailable." : {
       "localizations" : {
         "zh-Hans" : {
@@ -342,6 +374,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 種語言。請選擇一種；無法自動偵測。"
+          }
+        }
+      }
+    },
+    "%lld languages. Language hints through OpenRouter are unverified." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言。通过 OpenRouter 的语言提示尚未验证。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言。透過 OpenRouter 的語言提示尚未驗證。"
           }
         }
       }
@@ -442,50 +490,18 @@
         }
       }
     },
-    "13 languages, including Mandarin, with optional language hints." : {
+    "13 languages, with optional language hints." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "13 种语言，包括普通话，可选提供语言提示。"
+            "value" : "13 种语言，可选提供语言提示。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "13 種語言，包含華語，可選擇提供語言提示。"
-          }
-        }
-      }
-    },
-    "13 languages, including Mandarin." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "13 种语言，包括普通话。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "13 種語言，包含華語。"
-          }
-        }
-      }
-    },
-    "14 languages, including Mandarin. Choose one; automatic detection is unavailable." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "14 种语言，包括普通话。请选择一种；无法自动检测。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "14 種語言，包含華語。請選擇一種；無法自動偵測。"
+            "value" : "13 種語言，可選擇提供語言提示。"
           }
         }
       }
@@ -502,22 +518,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "18 種語言"
-          }
-        }
-      }
-    },
-    "18 languages, including Mandarin. Automatic detection supports language switching." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "18 种语言，包括普通话。自动检测支持语言切换。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "18 種語言，包含華語。自動偵測支援語言切換。"
           }
         }
       }
@@ -570,50 +570,18 @@
         }
       }
     },
-    "30 languages, including Chinese. Language hints through OpenRouter are unverified." : {
+    "60+ languages, including switches between them in one sentence." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "30 种语言，包括中文。通过 OpenRouter 的语言提示尚未验证。"
+            "value" : "60 多种语言，同一句中切换语言也没问题。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "30 種語言，包含中文。透過 OpenRouter 的語言提示尚未驗證。"
-          }
-        }
-      }
-    },
-    "30 languages, including Mandarin and Cantonese." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "30 种语言，包括普通话和粤语。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "30 種語言，包含華語與粵語。"
-          }
-        }
-      }
-    },
-    "60+ languages, including Chinese and English in the same sentence." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "60 多种语言，同一句中英混说也没问题。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "60 多種語言，同一句中英夾雜也沒問題。"
+            "value" : "60 多種語言，同一句中切換語言也沒問題。"
           }
         }
       }
@@ -630,22 +598,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "7 天"
-          }
-        }
-      }
-    },
-    "8 languages. Mandarin and Cantonese are unsupported." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "8 种语言。不支持普通话和粤语。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "8 種語言。不支援華語與粵語。"
           }
         }
       }
@@ -1323,18 +1275,34 @@
         }
       }
     },
-    "Automatically recognizes %lld European languages; no Chinese support." : {
+    "Automatically recognizes %lld European languages." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动识别 %lld 种欧洲语言；不支持中文。"
+            "value" : "自动识别 %lld 种欧洲语言。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自動辨識 %lld 種歐洲語言；不支援中文。"
+            "value" : "自動辨識 %lld 種歐洲語言。"
+          }
+        }
+      }
+    },
+    "Automatically recognizes %lld languages; selection has no effect." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别 %lld 种语言；选择语言不起作用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識 %lld 種語言；選擇語言不會有作用。"
           }
         }
       }
@@ -1355,50 +1323,34 @@
         }
       }
     },
-    "Automatically recognizes 10 languages, excluding Chinese; selection has no effect." : {
+    "Automatically recognizes 25 European languages." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动识别 10 种语言，不含中文；选择语言不起作用。"
+            "value" : "自动识别 25 种欧洲语言。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自動辨識 10 種語言，不含中文；選擇語言不會有作用。"
+            "value" : "自動辨識 25 種歐洲語言。"
           }
         }
       }
     },
-    "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support." : {
+    "Automatically recognizes 25 European languages; selection has no effect." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动识别 25 种欧洲语言。选择语言不起作用；不支持中文。"
+            "value" : "自动识别 25 种欧洲语言；选择语言不起作用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自動辨識 25 種歐洲語言。選擇語言不會有作用；不支援中文。"
-          }
-        }
-      }
-    },
-    "Automatically recognizes 25 European languages; no Chinese support." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动识别 25 种欧洲语言；不支持中文。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動辨識 25 種歐洲語言；不支援中文。"
+            "value" : "自動辨識 25 種歐洲語言；選擇語言不會有作用。"
           }
         }
       }
@@ -1582,16 +1534,16 @@
     },
     "Cancelled before delivery. The text was not pasted." : {
       "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "送出前已取消，未貼上文字。"
-          }
-        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "发送前已取消，未粘贴文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "送出前已取消，未貼上文字。"
           }
         }
       }
@@ -2480,18 +2432,18 @@
         }
       }
     },
-    "Designed for noisy and far-field speech. Auto-detects one language; supports Mandarin." : {
+    "Designed for noisy and far-field speech. Auto-detects one language." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "专为嘈杂和远场语音设计。会自动检测一种语言；支持普通话。"
+            "value" : "专为嘈杂和远场语音设计。会自动检测一种语言。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "專為吵雜與遠距語音設計。會自動偵測一種語言；支援華語。"
+            "value" : "專為吵雜與遠距語音設計。會自動偵測一種語言。"
           }
         }
       }
@@ -3978,6 +3930,22 @@
         }
       }
     },
+    "Multilingual. Automatic detection through OpenRouter is unverified." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言。通过 OpenRouter 的自动检测尚未验证。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多語。透過 OpenRouter 的自動偵測尚未驗證。"
+          }
+        }
+      }
+    },
     "Native transcription with automatic language detection and dictionary hints." : {
       "localizations" : {
         "zh-Hans" : {
@@ -4828,18 +4796,18 @@
         }
       }
     },
-    "Recognizes language switches within speech, including Chinese and English." : {
+    "Recognizes language switches within speech." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可识别语音中的语言切换，包括中文和英语。"
+            "value" : "可识别语音中的语言切换。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可辨識語音中的語言切換，包含中文與英文。"
+            "value" : "可辨識語音中的語言切換。"
           }
         }
       }
@@ -5808,50 +5776,18 @@
         }
       }
     },
-    "Supports Mandarin. Automatic detection and language hints through OpenRouter are unverified." : {
+    "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL; the Language setting is ignored." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支持普通话。通过 OpenRouter 的自动检测和语言提示尚未验证。"
+            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 和 NL 之间切换；会忽略“语言”设置。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支援華語。透過 OpenRouter 的自動偵測與語言提示尚未驗證。"
-          }
-        }
-      }
-    },
-    "Supports Mandarin. Automatic detection through OpenRouter is unverified." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持普通话。通过 OpenRouter 的自动检测尚未验证。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支援華語。透過 OpenRouter 的自動偵測尚未驗證。"
-          }
-        }
-      }
-    },
-    "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL. Mandarin is not supported in this mode; the Language setting is ignored." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 和 NL 之间切换。此模式不支持普通话；会忽略“语言”设置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 與 NL 之間切換。此模式不支援華語；會忽略「語言」設定。"
+            "value" : "可在 EN、ES、FR、DE、HI、RU、PT、JA、IT 與 NL 之間切換；會忽略「語言」設定。"
           }
         }
       }
@@ -7187,18 +7123,18 @@
         }
       }
     },
-    "Voxtral Mini transcription with an optional language hint, including Mandarin." : {
+    "Voxtral Mini transcription with an optional language hint." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voxtral Mini 转录，可选提供语言提示，包括普通话。"
+            "value" : "Voxtral Mini 转录，可选提供语言提示。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voxtral Mini 轉錄，可選擇提供語言提示，包含華語。"
+            "value" : "Voxtral Mini 轉錄，可選擇提供語言提示。"
           }
         }
       }

@@ -90,11 +90,11 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
             return [
                 .init(id: "nova-3", title: "Nova-3 · Single language", price: "$0.258/hr",
                       billing: String(localized: "Pre-recorded pay-as-you-go: $0.0043 per minute. Optional add-ons are off.", bundle: .module),
-                      quality: String(localized: "Noisy audio", bundle: .module), qualityDetail: String(localized: "Designed for noisy and far-field speech. Auto-detects one language; supports Mandarin.", bundle: .module),
+                      quality: String(localized: "Noisy audio", bundle: .module), qualityDetail: String(localized: "Designed for noisy and far-field speech. Auto-detects one language.", bundle: .module),
                       speed: String(localized: "Faster than Whisper", bundle: .module), speedDetail: speed, documentationURL: docs),
                 .init(id: "nova-3-multilingual", title: "Nova-3 · Multilingual", price: "$0.312/hr",
                       billing: String(localized: "Pre-recorded pay-as-you-go: $0.0052 per minute. This is Nova-3 with multilingual mode enabled.", bundle: .module),
-                      quality: String(localized: "Mixed languages", bundle: .module), qualityDetail: String(localized: "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL. Mandarin is not supported in this mode; the Language setting is ignored.", bundle: .module),
+                      quality: String(localized: "Mixed languages", bundle: .module), qualityDetail: String(localized: "Switches between EN, ES, FR, DE, HI, RU, PT, JA, IT and NL; the Language setting is ignored.", bundle: .module),
                       speed: String(localized: "Faster than Whisper", bundle: .module), speedDetail: speed, documentationURL: docs),
                 .init(id: "whisper-large", title: "Whisper Large", price: "$0.288/hr",
                       billing: String(localized: "Pre-recorded pay-as-you-go: $0.0048 per minute. Deepgram hosts Whisper Large v2.", bundle: .module),
@@ -104,7 +104,7 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
         case .soniox:
             return [.init(id: "stt-async-v5", title: "Soniox v5", price: "≈$0.10/hr",
                           billing: String(localized: "Token-based estimate. Dictionary context can add cost. Audio and jobs are deleted after use when the API is reachable.", bundle: .module),
-                          quality: String(localized: "Mixed languages", bundle: .module), qualityDetail: String(localized: "Recognizes language switches within speech, including Chinese and English.", bundle: .module),
+                          quality: String(localized: "Mixed languages", bundle: .module), qualityDetail: String(localized: "Recognizes language switches within speech.", bundle: .module),
                           speed: String(localized: "Not published", bundle: .module), speedDetail: String(localized: "Asynchronous processing adds job scheduling and polling.", bundle: .module) + " " + unpublished,
                           documentationURL: URL(string: "https://soniox.com/docs/stt/models")!)]
         case .assemblyAI:
@@ -135,7 +135,7 @@ public struct SpeechModelInfo: Identifiable, Sendable, Equatable {
         case .mistral:
             return [.init(id: "voxtral-mini-latest", title: "Voxtral Mini Transcribe", price: String(localized: "See pricing", bundle: .module),
                           billing: "https://console.mistral.ai/api-keys", quality: String(localized: "13 languages", bundle: .module),
-                          qualityDetail: String(localized: "Voxtral Mini transcription with an optional language hint, including Mandarin.", bundle: .module), speed: String(localized: "Not published", bundle: .module), speedDetail: unpublished,
+                          qualityDetail: String(localized: "Voxtral Mini transcription with an optional language hint.", bundle: .module), speed: String(localized: "Not published", bundle: .module), speedDetail: unpublished,
                           documentationURL: URL(string: "https://docs.mistral.ai/studio/audio/speech_to_text/offline_transcription")!)]
         case .gemini:
             return [.init(id: "gemini-3.5-transcribe", title: "Gemini 3.5 Transcribe", price: String(localized: "See pricing", bundle: .module),

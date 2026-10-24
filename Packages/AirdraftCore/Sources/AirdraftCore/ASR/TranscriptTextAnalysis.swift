@@ -77,6 +77,20 @@ enum WritingScript: Hashable, Sendable {
     }
 }
 
+extension WritingScript {
+    /// Thai, Lao, Khmer and Myanmar write words without spaces, like Chinese
+    /// and Japanese, but form words from several letters, including tone and
+    /// vowel marks that are not alphabetic. Covers the whole blocks.
+    static func isUnspacedSoutheastAsian(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.value {
+        case 0x0E00...0x0E7F, 0x0E80...0x0EFF, 0x1780...0x17FF, 0x19E0...0x19FF, 0x1000...0x109F, 0xAA60...0xAA7F:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 /// Letter counts per writing system. Japanese is recognised by kana: Han
 /// characters inside text that also contains kana count as Japanese.
 struct ScriptProfile: Sendable, Equatable {
@@ -240,6 +254,14 @@ enum KnownHallucination {
         "please subscribe", "subtitles by the amara.org community", "you",
         "字幕由amara.org社區提供", "字幕由amara.org社区提供", "請不吝點贊訂閱轉發打賞支持明鏡與點點欄目",
         "请不吝点赞订阅转发打赏支持明镜与点点栏目", "謝謝觀看", "谢谢观看", "謝謝大家", "谢谢大家",
+        // Subtitle credits and sign-offs from Whisper's training videos in other languages.
+        "subtítulos realizados por la comunidad de amara.org", "gracias por ver el video", "gracias por ver",
+        "sous-titres réalisés para la communauté d'amara.org", "sous-titres réalisés par la communauté d'amara.org",
+        "merci d'avoir regardé", "untertitel der amara.org-community", "vielen dank fürs zuschauen",
+        "legendas pela comunidade amara.org", "obrigado por assistir", "sottotitoli creati dalla comunità amara.org",
+        "grazie per la visione", "продолжение следует", "спасибо за просмотр",
+        "ご視聴ありがとうございました", "ご視聴ありがとうございます", "チャンネル登録よろしくお願いします",
+        "시청해주셔서감사합니다",
     ]
 
     static func matches(_ text: String) -> Bool {

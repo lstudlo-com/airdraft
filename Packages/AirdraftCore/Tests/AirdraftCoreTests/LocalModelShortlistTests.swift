@@ -81,7 +81,7 @@ final class LocalModelShortlistTests: XCTestCase {
         let chinese = SpeechLanguageList(codes: senseVoice, preferredLanguage: "zh-Hant-TW", nameFor: name)
         XCTAssertEqual(chinese.shown, ["Mandarin Chinese", "English"])
         XCTAssertEqual(chinese.remaining, 3)
-        XCTAssertEqual(chinese.names, ["Mandarin Chinese", "English", "Japanese", "Korean", "Cantonese"])
+        XCTAssertEqual(chinese.names, ["Mandarin Chinese", "English", "Japanese", "Cantonese", "Korean"])
         let japanese = SpeechLanguageList(codes: senseVoice, preferredLanguage: "ja-JP", nameFor: name)
         XCTAssertEqual(japanese.shown, ["Japanese", "English"])
         let english = SpeechLanguageList(codes: ["af", "ar", "en", "zh"], preferredLanguage: "en-US", nameFor: name)

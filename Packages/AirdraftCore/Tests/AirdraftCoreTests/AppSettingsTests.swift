@@ -314,15 +314,19 @@ final class AppSettingsTests: XCTestCase {
             XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .simplified, "\(languages)")
         }
         for languages in [["zh-Hant-TW"], ["zh-Hant"], ["zh-TW"], ["zh-HK"], ["en-TW", "zh-Hant-TW", "zh-Hans-CN"],
-                          ["en-US"], ["ja-JP", "zh-Hant-TW"], ["fr-FR", "ja-JP"], []] {
+                          ["ja-JP", "zh-Hant-TW"]] {
             XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .traditional, "\(languages)")
         }
-        // Japanese and Korean Macs keep their kanji and hanja: no Chinese script rule.
-        for languages in [["ja-JP"], ["ja-JP", "fr-FR"], ["ko-KR"], ["ko", "en-US"]] {
+        // Macs without a Chinese language keep every other script untouched: Japanese
+        // kanji, Korean hanja, and no Chinese rule in other languages' prompts.
+        for languages in [["ja-JP"], ["ja-JP", "fr-FR"], ["ko-KR"], ["ko", "en-US"], ["en-US"], ["fr-FR", "ja-JP"],
+                          ["es-419"], ["ar-SA"], []] {
             XCTAssertEqual(ChineseScript.systemDefault(preferredLanguages: languages), .auto, "\(languages)")
         }
+        // Only Mandarin, Cantonese and Auto apply the saved script.
         for (language, script) in [("ja", ChineseScript.auto), ("ja-JP", .auto), ("ko", .auto), ("zh", .traditional),
-                                   ("", .traditional), ("en", .traditional)] {
+                                   ("zh-TW", .traditional), ("yue", .traditional), ("", .traditional), ("en", .auto),
+                                   ("es", .auto), ("hi", .auto)] {
             XCTAssertEqual(ASRConfig(language: language, chineseScript: .traditional).effectiveChineseScript, script, language)
         }
         XCTAssertEqual(ChineseScript.simplified.appleMandarinLocale, "zh-CN")
@@ -340,7 +344,7 @@ final class AppSettingsTests: XCTestCase {
             XCTAssertEqual(simplified.livePreviewLocale, "zh-CN")
             XCTAssertNil(defaults.object(forKey: "settings.asr"), "Defaults are not written until the user changes them")
             XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["zh-Hant-TW"]).asr.chineseScript, .traditional)
-            XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["en-US"]).livePreviewLocale, "zh-TW")
+            XCTAssertEqual(AppSettings(defaults: defaults, preferredLanguages: ["en-US"]).livePreviewLocale, "en-US")
 
             // A saved choice wins over the system language in both directions.
             AppSettings(defaults: defaults, preferredLanguages: ["zh-Hans-CN"]).asr.chineseScript = .traditional

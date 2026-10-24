@@ -66,7 +66,7 @@ struct ModelEntry: Identifiable, Sendable {
 
     /// The visible strength of an entry outside the recommended set.
     var highlight: String? {
-        id == LocalSpeechRecommendation.Model.qwen3Large.catalogueID
+        id == LocalSpeechRecommendation.Model.qwen3Large.catalogueID && ModelCatalogue.speaksChinese
             ? String(localized: "Best for mixed Chinese and English") : nil
     }
 
@@ -151,7 +151,9 @@ enum ModelCatalogue {
         ModelEntry(
             id: "qwen3:1.7b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
             tags: [], speed: 4, accuracy: 5, storage: .download(sizeLabel: qwenSize("aufklarer/Qwen3-ASR-1.7B-MLX-5bit")),
-            note: String(localized: "Best for mixed Chinese and English.")
+            // Measured for mixed Chinese and English (eval/mixed-asr); other users
+            // see its reach instead of a claim about a language they do not speak.
+            note: speaksChinese ? String(localized: "Best for mixed Chinese and English.") : String(localized: "Recognizes 30 languages.")
         ) { $0.kind = .qwen3; $0.qwen3Model = "aufklarer/Qwen3-ASR-1.7B-MLX-5bit" },
         ModelEntry(
             id: "qwen3:0.6b", vendor: "Alibaba · MLX", provider: "Alibaba", brand: .qwen,
@@ -186,7 +188,7 @@ enum ModelCatalogue {
         ModelEntry(
             id: "sherpa:parakeet", vendor: "NVIDIA · ONNX", provider: "NVIDIA", brand: .nvidia,
             tags: [], speed: 0, accuracy: 0, storage: .download(sizeLabel: SherpaTranscriber.Model.parakeet.sizeLabel),
-            note: String(localized: "25 European languages. Does not support Chinese.")
+            note: String(localized: "25 European languages.")
         ) { $0.kind = .parakeet },
         ModelEntry(
             id: "apple", vendor: "macOS 26 · Neural Engine", provider: "Apple", brand: .apple,
@@ -202,7 +204,7 @@ enum ModelCatalogue {
     } + [
         ModelEntry(id: "sherpa:orukeet", vendor: "Oruk · ONNX", provider: "Oruk", brand: .oruk,
                    tags: ["ONNX"], speed: 0, accuracy: 0, storage: .download(sizeLabel: "487 MB"),
-                   note: String(localized: "25 European languages; no Chinese support.")) { $0.kind = .orukeet }
+                   note: String(localized: "25 European languages.")) { $0.kind = .orukeet }
     ] + CoreMLSpeechModelCatalog.models.map { model in
         // AD-083 (eval/eja-asr): Parakeet TDT v2 matched Qwen3-ASR 1.7B on English at a tenth of its latency.
         let rated = model.id == "parakeet-v2"
@@ -313,6 +315,13 @@ extension ModelCatalogue {
 
     static var systemLanguage: String? {
         RenderMode.value("SYSTEM_LANGUAGE") ?? LocalSpeechRecommendation.systemLanguageCode
+    }
+
+    /// Whether Chinese is among the user's languages (or a render's system
+    /// language). Chinese-only strengths are shown only to those users.
+    static var speaksChinese: Bool {
+        if let rendered = RenderMode.value("SYSTEM_LANGUAGE") { return LocalSpeechRecommendation.normalized(rendered) == "zh" }
+        return Locale.preferredLanguages.contains { LocalSpeechRecommendation.normalized($0) == "zh" }
     }
 
     static var physicalMemory: UInt64 {

@@ -31,7 +31,7 @@ public enum SpeechPreview {
         guard SpeechTranscriber.isAvailable else {
             throw PreviewIssue(String(localized: "Apple Speech live preview is unavailable on this Mac. Turn off Live Preview in Settings.", bundle: .module))
         }
-        guard let supported = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: locale)) else {
+        guard let supported = await AppleSpeechTranscriber.resolvedLocale(for: locale) else {
             throw PreviewIssue(String(localized: "Apple Speech does not support this preview language. Choose another language in Settings.", bundle: .module))
         }
         try Task.checkCancellation()

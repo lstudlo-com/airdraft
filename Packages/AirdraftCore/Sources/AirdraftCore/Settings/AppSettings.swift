@@ -211,7 +211,7 @@ public final class AppSettings {
         hudDiscoEnabled = Self.load("hudDiscoEnabled", from: defaults) ?? false
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
-        livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? systemSpeech.chineseScript.appleMandarinLocale
+        livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? systemSpeech.appleLocale
         livePreviewSource = Self.load("livePreviewSource", from: defaults) ?? .appleSpeech
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault

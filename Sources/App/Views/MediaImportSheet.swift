@@ -108,8 +108,8 @@ struct MediaImportSheet: View {
     @ViewBuilder private var languageRow: some View {
         if configuration.engine == .local && configuration.selectedLocalModel == .apple {
             SettingRow(title: "Language") {
-                SoftPicker("Speech language", selection: Binding(get: { configuration.appleLocale ?? "zh-TW" }, set: { configuration.appleLocale = $0; configuration.language = "" }), width: 220) {
-                    ForEach(Array(Set(appleLocales + [configuration.appleLocale ?? "zh-TW"])).sorted(), id: \.self) { locale in
+                SoftPicker("Speech language", selection: Binding(get: { configuration.appleLocale ?? ASRConfig.systemAppleLocale() }, set: { configuration.appleLocale = $0; configuration.language = "" }), width: 220) {
+                    ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: configuration.appleLocale ?? ASRConfig.systemAppleLocale()), id: \.self) { locale in
                         Text(Locale.current.localizedString(forIdentifier: locale) ?? locale).tag(locale)
                     }
                 }

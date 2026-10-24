@@ -65,7 +65,7 @@ public struct LocalSpeechRecommendation: Equatable, Sendable {
     }
 
     /// `zh-Hant-TW`, `zh_TW` and `zh-Hans` are all Chinese.
-    static func normalized(_ code: String?) -> String? {
+    public static func normalized(_ code: String?) -> String? {
         guard let code, !code.isEmpty else { return nil }
         return Locale(identifier: code).language.languageCode?.identifier.lowercased()
     }

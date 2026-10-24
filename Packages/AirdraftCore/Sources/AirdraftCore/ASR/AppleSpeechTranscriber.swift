@@ -24,9 +24,30 @@ public actor AppleSpeechTranscriber: Transcriber {
         return await SpeechTranscriber.supportedLocales.map(\.identifier).sorted()
     }
 
+    /// The supported locale for an identifier: the OS equivalent, otherwise a
+    /// supported locale of the same language, preferring the requested region and
+    /// then the Mac's formatting region (a new setup's fr-BE or en-TW still finds
+    /// French or English). Chinese never crosses scripts or into Cantonese here:
+    /// its locales name the script the user chose.
+    @available(macOS 26, *)
+    static func resolvedLocale(for identifier: String,
+                               region: String? = Locale.current.region?.identifier) async -> Locale? {
+        let requested = Locale(identifier: identifier)
+        if let equivalent = await SpeechTranscriber.supportedLocale(equivalentTo: requested) { return equivalent }
+        guard let language = requested.language.languageCode?.identifier, language != "zh", language != "yue" else { return nil }
+        let candidates = await SpeechTranscriber.supportedLocales
+            .filter { $0.language.languageCode?.identifier == language }
+            .sorted { $0.identifier < $1.identifier }
+        let preferredRegions = [requested.region?.identifier, region].compactMap { $0 }
+        for preferred in preferredRegions {
+            if let match = candidates.first(where: { $0.region?.identifier == preferred }) { return match }
+        }
+        return candidates.first
+    }
+
     public func isReady() async -> Bool {
         guard #available(macOS 26, *) else { return false }
-        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: localeIdentifier)) else { return false }
+        guard let locale = await Self.resolvedLocale(for: localeIdentifier) else { return false }
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         return await AssetInventory.status(forModules: [transcriber]) == .installed
     }
@@ -118,7 +139,7 @@ public actor AppleSpeechTranscriber: Transcriber {
 
     @available(macOS 26, *)
     private func supportedLocale() async throws -> Locale {
-        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: localeIdentifier)) else {
+        guard let locale = await Self.resolvedLocale(for: localeIdentifier) else {
             throw TranscriberError.providerFailure("Apple Speech", String(localized: "\(localeIdentifier) is unavailable on this Mac. Choose a supported locale in Models.", bundle: .module))
         }
         return locale

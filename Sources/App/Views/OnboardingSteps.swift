@@ -763,6 +763,10 @@ struct OnboardingRefinementChoice: View {
 
     private var llm: LLMConfig { container.settings.llm }
     private var available: Bool { availability == .available }
+    /// The speech language Apple Intelligence cannot write, by name. Setup then
+    /// explains it and points to Models instead of offering the one-click choice.
+    private var unsupportedLanguage: String? { AppleIntelligenceSetup.unsupportedLanguageName(for: container.speechConfig) }
+    private var offersAppleIntelligence: Bool { available && unsupportedLanguage == nil }
     /// The saved active profile, not practice's temporary override. A profile that
     /// skips refinement, such as Verbatim, keeps the transcript whatever provider is set.
     private var profile: RefinementProfile { container.profiles.activeProfile }
@@ -797,7 +801,7 @@ struct OnboardingRefinementChoice: View {
             return profile.name.isEmpty ? Text("This profile keeps your exact words") : Text("\(profile.displayName) keeps your exact words")
         }
         return switch llm.kind {
-        case .none: available ? Text("Tidy your words with Apple Intelligence") : Text("Let AI tidy your words")
+        case .none: offersAppleIntelligence ? Text("Tidy your words with Apple Intelligence") : Text("Let AI tidy your words")
         case .appleIntelligence: Text("Apple Intelligence tidies your words")
         default: Text("Your words are tidied by \(llm.displayName)")
         }
@@ -806,7 +810,7 @@ struct OnboardingRefinementChoice: View {
     private var detail: Text {
         if keepsExactWords {
             return switch llm.kind {
-            case .none where available:
+            case .none where offersAppleIntelligence:
                 Text("This profile skips tidying. Apple Intelligence can tidy profiles that use refinement, on this Mac with no key.")
             case .none:
                 Text("This profile skips tidying. To tidy words, set up refinement in Models and use a profile that refines.")
@@ -818,11 +822,21 @@ struct OnboardingRefinementChoice: View {
         }
         return switch llm.kind {
         case .none:
-            available ? Text("Removes filler words and fixes punctuation. It runs on this Mac, with no key or download.")
-                : AppleIntelligenceSetup.explanation(availability)
+            if offersAppleIntelligence {
+                Text("Removes filler words and fixes punctuation. It runs on this Mac, with no key or download.")
+            } else if available, let unsupportedLanguage {
+                Text("Apple Intelligence can’t write \(unsupportedLanguage) yet. You can set up another way to tidy your words in Models.")
+            } else {
+                AppleIntelligenceSetup.explanation(availability)
+            }
         case .appleIntelligence:
-            available ? Text("On this Mac. You can change or turn this off in Models.")
-                : AppleIntelligenceSetup.explanation(availability)
+            if !available {
+                AppleIntelligenceSetup.explanation(availability)
+            } else if let unsupportedLanguage {
+                Text("Apple Intelligence can’t write \(unsupportedLanguage) yet, so your words may stay as you said them. You can change this in Models.")
+            } else {
+                Text("On this Mac. You can change or turn this off in Models.")
+            }
         default: Text("You can change this in Models.")
         }
     }
@@ -835,7 +849,7 @@ struct OnboardingRefinementChoice: View {
             Button("Open System Settings") { AppleIntelligenceSetup.openSystemSettings() }
                 .buttonStyle(SoftButtonStyle())
                 .accessibilityIdentifier("onboarding.open-apple-intelligence-settings")
-        case .none where available:
+        case .none where offersAppleIntelligence:
             Button("Use Apple Intelligence") { container.settings.chooseRefinement(.appleIntelligence) }
                 .buttonStyle(SoftButtonStyle())
                 .accessibilityIdentifier("onboarding.use-apple-intelligence")
@@ -870,6 +884,15 @@ enum AppleIntelligenceSetup {
         if !NSWorkspace.shared.open(pane), let settings = URL(string: "x-apple.systempreferences:") {
             NSWorkspace.shared.open(settings)
         }
+    }
+
+    /// Renders inject the unsupported language's code with
+    /// `AIRDRAFT_RENDER_APPLE_INTELLIGENCE_UNSUPPORTED`; otherwise they report none.
+    static func unsupportedLanguageName(for config: ASRConfig) -> String? {
+        if RenderMode.isActive {
+            return RenderMode.value("APPLE_INTELLIGENCE_UNSUPPORTED").map(SpeechLanguagePolicy.languageName)
+        }
+        return AppleIntelligenceRefiner.unsupportedLanguageName(for: config)
     }
 
     static func explanation(_ availability: AppleIntelligenceRefiner.Availability) -> Text {

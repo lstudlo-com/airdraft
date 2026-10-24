@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 /// Deterministic checks that a refinement still renders the new transcript.
 /// Small models sometimes returned an earlier dictation or answered in the
@@ -86,11 +87,52 @@ public enum RefinementFidelity {
         if heardMarks.hangul == 0 && heard.cjk >= 4 && producedMarks.hangul >= 2 { return true }
         if heard.cjk >= 2 && produced.cjk == 0 { return true }
         if heard.cjk == 0 && heard.other >= 2 && produced.cjk >= 2 { return true }
+        let heardProfile = ScriptProfile(transcript), producedProfile = ScriptProfile(output)
+        if otherScriptChanged(heard: heardProfile, produced: producedProfile) { return true }
         let heardTotal = heard.cjk + heard.other, producedTotal = produced.cjk + produced.other
-        guard heardTotal >= 4, producedTotal >= 4 else { return false }
-        let heardShare = Double(heard.cjk) / Double(heardTotal)
-        let producedShare = Double(produced.cjk) / Double(producedTotal)
-        return abs(heardShare - producedShare) >= 0.5
+        if heardTotal >= 4, producedTotal >= 4 {
+            let heardShare = Double(heard.cjk) / Double(heardTotal)
+            let producedShare = Double(produced.cjk) / Double(producedTotal)
+            if abs(heardShare - producedShare) >= 0.5 { return true }
+        }
+        return latinLanguageChanged(from: transcript, to: output, heard: heardProfile, produced: producedProfile)
+    }
+
+    /// Scripts other than Latin and CJK (Cyrillic, Arabic, Devanagari, Thai and
+    /// the rest): Russian, Arabic or Hindi speech returned in English loses its
+    /// script, and English speech returned in one of them gains it.
+    static func otherScriptChanged(heard: ScriptProfile, produced: ScriptProfile) -> Bool {
+        let cjkOrUndecided: Set<WritingScript> = [.latin, .other, .han, .kana, .hangul]
+        let scripts = Set(heard.counts.keys).union(produced.counts.keys).subtracting(cjkOrUndecided)
+        for script in scripts {
+            if heard.count(script) >= 8, heard.fraction(script) >= 0.3, produced.fraction(script) < 0.05 { return true }
+            if produced.count(script) >= 8, produced.fraction(script) >= 0.3, heard.count(script) == 0 { return true }
+        }
+        return false
+    }
+
+    /// Languages that share the Latin alphabet (Spanish returned in English) differ
+    /// only by words. The on-device recognizer decides, and only when it is
+    /// confident about both texts: mixed speech and short phrases never count.
+    static func latinLanguageChanged(from transcript: String, to output: String,
+                                     heard: ScriptProfile, produced: ScriptProfile) -> Bool {
+        guard heard.letters >= 30, produced.letters >= 30,
+              heard.fraction(.latin) >= 0.9, produced.fraction(.latin) >= 0.9,
+              let from = dominantLanguage(transcript), let to = dominantLanguage(output), from != to else { return false }
+        return !closelyRelatedLanguages.contains { $0.contains(from) && $0.contains(to) }
+    }
+
+    /// The recognizer confuses these with each other on short text.
+    static let closelyRelatedLanguages: [Set<String>] = [
+        ["id", "ms"], ["nb", "nn", "no", "da", "sv"], ["hr", "bs", "sr"], ["cs", "sk"], ["es", "gl", "pt"],
+    ]
+
+    static func dominantLanguage(_ text: String) -> String? {
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+        guard let (language, probability) = recognizer.languageHypotheses(withMaximum: 1).first,
+              probability >= 0.9 else { return nil }
+        return language.rawValue.split(separator: "-").first.map(String.init)
     }
 
     /// Lowercased Latin words and single CJK characters, without punctuation.

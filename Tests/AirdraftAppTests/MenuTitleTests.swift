@@ -28,6 +28,16 @@ final class MenuTitleTests: XCTestCase {
         XCTAssertEqual(MenuTitle.fit(text), "麥克風無法使用。")
     }
 
+    func testOtherScriptsKeepTheirFirstSentence() {
+        let spanish = "Micrófono no disponible. La entrada seleccionada se desconectó al empezar a grabar; revisa el dispositivo."
+        XCTAssertEqual(MenuTitle.fit(spanish), "Micrófono no disponible.")
+        let japanese = "マイクを使用できません。選択した入力装置が録音開始時に切断されました。装置とシステム設定を確認してください。"
+        XCTAssertEqual(MenuTitle.fit(japanese), "マイクを使用できません。")
+        // The Devanagari danda ends a sentence like a full stop.
+        let hindi = "माइक्रोफ़ोन उपलब्ध नहीं है। चुना गया इनपुट डिवाइस रिकॉर्डिंग शुरू होते समय डिस्कनेक्ट हो गया, कृपया डिवाइस जाँचें।"
+        XCTAssertEqual(MenuTitle.fit(hindi), "माइक्रोफ़ोन उपलब्ध नहीं है।")
+    }
+
     func testLongTextIsTruncatedAtAWordWithAnEllipsis() {
         let text = String(repeating: "transcription ", count: 20).trimmingCharacters(in: .whitespaces)
         let fitted = MenuTitle.fit(text)

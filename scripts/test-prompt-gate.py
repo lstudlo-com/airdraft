@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from verify_prompt import digest, verify
+from verify_prompt import DATASETS, digest, verify
 import hashlib
 
 
@@ -22,7 +22,7 @@ class PromptGateTests(unittest.TestCase):
         self.results = self.root / 'eval/results'
         self.results.mkdir(parents=True)
         self.manifest = {'prompt_version': 'test', 'datasets': {}}
-        for dataset in ['correction_cases.json', 'holdout_cases.json', 'context_correction_cases.json']:
+        for dataset in DATASETS:
             cases = [{'id': 'one', 'expect': ['complete'], 'forbid': ['partial']}]
             (self.root / 'eval' / dataset).write_text(json.dumps(cases))
             report = {'prompt_version': 'test', 'assembly_sources': {name: digest(self.sources/name) for name in names},

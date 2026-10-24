@@ -1,0 +1,371 @@
+{
+  "label": "p16-20261025-multilingual",
+  "prompt_version": "p16",
+  "default_rules_sha256": "a13d64aa7a17355bbc468806e0d3ba6dd63809decf5dc5bc64d16e33e95ad1a4",
+  "assembly_sources": {
+    "LLM/PromptBuilder.swift": "ece2a862e3d619d5646cd3b1b714ab16ab27f5515bde1adb5070d241ceefe5ca",
+    "LLM/RefinementProfile.swift": "e9292dcd67ea518c4c52c4c2a530963513ee3a3341f392dd71296cc0621af35e",
+    "Context/AppFamily.swift": "72be2e40b5ac23e9fe549adb7ee383704f1f3a9f6f24d7231ff4c145cc7fda5a",
+    "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
+  },
+  "cases_sha256": "fc7dfb7bee797eb17f55bebb3e55d58e679db8c45da44f9c960977187ac8372c",
+  "cli_sha256": "9184967b7077c6b72cf273870a9089596a3e8ea6e95ee6855b530364d87e7498",
+  "cases": "multilingual_cases.json",
+  "model": "airdraft-eval-p16",
+  "runs": 3,
+  "total": 39,
+  "max": 39,
+  "results": [
+    {
+      "id": "es-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 1.84,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 1.63,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 1.68,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 2.24,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 2.19,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 2.15,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 1.48,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 1.51,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 1.51,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-mixed-english",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 1.59,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 1.56,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 1.57,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-list",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 2.58,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 2.58,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 2.62,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-asks-translation",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 1.23,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 1.23,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 1.22,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-filler",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 1.6,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 1.58,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 1.58,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code でこのバグを直してください",
+          "seconds": 2.24,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code でこのバグを直してください",
+          "seconds": 2.16,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code でこのバグを直してください",
+          "seconds": 2.19,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-list",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. まず資料を作って\n2. 次に部長に送って\n3. 最後に会議室を予約します",
+          "seconds": 2.49,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. 資料を作る\n2. 部長に送る\n3. 会議室を予約する",
+          "seconds": 2.54,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. 資料を作る\n2. 部長に送る\n3. 会議室を予約する",
+          "seconds": 2.6,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-kanji-stays",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 1.58,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 1.52,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 1.49,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "So can you send the draft to Maya tomorrow?",
+          "seconds": 2.61,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Can you send the draft to Maya tomorrow?",
+          "seconds": 2.46,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Can you send the draft to Maya tomorrow?",
+          "seconds": 2.48,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 0.93,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 0.95,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 0.94,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10",
+          "seconds": 2.9,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10",
+          "seconds": 2.76,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10.",
+          "seconds": 2.81,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

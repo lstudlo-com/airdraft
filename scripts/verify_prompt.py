@@ -6,6 +6,11 @@ import re
 import textwrap
 
 
+# Chinese correction and held-out sets, literal-context checks and the Spanish,
+# Japanese and English set (AD-098); every one must show no case regression.
+DATASETS = ["correction_cases.json", "holdout_cases.json", "context_correction_cases.json", "multilingual_cases.json"]
+
+
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -22,7 +27,7 @@ def verify(root):
     if manifest.get("prompt_version") != version: raise RuntimeError("Prompt version has no matching evaluation")
     expected_sources = {name: digest(source_root / name) for name in
                         ["LLM/PromptBuilder.swift", "LLM/RefinementProfile.swift", "Context/AppFamily.swift", "Dictionary/DictionaryPostProcessor.swift"]}
-    for dataset in ["correction_cases.json", "holdout_cases.json", "context_correction_cases.json"]:
+    for dataset in DATASETS:
         entry = manifest.get("datasets", {}).get(dataset)
         if not entry: raise RuntimeError(f"Missing {dataset} evaluation")
         reports = {}

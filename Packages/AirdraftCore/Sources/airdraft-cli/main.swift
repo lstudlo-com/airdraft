@@ -116,7 +116,8 @@ func refineRequest(_ text: String, _ args: Args) -> RefineRequest {
     ctx.url = args["page-url"]
     ctx.recentDictations = args["recent"]?.components(separatedBy: "||") ?? []
     let baseRules = args["base-rules-file"].flatMap { try? String(contentsOfFile: $0, encoding: .utf8) } ?? PromptBuilder.defaultBaseRules
-    return RefineRequest(transcript: text, profile: profile, baseRules: baseRules, context: ctx, family: family, dictionary: parseDictionary(args["dict"]), chineseScript: script(args))
+    return RefineRequest(transcript: text, profile: profile, baseRules: baseRules, context: ctx, family: family, dictionary: parseDictionary(args["dict"]), chineseScript: script(args),
+                         speechLanguages: args["language"].map { [$0] } ?? [])
 }
 
 func refineAndPrint(_ text: String, _ args: Args) async throws {

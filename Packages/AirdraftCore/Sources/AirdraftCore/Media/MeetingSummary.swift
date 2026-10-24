@@ -51,7 +51,7 @@ public enum MeetingSummaryPrompt {
     public static let sectionCharacterLimit = 8_000
     public static let baseRules = "Do not add facts absent from the transcript. Preserve uncertainty and quotations."
     static let sharedRules = """
-    Write in the language or languages used in the transcript, keeping mixed Chinese and English mixed, including headings. \
+    Write in the language or languages used in the transcript, keeping mixed languages mixed, including headings. Never translate. \
     Use only information explicitly present. Do not invent names, owners, dates or speaker identities. \
     Plain text only: use "- " for bullets and a short line for each heading, with no Markdown symbols such as #, ** or tables. \
     No preamble and no closing line.

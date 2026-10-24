@@ -250,7 +250,8 @@ public final class ProfileStore {
             loaded.append(d)
         }
         profiles = loaded
-        baseRules = p.baseRules.isEmpty ? PromptBuilder.defaultBaseRules : p.baseRules
+        // An unedited copy of an older default follows the current default.
+        baseRules = p.baseRules.isEmpty || PromptBuilder.isRetiredDefault(p.baseRules) ? PromptBuilder.defaultBaseRules : p.baseRules
         activeProfileID = loaded.contains(where: { $0.id == p.activeProfileID }) ? p.activeProfileID : RefinementProfile.cleanID
         choosesProfileByApp = p.choosesProfileByApp ?? false
         // Keep one rule per app or family, each naming a profile that exists.

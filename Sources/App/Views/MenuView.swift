@@ -324,16 +324,14 @@ enum MenuTitle {
     static func fit(_ text: String) -> String {
         let line = text.split(whereSeparator: \.isNewline).joined(separator: " ")
         if fits(line) { return line }
-        // The first sentence usually carries the whole reason.
-        if let end = line.range(of: ". ") {
-            let sentence = String(line[..<end.lowerBound]) + "."
-            if fits(sentence) { return sentence }
+        // The first sentence usually carries the whole reason. The system's
+        // sentence breaks cover every script's stops (. 。 । ؟), not only ". ".
+        var first: String?
+        line.enumerateSubstrings(in: line.startIndex..., options: .bySentences) { sentence, _, _, stop in
+            first = sentence?.trimmingCharacters(in: .whitespaces)
+            stop = true
         }
-        // Chinese sentences end with a full-width stop and no space.
-        if let end = line.firstIndex(of: "。"), line.index(after: end) < line.endIndex {
-            let sentence = String(line[...end])
-            if fits(sentence) { return sentence }
-        }
+        if let sentence = first, !sentence.isEmpty, sentence.count < line.count, fits(sentence) { return sentence }
         let characters = Array(line)
         var low = 0, high = characters.count
         while low < high {

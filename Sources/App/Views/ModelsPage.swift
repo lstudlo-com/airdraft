@@ -505,25 +505,28 @@ struct SpeechKeyRows: View {
     }
 }
 
-/// Language choices instead of typed codes. A saved custom value stays selectable.
+/// Apple Speech locale choices from the OS instead of typed codes.
 enum SpeechLanguage {
-    struct Choice { let code: String; let name: String }
-
-    static func choices(including current: String) -> [Choice] {
-        let codes = ["en", "zh", "ja", "ko", "es", "fr", "de", "it", "pt", "ru", "vi", "th", "id"]
-        var list = [Choice(code: "", name: String(localized: "Detect Automatically"))] + codes.map { Choice(code: $0, name: name($0)) }
-        if !current.isEmpty, !codes.contains(current) { list.append(Choice(code: current, name: String(localized: "\(name(current)) (custom)"))) }
-        return list
+    /// Apple Speech locales the OS supports, the user's languages first and then
+    /// by name. The saved value keeps its own spelling (zh_TW or zh-TW) so the
+    /// picker still selects it; a supported duplicate of it is dropped.
+    static func appleLocales(supported: [String], including current: String) -> [String] {
+        let key = { (code: String) in Locale(identifier: code).identifier(.bcp47).lowercased() }
+        let currentKey = key(current)
+        var codes = supported.filter { key($0) != currentKey }
+        if !current.isEmpty { codes.append(current) }
+        let preferred = Locale.preferredLanguages.compactMap { Locale.Language(identifier: $0).languageCode?.identifier }
+        func rank(_ code: String) -> Int {
+            preferred.firstIndex(of: Locale.Language(identifier: code).languageCode?.identifier ?? "") ?? preferred.count
+        }
+        return codes.sorted { lhs, rhs in
+            let (left, right) = (rank(lhs), rank(rhs))
+            if left != right { return left < right }
+            return name(lhs).localizedStandardCompare(name(rhs)) == .orderedAscending
+        }
     }
 
-    static func appleLocales(including current: String) -> [Choice] {
-        let codes = ["zh-TW", "zh-CN", "zh-HK", "en-US", "en-GB", "ja-JP", "ko-KR"]
-        var list = codes.map { Choice(code: $0, name: name($0)) }
-        if !codes.contains(current) { list.append(Choice(code: current, name: String(localized: "\(name(current)) (custom)"))) }
-        return list
-    }
-
-    private static func name(_ code: String) -> String {
+    static func name(_ code: String) -> String {
         Locale.current.localizedString(forIdentifier: code) ?? code
     }
 }

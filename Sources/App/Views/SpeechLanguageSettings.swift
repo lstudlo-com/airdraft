@@ -39,8 +39,8 @@ struct SpeechLanguageSettings: View {
                         settings.asr.language = locale
                     }
                 ), width: 200) {
-                    ForEach(availableAppleLocales, id: \.self) { locale in
-                        Text(Locale.current.localizedString(forIdentifier: locale) ?? locale).tag(locale)
+                    ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: config.effectiveAppleLocale), id: \.self) { locale in
+                        Text(SpeechLanguage.name(locale)).tag(locale)
                     }
                 }
             }
@@ -73,24 +73,32 @@ struct SpeechLanguageSettings: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier("speech-language-issue")
         }
-        RowDivider()
-        SettingRow(title: "Chinese script") {
-            SoftSegmentedPicker("Chinese script", selection: $settings.asr.chineseScript,
-                                options: ChineseScript.allCases.map { ($0, $0.title) }, width: 240)
+        if showsChineseScript {
+            RowDivider()
+            SettingRow(title: "Chinese script") {
+                SoftSegmentedPicker("Chinese script", selection: $settings.asr.chineseScript,
+                                    options: ChineseScript.allCases.map { ($0, $0.title) }, width: 240)
+            }
         }
     }
 
+    /// The script only matters when this setup can write Chinese: Mandarin or
+    /// Cantonese selected, or Auto for someone who speaks Chinese or already
+    /// chose a script. Other languages never see a Chinese-only setting.
+    private var showsChineseScript: Bool {
+        let language = config.kind == .apple ? config.effectiveAppleLocale : config.language
+        guard ChineseScript.applies(toSpeechLanguage: language) else { return false }
+        if !language.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+        return config.chineseScript != .auto
+            || Locale.preferredLanguages.contains { Locale.Language(identifier: $0).languageCode?.identifier == "zh" }
+    }
+
     private var languageChoices: [String] {
-        let common = ["en", "zh", "yue", "ja", "ko", "es", "fr", "de", "it", "pt", "ru", "vi", "th", "id"]
-        var codes = capabilities.supportedLanguages ?? common
+        var codes = capabilities.supportedLanguages ?? SpeechLanguagePolicy.commonLanguages()
         if capabilities.supportedLanguages == nil, !selectedLanguage.isEmpty,
            !codes.contains(selectedLanguage) { codes.append(selectedLanguage) }
         return codes.sorted {
             SpeechLanguagePolicy.languageName($0).localizedStandardCompare(SpeechLanguagePolicy.languageName($1)) == .orderedAscending
         }
-    }
-
-    private var availableAppleLocales: [String] {
-        Array(Set(appleLocales + [config.effectiveAppleLocale])).sorted()
     }
 }

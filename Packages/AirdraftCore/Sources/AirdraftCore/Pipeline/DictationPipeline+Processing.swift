@@ -43,7 +43,8 @@ extension DictationPipeline {
             context: context,
             family: AppFamily.classify(context),
             dictionary: snapshot.dictionary,
-            chineseScript: snapshot.asr.effectiveChineseScript
+            chineseScript: snapshot.asr.effectiveChineseScript,
+            speechLanguages: snapshot.asr.refinementLanguages()
         )
         let preparation = RefinementPreparation(token: token)
         refinementPreparation = preparation
@@ -279,7 +280,8 @@ extension DictationPipeline {
             context: context,
             family: AppFamily.classify(context),
             dictionary: snapshot.dictionary,
-            chineseScript: snapshot.asr.effectiveChineseScript
+            chineseScript: snapshot.asr.effectiveChineseScript,
+            speechLanguages: snapshot.asr.refinementLanguages()
         )
         let refinementStarted = ProcessInfo.processInfo.systemUptime
         let preparation = refinementPreparation

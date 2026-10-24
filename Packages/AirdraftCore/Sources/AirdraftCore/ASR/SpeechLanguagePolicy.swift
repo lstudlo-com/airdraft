@@ -86,7 +86,7 @@ public enum SpeechLanguagePolicy {
             return CoreMLSpeechModelCatalog.model(config.model)?.languageCapabilities ?? unknown(config.model)
         case .orukeet:
             return capability("Orukeet", parakeetLanguages, true, .notApplied,
-                              String(localized: "Automatically recognizes 25 European languages; no Chinese support.", bundle: .module))
+                              String(localized: "Automatically recognizes 25 European languages.", bundle: .module))
         case .transcribeCpp:
             return GGUFModelCatalog.model(config.model)?.languageCapabilities ?? unknown(config.model)
         case .qwen3:
@@ -94,7 +94,7 @@ public enum SpeechLanguagePolicy {
                 return unknown(config.qwen3Model)
             }
             return capability("Qwen3-ASR", qwenLanguages, true, .forced,
-                              String(localized: "30 languages, including Mandarin and Cantonese.", bundle: .module))
+                              String(localized: "\(qwenLanguages.count) languages.", bundle: .module))
         case .cohere:
             guard config.cohereModel == "aufklarer/Cohere-Transcribe-2B-MLX-5bit" else {
                 return capability(config.cohereModel, nil, false, .forced,
@@ -103,7 +103,7 @@ public enum SpeechLanguagePolicy {
             // speech-swift d655076: nil/unknown language becomes English. The
             // experimental unknown-language prompt is not an accepted Auto contract.
             return capability("Cohere Transcribe", cohereLanguages, false, .forced,
-                              String(localized: "14 languages, including Mandarin. Choose one; automatic detection is unavailable.", bundle: .module))
+                              String(localized: "\(cohereLanguages.count) languages. Choose one; automatic detection is unavailable.", bundle: .module))
         case .fireRed:
             // https://github.com/FireRedTeam/FireRedASR2S (AED recognizer, not FireRedLID)
             return capability("FireRedASR2", ["en", "zh"], true, .notApplied,
@@ -122,7 +122,7 @@ public enum SpeechLanguagePolicy {
                               String(localized: "Cantonese and Mandarin. Weak with English; no Japanese or Korean.", bundle: .module))
         case .parakeet:
             return capability("Parakeet TDT v3", parakeetLanguages, true, .notApplied,
-                              String(localized: "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support.", bundle: .module))
+                              String(localized: "Automatically recognizes 25 European languages; selection has no effect.", bundle: .module))
         case .whisperKit:
             guard let variant = WhisperModelVariant(rawValue: config.whisperModel) else { return unknown(config.whisperModel) }
             if variant.isEnglishOnly {
@@ -162,7 +162,7 @@ public enum SpeechLanguagePolicy {
                                   String(localized: "Automatic detection picks one dominant language.", bundle: .module))
             case "nova-3-multilingual":
                 return capability("Deepgram Nova-3 Multilingual", novaMultilingualLanguages, true, .notApplied,
-                                  String(localized: "Automatically recognizes 10 languages, excluding Chinese; selection has no effect.", bundle: .module))
+                                  String(localized: "Automatically recognizes \(novaMultilingualLanguages.count) languages; selection has no effect.", bundle: .module))
             case "whisper-large":
                 return capability("Deepgram Whisper Large v2", whisperV2Languages, true, .forced,
                                   String(localized: "Automatic detection has its own language coverage; select a language if needed.", bundle: .module))
@@ -179,7 +179,7 @@ public enum SpeechLanguagePolicy {
                                   String(localized: "Batch preview language coverage is unverified. A selected language is a hint.", bundle: .module))
             }
             return capability("AssemblyAI Universal-3.5 Pro", assemblyLanguages, true, .hint,
-                              String(localized: "18 languages, including Mandarin. Automatic detection supports language switching.", bundle: .module))
+                              String(localized: "\(assemblyLanguages.count) languages. Automatic detection supports language switching.", bundle: .module))
         case .cartesia:
             return capability("Cartesia Ink-Whisper", cartesiaLanguages, false, .forced,
                               String(localized: "Select a speech language; automatic detection is unavailable for the file endpoint.", bundle: .module))
@@ -190,8 +190,8 @@ public enum SpeechLanguagePolicy {
             return capability("Grok Voice Transcribe 2.0", nil, true, .hint,
                               String(localized: "Automatic detection supports language switching. A selected language is a hint.", bundle: .module))
         case .mistral:
-            return capability("Voxtral Mini Transcribe", ["en", "zh", "hi", "es", "ar", "fr", "pt", "ru", "de", "ja", "ko", "it", "nl"], true, .hint,
-                              String(localized: "13 languages, including Mandarin.", bundle: .module))
+            return capability("Voxtral Mini Transcribe", mistralLanguages, true, .hint,
+                              String(localized: "\(mistralLanguages.count) languages.", bundle: .module))
         case .gemini:
             return capability("Gemini 3.5 Transcribe", nil, true, .hint,
                               String(localized: "Automatic detection supports mixed languages. A selected language is a hint.", bundle: .module))
@@ -267,6 +267,25 @@ public enum SpeechLanguagePolicy {
         return String(parts[0])
     }
 
+    /// Widely spoken languages, by total speakers, for models whose own language
+    /// list Airdraft does not know.
+    static let widelySpokenLanguages = [
+        "en", "zh", "hi", "es", "ar", "fr", "bn", "pt", "ru", "id", "ur", "de", "ja", "yue", "tr", "vi",
+        "ko", "it", "fa", "pl", "uk", "nl", "th", "ms", "fil", "sv",
+    ]
+
+    /// Language choices for a model without a known list: the user's own
+    /// languages, then widely spoken ones, without duplicates.
+    public static func commonLanguages(preferred: [String] = Locale.preferredLanguages) -> [String] {
+        var codes: [String] = []
+        for identifier in preferred {
+            guard let code = try? canonicalLanguage(identifier), code != "zh-hk", !codes.contains(code) else { continue }
+            codes.append(code)
+        }
+        for code in widelySpokenLanguages where !codes.contains(code) { codes.append(code) }
+        return codes
+    }
+
     public static func languageName(_ code: String) -> String {
         switch code {
         case "zh": return String(localized: "Mandarin Chinese", bundle: .module)
@@ -296,13 +315,13 @@ public enum SpeechLanguagePolicy {
         switch model {
         case "nvidia/parakeet-tdt-0.6b-v3":
             return capability("Parakeet TDT v3", parakeetLanguages, true, .notApplied,
-                              String(localized: "Automatically recognizes 25 European languages. Selection has no effect; no Chinese support.", bundle: .module))
+                              String(localized: "Automatically recognizes 25 European languages; selection has no effect.", bundle: .module))
         case "mistralai/voxtral-small-24b-2507-stt", "mistralai/voxtral-mini-3b-2507":
             return capability(model, voxtral2507Languages, true, .hint,
-                              String(localized: "8 languages. Mandarin and Cantonese are unsupported.", bundle: .module))
+                              String(localized: "\(voxtral2507Languages.count) languages.", bundle: .module))
         case "qwen/qwen3-asr-1.7b", "qwen/qwen3-asr-0.6b":
             return capability(model, qwenLanguages, true, .hint,
-                              String(localized: "30 languages, including Chinese. Language hints through OpenRouter are unverified.", bundle: .module))
+                              String(localized: "\(qwenLanguages.count) languages. Language hints through OpenRouter are unverified.", bundle: .module))
         case "openai/whisper-large-v3", "openai/whisper-large-v3-turbo":
             return capability(model, whisperV3Languages, true, .hint,
                               String(localized: "Multilingual Whisper. Language hints through OpenRouter are unverified.", bundle: .module))
@@ -315,7 +334,7 @@ public enum SpeechLanguagePolicy {
                               String(localized: "Automatically recognizes speech; language selection has no effect.", bundle: .module))
         case "deepgram/nova-3":
             return capability(model, novaLanguages, true, .hint,
-                              String(localized: "Supports Mandarin. Automatic detection and language hints through OpenRouter are unverified.", bundle: .module))
+                              String(localized: "\(novaLanguages.count) languages. Automatic detection and language hints through OpenRouter are unverified.", bundle: .module))
         case "google/gemini-3.5-transcribe", "assemblyai/universal-3-5-pro",
              "microsoft/mai-transcribe-2", "microsoft/mai-transcribe-1.5",
              "openai/gpt-transcribe", "openai/gpt-4o-mini-transcribe", "openai/gpt-4o-transcribe",
@@ -328,7 +347,7 @@ public enum SpeechLanguagePolicy {
             // https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b
             // Upstream needs target_lang=auto; the gateway mapping is unverified.
             return capability(model, nil, nil, .unknown,
-                              String(localized: "Supports Mandarin. Automatic detection through OpenRouter is unverified.", bundle: .module))
+                              String(localized: "Multilingual. Automatic detection through OpenRouter is unverified.", bundle: .module))
         default:
             // Includes unknown aliases and revisions, muse-voice-transcribe-1.0,
             // grok-stt-1.0 and voxtral-mini-transcribe: never infer from a prefix.
@@ -351,6 +370,7 @@ public enum SpeechLanguagePolicy {
     ]
     // https://huggingface.co/mistralai/Voxtral-Small-24B-2507
     // https://huggingface.co/mistralai/Voxtral-Mini-3B-2507
+    private static let mistralLanguages = ["en", "zh", "hi", "es", "ar", "fr", "pt", "ru", "de", "ja", "ko", "it", "nl"]
     private static let voxtral2507Languages = ["de", "en", "es", "fr", "hi", "it", "nl", "pt"]
     // https://developers.deepgram.com/docs/models-languages-overview
     // Nova-3 table checked 2026-10-05: 60 distinct base languages, with

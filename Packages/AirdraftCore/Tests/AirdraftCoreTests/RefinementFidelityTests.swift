@@ -99,6 +99,43 @@ final class RefinementFidelityTests: XCTestCase {
             recentDictations: [], allowsLanguageChange: false))
     }
 
+    func testRejectsTranslationBetweenOtherScriptsAndEnglish() {
+        let cases: [(transcript: String, output: String)] = [
+            ("пожалуйста отправь отчёт анне до пятницы и напомни про встречу", "Please send the report to Anna before Friday and remind her about the meeting."),
+            ("أرسل التقرير إلى آنا قبل يوم الجمعة وذكرها بالاجتماع", "Send the report to Anna before Friday and remind her about the meeting."),
+            ("कृपया शुक्रवार से पहले अन्ना को रिपोर्ट भेज दो और मीटिंग याद दिला दो", "Please send the report to Anna before Friday and remind her about the meeting."),
+            ("please send the report to anna before friday and remind her about the meeting", "Пожалуйста, отправь отчёт Анне до пятницы и напомни про встречу."),
+        ]
+        for (transcript, output) in cases {
+            XCTAssertEqual(RefinementFidelity.violation(output: output, transcript: transcript,
+                                                        recentDictations: [], allowsLanguageChange: false),
+                           .changesLanguage, transcript)
+        }
+    }
+
+    func testRejectsSpanishSpeechReturnedInEnglish() {
+        XCTAssertEqual(RefinementFidelity.violation(
+            output: "Tell María the draft will arrive tomorrow morning and that we will review it together on Friday.",
+            transcript: "eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
+            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+    }
+
+    func testAcceptsCleanupInOtherLanguagesAndMixedEnglish() {
+        let cases: [(transcript: String, output: String)] = [
+            ("eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
+             "Dile a María que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes."),
+            ("mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release",
+             "Mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release."),
+            ("пожалуйста отправь отчёт анне до пятницы через slack", "Пожалуйста, отправь отчёт Анне до пятницы через Slack."),
+            ("कल की मीटिंग में हम नया dashboard और API review करेंगे", "कल की मीटिंग में हम नया dashboard और API review करेंगे।"),
+            ("明日の会議で新しい dashboard と API を確認します", "明日の会議で新しい dashboard と API を確認します。"),
+        ]
+        for (transcript, output) in cases {
+            XCTAssertNil(RefinementFidelity.violation(output: output, transcript: transcript,
+                                                      recentDictations: [], allowsLanguageChange: false), transcript)
+        }
+    }
+
     func testTaskOrSelectedTextMayChangeLanguage() {
         XCTAssertNil(RefinementFidelity.violation(output: "Should we deploy the new build today?",
             transcript: "我們今天要部署新版本嗎", recentDictations: [], allowsLanguageChange: true))
