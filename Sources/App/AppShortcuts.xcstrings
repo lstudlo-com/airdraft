@@ -13,7 +13,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "${applicationName}で音声入力を開始"
+            "value" : "${applicationName} で音声入力を開始"
           }
         },
         "zh-Hans" : {
@@ -78,7 +78,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "${applicationName}で音声入力を停止"
+            "value" : "${applicationName} で音声入力を停止"
           }
         },
         "zh-Hans" : {
@@ -143,7 +143,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "${applicationName}で音声入力をキャンセル"
+            "value" : "${applicationName} で音声入力をキャンセル"
           }
         },
         "zh-Hans" : {

@@ -1838,7 +1838,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用します。このプロファイルは整形を行いますが、整形が設定されていません"
+            "value" : "%1$@ はモード「%2$@」を使用します。このモードは整形を行いますが、整形が設定されていません"
           }
         },
         "zh-Hans" : {
@@ -1902,7 +1902,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用しますが、その音声 API キーが見つからないかロックされています"
+            "value" : "%1$@ はモード「%2$@」を使用しますが、その音声 API キーが見つからないかロックされています"
           }
         },
         "zh-Hans" : {
@@ -1966,7 +1966,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用しますが、その音声エンドポイントを確認する必要があります"
+            "value" : "%1$@ はモード「%2$@」を使用しますが、その音声エンドポイントを確認する必要があります"
           }
         },
         "zh-Hans" : {
@@ -2030,7 +2030,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用しますが、その音声モデルは選択した言語に対応していません"
+            "value" : "%1$@ はモード「%2$@」を使用しますが、その音声モデルは選択した言語に対応していません"
           }
         },
         "zh-Hans" : {
@@ -2094,7 +2094,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用しますが、その音声モデルは使用できなくなりました"
+            "value" : "%1$@ はモード「%2$@」を使用しますが、その音声モデルは使用できなくなりました"
           }
         },
         "zh-Hans" : {
@@ -2158,7 +2158,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用しますが、その音声モデルはインストールされていません"
+            "value" : "%1$@ はモード「%2$@」を使用しますが、その音声モデルはインストールされていません"
           }
         },
         "zh-Hans" : {
@@ -2222,7 +2222,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ はプロファイル「%2$@」を使用します。%3$@"
+            "value" : "%1$@ はモード「%2$@」を使用します。%3$@"
           }
         },
         "zh-Hans" : {
@@ -2478,7 +2478,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ショートカットを%@"
+            "value" : "キーを%@"
           }
         },
         "zh-Hans" : {
@@ -2542,7 +2542,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ · バーをクリックすると読めます"
+            "value" : "%@ · バーをクリックして表示"
           }
         },
         "zh-Hans" : {
@@ -7541,7 +7541,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべての AI プロファイルに影響します。ルールを削除すると精度が下がったり、AI が音声入力の内容に答えてしまったりすることがあります。デフォルトに戻せます。"
+            "value" : "すべての AI モードに影響します。ルールを削除すると精度が下がったり、AI が音声入力の内容に答えてしまったりすることがあります。デフォルトに戻せます。"
           }
         },
         "zh-Hans" : {
@@ -9781,7 +9781,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリルールで選ばれるプロファイル「%@」がこのモデルを使用しています。削除する前に「プロファイル」で別のモデルを選択してください。"
+            "value" : "アプリルールで選ばれるモード「%@」がこのモデルを使用しています。削除する前に「モード」で別のモデルを選択してください。"
           }
         },
         "zh-Hans" : {
@@ -11637,7 +11637,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ルールのないアプリでは使用中のプロファイルが使われます"
+            "value" : "ルールのないアプリでは使用中のモードが使われます"
           }
         },
         "zh-Hans" : {
@@ -12725,7 +12725,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "おすすめ"
+            "value" : "最適"
           }
         },
         "zh-Hans" : {
@@ -13173,7 +13173,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "おすすめ"
+            "value" : "最適"
           }
         },
         "zh-Hans" : {
@@ -13301,7 +13301,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたの言語に最適"
+            "value" : "お使いの言語に最適"
           }
         },
         "zh-Hans" : {
@@ -13493,7 +13493,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最高のオープンな英語モデル。"
+            "value" : "オープンな英語モデルで最高水準。"
           }
         },
         "zh-Hans" : {
@@ -16181,7 +16181,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "中国語の字体"
+            "value" : "中国語の表記"
           }
         },
         "zh-Hans" : {
@@ -17141,7 +17141,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "削除する前に、「モデル」または使用中のプロファイルで別のモデルを選択してください"
+            "value" : "削除する前に、「モデル」または使用中のモードで別のモデルを選択してください"
           }
         },
         "zh-Hans" : {
@@ -17269,7 +17269,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft が音声を聞き取る方法を選択します。"
+            "value" : "Airdraft の聞き取り方法を選択"
           }
         },
         "zh-Hans" : {
@@ -17397,7 +17397,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリごとにプロファイルを選択"
+            "value" : "アプリごとにモードを選択"
           }
         },
         "zh-Hans" : {
@@ -18037,7 +18037,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下のボックスをクリックし、ショートカットを%@して文を読み上げてください。"
+            "value" : "下の欄をクリックし、ショートカットを%@して読み上げてください。"
           }
         },
         "zh-Hans" : {
@@ -18485,7 +18485,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "サイドバーをしまう"
+            "value" : "サイドバーを隠す"
           }
         },
         "zh-Hans" : {
@@ -18549,7 +18549,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文字起こしをしまう"
+            "value" : "文字起こしを折りたたむ"
           }
         },
         "zh-Hans" : {
@@ -18613,7 +18613,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "しまっています"
+            "value" : "折りたたまれています"
           }
         },
         "zh-Hans" : {
@@ -18741,7 +18741,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ここに戻ってください。このページは自動的に検知します。"
+            "value" : "ここに戻ると自動で反映されます。"
           }
         },
         "zh-Hans" : {
@@ -20981,7 +20981,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在の音声入力プロファイル"
+            "value" : "現在の音声入力モード"
           }
         },
         "zh-Hans" : {
@@ -21045,7 +21045,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在のモデルとプロファイル · 元の内容は変更されません"
+            "value" : "現在のモデルとモード · 元の内容は変更されません"
           }
         },
         "zh-Hans" : {
@@ -22581,7 +22581,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルを削除"
+            "value" : "モードを削除"
           }
         },
         "zh-Hans" : {
@@ -22645,7 +22645,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルを削除…"
+            "value" : "モードを削除…"
           }
         },
         "zh-Hans" : {
@@ -24821,7 +24821,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disco"
+            "value" : "ディスコ"
           }
         },
         "zh-Hans" : {
@@ -24949,7 +24949,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft を開いている間の Dock アイコン"
+            "value" : "起動中の Dock アイコン"
           }
         },
         "zh-Hans" : {
@@ -25845,7 +25845,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルを複製"
+            "value" : "モードを複製"
           }
         },
         "zh-Hans" : {
@@ -27445,7 +27445,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "展開しています"
+            "value" : "展開されています"
           }
         },
         "zh-Hans" : {
@@ -28021,7 +28021,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一覧で Airdraft を探し、スイッチをオンにします。"
+            "value" : "一覧の Airdraft のスイッチをオンにします。"
           }
         },
         "zh-Hans" : {
@@ -28085,7 +28085,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ライセンスを探す"
+            "value" : "ライセンスキーを確認"
           }
         },
         "zh-Hans" : {
@@ -28725,7 +28725,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無料で、インターネット接続なしで使えます。"
+            "value" : "無料で、オフラインでも使えます。"
           }
         },
         "zh-Hans" : {
@@ -30965,7 +30965,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "話している間は押したままにします。短いメッセージに便利です。"
+            "value" : "話す間だけ押し続けます。短い文に便利です。"
           }
         },
         "zh-Hans" : {
@@ -34886,7 +34886,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft があなたの声を聞き取り、代わりに入力します。"
+            "value" : "Airdraft に声の聞き取りと入力を許可"
           }
         },
         "zh-Hans" : {
@@ -34950,7 +34950,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "離すと、テキストが表示されます。"
+            "value" : "離すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -38155,7 +38155,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ショートカットを覚えましょう。"
+            "value" : "ショートカットを覚えましょう"
           }
         },
         "zh-Hans" : {
@@ -40459,7 +40459,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新規プロファイル"
+            "value" : "新規モード"
           }
         },
         "zh-Hans" : {
@@ -43729,7 +43729,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルではオフ"
+            "value" : "このモードではオフ"
           }
         },
         "zh-Hans" : {
@@ -44177,7 +44177,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この Mac 上"
+            "value" : "この Mac"
           }
         },
         "zh-Hans" : {
@@ -44241,7 +44241,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この Mac 上"
+            "value" : "この Mac"
           }
         },
         "zh-Hans" : {
@@ -46935,7 +46935,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一部押下"
+            "value" : "一部が押されています"
           }
         },
         "zh-Hans" : {
@@ -47704,7 +47704,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "キーボードを見なくても押せるキーを選びましょう。"
+            "value" : "手元を見ずに押せるキーを選びましょう。"
           }
         },
         "zh-Hans" : {
@@ -48600,7 +48600,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "もう一度押すと、テキストが表示されます。"
+            "value" : "もう一度押すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -48728,7 +48728,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 回押すと開始、もう一度押すと停止します。長めの内容に便利です。"
+            "value" : "1 回押して開始、もう一度押して停止。長めの内容に便利です。"
           }
         },
         "zh-Hans" : {
@@ -48920,7 +48920,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "押下中"
+            "value" : "押されています"
           }
         },
         "zh-Hans" : {
@@ -50008,7 +50008,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル"
+            "value" : "モード"
           }
         },
         "zh-Hans" : {
@@ -50072,7 +50072,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルの設定…"
+            "value" : "モードの設定…"
           }
         },
         "zh-Hans" : {
@@ -50136,7 +50136,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルの操作"
+            "value" : "モードの操作"
           }
         },
         "zh-Hans" : {
@@ -50200,7 +50200,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリごとのプロファイル"
+            "value" : "アプリごとのモード"
           }
         },
         "zh-Hans" : {
@@ -50264,7 +50264,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ のプロファイル"
+            "value" : "%@ のモード"
           }
         },
         "zh-Hans" : {
@@ -50328,7 +50328,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルの指示"
+            "value" : "モードの指示"
           }
         },
         "zh-Hans" : {
@@ -50392,7 +50392,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル名"
+            "value" : "モード名"
           }
         },
         "zh-Hans" : {
@@ -50456,7 +50456,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルの音声モデル"
+            "value" : "モードの音声モデル"
           }
         },
         "zh-Hans" : {
@@ -50520,7 +50520,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル：%@"
+            "value" : "モード：%@"
           }
         },
         "zh-Hans" : {
@@ -50585,7 +50585,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル：%@（自動）"
+            "value" : "モード：%@（自動）"
           }
         },
         "zh-Hans" : {
@@ -50656,7 +50656,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル：%1$@（自動：%2$@）"
+            "value" : "モード：%1$@（自動：%2$@）"
           }
         },
         "zh-Hans" : {
@@ -50726,7 +50726,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル：%1$@（%2$@ 用にアプリごとに選択）。ほかのアプリでは %3$@ を使用します。"
+            "value" : "モード：%1$@（%2$@ 用にアプリごとに選択）。ほかのアプリでは %3$@ を使用します。"
           }
         },
         "zh-Hans" : {
@@ -50790,7 +50790,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル：%@。変更は次の音声入力から適用されます。"
+            "value" : "モード：%@。変更は次の音声入力から適用されます。"
           }
         },
         "zh-Hans" : {
@@ -50854,7 +50854,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル"
+            "value" : "モード"
           }
         },
         "zh-Hans" : {
@@ -51878,7 +51878,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "元の文字起こしです。このプロファイルでは整形がオフです。"
+            "value" : "元の文字起こしです。このモードでは整形がオフです。"
           }
         },
         "zh-Hans" : {
@@ -52902,7 +52902,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたの言語におすすめ"
+            "value" : "お使いの言語におすすめ"
           }
         },
         "zh-Hans" : {
@@ -53094,7 +53094,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ショートカットを登録"
+            "value" : "キーを登録"
           }
         },
         "zh-Hans" : {
@@ -55271,7 +55271,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相対的な評価です。結果は Mac、言語、音声によって異なります。"
+            "value" : "相対評価です。結果は Mac、言語、音声により異なります。"
           }
         },
         "zh-Hans" : {
@@ -56365,7 +56365,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "フィラーを取り除き、句読点を整えます。この Mac 上で動作し、キーもダウンロードも不要です。"
+            "value" : "言いよどみを取り除き、句読点を整えます。この Mac で動作し、キーやダウンロードは不要です。"
           }
         },
         "zh-Hans" : {
@@ -56749,7 +56749,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイル名を変更"
+            "value" : "モード名を変更"
           }
         },
         "zh-Hans" : {
@@ -57197,7 +57197,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのプロファイルをリセット"
+            "value" : "すべてのモードをリセット"
           }
         },
         "zh-Hans" : {
@@ -57261,7 +57261,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのプロファイルをリセット…"
+            "value" : "すべてのモードをリセット…"
           }
         },
         "zh-Hans" : {
@@ -57453,7 +57453,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルをリセット"
+            "value" : "モードをリセット"
           }
         },
         "zh-Hans" : {
@@ -57517,7 +57517,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルをリセット…"
+            "value" : "モードをリセット…"
           }
         },
         "zh-Hans" : {
@@ -57581,7 +57581,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのプロファイルをリセットしますか？"
+            "value" : "すべてのモードをリセットしますか？"
           }
         },
         "zh-Hans" : {
@@ -58093,7 +58093,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "内蔵のプロファイルと基本システムプロンプトを元に戻し、アプリのルールを削除します。作成したプロファイルは削除されます。"
+            "value" : "内蔵のモードと基本システムプロンプトを元に戻し、アプリのルールを削除します。作成したモードは削除されます。"
           }
         },
         "zh-Hans" : {
@@ -60729,7 +60729,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最初の文を話してください。"
+            "value" : "最初の文を話してください"
           }
         },
         "zh-Hans" : {
@@ -63161,7 +63161,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI プロファイル間で共通です。プロファイルの指示は自動的に追加されます。"
+            "value" : "AI モード間で共通です。モードの指示は自動的に追加されます。"
           }
         },
         "zh-Hans" : {
@@ -63225,7 +63225,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI で整形するすべてのプロファイルで共通"
+            "value" : "AI で整形するすべてのモードで共通"
           }
         },
         "zh-Hans" : {
@@ -64889,7 +64889,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力中に Airdraft があなたの声を聞き取れるようにします。"
+            "value" : "音声入力中に Airdraft が声を聞き取れるようにします。"
           }
         },
         "zh-Hans" : {
@@ -66637,7 +66637,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在の音声モデルと整形プロファイルで録音を開始します。"
+            "value" : "現在の音声モデルと整形モードで録音を開始します。"
           }
         },
         "zh-Hans" : {
@@ -68313,7 +68313,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "話すと、入力している場所にテキストが表示されます。"
+            "value" : "話すと、カーソル位置に文字が入ります"
           }
         },
         "zh-Hans" : {
@@ -68825,7 +68825,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "これで完了です。長押しで話し、離すと挿入されます。"
+            "value" : "これで完了です。長押しで話し、離すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -68889,7 +68889,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "これで完了です。押して開始し、もう一度押すと挿入されます。"
+            "value" : "これで完了です。押して開始し、もう一度押すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -68953,7 +68953,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "メニューと録音ウインドウのサイズは変わりません"
+            "value" : "メニューと録音ウインドウは対象外"
           }
         },
         "zh-Hans" : {
@@ -70105,7 +70105,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルは話した言葉をそのまま残します"
+            "value" : "このモードは話した言葉をそのまま残します"
           }
         },
         "zh-Hans" : {
@@ -70169,7 +70169,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルではテキストを整えません。整形を使うプロファイルでは %@ がテキストを整えます。"
+            "value" : "このモードではテキストを整えません。整形を使うモードでは %@ がテキストを整えます。"
           }
         },
         "zh-Hans" : {
@@ -70233,7 +70233,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルではテキストを整えません。整形を使うプロファイルでは、Apple Intelligence がこの Mac 上でキーなしでテキストを整えられます。"
+            "value" : "このモードではテキストを整えません。整形を使うモードでは、Apple Intelligence がこの Mac 上でキーなしでテキストを整えられます。"
           }
         },
         "zh-Hans" : {
@@ -70297,7 +70297,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルではテキストを整えません。整形を使うプロファイルでは Apple Intelligence がテキストを整えます。"
+            "value" : "このモードではテキストを整えません。整形を使うモードでは Apple Intelligence がテキストを整えます。"
           }
         },
         "zh-Hans" : {
@@ -70361,7 +70361,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルではテキストを整えません。整えるには「モデル」で整形を設定し、整形するプロファイルを使用してください。"
+            "value" : "このモードではテキストを整えません。整えるには「モデル」で整形を設定し、整形するモードを使用してください。"
           }
         },
         "zh-Hans" : {
@@ -72282,7 +72282,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべての機能を %@ 無料でお試しください"
+            "value" : "全機能を %@間無料でお試しください"
           }
         },
         "zh-Hans" : {
@@ -73370,7 +73370,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "名称未設定のプロファイル"
+            "value" : "名称未設定のモード"
           }
         },
         "zh-Hans" : {
@@ -74202,7 +74202,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロファイルを使用"
+            "value" : "モードを使用"
           }
         },
         "zh-Hans" : {
@@ -74714,7 +74714,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルの使用中に適用"
+            "value" : "このモードの使用中に適用"
           }
         },
         "zh-Hans" : {
@@ -75680,7 +75680,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "語彙と字体の変換は引き続き適用されます"
+            "value" : "語彙と中国語の表記変換は引き続き適用されます"
           }
         },
         "zh-Hans" : {
@@ -76960,7 +76960,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この内蔵プロファイルに加えた変更は置き換えられます。"
+            "value" : "この内蔵モードに加えた変更は置き換えられます。"
           }
         },
         "zh-Hans" : {
@@ -77152,7 +77152,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用中のモデル"
+            "value" : "お使いのモデル"
           }
         },
         "zh-Hans" : {
@@ -77536,7 +77536,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたの声がこの Mac の外に出ることはありません。"
+            "value" : "音声がこの Mac の外に出ることはありません。"
           }
         },
         "zh-Hans" : {
@@ -77728,7 +77728,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力の準備ができました。"
+            "value" : "音声入力の準備ができました"
           }
         },
         "zh-Hans" : {
@@ -77792,7 +77792,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "して話します。音声入力するたびにバーが 1 本増えます。"
+            "value" : "で話します。音声入力するたびにバーが 1 本増えます。"
           }
         },
         "zh-Hans" : {
@@ -77856,7 +77856,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "して話します。離すと挿入されます。"
+            "value" : "で話し、離すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -77920,7 +77920,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "して話します。もう一度押すと挿入されます。"
+            "value" : "で話し、もう一度押すと入力されます。"
           }
         },
         "zh-Hans" : {
@@ -78112,7 +78112,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "しまっています"
+            "value" : "折りたたまれています"
           }
         },
         "zh-Hans" : {
@@ -78240,7 +78240,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "展開しています"
+            "value" : "展開されています"
           }
         },
         "zh-Hans" : {
@@ -80162,7 +80162,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「%@」はほかのプロファイルで使用されています。"
+            "value" : "「%@」はほかのモードで使用されています。"
           }
         },
         "zh-Hans" : {
