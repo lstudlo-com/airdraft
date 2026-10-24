@@ -214,7 +214,8 @@ final class TextInsertionTests: XCTestCase {
         pasteboard.setString("User clipboard", forType: .string)
         let inserter = TextInserter()
         inserter.restoreDelay = 0
-        inserter.unverifiedRestoreDelay = 0.4
+        // A wide window keeps the late reader well inside it on a slow runner.
+        inserter.unverifiedRestoreDelay = 1.5
         let first = await inserter.insertViaPaste("First dictation", pasteboard: pasteboard,
                                                   postPaste: { true }, unverifiable: true)
         XCTAssertEqual(first.delivery, .sentUnverified)
@@ -232,9 +233,9 @@ final class TextInsertionTests: XCTestCase {
         }, confirmation: { true })
         XCTAssertTrue(second.didInsert)
         XCTAssertEqual(lateRead, "First dictation", "The late reader gets its own dictation, not the newer one")
-        XCTAssertGreaterThanOrEqual(try XCTUnwrap(secondPostedAfter), .milliseconds(350),
+        XCTAssertGreaterThanOrEqual(try XCTUnwrap(secondPostedAfter), .milliseconds(1_450),
                                     "The newer paste waits for the unverified receiver window")
-        XCTAssertLessThan(try XCTUnwrap(secondPostedAfter), .seconds(2), "The wait stays bounded by that window")
+        XCTAssertLessThan(try XCTUnwrap(secondPostedAfter), .seconds(4), "The wait stays bounded by that window")
         await inserter.finishClipboardRestoration()
         XCTAssertEqual(pasteboard.string(forType: .string), "User clipboard", "The user's clipboard still returns")
     }
