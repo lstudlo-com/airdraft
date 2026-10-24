@@ -57,24 +57,24 @@ const copy = zh
   ? {
       title: "價格 — Airdraft",
       description:
-        "Airdraft 可以免費從原始碼編譯。現成可用的官方 App 是一次買斷授權：一台 Mac US$29，最多三台 Mac US$49。",
+        "Airdraft 可從原始碼免費編譯；免編譯的官方版一次買斷：一台 Mac US$29，最多三台 Mac US$49。",
       heading: "價格",
-      intro: "免費自己編譯，或一次買下現成可用的 App。",
+      intro: "自行編譯免費，官方版一次買斷。",
       source: "開放原始碼",
-      build: "自己編譯",
-      buildAction: "自行編譯說明",
+      build: "自行編譯",
+      buildAction: "編譯說明",
       sourceList: "原始碼版本包含",
-      app: "現成可用的 App",
-      once: "一次付清",
+      app: "官方版 App",
+      once: "一次買斷",
       buy: (macs: string) => `購買（${macs}）`,
       notOnSale: "尚未開賣",
       appList: "每份授權都包含",
-      currency: "美元，未稅。",
-      costTitle: "一年的聽寫要花多少錢",
-      costIntro: `同樣每月 ${n(workloadSummary.dictationsPerMonth)} 次聽寫，五種做法的花費。`,
-      columns: ["設定", "每月", "第一年", "三年"],
+      currency: "以美元計價，未含稅。",
+      costTitle: "聽寫一年要花多少錢",
+      costIntro: `同樣每月 ${n(workloadSummary.dictationsPerMonth)} 次聽寫，五種做法各花多少。`,
+      columns: ["做法", "每月", "第一年", "三年"],
       groups: ["Airdraft", "訂閱制"],
-      note: `每個工作日 ${workload.dictationsPerDay} 次聽寫，每次 ${workload.secondsPerDictation} 秒，以一台 Mac 授權計算。語音辨識：Parakeet 或 Groq Whisper Large v3 Turbo。潤稿：Apple Intelligence、LM Studio，或 Cerebras 上的 Qwen 3.8 27B（輸入 ${n(workload.inputTokens)} tokens，輸出 ${workload.outputTokens}）。${pricesCheckedOnZh}的公開牌價。`,
+      note: `每個工作日 ${workload.dictationsPerDay} 次聽寫，每次 ${workload.secondsPerDictation} 秒，以一台 Mac 授權計算。語音辨識：Parakeet 或 Groq Whisper Large v3 Turbo。潤稿：Apple Intelligence、LM Studio，或 Cerebras 上的 Qwen 3.8 27B（輸入 ${n(workload.inputTokens)} 個 token、輸出 ${workload.outputTokens} 個）。價格為 ${pricesCheckedOnZh}的公開牌價。`,
       questions: "常見問題",
     }
   : {
@@ -246,42 +246,42 @@ const agentGuide = href(
       {zh ? (
         <div class="question-list panel">
           <Disclosure summary="是訂閱制嗎？">
-            <p>不是。授權是一次買斷，不會過期，並包含所購版本的更新。</p>
+            <p>不是。授權一次買斷、不會過期，並包含所購版本的更新。</p>
           </Disclosure>
           <Disclosure summary="兩種授權差在哪裡？">
             <p>
-              只差可以同時使用的 Mac 數量。要移轉授權時，先停用舊的那台 Mac。
+              只差能同時啟用的 Mac 數量。要換到別台 Mac，先在舊的 Mac 上停用。
             </p>
           </Disclosure>
           <Disclosure summary="可以先試用嗎？">
             {onSale ? (
               <p>
-                可以。App 有 14
-                天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。
+                可以。App 提供 14
+                天全功能試用，從你按下「開始試用」時起算，而非安裝時。
               </p>
             ) : (
               <p>
-                官方版開賣後，App 附 14
-                天全功能試用，從你選擇開始的那一刻起算，不是從安裝時。目前尚未開賣，也還沒有試用版可下載；原始碼版本現在就能免費編譯，功能完全相同。
+                官方版開賣後提供 14
+                天全功能試用，從你按下「開始試用」時起算，而非安裝時。目前尚未開賣，也沒有試用版可下載；原始碼版現在就能免費編譯，功能完全相同。
               </p>
             )}
           </Disclosure>
           <Disclosure summary="兩個版本包含哪些功能？">
             <p>
-              是同一個 App：在任何 App 裡聽寫、會議功能（錄下 App
-              音訊與麥克風，或匯入音訊與影片，可選擇標出講者，並匯出
+              同一個 App：在任何 App 裡聽寫、「會議」（錄下 App
+              音訊與麥克風，或匯入音訊、影片，可選擇標出講者，匯出
               TXT、JSON、SRT 或
-              VTT）、模式、詞彙與聽寫記錄。官方版沒有額外功能，只是省去用 Xcode
-              編譯。詳見<a href={meetingGuide}>會議逐字稿指南</a>。
+              VTT）、「模式」、「詞彙」與「記錄」。官方版沒有額外功能，只是免去用
+              Xcode 編譯。詳見<a href={meetingGuide}>會議逐字稿指南</a>。
             </p>
           </Disclosure>
-          <Disclosure summary="雲端服務商怎麼收費？">
+          <Disclosure summary="雲端供應商怎麼收費？">
             <p>
-              由服務商依用量直接向你收費，使用你存在 Keychain 裡的 API
-              金鑰。本機模型免費，中英混說該選哪一個，請看
+              供應商依用量直接向你收費，使用你存在鑰匙圈裡的 API
+              金鑰。本機模型免費，中英混說適合哪一個，請看
               <a href={mixedGuide}>本機模型實測</a>。Claude Code 與 Codex
-              使用你現有的訂閱方案，設定方式請看
-              <a href={agentGuide}>對 Claude Code 與終端機聽寫的指南</a>。
+              沿用你現有的訂閱，設定方式請看{" "}
+              <a href={agentGuide}>Claude Code 與終端機聽寫指南</a>。
             </p>
           </Disclosure>
           <Disclosure summary="和其他聽寫 App 比起來如何？">
@@ -290,7 +290,7 @@ const agentGuide = href(
               <a href={comparison}>
                 Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較
               </a>
-              ，也包括它們比較好的地方。
+              ，也寫出它們做得更好的地方。
             </p>
           </Disclosure>
         </div>
@@ -318,8 +318,8 @@ const agentGuide = href(
               <p>
                 Once the official app is on sale, it includes a 14-day trial
                 with every feature, starting when you choose, not when you
-                install. It isn’t on sale yet, so there is no trial to download
-                today. The free source build has every feature now.
+                install. It isn’t on sale yet, so there is no trial to download;
+                the free source build has every feature now.
               </p>
             )}
           </Disclosure>

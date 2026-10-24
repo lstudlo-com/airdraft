@@ -857,8 +857,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     align-items: center;
     gap: 6px;
   }
+  /* One 10px step between every header key: language, GitHub, Get Airdraft. */
   .header-actions {
     justify-content: flex-end;
+    gap: 10px;
   }
   .nav-link {
     display: flex;
@@ -938,17 +940,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .site-header .key-icon {
     width: 34px;
-    margin-left: 10px;
   }
   .nav-cta {
-    margin-left: 6px;
     padding-inline: 16px;
   }
-  /* The language switch is a quiet capsule link beside GitHub, named in its
-     own language; on phones it moves into the menu. */
-  .header-language {
-    min-height: 34px;
-    padding-inline: 12px;
+  /* The language switch is a raised key like GitHub's, named in its own
+     language; on phones it moves into the menu. */
+  .site-header .header-language {
+    padding-inline: 14px;
     font-size: var(--step--1);
     white-space: nowrap;
   }
@@ -957,7 +956,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
      button while its overlay is up, and its two strokes cross. */
   .site-header .menu-key {
     display: none;
-    margin-left: 6px;
   }
   /* It wears the brand capsule's material, not a key's: the opaque chrome
      face lifted only by the mark's soft shade down-right and light up-left
@@ -2781,5 +2779,123 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       animation: none !important;
       transition: none !important;
     }
+  }
+}
+
+/* Motion: the bento's performances and the provider board's run
+   (src/scripts/bento.ts, src/scripts/pipeline.ts). Each rule is a state a
+   script sets; without JavaScript none applies and the resting frame shows.
+   With reduced motion the responsive layer drops every transition, so the
+   states change in place. Objects rise from the surface and sink into it;
+   nothing tilts or flies. */
+@layer components {
+  /* The parts that are controls in the app take the pointer. */
+  .bento.is-live .tile-art .segmented > li:not(.segmented-thumb),
+  .bento.is-live .art-plans li,
+  .bento.is-live [data-art="shortcut"] .keys {
+    cursor: pointer;
+  }
+  .bento.is-live .tile-art .segmented > li:not(.segmented-thumb):hover {
+    color: var(--ink);
+  }
+  /* While the cursor tile records, the pill's meter is live; at rest and
+     while refining it is dimmed. */
+  .tile-art.is-recording .art-hud .hud-bars span {
+    opacity: 1;
+  }
+  /* The dictionary's spelling rises from the surface: it starts flat and a
+     little smaller, and its shadow grows in as it lifts. */
+  .art-right {
+    transition:
+      opacity 260ms ease,
+      scale 520ms var(--ease-out),
+      box-shadow 520ms var(--ease-out);
+  }
+  .art-right[data-sunk] {
+    opacity: 0;
+    scale: 0.92;
+    box-shadow: var(--edge);
+  }
+  /* The subscription chips: the chosen refiner rises, the other sinks. */
+  .art-plans li {
+    transition:
+      background 240ms ease,
+      box-shadow 360ms var(--ease-out),
+      color 240ms ease;
+  }
+  /* Each stop on the privacy path rises from its socket as the signal
+     passes, then settles back. */
+  .art-node {
+    transition:
+      background 200ms ease,
+      box-shadow 280ms var(--ease-out);
+  }
+  .art-node.is-lit {
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-small);
+  }
+  /* A field on screen waits for text: its caret blinks, except while text
+     is being typed into it. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tile.is-onscreen .art-field .caret {
+      animation: blink 1.1s steps(1) infinite;
+    }
+    .tile-art:is(.is-recording, .is-typing) .art-field .caret {
+      animation: none;
+    }
+  }
+
+  /* The provider board's run. The chosen row's check island sinks flush
+     into its well while that step works, holding a busy status dot, then
+     rises with its check; the chevron on the next groove presses as the
+     text passes. */
+  .choice-island > * {
+    grid-area: 1 / 1;
+  }
+  .choice-island {
+    transition:
+      background 200ms ease,
+      box-shadow 360ms var(--ease-out);
+  }
+  .choice-island svg,
+  .choice-island .status-dot {
+    transition:
+      opacity 200ms ease,
+      scale 420ms var(--ease-out);
+  }
+  .choice-island .status-dot {
+    opacity: 0;
+    scale: 0.4;
+  }
+  .pipe-stage.is-working .choice-island {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
+  .pipe-stage.is-working .choice-island svg {
+    opacity: 0;
+    scale: 0.6;
+  }
+  .pipe-stage.is-working .choice-island .status-dot {
+    opacity: 1;
+    scale: 1;
+    animation: pipe-busy 700ms ease-in-out infinite alternate;
+  }
+  @keyframes pipe-busy {
+    to {
+      opacity: 0.45;
+    }
+  }
+  .pipe-arrow {
+    transition:
+      background 120ms ease,
+      box-shadow 120ms ease,
+      color 120ms ease,
+      scale 200ms var(--ease-out);
+  }
+  .pipe-stage.is-passing > .pipe-arrow {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+    color: var(--ink);
+    scale: 0.9;
   }
 }

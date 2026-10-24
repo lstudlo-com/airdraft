@@ -3,7 +3,9 @@
  * One bento cell, always the same shape: a large graphic in a recessed well,
  * a short title, and one line of text. The graphic goes in the default slot
  * and is decorative; the title and line carry the meaning.
- * `art` names the graphic's animation in src/scripts/story.ts.
+ * `art` names the graphic's performance in src/scripts/bento.ts: it plays
+ * once as the tile arrives and again on hover or tap, and the parts that are
+ * controls in the app (keycaps, segmented choices, chips) answer the pointer.
  */
 interface Props {
   title: string;
@@ -23,3 +25,7 @@ const { title, caption, art, wide = false, id } = Astro.props;
   <h3>{title}</h3>
   <p>{caption}</p>
 </article>
+
+<script>
+  import "../../scripts/bento";
+</script>

@@ -47,9 +47,7 @@ const copy = {
       "Can stay entirely on your Mac",
       "macOS 15+ on Apple silicon",
     ],
-    guidesTitle: "Choose your dictation setup",
-    guidesIntro:
-      "Mix Chinese and English in one sentence, dictate prompts into Claude Code and terminals, keep speech and cleanup on your Mac, or transcribe meetings. English-only works the same way.",
+    guidesTitle: "Setup guides",
     guidesNote: undefined,
     featuresTitle: "What Airdraft handles for you",
     // Illustrative outputs for the bento graphics (decorative, sample text).
@@ -67,13 +65,13 @@ const copy = {
     tiles: {
       cursor: ["Inserts at your cursor", "In whatever app you’re typing in."],
       shortcut: ["One shortcut", "Hold ⌃⌥, or record your own."],
-      profiles: ["Profiles", "Four built in. Rewrite any of them."],
-      vocabulary: ["Your vocabulary", "Teach it names and jargon once."],
+      profiles: ["Profiles", "Four built in, each one editable."],
+      vocabulary: ["Vocabulary", "Teach it names and jargon once."],
       history: ["History", "Search it, flip to the original, copy."],
       fallback: ["Nothing is lost", "If cleanup fails, the raw text goes in."],
       privacy: [
         "Stays on your Mac",
-        "With local models, nothing leaves. Keys live in the Keychain.",
+        "Local models send nothing; keys stay in the Keychain.",
       ],
       mixed: [
         "Chinese and English, mixed",
@@ -92,20 +90,18 @@ const copy = {
     },
   },
   "zh-tw": {
-    title: "Airdraft｜中英混合聽寫與會議逐字稿的 Mac App",
+    title: "Airdraft｜Mac 中英混合聽寫與會議逐字稿",
     description:
-      "Airdraft 是開放原始碼的 Mac App：中英混著講，說完就貼上；會議錄音也能整理成標出講者的逐字稿。語音辨識與潤稿可以各自選本機或雲端；自行編譯免費，官方版一次買斷。",
+      "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；會議錄音也能整理成標出講者的逐字稿。語音辨識與潤稿可各自選本機或雲端。自行編譯免費，官方版一次買斷。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
     headline: ["中英混著講，", "說完就貼上。", "會議也能", "整理成逐字稿。"],
     get: "取得 Airdraft",
     source: "查看原始碼",
     sample: "試試範例",
-    facts: ["開放原始碼", "可全在本機處理", "macOS 15 以上、Apple 晶片"],
-    guidesTitle: "選擇適合你的設定",
-    guidesIntro:
-      "中英混說該選哪個模型、怎麼對 Claude Code 與終端機聽寫、在本機把會議轉成逐字稿，以及和其他聽寫 App 的差異。",
+    facts: ["開放原始碼", "可完全在本機處理", "Apple 晶片、macOS 15 以上"],
+    guidesTitle: "設定指南",
     guidesNote: true,
-    featuresTitle: "Airdraft 幫你處理的事",
+    featuresTitle: "Airdraft 替你做的事",
     spoken: "呃，跟 Maya 說那個 draft 明天會好。",
     outputs: [
       "跟 Maya 說 draft 明天會好。",
@@ -118,24 +114,24 @@ const copy = {
       "明天 demo 前先把 API key 换掉，再 push 到 main。",
     ],
     tiles: {
-      cursor: ["貼到游標位置", "不論你正在哪個 App 打字。"],
-      shortcut: ["一個快速鍵", "按住 ⌃⌥，或錄一組你自己的。"],
-      profiles: ["模式", "內建四種，每一種都能改寫。"],
-      vocabulary: ["你的詞彙", "名字和術語教一次就好。"],
-      history: ["記錄", "可以搜尋、切回原始文字、複製。"],
-      fallback: ["文字不會不見", "潤稿失敗時，照樣貼上原始文字。"],
-      privacy: [
-        "留在你的 Mac",
-        "用本機模型時什麼都不送出，金鑰存在 Keychain。",
+      cursor: ["直接貼到游標", "在哪個 App 打字都行。"],
+      shortcut: ["一組快速鍵", "按住 ⌃⌥，也可以自訂。"],
+      profiles: ["模式", "內建四種，都能自行修改。"],
+      vocabulary: ["詞彙", "人名與術語設定一次就好。"],
+      history: ["記錄", "可搜尋、切換原文，也能拷貝。"],
+      fallback: ["文字不會遺失", "潤稿失敗時，直接貼上原始逐字稿。"],
+      privacy: ["留在這台 Mac", "用本機模型不送出任何資料，金鑰存在鑰匙圈。"],
+      mixed: ["中英混著講", "Qwen3-ASR 辨識同一句裡的中英文，輸出繁體或簡體。"],
+      plan: [
+        "用 Claude 或 ChatGPT 訂閱潤稿",
+        "透過 Claude Code 或 Codex，免 API 金鑰。",
       ],
-      mixed: ["中英混著講", "用 Qwen3-ASR 一句話混著說，輸出繁體或簡體。"],
-      plan: ["沿用 Claude 或 ChatGPT 方案", "用 Claude Code 或 Codex 潤稿。"],
     },
     privacyArt: {
       mac: "這台 Mac",
       speech: "語音辨識",
       refinement: "潤稿",
-      cloud: "要用雲端也可以",
+      cloud: "可選用雲端",
     },
   },
 }[locale];
@@ -196,15 +192,13 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
     <InterfaceShowcase locale={locale} />
 
-    <Section id="guides" title={copy.guidesTitle} intro={copy.guidesIntro}>
+    <Section id="guides" title={copy.guidesTitle}>
       <GuideLinks locale={locale} />
       {copy.guidesNote && (
-        <p class="guide-hub-note">
-          離線設定、本機與雲端資料去向，以及自行編譯或官方版的比較，請看
+        <p class="guide-hub-note guide-hub-more">
           <a href="/guides/" hreflang="en">
-            英文指南
+            更多指南（英文）
           </a>
-          。
         </p>
       )}
     </Section>

@@ -17,7 +17,14 @@ const zh = locale === "zh-tw";
  * independent of the others. The table is a settings table: rows divided by
  * grooves, the first resting in the sidebar's recessed selection well with a
  * raised check island. Insertion always happens at the cursor; its column
- * shows the vocabulary fix (story.ts loops it while on screen).
+ * shows the vocabulary fix.
+ *
+ * The board is the page's climax (src/scripts/pipeline.ts): once it has
+ * risen, one dictation runs through it, column by column. Each chosen row's
+ * check island sinks while it works, with a busy status dot, and rises with
+ * its check; the chevron on the next groove presses as the text passes;
+ * Insertion strikes the misheard words and brings in the fix. Changing a
+ * choice runs it again from that column.
  *
  * The choices are native radio groups and CSS `:has()` swaps the columns, so
  * the section works without JavaScript; src/scripts/segmented.ts only adds the
@@ -47,7 +54,7 @@ const stages: Stage[] = [
       {
         place: "mac",
         label: zh ? "這台 Mac" : "This Mac",
-        line: zh ? "音訊不會離開你的 Mac。" : "Audio never leaves your Mac.",
+        line: zh ? "音訊不離開這台 Mac。" : "Audio never leaves your Mac.",
         items: [
           "Qwen3-ASR",
           "Whisper",
@@ -62,7 +69,7 @@ const stages: Stage[] = [
         place: "cloud",
         label: zh ? "雲端" : "Cloud",
         line: zh
-          ? "音訊會送到服務商，使用你自己的 API 金鑰。"
+          ? "音訊送到供應商，使用你自己的 API 金鑰。"
           : "Audio goes to the provider, on your own API key.",
         items: [
           "Soniox",
@@ -83,7 +90,7 @@ const stages: Stage[] = [
         place: "mac",
         label: zh ? "這台 Mac" : "This Mac",
         line: zh
-          ? "本機模型整理逐字稿，文字留在這裡。"
+          ? "由本機模型潤稿，文字不離開 Mac。"
           : "A local model cleans up the transcript. It stays here.",
         items: [
           "Apple Intelligence",
@@ -96,7 +103,7 @@ const stages: Stage[] = [
         place: "cloud",
         label: zh ? "雲端" : "Cloud",
         line: zh
-          ? "逐字稿會送到你選的服務商。"
+          ? "逐字稿送到你選的供應商。"
           : "The transcript goes to the provider you pick.",
         items: [
           "OpenAI",
@@ -111,7 +118,7 @@ const stages: Stage[] = [
         place: "plan",
         label: zh ? "訂閱方案" : "Subscription",
         line: zh
-          ? "使用你已經付費的 Claude 或 ChatGPT 方案。"
+          ? "沿用你已付費的 Claude 或 ChatGPT 訂閱。"
           : "Uses the Claude or ChatGPT plan you already pay for.",
         items: ["Claude Code", "Codex"],
       },
@@ -135,7 +142,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
       : "Speech and refinement run separately. Pick local or cloud for each."
   }
 >
-  <div class="pipeline panel" data-reveal>
+  <div class="pipeline panel" data-reveal data-pipeline>
     {stages.map((stage, index) => (
       <div
         class="pipe-stage"
@@ -177,6 +184,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
                     {item}
                     {position === 0 && (
                       <span class="choice-island" aria-hidden="true">
+                        <span class="status-dot" data-tone="busy" />
                         <svg
                           width="14"
                           height="14"
@@ -207,10 +215,10 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
       <p class="pipe-fixed">{zh ? "在游標位置" : "At your cursor"}</p>
       <p class="pipe-line">
         {zh
-          ? "最後由你的詞彙修正名稱，再把文字貼進你正在打字的 App。"
-          : "Your vocabulary fixes names last. Then the text goes into the app you’re typing in."}
+          ? "最後套用詞彙修正名稱，再貼進你正在打字的 App。"
+          : "Vocabulary fixes names last, then the text goes into the app you’re typing in."}
       </p>
-      <div class="fix-field" data-art="fix">
+      <div class="fix-field" data-fix-field>
         {zh ? (
           <p>
             九點在{" "}
@@ -236,3 +244,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
     </div>
   </div>
 </Section>
+
+<script>
+  import "../scripts/pipeline";
+</script>

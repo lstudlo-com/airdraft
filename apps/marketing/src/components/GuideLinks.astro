@@ -1,38 +1,65 @@
 ---
-import Button from "./ui/Button.astro";
-import Surface from "./ui/Surface.astro";
-import { guidesFor } from "../data/guides";
+import GuideGlyph from "./GuideGlyph.astro";
+import { guideGlyphs, guidesFor } from "../data/guides";
 import type { Locale } from "../i18n";
 import "../styles/guides.css";
 
+/**
+ * The guide picker: one raised tile per guide, each a small graphic in a
+ * recessed well over a short label. The whole tile is the link, named by the
+ * guide's full title. `detail` (the guide hub) shows the full title as a
+ * heading and the one-line summary instead of the label.
+ */
 interface Props {
   exclude?: string;
   headingLevel?: 2 | 3;
   locale?: Locale;
+  detail?: boolean;
 }
 
-const { exclude, headingLevel = 3, locale = "en" } = Astro.props;
-const read = locale === "zh-tw" ? "閱讀指南" : "Read Guide";
-const readLabel = locale === "zh-tw" ? "閱讀指南：" : "Read guide: ";
+const {
+  exclude,
+  headingLevel = 3,
+  locale = "en",
+  detail = false,
+} = Astro.props;
 const Heading = headingLevel === 2 ? "h2" : "h3";
 const entries = guidesFor(locale).filter((guide) => guide.slug !== exclude);
+// Balanced desktop rows: up to four across, three when that divides evenly
+// (six guides read as 3 + 3, seven as 4 + 3 with the short row centred).
+const count = entries.length;
+const columns = count <= 4 ? count : count % 3 === 0 && count % 4 !== 0 ? 3 : 4;
 ---
 
-<ul class="guide-links">
+<ul
+  class:list={["guide-links", detail && "guide-links-detail"]}
+  style={`--guide-columns: ${columns}`}
+>
   {entries.map((guide) => (
-    <Surface as="li" class="guide-link-card">
-      <Heading>
-        <a href={guide.href}>{guide.title}</a>
-      </Heading>
-      <p>{guide.summary}</p>
-      <Button
+    <li class="guide-pick">
+      <a
+        class="guide-pick-link"
         href={guide.href}
-        variant="quiet"
-        icon="right"
-        aria-label={`${readLabel}${guide.title}`}
+        aria-label={detail ? undefined : guide.title}
+        aria-labelledby={detail ? `guide-${guide.slug}` : undefined}
+        aria-describedby={detail ? `guide-${guide.slug}-summary` : undefined}
       >
-        {read}
-      </Button>
-    </Surface>
+        <span class="guide-pick-art">
+          <GuideGlyph kind={guideGlyphs[guide.slug]} locale={locale} />
+        </span>
+        {detail ? (
+          <>
+            <Heading class="guide-pick-title" id={`guide-${guide.slug}`}>
+              {guide.title}
+            </Heading>
+            <p class="guide-pick-summary" id={`guide-${guide.slug}-summary`}>
+              {guide.summary}
+            </p>
+          </>
+        ) : (
+          <span class="guide-pick-label">{guide.label}</span>
+        )}
+      </a>
+    </li>
   ))}
 </ul>

@@ -66,7 +66,7 @@ const cells = (row: EjaAsrResult) => [
 
 <GuideLayout
   guide={guide}
-  intro="For offline speech-to-text, install a local speech model and use local refinement or turn refinement off. These choices keep dictation processing on your Mac after the required models are installed."
+  intro="Install a local speech model, then use local refinement or turn it off. Once the models are installed, dictation is processed on your Mac."
 >
   <Surface class="guide-section">
     <h2 id="requirements">What you need</h2>
@@ -138,9 +138,9 @@ const cells = (row: EjaAsrResult) => [
   <Surface class="guide-section">
     <h2 id="languages">Which model should I choose?</h2>
     <p>
-      Language support belongs to the model. First-run setup recommends a local
-      model from your Mac’s system language and memory. For English, Japanese,
-      Korean and Chinese it also offers one alternative:
+      Language support depends on the model. First-run setup recommends one from
+      your Mac’s system language and memory, and for English, Japanese, Korean
+      and Chinese offers one alternative:
     </p>
     <dl class="guide-decisions">
       <div>
@@ -190,9 +190,8 @@ const cells = (row: EjaAsrResult) => [
       speech.”
     </p>
     <p>
-      Local processing uses your Mac's memory and compute. Model loading and
-      transcription time vary with the model and hardware; the website's
-      interactive sample is an illustration, not a speed test.
+      Loading and transcription time vary with the model and your Mac; the
+      homepage sample is an illustration, not a speed test.
     </p>
   </Surface>
 

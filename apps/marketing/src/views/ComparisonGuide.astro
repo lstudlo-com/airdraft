@@ -39,12 +39,11 @@ const rows: Row[] = zh
   ? [
       {
         name: "Airdraft",
-        price: `自行編譯免費；官方 App 一次買斷，一台 Mac US${oneMac.price}、三台 US${threeMacs.price}，尚未開賣`,
-        available:
-          "否：官方 App 尚未開賣，也未經公證；可用 Xcode 從原始碼自行編譯",
+        price: `自行編譯免費；官方版一次買斷，一台 Mac US${oneMac.price}、三台 US${threeMacs.price}（尚未開賣）`,
+        available: "否：官方版尚未開賣、未經公證；可用 Xcode 自行編譯",
         source: "開放原始碼（GPL-3.0）",
-        speech: "在你的 Mac，或用你自己金鑰的雲端服務",
-        cleanup: "本機、自備金鑰的雲端，或用你的方案跑 Claude Code、Codex",
+        speech: "在 Mac 上，或用自己金鑰的雲端服務",
+        cleanup: "本機、自備金鑰的雲端，或透過 Claude Code、Codex 沿用訂閱",
         meetings: "錄 App 音訊與麥克風、匯入檔案、可選講者標籤、匯出 SRT／VTT",
         platforms: "Mac（Apple 晶片、macOS 15 以上）",
       },
@@ -53,10 +52,10 @@ const rows: Row[] = zh
         price: "一次買斷：1／2／3 台 Mac 為 US$25／US$39／US$49；14 天退款",
         available: "可以：官網提供試用版下載（未載明試用天數）",
         source: "開放原始碼（GPL-3.0）",
-        speech: "在你的 Mac，或用你自己金鑰的雲端服務",
-        cleanup: "可選服務商，含 Claude Code、Codex 等本機 CLI 範本",
+        speech: "在 Mac 上，或用自己金鑰的雲端服務",
+        cleanup: "可選供應商，含 Claude Code、Codex 等本機 CLI 範本",
         meetings:
-          "可排隊轉錄音訊與影片檔；記錄可存成 TXT 或 Markdown，也能匯出 CSV",
+          "可批次轉錄音訊與影片檔；記錄可存成 TXT 或 Markdown，並匯出 CSV",
         platforms: "Mac；另有 iOS App",
       },
       {
@@ -64,8 +63,8 @@ const rows: Row[] = zh
         price: "免費，接受贊助",
         available: "可以：免費下載",
         source: "開放原始碼（MIT）",
-        speech: "在你的裝置上，包括 Qwen3-ASR 0.6B、1.7B 與 SenseVoice Small",
-        cleanup: "可選後處理，本機或你設定的 API",
+        speech: "在裝置上執行，包括 Qwen3-ASR 0.6B、1.7B 與 SenseVoice Small",
+        cleanup: "可選用後處理，在本機或透過你設定的 API",
         meetings: "未查核",
         platforms: "Mac、Windows、Linux",
       },
@@ -84,7 +83,7 @@ const rows: Row[] = zh
         price: "macOS 內建",
         available: "可以：macOS 內建",
         source: "非開源",
-        speech: "系統內建；裝置上或伺服器處理依語言、設定與硬體而定",
+        speech: "系統內建；在裝置上或伺服器處理，視語言、設定與硬體而定",
         cleanup:
           "macOS 27 加入潤飾文字的聽寫；進階功能需要 M3 以上、12 GB 記憶體的 Mac",
         meetings: "未查核",
@@ -277,7 +276,7 @@ const sources = [
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="在 Mac 上把說話變成文字的五種方式，比較價格、原始碼、處理在哪裡進行，以及會議功能。各產品的資料取自它們自己的頁面，查核日期列在文末；價格會變動，購買前請再看一次來源。"
+    intro="比較在 Mac 上把語音轉成文字的五種方式：價格、原始碼、在哪裡處理與會議功能。資料取自各產品自己的頁面，查核日期列於文末；價格可能變動，購買前請再確認來源。"
   >
     <Surface class="guide-section">
       <h2 id="glance">一覽表</h2>
@@ -289,8 +288,8 @@ const sources = [
       >
         <table class="guide-table guide-table-wide" role="table">
           <caption>
-            2026 年 10 月 21 日查核，Handy 的語音模型於 10 月 24
-            日查核；「未查核」不代表沒有該功能
+            2026 年 10 月 21 日查核（Handy 語音模型為 10 月 24
+            日）；「未查核」不代表沒有該功能
           </caption>
           <thead role="rowgroup">
             <tr role="row">
@@ -328,31 +327,31 @@ const sources = [
         <div>
           <dt>VoiceInk</dt>
           <dd>
-            一台 Mac 比較便宜（US$25 對 US$29），有兩台 Mac 的方案，公布 14
-            天退款，現在就買得到。它能批次排隊轉錄檔案，Airdraft
-            一次只處理一個檔案；它也有 iOS App。
+            單台 Mac 較便宜（US$25 對 US$29），有兩台 Mac 方案、明列 14
+            天退款，而且現在就買得到。它能批次轉錄多個檔案，Airdraft
+            一次只處理一個；另有 iOS App。
           </dd>
         </div>
         <div>
           <dt>Handy</dt>
           <dd>
-            完全免費、MIT 授權，也能在 Windows 和 Linux 上用。社群大得多：2026
+            完全免費、採 MIT 授權，也支援 Windows 與 Linux。社群規模大得多：2026
             年 10 月 21 日約有 34,200 個 GitHub 星號。v0.9.8
-            也加入了中文字形選擇。
+            也加入了中文字形選項。
           </dd>
         </div>
         <div>
           <dt>Typeless</dt>
           <dd>
-            不用選模型、不用設定金鑰，手機和其他電腦也能用。台灣的繁體中文語音輸入評測常推薦它（例如
+            不必選模型或設定金鑰，手機與其他電腦也能用。台灣的繁體中文語音輸入評測常推薦它（例如
             Taneverse）。
           </dd>
         </div>
         <div>
           <dt>Apple 聽寫</dt>
           <dd>
-            免費、不用安裝，直接內建在系統裡。macOS 27
-            加入了潤飾文字的聽寫；這項功能是否支援中文，我們尚未查證。
+            免費、免安裝，系統內建。macOS 27
+            加入可潤飾文字的聽寫；是否支援中文，我們尚未查證。
           </dd>
         </div>
       </dl>
@@ -363,24 +362,24 @@ const sources = [
       <ul>
         <li>語音辨識和潤稿各自選本機或雲端，例如本機辨識加上雲端潤稿。</li>
         <li>
-          本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。從
+          提供本機中文模型（Qwen3-ASR、SenseVoice、FireRedASR2），可輸出繁體或簡體。從
           0.11.0 起，中文系統的首次設定推薦 Qwen3-ASR
-          1.7B，「模型」頁標為「最適合中英夾雜」，SenseVoice
-          是較小、較快的選擇；記憶體 8 GB 以下的 Mac 則先推薦 SenseVoice，仍可選
-          Qwen3-ASR 1.7B。Handy v0.9.8 的模型清單同樣提供本機的 Qwen3-ASR
-          0.6B、1.7B 與 SenseVoice Small。見
+          1.7B（「模型」頁標示「最適合中英夾雜」），SenseVoice
+          則是較小、較快的選擇；記憶體 8 GB 以下的 Mac 優先推薦
+          SenseVoice，仍可選 Qwen3-ASR 1.7B。Handy v0.9.8 的模型清單同樣有本機
+          Qwen3-ASR 0.6B、1.7B 與 SenseVoice Small。見
           <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
             中英混說的模型測量
           </a>
           。
         </li>
         <li>
-          可以用你已付費的 Claude 或 ChatGPT 方案，透過 Claude Code 或 Codex
-          潤稿，也能直接對終端機裡的程式助理聽寫。見
+          可透過 Claude Code 或 Codex，沿用已付費的 Claude 或 ChatGPT
+          訂閱潤稿，也能直接對終端機裡的程式助理聽寫。見{" "}
           <a
             href={href("/guides/dictate-to-claude-code-and-terminals/", locale)}
           >
-            對 Claude Code 與終端機聽寫
+            Claude Code 與終端機聽寫
           </a>
           。
         </li>
@@ -396,12 +395,13 @@ const sources = [
     <Surface class="guide-section">
       <h2 id="gaps">Airdraft 目前還缺什麼</h2>
       <ul>
-        <li>官方 App 尚未開賣，也還沒有經過公證的公開安裝檔。</li>
+        <li>官方版尚未開賣，也還沒有經過公證的公開安裝檔。</li>
         <li>只支援 Mac，沒有手機版。</li>
-        <li>選擇很多，第一次設定要挑模型。</li>
+        <li>選項多，第一次設定就得挑模型。</li>
         <li>
-          只公布了一次自己對本機模型的中英混說測量（一台
-          Mac、五位說話者），沒有和其他 App 比較過準確度或速度。
+          目前公布的只有 Airdraft
+          自己對本機模型的測量：中英混說，以及英、日、韓朗讀語音（各在一台 Mac
+          上），沒有與其他 App 比較過準確度或速度。
         </li>
         <li>會議錄音沒有回音消除。</li>
       </ul>
@@ -562,9 +562,10 @@ const sources = [
         <li>It runs only on the Mac, with no phone app.</li>
         <li>There are many choices, and first setup means picking models.</li>
         <li>
-          The only published measurement is Airdraft’s own test of its local
-          models on mixed Chinese and English (one Mac, five speakers); there is
-          no accuracy or speed comparison with other apps.
+          Airdraft has published only its own tests of its local models, on
+          mixed Chinese and English and on English, Japanese and Korean read
+          speech (one Mac each); there is no accuracy or speed comparison with
+          other apps.
         </li>
         <li>Meeting recording has no echo cancellation.</li>
       </ul>

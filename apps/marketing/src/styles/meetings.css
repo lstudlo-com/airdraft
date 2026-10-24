@@ -58,13 +58,17 @@
     background: var(--well);
     box-shadow: var(--sink-track);
   }
+  /* The fill is the track's full width, slid left so --played of it shows:
+     playback (src/scripts/meetings.ts) moves it without reflowing. Its
+     resting share is the 0:31 frame. */
   .meeting-track b {
     display: block;
-    width: 32%;
+    width: 100%;
     height: 100%;
     border-radius: inherit;
     background: var(--fill-bar);
     box-shadow: var(--raise-small);
+    translate: calc((var(--played, 0.32) - 1) * 100%) 0;
   }
   .meeting-time {
     font-family: var(--font-rounded);
@@ -114,6 +118,58 @@
   }
   .meeting-points .key {
     margin-top: 18px;
+  }
+
+  /* The working player. The play key shows pause while playing, as the
+     app's does, and sinks into a well while pressed; timestamps play from
+     their point, so they take the pointer. Without JavaScript the player
+     is a still frame. */
+  .meeting-glyph-pause {
+    display: none;
+  }
+  .meeting-card.is-playing .meeting-glyph-play {
+    display: none;
+  }
+  .meeting-card.is-playing .meeting-glyph-pause {
+    display: block;
+  }
+  .meeting-card.is-live .meeting-play,
+  .meeting-card.is-live .meeting-stamp {
+    cursor: pointer;
+  }
+  .meeting-play {
+    transition:
+      background 120ms ease,
+      box-shadow 120ms ease,
+      translate 120ms ease;
+  }
+  .meeting-card.is-live .meeting-play:hover {
+    background: linear-gradient(
+      135deg,
+      var(--control-hover-top),
+      var(--control-bottom)
+    );
+  }
+  .meeting-card.is-live .meeting-play:active {
+    translate: 0.5px 1px;
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
+  .meeting-stamp {
+    margin: -3px -6px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition:
+      color 160ms ease,
+      background 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .meeting-card.is-live .meeting-stamp:hover {
+    color: var(--ink);
+  }
+  .meeting-card.is-live .meeting-stamp:active {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
   }
 }
 

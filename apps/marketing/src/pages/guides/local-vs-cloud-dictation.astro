@@ -12,7 +12,7 @@ const guide = guides.find(
 
 <GuideLayout
   guide={guide}
-  intro="Airdraft chooses speech recognition and text refinement independently. Local speech keeps audio on your Mac. Cloud refinement sends text and its prompt to the provider you select, even when speech recognition is local."
+  intro="Speech recognition and refinement are chosen separately. Local speech keeps audio on your Mac. Cloud refinement sends text and its prompt to the provider you select, even when speech recognition is local."
 >
   <Surface class="guide-section">
     <h2 id="data-flow">What leaves your Mac?</h2>
@@ -77,10 +77,9 @@ const guide = guides.find(
       recent dictations in the same app.
     </p>
     <p>
-      Turn off Read app context in Settings if you do not want that context
-      included. With a cloud refiner, the prompt is sent to that provider.
-      Claude Code and Codex refinement also use an external service; running a
-      command on your Mac does not make its model local.
+      Turn off Read app context in Settings to leave that context out. Claude
+      Code and Codex refinement also use an external service: the CLI runs on
+      your Mac, its model does not.
     </p>
   </Surface>
 
@@ -113,9 +112,8 @@ const guide = guides.find(
       </div>
     </dl>
     <p>
-      Check your active profile's speech model too. A profile can override the
-      app default shown in Models. Changing the default does not replace that
-      profile's selection.
+      Check your active profile too: a profile's own speech model overrides the
+      app default in Models, and changing the default does not replace it.
     </p>
   </Surface>
 

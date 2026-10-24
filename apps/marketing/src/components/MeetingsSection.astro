@@ -18,6 +18,11 @@ import "../styles/meetings.css";
  * microphone with no screen frames, single-track files up to two hours,
  * optional local speaker estimates, Soniox only after Upload and Transcribe,
  * and TXT, JSON, SRT and VTT export.
+ *
+ * The player works like the app's (src/scripts/meetings.ts): it plays the
+ * sample once as the card arrives, the play key toggles playback and a
+ * timestamp plays from that point ("Play from this timestamp"). It never
+ * plays sound, and it marks no passage as current: the app doesn't.
  */
 interface Props {
   locale?: Locale;
@@ -47,7 +52,7 @@ const copy = {
     points: [
       [
         "Record any app",
-        "One app or all app audio, plus your microphone. No screen video is kept.",
+        "One app or all apps, plus your microphone. No screen video.",
       ],
       [
         "Or import a file",
@@ -69,17 +74,13 @@ const copy = {
     guide: "Read the Meeting Guide",
   },
   "zh-tw": {
-    title: "會議錄音，在你的 Mac 上變成逐字稿",
+    title: "會議錄音，在 Mac 上轉成逐字稿",
     intro: "錄下通話或匯入檔案，整理成標出講者的逐字稿。",
     sample: "會議逐字稿範例",
     meeting: "設計週會",
     meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
     turns: [
-      [
-        appLabels["zh-tw"].speaker(1),
-        "0:12",
-        "onboarding 的修改我們週四上線。",
-      ],
+      [appLabels["zh-tw"].speaker(1), "0:12", "onboarding 的改動週四上線。"],
       [
         appLabels["zh-tw"].speaker(2),
         "0:31",
@@ -87,16 +88,13 @@ const copy = {
       ],
     ],
     points: [
-      [
-        "錄下任何 App",
-        "單一 App 或所有 App 的聲音，可加上麥克風；不保留畫面。",
-      ],
+      ["錄下任何 App 的聲音", "單一或所有 App，可加錄麥克風；不錄畫面。"],
       ["也能匯入檔案", "音訊或影片，最長兩小時、單一音軌。"],
-      ["在本機估計講者", "可選擇標出講者，再自行改名或調整。"],
-      ["選本機模型就不上傳", "要用 Soniox 雲端轉錄時，確認之後才會上傳。"],
-      ["編輯後匯出", "原文與修改並存，可匯出 TXT、JSON、SRT 或 VTT。"],
+      ["在本機估算講者", "講者標籤可選用，能改名或重新指派。"],
+      ["用本機模型就不上傳", "選 Soniox 雲端轉錄時，經你確認才上傳。"],
+      ["編輯後匯出", "保留原文，可匯出 TXT、JSON、SRT 或 VTT。"],
     ],
-    guide: "閱讀會議逐字稿指南",
+    guide: "會議逐字稿指南",
   },
 }[locale];
 ---
@@ -111,23 +109,43 @@ const copy = {
           <p class="meeting-meta">{copy.meta}</p>
         </div>
       </div>
-      <div class="meeting-player" aria-hidden="true">
-        <span class="meeting-play">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <div class="meeting-player" aria-hidden="true" data-meeting-player>
+        <span class="meeting-play" data-meeting-play>
+          <svg
+            class="meeting-glyph-play"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
             <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
           </svg>
+          <svg
+            class="meeting-glyph-pause"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <rect x="6.5" y="5" width="4" height="14" rx="1.2"></rect>
+            <rect x="13.5" y="5" width="4" height="14" rx="1.2"></rect>
+          </svg>
         </span>
-        <span class="meeting-track">
+        <span class="meeting-track" data-meeting-track>
           <b></b>
         </span>
-        <span class="meeting-time">0:31</span>
+        <span class="meeting-time" data-meeting-time>
+          0:31
+        </span>
       </div>
       <ol class="meeting-turns">
         {copy.turns.map(([speaker, time, text]) => (
           <li>
             <span class="meeting-speaker">
               <span class="chip-muted">{speaker}</span>
-              <span class="meeting-stamp">{time}</span>
+              <span class="meeting-stamp" data-seek={time}>
+                {time}
+              </span>
             </span>
             <p>{text}</p>
           </li>
@@ -154,3 +172,7 @@ const copy = {
     </Surface>
   </div>
 </Section>
+
+<script>
+  import "../scripts/meetings";
+</script>

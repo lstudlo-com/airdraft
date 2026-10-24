@@ -28,13 +28,13 @@ const plans = licenses.map((plan) =>
 );
 const copy = zh
   ? {
-      title: "現成可用的 App",
+      title: "官方版 App",
       count: "Mac 數量",
-      once: "一次付清",
-      use: (macs: string) => `個人使用，${macs}。`,
+      once: "一次買斷",
+      use: (macs: string) => `可在${macs} 上個人使用。`,
       rest: onSale
-        ? "所有功能，先有 14 天試用。"
-        : "所有功能；開賣後附 14 天試用。",
+        ? "全功能，可先試用 14 天。"
+        : "全功能；開賣後可先試用 14 天。",
       see: "查看價格",
     }
   : {

@@ -83,14 +83,14 @@ export const sourceIncludes = [
 
 export const licenseIncludesZh = [
   "聽寫與會議逐字稿",
-  "所有功能，不需要 Xcode",
+  "全功能，免 Xcode",
   "14 天全功能試用",
-  "包含所購版本的更新",
-  "可自行在 Mac 之間移轉",
+  "所購版本的後續更新",
+  "可自行移轉到其他 Mac",
 ];
 
 export const sourceIncludesZh = [
   "聽寫與會議逐字稿",
-  "所有功能，沒有鎖住的功能",
-  "需要 Xcode 編譯",
+  "所有功能皆開放",
+  "需用 Xcode 編譯",
 ];

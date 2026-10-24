@@ -61,7 +61,7 @@ export const costRows: CostRow[] = [
   {
     name: "All local",
     detail: "Nothing leaves your Mac",
-    zh: { name: "全部在本機", detail: "什麼都不會離開你的 Mac" },
+    zh: { name: "全部在本機", detail: "資料不離開 Mac" },
     oneTime: license,
     monthly: 0,
     airdraft: true,

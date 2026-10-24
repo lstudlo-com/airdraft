@@ -36,7 +36,7 @@ const image = zh ? "configuration-zh-tw" : "configuration";
 const copy = zh
   ? {
       title: "打開就想用的介面",
-      intro: "凸起的按鍵、壓下的凹槽、刻出的分隔線，淺色深色都一樣。",
+      intro: "凸起的按鍵、下沉的凹槽、刻出的分隔線，淺色與深色模式都一樣。",
       alt: "Airdraft 淺色模式的「設定」頁面：側邊欄旁是麥克風與外觀的凸起卡片，包括錄音視窗的六種樣式。",
       compare: "比較淺色與深色外觀",
       half: "一半淺色，一半深色",
@@ -44,11 +44,10 @@ const copy = zh
       allDark: "全部深色",
       mixed: "{light}% 淺色，{dark}% 深色",
       materials: "視窗中的材質",
-      caption:
-        "以 Graphite 強調色從 App 的繁體中文介面算繪；介面語言跟隨 macOS 的設定。",
+      caption: "App 繁體中文介面的實際畫面，強調色為石墨色。",
       drag: "拖曳即可比較淺色與深色。",
-      press: ["按得下去的鍵", "在鍵盤上按住 ⌃⌥，它們也會跟著壓下。"],
-      select: ["會滑動的選取", "凹槽先移動，圖示底座隨後跟上。"],
+      press: ["按得下去的鍵", "按住鍵盤上的 ⌃⌥，它們也會壓下。"],
+      select: ["會滑動的選取框", "凹槽先移動，圖示底座隨後跟上。"],
       travel: ["有行程的控制項", "旋鈕與滑塊在軌道裡滑動。"],
       keysLabel: "Control Option",
     }
@@ -79,11 +78,11 @@ const copy = zh
 const calloutText: Record<string, [string, string]> = zh
   ? {
       "Carved mark": ["刻出的標誌", "波形是刻進去的。"],
-      "Pressed well": ["壓下的凹槽", "目前的頁面沉進去。"],
-      "Raised button": ["凸起的按鈕", "控制項站起來等你按。"],
+      "Pressed well": ["下沉的凹槽", "目前所在的頁面會下沉。"],
+      "Raised button": ["凸起的按鈕", "控制項浮起，等你按下。"],
       "Raised card": ["凸起的卡片", "每個區塊浮在頁面上。"],
       "Engraved divider": ["刻線分隔", "各列以溝槽分開。"],
-      "Reactive capsules": ["會反應的膠囊", "五種樣式跟著你的聲音動。"],
+      "Reactive capsules": ["會反應的膠囊", "五種樣式隨你的聲音律動。"],
     }
   : {};
 const callouts = [

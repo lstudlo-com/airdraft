@@ -1,34 +1,359 @@
 @layer components {
+  /* The guide picker (GuideLinks.astro): one raised tile per guide, the
+     whole tile a link, holding a small graphic in a recessed well and a
+     short label. Rows stay balanced: --guide-columns comes from the number
+     of guides, and a short last row is centred. */
   .guide-links {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-    gap: 24px;
+    --gap: 20px;
+    --cols: var(--guide-columns, 3);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--gap);
     padding: 0;
     list-style: none;
   }
-  .guide-link-card {
+  .guide-pick {
+    display: flex;
+    flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    min-width: 0;
+  }
+  .guide-pick-link {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 14px;
-    padding: 28px;
+    width: 100%;
+    padding: 10px 10px 16px;
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow: var(--edge), var(--raise-card);
+    transition:
+      translate 240ms var(--ease-out),
+      box-shadow 240ms var(--ease-out),
+      background 160ms ease;
   }
-  .guide-link-card :is(h2, h3) {
-    font-size: var(--step-2);
+  /* Pressing sinks the tile into a well, like a key. */
+  .guide-pick-link:active {
+    background: var(--pressed);
+    box-shadow: var(--press);
+    transition-duration: 60ms;
+  }
+  .guide-pick-art {
+    display: grid;
+    place-items: center;
+    flex: none;
+    height: 112px;
+    border-radius: var(--radius-well);
+    background: var(--well-soft);
+    box-shadow: var(--sink-soft);
+    overflow: clip;
+  }
+  .guide-pick-label {
+    padding-inline: 8px;
+    font-size: var(--step-1);
+    font-weight: 600;
     line-height: 1.3;
     letter-spacing: -0.01em;
+    text-wrap: balance;
   }
-  .guide-link-card :is(h2, h3) a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  /* The guide hub (detail): the full title and its one-line summary. */
+  .guide-links-detail .guide-pick-link {
+    padding-bottom: 20px;
   }
-  .guide-link-card p {
-    flex: 1;
+  .guide-pick-title,
+  .guide-pick-summary {
+    padding-inline: 10px;
+  }
+  .guide-pick-title {
+    font-size: var(--step-1);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .guide-pick-summary {
+    margin-top: -6px;
+    color: var(--muted);
+    font-size: var(--step-0);
+    line-height: 1.55;
+  }
+
+  /* Guide graphics (GuideGlyph.astro): the app's parts, lit from the top
+     left; whatever is raised inside the well keeps its shadow clipped there. */
+  .gg {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: var(--step--1);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .gg-field,
+  .gg-term,
+  .gg-key {
+    border-radius: 10px;
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-small);
+    color: var(--ink);
+  }
+  /* Mixed Chinese and English: one mixed phrase over the 繁｜简 picker. */
+  .gg-field {
+    padding: 7px 12px;
+    font-size: var(--step-0);
+    font-weight: 500;
+  }
+  .gg-seg {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--well);
+    box-shadow: var(--sink-track);
+    overflow: clip;
+  }
+  .gg-seg > span:not(.gg-seg-thumb) {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 26px;
+    transition: color 200ms ease;
+  }
+  .gg-seg > span:nth-child(2) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .gg-seg-thumb {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    border-radius: 7px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1.5px 2px 4px var(--shade),
+      -1px -1.5px 4px var(--light);
+    transition: translate 360ms var(--ease-select);
+  }
+  /* Coding agents: a prompt with the ink caret. */
+  .gg-term {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 14px;
+    font: 500 var(--step-0) / 1 var(--font-mono);
+  }
+  .gg-prompt {
     color: var(--muted);
   }
-  .guide-link-card .text-link {
-    margin-top: 4px;
+  .gg-cursor {
+    width: 8px;
+    height: 17px;
+    margin-left: -5px;
+    border-radius: 1.5px;
+    background: var(--ink);
   }
+  /* Offline: Home's waveform well inside This Mac. */
+  .gg-mac {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    padding: 10px 12px 12px;
+    border-radius: 12px;
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-control);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .gg-mac-well {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 34px;
+    padding: 0 10px 0 12px;
+    border-radius: 999px;
+    background: var(--well);
+    box-shadow: var(--sink-track);
+  }
+  .gg-bar {
+    width: 6px;
+    height: calc(22px * var(--l));
+    border-radius: 3px;
+    background: var(--fill-bar);
+    box-shadow:
+      inset 0.5px 0.5px 0 var(--rim),
+      0.75px 1px 1.5px var(--shade);
+    transition: scale 320ms var(--ease-out);
+  }
+  .gg-caret {
+    width: 3px;
+    height: 24px;
+    margin-left: 3px;
+    border-radius: 2px;
+    background: var(--fill-caret);
+  }
+  /* Local or cloud: the provider board's choice rows, This Mac chosen. */
+  .gg-rows {
+    position: relative;
+    display: grid;
+    width: 132px;
+  }
+  .gg-rows::before {
+    content: "";
+    position: absolute;
+    top: 34px;
+    left: 6px;
+    right: 6px;
+    height: 2px;
+    box-shadow: var(--groove);
+  }
+  .gg-row-well {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--well-soft);
+    box-shadow:
+      inset 2.5px 2.5px 5px var(--shade-soft),
+      inset -2.5px -2.5px 5px var(--light);
+    overflow: clip;
+    transition: translate 360ms var(--ease-select);
+  }
+  .gg-island {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1.5px 2px 3px var(--shade),
+      -1px -1.5px 3px var(--light);
+    color: var(--ink);
+  }
+  .gg-island .check {
+    width: 12px;
+    height: 12px;
+  }
+  .gg-row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 38px 0 10px;
+    font-weight: 500;
+    transition: color 200ms ease;
+  }
+  .gg-row:nth-child(2) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* Source build or official app: two price keys. */
+  .gg-prices {
+    display: flex;
+    gap: 10px;
+  }
+  .gg-key {
+    display: grid;
+    place-items: center;
+    min-width: 50px;
+    height: 40px;
+    padding: 0 10px;
+    box-shadow: var(--edge), var(--raise-control);
+    font: 600 var(--step-1) / 1 var(--font-rounded);
+    font-variant-numeric: tabular-nums;
+    transition:
+      box-shadow 200ms var(--ease-out),
+      background 200ms ease;
+  }
+  /* Meetings: speaker chips with their timestamps. */
+  .gg-turns {
+    display: grid;
+    gap: 8px;
+  }
+  .gg-turn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gg-chip {
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--well-soft);
+    box-shadow: var(--sink-chip);
+    font-weight: 500;
+    line-height: 1.3;
+    transition:
+      box-shadow 240ms var(--ease-out),
+      background 240ms ease,
+      color 240ms ease;
+  }
+  .gg-time {
+    font: 500 var(--step--1) / 1 var(--font-rounded);
+    font-variant-numeric: tabular-nums;
+  }
+  /* App comparison: a table's grooved rows, one column in the selection
+     well. */
+  .gg-table {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 28px);
+    grid-auto-rows: 24px;
+    place-items: center;
+  }
+  .gg-table::before,
+  .gg-table::after {
+    content: "";
+    position: absolute;
+    left: -4px;
+    right: -4px;
+    height: 2px;
+    box-shadow: var(--groove);
+  }
+  .gg-table::before {
+    top: 23px;
+  }
+  .gg-table::after {
+    top: 47px;
+  }
+  .gg-col-well {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    left: 0;
+    z-index: 1;
+    width: 28px;
+    border-radius: 9px;
+    background: var(--well-soft);
+    box-shadow:
+      inset 2px 2px 4px var(--shade-soft),
+      inset -2px -2px 4px var(--light);
+    transition: translate 360ms var(--ease-select);
+  }
+  .gg-cell {
+    position: relative;
+    z-index: 2;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--muted), transparent 45%);
+    transition: background 200ms ease;
+  }
+  .gg-cell:nth-child(4n + 2) {
+    background: var(--ink);
+  }
+
   .guide-breadcrumbs {
     color: var(--muted);
     font-size: var(--step--1);
@@ -184,11 +509,130 @@
     margin-top: 32px;
     color: var(--muted);
   }
+  /* Below the picker, the link to the English-only guides is centred like
+     its short last row. */
+  .guide-hub-more {
+    text-align: center;
+  }
 }
 
 @layer responsive {
+  /* Hover and keyboard focus lift the tile a little and give its graphic
+     one small move; pressing sinks it. Reduced motion keeps both still. */
+  @media (prefers-reduced-motion: no-preference) {
+    .guide-pick-link:is(:hover, :focus-visible) {
+      translate: 0 -2px;
+      box-shadow:
+        var(--edge),
+        5px 7px 18px var(--shade),
+        -4px -5px 18px var(--light);
+    }
+    .guide-pick-link:is(:hover, :focus-visible):active {
+      translate: none;
+      background: var(--pressed);
+      box-shadow: var(--press);
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-seg-thumb {
+      translate: 100% 0;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-seg > span:nth-child(2) {
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-seg > span:nth-child(3) {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-cursor {
+      animation: gg-blink 1.06s step-end infinite;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-bar {
+      scale: 1 1.25;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-bar:nth-child(2) {
+      transition-delay: 40ms;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-bar:nth-child(3) {
+      transition-delay: 80ms;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-bar:nth-child(4) {
+      transition-delay: 120ms;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-bar:nth-child(5) {
+      transition-delay: 160ms;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-row-well {
+      translate: 0 100%;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-row:nth-child(2) {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-row:nth-child(3) {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-key:last-child {
+      background: var(--pressed);
+      box-shadow: var(--press-small);
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-turn:last-child .gg-chip {
+      background: var(--fill-control);
+      box-shadow: var(--edge), var(--raise-small);
+      color: var(--ink);
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-col-well {
+      translate: 100% 0;
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-cell:nth-child(4n + 2) {
+      background: color-mix(in srgb, var(--muted), transparent 45%);
+    }
+    .guide-pick-link:is(:hover, :focus-visible) .gg-cell:nth-child(4n + 3) {
+      background: var(--ink);
+    }
+  }
+  @keyframes gg-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-contrast: more) {
+    .guide-pick-link:not(:focus-visible),
+    .gg-field,
+    .gg-term,
+    .gg-mac,
+    .gg-key {
+      outline: 1px solid color-mix(in srgb, var(--ink), transparent 50%);
+      outline-offset: -1px;
+    }
+  }
+  @media (max-width: 1000px) {
+    .guide-links {
+      --cols: min(2, var(--guide-columns, 2));
+    }
+  }
+  /* Phones: one tile per row, the graphic beside its label. */
+  @media (max-width: 420px) {
+    .guide-links {
+      --gap: 14px;
+      --cols: 1;
+    }
+    .guide-links:not(.guide-links-detail) .guide-pick-link {
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 14px 8px 8px;
+    }
+    .guide-links:not(.guide-links-detail) .guide-pick-art {
+      width: 144px;
+      height: 96px;
+    }
+    .guide-pick-label {
+      padding-inline: 0;
+      font-size: var(--step-0);
+    }
+  }
   @media (max-width: 700px) {
-    .guide-link-card,
     .guide-section {
       padding: 22px;
     }

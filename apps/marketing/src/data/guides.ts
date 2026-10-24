@@ -2,6 +2,9 @@ import type { Locale } from "../i18n";
 
 export interface Guide {
   slug: string;
+  /** The guide picker's short tile label (English ≤4 words, Chinese ≤8
+   *  characters); the full `title` stays the link's accessible name. */
+  label: string;
   title: string;
   description: string;
   summary: string;
@@ -13,6 +16,7 @@ export interface Guide {
 export const guides: Guide[] = [
   {
     slug: "mixed-chinese-english-dictation",
+    label: "Mixed Chinese and English",
     title: "Dictate mixed Chinese and English on a Mac",
     description:
       "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
@@ -22,6 +26,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "dictate-to-claude-code-and-terminals",
+    label: "Claude\u00a0Code, Codex",
     title: "Dictate prompts into Claude Code, Codex and terminals",
     description:
       "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
@@ -31,6 +36,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "offline-dictation-on-mac",
+    label: "Offline dictation",
     title: "Set up offline dictation on your Mac",
     description:
       "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
@@ -40,6 +46,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "local-vs-cloud-dictation",
+    label: "Local or cloud",
     title: "Choose local or cloud dictation",
     description:
       "Compare Airdraft's local and cloud speech and refinement options. See where audio, transcripts and enabled app context go before choosing a setup.",
@@ -49,6 +56,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "free-source-or-official-app",
+    label: "Free or official app",
     title: "Choose the free source build or official app",
     description:
       "Compare Airdraft's complete free source build with its one-time official app license, including setup, updates, Mac limits and current availability.",
@@ -58,6 +66,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "private-meeting-transcription",
+    label: "Transcribe meetings privately",
     title: "Transcribe meetings privately on your Mac",
     description:
       "Record app audio and your microphone or import a file, then transcribe it on your Mac with optional speaker labels. Check permissions, limits and exports.",
@@ -67,6 +76,7 @@ export const guides: Guide[] = [
   },
   {
     slug: "compare-mac-dictation-apps",
+    label: "Compare Airdraft",
     title:
       "Compare Airdraft with VoiceInk, Handy, Typeless and Apple Dictation",
     description:
@@ -81,37 +91,61 @@ export const guides: Guide[] = [
 export const zhGuides: Guide[] = [
   {
     slug: "mixed-chinese-english-dictation",
-    title: "在 Mac 上中英混著講的聽寫",
+    label: "中英混著講",
+    title: "在 Mac 上中英混著講：本機模型怎麼選",
     description:
-      "一句話裡夾著英文術語時，該選哪個本機語音模型？Airdraft 自己的測量比較錯誤率、英文詞保留、下載大小、記憶體與速度。",
-    summary: "幫中英混說挑本機模型，附 Airdraft 自己測出的取捨。",
+      "一句話夾著英文術語時，該選哪個本機語音模型？Airdraft 自行測量五個模型的錯誤率、英文詞保留率、下載大小、記憶體與速度。",
+    summary: "中英混說該用哪個本機模型，附 Airdraft 的實測取捨。",
     href: "/zh-tw/guides/mixed-chinese-english-dictation/",
   },
   {
     slug: "dictate-to-claude-code-and-terminals",
-    title: "用說的把提示詞送進 Claude Code、Codex 與終端機",
+    label: "Claude\u00a0Code、Codex",
+    title: "用語音在 Claude Code、Codex 與終端機輸入提示詞",
     description:
-      "在 Mac 上用語音把提示詞輸入 Claude Code、Codex 與終端機：自行繪製文字的終端機怎麼貼上、怎麼沿用你的訂閱方案潤稿，以及哪些資料會離開 Mac。",
-    summary: "用說的對程式助理下指令，並沿用你已付費的方案潤稿。",
+      "在 Mac 上用語音輸入 Claude Code、Codex 與終端機的提示詞：自繪文字的終端機如何貼上、如何沿用現有訂閱潤稿，以及哪些資料會離開 Mac。",
+    summary: "用說的輸入提示詞，並沿用你已付費的訂閱潤稿。",
     href: "/zh-tw/guides/dictate-to-claude-code-and-terminals/",
   },
   {
     slug: "private-meeting-transcription",
-    title: "在 Mac 上私密地把會議轉成逐字稿",
+    label: "會議轉成逐字稿",
+    title: "在自己的 Mac 上把會議轉成逐字稿",
     description:
-      "錄下 App 音訊與麥克風，或匯入音訊、影片檔，在你的 Mac 上轉成逐字稿並可選擇標出講者。說明所需權限、限制與匯出格式。",
+      "錄下 App 音訊與麥克風，或匯入音訊、影片檔，在 Mac 上轉成逐字稿，可選擇標出講者。另說明所需權限、限制與匯出格式。",
     summary: "錄下通話或匯入檔案，標出講者，再匯出字幕。",
     href: "/zh-tw/guides/private-meeting-transcription/",
   },
   {
     slug: "compare-mac-dictation-apps",
+    label: "聽寫比較",
     title: "Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較",
     description:
-      "附查核日期的比較：Airdraft、VoiceInk、Handy、Typeless 與 macOS 27 的 Apple 聽寫，在價格、原始碼、語音在哪裡處理、會議功能，以及各自強項上的差異。",
-    summary: "並排比較價格、資料去向與會議功能，也寫出別人比較好的地方。",
+      "附查核日期，比較 Airdraft、VoiceInk、Handy、Typeless 與 macOS 27 的 Apple 聽寫：價格、原始碼、語音在哪裡處理、會議功能，以及各自的強項。",
+    summary: "並排比較價格、資料去向與會議功能，也列出別人做得更好的地方。",
     href: "/zh-tw/guides/compare-mac-dictation-apps/",
   },
 ];
 
 export const guidesFor = (locale: Locale) =>
   locale === "zh-tw" ? zhGuides : guides;
+
+/** Each guide's graphic in the guide picker (GuideGlyph.astro), by slug. */
+export type GuideGlyphKind =
+  | "mixed"
+  | "terminal"
+  | "offline"
+  | "dataflow"
+  | "price"
+  | "speakers"
+  | "compare";
+
+export const guideGlyphs: Record<string, GuideGlyphKind> = {
+  "mixed-chinese-english-dictation": "mixed",
+  "dictate-to-claude-code-and-terminals": "terminal",
+  "offline-dictation-on-mac": "offline",
+  "local-vs-cloud-dictation": "dataflow",
+  "free-source-or-official-app": "price",
+  "private-meeting-transcription": "speakers",
+  "compare-mac-dictation-apps": "compare",
+};
