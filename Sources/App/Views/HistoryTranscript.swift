@@ -69,8 +69,8 @@ struct HistoryTranscript: NSViewRepresentable {
             self.scale = scale
             textField.font = TextStyle.transcript.nsFont(scale: scale)
             textField.maximumNumberOfLines = expanded ? 0 : 6
-            textField.attributedStringValue = NSAttributedString(string: expanded ? content.full : content.preview,
-                                                                 attributes: Self.attributes(scale: scale))
+            let text = expanded ? content.full : content.preview
+            textField.attributedStringValue = NSAttributedString(string: text, attributes: Self.attributes(scale: scale, text: text))
             createdToggle?.title = expanded ? String(localized: "Show Less") : String(localized: "Show More")
             lastMeasurement = nil
             invalidateIntrinsicContentSize()
@@ -94,7 +94,9 @@ struct HistoryTranscript: NSViewRepresentable {
             textField.frame = NSRect(x: 0, y: 0, width: bounds.width, height: result.textHeight)
             if result.showsToggle {
                 toggle.isHidden = false
-                toggle.frame = NSRect(x: 0, y: result.textHeight + Theme.controlSpacing,
+                // At the interface's leading edge, like the card actions below it.
+                let x = userInterfaceLayoutDirection == .rightToLeft ? bounds.width - result.buttonSize.width : 0
+                toggle.frame = NSRect(x: x, y: result.textHeight + Theme.controlSpacing,
                                       width: result.buttonSize.width, height: result.buttonSize.height)
             } else {
                 createdToggle?.isHidden = true
@@ -105,8 +107,16 @@ struct HistoryTranscript: NSViewRepresentable {
 
         // MARK: Shared measurement
 
-        private static func attributes(scale: CGFloat) -> [NSAttributedString.Key: Any] {
+        /// Natural alignment by the transcript's own direction: an English dictation stays
+        /// left aligned in a right-to-left interface, and an Arabic one right aligned in English.
+        private static func attributes(scale: CGFloat, text: String) -> [NSAttributedString.Key: Any] {
             let style = NSMutableParagraphStyle()
+            style.baseWritingDirection = WritingDirection.paragraphDirection(of: text)
+            style.alignment = switch style.baseWritingDirection {
+            case .leftToRight: .left
+            case .rightToLeft: .right
+            default: .natural
+            }
             style.lineSpacing = 3
             return [.font: TextStyle.transcript.nsFont(scale: scale), .foregroundColor: NSColor.labelColor, .paragraphStyle: style]
         }
@@ -166,7 +176,7 @@ struct HistoryTranscript: NSViewRepresentable {
             let field = measuringField
             field.font = TextStyle.transcript.nsFont(scale: scale)
             field.maximumNumberOfLines = lines
-            field.attributedStringValue = NSAttributedString(string: text, attributes: attributes(scale: scale))
+            field.attributedStringValue = NSAttributedString(string: text, attributes: attributes(scale: scale, text: text))
             let bounds = NSRect(x: 0, y: 0, width: width, height: .greatestFiniteMagnitude)
             return ceil(field.cell?.cellSize(forBounds: bounds).height ?? 0)
         }

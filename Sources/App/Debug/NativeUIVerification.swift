@@ -487,7 +487,10 @@ enum NativeUIVerification {
             let font = NSFont.systemFont(ofSize: 11)
             let singleLine = ceil(font.ascender - font.descender + font.leading)
             print("NOTICE_GEOMETRY", "card", card, "row", row, "text", textFrame, "action", actionFrame)
-            precondition(textFrame.height > singleLine * 1.5 && textFrame.maxX <= actionFrame.minX &&
+            // The action trails the text: at its right, or its left in a right-to-left layout.
+            let besideAction = NSApp.userInterfaceLayoutDirection == .rightToLeft
+                ? textFrame.minX >= actionFrame.maxX : textFrame.maxX <= actionFrame.minX
+            precondition(textFrame.height > singleLine * 1.5 && besideAction &&
                          abs(textFrame.midY - actionFrame.midY) <= 2,
                          "Diagnostic must wrap beside its vertically centered action")
             precondition(press(label: "Reload History", in: window))

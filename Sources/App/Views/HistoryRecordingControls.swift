@@ -23,24 +23,28 @@ struct HistoryRecordingControls: View {
             DisclosureGroup("Recording Details") { Text(issue).supportingText().textSelection(.enabled) }.settingsDisclosure()
         }
         HStack(spacing: 8) {
-            Button(action: play) { Image(systemName: playing ? "pause.fill" : "play.fill") }
-                .buttonStyle(SoftIconButtonStyle())
-                .help(playing ? "Pause recording" : "Play recording")
-                .accessibilityLabel(playing ? "Pause Recording" : "Play Recording")
-                .accessibilityIdentifier("recording.play.\(asset.id)")
-                .disabled(busy)
-            if active {
-                HistoryPlaybackProgress(playback: playback)
-            } else {
-                SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
-                           valueDescription: { Self.position($0, of: asset.duration) })
-                    .disabled(true)
-                    .help("Play the recording to seek")
-                Text("0:00 / \(Self.time(asset.duration))")
-                    .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
-                    // The slider's value already reads the position.
-                    .accessibilityHidden(true)
+            // Media transport: play, position and time run left to right in every language.
+            HStack(spacing: 8) {
+                Button(action: play) { Image(systemName: playing ? "pause.fill" : "play.fill") }
+                    .buttonStyle(SoftIconButtonStyle())
+                    .help(playing ? "Pause recording" : "Play recording")
+                    .accessibilityLabel(playing ? "Pause Recording" : "Play Recording")
+                    .accessibilityIdentifier("recording.play.\(asset.id)")
+                    .disabled(busy)
+                if active {
+                    HistoryPlaybackProgress(playback: playback)
+                } else {
+                    SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
+                               valueDescription: { Self.position($0, of: asset.duration) }, timeline: true)
+                        .disabled(true)
+                        .help("Play the recording to seek")
+                    Text(verbatim: WritingDirection.leftToRight(String(localized: "0:00 / \(Self.time(asset.duration))")))
+                        .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                        // The slider's value already reads the position.
+                        .accessibilityHidden(true)
+                }
             }
+            .environment(\.layoutDirection, .leftToRight)
             Button(exporting ? "Saving…" : "Save Audio…", action: save)
                 .appFont(.supporting)
                 .buttonStyle(SoftButtonStyle())
@@ -83,8 +87,8 @@ struct HistoryPlaybackProgress: View {
     var body: some View {
         SoftSlider(title: "Playback position", value: Binding(get: { playback.currentTime }, set: { playback.seek(to: $0) }),
                    range: 0...max(0.01, playback.duration), step: 0.1, keyboardStep: 5,
-                   valueDescription: { HistoryRecordingControls.position($0, of: playback.duration) })
-        Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
+                   valueDescription: { HistoryRecordingControls.position($0, of: playback.duration) }, timeline: true)
+        Text(verbatim: WritingDirection.leftToRight(String(localized: "\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")))
             .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
             .accessibilityHidden(true)
     }

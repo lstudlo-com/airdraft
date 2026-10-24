@@ -557,7 +557,7 @@ struct ExperimentalModelsDisclosure: View {
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: 8) {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.system(size: 11, weight: .semibold))
                     .rotationEffect(.degrees(expanded ? 90 : 0))
                     .foregroundStyle(.secondary)

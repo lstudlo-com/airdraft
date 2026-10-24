@@ -146,6 +146,10 @@ private struct SidebarSelectionWell<ID: Hashable>: View {
                 }
             }
         }
+        // Anchors resolve to physical points, while offsets mirror under a right-to-left
+        // layout: in physical coordinates the well and its island land on the row and
+        // icon in both directions, and keep their top-left light.
+        .environment(\.layoutDirection, .leftToRight)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }

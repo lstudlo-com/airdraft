@@ -252,6 +252,7 @@ struct RecordingHUDView: View {
                     .lineLimit(3)
                     .truncationMode(.head)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .naturalAlignment(for: pipeline?.previewIssue ?? sampleText ?? pipeline?.previewText ?? "")
                     .padding(14)
                     .frame(width: 360, height: 76)
                     .background {
@@ -338,6 +339,8 @@ struct IndicatorView: View {
         self.spatialAnimation = spatialAnimation
     }
 
+    @Environment(\.layoutDirection) private var layoutDirection
+
     private var state: PipelineState { snapshot?.state ?? pipeline?.state ?? .idle }
     private var levels: [Float] { snapshot?.levels ?? pipeline?.levelHistory ?? [] }
 
@@ -365,10 +368,15 @@ struct IndicatorView: View {
                             .font(.system(size: 10, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.white.opacity(0.7))
                             .fixedSize()
+                            .environment(\.layoutDirection, layoutDirection)
                             .padding(.trailing, Self.textOuterInset - Self.contentInset)
                             .accessibilityIdentifier("hud.status")
                     }
                 }
+                // The capsule is an instrument: the waveform runs left to right, Timer
+                // position names a physical side, and the status follows the waveform,
+                // in every language.
+                .environment(\.layoutDirection, .leftToRight)
             }
         }
         .padding(Self.contentInset)
@@ -377,11 +385,13 @@ struct IndicatorView: View {
             RoundedRectangle(cornerRadius: 17, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.17), Color(white: 0.10)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
+                .physicalLight()
         )
         .overlay(
             RoundedRectangle(cornerRadius: 17, style: .continuous)
                 .strokeBorder(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.04)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                .physicalLight()
         )
         .environment(\.colorScheme, .dark)
     }
@@ -459,6 +469,8 @@ struct HUDMessageView: View {
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+            // Provider diagnostics often stay English in a right-to-left interface.
+            .naturalAlignment(for: message)
             .accessibilityIdentifier("hud.message")
     }
 

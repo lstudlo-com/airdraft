@@ -1,11 +1,13 @@
 // Compile with Sources/App/Views/SurfaceShadows.swift, then run the executable.
 // Checks both rendering paths: cacheDisplay previously inverted outer shadows.
 // The translucent inset checks SurfaceShadows' inner mode on a nearly clear fill.
+// Every case also runs under a right-to-left layout, where the light must stay at the
+// physical top left: the gradient face uses `physicalLight()`, which `--legacy` omits.
 import AppKit
 import SwiftUI
 
 private enum Surface: String, CaseIterable {
-    case raised, inset, translucentInset = "translucent-inset"
+    case raised, inset, translucentInset = "translucent-inset", gradient
 }
 
 private struct LightingFixture: View {
@@ -16,7 +18,11 @@ private struct LightingFixture: View {
         ZStack(alignment: .topLeading) {
             Color(white: 0.5)
             Group {
-                if surface == .translucentInset {
+                if surface == .gradient {
+                    // A lit face, as the raised cards and controls draw it: bright at the top left.
+                    let face = Rectangle().fill(LinearGradient(colors: [.red, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    if legacy { face } else { face.physicalLight() }
+                } else if surface == .translucentInset {
                     Rectangle().fill(Color.white.opacity(0.05)).overlay {
                         SurfaceShadows(shape: Rectangle(), shadows: [
                             .init(color: .red, radius: 1, x: 12, y: 12),
@@ -57,10 +63,12 @@ private enum VerifyNativeShadows {
         let output = URL(fileURLWithPath: outputPath ?? "/tmp/airdraft-shadow-check")
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         var failures = 0
+        for direction in [LayoutDirection.leftToRight, .rightToLeft] {
         for dark in [false, true] {
             for surface in Surface.allCases {
                 let fixture = LightingFixture(surface: surface, legacy: CommandLine.arguments.contains("--legacy"))
                     .environment(\.colorScheme, dark ? .dark : .light)
+                    .environment(\.layoutDirection, direction)
                 let host = NSHostingView(rootView: fixture)
                 host.frame = NSRect(x: 0, y: 0, width: 240, height: 220)
                 let window = NSWindow(contentRect: host.frame, styleMask: [.titled], backing: .buffered, defer: false)
@@ -75,7 +83,7 @@ private enum VerifyNativeShadows {
                 renderer.scale = 2
                 let rendered = NSBitmapImageRep(cgImage: renderer.cgImage!)
                 for (method, bitmap) in [("hosting", cached), ("image-renderer", rendered)] {
-                    let name = "\(dark ? "dark" : "light")-\(surface.rawValue)-\(method)"
+                    let name = "\(direction == .rightToLeft ? "rtl" : "ltr")-\(dark ? "dark" : "light")-\(surface.rawValue)-\(method)"
                     try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name).png"))
                     let scale = CGFloat(bitmap.pixelsWide) / 240
                     func red(at point: CGPoint) -> Bool {
@@ -91,7 +99,9 @@ private enum VerifyNativeShadows {
                     let recessed = red(at: CGPoint(x: 120, y: 84)) && red(at: CGPoint(x: 84, y: 110))
                         && blue(at: CGPoint(x: 120, y: 136)) && blue(at: CGPoint(x: 156, y: 110))
                     let contained = !red(at: CGPoint(x: 120, y: 72)) && !blue(at: CGPoint(x: 120, y: 148))
-                    let correct = surface == .raised
+                    let correct = surface == .gradient
+                        ? red(at: CGPoint(x: 90, y: 90)) && blue(at: CGPoint(x: 150, y: 130))
+                        : surface == .raised
                         ? red(at: CGPoint(x: 120, y: 148)) && red(at: CGPoint(x: 168, y: 110))
                             && blue(at: CGPoint(x: 120, y: 72)) && blue(at: CGPoint(x: 72, y: 110))
                         : recessed && (surface == .inset || contained)
@@ -99,6 +109,7 @@ private enum VerifyNativeShadows {
                     if !correct { failures += 1 }
                 }
             }
+        }
         }
         if failures > 0 { exit(1) }
     }
