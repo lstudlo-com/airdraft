@@ -85,8 +85,10 @@ TARGETS = (
            instructions="Open a new Warp window and run the receiver command below, then click into it."),
     Target("Zed", ("dev.zed.Zed", "dev.zed.Zed-Preview", "dev.zed.Zed-Nightly"), "document",
            instructions="Click at the very end of the marker line in the opened file. Close it without saving."),
-    Target("Ghostty", ("com.mitchellh.ghostty",), "receiver", receiver_launch=("-n", "--args", "-e"),
-           instructions="Click into the new Ghostty window that shows the marker."),
+    # Never launch Ghostty with a command: it asks the user to allow command
+    # execution, which an unattended run must not trigger.
+    Target("Ghostty", ("com.mitchellh.ghostty",), "receiver",
+           instructions="Open a new Ghostty window and run the receiver command below, then click into it."),
     Target("Terminal", ("com.apple.Terminal",), "receiver", opens_receiver=True,
            instructions="Click into the new Terminal window that shows the marker."),
     Target("iTerm2", ("com.googlecode.iterm2",), "receiver",

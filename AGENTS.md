@@ -1575,8 +1575,9 @@ Debug app through `--e2e-action accessibility` (never prompting) whether it is
 trusted and marks every case unverified otherwise. It reads both the older and the
 macOS 27 `lsappinfo` formats, places the caret after the marker in opened documents
 with `--e2e-insertion-place-caret` (a selection change on the disposable field
-before capture, never a text write), and starts Terminal's and Ghostty's receiver
-itself. `--e2e-insertion-field` modes are `exact` (the release gate), `suffix`
+before capture, never a text write), and starts Terminal's receiver itself. Never launch Ghostty (or any terminal)
+with a command: Ghostty asks the user to allow command execution, so its receiver
+is a printed manual step. `--e2e-insertion-field` modes are `exact` (the release gate), `suffix`
 (terminals) and `none` (self-drawing editors). Terminal receivers record bracketed
 pastes and a pass needs exactly one. Self-drawing editors pass when sent
 unverified, or confirmed when they publish a caret. It uses no AppleScript, System

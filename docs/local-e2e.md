@@ -307,7 +307,7 @@ reads both the older `lsappinfo` output and the macOS 27 format:
 | Terminal | `open -a` a receiver script | Actual text (suffix mode) and receiver evidence |
 | iTerm2 | Run the printed receiver command in a new window | Actual text (suffix mode) and receiver evidence |
 | Warp | Run the printed receiver command in a new window | Sent unverified and receiver evidence |
-| Ghostty | `open -n` a new window running the receiver | Sent unverified, or confirmed because Ghostty 1.3 publishes a caret, and receiver evidence |
+| Ghostty | manual: run the printed receiver command in a new window (launching Ghostty with a command asks the user to allow command execution) | Sent unverified, or confirmed because Ghostty 1.3 publishes a caret, and receiver evidence |
 | Zed | `open -a` a temporary text file; click at its end | Sent unverified; no readable text |
 
 The expected outcome comes from the build's own `selfDrawingEditorBundlePrefixes`.
