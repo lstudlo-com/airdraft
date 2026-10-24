@@ -193,7 +193,7 @@
   },
   {
    "en": "Hold to talk",
-   "pt-BR": "Segure para falar"
+   "pt-BR": "Segurar"
   },
   {
    "en": "Toggle",
@@ -421,7 +421,7 @@
   },
   {
    "en": "Keychain",
-   "pt-BR": "Chaves"
+   "pt-BR": "Chaves do macOS (nunca \"chave\" para um botão de opção)"
   },
   {
    "en": "Applications (folder)",
@@ -586,6 +586,14 @@
   {
    "en": "Welcome / Speech / Permissions / Shortcut / Try It / Ready",
    "pt-BR": "Boas-vindas / Fala / Permissões / Atalho / Experimente / Pronto"
+  },
+  {
+   "en": "Welcome",
+   "pt-BR": "Olá"
+  },
+  {
+   "en": "Try It",
+   "pt-BR": "Prática"
   }
  ]
 }

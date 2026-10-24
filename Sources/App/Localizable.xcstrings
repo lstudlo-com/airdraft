@@ -8531,7 +8531,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Airdraft funciona em qualquer lugar onde você possa digitar. Veja como incorporá-lo ao seu dia a dia."
+            "value" : "O Airdraft funciona onde você digita. Veja como usá-lo no dia a dia."
           }
         },
         "fr" : {
@@ -18771,7 +18771,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volte para cá. Esta página percebe sozinha."
+            "value" : "Volte para cá. Esta página se atualiza sozinha."
           }
         },
         "fr" : {
@@ -28051,7 +28051,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Encontre o Airdraft na lista e ative a chave dele."
+            "value" : "Encontre o Airdraft na lista e ative-o."
           }
         },
         "fr" : {
@@ -28307,7 +28307,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Concluir configuração"
+            "value" : "Configurar"
           }
         },
         "fr" : {
@@ -29331,7 +29331,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obtenha uma chave no site do provedor, cole-a aqui e pressione Testar. Sua chave fica nas Chaves deste Mac."
+            "value" : "Obtenha uma chave no site do provedor, cole-a aqui e pressione Testar. Sua chave fica guardada nas Chaves do macOS, neste Mac."
           }
         },
         "fr" : {
@@ -29715,7 +29715,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Olá! Estou experimentando o Airdraft pela primeira vez, e ele está escrevendo o que eu digo."
+            "value" : "Olá! Estou usando o Airdraft pela primeira vez e ele escreve o que eu digo."
           }
         },
         "fr" : {
@@ -30867,7 +30867,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segure para falar"
+            "value" : "Segurar"
           }
         },
         "fr" : {
@@ -31571,7 +31571,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se a chave dele já estiver ativada"
+            "value" : "Se ele já estiver ativado"
           }
         },
         "fr" : {
@@ -31827,7 +31827,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nos Ajustes do Sistema, ative a chave ao lado do Airdraft"
+            "value" : "Nos Ajustes do Sistema, ative a opção ao lado do Airdraft"
           }
         },
         "fr" : {
@@ -34012,7 +34012,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acesso às Chaves necessário"
+            "value" : "É preciso acesso às Chaves do macOS"
           }
         },
         "fr" : {
@@ -35236,7 +35236,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A licença precisa de acesso às Chaves"
+            "value" : "A licença precisa de acesso às Chaves do macOS"
           }
         },
         "fr" : {
@@ -42793,7 +42793,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem avaliação"
+            "value" : "Sem nota"
           }
         },
         "fr" : {
@@ -47798,7 +47798,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolha onde sua fala vira texto. Você pode alterar isso depois em Modelos."
+            "value" : "Defina onde sua fala vira texto. Você pode alterar isso depois em Modelos."
           }
         },
         "fr" : {
@@ -48310,7 +48310,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Precisão numérica"
+            "value" : "Quantização"
           }
         },
         "fr" : {
@@ -54148,7 +54148,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gravações em espera"
+            "value" : "Áudio pendente"
           }
         },
         "fr" : {
@@ -56395,7 +56395,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove palavras de preenchimento e corrige a pontuação. Roda neste Mac, sem chave nem download."
+            "value" : "Remove hesitações e corrige a pontuação. Roda neste Mac, sem chave de API nem download."
           }
         },
         "fr" : {
@@ -66077,7 +66077,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Velocidade"
+            "value" : "Rapidez"
           }
         },
         "fr" : {
@@ -67441,7 +67441,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Armazenamento"
+            "value" : "Tamanho"
           }
         },
         "fr" : {
@@ -67505,7 +67505,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Armazenada nas Chaves"
+            "value" : "Salva nas Chaves do macOS"
           }
         },
         "fr" : {
@@ -67569,7 +67569,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Armazenada nas suas Chaves"
+            "value" : "Salva nas Chaves do macOS"
           }
         },
         "fr" : {
@@ -68151,7 +68151,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A chave já está ativada ou o Airdraft não aparece na lista?"
+            "value" : "Já está ativado ou o Airdraft não aparece na lista?"
           }
         },
         "fr" : {
@@ -68343,7 +68343,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fale, e suas palavras aparecem onde você digita."
+            "value" : "Fale e suas palavras aparecem onde você digita."
           }
         },
         "fr" : {
@@ -69943,7 +69943,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este é um ditado de verdade com o modelo escolhido. Ele também aparece no Histórico."
+            "value" : "É um ditado real com o modelo escolhido e também aparece no Histórico."
           }
         },
         "fr" : {
@@ -70711,7 +70711,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Organize suas palavras com a Apple Intelligence"
+            "value" : "Organize o texto com a Apple Intelligence"
           }
         },
         "fr" : {
@@ -72184,7 +72184,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimente"
+            "value" : "Prática"
           }
         },
         "fr" : {
@@ -72312,7 +72312,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimente todos os recursos de graça por %@"
+            "value" : "Teste todos os recursos grátis por %@"
           }
         },
         "fr" : {
@@ -76222,7 +76222,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boas-vindas"
+            "value" : "Olá"
           }
         },
         "fr" : {
@@ -76478,7 +76478,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Palavra ou frase mal entendida"
+            "value" : "Termo ou frase errada"
           }
         },
         "fr" : {
@@ -77310,7 +77310,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sua velocidade, suas palavras e o tempo economizado aparecem aqui depois que você ditar."
+            "value" : "Velocidade, palavras e tempo poupado aparecem aqui após você ditar."
           }
         },
         "fr" : {
@@ -77374,7 +77374,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sua velocidade, suas palavras e o tempo economizado voltam quando o Histórico puder ser lido."
+            "value" : "Velocidade, palavras e tempo poupado voltam quando o Histórico abrir."
           }
         },
         "fr" : {
@@ -78719,7 +78719,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O macOS não concedeu acesso a esta cópia em execução. Uma chave ativada para outra cópia ou uma versão mais antiga não confirma o acesso desta."
+            "value" : "O macOS não concedeu acesso a esta cópia em execução. Uma opção ativada para outra cópia ou uma versão mais antiga não confirma o acesso desta."
           }
         },
         "fr" : {

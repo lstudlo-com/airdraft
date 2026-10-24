@@ -1,0 +1,670 @@
+{
+ "language": "es",
+ "notes": "Tuteo (tú imperatives: Elige, Pulsa, Mantén pulsado); neutral Spanish usable in Spain and Latin America, avoiding gendered forms for the user (“cuando quieras”, “Todo listo”). Sentence case for titles, buttons and menu items (Guardar cambios, Abrir Ajustes del Sistema); capitalize only proper names and the names of app pages and macOS panes (Ajustes, Modelos, Historial, Ajustes del Sistema, Llavero). Use “ ” quotes, decimal comma and a space before % (10,3 %). Prices as 0,0045 USD. Apple macOS Spanish terminology: Ajustes, Ajustes del Sistema, Llavero, portapapeles, atajo, Atajos, barra de menús, Finder, Dock. Never translated: Airdraft, model/provider names, Apple Intelligence, Apple Speech, Neural Engine, Core ML, keycap names (Control, Option, Command, Shift, Fn, esc, Return), paths, identifiers, URLs. Single-line controls (segments, sidebar footer, table headers) must stay as short as English.",
+ "terms": [
+  {
+   "en": "dictation",
+   "es": "dictado"
+  },
+  {
+   "en": "dictate",
+   "es": "dictar"
+  },
+  {
+   "en": "refinement",
+   "es": "refinamiento"
+  },
+  {
+   "en": "refine",
+   "es": "refinar"
+  },
+  {
+   "en": "tidy (your words)",
+   "es": "pulir (tus palabras)"
+  },
+  {
+   "en": "profile",
+   "es": "perfil"
+  },
+  {
+   "en": "built-in profile",
+   "es": "perfil integrado"
+  },
+  {
+   "en": "speech model",
+   "es": "modelo de voz"
+  },
+  {
+   "en": "speech recognition",
+   "es": "reconocimiento de voz"
+  },
+  {
+   "en": "Speech (section/menu/step)",
+   "es": "Voz"
+  },
+  {
+   "en": "speech language",
+   "es": "idioma de voz"
+  },
+  {
+   "en": "Speech options",
+   "es": "Opciones de voz"
+  },
+  {
+   "en": "local speech",
+   "es": "voz local"
+  },
+  {
+   "en": "cloud speech",
+   "es": "voz en la nube"
+  },
+  {
+   "en": "Cloud",
+   "es": "Nube"
+  },
+  {
+   "en": "transcript",
+   "es": "transcripción"
+  },
+  {
+   "en": "transcribe",
+   "es": "transcribir"
+  },
+  {
+   "en": "retranscribe",
+   "es": "volver a transcribir"
+  },
+  {
+   "en": "raw transcript / raw text",
+   "es": "transcripción sin procesar / texto sin procesar"
+  },
+  {
+   "en": "history",
+   "es": "historial"
+  },
+  {
+   "en": "meeting",
+   "es": "reunión"
+  },
+  {
+   "en": "recording",
+   "es": "grabación"
+  },
+  {
+   "en": "record",
+   "es": "grabar"
+  },
+  {
+   "en": "Save (button)",
+   "es": "Guardar"
+  },
+  {
+   "en": "shortcut",
+   "es": "atajo"
+  },
+  {
+   "en": "Keyboard shortcuts",
+   "es": "Atajos de teclado"
+  },
+  {
+   "en": "Apple Shortcuts",
+   "es": "Atajos de Apple"
+  },
+  {
+   "en": "clipboard",
+   "es": "portapapeles"
+  },
+  {
+   "en": "paste",
+   "es": "pegar"
+  },
+  {
+   "en": "insert at cursor",
+   "es": "insertar en el cursor"
+  },
+  {
+   "en": "delivery (text)",
+   "es": "entrega (del texto)"
+  },
+  {
+   "en": "live preview",
+   "es": "vista previa en directo"
+  },
+  {
+   "en": "live transcript",
+   "es": "transcripción en directo"
+  },
+  {
+   "en": "Home",
+   "es": "Inicio"
+  },
+  {
+   "en": "History",
+   "es": "Historial"
+  },
+  {
+   "en": "Meetings",
+   "es": "Reuniones"
+  },
+  {
+   "en": "Models",
+   "es": "Modelos"
+  },
+  {
+   "en": "Profiles",
+   "es": "Perfiles"
+  },
+  {
+   "en": "Vocabulary",
+   "es": "Vocabulario"
+  },
+  {
+   "en": "Settings",
+   "es": "Ajustes"
+  },
+  {
+   "en": "System Settings",
+   "es": "Ajustes del Sistema"
+  },
+  {
+   "en": "Privacy & Security",
+   "es": "Privacidad y seguridad"
+  },
+  {
+   "en": "Accessibility",
+   "es": "Accesibilidad"
+  },
+  {
+   "en": "Microphone",
+   "es": "Micrófono"
+  },
+  {
+   "en": "Screen & System Audio Recording",
+   "es": "Grabación de pantalla y audio del sistema"
+  },
+  {
+   "en": "Trial & License",
+   "es": "Prueba y licencia"
+  },
+  {
+   "en": "trial",
+   "es": "prueba"
+  },
+  {
+   "en": "license",
+   "es": "licencia"
+  },
+  {
+   "en": "license key",
+   "es": "clave de licencia"
+  },
+  {
+   "en": "activate / deactivate",
+   "es": "activar / desactivar"
+  },
+  {
+   "en": "device slot",
+   "es": "plaza de dispositivo"
+  },
+  {
+   "en": "customer portal",
+   "es": "portal de cliente"
+  },
+  {
+   "en": "provider",
+   "es": "proveedor"
+  },
+  {
+   "en": "host",
+   "es": "host"
+  },
+  {
+   "en": "API key",
+   "es": "clave de API"
+  },
+  {
+   "en": "endpoint",
+   "es": "endpoint"
+  },
+  {
+   "en": "base URL",
+   "es": "URL base"
+  },
+  {
+   "en": "Keychain",
+   "es": "Llavero"
+  },
+  {
+   "en": "Allow Access",
+   "es": "Permitir acceso"
+  },
+  {
+   "en": "model ID",
+   "es": "ID del modelo"
+  },
+  {
+   "en": "download",
+   "es": "descargar / descarga"
+  },
+  {
+   "en": "install",
+   "es": "instalar"
+  },
+  {
+   "en": "load / unload (model)",
+   "es": "cargar / descargar de memoria"
+  },
+  {
+   "en": "idle",
+   "es": "inactivo"
+  },
+  {
+   "en": "memory",
+   "es": "memoria"
+  },
+  {
+   "en": "app",
+   "es": "app"
+  },
+  {
+   "en": "app rule",
+   "es": "regla de app"
+  },
+  {
+   "en": "app family",
+   "es": "familia de apps"
+  },
+  {
+   "en": "Profile by app",
+   "es": "Perfil según la app"
+  },
+  {
+   "en": "Choose profile by app",
+   "es": "Elegir perfil según la app"
+  },
+  {
+   "en": "Use App Default",
+   "es": "Predeterminado de la app"
+  },
+  {
+   "en": "preferred spelling",
+   "es": "grafía preferida"
+  },
+  {
+   "en": "misheard word",
+   "es": "palabra mal oída"
+  },
+  {
+   "en": "base system prompt",
+   "es": "prompt de sistema base"
+  },
+  {
+   "en": "prompt",
+   "es": "prompt"
+  },
+  {
+   "en": "instructions",
+   "es": "instrucciones"
+  },
+  {
+   "en": "task",
+   "es": "tarea"
+  },
+  {
+   "en": "Thinking effort",
+   "es": "Esfuerzo de razonamiento"
+  },
+  {
+   "en": "token",
+   "es": "token"
+  },
+  {
+   "en": "temperature",
+   "es": "temperatura"
+  },
+  {
+   "en": "speaker",
+   "es": "hablante"
+  },
+  {
+   "en": "speaker detection",
+   "es": "detección de hablantes"
+  },
+  {
+   "en": "summary / summarize",
+   "es": "resumen / resumir"
+  },
+  {
+   "en": "Action Items",
+   "es": "Tareas pendientes"
+  },
+  {
+   "en": "Decisions & Follow-ups",
+   "es": "Decisiones y seguimientos"
+  },
+  {
+   "en": "Meeting Minutes",
+   "es": "Acta de reunión"
+  },
+  {
+   "en": "Brief Summary",
+   "es": "Resumen breve"
+  },
+  {
+   "en": "recording window (HUD)",
+   "es": "ventana de grabación"
+  },
+  {
+   "en": "timer",
+   "es": "temporizador"
+  },
+  {
+   "en": "Show text while speaking",
+   "es": "Mostrar texto mientras hablas"
+  },
+  {
+   "en": "Trigger Delay",
+   "es": "Retardo de activación"
+  },
+  {
+   "en": "Hold (verb, instruction)",
+   "es": "Mantén pulsado"
+  },
+  {
+   "en": "Press (verb, instruction)",
+   "es": "Pulsa"
+  },
+  {
+   "en": "let go",
+   "es": "suelta"
+  },
+  {
+   "en": "Hold to talk / Toggle (segmented)",
+   "es": "Mantener / Alternar"
+  },
+  {
+   "en": "Push to talk or toggle",
+   "es": "Mantener pulsado o alternar"
+  },
+  {
+   "en": "retry",
+   "es": "reintentar"
+  },
+  {
+   "en": "discard",
+   "es": "descartar"
+  },
+  {
+   "en": "Dismiss (notice)",
+   "es": "Cerrar"
+  },
+  {
+   "en": "recover / recovery",
+   "es": "recuperar / recuperación"
+  },
+  {
+   "en": "cleanup",
+   "es": "limpieza"
+  },
+  {
+   "en": "reset",
+   "es": "restablecer"
+  },
+  {
+   "en": "Restore Defaults",
+   "es": "Restaurar valores predeterminados"
+  },
+  {
+   "en": "Done",
+   "es": "OK"
+  },
+  {
+   "en": "Cancel",
+   "es": "Cancelar"
+  },
+  {
+   "en": "Delete",
+   "es": "Eliminar"
+  },
+  {
+   "en": "Remove (rule, list item)",
+   "es": "Quitar"
+  },
+  {
+   "en": "Quit",
+   "es": "Salir"
+  },
+  {
+   "en": "Refresh",
+   "es": "Actualizar"
+  },
+  {
+   "en": "Check for Updates…",
+   "es": "Buscar actualizaciones…"
+  },
+  {
+   "en": "Updates",
+   "es": "Actualizaciones"
+  },
+  {
+   "en": "Acknowledgements",
+   "es": "Agradecimientos"
+  },
+  {
+   "en": "Appearance",
+   "es": "Apariencia"
+  },
+  {
+   "en": "Behavior",
+   "es": "Comportamiento"
+  },
+  {
+   "en": "Text size: Default / Large / Larger",
+   "es": "Tamaño del texto: Predeterminado / Grande / Máximo"
+  },
+  {
+   "en": "Light / Dark / Auto",
+   "es": "Claro / Oscuro / Auto"
+  },
+  {
+   "en": "Off",
+   "es": "Desactivado"
+  },
+  {
+   "en": "Default",
+   "es": "Predeterminado"
+  },
+  {
+   "en": "System Default",
+   "es": "Predeterminado del sistema"
+  },
+  {
+   "en": "on-device",
+   "es": "en el dispositivo"
+  },
+  {
+   "en": "on this Mac",
+   "es": "en este Mac"
+  },
+  {
+   "en": "online service",
+   "es": "servicio en línea"
+  },
+  {
+   "en": "Final text",
+   "es": "Texto final"
+  },
+  {
+   "en": "Send to script",
+   "es": "Enviar a script"
+  },
+  {
+   "en": "script delivery",
+   "es": "entrega por script"
+  },
+  {
+   "en": "Read app context",
+   "es": "Leer el contexto de la app"
+  },
+  {
+   "en": "WPM",
+   "es": "PPM"
+  },
+  {
+   "en": "WER",
+   "es": "WER"
+  },
+  {
+   "en": "word error rate",
+   "es": "tasa de error de palabras"
+  },
+  {
+   "en": "streak",
+   "es": "racha"
+  },
+  {
+   "en": "experimental",
+   "es": "experimental"
+  },
+  {
+   "en": "verified",
+   "es": "verificado"
+  },
+  {
+   "en": "recommended",
+   "es": "recomendado"
+  },
+  {
+   "en": "Best fit",
+   "es": "Mejor opción"
+  },
+  {
+   "en": "Not rated",
+   "es": "Sin nota"
+  },
+  {
+   "en": "Speed (table header)",
+   "es": "Rapidez"
+  },
+  {
+   "en": "Accuracy",
+   "es": "Precisión"
+  },
+  {
+   "en": "Storage (table header)",
+   "es": "Tamaño"
+  },
+  {
+   "en": "Self-built edition",
+   "es": "Edición compilada por ti"
+  },
+  {
+   "en": "build (version)",
+   "es": "compilación"
+  },
+  {
+   "en": "crash reports",
+   "es": "informes de fallos"
+  },
+  {
+   "en": "anonymous usage data",
+   "es": "datos de uso anónimos"
+  },
+  {
+   "en": "media job",
+   "es": "tarea multimedia"
+  },
+  {
+   "en": "batch",
+   "es": "por lotes"
+  },
+  {
+   "en": "preview (pre-release model)",
+   "es": "versión preliminar"
+  },
+  {
+   "en": "language assets",
+   "es": "recursos de idioma"
+  },
+  {
+   "en": "locale",
+   "es": "configuración regional"
+  },
+  {
+   "en": "Chinese script",
+   "es": "escritura china"
+  },
+  {
+   "en": "Mandarin / Cantonese",
+   "es": "mandarín / cantonés"
+  },
+  {
+   "en": "menu bar",
+   "es": "barra de menús"
+  },
+  {
+   "en": "sidebar",
+   "es": "barra lateral"
+  },
+  {
+   "en": "Collapse / Expand",
+   "es": "Contraer / Expandir"
+  },
+  {
+   "en": "Clean / Concise / Summary / Verbatim (profiles)",
+   "es": "Limpio / Conciso / Resumen / Literal"
+  },
+  {
+   "en": "Classic / Cube / Sonic / Orbit / Silk (styles)",
+   "es": "Clásico / Cubo / Sónico / Órbita / Seda"
+  },
+  {
+   "en": "Pure Wave / Carved Wave / Night Wave",
+   "es": "Onda pura / Onda tallada / Onda nocturna"
+  },
+  {
+   "en": "Code editors / Terminals / Email / Work chat / Personal messages / Documents and notes / Other apps",
+   "es": "Editores de código / Terminales / Correo / Chat de trabajo / Mensajes personales / Documentos y notas / Otras apps"
+  },
+  {
+   "en": "Permissions",
+   "es": "Permisos"
+  },
+  {
+   "en": "Welcome / Try It / Ready (onboarding)",
+   "es": "Bienvenida / Pruébalo / Listo"
+  },
+  {
+   "en": "Finish Setup (sidebar footer)",
+   "es": "Configurar"
+  },
+  {
+   "en": "Set Up Later",
+   "es": "Configurar luego"
+  },
+  {
+   "en": "Recordings Waiting (sidebar footer)",
+   "es": "Audio en espera"
+  },
+  {
+   "en": "Ready to dictate",
+   "es": "Todo listo para dictar"
+  },
+  {
+   "en": "filler words",
+   "es": "muletillas"
+  },
+  {
+   "en": "Until deleted",
+   "es": "Hasta que las elimines"
+  },
+  {
+   "en": "fallback",
+   "es": "respaldo"
+  },
+  {
+   "en": "routing",
+   "es": "enrutamiento"
+  }
+ ]
+}

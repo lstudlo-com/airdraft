@@ -8424,7 +8424,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível acessar as Chaves (%d). Sua chave salva não foi removida."
+            "value" : "Não foi possível acessar as Chaves do macOS (%d). Sua chave salva não foi removida."
           }
         },
         "fr" : {
@@ -8808,7 +8808,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível salvar a licença nas Chaves. O acesso não foi alterado."
+            "value" : "Não foi possível salvar a licença nas Chaves do macOS. O acesso não foi alterado."
           }
         },
         "fr" : {
@@ -17155,7 +17155,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem avaliação"
+            "value" : "Sem nota"
           }
         },
         "fr" : {
@@ -22482,7 +22482,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não foi possível remover algumas chaves de provedores (status das Chaves %d). As remoções concluídas continuam valendo; desbloqueie as Chaves e tente novamente."
+            "value" : "Não foi possível remover algumas chaves de provedores (status das Chaves do macOS: %d). As remoções concluídas continuam valendo; desbloqueie as Chaves do macOS e tente novamente."
           }
         },
         "fr" : {
@@ -27995,7 +27995,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Até ser apagado"
+            "value" : "Até apagar"
           }
         },
         "fr" : {
@@ -28123,7 +28123,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa uma chave de fala separada. O armazenamento de interações está desativado; a exclusão dos arquivos enviados é tentada após o uso."
+            "value" : "Usa uma chave de API de fala separada. O armazenamento de interações está desativado; a exclusão dos arquivos enviados é tentada após o uso."
           }
         },
         "fr" : {
@@ -28957,7 +28957,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sua licença precisa de acesso às Chaves. Escolha Permitir acesso em Licença para restaurá-la."
+            "value" : "Sua licença precisa de acesso às Chaves do macOS. Escolha Permitir acesso em Licença para restaurá-la."
           }
         },
         "fr" : {
