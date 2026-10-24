@@ -1176,6 +1176,8 @@ commit the regenerated `Sources/App/Info.plist`. See the version policy in
 `docs/updates.md`; the provider, recovery and interface overhaul is 0.2.0.
 Apple Intelligence, saved audio, live preview and dictation automation are 0.3.0.
 Guided onboarding and official-build licensing are 0.4.0.
+Profiles by app, live text from local models, Simplified Chinese and the
+English/Japanese/Korean recommendations are 0.12.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with

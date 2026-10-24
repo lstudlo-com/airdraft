@@ -8,11 +8,73 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-22.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-24.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-12-0",
+    version: "0.12.0",
+    date: "2026-10-24",
+    title: "Profiles by app, live text and Simplified Chinese",
+    changes: [
+      {
+        title: "Choose a profile for each app",
+        description:
+          "Profiles > Profile by app maps an app, or a family such as code editors, terminals, email, chat or documents, to one of your profiles. It is off by default, and Home names a rule whose profile still needs setup.",
+      },
+      {
+        title: "See live text from your local model",
+        description:
+          "Live preview can use the selected speech model (Parakeet, SenseVoice or Orukeet) as well as Apple Speech, in the recording window and while recording a meeting. The final transcript is unchanged.",
+      },
+      {
+        title: "Use Airdraft in Simplified Chinese",
+        description:
+          "The interface, native menus and App Shortcut phrases are available in Simplified Chinese. A new setup on a Mac set to Simplified Chinese starts with Simplified script.",
+      },
+      {
+        title: "A better first model for English, Japanese and Korean",
+        description:
+          "First-run setup recommends Parakeet TDT v2 for English and Qwen3-ASR 1.7B for Japanese and Korean, based on Airdraft's own measurement. SenseVoice now installs the original multilingual model; the Cantonese fine-tune that 0.11.0 and earlier installed keeps working as SenseVoice Cantonese.",
+      },
+      {
+        title: "Your vocabulary helps on-device recognition",
+        description:
+          "Qwen3-ASR, Parakeet and Orukeet use the spellings in Vocabulary while they recognize speech. Settings > Behavior turns this off.",
+      },
+      {
+        title: "Cleaner local transcripts",
+        description:
+          "Repeated loops are cut, a wrongly detected language is retried, and SenseVoice and FireRedASR2 write English in normal case with punctuation. Japanese kanji are no longer converted to Chinese script, and refinement that turns Japanese or Korean into Chinese falls back to your transcript.",
+      },
+      {
+        title: "Meetings remember speaker names",
+        description:
+          "Speaker names you type are suggested in later meetings, and Summarize offers Brief Summary, Action Items, Decisions & Follow-ups and Meeting Minutes.",
+      },
+      {
+        title: "A simpler Models page",
+        description:
+          "Models opens with the recommendation for your language and a few alternatives, with Show All Models for the full list and full language names on every row.",
+      },
+      {
+        title: "Paste into Ghostty 1.3 without an error",
+        description:
+          "Ghostty 1.3 shows a text cursor to Airdraft, which made every paste report that it couldn't be confirmed. It now gets one paste and no notice, like other terminals that draw their own text.",
+      },
+      {
+        title: "Lighter on memory",
+        description:
+          "When macOS reports memory pressure, idle local speech models and the LM Studio models Airdraft loaded are unloaded. A dictation in progress keeps its model.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.12.0-build.402",
+    },
+  },
   {
     id: "0-11-0",
     version: "0.11.0",
