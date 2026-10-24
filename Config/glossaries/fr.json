@@ -593,6 +593,18 @@
   {
    "en": "Code editors / Terminals / Email / Work chat / Personal messages / Documents and notes / Other apps",
    "fr": "Éditeurs de code / Terminaux / E-mail / Messagerie pro / Messages personnels / Documents et notes / Autres apps"
+  },
+  {
+   "en": "Hold to talk",
+   "fr": "Maintenir"
+  },
+  {
+   "en": "Permissions",
+   "fr": "Accès"
+  },
+  {
+   "en": "Finish Setup",
+   "fr": "Configurer"
   }
  ]
 }

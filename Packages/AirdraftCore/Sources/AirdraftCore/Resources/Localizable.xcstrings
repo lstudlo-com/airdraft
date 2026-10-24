@@ -311,7 +311,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ copie"
+            "value" : "Copie de %@"
           }
         },
         "hi" : {

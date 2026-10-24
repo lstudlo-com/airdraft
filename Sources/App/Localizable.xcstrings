@@ -2706,7 +2706,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ · tout le fournisseur"
+            "value" : "%@ · pour tout le fournisseur"
           }
         },
         "hi" : {
@@ -8281,7 +8281,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft n’enregistre que lorsque vous utilisez votre raccourci et ne lit jamais votre écran, sauf si vous activez cette option."
+            "value" : "Airdraft n’enregistre qu’avec votre raccourci et ne lit jamais votre écran, sauf si vous l’activez."
           }
         },
         "hi" : {
@@ -14681,7 +14681,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ne peut pas encore écrire en %@ ; vos mots peuvent rester tels que dits"
+            "value" : "Ne peut pas encore écrire en %@ ; vos mots peuvent rester tels quels"
           }
         },
         "hi" : {
@@ -17305,7 +17305,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez comment Airdraft vous écoute."
+            "value" : "Choisissez comment Airdraft écoute."
           }
         },
         "hi" : {
@@ -18073,7 +18073,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cliquez dans la zone ci-dessous, %@ votre raccourci et lisez la phrase à voix haute."
+            "value" : "Cliquez dans la zone, %@ votre raccourci et lisez la phrase."
           }
         },
         "hi" : {
@@ -18777,7 +18777,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Revenez ici. Cette page le détecte toute seule."
+            "value" : "Revenez ici : la page le détecte seule."
           }
         },
         "hi" : {
@@ -20761,7 +20761,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créer décisions et suivis"
+            "value" : "Créer les décisions et suivis"
           }
         },
         "hi" : {
@@ -27097,7 +27097,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tous ces choix pourront être modifiés plus tard dans Réglages et Modèles."
+            "value" : "Vous pourrez tout modifier plus tard dans Réglages et Modèles."
           }
         },
         "hi" : {
@@ -28057,7 +28057,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trouvez Airdraft dans la liste et activez son interrupteur."
+            "value" : "Trouvez Airdraft dans la liste et activez-le."
           }
         },
         "hi" : {
@@ -28313,7 +28313,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finir la configuration"
+            "value" : "Configurer"
           }
         },
         "hi" : {
@@ -30873,7 +30873,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maintenir pour parler"
+            "value" : "Maintenir"
           }
         },
         "hi" : {
@@ -32922,7 +32922,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installez %@, puis localisez à nouveau"
+            "value" : "Installez %@, puis cliquez sur Localiser à nouveau"
           }
         },
         "hi" : {
@@ -34468,7 +34468,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plus grande"
+            "value" : "Maximale"
           }
         },
         "hi" : {
@@ -34922,7 +34922,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Laissez Airdraft vous écouter et écrire pour vous."
+            "value" : "Autorisez Airdraft à écouter et à écrire."
           }
         },
         "hi" : {
@@ -35050,7 +35050,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prévenez les participants que vous enregistrez. L’audio est enregistré sur ce Mac."
+            "value" : "Prévenez les participants que vous enregistrez. L’audio est conservé sur ce Mac."
           }
         },
         "hi" : {
@@ -37743,7 +37743,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plus bas, c’est plus rapide et moins de jetons"
+            "value" : "Plus bas : plus rapide, moins de jetons"
           }
         },
         "hi" : {
@@ -43829,7 +43829,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Désactivé est le plus rapide pour le nettoyage"
+            "value" : "Désactivé : le plus rapide pour le nettoyage"
           }
         },
         "hi" : {
@@ -47676,7 +47676,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorisations"
+            "value" : "Accès"
           }
         },
         "hi" : {
@@ -47804,7 +47804,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez où votre parole devient du texte. Vous pourrez changer cela plus tard dans Modèles."
+            "value" : "Indiquez où votre parole devient du texte. Modifiable plus tard dans Modèles."
           }
         },
         "hi" : {
@@ -48700,7 +48700,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Appuyez sur Esc pendant l’enregistrement et rien n’est tapé."
+            "value" : "Appuyez sur Esc pendant l’enregistrement : rien n’est saisi."
           }
         },
         "hi" : {
@@ -50762,7 +50762,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil : %1$@, choisi par app pour %2$@. Les autres apps utilisent %3$@."
+            "value" : "Profil : %1$@, choisi selon l’app pour %2$@. Les autres apps utilisent %3$@."
           }
         },
         "hi" : {
@@ -53130,7 +53130,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrer un raccourci"
+            "value" : "Définir le raccourci"
           }
         },
         "hi" : {
@@ -54154,7 +54154,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrements en attente"
+            "value" : "À réessayer"
           }
         },
         "hi" : {
@@ -59159,7 +59159,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je suis en retard. On se voit à dix heures !"
+            "value" : "En retard. On se voit à 10 h !"
           }
         },
         "hi" : {
@@ -61213,7 +61213,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher dans l’historique"
+            "value" : "Rechercher une dictée"
           }
         },
         "hi" : {
@@ -61661,7 +61661,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher dans le vocabulaire"
+            "value" : "Rechercher un terme"
           }
         },
         "hi" : {
@@ -62109,7 +62109,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Édition compilée soi-même"
+            "value" : "Édition compilée localement"
           }
         },
         "hi" : {
@@ -62173,7 +62173,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les éditions compilées soi-même se mettent à jour depuis les sources. Les téléchargements officiels utilisent une licence payante distincte."
+            "value" : "Les éditions compilées localement se mettent à jour depuis les sources. Les téléchargements officiels utilisent une licence payante distincte."
           }
         },
         "hi" : {
@@ -64925,7 +64925,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour qu’Airdraft vous entende pendant la dictée."
+            "value" : "Pour qu’Airdraft entende votre dictée."
           }
         },
         "hi" : {
@@ -64989,7 +64989,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour qu’Airdraft tape vos mots dans d’autres apps."
+            "value" : "Pour saisir vos mots dans d’autres apps."
           }
         },
         "hi" : {
@@ -66174,19 +66174,19 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Commencer l’essai de %lld jour"
+                  "value" : "Essayer %lld jour"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Commencer l’essai de %lld jours"
+                  "value" : "Essayer %lld jours"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Commencer l’essai de %lld jours"
+                  "value" : "Essayer %lld jours"
                 }
               }
             }
@@ -66417,7 +66417,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Commencer l’essai"
+            "value" : "Essai gratuit"
           }
         },
         "hi" : {
@@ -72318,7 +72318,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Essayez toutes les fonctionnalités gratuitement pendant %@"
+            "value" : "Essayez tout gratuitement pendant %@"
           }
         },
         "hi" : {
@@ -72382,7 +72382,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Essayez d’abord les touches, ou continuez quand vous êtes prêt."
+            "value" : "Testez les touches, puis continuez."
           }
         },
         "hi" : {
@@ -76484,7 +76484,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mot ou expression mal reconnus"
+            "value" : "Mot ou erreur à corriger"
           }
         },
         "hi" : {
@@ -78661,7 +78661,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS ne demande qu’une fois. Airdraft n’enregistre que lorsque vous utilisez votre raccourci."
+            "value" : "macOS ne demande qu’une fois. Airdraft n’enregistre qu’avec votre raccourci."
           }
         },
         "hi" : {
