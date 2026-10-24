@@ -159,6 +159,24 @@ struct AirdraftApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     private let container = AppContainer.shared
 
+    init() {
+        Self.registerInterfaceDirection()
+    }
+
+    /// AppKit keeps a left-to-right interface for an app shown in Arabic when the
+    /// system language is not right to left (for example a per-app language choice).
+    /// Add the direction of the language the bundle actually resolved to this launch's
+    /// volatile argument domain, unless a launch argument already chose one; nothing
+    /// is persisted, so switching back to a left-to-right language needs no cleanup.
+    static func registerInterfaceDirection(bundle: Bundle = .main, defaults: UserDefaults = .standard) {
+        guard let language = bundle.preferredLocalizations.first,
+              Locale.Language(identifier: language).characterDirection == .rightToLeft else { return }
+        var arguments = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
+        guard arguments["AppleTextDirection"] == nil else { return }
+        arguments["AppleTextDirection"] = true
+        defaults.setVolatileDomain(arguments, forName: UserDefaults.argumentDomain)
+    }
+
     var body: some Scene {
         MenuBarExtra {
             MenuView()
