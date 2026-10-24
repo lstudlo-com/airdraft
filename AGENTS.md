@@ -570,8 +570,9 @@ and Local releases below.
   stored word counts; only the latest waveform bars and uncounted rows read text.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
-  for every provider key instead of page-specific variants. Buttons and menu items
-  use title case; section headings use sentence case.
+  for every provider key instead of page-specific variants. English buttons and menu
+  items use title case; section headings use sentence case. Other languages follow
+  their own capitalization.
   Read the interface consistency rules in `docs/PRODUCT.md` and inspect light/dark
   renders at the fixed 784-point width and minimum/taller heights, including lower sections. Check every
   page for the same alignment and input pattern. For a released UI fix, verify the app built
@@ -1010,8 +1011,8 @@ and Local releases below.
 
 ## Localization
 
-The app ships English, Simplified Chinese (zh-Hans) and Traditional Chinese
-(Taiwan, zh-Hant), following the macOS language, through String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
+The app ships English, Spanish (es), Japanese (ja), Simplified Chinese (zh-Hans)
+and Traditional Chinese (Taiwan, zh-Hant), following the macOS language, through String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
 and AirdraftCore's `Resources/Localizable.xcstrings`. Write user-facing copy as
 localizable literals: SwiftUI `Text`/`Button` literals, the shared components'
 resource parameters, `String(localized:)` in the app and
@@ -1034,15 +1035,26 @@ shortcut labels localize only their side word through
 `Hotkey.displayCaps`/`localizedDisplayString`; `keyCaps`/`displayString` stay
 English for logs and matching. `Sources/App/AppShortcuts.xcstrings` holds App
 Shortcut phrases, and every translation keeps `${applicationName}`. After a Debug
-build, run `python3 scripts/localization.py sync`, translate new keys into both
-zh-Hans and zh-Hant and run `check`, which reports counts per language; `audit`
+build, run `python3 scripts/localization.py sync`, translate new keys into es,
+ja, zh-Hans and zh-Hant and run `check`, which reports counts per language; `audit`
 lists literals that bypass localization. Translate zh-Hans directly with Mainland
 interface terms (设置, 默认, 菜单, 剪贴板, 快捷键, 复制, 润色 for refinement, 模式
 for profile), never by converting zh-Hant; zh-Hant uses Taiwan terms. Both keep “…”
-quotes and the existing glossary in the catalogs. `LocalizationCatalogTests` fails
-on missing, stale or placeholder-mismatched zh-Hans or zh-Hant entries. Verify UI
-changes in zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale zh_CN`) and zh-Hant
-(`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) renders as well as English.
+quotes and the existing glossary in the catalogs. Spanish uses tú, sentence case
+and macOS Spanish terms (Ajustes, Llavero, portapapeles); Japanese uses です／ます,
+「」 quotes and macOS Japanese terms (設定, キーチェーン, クリップボード), with
+モード for profile and noun forms for the Hold/Press verbs that compose sentences.
+`docs/localization.md` is the glossary; the es and ja catalogs are machine-drafted
+and need native review. When one English word needs different translations in
+different places, use a keyed entry with `defaultValue` (`TextSizeDefault`,
+`HomeSummaryHeading`, `OnboardingStepShortcut`). Fit translations to the fixed
+layouts (sidebar, segmented controls, model table headers, the 190-point menu
+titles) rather than widening them. `LocalizationCatalogTests` fails on missing,
+stale or placeholder-mismatched entries in any of the four languages. Verify UI
+changes in es (`-AppleLanguages '(es)' -AppleLocale es_ES`), ja (`-AppleLanguages
+'(ja)' -AppleLocale ja_JP`), zh-Hans (`-AppleLanguages '(zh-Hans)' -AppleLocale
+zh_CN`) and zh-Hant (`-AppleLanguages '(zh-Hant)' -AppleLocale zh_TW`) renders as
+well as English, including Spanish at the Larger text size.
 An unsaved Chinese script follows the first Chinese preferred language
 (`ChineseScript.systemDefault`: Simplified with zh-CN, otherwise Traditional, and
 Auto when no Chinese language is listed). Unsaved Apple Speech and live-preview

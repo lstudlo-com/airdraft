@@ -22127,7 +22127,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Predeterminado"
+            "value" : "Por defecto"
           }
         },
         "ja" : {
@@ -38987,7 +38987,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "マイク：%@"
+            "value" : "マイク: %@"
           }
         },
         "zh-Hans" : {
@@ -54886,7 +54886,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "整形：%@"
+            "value" : "整形: %@"
           }
         },
         "zh-Hans" : {
@@ -59757,7 +59757,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tiempo ahorrado (%@)"
+            "value" : "Ahorrado (%@)"
           }
         },
         "ja" : {
@@ -65913,7 +65913,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声認識：%@"
+            "value" : "音声認識: %@"
           }
         },
         "zh-Hans" : {
@@ -65983,7 +65983,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声認識：%1$@ · %2$@"
+            "value" : "音声認識: %1$@ · %2$@"
           }
         },
         "zh-Hans" : {
@@ -80211,6 +80211,222 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "«%@» مستخدم بالفعل في نمط آخر."
+          }
+        }
+      }
+    },
+    "HomeSummaryHeading" : {
+      "comment" : "Home section of dictation statistics, not a text summary",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Summary"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumen"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概要"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperçu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visão geral"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обзор"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نظرة عامة"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सारांश"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ringkasan"
+          }
+        }
+      }
+    },
+    "OnboardingStepShortcut" : {
+      "comment" : "Onboarding step name in the narrow side rail",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shortcut"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キー設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快捷键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速鍵"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touches"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atalho"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клавиши"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الاختصار"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "शॉर्टकट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pintasan"
+          }
+        }
+      }
+    },
+    "TextSizeDefault" : {
+      "comment" : "Text size",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Default"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обычный"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عادي"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सामान्य"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
           }
         }
       }

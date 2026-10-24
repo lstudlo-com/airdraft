@@ -382,7 +382,8 @@ extension OnboardingProgress.Step {
         case .welcome: String(localized: "Welcome")
         case .speech: String(localized: "Speech")
         case .permissions: String(localized: "Permissions")
-        case .shortcut: String(localized: "Shortcut")
+        case .shortcut: String(localized: "OnboardingStepShortcut", defaultValue: "Shortcut",
+                                         comment: "Onboarding step name in the narrow side rail")
         case .practice: String(localized: "Try It")
         case .done: String(localized: "Ready")
         }
