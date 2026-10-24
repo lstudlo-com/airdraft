@@ -163,6 +163,37 @@
         "LICENSE": "MIT"
       }
     },
+    "posthog-ios": {
+      "name": "PostHog iOS SDK",
+      "license": "MIT",
+      "files": {
+        "LICENSE": "MIT"
+      },
+      "components": [
+        {
+          "name": "PLCrashReporter",
+          "version": "1.12.2",
+          "license": "MIT AND Apache-2.0",
+          "source": "https://github.com/microsoft/plcrashreporter",
+          "files": {
+            "vendor/PHPLCrashReporter/LICENSE": "MIT AND Apache-2.0"
+          }
+        },
+        {
+          "name": "libwebp",
+          "version": "1.5.0",
+          "license": "BSD-3-Clause",
+          "source": "https://github.com/webmproject/libwebp",
+          "files": {
+            "vendor/libwebp/COPYING": "BSD-3-Clause",
+            "ThirdParty/licenses/libwebp/PATENTS": "notice"
+          }
+        }
+      ],
+      "excluded": {
+        "PostHogExampleAutocapture/": "Example app in the SDK repository; not linked."
+      }
+    },
     "sparkle": {
       "name": "Sparkle",
       "license": "MIT AND BSD-2-Clause AND Zlib",
@@ -650,6 +681,10 @@
     "ThirdParty/licenses/kissfft/COPYING": {
       "url": "https://raw.githubusercontent.com/mborgerding/kissfft/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec/COPYING",
       "sha256": "a2840585f8411be8e6826a31ef15ae65c950bd74a2437a73b013398a934ad0c6"
+    },
+    "ThirdParty/licenses/libwebp/PATENTS": {
+      "url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.5.0/PATENTS",
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c"
     },
     "ThirdParty/licenses/nlohmann-json/LICENSE.MIT": {
       "url": "https://raw.githubusercontent.com/nlohmann/json/v3.12.0/LICENSE.MIT",

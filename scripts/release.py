@@ -19,6 +19,7 @@ import xml.etree.ElementTree as ET
 from release_signing import (POLICY, build_settings as signing_settings, inspect_app, inspect_dmg,
                              preflight, validate_metadata)
 from licensing import build_settings as licensing_settings, verify_app as verify_app_license
+from telemetry import build_settings as telemetry_settings, verify_app as verify_app_telemetry
 from swiftpm_lock import restore as restore_resolution, verify as verify_resolution
 
 REPO = "lstudlo-com/airdraft"
@@ -338,6 +339,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None, run_inser
         return
     source = export_snapshot(commit)
     license_settings = licensing_settings(source / "scripts/licensing-config.json")
+    official_telemetry = telemetry_settings(source / "scripts/telemetry-config.json")
     identity = preflight()
     project = re.sub(r'CFBundleVersion: "[0-9]+"', f'CFBundleVersion: "{build}"', project)
     (source / "project.yml").write_text(project + "\n")
@@ -373,7 +375,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None, run_inser
     print(f'Live insertion fixture: {debug_app}; reports: {output / "insertion-e2e"}', flush=True)
     matrix = insertion_matrix(source, output, debug_app, commit) if run_insertion_matrix else None
     live_insertion = live_insertion_evidence(source, output, debug_app, commit, unverified_live_insertion)
-    logged(common + license_settings + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
+    logged(common + license_settings + official_telemetry + ["-configuration", "Release", "-destination", "generic/platform=macOS", "ARCHS=arm64", "build"], source, output / "build.log")
     run(sys.executable, source / "scripts/native_inputs.py", "verify", "--vendor",
         source / "Packages/SherpaOnnxKit/Vendor", cwd=source)
     shutil.copy2(verify_resolution(source), output / "Package.resolved")
@@ -381,6 +383,7 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None, run_inser
     settings = next(item["buildSettings"] for item in json.loads(raw) if item["target"] == "airdraft")
     app = Path(settings["TARGET_BUILD_DIR"]) / settings["FULL_PRODUCT_NAME"]
     verify_app_license(app, license_settings)
+    verify_app_telemetry(app, official_telemetry)
     derived = Path(settings["BUILD_DIR"]).parents[1]
     # The bundled notices must match the exact SwiftPM checkouts this release linked.
     logged([sys.executable, source / "scripts/acknowledgements.py", "check",

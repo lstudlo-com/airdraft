@@ -1,0 +1,9 @@
+{
+  "_comment": [
+    "Public PostHog project token for official builds; it already ships in the website bundle.",
+    "Shared with the website's US project 645700 for now; every app event carries app=airdraft-mac.",
+    "Switching to a separate project changes only this file. See docs/telemetry.md."
+  ],
+  "posthog_token": "phc_nY5uMYCxL8RLHyLYuZgRtz6BPgBmh7Cf2mNL5FRRZMkR",
+  "posthog_host": "https://us.i.posthog.com"
+}

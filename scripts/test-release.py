@@ -15,6 +15,7 @@ from unittest.mock import patch
 import acknowledgements
 import local_signing
 import release_signing
+import telemetry
 
 spec = importlib.util.spec_from_file_location('release', Path(__file__).with_name('release.py'))
 release = importlib.util.module_from_spec(spec)
@@ -470,6 +471,75 @@ class ReleaseTests(unittest.TestCase):
 
     def test_bundled_acknowledgements_match_resolved_inputs(self):
         self.assertTrue(acknowledgements.check_inputs(Path(release.__file__).resolve().parents[1]))
+
+
+class TelemetryReleaseTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    TOKEN = 'phc_TestOnly0123456789'
+
+    def write(self, directory, **values):
+        path = Path(directory) / 'telemetry-config.json'
+        path.write_text(json.dumps({'posthog_token': self.TOKEN, 'posthog_host': 'https://us.i.posthog.com'} | values))
+        return path
+
+    def app(self, directory, info):
+        app = Path(directory) / 'Fixture.app'
+        (app / 'Contents').mkdir(parents=True, exist_ok=True)
+        (app / 'Contents/Info.plist').write_bytes(__import__('plistlib').dumps(info))
+        return app
+
+    def test_only_project_tokens_and_ingestion_origins_are_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for host in telemetry.HOSTS:
+                self.assertEqual(telemetry.build_settings(self.write(directory, posthog_host=host)),
+                                 [f'AIRDRAFT_TELEMETRY_TOKEN={self.TOKEN}', f'AIRDRAFT_TELEMETRY_HOST={host}'])
+            for change in [dict(posthog_token=''), dict(posthog_token='phx_abc'), dict(posthog_token='phc_'),
+                           dict(posthog_token='phc_abc-123'), dict(posthog_token='phc_$(TOKEN)'), dict(posthog_token=None),
+                           dict(posthog_token='phc_abc\nX=1'), dict(posthog_host='http://us.i.posthog.com'),
+                           dict(posthog_host='https://us.i.posthog.com/'), dict(posthog_host='https://us.posthog.com'),
+                           dict(posthog_host='https://us.i.posthog.com.evil.test'), dict(posthog_host='https://app.posthog.com'),
+                           dict(posthog_host=None)]:
+                with self.subTest(change=change), self.assertRaises(RuntimeError):
+                    telemetry.build_settings(self.write(directory, **change))
+
+    def test_committed_configuration_is_valid(self):
+        settings = telemetry.build_settings(self.ROOT / 'scripts/telemetry-config.json')
+        self.assertEqual(settings[1], 'AIRDRAFT_TELEMETRY_HOST=https://us.i.posthog.com')
+
+    def test_artifact_must_embed_exactly_the_configured_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            settings = telemetry.build_settings(self.write(directory))
+            good = {'AirdraftTelemetryToken': self.TOKEN, 'AirdraftTelemetryHost': 'https://us.i.posthog.com'}
+            telemetry.verify_app(self.app(directory, good), settings)
+            for bad in [good | {'AirdraftTelemetryToken': ''}, good | {'AirdraftTelemetryHost': 'https://eu.i.posthog.com'}, {}]:
+                with self.subTest(bad=bad), self.assertRaises(RuntimeError):
+                    telemetry.verify_app(self.app(directory, bad), settings)
+
+    def test_sandbox_debug_and_community_builds_embed_nothing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            telemetry.verify_absent(self.app(directory, {'AirdraftTelemetryToken': '', 'AirdraftTelemetryHost': ''}))
+            telemetry.verify_absent(self.app(directory, {}))
+            with self.assertRaises(RuntimeError):
+                telemetry.verify_absent(self.app(directory, {'AirdraftTelemetryToken': self.TOKEN, 'AirdraftTelemetryHost': ''}))
+        sandbox = (self.ROOT / 'scripts/build-sandbox.py').read_text()
+        self.assertIn('verify_no_telemetry(app)', sandbox)
+        self.assertNotIn('telemetry-config.json', sandbox)
+        self.assertNotIn('AIRDRAFT_TELEMETRY_TOKEN=', sandbox)
+
+    def test_project_defaults_are_empty_and_only_the_release_build_passes_values(self):
+        project = (self.ROOT / 'project.yml').read_text()
+        self.assertIn('AIRDRAFT_TELEMETRY_TOKEN: ""', project)
+        self.assertIn('AIRDRAFT_TELEMETRY_HOST: ""', project)
+        self.assertIn('AirdraftTelemetryToken: "$(AIRDRAFT_TELEMETRY_TOKEN)"', project)
+        self.assertNotIn('phc_', project)
+        source = (self.ROOT / 'scripts/release.py').read_text()
+        self.assertEqual(source.count('official_telemetry'), 3, 'parsed once, passed to the Release build, verified')
+        self.assertIn('common + license_settings + official_telemetry + ["-configuration", "Release"', source)
+        self.assertIn('verify_app_telemetry(app, official_telemetry)', source)
+        for line in source.splitlines():
+            if '"-configuration", "Debug"' in line or "'-configuration', 'Debug'" in line:
+                self.assertNotIn('telemetry', line)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1518,6 +1518,22 @@
         }
       }
     },
+    "API keys, server addresses or custom model names" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥、服务器地址或自定义模型名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 金鑰、伺服器位址或自訂模型名稱"
+          }
+        }
+      }
+    },
     "Accessibility" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2368,16 +2384,16 @@
     },
     "An app rule chooses the %@ profile, which uses this model. Choose another model in Profiles before deleting it." : {
       "localizations" : {
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App 規則選擇的「%@」模式使用這個模型。刪除前，請先在「模式」中選擇其他模型。"
-          }
-        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "App 规则选择的“%@”模式使用此模型。删除前，请先在“模式”中选择其他模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 規則選擇的「%@」模式使用這個模型。刪除前，請先在「模式」中選擇其他模型。"
           }
         }
       }
@@ -2410,6 +2426,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "必須先完成中斷的清理作業，才能開始新的工作。"
+          }
+        }
+      }
+    },
+    "Anonymous usage data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匿名使用数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匿名使用資料"
           }
         }
       }
@@ -2558,6 +2590,22 @@
         }
       }
     },
+    "App names, window titles, web addresses or files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 名称、窗口标题、网址或文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 名稱、視窗標題、網址或檔案"
+          }
+        }
+      }
+    },
     "App reset" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2586,6 +2634,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App 規則"
+          }
+        }
+      }
+    },
+    "App version, macOS version and language" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 版本、macOS 版本和语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App 版本、macOS 版本與語言"
           }
         }
       }
@@ -4942,6 +5006,38 @@
         }
       }
     },
+    "Counts and timings only, never your words or audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅含次数和时间，绝不包含你的文字或音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有次數與時間，絕不包含你的文字或音訊"
+          }
+        }
+      }
+    },
+    "Crash reports" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "崩溃报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當機報告"
+          }
+        }
+      }
+    },
     "Create Action Items" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6062,6 +6158,22 @@
         }
       }
     },
+    "Don’t Share" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不分享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不要分享"
+          }
+        }
+      }
+    },
     "Download" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6250,6 +6362,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製模式"
+          }
+        }
+      }
+    },
+    "Durations and timings, in ranges" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时长和耗时，以区间表示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長度與耗時，以區間表示"
           }
         }
       }
@@ -7194,6 +7322,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "哈囉！我第一次試用 Airdraft，它正在寫下我說的話。"
+          }
+        }
+      }
+    },
+    "Help improve Airdraft" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帮助改进 Airdraft"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "協助改善 Airdraft"
           }
         }
       }
@@ -9848,6 +9992,22 @@
         }
       }
     },
+    "Never shared" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "绝不分享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絕不分享"
+          }
+        }
+      }
+    },
     "New Profile" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11278,6 +11438,22 @@
         }
       }
     },
+    "Opens the Airdraft privacy page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Airdraft 隐私页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟 Airdraft 隱私權頁面"
+          }
+        }
+      }
+    },
     "Optional: summarize, translate, or set another task." : {
       "localizations" : {
         "zh-Hans" : {
@@ -12161,6 +12337,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "定價與效能"
+          }
+        }
+      }
+    },
+    "Privacy Details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私详情"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱私權詳情"
           }
         }
       }
@@ -15442,6 +15634,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定⋯"
+          }
+        }
+      }
+    },
+    "Share Anonymous Usage Data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享匿名使用数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享匿名使用資料"
+          }
+        }
+      }
+    },
+    "Share anonymous usage counts and crash reports with the developer. Nothing is sent until you choose." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与开发者分享匿名的使用次数和崩溃报告。在你做出选择之前，不会发送任何数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與開發者分享匿名的使用次數與當機報告。在你做出選擇之前，不會傳送任何資料。"
+          }
+        }
+      }
+    },
+    "Share anonymous usage data and crash reports" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享匿名使用数据和崩溃报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享匿名使用資料與當機報告"
+          }
+        }
+      }
+    },
+    "Shared" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会分享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會分享"
           }
         }
       }
@@ -18735,6 +18991,22 @@
         }
       }
     },
+    "Which features and engine types you use" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你使用的功能和引擎类型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你使用的功能與引擎類型"
+          }
+        }
+      }
+    },
     "Without Speakers" : {
       "localizations" : {
         "zh-Hans" : {
@@ -18811,6 +19083,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "昨天"
+          }
+        }
+      }
+    },
+    "You can change this anytime in Settings." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你随时可以在“设置”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你隨時可以在「設定」中更改。"
           }
         }
       }
@@ -19035,6 +19323,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的文字由 %@ 整理"
+          }
+        }
+      }
+    },
+    "Your words, transcripts, audio or vocabulary" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的文字、转录文本、音频或词汇"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的文字、逐字稿、音訊或詞彙"
           }
         }
       }

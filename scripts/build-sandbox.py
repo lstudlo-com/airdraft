@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 from licensing import build_settings, verify_app
+from telemetry import verify_absent as verify_no_telemetry
 from local_signing import ensure_local_config
 from release import ROOT, xcodegen
 from swiftpm_lock import restore, verify
@@ -27,6 +28,8 @@ def main():
     built = next(item["buildSettings"] for item in json.loads(result) if item["target"] == "airdraft")
     app = Path(built["TARGET_BUILD_DIR"]) / built["FULL_PRODUCT_NAME"]
     verify_app(app, settings)
+    # The sandbox license flow never embeds the production telemetry project.
+    verify_no_telemetry(app)
     if built["PRODUCT_BUNDLE_IDENTIFIER"] != "com.lstudlo.app.airdraft.debug":
         raise RuntimeError("Sandbox must use the separate Debug app identity")
     print(f"Verified Polar Sandbox Debug app: {app}")

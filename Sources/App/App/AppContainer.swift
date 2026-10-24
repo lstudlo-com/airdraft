@@ -65,6 +65,8 @@ final class AppContainer {
     let media: MediaJobRunner?
     let meeting: MeetingController?
     let license: LicenseStore
+    /// Opt-in anonymous usage data and crash reports (official builds only).
+    let telemetry: Telemetry
     let permissions: SystemPermissions
     let hotkeys: HotkeyService
     let microphones = MicrophoneStore()
@@ -108,6 +110,13 @@ final class AppContainer {
         self.settings = settings
         let license = suppliedLicense ?? AppLicense.make(isolated: suppliedSettings != nil || RenderMode.isActive || RenderMode.excludesCredentials)
         self.license = license
+        let telemetry = TelemetryService.make(settings: settings, isolated: isolatedData)
+        #if DEBUG
+        // `AIRDRAFT_RENDER_TELEMETRY=official-undecided|official-granted|community`
+        // shows the consent UI in renders. Debug builds still never send.
+        telemetry.previewShowsChoice = RenderMode.value("TELEMETRY")?.hasPrefix("official-") == true
+        #endif
+        self.telemetry = telemetry
         engineStatus = EngineStatus()
         #if DEBUG
         if LocalE2E.isActive {
@@ -163,6 +172,11 @@ final class AppContainer {
             requestMicrophoneAccess: requestMicrophoneAccess
         )
         pipeline.practiceTarget = practiceEditor
+        pipeline.telemetry = telemetry
+        settings.onboarding.telemetry = telemetry
+        license.telemetry = telemetry
+        downloads.telemetry = telemetry
+        downloads.telemetryModelID = { TelemetryService.catalogueID(for: $0) }
         let mediaFactory = factory
         let mediaIsolated = isolatedData
         let mediaCredentialReader: @Sendable (String) async throws -> String? = { reference in
@@ -194,6 +208,7 @@ final class AppContainer {
             models?.setDictationBusy(pipeline?.isBusy == true || cleanup?.isRunning == true)
         }
         media?.onChange = { NotificationCenter.default.post(name: .historyEntriesChanged, object: nil) }
+        media?.telemetry = telemetry
         // A copy without the data lease names that cause, not a cleanup in progress.
         if cleanup.blocksWork || dataLease == nil { try? pipeline.beginDataMaintenance(reason: dataAccessIssue) }
         // Wired here rather than in `start()` so fixtures exercise the same
@@ -208,7 +223,13 @@ final class AppContainer {
     func start() {
         guard !started, !shutdownStarted else { return }
         started = true
-        Task { await license.load(); await license.refresh() }
+        telemetry.start()
+        Task {
+            await license.load()
+            // Sent only after an earlier yes; otherwise this records nothing.
+            telemetry.record(TelemetryService.launchEvent(license: license.access))
+            await license.refresh()
+        }
         Self.log.notice("start: accessibilityTrusted=\(AppContextReader.isAccessibilityTrusted, privacy: .public)")
 
         let panel = IndicatorPanelController(pipeline: pipeline,

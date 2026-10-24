@@ -46,6 +46,10 @@ struct HomePage: View {
             if let historyReadError { StorageNotice(message: historyReadError, actionTitle: "Reload History") { Task { await reload() } } }
             readinessCard
 
+            if container.telemetry.needsDecision {
+                PageSection("Anonymous usage data") { TelemetryConsentCard() }
+            }
+
             if !overview.topApps.isEmpty {
                 PageSection("Summary") { summaryCard }
             }

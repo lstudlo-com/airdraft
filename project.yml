@@ -28,6 +28,11 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.0
+  # Opt-in product telemetry and crash reports, configured only in official
+  # non-Debug builds after consent. See docs/telemetry.md.
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios
+    exactVersion: 3.92.4
 targets:
   airdraft:
     type: application
@@ -41,6 +46,7 @@ targets:
       - package: AirdraftCore
         embed: true
       - package: Sparkle
+      - package: PostHog
     preBuildScripts:
       # Debug builds warn when this folder is off main or behind origin/main.
       # Local refs only; it never fails or slows the build.
@@ -64,6 +70,8 @@ targets:
         AirdraftCheckoutURL: "$(AIRDRAFT_CHECKOUT_URL)"
         AirdraftCustomerPortalURL: "$(AIRDRAFT_CUSTOMER_PORTAL_URL)"
         AirdraftTrialDays: "$(AIRDRAFT_TRIAL_DAYS)"
+        AirdraftTelemetryToken: "$(AIRDRAFT_TELEMETRY_TOKEN)"
+        AirdraftTelemetryHost: "$(AIRDRAFT_TELEMETRY_HOST)"
         LSUIElement: true
         LSMinimumSystemVersion: "15.0"
         NSMicrophoneUsageDescription: "Airdraft uses the microphone for dictation and meeting recordings."
@@ -98,6 +106,11 @@ targets:
         AIRDRAFT_CHECKOUT_URL: ""
         AIRDRAFT_CUSTOMER_PORTAL_URL: ""
         AIRDRAFT_TRIAL_DAYS: "14"
+        # Official releases pass the public PostHog project token and host from
+        # scripts/telemetry-config.json. Every other build leaves them empty and
+        # never offers telemetry. See docs/telemetry.md.
+        AIRDRAFT_TELEMETRY_TOKEN: ""
+        AIRDRAFT_TELEMETRY_HOST: ""
       configs:
         Release:
           # Never ship Xcode's debug entitlements. The release script pins and
@@ -127,6 +140,7 @@ targets:
       - package: AirdraftCore
         embed: true
       - package: Sparkle
+      - package: PostHog
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.apptests

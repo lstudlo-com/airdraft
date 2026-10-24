@@ -111,6 +111,7 @@ struct ConfigurationPage: View {
                                subtitle: "Sends window title, nearby text and selection to AI. Skips password fields and managers.") {
                         Toggle("Read app context", isOn: $settings.useAppContext).labelsHidden().toggleStyle(.softSwitch)
                     }
+                    TelemetrySettingRow()
                     RowDivider()
                     SettingRow(title: "Vocabulary in speech recognition",
                                subtitle: "Supported on-device models favor your spellings. Online services always receive them.") {

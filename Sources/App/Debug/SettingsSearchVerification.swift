@@ -20,6 +20,8 @@ enum SettingsSearchVerification {
             Microphone(id: 100, uid: "search-fixture", name: "Fixture Microphone")
         ], systemDefaultID: 100)
         container.navigation.page = .configuration
+        // Show the telemetry switch as an official build would; Debug still never sends.
+        container.telemetry.previewShowsChoice = true
         if discoOnly {
             container.settings.hudStyle = .classic
             container.settings.hudDiscoEnabled = false
@@ -142,6 +144,9 @@ enum SettingsSearchVerification {
             query("disco", title: "Disco", file: "disco")
             precondition(!container.settings.hudDiscoEnabled, "Finding Disco must not enable it")
             query("physical inputs", title: "Input channel", file: "conditional-channel")
+            query("usage data", title: "Share anonymous usage data and crash reports", file: "telemetry")
+            precondition(container.settings.telemetryConsent == .undecided, "Finding the telemetry switch must not answer it")
+            precondition(container.telemetry.client == nil, "Debug fixtures never create a telemetry client")
 
             search.query = "not-a-setting-🎙️"
             settle()

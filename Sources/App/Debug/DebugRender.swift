@@ -48,6 +48,7 @@ enum DebugRender {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let container: AppContainer
+        var usesSharedSettings = false
         let env = ProcessInfo.processInfo.environment
         let fixtureDirectory = env["AIRDRAFT_RENDER_HISTORY_COUNT"] == nil ? nil :
             FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-history-perf-\(UUID().uuidString)")
@@ -152,6 +153,11 @@ enum DebugRender {
             container = AppContainer(settings: settings, dataDirectory: LocalE2E.isActive ? LocalE2E.directory : nil)
         } else {
             container = AppContainer.shared
+            usesSharedSettings = true
+        }
+        // The granted render state changes only isolated render settings.
+        if RenderMode.value("TELEMETRY") == "official-granted", !usesSharedSettings {
+            container.settings.telemetryConsent = .granted
         }
         container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
         if let position = env["AIRDRAFT_RENDER_HUD_TIMER"].flatMap(HUDTimerOptions.Position.init(rawValue:)) {

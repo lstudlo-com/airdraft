@@ -723,6 +723,8 @@ struct OnboardingDoneStep: View {
 
         OnboardingRefinementChoice(finish: finish)
 
+        if container.telemetry.needsDecision { TelemetryConsentCard() }
+
         SettingsCard {
             tipLabel("menubar.rectangle", "Airdraft lives in the menu bar",
                 "Open History, Settings or switch microphones from the icon at the top of your screen.")

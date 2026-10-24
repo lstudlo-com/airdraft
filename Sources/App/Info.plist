@@ -14,6 +14,10 @@
 	<string>$(AIRDRAFT_POLAR_ENVIRONMENT)</string>
 	<key>AirdraftPolarOrganization</key>
 	<string>$(AIRDRAFT_POLAR_ORGANIZATION)</string>
+	<key>AirdraftTelemetryHost</key>
+	<string>$(AIRDRAFT_TELEMETRY_HOST)</string>
+	<key>AirdraftTelemetryToken</key>
+	<string>$(AIRDRAFT_TELEMETRY_TOKEN)</string>
 	<key>AirdraftTrialDays</key>
 	<string>$(AIRDRAFT_TRIAL_DAYS)</string>
 	<key>CFBundleDevelopmentRegion</key>
