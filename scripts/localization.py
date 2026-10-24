@@ -2,8 +2,13 @@
 """Maintain and check Airdraft's String Catalogs.
 
   check   Fail when a catalog key lacks a current translation in a shipped
-          language (es, ja, zh-Hans, zh-Hant), a translation drops or adds a
-          placeholder, or a key is stale.
+          language (Config/languages.json), a translation drops or adds a
+          placeholder, a key is stale, or project.yml's CFBundleLocalizations
+          differs from that list.
+  export  Write one language's untranslated keys, with their English source,
+          comments and existing translations for reference, to a JSON file.
+  import  Merge a translated JSON file (export's shape plus "value" or plural
+          "variations") into the catalogs after checking every placeholder.
   sync    Merge the strings the compiler extracted during the last Debug build
           into the app and AirdraftCore catalogs (what Xcode's IDE does on build).
   audit   List Swift string literals that look like interface copy but were not
@@ -19,7 +24,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = ("es", "ja", "zh-Hans", "zh-Hant")
+LANGUAGE_CONFIG = json.loads((ROOT / "Config/languages.json").read_text())
+LANGUAGES = tuple(language["code"] for language in LANGUAGE_CONFIG["languages"])
+PLURAL_CATEGORIES = ("zero", "one", "two", "few", "many", "other")
 CATALOGS = {
     "app": ROOT / "Sources/App/Localizable.xcstrings",
     "infoplist": ROOT / "Sources/App/InfoPlist.xcstrings",
@@ -64,8 +71,24 @@ def string_units(entry, language):
     return units
 
 
+def bundle_localizations():
+    """CFBundleLocalizations from project.yml, the Info.plist source of truth."""
+    match = re.search(r"CFBundleLocalizations:\s*\[([^\]]*)\]", (ROOT / "project.yml").read_text())
+    return [code.strip() for code in match.group(1).split(",")] if match else []
+
+
+def write_catalog(path, catalog, original):
+    """Keep the file's own JSON style (Xcode writes " : ", other tools ": ")."""
+    separator = " : " if '" : ' in original[:200] else ": "
+    path.write_text(json.dumps(catalog, indent=2, separators=(",", separator), ensure_ascii=False) + "\n")
+
+
 def check(_args):
     errors, totals = [], []
+    expected_bundle = sorted((LANGUAGE_CONFIG["source"],) + LANGUAGES)
+    if sorted(bundle_localizations()) != expected_bundle:
+        errors.append(f"project.yml CFBundleLocalizations {bundle_localizations()} differs from "
+                      f"Config/languages.json {expected_bundle}")
     for name, path in CATALOGS.items():
         catalog = json.loads(path.read_text())
         source = catalog.get("sourceLanguage", "en")
@@ -106,6 +129,101 @@ def check(_args):
               "then translate the reported keys.", file=sys.stderr)
         return 1
     return 0
+
+
+def source_text(entry, key, source):
+    return entry.get("localizations", {}).get(source, {}).get("stringUnit", {}).get("value", key)
+
+
+def export(args):
+    """Untranslated keys of one language, with references, for a translator."""
+    if args.language not in LANGUAGES:
+        raise SystemExit(f"{args.language} is not in Config/languages.json")
+    references = [code for code in ("es", "ja", "zh-Hant") if code != args.language]
+    entries = []
+    for name, path in CATALOGS.items():
+        catalog = json.loads(path.read_text())
+        source = catalog.get("sourceLanguage", "en")
+        for key, entry in catalog.get("strings", {}).items():
+            if entry.get("shouldTranslate") is False or not key.strip() or entry.get("extractionState") == "stale":
+                continue
+            units = string_units(entry, args.language)
+            if units and all(u.get("state") == "translated" and u.get("value", "").strip() for u in units) \
+                    and not args.all:
+                continue
+            english = source_text(entry, key, source)
+            item = {"catalog": name, "key": key, "source": english,
+                    "placeholders": placeholders(english)}
+            if entry.get("comment"):
+                item["comment"] = entry["comment"]
+            for code in references:
+                unit = entry.get("localizations", {}).get(code, {}).get("stringUnit", {})
+                if unit.get("value"):
+                    item[code] = unit["value"]
+            entries.append(item)
+    Path(args.output).write_text(json.dumps(entries, indent=1, ensure_ascii=False) + "\n")
+    print(f"{args.language}: {len(entries)} keys written to {args.output}")
+    return 0
+
+
+def import_translations(args):
+    """Merge translations after validating placeholders and plural categories."""
+    if args.language not in LANGUAGES:
+        raise SystemExit(f"{args.language} is not in Config/languages.json")
+    items = json.loads(Path(args.input).read_text())
+    loaded = {name: (path.read_text(), None) for name, path in CATALOGS.items()}
+    catalogs = {name: json.loads(text) for name, (text, _) in loaded.items()}
+    errors, merged = [], 0
+    for item in items:
+        name, key = item.get("catalog"), item.get("key")
+        entry = catalogs.get(name, {}).get("strings", {}).get(key)
+        if entry is None:
+            errors.append(f"unknown key in {name}: {key!r}")
+            continue
+        english = source_text(entry, key, catalogs[name].get("sourceLanguage", "en"))
+        expected = sorted(placeholders(english))
+        if "variations" in item:
+            forms = item["variations"]
+            if not isinstance(forms, dict) or "other" not in forms or set(forms) - set(PLURAL_CATEGORIES):
+                errors.append(f"{key!r}: plural variations need 'other' and only CLDR categories")
+                continue
+            if any(not str(value).strip() for value in forms.values()):
+                errors.append(f"{key!r}: empty plural form")
+                continue
+            # A form may drop the count it spells out (Arabic "one"/"two"), never add one.
+            if sorted(placeholders(forms["other"])) != expected or any(
+                    not set(placeholders(value)) <= set(expected) for value in forms.values()):
+                errors.append(f"{key!r}: plural placeholders differ from source {english!r}")
+                continue
+            localization = {"variations": {"plural": {
+                category: {"stringUnit": {"state": "translated", "value": forms[category]}}
+                for category in PLURAL_CATEGORIES if category in forms}}}
+        else:
+            value = item.get("value", "")
+            if not value.strip() and english.strip():
+                errors.append(f"{key!r}: empty translation")
+                continue
+            if sorted(placeholders(value)) != expected:
+                errors.append(f"{key!r}: placeholders {placeholders(value)} differ from source {placeholders(english)}")
+                continue
+            if "${applicationName}" in english and "${applicationName}" not in value:
+                errors.append(f"{key!r}: App Shortcut phrase must keep ${{applicationName}}")
+                continue
+            localization = {"stringUnit": {"state": "translated", "value": value}}
+        entry.setdefault("localizations", {})[args.language] = localization
+        merged += 1
+    for error in errors:
+        print(error, file=sys.stderr)
+    if errors and not args.partial:
+        print(f"{len(errors)} error(s); nothing written. Pass --partial to merge the valid entries.", file=sys.stderr)
+        return 1
+    if args.dry_run:
+        print(f"{args.language}: {merged} of {len(items)} entries valid (dry run, nothing written)")
+        return 1 if errors else 0
+    for name, path in CATALOGS.items():
+        write_catalog(path, catalogs[name], loaded[name][0])
+    print(f"{args.language}: merged {merged} of {len(items)} entries")
+    return 1 if errors else 0
 
 
 def build_intermediates():
@@ -294,6 +412,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("check").set_defaults(run=check)
+    exporter = commands.add_parser("export")
+    exporter.add_argument("language")
+    exporter.add_argument("output")
+    exporter.add_argument("--all", action="store_true", help="Include keys that are already translated")
+    exporter.set_defaults(run=export)
+    importer = commands.add_parser("import")
+    importer.add_argument("language")
+    importer.add_argument("input")
+    importer.add_argument("--partial", action="store_true", help="Merge valid entries even when some fail")
+    importer.add_argument("--dry-run", action="store_true", help="Validate only; never write the catalogs")
+    importer.set_defaults(run=import_translations)
     for name, run in (("sync", sync), ("audit", audit)):
         command = commands.add_parser(name)
         command.add_argument("--objroot", help="Build intermediates (default: from xcodebuild -showBuildSettings)")
