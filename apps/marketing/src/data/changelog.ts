@@ -14,6 +14,28 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-13-0",
+    version: "0.13.0",
+    date: "2026-10-24",
+    title: "Optional anonymous usage data and crash reports",
+    changes: [
+      {
+        title: "Choose whether to share anonymous usage data",
+        description:
+          "Downloads from airdraft.app ask once whether to share anonymous usage counts and crash reports, listing what is shared and what never is. Nothing is sent before you choose, Settings > Behavior turns it off at any time, and builds from source never send anything. Your words, transcripts, audio, vocabulary, app names, window titles, URLs, file paths and keys are never sent.",
+      },
+      {
+        title: "Live text from Apple Speech as the selected model",
+        description:
+          "When Apple Speech is your speech model and Live preview uses the selected model, live text now appears in the recording window and during meetings.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.13.0-build.411",
+    },
+  },
+  {
     id: "0-12-1",
     version: "0.12.1",
     date: "2026-10-24",
