@@ -2,30 +2,20 @@
 import Button from "./ui/Button.astro";
 import "../styles/analytics.css";
 import type { Locale } from "../i18n";
+import { messages } from "../i18n/messages";
 
 interface Props {
   locale?: Locale;
 }
 const { locale = "en" } = Astro.props;
+// The notice in the page's language; the privacy page is English, so the
+// link says so on translated pages.
+const text = messages[locale];
 const copy = {
-  en: {
-    title: "Optional website analytics",
-    body: "Help us understand visits and which features interest people. No recordings or typed text.",
-    privacy: "Privacy details",
-    gap: " ",
-    decline: "Decline",
-    allow: "Allow Analytics",
-  },
-  "zh-tw": {
-    title: "選用的網站分析",
-    body: "協助我們了解造訪情形，以及大家對哪些功能有興趣。不會收集錄音或輸入的文字。",
-    privacy: "隱私說明（英文）",
-    // No space between full-width punctuation and the next sentence.
-    gap: "",
-    decline: "拒絕",
-    allow: "允許分析",
-  },
-}[locale];
+  ...text.analytics,
+  privacy: `${text.analytics.privacy}${text.english}`,
+  gap: text.gap,
+};
 
 if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
   if (
@@ -58,7 +48,9 @@ if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
     <p>
       {copy.body}
       {copy.gap}
-      <a href="/privacy/">{copy.privacy}</a>
+      <a href="/privacy/" hreflang={locale === "en" ? undefined : "en"}>
+        {copy.privacy}
+      </a>
     </p>
   </div>
   <div class="analytics-actions">

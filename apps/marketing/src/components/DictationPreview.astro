@@ -4,69 +4,34 @@ import Button from "./ui/Button.astro";
 import Hud from "./ui/Hud.astro";
 import { appLabels } from "../data/app";
 import type { Locale } from "../i18n";
+import { messages } from "../i18n/messages";
 
 /**
  * The authored sample dictation (src/scripts/preview.ts). Each language has
- * its own spoken line and profile results; the script reads them from data
- * attributes. Profile names and HUD states are the app's own labels in the
- * page's language (src/data/app.ts); the built-in profile names are English
- * in both.
+ * its own spoken line and profile results (src/i18n/messages); the script
+ * reads them from data attributes. Profile names and HUD states are the
+ * app's own labels in the page's language (src/data/app.ts).
  */
 interface Props {
   locale?: Locale;
 }
 const { locale = "en" } = Astro.props;
-
-const copy = {
-  en: {
-    name: "Sample dictation",
-    said: "What you said",
-    inserts: "What Airdraft inserts",
-    picker: "Refinement profile",
-    run: "Run sample",
-    noscript:
-      "Showing the Clean profile. Turn on JavaScript to run the sample.",
-    examples: {
-      clean:
-        "Hi Maya, I’ll send the draft tomorrow morning. Could we move our check-in to two?",
-      concise:
-        "Maya, I’ll send the draft tomorrow morning. Can we move our check-in to two?",
-      summary:
-        "Send Maya the draft tomorrow morning. Ask to move the check-in to two.",
-    },
-    labels: {
-      stop: "Stop",
-      again: "Run again",
-      run: "Run sample",
-      placeholder: "The text appears here when you let go.",
-      listening: appLabels.en.listening,
-      transcribing: appLabels.en.transcribing,
-      refining: appLabels.en.refining,
-    },
-  },
-  "zh-tw": {
-    name: "聽寫範例",
-    said: "你說的話",
-    inserts: "Airdraft 貼上的文字",
-    picker: "潤稿模式",
-    run: "播放範例",
-    noscript: "目前顯示 Clean 模式。開啟 JavaScript 即可播放範例。",
-    examples: {
-      clean: "嗨 Maya，我明天早上會把 draft 寄給你。check-in 可以改到兩點嗎？",
-      concise: "Maya，draft 明天早上寄給你。check-in 能改到兩點嗎？",
-      summary: "明天早上把 draft 寄給 Maya，並請她把 check-in 改到兩點。",
-    },
-    labels: {
-      stop: "停止",
-      again: "再播一次",
-      run: "播放範例",
-      placeholder: "放開快速鍵後，文字會出現在這裡。",
-      listening: appLabels["zh-tw"].listening,
-      transcribing: appLabels["zh-tw"].transcribing,
-      refining: appLabels["zh-tw"].refining,
-    },
-  },
-}[locale];
+const copy = messages[locale].preview;
+const app = appLabels[locale];
+const labels = {
+  stop: copy.stop,
+  again: copy.again,
+  run: copy.run,
+  placeholder: copy.placeholder,
+  listening: app.listening,
+  transcribing: app.transcribing,
+  refining: app.refining,
+};
+const profiles = [
+  ["clean", app.clean],
+  ["concise", app.concise],
+  ["summary", app.summary],
+] as const;
 ---
 
 <section
@@ -75,24 +40,20 @@ const copy = {
   aria-label={copy.name}
   data-preview
   data-examples={JSON.stringify(copy.examples)}
-  data-labels={JSON.stringify(copy.labels)}
+  data-labels={JSON.stringify(labels)}
 >
   <div class="preview-stage">
     <div class="spoken well">
       <span class="field-label">{copy.said}</span>
-      {locale === "zh-tw" ? (
-        <p data-spoken>
-          「<span class="filler struck">呃，</span>跟 Maya 說 draft
-          我明天早上寄給她。<span class="filler struck">然後那個，</span>問她
-          check-in 能不能改到兩點。」
-        </p>
-      ) : (
-        <p data-spoken>
-          “<span class="filler struck">Um,</span> let Maya know I’ll send the
-          draft tomorrow morning. <span class="filler struck">And, uh,</span>{" "}
-          ask if we can move our check-in to two.”
-        </p>
-      )}
+      <p data-spoken>
+        {copy.spoken.map((part) =>
+          typeof part === "string" ? (
+            part
+          ) : (
+            <span class="filler struck">{part.filler}</span>
+          ),
+        )}
+      </p>
     </div>
     <span class="stage-arrow" aria-hidden="true">
       <Arrow />
@@ -112,15 +73,15 @@ const copy = {
         data-profile-picker
         hidden
       >
-        <button type="button" data-profile="clean" aria-pressed="true">
-          Clean
-        </button>
-        <button type="button" data-profile="concise" aria-pressed="false">
-          Concise
-        </button>
-        <button type="button" data-profile="summary" aria-pressed="false">
-          Summary
-        </button>
+        {profiles.map(([id, name], index) => (
+          <button
+            type="button"
+            data-profile={id}
+            aria-pressed={index === 0 ? "true" : "false"}
+          >
+            {name}
+          </button>
+        ))}
       </div>
     </div>
   </div>

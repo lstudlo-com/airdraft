@@ -1,72 +1,119 @@
-// The site's languages. English pages live at the root; Traditional Chinese
-// (Taiwan) translations live under /zh-tw/ with the same slug, so the sitemap's
-// i18n links and each page's hreflang alternates pair them by path.
-export const locales = ["en", "zh-tw"] as const;
+// The site's languages. English pages live at the root; each translation
+// lives under /<code>/ with the English slug, so the sitemap's i18n links and
+// each page's hreflang alternates pair them by path. `locales.json` is the
+// single list: astro.config.mjs (sitemap alternates), the analytics path
+// allowlist and scripts/check-search.py read the same file.
+import definitions from "./locales.json" with { type: "json" };
+
+export const locales = [
+  "en",
+  "zh-tw",
+  "zh-cn",
+  "es",
+  "ja",
+  "fr",
+  "pt-br",
+  "ru",
+  "ar",
+  "hi",
+  "id",
+] as const;
 export type Locale = (typeof locales)[number];
+/** The locales the guides are written in; the other languages link to English. */
+export type GuideLocale = Extract<Locale, "en" | "zh-tw">;
+
+interface Definition {
+  code: string;
+  tag: string;
+  og: string;
+  name: string;
+  dir: string;
+  paths: string[];
+}
+const byCode = new Map(
+  (definitions as Definition[]).map((entry) => [entry.code, entry]),
+);
+if (
+  definitions.length !== locales.length ||
+  locales.some((code, index) => definitions[index]?.code !== code)
+) {
+  throw new Error("src/i18n/locales.json must list `locales` in order.");
+}
+const definition = (locale: Locale) => byCode.get(locale)!;
+const table = <T>(pick: (entry: Definition) => T) =>
+  Object.fromEntries(
+    locales.map((locale) => [locale, pick(definition(locale))]),
+  ) as Record<Locale, T>;
 
 /** BCP 47 tags for `lang`, `hreflang` and structured data `inLanguage`. */
-export const languageTag: Record<Locale, string> = {
-  en: "en",
-  "zh-tw": "zh-Hant-TW",
-};
+export const languageTag = table((entry) => entry.tag);
 
 /** Open Graph locale codes. */
-export const ogLocale: Record<Locale, string> = {
-  en: "en_US",
-  "zh-tw": "zh_TW",
-};
+export const ogLocale = table((entry) => entry.og);
 
-/** The switch's label is always in the target language. */
-export const languageName: Record<Locale, string> = {
-  en: "English",
-  "zh-tw": "繁體中文",
-};
+/** Each language's name in that language, for the language menu. */
+export const languageName = table((entry) => entry.name);
+
+/** Writing direction for `<html dir>`. */
+export const direction = table((entry) => entry.dir as "ltr" | "rtl");
 
 /**
- * The switch's label when this page has no translation and it leads to the
- * other language's homepage instead, in the target language.
+ * English paths translated into each language at `/<code>` + path. Add a
+ * path to locales.json only together with its translated page; the search
+ * check requires every alternate to exist and link back.
  */
-export const languageHomeName: Record<Locale, string> = {
-  en: "English home",
-  "zh-tw": "繁體中文首頁",
-};
-
-const zhPrefix = "/zh-tw";
+export const translatedPaths = table((entry) => entry.paths);
 
 /**
- * English paths that have a Traditional Chinese translation at
- * `/zh-tw` + path. Add a path here only together with its translated page;
- * the search check requires every alternate to exist and link back.
+ * Whether the app's interface in this language is in a published release.
+ * Pages in the other languages quote the catalog labels and say that the
+ * released app still shows English. Turn a language on when its release is
+ * published.
  */
-export const translatedPaths = [
-  "/",
-  "/pricing/",
-  "/guides/mixed-chinese-english-dictation/",
-  "/guides/dictate-to-claude-code-and-terminals/",
-  "/guides/private-meeting-transcription/",
-  "/guides/compare-mac-dictation-apps/",
-] as const;
+export const interfaceReleased: Record<Locale, boolean> = {
+  en: true,
+  "zh-tw": true,
+  "zh-cn": true,
+  es: false,
+  ja: false,
+  fr: false,
+  "pt-br": false,
+  ru: false,
+  ar: false,
+  hi: false,
+  id: false,
+};
 
+const prefixed = locales.filter((locale) => locale !== "en");
 const withSlash = (path: string) => `${path.replace(/\/+$/, "")}/`;
 
 export function localeOf(pathname: string): Locale {
-  return pathname === zhPrefix || pathname.startsWith(`${zhPrefix}/`)
-    ? "zh-tw"
-    : "en";
+  return (
+    prefixed.find(
+      (locale) =>
+        pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
+    ) ?? "en"
+  );
 }
 
 /** The English path a page translates, or the path itself. */
 export function englishPath(pathname: string): string {
   const path = withSlash(pathname);
-  return localeOf(path) === "zh-tw"
-    ? withSlash(path.slice(zhPrefix.length) || "/")
-    : path;
+  const locale = localeOf(path);
+  return locale === "en"
+    ? path
+    : withSlash(path.slice(locale.length + 1) || "/");
 }
 
 /** The path in `locale`, whether or not that page has been translated. */
 export function localizedPath(path: string, locale: Locale): string {
   const english = englishPath(path);
-  return locale === "zh-tw" ? `${zhPrefix}${english}` : english;
+  return locale === "en" ? english : `/${locale}${english}`;
+}
+
+/** Whether the English page at `path` exists in `locale`. */
+export function isTranslated(path: string, locale: Locale): boolean {
+  return locale === "en" || translatedPaths[locale].includes(englishPath(path));
 }
 
 /** Every language version of this page, or none if it is not translated. */
@@ -74,43 +121,43 @@ export function alternatesFor(
   pathname: string,
 ): { locale: Locale; path: string }[] {
   const english = englishPath(pathname);
-  if (!(translatedPaths as readonly string[]).includes(english)) return [];
-  return locales.map((locale) => ({
-    locale,
-    path: localizedPath(english, locale),
-  }));
+  const versions = locales.filter((locale) => isTranslated(english, locale));
+  return versions.length < 2
+    ? []
+    : versions.map((locale) => ({
+        locale,
+        path: localizedPath(english, locale),
+      }));
 }
 
 /**
- * Where the language switch leads: this page's translation if there is one,
- * otherwise the other language's homepage. `label` names the destination in
- * its language, so an untranslated page says it leads to a homepage.
+ * The language menu: every language, leading to this page's version in it,
+ * or to that language's homepage when this page is not translated.
  */
-export function switchTarget(pathname: string): {
+export function languageChoices(pathname: string): {
   locale: Locale;
   path: string;
   translated: boolean;
+  current: boolean;
   label: string;
-} {
+}[] {
   const current = localeOf(pathname);
-  const other: Locale = current === "en" ? "zh-tw" : "en";
-  const alternate = alternatesFor(pathname).find(
-    (entry) => entry.locale === other,
-  );
-  return alternate
-    ? { ...alternate, translated: true, label: languageName[other] }
-    : {
-        locale: other,
-        path: localizedPath("/", other),
-        translated: false,
-        label: languageHomeName[other],
-      };
+  return locales.map((locale) => {
+    const translated = isTranslated(pathname, locale);
+    return {
+      locale,
+      path: localizedPath(translated ? pathname : "/", locale),
+      translated,
+      current: locale === current,
+      label: languageName[locale],
+    };
+  });
 }
 
 /** A route in the visitor's language when it exists, else the English one. */
 export function href(path: string, locale: Locale): string {
-  const english = englishPath(path.split("#")[0]);
-  const hash = path.includes("#") ? `#${path.split("#")[1]}` : "";
-  const translated = (translatedPaths as readonly string[]).includes(english);
-  return `${locale === "zh-tw" && translated ? localizedPath(english, locale) : english}${hash}`;
+  const [route, fragment] = path.split("#");
+  const english = englishPath(route);
+  const hash = fragment === undefined ? "" : `#${fragment}`;
+  return `${isTranslated(english, locale) ? localizedPath(english, locale) : english}${hash}`;
 }

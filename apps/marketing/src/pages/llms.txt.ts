@@ -1,12 +1,33 @@
 import type { APIRoute } from "astro";
 import { guides, zhGuides } from "../data/guides";
 import { siteLinks } from "../data/site";
+import { languageName, locales, localizedPath, translatedPaths } from "../i18n";
+import { messages } from "../i18n/messages";
 
 // Optional navigation for tools that read llms.txt. HTML is authoritative;
 // this file is not a ranking signal or a crawler permission mechanism.
 export const GET: APIRoute = ({ site }) => {
   if (!site) throw new Error("The site directory requires Astro.site.");
   const url = (path: string) => new URL(path, site).href;
+  // Each language's homepage and pricing page, in that language. The
+  // Traditional Chinese guides follow their own section.
+  const translated = locales
+    .filter((locale) => locale !== "en" && locale !== "zh-tw")
+    .map((locale) => {
+      const home = messages[locale].home;
+      const pricing = messages[locale].pricing;
+      const lines = [
+        `## ${languageName[locale]}`,
+        "",
+        `- [Airdraft](${url(localizedPath("/", locale))}): ${home.description}`,
+      ];
+      if (translatedPaths[locale].includes("/pricing/"))
+        lines.push(
+          `- [${pricing.heading}](${url(localizedPath("/pricing/", locale))}): ${pricing.description}`,
+        );
+      return lines.join("\n");
+    })
+    .join("\n\n");
   return new Response(
     `# Airdraft
 
@@ -30,6 +51,8 @@ ${guides.map((guide) => `- [${guide.title}](${url(guide.href)}): ${guide.descrip
 - [Airdraft 首頁](${url("/zh-tw/")}): 中英混合聽寫、會議逐字稿與功能介紹。
 - [價格](${url("/zh-tw/pricing/")}): 自行編譯、官方授權與服務商費用。
 ${zhGuides.map((guide) => `- [${guide.title}](${url(guide.href)}): ${guide.description}`).join("\n")}
+
+${translated}
 
 ## Source
 

@@ -1,4 +1,4 @@
-import type { Locale } from "../i18n";
+import type { GuideLocale } from "../i18n";
 import { siteLinks } from "./site";
 
 /**
@@ -36,7 +36,7 @@ export interface MixedAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
   /** A short line under the model's name, for rows that need their date or version. */
-  note?: Record<Locale, string>;
+  note?: Record<GuideLocale, string>;
   /**
    * The download size the Models page shows, character for character:
    * ByteCountFormatter's decimal total of the pinned files

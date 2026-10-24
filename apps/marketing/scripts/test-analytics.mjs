@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
@@ -382,14 +382,14 @@ test("guide links report only an allowlisted slug in either language", () => {
   assert.equal("guide" in unknown.properties, false);
 });
 
-test("intent clicks are captured the same way on English and Chinese pages", async () => {
+test("intent clicks are captured the same way in every language", async () => {
   const siteLinks = {
     source: "https://github.com/example/airdraft",
     build: "https://github.com/example/airdraft#build",
     issues: "https://github.com/example/airdraft/issues",
     checkout: "",
   };
-  for (const pathname of ["/", "/zh-tw/"]) {
+  for (const pathname of ["/", "/zh-tw/", "/es/", "/ar/"]) {
     const f = fixture({ choice: "granted", siteLinks, pathname });
     await settle();
     const click = (url, containers = []) => {
@@ -409,6 +409,7 @@ test("intent clicks are captured the same way on English and Chinese pages", asy
     click(siteLinks.source, [".hero-actions"]);
     click("/zh-tw/pricing/", ["#get-airdraft"]);
     click("/pricing/#provider-costs");
+    click("/ja/pricing/", ["header"]);
     click("/zh-tw/guides/dictate-to-claude-code-and-terminals/");
     click("/guides/");
     click(pathname);
@@ -425,6 +426,7 @@ test("intent clicks are captured the same way on English and Chinese pages", asy
       ["source_clicked", "hero", undefined, pathname],
       ["pricing_clicked", "offer", undefined, pathname],
       ["pricing_clicked", "content", undefined, pathname],
+      ["pricing_clicked", "header", undefined, pathname],
       [
         "guide_clicked",
         "content",
@@ -435,13 +437,41 @@ test("intent clicks are captured the same way on English and Chinese pages", asy
   }
 });
 
-test("both pricing pages lead the checkout funnel", () => {
+test("every pricing page leads the checkout funnel", () => {
   const funnel = insights.find(
-    (insight) => insight.name === "Pricing pages to checkout intent",
+    (insight) =>
+      insight.name === "Pricing pages to checkout intent, all languages",
   );
-  assert.deepEqual(funnel.query.source.series[0].properties[0].value, [
-    "/pricing/",
-    "/zh-tw/pricing/",
-  ]);
+  assert.ok(policy.pricingPaths.includes("/pricing/"));
+  assert.ok(policy.pricingPaths.includes("/zh-tw/pricing/"));
+  assert.ok(policy.pricingPaths.includes("/ar/pricing/"));
+  assert.deepEqual(
+    funnel.query.source.series[0].properties[0].value,
+    policy.pricingPaths,
+  );
   assert.ok(insights.some((insight) => insight.name === "Guide interest"));
+});
+
+test("every known translated path has its page", () => {
+  const languages = JSON.parse(
+    readFileSync(new URL("../src/i18n/locales.json", import.meta.url), "utf8"),
+  );
+  for (const language of languages) {
+    if (language.code === "en") continue;
+    for (const path of language.paths) {
+      const page = new URL(
+        `../src/pages/${language.code}${path === "/" ? "/index" : path.replace(/\/$/, "")}.astro`,
+        import.meta.url,
+      );
+      assert.ok(existsSync(page), `${language.code}${path} has no page`);
+      assert.equal(
+        policy.safePath(`/${language.code}${path}`),
+        `/${language.code}${path}`,
+      );
+    }
+  }
+  assert.equal(
+    policy.safePath("/es/guides/offline-dictation-on-mac/"),
+    "/404/",
+  );
 });

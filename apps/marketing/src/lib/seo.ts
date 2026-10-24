@@ -10,7 +10,7 @@ export const siteName = "Airdraft";
 export const defaultTitle =
   "Airdraft | Mac dictation and meeting transcription, local or cloud";
 export const defaultDescription =
-  "Airdraft is an open-source Mac app that types what you say into any app, including mixed Chinese and English and prompts for coding agents, and transcribes meetings. Speech and refinement run locally or in the cloud. Free to build from source.";
+  "Airdraft is an open-source Mac app that types what you say into any app, in your language with English and technical terms mixed in, and transcribes meetings. Speech and refinement run on your Mac or with your own provider. Free to build from source.";
 export const socialImageAlt =
   "Airdraft: Speak into any app. Transcribe meetings. Keep it on your Mac. Open source, with local or cloud models.";
 
@@ -79,6 +79,7 @@ export function pageStructuredData({
           "Editable writing profiles and vocabulary corrections",
           "Local, searchable dictation history",
           "Meeting recording and audio or video transcription with optional speaker labels",
+          "Dictation in many languages, with English and technical terms mixed in, using the selected speech model",
           "Traditional or Simplified Chinese output, including mixed Chinese and English speech with supported models",
         ],
       },

@@ -1,4 +1,7 @@
 import type { CaptureResult } from "posthog-js";
+// The same language list as src/i18n/index.ts; JSON so Node's test runner
+// and the browser bundle can both read it without the Astro toolchain.
+import languages from "../i18n/locales.json" with { type: "json" };
 
 export const consentKey = "airdraft.analytics-consent.v1";
 export const consentLifetime = 180 * 24 * 60 * 60 * 1000;
@@ -33,7 +36,9 @@ export function analyticsAllowed(
   );
 }
 
-const paths = new Set([
+// Known page paths: every English page, then each language's translations
+// at /<code>/ + the English path (src/i18n/locales.json).
+const englishPaths = [
   "/",
   "/pricing/",
   "/support/",
@@ -47,18 +52,25 @@ const paths = new Set([
   "/guides/compare-mac-dictation-apps/",
   "/guides/mixed-chinese-english-dictation/",
   "/guides/dictate-to-claude-code-and-terminals/",
-  "/zh-tw/",
-  "/zh-tw/pricing/",
-  "/zh-tw/guides/private-meeting-transcription/",
-  "/zh-tw/guides/compare-mac-dictation-apps/",
-  "/zh-tw/guides/mixed-chinese-english-dictation/",
-  "/zh-tw/guides/dictate-to-claude-code-and-terminals/",
-]);
+];
+export const knownPaths = [
+  ...englishPaths,
+  ...languages.flatMap((language) =>
+    language.code === "en"
+      ? []
+      : language.paths.map((path) => `/${language.code}${path}`),
+  ),
+];
+const paths = new Set(knownPaths);
+/** The pricing page in every language, for intent clicks and the funnel. */
+export const pricingPaths = knownPaths.filter((path) =>
+  /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/pricing\/$/.test(path),
+);
 export function safePath(path: string) {
   return paths.has(path) ? path : "/404/";
 }
 
-// Guide slugs, in both languages. Keep aligned with src/data/guides.ts
+// Guide slugs, shared by every language. Keep aligned with src/data/guides.ts
 // (test-analytics.mjs checks it). A guide link click reports only the slug.
 export const guideSlugs = [
   "offline-dictation-on-mac",
@@ -72,7 +84,9 @@ export const guideSlugs = [
 
 /** The guide a same-site path opens, or undefined for any other page. */
 export function guideOf(path: string): string | undefined {
-  const slug = /^\/(?:zh-tw\/)?guides\/([a-z-]+)\/$/.exec(path)?.[1];
+  const slug = /^\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?guides\/([a-z-]+)\/$/.exec(
+    path,
+  )?.[1];
   return slug && (guideSlugs as readonly string[]).includes(slug)
     ? slug
     : undefined;

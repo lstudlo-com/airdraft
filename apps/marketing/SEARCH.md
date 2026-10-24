@@ -16,16 +16,25 @@ or making claims about search features.
 - `public/_redirects` permanently redirects slashless and `index.html` aliases
   to canonical pages. Update those explicit routes when adding an indexable page;
   leave assets and missing URLs outside the redirect rules.
-- Translated pages follow `src/i18n/index.ts`: Traditional Chinese (Taiwan)
-  at `/zh-tw/` + the English slug, `lang="zh-Hant-TW"`, `og:locale` `zh_TW`
-  with the other language as `og:locale:alternate`, and WebPage `inLanguage`
-  matching the page. Every member of a translation set emits the same
-  `hreflang` alternates (`en`, `zh-Hant-TW` and `x-default` pointing at the
+- Translated pages follow `src/i18n/locales.json` (read by
+  `src/i18n/index.ts`, `astro.config.mjs`, the analytics policy and
+  `check-search.py`): each language at `/<code>/` + the English slug, with
+  its BCP 47 tag as `lang` (`zh-Hant-TW`, `zh-Hans-CN`, `es`, `ja`, `fr`,
+  `pt-BR`, `ru`, `ar`, `hi`, `id`), its `dir` (`rtl` for Arabic), its
+  `og:locale` (`zh_TW`, `zh_CN`, `es_ES`, `ja_JP`, `fr_FR`, `pt_BR`, `ru_RU`,
+  `ar_AR`, `hi_IN`, `id_ID`) with the set's other languages as
+  `og:locale:alternate`, and WebPage `inLanguage` matching the page. Each
+  language lists its own translated paths, so a translation set holds the
+  languages that have that page: the homepage and pricing in all eleven, four
+  guides in English and Traditional Chinese. Every member of a set emits the
+  same `hreflang` alternates (each version, plus `x-default` pointing at the
   English page), including itself; the sitemap's `xhtml:link` alternates
-  (`@astrojs/sitemap` i18n) must match them. The WebSite entity lists both
-  languages. Add a translation to `translatedPaths`, `_redirects`, the analytics
-  path allowlist and `llms.txt` together. `check-search.py` enforces language,
-  reciprocity and sitemap parity.
+  (`@astrojs/sitemap` i18n) must match them. The WebSite entity lists every
+  language. Add a translation to `locales.json` together with its page and
+  its `_redirects` aliases; the analytics allowlist and the language-specific
+  `llms.txt` sections follow from the same data. `check-search.py` enforces
+  language, direction, reciprocity, that every page under a language prefix
+  is listed and every listed page was built, and sitemap parity.
 - Keep product facts consistent across visible text, structured data, guides,
   social previews and the optional `/llms.txt` directory. Prices and availability
   come from shared data. Explain self-building separately from the official app.

@@ -1,5 +1,6 @@
 // Dry run by default. Credentials belong in the shell environment, never PUBLIC_*.
 import { pathToFileURL } from "node:url";
+import { pricingPaths } from "../src/lib/analytics-policy.ts";
 
 const property = (key, value) => ({
   key,
@@ -84,9 +85,10 @@ export const insights = [
     query: trend(["guide_clicked"], "guide"),
   },
   {
-    // Both pricing pages. Renamed when the Traditional Chinese page was
-    // added, so a rerun creates it beside the earlier English-only insight.
-    name: "Pricing pages to checkout intent",
+    // Every pricing page. Renamed when the pricing page was translated into
+    // every language, so a rerun creates it beside the earlier English and
+    // Traditional Chinese insight.
+    name: "Pricing pages to checkout intent, all languages",
     query: {
       kind: "InsightVizNode",
       source: {
@@ -95,9 +97,7 @@ export const insights = [
         series: [
           {
             ...series("$pageview"),
-            properties: [
-              property("$pathname", ["/pricing/", "/zh-tw/pricing/"]),
-            ],
+            properties: [property("$pathname", pricingPaths)],
           },
           series("checkout_clicked"),
         ],

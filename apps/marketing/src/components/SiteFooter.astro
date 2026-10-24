@@ -3,47 +3,21 @@ import Brand from "./ui/Brand.astro";
 import { license, siteLinks } from "../data/site";
 import {
   href,
+  languageChoices,
   languageTag,
   localeOf,
   localizedPath,
-  switchTarget,
 } from "../i18n";
+import { messages } from "../i18n/messages";
 
 const locale = localeOf(Astro.url.pathname);
-const language = switchTarget(Astro.url.pathname);
-const label = {
-  en: {
-    home: "Airdraft home",
-    nav: "Footer",
-    github: "GitHub",
-    build: "Build instructions",
-    pricing: "Pricing",
-    guides: "Guides",
-    support: "Support",
-    donate: "Donate",
-    changelog: "Changelog",
-    rss: "RSS",
-    privacy: "Privacy",
-    license: license?.name ?? "",
-  },
-  "zh-tw": {
-    home: "Airdraft 首頁",
-    nav: "頁尾",
-    github: "GitHub",
-    build: "自行編譯說明",
-    pricing: "價格",
-    // English-only pages say so.
-    guides: "指南（英文）",
-    support: "支援（英文）",
-    donate: "贊助（英文）",
-    changelog: "更新紀錄（英文）",
-    rss: "RSS（英文）",
-    privacy: "隱私（英文）",
-    license: "授權條款",
-  },
-}[locale];
+const label = messages[locale].footer;
+const home = messages[locale].header.home;
+// English-only pages linked from a translated one say so.
+const english = messages[locale].english;
+const languages = languageChoices(Astro.url.pathname);
 const links = [
-  { href: siteLinks.source, label: label.github },
+  { href: siteLinks.source, label: "GitHub" },
   { href: siteLinks.build, label: label.build },
   { href: href("/pricing/", locale), label: label.pricing },
   { href: "/guides/", label: label.guides },
@@ -53,34 +27,43 @@ const links = [
   { href: "/changelog.xml", label: label.rss },
   { href: "/privacy/", label: label.privacy },
   ...(license ? [{ href: license.url, label: label.license }] : []),
-];
+].map((link) => {
+  const englishOnly =
+    locale !== "en" &&
+    link.href.startsWith("/") &&
+    localeOf(link.href) === "en";
+  return {
+    ...link,
+    label: englishOnly ? `${link.label}${english}` : link.label,
+    hreflang: englishOnly ? "en" : undefined,
+  };
+});
 ---
 
 <footer class="site-footer wrap">
-  <a class="brand" href={localizedPath("/", locale)} aria-label={label.home}>
+  <a class="brand" href={localizedPath("/", locale)} aria-label={home}>
     <Brand size="sm" />
   </a>
   <nav class="footer-links" aria-label={label.nav}>
     {links.map((link) => (
-      <a
-        href={link.href}
-        hreflang={
-          locale === "zh-tw" &&
-          link.href.startsWith("/") &&
-          localeOf(link.href) === "en"
-            ? "en"
-            : undefined
-        }
-      >
+      <a href={link.href} hreflang={link.hreflang}>
         {link.label}
       </a>
     ))}
-    <a
-      href={language.path}
-      hreflang={languageTag[language.locale]}
-      lang={languageTag[language.locale]}
-    >
-      {language.label}
-    </a>
+  </nav>
+  <!-- Every language, in its own name: this page's version, or that
+       language's homepage. Also the language menu's fallback without
+       popovers. -->
+  <nav class="footer-languages" aria-label={label.languages}>
+    {languages.map((language) => (
+      <a
+        href={language.path}
+        hreflang={languageTag[language.locale]}
+        lang={languageTag[language.locale]}
+        aria-current={language.current ? "true" : undefined}
+      >
+        {language.label}
+      </a>
+    ))}
   </nav>
 </footer>

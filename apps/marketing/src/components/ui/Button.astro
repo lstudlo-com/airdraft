@@ -22,6 +22,8 @@ interface Props {
   id?: string;
   hidden?: boolean;
   popovertarget?: string;
+  /** The target page's language when it differs from this page's. */
+  hreflang?: string;
   class?: string;
   [data: `data-${string}`]: string | boolean | undefined;
   [aria: `aria-${string}`]: string | boolean | undefined;

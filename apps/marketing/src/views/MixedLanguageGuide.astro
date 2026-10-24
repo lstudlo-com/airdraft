@@ -9,7 +9,7 @@ import {
   mixedAsrStudy,
   type MixedAsrDelta,
 } from "../data/mixed-asr";
-import { href, type Locale } from "../i18n";
+import { href, type GuideLocale } from "../i18n";
 
 /**
  * Mixed Chinese–English dictation, in each language. The numbers come from
@@ -24,7 +24,7 @@ import { href, type Locale } from "../i18n";
  * zh-Hant catalog values, quoted with 「」.
  */
 interface Props {
-  locale: Locale;
+  locale: GuideLocale;
 }
 const { locale } = Astro.props;
 const guide = guidesFor(locale).find(

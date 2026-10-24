@@ -3,18 +3,20 @@ import Hud from "./ui/Hud.astro";
 import Keys from "./ui/Keys.astro";
 import Waveform from "./ui/Waveform.astro";
 import type { Locale } from "../i18n";
+import { appLabels } from "../data/app";
 
 interface Props {
   locale?: Locale;
 }
 const { locale = "en" } = Astro.props;
+const app = appLabels[locale];
 
 /**
  * The hero object: Home's hero card from the app, without its metrics (the
  * site never shows usage counts). In the app each bar is one dictation; here
  * the forty bars are decorative and their heights are a fixed pattern, not
  * data. The caption is the app's own first-run instruction, in the page's
- * language (zh-Hant from the app's string catalog), and it works:
+ * language (from the app's string catalogs, src/data/app.ts), and it works:
  * holding ⌃⌥ (or pressing and holding the waveform) plays a pretend
  * dictation that adds a bar (src/scripts/dictate.ts).
  */
@@ -32,17 +34,10 @@ const levels = Array.from({ length: count }, (_, index) => {
 <div class="hero-card" data-dictate>
   <Waveform levels={levels} />
   <div class="hero-status">
-    {locale === "zh-tw" ? (
-      <p class="hero-caption">
-        按住 <Keys keys={["⌃", "⌥"]} label="Control Option" />{" "}
-        並說話。每次聽寫都會增加一條長條。
-      </p>
-    ) : (
-      <p class="hero-caption">
-        Hold <Keys keys={["⌃", "⌥"]} label="Control Option" /> and speak. Each
-        dictation adds a bar.
-      </p>
-    )}
+    <p class="hero-caption">
+      {app.hold} <Keys keys={["⌃", "⌥"]} label="Control Option" />{" "}
+      {app.holdAfter}
+    </p>
     <Hud class="hero-hud" locale={locale} />
   </div>
 </div>

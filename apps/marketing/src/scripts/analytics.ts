@@ -5,6 +5,7 @@ import {
   consentKey,
   consentLifetime,
   guideOf,
+  pricingPaths,
   readConsent,
   sanitizeEvent,
   safePath,
@@ -181,7 +182,7 @@ document.addEventListener("click", (event) => {
   else if (link.href === siteLinks.issues) name = "support_clicked";
   else if (
     link.origin === location.origin &&
-    ["/pricing/", "/zh-tw/pricing/"].includes(link.pathname)
+    pricingPaths.includes(link.pathname)
   )
     name = "pricing_clicked";
   else if (link.href.startsWith(`${siteLinks.source}/releases/`))

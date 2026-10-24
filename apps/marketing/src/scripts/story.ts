@@ -165,10 +165,12 @@ const arts: Record<
         );
     });
   },
-  // The Chinese script picker: the same mixed sentence in each script.
+  // The mixed-language tile: the Chinese script picker over one sentence,
+  // or one sentence per language; each output keeps its own `lang`.
   script(art, timeline) {
     const holder = one(".art-profiles", art)!;
     const outputs: string[] = JSON.parse(holder.dataset.outputs ?? "[]");
+    const langs: string[] = JSON.parse(holder.dataset.langs ?? "[]");
     const items = all("li:not(.segmented-thumb)", art);
     const output = one("[data-output]", art)!;
     outputs.forEach((_, step) => {
@@ -181,6 +183,7 @@ const arts: Record<
             item.classList.toggle("is-selected", position === index),
           );
           output.textContent = outputs[index];
+          if (langs[index]) output.lang = langs[index];
         })
         .fromTo(
           output,

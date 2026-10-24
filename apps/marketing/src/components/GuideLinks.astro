@@ -2,9 +2,15 @@
 import Button from "./ui/Button.astro";
 import Surface from "./ui/Surface.astro";
 import { guidesFor } from "../data/guides";
-import type { Locale } from "../i18n";
+import { isTranslated, type Locale } from "../i18n";
+import { messages } from "../i18n/messages";
 import "../styles/guides.css";
 
+/**
+ * Guide cards. The guides are written in English and Traditional Chinese;
+ * other languages list the English guides, in English (lang="en"), with the
+ * read action in the page's language and its "(English)" mark.
+ */
 interface Props {
   exclude?: string;
   headingLevel?: 2 | 3;
@@ -12,26 +18,35 @@ interface Props {
 }
 
 const { exclude, headingLevel = 3, locale = "en" } = Astro.props;
-const read = locale === "zh-tw" ? "閱讀指南" : "Read Guide";
-const readLabel = locale === "zh-tw" ? "閱讀指南：" : "Read guide: ";
+const copy = messages[locale].guideLinks;
+const english = messages[locale].english;
 const Heading = headingLevel === 2 ? "h2" : "h3";
-const entries = guidesFor(locale).filter((guide) => guide.slug !== exclude);
+const entries = guidesFor(locale)
+  .filter((guide) => guide.slug !== exclude)
+  .map((guide) => ({
+    ...guide,
+    inEnglish: locale !== "en" && !isTranslated(guide.href, locale),
+  }));
 ---
 
 <ul class="guide-links">
   {entries.map((guide) => (
     <Surface as="li" class="guide-link-card">
-      <Heading>
-        <a href={guide.href}>{guide.title}</a>
+      <Heading lang={guide.inEnglish ? "en" : undefined}>
+        <a href={guide.href} hreflang={guide.inEnglish ? "en" : undefined}>
+          {guide.title}
+        </a>
       </Heading>
-      <p>{guide.summary}</p>
+      <p lang={guide.inEnglish ? "en" : undefined}>{guide.summary}</p>
       <Button
         href={guide.href}
         variant="quiet"
         icon="right"
-        aria-label={`${readLabel}${guide.title}`}
+        hreflang={guide.inEnglish ? "en" : undefined}
+        aria-label={`${copy.readLabel}${guide.title}`}
       >
-        {read}
+        {copy.read}
+        {guide.inEnglish && english}
       </Button>
     </Surface>
   ))}

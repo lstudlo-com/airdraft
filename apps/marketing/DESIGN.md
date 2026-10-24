@@ -315,16 +315,18 @@ headings, a step below the page title.
 
 The homepage bento is a three-column grid with `24px` gaps and nine tiles in
 a fixed rhythm: wide + narrow, three narrow, narrow + wide, wide + narrow.
-The last row holds mixed Chinese and English (the app's 繁體中文 | 简体中文
-script picker over one mixed sentence, cycling while on screen) and the
-subscription refiners (Claude Code raised with its status dot, Codex recessed). The provider board
+The last row holds the mixed-language tile (one sentence with English terms
+in several languages, the page's own first, under a segmented picker of
+language names, cycling while on screen; the Traditional Chinese page keeps
+the app's 繁體中文 | 简体中文 script picker over one mixed sentence, and the
+Simplified Chinese page shows 简体中文 | 繁體中文) and the subscription refiners (Claude Code raised with its status dot, Codex recessed). The provider board
 never pins: it is about one viewport tall on desktop and stacks below `1000px`.
 
 | Max width | Changes                                                                                                                                                                                                                           |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `1000px`  | Gutter `32px`, section `120px`; bento becomes two columns (wide tiles span both); pricing plans and homepage offers stack (max `560px`); the provider board stacks its three columns; the hero waveform drops its 12 oldest bars. |
 | `700px`   | Gutter `20px`, section `96px`, island inset `6px`; sample, bento, footer and changelog stack; the hero waveform shows 15 bars; the HUD shows ten bars.                                                                            |
-| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links, GitHub and the language switch move into the blur the menu pulls down.                                                                                       |
+| `560px`   | The header shows the mark, Get Airdraft and the menu key; the links, GitHub and the language key move into the blur the menu pulls down.                                                                                          |
 | `420px`   | Hero and offer keys go full width; the hero waveform shows 12 bars.                                                                                                                                                               |
 
 ## Elevation & Depth
@@ -462,7 +464,8 @@ rectangle with a white top-left rim, holding a small dark inset well of white
 bars, then a timer or state in the rounded face. It stays dark in both
 appearances, as in the app. Pass `levels` for a still frame and `locale` for
 the app's own state labels in that language (潤稿中 and 轉錄中 on the
-Traditional Chinese pages, from `src/data/app.ts`); scripts read them from
+Traditional Chinese pages, from `src/data/app.ts`, which holds each
+language's catalog labels); scripts read them from
 its `data-refining` and `data-transcribing` attributes.
 
 The sample (`DictationPreview.astro`) is a raised panel: a recessed "What you
@@ -496,7 +499,11 @@ Its heading and one-line intro are centered over the window, `72px` above it
 history, usage count or personal setting; grayscale, as the app looks with the
 Graphite accent) in `public/app/`: `configuration-*` in English and
 `configuration-zh-tw-*` in the app's Traditional Chinese interface for the
-`/zh-tw/` homepage, both from a Debug build of the current release.
+`/zh-tw/` homepage, both from a Debug build of the current release. The other
+languages show the English render until theirs exist, and the caption says
+the window is the English interface; while a language's interface is not in a
+published release (`interfaceReleased` in `src/i18n/index.ts`) the caption
+also says the released app still shows English.
 Re-render it when the Settings page, sidebar or materials change. The source render is 784 by 1000 points so all six recording-window choices,
 the Disco switch and the timer row fit. Disco is off in these grayscale screenshots.
 The window is `784px` wide at most, `16px`
@@ -650,12 +657,26 @@ changes at once. Layout's `pagereveal` script marks a move between two linked
 pages `nav-slide`, where the moving group draws the well itself so it keeps its
 shape; arriving from or leaving for another page fades it. Reduced motion and
 browsers without cross-document view transitions change pages instantly. The
-language switch (a quiet capsule link named in its own language, "繁體中文"
-or "English"; hidden at `760px` and below, where the footer and phone menu
-carry it), the GitHub icon key and the primary "Get Airdraft" key at the end. The header's
-keys (GitHub, Get Airdraft and the phone menu key) stand exactly as tall as the
-brand capsule, `34px`, with a transparent margin that keeps a `44px` touch
-target.
+language key (a globe icon key named "Language: English" in the page's
+language), the GitHub icon key and the primary "Get Airdraft" key sit at the
+end. The header's keys (language, GitHub, Get Airdraft and the phone menu key)
+stand exactly as tall as the brand capsule, `34px`, with a transparent margin
+that keeps a `44px` touch target.
+
+The language key opens the language menu (`LanguageMenu.astro`,
+`src/styles/languages.css`): a native `popover` raised panel (`280px` wide,
+anchored under the key with `position-area`, otherwise at the header's end)
+with one `40px` row per language, each named in itself and tagged with its
+`lang`; the current language rests in the recessed `--sink-chip` well. A row
+leads to this page in that language, or, when this page has no translation,
+to that language's homepage with a muted "home page" note in the visitor's
+language. It works without JavaScript; browsers without popovers hide it and
+rely on the footer's language list. Translated pages mark English-only links
+with the language's "(English)" word. Chinese and Japanese marks are four
+characters; the spaced languages' marks are longer, so their header
+(`site-header-longer`) centres the links between the mark and the keys below
+`1180px` and folds them into the menu up to `900px`, as the Traditional
+Chinese header does up to `700px`.
 
 On phones (`560px` and below) the links and the GitHub key fold into a menu:
 the header keeps the mark, Get Airdraft and a round menu key with two strokes.
@@ -673,8 +694,9 @@ their contrast; they are ink, never muted, for the same reason. The
 rows sit on it below the header row, aligned with the mark, each `44px` with
 `12px` corners like the app's sidebar destinations: Pricing, Support and
 Changelog, the current page resting in the `--sink-chip` well, then a groove,
-"Source on GitHub" with its external arrow, and the language switch with a
-globe glyph (`--menu-h` is `262px`). Fixed row heights give the blur
+"Source on GitHub" with its external arrow, and a Language row with a globe
+glyph and the current language that opens the same language menu over the
+phone menu, across the width under the header (`--menu-h` is `262px`). Fixed row heights give the blur
 its reach (`--menu-h`) without measuring. The rows follow the blur down one
 after another (`35ms` apart) and fade at once on closing. While the menu is
 open the key sinks, the mark's shade and light falling inside it, like the
@@ -703,7 +725,16 @@ on the blur in contrast whatever passes under it: white content in dark mode,
 the graphite key in light. The tint sits on top of the blur, never in place of
 it; never simulate the blur with a tint or an opacity fade; only Reduce Transparency gets an
 opaque header, in the tint's colour. Anchors land below it (`scroll-padding-top`). The footer
-sits on the chrome below the island.
+sits on the chrome below the island: the mark, its links, and under them every
+language named in itself, the current one in ink.
+
+Arabic pages are right to left (`dir="rtl"` from `src/i18n/locales.json`).
+`src/styles/languages.css` moves flow-relative spacing to logical properties
+there and turns arrows that point along the reading direction. The light still
+comes from the top left, so shadows, rims and raised edges are unchanged.
+Pictures of the app keep its left-to-right layout: the window render and its
+callouts, the Home waveform (newest bar last), the recording pill and key
+caps (⌃ before ⌥, as macOS prints shortcuts).
 
 Pricing keeps its copy to labels, prices and short checks; details belong in
 the questions. Two plans share a row (`src/styles/pricing.css`): the free
@@ -711,7 +742,8 @@ Open source card comes first, on the left, then the ready-to-run app, wider
 and raised like the homepage's license offer, with One Mac (`$29`) and Three
 Macs (`$49`) side by side, divided by a vertical groove, each a muted label, price and action; the Open source card mirrors one
 license (`$0`, build instructions), so prices, keys and lists line up. A groove
-separates each card's short checklist (`licenseIncludes`, `sourceIncludes`),
+separates each card's short checklist (`pricing.licenseIncludes` and
+`pricing.sourceIncludes` in each language's `src/i18n/messages` file),
 each item checked in a small recessed socket. License actions are the
 purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set; until
 then build instructions hold the page's primary key, after that One Mac. Plans
@@ -729,10 +761,12 @@ project.
 ### Product guides and sharing
 
 The homepage links to the guides after the interface section, using `GuideLinks`:
-mixed Chinese and English, coding agents and terminals, offline setup,
+offline setup, mixed Chinese and English, coding agents and terminals,
 local/cloud data flow, source build versus official app, private meeting
 transcription, and the app comparison. The Traditional Chinese homepage lists
-its four translated guides and links the English hub. The mixed-language
+its four translated guides and links the English hub. The other languages'
+homepages list the English guides in English (`lang="en"`), with the read
+action in the page's language and its "(English)" mark. The mixed-language
 results table reuses `.guide-table-wide`, so on narrow regions each model
 becomes a block of labelled rows. The
 comparison table (`.guide-table-wide`) keeps seven columns at `880px` minimum
