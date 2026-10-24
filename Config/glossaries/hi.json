@@ -1,0 +1,602 @@
+[
+ {
+  "en": "Airdraft",
+  "hi": "Airdraft (not translated)"
+ },
+ {
+  "en": "dictation",
+  "hi": "डिक्टेशन"
+ },
+ {
+  "en": "dictate",
+  "hi": "डिक्टेट करें"
+ },
+ {
+  "en": "refinement",
+  "hi": "सुधार"
+ },
+ {
+  "en": "refine / tidy",
+  "hi": "सुधारें"
+ },
+ {
+  "en": "refinement provider",
+  "hi": "सुधार प्रदाता"
+ },
+ {
+  "en": "correction",
+  "hi": "संशोधन / सुधार"
+ },
+ {
+  "en": "profile",
+  "hi": "प्रोफ़ाइल (feminine)"
+ },
+ {
+  "en": "app rule",
+  "hi": "ऐप नियम"
+ },
+ {
+  "en": "app family",
+  "hi": "ऐप फ़ैमिली"
+ },
+ {
+  "en": "speech model",
+  "hi": "स्पीच मॉडल"
+ },
+ {
+  "en": "speech",
+  "hi": "स्पीच / बोली"
+ },
+ {
+  "en": "speech language",
+  "hi": "स्पीच भाषा"
+ },
+ {
+  "en": "speech recognition",
+  "hi": "स्पीच रिकग्निशन"
+ },
+ {
+  "en": "recognition",
+  "hi": "पहचान"
+ },
+ {
+  "en": "automatic detection",
+  "hi": "स्वतः पहचान"
+ },
+ {
+  "en": "language hint",
+  "hi": "भाषा संकेत"
+ },
+ {
+  "en": "transcript",
+  "hi": "ट्रांसक्रिप्ट"
+ },
+ {
+  "en": "transcribe",
+  "hi": "ट्रांसक्राइब करें"
+ },
+ {
+  "en": "transcription",
+  "hi": "ट्रांसक्रिप्शन"
+ },
+ {
+  "en": "raw text / raw transcript",
+  "hi": "रॉ टेक्स्ट / रॉ ट्रांसक्रिप्ट"
+ },
+ {
+  "en": "History",
+  "hi": "इतिहास"
+ },
+ {
+  "en": "Home",
+  "hi": "होम"
+ },
+ {
+  "en": "Meetings",
+  "hi": "मीटिंग्स"
+ },
+ {
+  "en": "meeting",
+  "hi": "मीटिंग"
+ },
+ {
+  "en": "Models",
+  "hi": "मॉडल"
+ },
+ {
+  "en": "Settings",
+  "hi": "सेटिंग्ज़"
+ },
+ {
+  "en": "Profiles",
+  "hi": "प्रोफ़ाइल"
+ },
+ {
+  "en": "Trial & License",
+  "hi": "ट्रायल और लाइसेंस"
+ },
+ {
+  "en": "trial",
+  "hi": "ट्रायल"
+ },
+ {
+  "en": "license",
+  "hi": "लाइसेंस"
+ },
+ {
+  "en": "license key",
+  "hi": "लाइसेंस की"
+ },
+ {
+  "en": "activate / activation",
+  "hi": "सक्रिय करें / सक्रियण"
+ },
+ {
+  "en": "deactivate",
+  "hi": "निष्क्रिय करें"
+ },
+ {
+  "en": "customer portal",
+  "hi": "ग्राहक पोर्टल"
+ },
+ {
+  "en": "device slot",
+  "hi": "डिवाइस स्लॉट"
+ },
+ {
+  "en": "recording",
+  "hi": "रिकॉर्डिंग"
+ },
+ {
+  "en": "recording window",
+  "hi": "रिकॉर्डिंग विंडो"
+ },
+ {
+  "en": "shortcut",
+  "hi": "शॉर्टकट"
+ },
+ {
+  "en": "keyboard shortcuts",
+  "hi": "कीबोर्ड शॉर्टकट"
+ },
+ {
+  "en": "Apple Shortcuts",
+  "hi": "Apple शॉर्टकट्स"
+ },
+ {
+  "en": "Hold",
+  "hi": "दबाकर रखें"
+ },
+ {
+  "en": "Press",
+  "hi": "दबाएँ"
+ },
+ {
+  "en": "Toggle",
+  "hi": "टॉगल"
+ },
+ {
+  "en": "Trigger Delay",
+  "hi": "ट्रिगर विलंब"
+ },
+ {
+  "en": "clipboard",
+  "hi": "क्लिपबोर्ड"
+ },
+ {
+  "en": "paste",
+  "hi": "पेस्ट करें"
+ },
+ {
+  "en": "insert / insertion",
+  "hi": "डालें / टेक्स्ट डालना"
+ },
+ {
+  "en": "Insert at cursor",
+  "hi": "कर्सर पर डालें"
+ },
+ {
+  "en": "cursor",
+  "hi": "कर्सर"
+ },
+ {
+  "en": "destination",
+  "hi": "गंतव्य"
+ },
+ {
+  "en": "live preview",
+  "hi": "लाइव प्रीव्यू"
+ },
+ {
+  "en": "live transcript",
+  "hi": "लाइव ट्रांसक्रिप्ट"
+ },
+ {
+  "en": "preview source",
+  "hi": "प्रीव्यू स्रोत"
+ },
+ {
+  "en": "microphone",
+  "hi": "माइक्रोफ़ोन"
+ },
+ {
+  "en": "input channel",
+  "hi": "इनपुट चैनल"
+ },
+ {
+  "en": "System Default",
+  "hi": "सिस्टम डिफ़ॉल्ट"
+ },
+ {
+  "en": "provider",
+  "hi": "प्रदाता"
+ },
+ {
+  "en": "API key",
+  "hi": "API की"
+ },
+ {
+  "en": "key (credential)",
+  "hi": "की"
+ },
+ {
+  "en": "Keychain",
+  "hi": "कीचेन"
+ },
+ {
+  "en": "endpoint",
+  "hi": "एंडपॉइंट"
+ },
+ {
+  "en": "base URL",
+  "hi": "बेस URL"
+ },
+ {
+  "en": "custom",
+  "hi": "कस्टम"
+ },
+ {
+  "en": "default",
+  "hi": "डिफ़ॉल्ट"
+ },
+ {
+  "en": "App Default",
+  "hi": "ऐप डिफ़ॉल्ट"
+ },
+ {
+  "en": "local",
+  "hi": "लोकल"
+ },
+ {
+  "en": "on this Mac",
+  "hi": "इस Mac पर"
+ },
+ {
+  "en": "on-device",
+  "hi": "डिवाइस पर"
+ },
+ {
+  "en": "cloud",
+  "hi": "क्लाउड"
+ },
+ {
+  "en": "download",
+  "hi": "डाउनलोड करें"
+ },
+ {
+  "en": "install",
+  "hi": "इंस्टॉल करें"
+ },
+ {
+  "en": "load / unload",
+  "hi": "लोड करें / अनलोड करें"
+ },
+ {
+  "en": "memory",
+  "hi": "मेमोरी"
+ },
+ {
+  "en": "recommended",
+  "hi": "अनुशंसित"
+ },
+ {
+  "en": "verified",
+  "hi": "सत्यापित"
+ },
+ {
+  "en": "unverified",
+  "hi": "असत्यापित"
+ },
+ {
+  "en": "experimental",
+  "hi": "प्रायोगिक"
+ },
+ {
+  "en": "built-in",
+  "hi": "बिल्ट-इन"
+ },
+ {
+  "en": "Accessibility",
+  "hi": "ऐक्सेसिबिलिटी"
+ },
+ {
+  "en": "Privacy & Security",
+  "hi": "गोपनीयता और सुरक्षा"
+ },
+ {
+  "en": "System Settings",
+  "hi": "सिस्टम सेटिंग्ज़"
+ },
+ {
+  "en": "permission",
+  "hi": "अनुमति"
+ },
+ {
+  "en": "Allow Access",
+  "hi": "ऐक्सेस की अनुमति दें"
+ },
+ {
+  "en": "menu bar",
+  "hi": "मेनू बार"
+ },
+ {
+  "en": "setup / set up",
+  "hi": "सेटअप / सेट अप करें"
+ },
+ {
+  "en": "vocabulary",
+  "hi": "शब्दावली"
+ },
+ {
+  "en": "dictionary",
+  "hi": "शब्दकोश"
+ },
+ {
+  "en": "app context",
+  "hi": "ऐप संदर्भ"
+ },
+ {
+  "en": "base system prompt",
+  "hi": "आधार सिस्टम प्रॉम्प्ट"
+ },
+ {
+  "en": "prompt",
+  "hi": "प्रॉम्प्ट"
+ },
+ {
+  "en": "instructions",
+  "hi": "निर्देश"
+ },
+ {
+  "en": "speaker (person)",
+  "hi": "वक्ता"
+ },
+ {
+  "en": "summary / summarize",
+  "hi": "सारांश / सारांश बनाएँ"
+ },
+ {
+  "en": "Action Items",
+  "hi": "कार्य आइटम"
+ },
+ {
+  "en": "Decisions & Follow-ups",
+  "hi": "निर्णय और फ़ॉलो-अप"
+ },
+ {
+  "en": "Meeting Minutes",
+  "hi": "मीटिंग का विवरण"
+ },
+ {
+  "en": "Brief Summary",
+  "hi": "संक्षिप्त सारांश"
+ },
+ {
+  "en": "version",
+  "hi": "संस्करण"
+ },
+ {
+  "en": "export / import",
+  "hi": "एक्सपोर्ट करें / इंपोर्ट करें"
+ },
+ {
+  "en": "audio",
+  "hi": "ऑडियो"
+ },
+ {
+  "en": "retention / keep recordings",
+  "hi": "रखने की अवधि / रिकॉर्डिंग रखें"
+ },
+ {
+  "en": "recover / recovery",
+  "hi": "रिकवर करें / रिकवरी"
+ },
+ {
+  "en": "retry",
+  "hi": "फिर आज़माएँ (button) / फिर से कोशिश करें (prose)"
+ },
+ {
+  "en": "discard",
+  "hi": "त्यागें"
+ },
+ {
+  "en": "delete",
+  "hi": "डिलीट करें"
+ },
+ {
+  "en": "remove",
+  "hi": "हटाएँ"
+ },
+ {
+  "en": "cancel",
+  "hi": "रद्द करें"
+ },
+ {
+  "en": "save",
+  "hi": "सहेजें"
+ },
+ {
+  "en": "copy",
+  "hi": "कॉपी करें"
+ },
+ {
+  "en": "done",
+  "hi": "हो गया"
+ },
+ {
+  "en": "quit",
+  "hi": "बाहर निकलें"
+ },
+ {
+  "en": "reset",
+  "hi": "रीसेट करें"
+ },
+ {
+  "en": "restore defaults",
+  "hi": "डिफ़ॉल्ट फिर से लाएँ"
+ },
+ {
+  "en": "refresh",
+  "hi": "रिफ़्रेश करें"
+ },
+ {
+  "en": "cleanup",
+  "hi": "सफ़ाई"
+ },
+ {
+  "en": "Appearance",
+  "hi": "दिखावट"
+ },
+ {
+  "en": "Light / Dark / Auto",
+  "hi": "लाइट / डार्क / ऑटो"
+ },
+ {
+  "en": "Automatic",
+  "hi": "स्वचालित"
+ },
+ {
+  "en": "Text size",
+  "hi": "टेक्स्ट का आकार"
+ },
+ {
+  "en": "Behavior",
+  "hi": "व्यवहार"
+ },
+ {
+  "en": "Updates",
+  "hi": "अपडेट"
+ },
+ {
+  "en": "usage data",
+  "hi": "उपयोग डेटा"
+ },
+ {
+  "en": "crash reports",
+  "hi": "क्रैश रिपोर्ट"
+ },
+ {
+  "en": "anonymous",
+  "hi": "गुमनाम"
+ },
+ {
+  "en": "latency",
+  "hi": "लेटेंसी"
+ },
+ {
+  "en": "pricing",
+  "hi": "कीमतें"
+ },
+ {
+  "en": "accuracy",
+  "hi": "सटीकता"
+ },
+ {
+  "en": "speed",
+  "hi": "गति"
+ },
+ {
+  "en": "words",
+  "hi": "शब्द"
+ },
+ {
+  "en": "WPM / WER",
+  "hi": "WPM / WER (not translated)"
+ },
+ {
+  "en": "timer",
+  "hi": "टाइमर"
+ },
+ {
+  "en": "waveform bar",
+  "hi": "बार"
+ },
+ {
+  "en": "practice",
+  "hi": "अभ्यास"
+ },
+ {
+  "en": "Welcome",
+  "hi": "स्वागत है"
+ },
+ {
+  "en": "Try It",
+  "hi": "आज़माएँ"
+ },
+ {
+  "en": "Ready",
+  "hi": "तैयार"
+ },
+ {
+  "en": "script (automation)",
+  "hi": "स्क्रिप्ट"
+ },
+ {
+  "en": "Chinese script",
+  "hi": "चीनी लिपि"
+ },
+ {
+  "en": "executable",
+  "hi": "एक्ज़िक्यूटेबल"
+ },
+ {
+  "en": "Clean (profile)",
+  "hi": "साफ़"
+ },
+ {
+  "en": "Concise (profile)",
+  "hi": "संक्षिप्त"
+ },
+ {
+  "en": "Verbatim (profile)",
+  "hi": "शब्दशः"
+ },
+ {
+  "en": "Summary (profile)",
+  "hi": "सारांश"
+ },
+ {
+  "en": "Classic / Cube / Sonic / Orbit / Silk",
+  "hi": "क्लासिक / क्यूब / सोनिक / ऑर्बिट / सिल्क"
+ },
+ {
+  "en": "Carved Wave / Pure Wave / Night Wave",
+  "hi": "उकेरी लहर / साफ़ लहर / रात की लहर"
+ },
+ {
+  "en": "Disco",
+  "hi": "डिस्को"
+ },
+ {
+  "en": "seconds / minutes / hours (unit)",
+  "hi": "से॰ / मि॰ / घं॰"
+ },
+ {
+  "en": "Mandarin / Cantonese",
+  "hi": "मैंडरिन / कैंटोनीज़"
+ },
+ {
+  "en": "job (media/provider)",
+  "hi": "जॉब"
+ }
+]

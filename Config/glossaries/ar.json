@@ -1,0 +1,506 @@
+[
+ {
+  "en": "Airdraft",
+  "ar": "Airdraft (لا يُترجم)"
+ },
+ {
+  "en": "dictation",
+  "ar": "الإملاء"
+ },
+ {
+  "en": "dictate",
+  "ar": "أملِ / للإملاء"
+ },
+ {
+  "en": "dictations (count)",
+  "ar": "الإملاءات"
+ },
+ {
+  "en": "refinement",
+  "ar": "التحسين"
+ },
+ {
+  "en": "refine transcript",
+  "ar": "تحسين النص المكتوب"
+ },
+ {
+  "en": "tidy (your words)",
+  "ar": "تنقيح (كلماتك)"
+ },
+ {
+  "en": "refinement provider",
+  "ar": "مزوّد التحسين"
+ },
+ {
+  "en": "profile",
+  "ar": "النمط"
+ },
+ {
+  "en": "profiles",
+  "ar": "الأنماط"
+ },
+ {
+  "en": "profile by app",
+  "ar": "النمط حسب التطبيق"
+ },
+ {
+  "en": "app rule",
+  "ar": "قاعدة تطبيق"
+ },
+ {
+  "en": "app family",
+  "ar": "فئة التطبيقات"
+ },
+ {
+  "en": "speech model",
+  "ar": "نموذج الكلام"
+ },
+ {
+  "en": "speech language",
+  "ar": "لغة الكلام"
+ },
+ {
+  "en": "speech",
+  "ar": "الكلام"
+ },
+ {
+  "en": "local speech",
+  "ar": "الكلام المحلي"
+ },
+ {
+  "en": "cloud speech",
+  "ar": "الكلام السحابي"
+ },
+ {
+  "en": "transcript",
+  "ar": "النص المكتوب"
+ },
+ {
+  "en": "transcribe",
+  "ar": "تحويل إلى نص"
+ },
+ {
+  "en": "transcription",
+  "ar": "التحويل إلى نص"
+ },
+ {
+  "en": "retranscribe",
+  "ar": "إعادة التحويل إلى نص"
+ },
+ {
+  "en": "raw text / raw transcript",
+  "ar": "النص الخام / النص المكتوب الخام"
+ },
+ {
+  "en": "final text",
+  "ar": "النص النهائي"
+ },
+ {
+  "en": "History",
+  "ar": "السجل"
+ },
+ {
+  "en": "Home",
+  "ar": "الرئيسية"
+ },
+ {
+  "en": "Meetings",
+  "ar": "الاجتماعات"
+ },
+ {
+  "en": "meeting",
+  "ar": "الاجتماع"
+ },
+ {
+  "en": "Models",
+  "ar": "النماذج"
+ },
+ {
+  "en": "Settings",
+  "ar": "الإعدادات"
+ },
+ {
+  "en": "Trial & License",
+  "ar": "الفترة التجريبية والترخيص"
+ },
+ {
+  "en": "trial",
+  "ar": "الفترة التجريبية"
+ },
+ {
+  "en": "license",
+  "ar": "الترخيص"
+ },
+ {
+  "en": "license key",
+  "ar": "مفتاح الترخيص"
+ },
+ {
+  "en": "activate / deactivate this Mac",
+  "ar": "تفعيل / إلغاء تفعيل هذا الـ Mac"
+ },
+ {
+  "en": "customer portal",
+  "ar": "بوابة العملاء"
+ },
+ {
+  "en": "device slot",
+  "ar": "خانة جهاز"
+ },
+ {
+  "en": "recording",
+  "ar": "التسجيل"
+ },
+ {
+  "en": "recording window",
+  "ar": "نافذة التسجيل"
+ },
+ {
+  "en": "recording window style / preset",
+  "ar": "شكل نافذة التسجيل"
+ },
+ {
+  "en": "timer",
+  "ar": "المؤقت"
+ },
+ {
+  "en": "shortcut",
+  "ar": "الاختصار"
+ },
+ {
+  "en": "keyboard shortcuts",
+  "ar": "اختصارات لوحة المفاتيح"
+ },
+ {
+  "en": "Hold (instruction verb)",
+  "ar": "اضغط مع الاستمرار على"
+ },
+ {
+  "en": "Press (instruction verb)",
+  "ar": "اضغط على"
+ },
+ {
+  "en": "Hold to talk",
+  "ar": "الضغط مع الاستمرار للتحدث"
+ },
+ {
+  "en": "Toggle",
+  "ar": "تبديل"
+ },
+ {
+  "en": "let go",
+  "ar": "أفلت"
+ },
+ {
+  "en": "Trigger Delay",
+  "ar": "تأخير التشغيل"
+ },
+ {
+  "en": "clipboard",
+  "ar": "الحافظة"
+ },
+ {
+  "en": "insert",
+  "ar": "إدراج"
+ },
+ {
+  "en": "paste",
+  "ar": "لصق"
+ },
+ {
+  "en": "copy",
+  "ar": "نسخ"
+ },
+ {
+  "en": "cursor",
+  "ar": "المؤشر"
+ },
+ {
+  "en": "delivery (text)",
+  "ar": "تسليم النص"
+ },
+ {
+  "en": "live preview",
+  "ar": "المعاينة المباشرة"
+ },
+ {
+  "en": "live transcript / live text",
+  "ar": "النص المباشر"
+ },
+ {
+  "en": "preview source",
+  "ar": "مصدر المعاينة"
+ },
+ {
+  "en": "provider",
+  "ar": "المزوّد"
+ },
+ {
+  "en": "endpoint",
+  "ar": "نقطة النهاية"
+ },
+ {
+  "en": "API key",
+  "ar": "مفتاح API"
+ },
+ {
+  "en": "base URL",
+  "ar": "عنوان URL الأساسي"
+ },
+ {
+  "en": "host",
+  "ar": "المضيف"
+ },
+ {
+  "en": "fallback",
+  "ar": "البديل الاحتياطي"
+ },
+ {
+  "en": "download",
+  "ar": "تنزيل"
+ },
+ {
+  "en": "install",
+  "ar": "تثبيت"
+ },
+ {
+  "en": "load (model)",
+  "ar": "تحميل"
+ },
+ {
+  "en": "unload",
+  "ar": "إلغاء التحميل"
+ },
+ {
+  "en": "memory",
+  "ar": "الذاكرة"
+ },
+ {
+  "en": "local / on this Mac",
+  "ar": "محلي / على هذا الـ Mac"
+ },
+ {
+  "en": "on-device",
+  "ar": "على الجهاز"
+ },
+ {
+  "en": "cloud",
+  "ar": "السحابة / سحابي"
+ },
+ {
+  "en": "online service",
+  "ar": "خدمة عبر الإنترنت"
+ },
+ {
+  "en": "Accessibility",
+  "ar": "تسهيلات الاستخدام"
+ },
+ {
+  "en": "Privacy & Security",
+  "ar": "الخصوصية والأمن"
+ },
+ {
+  "en": "System Settings",
+  "ar": "إعدادات النظام"
+ },
+ {
+  "en": "Keychain",
+  "ar": "سلسلة المفاتيح"
+ },
+ {
+  "en": "microphone",
+  "ar": "الميكروفون"
+ },
+ {
+  "en": "input channel",
+  "ar": "قناة الإدخال"
+ },
+ {
+  "en": "System Default",
+  "ar": "افتراضي النظام"
+ },
+ {
+  "en": "permission",
+  "ar": "الإذن"
+ },
+ {
+  "en": "vocabulary",
+  "ar": "المفردات"
+ },
+ {
+  "en": "dictionary",
+  "ar": "القاموس"
+ },
+ {
+  "en": "speaker",
+  "ar": "المتحدث"
+ },
+ {
+  "en": "identify speakers",
+  "ar": "تحديد المتحدثين"
+ },
+ {
+  "en": "summary / summarize",
+  "ar": "الملخص / تلخيص"
+ },
+ {
+  "en": "Action Items",
+  "ar": "بنود العمل"
+ },
+ {
+  "en": "Decisions & Follow-ups",
+  "ar": "القرارات والمتابعات"
+ },
+ {
+  "en": "Meeting Minutes",
+  "ar": "محضر الاجتماع"
+ },
+ {
+  "en": "Brief Summary",
+  "ar": "ملخص موجز"
+ },
+ {
+  "en": "retry",
+  "ar": "إعادة المحاولة"
+ },
+ {
+  "en": "discard",
+  "ar": "تجاهل"
+ },
+ {
+  "en": "recover",
+  "ar": "استرداد"
+ },
+ {
+  "en": "cleanup",
+  "ar": "التنظيف"
+ },
+ {
+  "en": "reset",
+  "ar": "إعادة تعيين"
+ },
+ {
+  "en": "restore defaults",
+  "ar": "استعادة الإعدادات الافتراضية"
+ },
+ {
+  "en": "prompt / base system prompt",
+  "ar": "الموجّه / موجّه النظام الأساسي"
+ },
+ {
+  "en": "thinking effort",
+  "ar": "مستوى التفكير"
+ },
+ {
+  "en": "token",
+  "ar": "رمز"
+ },
+ {
+  "en": "latency",
+  "ar": "زمن الاستجابة"
+ },
+ {
+  "en": "Verified",
+  "ar": "موثَّق"
+ },
+ {
+  "en": "Experimental",
+  "ar": "تجريبي"
+ },
+ {
+  "en": "reviewed (catalogue)",
+  "ar": "مراجَع"
+ },
+ {
+  "en": "Recommended",
+  "ar": "موصى به"
+ },
+ {
+  "en": "Best fit",
+  "ar": "الأنسب"
+ },
+ {
+  "en": "script (executable)",
+  "ar": "برنامج نصي"
+ },
+ {
+  "en": "Chinese script",
+  "ar": "الخط الصيني"
+ },
+ {
+  "en": "Mandarin",
+  "ar": "الماندرين"
+ },
+ {
+  "en": "Cantonese",
+  "ar": "الكانتونية"
+ },
+ {
+  "en": "Clean (profile)",
+  "ar": "منقّح"
+ },
+ {
+  "en": "Concise (profile)",
+  "ar": "موجز"
+ },
+ {
+  "en": "Verbatim (profile)",
+  "ar": "حرفي"
+ },
+ {
+  "en": "Summary (profile)",
+  "ar": "ملخص"
+ },
+ {
+  "en": "Classic / Cube / Sonic / Orbit / Silk",
+  "ar": "كلاسيكي / مكعب / صوتي / مدار / حرير"
+ },
+ {
+  "en": "Pure Wave / Carved Wave / Night Wave",
+  "ar": "موجة نقية / موجة محفورة / موجة ليلية"
+ },
+ {
+  "en": "App Shortcuts (Apple)",
+  "ar": "الاختصارات"
+ },
+ {
+  "en": "crash reports",
+  "ar": "تقارير الأعطال"
+ },
+ {
+  "en": "anonymous usage data",
+  "ar": "بيانات استخدام مجهولة"
+ },
+ {
+  "en": "Updates",
+  "ar": "التحديثات"
+ },
+ {
+  "en": "Appearance",
+  "ar": "المظهر"
+ },
+ {
+  "en": "Behavior",
+  "ar": "السلوك"
+ },
+ {
+  "en": "Acknowledgements",
+  "ar": "شكر وتقدير"
+ },
+ {
+  "en": "Text size",
+  "ar": "حجم النص"
+ },
+ {
+  "en": "switch (toggle control)",
+  "ar": "مفتاح التبديل"
+ },
+ {
+  "en": "WPM",
+  "ar": "كلمة/د"
+ },
+ {
+  "en": "s / min / h / ms",
+  "ar": "ث / د / س / مللي ث"
+ }
+]

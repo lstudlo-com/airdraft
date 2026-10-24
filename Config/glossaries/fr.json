@@ -1,0 +1,598 @@
+{
+ "language": "fr",
+ "notes": "Vouvoiement; French sentence case; « » with U+00A0; U+00A0 before : ; ? ! and %; typographic apostrophe. Never translated: Airdraft, model/provider names, keycap names (Control, Option, Command, Shift, Fn, Esc, Return, Space), paths, identifiers, URLs.",
+ "terms": [
+  {
+   "en": "dictation",
+   "fr": "dictée"
+  },
+  {
+   "en": "dictate",
+   "fr": "dicter"
+  },
+  {
+   "en": "refinement",
+   "fr": "affinage"
+  },
+  {
+   "en": "refine",
+   "fr": "affiner"
+  },
+  {
+   "en": "tidy (your words)",
+   "fr": "mettre en forme (vos mots)"
+  },
+  {
+   "en": "profile",
+   "fr": "profil"
+  },
+  {
+   "en": "built-in profile",
+   "fr": "profil intégré"
+  },
+  {
+   "en": "speech model",
+   "fr": "modèle vocal"
+  },
+  {
+   "en": "speech recognition",
+   "fr": "reconnaissance vocale"
+  },
+  {
+   "en": "Speech (section/menu)",
+   "fr": "Parole"
+  },
+  {
+   "en": "speech language",
+   "fr": "langue parlée"
+  },
+  {
+   "en": "Speech options",
+   "fr": "Options vocales"
+  },
+  {
+   "en": "local speech",
+   "fr": "reconnaissance locale"
+  },
+  {
+   "en": "cloud speech",
+   "fr": "reconnaissance cloud"
+  },
+  {
+   "en": "transcript",
+   "fr": "transcription"
+  },
+  {
+   "en": "transcribe",
+   "fr": "transcrire"
+  },
+  {
+   "en": "retranscribe",
+   "fr": "retranscrire"
+  },
+  {
+   "en": "raw transcript / raw text",
+   "fr": "transcription brute / texte brut"
+  },
+  {
+   "en": "history",
+   "fr": "historique"
+  },
+  {
+   "en": "meeting",
+   "fr": "réunion"
+  },
+  {
+   "en": "recording",
+   "fr": "enregistrement"
+  },
+  {
+   "en": "record",
+   "fr": "enregistrer"
+  },
+  {
+   "en": "save (data, status messages)",
+   "fr": "sauvegarder / sauvegarde"
+  },
+  {
+   "en": "Save (button)",
+   "fr": "Enregistrer"
+  },
+  {
+   "en": "shortcut",
+   "fr": "raccourci"
+  },
+  {
+   "en": "Keyboard shortcuts",
+   "fr": "Raccourcis clavier"
+  },
+  {
+   "en": "Apple Shortcuts",
+   "fr": "Raccourcis d’Apple"
+  },
+  {
+   "en": "clipboard",
+   "fr": "presse-papiers"
+  },
+  {
+   "en": "paste",
+   "fr": "coller"
+  },
+  {
+   "en": "insertion / insert at cursor",
+   "fr": "insertion / insérer au curseur"
+  },
+  {
+   "en": "delivery (text)",
+   "fr": "envoi (du texte)"
+  },
+  {
+   "en": "live preview",
+   "fr": "aperçu en direct"
+  },
+  {
+   "en": "live transcript",
+   "fr": "transcription en direct"
+  },
+  {
+   "en": "Home",
+   "fr": "Accueil"
+  },
+  {
+   "en": "History",
+   "fr": "Historique"
+  },
+  {
+   "en": "Meetings",
+   "fr": "Réunions"
+  },
+  {
+   "en": "Models",
+   "fr": "Modèles"
+  },
+  {
+   "en": "Profiles",
+   "fr": "Profils"
+  },
+  {
+   "en": "Settings",
+   "fr": "Réglages"
+  },
+  {
+   "en": "System Settings",
+   "fr": "Réglages Système"
+  },
+  {
+   "en": "Privacy & Security",
+   "fr": "Confidentialité et sécurité"
+  },
+  {
+   "en": "Accessibility",
+   "fr": "Accessibilité"
+  },
+  {
+   "en": "Microphone",
+   "fr": "Micro"
+  },
+  {
+   "en": "Screen & System Audio Recording",
+   "fr": "Enregistrement de l’écran et de l’audio du système"
+  },
+  {
+   "en": "Trial & License",
+   "fr": "Essai et licence"
+  },
+  {
+   "en": "trial",
+   "fr": "essai"
+  },
+  {
+   "en": "license",
+   "fr": "licence"
+  },
+  {
+   "en": "license key",
+   "fr": "clé de licence"
+  },
+  {
+   "en": "activate / deactivate",
+   "fr": "activer / désactiver"
+  },
+  {
+   "en": "device slot",
+   "fr": "emplacement d’appareil"
+  },
+  {
+   "en": "customer portal",
+   "fr": "portail client"
+  },
+  {
+   "en": "provider",
+   "fr": "fournisseur"
+  },
+  {
+   "en": "host",
+   "fr": "hébergeur"
+  },
+  {
+   "en": "API key",
+   "fr": "clé API"
+  },
+  {
+   "en": "endpoint",
+   "fr": "point de terminaison"
+  },
+  {
+   "en": "base URL",
+   "fr": "URL de base"
+  },
+  {
+   "en": "Keychain",
+   "fr": "trousseau"
+  },
+  {
+   "en": "Allow Access",
+   "fr": "Autoriser l’accès"
+  },
+  {
+   "en": "model ID",
+   "fr": "ID du modèle"
+  },
+  {
+   "en": "download",
+   "fr": "téléchargement / télécharger"
+  },
+  {
+   "en": "install",
+   "fr": "installer"
+  },
+  {
+   "en": "load / unload (model)",
+   "fr": "charger / décharger"
+  },
+  {
+   "en": "idle",
+   "fr": "inactif"
+  },
+  {
+   "en": "memory",
+   "fr": "mémoire"
+  },
+  {
+   "en": "app",
+   "fr": "app"
+  },
+  {
+   "en": "app rule",
+   "fr": "règle d’app"
+  },
+  {
+   "en": "app family",
+   "fr": "famille d’apps"
+  },
+  {
+   "en": "Profile by app",
+   "fr": "Profil par app"
+  },
+  {
+   "en": "Choose profile by app",
+   "fr": "Choisir le profil selon l’app"
+  },
+  {
+   "en": "Use App Default",
+   "fr": "Utiliser le réglage par défaut"
+  },
+  {
+   "en": "vocabulary",
+   "fr": "vocabulaire"
+  },
+  {
+   "en": "dictionary",
+   "fr": "dictionnaire"
+  },
+  {
+   "en": "preferred spelling",
+   "fr": "orthographe préférée"
+  },
+  {
+   "en": "misheard word",
+   "fr": "mot mal reconnu"
+  },
+  {
+   "en": "base system prompt",
+   "fr": "prompt système de base"
+  },
+  {
+   "en": "prompt",
+   "fr": "prompt"
+  },
+  {
+   "en": "instructions",
+   "fr": "instructions"
+  },
+  {
+   "en": "task",
+   "fr": "tâche"
+  },
+  {
+   "en": "Thinking effort",
+   "fr": "Effort de réflexion"
+  },
+  {
+   "en": "token",
+   "fr": "jeton"
+  },
+  {
+   "en": "temperature",
+   "fr": "température"
+  },
+  {
+   "en": "speaker",
+   "fr": "intervenant"
+  },
+  {
+   "en": "speaker detection",
+   "fr": "détection des intervenants"
+  },
+  {
+   "en": "summary / summarize",
+   "fr": "résumé / résumer"
+  },
+  {
+   "en": "Action Items",
+   "fr": "Actions à mener"
+  },
+  {
+   "en": "Decisions & Follow-ups",
+   "fr": "Décisions et suivis"
+  },
+  {
+   "en": "Meeting Minutes",
+   "fr": "Compte rendu"
+  },
+  {
+   "en": "Brief Summary",
+   "fr": "Résumé court"
+  },
+  {
+   "en": "recording window (HUD)",
+   "fr": "fenêtre d’enregistrement"
+  },
+  {
+   "en": "timer",
+   "fr": "minuteur"
+  },
+  {
+   "en": "Show text while speaking",
+   "fr": "Afficher le texte pendant la dictée"
+  },
+  {
+   "en": "Trigger Delay",
+   "fr": "Délai de déclenchement"
+  },
+  {
+   "en": "Hold (verb)",
+   "fr": "Maintenez"
+  },
+  {
+   "en": "Press (verb)",
+   "fr": "Appuyez sur"
+  },
+  {
+   "en": "let go",
+   "fr": "relâchez"
+  },
+  {
+   "en": "Hold to talk / Toggle",
+   "fr": "Maintenir pour parler / Bascule"
+  },
+  {
+   "en": "retry",
+   "fr": "réessayer / nouvelle tentative"
+  },
+  {
+   "en": "discard",
+   "fr": "supprimer"
+  },
+  {
+   "en": "recover / recovery",
+   "fr": "récupérer / récupération"
+  },
+  {
+   "en": "cleanup",
+   "fr": "nettoyage"
+  },
+  {
+   "en": "reset",
+   "fr": "réinitialiser / réinitialisation"
+  },
+  {
+   "en": "Restore Defaults",
+   "fr": "Restaurer les valeurs par défaut"
+  },
+  {
+   "en": "Done",
+   "fr": "OK"
+  },
+  {
+   "en": "Cancel",
+   "fr": "Annuler"
+  },
+  {
+   "en": "Delete / Remove",
+   "fr": "Supprimer"
+  },
+  {
+   "en": "Quit",
+   "fr": "Quitter"
+  },
+  {
+   "en": "Refresh",
+   "fr": "Actualiser"
+  },
+  {
+   "en": "Check for Updates…",
+   "fr": "Rechercher les mises à jour…"
+  },
+  {
+   "en": "Updates",
+   "fr": "Mises à jour"
+  },
+  {
+   "en": "Acknowledgements",
+   "fr": "Remerciements"
+  },
+  {
+   "en": "Appearance",
+   "fr": "Apparence"
+  },
+  {
+   "en": "Behavior",
+   "fr": "Comportement"
+  },
+  {
+   "en": "Text size",
+   "fr": "Taille du texte"
+  },
+  {
+   "en": "Light / Dark / Auto",
+   "fr": "Clair / Sombre / Auto"
+  },
+  {
+   "en": "Off",
+   "fr": "Désactivé"
+  },
+  {
+   "en": "Default",
+   "fr": "Par défaut"
+  },
+  {
+   "en": "System Default",
+   "fr": "Par défaut du système"
+  },
+  {
+   "en": "on-device / on this Mac",
+   "fr": "sur l’appareil / sur ce Mac"
+  },
+  {
+   "en": "online service",
+   "fr": "service en ligne"
+  },
+  {
+   "en": "Final text",
+   "fr": "Texte final"
+  },
+  {
+   "en": "Send to script",
+   "fr": "Envoyer à un script"
+  },
+  {
+   "en": "script delivery",
+   "fr": "envoi au script"
+  },
+  {
+   "en": "Read app context",
+   "fr": "Lire le contexte de l’app"
+  },
+  {
+   "en": "WPM",
+   "fr": "mots/min"
+  },
+  {
+   "en": "WER",
+   "fr": "WER (taux d’erreur de mots)"
+  },
+  {
+   "en": "word error rate",
+   "fr": "taux d’erreur de mots"
+  },
+  {
+   "en": "streak",
+   "fr": "série"
+  },
+  {
+   "en": "experimental",
+   "fr": "expérimental"
+  },
+  {
+   "en": "verified",
+   "fr": "vérifié"
+  },
+  {
+   "en": "recommended",
+   "fr": "recommandé"
+  },
+  {
+   "en": "Best fit",
+   "fr": "Meilleur choix"
+  },
+  {
+   "en": "Self-built edition",
+   "fr": "Édition compilée soi-même"
+  },
+  {
+   "en": "build (version)",
+   "fr": "version"
+  },
+  {
+   "en": "crash reports",
+   "fr": "rapports de plantage"
+  },
+  {
+   "en": "anonymous usage data",
+   "fr": "données d’utilisation anonymes"
+  },
+  {
+   "en": "media job",
+   "fr": "tâche média"
+  },
+  {
+   "en": "batch",
+   "fr": "par lots"
+  },
+  {
+   "en": "language assets",
+   "fr": "ressources linguistiques"
+  },
+  {
+   "en": "locale",
+   "fr": "paramètre régional"
+  },
+  {
+   "en": "Chinese script",
+   "fr": "écriture chinoise"
+  },
+  {
+   "en": "Mandarin / Cantonese",
+   "fr": "mandarin / cantonais"
+  },
+  {
+   "en": "menu bar",
+   "fr": "barre des menus"
+  },
+  {
+   "en": "sidebar",
+   "fr": "barre latérale"
+  },
+  {
+   "en": "Collapse / Expand",
+   "fr": "Réduire / Développer"
+  },
+  {
+   "en": "Clean / Concise / Summary / Verbatim (profiles)",
+   "fr": "Épuré / Concis / Résumé / Mot à mot"
+  },
+  {
+   "en": "Classic / Cube / Sonic / Orbit / Silk (styles)",
+   "fr": "Classique / Cube / Sonique / Orbite / Soie"
+  },
+  {
+   "en": "Pure Wave / Carved Wave / Night Wave",
+   "fr": "Vague pure / Vague gravée / Vague nocturne"
+  },
+  {
+   "en": "Code editors / Terminals / Email / Work chat / Personal messages / Documents and notes / Other apps",
+   "fr": "Éditeurs de code / Terminaux / E-mail / Messagerie pro / Messages personnels / Documents et notes / Autres apps"
+  }
+ ]
+}
