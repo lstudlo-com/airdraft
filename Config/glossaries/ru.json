@@ -484,11 +484,11 @@
   },
   {
    "en": "Permissions",
-   "ru": "Разрешения"
+   "ru": "Доступ (короткие подписи), Разрешения (текст)"
   },
   {
    "en": "Try It",
-   "ru": "Попробовать"
+   "ru": "Проба (вкладка онбординга)"
   },
   {
    "en": "Ready",
@@ -512,7 +512,7 @@
   },
   {
    "en": "Apple Speech locale",
-   "ru": "регион Apple Speech"
+   "ru": "язык Apple Speech"
   },
   {
    "en": "Classic / Cube / Sonic / Orbit / Silk",
@@ -533,6 +533,22 @@
   {
    "en": "crash reports",
    "ru": "отчёты о сбоях"
+  },
+  {
+   "en": "Shortcut",
+   "ru": "Клавиши (короткие подписи), Сочетание клавиш (текст)"
+  },
+  {
+   "en": "Hold to talk",
+   "ru": "Держать"
+  },
+  {
+   "en": "Toggle",
+   "ru": "Нажать"
+  },
+  {
+   "en": "Finish Setup",
+   "ru": "Настроить"
   }
  ]
 }

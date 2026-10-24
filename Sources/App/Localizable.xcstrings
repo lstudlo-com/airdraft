@@ -7437,7 +7437,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Добавьте нужные написания или замену ослышкам."
+            "value" : "Добавьте нужные написания или замены неверно распознанных слов."
           }
         },
         "pt-BR" : {
@@ -10509,7 +10509,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Звук приложений"
+            "value" : "Звук"
           }
         },
         "pt-BR" : {
@@ -17933,7 +17933,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Нажмите «Открыть Системные настройки»."
+            "value" : "Нажмите «Настройки macOS»."
           }
         },
         "pt-BR" : {
@@ -18061,7 +18061,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Щёлкните в поле ниже. %@ сочетание клавиш и прочтите фразу вслух."
+            "value" : "Щёлкните в поле ниже, %@ сочетание клавиш и прочтите фразу вслух."
           }
         },
         "pt-BR" : {
@@ -22157,7 +22157,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "По умолчанию"
+            "value" : "Обычный"
           }
         },
         "pt-BR" : {
@@ -23821,7 +23821,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Определять автоматически"
+            "value" : "Автоопределение"
           }
         },
         "pt-BR" : {
@@ -28301,7 +28301,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завершить настройку"
+            "value" : "Настроить"
           }
         },
         "pt-BR" : {
@@ -30861,7 +30861,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Удерживать и говорить"
+            "value" : "Держать"
           }
         },
         "pt-BR" : {
@@ -32141,7 +32141,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Включить микрофон"
+            "value" : "Записывать микрофон"
           }
         },
         "pt-BR" : {
@@ -42787,7 +42787,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Без оценки"
+            "value" : "Н/д"
           }
         },
         "pt-BR" : {
@@ -45673,7 +45673,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Открыть Системные настройки"
+            "value" : "Настройки macOS"
           }
         },
         "pt-BR" : {
@@ -47664,7 +47664,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разрешения"
+            "value" : "Доступ"
           }
         },
         "pt-BR" : {
@@ -47792,7 +47792,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выберите, где речь будет превращаться в текст. Это можно изменить позже в «Моделях»."
+            "value" : "Решите, где речь станет текстом. Позже это можно изменить в «Моделях»."
           }
         },
         "pt-BR" : {
@@ -53118,7 +53118,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Записать сочетание"
+            "value" : "Задать"
           }
         },
         "pt-BR" : {
@@ -54142,7 +54142,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Записи ожидают"
+            "value" : "Записи ждут"
           }
         },
         "pt-BR" : {
@@ -63505,7 +63505,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сочетание клавиш"
+            "value" : "Клавиши"
           }
         },
         "pt-BR" : {
@@ -66071,7 +66071,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скорость"
+            "value" : "Темп"
           }
         },
         "pt-BR" : {
@@ -66138,25 +66138,25 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Начать пробный период на %lld день"
+                  "value" : "Попробовать %lld день"
                 }
               },
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Начать пробный период на %lld дня"
+                  "value" : "Попробовать %lld дня"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Начать пробный период на %lld дней"
+                  "value" : "Попробовать %lld дней"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Начать пробный период на %lld дня"
+                  "value" : "Попробовать %lld дня"
                 }
               }
             }
@@ -66405,7 +66405,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Начать пробный период"
+            "value" : "Попробовать"
           }
         },
         "pt-BR" : {
@@ -67435,7 +67435,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Хранилище"
+            "value" : "Размер"
           }
         },
         "pt-BR" : {
@@ -71025,7 +71025,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Переключение"
+            "value" : "Нажать"
           }
         },
         "pt-BR" : {
@@ -72178,7 +72178,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Попробовать"
+            "value" : "Проба"
           }
         },
         "pt-BR" : {
@@ -74098,7 +74098,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "По умолчанию в приложении"
+            "value" : "По умолчанию"
           }
         },
         "pt-BR" : {
@@ -74162,7 +74162,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Использовать Apple Intelligence"
+            "value" : "Включить"
           }
         },
         "pt-BR" : {
@@ -74290,7 +74290,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Использовать другую модель"
+            "value" : "Другая модель"
           }
         },
         "pt-BR" : {
@@ -75314,7 +75314,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Проверенные"
+            "value" : "Проверено"
           }
         },
         "pt-BR" : {
@@ -76216,7 +76216,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Добро пожаловать"
+            "value" : "Начало"
           }
         },
         "pt-BR" : {
@@ -77304,7 +77304,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Здесь появятся ваша скорость, количество слов и сэкономленное время после диктовки."
+            "value" : "Скорость, слова и сэкономленное время появятся после диктовки."
           }
         },
         "pt-BR" : {
