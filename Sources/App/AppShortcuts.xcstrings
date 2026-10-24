@@ -7,7 +7,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empezar a dictar con ${applicationName}"
+            "value" : "Iniciar el dictado en ${applicationName}"
           }
         },
         "ja" : {

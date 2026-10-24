@@ -98,7 +98,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : " · se descarga al salir"
+            "value" : " · se descarga de memoria al salir"
           }
         },
         "ja" : {
@@ -1960,7 +1960,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ usa %2$@, cuyo punto de acceso de voz debe revisarse"
+            "value" : "%1$@ usa %2$@, cuyo endpoint de voz debe revisarse"
           }
         },
         "ja" : {
@@ -9583,7 +9583,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Casi listo para dictar"
+            "value" : "Casi todo listo para dictar"
           }
         },
         "ja" : {
@@ -9647,7 +9647,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Casi listo. Tu modelo aún se está descargando."
+            "value" : "Casi todo listo. Tu modelo aún se está descargando."
           }
         },
         "ja" : {
@@ -12143,7 +12143,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El audio se envía al punto de acceso que configuraste"
+            "value" : "El audio se envía al endpoint que configuraste"
           }
         },
         "ja" : {
@@ -17327,7 +17327,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige un punto de acceso y desactiva el respaldo para restringir el enrutamiento."
+            "value" : "Elige un endpoint y desactiva el respaldo para restringir el enrutamiento."
           }
         },
         "ja" : {
@@ -21295,7 +21295,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punto de acceso personalizado"
+            "value" : "Endpoint personalizado"
           }
         },
         "ja" : {
@@ -21487,7 +21487,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punto de acceso de voz personalizado"
+            "value" : "Endpoint de voz personalizado"
           }
         },
         "ja" : {
@@ -24879,7 +24879,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descartar"
+            "value" : "Cerrar"
           }
         },
         "ja" : {
@@ -26415,7 +26415,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punto de acceso"
+            "value" : "Endpoint"
           }
         },
         "ja" : {
@@ -26479,7 +26479,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Latencia del punto de acceso informada por OpenRouter en los últimos 30 minutos."
+            "value" : "Latencia del endpoint informada por OpenRouter en los últimos 30 minutos."
           }
         },
         "ja" : {
@@ -26543,7 +26543,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El punto de acceso no lista ningún modelo."
+            "value" : "El endpoint no lista ningún modelo."
           }
         },
         "ja" : {
@@ -26607,7 +26607,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se encontró el punto de acceso; revisa la URL base."
+            "value" : "No se encontró el endpoint; revisa la URL base."
           }
         },
         "ja" : {
@@ -26671,7 +26671,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Punto de acceso no disponible. Actualiza o elige otro host."
+            "value" : "Endpoint no disponible. Actualiza o elige otro host."
           }
         },
         "ja" : {
@@ -27055,7 +27055,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Todas estas opciones se pueden cambiar más tarde en Ajustes y Modelos."
+            "value" : "Puedes cambiarlo todo después en Ajustes y Modelos."
           }
         },
         "ja" : {
@@ -28271,7 +28271,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Completar configuración"
+            "value" : "Configurar"
           }
         },
         "ja" : {
@@ -30831,7 +30831,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener pulsado para hablar"
+            "value" : "Mantener"
           }
         },
         "ja" : {
@@ -32880,7 +32880,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instala %@ y luego Localizar de nuevo"
+            "value" : "Instala %@ y pulsa Localizar de nuevo"
           }
         },
         "ja" : {
@@ -33200,7 +33200,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Funcionó. La ventanita en la parte inferior de la pantalla aparece cuando Airdraft te está escuchando."
+            "value" : "Funcionó. La pequeña ventana de la parte inferior de la pantalla indica cuándo te escucha Airdraft."
           }
         },
         "ja" : {
@@ -34426,7 +34426,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Más grande"
+            "value" : "Máximo"
           }
         },
         "ja" : {
@@ -35720,7 +35720,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los puntos de acceso del nivel predeterminado aparecen por separado para compararlos. Los puntos de acceso Flex y Priority requieren una elección explícita; el enrutamiento automático también puede usar variantes del modelo."
+            "value" : "Los endpoints del nivel predeterminado aparecen por separado para compararlos. Los endpoints Flex y Priority requieren una elección explícita; el enrutamiento automático también puede usar variantes del modelo."
           }
         },
         "ja" : {
@@ -42757,7 +42757,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sin valorar"
+            "value" : "Sin nota"
           }
         },
         "ja" : {
@@ -51360,7 +51360,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pulsar para hablar o alternar"
+            "value" : "Mantener pulsado o alternar"
           }
         },
         "ja" : {
@@ -52064,7 +52064,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listo para tu primer dictado"
+            "value" : "Todo listo para tu primer dictado"
           }
         },
         "ja" : {
@@ -52192,7 +52192,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listo para dictar"
+            "value" : "Todo listo para dictar"
           }
         },
         "ja" : {
@@ -52576,7 +52576,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disponibilidad reciente del punto de acceso informada por OpenRouter."
+            "value" : "Disponibilidad reciente del endpoint informada por OpenRouter."
           }
         },
         "ja" : {
@@ -54112,7 +54112,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grabaciones en espera"
+            "value" : "Audio en espera"
           }
         },
         "ja" : {
@@ -55457,7 +55457,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vuelve a cargar la lista de modelos desde el punto de acceso"
+            "value" : "Vuelve a cargar la lista de modelos desde el endpoint"
           }
         },
         "ja" : {
@@ -56231,7 +56231,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Eliminar el audio de dictados guardados más antiguo?"
+            "value" : "¿Eliminar el audio más antiguo de los dictados guardados?"
           }
         },
         "ja" : {
@@ -59117,7 +59117,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voy con retraso. ¡Nos vemos a las diez!"
+            "value" : "Llego tarde. ¡Nos vemos a las 10!"
           }
         },
         "ja" : {
@@ -59827,7 +59827,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%1$@” guardado corresponde a “%2$@”"
+            "value" : "El valor guardado “%1$@” corresponde a “%2$@”"
           }
         },
         "ja" : {
@@ -61491,7 +61491,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Busca nombres de secciones, ajustes y descripciones. Retorno o las flechas te mueven entre coincidencias."
+            "value" : "Busca nombres de secciones, ajustes y descripciones. Return o las flechas pasan de una coincidencia a otra."
           }
         },
         "ja" : {
@@ -62579,7 +62579,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configurar más tarde"
+            "value" : "Configurar luego"
           }
         },
         "ja" : {
@@ -66041,7 +66041,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Velocidad"
+            "value" : "Rapidez"
           }
         },
         "ja" : {
@@ -67405,7 +67405,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Almacenamiento"
+            "value" : "Tamaño"
           }
         },
         "ja" : {
@@ -72340,7 +72340,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prueba primero las teclas o continúa cuando estés listo."
+            "value" : "Prueba primero las teclas o continúa cuando quieras."
           }
         },
         "ja" : {
@@ -74068,7 +74068,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usar el predeterminado de la app"
+            "value" : "Predeterminado de la app"
           }
         },
         "ja" : {

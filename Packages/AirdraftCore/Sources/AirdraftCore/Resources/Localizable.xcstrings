@@ -543,7 +543,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interrupción de %1$@ a los %2$@ segundos (%3$@ segundos)."
+            "value" : "%1$@: interrupción a los %2$@ segundos (%3$@ segundos)."
           }
         },
         "ja" : {
@@ -863,7 +863,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ recibido"
+            "value" : "%@ recibidos"
           }
         },
         "ja" : {
@@ -4876,7 +4876,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automático"
+            "value" : "Auto"
           }
         },
         "ja" : {
@@ -6016,7 +6016,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vista previa por lotes"
+            "value" : "Versión preliminar por lotes"
           }
         },
         "ja" : {
@@ -6080,7 +6080,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La cobertura de idiomas de la vista previa por lotes no está verificada. El idioma seleccionado es una sugerencia."
+            "value" : "La cobertura de idiomas de la versión preliminar por lotes no está verificada. El idioma seleccionado es una sugerencia."
           }
         },
         "ja" : {
@@ -6977,7 +6977,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Revisa el punto de acceso de refinamiento en Modelos."
+            "value" : "Revisa el endpoint de refinamiento en Modelos."
           }
         },
         "ja" : {
@@ -7041,7 +7041,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Revisa el punto de acceso de voz en Modelos."
+            "value" : "Revisa el endpoint de voz en Modelos."
           }
         },
         "ja" : {
@@ -12509,7 +12509,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Incluye cambios de código entre mandarín e inglés; usa términos clave del diccionario."
+            "value" : "Admite mezclar mandarín e inglés; usa términos clave del diccionario."
           }
         },
         "ja" : {
@@ -13533,7 +13533,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El soporte de idiomas de este modelo y punto de acceso no está verificado."
+            "value" : "El soporte de idiomas de este modelo y endpoint no está verificado."
           }
         },
         "ja" : {
@@ -17119,7 +17119,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sin valorar"
+            "value" : "Sin nota"
           }
         },
         "ja" : {
@@ -18401,7 +18401,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vista previa para audio pregrabado. La cobertura de idiomas y la precisión no se han verificado."
+            "value" : "Versión preliminar para audio pregrabado. La cobertura de idiomas y la precisión no se han verificado."
           }
         },
         "ja" : {
@@ -21870,7 +21870,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecciona un idioma de voz; la detección automática no está disponible para el punto de acceso de archivos."
+            "value" : "Selecciona un idioma de voz; la detección automática no está disponible para el endpoint de archivos."
           }
         },
         "ja" : {
@@ -26679,7 +26679,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El modelo de voz de este perfil ya no está disponible. Elige otro modelo o Usar el predeterminado de la app en Perfiles."
+            "value" : "El modelo de voz de este perfil ya no está disponible. Elige otro modelo o Predeterminado de la app en Perfiles."
           }
         },
         "ja" : {
@@ -27255,7 +27255,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transcribe el audio mediante el punto de acceso de voz de OpenRouter con una elección de modelo de voz aparte."
+            "value" : "Transcribe el audio mediante el endpoint de voz de OpenRouter con una elección de modelo de voz aparte."
           }
         },
         "ja" : {
@@ -27703,7 +27703,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Universal-3.5 Pro y vista previa por lotes de Universal-3.6 Pro."
+            "value" : "Universal-3.5 Pro y versión preliminar por lotes de Universal-3.6 Pro."
           }
         },
         "ja" : {
@@ -27959,7 +27959,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hasta que se elimine"
+            "value" : "Hasta que las elimines"
           }
         },
         "ja" : {
@@ -28151,7 +28151,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa el punto de acceso por lotes de la UE. Se intenta eliminar la tarea y el audio después de usarlos. La detección automática funciona mejor con al menos 60 segundos de voz."
+            "value" : "Usa el endpoint por lotes de la UE. Se intenta eliminar la tarea y el audio después de usarlos. La detección automática funciona mejor con al menos 60 segundos de voz."
           }
         },
         "ja" : {
