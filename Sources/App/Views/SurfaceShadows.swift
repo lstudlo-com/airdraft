@@ -44,3 +44,32 @@ struct SurfaceShadows<S: Shape>: View {
         .accessibilityHidden(true)
     }
 }
+
+// MARK: Right-to-left
+
+/// The light falls from the physical top left in every language. SwiftUI mirrors
+/// `UnitPoint.topLeading` gradients, `.offset(x:)` and custom paths under a right-to-left
+/// layout, while Canvas, `SurfaceShadows` and `.shadow` offsets stay physical; without
+/// these, a mirrored face would be lit from the top right against its own shadows.
+extension View {
+    /// Draws a decorative surface left to right so its gradients keep the top-left light.
+    /// Use only on symmetric shapes and artwork, never on text, symbols or layout.
+    func physicalLight() -> some View {
+        environment(\.layoutDirection, .leftToRight)
+    }
+
+    /// An offset in physical points: positive `x` moves right in every layout direction.
+    func physicalOffset(x: CGFloat = 0, y: CGFloat = 0) -> some View {
+        modifier(PhysicalOffset(x: x, y: y))
+    }
+}
+
+private struct PhysicalOffset: ViewModifier {
+    let x: CGFloat
+    let y: CGFloat
+    @Environment(\.layoutDirection) private var layoutDirection
+
+    func body(content: Content) -> some View {
+        content.offset(x: layoutDirection == .rightToLeft ? -x : x, y: y)
+    }
+}

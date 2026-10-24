@@ -173,14 +173,26 @@ struct WindowChromeView: NSViewRepresentable {
                   let titlebar = close.superview?.superview else { return }
 
             // Grow the native titlebar so inset buttons retain their full hit areas.
-            let spacing = minimize.frame.minX - close.frame.minX
+            let spacing = abs(minimize.frame.minX - close.frame.minX)
             var frame = titlebar.frame
             frame.size.height = Theme.titlebarHeight
             frame.origin.y = window.frame.height - frame.height
             if titlebar.frame != frame { titlebar.frame = frame }
             let y = frame.height - Theme.windowControlsInset - close.frame.height
-            close.setFrameOrigin(NSPoint(x: Theme.windowControlsInset, y: y))
-            minimize.setFrameOrigin(NSPoint(x: Theme.windowControlsInset + spacing, y: y))
+            let x = Self.windowControlOrigins(containerWidth: close.superview?.bounds.width ?? window.frame.width,
+                                              buttonWidth: close.frame.width, spacing: spacing,
+                                              rightToLeft: window.windowTitlebarLayoutDirection == .rightToLeft)
+            close.setFrameOrigin(NSPoint(x: x.close, y: y))
+            minimize.setFrameOrigin(NSPoint(x: x.minimize, y: y))
+        }
+
+        /// The window buttons' x positions, inset from the leading edge. A right-to-left
+        /// titlebar keeps AppKit's mirrored order: Close at the right, Minimize to its left.
+        nonisolated static func windowControlOrigins(containerWidth: CGFloat, buttonWidth: CGFloat, spacing: CGFloat,
+                                                     rightToLeft: Bool) -> (close: CGFloat, minimize: CGFloat) {
+            guard rightToLeft else { return (Theme.windowControlsInset, Theme.windowControlsInset + spacing) }
+            let close = containerWidth - Theme.windowControlsInset - buttonWidth
+            return (close, close - spacing)
         }
     }
 
@@ -479,13 +491,17 @@ struct KeyCap: View {
     }
 }
 
-/// A hotkey as separate key caps: ⌥ Space.
+/// A hotkey as separate key caps: ⌥ Space. Modifiers precede the key as printed on
+/// the keyboard, so the caps stay in left-to-right order in every language.
+/// A localized side word ("Right ⌥") still reads in the interface's direction inside its cap.
 struct KeyCaps: View {
     let hotkey: Hotkey
+    @Environment(\.layoutDirection) private var layoutDirection
     var body: some View {
         HStack(spacing: 5) {
-            ForEach(hotkey.displayCaps, id: \.self) { KeyCap(text: $0) }
+            ForEach(hotkey.displayCaps, id: \.self) { KeyCap(text: $0).environment(\.layoutDirection, layoutDirection) }
         }
+        .environment(\.layoutDirection, .leftToRight)
     }
 }
 
@@ -944,7 +960,8 @@ private struct SettingsDisclosure: View {
                 withAnimation(reduceMotion ? nil : .snappy) { configuration.isExpanded.toggle() }
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "chevron.right")
+                    // Points along the reading direction; the rotation mirrors with it.
+                    Image(systemName: "chevron.forward")
                         .font(.system(size: 9, weight: .semibold))
                         .rotationEffect(.degrees(configuration.isExpanded ? 90 : 0))
                         .accessibilityHidden(true)

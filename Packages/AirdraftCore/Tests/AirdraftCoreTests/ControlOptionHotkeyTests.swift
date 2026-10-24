@@ -19,6 +19,15 @@ final class ControlOptionHotkeyTests: XCTestCase {
         }
     }
 
+    /// Right-to-left sentences must not reorder the caps: modifiers stay ahead of the key.
+    func testDisplayStringKeepsKeyOrderInsideRightToLeftText() {
+        XCTAssertEqual(Hotkey.controlOption.localizedDisplayString, "\u{2066}\u{2068}⌃\u{2069} \u{2068}⌥\u{2069}\u{2069}")
+        let visible = Hotkey.optionSpace.localizedDisplayString.unicodeScalars
+            .filter { !(0x2066...0x2069).contains($0.value) }
+        XCTAssertEqual(String(String.UnicodeScalarView(visible)), Hotkey.optionSpace.displayCaps.joined(separator: " "))
+        XCTAssertEqual(Hotkey.optionSpace.displayString, "⌥ Space")
+    }
+
     func testEitherPressAndReleaseOrderOnEitherSide() {
         for control: UInt16 in [59, 62] {
             for option: UInt16 in [58, 61] {

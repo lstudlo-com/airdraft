@@ -261,6 +261,7 @@ private struct MeetingLibraryCard: View {
             Text(String(document.text.prefix(400)))
                 .appFont(.body).mutedForeground(0.85)
                 .lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
+                .naturalAlignment(for: document.text)
         } else if document.transcriptionComplete {
             Text("No speech detected.").supportingText()
         }
@@ -372,24 +373,28 @@ private struct MeetingPlaybackRow: View {
     var body: some View {
         let active = playback.recordingID == asset.id
         let playing = active && playback.isPlaying
-        Button(action: play) {
-            Image(systemName: playing ? "pause.fill" : "play.fill").font(.system(size: 11)).frame(width: SoftControl.height, height: SoftControl.height)
+        // Media transport: play, position and time run left to right in every language.
+        HStack(spacing: 10) {
+            Button(action: play) {
+                Image(systemName: playing ? "pause.fill" : "play.fill").font(.system(size: 11)).frame(width: SoftControl.height, height: SoftControl.height)
+            }
+            .buttonStyle(SoftIconButtonStyle())
+            .help(playing ? "Pause recording" : "Play recording")
+            .accessibilityLabel(playing ? "Pause Recording" : "Play Recording")
+            .accessibilityIdentifier("recording.play.\(asset.id)")
+            .disabled(busy)
+            if active {
+                HistoryPlaybackProgress(playback: playback)
+            } else {
+                SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
+                           valueDescription: { HistoryRecordingControls.position($0, of: asset.duration) }, timeline: true)
+                    .disabled(true)
+                    .help("Play the recording to seek")
+                Text(verbatim: WritingDirection.leftToRight(String(localized: "0:00 / \(HistoryRecordingControls.time(asset.duration))")))
+                    .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+                    .accessibilityHidden(true)
+            }
         }
-        .buttonStyle(SoftIconButtonStyle())
-        .help(playing ? "Pause recording" : "Play recording")
-        .accessibilityLabel(playing ? "Pause Recording" : "Play Recording")
-        .accessibilityIdentifier("recording.play.\(asset.id)")
-        .disabled(busy)
-        if active {
-            HistoryPlaybackProgress(playback: playback)
-        } else {
-            SoftSlider(title: "Playback position", value: .constant(0), range: 0...max(0.01, asset.duration), step: 0.1,
-                       valueDescription: { HistoryRecordingControls.position($0, of: asset.duration) })
-                .disabled(true)
-                .help("Play the recording to seek")
-            Text("0:00 / \(HistoryRecordingControls.time(asset.duration))")
-                .appFont(.caption2).monospacedDigit().foregroundStyle(.secondary).fixedSize()
-                .accessibilityHidden(true)
-        }
+        .environment(\.layoutDirection, .leftToRight)
     }
 }

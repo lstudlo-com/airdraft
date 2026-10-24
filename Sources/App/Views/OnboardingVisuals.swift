@@ -69,13 +69,17 @@ struct OnboardingKeyCaps: View {
     let hotkey: Hotkey
     var lit: Set<Int> = []
     var size: CGFloat = 56
+    @Environment(\.layoutDirection) private var layoutDirection
 
     var body: some View {
+        // Modifiers precede the key as printed on the keyboard, in every language.
         HStack(spacing: size * 0.22) {
             ForEach(Array(hotkey.keyCaps.enumerated()), id: \.offset) { index, cap in
                 OnboardingKeyCap(text: cap, pressed: lit.contains(index), size: size)
+                    .environment(\.layoutDirection, layoutDirection)
             }
         }
+        .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Shortcut \(OnboardingKeyNames.spoken(hotkey))")
         .accessibilityValue(lit.isEmpty ? Text("Not pressed") : lit.count == hotkey.keyCaps.count ? Text("Pressed") : Text("Partly pressed"))
@@ -150,6 +154,8 @@ private struct OnboardingSpeechBars: View {
                 OnboardingBar(height: 6 + 24 * abs(wave))
             }
         }
+        // Audio flows left to right in every language, like the recording window.
+        .environment(\.layoutDirection, .leftToRight)
         .frame(height: 44)
         .padding(.horizontal, 14)
         .background { NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 12, style: .continuous), inset: true, depth: 2) }
@@ -213,6 +219,8 @@ struct OnboardingVoiceWell: View {
                     .frame(maxWidth: .infinity)
             }
         }
+        // The newest level enters at the right in every language, like the recording window.
+        .environment(\.layoutDirection, .leftToRight)
         .padding(.horizontal, 14)
         .frame(height: 48)
         .frame(maxWidth: .infinity)

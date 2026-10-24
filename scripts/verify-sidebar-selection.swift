@@ -3,7 +3,9 @@
 // /tmp/verify-sidebar-selection [frames-dir]
 // Captures this process's own window through the compositor (no Screen Recording access)
 // while the selection changes, and checks that the sidebar well slides between rows,
-// across a group gap, instead of switching on and off in place.
+// across a group gap, instead of switching on and off in place. It runs left to right,
+// then right to left: the island follows the leading icon to the right edge, while the
+// well keeps the same top-left light (its centre column matches the left-to-right one).
 import AppKit
 import SwiftUI
 
@@ -57,12 +59,26 @@ enum VerifySidebarSelection {
     @MainActor static func main() {
         _ = NSApplication.shared
         let output = CommandLine.arguments.dropFirst().first
+        let leftToRight = verify(rightToLeft: false, output: output.map { $0 + "/ltr" })
+        let rightToLeft = verify(rightToLeft: true, output: output.map { $0 + "/rtl" })
+        // The light does not mirror: the settled well's centre column, top shade and
+        // bottom light, is the same in both directions.
+        precondition(zip(leftToRight, rightToLeft).allSatisfy { abs($0 - $1) < 0.02 },
+                     "The well's light must stay at the physical top left under a right-to-left layout")
+        print("PASS: Right to left, the island follows the leading icon and the well keeps its top-left light")
+    }
+
+    /// Returns the settled well's centre column, top to bottom, for the light comparison.
+    @MainActor static func verify(rightToLeft: Bool, output: String?) -> [CGFloat] {
+        if let output { try? FileManager.default.createDirectory(atPath: output, withIntermediateDirectories: true) }
         let selection = Selection()
         let window = NSWindow(contentRect: NSRect(origin: CGPoint(x: 240, y: 240), size: SelectionFixture.size),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: .aqua)
-        window.contentView = NSHostingView(rootView: SelectionFixture(selection: selection))
+        window.contentView = NSHostingView(rootView: SelectionFixture(selection: selection)
+            .environment(\.layoutDirection, rightToLeft ? .rightToLeft : .leftToRight))
         window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
         RunLoop.main.run(until: Date().addingTimeInterval(0.8))
 
         typealias Capture = @convention(c) (CGRect, UInt32, UInt32, UInt32) -> Unmanaged<CGImage>?
@@ -71,7 +87,10 @@ enum VerifySidebarSelection {
         }
         let capture = unsafeBitCast(symbol, to: Capture.self)
         var frame = 0
-        let iconX = 20 + NavigationStyle.iconIslandInset + NavigationStyle.iconIslandSize / 2
+        // The sidebar spans 20…200 points either way; its icons sit at the leading edge.
+        let leadingIconX = 20 + NavigationStyle.iconIslandInset + NavigationStyle.iconIslandSize / 2
+        let iconX = rightToLeft ? SelectionFixture.size.width - leadingIconX : leadingIconX
+        let otherSideX = SelectionFixture.size.width - iconX
         /// Whether each capture shows the flat island face, lighter than its well, on row 3's icon.
         var islandOnTarget: [Bool] = []
         /// The vertical centre of the pixels that differ from the background along the row centre line.
@@ -147,9 +166,13 @@ enum VerifySidebarSelection {
                      "A raised island must rest in the well under the selected icon")
         precondition(abs(white(iconX, center(ofRow: 0)) - white(150, center(ofRow: 0))) < 0.02,
                      "The island must leave the previously selected row")
+        precondition(abs(white(otherSideX, center(ofRow: 3)) - white(110, center(ofRow: 3))) < 0.02,
+                     "The island must sit under the leading icon, not the opposite end of the well")
         // Its shade stays inside the well: just outside the well's bottom edge is plain background.
         precondition(abs(white(iconX, SelectionFixture.rowTops[3] + NavigationStyle.destinationHeight + 0.5) - white(4, 4)) < 0.02,
                      "The island's shade must not leak outside the well")
-        print("PASS: The selection well slides across rows and the group gap, then settles on the new row")
+        print("PASS: \(rightToLeft ? "Right to left" : "Left to right"), the selection well slides across rows and the group gap, then settles on the new row")
+        let top = SelectionFixture.rowTops[3]
+        return stride(from: top + 0.5, to: top + NavigationStyle.destinationHeight, by: 1).map { white(110, $0) }
     }
 }

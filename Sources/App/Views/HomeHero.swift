@@ -20,6 +20,7 @@ struct HomeHero: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var pointer: CGFloat?
     @State private var hoveredIndex: Int?
     @State private var selectedID = RenderMode.value("HERO_SELECTED_ID").flatMap(Int64.init)
@@ -263,12 +264,16 @@ struct HomeHero: View {
                         .appFont(.caption, weight: .medium).monospacedDigit()
                         .foregroundStyle(.secondary)
                         .fixedSize()
+                        .environment(\.layoutDirection, layoutDirection)
                         .position(x: layout.center(of: hovered), y: -10)
                         .allowsHitTesting(false)
                 }
             }
         }
         .frame(height: Self.wellHeight)
+        // The icon's artwork: bars run oldest to newest toward the caret, left to right in
+        // every language, so pointer positions, hover and selection stay physical.
+        .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Dictation activity")
         .accessibilityValue(defaultCaption)
@@ -392,6 +397,7 @@ struct HomeHero: View {
             RadialGradient(colors: [soft.light.opacity(0.2), soft.light.opacity(0)],
                            center: UnitPoint(x: 0.15, y: 0), startRadius: 0, endRadius: 420)
         }
+        .physicalLight()
     }
 
     /// The raised card catches the top-left light and casts its shade down-right.
@@ -412,6 +418,7 @@ struct HomeHero: View {
                     // Increase Contrast adds an explicit edge, like the cards and controls.
                     .strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.035), lineWidth: 0.5)
             )
+            .physicalLight()
     }
 }
 

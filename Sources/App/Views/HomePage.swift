@@ -6,6 +6,7 @@ import SwiftUI
 struct HomePage: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var period: Period = .all
     @State private var overview: HistoryStore.Overview = .empty
     @State private var hasLoadedOverview = false
@@ -90,8 +91,13 @@ struct HomePage: View {
         let llm = container.settings.llm
         let speech = container.speechConfig.displayName
         guard llm.kind != .none, container.effectiveProfile.usesLLM else { return String(localized: "\(speech) · no refinement") }
-        return "\(speech) → \(llm.displayName) · \(profileSummary)"
+        // The pipeline reads in the interface's direction: the arrow points from speech to
+        // refinement, and isolated names keep the separators between them in place.
+        return [WritingDirection.isolated(speech), pipelineArrow, WritingDirection.isolated(llm.displayName), "·",
+                WritingDirection.isolated(profileSummary)].joined(separator: " ")
     }
+
+    private var pipelineArrow: String { layoutDirection == .rightToLeft ? "←" : "→" }
 
     /// The chosen profile, noting app rules that choose another one (AD-080).
     private var profileSummary: String {
@@ -123,7 +129,7 @@ struct HomePage: View {
                             .appFont(.body, weight: .medium)
                         // A separator stays at the end of the line it follows when the summary wraps.
                         Text(pipelineSummary.replacingOccurrences(of: " · ", with: "\u{00A0}· ")
-                            .replacingOccurrences(of: " → ", with: "\u{00A0}→ "))
+                            .replacingOccurrences(of: " \(pipelineArrow) ", with: "\u{00A0}\(pipelineArrow) "))
                             .supportingText()
                             .accessibilityIdentifier("home.pipeline-summary")
                             // Long model and host names wrap instead of losing
@@ -449,6 +455,8 @@ struct RecentRow: View {
             AppIcon(bundleId: record.appBundleId, size: 22)
             VStack(alignment: .leading, spacing: 3) {
                 Text(record.finalText).appFont(.body).lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .naturalAlignment(for: record.finalText)
                 // One run of text, so every separator has the same spacing in each language.
                 Text(metadata)
                     .appFont(.supporting)

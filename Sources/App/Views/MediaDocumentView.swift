@@ -113,7 +113,7 @@ struct MediaDocumentEditor: View {
                         PageSection("Summary") {
                             if let template = document.summaryTemplate { Text(template.title).supportingText() }
                         } content: {
-                            Card { Text(summary).appFont(.body).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                            Card { Text(summary).appFont(.body).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).naturalAlignment(for: summary) }
                         }
                     }
                     if document.transcriptionComplete { speakers }
@@ -268,9 +268,9 @@ struct MediaDocumentEditor: View {
             if pageCount > 1 {
                 HStack(spacing: 8) {
                     Text("Page \(page + 1) of \(pageCount)").supportingText().monospacedDigit()
-                    Button { page -= 1 } label: { Image(systemName: "chevron.left").frame(width: 12) }
+                    Button { page -= 1 } label: { Image(systemName: "chevron.backward").frame(width: 12) }
                         .disabled(page == 0).accessibilityLabel("Previous Page")
-                    Button { page += 1 } label: { Image(systemName: "chevron.right").frame(width: 12) }
+                    Button { page += 1 } label: { Image(systemName: "chevron.forward").frame(width: 12) }
                         .disabled(page + 1 >= pageCount).accessibilityLabel("Next Page")
                 }.buttonStyle(SoftButtonStyle())
             }
@@ -319,6 +319,7 @@ struct MediaDocumentEditor: View {
             if showOriginal {
                 Text(turn.originalText).appFont(.body).textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .naturalAlignment(for: turn.originalText)
             } else {
                 TextField("Transcript", text: Binding(get: { document.turns[index].text }, set: { document.turns[index].editedText = $0; dirty = true }), axis: .vertical)
                     .appFont(.body).textFieldStyle(.plain).disabled(!editable)
@@ -422,7 +423,7 @@ extension Notification.Name { static let mediaEditorOpened = Notification.Name("
 private struct MediaEditorClock: View {
     let playback: RecordingPlayback
     var body: some View {
-        Text("\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")
+        Text(verbatim: WritingDirection.leftToRight(String(localized: "\(HistoryRecordingControls.time(playback.currentTime)) / \(HistoryRecordingControls.time(playback.duration))")))
             .appFont(.supporting).monospacedDigit().foregroundStyle(.secondary).fixedSize()
     }
 }

@@ -116,7 +116,7 @@ private struct VocabularyLine: View {
         HStack(spacing: 14) {
             if let alias = row.alias {
                 Text(alias).appFont(.heading, weight: .regular).frame(width: 220, alignment: .leading)
-                Image(systemName: "arrow.right")
+                Image(systemName: "arrow.forward")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 20, height: 20)

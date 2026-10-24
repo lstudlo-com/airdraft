@@ -336,13 +336,19 @@ enum DebugRender {
                     print("LICENSE_SIZE \(pageName) \(suffix) \(Int(frame.width)) x \(Int(frame.height))")
                 }
                 host.frame = frame
-                let window = NSWindow(contentRect: frame, styleMask: (pageName.hasPrefix("media-") || pageName.hasPrefix("meeting-")) ? [.borderless] : [.titled, .fullSizeContentView], backing: .buffered, defer: false)
+                // The main window's buttons, so their inset is checked in each layout direction.
+                let mainWindow = !pageName.hasPrefix("license-") && !pageName.hasPrefix("meeting-") && !pageName.hasPrefix("media-")
+                    && !["cleanup", "permissions", "automation", "speech-preview", "refinement"].contains(pageName)
+                let window = NSWindow(contentRect: frame, styleMask: (pageName.hasPrefix("media-") || pageName.hasPrefix("meeting-")) ? [.borderless]
+                                      : mainWindow ? [.titled, .closable, .miniaturizable, .fullSizeContentView] : [.titled, .fullSizeContentView],
+                                      backing: .buffered, defer: false)
                 window.titlebarAppearsTransparent = true
                 window.appearance = NSAppearance(named: appearance)
                 window.contentView = host
                 window.layoutIfNeeded()
                 host.layoutSubtreeIfNeeded()
                 RunLoop.main.run(until: Date().addingTimeInterval(container.settings.llm.kind.isCLI && page == .models ? 3 : 0.3))
+                if mainWindow { verifyWindowControls(in: window) }
                 if env["AIRDRAFT_RENDER_SCROLL_BOTTOM"] == "1" {
                     func descendants(_ view: NSView) -> [NSScrollView] {
                         (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(descendants)
@@ -379,6 +385,22 @@ enum DebugRender {
                 }
             }
         }
+    }
+
+    /// The inset window buttons sit 16 points from the leading edge: the left, or the right
+    /// in a right-to-left titlebar, where AppKit puts Close outermost.
+    private static func verifyWindowControls(in window: NSWindow) {
+        guard let close = window.standardWindowButton(.closeButton),
+              let minimize = window.standardWindowButton(.miniaturizeButton),
+              let bar = close.superview else { preconditionFailure("The main window needs its window buttons") }
+        let rightToLeft = window.windowTitlebarLayoutDirection == .rightToLeft
+        let leadingInset = rightToLeft ? bar.bounds.width - close.frame.maxX : close.frame.minX
+        let topInset = bar.isFlipped ? close.frame.minY : bar.bounds.height - close.frame.maxY
+        precondition(abs(leadingInset - Theme.windowControlsInset) < 0.5 && abs(topInset - Theme.windowControlsInset) < 0.5,
+                     "Window buttons must be inset 16 points from the leading and top edges")
+        precondition(rightToLeft ? minimize.frame.maxX <= close.frame.minX : minimize.frame.minX >= close.frame.maxX,
+                     "Minimize must follow Close in the titlebar's direction")
+        print("PASS: window controls \(rightToLeft ? "right-to-left" : "left-to-right") close=\(Int(close.frame.minX)) minimize=\(Int(minimize.frame.minX)) width=\(Int(bar.bounds.width))")
     }
 
     private static func verifyHistoryPerformance(in host: NSView) {
@@ -420,7 +442,9 @@ enum DebugRender {
             $0.convert($0.bounds, to: host).minX < $1.convert($1.bounds, to: host).minX
         }
         precondition(views.count == 2, "History verification needs populated history and both scroll columns")
-        let timeline = views[0], cards = views[1]
+        // The timeline leads the cards: at the left, or the right in a right-to-left layout.
+        let rightToLeft = NSApp.userInterfaceLayoutDirection == .rightToLeft
+        let timeline = views[rightToLeft ? 1 : 0], cards = views[rightToLeft ? 0 : 1]
         let initialTimelineIDs = HistoryRenderMetrics.timelineVisibleIDs
         precondition(!initialTimelineIDs.isEmpty, "History must expose its visible timestamps")
         func verifyReturnedTimeline() {
@@ -484,6 +508,12 @@ enum DebugRender {
         print("PASS: Pointer focus dismissal preserves active-editor selection")
     }
 
+    /// ImageRenderer does not inherit the application's layout direction; NSHostingView does.
+    /// `-AppleTextDirection YES -NSForceRightToLeftWritingDirection YES` renders right to left.
+    static var appLayoutDirection: LayoutDirection {
+        NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+    }
+
     static func renderHUD(to url: URL) {
         var samples: [Float] = []
         for i in 0..<DictationPipeline.levelHistoryLength {
@@ -516,6 +546,18 @@ enum DebugRender {
                 let content = IndicatorView(snapshot: snap, style: style)
                     .padding(12)
                     .background(Color(white: 0.93))
+                    .environment(\.layoutDirection, appLayoutDirection)
+                let renderer = ImageRenderer(content: content)
+                renderer.scale = 2
+                if let img = renderer.nsImage { images.append(img) }
+            }
+            // Timer position names a physical side, in every layout direction.
+            for position in HUDTimerOptions.Position.allCases {
+                let content = IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+                                            style: style, timer: HUDTimerOptions(isEnabled: true, position: position))
+                    .padding(12)
+                    .background(Color(white: 0.93))
+                    .environment(\.layoutDirection, appLayoutDirection)
                 let renderer = ImageRenderer(content: content)
                 renderer.scale = 2
                 if let img = renderer.nsImage { images.append(img) }
@@ -556,6 +598,7 @@ enum DebugRender {
             style: .classic, showPreview: true,
             sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")
             .padding(12).background(Color(white: 0.93))
+            .environment(\.layoutDirection, appLayoutDirection)
         let previewRenderer = ImageRenderer(content: preview)
         previewRenderer.scale = 2
         if let rendered = previewRenderer.nsImage { images.append(rendered) }
@@ -566,6 +609,7 @@ enum DebugRender {
             let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
                 style: .classic, showPreview: true, sampleText: sample)
                 .padding(12).background(Color(white: 0.93))
+                .environment(\.layoutDirection, appLayoutDirection)
             let renderer = ImageRenderer(content: view)
             renderer.scale = 2
             if let rendered = renderer.nsImage { images.append(rendered) }

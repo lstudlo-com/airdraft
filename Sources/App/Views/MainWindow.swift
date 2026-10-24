@@ -104,7 +104,8 @@ struct MainWindowView: View {
                     container.navigation.sidebarCollapsed.toggle()
                 }
             } label: {
-                Image(systemName: "sidebar.left")
+                // Follows the sidebar to the right edge under a right-to-left layout.
+                Image(systemName: "sidebar.leading")
                     .font(.system(size: Theme.sidebarToggleSymbolSize))
                     // Always in the island's heading row, beside the page title; it follows
                     // the island's leading edge as the sidebar expands or collapses.
@@ -218,6 +219,8 @@ struct SidebarBrandMark: View {
             }
         }
         .frame(width: 744 * scale, height: height)
+        // Artwork, like the app icon: the caret follows the bars in every language.
+        .physicalLight()
         .frame(height: max(30, height))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Airdraft")
@@ -270,9 +273,9 @@ struct SidebarIcon: View {
             // Engraved: the lower-right rim catches the light, the upper-left rim falls in shade.
             ZStack {
                 glyph.foregroundStyle(Color.white.opacity(dark ? 0.24 : 1))
-                    .offset(x: 0.8, y: 1)
+                    .physicalOffset(x: 0.8, y: 1)
                 glyph.foregroundStyle(Color.black.opacity(dark ? 0.6 : 0.35))
-                    .offset(x: -0.5, y: -0.6)
+                    .physicalOffset(x: -0.5, y: -0.6)
                 glyph.foregroundStyle(Color(white: dark ? 0.05 : 0.24))
             }
             .opacity(selected ? 1 : 0)

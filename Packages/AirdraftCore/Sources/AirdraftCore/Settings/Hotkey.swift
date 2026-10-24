@@ -61,7 +61,12 @@ public struct Hotkey: Codable, Sendable, Equatable, Hashable {
     /// ("右 ⌥"); the key symbols and names stay as printed on Mac keyboards.
     public var displayCaps: [String] { keyCaps.map(Hotkey.displayCap) }
 
-    public var localizedDisplayString: String { displayCaps.joined(separator: " ") }
+    /// The caps as one string for sentences and menus. A left-to-right isolate keeps the
+    /// modifiers ahead of the key inside right-to-left text (U+2066 … U+2069), and each
+    /// cap's own first-strong isolate lets a localized side word read in its script.
+    public var localizedDisplayString: String {
+        "\u{2066}" + displayCaps.map { "\u{2068}\($0)\u{2069}" }.joined(separator: " ") + "\u{2069}"
+    }
 
     public static func displayCap(_ cap: String) -> String {
         if cap.hasPrefix("Left ") {

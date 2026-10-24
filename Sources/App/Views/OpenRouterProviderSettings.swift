@@ -120,7 +120,7 @@ struct OpenRouterProviderSettings: View {
 
             HStack(spacing: Theme.sectionTitleSpacing) {
                 if let url = try? OpenRouterCatalog.endpointsURL(model: model) {
-                    Link(destination: url) { Label("Provider data", systemImage: "arrow.up.right") }
+                    Link(destination: url) { Label("Provider data", systemImage: "arrow.up.forward") }
                 }
                 Spacer()
                 if previewEndpoints != nil {

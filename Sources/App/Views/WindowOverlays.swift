@@ -197,6 +197,7 @@ struct MicrophoneLevelMeter: View {
                     .overlay {
                         Capsule().strokeBorder(.white.opacity(step <= Self.steps(for: level) ? 0.18 : 0), lineWidth: 0.5)
                     }
+                    .physicalLight()
                     .frame(width: 5, height: 12)
             }
         }

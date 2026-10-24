@@ -77,6 +77,7 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
                 ])
             }
         }
+        .physicalLight()
         .accessibilityHidden(true)
         .allowsHitTesting(false)
     }
@@ -380,9 +381,16 @@ struct SoftSlider: View {
     var keyboardStep: Double? = nil
     /// What VoiceOver reads for a value, such as "0:12 of 1:05"; plain numbers otherwise.
     var valueDescription: ((Double) -> String)? = nil
+    /// A media position keeps time flowing left to right in every language, like the
+    /// waveforms; other values grow from the leading edge, so they mirror right to left.
+    var timeline = false
 
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.layoutDirection) private var layoutDirection
     @FocusState private var focused: Bool
+
+    /// Whether the minimum sits at the physical right.
+    private var mirrored: Bool { !timeline && layoutDirection == .rightToLeft }
 
     var body: some View {
         GeometryReader { geometry in
@@ -390,22 +398,25 @@ struct SoftSlider: View {
             let travel = max(1, geometry.size.width - knob)
             let span = range.upperBound - range.lowerBound
             let fraction = span > 0 ? min(1, max(0, (value - range.lowerBound) / span)) : 0
+            // Laid out in physical points: the knob position, drag location and arrow keys
+            // agree whichever way the value grows.
             ZStack(alignment: .leading) {
                 SoftInsetTrack(shape: Capsule())
                     .frame(height: 8)
                     .padding(.horizontal, knob / 2 - 4)
                 SoftRaisedSurface(shape: Circle())
                     .frame(width: knob, height: knob)
-                    .offset(x: travel * fraction)
+                    .offset(x: travel * (mirrored ? 1 - fraction : fraction))
             }
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
                 guard isEnabled else { return }
                 focused = true
-                let raw = range.lowerBound + Double((drag.location.x - knob / 2) / travel) * (range.upperBound - range.lowerBound)
-                set(raw)
+                let position = Double((drag.location.x - knob / 2) / travel)
+                set(range.lowerBound + (mirrored ? 1 - position : position) * (range.upperBound - range.lowerBound))
             })
+            .environment(\.layoutDirection, .leftToRight)
         }
         .frame(height: 22)
         .opacity(isEnabled ? 1 : 0.5)
@@ -423,8 +434,11 @@ struct SoftSlider: View {
         .focused($focused)
         .onMoveCommand { direction in
             switch direction {
-            case .left, .down: set(value - (keyboardStep ?? step))
-            case .right, .up: set(value + (keyboardStep ?? step))
+            // Left and right follow the knob on screen; down and up always lower and raise.
+            case .down: set(value - (keyboardStep ?? step))
+            case .up: set(value + (keyboardStep ?? step))
+            case .left: set(value + (mirrored ? 1 : -1) * (keyboardStep ?? step))
+            case .right: set(value + (mirrored ? -1 : 1) * (keyboardStep ?? step))
             @unknown default: break
             }
         }

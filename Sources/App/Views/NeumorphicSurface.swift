@@ -49,6 +49,7 @@ struct NeumorphicSurface<S: InsettableShape>: View {
                 shape.strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
             }
         }
+        .physicalLight()
         .accessibilityHidden(true)
         .allowsHitTesting(false)
     }
@@ -117,6 +118,7 @@ struct MicrophoneButtonStyle: ButtonStyle {
                             .overlay {
                                 shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.5 : 0.04), lineWidth: 0.5)
                             }
+                            .physicalLight()
                     }
                 }
                 .contentShape(shape)
