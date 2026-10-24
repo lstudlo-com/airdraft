@@ -459,6 +459,8 @@ class ReleaseTests(unittest.TestCase):
             with patch.object(release.subprocess, 'run', side_effect=fake_run):
                 summary = release.insertion_matrix(Path('/source'), output, Path('/Debug.app'), 'a' * 40)
             self.assertEqual(calls[0][calls[0].index('--gate-reports') + 1], str(output / 'insertion-e2e'))
+            self.assertEqual(calls[0][calls[0].index('--launch') + 1], 'direct')
+            self.assertNotIn('Ghostty', calls[0][calls[0].index('--targets') + 1])
             self.assertEqual(summary['status'], 'unverified')
             self.assertEqual(summary['commit'], 'a' * 40)
             self.assertNotIn('token', summary['cases'][0])

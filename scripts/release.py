@@ -288,6 +288,9 @@ def live_insertion_evidence(source, output, debug_app, commit, unverified_reason
     return json.loads(report.read_text()) | {'commit': commit}
 
 
+MATRIX_TARGETS = "TextEdit,Chrome,Safari,VS Code,Zed,Terminal"
+
+
 def insertion_matrix(source, output, debug_app, commit):
     """Optional live matrix across installed editors; never replaces the mandatory gate.
 
@@ -298,7 +301,12 @@ def insertion_matrix(source, output, debug_app, commit):
     directory = Path(tempfile.mkdtemp(prefix="insertion-matrix-", dir=output)) / "evidence"
     print(f"Optional insertion matrix for {debug_app}; evidence: {directory}", flush=True)
     code = subprocess.run([sys.executable, source / "scripts/verify-insertion-matrix.py", "--app", debug_app,
-                           "--output", directory, "--gate-reports", output / "insertion-e2e"], cwd=source).returncode
+                           "--output", directory, "--gate-reports", output / "insertion-e2e",
+                           # Launched through LaunchServices, the release build's probe hung
+                           # (0.12.0); a direct child runs it reliably. Editors that need a
+                           # manually prepared field would only wait out the focus timeout.
+                           "--launch", "direct", "--targets", MATRIX_TARGETS,
+                           "--focus-timeout", "45"], cwd=source).returncode
     try:
         summary = json.loads((directory / "matrix.json").read_text())
     except (OSError, ValueError):
