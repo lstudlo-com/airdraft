@@ -36,6 +36,28 @@ final class PipelineModelPreviewTests: XCTestCase {
         XCTAssertFalse(record.finalText.contains("Provisional"), "Preview text never reaches history")
     }
 
+    /// The selected model is Apple Speech: the model source runs the Apple
+    /// analyzer in that model's locale, not the separate preview language.
+    func testAppleSpeechModelSourceUsesAppleAnalyzerInModelLocale() async throws {
+        let fixture = try Fixture(source: .speechModel)
+        defer { fixture.cleanUp() }
+        fixture.settings.asr = ASRConfig(kind: .apple, appleLocale: "ja-JP", language: "")
+        fixture.settings.livePreviewLocale = "en-US"
+        try await begin(fixture)
+        XCTAssertEqual(fixture.appleLocales.value, ["ja-JP"])
+        XCTAssertTrue(fixture.builds.sessions.isEmpty, "No model decode runs for Apple Speech")
+        XCTAssertNil(fixture.pipeline.previewIssue)
+        let preview = try XCTUnwrap(fixture.apple.sessions.first)
+        let chunk = [Float](repeating: 0.2, count: 8_000)
+        fixture.recorder.capture(chunk)
+        XCTAssertEqual(preview.chunks, [chunk])
+        preview.sendText("Apple provisional text")
+        try await waitUntil { fixture.pipeline.previewText == "Apple provisional text" }
+        fixture.pipeline.stopAndProcess()
+        try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+        XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 8_000))
+    }
+
     func testUnavailableModelShowsReasonAndRecordingContinues() async throws {
         let fixture = try Fixture(source: .speechModel, availability: { _ in "Live text is unavailable for this model." })
         defer { fixture.cleanUp() }
@@ -164,6 +186,7 @@ final class PipelineModelPreviewTests: XCTestCase {
         let recorder: ModelPreviewTestRecorder
         let builds: ModelPreviewTestBuilder
         let apple: ModelPreviewTestBuilder
+        let appleLocales = Locked<[String]>([])
         let speech: ModelPreviewTestSpeech
         let pipeline: DictationPipeline
 
@@ -190,8 +213,10 @@ final class PipelineModelPreviewTests: XCTestCase {
                 XCTFail("Model preview tests must not read credentials")
                 return nil
             }, transcriberBuilder: { _ in speech })
-            let applePreview: DictationPipeline.PreviewBuilder = { _, onText, onIssue in
-                apple.build(request: nil, onText: onText, onIssue: onIssue)
+            let appleLocales = self.appleLocales
+            let applePreview: DictationPipeline.PreviewBuilder = { locale, onText, onIssue in
+                appleLocales.withLock { $0.append(locale) }
+                return apple.build(request: nil, onText: onText, onIssue: onIssue)
             }
             let fakeModelPreview: DictationPipeline.ModelPreviewBuilder = { request, onText, onIssue in
                 builds.build(request: request, onText: onText, onIssue: onIssue)

@@ -453,6 +453,11 @@ extension DictationPipeline {
         case .appleSpeech:
             session = previewBuilder(settings.livePreviewLocale, onText, onIssue)
         case .speechModel:
+            if let locale = ModelSpeechPreview.appleSpeechLocale(for: request.asr) {
+                // Apple Speech previews through its own analyzer, outside the factory lease.
+                session = previewBuilder(locale, onText, onIssue)
+                break
+            }
             // An unsupported model shows why in the preview area; recording continues.
             if let reason = modelPreviewAvailability(request.asr) {
                 previewIssue = reason

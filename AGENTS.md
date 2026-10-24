@@ -1434,7 +1434,10 @@ final ASR. Reject callbacks from old sessions. Preview errors are nonfatal;
 preview text never reaches history, refinement, clipboard or scripts.
 Selected speech model: `ModelSpeechPreview` decodes the recording's captured config
 and hints with the already loaded engine through `EngineFactory.transcribePreview`,
-supported only for Parakeet, SenseVoice and Orukeet; other models and cloud
+supported only for Parakeet, SenseVoice and Orukeet. When the captured model is
+Apple Speech itself, it runs the Apple Speech preview analyzer in that model's
+effective locale (`ModelSpeechPreview.appleSpeechLocale`), never another model.
+Other models and cloud
 providers show that live text is unavailable while recording continues, and
 Settings shows the active profile's model with its readiness or reason and Open
 Models, reading installed state from `SetupFacts`. Dictation preview never loads, downloads or queues: it skips its tick while

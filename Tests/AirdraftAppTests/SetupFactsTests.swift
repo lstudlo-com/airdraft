@@ -140,6 +140,9 @@ final class SetupFactsTests: XCTestCase {
             return XCTFail("An unsupported model needs no measurement to be unavailable")
         }
         XCTAssertTrue(unsupported.contains(whisper.displayName))
+        let apple = ASRConfig(kind: .apple, appleLocale: "en-US", language: "")
+        XCTAssertEqual(ModelPreviewReadiness.of(apple, facts: missing.values(for: .init(speech: apple, llm: off))), .ready,
+                       "Apple Speech previews through its own analyzer, with no model folder to measure")
         XCTAssertEqual(calls.count, 0, "Reading readiness must never measure")
         await missing.refresh(inputs)
         guard case .unavailable(let install) = ModelPreviewReadiness.of(sense, facts: missing.values(for: inputs)) else {

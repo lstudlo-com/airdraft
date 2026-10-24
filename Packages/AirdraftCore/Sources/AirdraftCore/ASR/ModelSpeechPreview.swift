@@ -81,6 +81,13 @@ public enum ModelSpeechPreview {
         }
     }
 
+    /// When the selected model is Apple Speech itself, the model source runs the
+    /// Apple Speech preview analyzer in that model's own locale: the same engine
+    /// and language, so no other model is substituted. Nil for every other model.
+    public static func appleSpeechLocale(for asr: ASRConfig) -> String? {
+        asr.kind == .apple ? asr.effectiveAppleLocale : nil
+    }
+
     /// Why the selected model cannot show live text, or nil when it can.
     /// Stats the model folder: never call it from a view body (use the
     /// `installed:` form with a fact measured off the main actor).
@@ -91,6 +98,7 @@ public enum ModelSpeechPreview {
     /// The same reason from an installed state already measured elsewhere;
     /// reads no files.
     public static func unavailableReason(for asr: ASRConfig, installed: Bool) -> String? {
+        if appleSpeechLocale(for: asr) != nil { return nil }
         guard supports(asr) else {
             return String(localized: "Live text is unavailable for \(asr.displayName). Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet.", bundle: .module)
         }

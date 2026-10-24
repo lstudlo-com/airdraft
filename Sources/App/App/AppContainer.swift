@@ -315,6 +315,9 @@ final class AppContainer {
             return SpeechPreview.start(locale: settings.livePreviewLocale, onText: onText, onIssue: onIssue)
         case .speechModel:
             let asr = pipeline.speechConfig
+            if let locale = ModelSpeechPreview.appleSpeechLocale(for: asr) {
+                return SpeechPreview.start(locale: locale, onText: onText, onIssue: onIssue)
+            }
             let hints: TranscriptionHints
             do {
                 hints = TranscriptionHints(language: try SpeechLanguagePolicy.resolve(asr).language,

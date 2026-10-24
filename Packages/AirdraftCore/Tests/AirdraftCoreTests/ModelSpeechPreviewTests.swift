@@ -193,11 +193,23 @@ final class ModelSpeechPreviewTests: XCTestCase {
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .parakeet)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .senseVoice)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .orukeet)))
-        for kind in [ASRProviderKind.whisperKit, .qwen3, .cohere, .fireRed, .apple, .transcribeCpp, .fluidAudio,
+        for kind in [ASRProviderKind.whisperKit, .qwen3, .cohere, .fireRed, .transcribeCpp, .fluidAudio,
                      .openAI, .deepgram, .soniox, .groq] {
             XCTAssertFalse(ModelSpeechPreview.supports(ASRConfig(kind: kind)), kind.rawValue)
             XCTAssertNotNil(ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: kind)), kind.rawValue)
+            XCTAssertNil(ModelSpeechPreview.appleSpeechLocale(for: ASRConfig(kind: kind)), kind.rawValue)
         }
+    }
+
+    /// Apple Speech never decodes through the factory, but previews with its own
+    /// analyzer in the model's effective locale, so it is not unavailable.
+    func testAppleSpeechModelPreviewsThroughAppleAnalyzer() {
+        let apple = ASRConfig(kind: .apple, appleLocale: "ja-JP", language: "")
+        XCTAssertFalse(ModelSpeechPreview.supports(apple))
+        XCTAssertEqual(ModelSpeechPreview.appleSpeechLocale(for: apple), "ja-JP")
+        XCTAssertNil(ModelSpeechPreview.unavailableReason(for: apple, installed: false))
+        let mandarin = ASRConfig(kind: .apple, appleLocale: "zh-TW", language: "zh", chineseScript: .simplified)
+        XCTAssertEqual(ModelSpeechPreview.appleSpeechLocale(for: mandarin), "zh-CN")
     }
 
     func testMeetingMixerAveragesTracksOnOneTimeline() {

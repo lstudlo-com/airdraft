@@ -189,6 +189,8 @@ enum ModelPreviewReadiness: Equatable {
 
     /// `facts` must be the values for inputs whose `speech` is `speech`.
     static func of(_ speech: ASRConfig, facts: SetupFacts.Values) -> ModelPreviewReadiness {
+        // Apple Speech previews through its own analyzer; it has no model folder to measure.
+        if ModelSpeechPreview.appleSpeechLocale(for: speech) != nil { return .ready }
         if !ModelSpeechPreview.supports(speech) || !facts.pending.contains(.speech),
            let reason = ModelSpeechPreview.unavailableReason(for: speech, installed: facts.speechInstalled) {
             return .unavailable(reason)
