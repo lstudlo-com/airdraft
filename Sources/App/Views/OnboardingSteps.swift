@@ -144,29 +144,31 @@ struct OnboardingSpeechStep: View {
         }
     }
 
-    /// Download size and the plain-language trade-off between the choices.
+    /// Download size and the plain-language trade-off between the choices. The
+    /// copy follows the label the recommendation rule gives each option
+    /// (`LocalSpeechRecommendation.rules`), so a claim appears only where it
+    /// was measured.
     private func tradeoff(_ entry: ModelEntry) -> String {
-        let recommended = speech.recommendation.model
+        let reason = speech.recommendation.reason
+        let role: LocalModelShortlist.Role? = entry.id == speech.recommendedID
+            ? .recommended : ModelCatalogue.shortlist.picks.first { $0.id == entry.id }?.role
+        let qwen = LocalSpeechRecommendation.Model.qwen3Large.catalogueID
         let detail: String
-        switch entry.id {
-        case LocalSpeechRecommendation.Model.qwen3Large.catalogueID:
-            // Measured peaks while transcribing: about 2.4 GB on mixed Chinese-English
-            // phrases (eval/mixed-asr), about 3 GB on FLEURS English, Japanese and
-            // Korean (eval/eja-asr). Keep the website's figures aligned.
-            switch recommended {
-            case .qwen3Large where speech.recommendation.reason == .systemLanguage:
-                detail = String(localized: "Most accurate for \(systemLanguageName) in Airdraft's tests. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
-            case .whisperTurbo where speech.recommendation.reason == .limitedMemory:
-                detail = String(localized: "More accurate for \(systemLanguageName), but uses about \(MemoryAmount.gigabytes(3)) of memory.")
-            case .parakeetEnglish:
-                detail = String(localized: "Also recognizes \(29) other languages. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
-            case .qwen3Large, .senseVoice, .whisperTurbo:
-                detail = String(localized: "Most accurate when you mix Chinese and English. Uses about \(MemoryAmount.gigabytes(2.4)) of memory.")
-            }
-        case LocalSpeechRecommendation.Model.parakeetEnglish.catalogueID where recommended == .parakeetEnglish:
+        // Measured Qwen3-ASR 1.7B peaks while transcribing: about 2.4 GB on mixed
+        // Chinese-English phrases (eval/mixed-asr), about 3 GB on FLEURS
+        // (eval/eja-asr, eval/intl-asr). Keep the website's figures aligned.
+        switch (entry.id, role) {
+        case (qwen, .recommended?) where reason == .mixedChineseEnglish, (qwen, .mixedChineseEnglish?):
+            detail = String(localized: "Most accurate when you mix Chinese and English. Uses about \(MemoryAmount.gigabytes(2.4)) of memory.")
+        case (qwen, .recommended?) where reason == .systemLanguage && ModelCatalogue.recommendationChoice.isMostAccurate:
+            detail = String(localized: "Most accurate for \(systemLanguageName) in Airdraft's tests. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
+        case (qwen, .moreAccurate?):
+            detail = String(localized: "More accurate for \(systemLanguageName), but uses about \(MemoryAmount.gigabytes(3)) of memory.")
+        case (qwen, .multilingual?):
+            detail = String(localized: "Also recognizes \(29) other languages. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
+        case (LocalSpeechRecommendation.Model.parakeetEnglish.catalogueID, .recommended?):
             detail = String(localized: "Accurate, fast and light on memory. English only.")
-        case LocalSpeechRecommendation.Model.whisperTurbo.catalogueID where recommended != .whisperTurbo
-            || speech.recommendation.reason == .limitedMemory:
+        case (LocalSpeechRecommendation.Model.whisperTurbo.catalogueID, _) where role != .recommended || reason == .limitedMemory:
             // Its first load compiles for the Neural Engine: 79 s in eval/eja-asr.
             detail = String(localized: "Light on memory and recognizes many languages. Its first start can take a minute.")
         default:

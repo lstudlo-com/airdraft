@@ -22,8 +22,21 @@ final class LocalModelShortlistTests: XCTestCase {
             ("ja-JP", 8 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "qwen3:1.7b", role: .moreAccurate)]),
             ("ko", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "whisper:turbo", role: .lessMemory)]),
             ("ko-KR", 4 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "qwen3:1.7b", role: .moreAccurate)]),
-            ("fr-FR", 16 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "coreml:parakeet-v3", role: .smaller),
+            ("de-DE", 16 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "coreml:parakeet-v3", role: .smaller),
                                  P(id: "whisper:large-v3", role: .fullSize)]),
+            // AD-098 (eval/intl-asr).
+            ("es-419", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "coreml:parakeet-v3", role: .faster)]),
+            ("fr-FR", 8 * gib, [P(id: "coreml:parakeet-v3", role: .recommended), P(id: "qwen3:1.7b", role: .moreAccurate)]),
+            ("pt-BR", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "coreml:parakeet-v3", role: .faster)]),
+            ("ru-RU", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "gguf:gigaam-v3-e2e-rnnt", role: .lessMemory),
+                                 P(id: "coreml:parakeet-v3", role: .multilingual)]),
+            ("ru", 8 * gib, [P(id: "gguf:gigaam-v3-e2e-rnnt", role: .recommended), P(id: "qwen3:1.7b", role: .moreAccurate),
+                             P(id: "coreml:parakeet-v3", role: .multilingual)]),
+            ("ar-EG", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "whisper:turbo", role: .lessMemory),
+                                 P(id: "whisper:large-v3", role: .fullSize)]),
+            ("ar", 8 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "qwen3:1.7b", role: .moreAccurate)]),
+            ("hi-IN", 8 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "whisper:turbo", role: .lessMemory)]),
+            ("id-ID", 16 * gib, [P(id: "qwen3:1.7b", role: .recommended), P(id: "whisper:turbo", role: .lessMemory)]),
             ("de", 8 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "coreml:parakeet-v3", role: .smaller)]),
             ("th", 32 * gib, [P(id: "whisper:turbo", role: .recommended), P(id: "whisper:large-v3", role: .fullSize)]),
             ("th", 8 * gib, [P(id: "whisper:turbo", role: .recommended)]),
@@ -37,7 +50,7 @@ final class LocalModelShortlistTests: XCTestCase {
     }
 
     func testTheRecommendationLeadsAndAlternativesAreCappedAndDistinct() {
-        for code in ["zh", "zh-HK", "en", "ja", "ko", "es", "pt-BR", "vi", "ar", "", nil] as [String?] {
+        for code in ["zh", "zh-HK", "en", "ja", "ko", "es", "fr", "pt-BR", "ru", "ar", "hi", "id", "de", "vi", "", nil] as [String?] {
             for memory in [4 * gib, 8 * gib, 8 * gib + 1, 16 * gib, 128 * gib] {
                 let shortlist = LocalModelShortlist.make(languageCode: code, physicalMemory: memory)
                 let label = "\(code ?? "nil") \(memory)"
@@ -58,9 +71,11 @@ final class LocalModelShortlistTests: XCTestCase {
     }
 
     func testLargeAlternativesAreSkippedOnEightGigabyteMacs() {
-        XCTAssertTrue(picks("fr", 16 * gib).map(\.id).contains("whisper:large-v3"))
-        XCTAssertFalse(picks("fr", 8 * gib).map(\.id).contains("whisper:large-v3"))
-        XCTAssertFalse(picks("fr", 4 * gib).map(\.id).contains("whisper:large-v3"))
+        for code in ["de", "ar"] {
+            XCTAssertTrue(picks(code, 16 * gib).map(\.id).contains("whisper:large-v3"), code)
+            XCTAssertFalse(picks(code, 8 * gib).map(\.id).contains("whisper:large-v3"), code)
+            XCTAssertFalse(picks(code, 4 * gib).map(\.id).contains("whisper:large-v3"), code)
+        }
     }
 
     func testModelsInUseAreAddedOnceInCatalogueOrder() {

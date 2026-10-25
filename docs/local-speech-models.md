@@ -118,17 +118,31 @@ without a space; Latin, Hangul and digits keep one space.
 ## Recommendations and tiers in Models
 
 `LocalSpeechRecommendation` (Core) picks the first-run model from the primary
-system language and physical memory (AD-074). Chinese gets Qwen3-ASR 1.7B, with
+system language and physical memory (AD-074). The choice is data:
+`LocalSpeechRecommendation.rules` holds one measured rule per language (the
+choice above the memory threshold, the choice at or below it, each alternative's
+Models label, curated shortlist extras, whether the recommendation measured as
+the most accurate, and its evidence); `unmeasuredRule(for:)` is the default for
+every other language. Chinese gets Qwen3-ASR 1.7B, with
 SenseVoice as the smaller alternative. On 8 GB or less the order reverses.
 English gets Parakeet TDT v2 (Core ML) on every Mac, with Qwen3-ASR 1.7B as the
 multilingual alternative. Japanese and Korean get Qwen3-ASR 1.7B with Whisper
 Large v3 Turbo as the lower-memory alternative; on 8 GB or less the order
-reverses. These come from AD-083 (`eval/eja-asr/`, FLEURS read speech). Other
-languages get Whisper Large v3 Turbo. Qwen3-ASR 0.6B is
+reverses. These come from AD-083 (`eval/eja-asr/`, FLEURS read speech).
+AD-098 (`eval/intl-asr/`, FLEURS) gives Spanish, French, Portuguese, Russian,
+Arabic, Hindi and Indonesian Qwen3-ASR 1.7B. On 8 GB or less, Spanish, French and
+Portuguese get Parakeet TDT v3 (Core ML), Russian GigaAM v3 E2E RNN-T (GGUF) and
+Arabic and Indonesian Whisper Large v3 Turbo, each with Qwen3-ASR as the
+alternative; Hindi keeps Qwen3-ASR on every Mac because every Whisper model
+doubled its errors. Models that need an explicit speech language (Canary,
+Cohere, Cohere Transcribe Arabic) are never first-run choices. Other languages
+get Whisper Large v3 Turbo, with Parakeet TDT v3 (European languages) and Whisper
+Large v3 in Models. Qwen3-ASR 0.6B is
 never the lighter default because it can loop until its token cap and spike
 memory. Onboarding's Speech step and the Models table use the same rule; each
 onboarding choice shows its download size and a one-line trade-off that depends
-on what it is compared with.
+on the label its rule gives it; "Most accurate for <language> in Airdraft's tests"
+appears only where the rule records that measurement.
 
 By default the local table shows a compact set (AD-071): "Recommended for your
 language" lists `LocalModelShortlist` for the system language and memory (the
@@ -156,7 +170,8 @@ used for transcription in the 2026-10-12 local coverage verification, plus
 SenseVoice Cantonese, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from
 `eval/mixed-asr/`; Parakeet TDT v2, Parakeet Japanese and Whisper Large v3 now
 cite `eval/eja-asr/`, where they were downloaded and measured again, and the
-multilingual SenseVoice cites the 2026-10-24 follow-up in both studies. Promote a model only with the same kind of evidence. The
+multilingual SenseVoice cites the 2026-10-24 follow-up in both studies, and
+GigaAM v3 E2E RNN-T cites `eval/intl-asr/`. Promote a model only with the same kind of evidence. The
 `models-performance` fixture rejects IDs that are not in the catalogue and
 shortlist models that are not Verified. Renders accept
 `AIRDRAFT_RENDER_SYSTEM_LANGUAGE`, `AIRDRAFT_RENDER_MEMORY_GB`,

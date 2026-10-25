@@ -1,0 +1,5870 @@
+{
+ "summary": [
+  {
+   "lang": "ar",
+   "model": "cohere",
+   "setting": "ar",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.102,
+   "error_ci95": [
+    0.064,
+    0.1425
+   ],
+   "error_raw": 0.102,
+   "error_raw_ci95": [
+    0.064,
+    0.1425
+   ],
+   "error_clean": 0.1014,
+   "error_clean_ci95": [
+    0.0581,
+    0.1544
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 1094,
+   "asr_ms_p90": 1610,
+   "processing_ms_median": 1130,
+   "rtf_median": 0.1056,
+   "rtf_p90": 0.1327,
+   "peak_mb_median": 2493,
+   "peak_mb_p95": 2649,
+   "memory_class": "large",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "gguf:cohere-transcribe-arabic-07-2026",
+   "setting": "ar",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0601,
+   "error_ci95": [
+    0.0307,
+    0.0914
+   ],
+   "error_raw": 0.0601,
+   "error_raw_ci95": [
+    0.0307,
+    0.0914
+   ],
+   "error_clean": 0.0471,
+   "error_clean_ci95": [
+    0.0181,
+    0.0813
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 305,
+   "asr_ms_p90": 424,
+   "processing_ms_median": 342,
+   "rtf_median": 0.0288,
+   "rtf_p90": 0.0327,
+   "peak_mb_median": 1925,
+   "peak_mb_p95": 1931,
+   "memory_class": "medium",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "gguf:fun-asr-mlt-nano-2512",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 1,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.2263,
+   "error_ci95": [
+    0.1829,
+    0.2729
+   ],
+   "error_raw": 0.2263,
+   "error_raw_ci95": [
+    0.1829,
+    0.2729
+   ],
+   "error_clean": 0.2192,
+   "error_clean_ci95": [
+    0.1679,
+    0.2773
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 310,
+   "asr_ms_p90": 416,
+   "processing_ms_median": 350,
+   "rtf_median": 0.0294,
+   "rtf_p90": 0.0354,
+   "peak_mb_median": 1613,
+   "peak_mb_p95": 1615,
+   "memory_class": "medium",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "gguf:moonshine-base-ar",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1578,
+   "error_ci95": [
+    0.1226,
+    0.1966
+   ],
+   "error_raw": 0.1578,
+   "error_raw_ci95": [
+    0.1226,
+    0.1966
+   ],
+   "error_clean": 0.1558,
+   "error_clean_ci95": [
+    0.1149,
+    0.2027
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 362,
+   "asr_ms_p90": 590,
+   "processing_ms_median": 398,
+   "rtf_median": 0.0368,
+   "rtf_p90": 0.0437,
+   "peak_mb_median": 280,
+   "peak_mb_p95": 292,
+   "memory_class": "light",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1173,
+   "error_ci95": [
+    0.0879,
+    0.1493
+   ],
+   "error_raw": 0.1173,
+   "error_raw_ci95": [
+    0.0879,
+    0.1493
+   ],
+   "error_clean": 0.1087,
+   "error_clean_ci95": [
+    0.076,
+    0.1457
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 2644,
+   "asr_ms_p90": 3661,
+   "processing_ms_median": 2682,
+   "rtf_median": 0.2521,
+   "rtf_p90": 0.2725,
+   "peak_mb_median": 4876,
+   "peak_mb_p95": 4897,
+   "memory_class": "very large",
+   "loadavg1_median": 3.5
+  },
+  {
+   "lang": "ar",
+   "model": "qwen3:1.7b",
+   "setting": "ar",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1145,
+   "error_ci95": [
+    0.0833,
+    0.1465
+   ],
+   "error_raw": 0.1145,
+   "error_raw_ci95": [
+    0.0833,
+    0.1465
+   ],
+   "error_clean": 0.1087,
+   "error_clean_ci95": [
+    0.0752,
+    0.1464
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 669,
+   "asr_ms_p90": 1499,
+   "processing_ms_median": 711,
+   "rtf_median": 0.0668,
+   "rtf_p90": 0.0923,
+   "peak_mb_median": 2840,
+   "peak_mb_p95": 3287,
+   "memory_class": "large",
+   "loadavg1_median": 4.4
+  },
+  {
+   "lang": "ar",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1075,
+   "error_ci95": [
+    0.0774,
+    0.1381
+   ],
+   "error_raw": 0.1075,
+   "error_raw_ci95": [
+    0.0774,
+    0.1381
+   ],
+   "error_clean": 0.0996,
+   "error_clean_ci95": [
+    0.0689,
+    0.1331
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 690,
+   "asr_ms_p90": 1439,
+   "processing_ms_median": 733,
+   "rtf_median": 0.066,
+   "rtf_p90": 0.095,
+   "peak_mb_median": 2846,
+   "peak_mb_p95": 3241,
+   "memory_class": "large",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "whisper:large-v3",
+   "setting": "ar",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1201,
+   "error_ci95": [
+    0.09,
+    0.1534
+   ],
+   "error_raw": 0.1201,
+   "error_raw_ci95": [
+    0.09,
+    0.1534
+   ],
+   "error_clean": 0.1196,
+   "error_clean_ci95": [
+    0.085,
+    0.159
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 3514,
+   "asr_ms_p90": 5711,
+   "processing_ms_median": 3554,
+   "rtf_median": 0.3657,
+   "rtf_p90": 0.4751,
+   "peak_mb_median": 337,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 4.6
+  },
+  {
+   "lang": "ar",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1173,
+   "error_ci95": [
+    0.0845,
+    0.1532
+   ],
+   "error_raw": 0.1173,
+   "error_raw_ci95": [
+    0.0845,
+    0.1532
+   ],
+   "error_clean": 0.1159,
+   "error_clean_ci95": [
+    0.0791,
+    0.1579
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 3768,
+   "asr_ms_p90": 7537,
+   "processing_ms_median": 3810,
+   "rtf_median": 0.3824,
+   "rtf_p90": 0.5834,
+   "peak_mb_median": 337,
+   "peak_mb_p95": 342,
+   "memory_class": "light",
+   "loadavg1_median": 4.6
+  },
+  {
+   "lang": "ar",
+   "model": "whisper:turbo",
+   "setting": "ar",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1508,
+   "error_ci95": [
+    0.1137,
+    0.1902
+   ],
+   "error_raw": 0.1508,
+   "error_raw_ci95": [
+    0.1137,
+    0.1902
+   ],
+   "error_clean": 0.154,
+   "error_clean_ci95": [
+    0.108,
+    0.2053
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 954,
+   "asr_ms_p90": 1573,
+   "processing_ms_median": 1002,
+   "rtf_median": 0.089,
+   "rtf_p90": 0.1702,
+   "peak_mb_median": 228,
+   "peak_mb_p95": 236,
+   "memory_class": "light",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ar",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1425,
+   "error_ci95": [
+    0.1064,
+    0.185
+   ],
+   "error_raw": 0.1425,
+   "error_raw_ci95": [
+    0.1064,
+    0.185
+   ],
+   "error_clean": 0.1413,
+   "error_clean_ci95": [
+    0.0957,
+    0.1934
+   ],
+   "clean_utterances": 32,
+   "asr_ms_median": 1082,
+   "asr_ms_p90": 2022,
+   "processing_ms_median": 1131,
+   "rtf_median": 0.0992,
+   "rtf_p90": 0.1813,
+   "peak_mb_median": 231,
+   "peak_mb_p95": 237,
+   "memory_class": "light",
+   "loadavg1_median": 4.4
+  },
+  {
+   "lang": "es",
+   "model": "cohere",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0298,
+   "error_ci95": [
+    0.0181,
+    0.0435
+   ],
+   "error_raw": 0.0298,
+   "error_raw_ci95": [
+    0.0181,
+    0.0435
+   ],
+   "error_clean": 0.0227,
+   "error_clean_ci95": [
+    0.0098,
+    0.0374
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 930,
+   "asr_ms_p90": 1275,
+   "processing_ms_median": 968,
+   "rtf_median": 0.0804,
+   "rtf_p90": 0.0903,
+   "peak_mb_median": 2514,
+   "peak_mb_p95": 2637,
+   "memory_class": "large",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "es",
+   "model": "coreml:parakeet-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0288,
+   "error_ci95": [
+    0.0175,
+    0.041
+   ],
+   "error_raw": 0.0288,
+   "error_raw_ci95": [
+    0.0175,
+    0.041
+   ],
+   "error_clean": 0.0253,
+   "error_clean_ci95": [
+    0.0129,
+    0.0396
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 121,
+   "asr_ms_p90": 183,
+   "processing_ms_median": 162,
+   "rtf_median": 0.0111,
+   "rtf_p90": 0.014,
+   "peak_mb_median": 60,
+   "peak_mb_p95": 66,
+   "memory_class": "light",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "es",
+   "model": "gguf:canary-1b-v2",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0189,
+   "error_ci95": [
+    0.0104,
+    0.0292
+   ],
+   "error_raw": 0.0189,
+   "error_raw_ci95": [
+    0.0104,
+    0.0292
+   ],
+   "error_clean": 0.0133,
+   "error_clean_ci95": [
+    0.0055,
+    0.0221
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 209,
+   "asr_ms_p90": 285,
+   "processing_ms_median": 249,
+   "rtf_median": 0.0181,
+   "rtf_p90": 0.0207,
+   "peak_mb_median": 1024,
+   "peak_mb_p95": 1030,
+   "memory_class": "medium",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "es",
+   "model": "gguf:granite-speech-4.1-2b",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0467,
+   "error_ci95": [
+    0.0281,
+    0.0703
+   ],
+   "error_raw": 0.0467,
+   "error_raw_ci95": [
+    0.0281,
+    0.0703
+   ],
+   "error_clean": 0.0227,
+   "error_clean_ci95": [
+    0.0112,
+    0.0345
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 638,
+   "asr_ms_p90": 889,
+   "processing_ms_median": 681,
+   "rtf_median": 0.0562,
+   "rtf_p90": 0.0664,
+   "peak_mb_median": 2592,
+   "peak_mb_p95": 2602,
+   "memory_class": "large",
+   "loadavg1_median": 3.5
+  },
+  {
+   "lang": "es",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0149,
+   "error_ci95": [
+    0.0067,
+    0.0253
+   ],
+   "error_raw": 0.0149,
+   "error_raw_ci95": [
+    0.0067,
+    0.0253
+   ],
+   "error_clean": 0.012,
+   "error_clean_ci95": [
+    0.0044,
+    0.0201
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 2880,
+   "asr_ms_p90": 3922,
+   "processing_ms_median": 2918,
+   "rtf_median": 0.2556,
+   "rtf_p90": 0.2744,
+   "peak_mb_median": 4879,
+   "peak_mb_p95": 4897,
+   "memory_class": "very large",
+   "loadavg1_median": 3.6
+  },
+  {
+   "lang": "es",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0169,
+   "error_ci95": [
+    0.0105,
+    0.024
+   ],
+   "error_raw": 0.0169,
+   "error_raw_ci95": [
+    0.0105,
+    0.024
+   ],
+   "error_clean": 0.0147,
+   "error_clean_ci95": [
+    0.007,
+    0.0224
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 714,
+   "asr_ms_p90": 1547,
+   "processing_ms_median": 752,
+   "rtf_median": 0.0653,
+   "rtf_p90": 0.1007,
+   "peak_mb_median": 2923,
+   "peak_mb_p95": 3267,
+   "memory_class": "large",
+   "loadavg1_median": 3.7
+  },
+  {
+   "lang": "es",
+   "model": "qwen3:1.7b",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0199,
+   "error_ci95": [
+    0.0129,
+    0.0268
+   ],
+   "error_raw": 0.0199,
+   "error_raw_ci95": [
+    0.0129,
+    0.0268
+   ],
+   "error_clean": 0.0187,
+   "error_clean_ci95": [
+    0.0099,
+    0.0269
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 716,
+   "asr_ms_p90": 1575,
+   "processing_ms_median": 756,
+   "rtf_median": 0.0656,
+   "rtf_p90": 0.0962,
+   "peak_mb_median": 2952,
+   "peak_mb_p95": 3301,
+   "memory_class": "large",
+   "loadavg1_median": 3.7
+  },
+  {
+   "lang": "es",
+   "model": "sherpa:orukeet",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0278,
+   "error_ci95": [
+    0.0169,
+    0.0404
+   ],
+   "error_raw": 0.0278,
+   "error_raw_ci95": [
+    0.0169,
+    0.0404
+   ],
+   "error_clean": 0.0213,
+   "error_clean_ci95": [
+    0.011,
+    0.0332
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 204,
+   "asr_ms_p90": 292,
+   "processing_ms_median": 243,
+   "rtf_median": 0.0178,
+   "rtf_p90": 0.0199,
+   "peak_mb_median": 1912,
+   "peak_mb_p95": 1963,
+   "memory_class": "medium",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "es",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0278,
+   "error_ci95": [
+    0.017,
+    0.0402
+   ],
+   "error_raw": 0.0278,
+   "error_raw_ci95": [
+    0.017,
+    0.0402
+   ],
+   "error_clean": 0.0227,
+   "error_clean_ci95": [
+    0.0123,
+    0.0342
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 3158,
+   "asr_ms_p90": 5484,
+   "processing_ms_median": 3196,
+   "rtf_median": 0.2843,
+   "rtf_p90": 0.4168,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 3.8
+  },
+  {
+   "lang": "es",
+   "model": "whisper:large-v3",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0249,
+   "error_ci95": [
+    0.0155,
+    0.0356
+   ],
+   "error_raw": 0.0249,
+   "error_raw_ci95": [
+    0.0155,
+    0.0356
+   ],
+   "error_clean": 0.0213,
+   "error_clean_ci95": [
+    0.0117,
+    0.0315
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 3013,
+   "asr_ms_p90": 4573,
+   "processing_ms_median": 3054,
+   "rtf_median": 0.2685,
+   "rtf_p90": 0.3279,
+   "peak_mb_median": 337,
+   "peak_mb_p95": 340,
+   "memory_class": "light",
+   "loadavg1_median": 3.9
+  },
+  {
+   "lang": "es",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0427,
+   "error_ci95": [
+    0.0274,
+    0.0622
+   ],
+   "error_raw": 0.0427,
+   "error_raw_ci95": [
+    0.0274,
+    0.0622
+   ],
+   "error_clean": 0.0347,
+   "error_clean_ci95": [
+    0.0208,
+    0.0486
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 865,
+   "asr_ms_p90": 2027,
+   "processing_ms_median": 899,
+   "rtf_median": 0.0843,
+   "rtf_p90": 0.1537,
+   "peak_mb_median": 230,
+   "peak_mb_p95": 237,
+   "memory_class": "light",
+   "loadavg1_median": 3.7
+  },
+  {
+   "lang": "es",
+   "model": "whisper:turbo",
+   "setting": "es",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0358,
+   "error_ci95": [
+    0.0221,
+    0.0552
+   ],
+   "error_raw": 0.0358,
+   "error_raw_ci95": [
+    0.0221,
+    0.0552
+   ],
+   "error_clean": 0.0293,
+   "error_clean_ci95": [
+    0.0173,
+    0.0414
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 769,
+   "asr_ms_p90": 1272,
+   "processing_ms_median": 810,
+   "rtf_median": 0.0733,
+   "rtf_p90": 0.0967,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 235,
+   "memory_class": "light",
+   "loadavg1_median": 3.8
+  },
+  {
+   "lang": "fr",
+   "model": "cohere",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.069,
+   "error_ci95": [
+    0.04,
+    0.1052
+   ],
+   "error_raw": 0.069,
+   "error_raw_ci95": [
+    0.04,
+    0.1052
+   ],
+   "error_clean": 0.0404,
+   "error_clean_ci95": [
+    0.0215,
+    0.0638
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 900,
+   "asr_ms_p90": 1300,
+   "processing_ms_median": 935,
+   "rtf_median": 0.0971,
+   "rtf_p90": 0.12,
+   "peak_mb_median": 2485,
+   "peak_mb_p95": 2608,
+   "memory_class": "large",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "fr",
+   "model": "coreml:parakeet-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.073,
+   "error_ci95": [
+    0.0496,
+    0.1002
+   ],
+   "error_raw": 0.073,
+   "error_raw_ci95": [
+    0.0496,
+    0.1002
+   ],
+   "error_clean": 0.0627,
+   "error_clean_ci95": [
+    0.0362,
+    0.092
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 96,
+   "asr_ms_p90": 138,
+   "processing_ms_median": 132,
+   "rtf_median": 0.01,
+   "rtf_p90": 0.0155,
+   "peak_mb_median": 59,
+   "peak_mb_p95": 64,
+   "memory_class": "light",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "fr",
+   "model": "gguf:canary-1b-v2",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.068,
+   "error_ci95": [
+    0.0395,
+    0.1041
+   ],
+   "error_raw": 0.068,
+   "error_raw_ci95": [
+    0.0395,
+    0.1041
+   ],
+   "error_clean": 0.0487,
+   "error_clean_ci95": [
+    0.0214,
+    0.0792
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 212,
+   "asr_ms_p90": 288,
+   "processing_ms_median": 250,
+   "rtf_median": 0.021,
+   "rtf_p90": 0.0254,
+   "peak_mb_median": 1021,
+   "peak_mb_p95": 1029,
+   "memory_class": "medium",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "fr",
+   "model": "gguf:granite-speech-4.1-2b",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.085,
+   "error_ci95": [
+    0.0526,
+    0.1217
+   ],
+   "error_raw": 0.085,
+   "error_raw_ci95": [
+    0.0526,
+    0.1217
+   ],
+   "error_clean": 0.0515,
+   "error_clean_ci95": [
+    0.0291,
+    0.0766
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 648,
+   "asr_ms_p90": 875,
+   "processing_ms_median": 682,
+   "rtf_median": 0.0656,
+   "rtf_p90": 0.079,
+   "peak_mb_median": 2590,
+   "peak_mb_p95": 2599,
+   "memory_class": "large",
+   "loadavg1_median": 3.5
+  },
+  {
+   "lang": "fr",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.085,
+   "error_ci95": [
+    0.0548,
+    0.1191
+   ],
+   "error_raw": 0.085,
+   "error_raw_ci95": [
+    0.0548,
+    0.1191
+   ],
+   "error_clean": 0.0599,
+   "error_clean_ci95": [
+    0.0284,
+    0.0977
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 2646,
+   "asr_ms_p90": 3608,
+   "processing_ms_median": 2682,
+   "rtf_median": 0.2652,
+   "rtf_p90": 0.2939,
+   "peak_mb_median": 4873,
+   "peak_mb_p95": 4890,
+   "memory_class": "very large",
+   "loadavg1_median": 3.5
+  },
+  {
+   "lang": "fr",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.06,
+   "error_ci95": [
+    0.037,
+    0.084
+   ],
+   "error_raw": 0.06,
+   "error_raw_ci95": [
+    0.037,
+    0.084
+   ],
+   "error_clean": 0.0501,
+   "error_clean_ci95": [
+    0.026,
+    0.0754
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 704,
+   "asr_ms_p90": 1101,
+   "processing_ms_median": 740,
+   "rtf_median": 0.075,
+   "rtf_p90": 0.1006,
+   "peak_mb_median": 2898,
+   "peak_mb_p95": 3244,
+   "memory_class": "large",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "fr",
+   "model": "qwen3:1.7b",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.058,
+   "error_ci95": [
+    0.0346,
+    0.082
+   ],
+   "error_raw": 0.058,
+   "error_raw_ci95": [
+    0.0346,
+    0.082
+   ],
+   "error_clean": 0.0474,
+   "error_clean_ci95": [
+    0.0227,
+    0.0743
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 700,
+   "asr_ms_p90": 1113,
+   "processing_ms_median": 734,
+   "rtf_median": 0.0758,
+   "rtf_p90": 0.0987,
+   "peak_mb_median": 2888,
+   "peak_mb_p95": 3250,
+   "memory_class": "large",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "fr",
+   "model": "sherpa:orukeet",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.112,
+   "error_ci95": [
+    0.0716,
+    0.1542
+   ],
+   "error_raw": 0.112,
+   "error_raw_ci95": [
+    0.0716,
+    0.1542
+   ],
+   "error_clean": 0.0808,
+   "error_clean_ci95": [
+    0.0492,
+    0.118
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 188,
+   "asr_ms_p90": 292,
+   "processing_ms_median": 224,
+   "rtf_median": 0.0185,
+   "rtf_p90": 0.0217,
+   "peak_mb_median": 1896,
+   "peak_mb_p95": 1952,
+   "memory_class": "medium",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "fr",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.082,
+   "error_ci95": [
+    0.0558,
+    0.1098
+   ],
+   "error_raw": 0.082,
+   "error_raw_ci95": [
+    0.0558,
+    0.1098
+   ],
+   "error_clean": 0.0655,
+   "error_clean_ci95": [
+    0.0331,
+    0.1007
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 3244,
+   "asr_ms_p90": 4729,
+   "processing_ms_median": 3281,
+   "rtf_median": 0.3448,
+   "rtf_p90": 0.4781,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 340,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "fr",
+   "model": "whisper:large-v3",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.09,
+   "error_ci95": [
+    0.0591,
+    0.1257
+   ],
+   "error_raw": 0.09,
+   "error_raw_ci95": [
+    0.0591,
+    0.1257
+   ],
+   "error_clean": 0.078,
+   "error_clean_ci95": [
+    0.037,
+    0.1228
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 2977,
+   "asr_ms_p90": 4425,
+   "processing_ms_median": 3013,
+   "rtf_median": 0.3312,
+   "rtf_p90": 0.447,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 340,
+   "memory_class": "light",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "fr",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.091,
+   "error_ci95": [
+    0.0618,
+    0.1229
+   ],
+   "error_raw": 0.091,
+   "error_raw_ci95": [
+    0.0618,
+    0.1229
+   ],
+   "error_clean": 0.0738,
+   "error_clean_ci95": [
+    0.0396,
+    0.1108
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 867,
+   "asr_ms_p90": 1452,
+   "processing_ms_median": 908,
+   "rtf_median": 0.0939,
+   "rtf_p90": 0.1408,
+   "peak_mb_median": 230,
+   "peak_mb_p95": 235,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "fr",
+   "model": "whisper:turbo",
+   "setting": "fr",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.104,
+   "error_ci95": [
+    0.0699,
+    0.1415
+   ],
+   "error_raw": 0.104,
+   "error_raw_ci95": [
+    0.0699,
+    0.1415
+   ],
+   "error_clean": 0.0808,
+   "error_clean_ci95": [
+    0.0423,
+    0.1237
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 798,
+   "asr_ms_p90": 1341,
+   "processing_ms_median": 839,
+   "rtf_median": 0.0852,
+   "rtf_p90": 0.1285,
+   "peak_mb_median": 227,
+   "peak_mb_p95": 234,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "hi",
+   "model": "gguf:fun-asr-mlt-nano-2512",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 1,
+   "empty": 1,
+   "wrong_script": 17,
+   "truncated": 7,
+   "metric": "WER",
+   "error": 0.546,
+   "error_ci95": [
+    0.4204,
+    0.6748
+   ],
+   "error_raw": 0.546,
+   "error_raw_ci95": [
+    0.4204,
+    0.6748
+   ],
+   "error_clean": 0.5286,
+   "error_clean_ci95": [
+    0.3901,
+    0.6689
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 481,
+   "asr_ms_p90": 866,
+   "processing_ms_median": 510,
+   "rtf_median": 0.0516,
+   "rtf_p90": 0.0695,
+   "peak_mb_median": 1613,
+   "peak_mb_p95": 1615,
+   "memory_class": "medium",
+   "loadavg1_median": 3.9
+  },
+  {
+   "lang": "hi",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 1,
+   "empty": 1,
+   "wrong_script": 1,
+   "truncated": 1,
+   "metric": "WER",
+   "error": 0.241,
+   "error_ci95": [
+    0.1959,
+    0.2929
+   ],
+   "error_raw": 0.241,
+   "error_raw_ci95": [
+    0.1959,
+    0.2929
+   ],
+   "error_clean": 0.2338,
+   "error_clean_ci95": [
+    0.186,
+    0.2927
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 3038,
+   "asr_ms_p90": 4157,
+   "processing_ms_median": 3082,
+   "rtf_median": 0.2754,
+   "rtf_p90": 0.3046,
+   "peak_mb_median": 4875,
+   "peak_mb_p95": 4906,
+   "memory_class": "very large",
+   "loadavg1_median": 3.6
+  },
+  {
+   "lang": "hi",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 1,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1882,
+   "error_ci95": [
+    0.1299,
+    0.2512
+   ],
+   "error_raw": 0.1882,
+   "error_raw_ci95": [
+    0.1299,
+    0.2512
+   ],
+   "error_clean": 0.1791,
+   "error_clean_ci95": [
+    0.1136,
+    0.2516
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 1500,
+   "asr_ms_p90": 3266,
+   "processing_ms_median": 1545,
+   "rtf_median": 0.1586,
+   "rtf_p90": 0.2156,
+   "peak_mb_median": 3275,
+   "peak_mb_p95": 4064,
+   "memory_class": "large",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "hi",
+   "model": "qwen3:1.7b",
+   "setting": "hi",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1779,
+   "error_ci95": [
+    0.1266,
+    0.2348
+   ],
+   "error_raw": 0.1779,
+   "error_raw_ci95": [
+    0.1266,
+    0.2348
+   ],
+   "error_clean": 0.1679,
+   "error_clean_ci95": [
+    0.108,
+    0.2336
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 1559,
+   "asr_ms_p90": 3482,
+   "processing_ms_median": 1600,
+   "rtf_median": 0.1587,
+   "rtf_p90": 0.2168,
+   "peak_mb_median": 3331,
+   "peak_mb_p95": 4096,
+   "memory_class": "very large",
+   "loadavg1_median": 4.9
+  },
+  {
+   "lang": "hi",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 2,
+   "truncated": 3,
+   "metric": "WER",
+   "error": 0.3289,
+   "error_ci95": [
+    0.2729,
+    0.3862
+   ],
+   "error_raw": 0.3289,
+   "error_raw_ci95": [
+    0.2729,
+    0.3862
+   ],
+   "error_clean": 0.3408,
+   "error_clean_ci95": [
+    0.2749,
+    0.4096
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 8456,
+   "asr_ms_p90": 46523,
+   "processing_ms_median": 8499,
+   "rtf_median": 0.9092,
+   "rtf_p90": 3.107,
+   "peak_mb_median": 338,
+   "peak_mb_p95": 411,
+   "memory_class": "light",
+   "loadavg1_median": 4.7
+  },
+  {
+   "lang": "hi",
+   "model": "whisper:large-v3",
+   "setting": "hi",
+   "utterances": 40,
+   "failures": 1,
+   "empty": 1,
+   "wrong_script": 2,
+   "truncated": 2,
+   "metric": "WER",
+   "error": 0.3444,
+   "error_ci95": [
+    0.2758,
+    0.4209
+   ],
+   "error_raw": 0.3444,
+   "error_raw_ci95": [
+    0.2758,
+    0.4209
+   ],
+   "error_clean": 0.3507,
+   "error_clean_ci95": [
+    0.271,
+    0.4375
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 6828,
+   "asr_ms_p90": 52383,
+   "processing_ms_median": 6878,
+   "rtf_median": 0.742,
+   "rtf_p90": 3.5307,
+   "peak_mb_median": 337,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 4.4
+  },
+  {
+   "lang": "hi",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 1,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.3433,
+   "error_ci95": [
+    0.2994,
+    0.396
+   ],
+   "error_raw": 0.3433,
+   "error_raw_ci95": [
+    0.2994,
+    0.396
+   ],
+   "error_clean": 0.3495,
+   "error_clean_ci95": [
+    0.2954,
+    0.4055
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 1938,
+   "asr_ms_p90": 9412,
+   "processing_ms_median": 1970,
+   "rtf_median": 0.2541,
+   "rtf_p90": 0.6093,
+   "peak_mb_median": 231,
+   "peak_mb_p95": 239,
+   "memory_class": "light",
+   "loadavg1_median": 5.0
+  },
+  {
+   "lang": "hi",
+   "model": "whisper:turbo",
+   "setting": "hi",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.3237,
+   "error_ci95": [
+    0.2808,
+    0.3733
+   ],
+   "error_raw": 0.3237,
+   "error_raw_ci95": [
+    0.2808,
+    0.3733
+   ],
+   "error_clean": 0.3271,
+   "error_clean_ci95": [
+    0.2759,
+    0.385
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 1406,
+   "asr_ms_p90": 8593,
+   "processing_ms_median": 1446,
+   "rtf_median": 0.1686,
+   "rtf_p90": 0.5787,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 234,
+   "memory_class": "light",
+   "loadavg1_median": 4.9
+  },
+  {
+   "lang": "id",
+   "model": "gguf:fun-asr-mlt-nano-2512",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 1,
+   "metric": "WER",
+   "error": 0.0823,
+   "error_ci95": [
+    0.0515,
+    0.12
+   ],
+   "error_raw": 0.0823,
+   "error_raw_ci95": [
+    0.0515,
+    0.12
+   ],
+   "error_clean": 0.069,
+   "error_clean_ci95": [
+    0.0364,
+    0.1107
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 295,
+   "asr_ms_p90": 413,
+   "processing_ms_median": 328,
+   "rtf_median": 0.0277,
+   "rtf_p90": 0.0328,
+   "peak_mb_median": 1611,
+   "peak_mb_p95": 1614,
+   "memory_class": "medium",
+   "loadavg1_median": 3.8
+  },
+  {
+   "lang": "id",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0519,
+   "error_ci95": [
+    0.0277,
+    0.0843
+   ],
+   "error_raw": 0.0519,
+   "error_raw_ci95": [
+    0.0277,
+    0.0843
+   ],
+   "error_clean": 0.0436,
+   "error_clean_ci95": [
+    0.0168,
+    0.0798
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 662,
+   "asr_ms_p90": 1575,
+   "processing_ms_median": 700,
+   "rtf_median": 0.0633,
+   "rtf_p90": 0.0908,
+   "peak_mb_median": 2831,
+   "peak_mb_p95": 3257,
+   "memory_class": "large",
+   "loadavg1_median": 3.9
+  },
+  {
+   "lang": "id",
+   "model": "qwen3:1.7b",
+   "setting": "id",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0505,
+   "error_ci95": [
+    0.0264,
+    0.0829
+   ],
+   "error_raw": 0.0505,
+   "error_raw_ci95": [
+    0.0264,
+    0.0829
+   ],
+   "error_clean": 0.0417,
+   "error_clean_ci95": [
+    0.0149,
+    0.0775
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 654,
+   "asr_ms_p90": 1555,
+   "processing_ms_median": 688,
+   "rtf_median": 0.0641,
+   "rtf_p90": 0.0958,
+   "peak_mb_median": 2802,
+   "peak_mb_p95": 3253,
+   "memory_class": "large",
+   "loadavg1_median": 3.8
+  },
+  {
+   "lang": "id",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.075,
+   "error_ci95": [
+    0.0438,
+    0.114
+   ],
+   "error_raw": 0.075,
+   "error_raw_ci95": [
+    0.0438,
+    0.114
+   ],
+   "error_clean": 0.0672,
+   "error_clean_ci95": [
+    0.0398,
+    0.1011
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 3168,
+   "asr_ms_p90": 7187,
+   "processing_ms_median": 3203,
+   "rtf_median": 0.312,
+   "rtf_p90": 0.5704,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 340,
+   "memory_class": "light",
+   "loadavg1_median": 3.8
+  },
+  {
+   "lang": "id",
+   "model": "whisper:large-v3",
+   "setting": "id",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0794,
+   "error_ci95": [
+    0.0537,
+    0.11
+   ],
+   "error_raw": 0.0794,
+   "error_raw_ci95": [
+    0.0537,
+    0.11
+   ],
+   "error_clean": 0.0744,
+   "error_clean_ci95": [
+    0.0446,
+    0.1103
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 3062,
+   "asr_ms_p90": 4939,
+   "processing_ms_median": 3098,
+   "rtf_median": 0.2876,
+   "rtf_p90": 0.3881,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 3.9
+  },
+  {
+   "lang": "id",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0794,
+   "error_ci95": [
+    0.0514,
+    0.112
+   ],
+   "error_raw": 0.0794,
+   "error_raw_ci95": [
+    0.0514,
+    0.112
+   ],
+   "error_clean": 0.0762,
+   "error_clean_ci95": [
+    0.0468,
+    0.1119
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 850,
+   "asr_ms_p90": 2046,
+   "processing_ms_median": 890,
+   "rtf_median": 0.0928,
+   "rtf_p90": 0.166,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 235,
+   "memory_class": "light",
+   "loadavg1_median": 4.0
+  },
+  {
+   "lang": "id",
+   "model": "whisper:turbo",
+   "setting": "id",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0779,
+   "error_ci95": [
+    0.0492,
+    0.1108
+   ],
+   "error_raw": 0.0779,
+   "error_raw_ci95": [
+    0.0492,
+    0.1108
+   ],
+   "error_clean": 0.0744,
+   "error_clean_ci95": [
+    0.045,
+    0.11
+   ],
+   "clean_utterances": 33,
+   "asr_ms_median": 751,
+   "asr_ms_p90": 1372,
+   "processing_ms_median": 794,
+   "rtf_median": 0.0803,
+   "rtf_p90": 0.1378,
+   "peak_mb_median": 228,
+   "peak_mb_p95": 236,
+   "memory_class": "light",
+   "loadavg1_median": 3.9
+  },
+  {
+   "lang": "pt",
+   "model": "cohere",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0619,
+   "error_ci95": [
+    0.042,
+    0.0848
+   ],
+   "error_raw": 0.0619,
+   "error_raw_ci95": [
+    0.042,
+    0.0848
+   ],
+   "error_clean": 0.0352,
+   "error_clean_ci95": [
+    0.019,
+    0.0521
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 824,
+   "asr_ms_p90": 1142,
+   "processing_ms_median": 863,
+   "rtf_median": 0.0723,
+   "rtf_p90": 0.0868,
+   "peak_mb_median": 2511,
+   "peak_mb_p95": 2679,
+   "memory_class": "large",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "pt",
+   "model": "coreml:parakeet-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0575,
+   "error_ci95": [
+    0.0379,
+    0.0779
+   ],
+   "error_raw": 0.0575,
+   "error_raw_ci95": [
+    0.0379,
+    0.0779
+   ],
+   "error_clean": 0.0403,
+   "error_clean_ci95": [
+    0.022,
+    0.0592
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 89,
+   "asr_ms_p90": 151,
+   "processing_ms_median": 129,
+   "rtf_median": 0.0086,
+   "rtf_p90": 0.0097,
+   "peak_mb_median": 60,
+   "peak_mb_p95": 66,
+   "memory_class": "light",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "pt",
+   "model": "gguf:canary-1b-v2",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0442,
+   "error_ci95": [
+    0.0294,
+    0.0604
+   ],
+   "error_raw": 0.0442,
+   "error_raw_ci95": [
+    0.0294,
+    0.0604
+   ],
+   "error_clean": 0.0336,
+   "error_clean_ci95": [
+    0.0177,
+    0.0515
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 200,
+   "asr_ms_p90": 287,
+   "processing_ms_median": 242,
+   "rtf_median": 0.0178,
+   "rtf_p90": 0.0199,
+   "peak_mb_median": 1023,
+   "peak_mb_p95": 1033,
+   "memory_class": "medium",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "pt",
+   "model": "gguf:fun-asr-mlt-nano-2512",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 1,
+   "empty": 1,
+   "wrong_script": 1,
+   "truncated": 2,
+   "metric": "WER",
+   "error": 0.3558,
+   "error_ci95": [
+    0.2901,
+    0.4333
+   ],
+   "error_raw": 0.3558,
+   "error_raw_ci95": [
+    0.2901,
+    0.4333
+   ],
+   "error_clean": 0.3691,
+   "error_clean_ci95": [
+    0.2721,
+    0.4856
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 309,
+   "asr_ms_p90": 452,
+   "processing_ms_median": 353,
+   "rtf_median": 0.0266,
+   "rtf_p90": 0.034,
+   "peak_mb_median": 1612,
+   "peak_mb_p95": 1616,
+   "memory_class": "medium",
+   "loadavg1_median": 4.4
+  },
+  {
+   "lang": "pt",
+   "model": "gguf:granite-speech-4.1-2b",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1193,
+   "error_ci95": [
+    0.0843,
+    0.1565
+   ],
+   "error_raw": 0.1193,
+   "error_raw_ci95": [
+    0.0843,
+    0.1565
+   ],
+   "error_clean": 0.0654,
+   "error_clean_ci95": [
+    0.0433,
+    0.0903
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 608,
+   "asr_ms_p90": 841,
+   "processing_ms_median": 650,
+   "rtf_median": 0.0521,
+   "rtf_p90": 0.0649,
+   "peak_mb_median": 2592,
+   "peak_mb_p95": 2601,
+   "memory_class": "large",
+   "loadavg1_median": 3.5
+  },
+  {
+   "lang": "pt",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0387,
+   "error_ci95": [
+    0.026,
+    0.0528
+   ],
+   "error_raw": 0.0387,
+   "error_raw_ci95": [
+    0.026,
+    0.0528
+   ],
+   "error_clean": 0.0352,
+   "error_clean_ci95": [
+    0.0205,
+    0.0501
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 2840,
+   "asr_ms_p90": 4152,
+   "processing_ms_median": 2879,
+   "rtf_median": 0.2517,
+   "rtf_p90": 0.272,
+   "peak_mb_median": 4878,
+   "peak_mb_p95": 4901,
+   "memory_class": "very large",
+   "loadavg1_median": 3.6
+  },
+  {
+   "lang": "pt",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0475,
+   "error_ci95": [
+    0.0327,
+    0.0643
+   ],
+   "error_raw": 0.0475,
+   "error_raw_ci95": [
+    0.0327,
+    0.0643
+   ],
+   "error_clean": 0.0403,
+   "error_clean_ci95": [
+    0.022,
+    0.0598
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 680,
+   "asr_ms_p90": 1564,
+   "processing_ms_median": 722,
+   "rtf_median": 0.0635,
+   "rtf_p90": 0.0893,
+   "peak_mb_median": 2891,
+   "peak_mb_p95": 3283,
+   "memory_class": "large",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "pt",
+   "model": "qwen3:1.7b",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0497,
+   "error_ci95": [
+    0.033,
+    0.0694
+   ],
+   "error_raw": 0.0497,
+   "error_raw_ci95": [
+    0.033,
+    0.0694
+   ],
+   "error_clean": 0.0436,
+   "error_clean_ci95": [
+    0.0225,
+    0.0685
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 687,
+   "asr_ms_p90": 1564,
+   "processing_ms_median": 728,
+   "rtf_median": 0.0633,
+   "rtf_p90": 0.0872,
+   "peak_mb_median": 2893,
+   "peak_mb_p95": 3322,
+   "memory_class": "large",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "pt",
+   "model": "sherpa:orukeet",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0652,
+   "error_ci95": [
+    0.0433,
+    0.0906
+   ],
+   "error_raw": 0.0652,
+   "error_raw_ci95": [
+    0.0433,
+    0.0906
+   ],
+   "error_clean": 0.0403,
+   "error_clean_ci95": [
+    0.0232,
+    0.0591
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 206,
+   "asr_ms_p90": 316,
+   "processing_ms_median": 246,
+   "rtf_median": 0.0177,
+   "rtf_p90": 0.0192,
+   "peak_mb_median": 1915,
+   "peak_mb_p95": 1980,
+   "memory_class": "medium",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "pt",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 1,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0641,
+   "error_ci95": [
+    0.0431,
+    0.0909
+   ],
+   "error_raw": 0.0641,
+   "error_raw_ci95": [
+    0.0431,
+    0.0909
+   ],
+   "error_clean": 0.0419,
+   "error_clean_ci95": [
+    0.0264,
+    0.0578
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 2890,
+   "asr_ms_p90": 5910,
+   "processing_ms_median": 2928,
+   "rtf_median": 0.2709,
+   "rtf_p90": 0.404,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "pt",
+   "model": "whisper:large-v3",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0619,
+   "error_ci95": [
+    0.0406,
+    0.0887
+   ],
+   "error_raw": 0.0619,
+   "error_raw_ci95": [
+    0.0406,
+    0.0887
+   ],
+   "error_clean": 0.0386,
+   "error_clean_ci95": [
+    0.024,
+    0.0539
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 2710,
+   "asr_ms_p90": 5295,
+   "processing_ms_median": 2745,
+   "rtf_median": 0.2539,
+   "rtf_p90": 0.3724,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 4.1
+  },
+  {
+   "lang": "pt",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0586,
+   "error_ci95": [
+    0.0402,
+    0.0795
+   ],
+   "error_raw": 0.0586,
+   "error_raw_ci95": [
+    0.0402,
+    0.0795
+   ],
+   "error_clean": 0.047,
+   "error_clean_ci95": [
+    0.0276,
+    0.0664
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 820,
+   "asr_ms_p90": 1968,
+   "processing_ms_median": 862,
+   "rtf_median": 0.0819,
+   "rtf_p90": 0.1291,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 236,
+   "memory_class": "light",
+   "loadavg1_median": 4.0
+  },
+  {
+   "lang": "pt",
+   "model": "whisper:turbo",
+   "setting": "pt",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0586,
+   "error_ci95": [
+    0.0411,
+    0.0778
+   ],
+   "error_raw": 0.0586,
+   "error_raw_ci95": [
+    0.0411,
+    0.0778
+   ],
+   "error_clean": 0.0453,
+   "error_clean_ci95": [
+    0.0271,
+    0.0632
+   ],
+   "clean_utterances": 28,
+   "asr_ms_median": 750,
+   "asr_ms_p90": 1269,
+   "processing_ms_median": 796,
+   "rtf_median": 0.0701,
+   "rtf_p90": 0.1104,
+   "peak_mb_median": 230,
+   "peak_mb_p95": 237,
+   "memory_class": "light",
+   "loadavg1_median": 4.0
+  },
+  {
+   "lang": "ru",
+   "model": "coreml:parakeet-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0822,
+   "error_ci95": [
+    0.0563,
+    0.1141
+   ],
+   "error_raw": 0.0822,
+   "error_raw_ci95": [
+    0.0563,
+    0.1141
+   ],
+   "error_clean": 0.0653,
+   "error_clean_ci95": [
+    0.0415,
+    0.0891
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 96,
+   "asr_ms_p90": 139,
+   "processing_ms_median": 137,
+   "rtf_median": 0.009,
+   "rtf_p90": 0.0108,
+   "peak_mb_median": 60,
+   "peak_mb_p95": 65,
+   "memory_class": "light",
+   "loadavg1_median": 4.6
+  },
+  {
+   "lang": "ru",
+   "model": "gguf:canary-1b-v2",
+   "setting": "ru",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0886,
+   "error_ci95": [
+    0.0614,
+    0.1242
+   ],
+   "error_raw": 0.0886,
+   "error_raw_ci95": [
+    0.0614,
+    0.1242
+   ],
+   "error_clean": 0.0601,
+   "error_clean_ci95": [
+    0.0399,
+    0.0821
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 218,
+   "asr_ms_p90": 288,
+   "processing_ms_median": 254,
+   "rtf_median": 0.0195,
+   "rtf_p90": 0.0211,
+   "peak_mb_median": 1023,
+   "peak_mb_p95": 1032,
+   "memory_class": "medium",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ru",
+   "model": "gguf:gigaam-v3-ctc",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0822,
+   "error_ci95": [
+    0.0493,
+    0.1211
+   ],
+   "error_raw": 0.0822,
+   "error_raw_ci95": [
+    0.0493,
+    0.1211
+   ],
+   "error_clean": 0.0378,
+   "error_clean_ci95": [
+    0.0192,
+    0.0585
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 58,
+   "asr_ms_p90": 78,
+   "processing_ms_median": 98,
+   "rtf_median": 0.0051,
+   "rtf_p90": 0.0068,
+   "peak_mb_median": 417,
+   "peak_mb_p95": 419,
+   "memory_class": "light",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ru",
+   "model": "gguf:gigaam-v3-e2e-rnnt",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0642,
+   "error_ci95": [
+    0.0391,
+    0.0932
+   ],
+   "error_raw": 0.0642,
+   "error_raw_ci95": [
+    0.0391,
+    0.0932
+   ],
+   "error_clean": 0.0378,
+   "error_clean_ci95": [
+    0.023,
+    0.053
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 62,
+   "asr_ms_p90": 78,
+   "processing_ms_median": 102,
+   "rtf_median": 0.0054,
+   "rtf_p90": 0.0071,
+   "peak_mb_median": 428,
+   "peak_mb_p95": 432,
+   "memory_class": "light",
+   "loadavg1_median": 4.6
+  },
+  {
+   "lang": "ru",
+   "model": "gguf:voxtral-mini-4b-realtime-2602",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0591,
+   "error_ci95": [
+    0.0399,
+    0.0803
+   ],
+   "error_raw": 0.0591,
+   "error_raw_ci95": [
+    0.0399,
+    0.0803
+   ],
+   "error_clean": 0.0464,
+   "error_clean_ci95": [
+    0.0271,
+    0.0676
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 2966,
+   "asr_ms_p90": 3814,
+   "processing_ms_median": 3010,
+   "rtf_median": 0.2643,
+   "rtf_p90": 0.2837,
+   "peak_mb_median": 4878,
+   "peak_mb_p95": 4905,
+   "memory_class": "very large",
+   "loadavg1_median": 3.6
+  },
+  {
+   "lang": "ru",
+   "model": "qwen3:1.7b",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0578,
+   "error_ci95": [
+    0.0362,
+    0.081
+   ],
+   "error_raw": 0.0578,
+   "error_raw_ci95": [
+    0.0362,
+    0.081
+   ],
+   "error_clean": 0.0464,
+   "error_clean_ci95": [
+    0.025,
+    0.0699
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 808,
+   "asr_ms_p90": 1404,
+   "processing_ms_median": 842,
+   "rtf_median": 0.073,
+   "rtf_p90": 0.1014,
+   "peak_mb_median": 3015,
+   "peak_mb_p95": 3551,
+   "memory_class": "large",
+   "loadavg1_median": 4.5
+  },
+  {
+   "lang": "ru",
+   "model": "qwen3:1.7b",
+   "setting": "ru",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0591,
+   "error_ci95": [
+    0.0379,
+    0.082
+   ],
+   "error_raw": 0.0591,
+   "error_raw_ci95": [
+    0.0379,
+    0.082
+   ],
+   "error_clean": 0.0464,
+   "error_clean_ci95": [
+    0.0257,
+    0.0692
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 804,
+   "asr_ms_p90": 1425,
+   "processing_ms_median": 840,
+   "rtf_median": 0.0742,
+   "rtf_p90": 0.0931,
+   "peak_mb_median": 2982,
+   "peak_mb_p95": 3440,
+   "memory_class": "large",
+   "loadavg1_median": 4.4
+  },
+  {
+   "lang": "ru",
+   "model": "sherpa:orukeet",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1091,
+   "error_ci95": [
+    0.0775,
+    0.1447
+   ],
+   "error_raw": 0.1091,
+   "error_raw_ci95": [
+    0.0775,
+    0.1447
+   ],
+   "error_clean": 0.0842,
+   "error_clean_ci95": [
+    0.0585,
+    0.1127
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 202,
+   "asr_ms_p90": 282,
+   "processing_ms_median": 239,
+   "rtf_median": 0.0181,
+   "rtf_p90": 0.0195,
+   "peak_mb_median": 1915,
+   "peak_mb_p95": 1987,
+   "memory_class": "medium",
+   "loadavg1_median": 4.6
+  },
+  {
+   "lang": "ru",
+   "model": "whisper:large-v3",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0809,
+   "error_ci95": [
+    0.0572,
+    0.1108
+   ],
+   "error_raw": 0.0809,
+   "error_raw_ci95": [
+    0.0572,
+    0.1108
+   ],
+   "error_clean": 0.0687,
+   "error_clean_ci95": [
+    0.0472,
+    0.0923
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 3677,
+   "asr_ms_p90": 5375,
+   "processing_ms_median": 3716,
+   "rtf_median": 0.3369,
+   "rtf_p90": 0.4637,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 339,
+   "memory_class": "light",
+   "loadavg1_median": 4.2
+  },
+  {
+   "lang": "ru",
+   "model": "whisper:large-v3",
+   "setting": "ru",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.0834,
+   "error_ci95": [
+    0.0595,
+    0.1139
+   ],
+   "error_raw": 0.0834,
+   "error_raw_ci95": [
+    0.0595,
+    0.1139
+   ],
+   "error_clean": 0.0722,
+   "error_clean_ci95": [
+    0.0507,
+    0.0954
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 3538,
+   "asr_ms_p90": 5048,
+   "processing_ms_median": 3574,
+   "rtf_median": 0.3098,
+   "rtf_p90": 0.427,
+   "peak_mb_median": 336,
+   "peak_mb_p95": 341,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "ru",
+   "model": "whisper:turbo",
+   "setting": "auto",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1001,
+   "error_ci95": [
+    0.0722,
+    0.1331
+   ],
+   "error_raw": 0.1001,
+   "error_raw_ci95": [
+    0.0722,
+    0.1331
+   ],
+   "error_clean": 0.0842,
+   "error_clean_ci95": [
+    0.0573,
+    0.1152
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 952,
+   "asr_ms_p90": 1916,
+   "processing_ms_median": 996,
+   "rtf_median": 0.1004,
+   "rtf_p90": 0.138,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 234,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  },
+  {
+   "lang": "ru",
+   "model": "whisper:turbo",
+   "setting": "ru",
+   "utterances": 40,
+   "failures": 0,
+   "empty": 0,
+   "wrong_script": 0,
+   "truncated": 0,
+   "metric": "WER",
+   "error": 0.1027,
+   "error_ci95": [
+    0.0748,
+    0.1343
+   ],
+   "error_raw": 0.1027,
+   "error_raw_ci95": [
+    0.0748,
+    0.1343
+   ],
+   "error_clean": 0.0876,
+   "error_clean_ci95": [
+    0.0608,
+    0.1179
+   ],
+   "clean_utterances": 30,
+   "asr_ms_median": 863,
+   "asr_ms_p90": 1320,
+   "processing_ms_median": 900,
+   "rtf_median": 0.0856,
+   "rtf_p90": 0.112,
+   "peak_mb_median": 229,
+   "peak_mb_p95": 235,
+   "memory_class": "light",
+   "loadavg1_median": 4.3
+  }
+ ],
+ "paired_vs_reference": [
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "cohere ar",
+   "utterances": 40,
+   "second_minus_first": -0.0056,
+   "ci95": [
+    -0.0394,
+    0.0278
+   ],
+   "clean_second_minus_first": 0.0018,
+   "clean_ci95": [
+    -0.0346,
+    0.0398
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "cohere ar",
+   "utterances": 40,
+   "second_minus_first": -0.0405,
+   "ci95": [
+    -0.0731,
+    -0.0084
+   ],
+   "clean_second_minus_first": -0.0399,
+   "clean_ci95": [
+    -0.0758,
+    -0.0018
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:cohere-transcribe-arabic-07-2026 ar",
+   "utterances": 40,
+   "second_minus_first": -0.0475,
+   "ci95": [
+    -0.0679,
+    -0.0272
+   ],
+   "clean_second_minus_first": -0.0525,
+   "clean_ci95": [
+    -0.0736,
+    -0.032
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "gguf:cohere-transcribe-arabic-07-2026 ar",
+   "utterances": 40,
+   "second_minus_first": -0.0824,
+   "ci95": [
+    -0.1178,
+    -0.0515
+   ],
+   "clean_second_minus_first": -0.0942,
+   "clean_ci95": [
+    -0.1368,
+    -0.0577
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.1187,
+   "ci95": [
+    0.0838,
+    0.1567
+   ],
+   "clean_second_minus_first": 0.1196,
+   "clean_ci95": [
+    0.0761,
+    0.1669
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0838,
+   "ci95": [
+    0.047,
+    0.1223
+   ],
+   "clean_second_minus_first": 0.0779,
+   "clean_ci95": [
+    0.0361,
+    0.1248
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:moonshine-base-ar auto",
+   "utterances": 40,
+   "second_minus_first": 0.0503,
+   "ci95": [
+    0.0212,
+    0.0837
+   ],
+   "clean_second_minus_first": 0.0562,
+   "clean_ci95": [
+    0.0233,
+    0.0945
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "gguf:moonshine-base-ar auto",
+   "utterances": 40,
+   "second_minus_first": 0.0154,
+   "ci95": [
+    -0.0159,
+    0.0508
+   ],
+   "clean_second_minus_first": 0.0145,
+   "clean_ci95": [
+    -0.0213,
+    0.0565
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0098,
+   "ci95": [
+    -0.006,
+    0.0271
+   ],
+   "clean_second_minus_first": 0.0091,
+   "clean_ci95": [
+    -0.0088,
+    0.0282
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0251,
+   "ci95": [
+    -0.0534,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0326,
+   "clean_ci95": [
+    -0.0667,
+    -0.0036
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b ar",
+   "utterances": 40,
+   "second_minus_first": 0.007,
+   "ci95": [
+    -0.004,
+    0.02
+   ],
+   "clean_second_minus_first": 0.0091,
+   "clean_ci95": [
+    -0.0054,
+    0.0257
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b ar",
+   "utterances": 40,
+   "second_minus_first": -0.0279,
+   "ci95": [
+    -0.06,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0326,
+   "clean_ci95": [
+    -0.0729,
+    0.0019
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0349,
+   "ci95": [
+    -0.0723,
+    -0.0029
+   ],
+   "clean_second_minus_first": -0.0417,
+   "clean_ci95": [
+    -0.0851,
+    -0.0055
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 ar",
+   "utterances": 40,
+   "second_minus_first": 0.0126,
+   "ci95": [
+    -0.014,
+    0.0395
+   ],
+   "clean_second_minus_first": 0.0199,
+   "clean_ci95": [
+    -0.0087,
+    0.0507
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 ar",
+   "utterances": 40,
+   "second_minus_first": -0.0223,
+   "ci95": [
+    -0.0432,
+    -0.0043
+   ],
+   "clean_second_minus_first": -0.0217,
+   "clean_ci95": [
+    -0.0469,
+    0.0
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0098,
+   "ci95": [
+    -0.0174,
+    0.0376
+   ],
+   "clean_second_minus_first": 0.0163,
+   "clean_ci95": [
+    -0.0122,
+    0.0475
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0251,
+   "ci95": [
+    -0.0433,
+    -0.0087
+   ],
+   "clean_second_minus_first": -0.0254,
+   "clean_ci95": [
+    -0.0478,
+    -0.0053
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo ar",
+   "utterances": 40,
+   "second_minus_first": 0.0433,
+   "ci95": [
+    0.0087,
+    0.0814
+   ],
+   "clean_second_minus_first": 0.0543,
+   "clean_ci95": [
+    0.0139,
+    0.101
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo ar",
+   "utterances": 40,
+   "second_minus_first": 0.0084,
+   "ci95": [
+    -0.0044,
+    0.0268
+   ],
+   "clean_second_minus_first": 0.0127,
+   "clean_ci95": [
+    -0.0037,
+    0.0344
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0349,
+   "ci95": [
+    0.0029,
+    0.0723
+   ],
+   "clean_second_minus_first": 0.0417,
+   "clean_ci95": [
+    0.0055,
+    0.0851
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "cohere es",
+   "utterances": 40,
+   "second_minus_first": 0.0129,
+   "ci95": [
+    0.0035,
+    0.0236
+   ],
+   "clean_second_minus_first": 0.008,
+   "clean_ci95": [
+    -0.0015,
+    0.0197
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "cohere es",
+   "utterances": 40,
+   "second_minus_first": -0.0129,
+   "ci95": [
+    -0.0352,
+    0.005
+   ],
+   "clean_second_minus_first": -0.012,
+   "clean_ci95": [
+    -0.0263,
+    0.0027
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0119,
+   "ci95": [
+    0.001,
+    0.0251
+   ],
+   "clean_second_minus_first": 0.0107,
+   "clean_ci95": [
+    -0.0013,
+    0.0241
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0139,
+   "ci95": [
+    -0.0336,
+    0.0038
+   ],
+   "clean_second_minus_first": -0.0093,
+   "clean_ci95": [
+    -0.0242,
+    0.0058
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 es",
+   "utterances": 40,
+   "second_minus_first": 0.002,
+   "ci95": [
+    -0.0061,
+    0.0114
+   ],
+   "clean_second_minus_first": -0.0013,
+   "clean_ci95": [
+    -0.0067,
+    0.0044
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "gguf:canary-1b-v2 es",
+   "utterances": 40,
+   "second_minus_first": -0.0239,
+   "ci95": [
+    -0.042,
+    -0.0075
+   ],
+   "clean_second_minus_first": -0.0213,
+   "clean_ci95": [
+    -0.0323,
+    -0.0107
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b es",
+   "utterances": 40,
+   "second_minus_first": 0.0298,
+   "ci95": [
+    0.0122,
+    0.0537
+   ],
+   "clean_second_minus_first": 0.008,
+   "clean_ci95": [
+    -0.0013,
+    0.0185
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "gguf:granite-speech-4.1-2b es",
+   "utterances": 40,
+   "second_minus_first": 0.004,
+   "ci95": [
+    -0.0112,
+    0.0202
+   ],
+   "clean_second_minus_first": -0.012,
+   "clean_ci95": [
+    -0.0256,
+    0.0014
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.002,
+   "ci95": [
+    -0.0097,
+    0.0082
+   ],
+   "clean_second_minus_first": -0.0027,
+   "clean_ci95": [
+    -0.0088,
+    0.0039
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0278,
+   "ci95": [
+    -0.0411,
+    -0.0163
+   ],
+   "clean_second_minus_first": -0.0227,
+   "clean_ci95": [
+    -0.0348,
+    -0.0106
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0258,
+   "ci95": [
+    -0.0459,
+    -0.0115
+   ],
+   "clean_second_minus_first": -0.02,
+   "clean_ci95": [
+    -0.0318,
+    -0.0088
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b es",
+   "utterances": 40,
+   "second_minus_first": 0.003,
+   "ci95": [
+    0.0,
+    0.0079
+   ],
+   "clean_second_minus_first": 0.004,
+   "clean_ci95": [
+    0.0,
+    0.0107
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b es",
+   "utterances": 40,
+   "second_minus_first": -0.0229,
+   "ci95": [
+    -0.043,
+    -0.009
+   ],
+   "clean_second_minus_first": -0.016,
+   "clean_ci95": [
+    -0.0268,
+    -0.0065
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.0109,
+   "ci95": [
+    0.0019,
+    0.0217
+   ],
+   "clean_second_minus_first": 0.0067,
+   "clean_ci95": [
+    -0.0013,
+    0.016
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": -0.0149,
+   "ci95": [
+    -0.0322,
+    -0.001
+   ],
+   "clean_second_minus_first": -0.0133,
+   "clean_ci95": [
+    -0.0234,
+    -0.0028
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0109,
+   "ci95": [
+    0.002,
+    0.0213
+   ],
+   "clean_second_minus_first": 0.008,
+   "clean_ci95": [
+    0.0013,
+    0.0161
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0149,
+   "ci95": [
+    -0.0272,
+    -0.0044
+   ],
+   "clean_second_minus_first": -0.012,
+   "clean_ci95": [
+    -0.0233,
+    -0.0014
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 es",
+   "utterances": 40,
+   "second_minus_first": 0.008,
+   "ci95": [
+    0.0,
+    0.0174
+   ],
+   "clean_second_minus_first": 0.0067,
+   "clean_ci95": [
+    0.0012,
+    0.0135
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 es",
+   "utterances": 40,
+   "second_minus_first": -0.0179,
+   "ci95": [
+    -0.0302,
+    -0.0077
+   ],
+   "clean_second_minus_first": -0.0133,
+   "clean_ci95": [
+    -0.0242,
+    -0.0039
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0258,
+   "ci95": [
+    0.0115,
+    0.0459
+   ],
+   "clean_second_minus_first": 0.02,
+   "clean_ci95": [
+    0.0088,
+    0.0318
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo es",
+   "utterances": 40,
+   "second_minus_first": 0.0189,
+   "ci95": [
+    0.0061,
+    0.0381
+   ],
+   "clean_second_minus_first": 0.0147,
+   "clean_ci95": [
+    0.0055,
+    0.0248
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo es",
+   "utterances": 40,
+   "second_minus_first": -0.007,
+   "ci95": [
+    -0.0115,
+    -0.0029
+   ],
+   "clean_second_minus_first": -0.0053,
+   "clean_ci95": [
+    -0.0104,
+    -0.0013
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "cohere fr",
+   "utterances": 40,
+   "second_minus_first": 0.009,
+   "ci95": [
+    -0.0194,
+    0.0419
+   ],
+   "clean_second_minus_first": -0.0097,
+   "clean_ci95": [
+    -0.0358,
+    0.0174
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "cohere fr",
+   "utterances": 40,
+   "second_minus_first": -0.022,
+   "ci95": [
+    -0.0508,
+    0.0076
+   ],
+   "clean_second_minus_first": -0.0334,
+   "clean_ci95": [
+    -0.0672,
+    -0.0027
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.013,
+   "ci95": [
+    -0.0069,
+    0.0352
+   ],
+   "clean_second_minus_first": 0.0125,
+   "clean_ci95": [
+    -0.0087,
+    0.0348
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.018,
+   "ci95": [
+    -0.0395,
+    0.0023
+   ],
+   "clean_second_minus_first": -0.0111,
+   "clean_ci95": [
+    -0.0353,
+    0.0106
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 fr",
+   "utterances": 40,
+   "second_minus_first": 0.008,
+   "ci95": [
+    -0.0154,
+    0.0357
+   ],
+   "clean_second_minus_first": -0.0014,
+   "clean_ci95": [
+    -0.0227,
+    0.0207
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "gguf:canary-1b-v2 fr",
+   "utterances": 40,
+   "second_minus_first": -0.023,
+   "ci95": [
+    -0.045,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0251,
+   "clean_ci95": [
+    -0.0469,
+    -0.0062
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b fr",
+   "utterances": 40,
+   "second_minus_first": 0.025,
+   "ci95": [
+    0.0009,
+    0.0526
+   ],
+   "clean_second_minus_first": 0.0014,
+   "clean_ci95": [
+    -0.0204,
+    0.0253
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "gguf:granite-speech-4.1-2b fr",
+   "utterances": 40,
+   "second_minus_first": -0.006,
+   "ci95": [
+    -0.0319,
+    0.0214
+   ],
+   "clean_second_minus_first": -0.0223,
+   "clean_ci95": [
+    -0.0493,
+    0.0044
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.025,
+   "ci95": [
+    0.001,
+    0.0536
+   ],
+   "clean_second_minus_first": 0.0097,
+   "clean_ci95": [
+    -0.0179,
+    0.0445
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.006,
+   "ci95": [
+    -0.0276,
+    0.0168
+   ],
+   "clean_second_minus_first": -0.0139,
+   "clean_ci95": [
+    -0.0357,
+    0.0111
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.031,
+   "ci95": [
+    -0.054,
+    -0.0089
+   ],
+   "clean_second_minus_first": -0.0237,
+   "clean_ci95": [
+    -0.0524,
+    0.0014
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b fr",
+   "utterances": 40,
+   "second_minus_first": -0.002,
+   "ci95": [
+    -0.0063,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0028,
+   "clean_ci95": [
+    -0.0084,
+    0.0
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b fr",
+   "utterances": 40,
+   "second_minus_first": -0.033,
+   "ci95": [
+    -0.0558,
+    -0.0118
+   ],
+   "clean_second_minus_first": -0.0265,
+   "clean_ci95": [
+    -0.054,
+    -0.0013
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.052,
+   "ci95": [
+    0.0222,
+    0.0858
+   ],
+   "clean_second_minus_first": 0.0306,
+   "clean_ci95": [
+    0.0039,
+    0.0647
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.021,
+   "ci95": [
+    -0.0086,
+    0.0512
+   ],
+   "clean_second_minus_first": 0.007,
+   "clean_ci95": [
+    -0.024,
+    0.0363
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.022,
+   "ci95": [
+    0.0044,
+    0.0414
+   ],
+   "clean_second_minus_first": 0.0153,
+   "clean_ci95": [
+    -0.0043,
+    0.0385
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.009,
+   "ci95": [
+    -0.0228,
+    0.003
+   ],
+   "clean_second_minus_first": -0.0084,
+   "clean_ci95": [
+    -0.0237,
+    0.0055
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 fr",
+   "utterances": 40,
+   "second_minus_first": 0.03,
+   "ci95": [
+    0.007,
+    0.0567
+   ],
+   "clean_second_minus_first": 0.0279,
+   "clean_ci95": [
+    -0.0025,
+    0.0632
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 fr",
+   "utterances": 40,
+   "second_minus_first": -0.001,
+   "ci95": [
+    -0.017,
+    0.0145
+   ],
+   "clean_second_minus_first": 0.0042,
+   "clean_ci95": [
+    -0.0156,
+    0.0212
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.031,
+   "ci95": [
+    0.0089,
+    0.054
+   ],
+   "clean_second_minus_first": 0.0237,
+   "clean_ci95": [
+    -0.0014,
+    0.0524
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo fr",
+   "utterances": 40,
+   "second_minus_first": 0.044,
+   "ci95": [
+    0.0171,
+    0.0738
+   ],
+   "clean_second_minus_first": 0.0306,
+   "clean_ci95": [
+    -0.0013,
+    0.0687
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo fr",
+   "utterances": 40,
+   "second_minus_first": 0.013,
+   "ci95": [
+    0.0011,
+    0.0266
+   ],
+   "clean_second_minus_first": 0.007,
+   "clean_ci95": [
+    -0.0028,
+    0.0199
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.3578,
+   "ci95": [
+    0.2441,
+    0.4821
+   ],
+   "clean_second_minus_first": 0.3495,
+   "clean_ci95": [
+    0.2231,
+    0.4836
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.2027,
+   "ci95": [
+    0.074,
+    0.3352
+   ],
+   "clean_second_minus_first": 0.1791,
+   "clean_ci95": [
+    0.0418,
+    0.3192
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0527,
+   "ci95": [
+    -0.0031,
+    0.1064
+   ],
+   "clean_second_minus_first": 0.0547,
+   "clean_ci95": [
+    -0.0052,
+    0.1134
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.1024,
+   "ci95": [
+    -0.1333,
+    -0.0707
+   ],
+   "clean_second_minus_first": -0.1157,
+   "clean_ci95": [
+    -0.1499,
+    -0.0816
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.1551,
+   "ci95": [
+    -0.2118,
+    -0.0948
+   ],
+   "clean_second_minus_first": -0.1704,
+   "clean_ci95": [
+    -0.2318,
+    -0.1044
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b hi",
+   "utterances": 40,
+   "second_minus_first": -0.0103,
+   "ci95": [
+    -0.026,
+    0.0041
+   ],
+   "clean_second_minus_first": -0.0112,
+   "clean_ci95": [
+    -0.0286,
+    0.0026
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b hi",
+   "utterances": 40,
+   "second_minus_first": -0.1655,
+   "ci95": [
+    -0.2167,
+    -0.1142
+   ],
+   "clean_second_minus_first": -0.1816,
+   "clean_ci95": [
+    -0.2378,
+    -0.1244
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.1406,
+   "ci95": [
+    0.0985,
+    0.1826
+   ],
+   "clean_second_minus_first": 0.1617,
+   "clean_ci95": [
+    0.1147,
+    0.2076
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0145,
+   "ci95": [
+    -0.0539,
+    0.0319
+   ],
+   "clean_second_minus_first": -0.0087,
+   "clean_ci95": [
+    -0.0535,
+    0.0459
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 hi",
+   "utterances": 40,
+   "second_minus_first": 0.1562,
+   "ci95": [
+    0.1033,
+    0.2101
+   ],
+   "clean_second_minus_first": 0.1716,
+   "clean_ci95": [
+    0.1163,
+    0.227
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 hi",
+   "utterances": 40,
+   "second_minus_first": 0.001,
+   "ci95": [
+    -0.0485,
+    0.068
+   ],
+   "clean_second_minus_first": 0.0012,
+   "clean_ci95": [
+    -0.056,
+    0.0813
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.1551,
+   "ci95": [
+    0.0948,
+    0.2118
+   ],
+   "clean_second_minus_first": 0.1704,
+   "clean_ci95": [
+    0.1044,
+    0.2318
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo hi",
+   "utterances": 40,
+   "second_minus_first": 0.1355,
+   "ci95": [
+    0.0773,
+    0.1903
+   ],
+   "clean_second_minus_first": 0.148,
+   "clean_ci95": [
+    0.085,
+    0.2097
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo hi",
+   "utterances": 40,
+   "second_minus_first": -0.0196,
+   "ci95": [
+    -0.0373,
+    -0.0044
+   ],
+   "clean_second_minus_first": -0.0224,
+   "clean_ci95": [
+    -0.0429,
+    -0.0042
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0303,
+   "ci95": [
+    0.0045,
+    0.0569
+   ],
+   "clean_second_minus_first": 0.0254,
+   "clean_ci95": [
+    -0.0036,
+    0.0575
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0029,
+   "ci95": [
+    -0.0256,
+    0.0322
+   ],
+   "clean_second_minus_first": -0.0073,
+   "clean_ci95": [
+    -0.0378,
+    0.0249
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0274,
+   "ci95": [
+    -0.0497,
+    -0.0032
+   ],
+   "clean_second_minus_first": -0.0327,
+   "clean_ci95": [
+    -0.0542,
+    -0.0118
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b id",
+   "utterances": 40,
+   "second_minus_first": -0.0014,
+   "ci95": [
+    -0.0046,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0018,
+   "clean_ci95": [
+    -0.0059,
+    0.0
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b id",
+   "utterances": 40,
+   "second_minus_first": -0.0289,
+   "ci95": [
+    -0.0505,
+    -0.0055
+   ],
+   "clean_second_minus_first": -0.0345,
+   "clean_ci95": [
+    -0.0556,
+    -0.0146
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0231,
+   "ci95": [
+    -0.0041,
+    0.0516
+   ],
+   "clean_second_minus_first": 0.0236,
+   "clean_ci95": [
+    0.0057,
+    0.0414
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0043,
+   "ci95": [
+    -0.0296,
+    0.024
+   ],
+   "clean_second_minus_first": -0.0091,
+   "clean_ci95": [
+    -0.0299,
+    0.0144
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 id",
+   "utterances": 40,
+   "second_minus_first": 0.0274,
+   "ci95": [
+    0.0072,
+    0.0478
+   ],
+   "clean_second_minus_first": 0.0309,
+   "clean_ci95": [
+    0.0106,
+    0.0528
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 id",
+   "utterances": 40,
+   "second_minus_first": 0.0,
+   "ci95": [
+    -0.023,
+    0.0232
+   ],
+   "clean_second_minus_first": -0.0018,
+   "clean_ci95": [
+    -0.0243,
+    0.0232
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0274,
+   "ci95": [
+    0.0032,
+    0.0497
+   ],
+   "clean_second_minus_first": 0.0327,
+   "clean_ci95": [
+    0.0118,
+    0.0542
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo id",
+   "utterances": 40,
+   "second_minus_first": 0.026,
+   "ci95": [
+    0.0015,
+    0.0478
+   ],
+   "clean_second_minus_first": 0.0309,
+   "clean_ci95": [
+    0.0098,
+    0.0528
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo id",
+   "utterances": 40,
+   "second_minus_first": -0.0014,
+   "ci95": [
+    -0.0046,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0018,
+   "clean_ci95": [
+    -0.0059,
+    0.0
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "cohere pt",
+   "utterances": 40,
+   "second_minus_first": 0.0144,
+   "ci95": [
+    -0.0048,
+    0.0355
+   ],
+   "clean_second_minus_first": -0.005,
+   "clean_ci95": [
+    -0.0209,
+    0.0079
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "cohere pt",
+   "utterances": 40,
+   "second_minus_first": 0.0033,
+   "ci95": [
+    -0.0188,
+    0.0268
+   ],
+   "clean_second_minus_first": -0.0117,
+   "clean_ci95": [
+    -0.0271,
+    0.0034
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0099,
+   "ci95": [
+    -0.0079,
+    0.0269
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0159,
+    0.0161
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0011,
+   "ci95": [
+    -0.0216,
+    0.0183
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.0264,
+    0.0145
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 pt",
+   "utterances": 40,
+   "second_minus_first": -0.0033,
+   "ci95": [
+    -0.0182,
+    0.0129
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.021,
+    0.0056
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "gguf:canary-1b-v2 pt",
+   "utterances": 40,
+   "second_minus_first": -0.0144,
+   "ci95": [
+    -0.0322,
+    0.0038
+   ],
+   "clean_second_minus_first": -0.0134,
+   "clean_ci95": [
+    -0.0307,
+    0.0032
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.3083,
+   "ci95": [
+    0.2419,
+    0.3865
+   ],
+   "clean_second_minus_first": 0.3289,
+   "clean_ci95": [
+    0.2374,
+    0.4403
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.2972,
+   "ci95": [
+    0.2281,
+    0.3766
+   ],
+   "clean_second_minus_first": 0.3221,
+   "clean_ci95": [
+    0.2311,
+    0.4331
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b pt",
+   "utterances": 40,
+   "second_minus_first": 0.0718,
+   "ci95": [
+    0.0389,
+    0.1095
+   ],
+   "clean_second_minus_first": 0.0252,
+   "clean_ci95": [
+    0.0036,
+    0.0489
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "gguf:granite-speech-4.1-2b pt",
+   "utterances": 40,
+   "second_minus_first": 0.0608,
+   "ci95": [
+    0.0284,
+    0.0987
+   ],
+   "clean_second_minus_first": 0.0185,
+   "clean_ci95": [
+    0.0,
+    0.0381
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0088,
+   "ci95": [
+    -0.0216,
+    0.0024
+   ],
+   "clean_second_minus_first": -0.005,
+   "clean_ci95": [
+    -0.0201,
+    0.0067
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0199,
+   "ci95": [
+    -0.0329,
+    -0.007
+   ],
+   "clean_second_minus_first": -0.0117,
+   "clean_ci95": [
+    -0.0242,
+    0.0
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.011,
+   "ci95": [
+    -0.0264,
+    0.0046
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.0235,
+    0.0129
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b pt",
+   "utterances": 40,
+   "second_minus_first": 0.0022,
+   "ci95": [
+    0.0,
+    0.0072
+   ],
+   "clean_second_minus_first": 0.0034,
+   "clean_ci95": [
+    0.0,
+    0.0113
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b pt",
+   "utterances": 40,
+   "second_minus_first": -0.0088,
+   "ci95": [
+    -0.0255,
+    0.0101
+   ],
+   "clean_second_minus_first": -0.0034,
+   "clean_ci95": [
+    -0.0232,
+    0.022
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.0177,
+   "ci95": [
+    0.0023,
+    0.0375
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0112,
+    0.0099
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.0066,
+   "ci95": [
+    -0.0136,
+    0.0308
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.0256,
+    0.0148
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0166,
+   "ci95": [
+    -0.0047,
+    0.0449
+   ],
+   "clean_second_minus_first": 0.0017,
+   "clean_ci95": [
+    -0.015,
+    0.0157
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0055,
+   "ci95": [
+    -0.0172,
+    0.0344
+   ],
+   "clean_second_minus_first": -0.005,
+   "clean_ci95": [
+    -0.0178,
+    0.0067
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 pt",
+   "utterances": 40,
+   "second_minus_first": 0.0144,
+   "ci95": [
+    -0.0068,
+    0.0424
+   ],
+   "clean_second_minus_first": -0.0017,
+   "clean_ci95": [
+    -0.016,
+    0.0097
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 pt",
+   "utterances": 40,
+   "second_minus_first": 0.0033,
+   "ci95": [
+    -0.0195,
+    0.0322
+   ],
+   "clean_second_minus_first": -0.0084,
+   "clean_ci95": [
+    -0.0204,
+    0.0017
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.011,
+   "ci95": [
+    -0.0046,
+    0.0264
+   ],
+   "clean_second_minus_first": 0.0067,
+   "clean_ci95": [
+    -0.0129,
+    0.0235
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo pt",
+   "utterances": 40,
+   "second_minus_first": 0.011,
+   "ci95": [
+    -0.0035,
+    0.0249
+   ],
+   "clean_second_minus_first": 0.005,
+   "clean_ci95": [
+    -0.014,
+    0.0207
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo pt",
+   "utterances": 40,
+   "second_minus_first": 0.0,
+   "ci95": [
+    -0.0046,
+    0.0044
+   ],
+   "clean_second_minus_first": -0.0017,
+   "clean_ci95": [
+    -0.0078,
+    0.0035
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0244,
+   "ci95": [
+    0.0,
+    0.0504
+   ],
+   "clean_second_minus_first": 0.0189,
+   "clean_ci95": [
+    -0.0032,
+    0.0412
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.018,
+   "ci95": [
+    -0.0459,
+    0.0097
+   ],
+   "clean_second_minus_first": -0.0189,
+   "clean_ci95": [
+    -0.0443,
+    0.0067
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 ru",
+   "utterances": 40,
+   "second_minus_first": 0.0308,
+   "ci95": [
+    0.0065,
+    0.058
+   ],
+   "clean_second_minus_first": 0.0137,
+   "clean_ci95": [
+    -0.0056,
+    0.0344
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "gguf:canary-1b-v2 ru",
+   "utterances": 40,
+   "second_minus_first": -0.0116,
+   "ci95": [
+    -0.0357,
+    0.0143
+   ],
+   "clean_second_minus_first": -0.0241,
+   "clean_ci95": [
+    -0.0486,
+    0.0017
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:gigaam-v3-ctc auto",
+   "utterances": 40,
+   "second_minus_first": 0.0244,
+   "ci95": [
+    -0.0056,
+    0.058
+   ],
+   "clean_second_minus_first": -0.0086,
+   "clean_ci95": [
+    -0.0291,
+    0.0116
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "gguf:gigaam-v3-ctc auto",
+   "utterances": 40,
+   "second_minus_first": -0.018,
+   "ci95": [
+    -0.0422,
+    0.0093
+   ],
+   "clean_second_minus_first": -0.0464,
+   "clean_ci95": [
+    -0.0684,
+    -0.0262
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:gigaam-v3-e2e-rnnt auto",
+   "utterances": 40,
+   "second_minus_first": 0.0064,
+   "ci95": [
+    -0.0185,
+    0.0328
+   ],
+   "clean_second_minus_first": -0.0086,
+   "clean_ci95": [
+    -0.0299,
+    0.013
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "gguf:gigaam-v3-e2e-rnnt auto",
+   "utterances": 40,
+   "second_minus_first": -0.0359,
+   "ci95": [
+    -0.059,
+    -0.0142
+   ],
+   "clean_second_minus_first": -0.0464,
+   "clean_ci95": [
+    -0.0724,
+    -0.0225
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0013,
+   "ci95": [
+    -0.0205,
+    0.0214
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0243,
+    0.024
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0411,
+   "ci95": [
+    -0.0669,
+    -0.017
+   ],
+   "clean_second_minus_first": -0.0378,
+   "clean_ci95": [
+    -0.0609,
+    -0.0169
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0424,
+   "ci95": [
+    -0.0678,
+    -0.0163
+   ],
+   "clean_second_minus_first": -0.0378,
+   "clean_ci95": [
+    -0.0652,
+    -0.0102
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "qwen3:1.7b ru",
+   "utterances": 40,
+   "second_minus_first": 0.0013,
+   "ci95": [
+    -0.0027,
+    0.0053
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0051,
+    0.005
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "qwen3:1.7b ru",
+   "utterances": 40,
+   "second_minus_first": -0.0411,
+   "ci95": [
+    -0.0653,
+    -0.0158
+   ],
+   "clean_second_minus_first": -0.0378,
+   "clean_ci95": [
+    -0.0641,
+    -0.0122
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.0513,
+   "ci95": [
+    0.022,
+    0.0842
+   ],
+   "clean_second_minus_first": 0.0378,
+   "clean_ci95": [
+    0.0071,
+    0.0711
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "sherpa:orukeet auto",
+   "utterances": 40,
+   "second_minus_first": 0.009,
+   "ci95": [
+    -0.0182,
+    0.0385
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0336,
+    0.0322
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0231,
+   "ci95": [
+    0.0025,
+    0.0424
+   ],
+   "clean_second_minus_first": 0.0223,
+   "clean_ci95": [
+    0.0,
+    0.0418
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0193,
+   "ci95": [
+    -0.0381,
+    -0.0012
+   ],
+   "clean_second_minus_first": -0.0155,
+   "clean_ci95": [
+    -0.038,
+    0.0067
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:large-v3 ru",
+   "utterances": 40,
+   "second_minus_first": 0.0257,
+   "ci95": [
+    0.0041,
+    0.0454
+   ],
+   "clean_second_minus_first": 0.0258,
+   "clean_ci95": [
+    0.0038,
+    0.0451
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 ru",
+   "utterances": 40,
+   "second_minus_first": -0.0167,
+   "ci95": [
+    -0.035,
+    0.0013
+   ],
+   "clean_second_minus_first": -0.012,
+   "clean_ci95": [
+    -0.035,
+    0.0093
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0424,
+   "ci95": [
+    0.0163,
+    0.0678
+   ],
+   "clean_second_minus_first": 0.0378,
+   "clean_ci95": [
+    0.0102,
+    0.0652
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo ru",
+   "utterances": 40,
+   "second_minus_first": 0.0449,
+   "ci95": [
+    0.019,
+    0.0695
+   ],
+   "clean_second_minus_first": 0.0412,
+   "clean_ci95": [
+    0.0138,
+    0.0682
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "whisper:turbo ru",
+   "utterances": 40,
+   "second_minus_first": 0.0026,
+   "ci95": [
+    0.0,
+    0.0081
+   ],
+   "clean_second_minus_first": 0.0034,
+   "clean_ci95": [
+    0.0,
+    0.0106
+   ],
+   "clean_utterances": 30
+  }
+ ],
+ "decision_pairs": [
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0258,
+   "ci95": [
+    0.0115,
+    0.0459
+   ],
+   "clean_second_minus_first": 0.02,
+   "clean_ci95": [
+    0.0088,
+    0.0318
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.031,
+   "ci95": [
+    0.0089,
+    0.054
+   ],
+   "clean_second_minus_first": 0.0237,
+   "clean_ci95": [
+    -0.0014,
+    0.0524
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.011,
+   "ci95": [
+    -0.0046,
+    0.0264
+   ],
+   "clean_second_minus_first": 0.0067,
+   "clean_ci95": [
+    -0.0129,
+    0.0235
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0424,
+   "ci95": [
+    0.0163,
+    0.0678
+   ],
+   "clean_second_minus_first": 0.0378,
+   "clean_ci95": [
+    0.0102,
+    0.0652
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0349,
+   "ci95": [
+    0.0029,
+    0.0723
+   ],
+   "clean_second_minus_first": 0.0417,
+   "clean_ci95": [
+    0.0055,
+    0.0851
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.1551,
+   "ci95": [
+    0.0948,
+    0.2118
+   ],
+   "clean_second_minus_first": 0.1704,
+   "clean_ci95": [
+    0.1044,
+    0.2318
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0274,
+   "ci95": [
+    0.0032,
+    0.0497
+   ],
+   "clean_second_minus_first": 0.0327,
+   "clean_ci95": [
+    0.0118,
+    0.0542
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b es",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.003,
+   "ci95": [
+    -0.0079,
+    0.0
+   ],
+   "clean_second_minus_first": -0.004,
+   "clean_ci95": [
+    -0.0107,
+    0.0
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b fr",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": 0.002,
+   "ci95": [
+    0.0,
+    0.0063
+   ],
+   "clean_second_minus_first": 0.0028,
+   "clean_ci95": [
+    0.0,
+    0.0084
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b pt",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0022,
+   "ci95": [
+    -0.0072,
+    0.0
+   ],
+   "clean_second_minus_first": -0.0034,
+   "clean_ci95": [
+    -0.0113,
+    0.0
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b ru",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.0013,
+   "ci95": [
+    -0.0053,
+    0.0027
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.005,
+    0.0051
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b ar",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": -0.007,
+   "ci95": [
+    -0.02,
+    0.004
+   ],
+   "clean_second_minus_first": -0.0091,
+   "clean_ci95": [
+    -0.0257,
+    0.0054
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b hi",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": 0.0103,
+   "ci95": [
+    -0.0041,
+    0.026
+   ],
+   "clean_second_minus_first": 0.0112,
+   "clean_ci95": [
+    -0.0026,
+    0.0286
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "qwen3:1.7b id",
+   "second": "qwen3:1.7b auto",
+   "utterances": 40,
+   "second_minus_first": 0.0014,
+   "ci95": [
+    0.0,
+    0.0046
+   ],
+   "clean_second_minus_first": 0.0018,
+   "clean_ci95": [
+    0.0,
+    0.0059
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0149,
+   "ci95": [
+    -0.0272,
+    -0.0044
+   ],
+   "clean_second_minus_first": -0.012,
+   "clean_ci95": [
+    -0.0233,
+    -0.0014
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.009,
+   "ci95": [
+    -0.0228,
+    0.003
+   ],
+   "clean_second_minus_first": -0.0084,
+   "clean_ci95": [
+    -0.0237,
+    0.0055
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0055,
+   "ci95": [
+    -0.0172,
+    0.0344
+   ],
+   "clean_second_minus_first": -0.005,
+   "clean_ci95": [
+    -0.0178,
+    0.0067
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0193,
+   "ci95": [
+    -0.0381,
+    -0.0012
+   ],
+   "clean_second_minus_first": -0.0155,
+   "clean_ci95": [
+    -0.038,
+    0.0067
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0251,
+   "ci95": [
+    -0.0433,
+    -0.0087
+   ],
+   "clean_second_minus_first": -0.0254,
+   "clean_ci95": [
+    -0.0478,
+    -0.0053
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "hi",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0145,
+   "ci95": [
+    -0.0539,
+    0.0319
+   ],
+   "clean_second_minus_first": -0.0087,
+   "clean_ci95": [
+    -0.0535,
+    0.0459
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "whisper:large-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0043,
+   "ci95": [
+    -0.0296,
+    0.024
+   ],
+   "clean_second_minus_first": -0.0091,
+   "clean_ci95": [
+    -0.0299,
+    0.0144
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "es",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0139,
+   "ci95": [
+    -0.0336,
+    0.0038
+   ],
+   "clean_second_minus_first": -0.0093,
+   "clean_ci95": [
+    -0.0242,
+    0.0058
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.018,
+   "ci95": [
+    -0.0395,
+    0.0023
+   ],
+   "clean_second_minus_first": -0.0111,
+   "clean_ci95": [
+    -0.0353,
+    0.0106
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0011,
+   "ci95": [
+    -0.0216,
+    0.0183
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.0264,
+    0.0145
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "whisper:turbo auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": -0.018,
+   "ci95": [
+    -0.0459,
+    0.0097
+   ],
+   "clean_second_minus_first": -0.0189,
+   "clean_ci95": [
+    -0.0443,
+    0.0067
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0119,
+   "ci95": [
+    0.001,
+    0.0251
+   ],
+   "clean_second_minus_first": 0.0107,
+   "clean_ci95": [
+    -0.0013,
+    0.0241
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.013,
+   "ci95": [
+    -0.0069,
+    0.0352
+   ],
+   "clean_second_minus_first": 0.0125,
+   "clean_ci95": [
+    -0.0087,
+    0.0348
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0099,
+   "ci95": [
+    -0.0079,
+    0.0269
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0159,
+    0.0161
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0244,
+   "ci95": [
+    0.0,
+    0.0504
+   ],
+   "clean_second_minus_first": 0.0189,
+   "clean_ci95": [
+    -0.0032,
+    0.0412
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 es",
+   "utterances": 40,
+   "second_minus_first": 0.002,
+   "ci95": [
+    -0.0061,
+    0.0114
+   ],
+   "clean_second_minus_first": -0.0013,
+   "clean_ci95": [
+    -0.0067,
+    0.0044
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 fr",
+   "utterances": 40,
+   "second_minus_first": 0.008,
+   "ci95": [
+    -0.0154,
+    0.0357
+   ],
+   "clean_second_minus_first": -0.0014,
+   "clean_ci95": [
+    -0.0227,
+    0.0207
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 pt",
+   "utterances": 40,
+   "second_minus_first": -0.0033,
+   "ci95": [
+    -0.0182,
+    0.0129
+   ],
+   "clean_second_minus_first": -0.0067,
+   "clean_ci95": [
+    -0.021,
+    0.0056
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:canary-1b-v2 ru",
+   "utterances": 40,
+   "second_minus_first": 0.0308,
+   "ci95": [
+    0.0065,
+    0.058
+   ],
+   "clean_second_minus_first": 0.0137,
+   "clean_ci95": [
+    -0.0056,
+    0.0344
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.002,
+   "ci95": [
+    -0.0097,
+    0.0082
+   ],
+   "clean_second_minus_first": -0.0027,
+   "clean_ci95": [
+    -0.0088,
+    0.0039
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.025,
+   "ci95": [
+    0.001,
+    0.0536
+   ],
+   "clean_second_minus_first": 0.0097,
+   "clean_ci95": [
+    -0.0179,
+    0.0445
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": -0.0088,
+   "ci95": [
+    -0.0216,
+    0.0024
+   ],
+   "clean_second_minus_first": -0.005,
+   "clean_ci95": [
+    -0.0201,
+    0.0067
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0013,
+   "ci95": [
+    -0.0205,
+    0.0214
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0243,
+    0.024
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0098,
+   "ci95": [
+    -0.006,
+    0.0271
+   ],
+   "clean_second_minus_first": 0.0091,
+   "clean_ci95": [
+    -0.0088,
+    0.0282
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "hi",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:voxtral-mini-4b-realtime-2602 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0527,
+   "ci95": [
+    -0.0031,
+    0.1064
+   ],
+   "clean_second_minus_first": 0.0547,
+   "clean_ci95": [
+    -0.0052,
+    0.1134
+   ],
+   "clean_utterances": 33
+  },
+  {
+   "lang": "es",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b es",
+   "utterances": 40,
+   "second_minus_first": 0.0298,
+   "ci95": [
+    0.0122,
+    0.0537
+   ],
+   "clean_second_minus_first": 0.008,
+   "clean_ci95": [
+    -0.0013,
+    0.0185
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "fr",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b fr",
+   "utterances": 40,
+   "second_minus_first": 0.025,
+   "ci95": [
+    0.0009,
+    0.0526
+   ],
+   "clean_second_minus_first": 0.0014,
+   "clean_ci95": [
+    -0.0204,
+    0.0253
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "pt",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:granite-speech-4.1-2b pt",
+   "utterances": 40,
+   "second_minus_first": 0.0718,
+   "ci95": [
+    0.0389,
+    0.1095
+   ],
+   "clean_second_minus_first": 0.0252,
+   "clean_ci95": [
+    0.0036,
+    0.0489
+   ],
+   "clean_utterances": 28
+  },
+  {
+   "lang": "ru",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:gigaam-v3-e2e-rnnt auto",
+   "utterances": 40,
+   "second_minus_first": 0.0064,
+   "ci95": [
+    -0.0185,
+    0.0328
+   ],
+   "clean_second_minus_first": -0.0086,
+   "clean_ci95": [
+    -0.0299,
+    0.013
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "gguf:gigaam-v3-e2e-rnnt auto",
+   "second": "coreml:parakeet-v3 auto",
+   "utterances": 40,
+   "second_minus_first": 0.018,
+   "ci95": [
+    -0.0025,
+    0.0385
+   ],
+   "clean_second_minus_first": 0.0275,
+   "clean_ci95": [
+    0.0083,
+    0.047
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "gguf:gigaam-v3-e2e-rnnt auto",
+   "second": "gguf:gigaam-v3-ctc auto",
+   "utterances": 40,
+   "second_minus_first": 0.018,
+   "ci95": [
+    0.0,
+    0.0374
+   ],
+   "clean_second_minus_first": 0.0,
+   "clean_ci95": [
+    -0.0167,
+    0.0157
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ru",
+   "first": "gguf:gigaam-v3-e2e-rnnt auto",
+   "second": "whisper:turbo auto",
+   "utterances": 40,
+   "second_minus_first": 0.0359,
+   "ci95": [
+    0.0142,
+    0.059
+   ],
+   "clean_second_minus_first": 0.0464,
+   "clean_ci95": [
+    0.0225,
+    0.0724
+   ],
+   "clean_utterances": 30
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b auto",
+   "second": "gguf:cohere-transcribe-arabic-07-2026 ar",
+   "utterances": 40,
+   "second_minus_first": -0.0475,
+   "ci95": [
+    -0.0679,
+    -0.0272
+   ],
+   "clean_second_minus_first": -0.0525,
+   "clean_ci95": [
+    -0.0736,
+    -0.032
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "qwen3:1.7b ar",
+   "second": "gguf:cohere-transcribe-arabic-07-2026 ar",
+   "utterances": 40,
+   "second_minus_first": -0.0545,
+   "ci95": [
+    -0.0785,
+    -0.0311
+   ],
+   "clean_second_minus_first": -0.0616,
+   "clean_ci95": [
+    -0.0895,
+    -0.038
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "ar",
+   "first": "whisper:turbo auto",
+   "second": "gguf:moonshine-base-ar auto",
+   "utterances": 40,
+   "second_minus_first": 0.0154,
+   "ci95": [
+    -0.0159,
+    0.0508
+   ],
+   "clean_second_minus_first": 0.0145,
+   "clean_ci95": [
+    -0.0213,
+    0.0565
+   ],
+   "clean_utterances": 32
+  },
+  {
+   "lang": "id",
+   "first": "whisper:turbo auto",
+   "second": "gguf:fun-asr-mlt-nano-2512 auto",
+   "utterances": 40,
+   "second_minus_first": 0.0029,
+   "ci95": [
+    -0.0256,
+    0.0322
+   ],
+   "clean_second_minus_first": -0.0073,
+   "clean_ci95": [
+    -0.0378,
+    0.0249
+   ],
+   "clean_utterances": 33
+  }
+ ]
+}

@@ -250,6 +250,8 @@ extension ModelCatalogue {
         // Installed through the app's pinned download, loaded and measured on
         // FLEURS en/ja/ko/yue/cmn and ASCEND (AD-083 follow-up).
         evidence["sherpa:senseVoiceMultilingual"] = "eval/eja-asr and eval/mixed-asr follow-up (2026-10-24, base 0196926)"
+        // Downloaded through the app, loaded and measured on FLEURS Russian (AD-098).
+        evidence["gguf:gigaam-v3-e2e-rnnt"] = "eval/intl-asr (2026-10-25, source 5161b58)"
         return evidence
     }()
 
@@ -310,6 +312,12 @@ extension ModelCatalogue {
     /// One recommendation for first-run setup and Models (AD-074). Renders inject
     /// the system language and memory so both cases can be inspected on any Mac.
     static var recommendation: LocalSpeechRecommendation { shortlist.recommendation }
+
+    /// The rule's choice behind `recommendation`, with each alternative's label
+    /// and whether the measurement found it the most accurate (AD-098).
+    static var recommendationChoice: LocalSpeechRecommendation.Choice {
+        LocalSpeechRecommendation.rule(for: systemLanguage).choice(physicalMemory: physicalMemory)
+    }
 
     /// The compact set Models opens with (AD-071), for the same language and memory.
     static var shortlist: LocalModelShortlist {
