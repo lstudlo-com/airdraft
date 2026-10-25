@@ -19,9 +19,10 @@ description: Complete Airdraft's local test, repair, commit, push and release wo
 
 1. 在主資料夾（repository root）執行 `python3 scripts/check-checkout.py`；主資料夾必須在 `main`，不在 worktree 或其他分支發佈。檢查 Git 狀態、分支、remote、尚未推送的提交與 diff。刷新遠端狀態，確認本次要發佈的內容，保留無關檔案與 hunks。
 2. 比對已發布版本，依 `docs/updates.md` 選擇 display version。必要時修改 `project.yml`、執行 XcodeGen，並納入產生的 `Sources/App/Info.plist`。build number 由 Git commit count 決定。
-3. 確認 Xcode、原生 Vendor、`gh`、`uv`、固定簽章身分及 pre-push hook 可用。hook 已安裝就沿用；缺少時依 `docs/updates.md` 執行 release setup，不覆寫其他用途的 hook。
-4. 建立本次專用證據目錄，保留指令、log、xcresult、runtime JSON 與圖片。不要引用其他執行或其他 commit 的成功結果來代替本次驗證。
-5. 列出上次發佈以來的 commits 與其 `Refs: AD-###`，確認本次包含的 Obsidian Work 項目。
+3. 依 [parallel-work](../parallel-work/SKILL.md) 執行 `python3 scripts/parallel_work.py status --fetch --release`。每個 BLOCKER（領先 main、未 parked 的 branch）先處理：屬於本次發佈或網站內容的先合併並驗證，不屬於的在發佈回報中列出，長期保留的 `wip/` 以 `claim --parked` 標示。部署網站前同樣確認沒有碰 `apps/marketing` 的未合併 branch。
+4. 確認 Xcode、原生 Vendor、`gh`、`uv`、固定簽章身分及 pre-push hook 可用。hook 已安裝就沿用；缺少時依 `docs/updates.md` 執行 release setup，不覆寫其他用途的 hook。
+5. 建立本次專用證據目錄，保留指令、log、xcresult、runtime JSON 與圖片。不要引用其他執行或其他 commit 的成功結果來代替本次驗證。
+6. 列出上次發佈以來的 commits 與其 `Refs: AD-###`，確認本次包含的 Obsidian Work 項目。
 
 ## 2. 測試與修正
 

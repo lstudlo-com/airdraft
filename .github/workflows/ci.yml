@@ -137,6 +137,7 @@ jobs:
           python3 -B scripts/test-insertion-regressions.py
           python3 -B scripts/test-live-insertion.py
           python3 -B scripts/test-release.py
+          python3 -B scripts/test-parallel-work.py
           python3 -B scripts/test-acknowledgements.py
 
       - name: Upload logs

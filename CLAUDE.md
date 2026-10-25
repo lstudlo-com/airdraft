@@ -78,6 +78,19 @@ where releases are made. Keep it on `main`; it is the only checkout of `main`.
 - Start every session with `python3 scripts/check-checkout.py`. When it warns,
   stop and tell the user; never build, render or verify from a stale checkout.
   Debug builds run the same check as an Xcode build phase.
+- Several sessions, worktrees and subagents work in parallel. Every
+  implementation, fix, refactor, documentation or website change, every merge
+  of another branch, every spawn of file-editing agents or sessions, and every
+  push, release or deploy follows `.agents/skills/parallel-work/SKILL.md`: before
+  starting, run `python3 scripts/parallel_work.py status --fetch --paths <paths>`
+  and read the area's open Work items and recent Decisions; integrate finished
+  but unmerged work that touches your paths first, never edit the same section
+  another worktree has uncommitted, and land structural moves as a small commit
+  merged first. Claim your task's branch and paths with `parallel_work.py claim`.
+  Finished means merged: validated work is merged to main in the same task (or
+  reported first as unmerged with the decision asked for). Before a push,
+  release or website deploy, `parallel_work.py status --fetch --release` must
+  show no unmerged, unparked branch; park long-lived `wip/` branches explicitly.
 - Do features and fixes in a separate worktree on a branch (`claude/<topic>`,
   `codex/<topic>`) created from the latest `origin/main`. Only a single small
   commit may go directly on `main` in the main folder, with no other session active.
@@ -1756,7 +1769,7 @@ Events or synthetic input. Release `--insertion-matrix` (or
 gate; other editors only add `insertionMatrix` to `release.json` and the notes.
 `.github/workflows/ci.yml` runs the unsigned build, `test-local-e2e.py
 --unsigned`, `verify-adhoc-launch.py` and the release, insertion-regression,
-live-insertion and acknowledgement script tests on the `xcode-27` GitHub image
+live-insertion, parallel-work and acknowledgement script tests on the `xcode-27` GitHub image
 with Xcode 27.0. `--unsigned` is CI-only; release builds keep the pinned identity.
 The ad-hoc negative control (a Hardened Runtime re-signed copy that dyld must
 refuse) is mandatory where a tiny ad-hoc + Hardened Runtime probe shows the host

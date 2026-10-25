@@ -494,6 +494,22 @@ def install_hook():
     print(f"Installed {hook}. Every push to origin/main now prepares a local DMG.")
 
 
+def warn_unmerged_work():
+    """List branches with commits main lacks, so a release never silently leaves
+    finished work behind (.agents/skills/parallel-work). Informational: other
+    sessions' in-progress branches must not block this push."""
+    script = ROOT / "scripts/parallel_work.py"
+    if not script.exists():
+        return
+    result = subprocess.run([sys.executable, str(script), "status", "--release"],
+                            capture_output=True, text=True)
+    blockers = [line.strip() for line in result.stdout.splitlines() if line.strip().startswith("BLOCKER")]
+    if blockers:
+        print("Unmerged work not in this release (merge it, report it, or park it):", file=sys.stderr)
+        for line in blockers:
+            print(f"  {line.removeprefix('BLOCKER ')}", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["install-hook", "pre-push", "prepare", "publish"])
@@ -528,6 +544,7 @@ def main():
         commit, previous = pushed
         if previous != ZERO:
             run("git", "merge-base", "--is-ancestor", previous, commit)
+        warn_unmerged_work()
     lock_path = ROOT / "dist/release.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:
