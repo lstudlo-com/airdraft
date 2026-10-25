@@ -243,6 +243,7 @@ def main() -> None:
             "swiftc", "-parse-as-library",
             str(REPO / "Sources/App/Views/SoftControls.swift"),
             str(REPO / "Sources/App/Views/SurfaceShadows.swift"),
+            str(REPO / "Sources/App/Views/WritingDirection.swift"),
             str(motion), str(type_scale), str(fixture), "-o", str(binary),
         ], check=True)
         subprocess.run([str(binary), str(args.output.resolve())], check=True)
