@@ -102,11 +102,13 @@ enum ModelsPerformanceVerification {
         print("MODELS_PERFORMANCE \(results)")
     }
 
-    /// AD-071: every language and memory case opens with a few verified
-    /// models from the catalogue, the recommendation first.
+    /// AD-071: every language and memory case, including every measured rule
+    /// (AD-098), opens with a few verified models from the catalogue, the
+    /// recommendation first.
     private static func verifyShortlists(_ ids: Set<String>) {
         let entries = Dictionary(uniqueKeysWithValues: ModelCatalogue.entries.map { ($0.id, $0) })
-        for language in ["zh-Hant-TW", "zh-Hans", "en-US", "ja-JP", "ko-KR", "fr-FR", "de", "th", "ar", ""] {
+        for language in ["zh-Hant-TW", "zh-Hans", "en-US", "ja-JP", "ko-KR", "es-419", "fr-FR", "pt-BR", "ru-RU",
+                         "ar-EG", "hi-IN", "id-ID", "de", "th", "ar", ""] + LocalSpeechRecommendation.rules.keys.sorted() {
             for gigabytes in [4, 8, 16, 64] as [UInt64] {
                 let shortlist = LocalModelShortlist.make(languageCode: language, physicalMemory: gigabytes << 30)
                 precondition((1...3).contains(shortlist.picks.count) && shortlist.picks.first?.role == .recommended)

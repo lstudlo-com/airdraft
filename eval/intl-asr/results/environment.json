@@ -1,0 +1,126 @@
+{
+ "date": "2026-10-25",
+ "source_commit": "5161b58 (claude/intl-all-phases; measurement build had no AD-098 source changes)",
+ "build": "Debug, xcodebuild (Xcode 27.0, 27A266a), LocalE2E --e2e-action transcribe --e2e-prepare",
+ "hardware": {
+  "model": "Mac16,8",
+  "chip": "Apple M4 Pro",
+  "memory_gb": 48,
+  "macos": "27.0.1 (26A434)"
+ },
+ "run_window": "phase 1 2026-10-25 01:29-03:47 (2640 runs), phase 2 16:16-16:58 (360 runs), Asia/Taipei",
+ "conditions": "Machine shared with other agent sessions running Xcode builds. 1-minute load average per run is in the raw run files: median 4.1, p90 10.7 (peak about 60 early in phase 1). Latency is noisy; compare models, not absolute numbers.",
+ "system_languages": {
+  "es": "-AppleLanguages (es-419)",
+  "fr": "(fr-FR)",
+  "pt": "(pt-BR)",
+  "ru": "(ru-RU)",
+  "ar": "(ar-EG)",
+  "hi": "(hi-IN)",
+  "id": "(id-ID)"
+ },
+ "app_defaults_used": {
+  "refinement": "off",
+  "insertion": "disabled",
+  "app_context": "off",
+  "dictionary": "empty",
+  "vocabulary_bias": "default",
+  "chinese_script": "ASRConfig default"
+ },
+ "corpus": "eval/intl-asr/manifest.json (google/fleurs test, revision 70bb2e8, parquet SHA-256 checked, 40 utterances per language, 3,140 s in total)",
+ "models": {
+  "qwen3:1.7b": {
+   "model.safetensors_sha256": "4c3dd2e56a6fa3523bc996e728b7011362af317c6b0616c8d78bb1b8d9ff600e",
+   "pinned": "local-pinned-models.json revision 1645ca9c, all 5 files match",
+   "obtained": "APFS clone of the user's install"
+  },
+  "whisper:turbo": {
+   "AudioEncoder_weight_sha256": "98daf651a919978e28fe185daf55ce2f70085a8e59fa07fe8a4d08c87d368ae4",
+   "pinned": "revision 0f63a780, all 24 files match; tokenizer revision 06f233fe, 9 files match",
+   "obtained": "APFS clone of the user's install"
+  },
+  "whisper:large-v3": {
+   "AudioEncoder_weight_sha256": "eb07bab32dcd62ce653b5b288bd6c27bdc5a538be309f242e33ed05e1cb53457",
+   "obtained": "LocalE2E --e2e-action download (pinned, per-file SHA-256)"
+  },
+  "coreml:parakeet-v3": {
+   "repository": "FluidInference/parakeet-tdt-0.6b-v3-coreml",
+   "revision": "7dd20fe6 (local-coreml-models.json)",
+   "Encoder_weight_sha256": "e2020f323703477a5b21d7c2d282c403e371afb5962e79877e3033e73ba6f421",
+   "check": "all 21 catalogue files match",
+   "obtained": "APFS clone of the user's install"
+  },
+  "cohere": {
+   "model.safetensors_sha256": "47f0366a92beff0db347a8372f8e496ecb3aa8d17efe79216d8e36b278c97eeb",
+   "obtained": "APFS clone of the user's install (not downloaded in this study)"
+  },
+  "sherpa:orukeet": {
+   "encoder.int8.onnx_sha256": "7b55f2a504a20a8e462899f5befd45f4a1784948d76ed0127902d9cf39405487",
+   "obtained": "LocalE2E --e2e-action download"
+  },
+  "gguf:canary-1b-v2": {
+   "repository": "handy-computer/canary-1b-v2-gguf",
+   "revision": "58d13c2c (local-gguf-models.json)",
+   "gguf_sha256": "9c3a893c93795438baf9b4b1c853c39b60316c3a0d259a3ba6e284712f5ddb71",
+   "bytes": 836664032,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:gigaam-v3-ctc": {
+   "repository": "handy-computer/gigaam-v3-ctc-gguf",
+   "revision": "c3c61144 (local-gguf-models.json)",
+   "gguf_sha256": "71e5c82890e9e243a6bd7575f129f5d1bd2c3ca3ae79aab75cfb1a6934c6a62b",
+   "bytes": 271803328,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:gigaam-v3-e2e-rnnt": {
+   "repository": "handy-computer/gigaam-v3-e2e-rnnt-gguf",
+   "revision": "f719d708 (local-gguf-models.json)",
+   "gguf_sha256": "78d63b47723b7f8d78c6113a6ef983b5a86e2a86f6c273e1f5cb6967b1c4467a",
+   "bytes": 273724832,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:cohere-transcribe-arabic-07-2026": {
+   "repository": "handy-computer/cohere-transcribe-arabic-07-2026-gguf",
+   "revision": "715cbe09 (local-gguf-models.json)",
+   "gguf_sha256": "55e61c9b047e36f0e084d367f6b0bfecc71a6a0527da6eea4f0c687f3584775f",
+   "bytes": 1770270112,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:moonshine-base-ar": {
+   "repository": "handy-computer/moonshine-base-ar-gguf",
+   "revision": "1ae85af5 (local-gguf-models.json)",
+   "gguf_sha256": "1a5b34653dfff0917d5bc7de1aeafca674162a5efa674472358d1b7f1644cf73",
+   "bytes": 77476480,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:fun-asr-mlt-nano-2512": {
+   "repository": "handy-computer/Fun-ASR-MLT-Nano-2512-gguf",
+   "revision": "0b8f9c7b (local-gguf-models.json)",
+   "gguf_sha256": "d12476d8d9f2baa0ebf738fa955fa05ed33a654f1567289033a810c45d9d9002",
+   "bytes": 891271232,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:voxtral-mini-4b-realtime-2602": {
+   "repository": "handy-computer/Voxtral-Mini-4B-Realtime-2602-gguf",
+   "revision": "b3e1c979 (local-gguf-models.json)",
+   "gguf_sha256": "e20a7582c5cf8159454c909b7f57b184b287cb3d7c3ec85744727a2cec51b08f",
+   "bytes": 3281439008,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  },
+  "gguf:granite-speech-4.1-2b": {
+   "repository": "handy-computer/granite-speech-4.1-2b-gguf",
+   "revision": "58e7710f (local-gguf-models.json)",
+   "gguf_sha256": "63e0d3a82fa6f0f4688af0b7d7ee784864d271b7be820f4ea43c8298c59b0ac5",
+   "bytes": 1829704544,
+   "check": "equals the catalogue SHA-256",
+   "obtained": "LocalE2E --e2e-action download (size and SHA-256 before install)"
+  }
+ }
+}

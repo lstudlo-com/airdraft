@@ -8,6 +8,8 @@ extension LocalSpeechRecommendation.Model {
         case .senseVoice: "sherpa:senseVoiceMultilingual"
         case .whisperTurbo: "whisper:turbo"
         case .parakeetEnglish: "coreml:parakeet-v2"
+        case .parakeetEuropean: "coreml:parakeet-v3"
+        case .gigaAMRussian: "gguf:gigaam-v3-e2e-rnnt"
         }
     }
 }
@@ -58,15 +60,16 @@ public struct LocalModelShortlist: Equatable, Sendable {
     public var ids: [String] { picks.map(\.id) }
 
     public static func make(languageCode: String?, physicalMemory: UInt64) -> Self {
+        let rule = LocalSpeechRecommendation.rule(for: languageCode)
+        let choice = rule.choice(physicalMemory: physicalMemory)
         let recommendation = LocalSpeechRecommendation.recommend(languageCode: languageCode, physicalMemory: physicalMemory)
-        let limitedMemory = physicalMemory <= LocalSpeechRecommendation.limitedMemoryBytes
-        // The recommendation's own alternatives come first; curated candidates
-        // fill the remaining places, skipping duplicates of the recommendation.
-        let suggested = recommendation.alternatives.map { model in
-            Candidate(id: model.catalogueID, role: role(of: model, beside: recommendation), large: false)
-        }
+        let limitedMemory = physicalMemory <= rule.memoryThreshold
+        // The recommendation's own alternatives come first, with the labels the
+        // rule gives them; its curated candidates fill the remaining places,
+        // skipping duplicates and, at or below the threshold, large models.
+        let suggested = choice.alternatives.map { Candidate(id: $0.model.catalogueID, role: $0.role) }
         var picks = [Pick(id: recommendation.model.catalogueID, role: .recommended)]
-        for candidate in suggested + candidates(for: LocalSpeechRecommendation.normalized(languageCode))
+        for candidate in suggested + rule.shortlist
         where picks.count <= maximumAlternatives && !picks.contains(where: { $0.id == candidate.id })
             && !(limitedMemory && candidate.large) {
             picks.append(Pick(id: candidate.id, role: candidate.role))
@@ -80,53 +83,19 @@ public struct LocalModelShortlist: Equatable, Sendable {
         return catalogueOrder.filter { inUse.contains($0) && !shown.contains($0) }
     }
 
-    private struct Candidate {
-        let id: String
-        let role: Role
-        /// Skipped on Macs with 8 GB of memory or less.
-        let large: Bool
-    }
-
-    /// The label of a recommendation's own alternative, which depends on what
-    /// it is compared with.
-    private static func role(of model: LocalSpeechRecommendation.Model,
-                             beside recommendation: LocalSpeechRecommendation) -> Role {
-        switch model {
-        case .qwen3Large:
-            switch recommendation.model {
-            case .senseVoice: .mixedChineseEnglish
-            case .whisperTurbo: .moreAccurate
-            case .parakeetEnglish, .qwen3Large: .multilingual
-            }
-        case .senseVoice: .faster
-        case .whisperTurbo: recommendation.model == .qwen3Large ? .lessMemory : .multilingual
-        case .parakeetEnglish: .singleLanguage
-        }
-    }
-
-    /// Verified models only (`ModelCatalogue.verificationEvidence`); the
-    /// models-performance fixture asserts it for every language below.
-    private static func candidates(for language: String?) -> [Candidate] {
-        let largeV3 = "whisper:large-v3", senseVoice = LocalSpeechRecommendation.Model.senseVoice.catalogueID
-        switch language {
-        case "zh":
-            return [Candidate(id: senseVoice, role: .faster, large: false),
-                    Candidate(id: "sherpa:fireRed", role: .mandarin, large: false)]
-        case "en", "ja", "ko":
-            // AD-083: the recommendation and its alternative cover these. The
-            // shipped SenseVoice failed on all three languages, and Parakeet
-            // Japanese dropped a whole sentence from 3 of 60 FLEURS clips.
-            return []
-        case let code? where europeanLanguages.contains(code):
-            return [Candidate(id: "coreml:parakeet-v3", role: .smaller, large: false),
-                    Candidate(id: largeV3, role: .fullSize, large: true)]
-        default:
-            return [Candidate(id: largeV3, role: .fullSize, large: true)]
-        }
+    /// A curated shortlist entry: a Verified catalogue ID and its label.
+    /// `ModelCatalogue.verificationEvidence` must list it; the
+    /// models-performance fixture asserts it for every rule.
+    public struct Candidate: Equatable, Sendable {
+        public let id: String
+        public let role: Role
+        /// Skipped on Macs at or below the rule's memory threshold.
+        public let large: Bool
+        public init(id: String, role: Role, large: Bool = false) { self.id = id; self.role = role; self.large = large }
     }
 
     /// Parakeet TDT v3's 25 European languages (`SpeechLanguagePolicy`).
-    static let europeanLanguages: Set<String> = [
+    public static let europeanLanguages: Set<String> = [
         "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it",
         "lv", "lt", "mt", "pl", "pt", "ro", "ru", "sk", "sl", "es", "sv", "uk",
     ]
