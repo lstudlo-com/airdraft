@@ -62,8 +62,8 @@ export const interfaceReleased: Record<Locale, boolean> = {
   en: true,
   "zh-tw": true,
   "zh-cn": true,
-  es: false,
-  ja: false,
+  es: true,
+  ja: true,
 };
 
 const prefixed = locales.filter((locale) => locale !== "en");

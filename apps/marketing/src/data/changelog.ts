@@ -8,11 +8,43 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-24.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-25.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-14-0",
+    version: "0.14.0",
+    date: "2026-10-25",
+    title: "Spanish, Japanese and better defaults in every language",
+    changes: [
+      {
+        title: "Use Airdraft in Spanish or Japanese",
+        description:
+          "The interface, native menus and App Shortcut phrases are available in Spanish and Japanese, following your Mac's language. Shortcut instructions are written as whole sentences in each language, and controls widen to fit longer labels.",
+      },
+      {
+        title: "Defaults that fit your language",
+        description:
+          "A new setup on a Mac without Chinese no longer starts with Traditional Chinese script or a Taiwanese Apple Speech locale; the Chinese script setting applies only to Mandarin and Cantonese and appears only there. Live preview lists every language your Mac supports.",
+      },
+      {
+        title: "Recommended local models for seven more languages",
+        description:
+          "First-run setup and Models recommend from Airdraft's own measurement in Spanish, French, Portuguese, Russian, Arabic, Hindi and Indonesian: Qwen3-ASR 1.7B, with lighter choices on Macs with 8 GB of memory or less (Parakeet TDT v3, GigaAM v3 or Whisper Large v3 Turbo, by language).",
+      },
+      {
+        title: "Refinement keeps your language",
+        description:
+          "Refinement is discarded for the raw transcript when it changes the language you spoke, in any script. Thai, Lao, Khmer and Burmese dictations are no longer skipped as too short, and setup no longer offers Apple Intelligence for a language it cannot write.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.14.0-build.455",
+    },
+  },
   {
     id: "0-13-0",
     version: "0.13.0",
