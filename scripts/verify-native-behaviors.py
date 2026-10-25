@@ -607,6 +607,10 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "IndicatorPanel.swift": source("Sources/App/HUD/IndicatorPanel.swift"),
             "SpatialHUDVisualizer.swift": source("Sources/App/HUD/SpatialHUDVisualizer.swift"),
             "HUDDisco.swift": source("Sources/App/HUD/HUDDisco.swift"),
+            # The HUD keeps its light physical and aligns messages by their own
+            # writing direction (right-to-left readiness).
+            "SurfaceShadows.swift": source("Sources/App/Views/SurfaceShadows.swift"),
+            "WritingDirection.swift": source("Sources/App/Views/WritingDirection.swift"),
             "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
             "ModuleBundle.swift": MODULE_BUNDLE,
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
