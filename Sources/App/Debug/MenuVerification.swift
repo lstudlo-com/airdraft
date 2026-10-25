@@ -29,7 +29,18 @@ enum MenuVerification {
         var report: [String: Any] = [:]
         // Expected titles come from the same catalogs, so the fixture passes in
         // every shipped language and fails when a title stays untranslated.
-        func L(_ key: String.LocalizationValue) -> String { String(localized: key) }
+        // Right-to-left formatting wraps arguments in Unicode isolates and French uses
+        // non-breaking spaces; compare titles without them so every language matches.
+        func plain(_ title: String) -> String {
+            String(String.UnicodeScalarView(title.unicodeScalars.compactMap { scalar in
+                switch scalar.value {
+                case 0x2066...0x2069: return nil
+                case 0x00A0, 0x202F: return " "
+                default: return scalar
+                }
+            }))
+        }
+        func L(_ key: String.LocalizationValue) -> String { plain(String(localized: key)) }
         let profileName = app.profiles.activeProfile.displayName
         let storedProfileName = app.profiles.activeProfile.name
         // An unrenamed built-in shows its catalog name; its stored name stays English.
@@ -64,9 +75,9 @@ enum MenuVerification {
             menu.update()
             return menu
         }
-        func titles(_ menu: NSMenu) -> [String] { menu.items.filter { !$0.isSeparatorItem }.map(\.title) }
+        func titles(_ menu: NSMenu) -> [String] { menu.items.filter { !$0.isSeparatorItem }.map { plain($0.title) } }
         func submenu(_ menu: NSMenu, _ title: String) -> NSMenu {
-            guard let child = menu.items.first(where: { $0.title == title })?.submenu else {
+            guard let child = menu.items.first(where: { plain($0.title) == plain(title) })?.submenu else {
                 preconditionFailure("Missing submenu: \(title). Actual: \(titles(menu))")
             }
             child.update()

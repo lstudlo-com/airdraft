@@ -52093,13 +52093,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil: %1$@ (otomatis: %2$@)"
+            "value" : "Profil: %1$@ (untuk %2$@)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профиль: %1$@ (авто: %2$@)"
+            "value" : "Профиль: %1$@ (для %2$@)"
           }
         },
         "pt-BR" : {
@@ -74355,7 +74355,7 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tidak tersedia"
+            "value" : "Tak tersedia"
           }
         },
         "ru" : {
