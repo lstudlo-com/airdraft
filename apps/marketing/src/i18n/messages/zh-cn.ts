@@ -44,7 +44,7 @@ export const zhCn: Messages = {
     description:
       "Airdraft 是开源的 Mac App：中文里夹着英文术语照样说，说完就粘贴到任何 App；会议录音也能整理成标出发言人的转录稿。语音识别和润色可以在本机运行，也可以用你自己的服务商。自行编译免费，官方版一次买断。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
-    headline: ["中英混着讲，", "说完就粘贴。", "会议也能", "整理成转录稿。"],
+    headline: ["中英混着讲，", "说完就打好。"],
     headlineGap: "",
     get: "获取 Airdraft",
     source: "查看源代码",

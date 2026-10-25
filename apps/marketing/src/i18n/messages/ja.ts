@@ -44,11 +44,7 @@ export const ja: Messages = {
     description:
       "Airdraft はオープンソースの Mac アプリです。話した言葉を英語の用語まじりのまま、どのアプリにも入力し、会議も文字起こしします。音声認識と整形は Mac 上でも、自分のプロバイダでも動かせます。ソースからのビルドは無料です。",
     // Phrases wrap as wholes (.hero h1 span).
-    headline: [
-      "話して、そのまま入力。",
-      "英語の用語もまじえて。",
-      "会議も文字起こし。",
-    ],
+    headline: ["声で、\u200bどこでも入力。", "会議も、\u200b文字起こし。"],
     headlineGap: "",
     get: "Airdraft を入手",
     source: "ソースを見る",

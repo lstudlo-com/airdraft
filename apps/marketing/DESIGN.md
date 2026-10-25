@@ -775,7 +775,9 @@ layers; only the phone menu opened before the island is full, still over the
 chrome, takes `--chrome`. It fades out with the layers over the last `100px` (at the header's own `100px`, from
 the top edge down) and appears and fades with them. It keeps whatever sits
 on the blur in contrast whatever passes under it: white content in dark mode,
-the graphite key in light. The tint sits on top of the blur, never in place of
+the graphite key in light. Behind the header row itself sits a second, steady layer:
+the page background (`--chrome`) at `35%`, solid through the row and feathered
+out only below it, so the nav labels stay readable over busy content. The tint sits on top of the blur, never in place of
 it; never simulate the blur with a tint or an opacity fade; only Reduce Transparency gets an
 opaque header, in the tint's colour. Anchors land below it (`scroll-padding-top`). The footer
 sits on the chrome below the island: the mark, its links, and under them every

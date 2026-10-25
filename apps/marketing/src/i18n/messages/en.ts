@@ -39,11 +39,7 @@ export const en: Messages = {
     allow: "Allow Analytics",
   },
   home: {
-    headline: [
-      "Speak in your language,",
-      "English terms and all.",
-      "Transcribe your meetings.",
-    ],
+    headline: ["Speak into any app.", "Transcribe any meeting."],
     headlineGap: " ",
     get: "Get Airdraft",
     source: "View source",

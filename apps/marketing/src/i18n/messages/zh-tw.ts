@@ -46,7 +46,7 @@ export const zhTw: Messages = {
     description:
       "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；會議錄音也能整理成標出講者的逐字稿。語音辨識與潤稿可各自選本機或雲端。自行編譯免費，官方版一次買斷。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
-    headline: ["中英混著講，", "說完就貼上。", "會議也能", "整理成逐字稿。"],
+    headline: ["中英混著講，", "說完就打好。"],
     headlineGap: "",
     get: "取得 Airdraft",
     source: "查看原始碼",

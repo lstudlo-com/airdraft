@@ -18,8 +18,8 @@ who wants processing that can stay on the Mac.
 The site addresses an international audience in the app's interface
 languages: dictate in your own language, mixing in English or technical
 terms, with speech and refinement on the Mac or with your own provider. The
-English headline is "Speak in your language, English terms and all.
-Transcribe your meetings." Every claim stays true for an English-only user.
+English headline is "Speak into any app. Transcribe any meeting.": the two
+jobs, two short lines. Every claim stays true for an English-only user.
 Mixed Chinese and English remains one guide and one homepage example among
 others; dictation into AI coding agents (Claude Code, Codex, terminals) that
 reuses an existing subscription for refinement remains the second job shown.
@@ -174,9 +174,9 @@ action. Raised keys and recessed wells explain the interaction. Keep readable
 contrast, a 13px text floor, visible keyboard focus, reduced-motion behavior,
 and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
 The first viewport is the hero alone, at every window size: the positioning
-headline (the jobs, in three phrases: "Speak in your language, English terms
-and all. Transcribe your meetings."; in Traditional and Simplified Chinese the
-audience and jobs: 中英混著講，說完就貼上。會議也能整理成逐字稿。),
+headline (the jobs, in two short lines: "Speak into any app. Transcribe any
+meeting."; in Traditional and Simplified Chinese the audience and the job:
+中英混著講，說完就打好。),
 the "Get Airdraft", source and sample actions, three quiet facts (open source;
 on the Mac or with your own provider; macOS 15+ on Apple silicon), and Home's waveform card from the app
 (decorative bars, no metrics, the app's first-run caption); no paragraph. The
