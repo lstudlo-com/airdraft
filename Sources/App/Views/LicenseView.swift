@@ -226,10 +226,10 @@ struct LicenseView: View {
             return Summary(title: String(localized: "Not configured"),
                            detail: String(localized: "This build can’t start a trial or accept a purchase. Contact Airdraft support for a configured build."))
         case .needsTrial:
-            return Summary(title: String(localized: "Try every feature free for \(Self.days(license.configuration?.trialDays ?? 14))"),
+            return Summary(title: Self.trialOffer(days: license.configuration?.trialDays ?? 14),
                            detail: String(localized: "No card required."))
         case .trial(let end):
-            return Summary(title: String(localized: "\(Self.remaining(until: end, now: now)) left in your trial"),
+            return Summary(title: Self.trialRemaining(until: end, now: now),
                            detail: String(localized: "Full access until \(end.formatted(date: .abbreviated, time: .shortened)). No automatic charge."))
         case .licensed:
             let offline = license.isOffline && license.message == nil
@@ -253,14 +253,19 @@ struct LicenseView: View {
         }
     }
 
-    private static func days(_ count: Int) -> String {
-        count == 1 ? String(localized: "1 day") : String(localized: "\(count) days")
+    /// Whole sentences with an integer count, so languages with several plural
+    /// forms (Russian, Arabic) inflect "days" with the sentence around it.
+    private static func trialOffer(days: Int) -> String {
+        days == 1 ? String(localized: "Try every feature free for 1 day")
+            : String(localized: "Try every feature free for \(days) days")
     }
 
     /// Whole days, rounded up, so a fresh 14-day trial reads 14.
-    private static func remaining(until end: Date, now: Date) -> String {
+    private static func trialRemaining(until end: Date, now: Date) -> String {
         let seconds = end.timeIntervalSince(now)
-        guard seconds > 0 else { return String(localized: "No time") }
-        return days(Int((seconds / 86_400).rounded(.up)))
+        guard seconds > 0 else { return String(localized: "No time left in your trial") }
+        let days = Int((seconds / 86_400).rounded(.up))
+        return days == 1 ? String(localized: "1 day left in your trial")
+            : String(localized: "\(days) days left in your trial")
     }
 }

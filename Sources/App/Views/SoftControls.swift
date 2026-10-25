@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// How far a raised surface casts its light and shade. Page cards and controls use the
@@ -162,6 +163,21 @@ extension View {
 /// larger Text size the picker stays in place for VoiceOver and the keyboard but is drawn
 /// transparent, and the selected choice's own label is drawn at the scaled body size
 /// instead. Its width grows with the scale like the row titles beside it.
+/// Widths for menu pickers whose choices are a short, known list.
+enum SoftPickerWidth {
+    /// The design width, or wider when a localized choice needs more: the native
+    /// title's 13-point text plus the control's insets and chevron. `SoftPicker`
+    /// scales the result with the text size, as it scales the label.
+    /// `maximum` keeps a long list (system locale names) within its settings row;
+    /// a longer choice then truncates its tail, with the full name in the menu.
+    @MainActor static func fitting(_ titles: [String], minimum: CGFloat, maximum: CGFloat = .infinity) -> CGFloat {
+        let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        let widest = titles.map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
+        // 11-point insets on both sides, 14 for the chevron, the native title's own margins.
+        return min(maximum, max(minimum, (widest + 22 + 14 + 12).rounded(.up)))
+    }
+}
+
 struct SoftPicker<Value: Hashable, Content: View>: View {
     let title: String
     @Binding var selection: Value
@@ -264,7 +280,8 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
     var small = false
 
     @Namespace private var thumb
-    /// A fixed width grows with the text size so option labels never truncate.
+    /// The design width grows with the text size; it is a minimum, and segments widen
+    /// together when a translated label needs more room.
     @Environment(\.textScale) private var textScale
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -279,7 +296,7 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        EqualSegmentsLayout(minimumWidth: width.map { $0 * textScale - 4 }, equal: width != nil) {
             ForEach(options.indices, id: \.self) { index in
                 let option = options[index]
                 let selected = option.0 == selection
@@ -309,14 +326,47 @@ struct SoftSegmentedPicker<Value: Hashable>: View {
             }
         }
         .padding(2)
-        .frame(width: width.map { $0 * textScale }, height: small ? 22 : SoftControl.height)
+        .frame(height: small ? 22 : SoftControl.height)
         .background { SoftInsetTrack(shape: SoftControl.shape) }
         // The thumb is an object inside the track: its light and shade stay within it.
         .clipShape(SoftControl.shape)
         .opacity(isEnabled ? 1 : 0.5)
-        .fixedSize(horizontal: width == nil, vertical: false)
+        // Never narrower than its widest label: a translation grows the track, toward
+        // the leading side in a trailing-aligned row, instead of truncating.
+        .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(title)
+    }
+}
+
+/// Lays segments out side by side. With `equal`, every segment takes the widest
+/// label's ideal width and the track is at least `minimumWidth`; otherwise each
+/// segment keeps its own width, as an HStack would.
+private struct EqualSegmentsLayout: Layout {
+    var minimumWidth: CGFloat?
+    var equal: Bool
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let widths = segmentWidths(for: subviews, total: nil)
+        let height = proposal.height ?? subviews.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
+        return CGSize(width: widths.reduce(0, +), height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        for (subview, width) in zip(subviews, segmentWidths(for: subviews, total: bounds.width)) {
+            subview.place(at: CGPoint(x: x, y: bounds.minY), anchor: .topLeading,
+                          proposal: ProposedViewSize(width: width, height: bounds.height))
+            x += width
+        }
+    }
+
+    private func segmentWidths(for subviews: Subviews, total: CGFloat?) -> [CGFloat] {
+        let ideal = subviews.map { $0.sizeThatFits(.unspecified).width }
+        guard equal, !ideal.isEmpty else { return ideal }
+        let natural = max(minimumWidth ?? 0, ((ideal.max() ?? 0) * CGFloat(ideal.count)).rounded(.up))
+        let width = (total ?? natural) / CGFloat(ideal.count)
+        return Array(repeating: width, count: ideal.count)
     }
 }
 

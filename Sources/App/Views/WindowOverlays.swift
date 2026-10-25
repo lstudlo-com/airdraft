@@ -161,7 +161,7 @@ struct MicrophoneSelectionOverlay: View {
             .disabled(device == nil || isBusy)
             .help(device == nil ? String(localized: "\(title) is unavailable. Reconnect it or choose another microphone.") : title)
             .accessibilityLabel(title)
-            .accessibilityValue(device == nil ? "Unavailable" : "Input level \(MicrophoneLevelMeter.steps(for: level)) of 10")
+            .accessibilityValue(device == nil ? "Unavailable" : "Input level \(MicrophoneLevelMeter.steps(for: level)) of \(MicrophoneLevelMeter.cellCount)")
             .accessibilityAddTraits(selected ? .isSelected : [])
 
             if let error {
@@ -177,15 +177,18 @@ struct MicrophoneLevelMeter: View {
     let level: Float
     @Environment(\.colorSchemeContrast) private var contrast
 
+    /// The meter's cells, also the "of 10" VoiceOver reads in the interface's digits.
+    static let cellCount = 10
+
     static func steps(for level: Float) -> Int {
         guard level.isFinite else { return 0 }
-        return Int((min(1, max(0, level)) * 10).rounded(.up))
+        return Int((min(1, max(0, level)) * Float(cellCount)).rounded(.up))
     }
 
     /// Ten cells in a 22 pt well, which leaves a 5 pt margin inside a 32 pt row.
     var body: some View {
         HStack(spacing: 2.5) {
-            ForEach(1...10, id: \.self) { step in
+            ForEach(1...Self.cellCount, id: \.self) { step in
                 Capsule()
                     .fill(LinearGradient(
                         colors: step <= Self.steps(for: level)
@@ -214,7 +217,7 @@ extension View {
     func levelMeterAccessibility(_ label: String, level: Float) -> some View {
         accessibilityRepresentation {
             ProgressView(value: Double(MicrophoneLevelMeter.steps(for: level)), total: 10) { Text(label) }
-                .accessibilityValue(Text("\(MicrophoneLevelMeter.steps(for: level)) of 10"))
+                .accessibilityValue(Text("\(MicrophoneLevelMeter.steps(for: level)) of \(MicrophoneLevelMeter.cellCount)"))
         }
     }
 }

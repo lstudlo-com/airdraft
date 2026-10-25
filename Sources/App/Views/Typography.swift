@@ -172,3 +172,36 @@ extension View {
         modifier(TextSizeEnvironment(preference: preference))
     }
 }
+
+/// The writing system of the language the interface is shown in. Typographic
+/// adjustments tuned for Latin text must not reach other scripts.
+enum InterfaceScript {
+    /// ISO 15924 code of the interface language's script, such as Latn, Cyrl, Deva or Arab.
+    static let code: String = script(forLanguage: Bundle.main.preferredLocalizations.first ?? "en")
+
+    /// Letter-spacing reads as intended only in alphabets with separate letters.
+    /// It breaks Arabic joining and Devanagari clusters, and squeezes or spreads
+    /// Chinese and Japanese characters set on a fixed grid.
+    static var allowsTracking: Bool { allowsTracking(script: code) }
+
+    /// Scripts whose vowel signs and marks rise above or fall below Latin capitals
+    /// and descenders, so tight pills need more vertical room.
+    static var hasTallMarks: Bool { ["Deva", "Beng", "Arab", "Thai"].contains(code) }
+
+    static func allowsTracking(script: String) -> Bool { ["Latn", "Grek", "Cyrl"].contains(script) }
+
+    static func script(forLanguage identifier: String) -> String {
+        let language = Locale.Language(identifier: identifier)
+        return language.script?.identifier
+            ?? Locale.Language(identifier: language.maximalIdentifier).script?.identifier
+            ?? "Latn"
+    }
+}
+
+extension View {
+    /// Letter-spacing for Latin, Greek and Cyrillic interface languages; other
+    /// scripts keep their natural spacing.
+    func scriptAwareTracking(_ amount: CGFloat) -> some View {
+        tracking(InterfaceScript.allowsTracking ? amount : 0)
+    }
+}

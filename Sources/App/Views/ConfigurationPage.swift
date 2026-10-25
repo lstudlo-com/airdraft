@@ -255,7 +255,8 @@ private struct AppIconSettingRow: View {
                     .interpolation(.high)
                     .frame(width: 40, height: 40)
                     .accessibilityHidden(true)
-                SoftPicker(title, selection: $selection, width: 146) {
+                SoftPicker(title, selection: $selection,
+                           width: SoftPickerWidth.fitting(AppIconStyle.allCases.map(\.title), minimum: 146)) {
                     ForEach(AppIconStyle.allCases) { style in
                         Text(style.title).tag(style)
                     }

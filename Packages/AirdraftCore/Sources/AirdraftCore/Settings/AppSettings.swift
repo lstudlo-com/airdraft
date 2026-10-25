@@ -7,11 +7,29 @@ public enum HotkeyBehavior: String, Codable, CaseIterable, Sendable, Identifiabl
     /// Press to start, press again to stop.
     case toggle
     public var id: String { rawValue }
-    /// Verb for instructions shown next to the shortcut: "Hold ⌃ ⌥ and speak".
-    public var instructionVerb: String { self == .hold ? String(localized: "Hold", bundle: .module) : String(localized: "Press", bundle: .module) }
-    public func instructionVerb(triggerDelayMilliseconds: Int) -> String {
-        triggerDelayMilliseconds > 0 ? String(localized: "Hold", bundle: .module) : instructionVerb
+    /// What the user does with the shortcut. A trigger delay makes even Toggle start
+    /// with a hold, while its stop stays a single press.
+    public func gesture(triggerDelayMilliseconds: Int) -> HotkeyGesture {
+        switch self {
+        case .hold: .hold
+        case .toggle: triggerDelayMilliseconds > 0 ? .holdThenPress : .press
+        }
     }
+}
+
+/// The shortcut gesture that instructions describe. Each gesture gets complete
+/// sentences in the interface, never a verb joined to English-ordered fragments:
+/// translators need the whole sentence to place the verb and the keys.
+public enum HotkeyGesture: Sendable, Equatable, CaseIterable {
+    /// Hold while speaking; letting go inserts.
+    case hold
+    /// Press to start; pressing again inserts.
+    case press
+    /// Hold past the trigger delay to start; pressing again inserts.
+    case holdThenPress
+
+    /// Whether dictation starts by holding the keys down.
+    public var startsByHolding: Bool { self != .press }
 }
 
 public enum AppearanceMode: String, Codable, CaseIterable, Sendable, Identifiable {

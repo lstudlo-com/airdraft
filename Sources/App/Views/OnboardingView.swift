@@ -76,7 +76,7 @@ struct OnboardingView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).appFont(.display).tracking(-0.5)
+            Text(title).appFont(.display).scriptAwareTracking(-0.5)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             Text(subtitle).appFont(.body).foregroundStyle(.secondary)
@@ -193,8 +193,8 @@ struct OnboardingView: View {
     }
 
     private var subtitle: String {
-        let verb = container.settings.hotkeyBehavior.instructionVerb(
-            triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds).lowercased()
+        let gesture = container.settings.hotkeyBehavior.gesture(
+            triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)
         switch step {
         case .welcome:
             return String(localized: "Airdraft turns speech into text in any app: email, chat, notes and documents. Setup takes about three minutes, and you can stop at any time.")
@@ -207,7 +207,7 @@ struct OnboardingView: View {
         case .practice:
             return progress.deliveredDuringPractice
                 ? String(localized: "That was a real dictation. Try one more in your own words, or continue.")
-                : String(localized: "Click in the box below, \(verb) your shortcut and read the sentence aloud.")
+                : ShortcutCopy.practiceSubtitle(gesture)
         case .done:
             return String(localized: "Airdraft works anywhere you can type. Here is how to make it part of your day.")
         }
@@ -379,13 +379,20 @@ private struct OnboardingRail: View {
 extension OnboardingProgress.Step {
     var title: String {
         switch self {
-        case .welcome: String(localized: "Welcome")
-        case .speech: String(localized: "Speech")
-        case .permissions: String(localized: "Permissions")
+        // Short names for the narrow side rail, keyed apart from headings and
+        // statuses that share the English word but need other forms.
+        case .welcome: String(localized: "OnboardingStepWelcome", defaultValue: "Welcome",
+                              comment: "Onboarding step name in the narrow side rail")
+        case .speech: String(localized: "OnboardingStepSpeech", defaultValue: "Speech",
+                             comment: "Onboarding step name in the narrow side rail")
+        case .permissions: String(localized: "OnboardingStepPermissions", defaultValue: "Permissions",
+                                  comment: "Onboarding step name in the narrow side rail")
         case .shortcut: String(localized: "OnboardingStepShortcut", defaultValue: "Shortcut",
                                          comment: "Onboarding step name in the narrow side rail")
-        case .practice: String(localized: "Try It")
-        case .done: String(localized: "Ready")
+        case .practice: String(localized: "OnboardingStepPractice", defaultValue: "Try It",
+                               comment: "Onboarding step name in the narrow side rail")
+        case .done: String(localized: "OnboardingStepReady", defaultValue: "Ready",
+                           comment: "Onboarding step name in the narrow side rail")
         }
     }
 

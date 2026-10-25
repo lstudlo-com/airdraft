@@ -45,7 +45,7 @@ enum OnboardingKeyNames {
         let parts = cap.split(separator: " ").map(String.init)
         guard let symbol = parts.last, let word = words[symbol] else { return nil }
         // The side word is localized ("右 option"); the key's own name stays as printed.
-        return parts.count > 1 ? Hotkey.displayCap("\(parts[0]) \(word)").lowercased() : word
+        return parts.count > 1 ? Hotkey.displayCap("\(parts[0]) \(word)").lowercased(with: .current) : word
     }
 
     static func symbol(_ cap: String) -> String {
@@ -56,7 +56,7 @@ enum OnboardingKeyNames {
     /// "Control and Option", "Option and Space", "Right Option". Key names stay as printed
     /// on Mac keyboards; only the joining words are localized.
     static func spoken(_ hotkey: Hotkey) -> String {
-        let names = hotkey.keyCaps.map { cap in capWord(cap).map { $0.capitalized } ?? cap }
+        let names = hotkey.keyCaps.map { cap in capWord(cap).map { $0.capitalized(with: .current) } ?? cap }
         guard names.count > 1, let last = names.last else { return names.first ?? "" }
         let head = names.dropLast().joined(separator: String(localized: "KeyNameSeparator", defaultValue: ", ",
                                                               comment: "Between key names in a list of three or more"))
@@ -101,13 +101,13 @@ struct OnboardingWelcomeDemo: View {
             let t = reduceMotion || RenderMode.isActive ? 5.4 : context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: Self.cycle)
             let beat = t < 1.4 ? 0 : t < 3.6 ? 1 : 2
             HStack(alignment: .top, spacing: Theme.controlSpacing) {
-                panel(1, title: "\(behavior.instructionVerb) your shortcut", active: beat == 0 || reduceMotion) {
+                panel(1, title: ShortcutCopy.welcomeFirstBeat(behavior), active: beat == 0 || reduceMotion) {
                     OnboardingKeyCaps(hotkey: hotkey, lit: t > 0.4 && t < 3.8 ? Set(hotkey.keyCaps.indices) : [], size: 38)
                 }
-                panel(2, title: "Speak naturally", active: beat == 1 || reduceMotion) {
+                panel(2, title: String(localized: "Speak naturally"), active: beat == 1 || reduceMotion) {
                     OnboardingSpeechBars(time: t, speaking: t > 1.4 && t < 3.6 || reduceMotion || RenderMode.isActive)
                 }
-                panel(3, title: behavior == .hold ? "Let go. Your words appear." : "Press again. Your words appear.",
+                panel(3, title: behavior == .hold ? String(localized: "Let go. Your words appear.") : String(localized: "Press again. Your words appear."),
                       active: beat == 2 || reduceMotion) {
                     let count = Int(min(1, max(0, (t - 3.7) / 1.3)) * Double(Self.sentence.count))
                     OnboardingTypedLine(text: String(Self.sentence.prefix(count)), caret: beat == 2)
@@ -115,11 +115,11 @@ struct OnboardingWelcomeDemo: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(behavior.instructionVerb) \(OnboardingKeyNames.spoken(hotkey)), speak, then \(behavior == .hold ? String(localized: "let go") : String(localized: "press again")). Your words appear where you were typing.")
+        .accessibilityLabel(ShortcutCopy.welcomeDescription(behavior, keyNames: OnboardingKeyNames.spoken(hotkey)))
         .accessibilityAddTraits(.isImage)
     }
 
-    private func panel<Content: View>(_ number: Int, title: LocalizedStringResource, active: Bool,
+    private func panel<Content: View>(_ number: Int, title: String, active: Bool,
                                       @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 14) {
             content()

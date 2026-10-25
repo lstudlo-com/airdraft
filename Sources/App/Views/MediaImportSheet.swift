@@ -110,7 +110,7 @@ struct MediaImportSheet: View {
             SettingRow(title: "Language") {
                 SoftPicker("Speech language", selection: Binding(get: { configuration.appleLocale ?? ASRConfig.systemAppleLocale() }, set: { configuration.appleLocale = $0; configuration.language = "" }), width: 220) {
                     ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: configuration.appleLocale ?? ASRConfig.systemAppleLocale()), id: \.self) { locale in
-                        Text(Locale.current.localizedString(forIdentifier: locale) ?? locale).tag(locale)
+                        Text(SpeechLanguage.name(locale)).tag(locale)
                     }
                 }
             }
@@ -119,7 +119,7 @@ struct MediaImportSheet: View {
                 SoftPicker("Speech language", selection: $configuration.language, width: 220) {
                     Text(capabilities.supportsAutomatic == false ? "Choose a Language" : "Detect Automatically").tag("")
                     ForEach(capabilities.supportedLanguages ?? ["en", "zh", "yue"], id: \.self) { code in
-                        Text(SpeechLanguagePolicy.languageName(code)).tag(code)
+                        Text(SpeechLanguagePolicy.languageLabel(code)).tag(code)
                     }
                 }
             }

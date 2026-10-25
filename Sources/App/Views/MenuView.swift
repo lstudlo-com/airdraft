@@ -263,8 +263,8 @@ struct MenuView: View {
     }
 
     private var shortcutHelp: String {
-        let verb = container.settings.hotkeyBehavior == .hold ? String(localized: "Hold") : String(localized: "Press")
-        return String(localized: "\(verb) \(container.settings.hotkey.localizedDisplayString) to dictate.")
+        ShortcutCopy.menuHelp(container.settings.hotkeyBehavior.gesture(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds),
+                              shortcut: container.settings.hotkey.localizedDisplayString)
     }
 
     private var dictationTitle: String {

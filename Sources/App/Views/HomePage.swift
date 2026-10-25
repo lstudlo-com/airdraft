@@ -22,8 +22,19 @@ struct HomePage: View {
         var title: String {
             switch self {
             case .all: return String(localized: "All time")
-            case .week: return String(localized: "Last 7 days")
+            case .week: return String(localized: "Last \(7) days")
             case .today: return String(localized: "Today")
+            }
+        }
+        /// The period inside a label such as "Saved %@", cased as that language writes it there.
+        var phrase: String {
+            switch self {
+            case .all: return String(localized: "HomePeriodPhraseAll", defaultValue: "all time",
+                                     comment: "Inside “Saved %@” and “%@ dictations · %@”; lower case where the language needs it")
+            case .week: return String(localized: "HomePeriodPhraseWeek", defaultValue: "last 7 days",
+                                      comment: "Inside “Saved %@” and “%@ dictations · %@”; lower case where the language needs it")
+            case .today: return String(localized: "HomePeriodPhraseToday", defaultValue: "today",
+                                       comment: "Inside “Saved %@” and “%@ dictations · %@”; lower case where the language needs it")
             }
         }
         var days: Int? {
@@ -39,7 +50,7 @@ struct HomePage: View {
         PageScaffold(.home) {
             // The hero is Home's identity and always leads; a setup problem still
             // opens the readiness card directly beneath it.
-            HomeHero(overview: overview, periodTitle: period.title, hotkey: container.settings.hotkey,
+            HomeHero(overview: overview, periodPhrase: period.phrase, hotkey: container.settings.hotkey,
                      behavior: container.settings.hotkeyBehavior, triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds,
                      canDictate: setupIssues == 0, content: historyContent)
 
@@ -140,11 +151,13 @@ struct HomePage: View {
                     }
                     Spacer(minLength: Theme.controlSpacing)
                     if issues == 0 {
-                        HStack(spacing: 6) {
-                            Text(container.settings.hotkeyBehavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds))
-                                .appFont(.detail).foregroundStyle(.secondary)
+                        KeyCapsSentenceView(ShortcutCopy.shortcutHint(container.settings.hotkeyBehavior.gesture(
+                                                triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)),
+                                            spokenKeys: OnboardingKeyNames.spoken(container.settings.hotkey)) {
                             KeyCaps(hotkey: container.settings.hotkey)
                         }
+                        .appFont(.detail).foregroundStyle(.secondary)
+                        .fixedSize()
                         Image(systemName: "chevron.down")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(.tertiary)

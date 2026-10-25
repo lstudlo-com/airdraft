@@ -10,12 +10,11 @@ final class LocalizationCatalogTests: XCTestCase {
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
     /// Shipped interface languages besides the English source (`Config/languages.json`).
-    private static let languageConfig: [String: Any] = {
+    private static let languages: [String] = {
         let url = repository.appendingPathComponent("Config/languages.json")
-        return (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [String: Any] ?? [:]
+        let config = (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [String: Any] ?? [:]
+        return ((config["languages"] as? [[String: Any]]) ?? []).compactMap { $0["code"] as? String }
     }()
-    private static let languages: [String] = ((languageConfig["languages"] as? [[String: Any]]) ?? [])
-        .compactMap { $0["code"] as? String }
     private static let catalogs = [
         "Sources/App/Localizable.xcstrings",
         "Sources/App/InfoPlist.xcstrings",
@@ -106,7 +105,7 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
         XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
         // The test process runs in English: Core copy keeps its exact source wording.
-        XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
+        XCTAssertEqual(AppearanceMode.light.title, "Light")
     }
 
     func testCoreBundleResolvesSimplifiedChinese() throws {

@@ -6,7 +6,9 @@ import SwiftUI
 /// pressed-in capsule, drawn from the user's own dictations.
 struct HomeHero: View {
     let overview: HistoryStore.Overview
-    let periodTitle: String
+    /// The period as it reads inside a label ("Saved %@"), in the translator's case:
+    /// never derived by lowercasing the picker's title.
+    let periodPhrase: String
     let hotkey: Hotkey
     let behavior: HotkeyBehavior
     var triggerDelayMilliseconds = 0
@@ -47,7 +49,7 @@ struct HomeHero: View {
                     HeroMetric(value: stats.wordsPerMinute.formatted(), unit: String(localized: "WPM"), label: "Average speed")
                     HeroMetric(value: stats.words.formatted(), label: "Words")
                     HeroMetric(value: stats.apps.formatted(), label: "Apps used")
-                    HeroMetric(value: saved.value, unit: saved.unit, label: "Saved \(periodTitle.lowercased())")
+                    HeroMetric(value: saved.value, unit: saved.unit, label: "Saved \(periodPhrase)")
                         .help("Compared with typing the same words at 40 WPM")
                 }
                 // History decides between metrics and the first-run headline; never flash zeros.
@@ -55,7 +57,7 @@ struct HomeHero: View {
             }
             VStack(spacing: Theme.controlSpacing) {
                 waveform
-                caption.frame(height: 20)
+                caption.frame(minHeight: 20)
             }
             if let selectedPulse {
                 HomeHeroTranscript(pulse: selectedPulse) { closeTranscript() }
@@ -69,7 +71,7 @@ struct HomeHero: View {
         .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
         .overlay(border)
         .background(castShadows)
-        .onChange(of: periodTitle) { _, _ in
+        .onChange(of: periodPhrase) { _, _ in
             select(nil)
             hoveredIndex = nil
             pointer = nil
@@ -353,40 +355,50 @@ struct HomeHero: View {
         let pulses = overview.pulses.count
         let total = stats.dictations
         if pulses < total { return String(localized: "Latest \(pulses) of \(total.formatted()) dictations") }
-        return total == 1 ? String(localized: "1 dictation · \(periodTitle.lowercased())")
-            : String(localized: "\(total.formatted()) dictations · \(periodTitle.lowercased())")
+        return total == 1 ? String(localized: "1 dictation · \(periodPhrase)")
+            : String(localized: "\(total.formatted()) dictations · \(periodPhrase)")
     }
 
+    /// Wraps rather than truncates, at every text size and in every language. The
+    /// resting caption stays laid out beneath a hovered bar's, so hovering never
+    /// changes the hero's height.
     @ViewBuilder private var caption: some View {
         let bars = self.bars
         let pulse = hoveredIndex.flatMap { bars.indices.contains($0) ? bars[$0].pulse : nil } ?? selectedPulse
-        Group {
+        ZStack {
+            restingCaption.opacity(pulse == nil ? 1 : 0)
+                .accessibilityHidden(true, isEnabled: pulse != nil)
             if let pulse {
                 HStack(spacing: 6) {
                     Text(pulse.appName ?? String(localized: "Unknown app")).foregroundStyle(.primary)
+                        .lineLimit(1)
                     Text("·")
-                    Text("\(pulse.words.formatted()) words")
+                    Text("\(pulse.words.formatted()) words").fixedSize()
                     if pulse.wordsPerMinute > 0 {
                         Text("·")
-                        Text("\(pulse.wordsPerMinute) WPM")
+                        Text("\(pulse.wordsPerMinute) WPM").fixedSize()
                     }
                 }
-            } else if overview.pulses.isEmpty && !canDictate {
-                content == .firstDictation ? Text("Complete setup below before your first dictation.")
-                    : Text("Resolve the items below to dictate.")
-            } else if overview.pulses.isEmpty {
-                HStack(spacing: 6) {
-                    Text(behavior.instructionVerb(triggerDelayMilliseconds: triggerDelayMilliseconds))
-                    KeyCaps(hotkey: hotkey)
-                    Text("and speak. Each dictation adds a bar.")
-                }
-            } else {
-                Text("\(defaultCaption) · Click a bar to read")
             }
         }
         .appFont(.detail).monospacedDigit()
         .foregroundStyle(.secondary)
-        .lineLimit(1)
+        .multilineTextAlignment(.center)
+    }
+
+    @ViewBuilder private var restingCaption: some View {
+        if overview.pulses.isEmpty && !canDictate {
+            (content == .firstDictation ? Text("Complete setup below before your first dictation.")
+                : Text("Resolve the items below to dictate."))
+                .fixedSize(horizontal: false, vertical: true)
+        } else if overview.pulses.isEmpty {
+            KeyCapsSentenceView(ShortcutCopy.overviewInvitation(behavior.gesture(triggerDelayMilliseconds: triggerDelayMilliseconds)),
+                                spokenKeys: OnboardingKeyNames.spoken(hotkey), alignment: .center) {
+                KeyCaps(hotkey: hotkey)
+            }
+        } else {
+            Text("\(defaultCaption) · Click a bar to read").fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     // MARK: Surface
@@ -554,13 +566,13 @@ struct HeroMetric: View {
 
 #if DEBUG
 #Preview("Hero") {
-    HomeHero(overview: PreviewData.overview(), periodTitle: "All time", hotkey: .controlOption, behavior: .hold)
+    HomeHero(overview: PreviewData.overview(), periodPhrase: "all time", hotkey: .controlOption, behavior: .hold)
         .padding(Theme.pagePadding)
         .frame(width: 720)
 }
 
 #Preview("Hero · first run") {
-    HomeHero(overview: .empty, periodTitle: "All time", hotkey: .controlOption, behavior: .hold, content: .firstDictation)
+    HomeHero(overview: .empty, periodPhrase: "all time", hotkey: .controlOption, behavior: .hold, content: .firstDictation)
         .padding(Theme.pagePadding)
         .frame(width: 720)
 }
