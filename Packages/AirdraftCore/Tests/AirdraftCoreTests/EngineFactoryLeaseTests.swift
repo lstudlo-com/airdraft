@@ -202,19 +202,20 @@ final class EngineFactoryLeaseTests: XCTestCase {
     /// Uses the real one-minute setting and 30-second timer; normally takes 60 seconds.
     func testIdleTimerUnloadsExpiredEngineButCannotInterruptActiveInference() async throws {
         let config = ASRConfig(kind: .parakeet)
+        // One injected clock replaces the minute this test once waited in real time.
+        let clock = TestClock()
         let idleSpeech = LeaseSpeech(id: config.engineID, ready: true)
         let idleStatus = EngineStatus()
-        // Establish real use before the factory starts its polling clock so the
-        // second tick is unambiguously older than one minute, without fake time.
-        idleStatus.set(config.engineID, .ready)
-        try await Task.sleep(for: .milliseconds(100))
-        let idleFactory = factory(status: idleStatus) { _ in idleSpeech }
+        let idleFactory = EngineFactory(status: idleStatus, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in idleSpeech }, now: { clock.now })
         _ = await idleFactory.transcriber(for: config)
+        idleStatus.set(config.engineID, .ready, at: clock.now)
         await idleFactory.setIdleUnloadMinutes(1)
 
         let busySpeech = LeaseSpeech(id: config.engineID)
         let busyStatus = EngineStatus()
-        let busyFactory = factory(status: busyStatus) { _ in busySpeech }
+        let busyFactory = EngineFactory(status: busyStatus, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in busySpeech }, now: { clock.now })
         await busyFactory.setIdleUnloadMinutes(1)
         let transcription = Task { try await busyFactory.transcribe([0.1], hints: .init(), config: config) }
         defer {
@@ -226,20 +227,25 @@ final class EngineFactoryLeaseTests: XCTestCase {
             }
         }
         try await waitUntil("Busy transcription started") { await busySpeech.isTranscribing }
-        try await waitUntil("Idle engine unloads after one minute", timeout: 90) {
-            let events = await idleSpeech.snapshot()
-            return events.contains(.unload) && idleStatus.state(for: config.engineID) == .notLoaded
-        }
+        clock.advance(61)
+
+        await idleFactory.unloadIdle()
+        let idleEvents = await idleSpeech.snapshot()
+        XCTAssertTrue(idleEvents.contains(.unload))
         XCTAssertEqual(idleStatus.state(for: config.engineID), .notLoaded)
+
+        // The busy factory's idle pass queues behind the inference lease.
+        let busyCheck = Task { await busyFactory.unloadIdle() }
+        try await Task.sleep(for: .milliseconds(50))
         let beforeRelease = await busySpeech.snapshot()
         XCTAssertEqual(beforeRelease, [.prepare, .transcribeStarted])
         XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)
 
+        // Completed inference refreshes the use timestamp, so the queued pass
+        // leaves this engine resident.
         await busySpeech.release()
         _ = try await transcription.value
-        // Queue behind the pending idle check. It must see the use timestamp
-        // refreshed by completed inference and leave this engine resident.
-        try await busyFactory.prepare(config)
+        await busyCheck.value
         let afterRelease = await busySpeech.snapshot()
         XCTAssertEqual(afterRelease, [.prepare, .transcribeStarted, .transcribeFinished])
         XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)

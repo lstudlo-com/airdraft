@@ -146,14 +146,16 @@ final class MeetingCaptureTests: XCTestCase {
         let root = try directory(); let history = try HistoryStore(directory: root)
         let writer = try MeetingAudioWriter(directory: root, microphone: true)
         let buffer = Array(repeating: Float(0.1), count: 16_000)
-        for seconds in 0..<7200 {
+        // Two hours in releases, ten minutes otherwise; the writer's bounds do not depend on length.
+        let duration = LongTests.enabled ? 7200 : 600
+        for seconds in 0..<duration {
             try writer.append(buffer, track: .system, at: Double(seconds))
             try writer.append(buffer, track: .microphone, at: Double(seconds))
         }
         let draft = try writer.finish()
         let asset = try MeetingAudioStore.recover(draft, directory: root, history: history, interrupted: false)
-        XCTAssertEqual(asset.duration, 7200, accuracy: 0.001)
-        let tail = try MediaAudioWindow.read(try XCTUnwrap(history.audioURL(for: asset)), from: 7199)
+        XCTAssertEqual(asset.duration, Double(duration), accuracy: 0.001)
+        let tail = try MediaAudioWindow.read(try XCTUnwrap(history.audioURL(for: asset)), from: Double(duration - 1))
         XCTAssertEqual(tail.count, 16000); XCTAssertEqual(tail.last ?? 0, 0.1, accuracy: 0.001)
     }
 }

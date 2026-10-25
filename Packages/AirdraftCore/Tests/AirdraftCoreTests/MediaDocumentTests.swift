@@ -104,7 +104,8 @@ final class MediaDocumentTests: XCTestCase {
         XCTAssertEqual(try MediaAudioWindow.read(target, from: 40).count, 0)
     }
     @MainActor func testThirtySixtyAndHundredTwentyMinuteFilesRemainWindowBounded() async throws {
-        for minutes in [30, 60, 120] {
+        // Releases cover 30, 60 and 120 minutes; everyday runs check one 10-minute file.
+        for minutes in LongTests.enabled ? [30, 60, 120] : [10] {
             let root = try directory()
             let wav = root.appendingPathComponent("long.wav")
             // Write silence directly to disk. This test never instantiates an output device.

@@ -362,10 +362,13 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None, run_inser
               "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
               *signing_settings(identity)]
     core_results = Path(tempfile.mkdtemp(prefix="core-tests-", dir=output)) / "tests.xcresult"
+    # Releases also run the full-length tests (two-hour capture and media files)
+    # that everyday runs shorten; see `LongTests` in the test target.
+    test_env = dict(local_test_environment() if test_scope == "credential-free" else os.environ)
+    test_env["TEST_RUNNER_AIRDRAFT_LONG_TESTS"] = "1"
     logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO",
                      "-resultBundlePath", core_results] +
-           core_test_selection(source, test_scope), source, output / "build.log",
-           env=local_test_environment() if test_scope == "credential-free" else None)
+           core_test_selection(source, test_scope), source, output / "build.log", env=test_env)
     verify_resolution(source)
     logged([sys.executable, source / "scripts/verify-insertion-regressions.py", core_results,
             "--report", core_results.parent / "insertion-regressions.json"], source, output / "insertion.log")
