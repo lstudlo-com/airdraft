@@ -488,7 +488,18 @@ Meetings page (status dot, title, one metadata line, a player row with a
 raised play key, a recessed track and the rounded timer, then speaker turns
 with recessed speaker chips and timestamps, divided by grooves) and a grooved
 list of five points with a quiet key to the meeting guide. The transcript is
-authored sample text. Both panels rise like the provider board.
+authored sample text. Both panels rise like the provider board; the five
+points then fade up in turn, as a list.
+
+The player works like the app's transcript editor (`src/scripts/meetings.ts`):
+the play key shows pause while playing and sinks while pressed, and a
+timestamp plays from that point. Once, when the card is mostly on screen, it
+plays the sample from 0:00 to its resting frame (0:31). There is no audio and
+nothing is heard; the playhead and clock run six times faster than real time,
+and the fill slides inside its track (`--played`), so nothing reflows. It
+never marks a passage as current, because the app doesn't. Off screen it
+pauses. With reduced motion it never plays by itself and the playhead jumps;
+without JavaScript it is the still 0:31 frame.
 
 ### Interface section (`InterfaceShowcase.astro`)
 
@@ -547,8 +558,25 @@ graphics are built from the app's own parts, never icons: a raised text field
 and the recording pill, big keycaps that sink when pressed, a segmented profile
 picker, a vocabulary correction, a history card deck, a refinement status chip
 with its status dot (yellow while refining, orange when it fails), and a "This
-Mac" boundary whose signal runs along grooves. Each plays a short loop while on
-screen (`data-art`); without JavaScript they show their final frame.
+Mac" boundary whose signal runs along grooves. Without JavaScript they show
+their final frame.
+
+The graphics perform; nothing loops (`src/scripts/bento.ts`, named by
+`data-art`). When a tile is mostly on screen its graphic plays once, the tiles
+of a row one after another from the left (`220ms` apart), and rests on its
+final frame. Hovering a tile with a mouse, or tapping it, plays it again (at
+most once a second); a choice tile tries its next choice instead. The parts
+that are controls in the app work: segmented choices and the subscription
+chips select on click (the chosen chip rises, the other sinks), and holding
+the shortcut tile's keycaps, or the visitor's own ⌃⌥ while that tile is on
+screen, records in the cursor tile (live meter, timer) and types on release,
+so the shortcut drives the pill as it does in the app. A third key cancels,
+as in the hero. The dictionary's fix rises from the surface (flat, `0.92`,
+shadow growing in); each stop on the privacy path rises from its socket as
+the signal passes. A field's caret blinks while its tile is on screen, except
+while text is typed. A tile leaving the screen jumps to its final frame, so
+no timer runs off screen. With reduced motion nothing plays; choices still
+change, in place.
 
 ### Provider board (`PipelineStory.astro`)
 
@@ -571,8 +599,17 @@ card; `segmented.ts` adds the sliding thumb.
 
 Insertion has no choice: "At your cursor" sits at the pickers' height, then a
 raised field where the vocabulary fix strikes "cooper tino" and brings in
-"Cupertino" (a `data-art` loop while on screen; its resting frame is the fixed
-sentence). The board rises as it arrives and its columns follow left to right.
+"Cupertino" (its resting frame is the fixed sentence). The board rises as it
+arrives and its columns follow left to right.
+
+The board is the homepage's climax (`src/scripts/pipeline.ts`): once it is
+half on screen, one dictation runs through the visitor's choices in order.
+Each chosen row's check island sinks flush into its well while that step
+works, holding a busy status dot, then rises with its check (`0.8s` a step);
+the chevron on the next groove presses as the text passes; Insertion strikes
+the misheard words and brings in the fix. Changing a choice runs it again
+from that column, after the new table has swapped in. Leaving the screen
+stops it on the resting frame; with reduced motion it never runs.
 
 ### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
@@ -617,23 +654,38 @@ outside it (`--tile`, `--cost-table`).
 | Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                       |
 | Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
 | Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
+| Meetings         | Both panels rise like the provider board; the five points then fade up `14px` in turn (`5%` of the panel's range apart).                                                                 |
 | Provider board   | Rises from `0.94` and `56px` below until `40%` covered; its columns then fade up `18px` left to right (`6%` of the range apart).                                                         |
 | Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                                              |
 | Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
-entirely with reduced motion. Bento loops play only while their tile is
-visible, as does the provider board's vocabulary fix. In browsers without
-scroll timelines, GSAP gives headings, the sample, the provider board, tiles
-and offers a one-time `36–48px` rise instead; with reduced motion nothing
-moves.
+entirely with reduced motion. In browsers without scroll timelines, GSAP
+gives headings, the sample, the panels, tiles and offers a one-time
+`36–48px` rise instead; with reduced motion nothing moves.
+
+**Beats.** Below the hero the page alternates between something that plays
+for the visitor and something the visitor plays, and builds to one climax;
+it is never nine things moving at once. Each beat plays once when it is on
+screen, then rests on its final frame until the visitor touches it, and
+answers touch from then on: the sample types its result (`preview.ts`); the
+Meetings player runs to 0:31 (`meetings.ts`); the interface window's divider
+sweeps and its specimens loop until touched (`interface.ts`); bento tiles
+perform row by row and replay on hover or tap (`bento.ts`); the provider
+board runs one dictation through the chosen steps (`pipeline.ts`), the
+climax before the close. Watch visibility
+with IntersectionObserver; anything off screen stops on its resting frame,
+and no frame loop runs while nothing moves. Performances move transforms,
+opacity and shadows only (the Meetings fill slides; it never resizes). Never
+add an ambient loop that runs whether or not the visitor is looking.
 
 The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
 the final state, so nothing depends on motion to be readable. Interaction
 motion: the hero's dictation (`dictate.ts`), hover magnification
 (`waveform.ts`), the island fill (`island.ts`), the segmented thumb
-(`segmented.ts`), keycaps that follow the keyboard (`keys.ts`), the license
-and provider board swaps and disclosures (CSS).
+(`segmented.ts`), keycaps that follow the keyboard (`keys.ts`), the bento's
+controls (`bento.ts`), the Meetings player (`meetings.ts`), the license and
+provider board swaps and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
 
@@ -659,9 +711,10 @@ shape; arriving from or leaving for another page fades it. Reduced motion and
 browsers without cross-document view transitions change pages instantly. The
 language key (a globe icon key named "Language: English" in the page's
 language), the GitHub icon key and the primary "Get Airdraft" key sit at the
-end. The header's keys (language, GitHub, Get Airdraft and the phone menu key)
-stand exactly as tall as the brand capsule, `34px`, with a transparent margin
-that keeps a `44px` touch target.
+end, one `10px` step apart (the `.header-actions` gap, so right-to-left pages
+need no margins). The header's keys (language, GitHub, Get Airdraft and the
+phone menu key) are raised keys exactly as tall as the brand capsule, `34px`,
+with a transparent margin that keeps a `44px` touch target.
 
 The language key opens the language menu (`LanguageMenu.astro`,
 `src/styles/languages.css`): a native `popover` raised panel (`280px` wide,
@@ -758,21 +811,49 @@ Then the questions.
 Support is troubleshooting disclosures, an issue link, then ways to fund the
 project.
 
+### Guide picker (`GuideLinks.astro`, `GuideGlyph.astro`)
+
+The homepage's "Setup guides" section (設定指南, 设置指南, Guías de
+configuración, 設定ガイド) has no intro: one raised tile
+per guide, the whole tile a link named by the guide's full title. Each tile is
+a small graphic in a recessed `112px` well over one short label
+(`guideLinks.labels` in `src/i18n/messages/<locale>.ts`, by slug: English four
+words at most, Chinese eight characters, kept inside the title where possible
+so voice control finds it). No summary,
+no "Read Guide" key. The graphics are the app's parts (`guideGlyphs`, by
+slug): the 繁｜简 picker under a mixed phrase, a terminal prompt with the ink
+caret, Home's waveform well inside This Mac, the provider board's This Mac /
+Cloud rows, the $0 and license price keys, Meetings' speaker chips, and a
+grooved table with one column in the selection well. Hover and keyboard focus
+lift the tile `2px` with a wider shade and give its graphic one move (the
+selection slides, a key sinks, a chip rises, bars grow, the caret blinks);
+pressing sinks the tile like a key. Reduced motion keeps them still; the
+resting frame is complete without JavaScript. Rows stay balanced: up to four
+across, three when that divides evenly, a short last row centred (seven read
+as 4 + 3); two across below `1000px`; below `420px` one per row with the
+graphic beside its label. Guide pages reuse it for related guides; the hub
+passes `detail`, which shows the full title as its heading and the one-line
+summary instead of the label. The Traditional Chinese homepage adds one link,
+更多指南（英文）, to the English hub.
+
 ### Product guides and sharing
 
-The homepage links to the guides after the interface section, using `GuideLinks`:
-offline setup, mixed Chinese and English, coding agents and terminals,
+The homepage links to the guides after the interface section, using `GuideLinks`
+as the guide picker (see Guide picker above): offline setup, mixed Chinese and
+English, coding agents and terminals,
 local/cloud data flow, source build versus official app, private meeting
 transcription, and the app comparison. The Traditional Chinese homepage lists
 its four translated guides and links the English hub. The other languages'
-homepages list the English guides in English (`lang="en"`), with the read
-action in the page's language and its "(English)" mark. The mixed-language
+homepages list all seven tiles leading to the English guides (`hreflang="en"`),
+each label in the page's language followed by its "(English)" mark, which then
+names the link. The mixed-language
 results table reuses `.guide-table-wide`, so on narrow regions each model
 becomes a block of labelled rows. The
 comparison table (`.guide-table-wide`) keeps seven columns at `880px` minimum
 (`760px` on phones) inside its focusable scroll region, then lists sources with
 `time` check dates. The
-hub uses H2 card titles; related cards inside a titled section use H3. `GuideLayout`
+hub keeps H2 titles with one summary line in the picker's `detail` variant; related
+guides inside a titled section use the picker with H3 names. `GuideLayout`
 reuses the subpage title, Section, Surface and Button, followed by visible wrapping
 breadcrumbs and readable answer sections. Tables keep real headers and captions;
 on phones they scroll inside a keyboard-focusable region without widening the page.

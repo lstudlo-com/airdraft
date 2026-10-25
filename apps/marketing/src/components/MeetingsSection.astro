@@ -19,6 +19,11 @@ import "../styles/meetings.css";
  * microphone with no screen frames, single-track files up to two hours,
  * optional local speaker estimates, Soniox only after Upload and Transcribe,
  * and TXT, JSON, SRT and VTT export.
+ *
+ * The player works like the app's (src/scripts/meetings.ts): it plays the
+ * sample once as the card arrives, the play key toggles playback and a
+ * timestamp plays from that point. It never plays sound, and it marks no
+ * passage as current: the app doesn't.
  */
 interface Props {
   locale?: Locale;
@@ -48,23 +53,43 @@ const guideInEnglish = !isTranslated(
           <p class="meeting-meta">{copy.meta}</p>
         </div>
       </div>
-      <div class="meeting-player" aria-hidden="true">
-        <span class="meeting-play">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <div class="meeting-player" aria-hidden="true" data-meeting-player>
+        <span class="meeting-play" data-meeting-play>
+          <svg
+            class="meeting-glyph-play"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
             <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
           </svg>
+          <svg
+            class="meeting-glyph-pause"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <rect x="6.5" y="5" width="4" height="14" rx="1.2"></rect>
+            <rect x="13.5" y="5" width="4" height="14" rx="1.2"></rect>
+          </svg>
         </span>
-        <span class="meeting-track">
+        <span class="meeting-track" data-meeting-track>
           <b></b>
         </span>
-        <span class="meeting-time">0:31</span>
+        <span class="meeting-time" data-meeting-time>
+          0:31
+        </span>
       </div>
       <ol class="meeting-turns">
         {turns.map(([speaker, time, text]) => (
           <li>
             <span class="meeting-speaker">
               <span class="chip-muted">{speaker}</span>
-              <span class="meeting-stamp">{time}</span>
+              <span class="meeting-stamp" data-seek={time}>
+                {time}
+              </span>
             </span>
             <p>{text}</p>
           </li>
@@ -93,3 +118,7 @@ const guideInEnglish = !isTranslated(
     </Surface>
   </div>
 </Section>
+
+<script>
+  import "../scripts/meetings";
+</script>

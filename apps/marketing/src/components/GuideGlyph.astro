@@ -1,0 +1,98 @@
+---
+import Check from "./Check.astro";
+import { appLabels } from "../data/app";
+import type { GuideGlyphKind } from "../data/guides";
+import { licenses } from "../data/site";
+import type { Locale } from "../i18n";
+import { messages } from "../i18n/messages";
+
+/**
+ * A guide's small graphic in the guide picker (GuideLinks.astro), built from
+ * the app's own parts: the 繁｜简 script picker over mixed text, a terminal
+ * prompt and caret, the waveform inside This Mac, a settings choice of This
+ * Mac or Cloud, the $0 and license price keys, Meetings' speaker chips, and a
+ * comparison table's grooves. Decorative: the tile's link names the guide.
+ * Each has one small hover move in guides.css (a selection slides, a key
+ * sinks, a chip rises, bars grow); its resting frame is complete without it.
+ */
+interface Props {
+  kind: GuideGlyphKind;
+  locale?: Locale;
+}
+
+const { kind, locale = "en" } = Astro.props;
+// Where a step runs, as the provider board names it (This Mac, Cloud).
+const places = messages[locale].pipeline;
+const labels = appLabels[locale];
+const levels = [0.36, 0.66, 1, 0.72, 0.48];
+---
+
+<span class:list={["gg", `gg-${kind}`]} aria-hidden="true">
+  {kind === "mixed" && (
+    <>
+      <span class="gg-field" lang="zh-Hant">
+        明天 demo
+      </span>
+      <span class="gg-seg">
+        <span class="gg-seg-thumb" />
+        <span lang="zh-Hant">繁</span>
+        <span lang="zh-Hans">简</span>
+      </span>
+    </>
+  )}
+  {kind === "terminal" && (
+    <span class="gg-term">
+      <span class="gg-prompt">%</span>
+      <span>claude</span>
+      <span class="gg-cursor" />
+    </span>
+  )}
+  {kind === "offline" && (
+    <span class="gg-mac">
+      <span class="gg-mac-label">{places.mac}</span>
+      <span class="gg-mac-well">
+        {levels.map((level) => (
+          <span class="gg-bar" style={`--l: ${level}`} />
+        ))}
+        <span class="gg-caret" />
+      </span>
+    </span>
+  )}
+  {kind === "dataflow" && (
+    <span class="gg-rows">
+      <span class="gg-row-well">
+        <span class="gg-island">
+          <Check />
+        </span>
+      </span>
+      <span class="gg-row">{places.mac}</span>
+      <span class="gg-row">{places.cloud}</span>
+    </span>
+  )}
+  {kind === "price" && (
+    <span class="gg-prices">
+      <span class="gg-key">$0</span>
+      <span class="gg-key">{licenses[0].price}</span>
+    </span>
+  )}
+  {kind === "speakers" && (
+    <span class="gg-turns">
+      <span class="gg-turn">
+        <span class="gg-chip">{labels.speaker(1)}</span>
+        <span class="gg-time">0:04</span>
+      </span>
+      <span class="gg-turn">
+        <span class="gg-chip">{labels.speaker(2)}</span>
+        <span class="gg-time">0:11</span>
+      </span>
+    </span>
+  )}
+  {kind === "compare" && (
+    <span class="gg-table">
+      <span class="gg-col-well" />
+      {Array.from({ length: 12 }, () => (
+        <span class="gg-cell" />
+      ))}
+    </span>
+  )}
+</span>

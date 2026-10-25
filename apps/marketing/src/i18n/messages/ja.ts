@@ -58,9 +58,7 @@ export const ja: Messages = {
       "Mac 上でも、自分のプロバイダでも",
       "macOS 15 以降・Apple シリコン",
     ],
-    guidesTitle: "使い方に合った設定を選ぶ",
-    guidesIntro:
-      "オフラインでの音声入力、英語まじりの話し方、Claude Code やターミナルへの音声入力、ローカルかクラウドか、会議の文字起こし。ガイドは英語です。",
+    guidesTitle: "設定ガイド",
     featuresTitle: "Airdraft がしてくれること",
     spoken: "えーと、Maya に、あの、draft は明日できるって伝えて。",
     outputs: [
@@ -97,8 +95,8 @@ export const ja: Messages = {
         "ショートカットはひとつ",
         "⌃⌥ を長押し、または好きな組み合わせを登録。",
       ],
-      profiles: ["プロファイル", "4 つを内蔵。どれも書き換えられます。"],
-      vocabulary: ["あなたの語彙", "名前や専門用語は一度教えるだけ。"],
+      profiles: ["プロファイル", "4 つを内蔵、どれも編集できます。"],
+      vocabulary: ["語彙", "名前や専門用語は一度教えるだけ。"],
       history: ["履歴", "検索、元の内容への切り替え、コピー。"],
       fallback: [
         "何も失われない",
@@ -106,7 +104,7 @@ export const ja: Messages = {
       ],
       privacy: [
         "Mac の中にとどまる",
-        "ローカルモデルなら何も送信されません。キーはキーチェーンに保存。",
+        "ローカルモデルは何も送信せず、キーはキーチェーンに保存されます。",
       ],
       mixed: [
         "あなたの言葉に、英語をまじえて",
@@ -165,7 +163,7 @@ export const ja: Messages = {
     points: [
       [
         "どのアプリでも録音",
-        "ひとつのアプリかすべてのアプリの音声に、マイクも加えられます。画面の映像は残しません。",
+        "ひとつのアプリかすべてのアプリに、マイクも加えられます。画面は録画しません。",
       ],
       [
         "ファイルも読み込める",
@@ -269,7 +267,17 @@ export const ja: Messages = {
       },
     },
   },
-  guideLinks: { read: "ガイドを読む", readLabel: "ガイドを読む：" },
+  guideLinks: {
+    labels: {
+      "offline-dictation-on-mac": "オフライン音声入力",
+      "mixed-chinese-english-dictation": "中国語と英語の混在",
+      "dictate-to-claude-code-and-terminals": "Claude\u00a0Code、Codex",
+      "local-vs-cloud-dictation": "ローカルかクラウドか",
+      "free-source-or-official-app": "無料版か公式版か",
+      "private-meeting-transcription": "会議を Mac で文字起こし",
+      "compare-mac-dictation-apps": "Airdraft を比較",
+    },
+  },
   pricing: {
     title: "価格 — Airdraft",
     description:
@@ -341,7 +349,7 @@ export const ja: Messages = {
       trialNotOnSale: [
         "試してから買えますか？",
         [
-          "公式アプリの販売が始まれば、すべての機能を使える 14 日間の試用がつき、インストール時ではなく、あなたが始めたときから数えます。まだ販売していないので、いまダウンロードできる試用版はありません。無料のソース版なら、いますぐすべての機能を使えます。",
+          "公式アプリの販売が始まれば、すべての機能を使える 14 日間の試用がつき、インストール時ではなく、あなたが始めたときから数えます。まだ販売していないので試用版はダウンロードできませんが、無料のソース版なら、いますぐすべての機能を使えます。",
         ],
       ],
       editions: [

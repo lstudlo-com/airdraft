@@ -199,7 +199,10 @@ perspective. Bento tiles are one graphic and one line.
 
 ## Search and product guides
 
-The homepage links to a guide hub and seven distinct guides: offline setup
+The homepage links to a guide hub and seven distinct guides through a picker
+of tiles, each one app-part graphic and one short label in the page's
+language, with no intro paragraph or Read Guide keys; the hub keeps one
+summary line per guide. The guides: offline setup
 (choosing a model for your language), mixed Chinese and English dictation
 (with the measurement above), dictating prompts into Claude Code, Codex and
 terminals, local/cloud data flow, the free
@@ -250,7 +253,7 @@ interface in that language. Prices stay in US dollars from shared data.
 Untranslated pages (support, changelog, privacy, the guides a language lacks)
 stay English and are marked with the language's "(English)" word
 (（英文）, （英語）, (inglés)…) where a translated page links to them,
-including the header, phone menu, footer and guide cards. The header's globe
+including the header, phone menu, footer and guide tiles. The header's globe
 key (and the phone menu's Language row) opens a language menu listing every
 language in its own name: this page in that language, or that language's
 homepage, noted, when this page is not translated. The footer lists the same

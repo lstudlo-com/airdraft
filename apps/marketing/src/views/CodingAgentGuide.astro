@@ -35,68 +35,66 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 {zh ? (
   <GuideLayout
     guide={guide}
-    intro="在 Claude Code、Codex 或任何終端機裡按住快速鍵、說出提示詞再放開，Airdraft 會把文字貼到提示列，但不會按 Return，送出前你可以先檢查。潤稿也可以透過 Claude Code 或 Codex CLI，沿用你已付費的方案。App 介面從 0.11.0 起支援繁體中文，跟隨 macOS 的語言設定；0.10.2 及更早的版本只顯示英文。下文的名稱照繁體中文介面書寫。"
+    intro="在 Claude Code、Codex 或任何終端機裡，按住快速鍵說出提示詞再放開，Airdraft 會把文字貼到提示列，但不會按 Return，送出前你還能檢查。潤稿也能透過 Claude Code 或 Codex CLI，沿用你已付費的訂閱。下文介面名稱依 0.11.0 起的繁體中文介面；0.10.2 及更早版本只有英文介面。"
   >
     <Surface class="guide-section">
       <h2 id="delivery">文字怎麼進到終端機？</h2>
       <ul>
+        <li>Airdraft 回到你開始聽寫的視窗，只貼上一次，不會按 Return。</li>
         <li>
-          Airdraft 回到你開始聽寫的那個視窗，貼上一次文字，不會按 Return。
-        </li>
-        <li>
-          Terminal 和 iTerm2 會提供游標與文字，Airdraft
-          讀回剛貼上的內容來確認送達，和其他編輯器一樣。
+          Terminal 與 iTerm2 會提供游標與文字，Airdraft
+          和在其他編輯器一樣，讀回剛貼上的內容確認送達。
         </li>
         <li>
           Warp、Ghostty、kitty、Alacritty、WezTerm 與 Zed
-          編輯器自己繪製文字，沒有可以讀回的內容。Airdraft 會確認仍是同一個 App
-          和視窗，只貼上一次，絕不重貼。
+          編輯器自行繪製文字，沒有內容可讀回。Airdraft 會確認仍是同一個 App
+          與視窗，只貼上一次，絕不重貼。
         </li>
         <li>
           從 0.11.0
-          起，這類聽寫在「記錄」中標為「已貼上，未確認」，不會顯示錯誤，剪貼簿會稍晚才還原成原本的內容。0.10.2
-          即使文字已經出現，也會顯示「Paste couldn't be
+          起，這類聽寫在「記錄」中標為「已貼上，未確認」，不顯示錯誤，剪貼簿會比平常稍晚還原。0.10.2
+          即使文字已經送達，仍會顯示「Paste couldn't be
           confirmed」並把文字留在剪貼簿。
         </li>
         <li>
-          錄音後你切換了視窗或輸入欄位時，Airdraft
-          改為拷貝，不會貼到別的地方。重試保留的錄音時，這些 App
-          也會改為拷貝，因為沒有辦法確認文字會落在哪裡。
+          錄音後若切換了視窗或輸入欄位，Airdraft
+          會改為拷貝到剪貼簿，不會貼到別處。重試保留的錄音時，這些 App
+          也一律改為拷貝，因為無法確認文字會落在哪裡。
         </li>
       </ul>
     </Surface>
 
     <Surface class="guide-section">
-      <h2 id="cli-refinement">用你的方案潤稿</h2>
+      <h2 id="cli-refinement">用你的訂閱潤稿</h2>
       <ol class="guide-steps">
         <li>
           <h3>安裝並登入 CLI</h3>
           <p>
             Airdraft 會在
             ~/.local/bin、/opt/homebrew/bin、/usr/local/bin、~/.bun/bin 或
-            ~/.npm-global/bin 找 claude 或 codex
+            ~/.npm-global/bin 尋找 claude 或 codex
             指令，並使用你已登入的帳號，不需要 API 金鑰。
           </p>
         </li>
         <li>
-          <h3>在「模型」選擇它</h3>
+          <h3>在「模型」選用</h3>
           <p>
             在「模型」的「潤稿」選 Claude Code 或 Codex。模型清單來自你安裝的
-            CLI，「思考強度」就在旁邊；越低越快，用量也越少。
+            CLI，旁邊可調「思考強度」；越低越快，也越省用量。
           </p>
         </li>
         <li>
-          <h3>說話，放開</h3>
+          <h3>說完就放開</h3>
           <p>
-            Claude Code 會在你說話時先啟動，藏起它的啟動時間；Codex
-            在你說完後才啟動，所以比較慢。潤稿失敗或逾時，照樣貼上原始文字。
+            Claude Code 會在你說話時先行啟動，省下啟動時間；Codex
+            要等你說完才啟動，所以較慢。潤稿失敗或逾時，會直接貼上原始逐字稿。
           </p>
         </li>
       </ol>
       <p>
-        Airdraft 以非互動模式、在暫存資料夾裡執行 CLI，不提供工具、MCP
-        伺服器、斜線指令或保存的工作階段，所以它只能回傳文字。它不會修改你的 CLI
-        登入或設定。用量計入你方案的額度。
+        Airdraft 以非互動模式在暫存資料夾執行 CLI，不提供工具、MCP
+        伺服器、斜線指令或保存的工作階段，因此只會回傳文字，也不會更動你的 CLI
+        登入或設定。用量計入你訂閱的額度。
       </p>
     </Surface>
 
@@ -105,20 +103,20 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
       <p>
         在「設定」的「行為」開啟「讀取 App 情境」後，Airdraft 會把
         Terminal、iTerm2、Warp、Ghostty 與 kitty
-        當成終端機：你說的話保持一般文句，不加
-        Markdown；只有你明確念出指令時，才會原樣保留旗標與路徑。在 VS
+        視為終端機：口述內容維持一般文句、不加
+        Markdown，只有在你明確念出指令時，才原樣保留旗標與路徑。在 VS
         Code、Cursor、Xcode、JetBrains IDE 與 Zed
-        等程式編輯器裡，它會修正技術名稱的拼寫，並保留識別字與路徑。
+        等程式編輯器裡，則會修正技術名稱的拼寫，並保留識別字與路徑。
       </p>
       <p>
-        「讀取 App 情境」預設關閉；關閉時 Airdraft
-        不知道目的地，使用一般規則。要逐字保留時，請用 Verbatim
-        模式，它完全不潤稿。專案名稱與術語可以加到「詞彙」。
+        「讀取 App 情境」預設關閉，此時 Airdraft
+        不知道目的地，套用一般規則。要逐字保留，請用完全不潤稿的 Verbatim
+        模式。專案名稱與術語可加到「詞彙」。
       </p>
     </Surface>
 
     <Surface class="guide-section">
-      <h2 id="privacy">什麼會離開你的 Mac？</h2>
+      <h2 id="privacy">哪些資料會離開 Mac？</h2>
       <div
         class="guide-table-scroll"
         tabindex="0"
@@ -136,11 +134,11 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
           <tbody>
             <tr>
               <th scope="row">本機語音模型</th>
-              <td>不送出。錄音留在這台 Mac。</td>
+              <td>不送出，錄音留在這台 Mac。</td>
             </tr>
             <tr>
               <th scope="row">雲端語音辨識</th>
-              <td>音訊送到你選的服務商。</td>
+              <td>音訊送到你選的供應商。</td>
             </tr>
             <tr>
               <th scope="row">Claude Code 或 Codex 潤稿</th>
@@ -148,7 +146,7 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
                 逐字稿、模式指示與詞彙，透過你的 CLI 帳號送到 Anthropic 或
                 OpenAI；開啟「讀取 App 情境」時，還包括 App
                 名稱、視窗標題、選取的文字、游標附近的文字，以及同一個 App
-                最近聽寫的詞。CLI 在你的 Mac 上執行，不代表模型在本機。
+                最近聽寫的詞。CLI 在你的 Mac 上執行，模型卻不在本機。
               </td>
             </tr>
             <tr>
@@ -161,17 +159,17 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
             <tr>
               <th scope="row">在提示列按 Return</th>
               <td>
-                和打字一樣，由 Claude Code 或 Codex
-                把提示詞送到它的服務商；Airdraft 不參與。
+                和打字一樣，由 Claude Code 或 Codex 把提示詞送到它的供應商，與
+                Airdraft 無關。
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <p>
-        部分 Codex 版本仍會把你的全域 AGENTS.md 加進潤稿請求。介意的話，請改用
+        部分 Codex 版本仍會把你的全域 AGENTS.md 加進潤稿請求。若介意，請改用
         Claude
-        Code、本機潤稿，或關閉這個模式的「潤飾逐字稿」。每種組合的完整資料去向，請看
+        Code、本機潤稿，或在該模式關閉「潤飾逐字稿」。各種組合的完整資料去向，請看
         <a href="/guides/local-vs-cloud-dictation/" hreflang="en">
           本機或雲端聽寫指南
         </a>
@@ -182,22 +180,22 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
     <Surface class="guide-section">
       <h2 id="speech">語音模型怎麼選？</h2>
       <p>
-        只說英文時，選 Parakeet TDT v2：系統語言為英文的
-        Mac，首次設定會推薦它。它只辨識英文。在 Airdraft
-        自己以朗讀英文做的測量中，它的詞錯誤率是 {percent(parakeet.auto.value)}
-        ，每段約 {about(parakeet.medianMs)}，和 Qwen3-ASR 1.7B 的{" "}
+        只說英文時選 Parakeet TDT v2，系統語言為英文的 Mac
+        首次設定就會推薦它；它只辨識英文。在 Airdraft
+        以朗讀英文進行的測量中，它的詞錯誤率為 {percent(parakeet.auto.value)}
+        ，每段約 {about(parakeet.medianMs)}，與 Qwen3-ASR 1.7B 的{" "}
         {percent(qwen.auto.value)} 在誤差範圍內；Qwen3-ASR 1.7B
-        也能辨識其他語言，使用約 3 GB
-        記憶體。測量用的是朗讀的維基百科句子，不是提示詞，方法與限制請看
+        還能辨識其他語言，記憶體用量約 3
+        GB。測量用的是朗讀的維基百科句子，不是提示詞，方法與限制請看
         <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
           離線聽寫指南
         </a>
-        （英文）。0.11.0 及更早的版本推薦當時安裝的
-        SenseVoice，那是粵語微調版本，現在顯示為 SenseVoice Cantonese。
+        （英文）。0.11.0 及更早版本推薦的是當時安裝的
+        SenseVoice，也就是現在顯示為 SenseVoice Cantonese 的粵語微調版。
       </p>
       <p>
-        Parakeet TDT v3 支援英文與 24
-        種其他歐洲語言，但不支援中文。提示詞裡中英混說時，請看
+        Parakeet TDT v3 支援英文與另外 24
+        種歐洲語言，但不支援中文。提示詞中英混說時，請看
         <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
           中英混說的模型測量
         </a>

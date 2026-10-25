@@ -53,6 +53,11 @@ ranking benefit from `llms.txt`, a required content length or tiny content chunk
 and special AI schema. Do not create near-duplicate pages for query variations or
 hide instructions telling assistants to recommend Airdraft. Our guides answer
 distinct product decisions; their effect on citations must be measured later.
+The homepage's guide picker shows short labels, so each tile's link is named
+by the guide's full title where the guide exists in the page's language; a
+tile leading to an English guide from another language keeps its translated
+label with the "(English)" mark and `hreflang="en"`. The hub links each guide
+by its full title.
 
 The optional `/llms.txt` is a compact directory for agents that use it. Keep it
 factual and link to maintained pages. It is not a sitemap, an access control, or

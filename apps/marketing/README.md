@@ -158,10 +158,12 @@ and immutable caching for Astro's hashed assets.
 - `scripts/render-app-icon.swift` writes the website's `airdraft-icon.png` and
   `favicon.png` along with the app's icon set.
 - Motion: `src/scripts/voice.ts` lifts the hero's waveform with pointer and scroll
-  speed; `src/scripts/story.ts` runs the homepage's entrance rises and graphic loops
-  with GSAP and ScrollTrigger (`gsap` is a dependency under GSAP's no-charge
-  standard license). Both do nothing with reduced motion, and every element's
-  resting CSS is its final state.
+  speed; `src/scripts/story.ts` runs the homepage's entrance rises with GSAP and
+  ScrollTrigger (`gsap` is a dependency under GSAP's no-charge standard license);
+  `bento.ts`, `meetings.ts` and `pipeline.ts` play the bento graphics, the
+  Meetings player and the provider board's run once on screen and answer the
+  pointer. None of them play with reduced motion, and every element's resting
+  CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider
   section is `PipelineStory.astro` (one board: Speech, Refinement and Insertion
   columns, each with its own place choice and provider table); the

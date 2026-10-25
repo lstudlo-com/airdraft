@@ -802,9 +802,19 @@
         "purpose": "The chosen license's price and use slide up into place."
       },
       {
-        "name": "bento-loop",
-        "value": "repeat -1, plays only while visible",
-        "purpose": "Each tile's graphic tells its feature."
+        "name": "bento-perform",
+        "value": "once at 55% visible, +220ms per column; hover or tap replays (1s apart)",
+        "purpose": "Each tile's graphic does its feature, then rests; controls in it work (bento.ts)."
+      },
+      {
+        "name": "meetings-player",
+        "value": "6x real time to 0:31 once at 60% visible; fill slides via --played",
+        "purpose": "The transcript card's player plays, pauses and seeks from timestamps (meetings.ts)."
+      },
+      {
+        "name": "pipeline-run",
+        "value": "0.8s per step, chevron press 220ms, fix 1.3s; once at 50% visible and on each choice",
+        "purpose": "The homepage climax: one dictation runs through the chosen steps (pipeline.ts)."
       },
       {
         "name": "story-pin",

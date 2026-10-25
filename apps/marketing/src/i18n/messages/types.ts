@@ -5,6 +5,8 @@
  * only wording lives here. App interface labels are in src/data/app.ts.
  */
 
+import type { GuideSlug } from "../../data/guides";
+
 /** Pages a sentence can link to; English-only targets get the "(English)" mark. */
 export type LinkTarget =
   | "pricing"
@@ -78,7 +80,7 @@ export interface Messages {
     sample: string;
     facts: string[];
     guidesTitle: string;
-    guidesIntro: string;
+    /** After the guide picker, where it lists only some guides. */
     guidesNote?: Rich;
     featuresTitle: string;
     spoken: string;
@@ -207,7 +209,12 @@ export interface Messages {
       { name: string; title: string; macs: string }
     >;
   };
-  guideLinks: { read: string; readLabel: string };
+  /**
+   * The guide picker's tile labels (components/GuideLinks.astro): a few
+   * words each, the full guide title stays the link's accessible name where
+   * the guide exists in this language.
+   */
+  guideLinks: { labels: Record<GuideSlug, string> };
   pricing: {
     title: string;
     description: string;

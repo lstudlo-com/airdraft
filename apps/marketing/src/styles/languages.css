@@ -4,8 +4,9 @@
    cascade layers (declared in global.css) after it. */
 
 @layer components {
-  /* The globe key stands beside GitHub. On phones it moves into the menu
-     as its last row (SiteHeader.astro). */
+  /* The globe key is a raised key like GitHub's, one 10px step from it
+     (global.css, .header-actions). On phones it moves into the menu as its
+     last row (SiteHeader.astro). */
   .site-header .header-language {
     anchor-name: --language-key;
     padding-inline: 0;
@@ -125,15 +126,6 @@
   [dir="rtl"] .brand-caret {
     margin-left: 0;
     margin-inline-start: calc(20 * var(--u));
-  }
-  [dir="rtl"] .site-header .key-icon {
-    margin-left: 0;
-    margin-inline-start: 10px;
-  }
-  [dir="rtl"] .nav-cta,
-  [dir="rtl"] .site-header .menu-key {
-    margin-left: 0;
-    margin-inline-start: 6px;
   }
   [dir="rtl"] .menu-link .arrow {
     margin-left: 0;

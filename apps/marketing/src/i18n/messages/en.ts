@@ -53,9 +53,7 @@ export const en: Messages = {
       "On your Mac, or with your own provider",
       "macOS 15+ on Apple silicon",
     ],
-    guidesTitle: "Choose your dictation setup",
-    guidesIntro:
-      "Set up offline dictation in your language, mix Chinese and English, dictate prompts into Claude Code and terminals, choose local or cloud, or transcribe meetings.",
+    guidesTitle: "Setup guides",
     featuresTitle: "What Airdraft handles for you",
     // Illustrative outputs for the bento graphics (decorative, sample text).
     spoken: "Um, tell Maya the, uh, draft is coming tomorrow.",
@@ -90,13 +88,13 @@ export const en: Messages = {
     tiles: {
       cursor: ["Inserts at your cursor", "In whatever app you’re typing in."],
       shortcut: ["One shortcut", "Hold ⌃⌥, or record your own."],
-      profiles: ["Profiles", "Four built in. Rewrite any of them."],
-      vocabulary: ["Your vocabulary", "Teach it names and jargon once."],
+      profiles: ["Profiles", "Four built in, each one editable."],
+      vocabulary: ["Vocabulary", "Teach it names and jargon once."],
       history: ["History", "Search it, flip to the original, copy."],
       fallback: ["Nothing is lost", "If cleanup fails, the raw text goes in."],
       privacy: [
         "Stays on your Mac",
-        "With local models, nothing leaves. Keys live in the Keychain.",
+        "Local models send nothing; keys stay in the Keychain.",
       ],
       mixed: [
         "Your language, English mixed in",
@@ -155,7 +153,7 @@ export const en: Messages = {
     points: [
       [
         "Record any app",
-        "One app or all app audio, plus your microphone. No screen video is kept.",
+        "One app or all apps, plus your microphone. No screen video.",
       ],
       [
         "Or import a file",
@@ -228,7 +226,7 @@ export const en: Messages = {
     refinementPlan: "Uses the Claude or ChatGPT plan you already pay for.",
     atCursor: "At your cursor",
     insertionLine:
-      "Your vocabulary fixes names last. Then the text goes into the app you’re typing in.",
+      "Vocabulary fixes names last, then the text goes into the app you’re typing in.",
     fix: ["Meet me in", "at nine."],
   },
   get: {
@@ -258,7 +256,17 @@ export const en: Messages = {
       },
     },
   },
-  guideLinks: { read: "Read Guide", readLabel: "Read guide: " },
+  guideLinks: {
+    labels: {
+      "offline-dictation-on-mac": "Offline dictation",
+      "mixed-chinese-english-dictation": "Mixed Chinese and English",
+      "dictate-to-claude-code-and-terminals": "Claude\u00a0Code, Codex",
+      "local-vs-cloud-dictation": "Local or cloud",
+      "free-source-or-official-app": "Free or official app",
+      "private-meeting-transcription": "Transcribe meetings privately",
+      "compare-mac-dictation-apps": "Compare Airdraft",
+    },
+  },
   pricing: {
     title: "Pricing — Airdraft",
     description:
@@ -330,7 +338,7 @@ export const en: Messages = {
       trialNotOnSale: [
         "Can I try it first?",
         [
-          "Once the official app is on sale, it includes a 14-day trial with every feature, starting when you choose, not when you install. It isn’t on sale yet, so there is no trial to download today. The free source build has every feature now.",
+          "Once the official app is on sale, it includes a 14-day trial with every feature, starting when you choose, not when you install. It isn’t on sale yet, so there is no trial to download; the free source build has every feature now.",
         ],
       ],
       editions: [

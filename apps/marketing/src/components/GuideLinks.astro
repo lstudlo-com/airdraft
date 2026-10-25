@@ -1,24 +1,36 @@
 ---
-import Button from "./ui/Button.astro";
-import Surface from "./ui/Surface.astro";
-import { guidesFor } from "../data/guides";
+import GuideGlyph from "./GuideGlyph.astro";
+import { guideGlyphs, guidesFor } from "../data/guides";
 import { isTranslated, type Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 import "../styles/guides.css";
 
 /**
- * Guide cards. The guides are written in English and Traditional Chinese;
- * other languages list the English guides, in English (lang="en"), with the
- * read action in the page's language and its "(English)" mark.
+ * The guide picker: one raised tile per guide, each a small graphic in a
+ * recessed well over a short label (src/i18n/messages, guideLinks.labels).
+ * The whole tile is the link, named by the guide's full title. `detail` (the
+ * guide hub) shows the full title as a heading and the one-line summary
+ * instead of the label.
+ *
+ * The guides are written in English and Traditional Chinese. Other languages
+ * list the English guides: the label stays in the page's language with its
+ * "(English)" mark, which then names the link, and the link carries
+ * hreflang="en".
  */
 interface Props {
   exclude?: string;
   headingLevel?: 2 | 3;
   locale?: Locale;
+  detail?: boolean;
 }
 
-const { exclude, headingLevel = 3, locale = "en" } = Astro.props;
-const copy = messages[locale].guideLinks;
+const {
+  exclude,
+  headingLevel = 3,
+  locale = "en",
+  detail = false,
+} = Astro.props;
+const labels = messages[locale].guideLinks.labels;
 const english = messages[locale].english;
 const Heading = headingLevel === 2 ? "h2" : "h3";
 const entries = guidesFor(locale)
@@ -27,27 +39,53 @@ const entries = guidesFor(locale)
     ...guide,
     inEnglish: locale !== "en" && !isTranslated(guide.href, locale),
   }));
+// Balanced desktop rows: up to four across, three when that divides evenly
+// (six guides read as 3 + 3, seven as 4 + 3 with the short row centred).
+const count = entries.length;
+const columns = count <= 4 ? count : count % 3 === 0 && count % 4 !== 0 ? 3 : 4;
 ---
 
-<ul class="guide-links">
+<ul
+  class:list={["guide-links", detail && "guide-links-detail"]}
+  style={`--guide-columns: ${columns}`}
+>
   {entries.map((guide) => (
-    <Surface as="li" class="guide-link-card">
-      <Heading lang={guide.inEnglish ? "en" : undefined}>
-        <a href={guide.href} hreflang={guide.inEnglish ? "en" : undefined}>
-          {guide.title}
-        </a>
-      </Heading>
-      <p lang={guide.inEnglish ? "en" : undefined}>{guide.summary}</p>
-      <Button
+    <li class="guide-pick">
+      <a
+        class="guide-pick-link"
         href={guide.href}
-        variant="quiet"
-        icon="right"
         hreflang={guide.inEnglish ? "en" : undefined}
-        aria-label={`${copy.readLabel}${guide.title}`}
+        aria-label={detail || guide.inEnglish ? undefined : guide.title}
+        aria-labelledby={detail ? `guide-${guide.slug}` : undefined}
+        aria-describedby={detail ? `guide-${guide.slug}-summary` : undefined}
       >
-        {copy.read}
-        {guide.inEnglish && english}
-      </Button>
-    </Surface>
+        <span class="guide-pick-art">
+          <GuideGlyph kind={guideGlyphs[guide.slug]} locale={locale} />
+        </span>
+        {detail ? (
+          <>
+            <Heading
+              class="guide-pick-title"
+              id={`guide-${guide.slug}`}
+              lang={guide.inEnglish ? "en" : undefined}
+            >
+              {guide.title}
+            </Heading>
+            <p
+              class="guide-pick-summary"
+              id={`guide-${guide.slug}-summary`}
+              lang={guide.inEnglish ? "en" : undefined}
+            >
+              {guide.summary}
+            </p>
+          </>
+        ) : (
+          <span class="guide-pick-label">
+            {labels[guide.slug]}
+            {guide.inEnglish && <span class="nav-note">{english}</span>}
+          </span>
+        )}
+      </a>
+    </li>
   ))}
 </ul>

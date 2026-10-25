@@ -220,6 +220,31 @@
           entry 0% cover 40%,
           entry 0% cover 40%;
       }
+      /* Its five points are a list, so they arrive as one: each fades up a
+         step after the one above, following the panel's own timeline. */
+      .meeting-points {
+        view-timeline: --meeting-points block;
+      }
+      .meeting-points dl > div {
+        --rise-y: 14px;
+        --step: calc(var(--row, 0) * 5%);
+        animation: motion-fade-up linear both;
+        animation-timeline: --meeting-points;
+        animation-range: cover calc(6% + var(--step)) cover
+          calc(20% + var(--step));
+      }
+      .meeting-points dl > div:nth-child(2) {
+        --row: 1;
+      }
+      .meeting-points dl > div:nth-child(3) {
+        --row: 2;
+      }
+      .meeting-points dl > div:nth-child(4) {
+        --row: 3;
+      }
+      .meeting-points dl > div:nth-child(5) {
+        --row: 4;
+      }
 
       /* 5. The close. Both offers rise as the island settles back to its
          inset; the license, the featured offer, rises furthest. Neither

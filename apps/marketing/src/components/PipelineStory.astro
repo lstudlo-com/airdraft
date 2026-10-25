@@ -18,7 +18,14 @@ const copy = messages[locale].pipeline;
  * independent of the others. The table is a settings table: rows divided by
  * grooves, the first resting in the sidebar's recessed selection well with a
  * raised check island. Insertion always happens at the cursor; its column
- * shows the vocabulary fix (story.ts loops it while on screen).
+ * shows the vocabulary fix.
+ *
+ * The board is the page's climax (src/scripts/pipeline.ts): once it has
+ * risen, one dictation runs through it, column by column. Each chosen row's
+ * check island sinks while it works, with a busy status dot, and rises with
+ * its check; the chevron on the next groove presses as the text passes;
+ * Insertion strikes the misheard words and brings in the fix. Changing a
+ * choice runs it again from that column.
  *
  * The choices are native radio groups and CSS `:has()` swaps the columns, so
  * the section works without JavaScript; src/scripts/segmented.ts only adds the
@@ -118,7 +125,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
 ---
 
 <Section id="how-it-works" title={copy.title} intro={copy.intro}>
-  <div class="pipeline panel" data-reveal>
+  <div class="pipeline panel" data-reveal data-pipeline>
     {stages.map((stage, index) => (
       <div
         class="pipe-stage"
@@ -156,6 +163,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
                     {item}
                     {position === 0 && (
                       <span class="choice-island" aria-hidden="true">
+                        <span class="status-dot" data-tone="busy" />
                         <svg
                           width="14"
                           height="14"
@@ -185,7 +193,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
       <h3 id="stage-insertion">{copy.insertion}</h3>
       <p class="pipe-fixed">{copy.atCursor}</p>
       <p class="pipe-line">{copy.insertionLine}</p>
-      <div class="fix-field" data-art="fix">
+      <div class="fix-field" data-fix-field>
         <p>
           {copy.fix[0]}{" "}
           <span class="fix">
@@ -199,3 +207,7 @@ const check = "m5 12.5 4.5 4.5L19 7.5";
     </div>
   </div>
 </Section>
+
+<script>
+  import "../scripts/pipeline";
+</script>

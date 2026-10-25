@@ -54,9 +54,7 @@ export const zhCn: Messages = {
       "本机运行，或用你自己的服务商",
       "macOS 15 及以上、Apple 芯片",
     ],
-    guidesTitle: "选择适合你的设置",
-    guidesIntro:
-      "离线听写怎么设置、中英混说选哪个模型、怎么对 Claude Code 和终端听写，以及会议转录。指南目前只有英文版。",
+    guidesTitle: "设置指南",
     featuresTitle: "Airdraft 帮你处理的事",
     spoken: "呃，跟 Maya 说那个 draft 明天会好。",
     outputs: [
@@ -81,13 +79,13 @@ export const zhCn: Messages = {
     tiles: {
       cursor: ["粘贴到光标位置", "不管你正在哪个 App 里打字。"],
       shortcut: ["一个快捷键", "按住 ⌃⌥，或者录制你自己的。"],
-      profiles: ["模式", "内置四种，每一种都能改写。"],
-      vocabulary: ["你的词汇", "人名和术语教一次就好。"],
+      profiles: ["模式", "内置四种，都能自行修改。"],
+      vocabulary: ["词汇", "人名和术语设置一次就好。"],
       history: ["历史记录", "可以搜索、切回原始文字、复制。"],
       fallback: ["文字不会丢", "润色失败时，照样粘贴原始文字。"],
       privacy: [
         "留在你的 Mac 上",
-        "使用本机模型时什么都不发出去，密钥保存在钥匙串里。",
+        "用本机模型不发送任何数据，密钥保存在钥匙串里。",
       ],
       mixed: ["中英混着讲", "用 Qwen3-ASR 一句话混着说，输出简体或繁体。"],
       plan: ["沿用 Claude 或 ChatGPT 套餐", "用 Claude Code 或 Codex 润色。"],
@@ -133,10 +131,7 @@ export const zhCn: Messages = {
       [2, "0:31", "那我 release 之前先把 screenshot 更新好。"],
     ],
     points: [
-      [
-        "录下任何 App",
-        "单个 App 或所有 App 的声音，可加上麦克风；不保留画面。",
-      ],
+      ["录下任何 App", "单个或所有 App，可加录麦克风；不录画面。"],
       ["也能导入文件", "音频或视频，最长两小时、单个音轨。"],
       ["在本机估计发言人", "可选择标出发言人，再自己改名或调整。"],
       ["选本机模型就不上传", "使用 Soniox 云端转录时，确认之后才上传。"],
@@ -186,7 +181,7 @@ export const zhCn: Messages = {
     refinementCloud: "转录文本会发送到你选的服务商。",
     refinementPlan: "使用你已经付费的 Claude 或 ChatGPT 套餐。",
     atCursor: "在光标位置",
-    insertionLine: "最后由你的词汇修正名称，再把文字粘贴到你正在打字的 App。",
+    insertionLine: "最后用词汇修正名称，再粘贴到你正在打字的 App。",
     fix: ["九点在", "见面。"],
   },
   get: {
@@ -215,7 +210,17 @@ export const zhCn: Messages = {
       },
     },
   },
-  guideLinks: { read: "阅读指南", readLabel: "阅读指南：" },
+  guideLinks: {
+    labels: {
+      "offline-dictation-on-mac": "离线听写",
+      "mixed-chinese-english-dictation": "中英混着说",
+      "dictate-to-claude-code-and-terminals": "Claude\u00a0Code、Codex",
+      "local-vs-cloud-dictation": "本机还是云端",
+      "free-source-or-official-app": "免费版还是官方版",
+      "private-meeting-transcription": "在本机转录会议",
+      "compare-mac-dictation-apps": "对比 Airdraft",
+    },
+  },
   pricing: {
     title: "价格 — Airdraft",
     description:
