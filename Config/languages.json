@@ -2,15 +2,25 @@
   "comment": "The interface languages Airdraft ships, besides the English source. scripts/localization.py, LocalizationCatalogTests, the menu fixture and project.yml's CFBundleLocalizations all follow this list; localization.py check fails when they disagree.",
   "source": "en",
   "languages": [
-    {"code": "ar", "name": "العربية", "direction": "rtl"},
-    {"code": "es", "name": "Español", "direction": "ltr"},
-    {"code": "fr", "name": "Français", "direction": "ltr"},
-    {"code": "hi", "name": "हिन्दी", "direction": "ltr"},
-    {"code": "id", "name": "Bahasa Indonesia", "direction": "ltr"},
-    {"code": "ja", "name": "日本語", "direction": "ltr"},
-    {"code": "pt-BR", "name": "Português (Brasil)", "direction": "ltr"},
-    {"code": "ru", "name": "Русский", "direction": "ltr"},
-    {"code": "zh-Hans", "name": "简体中文", "direction": "ltr"},
-    {"code": "zh-Hant", "name": "繁體中文", "direction": "ltr"}
+    {
+      "code": "es",
+      "name": "Español",
+      "direction": "ltr"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "direction": "ltr"
+    },
+    {
+      "code": "zh-Hans",
+      "name": "简体中文",
+      "direction": "ltr"
+    },
+    {
+      "code": "zh-Hant",
+      "name": "繁體中文",
+      "direction": "ltr"
+    }
   ]
 }

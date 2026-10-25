@@ -60,9 +60,7 @@ enum MenuVerification {
            Bundle.main.localizations.contains(requested) {
             precondition(language == requested, "Requested \(requested) but the menu resolved \(language)")
         }
-        let quitTitles = ["en": "Quit Airdraft", "ar": "إنهاء Airdraft", "es": "Salir de Airdraft",
-                          "fr": "Quitter Airdraft", "hi": "Airdraft से बाहर निकलें", "id": "Keluar dari Airdraft",
-                          "ja": "Airdraft を終了", "pt-BR": "Encerrar o Airdraft", "ru": "Завершить Airdraft",
+        let quitTitles = ["en": "Quit Airdraft", "es": "Salir de Airdraft", "ja": "Airdraft を終了",
                           "zh-Hans": "退出 Airdraft", "zh-Hant": "結束 Airdraft"]
         // Every shipped language needs an entry, so a new one cannot silently skip this check.
         for shipped in Bundle.main.localizations where shipped != "Base" {

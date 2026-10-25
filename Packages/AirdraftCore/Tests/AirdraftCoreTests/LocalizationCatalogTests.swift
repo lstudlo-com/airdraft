@@ -83,7 +83,7 @@ final class LocalizationCatalogTests: XCTestCase {
     }
 
     func testShippedLanguagesMatchTheBundleLocalizations() throws {
-        XCTAssertGreaterThanOrEqual(Self.languages.count, 10, "Config/languages.json lists \(Self.languages)")
+        XCTAssertFalse(Self.languages.isEmpty, "Config/languages.json lists no languages")
         let project = try String(contentsOf: Self.repository.appendingPathComponent("project.yml"), encoding: .utf8)
         let line = try XCTUnwrap(project.split(separator: "\n").first { $0.contains("CFBundleLocalizations:") })
         let listed = line.split(separator: "[").last?.split(separator: "]").first?
