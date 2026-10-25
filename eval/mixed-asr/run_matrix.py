@@ -38,13 +38,13 @@ FOLLOWUP = [
 FOLLOWUP_CORPORA = {"ascend", "tw-tts-meijia"}
 
 
-def run_app(app, work, model, language, audio, data_dir, prepare=True):
+def run_app(app, work, model, language, audio, data_dir, prepare=True, extra_args=()):
     data_dir.mkdir(parents=True, exist_ok=True)
     env = {"HOME": os.environ["HOME"], "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "TMPDIR": os.environ.get("TMPDIR", "/tmp"),
            "AIRDRAFT_E2E_MODEL_ROOT": str(work / "models")}
     command = ["/usr/bin/time", "-l", str(app / "Contents/MacOS/Airdraft Debug"), "--e2e-local", str(data_dir),
                "--e2e-action", "transcribe", "--e2e-model", model, "--e2e-language", language,
-               "--e2e-audio", str(audio)] + (["--e2e-prepare"] if prepare else [])
+               "--e2e-audio", str(audio)] + (["--e2e-prepare"] if prepare else []) + list(extra_args)
     load = os.getloadavg()[0]
     start = time.monotonic()
     proc = subprocess.run(command, env=env, capture_output=True, text=True, timeout=900)

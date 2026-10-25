@@ -38,12 +38,31 @@ final class SpeechVocabularyTests: XCTestCase {
         let mixed = ["Supabase", "林雅婷", "トヨタ", "삼성", "Ελλάδα"]
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed, "Auto keeps every script")
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "auto"), mixed)
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "en-US"), ["Supabase", "Ελλάδα"],
-                       "An English recording is never steered toward CJK characters")
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "en-US"), ["Supabase"],
+                       "An English recording is never steered toward CJK characters or Greek")
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Ελλάδα"])
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "zh_TW"), ["Supabase", "林雅婷"])
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "yue"), ["Supabase", "林雅婷"])
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "林雅婷", "トヨタ"])
         XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ko"), ["Supabase", "林雅婷", "삼성"])
+    }
+
+    func testEachScriptIsKeptOnlyForTheLanguagesThatWriteIt() {
+        let mixed = ["Supabase", "Москва", "القاهرة", "दिल्ली", "ঢাকা", "תל אביב", "กรุงเทพ", "Αθήνα", "佐々木", "東京タワー"]
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ru"), ["Supabase", "Москва"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "uk"), ["Supabase", "Москва"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ar"), ["Supabase", "القاهرة"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fa"), ["Supabase", "القاهرة"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "hi"), ["Supabase", "दिल्ली"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "bn"), ["Supabase", "ঢাকা"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "he"), ["Supabase", "תל אביב"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "th"), ["Supabase", "กรุงเทพ"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Αθήνα"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "佐々木", "東京タワー"],
+                       "々 is written with kanji")
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fr"), ["Supabase"])
+        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed)
+        XCTAssertEqual(SpeechVocabulary.terms(["Ñandú", "Øresund", "ªdmin"], language: "es"), ["Ñandú", "Øresund", "ªdmin"])
     }
 
     // MARK: Hints

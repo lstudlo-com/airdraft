@@ -14,6 +14,14 @@ MER and English retention. Additional measures, per configuration and corpus:
   allCaps    finals whose English words (>= 2 letters) are all in capitals
   punctuated finals containing any punctuation mark
   caseExact  share of reference English words found with the same case (TTS sets)
+  languageRetried  runs whose guard log records an applied language retry
+  probeMax   highest spoken-language probability the guard's probe logged, per language
+
+AD-098 corpora from intl-control.json (intl-ru, intl-hi, intl-ar, en-in-control) add:
+  WERintl    word error rate over whitespace words after NFKC, lowercasing and removing
+             punctuation and Arabic diacritics (score.py's tokenizer keeps only Han and Latin)
+  scriptLost finals with < 30% of their letters in the reference language's script
+             (a translation or transliteration)
 """
 import argparse, collections, json, pathlib, re, statistics, sys, unicodedata
 
@@ -53,6 +61,34 @@ def all_caps(text):
     return bool(words) and all(w.isupper() for w in words)
 
 
+SCRIPTS = {"ru": r"[\u0400-\u04FF]", "hi": r"[\u0900-\u097F]", "ar": r"[\u0600-\u06FF]"}
+
+
+def words(text):
+    text = unicodedata.normalize("NFKC", text).lower()
+    text = re.sub(r"[\u064B-\u0652\u0670]", "", text)  # Arabic diacritics
+    text = "".join(" " if unicodedata.category(c).startswith(("P", "S")) else c for c in text)
+    return text.split()
+
+
+def script_lost(text, language):
+    letters = [c for c in text if c.isalpha() or unicodedata.category(c) in ("Mn", "Mc")]
+    if not letters:
+        return True
+    native = [c for c in letters if re.match(SCRIPTS[language], c)]
+    return len(native) / len(letters) < 0.3
+
+
+def guard_events(run):
+    probes, retried = [], False
+    for line in run.get("guard_log") or []:
+        if m := re.search(r"probe=(\S+) probability=([0-9.e-]+)", line):
+            probes.append((m.group(1), float(m.group(2))))
+        if "action=languageRetried applied=true" in line:
+            retried = True
+    return probes, retried
+
+
 def load(work, tag):
     runs = []
     for path in sorted((work / f"runs-{tag}").glob("*/*.json")):
@@ -67,9 +103,10 @@ def main():
     parser.add_argument("--out", type=pathlib.Path)
     args = parser.parse_args()
     items = {i["id"]: i for i in json.loads((HERE / "manifest.json").read_text())["items"]}
-    control = args.work / "en-control.json"
-    if control.exists():
-        items.update({i["id"]: i for i in json.loads(control.read_text())})
+    for name in ("en-control.json", "intl-control.json"):
+        control = args.work / name
+        if control.exists():
+            items.update({i["id"]: i for i in json.loads(control.read_text())})
     report = {}
     for tag in args.tags.split(","):
         runs = load(args.work, tag)
@@ -85,7 +122,15 @@ def main():
             ref_han = [t for t in ref if is_han(t)]
             exact_ref = [t for t in tokenize(items[run["id"]]["reference"], keep_case=True) if is_latin(t)]
             exact_hyp = [t for t in tokenize(final, keep_case=True) if is_latin(t)]
+            probes, retried = guard_events(run)
+            language = items[run["id"]].get("language")
+            intl = {}
+            if language in SCRIPTS:
+                ref_words = words(items[run["id"]]["reference"])
+                intl = {"werErr": distance(ref_words, words(final)), "werRef": len(ref_words),
+                        "scriptLost": script_lost(final, language)}
             groups[(f"{run['model']} {run['language']}", run["corpus"])].append({
+                "probes": probes, "retried": retried, **intl,
                 "id": run["id"], "rep": run.get("rep", 0), "empty": not final, "err": distance(ref, hyp), "ref": len(ref),
                 "lat": len(ref_lat), "kept": retained(ref_lat, [t for t in hyp if is_latin(t)]),
                 "exact": retained(exact_ref, exact_hyp), "loop": has_loop(final), "wrong": wrong_script(final),
@@ -107,8 +152,15 @@ def main():
                 "caseExact": round(sum(r["exact"] for r in rows) / lat, 4) if lat and corpus != "ascend" else None,
                 "asrMsMedian": statistics.median(ms) if ms else None, "asrMsMax": max(ms) if ms else None,
                 "peakMaxMB": round(max((r["peak"] or 0) for r in rows) / 1e6) if rows else None,
+                "languageRetried": sum(r["retried"] for r in rows),
+                "probeMax": {code: round(max(p for c, p in probes if c == code), 4)
+                             for probes in [[x for r in rows for x in r["probes"]]] for code in sorted({c for c, _ in probes})},
+                "WERintl": round(sum(r["werErr"] for r in rows) / max(1, sum(r["werRef"] for r in rows)), 4)
+                           if rows and "werErr" in rows[0] else None,
+                "scriptLost": sum(r["scriptLost"] for r in rows) if rows and "scriptLost" in rows[0] else None,
                 "flagged": [{"id": r["id"], "rep": r["rep"], "final": r["final"][:120]} for r in rows
-                            if r["loop"] or r["wrong"] or r["empty"] or (r["zhLost"] and corpus == "ascend")],
+                            if r["loop"] or (r["wrong"] and "scriptLost" not in r) or r["empty"] or r["retried"]
+                            or r.get("scriptLost") or (r["zhLost"] and corpus == "ascend")],
             }
         report[tag] = table
     text = json.dumps(report, ensure_ascii=False, indent=1)

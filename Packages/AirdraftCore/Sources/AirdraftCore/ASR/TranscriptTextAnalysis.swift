@@ -18,8 +18,9 @@ public enum TranscriptAdjustment: String, Sendable, Equatable, Codable, CaseIter
 
 /// Writing systems the language guard can map to languages. Latin is shared by
 /// too many languages to judge from text, so it never marks a result implausible.
-enum WritingScript: Hashable, Sendable {
+enum WritingScript: Hashable, Sendable, CaseIterable {
     case latin, han, kana, hangul, cyrillic, greek, arabic, hebrew, thai, devanagari, bengali, tamil
+    case gurmukhi, gujarati, oriya, telugu, kannada, malayalam
     case georgian, armenian, ethiopic, khmer, lao, myanmar, sinhala, tibetan, other
 
     /// Languages normally written in this script; nil when text cannot decide.
@@ -37,6 +38,12 @@ enum WritingScript: Hashable, Sendable {
         case .devanagari: return ["hi", "mr", "ne", "sa"]
         case .bengali: return ["bn", "as"]
         case .tamil: return ["ta"]
+        case .gurmukhi: return ["pa"]
+        case .gujarati: return ["gu"]
+        case .oriya: return ["or"]
+        case .telugu: return ["te"]
+        case .kannada: return ["kn"]
+        case .malayalam: return ["ml"]
         case .georgian: return ["ka"]
         case .armenian: return ["hy"]
         case .ethiopic: return ["am"]
@@ -54,16 +61,23 @@ enum WritingScript: Hashable, Sendable {
         switch v {
         case 0x41...0x5A, 0x61...0x7A, 0xC0...0x24F, 0x1E00...0x1EFF, 0xFF21...0xFF3A, 0xFF41...0xFF5A: return .latin
         case 0x3040...0x30FF, 0x31F0...0x31FF, 0xFF66...0xFF9F: return .kana
-        case 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF, 0x20000...0x2FA1F: return .han
+        // 々 〆 〇 and the Hangzhou numerals are written with Han characters.
+        case 0x3005...0x3007, 0x3021...0x3029, 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF, 0x20000...0x3FFFF: return .han
         case 0x1100...0x11FF, 0x3130...0x318F, 0xAC00...0xD7AF: return .hangul
         case 0x0400...0x052F, 0x1C80...0x1C8F, 0x2DE0...0x2DFF, 0xA640...0xA69F: return .cyrillic
         case 0x0370...0x03FF, 0x1F00...0x1FFF: return .greek
         case 0x0600...0x06FF, 0x0750...0x077F, 0x08A0...0x08FF, 0xFB50...0xFDFF, 0xFE70...0xFEFF: return .arabic
-        case 0x0590...0x05FF: return .hebrew
+        case 0x0590...0x05FF, 0xFB1D...0xFB4F: return .hebrew
         case 0x0E00...0x0E7F: return .thai
-        case 0x0900...0x097F: return .devanagari
+        case 0x0900...0x097F, 0xA8E0...0xA8FF: return .devanagari
         case 0x0980...0x09FF: return .bengali
+        case 0x0A00...0x0A7F: return .gurmukhi
+        case 0x0A80...0x0AFF: return .gujarati
+        case 0x0B00...0x0B7F: return .oriya
         case 0x0B80...0x0BFF: return .tamil
+        case 0x0C00...0x0C7F: return .telugu
+        case 0x0C80...0x0CFF: return .kannada
+        case 0x0D00...0x0D7F: return .malayalam
         case 0x10A0...0x10FF: return .georgian
         case 0x0530...0x058F: return .armenian
         case 0x1200...0x139F: return .ethiopic
@@ -88,6 +102,17 @@ extension WritingScript {
         default:
             return false
         }
+    }
+
+    /// The scripts other than Latin that a language is normally written in, from
+    /// `languages`: Cyrillic for Russian, Devanagari for Hindi, Han and kana for
+    /// Japanese. Korean also accepts Han (hanja). Empty for Latin-script languages
+    /// and for codes Airdraft has no script for.
+    static func nativeScripts(of language: String) -> Set<WritingScript> {
+        let code = language == "cmn" ? "zh" : language
+        var scripts = Set(allCases.filter { $0.languages?.contains(code) == true })
+        if code == "ko" { scripts.insert(.han) }
+        return scripts
     }
 }
 
@@ -246,27 +271,48 @@ enum AudioActivity {
     }
 }
 
-/// Phrases Whisper is known to invent on non-speech audio. A relaxed retry that
-/// returns only one of these keeps the original empty result.
+/// Phrases Whisper is known to invent on non-speech audio, by language: the
+/// subtitle credits and channel sign-offs of the videos it was trained on. A
+/// relaxed retry that returns only one of these keeps the original empty result.
+/// Any language's phrase rejects a retry, since Auto can hallucinate in any of them.
 enum KnownHallucination {
-    private static let phrases: Set<String> = [
-        "thank you", "thanks for watching", "thank you for watching", "thanks for watching!",
-        "please subscribe", "subtitles by the amara.org community", "you",
-        "字幕由amara.org社區提供", "字幕由amara.org社区提供", "請不吝點贊訂閱轉發打賞支持明鏡與點點欄目",
-        "请不吝点赞订阅转发打赏支持明镜与点点栏目", "謝謝觀看", "谢谢观看", "謝謝大家", "谢谢大家",
-        // Subtitle credits and sign-offs from Whisper's training videos in other languages.
-        "subtítulos realizados por la comunidad de amara.org", "gracias por ver el video", "gracias por ver",
-        "sous-titres réalisés para la communauté d'amara.org", "sous-titres réalisés par la communauté d'amara.org",
-        "merci d'avoir regardé", "untertitel der amara.org-community", "vielen dank fürs zuschauen",
-        "legendas pela comunidade amara.org", "obrigado por assistir", "sottotitoli creati dalla comunità amara.org",
-        "grazie per la visione", "продолжение следует", "спасибо за просмотр",
-        "ご視聴ありがとうございました", "ご視聴ありがとうございます", "チャンネル登録よろしくお願いします",
-        "시청해주셔서감사합니다",
+    static let phrasesByLanguage: [String: [String]] = [
+        "en": ["thank you", "thanks for watching", "thank you for watching", "thank you so much for watching",
+               "please subscribe", "subtitles by the amara.org community", "you"],
+        "zh": ["字幕由amara.org社區提供", "字幕由amara.org社区提供", "請不吝點贊訂閱轉發打賞支持明鏡與點點欄目",
+               "请不吝点赞订阅转发打赏支持明镜与点点栏目", "謝謝觀看", "谢谢观看", "謝謝大家", "谢谢大家"],
+        "es": ["subtítulos realizados por la comunidad de amara.org", "subtítulos por la comunidad de amara.org",
+               "gracias por ver el video", "gracias por ver el vídeo", "gracias por ver", "suscríbete al canal"],
+        "fr": ["sous-titres réalisés para la communauté d'amara.org", "sous-titres réalisés par la communauté d'amara.org",
+               "sous-titrage société radio-canada", "sous-titrage st' 501", "merci d'avoir regardé",
+               "merci d'avoir regardé cette vidéo"],
+        "de": ["untertitel der amara.org-community", "untertitel im auftrag des zdf, 2017",
+               "untertitel im auftrag des zdf für funk, 2017", "untertitelung im auftrag des zdf, 2021",
+               "vielen dank fürs zuschauen", "danke fürs zuschauen"],
+        "pt": ["legendas pela comunidade amara.org", "legendas pela comunidade de amara.org", "obrigado por assistir",
+               "inscreva-se no canal"],
+        "it": ["sottotitoli creati dalla comunità amara.org", "sottotitoli e revisione a cura di qtss", "grazie per la visione"],
+        "ru": ["продолжение следует", "спасибо за просмотр", "субтитры сделал dimatorzok", "субтитры создавал dimatorzok",
+               "редактор субтитров а.синецкая корректор а.егорова", "подписывайтесь на канал"],
+        "ar": ["ترجمة نانسي قنقر", "اشتركوا في القناة", "شكرا للمشاهدة", "شكراً للمشاهدة", "شكرا على المشاهدة"],
+        "hi": ["देखने के लिए धन्यवाद", "सब्सक्राइब करें", "चैनल को सब्सक्राइब करें"],
+        "id": ["terima kasih telah menonton", "terima kasih sudah menonton", "jangan lupa like dan subscribe"],
+        "ja": ["ご視聴ありがとうございました", "ご視聴ありがとうございます", "チャンネル登録よろしくお願いします",
+               "チャンネル登録お願いします"],
+        "ko": ["시청해주셔서감사합니다", "시청해 주셔서 감사합니다", "구독과 좋아요 부탁드립니다", "mbc 뉴스 이덕영입니다"],
     ]
 
+    /// Normalized phrases from every language, and the same without spaces
+    /// (Korean and Japanese spacing varies between decodes).
+    private static let phrases: Set<String> = Set(phrasesByLanguage.values.joined().map(normalized))
+    private static let spaceless: Set<String> = Set(phrases.map { $0.replacingOccurrences(of: " ", with: "") })
+
+    static func normalized(_ text: String) -> String {
+        text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+    }
+
     static func matches(_ text: String) -> Bool {
-        let normalized = text.lowercased()
-            .trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
-        return phrases.contains(normalized) || phrases.contains(normalized.replacingOccurrences(of: " ", with: ""))
+        let normalized = normalized(text)
+        return phrases.contains(normalized) || spaceless.contains(normalized.replacingOccurrences(of: " ", with: ""))
     }
 }

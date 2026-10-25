@@ -354,3 +354,60 @@ python3 -I eval/mixed-asr/prepare_corpus.py --work "$W"
 python3 -I eval/mixed-asr/run_matrix.py --app "$APP" --work "$W" --followup
 python3 -I eval/mixed-asr/score.py --work "$W" --followup
 ```
+
+## AD-098 follow-up: the Auto language guard for every script
+
+The Auto language guard now covers every script, not only Chinese, Japanese and
+Korean. A result in a script that none of the system languages (plus English)
+use was already decoded again; with a language probe (Whisper) it is now decoded
+in the most probable system language: a non-English one when it reaches its
+translation threshold, otherwise the most probable one, so English speech is not
+forced into the user's other language. Without a probe it uses the first non-English
+system language, as before. The Latin-only translation check now applies to every
+system language written in another script (Cyrillic, Arabic, Devanagari, Hebrew,
+Greek, Thai, Bengali and the other `WritingScript` scripts; Serbian is excluded
+because it is written in Latin as often as Cyrillic), with the default threshold
+0.1 per language.
+
+Measured 2026-10-25 on the M4 Pro from `claude/intl-core` (after) against its base
+`5161b58` (before), with APFS clones of the installed Whisper Large v3 Turbo and
+Qwen3-ASR 1.7B. `run_guards.py --system-languages` sets the preferred languages
+through `-AppleLanguages`; `guard_log.py --app` keeps only that build's log lines,
+because other worktrees ran the app at the same time. New corpora (macOS `say`,
+16 kHz): `intl_control.json`, 14 Russian (Milena), 14 Hindi (Lekha) and 8 Arabic
+(Majed) dictation sentences, 8 of them code-switched with English terms, and
+`en-in-control`, the 20 English control sentences in three Indian English voices.
+All results are in `results/guards-ad098.json`.
+
+| System languages | Corpus, model | Measure | Before | After |
+|---|---|---|---|---|
+| ru, en | English control 40 (20 US/UK/AU/IN + 20 IN), Whisper Auto | language retries / max P(ru) | 0 / not probed | 0 / 0.0011 |
+| hi, en | same | language retries / max P(hi) | 0 / not probed | 0 / 0.000015 |
+| ar, en | same | language retries / max P(ar) | 0 / not probed | 0 / 0.0001 |
+| ru / hi / ar | native speech 14 / 14 / 8, Whisper and Qwen3-ASR 1.7B Auto | outputs without the native script; WER | 0; 0.150 / 0.260 / 0.093 (Whisper) | identical outputs |
+| en-TW, zh-Hant-TW | ASCEND 100, Meijia 40, English control 20, Whisper Auto; tw08 ×2, Qwen3-ASR Auto | language retries, MER, Chinese lost | 2 / 0 / 2 retries, MER 0.199 / 0.063, 4 lost | same retries, MER 0.196 / 0.063, 4 lost |
+
+Every Russian, Hindi and Arabic output, and every English control output, is byte
+for byte the same before and after. On the Chinese sets 3 of 162 outputs differ;
+all three are Whisper's nondeterministic empty first decode (the empty retry ran in
+the before run only), not the language guard. English speech scores at most 0.0011
+for any of these languages, two orders of magnitude below the 0.1 threshold, so no
+per-language threshold is set (`LocalASROutputGuard.measuredTranslationProbabilities`).
+
+The synthetic Russian, Hindi and Arabic speech never came back translated or
+transliterated, not even with English terms, so this measures only false positives
+and cost, not how many real translations the check repairs. **Cost:** the probe now
+runs for Latin-only Whisper Auto results of Russian, Hindi and Arabic users too:
+the English control median rose from 606 to 1001 ms (ru) and 597 to 1045 ms (ar),
+the same ~0.4 s that Chinese users already pay (the hi run was noisy: 1170 to
+1208 ms). The 1-minute load average was 4.4–34, median 7.4 (other worktrees were building); treat latencies as relative.
+
+```sh
+W=/tmp/airdraft-wave/intl-core/asr-eval   # models/ and audio/ as above
+python3 -I eval/mixed-asr/run_guards.py --app "$APP" --work "$W" --tag after-ru \
+    --system-languages ru-RU,en-US --intl --corpora intl-ru --configs whisper:turbo:auto,qwen3:1.7b:auto
+python3 -I eval/mixed-asr/run_guards.py --app "$APP" --work "$W" --tag after-ru \
+    --system-languages ru-RU,en-US --english --english-in --corpora en-control,en-in-control --configs whisper:turbo:auto
+python3 -I eval/mixed-asr/guard_log.py --work "$W" --tag after-ru --app "$APP"
+python3 -I eval/mixed-asr/score_guards.py --work "$W" --tags before-ru,after-ru
+```
