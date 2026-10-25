@@ -146,8 +146,7 @@ and Local releases below.
   Read its `PRODUCT.md` and `DESIGN.md` before changing content or design, and
   build pages from its reusable components in `src/components/ui/`. The site ships
   the app's interface languages: English at the root, translations under
-  `/<code>/` with the English slug (zh-tw, zh-cn, es, ja, fr, pt-br, ru, ar, hi,
-  id). `src/i18n/locales.json` (code, BCP 47 tag, Open Graph locale, own name,
+  `/<code>/` with the English slug (zh-tw, zh-cn, es, ja). `src/i18n/locales.json` (code, BCP 47 tag, Open Graph locale, own name,
   direction, translated paths) drives hreflang, sitemap alternates, the language
   menu, the analytics path allowlist and `check-search.py`; add a translated page
   there together with its page file, `_redirects` aliases and `llms.txt`. Copy lives
@@ -155,9 +154,10 @@ and Local releases below.
   catalog labels for that language and say the released app still shows English
   until `interfaceReleased` marks that language's release. Links to English-only
   pages carry the language's "(English)" mark; Chinese and Japanese headers fold
-  their links into the menu up to 700 px, the other languages up to 900 px. Arabic
-  is right to left: use logical properties, keep the top-left light, and keep app
-  pictures, the waveform, the HUD and key caps left to right. JavaScript packages
+  their links into the menu up to 700 px, the other languages up to 900 px. No
+  right-to-left language ships yet; styles use logical properties so one can (keep
+  the top-left light and app pictures, the waveform, the HUD and key caps left to
+  right). JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
@@ -1026,10 +1026,9 @@ and Local releases below.
 ## Localization
 
 The app ships the interface languages listed in `Config/languages.json`: English
-(source), Arabic (ar, right to left), Spanish (es), French (fr), Hindi (hi),
-Indonesian (id), Japanese (ja), Portuguese (Brazil, pt-BR), Russian (ru),
-Simplified Chinese (zh-Hans) and Traditional Chinese (Taiwan, zh-Hant), following
-the macOS language. `scripts/localization.py`, `LocalizationCatalogTests`, the
+(source), Spanish (es), Japanese (ja), Simplified Chinese (zh-Hans) and
+Traditional Chinese (Taiwan, zh-Hant), following the macOS language (the
+2026-10-25 interface-language decision; another language needs a new decision). `scripts/localization.py`, `LocalizationCatalogTests`, the
 menu fixture and project.yml's `CFBundleLocalizations` follow that one list; add a
 language there first. Strings live in String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
 and AirdraftCore's `Resources/Localizable.xcstrings`. Write user-facing copy as
@@ -1060,17 +1059,15 @@ lists literals that bypass localization. `export <lang> <file>` writes a
 language's untranslated keys with English, comments and es/ja/zh-Hant references;
 `import <lang> <file> [--dry-run]` merges a translator's file after checking
 placeholders, plural categories and `${applicationName}`. Keys whose only number
-is a count use CLDR plural variations where the language needs them (Russian,
-Arabic, French); a plural form may spell out its number, `other` keeps every
-argument. Each language's glossary and style notes are `Config/glossaries/<code>.json`
+is a count may use CLDR plural variations; a plural form may spell out its number,
+`other` keeps every argument. Spanish and Japanese glossaries are `Config/glossaries/<code>.json`
 (`docs/localization.md` summarizes conventions); reuse their terms. Translate
 zh-Hans directly with Mainland interface terms (设置, 默认, 菜单, 剪贴板, 快捷键,
 复制, 润色 for refinement, 模式 for profile), never by converting zh-Hant; zh-Hant
 uses Taiwan terms. Japanese uses モード for profile, matching 模式. Follow Apple's
-macOS terminology in each language; Indonesian buttons and menu items use title
-case, the other non-English languages sentence case. Every catalog except
-zh-Hans and zh-Hant is machine-drafted and render-reviewed and needs native
-review. When one English word needs different translations in different places,
+macOS terminology in each language; Spanish uses tú and sentence case, Japanese
+です／ます and 「」 quotes. The es and ja catalogs are machine-drafted and
+render-reviewed and need native review. When one English word needs different translations in different places,
 use a keyed entry with `defaultValue` (`TextSizeDefault`, `HomeSummaryHeading`,
 `OnboardingStepShortcut`, `ModelTierVerified`/`ModelGroupVerified`,
 `OnboardingStep*`). Layouts stretch to their translations: `SoftSegmentedPicker`'s
@@ -1088,13 +1085,13 @@ inside sentences and `languageLabel` as standalone labels. `LocalizationCatalogT
 stale or placeholder-mismatched entries in any shipped language and when the
 bundle localizations differ from the list. Verify UI changes with the
 `-AppleLanguages '(<code>)' -AppleLocale <locale>` renders of every shipped
-language at Default and Larger text size (es_ES, fr_FR, pt_BR, ru_RU, hi_IN,
-id_ID, ja_JP, zh_CN, zh_TW, ar_SA), including long-running languages (Russian,
-French, Indonesian) and Hindi's vowel signs. Letter-spacing applies only through
+language at Default and Larger text size (es_ES, ja_JP, zh_CN, zh_TW), including
+Spanish at Larger. Letter-spacing applies only through
 `scriptAwareTracking`, which tracks Latin, Greek and Cyrillic interface scripts only.
-Right to left: when the bundle resolves a right-to-left language,
+Right to left: no right-to-left language ships, but the interface stays ready for
+one. When the bundle resolves a right-to-left language,
 `AirdraftApp.registerInterfaceDirection` adds `AppleTextDirection` to the volatile
-argument domain so AppKit mirrors even when only the app is set to Arabic.
+argument domain so AppKit mirrors even when only the app is set to that language.
 Page structure mirrors (sidebar on the right; leading and trailing follow the
 language). Light stays at the physical top left: draw lit gradient faces through
 `physicalLight()` and physical offsets through `physicalOffset`, since SwiftUI
@@ -1109,9 +1106,9 @@ forward/backward SF Symbol variants for direction. The window buttons keep their
 Read-only user content aligns by its own writing direction (`naturalAlignment(for:)`,
 `WritingDirection` for AppKit text); editable fields keep AppKit's interface
 alignment, since changing it while editing disturbs the field editor. Check RTL
-changes with Arabic renders and the RTL cases of `verify-native-shadows.swift` and
-`verify-sidebar-selection.swift`; `-AppleTextDirection YES
--NSForceRightToLeftWritingDirection YES` mirrors an English render.
+readiness with `-AppleTextDirection YES -NSForceRightToLeftWritingDirection YES`
+English renders and the RTL cases of `verify-native-shadows.swift` and
+`verify-sidebar-selection.swift`.
 An unsaved Chinese script follows the first Chinese preferred language
 (`ChineseScript.systemDefault`: Simplified with zh-CN, otherwise Traditional, and
 Auto when no Chinese language is listed). Unsaved Apple Speech and live-preview
