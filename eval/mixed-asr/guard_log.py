@@ -13,6 +13,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--work", required=True, type=pathlib.Path)
     parser.add_argument("--tag", required=True)
+    parser.add_argument("--app", type=pathlib.Path,
+                        help="keep only lines from this app's executable (other copies may log at the same time)")
     args = parser.parse_args()
     paths = sorted((args.work / f"runs-{args.tag}").glob("*/*.json"))
     runs = [(p, json.loads(p.read_text())) for p in paths]
@@ -32,6 +34,8 @@ def main():
         except json.JSONDecodeError:
             continue
         if "eventMessage" not in entry:
+            continue
+        if args.app and not entry.get("processImagePath", "").startswith(str(args.app.resolve())):
             continue
         stamp = datetime.datetime.strptime(entry["timestamp"][:26], "%Y-%m-%d %H:%M:%S.%f").timestamp()
         entries.append((stamp, entry["eventMessage"]))

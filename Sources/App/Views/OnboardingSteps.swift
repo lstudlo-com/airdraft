@@ -538,8 +538,11 @@ struct OnboardingPracticeStep: View {
         guard chosen.kind.isLocal, !LocalModels.isInstalled(chosen) else { return nil }
         return container.downloads.jobs[chosen.engineID]
     }
-    private static var sentence: String {
-        String(localized: "Hello! I’m trying Airdraft for the first time, and it’s writing what I say.")
+    /// In the language the chosen speech setup recognizes (`PracticeSentence`),
+    /// which is the interface language unless the user dictates another one.
+    private var sentence: String {
+        PracticeSentence.sentence(for: chosen, interfaceLanguage: Bundle.main.preferredLocalizations.first ?? "en",
+                                  localized: String(localized: "Hello! I’m trying Airdraft for the first time, and it’s writing what I say."))
     }
 
     var body: some View {
@@ -560,7 +563,7 @@ struct OnboardingPracticeStep: View {
             Text(progress.practiceDeliveries == 0 ? "READ THIS ALOUD" : "NOW SAY ANYTHING")
                 .appFont(.caption2, weight: .semibold).tracking(0.8)
                 .foregroundStyle(.secondary)
-            Text(progress.practiceDeliveries == 0 ? "“\(Self.sentence)”"
+            Text(progress.practiceDeliveries == 0 ? "“\(sentence)”"
                  : "Try a message you might send today. Speak naturally, with pauses if you like.")
                 .appFont(size: progress.practiceDeliveries == 0 ? 19 : TextStyle.emphasis.size, weight: .medium)
                 .fixedSize(horizontal: false, vertical: true)

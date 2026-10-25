@@ -83,35 +83,27 @@ public enum SpeechVocabulary {
         return found >= 2 && !leftover
     }
 
-    enum Script: Hashable { case latin, han, kana, hangul, other }
-
-    static func scripts(of term: String) -> Set<Script> {
-        var result = Set<Script>()
+    /// Writing systems of a term's letters. Latin-1 and IPA letters (ª, º, ɑ)
+    /// count as Latin; the rest follow `WritingScript`.
+    static func scripts(of term: String) -> Set<WritingScript> {
+        var result = Set<WritingScript>()
         for scalar in term.unicodeScalars where scalar.properties.isAlphabetic {
-            switch scalar.value {
-            case 0x3040...0x30FF, 0x31F0...0x31FF, 0xFF66...0xFF9F: result.insert(.kana)
-            case 0x1100...0x11FF, 0x3130...0x318F, 0xAC00...0xD7AF: result.insert(.hangul)
-            case 0x2E80...0x2FDF, 0x3005...0x3007, 0x3400...0x4DBF, 0x4E00...0x9FFF, 0xF900...0xFAFF, 0x20000...0x3FFFF:
-                result.insert(.han)
-            case 0...0x024F, 0x1E00...0x1EFF, 0xFF21...0xFF5A: result.insert(.latin)
-            default: result.insert(.other)
-            }
+            result.insert(scalar.value < 0x0300 ? .latin : WritingScript.of(scalar) ?? .other)
         }
         return result
     }
 
-    /// Latin names and identifiers occur in every language. CJK terms are kept
-    /// only for languages that write them, so an English recording is never
-    /// steered toward Chinese characters by a Chinese name in the same list.
-    static func allowedScripts(for language: String?) -> Set<Script> {
+    /// Latin names and identifiers occur in every language. Other scripts are
+    /// kept only for languages that write them, each script on its own: an
+    /// English recording is never steered toward Chinese characters, and a
+    /// Russian one keeps Cyrillic terms but not Arabic or Devanagari ones.
+    /// A language Airdraft knows no script for also keeps unclassified scripts.
+    static func allowedScripts(for language: String?) -> Set<WritingScript> {
         let code = language?.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "_", with: "-").split(separator: "-").first?.lowercased()
-        switch code {
-        case nil, "", "auto": return [.latin, .han, .kana, .hangul, .other]
-        case "zh", "yue": return [.latin, .han]
-        case "ja": return [.latin, .han, .kana]
-        case "ko": return [.latin, .han, .hangul]
-        default: return [.latin, .other]
-        }
+        guard let code, !code.isEmpty, code != "auto" else { return Set(WritingScript.allCases) }
+        let native = WritingScript.nativeScripts(of: code)
+        if native.isEmpty { return [.latin, .other] }
+        return native.union([.latin])
     }
 }

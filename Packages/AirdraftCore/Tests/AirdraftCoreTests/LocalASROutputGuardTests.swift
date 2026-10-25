@@ -149,6 +149,118 @@ final class LocalASROutputGuardTests: XCTestCase {
         XCTAssertEqual(result.adjustments, [])
     }
 
+    // MARK: Language, every script (AD-098)
+
+    func testEveryNonLatinLanguageHasTheScriptItsTranslationWouldLack() {
+        let expected: [String: WritingScript] = [
+            "zh": .han, "yue": .han, "ja": .kana, "ko": .hangul, "ru": .cyrillic, "uk": .cyrillic, "bg": .cyrillic,
+            "ar": .arabic, "fa": .arabic, "ur": .arabic, "he": .hebrew, "el": .greek, "th": .thai, "hi": .devanagari,
+            "mr": .devanagari, "bn": .bengali, "ta": .tamil, "te": .telugu, "pa": .gurmukhi, "ka": .georgian,
+        ]
+        for (language, script) in expected {
+            XCTAssertEqual(LocalASROutputGuard.nonLatinScript(of: language), script, language)
+        }
+        for language in ["en", "fr", "es", "id", "vi", "tr", "sr"] {
+            XCTAssertNil(LocalASROutputGuard.nonLatinScript(of: language), "\(language) is written in Latin letters")
+        }
+    }
+
+    func testScriptPlausibilityFollowsEverySystemLanguage() {
+        XCTAssertFalse(ScriptProfile("Сегодня мы выпускаем новую версию").isImplausible(expected: ["ru", "en"]))
+        XCTAssertTrue(ScriptProfile("आज हम नया संस्करण जारी कर रहे हैं").isImplausible(expected: ["ru", "en"]))
+        XCTAssertFalse(ScriptProfile("आज हम नया संस्करण जारी कर रहे हैं").isImplausible(expected: ["hi", "en"]))
+        XCTAssertTrue(ScriptProfile("اليوم نطلق النسخة الجديدة").isImplausible(expected: ["hi", "en"]))
+        XCTAssertTrue(ScriptProfile("Сегодня мы выпускаем новую версию").isImplausible(expected: ["ar", "en"]))
+        XCTAssertFalse(ScriptProfile("שלום לכולם").isImplausible(expected: ["he", "en"]))
+        XCTAssertFalse(ScriptProfile("ਅੱਜ ਅਸੀਂ ਨਵਾਂ ਸੰਸਕਰਣ ਜਾਰੀ ਕਰ ਰਹੇ ਹਾਂ").isImplausible(expected: ["pa", "en"]))
+        XCTAssertTrue(ScriptProfile("ਅੱਜ ਅਸੀਂ ਨਵਾਂ ਸੰਸਕਰਣ ਜਾਰੀ ਕਰ ਰਹੇ ਹਾਂ").isImplausible(expected: ["hi", "en"]))
+    }
+
+    func testProbableEnglishTranslationOfRussianIsDecodedAgainInRussian() async throws {
+        let engine = ScriptedSpeech(id: "whisperkit:test", outputs: [
+            nil: "Today we release the new version of the app.",
+            "ru": "Сегодня мы выпускаем новую версию приложения.",
+        ], probabilities: ["en": 0.52, "ru": 0.46])
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: whisper, policy: .init(expectedLanguages: ["ru", "en"]))
+        XCTAssertEqual(result.text, "Сегодня мы выпускаем новую версию приложения.")
+        XCTAssertEqual(result.adjustments, [.languageRetried])
+    }
+
+    func testEnglishSpeechOfAHindiUserIsKeptWhenHindiIsUnlikely() async throws {
+        let engine = ScriptedSpeech(id: "whisperkit:test", outputs: [
+            nil: "Please merge the pull request after the tests pass.", "hi": "कृपया परीक्षण के बाद पुल अनुरोध मर्ज करें।",
+        ], probabilities: ["en": 0.96, "hi": 0.03])
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: whisper, policy: .init(expectedLanguages: ["hi", "en"]))
+        XCTAssertEqual(result.text, "Please merge the pull request after the tests pass.")
+        let requests = await engine.requestedLanguages
+        XCTAssertEqual(requests, [nil])
+    }
+
+    func testPerLanguageTranslationThresholdOverridesTheDefault() async throws {
+        let engine = ScriptedSpeech(id: "whisperkit:test", outputs: [
+            nil: "Please merge the pull request.", "hi": "कृपया पुल अनुरोध मर्ज करें।",
+        ], probabilities: ["en": 0.8, "hi": 0.2])
+        let strict = LocalASROutputGuard.Policy(expectedLanguages: ["hi", "en"], translationProbabilities: ["hi": 0.5])
+        XCTAssertEqual(strict.translationThreshold(for: "hi"), 0.5)
+        XCTAssertEqual(strict.translationThreshold(for: "zh"), 0.1)
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: whisper, policy: strict)
+        XCTAssertEqual(result.adjustments, [])
+        let requests = await engine.requestedLanguages
+        XCTAssertEqual(requests, [nil])
+    }
+
+    func testImplausibleScriptIsDecodedInTheMostProbableOfTheUsersLanguages() async throws {
+        // A Japanese-first user who also speaks Mandarin: Cyrillic output of Mandarin speech.
+        let engine = ScriptedSpeech(id: "whisperkit:test", outputs: [
+            nil: "Сегодня мы выпускаем новую версию", "ja": "今日は新しいバージョンを出します", "zh": "今天我們發布新版本",
+        ], probabilities: ["ru": 0.5, "zh": 0.4, "ja": 0.05, "en": 0.02])
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: whisper, policy: .init(expectedLanguages: ["ja", "zh", "en"]))
+        XCTAssertEqual(result.text, "今天我們發布新版本")
+        let requests = await engine.requestedLanguages
+        XCTAssertEqual(requests, [nil, "zh"])
+    }
+
+    func testImplausibleScriptOfEnglishSpeechIsNotTranslatedIntoTheUsersLanguage() async throws {
+        // English speech written in Arabic script for a Russian user: forcing ru would translate it.
+        let engine = ScriptedSpeech(id: "whisperkit:test", outputs: [
+            nil: "بليز ميرج ذا بول ريكويست", "ru": "Пожалуйста, объедините запрос.", "en": "Please merge the pull request.",
+        ], probabilities: ["ar": 0.6, "en": 0.35, "ru": 0.01])
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: whisper, policy: .init(expectedLanguages: ["ru", "en"]))
+        XCTAssertEqual(result.text, "Please merge the pull request.")
+        let requests = await engine.requestedLanguages
+        XCTAssertEqual(requests, [nil, "en"])
+    }
+
+    func testWithoutALanguageProbeTheFirstNonEnglishLanguageIsUsed() async throws {
+        let engine = ScriptedSpeech(id: "qwen3-asr:test", outputs: [
+            nil: "اليوم نطلق النسخة الجديدة من التطبيق", "ru": "Сегодня мы выпускаем новую версию приложения.",
+        ])
+        let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: audible, hints: .init(),
+                                                              config: qwen, policy: .init(expectedLanguages: ["en", "ru"]))
+        XCTAssertEqual(result.text, "Сегодня мы выпускаем новую версию приложения.")
+        let requests = await engine.requestedLanguages
+        XCTAssertEqual(requests, [nil, "ru"])
+    }
+
+    func testHallucinationPhrasesCoverTheMajorLanguages() {
+        for language in ["en", "zh", "es", "fr", "pt", "ru", "ar", "hi", "id", "ja", "ko", "de"] {
+            XCTAssertFalse(KnownHallucination.phrasesByLanguage[language, default: []].isEmpty, language)
+        }
+        for phrase in ["ترجمة نانسي قنقر", "Субтитры сделал DimaTorzok", "Sous-titrage Société Radio-Canada",
+                       "देखने के लिए धन्यवाद।", "Terima kasih telah menonton!", "MBC 뉴스 이덕영입니다.",
+                       "Untertitel im Auftrag des ZDF für funk, 2017", "¡Suscríbete al canal!", "시청해 주셔서 감사합니다"] {
+            XCTAssertTrue(KnownHallucination.matches(phrase), phrase)
+        }
+        for speech in ["شكرا، سأرسل التقرير غدا", "Terima kasih, laporannya saya kirim besok.", "धन्यवाद, मैं कल रिपोर्ट भेजूँगा।"] {
+            XCTAssertFalse(KnownHallucination.matches(speech), speech)
+        }
+    }
+
     // MARK: Empty output
 
     func testEmptyResultOnAudibleAudioGetsOneRelaxedRetry() async throws {

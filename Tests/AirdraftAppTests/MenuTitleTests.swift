@@ -38,6 +38,15 @@ final class MenuTitleTests: XCTestCase {
         XCTAssertEqual(MenuTitle.fit(hindi), "माइक्रोफ़ोन उपलब्ध नहीं है।")
     }
 
+    func testQuestionAndExclamationMarksOfOtherScriptsEndASentence() {
+        let arabic = "هل الميكروفون متصل؟ انقطع جهاز الإدخال المحدد عند بدء التسجيل، لذا تحقق من الجهاز وإعدادات النظام."
+        XCTAssertEqual(MenuTitle.fit(arabic), "هل الميكروفون متصل؟")
+        let fullWidth = "マイクが見つかりません！選択した入力装置が録音開始時に切断されました。装置とシステム設定を確認してください。"
+        XCTAssertEqual(MenuTitle.fit(fullWidth), "マイクが見つかりません！")
+        let question = "麥克風是否已連接？選取的輸入裝置在開始錄音時中斷了連線，請檢查裝置與系統設定，然後再試一次。"
+        XCTAssertEqual(MenuTitle.fit(question), "麥克風是否已連接？")
+    }
+
     func testLongTextIsTruncatedAtAWordWithAnEllipsis() {
         let text = String(repeating: "transcription ", count: 20).trimmingCharacters(in: .whitespaces)
         let fitted = MenuTitle.fit(text)

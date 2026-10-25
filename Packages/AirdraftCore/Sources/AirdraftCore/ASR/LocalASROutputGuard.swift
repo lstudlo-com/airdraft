@@ -30,11 +30,12 @@ public enum LocalASRDecodeBudget {
     }
 }
 
-/// Checks local speech output before refinement (AD-082):
+/// Checks local speech output before refinement (AD-082, AD-098):
 ///  1. an empty result on audible audio gets one relaxed retry (engines that support it);
-///  2. under Auto, a result in a script none of the user's languages use, or
-///     a probable English translation of Chinese speech (Whisper), is decoded
-///     once more with the best explicit language the same model supports;
+///  2. under Auto, a result in a script none of the user's languages use, or a
+///     Latin-only result the engine's own language probe attributes to one of the
+///     user's languages written in another script (a probable translation, Whisper),
+///     is decoded once more with the best explicit language the same model supports;
 ///  3. decoder loops are cut to one occurrence.
 /// Retries reuse the same engine and lease; models are never switched. Retry
 /// failures keep the first result. Every action is recorded on the transcript.
@@ -46,15 +47,27 @@ public enum LocalASROutputGuard {
         /// Latin-only Auto result is decoded again in that language. Measured with
         /// Whisper Large v3 Turbo: pure English speech scored at most 0.0002 for
         /// Mandarin; English translations of code-switched Mandarin scored 0.14-0.85.
+        /// `translationProbabilities` overrides it per language.
         public var translationProbability: Double
+        /// Per-language thresholds where English speech scores higher for that
+        /// language than for Mandarin (`LocalASROutputGuard.measuredTranslationProbabilities`).
+        public var translationProbabilities: [String: Double]
         /// Retries run only when the first decode took at most this long.
         public var retryBudget: @Sendable (_ audioSeconds: Double) -> Double
 
         public init(expectedLanguages: [String], translationProbability: Double = 0.1,
+                    translationProbabilities: [String: Double] = LocalASROutputGuard.measuredTranslationProbabilities,
                     retryBudget: @escaping @Sendable (Double) -> Double = { max(8, $0 * 1.5) }) {
             self.expectedLanguages = expectedLanguages
             self.translationProbability = translationProbability
+            self.translationProbabilities = translationProbabilities
             self.retryBudget = retryBudget
+        }
+
+        /// The spoken probability `language` needs before a Latin-only result is
+        /// treated as its translation.
+        public func translationThreshold(for language: String) -> Double {
+            translationProbabilities[language] ?? translationProbability
         }
 
         /// The system's preferred languages plus English, which dictation mixes in everywhere.
@@ -103,28 +116,45 @@ public enum LocalASROutputGuard {
         let resolved = try SpeechLanguagePolicy.resolve(config)
         if resolved.language == nil, hints.language == nil, resolved.isAutomatic, !result.isEmpty, mayRetry {
             let profile = ScriptProfile(result.text)
-            if profile.isImplausible(expected: expected),
-               let language = explicitLanguage(for: config, candidates: policy.expectedLanguages) {
-                var retryHints = hints
-                retryHints.language = language
-                if let retry = try await attempt({ try await engine.transcribe(samples: samples, hints: retryHints) }),
-                   !retry.isEmpty,
-                   ScriptProfile(retry.text).plausibility(expected: expected) > profile.plausibility(expected: expected) {
-                    result = retry.adding(result.adjustments + [.languageRetried])
+            // One encoder pass, measured at most once and only when a check needs it.
+            var probed = false
+            var measured: [String: Double]?
+            func probe() async throws -> [String: Double]? {
+                guard let support else { return nil }
+                if !probed {
+                    probed = true
+                    measured = try await attempt({ try await support.spokenLanguageProbabilities(samples: samples) }) ?? nil
                 }
-                note(.languageRetried, engine: engine.id, applied: result.adjustments.contains(.languageRetried), audioSeconds: audioSeconds)
-            } else if profile.isLatinOnly, let support {
+                return measured
+            }
+            if profile.isImplausible(expected: expected) {
+                let supported = policy.expectedLanguages.filter { explicitLanguage(for: config, candidates: [$0]) != nil }
+                let ranked = supported.count > 1 ? try await probe() : nil
+                if let code = bestLanguage(supported, probabilities: ranked, policy: policy),
+                   let language = explicitLanguage(for: config, candidates: [code]) {
+                    if let ranked { _ = logProbe(engine: engine.id, language: code, probability: ranked[code] ?? 0) }
+                    var retryHints = hints
+                    retryHints.language = language
+                    if let retry = try await attempt({ try await engine.transcribe(samples: samples, hints: retryHints) }),
+                       !retry.isEmpty,
+                       ScriptProfile(retry.text).plausibility(expected: expected) > profile.plausibility(expected: expected) {
+                        result = retry.adding(result.adjustments + [.languageRetried])
+                    }
+                    note(.languageRetried, engine: engine.id, applied: result.adjustments.contains(.languageRetried), audioSeconds: audioSeconds)
+                }
+            } else if profile.isLatinOnly, support != nil {
                 let candidates = policy.expectedLanguages.filter { code in
                     nonLatinScript(of: code) != nil && explicitLanguage(for: config, candidates: [code]) != nil
                 }
                 if !candidates.isEmpty,
-                   let probabilities = try await attempt({ try await support.spokenLanguageProbabilities(samples: samples) }) ?? nil,
-                   let language = candidates.max(by: { (probabilities[$0] ?? 0) < (probabilities[$1] ?? 0) }),
+                   let probabilities = try await probe(),
+                   let language = mostProbable(candidates, probabilities),
                    logProbe(engine: engine.id, language: language, probability: probabilities[language] ?? 0),
-                   (probabilities[language] ?? 0) >= policy.translationProbability,
-                   let script = nonLatinScript(of: language) {
+                   (probabilities[language] ?? 0) >= policy.translationThreshold(for: language),
+                   let script = nonLatinScript(of: language),
+                   let explicit = explicitLanguage(for: config, candidates: [language]) {
                     var retryHints = hints
-                    retryHints.language = language
+                    retryHints.language = explicit
                     if let retry = try await attempt({ try await engine.transcribe(samples: samples, hints: retryHints) }),
                        ScriptProfile(retry.text).fraction(script) >= 0.2 {
                         result = retry.adding(result.adjustments + [.languageRetried])
@@ -161,14 +191,52 @@ public enum LocalASROutputGuard {
         return nil
     }
 
+    /// The user's language to decode an implausible result again in. Without a
+    /// language probe: the first non-English language, then English (Qwen3-ASR's
+    /// Ukrainian output for Mandarin speech came back right with zh). With one:
+    /// the most probable non-English language that reaches its translation
+    /// threshold, since mixed speech scores partly English, otherwise the most
+    /// probable language. A Russian user's English speech written in Arabic
+    /// script is then decoded as English, not translated into Russian.
+    static func bestLanguage(_ supported: [String], probabilities: [String: Double]?, policy: Policy) -> String? {
+        let preferenceOrder = supported.filter { $0 != "en" } + supported.filter { $0 == "en" }
+        guard let probabilities else { return preferenceOrder.first }
+        let others = supported.filter { $0 != "en" && (probabilities[$0] ?? 0) >= policy.translationThreshold(for: $0) }
+        return mostProbable(others, probabilities) ?? mostProbable(supported, probabilities) ?? preferenceOrder.first
+    }
+
+    /// The candidate with the highest probability; ties keep preference order.
+    static func mostProbable(_ candidates: [String], _ probabilities: [String: Double]) -> String? {
+        var best: (code: String, probability: Double)?
+        for code in candidates {
+            let probability = probabilities[code] ?? 0
+            if best == nil || probability > best!.probability { best = (code, probability) }
+        }
+        return best?.code
+    }
+
+    /// The script a Latin-only result would lack if it were this language's
+    /// translation: Han, kana, Hangul, Cyrillic, Arabic, Devanagari and every
+    /// other script `WritingScript` knows. nil for Latin-script languages and
+    /// for Serbian, written in Latin as often as in Cyrillic.
     static func nonLatinScript(of language: String) -> WritingScript? {
         switch language {
-        case "zh", "yue": return .han
+        case "zh", "yue", "zh-hk": return .han
         case "ja": return .kana
         case "ko": return .hangul
-        default: return nil
+        case "sr": return nil
+        default:
+            let scripts = WritingScript.nativeScripts(of: language)
+            return scripts.count == 1 ? scripts.first : nil
         }
     }
+
+    /// Per-language translation thresholds (`Policy.translationProbabilities`),
+    /// for a language whose English speech scores near the default. None yet:
+    /// with Whisper Large v3 Turbo (eval/mixed-asr, AD-098) 40 English sentences,
+    /// half in Indian English voices, scored at most 0.0011 for Russian, 0.0001
+    /// for Arabic and 0.00002 for Hindi, as against 0.0002 for Mandarin.
+    public static let measuredTranslationProbabilities: [String: Double] = [:]
 
     /// Retries are best effort: cancellation propagates, other failures keep the first result.
     private static func attempt<Value>(_ body: () async throws -> Value) async throws -> Value? {
