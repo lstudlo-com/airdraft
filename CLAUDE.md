@@ -373,7 +373,8 @@ and Local releases below.
   Collapsed, it still lists Experimental models in use: the app default, the active
   profile's binding, installed files (checked on a worker) and running downloads;
   `models-performance` asserts this. Tiers
-  are data in `ModelCatalogue.verificationEvidence` with a source per ID; promote a
+  are data in `ModelCatalogue.verificationEvidence` with a source per ID (GigaAM v3
+  E2E RNN-T cites `eval/intl-asr`); promote a
   model only after an actual download, load and transcription.
   Long model tables use native List virtualization; group each row with its
   separator as one cell. Short lists measure an eager stack and clamp geometry
@@ -1150,12 +1151,23 @@ dictation complete, and only Try It's real pipeline delivery records success.
 Existing setups do not open the flow automatically; replay after success starts
 at Welcome. Old three-step progress migrates without reopening a skipped setup.
 Speech offers On this Mac (recommended) or an online service with the user's key.
-`LocalSpeechRecommendation` picks the local model from the primary system language
-and physical memory: Chinese gets Qwen3-ASR 1.7B with SenseVoice as the smaller
-choice, reversed at 8 GB or less; English gets Parakeet TDT v2 with Qwen3-ASR 1.7B
-as the multilingual choice; Japanese and Korean get Qwen3-ASR 1.7B with Whisper Large
-v3 Turbo as the lower-memory choice, reversed at 8 GB or less (`eval/eja-asr`); other
-languages get Whisper Large v3 Turbo. Never recommend Qwen3-ASR 0.6B as a lighter
+`LocalSpeechRecommendation.rules` is the data: one measured rule per primary system
+language (choice above and at or below the 8 GB threshold, each alternative's Models
+label, curated shortlist extras, whether the recommendation measured most accurate,
+and its evidence); `unmeasuredRule(for:)` is the documented default. Chinese gets
+Qwen3-ASR 1.7B with SenseVoice as the smaller choice, reversed at 8 GB or less;
+English gets Parakeet TDT v2 with Qwen3-ASR 1.7B as the multilingual choice; Japanese
+and Korean get Qwen3-ASR 1.7B with Whisper Large v3 Turbo as the lower-memory choice,
+reversed at 8 GB or less (`eval/eja-asr`). Spanish, French, Portuguese, Russian,
+Arabic, Hindi and Indonesian get Qwen3-ASR 1.7B (`eval/intl-asr`); at 8 GB or less
+Spanish, French and Portuguese get Parakeet TDT v3 (Core ML), Russian GigaAM v3 E2E
+RNN-T and Arabic and Indonesian Whisper Large v3 Turbo, each with Qwen3-ASR as the
+alternative; Hindi keeps Qwen3-ASR on every Mac. Models that need an explicit speech
+language (Canary, Cohere, Cohere Transcribe Arabic) are never first-run choices.
+Other languages get Whisper Large v3 Turbo. Onboarding copy follows the rule's
+labels and says "Most accurate for <language> in Airdraft's tests" only where the
+rule records it. A new language needs a measured rule with its evidence and Core
+tests. Never recommend Qwen3-ASR 0.6B as a lighter
 default. Never recommend or shortlist SenseVoice Cantonese (the WSYue fine-tune);
 the Chinese 8 GB choice is the original multilingual SenseVoice. Each choice shows its download size and a one-line trade-off.
 Try It's read-aloud sentence follows the chosen speech language
