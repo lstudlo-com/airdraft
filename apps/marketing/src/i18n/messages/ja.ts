@@ -1,7 +1,7 @@
 import type { Messages } from "./types";
 
 // Japanese. App labels follow the app's ja catalog (src/data/app.ts):
-// 音声入力 (dictation), 整形 (refinement), プロファイル, 語彙, 履歴.
+// 音声入力 (dictation), 整形 (refinement), モード, 語彙, 履歴.
 export const ja: Messages = {
   gap: "",
   english: "（英語）",
@@ -95,7 +95,7 @@ export const ja: Messages = {
         "ショートカットはひとつ",
         "⌃⌥ を長押し、または好きな組み合わせを登録。",
       ],
-      profiles: ["プロファイル", "4 つを内蔵、どれも編集できます。"],
+      profiles: ["モード", "4 つを内蔵、どれも編集できます。"],
       vocabulary: ["語彙", "名前や専門用語は一度教えるだけ。"],
       history: ["履歴", "検索、元の内容への切り替え、コピー。"],
       fallback: [
@@ -126,10 +126,10 @@ export const ja: Messages = {
     name: "音声入力のサンプル",
     said: "話した内容",
     inserts: "Airdraft が入力するテキスト",
-    picker: "整形プロファイル",
+    picker: "整形モード",
     run: "サンプルを再生",
     noscript:
-      "クリーンのプロファイルを表示しています。サンプルを再生するには JavaScript をオンにしてください。",
+      "クリーンのモードを表示しています。サンプルを再生するには JavaScript をオンにしてください。",
     spoken: [
       "「",
       { filler: "えーと、" },
@@ -355,7 +355,7 @@ export const ja: Messages = {
       editions: [
         "どちらの版にも何が含まれますか？",
         [
-          "同じアプリです。どのアプリへの音声入力も、会議（アプリの音声とマイクの録音、または音声や動画の読み込み。話者ラベルは任意で、TXT、JSON、SRT、VTT に書き出し）も、プロファイル、語彙、履歴も含まれます。公式アプリに追加機能はなく、Xcode でのビルドが不要になるだけです。詳しくは",
+          "同じアプリです。どのアプリへの音声入力も、会議（アプリの音声とマイクの録音、または音声や動画の読み込み。話者ラベルは任意で、TXT、JSON、SRT、VTT に書き出し）も、モード、語彙、履歴も含まれます。公式アプリに追加機能はなく、Xcode でのビルドが不要になるだけです。詳しくは",
           { link: "meetingGuide", text: "会議ガイド" },
           "をご覧ください。",
         ],
