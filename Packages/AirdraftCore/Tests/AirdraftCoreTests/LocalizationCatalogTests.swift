@@ -10,12 +10,11 @@ final class LocalizationCatalogTests: XCTestCase {
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
     /// Shipped interface languages besides the English source (`Config/languages.json`).
-    private static let languageConfig: [String: Any] = {
+    private static let languages: [String] = {
         let url = repository.appendingPathComponent("Config/languages.json")
-        return (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [String: Any] ?? [:]
+        let config = (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [String: Any]
+        return ((config?["languages"] as? [[String: Any]]) ?? []).compactMap { $0["code"] as? String }
     }()
-    private static let languages: [String] = ((languageConfig["languages"] as? [[String: Any]]) ?? [])
-        .compactMap { $0["code"] as? String }
     private static let catalogs = [
         "Sources/App/Localizable.xcstrings",
         "Sources/App/InfoPlist.xcstrings",
