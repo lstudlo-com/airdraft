@@ -1070,16 +1070,26 @@ case, the other non-English languages sentence case. Every catalog except
 zh-Hans and zh-Hant is machine-drafted and render-reviewed and needs native
 review. When one English word needs different translations in different places,
 use a keyed entry with `defaultValue` (`TextSizeDefault`, `HomeSummaryHeading`,
-`OnboardingStepShortcut`). Fit translations to the fixed layouts (sidebar,
-segmented controls, model table headers, the 190-point menu titles) where a short
-form exists. `LocalizationCatalogTests` fails on missing,
+`OnboardingStepShortcut`, `ModelTierVerified`/`ModelGroupVerified`,
+`OnboardingStep*`). Layouts stretch to their translations: `SoftSegmentedPicker`'s
+`width` is a minimum and segments share the widest label, `SoftPickerWidth.fitting`
+sizes menus with a bounded set of choices, model table columns measure their
+localized headers and values, soft buttons stay on one line and grow, and the
+sidebar footer may take two lines; native menu titles still fit 190 points.
+Shortcut instructions come only from `ShortcutCopy`, one complete sentence per
+gesture (Hold, Press, and Hold with a trigger delay), with key caps as a `%@`
+marker rendered by `KeyCapsSentenceView`; never compose a verb with fragments or
+call `lowercased()`/`capitalized` on translated text. Numbers in user-facing copy
+are arguments (`%lld`, plural variations where needed; memory through
+`MemoryAmount`), never digits inside a string. Language names use `languageName`
+inside sentences and `languageLabel` as standalone labels. `LocalizationCatalogTests` fails on missing,
 stale or placeholder-mismatched entries in any shipped language and when the
 bundle localizations differ from the list. Verify UI changes with the
 `-AppleLanguages '(<code>)' -AppleLocale <locale>` renders of every shipped
 language at Default and Larger text size (es_ES, fr_FR, pt_BR, ru_RU, hi_IN,
 id_ID, ja_JP, zh_CN, zh_TW, ar_SA), including long-running languages (Russian,
-French, Indonesian) and Hindi's vowel signs. Letter-spacing (`.tracking`) applies
-only to Latin, Greek and Cyrillic interface scripts.
+French, Indonesian) and Hindi's vowel signs. Letter-spacing applies only through
+`scriptAwareTracking`, which tracks Latin, Greek and Cyrillic interface scripts only.
 Right to left: when the bundle resolves a right-to-left language,
 `AirdraftApp.registerInterfaceDirection` adds `AppleTextDirection` to the volatile
 argument domain so AppKit mirrors even when only the app is set to Arabic.
