@@ -703,7 +703,9 @@ and Local releases below.
   listed only while in use and offers no Japanese or Korean. Qwen uses upstream language names in decoder options. Apple
   exposes its effective fixed locale and asks the OS for supported equivalents;
   Apple Speech Mandarin follows the Chinese script (zh-CN for Simplified, zh-TW for
-  Traditional). Joint-language models validate the user's intent without sending an
+  Traditional). A bare speech language takes the Mac's region where the language
+  has a locale there; English only in its own regions (`englishRegions`), otherwise
+  en-US. Joint-language models validate the user's intent without sending an
   ignored forced-language parameter. Mandarin, Cantonese and Chinese script stay distinct.
 - Local speech output passes `LocalASROutputGuard` inside the engine lease before
   refinement. Decoder loops are cut to one copy (one token repeated 8 times, two
@@ -714,9 +716,13 @@ and Local releases below.
   failure and propagate cancellation: an empty result on audible audio gets one
   relaxed retry (Whisper without its no-speech gate or prompt, rejecting filler-only
   output), and only under Auto a result mostly in a script none of the system
-  languages plus English use, or a Latin-only Whisper result whose own P(zh) is at
-  least 0.1, is decoded once more with the best explicit language the model
-  supports, kept only when it fits better. Record each correction on the transcript
+  languages plus English use, or a Latin-only Whisper result whose own probability
+  for a system language written in another script (not Serbian) reaches that
+  language's threshold (0.1 unless `measuredTranslationProbabilities` sets one), is
+  decoded once more with the best explicit language the model supports, kept only
+  when it fits better. With Whisper's probe the retry language is the most probable
+  system language, a non-English one first when it reaches its threshold; without a
+  probe, the first non-English system language. Record each correction on the transcript
   and log it without text. SenseVoice and FireRedASR2 output gets natural-case
   English (keeping dictionary spellings, known acronyms and spelled letters) and one
   sentence-final mark for three or more tokens inside `SherpaTranscriber`, before
@@ -727,7 +733,8 @@ and Local releases below.
   controlled by Settings > Behavior > Vocabulary in speech recognition (default on)
   and captured at recording start. It sends preferred spellings only, never misheard
   aliases, capped at 50 terms of at most 40 characters and four words, 600 characters
-  in total, without markup and limited to scripts the speech language uses. Only
+  in total, without markup and limited to the scripts the speech language uses, each script separately
+  (`WritingScript.nativeScripts`). Only
   Qwen3-ASR context and sherpa-onnx transducer hotwords (Parakeet, Orukeet) receive
   it. Qwen drops the terms on near-silent chunks (about -50 dBFS) and decodes again
   without them when the output is only the term list. Parakeet switches to its
@@ -1141,6 +1148,9 @@ v3 Turbo as the lower-memory choice, reversed at 8 GB or less (`eval/eja-asr`); 
 languages get Whisper Large v3 Turbo. Never recommend Qwen3-ASR 0.6B as a lighter
 default. Never recommend or shortlist SenseVoice Cantonese (the WSYue fine-tune);
 the Chinese 8 GB choice is the original multilingual SenseVoice. Each choice shows its download size and a one-line trade-off.
+Try It's read-aloud sentence follows the chosen speech language
+(`PracticeSentence`), using the interface catalog's sentence when they match;
+the Refinement Test sample follows the speech language too (`RefinementSample`).
 A local download starts only from an explicit action, continues through later
 steps with progress in the rail, and becomes the app default only when complete
 while setup is open; Set Up Later discards that pending choice. Shortcut practice
