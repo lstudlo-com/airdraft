@@ -133,10 +133,8 @@ sale before `siteLinks.checkout` is set.
   need Read app context, which is off by default.
 - The app follows the macOS language setting. Traditional Chinese ships from
   0.11.0 and Simplified Chinese from 0.12.0; builds through 0.10.2 are English
-  only, and the translated guides say so. Spanish, Japanese, French, Brazilian
-  Portuguese, Russian, Arabic, Hindi and Indonesian interfaces exist in the
-  app's catalogs (or the translators' catalog exports) but not yet in a
-  published release; their pages say the released app still shows English
+  only, and the translated guides say so. Spanish and Japanese interfaces exist in the
+  app's catalogs but not yet in a published release; their pages say the released app still shows English
   (`interfaceReleased` in `src/i18n/index.ts`; turn a language on when its
   release is published). Translated pages quote app labels (buttons,
   settings, HUD states, Refined/Original, profile names, Meetings controls)
@@ -238,7 +236,7 @@ published key and HTML before sending. It does not run during build or deploymen
 The site's languages follow the app's interface languages. English pages live
 at the root; each translation lives under `/<code>/` with the English slug:
 `zh-tw` (Traditional Chinese, Taiwan), `zh-cn` (Simplified Chinese), `es`,
-`ja`, `fr`, `pt-br`, `ru`, `ar` (right to left), `hi` and `id`.
+and `ja`.
 `src/i18n/locales.json` lists each language's code, BCP 47 tag, Open Graph
 locale, own name, direction and translated paths; the search check, sitemap,
 analytics allowlist and i18n helpers all read it. Traditional Chinese

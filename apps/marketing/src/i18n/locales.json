@@ -45,53 +45,5 @@
     "name": "日本語",
     "dir": "ltr",
     "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "fr",
-    "tag": "fr",
-    "og": "fr_FR",
-    "name": "Français",
-    "dir": "ltr",
-    "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "pt-br",
-    "tag": "pt-BR",
-    "og": "pt_BR",
-    "name": "Português (Brasil)",
-    "dir": "ltr",
-    "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "ru",
-    "tag": "ru",
-    "og": "ru_RU",
-    "name": "Русский",
-    "dir": "ltr",
-    "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "ar",
-    "tag": "ar",
-    "og": "ar_AR",
-    "name": "العربية",
-    "dir": "rtl",
-    "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "hi",
-    "tag": "hi",
-    "og": "hi_IN",
-    "name": "हिन्दी",
-    "dir": "ltr",
-    "paths": ["/", "/pricing/"]
-  },
-  {
-    "code": "id",
-    "tag": "id",
-    "og": "id_ID",
-    "name": "Bahasa Indonesia",
-    "dir": "ltr",
-    "paths": ["/", "/pricing/"]
   }
 ]

@@ -728,7 +728,7 @@ opaque header, in the tint's colour. Anchors land below it (`scroll-padding-top`
 sits on the chrome below the island: the mark, its links, and under them every
 language named in itself, the current one in ink.
 
-Arabic pages are right to left (`dir="rtl"` from `src/i18n/locales.json`).
+No right-to-left language ships yet; a locale with `dir="rtl"` in `src/i18n/locales.json` is ready for it.
 `src/styles/languages.css` moves flow-relative spacing to logical properties
 there and turns arrows that point along the reading direction. The light still
 comes from the top left, so shadows, rims and raised edges are unchanged.

@@ -38,9 +38,7 @@ const planNames = messages[locale].license.plans;
 const onSale = Boolean(siteLinks.checkout);
 
 // Western digits in every language, grouped the language's way.
-const numbers = new Intl.NumberFormat(
-  locale === "ar" ? "ar-u-nu-latn" : languageTag[locale],
-);
+const numbers = new Intl.NumberFormat(languageTag[locale]);
 const n = (value: number) =>
   locale === "en" || locale === "zh-tw"
     ? value.toLocaleString("en-US")

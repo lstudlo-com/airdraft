@@ -5,19 +5,7 @@
 // allowlist and scripts/check-search.py read the same file.
 import definitions from "./locales.json" with { type: "json" };
 
-export const locales = [
-  "en",
-  "zh-tw",
-  "zh-cn",
-  "es",
-  "ja",
-  "fr",
-  "pt-br",
-  "ru",
-  "ar",
-  "hi",
-  "id",
-] as const;
+export const locales = ["en", "zh-tw", "zh-cn", "es", "ja"] as const;
 export type Locale = (typeof locales)[number];
 /** The locales the guides are written in; the other languages link to English. */
 export type GuideLocale = Extract<Locale, "en" | "zh-tw">;
@@ -76,12 +64,6 @@ export const interfaceReleased: Record<Locale, boolean> = {
   "zh-cn": true,
   es: false,
   ja: false,
-  fr: false,
-  "pt-br": false,
-  ru: false,
-  ar: false,
-  hi: false,
-  id: false,
 };
 
 const prefixed = locales.filter((locale) => locale !== "en");

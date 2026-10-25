@@ -389,7 +389,7 @@ test("intent clicks are captured the same way in every language", async () => {
     issues: "https://github.com/example/airdraft/issues",
     checkout: "",
   };
-  for (const pathname of ["/", "/zh-tw/", "/es/", "/ar/"]) {
+  for (const pathname of ["/", "/zh-tw/", "/es/", "/ja/"]) {
     const f = fixture({ choice: "granted", siteLinks, pathname });
     await settle();
     const click = (url, containers = []) => {
@@ -444,7 +444,7 @@ test("every pricing page leads the checkout funnel", () => {
   );
   assert.ok(policy.pricingPaths.includes("/pricing/"));
   assert.ok(policy.pricingPaths.includes("/zh-tw/pricing/"));
-  assert.ok(policy.pricingPaths.includes("/ar/pricing/"));
+  assert.ok(policy.pricingPaths.includes("/ja/pricing/"));
   assert.deepEqual(
     funnel.query.source.series[0].properties[0].value,
     policy.pricingPaths,

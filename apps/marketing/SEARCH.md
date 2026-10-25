@@ -19,13 +19,11 @@ or making claims about search features.
 - Translated pages follow `src/i18n/locales.json` (read by
   `src/i18n/index.ts`, `astro.config.mjs`, the analytics policy and
   `check-search.py`): each language at `/<code>/` + the English slug, with
-  its BCP 47 tag as `lang` (`zh-Hant-TW`, `zh-Hans-CN`, `es`, `ja`, `fr`,
-  `pt-BR`, `ru`, `ar`, `hi`, `id`), its `dir` (`rtl` for Arabic), its
-  `og:locale` (`zh_TW`, `zh_CN`, `es_ES`, `ja_JP`, `fr_FR`, `pt_BR`, `ru_RU`,
-  `ar_AR`, `hi_IN`, `id_ID`) with the set's other languages as
+  its BCP 47 tag as `lang` (`zh-Hant-TW`, `zh-Hans-CN`, `es`, `ja`), its `dir`, its
+  `og:locale` (`zh_TW`, `zh_CN`, `es_ES`, `ja_JP`) with the set's other languages as
   `og:locale:alternate`, and WebPage `inLanguage` matching the page. Each
   language lists its own translated paths, so a translation set holds the
-  languages that have that page: the homepage and pricing in all eleven, four
+  languages that have that page: the homepage and pricing in all five, four
   guides in English and Traditional Chinese. Every member of a set emits the
   same `hreflang` alternates (each version, plus `x-default` pointing at the
   English page), including itself; the sitemap's `xhtml:link` alternates
