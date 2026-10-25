@@ -176,7 +176,14 @@ and Local releases below.
   their links into the menu up to 700 px, the other languages up to 900 px. No
   right-to-left language ships yet; styles use logical properties so one can (keep
   the top-left light and app pictures, the waveform, the HUD and key caps left to
-  right). JavaScript packages
+  right). The homepage's guide picker
+  (`GuideLinks`/`GuideGlyph`) shows one app-part graphic and one short label per
+  guide, labels in `guideLinks.labels` of every language's messages file; tiles in
+  languages without the guide lead to the English guide with the "(English)" mark
+  and `hreflang="en"`. The header keys sit one 10 px step apart through the
+  `.header-actions` gap, never margins. Homepage graphics play once when on
+  screen and answer the pointer (`bento.ts`, `meetings.ts`, `pipeline.ts`), with
+  Reduce Motion and no-JS resting frames. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
