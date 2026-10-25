@@ -125,6 +125,18 @@ class ParallelWorkTests(unittest.TestCase):
         self.assertNotIn("claude/web", branches)
         self.assertTrue((self.main / "dist/validation/other/run/result.json").exists())
 
+    def test_cleanup_deletes_a_branch_merged_locally_but_not_pushed(self):
+        remote = Path(self.temporary.name) / "remote.git"
+        run("git", "init", "-q", "--bare", str(remote), cwd=self.main)
+        run("git", "remote", "add", "origin", str(remote), cwd=self.main)
+        run("git", "push", "-q", "-u", "origin", "main", cwd=self.main)
+        (self.other / "apps/site/page.txt").write_text("two\n")
+        run("git", "commit", "-q", "-am", "web", cwd=self.other)
+        run("git", "merge", "-q", "--ff-only", "claude/web", cwd=self.main)
+        self.cleanup("--apply")
+        branches = subprocess.run(["git", "branch"], cwd=self.main, capture_output=True, text=True).stdout
+        self.assertNotIn("claude/web", branches)
+
     def test_cleanup_keeps_unmerged_dirty_claimed_and_recent_work(self):
         (self.other / "apps/site/page.txt").write_text("two\n")
         self.assertIn("uncommitted", self.cleanup("--apply"))

@@ -398,19 +398,23 @@ def cleanup(args, root: Path = ROOT) -> int:
         if args.apply:
             for target in move_evidence(Path(tree["path"]), primary):
                 print(f"  kept its evidence in {target}")
-            git("worktree", "remove", "--force", tree["path"], cwd=root, check=True)
+            if git("worktree", "remove", "--force", tree["path"], cwd=root) is None:
+                print(f"  could not remove {tree['path']}; left in place")
     if plan["prune"]:
         print(f"{verb.replace('remove', 'prune')} missing worktree records")
         if args.apply:
             git("worktree", "prune", cwd=root, check=True)
     for name in dict.fromkeys(plan["branches"] + [t["branch"] for t in plan["worktrees"] if t["branch"]]):
         print(f"{verb} branch {name} (merged into {args.base})")
-        if args.apply:
-            git("branch", "-d", name, cwd=root, check=True)
+        if args.apply and merged(name, args.base, root):
+            # Merged into the local base was checked above; `-d` would also
+            # demand the base be pushed, which a fresh merge is not yet.
+            if git("branch", "-D", name, cwd=root) is None:
+                print(f"  could not delete {name}; left in place")
     for name in plan["remote"]:
         print(f"{verb} origin/{name} (merged into origin/{args.base})")
-        if args.apply:
-            git("push", "origin", "--delete", name, cwd=root, check=True)
+        if args.apply and git("push", "origin", "--delete", name, cwd=root) is None:
+            print(f"  could not delete origin/{name}; left in place")
     if plan["claims"]:
         print(f"{verb} claims: {', '.join(plan['claims'])}")
         if args.apply:
