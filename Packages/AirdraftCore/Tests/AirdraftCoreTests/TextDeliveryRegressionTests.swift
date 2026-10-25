@@ -1012,6 +1012,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
         }
         var delivered = 0
         pipeline.onOutputDelivered = { delivered += 1 }
+        // A 3-second notice reset runs in 0.3 s.
+        pipeline.resetDelayScale = 0.1
         pipeline.startRecording()
         for _ in 0..<100 where !pipeline.isRecording { try await Task.sleep(for: .milliseconds(5)) }
         XCTAssertTrue(pipeline.isRecording)
@@ -1035,8 +1037,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
                 XCTAssertEqual(editor.posts, 1)
                 XCTAssertEqual(try history.recent(limit: 1).first?.error, notice)
             }
-            try await Task.sleep(for: .milliseconds(3200))
-            XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three seconds")
+            try await Task.sleep(for: .milliseconds(500))
+            XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three (scaled) seconds")
         } else if refinementFails {
             let notice = unverified ? "Refinement unavailable; raw text pasted." : "Refinement unavailable; raw text inserted."
             XCTAssertEqual(pipeline.state, .notice(notice, requiresAttention: true))

@@ -494,13 +494,14 @@ final class PipelineAutomationTests: XCTestCase {
     func testMaximumRecordingTimerStopsAndDeliversOnlyOnce() async throws {
         let fixture = try Fixture()
         defer { fixture.cleanUp() }
-        fixture.settings.maxRecordingSeconds = 10
+        // The injected limit stands in for the 10-second setting minimum.
+        fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
         let started = Date()
         try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Maximum recording time delivers the transcript", timeout: 13) {
+        try await waitUntil("Maximum recording time delivers the transcript", timeout: 4) {
             fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
         }
-        XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(started), 9.5)
+        XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(started), 0.9)
         XCTAssertFalse(fixture.recorder.isRecording)
         XCTAssertNil(fixture.pipeline.recordingStartedAt)
         try fixture.pipeline.stopFromAutomation()
@@ -514,14 +515,14 @@ final class PipelineAutomationTests: XCTestCase {
     func testCancelledMaximumTimerCannotStopReplacementRecording() async throws {
         let fixture = try Fixture()
         defer { fixture.cleanUp() }
-        fixture.settings.maxRecordingSeconds = 10
+        fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
         try await fixture.pipeline.startFromAutomation()
         try await Task.sleep(for: .milliseconds(50))
         try fixture.pipeline.cancelFromAutomation()
-        fixture.settings.maxRecordingSeconds = 30
+        fixture.pipeline.recordingLimitSeconds = { _, _ in 30 }
         try await fixture.pipeline.startFromAutomation()
         // Pass the cancelled session's original deadline with a new session active.
-        try await Task.sleep(for: .milliseconds(10_250))
+        try await Task.sleep(for: .milliseconds(1_250))
 
         XCTAssertTrue(fixture.pipeline.isRecording)
         XCTAssertTrue(fixture.recorder.isRecording)

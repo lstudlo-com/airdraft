@@ -377,10 +377,15 @@ public final class DictationPipeline {
         resetLater(after: 4)
     }
 
+    /// Scales notice and failure reset timers; tests shorten them instead of
+    /// waiting seconds in real time.
+    var resetDelayScale: Double = 1
+
     /// An earlier timer must not clear a newer failure or notice.
     func resetLater(after seconds: Double) {
+        let delay = seconds * resetDelayScale
         resetTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
+            try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled else { return }
             self?.set(.idle)
         }

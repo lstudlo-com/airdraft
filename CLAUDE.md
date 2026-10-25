@@ -580,9 +580,10 @@ and Local releases below.
   items use title case; section headings use sentence case. Other languages follow
   their own capitalization.
   Read the interface consistency rules in `docs/PRODUCT.md` and inspect light/dark
-  renders at the fixed 784-point width and minimum/taller heights, including lower sections. Check every
-  page for the same alignment and input pattern. For a released UI fix, verify the app built
-  from the committed release sources, not only the dirty workspace.
+  renders of the pages a change touches at the fixed 784-point width, adding the
+  minimum height or lower sections only when the change reaches them. For a released
+  UI fix, verify the app built from the committed release sources, not only the dirty
+  workspace.
 - Neumorphism covers the whole window. Page cards and controls use
   `SoftRaisedSurface` from `SoftControls.swift`: the Home hero's light and shade at
   full strength (white highlight up-left, shade down-right), with a smaller spread,
@@ -1347,6 +1348,27 @@ add FinderInfo to the signed app to hide its extension; strict signing rejects
 it. See `docs/installer/DESIGN.md` and `docs/updates.md` for the local preview path.
 
 ## Validation
+
+Run the smallest set of checks that covers the change, in one batched pass;
+never repeat checks for areas the change did not touch. `release.py` runs
+everything, including the full-length tests (`AIRDRAFT_LONG_TESTS=1`).
+
+| Change | Run |
+| --- | --- |
+| Core or App logic | The affected test classes while working; `xcodebuild … test` once before committing |
+| App view or layout | Build; light/dark renders of the touched pages (`--render-window <page>`). Add a11y-audit only when controls, names or focus change, and Larger text only when copy length changes |
+| Copy or localization | `localization.py check`; one render in each affected language |
+| Delivery or insertion | `TextDeliveryRegressionTests`, then `verify-insertion-regressions.py` on that xcresult |
+| A component with its own script (header blur, shadows, sidebar selection, download progress, app icons, data-cleanup quit, menu, native UI, settings search, models performance, History navigation) | That script or fixture, only when the component changes |
+| Website only | `pnpm check:marketing`, `pnpm build:marketing`, one desktop and one phone browser pass |
+| Docs or vault only | `check-vault.py` when the vault changed; nothing else |
+
+Tests use injected time instead of waiting: `EngineFactory`'s `now`,
+`DictationPipeline.recordingLimitSeconds` and `resetDelayScale`, and
+`TextInserter`'s delays. A unit test that sleeps longer than a second needs a
+stated reason, and tests that model hours of audio shorten unless
+`LongTests.enabled`. Do not add a UI-operation fixture for behavior a logic test
+can cover.
 
 - App icons: after a Debug build, run `python3 scripts/verify-app-icons.py --app <Debug.app>`.
   It checks real AppKit icon images, theme changes, independent preferences and
