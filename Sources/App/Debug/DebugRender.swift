@@ -602,10 +602,10 @@ enum DebugRender {
         let previewRenderer = ImageRenderer(content: preview)
         previewRenderer.scale = 2
         if let rendered = previewRenderer.nsImage { images.append(rendered) }
-        // AD-084: model-driven live text (CJK, committed plus provisional tail),
-        // an unavailable model and the empty Listening state share the same box.
+        // AD-084: model-driven live text (CJK, committed plus provisional tail)
+        // and the empty Listening state share the same glass card.
         for sample in ["我們下週一前完成預算審查，然後把最後的數字寄給財務團隊。接下來討論產品發表的時間表",
-                       ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: .whisperKit)) ?? "", nil] as [String?] {
+                       "Short line", nil] as [String?] {
             let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
                 style: .classic, showPreview: true, sampleText: sample)
                 .padding(12).background(Color(white: 0.93))
@@ -614,6 +614,16 @@ enum DebugRender {
             renderer.scale = 2
             if let rendered = renderer.nsImage { images.append(rendered) }
         }
+        // A model without live text opens no card, only the brief notice.
+        let notice = HUDPreviewNotice()
+        notice.present(ModelSpeechPreview.recordingNotice(for: ASRConfig(kind: .whisperKit)))
+        let noticeView = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+            style: .classic, showPreview: false, previewNotice: notice)
+            .padding(12).background(Color(white: 0.93))
+            .environment(\.layoutDirection, appLayoutDirection)
+        let noticeRenderer = ImageRenderer(content: noticeView)
+        noticeRenderer.scale = 2
+        if let rendered = noticeRenderer.nsImage { images.append(rendered) }
         let width = images.map(\.size.width).max() ?? 0
         let height = images.reduce(0) { $0 + $1.size.height }
         let sheet = NSImage(size: NSSize(width: width, height: height))

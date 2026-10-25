@@ -58,13 +58,14 @@ final class PipelineModelPreviewTests: XCTestCase {
         XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 8_000))
     }
 
-    func testUnavailableModelShowsReasonAndRecordingContinues() async throws {
+    func testUnavailableModelOpensNoPreviewAndRecordingContinues() async throws {
         let fixture = try Fixture(source: .speechModel, availability: { _ in "Live text is unavailable for this model." })
         defer { fixture.cleanUp() }
         try await begin(fixture)
         XCTAssertTrue(fixture.builds.sessions.isEmpty)
         XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertTrue(fixture.pipeline.previewEnabledForRecording)
+        // The HUD keeps the live-text window closed and shows the reason briefly.
+        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
         XCTAssertEqual(fixture.pipeline.previewIssue, "Live text is unavailable for this model.")
         fixture.recorder.capture([Float](repeating: 0.2, count: 16_000))
         fixture.pipeline.stopAndProcess()

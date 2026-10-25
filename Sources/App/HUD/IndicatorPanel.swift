@@ -25,6 +25,7 @@ final class IndicatorPanelController {
     private var contentID = UUID()
     private var targetFrame: NSRect?
     private let spatialAnimation = SpatialHUDAnimation()
+    private let previewNotice = HUDPreviewNotice()
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
          disco: @escaping () -> Bool = { false },
@@ -75,6 +76,7 @@ final class IndicatorPanelController {
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
             spatialAnimation: spatialAnimation,
+            previewNotice: previewNotice,
             onSizeChange: { [weak self] size in
                 guard let self, self.contentID == id, self.dismissalID == nil else { return }
                 self.resize(to: size, animated: messageSnapshot != nil)
@@ -159,7 +161,8 @@ final class IndicatorPanelController {
                                    visualizerDisco: reduced ? .still(energy: staticEnergy) : spatialAnimation.disco.frame)
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
-            timer: currentTimer, discoEnabled: currentDisco, showPreview: currentPreview, sampleText: pipeline.previewIssue ?? pipeline.previewText,
+            timer: currentTimer, discoEnabled: currentDisco, showPreview: currentPreview,
+            sampleText: currentPreview ? pipeline.previewIssue ?? pipeline.previewText : nil,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard))
         host.sizingOptions = []
@@ -190,6 +193,7 @@ final class IndicatorPanelController {
             return
         }
         let preview = pipeline.isRecording && pipeline.previewEnabledForRecording
+        previewNotice.present(HUDPreviewNotice.message(for: pipeline))
         let message = lastVisibleState.hudMessage != nil
         let wasVisible = panel.isVisible
         let size = applyStyle(style, preview: preview)
@@ -241,24 +245,21 @@ struct RecordingHUDView: View {
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
     var spatialAnimation = SpatialHUDAnimation()
+    var previewNotice: HUDPreviewNotice?
     var onSizeChange: ((CGSize) -> Void)?
 
+    private var liveText: String? {
+        let text = sampleText ?? pipeline?.previewIssue ?? pipeline?.previewText
+        return text?.isEmpty == false ? text : nil
+    }
+
     var body: some View {
-        VStack(spacing: 10) {
-            if showPreview {
-                Text(pipeline?.previewIssue ?? sampleText ?? (pipeline?.previewText).flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Listening…"))
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.white.opacity(0.95))
-                    .lineLimit(3)
-                    .truncationMode(.head)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .naturalAlignment(for: pipeline?.previewIssue ?? sampleText ?? pipeline?.previewText ?? "")
-                    .padding(14)
-                    .frame(width: 360, height: 76)
-                    .background {
-                        NeumorphicSurface(shape: RoundedRectangle(cornerRadius: 16, style: .continuous), depth: 1.5)
-                    }
-                    .environment(\.colorScheme, .dark)
+        VStack(spacing: 8) {
+            if let notice = previewNotice?.message {
+                LivePreviewNotice(message: notice)
+                    .opacity(previewNotice?.isFading == true ? 0 : 1)
+            } else if showPreview {
+                LivePreviewCard(text: liveText)
             }
             IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style, timer: timer,
                           discoEnabled: discoEnabled,
@@ -267,6 +268,153 @@ struct RecordingHUDView: View {
         }
         .fixedSize()
         .onGeometryChange(for: CGSize.self) { $0.size } action: { onSizeChange?($0) }
+        // Follows the pipeline between HUD rebuilds; presenting is idempotent.
+        .onChange(of: pipeline.flatMap(HUDPreviewNotice.message(for:)), initial: true) { _, message in
+            if pipeline != nil { previewNotice?.present(message) }
+        }
+    }
+}
+
+/// Live text floats above the capsule on dark glass. The newest words stay
+/// crisp at the bottom; earlier lines scroll up and dissolve into the material.
+struct LivePreviewCard: View {
+    static let width: CGFloat = 280
+    static let fontSize: CGFloat = 12.5
+    /// Two full lines plus the fading tail of a third.
+    static let textHeight: CGFloat = 42
+    static let cornerRadius: CGFloat = 14
+
+    var text: String?
+    @State private var overflows = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let shown = text ?? String(localized: "Listening…")
+        Text(shown)
+            .font(.system(size: Self.fontSize, weight: .medium))
+            .lineSpacing(1.5)
+            .foregroundStyle(Color.white.opacity(text == nil ? 0.45 : 0.92))
+            .shadow(color: .black.opacity(0.35), radius: 1.5, y: 0.5)
+            .lineLimit(5)
+            .truncationMode(.head)
+            .naturalAlignment(for: shown)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: Bool.self) { $0.size.height > Self.textHeight + 0.5 } action: { overflows = $0 }
+            // Short text keeps the card one line tall; longer text fills it and
+            // its oldest line fades out under the top edge.
+            .frame(maxHeight: Self.textHeight, alignment: .bottom)
+            .clipped()
+            .mask {
+                if overflows {
+                    LinearGradient(stops: [.init(color: .clear, location: 0.06),
+                                           .init(color: .black.opacity(0.4), location: 0.24),
+                                           .init(color: .black, location: 0.46)],
+                                   startPoint: .top, endPoint: .bottom)
+                } else {
+                    Color.black
+                }
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: shown)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .frame(width: Self.width)
+            .background { HUDGlass(shape: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)) }
+            .environment(\.colorScheme, .dark)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("hud.liveText")
+    }
+}
+
+/// A model without live text says so briefly; the live-text window stays closed.
+struct LivePreviewNotice: View {
+    static let maxWidth: CGFloat = 280
+    var message: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: "text.bubble")
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.6))
+                .accessibilityHidden(true)
+            Text(message)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.88))
+                .lineLimit(2)
+                .naturalAlignment(for: message)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .frame(maxWidth: Self.maxWidth, alignment: .leading)
+        .fixedSize()
+        .background { HUDGlass(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)) }
+        .environment(\.colorScheme, .dark)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("hud.liveTextNotice")
+    }
+}
+
+/// Translucent smoked glass: the desktop shows through, blurred, under a dark
+/// tint that keeps white text legible over light documents. Reduce
+/// Transparency makes it opaque.
+struct HUDGlass<S: InsettableShape>: View {
+    var shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        ZStack {
+            if reduceTransparency {
+                shape.fill(Color(white: 0.12))
+            } else {
+                shape.fill(.ultraThinMaterial)
+                shape.fill(LinearGradient(colors: [Color.black.opacity(0.42), Color.black.opacity(0.56)],
+                                          startPoint: .top, endPoint: .bottom))
+            }
+            shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.05)],
+                                              startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                .physicalLight()
+        }
+        .environment(\.colorScheme, .dark)
+    }
+}
+
+/// Shows why a recording has no live text for two seconds, then fades it.
+/// The controller owns it so rebuilding the HUD's content never restarts it.
+@MainActor @Observable
+final class HUDPreviewNotice {
+    private(set) var message: String?
+    private(set) var isFading = false
+    @ObservationIgnored private var presented: String?
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private let visibleFor: TimeInterval
+    @ObservationIgnored private let fadeFor: TimeInterval
+
+    init(visibleFor: TimeInterval = 2, fadeFor: TimeInterval = 0.3) {
+        self.visibleFor = visibleFor
+        self.fadeFor = fadeFor
+    }
+
+    /// The notice for a recording whose live-text window stays closed.
+    static func message(for pipeline: DictationPipeline) -> String? {
+        pipeline.isRecording && !pipeline.previewEnabledForRecording ? pipeline.previewIssue : nil
+    }
+
+    /// Presenting the same message again keeps its original deadline; a new
+    /// recording clears it first, so its notice shows again.
+    func present(_ next: String?) {
+        guard next != presented else { return }
+        presented = next
+        task?.cancel()
+        isFading = false
+        message = next
+        guard next != nil else { return }
+        task = Task { [weak self, visibleFor, fadeFor] in
+            do { try await Task.sleep(for: .seconds(visibleFor)) } catch { return }
+            withAnimation(.easeOut(duration: fadeFor)) { self?.isFading = true }
+            do { try await Task.sleep(for: .seconds(fadeFor)) } catch { return }
+            self?.message = nil
+        }
     }
 }
 

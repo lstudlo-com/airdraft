@@ -463,8 +463,10 @@ extension DictationPipeline {
                 session = previewBuilder(locale, onText, onIssue)
                 break
             }
-            // An unsupported model shows why in the preview area; recording continues.
+            // An unsupported model opens no live-text window: the HUD shows the
+            // reason as a brief notice while recording continues.
             if let reason = modelPreviewAvailability(request.asr) {
+                previewEnabledForRecording = false
                 previewIssue = reason
                 return
             }

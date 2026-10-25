@@ -151,13 +151,8 @@ enum HUDStyle: String, CaseIterable {
     var previewText = ""
 }
 
-// Preview material is outside this fixture; the actual capsule and its layout
-// are compiled in full from IndicatorPanel.swift, without substituting its views.
-struct NeumorphicSurface<S: Shape>: View {
-    let shape: S
-    let depth: CGFloat
-    var body: some View { shape.fill(Color.gray) }
-}
+// The capsule, live-text card and its notice are compiled in full from
+// IndicatorPanel.swift, without substituting their views.
 
 @main struct HUDVisibilityCheck {
     @MainActor static func main() {

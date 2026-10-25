@@ -182,6 +182,35 @@
         }
       }
     },
+    "%@ doesn’t support live text" : {
+      "comment" : "Recording window notice, shown for two seconds when the speech model (%@) cannot show live text while recording.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no admite texto en directo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ はライブテキストに対応していません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 不支持实时文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 不支援即時文字"
+          }
+        }
+      }
+    },
     "%@ ended %@ seconds before the recording stopped." : {
       "localizations" : {
         "en" : {

@@ -1595,9 +1595,15 @@ supported only for Parakeet, SenseVoice and Orukeet. When the captured model is
 Apple Speech itself, it runs the Apple Speech preview analyzer in that model's
 effective locale (`ModelSpeechPreview.appleSpeechLocale`), never another model.
 Other models and cloud
-providers show that live text is unavailable while recording continues, and
-Settings shows the active profile's model with its readiness or reason and Open
-Models, reading installed state from `SetupFacts`. Dictation preview never loads, downloads or queues: it skips its tick while
+providers open no live-text window: the HUD shows a two-second notice naming the
+model (`ModelSpeechPreview.recordingNotice`, timed by `HUDPreviewNotice`) above
+the capsule while recording continues, and Settings shows the active profile's
+model with its readiness or reason and Open Models, reading installed state from
+`SetupFacts`. The live-text window (`LivePreviewCard`) is a compact 280-point card
+of translucent smoked glass (`HUDGlass`: blurred material under a dark tint, opaque
+with Reduce Transparency) above the capsule. It stays one line tall until text
+wraps, then shows the newest two lines with the oldest fading under its top edge;
+never return to an opaque fixed-size box. Dictation preview never loads, downloads or queues: it skips its tick while
 any lease operation runs or waits, never rebuilds a recognizer, and every other
 lease operation (load, final inference, media, unload) cancels it. Keep one decode
 in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window

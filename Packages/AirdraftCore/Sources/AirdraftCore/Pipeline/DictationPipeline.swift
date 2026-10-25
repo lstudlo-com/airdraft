@@ -109,6 +109,9 @@ public final class DictationPipeline {
     public var isProcessingMedia = false
     public var isCapturingMeeting = false
     public internal(set) var previewText = ""
+    /// While `previewEnabledForRecording`, a problem the live-text window shows.
+    /// Without it, why this recording has no live text: the HUD shows that
+    /// briefly as a notice and keeps the window closed.
     public internal(set) var previewIssue: String?
     public internal(set) var previewEnabledForRecording = false
     var previewSession: (any SpeechPreviewSession)?
@@ -121,7 +124,7 @@ public final class DictationPipeline {
     /// Live text from the recording's own loaded local model (AD-084).
     public typealias ModelPreviewBuilder = @Sendable (ModelPreviewRequest, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
     let modelPreviewBuilder: ModelPreviewBuilder
-    /// Why the recording's model cannot preview; tests inject installation.
+    /// The recording window's notice for a model that cannot preview; tests inject installation.
     let modelPreviewAvailability: @Sendable (ASRConfig) -> String?
     public internal(set) var reviewOutcome: DictationOutcome?
     public internal(set) var audioStorageError: String?
@@ -307,7 +310,7 @@ public final class DictationPipeline {
         recorder: any AudioRecording = AudioRecorder(),
         previewBuilder: @escaping PreviewBuilder = { SpeechPreview.start(locale: $0, onText: $1, onIssue: $2) },
         modelPreviewBuilder: ModelPreviewBuilder? = nil,
-        modelPreviewAvailability: @escaping @Sendable (ASRConfig) -> String? = { ModelSpeechPreview.unavailableReason(for: $0) },
+        modelPreviewAvailability: @escaping @Sendable (ASRConfig) -> String? = { ModelSpeechPreview.recordingNotice(for: $0) },
         contextReader: AppContextReader? = nil,
         inserter: TextInserter? = nil,
         insertText: ((String, InsertionMethod, InsertionTarget?) async -> InsertionResult)? = nil,
