@@ -155,13 +155,13 @@ struct OnboardingSpeechStep: View {
             // Korean (eval/eja-asr). Keep the website's figures aligned.
             switch recommended {
             case .qwen3Large where speech.recommendation.reason == .systemLanguage:
-                detail = String(localized: "Most accurate for \(systemLanguageName) in Airdraft's tests. Uses about 3 GB of memory.")
+                detail = String(localized: "Most accurate for \(systemLanguageName) in Airdraft's tests. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
             case .whisperTurbo where speech.recommendation.reason == .limitedMemory:
-                detail = String(localized: "More accurate for \(systemLanguageName), but uses about 3 GB of memory.")
+                detail = String(localized: "More accurate for \(systemLanguageName), but uses about \(MemoryAmount.gigabytes(3)) of memory.")
             case .parakeetEnglish:
-                detail = String(localized: "Also recognizes 29 other languages. Uses about 3 GB of memory.")
+                detail = String(localized: "Also recognizes \(29) other languages. Uses about \(MemoryAmount.gigabytes(3)) of memory.")
             case .qwen3Large, .senseVoice, .whisperTurbo:
-                detail = String(localized: "Most accurate when you mix Chinese and English. Uses about 2.4 GB of memory.")
+                detail = String(localized: "Most accurate when you mix Chinese and English. Uses about \(MemoryAmount.gigabytes(2.4)) of memory.")
             }
         case LocalSpeechRecommendation.Model.parakeetEnglish.catalogueID where recommended == .parakeetEnglish:
             detail = String(localized: "Accurate, fast and light on memory. English only.")
@@ -381,8 +381,8 @@ struct OnboardingShortcutStep: View {
 
     private var hotkey: Hotkey { container.settings.hotkey }
     private var behavior: HotkeyBehavior { container.settings.hotkeyBehavior }
-    private var verb: String {
-        behavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)
+    private var gesture: HotkeyGesture {
+        behavior.gesture(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)
     }
 
     var body: some View {
@@ -396,9 +396,10 @@ struct OnboardingShortcutStep: View {
                         Label(behavior == .hold ? "That’s it. Hold to talk, let go to insert." : "That’s it. Press to start, press again to insert.",
                               systemImage: "checkmark.circle.fill")
                     } else {
-                        Text(hotkey.keyCaps.count > 1
-                             ? "\(verb) \(OnboardingKeyNames.spoken(hotkey)) together."
-                             : "\(verb) \(OnboardingKeyNames.spoken(hotkey)).")
+                        Text(ShortcutCopy.rehearsalPrompt(gesture, keyNames: OnboardingKeyNames.spoken(hotkey),
+                                                          together: hotkey.keyCaps.count > 1))
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .appFont(.body, weight: .medium)
@@ -530,8 +531,8 @@ struct OnboardingPracticeStep: View {
 
     private var progress: OnboardingProgress { container.settings.onboarding }
     private var busy: Bool { container.pipeline.isBusy }
-    private var verb: String {
-        container.settings.hotkeyBehavior.instructionVerb(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)
+    private var gesture: HotkeyGesture {
+        container.settings.hotkeyBehavior.gesture(triggerDelayMilliseconds: container.settings.triggerDelayMilliseconds)
     }
     private var chosen: ASRConfig { progress.chosenSpeech ?? container.settings.asr }
     private var pendingDownload: ModelDownloadStore.Job? {
@@ -561,19 +562,18 @@ struct OnboardingPracticeStep: View {
 
         Card(padding: 20, spacing: 10) {
             Text(progress.practiceDeliveries == 0 ? "READ THIS ALOUD" : "NOW SAY ANYTHING")
-                .appFont(.caption2, weight: .semibold).tracking(0.8)
+                .appFont(.caption2, weight: .semibold).scriptAwareTracking(0.8)
                 .foregroundStyle(.secondary)
             Text(progress.practiceDeliveries == 0 ? "“\(sentence)”"
                  : "Try a message you might send today. Speak naturally, with pauses if you like.")
                 .appFont(size: progress.practiceDeliveries == 0 ? 19 : TextStyle.emphasis.size, weight: .medium)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("onboarding.script")
-            HStack(spacing: 10) {
-                Text(verb).appFont(.body)
+            KeyCapsSentenceView(ShortcutCopy.practiceInstruction(gesture),
+                                spokenKeys: OnboardingKeyNames.spoken(container.settings.hotkey), spacing: 10) {
                 OnboardingKeyCaps(hotkey: container.settings.hotkey, lit: monitor.rehearsal.litCaps, size: 28)
-                Text(container.settings.hotkeyBehavior == .hold ? "and speak. Let go to insert." : "and speak. Press again to insert.")
-                    .appFont(.body).foregroundStyle(.secondary)
             }
+            .appFont(.body)
             .padding(.top, 4)
         }
 
@@ -614,8 +614,8 @@ struct OnboardingPracticeStep: View {
             }
             .overlay(alignment: .topLeading) {
                 if practiceText.isEmpty {
-                    Text(pendingDownload?.progress != nil ? "Almost ready. Your model is still downloading."
-                         : focused ? "Now \(verb.lowercased()) your shortcut and speak." : "Click here first.")
+                    Text(pendingDownload?.progress != nil ? String(localized: "Almost ready. Your model is still downloading.")
+                         : focused ? ShortcutCopy.practicePlaceholder(gesture) : String(localized: "Click here first."))
                         .appFont(.heading, weight: .regular).foregroundStyle(.secondary)
                         .padding(22).allowsHitTesting(false)
                 }
@@ -709,7 +709,7 @@ struct OnboardingDoneStep: View {
         let settings = container.settings
         Card(padding: 20, spacing: 14) {
             Text("TRY IT IN A REAL APP")
-                .appFont(.caption2, weight: .semibold).tracking(0.8)
+                .appFont(.caption2, weight: .semibold).scriptAwareTracking(0.8)
                 .foregroundStyle(.secondary)
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {

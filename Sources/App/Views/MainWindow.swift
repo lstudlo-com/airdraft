@@ -446,7 +446,7 @@ struct SidebarView: View {
             } label: {
                 HStack(spacing: 6) {
                     StatusDot(.attention).accessibilityHidden(true)
-                    Text(readiness.footerTitle).lineLimit(1)
+                    Text(readiness.footerTitle).footerFit()
                 }
                 .contentShape(Rectangle())
             }
@@ -461,7 +461,7 @@ struct SidebarView: View {
             Text(footerLine)
                 .appFont(.supporting)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .footerFit()
                 .help(footerLine)
                 .accessibilityIdentifier("sidebar.footer-status")
         }
@@ -470,5 +470,17 @@ struct SidebarView: View {
     private var footerLine: String {
         guard wordsDictated > 0 else { return String(localized: "Ready to dictate") }
         return String(localized: "\(wordsDictated.formatted()) words dictated")
+    }
+}
+
+private extension View {
+    /// A long translation takes a second line inside the account button's 30-point
+    /// row, shrinking slightly only if two lines still do not fit, so the row and
+    /// the microphone above it never move.
+    func footerFit() -> some View {
+        lineLimit(2)
+            .multilineTextAlignment(.trailing)
+            .minimumScaleFactor(0.8)
+            .frame(maxHeight: 30)
     }
 }

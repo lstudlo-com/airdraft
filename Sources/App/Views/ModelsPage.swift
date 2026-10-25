@@ -227,9 +227,9 @@ struct ModelsPage: View {
                 SettingsCard {
                     SettingRow(title: "Unload idle speech model", subtitle: "Frees memory between dictations") {
                         SoftPicker("Unload idle speech model", selection: $settings.idleUnloadMinutes, width: 140) {
-                            Text("After 5 min").tag(5)
-                            Text("After 10 min").tag(10)
-                            Text("After 30 min").tag(30)
+                            ForEach([5, 10, 30], id: \.self) { minutes in
+                                Text("After \(minutes) min").tag(minutes)
+                            }
                             Text("Never").tag(0)
                         }
                     }
@@ -526,7 +526,8 @@ enum SpeechLanguage {
         }
     }
 
+    /// A standalone picker label: "Français (France)", capitalized only at its start.
     static func name(_ code: String) -> String {
-        Locale.current.localizedString(forIdentifier: code) ?? code
+        SpeechLanguagePolicy.startingWithCapital(Locale.current.localizedString(forIdentifier: code) ?? code)
     }
 }

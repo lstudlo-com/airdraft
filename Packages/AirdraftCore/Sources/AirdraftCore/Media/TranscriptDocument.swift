@@ -54,7 +54,11 @@ public struct TranscriptDocument: Codable, Identifiable, Sendable, Equatable {
     }
     public static var unknownSpeakerName: String { String(localized: "Unknown speaker", bundle: .module) }
     /// The label offered for a new speaker in the editor.
-    public static func defaultSpeakerName(_ id: String) -> String { String(localized: "Speaker \(id)", bundle: .module) }
+    /// A numeric ID formats as a number, in the interface's digits ("المتحدث ٢").
+    public static func defaultSpeakerName(_ id: String) -> String {
+        if let number = Int(id) { return String(localized: "Speaker \(number)", bundle: .module) }
+        return String(localized: "Speaker \(id)", bundle: .module)
+    }
     /// One name per speaker ID: every passage assigned to that ID shows it, in
     /// both transcript versions, because turns store the ID rather than the name.
     public mutating func setSpeakerName(_ name: String, for id: String) {

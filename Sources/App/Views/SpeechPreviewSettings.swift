@@ -17,8 +17,10 @@ struct SpeechPreviewSettings: View {
         PageSection("Live preview") {
             SettingsCard {
                 SettingRow(title: "Apple Speech language", subtitle: "Preview only") {
-                    SoftPicker("Preview language", selection: $settings.livePreviewLocale, width: 200) {
-                        ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: settings.livePreviewLocale), id: \.self) {
+                    let locales = SpeechLanguage.appleLocales(supported: appleLocales, including: settings.livePreviewLocale)
+                    SoftPicker("Preview language", selection: $settings.livePreviewLocale,
+                               width: SoftPickerWidth.fitting(locales.map(SpeechLanguage.name), minimum: 200, maximum: 320)) {
+                        ForEach(locales, id: \.self) {
                             Text(SpeechLanguage.name($0)).tag($0)
                         }
                     }

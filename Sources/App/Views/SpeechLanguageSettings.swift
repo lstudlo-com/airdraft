@@ -38,8 +38,8 @@ struct SpeechLanguageSettings: View {
                         settings.asr.appleLocale = locale
                         settings.asr.language = locale
                     }
-                ), width: 200) {
-                    ForEach(SpeechLanguage.appleLocales(supported: appleLocales, including: config.effectiveAppleLocale), id: \.self) { locale in
+                ), width: SoftPickerWidth.fitting(appleLocaleChoices.map(SpeechLanguage.name), minimum: 200, maximum: 320)) {
+                    ForEach(appleLocaleChoices, id: \.self) { locale in
                         Text(SpeechLanguage.name(locale)).tag(locale)
                     }
                 }
@@ -57,12 +57,12 @@ struct SpeechLanguageSettings: View {
                         Text("Choose Language").tag("").disabled(true)
                     }
                     ForEach(languageChoices, id: \.self) { code in
-                        Text(SpeechLanguagePolicy.languageName(code)).tag(code)
+                        Text(SpeechLanguagePolicy.languageLabel(code)).tag(code)
                     }
                     if !selectedLanguage.isEmpty, !languageChoices.contains(selectedLanguage) {
                         // The full incompatibility and recovery action are below;
                         // keep the saved value readable inside the compact picker.
-                        Text(SpeechLanguagePolicy.languageName(selectedLanguage))
+                        Text(SpeechLanguagePolicy.languageLabel(selectedLanguage))
                             .tag(selectedLanguage).disabled(true)
                     }
                 }
@@ -93,12 +93,16 @@ struct SpeechLanguageSettings: View {
             || Locale.preferredLanguages.contains { Locale.Language(identifier: $0).languageCode?.identifier == "zh" }
     }
 
+    private var appleLocaleChoices: [String] {
+        SpeechLanguage.appleLocales(supported: appleLocales, including: config.effectiveAppleLocale)
+    }
+
     private var languageChoices: [String] {
         var codes = capabilities.supportedLanguages ?? SpeechLanguagePolicy.commonLanguages()
         if capabilities.supportedLanguages == nil, !selectedLanguage.isEmpty,
            !codes.contains(selectedLanguage) { codes.append(selectedLanguage) }
         return codes.sorted {
-            SpeechLanguagePolicy.languageName($0).localizedStandardCompare(SpeechLanguagePolicy.languageName($1)) == .orderedAscending
+            SpeechLanguagePolicy.languageLabel($0).localizedStandardCompare(SpeechLanguagePolicy.languageLabel($1)) == .orderedAscending
         }
     }
 }

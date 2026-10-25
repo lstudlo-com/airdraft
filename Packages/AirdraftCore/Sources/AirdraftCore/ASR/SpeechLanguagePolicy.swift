@@ -286,15 +286,36 @@ public enum SpeechLanguagePolicy {
         return codes
     }
 
+    /// A language's name as it reads inside a sentence of the interface language:
+    /// French, Spanish and Russian write "anglais", "inglés", "английский" in lower
+    /// case there. Use `languageLabel` where the name stands alone.
     public static func languageName(_ code: String) -> String {
         switch code {
         case "zh": return String(localized: "Mandarin Chinese", bundle: .module)
         case "yue": return String(localized: "Cantonese", bundle: .module)
         default:
             // Names follow the interface language Airdraft is shown in, not the system region.
-            let interface = Bundle.module.preferredLocalizations.first ?? "en"
-            return Locale(identifier: interface).localizedString(forLanguageCode: code)?.capitalized ?? code
+            return interfaceLocale.localizedString(forLanguageCode: code) ?? code
         }
+    }
+
+    /// A language's name as a standalone label, such as a picker choice: its first
+    /// letter capitalized the way the interface language does it ("Anglais").
+    public static func languageLabel(_ code: String) -> String {
+        startingWithCapital(languageName(code))
+    }
+
+    /// Capitalizes only the first letter, by the interface language's rules, for a
+    /// label or list that begins with a language name. Later words keep their case:
+    /// "chinois mandarin" becomes "Chinois mandarin", never "Chinois Mandarin".
+    public static func startingWithCapital(_ text: String) -> String {
+        guard let first = text.first else { return text }
+        return String(first).capitalized(with: interfaceLocale) + text.dropFirst()
+    }
+
+    /// The language Airdraft's interface is shown in.
+    static var interfaceLocale: Locale {
+        Locale(identifier: Bundle.module.preferredLocalizations.first ?? "en")
     }
 
     private static func capability(_ name: String, _ languages: [String]?, _ automatic: Bool?,

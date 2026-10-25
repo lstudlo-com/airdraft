@@ -2,11 +2,12 @@ import XCTest
 @testable import AirdraftCore
 
 final class HotkeyBehaviorTests: XCTestCase {
-    func testInstructionVerbMatchesBehavior() {
-        XCTAssertEqual(HotkeyBehavior.hold.instructionVerb, "Hold")
-        XCTAssertEqual(HotkeyBehavior.toggle.instructionVerb, "Press")
-        XCTAssertEqual(HotkeyBehavior.toggle.instructionVerb(triggerDelayMilliseconds: 300), "Hold")
-        XCTAssertEqual(HotkeyBehavior.toggle.instructionVerb(triggerDelayMilliseconds: 0), "Press")
-        XCTAssertEqual(HotkeyBehavior.hold.instructionVerb(triggerDelayMilliseconds: 300), "Hold")
+    func testGestureMatchesBehaviorAndTriggerDelay() {
+        XCTAssertEqual(HotkeyBehavior.hold.gesture(triggerDelayMilliseconds: 0), .hold)
+        XCTAssertEqual(HotkeyBehavior.hold.gesture(triggerDelayMilliseconds: 300), .hold)
+        XCTAssertEqual(HotkeyBehavior.toggle.gesture(triggerDelayMilliseconds: 0), .press)
+        XCTAssertEqual(HotkeyBehavior.toggle.gesture(triggerDelayMilliseconds: 300), .holdThenPress)
+        XCTAssertTrue(HotkeyGesture.holdThenPress.startsByHolding)
+        XCTAssertFalse(HotkeyGesture.press.startsByHolding)
     }
 }

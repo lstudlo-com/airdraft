@@ -110,7 +110,7 @@ enum AccessibilityAudit {
             try? container.history?.rememberSpeakerNames(["Morgan Lee", "林語晴"])
             audit("media-editor", MediaDocumentEditor(initial: MediaPreview.document), height: 580, expect: { nodes in
                 // Expected names come from the catalogs so the audit passes in every shipped language.
-                [String(localized: "Recent names for Speaker \("1")"), String(localized: "Summarize")]
+                [String(localized: "Recent names for Speaker \(1)"), String(localized: "Summarize")]
                     .filter { label in !nodes.contains { $0.line.contains(label) } }
                     .map { "missing \($0)" }
             })

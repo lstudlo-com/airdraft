@@ -228,12 +228,12 @@ struct MediaDocumentEditor: View {
                 SettingsCard {
                     ForEach(speakerIDs, id: \.self) { id in
                         if id != speakerIDs.first { RowDivider() }
-                        SettingRow(title: "Speaker \(id)") {
+                        SettingRow(title: Self.speakerLabel(id)) {
                             HStack(spacing: 8) {
                                 // One name per speaker ID renames every passage assigned to it.
                                 TextField("Name", text: Binding(get: { document.speakerNames[id] ?? "" }, set: { document.setSpeakerName($0, for: id); dirty = true }))
                                     .softField().frame(width: Theme.fieldWidth).disabled(!editable)
-                                    .accessibilityLabel("Speaker \(id) name")
+                                    .accessibilityLabel(Text(Self.speakerNameLabel(id)))
                                 recentNamesMenu(for: id)
                             }
                         }
@@ -245,9 +245,25 @@ struct MediaDocumentEditor: View {
         }
     }
 
+    // Numeric speaker IDs format as numbers, in the interface's digits.
+    private static func speakerLabel(_ id: String) -> LocalizedStringResource {
+        if let number = Int(id) { return "Speaker \(number)" }
+        return "Speaker \(id)"
+    }
+
+    private static func speakerNameLabel(_ id: String) -> LocalizedStringResource {
+        if let number = Int(id) { return "Speaker \(number) name" }
+        return "Speaker \(id) name"
+    }
+
+    private static func recentNamesLabel(_ id: String) -> LocalizedStringResource {
+        if let number = Int(id) { return "Recent names for Speaker \(number)" }
+        return "Recent names for Speaker \(id)"
+    }
+
     private func recentNamesMenu(for id: String) -> some View {
         let suggestions = document.speakerNameSuggestions(recentSpeakerNames, for: id)
-        return SoftMenuButton(title: "Recent names for Speaker \(id)") {
+        return SoftMenuButton(title: Self.recentNamesLabel(id)) {
             ForEach(suggestions, id: \.self) { name in
                 Button(name) { document.setSpeakerName(name, for: id); dirty = true }
             }

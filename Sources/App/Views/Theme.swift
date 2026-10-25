@@ -531,11 +531,12 @@ struct PillTag: View {
     var body: some View {
         Text(text)
             .appFont(.tag)
-            .tracking(0.4)
+            .scriptAwareTracking(0.4)
             .fixedSize()
             .foregroundStyle(contrast == .increased ? .primary : .secondary)
             .padding(.horizontal, 5)
-            .padding(.vertical, 1.5)
+            // Devanagari and Arabic marks reach past Latin caps and descenders.
+            .padding(.vertical, InterfaceScript.hasTallMarks ? 3 : 1.5)
             .background(Capsule().fill(Color.primary.opacity(contrast == .increased ? 0.12 : 0.07)))
             .overlay {
                 if contrast == .increased { Capsule().strokeBorder(Color.primary.opacity(0.45), lineWidth: 0.5) }
@@ -595,6 +596,10 @@ struct SoftButtonStyle: ButtonStyle {
         var body: some View {
             configuration.label
                 .appFont(.control)
+                // One line: a longer translation widens the button instead of
+                // wrapping inside it; neighbouring text wraps instead.
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .softControlSurface(pressed: configuration.isPressed,
                                     tint: prominent ? Color(red: 0.05, green: 0.36, blue: 0.73) : nil)
                 .foregroundStyle(prominent ? Color.white : Color.primary)
@@ -707,19 +712,38 @@ struct SoftMenuButton<Content: View, Label: View>: View {
     let title: LocalizedStringResource
     @ViewBuilder var content: Content
     @ViewBuilder var label: Label
+    @Environment(\.textScale) private var textScale
 
     var body: some View {
-        Menu { content } label: {
-            label
-                .appFont(.control)
-                .foregroundStyle(.primary)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text(title))
+        if textScale == 1 {
+            // The Default size keeps the native button title exactly as designed.
+            Menu { content } label: { styledLabel }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .softControlSurface()
+        } else {
+            // AppKit draws a borderless menu button's title at its own size, so
+            // above Default the label is SwiftUI text at the scaled control size.
+            // The surface belongs to the label so the whole control opens the menu.
+            Menu { content } label: {
+                styledLabel.lineLimit(1).fixedSize()
+                    .softControlSurface()
+                    .contentShape(SoftControl.shape)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize()
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .softControlSurface()
+    }
+
+    private var styledLabel: some View {
+        label
+            .appFont(.control)
+            .foregroundStyle(.primary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(title))
     }
 }
 

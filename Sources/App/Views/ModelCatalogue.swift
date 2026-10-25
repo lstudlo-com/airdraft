@@ -1,4 +1,5 @@
 import AirdraftCore
+import AppKit
 import SwiftUI
 
 /// One downloadable or built-in speech model.
@@ -83,8 +84,9 @@ struct ModelEntry: Identifiable, Sendable {
     /// "Mandarin Chinese, English and 28 more".
     @MainActor var languageSummary: String {
         guard let list = languages else { return String(localized: "Languages set in macOS") }
-        guard list.remaining > 0 else { return list.shown.formatted(.list(type: .and)) }
-        return String(localized: "\(list.shown[0]), \(list.shown[1]) and \(list.remaining) more")
+        // Names are in their mid-sentence form; only the label's start is capitalized.
+        guard list.remaining > 0 else { return SpeechLanguagePolicy.startingWithCapital(list.shown.formatted(.list(type: .and))) }
+        return SpeechLanguagePolicy.startingWithCapital(String(localized: "\(list.shown[0]), \(list.shown[1]) and \(list.remaining) more"))
     }
 
     /// Every supported language, for the tooltip.
@@ -123,7 +125,8 @@ enum ModelTier: Equatable {
 
     var title: String {
         switch self {
-        case .verified: String(localized: "Verified")
+        case .verified: String(localized: "ModelTierVerified", defaultValue: "Verified",
+                               comment: "Tag on one model's row: this model is verified")
         case .experimental: String(localized: "Experimental")
         }
     }
@@ -342,19 +345,72 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
     @ViewBuilder var accuracy: Accuracy
     @ViewBuilder var cost: Cost
     @ViewBuilder var accessory: Accessory
-    /// Rating columns widen at half the text-size step: enough for their headings
-    /// ("Accuracy" at Larger) while leaving the model names most of the row.
     @Environment(\.textScale) private var textScale
-    private var scale: CGFloat { 1 + (textScale - 1) / 2 }
 
     var body: some View {
+        let widths = ModelColumnWidths.widths(textScale: textScale)
         HStack(alignment: .center, spacing: Theme.controlSpacing) {
             identity.frame(maxWidth: .infinity, alignment: .leading)
-            speed.frame(width: 56 * scale, alignment: .leading)
-            accuracy.frame(width: 64 * scale, alignment: .leading)
-            cost.frame(width: 76 * scale, alignment: .leading)
+            speed.frame(width: widths.speed, alignment: .leading)
+            accuracy.frame(width: widths.accuracy, alignment: .leading)
+            cost.frame(width: widths.cost, alignment: .leading)
             accessory.frame(width: 20)
         }
+    }
+}
+
+/// Airdraft's relative rating of a local model, out of five. The numbers format
+/// in the interface's digits, and translators order them (Arabic reads "3 من 5";
+/// a bare "3 / 5" would show reversed in a right-to-left line).
+enum ModelRating {
+    static func label(_ value: Int) -> String {
+        String(localized: "\(value) / \(5)", comment: "A model rating: %1$lld out of %2$lld")
+    }
+}
+
+/// Memory amounts in the interface's digits and unit abbreviation ("3 GB", "3 Go").
+enum MemoryAmount {
+    static func gigabytes(_ value: Double) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(value * 1_000_000_000), countStyle: .decimal)
+    }
+}
+
+/// Rating and cost column widths, shared by every model table so the local and
+/// cloud tables stay aligned. Each column is its design width (growing at half the
+/// text-size step, leaving model names most of the row) or, when a translation is
+/// longer, the widest localized heading or value it shows at the current text size.
+@MainActor
+enum ModelColumnWidths {
+    struct Widths: Equatable {
+        var speed: CGFloat
+        var accuracy: CGFloat
+        var cost: CGFloat
+    }
+
+    private static var cache: [CGFloat: Widths] = [:]
+
+    static func widths(textScale: CGFloat) -> Widths {
+        if let cached = cache[textScale] { return cached }
+        let floor = 1 + (textScale - 1) / 2
+        func font(_ style: TextStyle, _ weight: NSFont.Weight = .regular) -> NSFont {
+            .systemFont(ofSize: TextStyle.scaled(style.size, by: textScale), weight: weight)
+        }
+        func widest(_ texts: [String], _ font: NSFont) -> CGFloat {
+            texts.map { ($0 as NSString).size(withAttributes: [.font: font]).width.rounded(.up) }.max() ?? 0
+        }
+        let heading = font(.detail, .medium)
+        let rating = font(.supporting)
+        let notRated = String(localized: "Not rated")
+        let prices = ASRProviderKind.allCases.flatMap { SpeechModelInfo.models(for: $0).map(\.price) }
+        let widths = Widths(
+            speed: max(56 * floor, widest([String(localized: "Speed")], heading),
+                       widest([ModelRating.label(5), "888×", notRated], rating)),
+            accuracy: max(64 * floor, widest([String(localized: "Accuracy")], heading),
+                          widest([ModelRating.label(5), notRated, String(localized: "\(88.8.formatted())% WER")], rating)),
+            cost: max(76 * floor, widest([String(localized: "Storage"), String(localized: "Pricing")], heading),
+                      widest([String(localized: "Built in"), "8.88 GB"] + prices, font(.detail))))
+        cache[textScale] = widths
+        return widths
     }
 }
 
@@ -527,7 +583,7 @@ struct LocalModelGroupHeader: View {
             Text(title).appFont(.detail, weight: .semibold).foregroundStyle(.secondary)
                 .accessibilityAddTraits(.isHeader)
             if header == .recommendedForMemory {
-                Text("The smaller model comes first because this Mac has 8 GB of memory or less.").supportingText()
+                Text("The smaller model comes first because this Mac has \(MemoryAmount.gigabytes(8)) of memory or less.").supportingText()
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -540,7 +596,8 @@ struct LocalModelGroupHeader: View {
         switch header {
         case .recommended, .recommendedForMemory: String(localized: "Recommended for your language")
         case .yourModels: String(localized: "Your models")
-        case .verified: String(localized: "Verified")
+        case .verified: String(localized: "ModelGroupVerified", defaultValue: "Verified",
+                               comment: "Heading above the group of verified models in the table")
         }
     }
 }
@@ -652,10 +709,10 @@ struct ModelRow: View {
                 .accessibilityValue(selected ? "Selected" : "Not selected")
                 .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
             } speed: {
-                ModelMetric(title: String(localized: "Speed"), fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? "\(entry.speed) / 5" : String(localized: "Not rated"),
+                ModelMetric(title: String(localized: "Speed"), fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? ModelRating.label(entry.speed) : String(localized: "Not rated"),
                             detail: entry.speed > 0 ? String(localized: "Airdraft's relative guidance for local models. Actual speed depends on your Mac.") : String(localized: "Not benchmarked in Airdraft."))
             } accuracy: {
-                ModelMetric(title: String(localized: "Accuracy"), fraction: entry.accuracy > 0 ? Double(entry.accuracy) / 5 : nil, label: entry.accuracy > 0 ? "\(entry.accuracy) / 5" : String(localized: "Not rated"),
+                ModelMetric(title: String(localized: "Accuracy"), fraction: entry.accuracy > 0 ? Double(entry.accuracy) / 5 : nil, label: entry.accuracy > 0 ? ModelRating.label(entry.accuracy) : String(localized: "Not rated"),
                             detail: (entry.accuracy > 0 ? String(localized: "Airdraft's relative guidance for local models.")
                                      : String(localized: "Not benchmarked in Airdraft.")) + " " + entry.note)
             } cost: {
