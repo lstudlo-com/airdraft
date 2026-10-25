@@ -883,6 +883,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   /* "（英文）" after a translated page's link to an English-only page. */
   .nav-note {
     font-size: var(--step--1);
+    /* A flex item drops its leading space; keep " (English)" apart from the link. */
+    white-space: pre;
   }
   /* The links share one grid row so the current page's well can sit in its
      link's cell, behind the label. */
