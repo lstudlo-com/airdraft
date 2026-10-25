@@ -508,6 +508,12 @@ def warn_unmerged_work():
         print("Unmerged work not in this release (merge it, report it, or park it):", file=sys.stderr)
         for line in blockers:
             print(f"  {line.removeprefix('BLOCKER ')}", file=sys.stderr)
+    tidy = subprocess.run([sys.executable, str(script), "cleanup"], capture_output=True, text=True)
+    removable = [line for line in tidy.stdout.splitlines() if line.startswith("Would remove")]
+    if removable:
+        print("Merged worktrees or branches to tidy (run `parallel_work.py cleanup --apply`):", file=sys.stderr)
+        for line in removable:
+            print(f"  {line.removeprefix('Would remove ')}", file=sys.stderr)
 
 
 def main():

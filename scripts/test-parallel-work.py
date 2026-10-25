@@ -107,6 +107,53 @@ class ParallelWorkTests(unittest.TestCase):
         self.assertEqual(Path(claims["AD-4"]["worktree"]), self.other.resolve())
         self.assertEqual(claims["AD-5"]["worktree"], "")
 
+    def cleanup(self, *argv, root=None):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            parallel_work.main(["cleanup", "--idle-hours", "0", *argv], root=root or self.main)
+        return output.getvalue()
+
+    def test_cleanup_removes_merged_clean_worktree_and_keeps_its_evidence(self):
+        (self.other / "dist/validation/run").mkdir(parents=True)
+        (self.other / "dist/validation/run/result.json").write_text("{}")
+        report = self.cleanup()
+        self.assertIn("Would remove worktree", report)
+        self.assertTrue(self.other.exists(), "Dry run must not remove anything")
+        self.cleanup("--apply")
+        self.assertFalse(self.other.exists())
+        branches = subprocess.run(["git", "branch"], cwd=self.main, capture_output=True, text=True).stdout
+        self.assertNotIn("claude/web", branches)
+        self.assertTrue((self.main / "dist/validation/other/run/result.json").exists())
+
+    def test_cleanup_keeps_unmerged_dirty_claimed_and_recent_work(self):
+        (self.other / "apps/site/page.txt").write_text("two\n")
+        self.assertIn("uncommitted", self.cleanup("--apply"))
+        run("git", "commit", "-q", "-am", "web", cwd=self.other)
+        self.assertIn("commits not on main", self.cleanup("--apply"))
+        self.assertTrue(self.other.exists())
+        third = Path(self.temporary.name) / "third"
+        run("git", "worktree", "add", "-q", "-b", "claude/new", str(third), cwd=self.main)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            parallel_work.main(["cleanup", "--apply"], root=self.main)
+        self.assertTrue(third.exists(), "A freshly created worktree belongs to a session that just started")
+        with redirect_stdout(io.StringIO()):
+            parallel_work.main(["claim", "AD-9", "--branch", "claude/new"], root=self.main)
+        self.assertIn("claimed", self.cleanup("--apply"))
+        self.assertTrue(third.exists())
+
+    def test_cleanup_drops_claims_for_merged_or_missing_branches(self):
+        with redirect_stdout(io.StringIO()):
+            parallel_work.main(["claim", "AD-7", "--branch", "claude/gone"], root=self.main)
+            parallel_work.main(["claim", "AD-8", "--branch", "claude/web", "--parked"], root=self.main)
+        run("git", "branch", "claude/merged", cwd=self.main)
+        with redirect_stdout(io.StringIO()):
+            parallel_work.main(["claim", "AD-6", "--branch", "claude/merged"], root=self.main)
+        self.cleanup("--apply")
+        tasks = {c["task"] for c in parallel_work.load_claims(self.main)}
+        self.assertNotIn("AD-7", tasks)
+        self.assertNotIn("AD-6", tasks)
+
     def test_overlap_matches_parents_and_children(self):
         self.assertEqual(parallel_work.overlaps(["apps"], ["apps/site/page.txt"]), ["apps/site/page.txt"])
         self.assertEqual(parallel_work.overlaps(["apps/site/page.txt"], ["apps/site"]), ["apps/site"])

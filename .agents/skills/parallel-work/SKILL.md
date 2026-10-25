@@ -1,6 +1,6 @@
 ---
 name: parallel-work
-description: Coordinate Airdraft work across parallel sessions, worktrees and subagents so changes never collide and finished work is never left unmerged. Use before starting any implementation, fix, refactor, documentation or website change; before merging another branch; before spawning subagents or sessions that edit files; and before any push, release or website deploy. Questions about the procedure alone do not require running it.
+description: Coordinate Airdraft work across parallel sessions, worktrees and subagents so changes never collide, finished work is never left unmerged and merged worktrees and branches are removed. Use before starting any implementation, fix, refactor, documentation or website change; before merging another branch; before spawning subagents or sessions that edit files; after finishing a task; and before any push, release or website deploy. Questions about the procedure alone do not require running it.
 ---
 
 # Parallel work
@@ -17,7 +17,13 @@ Airdraft 常同時有多個 session、worktree 與 subagent 在改同一個 repo
 
 ## 1. 開工前
 
-1. 在要工作的 checkout 執行 `python3 scripts/check-checkout.py`。
+1. 在要工作的 checkout 執行 `python3 scripts/check-checkout.py`，接著執行例行清理：
+
+   ```sh
+   python3 scripts/parallel_work.py cleanup --fetch --apply
+   ```
+
+   它只移除已合併進 main、沒有未提交檔案、沒有 claim、且超過 2 小時未動的 worktree 與 branch（移除前先把 `dist/validation`、`dist/releases` 證據複製到主資料夾的 `dist/`），刪除失效的 claim，並列出要保留的未合併工作。未合併、有未提交檔案、有 claim 或剛建立的 worktree 一律保留。
 2. 列出預計修改的路徑（目錄或檔案），執行：
 
    ```sh
@@ -53,6 +59,7 @@ Airdraft 常同時有多個 session、worktree 與 subagent 在改同一個 repo
 ## 3. 完成就是合併
 
 - 驗證通過後，在同一個任務內 rebase 到 `origin/main`、fast-forward 主資料夾的 main、移除 worktree 與 branch，並執行 `parallel_work.py release AD-###`。
+- 推送後執行 `python3 scripts/parallel_work.py cleanup --fetch --apply --remote`，順便清掉已合併的其他 worktree、本機與 origin 上的 branch；輸出中「Keep」的項目在回報中列出。
 - 「做完但沒合併」不算完成。合併需要使用者決定時，Work 項目 `gaps` 第一行寫「未合併：`<branch>`」，最終回報第一段也寫出來，並在同一回合請使用者決定；不要留著不提。
 - 長期保留、刻意不合併的 branch（`wip/…`）用 `claim <ID> --branch <branch> --parked --note "<原因>"` 標示，發佈檢查才會略過它。
 
@@ -64,4 +71,4 @@ Airdraft 常同時有多個 session、worktree 與 subagent 在改同一個 repo
 
 ## 5. 回報
 
-每次最終回報都附上 `status` 摘要：這次工作以外，仍有哪些 branch 未合併、各自的 Work 項目與下一步。看到別人的未合併工作也要說，不要只回報自己的部分。
+每次最終回報都附上 `status` 摘要：這次工作以外，仍有哪些 branch 未合併、各自的 Work 項目與下一步，以及 `cleanup` 移除與保留了什麼。看到別人的未合併工作也要說，不要只回報自己的部分。

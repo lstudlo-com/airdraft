@@ -16,6 +16,13 @@ it. This tool makes that state visible from any checkout:
            `claim AD-123 --paths apps/marketing --branch claude/topic`.
            `--parked` marks long-lived work (wip/...) that releases may skip.
   release  Remove a task's claim once its branch is merged (or abandoned).
+  cleanup  List what is safe to tidy: worktrees and local branches already
+           merged into main with nothing uncommitted, missing worktrees, claims
+           whose branch is merged or gone, and (`--remote`) merged branches on
+           origin. `--apply` removes them, first copying each removed worktree's
+           dist/validation and dist/releases evidence into the main folder's
+           dist/ without overwriting. Unmerged work is never removed; it is
+           listed to merge or park. Run it at the start and end of every task.
 
 Claims live in the repository's common git directory, shared by every worktree
 and never committed. Uses local refs only unless `--fetch` is given.
@@ -286,6 +293,135 @@ def release_claim(args, root: Path = ROOT) -> int:
     return 0
 
 
+def primary_worktree(root: Path = ROOT) -> Path:
+    """The main folder: the worktree whose git dir is the common dir."""
+    return common_dir(root).parent
+
+
+def merged(branch: str, base: str, root: Path) -> bool:
+    return git("merge-base", "--is-ancestor", branch, base, cwd=root) is not None
+
+
+def cleanup_plan(args, root: Path = ROOT) -> dict:
+    base = args.base
+    primary = str(primary_worktree(root).resolve())
+    here = str(Path(git("rev-parse", "--show-toplevel", cwd=root) or root).resolve())
+    claims = load_claims(root)
+    active = {c.get("branch") for c in claims}
+    plan = {"worktrees": [], "prune": False, "branches": [], "claims": [], "remote": [], "keep": []}
+    held = set()
+    for tree in worktrees(root):
+        path = str(Path(tree["path"]).resolve())
+        branch = tree.get("branch")
+        if branch:
+            held.add(branch)
+        if not Path(path).exists():
+            plan["prune"] = True
+            continue
+        if path in (primary, here):
+            continue
+        ref = branch or tree.get("head")
+        dirty = dirty_files(path)
+        if branch in active:
+            plan["keep"].append(f"worktree {path} [{branch}]: claimed")
+        elif recently_active(path, args.idle_hours):
+            # A worktree a session just created has no commits yet and looks
+            # merged; leave anything touched recently to its owner.
+            plan["keep"].append(f"worktree {path} [{branch}]: active in the last {args.idle_hours:g} h")
+        elif dirty:
+            plan["keep"].append(f"worktree {path} [{branch}]: {len(dirty)} uncommitted file(s)")
+        elif ref and merged(ref, base, root):
+            plan["worktrees"].append({"path": path, "branch": branch})
+        else:
+            plan["keep"].append(f"worktree {path} [{branch}]: commits not on {base} — merge or park")
+    removing = {t["branch"] for t in plan["worktrees"] if t["branch"]}
+    output = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=root) or ""
+    for name in output.splitlines():
+        if name == base or name == current_branch(root) or (name in held and name not in removing):
+            continue
+        if merged(name, base, root):
+            plan["branches"].append(name)
+        elif name not in held:
+            parked = any(c.get("branch") == name and c.get("parked") for c in claims)
+            plan["keep"].append(f"branch {name}: " + ("parked" if parked else f"commits not on {base} — merge or park"))
+    gone = set(plan["branches"]) | {t["branch"] for t in plan["worktrees"] if t["branch"]}
+    for claim in claims:
+        branch = claim.get("branch")
+        exists = bool(branch) and git("rev-parse", "-q", "--verify", f"refs/heads/{branch}", cwd=root) is not None
+        stale = bool(claim.get("worktree")) and not Path(claim["worktree"]).exists()
+        done = (exists and not claim.get("parked") and branch not in held and merged(branch, base, root))
+        if branch in gone or (branch and not exists) or stale or done:
+            plan["claims"].append(claim.get("task"))
+    if args.remote:
+        remote = git("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin/", cwd=root) or ""
+        for name in remote.splitlines():
+            short = name.removeprefix("origin/")
+            if short in ("HEAD", base, "origin") or short in active:
+                continue
+            if merged(name, f"origin/{base}", root):
+                plan["remote"].append(short)
+    return plan
+
+
+def recently_active(path: str, hours: float) -> bool:
+    gitdir = git("rev-parse", "--absolute-git-dir", cwd=Path(path))
+    if not gitdir:
+        return False
+    newest = max((Path(gitdir, name).stat().st_mtime for name in ("index", "HEAD", "logs/HEAD")
+                  if Path(gitdir, name).exists()), default=0)
+    return (datetime.now().timestamp() - newest) < hours * 3600
+
+
+def move_evidence(worktree: Path, primary: Path) -> list[str]:
+    moved = []
+    for sub in ("validation", "releases"):
+        source = worktree / "dist" / sub
+        if source.is_dir() and any(source.iterdir()):
+            target = primary / "dist" / sub / worktree.name
+            target.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["cp", "-cRn", f"{source}/.", str(target)], capture_output=True)
+            moved.append(str(target))
+    return moved
+
+
+def cleanup(args, root: Path = ROOT) -> int:
+    if args.fetch or args.remote:
+        git("fetch", "-q", "--prune", "origin", cwd=root)
+    plan = cleanup_plan(args, root)
+    primary = primary_worktree(root)
+    verb = "Removing" if args.apply else "Would remove"
+    nothing = not (plan["worktrees"] or plan["prune"] or plan["branches"] or plan["claims"] or plan["remote"])
+    if nothing:
+        print("Workspace tidy: nothing to clean up.")
+    for tree in plan["worktrees"]:
+        print(f"{verb} worktree {tree['path']} [{tree['branch']}] (merged, clean)")
+        if args.apply:
+            for target in move_evidence(Path(tree["path"]), primary):
+                print(f"  kept its evidence in {target}")
+            git("worktree", "remove", "--force", tree["path"], cwd=root, check=True)
+    if plan["prune"]:
+        print(f"{verb.replace('remove', 'prune')} missing worktree records")
+        if args.apply:
+            git("worktree", "prune", cwd=root, check=True)
+    for name in dict.fromkeys(plan["branches"] + [t["branch"] for t in plan["worktrees"] if t["branch"]]):
+        print(f"{verb} branch {name} (merged into {args.base})")
+        if args.apply:
+            git("branch", "-d", name, cwd=root, check=True)
+    for name in plan["remote"]:
+        print(f"{verb} origin/{name} (merged into origin/{args.base})")
+        if args.apply:
+            git("push", "origin", "--delete", name, cwd=root, check=True)
+    if plan["claims"]:
+        print(f"{verb} claims: {', '.join(plan['claims'])}")
+        if args.apply:
+            save_claims([c for c in load_claims(root) if c.get("task") not in plan["claims"]], root)
+    for line in plan["keep"]:
+        print(f"Keep {line}")
+    if not args.apply and not nothing:
+        print("Run again with --apply to clean up.")
+    return 0
+
+
 def main(argv: list[str] | None = None, root: Path = ROOT) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -306,6 +442,14 @@ def main(argv: list[str] | None = None, root: Path = ROOT) -> int:
     drop = commands.add_parser("release")
     drop.add_argument("task")
     drop.set_defaults(run=release_claim)
+    tidy = commands.add_parser("cleanup")
+    tidy.add_argument("--apply", action="store_true", help="Remove what is safe; default lists only")
+    tidy.add_argument("--remote", action="store_true", help="Also delete branches on origin merged into main")
+    tidy.add_argument("--base", default="main")
+    tidy.add_argument("--fetch", action="store_true", help="Fetch and prune origin first")
+    tidy.add_argument("--idle-hours", type=float, default=2.0,
+                      help="Keep unclaimed worktrees touched within this many hours (default 2)")
+    tidy.set_defaults(run=cleanup)
     args = parser.parse_args(argv)
     return args.run(args, root)
 

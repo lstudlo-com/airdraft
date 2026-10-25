@@ -91,6 +91,12 @@ where releases are made. Keep it on `main`; it is the only checkout of `main`.
   reported first as unmerged with the decision asked for). Before a push,
   release or website deploy, `parallel_work.py status --fetch --release` must
   show no unmerged, unparked branch; park long-lived `wip/` branches explicitly.
+  Workspace cleanup is routine: run `parallel_work.py cleanup --fetch --apply`
+  at the start of every task and `cleanup --fetch --apply --remote` after each
+  push. It removes only worktrees and branches already merged into main with
+  nothing uncommitted, no claim and no activity for two hours (moving their
+  `dist/` evidence to the main folder first), drops dead claims, deletes merged
+  origin branches, and lists everything it keeps.
 - Do features and fixes in a separate worktree on a branch (`claude/<topic>`,
   `codex/<topic>`) created from the latest `origin/main`. Only a single small
   commit may go directly on `main` in the main folder, with no other session active.
