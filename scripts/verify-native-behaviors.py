@@ -149,6 +149,9 @@ enum HUDStyle: String, CaseIterable {
     var lastRecordingDuration: TimeInterval = 7.4
     var previewIssue: String?
     var previewText = ""
+    var sendLocked = false
+    var recordingBadge: String?
+    var isSendPending = false
 }
 
 // The capsule, live-text card and its notice are compiled in full from
