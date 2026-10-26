@@ -17,8 +17,8 @@ const locale: Locale = "es";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "compare-mac-dictation-apps",
 )!;
-const zh = locale === "zh-tw";
 const [oneMac, threeMacs] = licenses;
+const usd = (price: string) => `${price.replace("$", "")} US$`;
 
 type Row = {
   name: string;
@@ -32,143 +32,81 @@ type Row = {
   platforms: string;
 };
 
-const rows: Row[] = zh
-  ? [
-      {
-        name: "Airdraft",
-        price: `自行編譯免費；官方版一次買斷，一台 Mac US${oneMac.price}、三台 US${threeMacs.price}（尚未開賣）`,
-        available: "否：官方版尚未開賣、未經公證；可用 Xcode 自行編譯",
-        source: "開放原始碼（GPL-3.0）",
-        speech: "在 Mac 上，或用自己金鑰的雲端服務",
-        cleanup: "本機、自備金鑰的雲端，或透過 Claude Code、Codex 沿用訂閱",
-        meetings: "錄 App 音訊與麥克風、匯入檔案、可選講者標籤、匯出 SRT／VTT",
-        platforms: "Mac（Apple 晶片、macOS 15 以上）",
-      },
-      {
-        name: "VoiceInk",
-        price: "一次買斷：1／2／3 台 Mac 為 US$25／US$39／US$49；14 天退款",
-        available: "可以：官網提供試用版下載（未載明試用天數）",
-        source: "開放原始碼（GPL-3.0）",
-        speech: "在 Mac 上，或用自己金鑰的雲端服務",
-        cleanup: "可選供應商，含 Claude Code、Codex 等本機 CLI 範本",
-        meetings:
-          "可批次轉錄音訊與影片檔；記錄可存成 TXT 或 Markdown，並匯出 CSV",
-        platforms: "Mac；另有 iOS App",
-      },
-      {
-        name: "Handy",
-        price: "免費，接受贊助",
-        available: "可以：免費下載",
-        source: "開放原始碼（MIT）",
-        speech: "在裝置上執行，包括 Qwen3-ASR 0.6B、1.7B 與 SenseVoice Small",
-        cleanup: "可選用後處理，在本機或透過你設定的 API",
-        meetings: "未查核",
-        platforms: "Mac、Windows、Linux",
-      },
-      {
-        name: "Typeless",
-        price: "免費版每週字數有限；Pro 每月 US$30 或每年 US$144",
-        available: "可以：免費版可下載",
-        source: "非開源",
-        speech: "代管雲端服務",
-        cleanup: "代管：個人字典、語氣與整理",
-        meetings: "未查核",
-        platforms: "Mac、Windows、Linux、iOS、Android",
-      },
-      {
-        name: "Apple 聽寫（macOS 27）",
-        price: "macOS 內建",
-        available: "可以：macOS 內建",
-        source: "非開源",
-        speech: "系統內建；在裝置上或伺服器處理，視語言、設定與硬體而定",
-        cleanup:
-          "macOS 27 加入潤飾文字的聽寫；進階功能需要 M3 以上、12 GB 記憶體的 Mac",
-        meetings: "未查核",
-        platforms: "Apple 平台內建",
-      },
-    ]
-  : [
-      {
-        name: "Airdraft",
-        price: `Source build free; official app ${oneMac.price} for one Mac or ${threeMacs.price} for three, one-time, not on sale yet`,
-        available:
-          "No: the official app is not on sale or notarized; the source build needs Xcode",
-        source: "Open source (GPL-3.0)",
-        speech: "On your Mac, or cloud providers on your own key",
-        cleanup:
-          "Local, cloud on your own key, or Claude Code and Codex on your plan",
-        meetings:
-          "Records app audio and microphone; imports files; optional speaker labels; SRT and VTT export",
-        platforms: "Mac (Apple silicon, macOS 15+)",
-      },
-      {
-        name: "VoiceInk",
-        price: "$25, $39 or $49 one-time for 1, 2 or 3 Macs; 14-day refund",
-        available: "Yes: free trial download (trial length not stated)",
-        source: "Open source (GPL-3.0)",
-        speech: "On your Mac, or cloud providers on your own key",
-        cleanup:
-          "Provider of your choice, including local CLI templates for Claude Code and Codex",
-        meetings:
-          "Queues audio and video files for transcription; history saves TXT or Markdown and exports CSV",
-        platforms: "Mac; separate iOS app",
-      },
-      {
-        name: "Handy",
-        price: "Free, with donations",
-        available: "Yes: free download",
-        source: "Open source (MIT)",
-        speech:
-          "On your device, including Qwen3-ASR 0.6B and 1.7B and SenseVoice Small",
-        cleanup: "Optional post-processing, locally or through an API you set",
-        meetings: "Not checked",
-        platforms: "Mac, Windows, Linux",
-      },
-      {
-        name: "Typeless",
-        price: "Free with a weekly word limit; Pro $30 a month or $144 a year",
-        available: "Yes: free plan download",
-        source: "Closed source",
-        speech: "Hosted cloud service",
-        cleanup: "Hosted: personal dictionary, tone and cleanup",
-        meetings: "Not checked",
-        platforms: "Mac, Windows, Linux, iOS, Android",
-      },
-      {
-        name: "Apple Dictation (macOS 27)",
-        price: "Included with macOS",
-        available: "Yes: built into macOS",
-        source: "Closed source",
-        speech:
-          "Built in; on-device or server processing depends on language, settings and hardware",
-        cleanup:
-          "macOS 27 adds polished-text dictation; advanced features need an M3 or later Mac with 12 GB of memory",
-        meetings: "Not checked",
-        platforms: "Built into Apple platforms",
-      },
-    ];
+const rows: Row[] = [
+  {
+    name: "Airdraft",
+    price: `Gratis si la compilas desde el código; app oficial por ${usd(oneMac.price)} para un Mac o ${usd(threeMacs.price)} para tres, pago único, aún no a la venta`,
+    available:
+      "No: la app oficial no está a la venta ni notarizada; la versión desde el código necesita Xcode",
+    source: "Código abierto (GPL-3.0)",
+    speech: "En tu Mac, o proveedores en la nube con tu propia clave",
+    cleanup:
+      "Local, en la nube con tu propia clave, o Claude Code y Codex con tu plan",
+    meetings:
+      "Graba el audio de las apps y el micrófono; importa archivos; etiquetas de hablante opcionales; exporta SRT y VTT",
+    platforms: "Mac (Apple silicon, macOS 15 o posterior)",
+  },
+  {
+    name: "VoiceInk",
+    price:
+      "25, 39 o 49 US$, pago único, para 1, 2 o 3 Macs; reembolso en 14 días",
+    available:
+      "Sí: descarga de prueba gratuita (no indica la duración de la prueba)",
+    source: "Código abierto (GPL-3.0)",
+    speech: "En tu Mac, o proveedores en la nube con tu propia clave",
+    cleanup:
+      "El proveedor que elijas, con plantillas de CLI locales para Claude Code y Codex",
+    meetings:
+      "Pone en cola archivos de audio y vídeo para transcribirlos; el historial guarda TXT o Markdown y exporta CSV",
+    platforms: "Mac; app de iOS aparte",
+  },
+  {
+    name: "Handy",
+    price: "Gratis, con donaciones",
+    available: "Sí: descarga gratuita",
+    source: "Código abierto (MIT)",
+    speech:
+      "En tu dispositivo, con Qwen3-ASR 0.6B y 1.7B y SenseVoice Small, entre otros",
+    cleanup:
+      "Posprocesado opcional, en local o mediante una API que configures",
+    meetings: "Sin comprobar",
+    platforms: "Mac, Windows, Linux",
+  },
+  {
+    name: "Typeless",
+    price:
+      "Gratis con un límite semanal de palabras; Pro por 30 US$ al mes o 144 US$ al año",
+    available: "Sí: descarga del plan gratuito",
+    source: "Código cerrado",
+    speech: "Servicio alojado en la nube",
+    cleanup: "Alojado: diccionario personal, tono y limpieza",
+    meetings: "Sin comprobar",
+    platforms: "Mac, Windows, Linux, iOS, Android",
+  },
+  {
+    name: "Dictado de Apple (macOS 27)",
+    price: "Incluido en macOS",
+    available: "Sí: integrado en macOS",
+    source: "Código cerrado",
+    speech:
+      "Integrado; el procesamiento en el dispositivo o en el servidor depende del idioma, los ajustes y el hardware",
+    cleanup:
+      "macOS 27 añade dictado con texto pulido; las funciones avanzadas necesitan un Mac con M3 o posterior y 12 GB de memoria",
+    meetings: "Sin comprobar",
+    platforms: "Integrado en las plataformas de Apple",
+  },
+];
 
-const columns = zh
-  ? [
-      "產品",
-      "價格",
-      "現在能下載試用",
-      "原始碼",
-      "語音辨識",
-      "文字整理",
-      "會議與檔案",
-      "平台",
-    ]
-  : [
-      "Product",
-      "Price",
-      "Download and try today",
-      "Source",
-      "Speech recognition",
-      "Text cleanup",
-      "Meetings and files",
-      "Platforms",
-    ];
+const columns = [
+  "Producto",
+  "Precio",
+  "Descargar y probar hoy",
+  "Código",
+  "Reconocimiento de voz",
+  "Limpieza del texto",
+  "Reuniones y archivos",
+  "Plataformas",
+];
 
 // Each source with the date its facts were checked.
 // The cells after the product name, in column order.
@@ -184,32 +122,32 @@ const cells = (row: Row) => [
 
 const sources = [
   {
-    label: zh ? "VoiceInk 價格" : "VoiceInk pricing",
+    label: "Precios de VoiceInk",
     url: "https://tryvoiceink.com/pricing",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "VoiceInk 原始碼" : "VoiceInk source",
+    label: "Código de VoiceInk",
     url: "https://github.com/Beingpax/VoiceInk",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "VoiceInk 本機 CLI 文件" : "VoiceInk local CLI documentation",
+    label: "Documentación de la CLI local de VoiceInk",
     url: "https://tryvoiceink.com/docs/local-cli",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "VoiceInk 檔案轉錄文件" : "VoiceInk file transcription",
+    label: "Transcripción de archivos en VoiceInk",
     url: "https://tryvoiceink.com/docs/transcribe-audio-files",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "VoiceInk 原始碼：記錄存檔" : "VoiceInk source: history save",
+    label: "Código de VoiceInk: guardado del historial",
     url: "https://github.com/Beingpax/VoiceInk/blob/main/VoiceInk/Features/History/Components/SaveIconButton.swift",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "VoiceInk 原始碼：CSV 匯出" : "VoiceInk source: CSV export",
+    label: "Código de VoiceInk: exportación CSV",
     url: "https://github.com/Beingpax/VoiceInk/blob/main/VoiceInk/Features/History/Export/VoiceInkCSVExportService.swift",
     checked: "2026-10-21",
   },
@@ -219,41 +157,38 @@ const sources = [
     checked: "2026-10-21",
   },
   {
-    label: zh ? "Handy 後處理文件" : "Handy post-processing",
+    label: "Posprocesado en Handy",
     url: "https://handy.computer/docs/post-processing",
     checked: "2026-09-26",
   },
   {
-    label: zh ? "Handy v0.9.8 發布" : "Handy v0.9.8 release",
+    label: "Versión v0.9.8 de Handy",
     url: "https://github.com/cjpais/Handy/releases/tag/v0.9.8",
     checked: "2026-10-21",
   },
   {
-    label: zh
-      ? "Handy 原始碼：v0.9.8 的模型清單"
-      : "Handy source: v0.9.8 model catalog",
+    label: "Código de Handy: catálogo de modelos de la v0.9.8",
     url: "https://github.com/cjpais/Handy/blob/v0.9.8/src-tauri/src/catalog/catalog.json",
     checked: "2026-10-24",
   },
   {
-    label: zh ? "Typeless 價格" : "Typeless pricing",
+    label: "Precios de Typeless",
     url: "https://www.typeless.com/pricing",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "Typeless 各平台版本紀錄" : "Typeless release notes",
+    label: "Notas de las versiones de Typeless",
     url: "https://www.typeless.com/help/release-notes",
     checked: "2026-09-26",
   },
   {
-    label: zh
-      ? "台灣繁體中文語音輸入評測（Taneverse）"
-      : "Traditional Chinese voice input review (Taneverse)",
+    label:
+      "Reseña de métodos de entrada por voz en chino tradicional (Taneverse)",
     url: "https://taneverse.com/posts/three-traditional-chinese-voice-input-methods/",
     checked: "2026-10-21",
   },
   {
-    label: zh ? "Apple 聽寫說明" : "Apple Dictation help",
+    label: "Ayuda del Dictado de Apple",
     url: "https://support.apple.com/guide/mac-help/use-dictation-mh40584/mac",
     checked: "2026-09-26",
   },
@@ -271,17 +206,17 @@ const sources = [
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="glance" title="At a glance">
+  <GuideSection id="glance" title="De un vistazo">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare dictation apps"
+      aria-label="Compara apps de dictado"
     >
       <table class="guide-table guide-table-wide" role="table">
         <caption>
-          Checked October 21, 2026, and Handy’s speech models October 24. “Not
-          checked” does not mean missing.
+          Comprobado el 21 de octubre de 2026, y los modelos de voz de Handy el
+          24 de octubre. «Sin comprobar» no significa que falte.
         </caption>
         <thead role="rowgroup">
           <tr role="row">
@@ -313,109 +248,114 @@ const sources = [
     </div>
   </GuideSection>
 
-  <GuideSection id="better" title="Where the others are better">
+  <GuideSection id="better" title="En qué son mejores los demás">
     <dl class="guide-decisions">
       <div>
         <dt>VoiceInk</dt>
         <dd>
-          It costs less for one Mac ($25 against $29), offers a two-Mac license,
-          publishes a 14-day refund and is on sale today. It can queue files for
-          batch transcription, where Airdraft handles one file at a time, and it
-          has an iOS app.
+          Cuesta menos para un Mac (25 US$ frente a 29 US$), ofrece una licencia
+          para dos Macs, publica un reembolso en 14 días y ya está a la venta.
+          Puede poner archivos en cola para transcribirlos por lotes, mientras
+          que Airdraft procesa un archivo cada vez, y tiene app de iOS.
         </dd>
       </div>
       <div>
         <dt>Handy</dt>
         <dd>
-          It is free, MIT-licensed and runs on Windows and Linux too. Its
-          community is far larger: about 34,200 GitHub stars on October 21,
-          2026. Version 0.9.8 added a Chinese script choice.
+          Es gratis, tiene licencia MIT y también funciona en Windows y Linux.
+          Su comunidad es mucho mayor: unas 34&nbsp;200 estrellas en GitHub el
+          21 de octubre de 2026. La versión 0.9.8 añadió la elección de
+          escritura china.
         </dd>
       </div>
       <div>
         <dt>Typeless</dt>
         <dd>
-          There are no models or keys to set up, and it works on phones and
-          other computers. Taiwanese reviews of Traditional Chinese voice input
-          often recommend it (see Taneverse).
+          No hay modelos ni claves que configurar, y funciona en teléfonos y
+          otros equipos. Las reseñas taiwanesas de entrada por voz en chino
+          tradicional suelen recomendarla (consulta Taneverse).
         </dd>
       </div>
       <div>
-        <dt>Apple Dictation</dt>
+        <dt>Dictado de Apple</dt>
         <dd>
-          It is free, needs no installation and is part of the system. macOS 27
-          adds polished-text dictation; we have not verified whether it supports
-          Chinese.
+          Es gratis, no necesita instalación y forma parte del sistema. macOS 27
+          añade dictado con texto pulido; no hemos comprobado si admite chino.
         </dd>
       </div>
     </dl>
   </GuideSection>
 
-  <GuideSection id="airdraft" title="Where Airdraft is different">
+  <GuideSection id="airdraft" title="En qué se diferencia Airdraft">
     <ul>
       <li>
-        Speech and refinement each run locally or in the cloud, so you can keep
-        audio local and still use a cloud text model.
+        La voz y el refinamiento se ejecutan cada uno en local o en la nube, así
+        que puedes dejar el audio en local y usar igualmente un modelo de texto
+        en la nube.
       </li>
       <li>
-        Local Chinese models (Qwen3-ASR, SenseVoice, FireRedASR2), with
-        Traditional or Simplified output. From 0.11.0, first-run setup
-        recommends Qwen3-ASR 1.7B on a Mac set to Chinese, labelled “Best for
-        mixed Chinese and English” in Models, with SenseVoice as the smaller,
-        faster option; on a Mac with 8 GB of memory or less it recommends
-        SenseVoice first and still offers Qwen3-ASR 1.7B. Handy v0.9.8’s model
-        catalog also offers local Qwen3-ASR 0.6B and 1.7B and SenseVoice Small.
-        See the{" "}
+        Modelos locales para chino (Qwen3-ASR, SenseVoice, FireRedASR2), con
+        salida en escritura tradicional o simplificada. Desde la 0.11.0, la
+        configuración inicial recomienda Qwen3-ASR 1.7B en un Mac en chino,
+        etiquetado en Modelos como «Ideal para chino e inglés mezclados», con
+        SenseVoice como opción más pequeña y rápida; en un Mac con 8 GB de
+        memoria o menos recomienda primero SenseVoice y sigue ofreciendo
+        Qwen3-ASR 1.7B. El catálogo de modelos de Handy v0.9.8 también ofrece
+        Qwen3-ASR 0.6B y 1.7B y SenseVoice Small en local. Consulta las{" "}
         <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
-          mixed-language model measurements
+          mediciones de modelos con idiomas mezclados
         </a>
         .
       </li>
       <li>
-        Claude Code or Codex can refine text on the Claude or ChatGPT plan you
-        already pay for, and you can dictate prompts straight into coding agents
-        in a terminal. See{" "}
+        Claude Code o Codex pueden refinar el texto con el plan de Claude o
+        ChatGPT que ya pagas, y puedes dictar prompts directamente a agentes de
+        programación en una terminal. Consulta{" "}
         <a href={href("/guides/dictate-to-claude-code-and-terminals/", locale)}>
-          dictating into Claude Code and terminals
+          cómo dictar en Claude Code y terminales
         </a>
         .
       </li>
       <li>
         <a href={href("/guides/private-meeting-transcription/", locale)}>
-          Meeting recording and transcripts
+          Grabación y transcripción de reuniones
         </a>
-        : app audio and microphone, speaker labels and subtitle export.
+        : audio de las apps y micrófono, etiquetas de hablante y exportación de
+        subtítulos.
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection id="gaps" title="What Airdraft lacks today">
+  <GuideSection id="gaps" title="Lo que le falta hoy a Airdraft">
     <ul>
       <li>
-        The official app is not on sale, and there is no notarized public
-        installer yet.
+        La app oficial no está a la venta y todavía no hay un instalador público
+        notarizado.
       </li>
-      <li>It runs only on the Mac, with no phone app.</li>
-      <li>There are many choices, and first setup means picking models.</li>
+      <li>Solo funciona en Mac, sin app para el teléfono.</li>
       <li>
-        Airdraft has published only its own tests of its local models, on mixed
-        Chinese and English and on English, Japanese and Korean read speech (one
-        Mac each); there is no accuracy or speed comparison with other apps.
+        Hay muchas opciones, y la primera configuración implica elegir modelos.
       </li>
-      <li>Meeting recording has no echo cancellation.</li>
+      <li>
+        Airdraft solo ha publicado sus propias pruebas de sus modelos locales,
+        con chino e inglés mezclados y con habla leída en inglés, japonés y
+        coreano (un Mac en cada caso); no hay comparación de precisión ni de
+        velocidad con otras apps.
+      </li>
+      <li>La grabación de reuniones no tiene cancelación de eco.</li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
-        See Pricing
+        Ver precios
       </Button>
     </div>
   </GuideSection>
 
-  <GuideSection id="sources" title="Sources and check dates">
+  <GuideSection id="sources" title="Fuentes y fechas de comprobación">
     <ul class="guide-sources">
       {sources.map((source) => (
         <li>
-          <a href={source.url}>{source.label}</a>, checked{" "}
+          <a href={source.url}>{source.label}</a>, comprobado el{" "}
           <time datetime={source.checked}>{source.checked}</time>
         </li>
       ))}

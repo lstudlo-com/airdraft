@@ -3,7 +3,7 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { localizedPath, type Locale } from "../../../i18n";
 import { siteLinks } from "../../../data/site";
 
 const locale: Locale = "zh-cn";
@@ -13,126 +13,117 @@ const guide = guidesFor(locale).find(
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="data-flow" title="What leaves your Mac?">
+  <GuideSection id="data-flow" title="哪些数据会离开你的 Mac？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare local and cloud data flow"
+      aria-label="比较本机与云端的数据去向"
     >
       <table class="guide-table">
-        <caption>Dictation processing with each combination</caption>
+        <caption>各种组合下的听写处理方式</caption>
         <thead>
           <tr>
-            <th scope="col">Speech</th>
-            <th scope="col">Refinement</th>
-            <th scope="col">Sent to model providers</th>
+            <th scope="col">语音识别</th>
+            <th scope="col">润色</th>
+            <th scope="col">发送给模型服务商的内容</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Local</th>
-            <td>Local or off</td>
-            <td>No audio or transcript is sent to a cloud model.</td>
+            <th scope="row">本机</th>
+            <td>本机或关闭</td>
+            <td>音频和转录文本都不会发送给云端模型。</td>
           </tr>
           <tr>
-            <th scope="row">Local</th>
-            <td>Cloud</td>
-            <td>The transcript and refinement prompt. Audio stays local.</td>
+            <th scope="row">本机</th>
+            <td>云端</td>
+            <td>发送转录文本和润色提示词，音频留在本机。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud</th>
-            <td>Local or off</td>
-            <td>Audio goes to your speech provider for transcription.</td>
+            <th scope="row">云端</th>
+            <td>本机或关闭</td>
+            <td>音频发送给语音服务商进行转录。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud</th>
-            <td>Cloud</td>
-            <td>
-              Audio goes to the speech provider; text and its prompt go to the
-              refinement provider.
-            </td>
+            <th scope="row">云端</th>
+            <td>云端</td>
+            <td>音频发送给语音服务商；文字和提示词发送给润色服务商。</td>
           </tr>
         </tbody>
       </table>
     </div>
+    <p>部分语音服务商还会收到你选择的语言和词汇，用来辅助转录。</p>
     <p>
-      Some speech providers also receive your language selection and vocabulary
-      terms to guide transcription.
-    </p>
-    <p>
-      Here, local means the model runs on this Mac. The table covers model
-      processing, not downloads, software updates or license requests.
+      这里的“本机”指模型在这台 Mac
+      上运行。表格只涉及模型处理，不包括下载、软件更新或许可证请求。
     </p>
   </GuideSection>
 
-  <GuideSection
-    id="refinement-context"
-    title="What is in the refinement prompt?"
-  >
+  <GuideSection id="refinement-context" title="润色提示词里有什么？">
     <p>
-      Refinement uses the transcript, profile instructions and vocabulary. With
-      Read app context enabled, available context can also include the active
-      app, window title, URL, selected text, text near the cursor and terms from
-      recent dictations in the same app.
+      润色会用到转录文本、模式指令和词汇。开启「读取 App
+      上下文」后，可用的上下文还可能包括当前
+      App、窗口标题、网址、选中的文字、光标附近的文字，以及同一 App
+      中最近几次听写里的术语。
     </p>
     <p>
-      Turn off Read app context in Settings to leave that context out. Claude
-      Code and Codex refinement also use an external service: the CLI runs on
-      your Mac, its model does not.
+      在设置中关闭「读取 App 上下文」，就不会带上这些上下文。用 Claude Code 和
+      Codex 润色同样要经过外部服务：CLI 在你的 Mac 上运行，模型却不在本机。
     </p>
   </GuideSection>
 
-  <GuideSection id="choose" title="Which setup fits my needs?">
+  <GuideSection id="choose" title="哪种设置适合我？">
     <dl class="guide-decisions">
       <div>
-        <dt>Keep dictation processing on this Mac</dt>
+        <dt>听写处理全部留在这台 Mac 上</dt>
         <dd>
-          Choose a local speech model and local refinement, or turn refinement
-          off. Install the required models first. Follow the{" "}
-          <a href="/guides/offline-dictation-on-mac/">offline setup guide</a>.
+          选择本机语音模型和本机润色，或者关闭润色。请先安装所需的模型，再按
+          <a href={localizedPath("/guides/offline-dictation-on-mac/", locale)}>
+            离线设置指南
+          </a>
+          操作。
         </dd>
       </div>
       <div>
-        <dt>Keep audio local and use a cloud text model</dt>
+        <dt>音频留在本机，文字交给云端模型</dt>
         <dd>
-          Combine local speech with cloud refinement. This shares the transcript
-          and its prompt while keeping the recording out of the cloud speech
-          service.
+          本机语音识别搭配云端润色。这样会分享转录文本和提示词，但录音不会交给云端语音服务。
         </dd>
       </div>
       <div>
-        <dt>Avoid local model downloads</dt>
+        <dt>不想下载本机模型</dt>
         <dd>
-          Choose cloud speech and cloud refinement. You need connectivity and
-          the providers' required credentials; their usage charges are separate
-          from Airdraft's license.
+          选择云端语音识别和云端润色。你需要联网，并提供服务商要求的凭据；服务商的用量费用与
+          Airdraft 的许可证分开计算。
         </dd>
       </div>
     </dl>
     <p>
-      Check your active profile too: a profile's own speech model overrides the
-      app default in Models, and changing the default does not replace it.
+      也请检查当前使用的模式：模式自己的语音模型会覆盖「模型」中的 App
+      默认设置，修改默认设置并不会替换它。
     </p>
   </GuideSection>
 
-  <GuideSection id="storage" title="Where are keys and history stored?">
+  <GuideSection id="storage" title="密钥和历史记录存在哪里？">
     <p>
-      Provider API keys are stored in the macOS Keychain. Dictation history is
-      local and searchable. Audio history is opt-in, with retention choices of
-      1, 7 or 30 days, or until deleted. Turning audio retention off removes
-      saved audio while keeping the text history.
+      服务商的 API 密钥保存在 macOS
+      钥匙串中。听写历史记录保存在本机，可以搜索。音频记录需要你主动开启，保留期限可选
+      1 天、7 天、30
+      天或直到删除。关闭音频保留会删除已保存的音频，文字历史记录仍会保留。
     </p>
     <p>
-      Cloud providers apply their own data policies and billing. A local copy in
-      History does not undo a request already sent to a provider.
+      云端服务商各自适用其数据政策和计费方式。历史记录里的本机副本无法撤回已经发送给服务商的请求。
     </p>
     <div class="guide-actions">
-      <Button href="/pricing/#provider-costs" icon="right">
-        Compare Setup Costs
+      <Button
+        href={`${localizedPath("/pricing/", locale)}#provider-costs`}
+        icon="right"
+      >
+        比较各种设置的费用
       </Button>
       <Button href={siteLinks.source} variant="quiet" icon="external">
-        Inspect the Source
+        查看源代码
       </Button>
     </div>
   </GuideSection>

@@ -3,148 +3,124 @@ import GuideSection from "../../components/GuideSection.astro";
 import Button from "../../components/ui/Button.astro";
 ---
 
-<GuideSection id="dictation" title="Dictation on your Mac">
+<GuideSection id="dictation" title="在你的 Mac 上聽寫">
   <p>
-    Local speech and refinement models process dictation on your Mac. Cloud
-    speech providers receive your audio. Cloud refinement providers receive your
-    transcript and any context you enable. Your provider keys are stored in the
-    macOS Keychain.
+    本機語音與潤稿模型在你的 Mac
+    上處理聽寫。雲端語音供應商會收到你的音訊；雲端潤稿供應商會收到你的逐字稿，以及你開啟的情境資訊。供應商金鑰存在
+    macOS 鑰匙圈。
   </p>
   <p>
-    Website analytics below cover this website only; they never collect data
-    from the Airdraft Mac app. The app's own optional usage data is described in
-    the next section. The website's interactive samples use authored text and
-    never record your microphone.
+    下方的網站分析只涵蓋這個網站，從不收集 Airdraft Mac App 的資料；App
+    本身的選用使用資料在下一節說明。網站上的互動範例使用預先寫好的文字，不會錄下你的麥克風。
   </p>
 </GuideSection>
 
-<GuideSection id="app-telemetry" title="Optional usage data in the Mac app">
+<GuideSection id="app-telemetry" title="Mac App 的選用使用資料">
   <p>
-    Official Airdraft downloads can send anonymous usage counts and crash
-    reports, but only after you choose Share Anonymous Usage Data. The app asks
-    once, on its Ready setup step or on Home, and sends nothing before you
-    answer. Builds you compile from source never send usage data or crash
-    reports.
+    從官方下載的 Airdraft
+    可以傳送匿名使用次數與當機報告，但只在你選擇「分享匿名使用資料」之後。App
+    只在設定的「就緒」步驟或「首頁」詢問一次，你回答之前不會傳送任何資料。自行從原始碼編譯的版本從不傳送使用資料或當機報告。
   </p>
-  <p>With your consent, the app sends only these events:</p>
+  <p>經你同意後，App 只會傳送以下事件：</p>
   <ul>
     <li>
-      <strong>App launched</strong>: app version and build, macOS major version,
-      processor type, interface language and license state (trial, licensed,
-      expired or none).
+      <strong>App 已啟動</strong>：App 版本與建置編號、macOS
+      主要版本、處理器類型、介面語言與授權狀態（試用中、已授權、已過期或無）。
     </li>
     <li>
-      <strong>Setup finished</strong>: completed or skipped.
+      <strong>設定完成</strong>：已完成或已略過。
     </li>
     <li>
-      <strong>Dictation completed</strong>: speech engine family and whether it
-      runs on your Mac or online, refinement provider type, built-in profile or
-      "custom", recording length and stop-to-delivery time in ranges, delivery
-      status and whether refinement was applied or fell back to your transcript.
+      <strong>聽寫完成</strong>：語音引擎系列，以及它在你的 Mac
+      上還是線上執行、潤稿供應商類型、內建模式或「自訂」、以區間表示的錄音長度與停止到送達的時間、送達狀態，以及是否套用潤稿或改用你的逐字稿。
     </li>
     <li>
-      <strong>Dictation failed</strong>: a category such as permission, missing
-      model, missing key, speech error or delivery failure. Cancelled dictations
-      are not reported.
+      <strong>聽寫失敗</strong>
+      ：失敗類別，例如權限、缺少模型、缺少金鑰、語音辨識錯誤或送達失敗。取消的聽寫不會回報。
     </li>
     <li>
-      <strong>Model download finished</strong>: the model's identifier from
-      Airdraft's built-in catalogue and whether the download succeeded, failed
-      or was cancelled.
+      <strong>模型下載結束</strong>：該模型在 Airdraft
+      內建目錄中的識別碼，以及下載成功、失敗或已取消。
     </li>
     <li>
-      <strong>Meeting transcribed</strong>: length in ranges and speech engine
-      family.
+      <strong>會議已轉錄</strong>：以區間表示的長度與語音引擎系列。
     </li>
     <li>
-      <strong>License event</strong>: trial started or license activated.
+      <strong>授權事件</strong>：開始試用或啟用授權。
     </li>
     <li>
-      <strong>Usage data choice</strong>: sent when you turn sharing on, and
-      once when you turn it off.
+      <strong>使用資料選擇</strong>：開啟分享時傳送，關閉時再傳送一次。
     </li>
     <li>
-      <strong>Crash reports</strong>: the error type, stack frames and the
-      loaded system and app libraries needed to locate the fault, with user
-      names removed from file paths.
+      <strong>當機報告</strong>
+      ：錯誤類型、堆疊框架，以及找出問題所需的已載入系統與 App
+      程式庫，檔案路徑中的使用者名稱會先移除。
     </li>
   </ul>
   <p>
-    Every event also carries the app's tag, macOS and app versions, the PostHog
-    library version and a random identifier that is not linked to you. The app
-    never sends your words, transcripts, audio, vocabulary, prompts, clipboard,
-    the apps you dictate into, window titles, web addresses, file names or
-    paths, provider endpoints, API keys, license keys, custom model names, your
-    Mac's name or your email address. The app accepts only these fixed events
-    and values and discards anything else before sending.
+    每個事件也帶有 App 的標籤、macOS 與 App 版本、PostHog
+    程式庫版本，以及一個與你無關聯的隨機識別碼。App
+    從不傳送你說的話、逐字稿、音訊、詞彙、提示詞、剪貼簿、你聽寫的目標
+    App、視窗標題、網址、檔名或路徑、供應商端點、API
+    金鑰、授權金鑰、自訂模型名稱、Mac 的名稱或你的電子郵件地址。App
+    只接受這些固定的事件與值，其他內容在傳送前就會丟棄。
   </p>
   <p>
-    Turn sharing off at any time in Settings &gt; Behavior &gt; Share anonymous
-    usage data and crash reports. Turning it off stops collection and crash
-    capture; unsent events and pending crash reports are removed from your Mac
-    the next time Airdraft opens. It does not delete events already received.
+    你隨時可以在「設定」&gt;「行為」&gt;「分享匿名使用資料與當機報告」關閉分享。關閉後會停止收集與當機擷取；尚未傳送的事件與待傳的當機報告，會在下次開啟
+    Airdraft 時從你的 Mac 移除。已經收到的事件不會因此刪除。
   </p>
   <p>
-    PostHog processes this data for us in the United States, in the same project
-    as the website analytics. The app asks PostHog not to infer your location
-    from your IP address, and we configure the project to discard IP addresses;
-    the service still receives the network connection. No person profiles are
-    created.
+    PostHog 在美國替我們處理這些資料，與網站分析使用同一個專案。App 會要求
+    PostHog 不要從 IP 位址推測你的位置，我們也將專案設定為捨棄 IP
+    位址；但服務仍會收到網路連線。不會建立個人檔案。
   </p>
 </GuideSection>
 
-<GuideSection id="website-analytics" title="Optional website analytics">
+<GuideSection id="website-analytics" title="選用的網站分析">
   <p>
-    When website analytics are enabled, we ask before loading PostHog. If you
-    allow it, PostHog receives page visits, selected button actions, browser and
-    device type, performance measurements, referral domains and campaign labels.
-    A random browser identifier connects those events across visits.
+    網站分析啟用時，我們會先詢問，再載入 PostHog。若你允許，PostHog
+    會收到頁面造訪、特定按鈕操作、瀏覽器與裝置類型、效能測量、來源網域與活動標籤。一個隨機的瀏覽器識別碼會把多次造訪的事件串在一起。
   </p>
   <p>
-    We do not enable session recordings, capture typed text or create identified
-    person profiles. We remove URL queries and fragments, referral paths,
-    advertising click identifiers and unrecognized event properties before
-    sending events. Campaign labels must not contain personal information. We
-    configure PostHog to discard IP addresses and disable location enrichment;
-    the service still receives the network connection.
+    我們不開啟工作階段錄製，不擷取輸入的文字，也不建立可辨識身分的個人檔案。傳送事件前，我們會移除網址的查詢字串與片段、來源路徑、廣告點擊識別碼，以及無法辨認的事件屬性。活動標籤不得包含個人資料。我們將
+    PostHog 設定為捨棄 IP 位址並停用位置推算；但服務仍會收到網路連線。
   </p>
   <p>
-    PostHog uses browser storage after you allow analytics. We also store your
-    allow or decline choice on this browser for 180 days. Declining sends no
-    website analytics to PostHog. Turning analytics off stops future collection
-    and clears the SDK's stored analytics state; it does not delete events
-    already received.
+    你允許分析後，PostHog
+    會使用瀏覽器儲存空間。我們也會在這個瀏覽器保存你允許或拒絕的選擇 180
+    天。拒絕時不會把任何網站分析資料送到
+    PostHog。關閉分析會停止之後的收集，並清除 SDK
+    儲存的分析狀態；已經收到的事件不會因此刪除。
   </p>
   <p>
-    We honor Global Privacy Control and Do Not Track signals by keeping
-    analytics off. Analytics choices apply to this website and browser only.
-    JavaScript must be enabled to change the choice or collect analytics.
+    收到「全球隱私控制」（Global Privacy Control）或「不要追蹤」（Do Not
+    Track）訊號時，我們會保持分析關閉。分析選擇只適用於這個網站與這個瀏覽器。必須開啟
+    JavaScript 才能更改選擇或收集分析資料。
   </p>
   <p>
-    Cloudflare hosts the website and handles network requests and access
-    controls separately. Following GitHub or payment links takes you to those
-    services, under their own privacy practices.
+    網站由 Cloudflare 代管，網路請求與存取控制由它另外處理。點選 GitHub
+    或付款連結會前往這些服務，適用它們各自的隱私做法。
   </p>
   <p>
-    Read <a href="https://posthog.com/privacy">PostHog's privacy notice</a> for
-    its service practices.
+    PostHog 的服務做法請看{" "}
+    <a href="https://posthog.com/privacy">PostHog 隱私權聲明</a>。
   </p>
 </GuideSection>
 
-<GuideSection id="analytics" title="Your analytics choice">
+<GuideSection id="analytics" title="你的分析選擇">
   <p
     class="analytics-status"
     data-analytics-status
-    data-disabled="Website analytics are not enabled on this site."
-    data-blocked="Analytics are off because your browser requests no tracking."
-    data-allowed="Website analytics are allowed. You can turn them off below."
-    data-off="Website analytics are off."
+    data-disabled="這個網站未啟用網站分析。"
+    data-blocked="你的瀏覽器要求不要追蹤，因此分析已關閉。"
+    data-allowed="已允許網站分析，可以在下方關閉。"
+    data-off="網站分析已關閉。"
     aria-live="polite"
   >
-    Website analytics are off unless you allow them with JavaScript enabled.
+    除非你在開啟 JavaScript 的情況下允許，否則網站分析保持關閉。
   </p>
   <div class="analytics-actions analytics-settings">
-    <Button data-analytics-choice="denied">Turn Analytics Off</Button>
-    <Button data-analytics-choice="granted">Allow Analytics</Button>
+    <Button data-analytics-choice="denied">關閉分析</Button>
+    <Button data-analytics-choice="granted">允許分析</Button>
   </div>
 </GuideSection>

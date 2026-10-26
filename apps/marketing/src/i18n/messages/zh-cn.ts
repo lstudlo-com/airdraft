@@ -145,8 +145,7 @@ export const zhCn: Messages = {
     allDark: "全部深色",
     mixed: "{light}% 浅色，{dark}% 深色",
     materials: "窗口中的材质",
-    caption:
-      "以 Graphite 强调色从 App 的英文界面渲染；App 跟随 macOS 的语言，也提供简体中文界面。",
+    caption: "App 简体中文界面的实际画面，强调色为石墨色。",
     drag: "拖动即可比较浅色和深色。",
     press: ["按得下去的键", "在键盘上按住 ⌃⌥，它们也会跟着按下。"],
     select: ["会滑动的选中效果", "凹槽先移动，图标底座随后跟上。"],

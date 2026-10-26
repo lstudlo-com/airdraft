@@ -3,7 +3,8 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { localizedPath, type Locale } from "../../../i18n";
+import { messages } from "../../../i18n/messages";
 import { licenses, siteLinks } from "../../../data/site";
 
 const locale: Locale = "ja";
@@ -11,113 +12,115 @@ const guide = guidesFor(locale).find(
   (entry) => entry.slug === "free-source-or-official-app",
 )!;
 const onSale = Boolean(siteLinks.checkout);
+const plans = messages[locale].license.plans;
+const pricing = localizedPath("/pricing/", locale);
+const priceText = `${licenses
+  .map((plan) => `${plans[plan.id].macs}で ${plan.price}`)
+  .join("、")}。買い切りで、米ドル・税抜きの価格です。`;
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="availability" title="What can I get now?">
+  <GuideSection id="availability" title="いま入手できるものは？">
     {onSale ? (
       <p>
-        You can build Airdraft from source or choose an official-app license on
-        the <a href="/pricing/">pricing page</a>.
+        Airdraft はソースからビルドするか、<a href={pricing}>価格ページ</a>
+        で公式アプリのライセンスを選べます。
       </p>
     ) : (
       <p>
-        The <a href={siteLinks.build}>source build</a> is available now. The
-        official app is not on sale yet. Existing personal-use release builds
-        are signed with Apple Development and are not notarized; they are not a
-        supported public installer.
+        <a href={siteLinks.build}>ソースからのビルド</a>
+        はいますぐ利用できます。公式アプリはまだ販売していません。これまでに公開した個人利用向けのリリースビルドは
+        Apple Development
+        で署名されており、公証を受けていないため、サポート対象の一般向けインストーラではありません。
       </p>
     )}
     <p>
-      Both paths require an Apple silicon Mac with macOS 15 or later. Apple
-      SpeechAnalyzer and Apple Intelligence require macOS 26 or later.
+      どちらも macOS 15 以降を搭載した Apple シリコンの Mac が必要です。Apple
+      SpeechAnalyzer と Apple Intelligence には macOS 26 以降が必要です。
     </p>
   </GuideSection>
 
-  <GuideSection id="compare" title="How do the two options differ?">
+  <GuideSection id="compare" title="2 つの選択肢の違いは？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare the source build and official app"
+      aria-label="ソースからのビルドと公式アプリの比較"
     >
       <table class="guide-table">
-        <caption>Source build and official-app license</caption>
+        <caption>ソースからのビルドと公式アプリのライセンス</caption>
         <thead>
           <tr>
-            <th scope="col">Choice</th>
-            <th scope="col">Free source build</th>
-            <th scope="col">Official app</th>
+            <th scope="col">項目</th>
+            <th scope="col">無料のソースビルド</th>
+            <th scope="col">公式アプリ</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Price</th>
+            <th scope="row">価格</th>
             <td>$0</td>
+            <td>{priceText}</td>
+          </tr>
+          <tr>
+            <th scope="row">機能</th>
+            <td>すべての機能。制限のあるプランはありません。</td>
+            <td>同じ機能を、すぐに使える形で。</td>
+          </tr>
+          <tr>
+            <th scope="row">セットアップ</th>
+            <td>リポジトリの手順に従って Xcode でビルドします。</td>
+            <td>Xcode もビルドも不要です。</td>
+          </tr>
+          <tr>
+            <th scope="row">アップデート</th>
+            <td>ソースの変更を取得して、ビルドし直します。</td>
+            <td>購入したバージョンのアップデートが含まれます。</td>
+          </tr>
+          <tr>
+            <th scope="row">試用</th>
+            <td>試用の制限はありません。</td>
             <td>
-              {licenses
-                .map((plan) => `${plan.price} for ${plan.macs}`)
-                .join("; ")}
-              . One-time, in US dollars before tax.
+              すべての機能を使える 14 日間の試用を、好きなときに開始できます。
             </td>
-          </tr>
-          <tr>
-            <th scope="row">Features</th>
-            <td>Every feature, with no locked tier.</td>
-            <td>The same features, ready to run.</td>
-          </tr>
-          <tr>
-            <th scope="row">Setup</th>
-            <td>Build with Xcode using the repository instructions.</td>
-            <td>No Xcode or build step.</td>
-          </tr>
-          <tr>
-            <th scope="row">Updates</th>
-            <td>Pull source changes and rebuild.</td>
-            <td>Updates to the version you buy are included.</td>
-          </tr>
-          <tr>
-            <th scope="row">Trial</th>
-            <td>No trial limit.</td>
-            <td>A 14-day full-feature trial, started when you choose.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </GuideSection>
 
-  <GuideSection id="license" title="Is the official app a subscription?">
+  <GuideSection id="license" title="公式アプリはサブスクリプションですか？">
     <p>
-      No. The personal license is a one-time purchase and does not expire. The
-      plans differ only in how many Macs can be active at once. You can
-      deactivate a Mac to move the license to another one.
+      いいえ。個人向けライセンスは買い切りで、期限はありません。プランの違いは、同時にアクティベートできる
+      Mac の台数だけです。Mac のアクティベーションを解除すれば、ライセンスを別の
+      Mac に移せます。
     </p>
     <p>
-      The source is licensed under{" "}
-      <a href={`${siteLinks.source}/blob/main/LICENSE`}>GPL-3.0-only</a>. The
-      repository's license covers the source; the official app's purchase terms
-      describe its personal license.
+      ソースのライセンスは
+      <a href={`${siteLinks.source}/blob/main/LICENSE`}>GPL-3.0-only</a>
+      です。リポジトリのライセンスはソースに適用され、公式アプリの個人向けライセンスは購入条件に定められています。
     </p>
   </GuideSection>
 
-  <GuideSection id="model-costs" title="Do I also pay for models?">
+  <GuideSection id="model-costs" title="モデルの料金もかかりますか？">
     <p>
-      Local speech and refinement have no API charges. Cloud providers bill you
-      directly, whichever edition you use.
+      ローカルの音声認識と整形に API
+      の料金はかかりません。クラウドのプロバイダは、どちらのエディションを使っていても直接請求します。
     </p>
     <p>
-      See the{" "}
-      <a href="/pricing/#provider-costs">
-        dated cost comparison and workload assumptions
+      <a href={`${pricing}#provider-costs`}>日付つきの費用比較と利用量の前提</a>
+      を見るか、
+      <a href={localizedPath("/guides/offline-dictation-on-mac/", locale)}>
+        ローカルの構成
       </a>
-      , or choose a <a href="/guides/offline-dictation-on-mac/">local setup</a>.
+      を選んでください。
     </p>
     <div class="guide-actions">
       <Button href={siteLinks.build} icon="external">
-        Build from Source
+        ソースからビルド
       </Button>
-      <Button href="/pricing/" variant="quiet" icon="right">
-        View Pricing
+      <Button href={pricing} variant="quiet" icon="right">
+        価格を見る
       </Button>
     </div>
   </GuideSection>

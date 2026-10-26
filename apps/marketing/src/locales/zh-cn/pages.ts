@@ -1,110 +1,98 @@
 import type { PageCopy } from "../types";
 
-// TRANSLATE: placeholder English copy; translate every string.
 export const zhCn: PageCopy = {
   chrome: {
-    breadcrumb: "Breadcrumb",
-    home: "Home",
-    guides: "Guides",
-    related: "Related guides",
+    breadcrumb: "面包屑导航",
+    home: "首页",
+    guides: "指南",
+    related: "相关指南",
   },
   notFound: {
-    title: "Page not found — Airdraft",
-    heading: "This page doesn’t exist",
-    action: "Go to the homepage",
+    title: "找不到页面 — Airdraft",
+    heading: "这个页面不存在",
+    action: "返回首页",
   },
   hub: {
-    title: "Mac dictation setup and model guides | Airdraft",
+    title: "Mac 听写设置与模型指南 | Airdraft",
     description:
-      "Practical Airdraft guides for offline Mac dictation in your language, mixed Chinese and English, dictating into Claude Code and terminals, local and cloud models, private meeting transcription, comparisons with other apps, and the free source build or official app.",
-    heading: "Dictation guides",
-    help: [
-      "Already set up and something is wrong?",
-      "Check permissions, shortcuts and common problems.",
-    ],
-    pricing: "Compare Pricing",
-    changes: "See What Changed",
+      "Airdraft 实用指南：用你的语言在 Mac 上离线听写、中英混说、对 Claude Code 和终端听写、本机与云端模型、在本机转录会议、与其他 App 的对比，以及免费源代码编译与官方版的区别。",
+    heading: "听写指南",
+    help: ["已经设置好却出了问题？", "检查权限、快捷键和常见问题。"],
+    pricing: "比较价格",
+    changes: "查看更新内容",
   },
   support: {
-    title: "Support — Airdraft",
+    title: "支持 — Airdraft",
     description:
-      "Fix common Airdraft problems with permissions, shortcuts and models, or report a bug.",
-    heading: "Support",
+      "解决 Airdraft 在权限、快捷键和模型方面的常见问题，或者报告错误。",
+    heading: "支持",
   },
   privacy: {
-    title: "Privacy | Airdraft",
+    title: "隐私 | Airdraft",
     description:
-      "How Airdraft handles dictation data, optional app usage data and website analytics, and how to change either choice.",
-    heading: "Privacy",
+      "Airdraft 如何处理听写数据、可选的 App 使用数据和网站分析，以及如何更改这两项选择。",
+    heading: "隐私",
   },
   changelog: {
-    title: "Changelog — Airdraft",
+    title: "更新日志 — Airdraft",
     description:
-      "Airdraft release history, from the first source build to speech models per profile, local intelligence and a new native interface.",
-    heading: "Changelog",
-    nav: "Release versions",
-    latest: "Latest release",
-    source: "Source",
-    releaseNotes: "Release notes",
-    initialSource: "Initial source",
-    sourceFor: (label, version) => `${label} for ${version}`,
-    firstBuild: "the first source build",
+      "Airdraft 的版本历史：从第一个源代码版本，到按模式选择语音模型、本机智能和全新的原生界面。",
+    heading: "更新日志",
+    nav: "发布版本",
+    latest: "最新版本",
+    source: "源代码",
+    releaseNotes: "发布说明",
+    initialSource: "初始源代码",
+    sourceFor: (label, version) => `${version} 的${label}`,
+    firstBuild: "第一个源代码版本",
     availability: [
-      "Published installers are personal-use builds signed with Apple Development, without notarization. See ",
-      "installation guidance",
-      ".",
+      "已发布的安装包是以 Apple Development 签名、未经公证的个人使用版本。请参阅",
+      "安装说明",
+      "。",
     ],
   },
   guides: {
     "offline-dictation-on-mac": {
-      title: "Set up offline dictation on your Mac",
+      title: "在 Mac 上设置离线听写",
       description:
-        "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
-      summary:
-        "Choose a speech model for your language, keep cleanup local, and make your first dictation.",
+        "为 Airdraft 设置本机语音识别和可选的本机 AI 润色。了解 Mac 的要求、该选哪个模型、Airdraft 自己对英语、日语和韩语的测量，以及权限和模式。",
+      summary: "为你的语言选一个语音模型，让润色也留在本机，完成第一次听写。",
     },
     "mixed-chinese-english-dictation": {
-      title: "Dictate mixed Chinese and English on a Mac",
+      title: "在 Mac 上中英混着说：本机模型怎么选",
       description:
-        "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
-      summary:
-        "Pick a local model for mixed Mandarin and English, with Airdraft's own measured trade-offs.",
+        "一句话里夹着英文术语，该选哪个本机语音模型？Airdraft 自行测量了各模型的错误率、英文词保留率、下载大小、内存和速度。",
+      summary: "中英混说该用哪个本机模型，附 Airdraft 的实测取舍。",
     },
     "dictate-to-claude-code-and-terminals": {
-      title: "Dictate prompts into Claude Code, Codex and terminals",
+      title: "用语音给 Claude Code、Codex 和终端输入提示词",
       description:
-        "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
-      summary:
-        "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
+        "在 Mac 上用语音给 Claude Code、Codex 和终端输入提示词：自绘文字的终端怎么粘贴，怎样沿用现有套餐润色，以及哪些数据会离开你的 Mac。",
+      summary: "用说的输入提示词，并用你已付费的套餐润色。",
     },
     "local-vs-cloud-dictation": {
-      title: "Choose local or cloud dictation",
+      title: "听写用本机还是云端",
       description:
-        "Compare Airdraft's local and cloud speech and refinement options. See where audio, transcripts and enabled app context go before choosing a setup.",
-      summary:
-        "See where your audio and text go with each combination of models.",
+        "比较 Airdraft 的本机与云端语音识别和润色选项。选择设置之前，先看清音频、转录文本和已开启的 App 上下文会去哪里。",
+      summary: "看清每种模型组合下，你的音频和文字会去哪里。",
     },
     "free-source-or-official-app": {
-      title: "Choose the free source build or official app",
+      title: "选免费源代码编译还是官方版",
       description:
-        "Compare Airdraft's complete free source build with its one-time official app license, including setup, updates, Mac limits and current availability.",
-      summary:
-        "Compare setup, updates and license terms, including what is available now.",
+        "比较 Airdraft 功能完整的免费源代码编译与一次买断的官方版许可证：安装、更新、Mac 数量限制和目前能否购买。",
+      summary: "比较安装、更新和许可条款，以及现在能拿到什么。",
     },
     "private-meeting-transcription": {
-      title: "Transcribe meetings privately on your Mac",
+      title: "在自己的 Mac 上把会议转成转录稿",
       description:
-        "Record app audio and your microphone or import a file, then transcribe it on your Mac with optional speaker labels. Check permissions, limits and exports.",
-      summary:
-        "Record a call or import a file, label speakers, and export subtitles.",
+        "录制 App 音频和麦克风，或导入文件，在 Mac 上转录，可选择标出发言人。另附所需权限、限制和导出格式。",
+      summary: "录下通话或导入文件，标出发言人，再导出字幕。",
     },
     "compare-mac-dictation-apps": {
-      title:
-        "Compare Airdraft with VoiceInk, Handy, Typeless and Apple Dictation",
+      title: "Airdraft 与 VoiceInk、Handy、Typeless、Apple 听写对比",
       description:
-        "A dated comparison of Airdraft, VoiceInk, Handy, Typeless and Apple Dictation on macOS 27: price, source, where speech runs, meetings and where each is better.",
-      summary:
-        "See prices, data flow and meeting support side by side, including where others are better.",
+        "附核查日期，对比 Airdraft、VoiceInk、Handy、Typeless 和 macOS 27 的 Apple 听写：价格、源代码、语音在哪里处理、会议功能，以及各自的长处。",
+      summary: "并排比较价格、数据去向和会议功能，也列出别人做得更好的地方。",
     },
   },
 };

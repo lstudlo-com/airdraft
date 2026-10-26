@@ -187,10 +187,7 @@ export const es: Messages = {
     allDark: "Todo oscuro",
     mixed: "{light} % claro, {dark} % oscuro",
     materials: "Materiales de la ventana",
-    caption:
-      "Renderizada desde la interfaz en inglés de la app, con el acento Graphite.",
-    unreleased:
-      "La versión publicada de la app aún muestra la interfaz en inglés; las etiquetas citadas aquí son las de su traducción al español.",
+    caption: "Captura real de la app en español, con el acento Graphite.",
     drag: "Arrastra para comparar claro y oscuro.",
     press: [
       "Teclas que se hunden",

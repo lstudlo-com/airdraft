@@ -1,110 +1,110 @@
 import type { PageCopy } from "../types";
 
-// TRANSLATE: placeholder English copy; translate every string.
 export const es: PageCopy = {
   chrome: {
-    breadcrumb: "Breadcrumb",
-    home: "Home",
-    guides: "Guides",
-    related: "Related guides",
+    breadcrumb: "Ruta de navegación",
+    home: "Inicio",
+    guides: "Guías",
+    related: "Guías relacionadas",
   },
   notFound: {
-    title: "Page not found — Airdraft",
-    heading: "This page doesn’t exist",
-    action: "Go to the homepage",
+    title: "Página no encontrada — Airdraft",
+    heading: "Esta página no existe",
+    action: "Ir a la página de inicio",
   },
   hub: {
-    title: "Mac dictation setup and model guides | Airdraft",
+    title: "Guías de dictado y modelos para Mac | Airdraft",
     description:
-      "Practical Airdraft guides for offline Mac dictation in your language, mixed Chinese and English, dictating into Claude Code and terminals, local and cloud models, private meeting transcription, comparisons with other apps, and the free source build or official app.",
-    heading: "Dictation guides",
+      "Guías prácticas de Airdraft: dictado sin conexión en tu Mac en tu idioma, chino e inglés mezclados, dictado en Claude Code y terminales, modelos locales y en la nube, transcripción privada de reuniones, comparación con otras apps y la versión gratuita desde el código o la app oficial.",
+    heading: "Guías de dictado",
     help: [
-      "Already set up and something is wrong?",
-      "Check permissions, shortcuts and common problems.",
+      "¿Ya lo tienes configurado y algo falla?",
+      "Revisa permisos, atajos y problemas habituales.",
     ],
-    pricing: "Compare Pricing",
-    changes: "See What Changed",
+    pricing: "Comparar precios",
+    changes: "Ver novedades",
   },
   support: {
-    title: "Support — Airdraft",
+    title: "Ayuda — Airdraft",
     description:
-      "Fix common Airdraft problems with permissions, shortcuts and models, or report a bug.",
-    heading: "Support",
+      "Soluciona problemas habituales de Airdraft con permisos, atajos y modelos, o informa de un error.",
+    heading: "Ayuda",
   },
   privacy: {
-    title: "Privacy | Airdraft",
+    title: "Privacidad | Airdraft",
     description:
-      "How Airdraft handles dictation data, optional app usage data and website analytics, and how to change either choice.",
-    heading: "Privacy",
+      "Cómo trata Airdraft los datos de dictado, los datos de uso opcionales de la app y la analítica web, y cómo cambiar cada elección.",
+    heading: "Privacidad",
   },
   changelog: {
-    title: "Changelog — Airdraft",
+    title: "Novedades — Airdraft",
     description:
-      "Airdraft release history, from the first source build to speech models per profile, local intelligence and a new native interface.",
-    heading: "Changelog",
-    nav: "Release versions",
-    latest: "Latest release",
-    source: "Source",
-    releaseNotes: "Release notes",
-    initialSource: "Initial source",
-    sourceFor: (label, version) => `${label} for ${version}`,
-    firstBuild: "the first source build",
+      "Historial de versiones de Airdraft, desde la primera compilación del código hasta los modelos de voz por perfil, la inteligencia local y una nueva interfaz nativa.",
+    heading: "Novedades",
+    nav: "Versiones publicadas",
+    latest: "Versión más reciente",
+    source: "Código",
+    releaseNotes: "Notas de la versión",
+    initialSource: "Código inicial",
+    sourceFor: (label, version) =>
+      /^\d/.test(version) ? `${label} ${version}` : `${label} de ${version}`,
+    firstBuild: "la primera versión",
     availability: [
-      "Published installers are personal-use builds signed with Apple Development, without notarization. See ",
-      "installation guidance",
+      "Los instaladores publicados son compilaciones de uso personal firmadas con Apple Development, sin notarizar. Consulta las ",
+      "instrucciones de instalación",
       ".",
     ],
   },
   guides: {
     "offline-dictation-on-mac": {
-      title: "Set up offline dictation on your Mac",
+      title: "Configura el dictado sin conexión en tu Mac",
       description:
-        "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
+        "Configura Airdraft con reconocimiento de voz local y limpieza opcional con IA local. Requisitos del Mac, qué modelo elegir, la medición propia de Airdraft en inglés, japonés y coreano, permisos y perfiles.",
       summary:
-        "Choose a speech model for your language, keep cleanup local, and make your first dictation.",
+        "Elige un modelo de voz para tu idioma, mantén la limpieza en local y haz tu primer dictado.",
     },
     "mixed-chinese-english-dictation": {
-      title: "Dictate mixed Chinese and English on a Mac",
+      title: "Dicta chino e inglés mezclados en un Mac",
       description:
-        "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
+        "Elige un modelo de voz local para frases que mezclan mandarín y términos en inglés. La medición propia de Airdraft compara errores, términos en inglés conservados, tamaño, memoria y velocidad.",
       summary:
-        "Pick a local model for mixed Mandarin and English, with Airdraft's own measured trade-offs.",
+        "Elige un modelo local para mandarín e inglés mezclados, con las ventajas y desventajas que midió Airdraft.",
     },
     "dictate-to-claude-code-and-terminals": {
-      title: "Dictate prompts into Claude Code, Codex and terminals",
+      title: "Dicta prompts en Claude Code, Codex y terminales",
       description:
-        "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
+        "Dicta prompts en Claude Code, Codex y apps de terminal en un Mac. Cómo funciona el pegado en terminales que dibujan su propio texto, el refinamiento con tu plan actual y qué sale de tu Mac.",
       summary:
-        "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
+        "Dicta prompts a agentes de programación y terminales, y refínalos con el plan que ya pagas.",
     },
     "local-vs-cloud-dictation": {
-      title: "Choose local or cloud dictation",
+      title: "Elige entre dictado local o en la nube",
       description:
-        "Compare Airdraft's local and cloud speech and refinement options. See where audio, transcripts and enabled app context go before choosing a setup.",
+        "Compara las opciones locales y en la nube de Airdraft para la voz y el refinamiento. Mira adónde van el audio, las transcripciones y el contexto de la app que actives antes de elegir.",
       summary:
-        "See where your audio and text go with each combination of models.",
+        "Mira adónde van tu audio y tu texto con cada combinación de modelos.",
     },
     "free-source-or-official-app": {
-      title: "Choose the free source build or official app",
+      title: "Elige entre la versión gratuita desde el código o la app oficial",
       description:
-        "Compare Airdraft's complete free source build with its one-time official app license, including setup, updates, Mac limits and current availability.",
+        "Compara la versión completa y gratuita de Airdraft compilada desde el código con la licencia de pago único de la app oficial: instalación, actualizaciones, límite de Macs y disponibilidad actual.",
       summary:
-        "Compare setup, updates and license terms, including what is available now.",
+        "Compara instalación, actualizaciones y condiciones de la licencia, incluido lo que está disponible ahora.",
     },
     "private-meeting-transcription": {
-      title: "Transcribe meetings privately on your Mac",
+      title: "Transcribe reuniones en privado en tu Mac",
       description:
-        "Record app audio and your microphone or import a file, then transcribe it on your Mac with optional speaker labels. Check permissions, limits and exports.",
+        "Graba el audio de las apps y tu micrófono o importa un archivo, y transcríbelo en tu Mac con etiquetas de hablante opcionales. Permisos, límites y exportación.",
       summary:
-        "Record a call or import a file, label speakers, and export subtitles.",
+        "Graba una llamada o importa un archivo, etiqueta a los hablantes y exporta subtítulos.",
     },
     "compare-mac-dictation-apps": {
       title:
-        "Compare Airdraft with VoiceInk, Handy, Typeless and Apple Dictation",
+        "Compara Airdraft con VoiceInk, Handy, Typeless y el Dictado de Apple",
       description:
-        "A dated comparison of Airdraft, VoiceInk, Handy, Typeless and Apple Dictation on macOS 27: price, source, where speech runs, meetings and where each is better.",
+        "Comparación fechada de Airdraft, VoiceInk, Handy, Typeless y el Dictado de Apple en macOS 27: precio, código, dónde se procesa la voz, reuniones y en qué es mejor cada uno.",
       summary:
-        "See prices, data flow and meeting support side by side, including where others are better.",
+        "Compara precios, flujo de datos y reuniones, incluido en qué son mejores los demás.",
     },
   },
 };

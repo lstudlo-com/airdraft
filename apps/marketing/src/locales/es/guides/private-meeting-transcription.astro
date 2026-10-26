@@ -8,140 +8,144 @@ import { href, type Locale } from "../../../i18n";
 /**
  * Private meeting transcription, in each language. Every statement follows
  * docs/meeting-recording.md and docs/media-transcription.md. Button and
- * setting names are the app's own in the page's language: the zh-Hant values
- * in its string catalogs, quoted with 「」. Builds through 0.10.2 show
- * English labels, and the zh-TW intro says so. Keep both languages
- * aligned.
+ * setting names are the app's own in the page's language: the es values
+ * in its string catalogs, quoted with «». Keep the languages aligned.
  */
 const locale: Locale = "es";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "private-meeting-transcription",
 )!;
-const zh = locale === "zh-tw";
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="requirements" title="What do I need?">
+  <GuideSection id="requirements" title="¿Qué necesito?">
     <ul>
-      <li>An Apple silicon Mac with macOS 15 or later.</li>
+      <li>Un Mac con Apple silicon y macOS 15 o posterior.</li>
       <li>
-        Screen &amp; System Audio Recording permission to record meetings.
-        Microphone access is requested only when you include the microphone.
+        El permiso «Grabación de pantalla y audio del sistema» para grabar
+        reuniones. El acceso al micrófono solo se pide cuando incluyes el
+        micrófono.
       </li>
       <li>
-        An installed local speech model, or a Soniox API key for cloud
-        transcription.
+        Un modelo de voz local instalado, o una clave de API de Soniox para
+        transcribir en la nube.
       </li>
       <li>
-        Headphones when your microphone could pick up the speakers: there is no
-        echo cancellation.
+        Auriculares si tu micrófono puede captar los altavoces: no hay
+        cancelación de eco.
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection id="record" title="Record a meeting">
+  <GuideSection id="record" title="Graba una reunión">
     <ol class="guide-steps">
       <li>
-        <h3>Open Record Meeting</h3>
+        <h3>Abre «Grabar reunión»</h3>
         <p>
-          Choose Record Meeting on the Meetings page. The menu bar opens the
-          same flow.
+          Elige «Grabar reunión» en la página Reuniones. La barra de menús abre
+          el mismo flujo.
         </p>
       </li>
       <li>
-        <h3>Choose what to capture</h3>
+        <h3>Elige qué capturar</h3>
         <p>
-          For App audio, pick All Apps or one running app; a browser includes
-          all of its audio. Include microphone uses the microphone selected in
-          the sidebar. Only audio is captured, never screen video.
+          En «Audio de apps», elige «Todas las apps» o una app abierta; un
+          navegador incluye todo su audio. «Incluir micrófono» usa el micrófono
+          seleccionado en la barra lateral. Solo se captura audio, nunca vídeo
+          de la pantalla.
         </p>
       </li>
       <li>
-        <h3>Start, and tell everyone</h3>
+        <h3>Empieza y avisa a todos</h3>
         <p>
-          Choose Start Recording, and let participants know you are recording.
-          Recording continues if you leave Meetings; stop it with Stop and Save
-          on Meetings or in the menu bar.
+          Elige «Iniciar grabación» y avisa a los participantes de que estás
+          grabando. La grabación continúa si sales de Reuniones; detenla con
+          «Detener y guardar» en Reuniones o en la barra de menús.
         </p>
       </li>
       <li>
-        <h3>It is saved before anything else happens</h3>
+        <h3>Se guarda antes de cualquier otra cosa</h3>
         <p>
-          The recording appears with its date and duration. Nothing has been
-          transcribed or uploaded yet.
+          La grabación aparece con su fecha y su duración. Todavía no se ha
+          transcrito ni subido nada.
         </p>
       </li>
     </ol>
   </GuideSection>
 
-  <GuideSection id="import" title="Or import a file">
+  <GuideSection id="import" title="O importa un archivo">
     <p>
-      Choose Import… on Meetings or drop a file. Audio and video files can be up
-      to two hours long with exactly one audio track; export the track you want
-      from a multi-track file first. Airdraft keeps a 16 kHz copy and never
-      changes the original.
+      Elige «Importar…» en Reuniones o suelta un archivo. Los archivos de audio
+      y vídeo pueden durar hasta dos horas y deben tener exactamente una pista
+      de audio; si tienen varias, exporta antes la que quieras. Airdraft guarda
+      una copia a 16 kHz y nunca modifica el original.
     </p>
   </GuideSection>
 
-  <GuideSection id="transcribe" title="Transcribe with speakers">
+  <GuideSection id="transcribe" title="Transcribe con hablantes">
     <p>
-      Choose Transcribe… on a recording, pick a model and language, and turn on
-      Identify speakers if you want labels. Speaker identification runs on your
-      Mac; the first time, download its model from the same sheet.
+      Elige «Transcribir…» en una grabación, elige un modelo y un idioma, y
+      activa «Identificar hablantes» si quieres etiquetas. La identificación de
+      hablantes se ejecuta en tu Mac; la primera vez, descarga su modelo desde
+      la misma hoja.
     </p>
     <ul>
       <li>
-        Speaker labels are estimates, shown as Speaker 1, Speaker 2 and so on,
-        never guessed names. Rename or reassign them. Overlapping voices are not
-        separated.
+        Las etiquetas de hablante son estimaciones y aparecen como Hablante 1,
+        Hablante 2, etc., nunca como nombres adivinados. Puedes renombrarlas o
+        reasignarlas. Las voces que se solapan no se separan.
       </li>
       <li>
-        Whisper keeps word timings; other local models give segment timings. An
-        interrupted transcription can Resume from its last finished segment.
+        Whisper conserva los tiempos de cada palabra; otros modelos locales dan
+        tiempos por segmento. Una transcripción interrumpida puede usar
+        «Reanudar» desde el último segmento terminado.
       </li>
       <li>
-        Parakeet does not support Chinese. For Chinese, or Chinese and English
-        mixed, choose a model that supports it, such as Qwen3-ASR.
+        Parakeet no admite chino. Para chino, o chino e inglés mezclados, elige
+        un modelo que lo admita, como Qwen3-ASR.
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection id="privacy" title="What leaves my Mac?">
+  <GuideSection id="privacy" title="¿Qué sale de mi Mac?">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare where meeting data goes"
+      aria-label="Compara adónde van los datos de la reunión"
     >
       <table class="guide-table">
-        <caption>Data sent at each step</caption>
+        <caption>Datos enviados en cada paso</caption>
         <thead>
           <tr>
-            <th scope="col">Step</th>
-            <th scope="col">What is sent</th>
+            <th scope="col">Paso</th>
+            <th scope="col">Lo que se envía</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Recording</th>
-            <td>Nothing. The audio is saved on this Mac.</td>
+            <th scope="row">Grabación</th>
+            <td>Nada. El audio se guarda en este Mac.</td>
           </tr>
           <tr>
-            <th scope="row">Local transcription</th>
-            <td>Nothing. Speaker identification also runs locally.</td>
-          </tr>
-          <tr>
-            <th scope="row">Soniox transcription</th>
+            <th scope="row">Transcripción local</th>
             <td>
-              After you choose Upload and Transcribe, the audio goes to Soniox
-              on your API key, and charges may apply. A local WAV remains.
+              Nada. La identificación de hablantes también se ejecuta en local.
             </td>
           </tr>
           <tr>
-            <th scope="row">Summarize</th>
+            <th scope="row">Transcripción con Soniox</th>
             <td>
-              After you confirm, the transcript goes to your selected refinement
-              provider; local refinement keeps it on your Mac.
+              Cuando eliges «Subir y transcribir», el audio va a Soniox con tu
+              clave de API y puede tener costo. Se conserva un WAV local.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Resumir</th>
+            <td>
+              Cuando lo confirmas, la transcripción va al proveedor de
+              refinamiento que elegiste; con el refinamiento local se queda en
+              tu Mac.
             </td>
           </tr>
         </tbody>
@@ -149,45 +153,48 @@ const zh = locale === "zh-tw";
     </div>
   </GuideSection>
 
-  <GuideSection id="export" title="Edit and export">
+  <GuideSection id="export" title="Edita y exporta">
     <p>
-      Your edits sit beside the original; switch between Edited and Original,
-      and Copy and Export use the one shown. Export TXT, JSON, SRT or VTT;
-      subtitles keep each turn’s time and speaker. Select a timestamp to play
-      the recording from there.
+      Tus cambios se guardan junto al original; alterna entre «Editado» y
+      «Original», y «Copiar» y «Exportar» usan la versión que se muestra.
+      Exporta TXT, JSON, SRT o VTT; los subtítulos conservan el tiempo y el
+      hablante de cada intervención. Selecciona una marca de tiempo para
+      reproducir la grabación desde ahí.
     </p>
     <p>
-      Meeting recordings ignore dictation’s audio retention and stay until you
-      remove the audio. Deleting a transcript keeps its recording.
+      Las grabaciones de reuniones no siguen la retención de audio del dictado y
+      se conservan hasta que elimines el audio. Eliminar una transcripción
+      conserva su grabación.
     </p>
   </GuideSection>
 
-  <GuideSection id="limits" title="Limits">
+  <GuideSection id="limits" title="Límites">
     <ul>
-      <li>Each recording or file can be up to two hours long.</li>
+      <li>Cada grabación o archivo puede durar hasta dos horas.</li>
       <li>
-        Starting a recording needs about 2 GB of free space. Capture stops after
-        15 seconds without receiving audio.
+        Para empezar una grabación se necesitan unos 2 GB de espacio libre. La
+        captura se detiene tras 15 segundos sin recibir audio.
       </li>
       <li>
-        Speaker identification on long files needs enough free memory and checks
-        before it starts.
+        La identificación de hablantes en archivos largos necesita suficiente
+        memoria libre y lo comprueba antes de empezar.
       </li>
       <li>
-        Airdraft has not published accuracy measurements for meeting
-        transcription or speaker labels. Try it with your own recordings.
+        Airdraft no ha publicado mediciones de precisión de la transcripción de
+        reuniones ni de las etiquetas de hablante. Pruébalo con tus propias
+        grabaciones.
       </li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
-        See Pricing
+        Ver precios
       </Button>
       <Button
         href={href("/guides/compare-mac-dictation-apps/", locale)}
         variant="quiet"
         icon="right"
       >
-        Compare With Other Apps
+        Comparar con otras apps
       </Button>
     </div>
   </GuideSection>

@@ -27,7 +27,6 @@ const locale: Locale = "en";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "mixed-chinese-english-dictation",
 )!;
-const zh = locale === "zh-tw";
 const study = mixedAsrStudy;
 const followup = mixedAsrFollowup;
 const percent = (value: number) => `${value.toFixed(1)}%`;
@@ -35,9 +34,7 @@ const points = (value: number) => Math.abs(value).toFixed(1);
 const signed = (value: number) =>
   `${value < 0 ? "−" : "+"}${Math.abs(value).toFixed(1)}`;
 const interval = (delta: MixedAsrDelta) =>
-  zh
-    ? `95% 區間 ${signed(delta.ci[0])} 到 ${signed(delta.ci[1])}`
-    : `95% interval ${signed(delta.ci[0])} to ${signed(delta.ci[1])}`;
+  `95% interval ${signed(delta.ci[0])} to ${signed(delta.ci[1])}`;
 const qwenGap = followup.qwenVsSenseVoice;
 const tie = followup.originalVsCantonese;
 const [qwenRow, senseVoiceRow, cantoneseRow] = [
@@ -49,36 +46,19 @@ const [qwenRow, senseVoiceRow, cantoneseRow] = [
 // so the dated history row also serves the paired comparison.
 // Sentences with several numbers are assembled here so the page's line
 // breaks never put spaces inside the parentheses.
-const qwenGapText = zh
-  ? `Qwen3-ASR 1.7B 的錯誤比 SenseVoice 少（${percent(qwenRow.mer)} 對 ${percent(senseVoiceRow.mer)}，差 ${signed(qwenGap.errors.points)} 個百分點，${interval(qwenGap.errors)}），英文詞保留率高 ${points(qwenGap.englishKept.points)} 個百分點。`
-  : `Qwen3-ASR 1.7B made fewer errors than SenseVoice (${percent(qwenRow.mer)} against ${percent(senseVoiceRow.mer)}, a difference of ${signed(qwenGap.errors.points)} points, ${interval(qwenGap.errors)}) and kept ${points(qwenGap.englishKept.points)} points more English words.`;
-const caseText = zh
-  ? `App 現在會把 SenseVoice 與 FireRedASR2 輸出的全大寫英文改回一般大小寫，因此 ${study.followup.date} 那一列的英文大小寫正確率較高；這是 App 的處理，不是模型差異：同一次測量中，粵語微調版為 ${followup.cantoneseCaseKeptWithGuards}%。FireRedASR2 那一列測於這項改動之前。`
-  : `The app now turns SenseVoice’s and FireRedASR2’s all-capitals English back into normal case, which is why the ${study.followup.date} row keeps more English in its original case; the change comes from the app, not the model: the fine-tune measured ${followup.cantoneseCaseKeptWithGuards}% in the same run. The FireRedASR2 row predates this change.`;
-const tieText = zh
-  ? `真實語音 ${percent(senseVoiceRow.mer)} 對 ${percent(cantoneseRow.mer)}（${signed(tie.realErrors.points)} 個百分點，${interval(tie.realErrors)}），台灣用語句子 ${percent(senseVoiceRow.ttsMer)} 對 ${percent(cantoneseRow.ttsMer)}（${signed(tie.ttsErrors.points)} 個百分點，${interval(tie.ttsErrors)}）。`
-  : `${percent(senseVoiceRow.mer)} against ${percent(cantoneseRow.mer)} on real speech (${signed(tie.realErrors.points)} points, ${interval(tie.realErrors)}) and ${percent(senseVoiceRow.ttsMer)} against ${percent(cantoneseRow.ttsMer)} on the Taiwan-style sentences (${signed(tie.ttsErrors.points)} points, ${interval(tie.ttsErrors)}).`;
-const columns = zh
-  ? [
-      "模型",
-      "錯誤率（真實語音）",
-      "英文詞保留率",
-      "錯誤率（台灣用語句）",
-      "英文大小寫正確率",
-      "轉錄時間中位數",
-      "下載大小",
-      "實測記憶體峰值",
-    ]
-  : [
-      "Model",
-      "Errors, real mixed speech",
-      "English words kept",
-      "Errors, Taiwan-style sentences",
-      "English case kept",
-      "Median time",
-      "Download",
-      "Measured peak memory",
-    ];
+const qwenGapText = `Qwen3-ASR 1.7B made fewer errors than SenseVoice (${percent(qwenRow.mer)} against ${percent(senseVoiceRow.mer)}, a difference of ${signed(qwenGap.errors.points)} points, ${interval(qwenGap.errors)}) and kept ${points(qwenGap.englishKept.points)} points more English words.`;
+const caseText = `The app now turns SenseVoice’s and FireRedASR2’s all-capitals English back into normal case, which is why the ${study.followup.date} row keeps more English in its original case; the change comes from the app, not the model: the fine-tune measured ${followup.cantoneseCaseKeptWithGuards}% in the same run. The FireRedASR2 row predates this change.`;
+const tieText = `${percent(senseVoiceRow.mer)} against ${percent(cantoneseRow.mer)} on real speech (${signed(tie.realErrors.points)} points, ${interval(tie.realErrors)}) and ${percent(senseVoiceRow.ttsMer)} against ${percent(cantoneseRow.ttsMer)} on the Taiwan-style sentences (${signed(tie.ttsErrors.points)} points, ${interval(tie.ttsErrors)}).`;
+const columns = [
+  "Model",
+  "Errors, real mixed speech",
+  "English words kept",
+  "Errors, Taiwan-style sentences",
+  "English case kept",
+  "Median time",
+  "Download",
+  "Measured peak memory",
+];
 const cells = (row: (typeof mixedAsrResults)[number]) => [
   percent(row.mer),
   `${row.englishKept}%`,
@@ -86,7 +66,7 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
   `${row.ttsCaseKept}%`,
   `${row.medianMs} ms`,
   row.download,
-  row.memory ?? (zh ? "無法比較" : "Not comparable"),
+  row.memory ?? "Not comparable",
 ];
 ---
 
@@ -303,8 +283,9 @@ const cells = (row: (typeof mixedAsrResults)[number]) => [
         <h3>Choose the language and script</h3>
         <p>
           In Speech options, set Language to Detect Automatically or Mandarin
-          Chinese. Chinese script defaults to 繁體中文 (Traditional) and can be
-          简体中文 (Simplified) or Auto; it converts characters only, so it does
+          Chinese. Chinese script follows your Mac’s first Chinese language
+          (简体中文 for Simplified Chinese, otherwise 繁體中文) until you choose
+          繁體中文, 简体中文 or Auto; it converts characters only, so it does
           not change word choices such as 软件 to 軟體.
         </p>
       </li>

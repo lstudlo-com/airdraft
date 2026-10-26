@@ -13,15 +13,14 @@ import { href, type Locale } from "../../../i18n";
  * the app-context setting, and CLI refinement follows CLIRefiner and the root
  * README. Behavior described is 0.11.0's, plus the AD-083 speech
  * recommendation; 0.11.0, 0.10.2 and earlier are named only where they differ.
- * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-TW page are the app's
- * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
- * (Verbatim, Claude Code, Codex) stay as the app shows them.
+ * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels are the app's es catalog values,
+ * quoted with «»; labels without a catalog entry (Claude Code, Codex) stay
+ * as the app shows them.
  */
 const locale: Locale = "es";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
 )!;
-const zh = locale === "zh-tw";
 const english = ejaAsrResults.en;
 const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
 const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
@@ -30,183 +29,185 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="delivery" title="How does text reach a terminal?">
+  <GuideSection id="delivery" title="¿Cómo llega el texto a una terminal?">
     <ul>
       <li>
-        Airdraft returns to the window you dictated into, pastes the text once
-        and does not press Return.
+        Airdraft vuelve a la ventana en la que dictaste, pega el texto una vez y
+        no pulsa Return.
       </li>
       <li>
-        Terminal and iTerm2 expose their cursor and text, so Airdraft reads the
-        paste back to confirm it, as in other editors.
+        Terminal e iTerm2 exponen su cursor y su texto, así que Airdraft lee el
+        pegado para confirmarlo, como en otros editores.
       </li>
       <li>
-        Warp, Ghostty, kitty, Alacritty, WezTerm and the Zed editor draw their
-        own text and expose none to read back. Airdraft checks that the same app
-        and window are still in front, pastes once and never repeats it.
+        Warp, Ghostty, kitty, Alacritty, WezTerm y el editor Zed dibujan su
+        propio texto y no exponen nada que se pueda leer. Airdraft comprueba que
+        la misma app y la misma ventana siguen delante, pega una vez y nunca lo
+        repite.
       </li>
       <li>
-        From 0.11.0, History marks these dictations “Pasted, unconfirmed”
-        without an error, and your clipboard is restored a little later than
-        usual. In 0.10.2, Airdraft says “Paste couldn’t be confirmed” and keeps
-        the text on the clipboard even when it arrived.
+        Desde la 0.11.0, el Historial marca estos dictados como «Pegado, sin
+        confirmar» sin mostrar un error, y tu portapapeles se restaura un poco
+        más tarde de lo habitual. En la 0.10.2, Airdraft decía «No se pudo
+        confirmar el pegado» y dejaba el texto en el portapapeles aunque hubiera
+        llegado.
       </li>
       <li>
-        If the window or field changed after recording, Airdraft copies the text
-        instead of pasting it somewhere else. An explicit retry of a kept
-        recording also copies instead of pasting into these apps, because
-        nothing could confirm where the text would land.
+        Si la ventana o el campo cambiaron después de grabar, Airdraft copia el
+        texto en lugar de pegarlo en otro sitio. Al reintentar a mano una
+        grabación guardada, también copia en lugar de pegar en estas apps,
+        porque nada podría confirmar dónde acabaría el texto.
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection
-    id="cli-refinement"
-    title="Refine on the plan you already pay for"
-  >
+  <GuideSection id="cli-refinement" title="Refina con el plan que ya pagas">
     <ol class="guide-steps">
       <li>
-        <h3>Install and sign in to the CLI</h3>
+        <h3>Instala la CLI e inicia sesión</h3>
         <p>
-          Airdraft looks for the claude or codex command in ~/.local/bin,
-          /opt/homebrew/bin, /usr/local/bin, ~/.bun/bin or ~/.npm-global/bin and
-          uses the account you are signed in with. No API key is needed.
+          Airdraft busca el comando claude o codex en ~/.local/bin,
+          /opt/homebrew/bin, /usr/local/bin, ~/.bun/bin o ~/.npm-global/bin y
+          usa la cuenta con la que hayas iniciado sesión. No necesitas clave de
+          API.
         </p>
       </li>
       <li>
-        <h3>Choose it in Models</h3>
+        <h3>Elígela en Modelos</h3>
         <p>
-          In Models → Refinement, choose Claude Code or Codex. The model list
-          comes from your installed CLI, with Thinking effort beside it; lower
-          is faster and uses less of your plan.
+          En Modelos → Refinamiento, elige Claude Code o Codex. La lista de
+          modelos viene de la CLI instalada, con «Esfuerzo de razonamiento» al
+          lado; cuanto más bajo, más rápido y menos consume de tu plan.
         </p>
       </li>
       <li>
-        <h3>Speak and release</h3>
+        <h3>Habla y suelta</h3>
         <p>
-          Claude Code starts while you are still speaking, which hides its
-          startup time. Codex starts after you finish, so it takes longer. If
-          refinement fails or times out, the raw transcript is inserted.
+          Claude Code se inicia mientras aún hablas, lo que oculta su tiempo de
+          arranque. Codex se inicia cuando terminas, así que tarda más. Si el
+          refinamiento falla o se agota el tiempo, se inserta la transcripción
+          sin procesar.
         </p>
       </li>
     </ol>
     <p>
-      Airdraft runs the CLI non-interactively in a temporary folder, without
-      tools, MCP servers, slash commands or a saved session, so it can only
-      return text. It does not change your CLI login or settings. Usage counts
-      toward your plan’s limits.
+      Airdraft ejecuta la CLI de forma no interactiva en una carpeta temporal,
+      sin herramientas, servidores MCP, comandos de barra ni sesión guardada,
+      así que solo puede devolver texto. No cambia el inicio de sesión ni los
+      ajustes de tu CLI. El uso cuenta para los límites de tu plan.
     </p>
   </GuideSection>
 
-  <GuideSection id="prompt-style" title="Keep prompts as prompts">
+  <GuideSection id="prompt-style" title="Que los prompts sigan siendo prompts">
     <p>
-      With Read app context on in Settings → Behavior, Airdraft treats Terminal,
-      iTerm2, Warp, Ghostty and kitty as terminals: your speech stays prose
-      without Markdown, and flags and paths are kept exactly only when you
-      dictate a command. In code editors such as VS Code, Cursor, Xcode,
-      JetBrains IDEs and Zed, it restores technical-name spelling and keeps
-      identifiers and paths.
+      Con «Leer el contexto de la app» activado en Ajustes → Comportamiento,
+      Airdraft trata Terminal, iTerm2, Warp, Ghostty y kitty como terminales: lo
+      que dices queda como prosa sin Markdown, y las opciones y rutas se
+      conservan tal cual solo cuando dictas un comando. En editores de código
+      como VS Code, Cursor, Xcode, los IDE de JetBrains y Zed, recupera la
+      grafía de los nombres técnicos y conserva identificadores y rutas.
     </p>
     <p>
-      Read app context is off by default; then Airdraft does not know the
-      destination and uses general rules. For exact wording, use the Verbatim
-      profile, which skips refinement. Add project names and terms to
-      Vocabulary.
+      «Leer el contexto de la app» está desactivado por defecto; en ese caso
+      Airdraft no sabe cuál es el destino y aplica reglas generales. Para
+      conservar tus palabras exactas, usa el perfil «Literal», que omite el
+      refinamiento. Añade nombres de proyectos y términos al Vocabulario.
     </p>
   </GuideSection>
 
-  <GuideSection id="privacy" title="What leaves your Mac?">
+  <GuideSection id="privacy" title="¿Qué sale de tu Mac?">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Where prompt dictation data goes"
+      aria-label="Adónde van los datos al dictar prompts"
     >
       <table class="guide-table">
-        <caption>What each step sends</caption>
+        <caption>Lo que envía cada paso</caption>
         <thead>
           <tr>
-            <th scope="col">Step</th>
-            <th scope="col">What is sent</th>
+            <th scope="col">Paso</th>
+            <th scope="col">Lo que se envía</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Local speech model</th>
-            <td>Nothing. The recording stays on this Mac.</td>
+            <th scope="row">Modelo de voz local</th>
+            <td>Nada. La grabación se queda en este Mac.</td>
           </tr>
           <tr>
-            <th scope="row">Cloud speech</th>
-            <td>Audio goes to the provider you chose.</td>
+            <th scope="row">Voz en la nube</th>
+            <td>El audio va al proveedor que elegiste.</td>
           </tr>
           <tr>
-            <th scope="row">Claude Code or Codex refinement</th>
+            <th scope="row">Refinamiento con Claude Code o Codex</th>
             <td>
-              The transcript, profile instructions and vocabulary go to
-              Anthropic or OpenAI through your CLI account. With Read app
-              context on, so do the app name, window title, selected text, text
-              near the cursor and terms from recent dictations in the same app.
-              The CLI runs on your Mac; its model does not.
+              La transcripción, las instrucciones del perfil y el vocabulario
+              van a Anthropic u OpenAI a través de tu cuenta de la CLI. Con
+              «Leer el contexto de la app» activado, también el nombre de la
+              app, el título de la ventana, el texto seleccionado, el texto
+              cercano al cursor y términos de dictados recientes en la misma
+              app. La CLI se ejecuta en tu Mac; su modelo no.
             </td>
           </tr>
           <tr>
-            <th scope="row">Local refinement</th>
+            <th scope="row">Refinamiento local</th>
             <td>
-              Apple Intelligence, or LM Studio or Ollama running on this Mac:
-              nothing.
+              Apple Intelligence, o LM Studio u Ollama ejecutándose en este Mac:
+              nada.
             </td>
           </tr>
           <tr>
-            <th scope="row">Pressing Return at the prompt</th>
+            <th scope="row">Pulsar Return en el prompt</th>
             <td>
-              As with typing, Claude Code or Codex sends your prompt to its
-              provider. Airdraft is not involved.
+              Igual que al escribir, Claude Code o Codex envía tu prompt a su
+              proveedor. Airdraft no interviene.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <p>
-      Some Codex versions still add your global AGENTS.md to the refinement
-      request. If that matters, use Claude Code or local refinement, or turn off
-      Refine transcript for that profile.
+      Algunas versiones de Codex todavía añaden tu AGENTS.md global a la
+      solicitud de refinamiento. Si eso te importa, usa Claude Code o el
+      refinamiento local, o desactiva «Refinar transcripción» en ese perfil.
     </p>
   </GuideSection>
 
-  <GuideSection id="speech" title="Which speech model?">
+  <GuideSection id="speech" title="¿Qué modelo de voz?">
     <p>
-      For English-only prompts, choose Parakeet TDT v2: first-run setup
-      recommends it on a Mac set to English. It recognizes English only. In
-      Airdraft’s own measurement on read English it made{" "}
-      {percent(parakeet.auto.value)} word errors at about{" "}
-      {about(parakeet.medianMs)} per clip, within the margin of Qwen3-ASR 1.7B’s{" "}
-      {percent(qwen.auto.value)}; Qwen3-ASR 1.7B also recognizes other languages
-      and uses about 3 GB of memory. The clips were read Wikipedia sentences,
-      not prompts; see the{" "}
-      <a href="/guides/offline-dictation-on-mac/#measured">
-        offline setup guide
-      </a>{" "}
-      for the method and limits. 0.11.0 and earlier recommended the SenseVoice
-      they installed, a Cantonese fine-tune now shown as SenseVoice Cantonese.
+      Para prompts solo en inglés, elige Parakeet TDT v2: la configuración
+      inicial lo recomienda en un Mac en inglés. Solo reconoce inglés. En la
+      medición propia de Airdraft con inglés leído tuvo{" "}
+      {percent(parakeet.auto.value)} de errores de palabra, con unos{" "}
+      {about(parakeet.medianMs)} por clip, dentro del margen del{" "}
+      {percent(qwen.auto.value)} de Qwen3-ASR 1.7B; Qwen3-ASR 1.7B también
+      reconoce otros idiomas y usa unos 3 GB de memoria. Los clips eran frases
+      leídas de Wikipedia, no prompts; consulta el método y los límites en la{" "}
+      <a href={href("/guides/offline-dictation-on-mac/#measured", locale)}>
+        guía de configuración sin conexión
+      </a>
+      . La 0.11.0 y anteriores recomendaban el SenseVoice que instalaban, un
+      ajuste fino para cantonés que ahora aparece como SenseVoice Cantonese.
     </p>
     <p>
-      Parakeet TDT v3 supports English and 24 other European languages, but not
-      Chinese. If your prompts mix Chinese and English, see the{" "}
+      Parakeet TDT v3 admite inglés y otros 24 idiomas europeos, pero no chino.
+      Si tus prompts mezclan chino e inglés, consulta las{" "}
       <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
-        mixed-language model measurements
+        mediciones de modelos con idiomas mezclados
       </a>
       .
     </p>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
-        See Pricing
+        Ver precios
       </Button>
       <Button
-        href="/guides/local-vs-cloud-dictation/"
+        href={href("/guides/local-vs-cloud-dictation/", locale)}
         variant="quiet"
         icon="right"
       >
-        Compare Local and Cloud
+        Comparar local y nube
       </Button>
     </div>
   </GuideSection>

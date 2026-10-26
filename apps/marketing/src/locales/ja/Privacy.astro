@@ -3,148 +3,130 @@ import GuideSection from "../../components/GuideSection.astro";
 import Button from "../../components/ui/Button.astro";
 ---
 
-<GuideSection id="dictation" title="Dictation on your Mac">
+<GuideSection id="dictation" title="Mac での音声入力">
   <p>
-    Local speech and refinement models process dictation on your Mac. Cloud
-    speech providers receive your audio. Cloud refinement providers receive your
-    transcript and any context you enable. Your provider keys are stored in the
-    macOS Keychain.
+    ローカルの音声モデルと整形のモデルは、音声入力を Mac
+    上で処理します。クラウドの音声認識のプロバイダは音声を受け取ります。クラウドの整形のプロバイダは、文字起こしと、オンにしたコンテキストを受け取ります。プロバイダのキーは
+    macOS のキーチェーンに保存されます。
   </p>
   <p>
-    Website analytics below cover this website only; they never collect data
-    from the Airdraft Mac app. The app's own optional usage data is described in
-    the next section. The website's interactive samples use authored text and
-    never record your microphone.
+    以下のウェブサイト分析はこのウェブサイトだけが対象で、Airdraft の Mac
+    アプリからデータを集めることはありません。アプリ自体の任意の使用状況データについては、次のセクションで説明します。ウェブサイトのインタラクティブなサンプルは用意したテキストを使っており、マイクを録音することはありません。
   </p>
 </GuideSection>
 
-<GuideSection id="app-telemetry" title="Optional usage data in the Mac app">
+<GuideSection id="app-telemetry" title="Mac アプリの任意の使用状況データ">
   <p>
-    Official Airdraft downloads can send anonymous usage counts and crash
-    reports, but only after you choose Share Anonymous Usage Data. The app asks
-    once, on its Ready setup step or on Home, and sends nothing before you
-    answer. Builds you compile from source never send usage data or crash
-    reports.
+    Airdraft
+    の公式ダウンロードは、匿名の使用状況の集計とクラッシュレポートを送信できますが、それは「匿名の使用状況データを共有」を選んだ場合だけです。アプリは初回設定の「準備完了」ステップか「ホーム」で一度だけ尋ね、回答するまで何も送信しません。ソースからビルドしたアプリは、使用状況データもクラッシュレポートも送信しません。
   </p>
-  <p>With your consent, the app sends only these events:</p>
+  <p>同意した場合、アプリが送信するのは次のイベントだけです。</p>
   <ul>
     <li>
-      <strong>App launched</strong>: app version and build, macOS major version,
-      processor type, interface language and license state (trial, licensed,
-      expired or none).
+      <strong>アプリの起動</strong>：アプリのバージョンとビルド、macOS
+      のメジャーバージョン、プロセッサの種類、インターフェイスの言語、ライセンスの状態（試用中、ライセンスあり、期限切れ、なし）。
     </li>
     <li>
-      <strong>Setup finished</strong>: completed or skipped.
+      <strong>設定の完了</strong>：完了したか、スキップしたか。
     </li>
     <li>
-      <strong>Dictation completed</strong>: speech engine family and whether it
-      runs on your Mac or online, refinement provider type, built-in profile or
-      "custom", recording length and stop-to-delivery time in ranges, delivery
-      status and whether refinement was applied or fell back to your transcript.
+      <strong>音声入力の完了</strong>：音声エンジンの系統と、Mac
+      上かオンラインか、整形のプロバイダの種類、内蔵のモードか「カスタム」か、録音の長さと停止から入力までの時間（範囲）、入力の状態、整形が適用されたか元の文字起こしに戻ったか。
     </li>
     <li>
-      <strong>Dictation failed</strong>: a category such as permission, missing
-      model, missing key, speech error or delivery failure. Cancelled dictations
-      are not reported.
+      <strong>音声入力の失敗</strong>
+      ：権限、モデルがない、キーがない、音声認識のエラー、入力の失敗などの分類。キャンセルした音声入力は報告されません。
     </li>
     <li>
-      <strong>Model download finished</strong>: the model's identifier from
-      Airdraft's built-in catalogue and whether the download succeeded, failed
-      or was cancelled.
+      <strong>モデルのダウンロードの終了</strong>：Airdraft
+      の内蔵カタログでのモデルの識別子と、ダウンロードが成功したか、失敗したか、キャンセルされたか。
     </li>
     <li>
-      <strong>Meeting transcribed</strong>: length in ranges and speech engine
-      family.
+      <strong>会議の文字起こし</strong>：長さ（範囲）と音声エンジンの系統。
     </li>
     <li>
-      <strong>License event</strong>: trial started or license activated.
+      <strong>ライセンスのイベント</strong>
+      ：試用の開始、またはライセンスのアクティベート。
     </li>
     <li>
-      <strong>Usage data choice</strong>: sent when you turn sharing on, and
-      once when you turn it off.
+      <strong>使用状況データの選択</strong>
+      ：共有をオンにしたとき、およびオフにしたときに一度。
     </li>
     <li>
-      <strong>Crash reports</strong>: the error type, stack frames and the
-      loaded system and app libraries needed to locate the fault, with user
-      names removed from file paths.
+      <strong>クラッシュレポート</strong>
+      ：エラーの種類、スタックフレーム、問題の箇所を特定するのに必要な読み込み済みのシステムとアプリのライブラリ。ファイルパスからユーザ名は取り除かれます。
     </li>
   </ul>
   <p>
-    Every event also carries the app's tag, macOS and app versions, the PostHog
-    library version and a random identifier that is not linked to you. The app
-    never sends your words, transcripts, audio, vocabulary, prompts, clipboard,
-    the apps you dictate into, window titles, web addresses, file names or
-    paths, provider endpoints, API keys, license keys, custom model names, your
-    Mac's name or your email address. The app accepts only these fixed events
-    and values and discards anything else before sending.
+    どのイベントにも、アプリのタグ、macOS とアプリのバージョン、PostHog
+    ライブラリのバージョン、個人と結びつかないランダムな識別子が付きます。アプリは、話した言葉、文字起こし、音声、語彙、プロンプト、クリップボード、音声入力したアプリ、ウインドウのタイトル、ウェブアドレス、ファイル名やパス、プロバイダのエンドポイント、API
+    キー、ライセンスキー、カスタムモデルの名前、Mac
+    の名前、メールアドレスを送信することはありません。アプリはこれらの決まったイベントと値だけを受け付け、それ以外は送信前に破棄します。
   </p>
   <p>
-    Turn sharing off at any time in Settings &gt; Behavior &gt; Share anonymous
-    usage data and crash reports. Turning it off stops collection and crash
-    capture; unsent events and pending crash reports are removed from your Mac
-    the next time Airdraft opens. It does not delete events already received.
+    共有はいつでも「設定」&gt;「動作」&gt;「匿名の使用状況データとクラッシュレポートを共有」でオフにできます。オフにすると収集とクラッシュの記録が止まり、未送信のイベントと保留中のクラッシュレポートは、次に
+    Airdraft を開いたときに Mac
+    から削除されます。すでに受信されたイベントは削除されません。
   </p>
   <p>
-    PostHog processes this data for us in the United States, in the same project
-    as the website analytics. The app asks PostHog not to infer your location
-    from your IP address, and we configure the project to discard IP addresses;
-    the service still receives the network connection. No person profiles are
-    created.
+    このデータは、ウェブサイト分析と同じプロジェクトで、PostHog
+    が米国で私たちに代わって処理します。アプリは IP
+    アドレスから位置を推定しないよう PostHog に求めており、プロジェクトも IP
+    アドレスを破棄するよう設定しています。それでもサービスはネットワーク接続を受け取ります。個人のプロフィールは作成されません。
   </p>
 </GuideSection>
 
-<GuideSection id="website-analytics" title="Optional website analytics">
+<GuideSection id="website-analytics" title="任意のウェブサイト分析">
   <p>
-    When website analytics are enabled, we ask before loading PostHog. If you
-    allow it, PostHog receives page visits, selected button actions, browser and
-    device type, performance measurements, referral domains and campaign labels.
-    A random browser identifier connects those events across visits.
+    ウェブサイト分析が有効な場合、PostHog
+    を読み込む前に確認します。許可すると、PostHog
+    はページの訪問、一部のボタンの操作、ブラウザとデバイスの種類、パフォーマンスの計測値、参照元のドメイン、キャンペーンのラベルを受け取ります。ランダムなブラウザの識別子によって、訪問をまたいでこれらのイベントが結びつけられます。
   </p>
   <p>
-    We do not enable session recordings, capture typed text or create identified
-    person profiles. We remove URL queries and fragments, referral paths,
-    advertising click identifiers and unrecognized event properties before
-    sending events. Campaign labels must not contain personal information. We
-    configure PostHog to discard IP addresses and disable location enrichment;
-    the service still receives the network connection.
+    セッションの録画は有効にせず、入力したテキストも記録せず、個人を特定したプロフィールも作成しません。イベントを送信する前に、URL
+    のクエリとフラグメント、参照元のパス、広告のクリック識別子、認識できないイベントのプロパティを取り除きます。キャンペーンのラベルに個人情報を含めてはいけません。PostHog
+    は IP
+    アドレスを破棄し、位置情報の付加をしないよう設定しています。それでもサービスはネットワーク接続を受け取ります。
   </p>
   <p>
-    PostHog uses browser storage after you allow analytics. We also store your
-    allow or decline choice on this browser for 180 days. Declining sends no
-    website analytics to PostHog. Turning analytics off stops future collection
-    and clears the SDK's stored analytics state; it does not delete events
-    already received.
+    分析を許可すると、PostHog
+    はブラウザのストレージを使います。許可または拒否の選択も、このブラウザに 180
+    日間保存します。拒否すると、ウェブサイト分析は PostHog
+    に送信されません。分析をオフにすると以降の収集が止まり、SDK
+    が保存した分析の状態も消去されますが、すでに受信されたイベントは削除されません。
   </p>
   <p>
-    We honor Global Privacy Control and Do Not Track signals by keeping
-    analytics off. Analytics choices apply to this website and browser only.
-    JavaScript must be enabled to change the choice or collect analytics.
+    Global Privacy Control と Do Not Track
+    のシグナルを尊重し、分析をオフのままにします。分析の選択は、このウェブサイトとこのブラウザにだけ適用されます。選択を変更したり分析を収集したりするには、JavaScript
+    が有効である必要があります。
   </p>
   <p>
-    Cloudflare hosts the website and handles network requests and access
-    controls separately. Following GitHub or payment links takes you to those
-    services, under their own privacy practices.
+    ウェブサイトは Cloudflare
+    がホストしており、ネットワークリクエストとアクセス制御は Cloudflare
+    が別に扱います。GitHub
+    や支払いのリンクをたどると、それぞれのサービスに移動し、そのサービスのプライバシーの取り扱いが適用されます。
   </p>
   <p>
-    Read <a href="https://posthog.com/privacy">PostHog's privacy notice</a> for
-    its service practices.
+    サービスの取り扱いについては、
+    <a href="https://posthog.com/privacy">PostHog のプライバシー通知</a>
+    をご覧ください。
   </p>
 </GuideSection>
 
-<GuideSection id="analytics" title="Your analytics choice">
+<GuideSection id="analytics" title="分析の選択">
   <p
     class="analytics-status"
     data-analytics-status
-    data-disabled="Website analytics are not enabled on this site."
-    data-blocked="Analytics are off because your browser requests no tracking."
-    data-allowed="Website analytics are allowed. You can turn them off below."
-    data-off="Website analytics are off."
+    data-disabled="このサイトではウェブサイト分析は有効になっていません。"
+    data-blocked="ブラウザがトラッキングしないよう求めているため、分析はオフです。"
+    data-allowed="ウェブサイト分析を許可しています。下のボタンでオフにできます。"
+    data-off="ウェブサイト分析はオフです。"
     aria-live="polite"
   >
-    Website analytics are off unless you allow them with JavaScript enabled.
+    JavaScript を有効にして許可しない限り、ウェブサイト分析はオフです。
   </p>
   <div class="analytics-actions analytics-settings">
-    <Button data-analytics-choice="denied">Turn Analytics Off</Button>
-    <Button data-analytics-choice="granted">Allow Analytics</Button>
+    <Button data-analytics-choice="denied">分析をオフにする</Button>
+    <Button data-analytics-choice="granted">分析を許可</Button>
   </div>
 </GuideSection>

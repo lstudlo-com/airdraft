@@ -13,15 +13,14 @@ import { href, type Locale } from "../../../i18n";
  * the app-context setting, and CLI refinement follows CLIRefiner and the root
  * README. Behavior described is 0.11.0's, plus the AD-083 speech
  * recommendation; 0.11.0, 0.10.2 and earlier are named only where they differ.
- * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-TW page are the app's
- * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
+ * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-CN page are the app's
+ * zh-Hans catalog values, quoted with 「」; labels without a catalog entry
  * (Verbatim, Claude Code, Codex) stay as the app shows them.
  */
 const locale: Locale = "zh-cn";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
 )!;
-const zh = locale === "zh-tw";
 const english = ejaAsrResults.en;
 const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
 const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
@@ -30,183 +29,169 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="delivery" title="How does text reach a terminal?">
+  <GuideSection id="delivery" title="文字怎么进入终端？">
     <ul>
+      <li>Airdraft 回到你开始听写的窗口，只粘贴一次，不会按 Return。</li>
       <li>
-        Airdraft returns to the window you dictated into, pastes the text once
-        and does not press Return.
+        Terminal 和 iTerm2 会提供光标和文字，Airdraft
+        像在其他编辑器里一样，读回刚粘贴的内容来确认送达。
       </li>
       <li>
-        Terminal and iTerm2 expose their cursor and text, so Airdraft reads the
-        paste back to confirm it, as in other editors.
+        Warp、Ghostty、kitty、Alacritty、WezTerm 和 Zed
+        编辑器自己绘制文字，没有内容可以读回。Airdraft 会确认最前面仍是同一个
+        App 和窗口，只粘贴一次，绝不重复粘贴。
       </li>
       <li>
-        Warp, Ghostty, kitty, Alacritty, WezTerm and the Zed editor draw their
-        own text and expose none to read back. Airdraft checks that the same app
-        and window are still in front, pastes once and never repeats it.
+        从 0.11.0
+        起，这类听写在「历史记录」中标为「已粘贴，未确认」，不显示错误，剪贴板会比平时稍晚恢复。0.10.2
+        即使文字已经送达，仍会显示“Paste couldn’t be
+        confirmed”，并把文字留在剪贴板中。
       </li>
       <li>
-        From 0.11.0, History marks these dictations “Pasted, unconfirmed”
-        without an error, and your clipboard is restored a little later than
-        usual. In 0.10.2, Airdraft says “Paste couldn’t be confirmed” and keeps
-        the text on the clipboard even when it arrived.
-      </li>
-      <li>
-        If the window or field changed after recording, Airdraft copies the text
-        instead of pasting it somewhere else. An explicit retry of a kept
-        recording also copies instead of pasting into these apps, because
-        nothing could confirm where the text would land.
+        如果录音后窗口或输入框变了，Airdraft
+        会改为复制到剪贴板，不会粘贴到别处。手动重试保留的录音时，这些 App
+        也一律改为复制，因为无法确认文字会落在哪里。
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection
-    id="cli-refinement"
-    title="Refine on the plan you already pay for"
-  >
+  <GuideSection id="cli-refinement" title="用你已付费的套餐润色">
     <ol class="guide-steps">
       <li>
-        <h3>Install and sign in to the CLI</h3>
+        <h3>安装并登录 CLI</h3>
         <p>
-          Airdraft looks for the claude or codex command in ~/.local/bin,
-          /opt/homebrew/bin, /usr/local/bin, ~/.bun/bin or ~/.npm-global/bin and
-          uses the account you are signed in with. No API key is needed.
+          Airdraft 会在
+          ~/.local/bin、/opt/homebrew/bin、/usr/local/bin、~/.bun/bin 或
+          ~/.npm-global/bin 中查找 claude 或 codex
+          命令，并使用你已登录的账户，不需要 API 密钥。
         </p>
       </li>
       <li>
-        <h3>Choose it in Models</h3>
+        <h3>在「模型」中选择</h3>
         <p>
-          In Models → Refinement, choose Claude Code or Codex. The model list
-          comes from your installed CLI, with Thinking effort beside it; lower
-          is faster and uses less of your plan.
+          在「模型」的「润色」中选择 Claude Code 或 Codex。模型列表来自你安装的
+          CLI，旁边可以调「思考强度」；越低越快，也越省套餐用量。
         </p>
       </li>
       <li>
-        <h3>Speak and release</h3>
+        <h3>说完就松开</h3>
         <p>
-          Claude Code starts while you are still speaking, which hides its
-          startup time. Codex starts after you finish, so it takes longer. If
-          refinement fails or times out, the raw transcript is inserted.
+          Claude Code 会在你说话时提前启动，把启动时间藏起来；Codex
+          要等你说完才启动，所以更慢。润色失败或超时，会直接粘贴原始转录文本。
         </p>
       </li>
     </ol>
     <p>
-      Airdraft runs the CLI non-interactively in a temporary folder, without
-      tools, MCP servers, slash commands or a saved session, so it can only
-      return text. It does not change your CLI login or settings. Usage counts
-      toward your plan’s limits.
+      Airdraft 以非交互方式在临时文件夹中运行 CLI，不提供工具、MCP
+      服务器、斜杠命令或保存的会话，因此只能返回文字，也不会改动你的 CLI
+      登录或设置。用量计入你套餐的额度。
     </p>
   </GuideSection>
 
-  <GuideSection id="prompt-style" title="Keep prompts as prompts">
+  <GuideSection id="prompt-style" title="让提示词保持提示词的样子">
     <p>
-      With Read app context on in Settings → Behavior, Airdraft treats Terminal,
-      iTerm2, Warp, Ghostty and kitty as terminals: your speech stays prose
-      without Markdown, and flags and paths are kept exactly only when you
-      dictate a command. In code editors such as VS Code, Cursor, Xcode,
-      JetBrains IDEs and Zed, it restores technical-name spelling and keeps
-      identifiers and paths.
+      在「设置」的「行为」中开启「读取 App 上下文」后，Airdraft 会把
+      Terminal、iTerm2、Warp、Ghostty 和 kitty
+      视为终端：口述内容保持普通文句、不加
+      Markdown，只有在你口述命令时，才原样保留参数和路径。在 VS
+      Code、Cursor、Xcode、JetBrains IDE 和 Zed
+      等代码编辑器里，则会修正技术名称的拼写，并保留标识符和路径。
     </p>
     <p>
-      Read app context is off by default; then Airdraft does not know the
-      destination and uses general rules. For exact wording, use the Verbatim
-      profile, which skips refinement. Add project names and terms to
-      Vocabulary.
+      「读取 App 上下文」默认关闭，这时 Airdraft
+      不知道目标位置，会使用通用规则。需要逐字保留时，请用不做润色的「逐字」模式。项目名称和术语可以加到「词汇」。
     </p>
   </GuideSection>
 
-  <GuideSection id="privacy" title="What leaves your Mac?">
+  <GuideSection id="privacy" title="哪些数据会离开你的 Mac？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Where prompt dictation data goes"
+      aria-label="提示词听写的数据去向"
     >
       <table class="guide-table">
-        <caption>What each step sends</caption>
+        <caption>每个步骤发送的内容</caption>
         <thead>
           <tr>
-            <th scope="col">Step</th>
-            <th scope="col">What is sent</th>
+            <th scope="col">步骤</th>
+            <th scope="col">发送的内容</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Local speech model</th>
-            <td>Nothing. The recording stays on this Mac.</td>
+            <th scope="row">本机语音模型</th>
+            <td>不发送，录音留在这台 Mac 上。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud speech</th>
-            <td>Audio goes to the provider you chose.</td>
+            <th scope="row">云端语音识别</th>
+            <td>音频发送给你选择的服务商。</td>
           </tr>
           <tr>
-            <th scope="row">Claude Code or Codex refinement</th>
+            <th scope="row">Claude Code 或 Codex 润色</th>
             <td>
-              The transcript, profile instructions and vocabulary go to
-              Anthropic or OpenAI through your CLI account. With Read app
-              context on, so do the app name, window title, selected text, text
-              near the cursor and terms from recent dictations in the same app.
-              The CLI runs on your Mac; its model does not.
+              转录文本、模式指令和词汇，通过你的 CLI 账户发送给 Anthropic 或
+              OpenAI；开启「读取 App 上下文」时，还包括 App
+              名称、窗口标题、选中的文字、光标附近的文字，以及同一 App
+              中最近几次听写里的术语。CLI 在你的 Mac 上运行，模型却不在本机。
             </td>
           </tr>
           <tr>
-            <th scope="row">Local refinement</th>
+            <th scope="row">本机润色</th>
             <td>
-              Apple Intelligence, or LM Studio or Ollama running on this Mac:
-              nothing.
+              Apple Intelligence，或在这台 Mac 上运行的 LM
+              Studio、Ollama：不发送。
             </td>
           </tr>
           <tr>
-            <th scope="row">Pressing Return at the prompt</th>
+            <th scope="row">在提示符处按 Return</th>
             <td>
-              As with typing, Claude Code or Codex sends your prompt to its
-              provider. Airdraft is not involved.
+              和打字一样，由 Claude Code 或 Codex 把提示词发送给它的服务商，与
+              Airdraft 无关。
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <p>
-      Some Codex versions still add your global AGENTS.md to the refinement
-      request. If that matters, use Claude Code or local refinement, or turn off
-      Refine transcript for that profile.
+      部分 Codex 版本仍会把你的全局 AGENTS.md 加进润色请求。如果介意，请改用
+      Claude Code 或本机润色，或者在该模式中关闭「润色转录文本」。
     </p>
   </GuideSection>
 
-  <GuideSection id="speech" title="Which speech model?">
+  <GuideSection id="speech" title="语音模型怎么选？">
     <p>
-      For English-only prompts, choose Parakeet TDT v2: first-run setup
-      recommends it on a Mac set to English. It recognizes English only. In
-      Airdraft’s own measurement on read English it made{" "}
-      {percent(parakeet.auto.value)} word errors at about{" "}
-      {about(parakeet.medianMs)} per clip, within the margin of Qwen3-ASR 1.7B’s{" "}
-      {percent(qwen.auto.value)}; Qwen3-ASR 1.7B also recognizes other languages
-      and uses about 3 GB of memory. The clips were read Wikipedia sentences,
-      not prompts; see the{" "}
-      <a href="/guides/offline-dictation-on-mac/#measured">
-        offline setup guide
-      </a>{" "}
-      for the method and limits. 0.11.0 and earlier recommended the SenseVoice
-      they installed, a Cantonese fine-tune now shown as SenseVoice Cantonese.
+      只说英文的提示词，选 Parakeet TDT v2：系统语言为英语的 Mac
+      在首次设置时就会推荐它。它只识别英语。在 Airdraft
+      对朗读英语的测量中，它的词错误率为 {percent(parakeet.auto.value)}
+      ，每段约 {about(parakeet.medianMs)}，与 Qwen3-ASR 1.7B 的{" "}
+      {percent(qwen.auto.value)} 处于误差范围内；Qwen3-ASR 1.7B
+      还能识别其他语言，内存占用约 3
+      GB。测量用的是朗读的维基百科句子，不是提示词，方法和局限见
+      <a href={href("/guides/offline-dictation-on-mac/#measured", locale)}>
+        离线听写指南
+      </a>
+      。0.11.0 及更早版本推荐的是当时安装的 SenseVoice，也就是现在显示为
+      SenseVoice Cantonese 的粤语微调版。
     </p>
     <p>
-      Parakeet TDT v3 supports English and 24 other European languages, but not
-      Chinese. If your prompts mix Chinese and English, see the{" "}
+      Parakeet TDT v3 支持英语和另外 24
+      种欧洲语言，但不支持中文。如果提示词中英混说，请看
       <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
-        mixed-language model measurements
+        中英混说的模型测量
       </a>
-      .
+      。
     </p>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
-        See Pricing
+        查看价格
       </Button>
       <Button
-        href="/guides/local-vs-cloud-dictation/"
+        href={href("/guides/local-vs-cloud-dictation/", locale)}
         variant="quiet"
         icon="right"
       >
-        Compare Local and Cloud
+        比较本机与云端
       </Button>
     </div>
   </GuideSection>

@@ -50,20 +50,6 @@ export const direction = table((entry) => entry.dir as "ltr" | "rtl");
  */
 export const translatedPaths = table((entry) => entry.paths);
 
-/**
- * Whether the app's interface in this language is in a published release.
- * Pages in the other languages quote the catalog labels and say that the
- * released app still shows English. Turn a language on when its release is
- * published.
- */
-export const interfaceReleased: Record<Locale, boolean> = {
-  en: true,
-  "zh-tw": true,
-  "zh-cn": true,
-  es: true,
-  ja: true,
-};
-
 const prefixed = locales.filter((locale) => locale !== "en");
 const withSlash = (path: string) => `${path.replace(/\/+$/, "")}/`;
 

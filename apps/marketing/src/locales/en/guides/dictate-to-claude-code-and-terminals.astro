@@ -21,7 +21,6 @@ const locale: Locale = "en";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
 )!;
-const zh = locale === "zh-tw";
 const english = ejaAsrResults.en;
 const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
 const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;

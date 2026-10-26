@@ -3,7 +3,8 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { localizedPath, type Locale } from "../../../i18n";
+import { messages } from "../../../i18n/messages";
 import { licenses, siteLinks } from "../../../data/site";
 
 const locale: Locale = "zh-cn";
@@ -11,113 +12,120 @@ const guide = guidesFor(locale).find(
   (entry) => entry.slug === "free-source-or-official-app",
 )!;
 const onSale = Boolean(siteLinks.checkout);
+const plans = messages[locale].license.plans;
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="availability" title="What can I get now?">
+  <GuideSection id="availability" title="现在能拿到什么？">
     {onSale ? (
       <p>
-        You can build Airdraft from source or choose an official-app license on
-        the <a href="/pricing/">pricing page</a>.
+        你可以从源代码自行编译 Airdraft，也可以在
+        <a href={localizedPath("/pricing/", locale)}>价格页面</a>
+        购买官方版许可证。
       </p>
     ) : (
       <p>
-        The <a href={siteLinks.build}>source build</a> is available now. The
-        official app is not on sale yet. Existing personal-use release builds
-        are signed with Apple Development and are not notarized; they are not a
-        supported public installer.
+        <a href={siteLinks.build}>源代码编译</a>现在就能用。官方版尚未开售。
+        现有的个人使用版安装包以 Apple Development
+        签名，未经公证，不是正式支持的公开安装包。
       </p>
     )}
     <p>
-      Both paths require an Apple silicon Mac with macOS 15 or later. Apple
-      SpeechAnalyzer and Apple Intelligence require macOS 26 or later.
+      两种方式都需要 macOS 15 或更高版本、搭载 Apple 芯片的 Mac。Apple
+      SpeechAnalyzer 和 Apple Intelligence 需要 macOS 26 或更高版本。
     </p>
   </GuideSection>
 
-  <GuideSection id="compare" title="How do the two options differ?">
+  <GuideSection id="compare" title="两种方式有什么不同？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare the source build and official app"
+      aria-label="比较源代码编译与官方版"
     >
       <table class="guide-table">
-        <caption>Source build and official-app license</caption>
+        <caption>源代码编译与官方版许可证</caption>
         <thead>
           <tr>
-            <th scope="col">Choice</th>
-            <th scope="col">Free source build</th>
-            <th scope="col">Official app</th>
+            <th scope="col">项目</th>
+            <th scope="col">免费源代码编译</th>
+            <th scope="col">官方版</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Price</th>
+            <th scope="row">价格</th>
             <td>$0</td>
             <td>
               {licenses
-                .map((plan) => `${plan.price} for ${plan.macs}`)
-                .join("; ")}
-              . One-time, in US dollars before tax.
+                .map((plan) => `${plans[plan.id].macs} ${plan.price}`)
+                .join("；")}
+              。一次付清，以美元计价，不含税。
             </td>
           </tr>
           <tr>
-            <th scope="row">Features</th>
-            <td>Every feature, with no locked tier.</td>
-            <td>The same features, ready to run.</td>
+            <th scope="row">功能</th>
+            <td>全部功能，没有锁定的等级。</td>
+            <td>功能相同，下载即可使用。</td>
           </tr>
           <tr>
-            <th scope="row">Setup</th>
-            <td>Build with Xcode using the repository instructions.</td>
-            <td>No Xcode or build step.</td>
+            <th scope="row">安装</th>
+            <td>按代码仓库的说明用 Xcode 编译。</td>
+            <td>不需要 Xcode，也不用编译。</td>
           </tr>
           <tr>
-            <th scope="row">Updates</th>
-            <td>Pull source changes and rebuild.</td>
-            <td>Updates to the version you buy are included.</td>
+            <th scope="row">更新</th>
+            <td>拉取源代码更新后重新编译。</td>
+            <td>包含所购版本的更新。</td>
           </tr>
           <tr>
-            <th scope="row">Trial</th>
-            <td>No trial limit.</td>
-            <td>A 14-day full-feature trial, started when you choose.</td>
+            <th scope="row">试用</th>
+            <td>没有试用限制。</td>
+            <td>14 天全功能试用，由你决定何时开始。</td>
           </tr>
         </tbody>
       </table>
     </div>
   </GuideSection>
 
-  <GuideSection id="license" title="Is the official app a subscription?">
+  <GuideSection id="license" title="官方版是订阅制吗？">
     <p>
-      No. The personal license is a one-time purchase and does not expire. The
-      plans differ only in how many Macs can be active at once. You can
-      deactivate a Mac to move the license to another one.
+      不是。个人许可证一次买断，永不过期。两种方案的差别只在于同时可启用几台
+      Mac。停用一台 Mac，就能把许可证转到另一台。
     </p>
     <p>
-      The source is licensed under{" "}
-      <a href={`${siteLinks.source}/blob/main/LICENSE`}>GPL-3.0-only</a>. The
-      repository's license covers the source; the official app's purchase terms
-      describe its personal license.
+      源代码采用{" "}
+      <a href={`${siteLinks.source}/blob/main/LICENSE`}>GPL-3.0-only</a>{" "}
+      许可。代码仓库的许可协议适用于源代码；官方版的个人许可证则以购买条款为准。
     </p>
   </GuideSection>
 
-  <GuideSection id="model-costs" title="Do I also pay for models?">
+  <GuideSection id="model-costs" title="模型还要另外付费吗？">
     <p>
-      Local speech and refinement have no API charges. Cloud providers bill you
-      directly, whichever edition you use.
+      本机语音识别和润色没有 API
+      费用。云端服务商会直接向你收费，与你用哪个版本无关。
     </p>
     <p>
-      See the{" "}
-      <a href="/pricing/#provider-costs">
-        dated cost comparison and workload assumptions
+      请看
+      <a href={`${localizedPath("/pricing/", locale)}#provider-costs`}>
+        附日期的费用比较与用量假设
       </a>
-      , or choose a <a href="/guides/offline-dictation-on-mac/">local setup</a>.
+      ，或者选择
+      <a href={localizedPath("/guides/offline-dictation-on-mac/", locale)}>
+        本机设置
+      </a>
+      。
     </p>
     <div class="guide-actions">
       <Button href={siteLinks.build} icon="external">
-        Build from Source
+        从源代码编译
       </Button>
-      <Button href="/pricing/" variant="quiet" icon="right">
-        View Pricing
+      <Button
+        href={localizedPath("/pricing/", locale)}
+        variant="quiet"
+        icon="right"
+      >
+        查看价格
       </Button>
     </div>
   </GuideSection>

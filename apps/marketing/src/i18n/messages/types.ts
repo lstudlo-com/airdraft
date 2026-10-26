@@ -134,11 +134,6 @@ export interface Messages {
     mixed: string;
     materials: string;
     caption: string;
-    /**
-     * Shown while the app's interface in this language is not in a published
-     * release (interfaceReleased in src/i18n/index.ts).
-     */
-    unreleased?: string;
     drag: string;
     press: [string, string];
     select: [string, string];

@@ -8,68 +8,72 @@ import { localizedPath, type Locale } from "../../i18n";
 const locale: Locale = "es";
 ---
 
-<GuideSection id="problems" title="Common problems">
+<GuideSection id="problems" title="Problemas habituales">
   <div class="question-list">
-    <Disclosure summary="Nothing appears after I let go">
+    <Disclosure summary="No aparece nada al soltar">
       <p>
-        Airdraft needs Accessibility to insert text. Turn it on in System
-        Settings ▸ Privacy & Security ▸ Accessibility.
+        Airdraft necesita Accesibilidad para insertar texto. Actívala en Ajustes
+        del Sistema ▸ Privacidad y seguridad ▸ Accesibilidad.
       </p>
       <p>
-        If you rebuilt the app with different signing, the old grant no longer
-        applies. Run{" "}
-        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>, then
-        grant it again.
-      </p>
-    </Disclosure>
-    <Disclosure summary="Nothing is recorded">
-      <p>
-        Allow Microphone when macOS asks. Choose the input from the window
-        toolbar, the menu bar, or Settings ▸ Microphone.
+        Si volviste a compilar la app con otra firma, el permiso anterior ya no
+        sirve. Ejecuta{" "}
+        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code> y
+        vuelve a concederlo.
       </p>
     </Disclosure>
-    <Disclosure summary="The first dictation takes a minute">
+    <Disclosure summary="No se graba nada">
       <p>
-        After a model downloads, its first run compiles it for the Neural
-        Engine. The recording pill shows “Loading model” until it’s ready.
+        Permite el micrófono cuando macOS lo pida. Elige la entrada en la barra
+        de herramientas de la ventana, en la barra de menús o en Ajustes ▸
+        Micrófono.
       </p>
     </Disclosure>
-    <Disclosure summary="Local refinement is slow">
+    <Disclosure summary="El primer dictado tarda un minuto">
       <p>
-        Reasoning models can think for 10 to 60 seconds before a one-line
-        cleanup. Keep “Disable model thinking” on.
+        Después de descargar un modelo, la primera vez que se usa se compila
+        para el Neural Engine. La ventana de grabación muestra «Cargando» hasta
+        que está listo.
       </p>
     </Disclosure>
-    <Disclosure summary="The fn key doesn’t work as a shortcut">
+    <Disclosure summary="El refinamiento local es lento">
       <p>
-        Set System Settings ▸ Keyboard ▸ “Press 🌐 key to” to “Do Nothing”.
-        Shortcuts made of a single modifier key also need Accessibility.
+        Los modelos de razonamiento pueden pensar de 10 a 60 segundos antes de
+        limpiar una sola línea. Deja «Esfuerzo de razonamiento» en «Desactivado»
+        en Modelos ▸ Refinamiento.
       </p>
     </Disclosure>
-    <Disclosure summary="Chinese comes out in the wrong script">
-      <p>Choose the script in Models ▸ Speech options ▸ Chinese script.</p>
+    <Disclosure summary="La tecla fn no funciona como atajo">
+      <p>
+        En Ajustes del Sistema ▸ Teclado, ajusta «Pulsar la tecla 🌐 para» en
+        «No hacer nada». Los atajos de una sola tecla modificadora también
+        necesitan Accesibilidad.
+      </p>
+    </Disclosure>
+    <Disclosure summary="El chino sale con la escritura equivocada">
+      <p>Elige la escritura en Modelos ▸ Opciones de voz ▸ Escritura china.</p>
     </Disclosure>
   </div>
 </GuideSection>
 
-<GuideSection id="report" title="Still stuck?">
+<GuideSection id="report" title="¿Sigues sin solucionarlo?">
   <p>
-    Open an issue with your macOS version and the speech and refinement models
-    you use.
+    Abre una incidencia con tu versión de macOS y los modelos de voz y de
+    refinamiento que usas.
   </p>
   <div class="support-actions">
     <Button href={siteLinks.issues} icon="external">
-      Open an Issue
+      Abrir una incidencia
     </Button>
     <Button
       href={localizedPath("/guides/offline-dictation-on-mac/", locale)}
       variant="quiet"
       icon="right"
     >
-      Local Setup Guide
+      Guía de configuración local
     </Button>
     <Button href={siteLinks.build} variant="quiet" icon="external">
-      Build Instructions
+      Instrucciones de compilación
     </Button>
   </div>
 </GuideSection>

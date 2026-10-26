@@ -109,11 +109,13 @@ const milestones = changelog.filter(
             </article>
           ))}
           <p class="release-availability">
-            {copy.availability[0]}
-            <a class="text-link" href={href("/support/", locale)}>
-              {copy.availability[1]}
-            </a>
-            {copy.availability[2]}
+            {[
+              copy.availability[0],
+              <a class="text-link" href={href("/support/", locale)}>
+                {copy.availability[1]}
+              </a>,
+              copy.availability[2],
+            ]}
           </p>
         </div>
       </div>

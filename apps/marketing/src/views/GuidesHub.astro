@@ -4,6 +4,7 @@ import GuideLinks from "../components/GuideLinks.astro";
 import Button from "../components/ui/Button.astro";
 import { href, localizedPath, type Locale } from "../i18n";
 import { pages } from "../locales";
+import { messages } from "../i18n/messages";
 
 /** The guide hub, in each language: every guide with its one-line summary. */
 interface Props {
@@ -24,7 +25,10 @@ const { hub: copy, chrome } = pages[locale];
 >
   <GuideLinks headingLevel={2} detail locale={locale} />
   <p class="guide-hub-note">
-    {copy.help[0]} <a href={href("/support/", locale)}>{copy.help[1]}</a>
+    {[
+      `${copy.help[0]}${messages[locale].gap}`,
+      <a href={href("/support/", locale)}>{copy.help[1]}</a>,
+    ]}
   </p>
   <div class="guide-actions">
     <Button href={href("/pricing/", locale)} variant="quiet" icon="right">

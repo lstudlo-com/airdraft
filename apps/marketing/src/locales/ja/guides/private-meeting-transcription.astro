@@ -8,140 +8,130 @@ import { href, type Locale } from "../../../i18n";
 /**
  * Private meeting transcription, in each language. Every statement follows
  * docs/meeting-recording.md and docs/media-transcription.md. Button and
- * setting names are the app's own in the page's language: the zh-Hant values
- * in its string catalogs, quoted with 「」. Builds through 0.10.2 show
- * English labels, and the zh-TW intro says so. Keep both languages
- * aligned.
+ * setting names are the app's own in the page's language: the ja values in
+ * its string catalogs, quoted with 「」.
  */
 const locale: Locale = "ja";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "private-meeting-transcription",
 )!;
-const zh = locale === "zh-tw";
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="requirements" title="What do I need?">
+  <GuideSection id="requirements" title="必要なものは？">
     <ul>
-      <li>An Apple silicon Mac with macOS 15 or later.</li>
+      <li>macOS 15 以降を搭載した Apple シリコンの Mac。</li>
       <li>
-        Screen &amp; System Audio Recording permission to record meetings.
-        Microphone access is requested only when you include the microphone.
+        会議を録音するための「画面とシステムオーディオ収録」の権限。マイクへのアクセスは、マイクを含めるときだけ求められます。
       </li>
       <li>
-        An installed local speech model, or a Soniox API key for cloud
-        transcription.
+        インストール済みのローカル音声モデル、またはクラウドで文字起こしする場合は
+        Soniox の API キー。
       </li>
       <li>
-        Headphones when your microphone could pick up the speakers: there is no
-        echo cancellation.
+        マイクがスピーカーの音を拾う可能性がある場合はヘッドフォン。エコーキャンセルはありません。
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection id="record" title="Record a meeting">
+  <GuideSection id="record" title="会議を録音する">
     <ol class="guide-steps">
       <li>
-        <h3>Open Record Meeting</h3>
+        <h3>「会議を録音」を開く</h3>
         <p>
-          Choose Record Meeting on the Meetings page. The menu bar opens the
-          same flow.
+          「会議」ページで「会議を録音」を選びます。メニューバーからも同じ手順を開けます。
         </p>
       </li>
       <li>
-        <h3>Choose what to capture</h3>
+        <h3>録音する音声を選ぶ</h3>
         <p>
-          For App audio, pick All Apps or one running app; a browser includes
-          all of its audio. Include microphone uses the microphone selected in
-          the sidebar. Only audio is captured, never screen video.
+          「アプリの音声」で「すべてのアプリ」か、実行中のアプリをひとつ選びます。ブラウザを選ぶと、そのすべての音声が含まれます。「マイクを含める」では、サイドバーで選んだマイクを使います。取り込むのは音声だけで、画面の映像は記録しません。
         </p>
       </li>
       <li>
-        <h3>Start, and tell everyone</h3>
+        <h3>開始して、参加者に伝える</h3>
         <p>
-          Choose Start Recording, and let participants know you are recording.
-          Recording continues if you leave Meetings; stop it with Stop and Save
-          on Meetings or in the menu bar.
+          「録音を開始」を選び、録音していることを参加者に伝えます。「会議」ページを離れても録音は続きます。止めるには「会議」ページかメニューバーで「停止して保存」を選びます。
         </p>
       </li>
       <li>
-        <h3>It is saved before anything else happens</h3>
+        <h3>まず保存される</h3>
         <p>
-          The recording appears with its date and duration. Nothing has been
-          transcribed or uploaded yet.
+          録音は日付と長さとともに表示されます。この時点では、まだ文字起こしもアップロードもされていません。
         </p>
       </li>
     </ol>
   </GuideSection>
 
-  <GuideSection id="import" title="Or import a file">
+  <GuideSection id="import" title="ファイルを読み込む">
     <p>
-      Choose Import… on Meetings or drop a file. Audio and video files can be up
-      to two hours long with exactly one audio track; export the track you want
-      from a multi-track file first. Airdraft keeps a 16 kHz copy and never
-      changes the original.
+      「会議」で「読み込む…」を選ぶか、ファイルをドロップします。音声と動画のファイルは最長
+      2
+      時間で、音声トラックがちょうどひとつのものに限ります。複数のトラックがあるファイルは、先に必要なトラックを書き出してください。Airdraft
+      は 16 kHz のコピーを保存し、元のファイルは変更しません。
     </p>
   </GuideSection>
 
-  <GuideSection id="transcribe" title="Transcribe with speakers">
+  <GuideSection id="transcribe" title="話者つきで文字起こしする">
     <p>
-      Choose Transcribe… on a recording, pick a model and language, and turn on
-      Identify speakers if you want labels. Speaker identification runs on your
-      Mac; the first time, download its model from the same sheet.
+      録音で「文字起こし…」を選び、モデルと言語を選びます。ラベルが必要なら「話者を識別」をオンにします。話者の識別は
+      Mac
+      上で行われます。初回は同じシートから話者モデルをダウンロードしてください。
     </p>
     <ul>
       <li>
-        Speaker labels are estimates, shown as Speaker 1, Speaker 2 and so on,
-        never guessed names. Rename or reassign them. Overlapping voices are not
-        separated.
+        話者ラベルは推定で、「話者 1」「話者
+        2」のように表示され、名前を推測することはありません。名前の変更や割り当て直しができます。重なった声は分離しません。
       </li>
       <li>
-        Whisper keeps word timings; other local models give segment timings. An
-        interrupted transcription can Resume from its last finished segment.
+        Whisper
+        は単語ごとのタイミングを残し、ほかのローカルモデルは区間ごとのタイミングを出します。中断した文字起こしは、最後に完了した区間から「再開」できます。
       </li>
       <li>
-        Parakeet does not support Chinese. For Chinese, or Chinese and English
-        mixed, choose a model that supports it, such as Qwen3-ASR.
+        Parakeet
+        は中国語に対応していません。中国語や、中国語と英語が混ざる会議には、Qwen3-ASR
+        など対応しているモデルを選んでください。
       </li>
     </ul>
   </GuideSection>
 
-  <GuideSection id="privacy" title="What leaves my Mac?">
+  <GuideSection id="privacy" title="Mac の外に出るものは？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare where meeting data goes"
+      aria-label="会議のデータの送信先の比較"
     >
       <table class="guide-table">
-        <caption>Data sent at each step</caption>
+        <caption>各ステップで送信されるデータ</caption>
         <thead>
           <tr>
-            <th scope="col">Step</th>
-            <th scope="col">What is sent</th>
+            <th scope="col">ステップ</th>
+            <th scope="col">送信される内容</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Recording</th>
-            <td>Nothing. The audio is saved on this Mac.</td>
+            <th scope="row">録音</th>
+            <td>なし。音声はこの Mac に保存されます。</td>
           </tr>
           <tr>
-            <th scope="row">Local transcription</th>
-            <td>Nothing. Speaker identification also runs locally.</td>
+            <th scope="row">ローカルでの文字起こし</th>
+            <td>なし。話者の識別もローカルで行われます。</td>
           </tr>
           <tr>
-            <th scope="row">Soniox transcription</th>
+            <th scope="row">Soniox での文字起こし</th>
             <td>
-              After you choose Upload and Transcribe, the audio goes to Soniox
-              on your API key, and charges may apply. A local WAV remains.
+              「アップロードして文字起こし」を選ぶと、音声がお使いの API キーで
+              Soniox に送られ、料金がかかることがあります。ローカルの WAV
+              は残ります。
             </td>
           </tr>
           <tr>
-            <th scope="row">Summarize</th>
+            <th scope="row">要約</th>
             <td>
-              After you confirm, the transcript goes to your selected refinement
-              provider; local refinement keeps it on your Mac.
+              確認すると、文字起こしが選択中の整形のプロバイダに送られます。ローカルの整形なら
+              Mac の外には出ません。
             </td>
           </tr>
         </tbody>
@@ -149,45 +139,41 @@ const zh = locale === "zh-tw";
     </div>
   </GuideSection>
 
-  <GuideSection id="export" title="Edit and export">
+  <GuideSection id="export" title="編集して書き出す">
     <p>
-      Your edits sit beside the original; switch between Edited and Original,
-      and Copy and Export use the one shown. Export TXT, JSON, SRT or VTT;
-      subtitles keep each turn’s time and speaker. Select a timestamp to play
-      the recording from there.
+      編集した内容は元の内容と並べて保存されます。「編集済み」と「元の内容」を切り替えられ、「コピー」と「書き出す」は表示中のほうを使います。TXT、JSON、SRT、VTT
+      で書き出せ、字幕には発言ごとの時刻と話者が残ります。タイムスタンプを選ぶと、そこから録音を再生できます。
     </p>
     <p>
-      Meeting recordings ignore dictation’s audio retention and stay until you
-      remove the audio. Deleting a transcript keeps its recording.
+      会議の録音は音声入力の音声の保存設定とは関係なく、音声を削除するまで残ります。文字起こしを削除しても録音は残ります。
     </p>
   </GuideSection>
 
-  <GuideSection id="limits" title="Limits">
+  <GuideSection id="limits" title="制限">
     <ul>
-      <li>Each recording or file can be up to two hours long.</li>
+      <li>録音やファイルは、それぞれ最長 2 時間です。</li>
       <li>
-        Starting a recording needs about 2 GB of free space. Capture stops after
-        15 seconds without receiving audio.
+        録音を始めるには約 2 GB の空き容量が必要です。音声を 15
+        秒間受け取らないと、録音は停止します。
       </li>
       <li>
-        Speaker identification on long files needs enough free memory and checks
-        before it starts.
+        長いファイルの話者の識別には十分な空きメモリが必要で、開始前に確認されます。
       </li>
       <li>
-        Airdraft has not published accuracy measurements for meeting
-        transcription or speaker labels. Try it with your own recordings.
+        Airdraft
+        は会議の文字起こしや話者ラベルの精度の計測結果を公開していません。お使いの録音で試してください。
       </li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
-        See Pricing
+        価格を見る
       </Button>
       <Button
         href={href("/guides/compare-mac-dictation-apps/", locale)}
         variant="quiet"
         icon="right"
       >
-        Compare With Other Apps
+        ほかのアプリと比べる
       </Button>
     </div>
   </GuideSection>

@@ -1,15 +1,9 @@
 import { localizedPath, type Locale } from "../i18n";
 import { pages } from "../locales";
 
-/** Every guide's slug, shared by every language's page. */
-export type GuideSlug =
-  | "offline-dictation-on-mac"
-  | "mixed-chinese-english-dictation"
-  | "dictate-to-claude-code-and-terminals"
-  | "local-vs-cloud-dictation"
-  | "free-source-or-official-app"
-  | "private-meeting-transcription"
-  | "compare-mac-dictation-apps";
+import { guideSlugs, type GuideSlug } from "./guide-slugs";
+
+export { guideSlugs, type GuideSlug };
 
 export interface Guide {
   slug: GuideSlug;
@@ -23,15 +17,6 @@ export interface Guide {
 // guide's setup instructions and limits aligned with the native app. Every
 // guide exists in every language at /<code>/guides/<slug>/; titles,
 // descriptions and summaries are copy in src/locales/<code>/pages.ts.
-export const guideSlugs: GuideSlug[] = [
-  "offline-dictation-on-mac",
-  "mixed-chinese-english-dictation",
-  "dictate-to-claude-code-and-terminals",
-  "local-vs-cloud-dictation",
-  "free-source-or-official-app",
-  "private-meeting-transcription",
-  "compare-mac-dictation-apps",
-];
 
 /** The guides in `locale`, in that language, linking to that language. */
 export const guidesFor = (locale: Locale): Guide[] =>

@@ -3,7 +3,7 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { localizedPath, type Locale } from "../../../i18n";
 import { siteLinks } from "../../../data/site";
 
 const locale: Locale = "es";
@@ -13,126 +13,145 @@ const guide = guidesFor(locale).find(
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="data-flow" title="What leaves your Mac?">
+  <GuideSection id="data-flow" title="¿Qué sale de tu Mac?">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare local and cloud data flow"
+      aria-label="Compara el flujo de datos local y en la nube"
     >
       <table class="guide-table">
-        <caption>Dictation processing with each combination</caption>
+        <caption>Procesamiento del dictado con cada combinación</caption>
         <thead>
           <tr>
-            <th scope="col">Speech</th>
-            <th scope="col">Refinement</th>
-            <th scope="col">Sent to model providers</th>
+            <th scope="col">Voz</th>
+            <th scope="col">Refinamiento</th>
+            <th scope="col">Lo que reciben los proveedores de modelos</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <th scope="row">Local</th>
-            <td>Local or off</td>
-            <td>No audio or transcript is sent to a cloud model.</td>
+            <td>Local o desactivado</td>
+            <td>
+              No se envía audio ni transcripción a ningún modelo en la nube.
+            </td>
           </tr>
           <tr>
             <th scope="row">Local</th>
-            <td>Cloud</td>
-            <td>The transcript and refinement prompt. Audio stays local.</td>
-          </tr>
-          <tr>
-            <th scope="row">Cloud</th>
-            <td>Local or off</td>
-            <td>Audio goes to your speech provider for transcription.</td>
-          </tr>
-          <tr>
-            <th scope="row">Cloud</th>
-            <td>Cloud</td>
+            <td>Nube</td>
             <td>
-              Audio goes to the speech provider; text and its prompt go to the
-              refinement provider.
+              La transcripción y el prompt de refinamiento. El audio se queda en
+              local.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Nube</th>
+            <td>Local o desactivado</td>
+            <td>El audio va a tu proveedor de voz para transcribirlo.</td>
+          </tr>
+          <tr>
+            <th scope="row">Nube</th>
+            <td>Nube</td>
+            <td>
+              El audio va al proveedor de voz; el texto y su prompt van al
+              proveedor de refinamiento.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <p>
-      Some speech providers also receive your language selection and vocabulary
-      terms to guide transcription.
+      Algunos proveedores de voz también reciben el idioma que elegiste y los
+      términos de tu vocabulario para orientar la transcripción.
     </p>
     <p>
-      Here, local means the model runs on this Mac. The table covers model
-      processing, not downloads, software updates or license requests.
+      Aquí, local significa que el modelo se ejecuta en este Mac. La tabla trata
+      del procesamiento de los modelos, no de descargas, actualizaciones de
+      software ni solicitudes de licencia.
     </p>
   </GuideSection>
 
   <GuideSection
     id="refinement-context"
-    title="What is in the refinement prompt?"
+    title="¿Qué incluye el prompt de refinamiento?"
   >
     <p>
-      Refinement uses the transcript, profile instructions and vocabulary. With
-      Read app context enabled, available context can also include the active
-      app, window title, URL, selected text, text near the cursor and terms from
-      recent dictations in the same app.
+      El refinamiento usa la transcripción, las instrucciones del perfil y el
+      vocabulario. Con «Leer el contexto de la app» activado, el contexto
+      disponible también puede incluir la app activa, el título de la ventana,
+      la URL, el texto seleccionado, el texto cercano al cursor y términos de
+      dictados recientes en la misma app.
     </p>
     <p>
-      Turn off Read app context in Settings to leave that context out. Claude
-      Code and Codex refinement also use an external service: the CLI runs on
-      your Mac, its model does not.
+      Desactiva «Leer el contexto de la app» en Ajustes para dejar fuera ese
+      contexto. El refinamiento con Claude Code y Codex también usa un servicio
+      externo: la CLI se ejecuta en tu Mac, pero su modelo no.
     </p>
   </GuideSection>
 
-  <GuideSection id="choose" title="Which setup fits my needs?">
+  <GuideSection id="choose" title="¿Qué configuración me conviene?">
     <dl class="guide-decisions">
       <div>
-        <dt>Keep dictation processing on this Mac</dt>
+        <dt>Procesar el dictado solo en este Mac</dt>
         <dd>
-          Choose a local speech model and local refinement, or turn refinement
-          off. Install the required models first. Follow the{" "}
-          <a href="/guides/offline-dictation-on-mac/">offline setup guide</a>.
+          Elige un modelo de voz local y un refinamiento local, o desactiva el
+          refinamiento. Instala antes los modelos necesarios. Sigue la{" "}
+          <a href={localizedPath("/guides/offline-dictation-on-mac/", locale)}>
+            guía de configuración sin conexión
+          </a>
+          .
         </dd>
       </div>
       <div>
-        <dt>Keep audio local and use a cloud text model</dt>
+        <dt>Audio en local y un modelo de texto en la nube</dt>
         <dd>
-          Combine local speech with cloud refinement. This shares the transcript
-          and its prompt while keeping the recording out of the cloud speech
-          service.
+          Combina la voz local con el refinamiento en la nube. Así compartes la
+          transcripción y su prompt, pero la grabación no llega a ningún
+          servicio de voz en la nube.
         </dd>
       </div>
       <div>
-        <dt>Avoid local model downloads</dt>
+        <dt>Evitar descargas de modelos locales</dt>
         <dd>
-          Choose cloud speech and cloud refinement. You need connectivity and
-          the providers' required credentials; their usage charges are separate
-          from Airdraft's license.
+          Elige voz y refinamiento en la nube. Necesitas conexión y las
+          credenciales que pidan los proveedores; sus cargos por uso son aparte
+          de la licencia de Airdraft.
         </dd>
       </div>
     </dl>
     <p>
-      Check your active profile too: a profile's own speech model overrides the
-      app default in Models, and changing the default does not replace it.
+      Revisa también tu perfil activo: el modelo de voz propio de un perfil
+      prevalece sobre el predeterminado de la app en Modelos, y cambiar el
+      predeterminado no lo sustituye.
     </p>
   </GuideSection>
 
-  <GuideSection id="storage" title="Where are keys and history stored?">
+  <GuideSection
+    id="storage"
+    title="¿Dónde se guardan las claves y el historial?"
+  >
     <p>
-      Provider API keys are stored in the macOS Keychain. Dictation history is
-      local and searchable. Audio history is opt-in, with retention choices of
-      1, 7 or 30 days, or until deleted. Turning audio retention off removes
-      saved audio while keeping the text history.
+      Las claves de API de los proveedores se guardan en el Llavero de macOS. El
+      historial de dictados es local y se puede buscar. Guardar el audio es
+      opcional, y puedes conservarlo 1, 7 o 30 días, o hasta que lo elimines. Si
+      dejas de conservar el audio, se elimina el audio guardado y se mantiene el
+      historial de texto.
     </p>
     <p>
-      Cloud providers apply their own data policies and billing. A local copy in
-      History does not undo a request already sent to a provider.
+      Los proveedores en la nube aplican sus propias políticas de datos y su
+      facturación. Una copia local en el Historial no deshace una solicitud ya
+      enviada a un proveedor.
     </p>
     <div class="guide-actions">
-      <Button href="/pricing/#provider-costs" icon="right">
-        Compare Setup Costs
+      <Button
+        href={`${localizedPath("/pricing/", locale)}#provider-costs`}
+        icon="right"
+      >
+        Comparar lo que cuesta
       </Button>
       <Button href={siteLinks.source} variant="quiet" icon="external">
-        Inspect the Source
+        Ver el código
       </Button>
     </div>
   </GuideSection>

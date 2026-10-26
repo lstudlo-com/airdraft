@@ -1,711 +1,709 @@
 import type { ChangelogText } from "../../data/changelog";
 
-// TRANSLATE: placeholder English copy; translate every title and description.
 // One entry per release id in src/data/changelog.ts, with the same number of
-// changes in the same order.
+// changes in the same order. App labels quote the app's zh-Hant catalog;
+// labels since renamed (Configuration, Mini) keep the English name the app
+// showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
   "0-14-0": {
-    title: "Spanish, Japanese and better defaults in every language",
+    title: "西班牙文、日文介面，各語言的預設值也更合適",
     changes: [
       {
-        title: "Use Airdraft in Spanish or Japanese",
+        title: "以西班牙文或日文使用 Airdraft",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Spanish and Japanese, following your Mac's language. Shortcut instructions are written as whole sentences in each language, and controls widen to fit longer labels.",
+          "介面、原生選單與 App 捷徑語句提供西班牙文與日文，跟隨 Mac 的語言設定。快速鍵說明在各語言中都寫成完整的句子，控制項也會加寬以容納較長的標籤。",
       },
       {
-        title: "Defaults that fit your language",
+        title: "符合你語言的預設值",
         description:
-          "A new setup on a Mac without Chinese no longer starts with Traditional Chinese script or a Taiwanese Apple Speech locale; the Chinese script setting applies only to Mandarin and Cantonese and appears only there. Live preview lists every language your Mac supports.",
+          "在沒有設定中文的 Mac 上全新設定時，不再預設繁體中文字體或台灣的 Apple 語音地區；「中文字體」設定只套用於華語與粵語，也只在選這兩種語言時出現。「即時預覽」會列出 Mac 支援的所有語言。",
       },
       {
-        title: "Recommended local models for seven more languages",
+        title: "再為七種語言推薦本機模型",
         description:
-          "First-run setup and Models recommend from Airdraft's own measurement in Spanish, French, Portuguese, Russian, Arabic, Hindi and Indonesian: Qwen3-ASR 1.7B, with lighter choices on Macs with 8 GB of memory or less (Parakeet TDT v3, GigaAM v3 or Whisper Large v3 Turbo, by language).",
+          "首次設定與「模型」依 Airdraft 自行測量的西班牙文、法文、葡萄牙文、俄文、阿拉伯文、印地文與印尼文結果推薦 Qwen3-ASR 1.7B；記憶體 8 GB 以下的 Mac 則依語言改推較輕量的選擇（Parakeet TDT v3、GigaAM v3 或 Whisper Large v3 Turbo）。",
       },
       {
-        title: "Refinement keeps your language",
+        title: "潤稿不會改變你說的語言",
         description:
-          "Refinement is discarded for the raw transcript when it changes the language you spoke, in any script. Thai, Lao, Khmer and Burmese dictations are no longer skipped as too short, and setup no longer offers Apple Intelligence for a language it cannot write.",
+          "潤稿結果若改變了你說的語言，不論哪種文字，都會捨棄並改用原始逐字稿。泰文、寮文、高棉文與緬甸文的聽寫不再被當成太短而略過，設定也不再為 Apple Intelligence 無法書寫的語言提供它。",
       },
     ],
   },
   "0-13-0": {
-    title: "Optional anonymous usage data and crash reports",
+    title: "選用的匿名使用資料與當機報告",
     changes: [
       {
-        title: "Choose whether to share anonymous usage data",
+        title: "自行決定是否分享匿名使用資料",
         description:
-          "Downloads from airdraft.app ask once whether to share anonymous usage counts and crash reports, listing what is shared and what never is. Nothing is sent before you choose, Settings > Behavior turns it off at any time, and builds from source never send anything. Your words, transcripts, audio, vocabulary, app names, window titles, URLs, file paths and keys are never sent.",
+          "從 airdraft.app 下載的版本會詢問一次是否分享匿名使用次數與當機報告，並列出會分享與絕不分享的內容。你選擇之前不會傳送任何資料，隨時可在「設定」>「行為」關閉，從原始碼編譯的版本則完全不傳送。你說的話、逐字稿、音訊、詞彙、App 名稱、視窗標題、網址、檔案路徑與金鑰都不會傳送。",
       },
       {
-        title: "Live text from Apple Speech as the selected model",
+        title: "以 Apple Speech 作為所選模型時顯示即時文字",
         description:
-          "When Apple Speech is your speech model and Live preview uses the selected model, live text now appears in the recording window and during meetings.",
+          "當語音模型是 Apple Speech，且「即時預覽」使用所選模型時，錄音視窗與會議中現在會顯示即時文字。",
       },
     ],
   },
   "0-12-1": {
-    title: "Steadier insertion on busy Macs",
+    title: "忙碌的 Mac 上也能穩定貼上",
     changes: [
       {
-        title: "Confirm the destination more reliably",
+        title: "更可靠地確認貼上位置",
         description:
-          "Before recording, Airdraft checks that the text field and cursor have stopped changing. It now also reads them twice in a row, so a slow or busy Mac cannot accept a field that is still moving and later report that the destination changed.",
+          "錄音前，Airdraft 會確認文字欄位與游標已不再變動。現在還會連續讀取兩次，避免較慢或忙碌的 Mac 接受仍在變動的欄位，之後才回報貼上位置已改變。",
       },
     ],
   },
   "0-12-0": {
-    title: "Profiles by app, live text and Simplified Chinese",
+    title: "依 App 套用模式、即時文字與簡體中文",
     changes: [
       {
-        title: "Choose a profile for each app",
+        title: "為每個 App 選擇模式",
         description:
-          "Profiles > Profile by app maps an app, or a family such as code editors, terminals, email, chat or documents, to one of your profiles. It is off by default, and Home names a rule whose profile still needs setup.",
+          "「模式」>「依 App 套用模式」可把某個 App，或程式碼編輯器、終端機、電子郵件、聊天、文件等類別，對應到你的某個模式。預設為關閉；若規則對應的模式仍需設定，「首頁」會指出是哪一條。",
       },
       {
-        title: "See live text from your local model",
+        title: "看見本機模型的即時文字",
         description:
-          "Live preview can use the selected speech model (Parakeet, SenseVoice or Orukeet) as well as Apple Speech, in the recording window and while recording a meeting. The final transcript is unchanged.",
+          "除了 Apple Speech，「即時預覽」也能使用所選的語音模型（Parakeet、SenseVoice 或 Orukeet），在錄音視窗與錄製會議時顯示。最後的逐字稿不受影響。",
       },
       {
-        title: "Use Airdraft in Simplified Chinese",
+        title: "以簡體中文使用 Airdraft",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Simplified Chinese. A new setup on a Mac set to Simplified Chinese starts with Simplified script.",
+          "介面、原生選單與 App 捷徑語句提供簡體中文。在設定為簡體中文的 Mac 上全新設定時，預設使用簡體字。",
       },
       {
-        title: "A better first model for English, Japanese and Korean",
+        title: "英文、日文與韓文有更好的首選模型",
         description:
-          "First-run setup recommends Parakeet TDT v2 for English and Qwen3-ASR 1.7B for Japanese and Korean, based on Airdraft's own measurement. SenseVoice now installs the original multilingual model; the Cantonese fine-tune that 0.11.0 and earlier installed keeps working as SenseVoice Cantonese.",
+          "依 Airdraft 自行測量的結果，首次設定為英文推薦 Parakeet TDT v2，為日文與韓文推薦 Qwen3-ASR 1.7B。SenseVoice 現在安裝原始多語言模型；0.11.0 及更早版本安裝的粵語微調版會以 SenseVoice Cantonese 的名稱繼續運作。",
       },
       {
-        title: "Your vocabulary helps on-device recognition",
+        title: "詞彙協助裝置端辨識",
         description:
-          "Qwen3-ASR, Parakeet and Orukeet use the spellings in Vocabulary while they recognize speech. Settings > Behavior turns this off.",
+          "Qwen3-ASR、Parakeet 與 Orukeet 辨識語音時會參考「詞彙」中的拼寫。可在「設定」>「行為」關閉。",
       },
       {
-        title: "Cleaner local transcripts",
+        title: "更乾淨的本機逐字稿",
         description:
-          "Repeated loops are cut, a wrongly detected language is retried, and SenseVoice and FireRedASR2 write English in normal case with punctuation. Japanese kanji are no longer converted to Chinese script, and refinement that turns Japanese or Korean into Chinese falls back to your transcript.",
+          "重複迴圈會被截斷，誤判的語言會重試，SenseVoice 與 FireRedASR2 輸出的英文會改為一般大小寫並加上標點。日文漢字不再被轉成中文字體；潤稿若把日文或韓文變成中文，會改用你的逐字稿。",
       },
       {
-        title: "Meetings remember speaker names",
+        title: "會議記得講者名稱",
         description:
-          "Speaker names you type are suggested in later meetings, and Summarize offers Brief Summary, Action Items, Decisions & Follow-ups and Meeting Minutes.",
+          "你輸入過的講者名稱會在之後的會議中建議使用；「製作摘要」提供「簡短摘要」、「待辦事項」、「決議與後續事項」與「會議紀錄」。",
       },
       {
-        title: "A simpler Models page",
+        title: "更簡潔的「模型」頁",
         description:
-          "Models opens with the recommendation for your language and a few alternatives, with Show All Models for the full list and full language names on every row.",
+          "「模型」一打開就是適合你語言的推薦與幾個替代選擇；「顯示所有模型」可看完整列表，每一列都顯示完整的語言名稱。",
       },
       {
-        title: "Paste into Ghostty 1.3 without an error",
+        title: "貼到 Ghostty 1.3 不再出錯",
         description:
-          "Ghostty 1.3 shows a text cursor to Airdraft, which made every paste report that it couldn't be confirmed. It now gets one paste and no notice, like other terminals that draw their own text.",
+          "Ghostty 1.3 會向 Airdraft 顯示文字游標，導致每次貼上都回報無法確認。現在它和其他自繪文字的終端機一樣，只貼上一次、不顯示通知。",
       },
       {
-        title: "Lighter on memory",
+        title: "更省記憶體",
         description:
-          "When macOS reports memory pressure, idle local speech models and the LM Studio models Airdraft loaded are unloaded. A dictation in progress keeps its model.",
+          "macOS 回報記憶體壓力時，會卸載閒置的本機語音模型，以及 Airdraft 載入的 LM Studio 模型。進行中的聽寫會保留它的模型。",
       },
     ],
   },
   "0-11-0": {
-    title: "Traditional Chinese interface and dependable delivery",
+    title: "繁體中文介面與可靠的貼上",
     changes: [
       {
-        title: "Use Airdraft in Traditional Chinese",
+        title: "以繁體中文使用 Airdraft",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Traditional Chinese (Taiwan) and follow the macOS language setting. Built-in profile names appear in the interface language until you rename them.",
+          "介面、原生選單與 App 捷徑語句提供繁體中文（台灣），並跟隨 macOS 的語言設定。內建模式的名稱以介面語言顯示，直到你重新命名。",
       },
       {
-        title: "Dictate again right after a paste",
+        title: "貼上後馬上能再聽寫",
         description:
-          "A shortcut pressed while the clipboard was being restored or History was saving could be ignored. Airdraft is now ready as soon as delivery is confirmed, and a newer paste never brings back an older clipboard.",
+          "以前在剪貼簿還原中或「記錄」儲存時按下快速鍵，可能會被忽略。現在一確認貼上，Airdraft 就準備好了，較新的貼上也絕不會把舊的剪貼簿內容帶回來。",
       },
       {
-        title: "Paste into terminals that draw their own text",
+        title: "貼到自繪文字的終端機",
         description:
-          "Warp, Zed, Ghostty, kitty, Alacritty and WezTerm get one paste without an error, and History marks it Pasted, unconfirmed. Your clipboard returns after two seconds. Other apps without a visible cursor still keep the text on the clipboard with a recovery notice.",
+          "Warp、Zed、Ghostty、kitty、Alacritty 與 WezTerm 會貼上一次且不顯示錯誤，「記錄」將其標為「已貼上，未確認」。剪貼簿會在兩秒後還原。其他沒有可見游標的 App，仍會把文字留在剪貼簿並顯示復原通知。",
       },
       {
-        title: "Keep dictating while recordings wait",
+        title: "錄音待處理時也能繼續聽寫",
         description:
-          "A recording kept after a speech failure no longer blocks new dictation. Up to three recordings or 15 minutes of audio wait for retry or discard; when little room remains, the next recording stops early and says why.",
+          "語音辨識失敗後保留的錄音不再擋住新的聽寫。最多三段錄音或 15 分鐘音訊可等待重試或捨棄；剩餘空間不多時，下一段錄音會提早停止並說明原因。",
       },
       {
-        title: "Clearer setup on Home and in onboarding",
+        title: "「首頁」與新手設定更清楚",
         description:
-          "Home counts an installed speech model as ready even before it loads, and names trial, license and kept-recording blockers. Try It now completes with a real dictation, and Ready offers Apple Intelligence refinement when the Mac supports it.",
+          "已安裝的語音模型即使尚未載入，「首頁」也會視為就緒，並指出試用、授權與保留錄音造成的阻礙。「試試看」現在要完成一次真正的聽寫，「就緒」也會在 Mac 支援時提供 Apple Intelligence 潤稿。",
       },
       {
-        title: "Recommended and verified local models",
+        title: "推薦與已驗證的本機模型",
         description:
-          "A Mac set to Chinese is recommended Qwen3-ASR 1.7B, or SenseVoice first with 8 GB of memory or less. Models opens with that recommendation and verified models, with the rest under Experimental. Qwen3-ASR and Whisper downloads are pinned and checked by size and SHA-256 before installation.",
+          "設定為中文的 Mac 會推薦 Qwen3-ASR 1.7B，記憶體 8 GB 以下則先推薦 SenseVoice。「模型」一打開就是推薦與已驗證的模型，其他模型放在「實驗性」之下。Qwen3-ASR 與 Whisper 的下載採固定版本，安裝前會核對大小與 SHA-256。",
       },
       {
-        title: "Adjust text size",
+        title: "調整文字大小",
         description:
-          "Settings > Appearance > Text size offers Default, Large and Larger, and text wraps instead of clipping at larger sizes. Every control now has a VoiceOver name and state.",
+          "「設定」>「外觀」>「文字大小」提供「預設」、「大」與「更大」，放大後文字會換行而不是被截斷。每個控制項現在都有 VoiceOver 名稱與狀態。",
       },
       {
-        title: "Start and save dictations faster",
+        title: "更快開始與儲存聽寫",
         description:
-          "The microphone opens as soon as setup checks pass, refinement prepares while you speak, and saving a dictation no longer scans stored audio. A long recording keeps its local speech model loaded until processing ends.",
+          "設定檢查一通過就開啟麥克風，潤稿在你說話時就開始準備，儲存聽寫也不再掃描已存的音訊。長時間錄音時，本機語音模型會保持載入直到處理結束。",
       },
       {
-        title: "Build Airdraft from source more easily",
+        title: "更容易從原始碼編譯 Airdraft",
         description:
-          "Settings > Updates > Acknowledgements lists third-party notices, and source builds now launch without the project's signing team.",
+          "「設定」>「更新」>「致謝」列出第三方聲明，原始碼版本現在不需要專案的簽署團隊也能啟動。",
       },
     ],
   },
   "0-10-2": {
-    title: "Add AssemblyAI Universal-3.6 Pro preview",
+    title: "加入 AssemblyAI Universal-3.6 Pro 預覽版",
     changes: [
       {
-        title: "Choose the 3.6 Pro batch preview",
+        title: "選用 3.6 Pro 批次預覽版",
         description:
-          "Models and Profiles now offer Universal-3.6 Pro (Preview) through AssemblyAI's pre-recorded preview API. Universal-3.5 Pro remains available and keeps its saved selections. Preview availability and transcription quality still need verification with an AssemblyAI account.",
+          "「模型」與「模式」現在透過 AssemblyAI 的預錄音訊預覽 API 提供 Universal-3.6 Pro (Preview)。Universal-3.5 Pro 仍可使用，已儲存的選擇也不變。預覽版的可用性與轉錄品質仍需用 AssemblyAI 帳號驗證。",
       },
       {
-        title: "Keep the selected speech model on the request",
+        title: "請求一律使用所選的語音模型",
         description:
-          "AssemblyAI requests use the model you choose. Preview failures do not retry with 3.5 Pro, and a response that reports a different model version is rejected instead of being recorded as a successful 3.6 Pro transcription.",
+          "AssemblyAI 請求使用你選的模型。預覽版失敗時不會改用 3.5 Pro 重試；回報不同模型版本的回應會被拒絕，不會記為成功的 3.6 Pro 轉錄。",
       },
     ],
   },
   "0-10-1": {
-    title: "Recover stalled models and add Disco colors",
+    title: "從卡住的模型中恢復，並加入 Disco 色彩",
     changes: [
       {
-        title: "Switch away from a stalled speech model",
+        title: "離開卡住的語音模型",
         description:
-          "Model loading now has a two-minute limit. Cancelling or changing models frees the next selection while unfinished native work cleans up safely. A model still cleaning up stays protected from duplicate loading and deletion.",
+          "模型載入現在有兩分鐘上限。取消或更換模型會釋放下一個選擇，未完成的原生工作則安全地清理。仍在清理的模型會受到保護，不會重複載入或被刪除。",
       },
       {
-        title: "Make recording colors respond to speech",
+        title: "讓錄音色彩隨語音變化",
         description:
-          "The saved Disco switch adds flowing colors to Classic, Cube, Sonic, Orbit and Silk. Voice energy and syllable accents shape the palette, which settles during pauses and freezes during delivery. Reduce Motion keeps the colors still.",
+          "會保存的 Disco 開關為經典、立方、聲波、軌道與絲帶加上流動的色彩。說話的能量與音節重音塑造色盤，停頓時沉靜下來，貼上時凍結。「減少動態效果」會讓色彩保持靜止。",
       },
     ],
   },
   "0-10-0": {
-    title: "More local speech models and guided setup",
+    title: "更多本機語音模型與引導式設定",
     changes: [
       {
-        title: "Animated recording-window choices",
+        title: "會動的錄音視窗選項",
         description:
-          "Mini is now Classic, with an animated Settings preview and the same capsule size as the other styles. Larger preview tiles show all five styles, including Orbit’s interlocking silver rings and Silk’s folded metallic ribbon.",
+          "Mini 改名為「經典」，在「設定」中有動態預覽，膠囊大小也與其他樣式相同。較大的預覽方塊展示全部五種樣式，包括「軌道」交錯的銀色圓環與「絲帶」摺疊的金屬緞帶。",
       },
       {
-        title: "More on-device speech models",
+        title: "更多裝置端語音模型",
         description:
-          "The local catalogue adds Whisper Large v3, compressed Turbo, pinned GGUF and Core ML choices, Distil-Whisper and Orukeet. Models, Profiles and Meetings share the exact model selection, language limits and download checks.",
+          "本機模型目錄加入 Whisper Large v3、壓縮版 Turbo、固定版本的 GGUF 與 Core ML 選項、Distil-Whisper 與 Orukeet。「模型」、「模式」與「會議」共用同樣的模型選擇、語言限制與下載檢查。",
       },
       {
-        title: "Learn dictation step by step",
+        title: "一步步學會聽寫",
         description:
-          "Six optional setup steps guide you through choosing speech, permissions, shortcut practice and your first dictation. Model downloads continue between steps, and shortcut rehearsal pauses recording.",
+          "六個選用的設定步驟，引導你選擇語音模型、授予權限、練習快速鍵並完成第一次聽寫。模型下載會在步驟之間持續進行，練習快速鍵時會暫停錄音。",
       },
       {
-        title: "Clearer meetings and consistent controls",
+        title: "更清楚的會議與一致的控制項",
         description:
-          "Meeting cards keep the next action beside a compact player. Transcript editing has fixed header and footer actions, while buttons, pickers and text fields share one rounded shape.",
+          "會議卡片把下一步動作放在精簡的播放器旁。逐字稿編輯器的頁首與頁尾動作固定不動，按鈕、選單與文字欄位共用同一種圓角形狀。",
       },
     ],
   },
   "0-9-1": {
-    title: "Fix meeting audio and controls",
+    title: "修正會議音訊與控制項",
     changes: [
       {
-        title: "Read and choose meeting apps",
+        title: "看清楚並選擇會議 App",
         description:
-          "The app chooser now gives each app a full-height row, grows as sources load and scrolls longer lists. Refresh, empty states and errors remain visible.",
+          "App 選擇器現在讓每個 App 佔一整列高度，來源載入時會跟著變高，較長的列表可以捲動。重新整理、空白狀態與錯誤訊息都保持可見。",
       },
       {
-        title: "Hear new recordings in both channels",
+        title: "新錄音的左右聲道都聽得到",
         description:
-          "New and recovered meetings mix microphone and app audio into identical left and right channels. Previously saved files stay unchanged. Meeting meters now use the same linear response and ten-cell display as the microphone picker.",
+          "新的與復原的會議錄音，會把麥克風與 App 音訊混成相同的左右聲道。先前儲存的檔案保持不變。會議音量表現在與麥克風選擇器一樣，採用線性反應與十格顯示。",
       },
       {
-        title: "Keep primary controls consistent",
+        title: "主要控制項保持一致",
         description:
-          "Recording, transcription and transcript-save actions use blue raised capsules with the same pressed and disabled states as Airdraft’s other neumorphic buttons.",
+          "錄音、轉錄與儲存逐字稿的動作，使用藍色凸起膠囊，按下與停用狀態都與 Airdraft 其他擬物風格按鈕相同。",
       },
     ],
   },
   "0-9-0": {
-    title: "A dedicated home for meetings",
+    title: "會議有了自己的頁面",
     changes: [
       {
-        title: "Find every meeting and transcript",
+        title: "找到每一場會議與逐字稿",
         description:
-          "Meetings now has its own sidebar page. Each recording has a direct transcription action, saved transcript versions, recovery controls, Finder access and audio export. History stays focused on dictation.",
+          "「會議」現在是側邊欄中獨立的頁面。每段錄音都有直接轉錄的動作、已儲存的逐字稿版本、復原控制、在 Finder 中顯示與匯出音訊。「記錄」則專注於聽寫。",
       },
       {
-        title: "Choose more local transcription models",
+        title: "更多本機轉錄模型可選",
         description:
-          "Speaker-labelled media transcription supports eight local model choices, including both Qwen3-ASR sizes, Cohere, SenseVoice, FireRed, Parakeet and Apple Speech alongside Whisper Turbo. Additional engines show segment timestamps; Whisper retains word timestamps.",
+          "標出講者的媒體轉錄支援八種本機模型選項，除了 Whisper Turbo，還有兩種大小的 Qwen3-ASR、Cohere、SenseVoice、FireRed、Parakeet 與 Apple Speech。新增的引擎顯示段落時間戳記，Whisper 保留逐字時間戳記。",
       },
       {
-        title: "Start recording with fewer steps",
+        title: "用更少步驟開始錄音",
         description:
-          "A compact meeting sheet lets you select app audio and include your microphone. The app chooser opens immediately, and saved recordings stay visible after restarting. Models now appears above Settings, the new name for Configuration.",
+          "精簡的會議面板讓你選擇 App 音訊並加錄麥克風。App 選擇器會立即開啟，已儲存的錄音在重新啟動後仍會顯示。「模型」現在位於「設定」上方，「設定」即原本的 Configuration。",
       },
       {
-        title: "More cloud speech choices and clearer recovery",
+        title: "更多雲端語音選擇與更清楚的復原",
         description:
-          "Native speech integrations add AssemblyAI, Cartesia, Speechmatics, xAI, Mistral and Gemini. Blocked data and recovery screens now allow normal quitting while active cleanup remains protected.",
+          "原生語音整合加入 AssemblyAI、Cartesia、Speechmatics、xAI、Mistral 與 Gemini。資料受阻與復原畫面現在可以正常結束 App，進行中的清理仍受到保護。",
       },
     ],
   },
   "0-8-1": {
-    title: "Recover text when a paste cannot be confirmed",
+    title: "無法確認貼上時也能找回文字",
     changes: [
       {
-        title: "Keep unconfirmed text available",
+        title: "未確認的文字仍可取用",
         description:
-          "Airdraft now checks the destination text before reporting a successful paste. If an editor ignores the paste or cannot expose its text, your transcript stays on the clipboard and a recovery notice appears. Check the destination before pasting again; Airdraft never retries an uncertain paste automatically.",
+          "Airdraft 現在會先檢查目標位置的文字，才回報貼上成功。如果編輯器忽略貼上或無法提供文字內容，逐字稿會留在剪貼簿並顯示復原通知。再次貼上前請先檢查目標位置；Airdraft 絕不會自動重試不確定的貼上。",
       },
       {
-        title: "Preserve recovery details in History",
+        title: "在「記錄」中保留復原資訊",
         description:
-          "History saves the transcript and delivery diagnostic when a paste cannot be confirmed, including after successful refinement. If another app changes the clipboard, its newer content is preserved and the notice points you to History.",
+          "無法確認貼上時，「記錄」會儲存逐字稿與送達診斷，潤稿成功後也一樣。如果其他 App 改了剪貼簿，會保留較新的內容，通知則引導你到「記錄」。",
       },
     ],
   },
   "0-8-0": {
-    title: "Recordings, meeting capture and configuration search",
+    title: "錄音、會議擷取與設定搜尋",
     changes: [
       {
-        title: "Keep audio independently of transcripts",
+        title: "音訊與逐字稿分開保存",
         description:
-          "Browse and export recordings, import media, edit speaker transcripts and capture meeting audio. Saved audio remains available for transcription and recovery, with separate cleanup controls for recordings and text.",
+          "瀏覽並匯出錄音、匯入媒體檔、編輯標出講者的逐字稿，並擷取會議音訊。已儲存的音訊可用於轉錄與復原，錄音與文字各有獨立的清理控制。",
       },
       {
-        title: "Find settings and choose your recording window",
+        title: "搜尋設定並選擇錄音視窗",
         description:
-          "Search Configuration by setting name or description. Choose Mini, Cube or Sonic recording windows, enable an optional timer, and select separate light and dark app icons.",
+          "可依設定名稱或說明搜尋 Configuration（現在的「設定」）。錄音視窗可選 Mini、「立方」或「聲波」，可開啟選用的計時器，淺色與深色模式也能選不同的 App 圖示。",
       },
       {
-        title: "Protect privacy and interrupted work",
+        title: "保護隱私與中斷的工作",
         description:
-          "Provider redirect checks, browser context boundaries and interrupted cleanup recovery are stricter. Shared busy-state checks protect active operations, while History scrolling and recovery notices receive reliability fixes.",
+          "供應商重新導向檢查、瀏覽器情境範圍與中斷清理的復原都更嚴格。共用的忙碌狀態檢查保護進行中的操作，「記錄」捲動與復原通知也修正了可靠性問題。",
       },
     ],
   },
   "0-7-0": {
-    title: "Hold to start with Trigger Delay",
+    title: "用觸發延遲按住才開始",
     changes: [
       {
-        title: "Prevent accidental dictation",
+        title: "避免誤觸聽寫",
         description:
-          "Set Trigger Delay from 0 to 1000 ms in Configuration. Short presses keep the shortcut key’s normal action; holding past the delay starts dictation. The default is off, and stopping stays immediate.",
+          "在 Configuration（現在的「設定」）中把「觸發延遲」設為 0 到 1000 毫秒。短按時快速鍵保持原本的功能，按住超過延遲才開始聽寫。預設為關閉，停止則一律立即生效。",
       },
       {
-        title: "Keep recordings within ten minutes",
+        title: "錄音以十分鐘為上限",
         description:
-          "The recording limit now ranges from 10 seconds to 10 minutes. Longer saved limits are reduced to ten minutes, while shorter choices and the five-minute default are preserved. Imported audio keeps its separate limits.",
+          "錄音長度上限現在介於 10 秒到 10 分鐘。已儲存的較長上限會降為十分鐘，較短的選擇與五分鐘的預設值則保持不變。匯入的音訊沿用各自的限制。",
       },
     ],
   },
   "0-6-2": {
-    title: "Speech languages follow each model",
+    title: "語音語言跟著模型走",
     changes: [
       {
-        title: "Choose a supported language",
+        title: "選擇支援的語言",
         description:
-          "Language choices now follow the active speech model, including profile overrides. Unsupported combinations stop before recording with an explanation. Parakeet does not support Chinese.",
+          "語言選項現在依目前的語音模型而定，包括模式覆寫的模型。不支援的組合會在錄音前停止並說明原因。Parakeet 不支援中文。",
       },
       {
-        title: "Set the language for Cohere",
+        title: "為 Cohere 設定語言",
         description:
-          "The local Cohere Transcribe model now requires a language choice. Auto Detect is unavailable in this runtime because it can turn Chinese speech into incorrect English output.",
+          "本機 Cohere Transcribe 模型現在必須選擇語言。這個執行環境無法使用「自動偵測」，因為它可能把中文語音變成錯誤的英文輸出。",
       },
       {
-        title: "Apply language choices consistently",
+        title: "語言選擇一致套用",
         description:
-          "SenseVoice receives the chosen language, Qwen uses the expected language names, and Apple Speech shows available system locales. Switching models preserves your shared preference.",
+          "SenseVoice 會收到所選的語言，Qwen 使用預期的語言名稱，Apple Speech 則顯示系統可用的地區語言。切換模型會保留你的共用偏好。",
       },
     ],
   },
   "0-6-1": {
-    title: "App context is now opt-in",
+    title: "App 情境改為自行開啟",
     changes: [
       {
-        title: "Choose when to share app context",
+        title: "自行決定何時分享 App 情境",
         description:
-          "Read app context now defaults to off when no preference is saved. Existing choices are preserved, and cursor insertion continues to work independently.",
+          "沒有已儲存的偏好時，「讀取 App 情境」現在預設為關閉。既有的選擇會保留，游標插入也照常獨立運作。",
       },
       {
-        title: "A neutral app icon",
+        title: "中性色調的 App 圖示",
         description:
-          "The app icon now uses the same neutral grays, raised waveform and graphite caret as the app window.",
+          "App 圖示現在採用與 App 視窗相同的中性灰、凸起的波形與石墨色插入點。",
       },
     ],
   },
   "0-6-0": {
-    title: "A speech model for every profile",
+    title: "每個模式都能有自己的語音模型",
     changes: [
       {
-        title: "Choose speech per profile",
+        title: "依模式選擇語音模型",
         description:
-          "Bind a speech model to a writing profile, or keep using the app default. Switching profiles applies that choice to the next recording.",
+          "為寫作模式綁定一個語音模型，或繼續使用 App 預設值。切換模式後，下一次錄音就會套用該選擇。",
       },
       {
-        title: "Read a dictation from Home",
+        title: "在「首頁」閱讀聽寫內容",
         description:
-          "Click a waveform bar to open its transcript. Expand long text, copy it, or switch to another dictation without leaving Home.",
+          "點一下波形長條即可打開對應的逐字稿。可以展開長文字、拷貝，或切換到另一次聽寫，不必離開「首頁」。",
       },
       {
-        title: "Find models more easily",
+        title: "更容易找到模型",
         description:
-          "Browse speech models by provider, with brand icons and hosting labels. Browsing a filter leaves your active model unchanged.",
+          "依供應商瀏覽語音模型，附品牌圖示與代管服務標籤。瀏覽篩選結果不會改變目前使用的模型。",
       },
       {
-        title: "Clearer progress and controls",
+        title: "更清楚的進度與控制項",
         description:
-          "Download bars and percentages move together. Shorter page headers leave more room for content, and the menu groups model controls and recovery actions.",
+          "下載進度條與百分比同步移動。較短的頁首讓內容有更多空間，選單也把模型控制與復原動作分組。",
       },
     ],
   },
   "0-5-1": {
-    title: "Models ready when you are",
+    title: "要用時模型已就緒",
     changes: [
       {
-        title: "Start after an idle break",
+        title: "閒置一段時間後直接開始",
         description:
-          "Beginning a dictation reloads an installed speech model automatically. Idle unloading defaults to 30 minutes, with 5, 10, 30 minutes and Never available.",
+          "開始聽寫時會自動重新載入已安裝的語音模型。閒置卸載預設為 30 分鐘，也可選 5、10、30 分鐘或「永不」。",
       },
       {
-        title: "Watch real download progress",
+        title: "看見真實的下載進度",
         description:
-          "Model downloads report incoming bytes throughout each file. Preparing and unpacking show activity instead of an invented percentage.",
+          "模型下載會在每個檔案的過程中回報收到的位元組。準備與解壓縮時顯示進行中的動畫，而不是編造的百分比。",
       },
       {
-        title: "Messages leave on their own",
+        title: "訊息會自己消失",
         description:
-          "Errors, recovery notices and confirmations stay for five seconds, then fade. Recovery details remain available on Home and in History where applicable.",
+          "錯誤、復原通知與確認訊息停留五秒後淡出。適用時，復原資訊仍保留在「首頁」與「記錄」中。",
       },
       {
-        title: "A more precise sidebar",
+        title: "更精準的側邊欄",
         description:
-          "A raised icon follows the sliding selection well. The microphone button, page toggle and card shadows keep consistent placement and depth.",
+          "凸起的圖示跟著滑動的選取凹槽移動。麥克風按鈕、頁面切換鈕與卡片陰影的位置和深度都保持一致。",
       },
     ],
   },
   "0-5-0": {
-    title: "The app takes a new shape",
+    title: "App 換上新樣貌",
     changes: [
       {
-        title: "One material across the window",
+        title: "整個視窗使用同一種材質",
         description:
-          "Rounded page islands, raised cards and controls, recessed selections and a neutral Home waveform share the same light and shadow in both appearances.",
+          "圓角頁面區塊、凸起的卡片與控制項、下沉的選取狀態，以及中性色調的「首頁」波形，在淺色與深色模式下共用相同的光影。",
       },
       {
-        title: "Navigation moves with you",
+        title: "導覽隨你移動",
         description:
-          "The selected sidebar well slides between pages. The carved brand mark and opaque window chrome complete the new interface.",
+          "側邊欄的選取凹槽會在頁面之間滑動。刻出的品牌標誌與不透明的視窗外框，完成了全新的介面。",
       },
       {
-        title: "Keep English in English",
+        title: "英文就保持英文",
         description:
-          "Chinese script hints are sent only when Chinese is selected, avoiding unwanted translation during automatic speech-language detection.",
+          "只有選擇中文時才會送出中文字體提示，避免自動偵測語音語言時出現不想要的翻譯。",
       },
       {
-        title: "Quieter clipboard confirmations",
+        title: "更安靜的剪貼簿確認",
         description:
-          "Clipboard confirmations dismiss automatically. The following 0.5.1 release extends timed dismissal to all HUD messages.",
+          "剪貼簿確認訊息會自動消失。接下來的 0.5.1 版把定時消失擴及所有 HUD 訊息。",
       },
     ],
   },
   "0-4-6": {
-    title: "Keep the words you just said",
+    title: "保留你剛說的話",
     changes: [
       {
-        title: "Keep past dictations out of new ones",
+        title: "過去的聽寫不會混進新的聽寫",
         description:
-          "Refinement separates context from the current transcript and checks fidelity to reduce reused sentences and unintended translation.",
+          "潤稿把情境與目前的逐字稿分開，並檢查是否忠於原文，減少重複使用舊句子與意外翻譯。",
       },
       {
-        title: "A compact menu and clearer selection",
+        title: "精簡的選單與更清楚的選取",
         description:
-          "Long dynamic menu titles fit within the menu width, while the active sidebar destination sits in a deeper recessed well.",
+          "較長的動態選單標題會縮短以符合選單寬度，側邊欄目前所在的頁面則位於更深的下沉凹槽中。",
       },
     ],
   },
   "0-4-5": {
-    title: "Support editors without an exposed caret",
+    title: "支援不提供插入點的編輯器",
     changes: [
       {
-        title: "Paste through the focused app",
+        title: "透過目前的 App 貼上",
         description:
-          "Editors that do not expose an accessible text caret can use the app-window paste path, while changed destinations still trigger recovery.",
+          "不提供輔助使用文字插入點的編輯器，可以改走 App 視窗的貼上路徑；目標位置改變時仍會觸發復原。",
       },
     ],
   },
   "0-4-4": {
-    title: "Read the whole error",
+    title: "看得到完整的錯誤訊息",
     changes: [
       {
-        title: "Make room for diagnostics",
+        title: "為診斷資訊騰出空間",
         description:
-          "The recording capsule expands to show complete error and recovery messages. Oversized messages scroll within the screen.",
+          "錄音膠囊會展開，顯示完整的錯誤與復原訊息。過長的訊息會在螢幕範圍內捲動。",
       },
       {
-        title: "Copy the full message",
+        title: "拷貝完整訊息",
         description:
-          "A trailing Copy Message action copies the diagnostic without taking focus from the app you were using.",
+          "尾端的「拷貝訊息」動作可以拷貝診斷資訊，不會搶走你正在使用的 App 的焦點。",
       },
     ],
   },
   "0-4-3": {
-    title: "Follow you between apps",
+    title: "跟著你在 App 之間切換",
     changes: [
       {
-        title: "Wait for the destination to settle",
+        title: "等目標位置穩定下來",
         description:
-          "Airdraft waits for the selected app, text field and caret when an app switch is in progress. Transient focus reads can settle before delivery.",
+          "切換 App 的過程中，Airdraft 會等待選定的 App、文字欄位與插入點。短暫的焦點讀取可以在貼上前先穩定下來。",
       },
     ],
   },
   "0-4-2": {
-    title: "A single, safer paste path",
+    title: "單一且更安全的貼上方式",
     changes: [
       {
-        title: "Avoid conflicting insertion attempts",
+        title: "避免互相衝突的插入嘗試",
         description:
-          "Text delivery uses one normal paste path instead of a speculative Accessibility write followed by paste.",
+          "文字送達只使用一般的貼上方式，不再先嘗試以輔助使用寫入，再接著貼上。",
       },
       {
-        title: "Preserve text during cancellation",
+        title: "取消時保留文字",
         description:
-          "If cancellation happens after delivery begins, the dictated text remains on the clipboard long enough for the destination to read it.",
+          "若在開始送達後才取消，聽寫的文字會在剪貼簿上停留足夠久，讓目標位置讀取。",
       },
     ],
   },
   "0-4-1": {
-    title: "More reliable everyday dictation",
+    title: "日常聽寫更可靠",
     changes: [
       {
-        title: "Leave unselected iPhones disconnected",
+        title: "未選取的 iPhone 保持不連線",
         description:
-          "Opening the microphone picker previews a Continuity microphone only when it is selected, including through System Default.",
+          "打開麥克風選擇器時，只有在選取接續互通麥克風（包括經由系統預設選到）時，才會預覽它的音量。",
       },
       {
-        title: "Follow History with accessibility",
+        title: "輔助使用技術能跟上「記錄」",
         description:
-          "Visible timestamps follow timeline navigation, and offscreen entries leave the accessibility representation when you return to the top.",
+          "可見的時間戳記會跟隨時間軸導覽，回到頂端時，畫面外的項目會從輔助使用表示中移除。",
       },
       {
-        title: "Recover focus and provider failures",
+        title: "從焦點與供應商錯誤中恢復",
         description:
-          "Insertion waits for editor focus and selection. Claude failures preserve the original transcript with an actionable diagnostic; the License sheet uses fewer controls.",
+          "插入前會等待編輯器的焦點與選取範圍。Claude 失敗時保留原始逐字稿並提供可採取動作的診斷；授權面板的控制項也變少了。",
       },
     ],
   },
   "0-4-0": {
-    title: "A guided first dictation",
+    title: "引導你完成第一次聽寫",
     changes: [
       {
-        title: "Set up by doing",
+        title: "邊做邊設定",
         description:
-          "Optional onboarding walks through permissions and speech setup, then lets you try a real dictation.",
+          "選用的新手設定會帶你完成權限與語音設定，再讓你試一次真正的聽寫。",
       },
       {
-        title: "Trial and activate the official build",
+        title: "試用並啟用官方版",
         description:
-          "Official builds add a user-started, full-feature 14-day trial and license activation. Self-built editions remain fully unlocked.",
+          "官方版加入由使用者自行開始的 14 天全功能試用與授權啟用。自行編譯的版本仍完全解鎖。",
       },
       {
-        title: "Keep long text inside History",
+        title: "長文字留在「記錄」卡片內",
         description:
-          "Long transcripts and text selections stay within their cards. The recording capsule fits its label and fades after successful delivery.",
+          "長逐字稿與選取的文字都留在卡片範圍內。錄音膠囊會配合標籤大小，送達成功後淡出。",
       },
       {
-        title: "An explicit open-source license",
-        description:
-          "The repository adopts GPL-3.0-only, with the license linked from the website.",
+        title: "明確的開放原始碼授權",
+        description: "儲存庫採用 GPL-3.0-only，網站也附上授權連結。",
       },
     ],
   },
   "0-3-0": {
-    title: "Local intelligence, replay and automation",
+    title: "本機智慧、重播與自動化",
     changes: [
       {
-        title: "Refine with Apple Intelligence",
+        title: "用 Apple Intelligence 潤稿",
         description:
-          "On supported Macs running macOS 26 or later, an on-device Foundation Models session cleans up each dictation. Unavailable or failed refinement preserves the raw transcript.",
+          "在支援的 macOS 26 以上 Mac 上，由裝置端的 Foundation Models 工作階段整理每次聽寫。潤稿無法使用或失敗時，保留原始逐字稿。",
       },
       {
-        title: "More ways to hear and review speech",
+        title: "更多聆聽與檢閱語音的方式",
         description:
-          "Parakeet TDT v3 joins local speech recognition. Optional live transcription previews show provisional words while recording.",
+          "Parakeet TDT v3 加入本機語音辨識。選用的即時轉錄預覽會在錄音時顯示暫定文字。",
       },
       {
-        title: "Save and replay audio",
+        title: "儲存並重播音訊",
         description:
-          "Opt in to retaining dictation audio, replay it from History, and retry transcription from the saved recording.",
+          "可自行開啟保留聽寫音訊，從「記錄」重播，並以儲存的錄音重試轉錄。",
       },
       {
-        title: "Connect dictation to your workflow",
+        title: "把聽寫接進你的工作流程",
         description:
-          "Start and stop through Shortcuts, and send delivered text to a configured script.",
+          "透過「捷徑」開始與停止聽寫，並把送達的文字傳給設定好的腳本。",
       },
       {
-        title: "Better text fidelity and History",
+        title: "更忠於原文的文字與更好的「記錄」",
         description:
-          "Refinement corrects terms while preserving literal text. History bounds work during scrolling, adds calendar dates to its timeline, and gains progressive header blur.",
+          "潤稿會修正詞語並保留字面文字。「記錄」限制捲動時的工作量，時間軸加上日期，頁首也加入漸層模糊。",
       },
     ],
   },
   "0-2-0": {
-    title: "New speech controls and a refreshed interface",
+    title: "新的語音控制與煥然一新的介面",
     changes: [
       {
-        title: "Check your connection",
+        title: "檢查你的連線",
         description:
-          "Test API access for Soniox, Groq, ElevenLabs, OpenAI and Deepgram before you dictate. OpenRouter adds model and provider controls.",
+          "聽寫前可測試 Soniox、Groq、ElevenLabs、OpenAI 與 Deepgram 的 API 存取。OpenRouter 加入模型與供應商控制。",
       },
       {
-        title: "Compare supported speech models",
+        title: "比較支援的語音模型",
         description:
-          "Browse provider models with pricing and available quality and speed information linked to official documentation. Unpublished metrics stay marked.",
+          "瀏覽供應商的模型與價格，以及連結到官方文件的品質與速度資訊。未公布的指標會清楚標示。",
       },
       {
-        title: "A refreshed native interface",
+        title: "煥然一新的原生介面",
         description:
-          "A collapsible sidebar, live microphone meters and a scrolling History timeline join consistent settings and model lists.",
+          "可收合的側邊欄、即時麥克風音量表與可捲動的「記錄」時間軸，搭配一致的設定與模型列表。",
       },
       {
-        title: "Recover interrupted work",
+        title: "恢復中斷的工作",
         description:
-          "Recording prerequisites are checked before capture. Failed speech audio stays available to retry or discard, and refinement errors preserve the raw transcript.",
+          "擷取前會先檢查錄音的必要條件。語音辨識失敗的音訊會保留，可重試或捨棄；潤稿錯誤時保留原始逐字稿。",
       },
       {
-        title: "A version for the feature release",
+        title: "為功能更新換上新版本號",
         description:
-          "This release carries the same feature set as 0.1.9 build 44 under a new minor version. Its installer uses Apple Development signing and is not notarized.",
+          "這個版本的功能與 0.1.9 build 44 相同，改用新的次要版本號。安裝檔以 Apple Development 簽署，未經公證。",
       },
     ],
   },
   "0-1-9": {
-    title: "Desktop controls take shape",
+    title: "桌面控制項成形",
     changes: [
       {
-        title: "Choose and preview a microphone",
+        title: "選擇並預覽麥克風",
         description:
-          "The microphone overlay adds a live input-level preview. Sidebar and profile controls become more compact across this series of builds.",
+          "麥克風面板加入即時輸入音量預覽。在這一系列版本中，側邊欄與模式控制項變得更精簡。",
       },
       {
-        title: "Edit the shared refinement rules",
+        title: "編輯共用的潤稿規則",
         description:
-          "Base prompt editing joins profile customization, so shared instructions can be saved or restored.",
+          "除了自訂模式，也能編輯基礎提示詞，共用指示可以儲存或還原。",
       },
       {
-        title: "A website and branded installer",
+        title: "網站與品牌安裝檔",
         description:
-          "The Astro website and a custom drag-to-Applications disk image join the project. Later builds in this series lead into the 0.2.0 feature release.",
+          "專案加入 Astro 網站與自訂的拖曳到「應用程式」磁碟映像檔。這一系列的後續版本銜接到 0.2.0 功能更新。",
       },
     ],
   },
   "0-1-8": {
-    title: "Make writing profiles your own",
+    title: "打造屬於你的寫作模式",
     changes: [
       {
-        title: "Edit, duplicate and reset",
+        title: "編輯、複製與重設",
         description:
-          "Profiles gain an open editor, inline renaming and duplication, including Verbatim behavior. Shared rules offer Save, Cancel and Restore Defaults.",
+          "模式加入隨時可用的編輯器、直接重新命名與複製，包括 Verbatim 的行為。共用規則提供「儲存」、「取消」與「還原預設值」。",
       },
     ],
   },
   "0-1-7": {
-    title: "Fewer interruptions during setup",
+    title: "設定時更少打擾",
     changes: [
       {
-        title: "Ask for key access deliberately",
+        title: "只在需要時才要求金鑰存取",
         description:
-          "Page navigation and background checks stop requesting Keychain approval. Protected keys get an explicit access action, and denied reads preserve saved credentials.",
+          "切換頁面與背景檢查不再要求鑰匙圈授權。受保護的金鑰改用明確的存取動作，讀取被拒時也會保留已儲存的憑證。",
       },
       {
-        title: "Capture the selected input channel",
+        title: "擷取所選的輸入聲道",
         description:
-          "Microphone capture uses the chosen channel. Releasing the shortcut while permission is pending prevents a delayed recording from starting.",
+          "麥克風擷取使用你選的聲道。等待權限時放開快速鍵，可避免延遲的錄音在之後開始。",
       },
     ],
   },
   "0-1-6": {
-    title: "More refinement providers",
+    title: "更多潤稿供應商",
     changes: [
       {
-        title: "Use Cerebras or Groq",
+        title: "使用 Cerebras 或 Groq",
         description:
-          "Choose Cerebras or Groq for text refinement independently of your speech-recognition provider.",
+          "文字潤稿可選 Cerebras 或 Groq，與語音辨識供應商各自獨立。",
       },
     ],
   },
   "0-1-5": {
-    title: "A stable identity for updates",
+    title: "更新時身分保持穩定",
     changes: [
       {
-        title: "Keep signing consistent",
+        title: "簽署保持一致",
         description:
-          "Certificate-signed releases replace the earlier ad-hoc identity. The update process checks signing continuity; upgrading from older builds may require granting permissions again.",
+          "以憑證簽署的版本取代先前的臨時（ad-hoc）身分。更新流程會檢查簽署是否延續；從較舊的版本升級時，可能需要重新授予權限。",
       },
     ],
   },
   "0-1-4": {
-    title: "Recover microphone interruptions",
+    title: "從麥克風中斷中恢復",
     changes: [
       {
-        title: "Resume a disrupted input",
-        description:
-          "Microphone capture recovers from input interruptions, alongside more consistent spacing across settings.",
+        title: "恢復受干擾的輸入",
+        description: "麥克風擷取能從輸入中斷中恢復，各項設定的間距也更一致。",
       },
     ],
   },
   "0-1-3": {
-    title: "Separate development and installed apps",
+    title: "區分開發版與安裝版 App",
     changes: [
       {
-        title: "Recognize the right app",
+        title: "認得正確的 App",
         description:
-          "Development and installed builds use separate identities, with refreshed permission state so access checks apply to the intended app.",
+          "開發版與安裝版使用不同的身分，權限狀態也會重新整理，讓存取檢查套用到正確的 App。",
       },
     ],
   },
   "0-1-2": {
-    title: "Respect the system microphone",
+    title: "尊重系統麥克風",
     changes: [
       {
-        title: "Preserve the selected route",
-        description:
-          "Capture keeps the system microphone route instead of unexpectedly replacing the input you chose.",
+        title: "保留所選的音訊路徑",
+        description: "擷取時沿用系統的麥克風路徑，不會意外換掉你選的輸入裝置。",
       },
     ],
   },
   "0-1-1": {
-    title: "The first packaged builds",
+    title: "第一批打包版本",
     changes: [
       {
-        title: "Remember your microphone choice",
+        title: "記住你選的麥克風",
         description:
-          "Microphone defaults become part of setup, and locally built releases arrive as a DMG with a signed Sparkle update feed.",
+          "麥克風預設值成為設定的一部分，本機編譯的版本以 DMG 發布，並附有簽署的 Sparkle 更新來源。",
       },
     ],
   },
   "initial-source": {
-    title: "Airdraft is on GitHub",
+    title: "Airdraft 登上 GitHub",
     changes: [
       {
-        title: "Speak into the app you use",
+        title: "在你使用的 App 裡說話",
         description:
-          "Hold a shortcut, speak and release to insert text at the cursor. Airdraft stays in the menu bar between recordings.",
+          "按住快速鍵、說話、放開，文字就會插入游標處。錄音之間，Airdraft 待在選單列。",
       },
       {
-        title: "Choose each step independently",
+        title: "每個步驟各自選擇",
         description:
-          "Use local or cloud speech recognition and choose refinement separately. Editable writing profiles, vocabulary corrections and local History are part of the source build.",
+          "語音辨識可用本機或雲端，潤稿另外選擇。可編輯的寫作模式、詞彙修正與本機記錄都包含在原始碼版本中。",
       },
     ],
   },

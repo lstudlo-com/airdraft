@@ -1,711 +1,710 @@
 import type { ChangelogText } from "../../data/changelog";
 
-// TRANSLATE: placeholder English copy; translate every title and description.
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
   "0-14-0": {
-    title: "Spanish, Japanese and better defaults in every language",
+    title: "Español, japonés y mejores valores predeterminados en cada idioma",
     changes: [
       {
-        title: "Use Airdraft in Spanish or Japanese",
+        title: "Usa Airdraft en español o japonés",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Spanish and Japanese, following your Mac's language. Shortcut instructions are written as whole sentences in each language, and controls widen to fit longer labels.",
+          "La interfaz, los menús nativos y las frases de Atajos de Apple están disponibles en español y japonés, según el idioma de tu Mac. Las instrucciones de los atajos son frases completas en cada idioma, y los controles se ensanchan para que quepan etiquetas más largas.",
       },
       {
-        title: "Defaults that fit your language",
+        title: "Valores predeterminados adaptados a tu idioma",
         description:
-          "A new setup on a Mac without Chinese no longer starts with Traditional Chinese script or a Taiwanese Apple Speech locale; the Chinese script setting applies only to Mandarin and Cantonese and appears only there. Live preview lists every language your Mac supports.",
+          "Una configuración nueva en un Mac sin chino ya no empieza con la escritura china tradicional ni con una configuración regional de Taiwán para Apple Speech; el ajuste de escritura china solo se aplica al mandarín y al cantonés, y solo aparece con ellos. La vista previa en directo muestra todos los idiomas que admite tu Mac.",
       },
       {
-        title: "Recommended local models for seven more languages",
+        title: "Modelos locales recomendados para siete idiomas más",
         description:
-          "First-run setup and Models recommend from Airdraft's own measurement in Spanish, French, Portuguese, Russian, Arabic, Hindi and Indonesian: Qwen3-ASR 1.7B, with lighter choices on Macs with 8 GB of memory or less (Parakeet TDT v3, GigaAM v3 or Whisper Large v3 Turbo, by language).",
+          "La configuración inicial y Modelos recomiendan según la medición propia de Airdraft en español, francés, portugués, ruso, árabe, hindi e indonesio: Qwen3-ASR 1.7B, con opciones más ligeras en Macs con 8 GB de memoria o menos (Parakeet TDT v3, GigaAM v3 o Whisper Large v3 Turbo, según el idioma).",
       },
       {
-        title: "Refinement keeps your language",
+        title: "El refinamiento respeta tu idioma",
         description:
-          "Refinement is discarded for the raw transcript when it changes the language you spoke, in any script. Thai, Lao, Khmer and Burmese dictations are no longer skipped as too short, and setup no longer offers Apple Intelligence for a language it cannot write.",
+          "Si el refinamiento cambia el idioma en el que hablaste, en cualquier escritura, se descarta y se usa la transcripción sin procesar. Los dictados en tailandés, lao, jemer y birmano ya no se omiten por demasiado cortos, y la configuración ya no ofrece Apple Intelligence para un idioma que no puede escribir.",
       },
     ],
   },
   "0-13-0": {
-    title: "Optional anonymous usage data and crash reports",
+    title: "Datos de uso anónimos e informes de fallos opcionales",
     changes: [
       {
-        title: "Choose whether to share anonymous usage data",
+        title: "Elige si compartes datos de uso anónimos",
         description:
-          "Downloads from airdraft.app ask once whether to share anonymous usage counts and crash reports, listing what is shared and what never is. Nothing is sent before you choose, Settings > Behavior turns it off at any time, and builds from source never send anything. Your words, transcripts, audio, vocabulary, app names, window titles, URLs, file paths and keys are never sent.",
+          "Las descargas de airdraft.app preguntan una vez si quieres compartir recuentos de uso anónimos e informes de fallos, con la lista de lo que se comparte y lo que nunca se comparte. No se envía nada antes de que elijas, puedes desactivarlo cuando quieras en Ajustes > Comportamiento, y las versiones compiladas desde el código nunca envían nada. Nunca se envían tus palabras, transcripciones, audio, vocabulario, nombres de apps, títulos de ventana, URL, rutas de archivo ni claves.",
       },
       {
-        title: "Live text from Apple Speech as the selected model",
+        title: "Texto en directo de Apple Speech como modelo seleccionado",
         description:
-          "When Apple Speech is your speech model and Live preview uses the selected model, live text now appears in the recording window and during meetings.",
+          "Cuando Apple Speech es tu modelo de voz y la vista previa en directo usa el modelo seleccionado, el texto en directo aparece ahora en la ventana de grabación y durante las reuniones.",
       },
     ],
   },
   "0-12-1": {
-    title: "Steadier insertion on busy Macs",
+    title: "Inserción más estable en Macs ocupados",
     changes: [
       {
-        title: "Confirm the destination more reliably",
+        title: "Confirma el destino de forma más fiable",
         description:
-          "Before recording, Airdraft checks that the text field and cursor have stopped changing. It now also reads them twice in a row, so a slow or busy Mac cannot accept a field that is still moving and later report that the destination changed.",
+          "Antes de grabar, Airdraft comprueba que el campo de texto y el cursor han dejado de cambiar. Ahora también los lee dos veces seguidas, para que un Mac lento u ocupado no acepte un campo que aún se mueve y luego informe de que el destino cambió.",
       },
     ],
   },
   "0-12-0": {
-    title: "Profiles by app, live text and Simplified Chinese",
+    title: "Perfiles según la app, texto en directo y chino simplificado",
     changes: [
       {
-        title: "Choose a profile for each app",
+        title: "Elige un perfil para cada app",
         description:
-          "Profiles > Profile by app maps an app, or a family such as code editors, terminals, email, chat or documents, to one of your profiles. It is off by default, and Home names a rule whose profile still needs setup.",
+          "Perfiles > Perfil según la app asigna una app, o una familia como editores de código, terminales, correo, chat o documentos, a uno de tus perfiles. Está desactivado por defecto, e Inicio indica qué regla tiene un perfil que aún necesita configuración.",
       },
       {
-        title: "See live text from your local model",
+        title: "Mira el texto en directo de tu modelo local",
         description:
-          "Live preview can use the selected speech model (Parakeet, SenseVoice or Orukeet) as well as Apple Speech, in the recording window and while recording a meeting. The final transcript is unchanged.",
+          "La vista previa en directo puede usar el modelo de voz seleccionado (Parakeet, SenseVoice u Orukeet) además de Apple Speech, en la ventana de grabación y al grabar una reunión. La transcripción final no cambia.",
       },
       {
-        title: "Use Airdraft in Simplified Chinese",
+        title: "Usa Airdraft en chino simplificado",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Simplified Chinese. A new setup on a Mac set to Simplified Chinese starts with Simplified script.",
+          "La interfaz, los menús nativos y las frases de Atajos de Apple están disponibles en chino simplificado. Una configuración nueva en un Mac en chino simplificado empieza con la escritura simplificada.",
       },
       {
-        title: "A better first model for English, Japanese and Korean",
+        title: "Un mejor primer modelo para inglés, japonés y coreano",
         description:
-          "First-run setup recommends Parakeet TDT v2 for English and Qwen3-ASR 1.7B for Japanese and Korean, based on Airdraft's own measurement. SenseVoice now installs the original multilingual model; the Cantonese fine-tune that 0.11.0 and earlier installed keeps working as SenseVoice Cantonese.",
+          "La configuración inicial recomienda Parakeet TDT v2 para inglés y Qwen3-ASR 1.7B para japonés y coreano, según la medición propia de Airdraft. SenseVoice instala ahora el modelo multilingüe original; el ajuste fino para cantonés que instalaban la 0.11.0 y anteriores sigue funcionando como SenseVoice Cantonese.",
       },
       {
-        title: "Your vocabulary helps on-device recognition",
+        title: "Tu vocabulario ayuda al reconocimiento en el dispositivo",
         description:
-          "Qwen3-ASR, Parakeet and Orukeet use the spellings in Vocabulary while they recognize speech. Settings > Behavior turns this off.",
+          "Qwen3-ASR, Parakeet y Orukeet usan las grafías del Vocabulario mientras reconocen la voz. Puedes desactivarlo en Ajustes > Comportamiento.",
       },
       {
-        title: "Cleaner local transcripts",
+        title: "Transcripciones locales más limpias",
         description:
-          "Repeated loops are cut, a wrongly detected language is retried, and SenseVoice and FireRedASR2 write English in normal case with punctuation. Japanese kanji are no longer converted to Chinese script, and refinement that turns Japanese or Korean into Chinese falls back to your transcript.",
+          "Se cortan las repeticiones en bucle, se reintenta cuando se detecta mal el idioma, y SenseVoice y FireRedASR2 escriben el inglés con mayúsculas normales y puntuación. Los kanji japoneses ya no se convierten a escritura china, y si el refinamiento convierte japonés o coreano en chino, se vuelve a tu transcripción.",
       },
       {
-        title: "Meetings remember speaker names",
+        title: "Reuniones que recuerdan los nombres de los hablantes",
         description:
-          "Speaker names you type are suggested in later meetings, and Summarize offers Brief Summary, Action Items, Decisions & Follow-ups and Meeting Minutes.",
+          "Los nombres de hablante que escribes se sugieren en reuniones posteriores, y «Resumir» ofrece «Resumen breve», «Tareas pendientes», «Decisiones y seguimientos» y «Acta de reunión».",
       },
       {
-        title: "A simpler Models page",
+        title: "Una página Modelos más sencilla",
         description:
-          "Models opens with the recommendation for your language and a few alternatives, with Show All Models for the full list and full language names on every row.",
+          "Modelos se abre con la recomendación para tu idioma y algunas alternativas, con «Mostrar todos los modelos» para la lista completa y los nombres completos de los idiomas en cada fila.",
       },
       {
-        title: "Paste into Ghostty 1.3 without an error",
+        title: "Pega en Ghostty 1.3 sin errores",
         description:
-          "Ghostty 1.3 shows a text cursor to Airdraft, which made every paste report that it couldn't be confirmed. It now gets one paste and no notice, like other terminals that draw their own text.",
+          "Ghostty 1.3 muestra a Airdraft un cursor de texto, lo que hacía que cada pegado informara de que no se pudo confirmar. Ahora recibe un solo pegado y ningún aviso, como otras terminales que dibujan su propio texto.",
       },
       {
-        title: "Lighter on memory",
+        title: "Menos uso de memoria",
         description:
-          "When macOS reports memory pressure, idle local speech models and the LM Studio models Airdraft loaded are unloaded. A dictation in progress keeps its model.",
+          "Cuando macOS informa de presión de memoria, se descargan de memoria los modelos de voz locales inactivos y los modelos de LM Studio que cargó Airdraft. Un dictado en curso conserva su modelo.",
       },
     ],
   },
   "0-11-0": {
-    title: "Traditional Chinese interface and dependable delivery",
+    title: "Interfaz en chino tradicional y entrega fiable",
     changes: [
       {
-        title: "Use Airdraft in Traditional Chinese",
+        title: "Usa Airdraft en chino tradicional",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Traditional Chinese (Taiwan) and follow the macOS language setting. Built-in profile names appear in the interface language until you rename them.",
+          "La interfaz, los menús nativos y las frases de Atajos de Apple están disponibles en chino tradicional (Taiwán) y siguen el idioma de macOS. Los nombres de los perfiles integrados aparecen en el idioma de la interfaz hasta que los renombras.",
       },
       {
-        title: "Dictate again right after a paste",
+        title: "Dicta de nuevo justo después de pegar",
         description:
-          "A shortcut pressed while the clipboard was being restored or History was saving could be ignored. Airdraft is now ready as soon as delivery is confirmed, and a newer paste never brings back an older clipboard.",
+          "Un atajo pulsado mientras se restauraba el portapapeles o se guardaba el Historial podía ignorarse. Ahora Airdraft está listo en cuanto se confirma la entrega, y un pegado más reciente nunca recupera un portapapeles anterior.",
       },
       {
-        title: "Paste into terminals that draw their own text",
+        title: "Pega en terminales que dibujan su propio texto",
         description:
-          "Warp, Zed, Ghostty, kitty, Alacritty and WezTerm get one paste without an error, and History marks it Pasted, unconfirmed. Your clipboard returns after two seconds. Other apps without a visible cursor still keep the text on the clipboard with a recovery notice.",
+          "Warp, Zed, Ghostty, kitty, Alacritty y WezTerm reciben un solo pegado sin errores, y el Historial lo marca como «Pegado, sin confirmar». Tu portapapeles vuelve a los dos segundos. Otras apps sin un cursor visible siguen dejando el texto en el portapapeles con un aviso de recuperación.",
       },
       {
-        title: "Keep dictating while recordings wait",
+        title: "Sigue dictando mientras esperan grabaciones",
         description:
-          "A recording kept after a speech failure no longer blocks new dictation. Up to three recordings or 15 minutes of audio wait for retry or discard; when little room remains, the next recording stops early and says why.",
+          "Una grabación guardada tras un fallo de voz ya no bloquea nuevos dictados. Pueden esperar hasta tres grabaciones o 15 minutos de audio para reintentarlas o descartarlas; cuando queda poco espacio, la siguiente grabación se detiene antes y explica por qué.",
       },
       {
-        title: "Clearer setup on Home and in onboarding",
+        title: "Configuración más clara en Inicio y en la bienvenida",
         description:
-          "Home counts an installed speech model as ready even before it loads, and names trial, license and kept-recording blockers. Try It now completes with a real dictation, and Ready offers Apple Intelligence refinement when the Mac supports it.",
+          "Inicio da por listo un modelo de voz instalado aunque aún no se haya cargado, e indica los bloqueos por prueba, licencia o grabaciones guardadas. «Pruébalo» se completa ahora con un dictado real, y «Listo» ofrece el refinamiento con Apple Intelligence cuando el Mac lo admite.",
       },
       {
-        title: "Recommended and verified local models",
+        title: "Modelos locales recomendados y verificados",
         description:
-          "A Mac set to Chinese is recommended Qwen3-ASR 1.7B, or SenseVoice first with 8 GB of memory or less. Models opens with that recommendation and verified models, with the rest under Experimental. Qwen3-ASR and Whisper downloads are pinned and checked by size and SHA-256 before installation.",
+          "A un Mac en chino se le recomienda Qwen3-ASR 1.7B, o primero SenseVoice con 8 GB de memoria o menos. Modelos se abre con esa recomendación y los modelos verificados, y el resto queda en «Experimental». Las descargas de Qwen3-ASR y Whisper están fijadas y se comprueban por tamaño y SHA-256 antes de instalarlas.",
       },
       {
-        title: "Adjust text size",
+        title: "Ajusta el tamaño del texto",
         description:
-          "Settings > Appearance > Text size offers Default, Large and Larger, and text wraps instead of clipping at larger sizes. Every control now has a VoiceOver name and state.",
+          "Ajustes > Apariencia > Tamaño del texto ofrece Normal, Grande y Máximo, y en los tamaños mayores el texto pasa a otra línea en lugar de cortarse. Cada control tiene ahora un nombre y un estado para VoiceOver.",
       },
       {
-        title: "Start and save dictations faster",
+        title: "Empieza y guarda dictados más rápido",
         description:
-          "The microphone opens as soon as setup checks pass, refinement prepares while you speak, and saving a dictation no longer scans stored audio. A long recording keeps its local speech model loaded until processing ends.",
+          "El micrófono se abre en cuanto pasan las comprobaciones de configuración, el refinamiento se prepara mientras hablas y guardar un dictado ya no recorre el audio guardado. Una grabación larga mantiene cargado su modelo de voz local hasta que termina el procesamiento.",
       },
       {
-        title: "Build Airdraft from source more easily",
+        title: "Compila Airdraft desde el código más fácilmente",
         description:
-          "Settings > Updates > Acknowledgements lists third-party notices, and source builds now launch without the project's signing team.",
+          "Ajustes > Actualizaciones > Agradecimientos muestra los avisos de terceros, y las versiones compiladas desde el código se abren ahora sin el equipo de firma del proyecto.",
       },
     ],
   },
   "0-10-2": {
-    title: "Add AssemblyAI Universal-3.6 Pro preview",
+    title: "Llega la versión preliminar de AssemblyAI Universal-3.6 Pro",
     changes: [
       {
-        title: "Choose the 3.6 Pro batch preview",
+        title: "Elige la versión preliminar por lotes de 3.6 Pro",
         description:
-          "Models and Profiles now offer Universal-3.6 Pro (Preview) through AssemblyAI's pre-recorded preview API. Universal-3.5 Pro remains available and keeps its saved selections. Preview availability and transcription quality still need verification with an AssemblyAI account.",
+          "Modelos y Perfiles ofrecen ahora Universal-3.6 Pro (Preview) mediante la API preliminar de audio pregrabado de AssemblyAI. Universal-3.5 Pro sigue disponible y conserva las selecciones guardadas. La disponibilidad de la versión preliminar y la calidad de la transcripción aún deben verificarse con una cuenta de AssemblyAI.",
       },
       {
-        title: "Keep the selected speech model on the request",
+        title: "La solicitud usa el modelo de voz seleccionado",
         description:
-          "AssemblyAI requests use the model you choose. Preview failures do not retry with 3.5 Pro, and a response that reports a different model version is rejected instead of being recorded as a successful 3.6 Pro transcription.",
+          "Las solicitudes a AssemblyAI usan el modelo que eliges. Los fallos de la versión preliminar no se reintentan con 3.5 Pro, y una respuesta que indica otra versión del modelo se rechaza en lugar de registrarse como una transcripción correcta de 3.6 Pro.",
       },
     ],
   },
   "0-10-1": {
-    title: "Recover stalled models and add Disco colors",
+    title: "Recupera modelos atascados y añade los colores Disco",
     changes: [
       {
-        title: "Switch away from a stalled speech model",
+        title: "Cambia de un modelo de voz atascado",
         description:
-          "Model loading now has a two-minute limit. Cancelling or changing models frees the next selection while unfinished native work cleans up safely. A model still cleaning up stays protected from duplicate loading and deletion.",
+          "La carga de modelos tiene ahora un límite de dos minutos. Al cancelar o cambiar de modelo, la siguiente selección queda libre mientras el trabajo nativo pendiente se limpia de forma segura. Un modelo que aún se está limpiando queda protegido de cargas duplicadas y de la eliminación.",
       },
       {
-        title: "Make recording colors respond to speech",
+        title: "Colores de grabación que responden a tu voz",
         description:
-          "The saved Disco switch adds flowing colors to Classic, Cube, Sonic, Orbit and Silk. Voice energy and syllable accents shape the palette, which settles during pauses and freezes during delivery. Reduce Motion keeps the colors still.",
+          "El interruptor guardado Disco añade colores fluidos a Clásico, Cubo, Sónico, Órbita y Seda. La energía de la voz y los acentos de las sílabas dan forma a la paleta, que se asienta en las pausas y se congela durante la entrega. Con «Reducir movimiento», los colores quedan quietos.",
       },
     ],
   },
   "0-10-0": {
-    title: "More local speech models and guided setup",
+    title: "Más modelos de voz locales y configuración guiada",
     changes: [
       {
-        title: "Animated recording-window choices",
+        title: "Estilos animados para la ventana de grabación",
         description:
-          "Mini is now Classic, with an animated Settings preview and the same capsule size as the other styles. Larger preview tiles show all five styles, including Orbit’s interlocking silver rings and Silk’s folded metallic ribbon.",
+          "Mini pasa a llamarse Clásico, con una vista previa animada en Ajustes y el mismo tamaño de cápsula que los demás estilos. Las vistas previas, más grandes, muestran los cinco estilos, incluidos los anillos plateados entrelazados de Órbita y la cinta metálica plegada de Seda.",
       },
       {
-        title: "More on-device speech models",
+        title: "Más modelos de voz en el dispositivo",
         description:
-          "The local catalogue adds Whisper Large v3, compressed Turbo, pinned GGUF and Core ML choices, Distil-Whisper and Orukeet. Models, Profiles and Meetings share the exact model selection, language limits and download checks.",
+          "El catálogo local añade Whisper Large v3, Turbo comprimido, opciones GGUF y Core ML fijadas, Distil-Whisper y Orukeet. Modelos, Perfiles y Reuniones comparten la selección exacta del modelo, los límites de idioma y las comprobaciones de descarga.",
       },
       {
-        title: "Learn dictation step by step",
+        title: "Aprende a dictar paso a paso",
         description:
-          "Six optional setup steps guide you through choosing speech, permissions, shortcut practice and your first dictation. Model downloads continue between steps, and shortcut rehearsal pauses recording.",
+          "Seis pasos de configuración opcionales te guían para elegir la voz, conceder permisos, practicar el atajo y hacer tu primer dictado. Las descargas de modelos continúan entre pasos, y la práctica del atajo pausa la grabación.",
       },
       {
-        title: "Clearer meetings and consistent controls",
+        title: "Reuniones más claras y controles coherentes",
         description:
-          "Meeting cards keep the next action beside a compact player. Transcript editing has fixed header and footer actions, while buttons, pickers and text fields share one rounded shape.",
+          "Las tarjetas de reunión mantienen la siguiente acción junto a un reproductor compacto. La edición de transcripciones tiene acciones fijas en la cabecera y el pie, y botones, selectores y campos de texto comparten una misma forma redondeada.",
       },
     ],
   },
   "0-9-1": {
-    title: "Fix meeting audio and controls",
+    title: "Corrige el audio y los controles de las reuniones",
     changes: [
       {
-        title: "Read and choose meeting apps",
+        title: "Lee y elige apps para la reunión",
         description:
-          "The app chooser now gives each app a full-height row, grows as sources load and scrolls longer lists. Refresh, empty states and errors remain visible.",
+          "El selector de apps da ahora a cada app una fila de altura completa, crece a medida que se cargan las fuentes y desplaza las listas más largas. «Actualizar», los estados vacíos y los errores siguen visibles.",
       },
       {
-        title: "Hear new recordings in both channels",
+        title: "Escucha las nuevas grabaciones en ambos canales",
         description:
-          "New and recovered meetings mix microphone and app audio into identical left and right channels. Previously saved files stay unchanged. Meeting meters now use the same linear response and ten-cell display as the microphone picker.",
+          "Las reuniones nuevas y recuperadas mezclan el micrófono y el audio de las apps en canales izquierdo y derecho idénticos. Los archivos guardados antes no cambian. Los medidores de las reuniones usan ahora la misma respuesta lineal y la misma escala de diez celdas que el selector de micrófono.",
       },
       {
-        title: "Keep primary controls consistent",
+        title: "Controles principales coherentes",
         description:
-          "Recording, transcription and transcript-save actions use blue raised capsules with the same pressed and disabled states as Airdraft’s other neumorphic buttons.",
+          "Las acciones de grabar, transcribir y guardar la transcripción usan cápsulas azules en relieve con los mismos estados de pulsado y desactivado que los demás botones neumórficos de Airdraft.",
       },
     ],
   },
   "0-9-0": {
-    title: "A dedicated home for meetings",
+    title: "Un espacio propio para las reuniones",
     changes: [
       {
-        title: "Find every meeting and transcript",
+        title: "Encuentra cada reunión y transcripción",
         description:
-          "Meetings now has its own sidebar page. Each recording has a direct transcription action, saved transcript versions, recovery controls, Finder access and audio export. History stays focused on dictation.",
+          "Reuniones tiene ahora su propia página en la barra lateral. Cada grabación tiene una acción directa para transcribirla, versiones guardadas de la transcripción, controles de recuperación, acceso desde el Finder y exportación de audio. El Historial se centra en el dictado.",
       },
       {
-        title: "Choose more local transcription models",
+        title: "Elige entre más modelos de transcripción locales",
         description:
-          "Speaker-labelled media transcription supports eight local model choices, including both Qwen3-ASR sizes, Cohere, SenseVoice, FireRed, Parakeet and Apple Speech alongside Whisper Turbo. Additional engines show segment timestamps; Whisper retains word timestamps.",
+          "La transcripción de archivos con etiquetas de hablante admite ocho modelos locales, entre ellos los dos tamaños de Qwen3-ASR, Cohere, SenseVoice, FireRed, Parakeet y Apple Speech, además de Whisper Turbo. Los motores añadidos muestran marcas de tiempo por segmento; Whisper conserva las marcas de tiempo por palabra.",
       },
       {
-        title: "Start recording with fewer steps",
+        title: "Empieza a grabar con menos pasos",
         description:
-          "A compact meeting sheet lets you select app audio and include your microphone. The app chooser opens immediately, and saved recordings stay visible after restarting. Models now appears above Settings, the new name for Configuration.",
+          "Una hoja de reunión compacta te permite elegir el audio de las apps e incluir tu micrófono. El selector de apps se abre al instante, y las grabaciones guardadas siguen visibles tras reiniciar. Modelos aparece ahora encima de Ajustes, el nuevo nombre de Configuración.",
       },
       {
-        title: "More cloud speech choices and clearer recovery",
+        title: "Más opciones de voz en la nube y una recuperación más clara",
         description:
-          "Native speech integrations add AssemblyAI, Cartesia, Speechmatics, xAI, Mistral and Gemini. Blocked data and recovery screens now allow normal quitting while active cleanup remains protected.",
+          "Las integraciones de voz nativas añaden AssemblyAI, Cartesia, Speechmatics, xAI, Mistral y Gemini. Las pantallas de datos bloqueados y de recuperación permiten ahora salir con normalidad, y la limpieza en curso sigue protegida.",
       },
     ],
   },
   "0-8-1": {
-    title: "Recover text when a paste cannot be confirmed",
+    title: "Recupera el texto cuando no se puede confirmar un pegado",
     changes: [
       {
-        title: "Keep unconfirmed text available",
+        title: "El texto sin confirmar sigue disponible",
         description:
-          "Airdraft now checks the destination text before reporting a successful paste. If an editor ignores the paste or cannot expose its text, your transcript stays on the clipboard and a recovery notice appears. Check the destination before pasting again; Airdraft never retries an uncertain paste automatically.",
+          "Airdraft comprueba ahora el texto del destino antes de dar por bueno un pegado. Si un editor ignora el pegado o no puede exponer su texto, tu transcripción se queda en el portapapeles y aparece un aviso de recuperación. Revisa el destino antes de volver a pegar; Airdraft nunca reintenta por sí solo un pegado dudoso.",
       },
       {
-        title: "Preserve recovery details in History",
+        title: "Los detalles de recuperación se guardan en el Historial",
         description:
-          "History saves the transcript and delivery diagnostic when a paste cannot be confirmed, including after successful refinement. If another app changes the clipboard, its newer content is preserved and the notice points you to History.",
+          "El Historial guarda la transcripción y el diagnóstico de la entrega cuando no se puede confirmar un pegado, también después de un refinamiento correcto. Si otra app cambia el portapapeles, su contenido más reciente se conserva y el aviso te remite al Historial.",
       },
     ],
   },
   "0-8-0": {
-    title: "Recordings, meeting capture and configuration search",
+    title: "Grabaciones, captura de reuniones y búsqueda en Configuración",
     changes: [
       {
-        title: "Keep audio independently of transcripts",
+        title: "Conserva el audio con independencia de las transcripciones",
         description:
-          "Browse and export recordings, import media, edit speaker transcripts and capture meeting audio. Saved audio remains available for transcription and recovery, with separate cleanup controls for recordings and text.",
+          "Explora y exporta grabaciones, importa archivos multimedia, edita transcripciones con hablantes y captura el audio de reuniones. El audio guardado sigue disponible para transcribirlo y recuperarlo, con controles de limpieza separados para grabaciones y texto.",
       },
       {
-        title: "Find settings and choose your recording window",
+        title: "Encuentra ajustes y elige tu ventana de grabación",
         description:
-          "Search Configuration by setting name or description. Choose Mini, Cube or Sonic recording windows, enable an optional timer, and select separate light and dark app icons.",
+          "Busca en Configuración por nombre o descripción del ajuste. Elige las ventanas de grabación Mini, Cubo o Sónico, activa un temporizador opcional y elige iconos de app distintos para el modo claro y el oscuro.",
       },
       {
-        title: "Protect privacy and interrupted work",
+        title: "Protección de la privacidad y del trabajo interrumpido",
         description:
-          "Provider redirect checks, browser context boundaries and interrupted cleanup recovery are stricter. Shared busy-state checks protect active operations, while History scrolling and recovery notices receive reliability fixes.",
+          "Las comprobaciones de redirección de proveedores, los límites del contexto del navegador y la recuperación de limpiezas interrumpidas son más estrictos. Las comprobaciones compartidas de ocupación protegen las operaciones en curso, y el desplazamiento del Historial y los avisos de recuperación reciben correcciones de fiabilidad.",
       },
     ],
   },
   "0-7-0": {
-    title: "Hold to start with Trigger Delay",
+    title: "Mantén pulsado para empezar con «Retardo de activación»",
     changes: [
       {
-        title: "Prevent accidental dictation",
+        title: "Evita dictados accidentales",
         description:
-          "Set Trigger Delay from 0 to 1000 ms in Configuration. Short presses keep the shortcut key’s normal action; holding past the delay starts dictation. The default is off, and stopping stays immediate.",
+          "Ajusta «Retardo de activación» de 0 a 1000 ms en Configuración. Las pulsaciones cortas conservan la acción normal de la tecla del atajo; mantenerla más allá del retardo inicia el dictado. Por defecto está desactivado, y la detención sigue siendo inmediata.",
       },
       {
-        title: "Keep recordings within ten minutes",
+        title: "Grabaciones de diez minutos como máximo",
         description:
-          "The recording limit now ranges from 10 seconds to 10 minutes. Longer saved limits are reduced to ten minutes, while shorter choices and the five-minute default are preserved. Imported audio keeps its separate limits.",
+          "El límite de grabación va ahora de 10 segundos a 10 minutos. Los límites guardados más largos se reducen a diez minutos, y se conservan las opciones más cortas y el valor predeterminado de cinco minutos. El audio importado mantiene sus propios límites.",
       },
     ],
   },
   "0-6-2": {
-    title: "Speech languages follow each model",
+    title: "Los idiomas de voz siguen a cada modelo",
     changes: [
       {
-        title: "Choose a supported language",
+        title: "Elige un idioma compatible",
         description:
-          "Language choices now follow the active speech model, including profile overrides. Unsupported combinations stop before recording with an explanation. Parakeet does not support Chinese.",
+          "Las opciones de idioma siguen ahora al modelo de voz activo, incluidos los modelos propios de cada perfil. Las combinaciones no compatibles se detienen antes de grabar, con una explicación. Parakeet no admite chino.",
       },
       {
-        title: "Set the language for Cohere",
+        title: "Fija el idioma para Cohere",
         description:
-          "The local Cohere Transcribe model now requires a language choice. Auto Detect is unavailable in this runtime because it can turn Chinese speech into incorrect English output.",
+          "El modelo local Cohere Transcribe necesita ahora que elijas un idioma. La detección automática no está disponible en este entorno porque puede convertir la voz en chino en un texto en inglés incorrecto.",
       },
       {
-        title: "Apply language choices consistently",
+        title: "Opciones de idioma aplicadas de forma coherente",
         description:
-          "SenseVoice receives the chosen language, Qwen uses the expected language names, and Apple Speech shows available system locales. Switching models preserves your shared preference.",
+          "SenseVoice recibe el idioma elegido, Qwen usa los nombres de idioma esperados y Apple Speech muestra las configuraciones regionales disponibles en el sistema. Cambiar de modelo conserva tu preferencia compartida.",
       },
     ],
   },
   "0-6-1": {
-    title: "App context is now opt-in",
+    title: "El contexto de la app pasa a ser opcional",
     changes: [
       {
-        title: "Choose when to share app context",
+        title: "Elige cuándo compartir el contexto de la app",
         description:
-          "Read app context now defaults to off when no preference is saved. Existing choices are preserved, and cursor insertion continues to work independently.",
+          "«Leer el contexto de la app» está ahora desactivado por defecto cuando no hay ninguna preferencia guardada. Las elecciones existentes se conservan, y la inserción en el cursor sigue funcionando de forma independiente.",
       },
       {
-        title: "A neutral app icon",
+        title: "Un icono de app neutro",
         description:
-          "The app icon now uses the same neutral grays, raised waveform and graphite caret as the app window.",
+          "El icono de la app usa ahora los mismos grises neutros, la misma onda en relieve y el mismo cursor grafito que la ventana de la app.",
       },
     ],
   },
   "0-6-0": {
-    title: "A speech model for every profile",
+    title: "Un modelo de voz para cada perfil",
     changes: [
       {
-        title: "Choose speech per profile",
+        title: "Elige la voz en cada perfil",
         description:
-          "Bind a speech model to a writing profile, or keep using the app default. Switching profiles applies that choice to the next recording.",
+          "Asigna un modelo de voz a un perfil de escritura o sigue usando el predeterminado de la app. Al cambiar de perfil, esa elección se aplica a la siguiente grabación.",
       },
       {
-        title: "Read a dictation from Home",
+        title: "Lee un dictado desde Inicio",
         description:
-          "Click a waveform bar to open its transcript. Expand long text, copy it, or switch to another dictation without leaving Home.",
+          "Haz clic en una barra de la onda para abrir su transcripción. Despliega el texto largo, cópialo o pasa a otro dictado sin salir de Inicio.",
       },
       {
-        title: "Find models more easily",
+        title: "Encuentra modelos más fácilmente",
         description:
-          "Browse speech models by provider, with brand icons and hosting labels. Browsing a filter leaves your active model unchanged.",
+          "Explora los modelos de voz por proveedor, con iconos de marca y etiquetas del servicio que los aloja. Filtrar la lista no cambia tu modelo activo.",
       },
       {
-        title: "Clearer progress and controls",
+        title: "Progreso y controles más claros",
         description:
-          "Download bars and percentages move together. Shorter page headers leave more room for content, and the menu groups model controls and recovery actions.",
+          "Las barras y los porcentajes de descarga avanzan a la vez. Las cabeceras de página, más cortas, dejan más espacio al contenido, y el menú agrupa los controles de modelos y las acciones de recuperación.",
       },
     ],
   },
   "0-5-1": {
-    title: "Models ready when you are",
+    title: "Modelos listos cuando tú lo estás",
     changes: [
       {
-        title: "Start after an idle break",
+        title: "Empieza tras una pausa de inactividad",
         description:
-          "Beginning a dictation reloads an installed speech model automatically. Idle unloading defaults to 30 minutes, with 5, 10, 30 minutes and Never available.",
+          "Al empezar un dictado se vuelve a cargar automáticamente un modelo de voz instalado. Por defecto, los modelos inactivos se descargan de memoria a los 30 minutos, y puedes elegir 5, 10 o 30 minutos, o «Nunca».",
       },
       {
-        title: "Watch real download progress",
+        title: "Mira el progreso real de las descargas",
         description:
-          "Model downloads report incoming bytes throughout each file. Preparing and unpacking show activity instead of an invented percentage.",
+          "Las descargas de modelos informan de los bytes recibidos a lo largo de cada archivo. La preparación y la descompresión muestran actividad en lugar de un porcentaje inventado.",
       },
       {
-        title: "Messages leave on their own",
+        title: "Los mensajes se cierran solos",
         description:
-          "Errors, recovery notices and confirmations stay for five seconds, then fade. Recovery details remain available on Home and in History where applicable.",
+          "Los errores, los avisos de recuperación y las confirmaciones se muestran durante cinco segundos y luego se desvanecen. Los detalles de recuperación siguen disponibles en Inicio y en el Historial cuando corresponde.",
       },
       {
-        title: "A more precise sidebar",
+        title: "Una barra lateral más precisa",
         description:
-          "A raised icon follows the sliding selection well. The microphone button, page toggle and card shadows keep consistent placement and depth.",
+          "Un icono en relieve sigue al hueco de selección deslizante. El botón del micrófono, el botón de la barra lateral y las sombras de las tarjetas mantienen una posición y una profundidad coherentes.",
       },
     ],
   },
   "0-5-0": {
-    title: "The app takes a new shape",
+    title: "La app cambia de forma",
     changes: [
       {
-        title: "One material across the window",
+        title: "Un solo material en toda la ventana",
         description:
-          "Rounded page islands, raised cards and controls, recessed selections and a neutral Home waveform share the same light and shadow in both appearances.",
+          "Islas de página redondeadas, tarjetas y controles en relieve, selecciones hundidas y una onda neutra en Inicio comparten la misma luz y sombra en las dos apariencias.",
       },
       {
-        title: "Navigation moves with you",
+        title: "Una navegación que se mueve contigo",
         description:
-          "The selected sidebar well slides between pages. The carved brand mark and opaque window chrome complete the new interface.",
+          "El hueco seleccionado de la barra lateral se desliza entre páginas. La marca tallada y el marco de ventana opaco completan la nueva interfaz.",
       },
       {
-        title: "Keep English in English",
+        title: "El inglés se queda en inglés",
         description:
-          "Chinese script hints are sent only when Chinese is selected, avoiding unwanted translation during automatic speech-language detection.",
+          "Las indicaciones de escritura china solo se envían cuando el chino está seleccionado, lo que evita traducciones no deseadas al detectar automáticamente el idioma de voz.",
       },
       {
-        title: "Quieter clipboard confirmations",
+        title: "Confirmaciones del portapapeles más discretas",
         description:
-          "Clipboard confirmations dismiss automatically. The following 0.5.1 release extends timed dismissal to all HUD messages.",
+          "Las confirmaciones del portapapeles se cierran solas. La siguiente versión, la 0.5.1, extiende el cierre temporizado a todos los mensajes de la ventana de grabación.",
       },
     ],
   },
   "0-4-6": {
-    title: "Keep the words you just said",
+    title: "Conserva las palabras que acabas de decir",
     changes: [
       {
-        title: "Keep past dictations out of new ones",
+        title: "Los dictados anteriores no se cuelan en los nuevos",
         description:
-          "Refinement separates context from the current transcript and checks fidelity to reduce reused sentences and unintended translation.",
+          "El refinamiento separa el contexto de la transcripción actual y comprueba la fidelidad para reducir las frases reutilizadas y las traducciones no deseadas.",
       },
       {
-        title: "A compact menu and clearer selection",
+        title: "Un menú compacto y una selección más clara",
         description:
-          "Long dynamic menu titles fit within the menu width, while the active sidebar destination sits in a deeper recessed well.",
+          "Los títulos dinámicos largos del menú caben en su anchura, y el destino activo de la barra lateral se asienta en un hueco más hundido.",
       },
     ],
   },
   "0-4-5": {
-    title: "Support editors without an exposed caret",
+    title: "Compatibilidad con editores que no exponen el cursor",
     changes: [
       {
-        title: "Paste through the focused app",
+        title: "Pega a través de la app activa",
         description:
-          "Editors that do not expose an accessible text caret can use the app-window paste path, while changed destinations still trigger recovery.",
+          "Los editores que no exponen un cursor de texto accesible pueden usar el pegado a través de la ventana de la app, y los cambios de destino siguen activando la recuperación.",
       },
     ],
   },
   "0-4-4": {
-    title: "Read the whole error",
+    title: "Lee el error completo",
     changes: [
       {
-        title: "Make room for diagnostics",
+        title: "Espacio para los diagnósticos",
         description:
-          "The recording capsule expands to show complete error and recovery messages. Oversized messages scroll within the screen.",
+          "La cápsula de grabación se amplía para mostrar los mensajes de error y de recuperación completos. Los mensajes demasiado largos se desplazan dentro de la pantalla.",
       },
       {
-        title: "Copy the full message",
+        title: "Copia el mensaje completo",
         description:
-          "A trailing Copy Message action copies the diagnostic without taking focus from the app you were using.",
+          "La acción «Copiar mensaje», al final, copia el diagnóstico sin quitar el foco a la app que estabas usando.",
       },
     ],
   },
   "0-4-3": {
-    title: "Follow you between apps",
+    title: "Te sigue entre apps",
     changes: [
       {
-        title: "Wait for the destination to settle",
+        title: "Espera a que el destino se asiente",
         description:
-          "Airdraft waits for the selected app, text field and caret when an app switch is in progress. Transient focus reads can settle before delivery.",
+          "Airdraft espera a la app, el campo de texto y el cursor seleccionados cuando hay un cambio de app en curso. Las lecturas de foco transitorias pueden asentarse antes de la entrega.",
       },
     ],
   },
   "0-4-2": {
-    title: "A single, safer paste path",
+    title: "Una sola vía de pegado, más segura",
     changes: [
       {
-        title: "Avoid conflicting insertion attempts",
+        title: "Sin intentos de inserción en conflicto",
         description:
-          "Text delivery uses one normal paste path instead of a speculative Accessibility write followed by paste.",
+          "La entrega del texto usa una única vía de pegado normal en lugar de una escritura especulativa por Accesibilidad seguida de un pegado.",
       },
       {
-        title: "Preserve text during cancellation",
+        title: "El texto se conserva al cancelar",
         description:
-          "If cancellation happens after delivery begins, the dictated text remains on the clipboard long enough for the destination to read it.",
+          "Si se cancela después de que empiece la entrega, el texto dictado se queda en el portapapeles el tiempo suficiente para que el destino lo lea.",
       },
     ],
   },
   "0-4-1": {
-    title: "More reliable everyday dictation",
+    title: "Un dictado diario más fiable",
     changes: [
       {
-        title: "Leave unselected iPhones disconnected",
+        title: "Los iPhone no seleccionados siguen desconectados",
         description:
-          "Opening the microphone picker previews a Continuity microphone only when it is selected, including through System Default.",
+          "Al abrir el selector de micrófono, solo se previsualiza un micrófono de Continuidad cuando está seleccionado, también a través de «Predeterminado del sistema».",
       },
       {
-        title: "Follow History with accessibility",
+        title: "Recorre el Historial con accesibilidad",
         description:
-          "Visible timestamps follow timeline navigation, and offscreen entries leave the accessibility representation when you return to the top.",
+          "Las marcas de tiempo visibles siguen la navegación por la línea de tiempo, y las entradas fuera de pantalla salen de la representación accesible cuando vuelves arriba.",
       },
       {
-        title: "Recover focus and provider failures",
+        title: "Recuperación del foco y de fallos del proveedor",
         description:
-          "Insertion waits for editor focus and selection. Claude failures preserve the original transcript with an actionable diagnostic; the License sheet uses fewer controls.",
+          "La inserción espera al foco y la selección del editor. Los fallos de Claude conservan la transcripción original con un diagnóstico útil; la hoja de licencia usa menos controles.",
       },
     ],
   },
   "0-4-0": {
-    title: "A guided first dictation",
+    title: "Un primer dictado guiado",
     changes: [
       {
-        title: "Set up by doing",
+        title: "Aprende haciendo",
         description:
-          "Optional onboarding walks through permissions and speech setup, then lets you try a real dictation.",
+          "Una bienvenida opcional te guía por los permisos y la configuración de la voz, y luego te deja probar un dictado real.",
       },
       {
-        title: "Trial and activate the official build",
+        title: "Prueba y activa la versión oficial",
         description:
-          "Official builds add a user-started, full-feature 14-day trial and license activation. Self-built editions remain fully unlocked.",
+          "Las versiones oficiales añaden una prueba de 14 días con todas las funciones, que inicias tú, y la activación de la licencia. Las ediciones compiladas por ti siguen totalmente desbloqueadas.",
       },
       {
-        title: "Keep long text inside History",
+        title: "El texto largo se queda dentro del Historial",
         description:
-          "Long transcripts and text selections stay within their cards. The recording capsule fits its label and fades after successful delivery.",
+          "Las transcripciones largas y las selecciones de texto se quedan dentro de sus tarjetas. La cápsula de grabación se ajusta a su etiqueta y se desvanece tras una entrega correcta.",
       },
       {
-        title: "An explicit open-source license",
+        title: "Una licencia de código abierto explícita",
         description:
-          "The repository adopts GPL-3.0-only, with the license linked from the website.",
+          "El repositorio adopta GPL-3.0-only, con la licencia enlazada desde el sitio web.",
       },
     ],
   },
   "0-3-0": {
-    title: "Local intelligence, replay and automation",
+    title: "Inteligencia local, reproducción y automatización",
     changes: [
       {
-        title: "Refine with Apple Intelligence",
+        title: "Refina con Apple Intelligence",
         description:
-          "On supported Macs running macOS 26 or later, an on-device Foundation Models session cleans up each dictation. Unavailable or failed refinement preserves the raw transcript.",
+          "En los Macs compatibles con macOS 26 o posterior, una sesión de Foundation Models en el dispositivo limpia cada dictado. Si el refinamiento no está disponible o falla, se conserva la transcripción sin procesar.",
       },
       {
-        title: "More ways to hear and review speech",
+        title: "Más formas de oír y revisar la voz",
         description:
-          "Parakeet TDT v3 joins local speech recognition. Optional live transcription previews show provisional words while recording.",
+          "Parakeet TDT v3 se suma al reconocimiento de voz local. Las vistas previas opcionales de transcripción en directo muestran palabras provisionales mientras grabas.",
       },
       {
-        title: "Save and replay audio",
+        title: "Guarda y reproduce el audio",
         description:
-          "Opt in to retaining dictation audio, replay it from History, and retry transcription from the saved recording.",
+          "Activa la conservación del audio de los dictados, reprodúcelo desde el Historial y reintenta la transcripción a partir de la grabación guardada.",
       },
       {
-        title: "Connect dictation to your workflow",
+        title: "Conecta el dictado con tu flujo de trabajo",
         description:
-          "Start and stop through Shortcuts, and send delivered text to a configured script.",
+          "Inicia y detén el dictado con Atajos, y envía el texto entregado a un script configurado.",
       },
       {
-        title: "Better text fidelity and History",
+        title: "Mejor fidelidad del texto y un mejor Historial",
         description:
-          "Refinement corrects terms while preserving literal text. History bounds work during scrolling, adds calendar dates to its timeline, and gains progressive header blur.",
+          "El refinamiento corrige términos y conserva el texto literal. El Historial limita el trabajo durante el desplazamiento, añade fechas a su línea de tiempo y gana un desenfoque progresivo en la cabecera.",
       },
     ],
   },
   "0-2-0": {
-    title: "New speech controls and a refreshed interface",
+    title: "Nuevos controles de voz y una interfaz renovada",
     changes: [
       {
-        title: "Check your connection",
+        title: "Comprueba tu conexión",
         description:
-          "Test API access for Soniox, Groq, ElevenLabs, OpenAI and Deepgram before you dictate. OpenRouter adds model and provider controls.",
+          "Prueba el acceso a la API de Soniox, Groq, ElevenLabs, OpenAI y Deepgram antes de dictar. OpenRouter añade controles de modelo y de proveedor.",
       },
       {
-        title: "Compare supported speech models",
+        title: "Compara los modelos de voz compatibles",
         description:
-          "Browse provider models with pricing and available quality and speed information linked to official documentation. Unpublished metrics stay marked.",
+          "Explora los modelos de cada proveedor con sus precios y la información de calidad y velocidad disponible, enlazada a la documentación oficial. Las métricas no publicadas quedan señaladas.",
       },
       {
-        title: "A refreshed native interface",
+        title: "Una interfaz nativa renovada",
         description:
-          "A collapsible sidebar, live microphone meters and a scrolling History timeline join consistent settings and model lists.",
+          "Una barra lateral contraíble, medidores de micrófono en directo y una línea de tiempo desplazable en el Historial se suman a ajustes y listas de modelos coherentes.",
       },
       {
-        title: "Recover interrupted work",
+        title: "Recupera el trabajo interrumpido",
         description:
-          "Recording prerequisites are checked before capture. Failed speech audio stays available to retry or discard, and refinement errors preserve the raw transcript.",
+          "Los requisitos de grabación se comprueban antes de capturar. El audio de voz que falla sigue disponible para reintentarlo o descartarlo, y los errores de refinamiento conservan la transcripción sin procesar.",
       },
       {
-        title: "A version for the feature release",
+        title: "Un número de versión para la versión con funciones",
         description:
-          "This release carries the same feature set as 0.1.9 build 44 under a new minor version. Its installer uses Apple Development signing and is not notarized.",
+          "Esta versión tiene las mismas funciones que la 0.1.9, compilación 44, con un nuevo número de versión menor. Su instalador está firmado con Apple Development y no está notarizado.",
       },
     ],
   },
   "0-1-9": {
-    title: "Desktop controls take shape",
+    title: "Toman forma los controles de escritorio",
     changes: [
       {
-        title: "Choose and preview a microphone",
+        title: "Elige y prueba un micrófono",
         description:
-          "The microphone overlay adds a live input-level preview. Sidebar and profile controls become more compact across this series of builds.",
+          "El panel del micrófono añade una vista previa del nivel de entrada en directo. Los controles de la barra lateral y de los perfiles se vuelven más compactos a lo largo de esta serie de compilaciones.",
       },
       {
-        title: "Edit the shared refinement rules",
+        title: "Edita las reglas de refinamiento compartidas",
         description:
-          "Base prompt editing joins profile customization, so shared instructions can be saved or restored.",
+          "La edición del prompt base se suma a la personalización de perfiles, para que las instrucciones compartidas se puedan guardar o restaurar.",
       },
       {
-        title: "A website and branded installer",
+        title: "Un sitio web y un instalador con marca",
         description:
-          "The Astro website and a custom drag-to-Applications disk image join the project. Later builds in this series lead into the 0.2.0 feature release.",
+          "El sitio web en Astro y una imagen de disco propia para arrastrar a Aplicaciones se suman al proyecto. Las compilaciones posteriores de esta serie desembocan en la versión con funciones 0.2.0.",
       },
     ],
   },
   "0-1-8": {
-    title: "Make writing profiles your own",
+    title: "Haz tuyos los perfiles de escritura",
     changes: [
       {
-        title: "Edit, duplicate and reset",
+        title: "Edita, duplica y restablece",
         description:
-          "Profiles gain an open editor, inline renaming and duplication, including Verbatim behavior. Shared rules offer Save, Cancel and Restore Defaults.",
+          "Los perfiles ganan un editor abierto, cambio de nombre en línea y duplicación, incluido el comportamiento de «Literal». Las reglas compartidas ofrecen «Guardar», «Cancelar» y «Restaurar valores predeterminados».",
       },
     ],
   },
   "0-1-7": {
-    title: "Fewer interruptions during setup",
+    title: "Menos interrupciones durante la configuración",
     changes: [
       {
-        title: "Ask for key access deliberately",
+        title: "Pide acceso a las claves solo cuando hace falta",
         description:
-          "Page navigation and background checks stop requesting Keychain approval. Protected keys get an explicit access action, and denied reads preserve saved credentials.",
+          "La navegación entre páginas y las comprobaciones en segundo plano dejan de pedir permiso al Llavero. Las claves protegidas tienen una acción de acceso explícita, y las lecturas denegadas conservan las credenciales guardadas.",
       },
       {
-        title: "Capture the selected input channel",
+        title: "Captura el canal de entrada seleccionado",
         description:
-          "Microphone capture uses the chosen channel. Releasing the shortcut while permission is pending prevents a delayed recording from starting.",
+          "La captura del micrófono usa el canal elegido. Soltar el atajo mientras el permiso está pendiente impide que empiece una grabación con retraso.",
       },
     ],
   },
   "0-1-6": {
-    title: "More refinement providers",
+    title: "Más proveedores de refinamiento",
     changes: [
       {
-        title: "Use Cerebras or Groq",
+        title: "Usa Cerebras o Groq",
         description:
-          "Choose Cerebras or Groq for text refinement independently of your speech-recognition provider.",
+          "Elige Cerebras o Groq para refinar el texto, con independencia de tu proveedor de reconocimiento de voz.",
       },
     ],
   },
   "0-1-5": {
-    title: "A stable identity for updates",
+    title: "Una identidad estable para las actualizaciones",
     changes: [
       {
-        title: "Keep signing consistent",
+        title: "Una firma coherente",
         description:
-          "Certificate-signed releases replace the earlier ad-hoc identity. The update process checks signing continuity; upgrading from older builds may require granting permissions again.",
+          "Las versiones firmadas con certificado sustituyen a la identidad ad hoc anterior. El proceso de actualización comprueba la continuidad de la firma; al actualizar desde compilaciones antiguas puede que tengas que volver a conceder los permisos.",
       },
     ],
   },
   "0-1-4": {
-    title: "Recover microphone interruptions",
+    title: "Recuperación tras interrupciones del micrófono",
     changes: [
       {
-        title: "Resume a disrupted input",
+        title: "Reanuda una entrada interrumpida",
         description:
-          "Microphone capture recovers from input interruptions, alongside more consistent spacing across settings.",
+          "La captura del micrófono se recupera de las interrupciones de la entrada, y el espaciado de los ajustes es más coherente.",
       },
     ],
   },
   "0-1-3": {
-    title: "Separate development and installed apps",
+    title: "Apps de desarrollo e instaladas por separado",
     changes: [
       {
-        title: "Recognize the right app",
+        title: "Se reconoce la app correcta",
         description:
-          "Development and installed builds use separate identities, with refreshed permission state so access checks apply to the intended app.",
+          "Las compilaciones de desarrollo y las instaladas usan identidades distintas, con el estado de los permisos actualizado para que las comprobaciones de acceso se apliquen a la app correcta.",
       },
     ],
   },
   "0-1-2": {
-    title: "Respect the system microphone",
+    title: "Respeta el micrófono del sistema",
     changes: [
       {
-        title: "Preserve the selected route",
+        title: "Se conserva la ruta seleccionada",
         description:
-          "Capture keeps the system microphone route instead of unexpectedly replacing the input you chose.",
+          "La captura mantiene la ruta del micrófono del sistema en lugar de sustituir inesperadamente la entrada que elegiste.",
       },
     ],
   },
   "0-1-1": {
-    title: "The first packaged builds",
+    title: "Las primeras compilaciones empaquetadas",
     changes: [
       {
-        title: "Remember your microphone choice",
+        title: "Recuerda tu elección de micrófono",
         description:
-          "Microphone defaults become part of setup, and locally built releases arrive as a DMG with a signed Sparkle update feed.",
+          "El micrófono predeterminado pasa a formar parte de la configuración, y las versiones compiladas localmente llegan como DMG con un canal de actualizaciones de Sparkle firmado.",
       },
     ],
   },
   "initial-source": {
-    title: "Airdraft is on GitHub",
+    title: "Airdraft llega a GitHub",
     changes: [
       {
-        title: "Speak into the app you use",
+        title: "Habla en la app que usas",
         description:
-          "Hold a shortcut, speak and release to insert text at the cursor. Airdraft stays in the menu bar between recordings.",
+          "Mantén pulsado un atajo, habla y suelta para insertar texto en el cursor. Airdraft se queda en la barra de menús entre grabaciones.",
       },
       {
-        title: "Choose each step independently",
+        title: "Elige cada paso por separado",
         description:
-          "Use local or cloud speech recognition and choose refinement separately. Editable writing profiles, vocabulary corrections and local History are part of the source build.",
+          "Usa reconocimiento de voz local o en la nube y elige el refinamiento por separado. Los perfiles de escritura editables, las correcciones de vocabulario y el Historial local forman parte de la versión compilada desde el código.",
       },
     ],
   },

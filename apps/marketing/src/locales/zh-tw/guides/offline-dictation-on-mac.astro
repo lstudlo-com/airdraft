@@ -3,7 +3,7 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { href, type Locale } from "../../../i18n";
 import { siteLinks } from "../../../data/site";
 import {
   ejaAsrMetric,
@@ -26,27 +26,28 @@ const guide = guidesFor(locale).find(
 const study = ejaAsrStudy;
 const languages = (
   [
-    ["en", "English"],
-    ["ja", "Japanese"],
-    ["ko", "Korean"],
+    ["en", "英文"],
+    ["ja", "日文"],
+    ["ko", "韓文"],
   ] as [EjaLanguage, string][]
 ).map(([code, name]) => ({
   code,
   name,
-  unit:
-    ejaAsrMetric[code] === "WER"
-      ? "word error rate (WER)"
-      : "character error rate (CER)",
+  unit: ejaAsrMetric[code] === "WER" ? "詞錯誤率（WER）" : "字元錯誤率（CER）",
 }));
 const columns = [
-  "Model",
-  "Errors, Detect Automatically",
-  "Errors, language set",
-  "Median time",
-  "Download",
+  "模型",
+  "錯誤率（自動偵測）",
+  "錯誤率（指定語言）",
+  "轉錄時間中位數",
+  "下載大小",
 ];
+const notes: Record<string, string> = {
+  "Original multilingual model": "原始多語言模型",
+  "0.11.0 and earlier": "0.11.0 及更早版本",
+};
 const rate = (error: EjaError) =>
-  `${error.value.toFixed(1)}% (${error.ci[0].toFixed(1)}–${error.ci[1].toFixed(1)})`;
+  `${error.value.toFixed(1)}%（${error.ci[0].toFixed(1)}–${error.ci[1].toFixed(1)}）`;
 const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
 const [parakeet, qwen] = ["Parakeet TDT v2", "Qwen3-ASR 1.7B"].map((model) =>
   ejaAsrResults.en.find((row) => row.model === model)!,
@@ -60,150 +61,136 @@ const [senseVoice, cantonese] = ["SenseVoice", "SenseVoice Cantonese"].map(
 const autoRate = (row: EjaAsrResult) => `${row.auto.value.toFixed(1)}%`;
 const cells = (row: EjaAsrResult) => [
   rate(row.auto),
-  row.explicit ? rate(row.explicit) : "Not used by this model",
+  row.explicit ? rate(row.explicit) : "此模型不使用",
   `${row.medianMs} ms`,
   row.download,
 ];
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="requirements" title="What you need">
+  <GuideSection id="requirements" title="需要準備什麼？">
     <ul>
-      <li>An Apple silicon Mac running macOS 15 or later.</li>
-      <li>
-        Airdraft installed, with Microphone and Accessibility permissions.
-      </li>
-      <li>An internet connection for the initial model downloads.</li>
+      <li>搭載 Apple 晶片、macOS 15 以上的 Mac。</li>
+      <li>已安裝 Airdraft，並允許「麥克風」與「輔助使用」權限。</li>
+      <li>第一次下載模型時需要網路連線。</li>
     </ul>
     <p>
-      Apple SpeechAnalyzer and Apple Intelligence need macOS 26 or later. Apple
-      Intelligence also needs to be available on your Mac. Other local speech
-      models do not require Apple Intelligence.
+      Apple SpeechAnalyzer 與 Apple Intelligence 需要 macOS 26 以上，Apple
+      Intelligence 也必須能在你的 Mac 上使用。其他本機語音模型不需要 Apple
+      Intelligence。
     </p>
     <p>
-      Start with the <a href={siteLinks.build}>source build instructions</a>.
-      The <a href="/pricing/">pricing page</a> lists current official-app
-      availability.
+      先從<a href={siteLinks.build}>原始碼編譯說明</a>
+      開始。官方版目前的供應情形請看
+      <a href={href("/pricing/", locale)}>價格頁面</a>。
     </p>
   </GuideSection>
 
-  <GuideSection id="setup" title="Set up your first local dictation">
+  <GuideSection id="setup" title="完成第一次本機聽寫">
     <ol class="guide-steps">
       <li>
-        <h3>Allow recording and text insertion</h3>
+        <h3>允許錄音與貼上文字</h3>
         <p>
-          Grant Microphone when prompted. Enable Airdraft in System Settings →
-          Privacy &amp; Security → Accessibility so it can insert text.
+          出現提示時允許「麥克風」。到「系統設定」→「隱私權與安全性」→「輔助使用」開啟
+          Airdraft，它才能貼上文字。
         </p>
       </li>
       <li>
-        <h3>Download and select a local speech model</h3>
+        <h3>下載並選擇本機語音模型</h3>
         <p>
-          Open Models and choose a local model that supports your language.
-          Airdraft downloads models only when you request them. An installed
-          model loads automatically when you start dictating.
+          打開「模型」，選一個支援你語言的本機模型。Airdraft
+          只在你要求時才下載模型；已安裝的模型會在你開始聽寫時自動載入。
         </p>
       </li>
       <li>
-        <h3>Choose local cleanup, or skip it</h3>
+        <h3>選擇本機潤稿，或不潤稿</h3>
         <p>
-          In Models → Refinement, choose Apple Intelligence on a supported
-          system, or connect LM Studio or Ollama running locally on this Mac.
-          For speech-to-text without AI cleanup, turn off Refine transcript for
-          your active profile in Profiles.
+          在「模型」→「潤稿」中，系統支援時可選 Apple Intelligence，或連接在這台
+          Mac 上執行的 LM Studio 或 Ollama。只要語音轉文字、不用 AI
+          潤稿的話，到「模式」中為目前的模式關閉「潤飾逐字稿」。
         </p>
       </li>
       <li>
-        <h3>Check the active profile</h3>
+        <h3>檢查目前的模式</h3>
         <p>
-          A profile can have its own speech model. In Profiles → Speech model,
-          choose a local model or Use App Default to follow Models. A cloud
-          speech binding would still send audio to that provider.
+          模式可以有自己的語音模型。在「模式」→「語音模型」中選本機模型，或選「使用
+          App
+          預設值」以沿用「模型」頁的設定。若模式綁定的是雲端語音模型，音訊仍會送到該供應商。
         </p>
       </li>
       <li>
-        <h3>Hold, speak, release</h3>
+        <h3>按住、說話、放開</h3>
         <p>
-          Put your cursor in a text field. Hold Control + Option, speak, then
-          release. Airdraft transcribes and refines after recording stops, then
-          inserts the result. You can change the shortcut in Settings.
+          把游標放在文字欄位中，按住 Control + Option 說話，然後放開。錄音停止後
+          Airdraft 會轉錄並潤稿，再貼上結果。快速鍵可以在「設定」中更改。
         </p>
       </li>
     </ol>
   </GuideSection>
 
-  <GuideSection id="languages" title="Which model should I choose?">
+  <GuideSection id="languages" title="該選哪個模型？">
     <p>
-      Language support depends on the model. First-run setup recommends one from
-      your Mac’s system language and memory, and for English, Japanese, Korean
-      and Chinese offers one alternative:
+      支援的語言依模型而定。首次設定會依 Mac
+      的系統語言與記憶體推薦一個模型；英文、日文、韓文與中文另提供一個替代選擇：
     </p>
     <dl class="guide-decisions">
       <div>
-        <dt>English: Parakeet TDT v2</dt>
+        <dt>英文：Parakeet TDT v2</dt>
         <dd>
-          It recognizes English only. In Airdraft’s measurement its errors were
-          within the margin of Qwen3-ASR 1.7B’s, and it was much faster. Setup
-          offers Qwen3-ASR 1.7B as the alternative if you also speak other
-          languages; it uses about 3 GB of memory.
+          只辨識英文。在 Airdraft 的測量中，它的錯誤與 Qwen3-ASR 1.7B
+          在誤差範圍內，速度則快得多。如果你也說其他語言，設定會提供 Qwen3-ASR
+          1.7B 作為替代，記憶體用量約 3 GB。
         </dd>
       </div>
       <div>
-        <dt>Japanese and Korean: Qwen3-ASR 1.7B</dt>
+        <dt>日文與韓文：Qwen3-ASR 1.7B</dt>
         <dd>
-          Whisper Large v3 Turbo is the lower-memory alternative and comes first
-          on a Mac with 8 GB of memory or less. Its first start can take a
-          minute.
+          Whisper Large v3 Turbo 是記憶體需求較低的替代選擇，在記憶體 8 GB
+          以下的 Mac 上排在第一個。它第一次啟動可能要一分鐘。
         </dd>
       </div>
       <div>
-        <dt>Chinese: Qwen3-ASR 1.7B</dt>
+        <dt>中文：Qwen3-ASR 1.7B</dt>
         <dd>
-          SenseVoice is the smaller, faster alternative and comes first on a Mac
-          with 8 GB of memory or less. Airdraft’s{" "}
-          <a href="/guides/mixed-chinese-english-dictation/">
-            mixed-language measurements
-          </a>{" "}
-          show the trade-offs. Choose your output script under Models → Speech
-          options → Chinese script.
+          SenseVoice 是較小、較快的替代選擇，在記憶體 8 GB 以下的 Mac
+          上排在第一個。取捨請看 Airdraft 的{" "}
+          <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+            中英混說測量
+          </a>
+          。輸出的繁簡字體在「模型」→「語音選項」→「中文字體」中選擇。
         </dd>
       </div>
       <div>
-        <dt>Other languages: Whisper Large v3 Turbo</dt>
+        <dt>其他語言：Whisper Large v3 Turbo</dt>
         <dd>
-          Parakeet TDT v3 supports English and 24 other European languages, but
-          not Mandarin or Cantonese.
+          Parakeet TDT v3 支援英文與另外 24 種歐洲語言，但不支援華語或粵語。
         </dd>
       </div>
     </dl>
     <p>
-      0.11.0 and earlier recommended SenseVoice for English, Japanese and
-      Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Those
-      versions installed a Cantonese fine-tune as SenseVoice. If you have it, it
-      keeps working and Models lists it as SenseVoice Cantonese; a new
-      SenseVoice download is the original multilingual model, which the Models
-      page describes as “Small and fast. Weaker with English terms in Chinese
-      speech.”
+      0.11.0 及更早版本為英文、日文與韓文推薦 SenseVoice，0.10.2
+      在系統語言為中文的 Mac 上也推薦它。這些版本以 SenseVoice
+      名稱安裝的是粵語微調版。已經安裝的話仍可繼續使用，「模型」會把它列為
+      SenseVoice Cantonese；現在新下載的 SenseVoice
+      是原始多語言模型，「模型」頁的說明是「小巧快速。中文夾雜英文詞時較弱。」
     </p>
     <p>
-      Loading and transcription time vary with the model and your Mac; the
-      homepage sample is an illustration, not a speed test.
+      載入與轉錄時間依模型和你的 Mac 而不同；首頁的範例只是示意，不是速度測試。
     </p>
   </GuideSection>
 
-  <GuideSection id="measured" title="Measured on English, Japanese and Korean">
+  <GuideSection id="measured" title="英文、日文與韓文的實測結果">
     {languages.map((language) => (
       <div
         class="guide-table-scroll"
         tabindex="0"
         role="region"
-        aria-label={`Local model results on ${language.name}`}
+        aria-label={`本機模型的${language.name}測量結果`}
       >
         <table class="guide-table guide-table-wide" role="table">
           <caption>
-            {language.name}, {language.unit}. Airdraft’s own measurement,{" "}
-            {study.date}, on an Apple M4 Pro, refinement off. Lower is better;
-            95% intervals in parentheses.
+            {language.name}，{language.unit}。Airdraft 自行測量，{study.date}
+            ，Apple M4 Pro，關閉潤稿。數值越低越好；括號內為 95% 區間。
           </caption>
           <thead role="rowgroup">
             <tr role="row">
@@ -219,7 +206,9 @@ const cells = (row: EjaAsrResult) => [
               <tr role="row">
                 <th scope="row" role="rowheader">
                   {row.model}
-                  {row.note && <span class="row-note">{row.note}</span>}
+                  {row.note && (
+                    <span class="row-note">{notes[row.note] ?? row.note}</span>
+                  )}
                 </th>
                 {cells(row).map((cell, index) => (
                   <td role="cell">
@@ -236,96 +225,85 @@ const cells = (row: EjaAsrResult) => [
       </div>
     ))}
     <p>
-      English counts word errors; Japanese and Korean count character errors,
-      ignoring spaces. On English, Parakeet TDT v2 and Qwen3-ASR 1.7B are
-      statistically tied, and Parakeet took about {about(parakeet.medianMs)} per
-      clip instead of about {about(qwen.medianMs)}. On Japanese and Korean,
-      Qwen3-ASR 1.7B and Whisper Large v3 Turbo overlap with Language set to
-      Detect Automatically. Setting Language to Japanese or Korean lowered
-      Qwen3-ASR 1.7B’s errors by 1.7 and 1.8 points.
+      英文計算詞錯誤，日文與韓文計算字元錯誤，不計空格。英文上，Parakeet TDT v2
+      與 Qwen3-ASR 1.7B 在統計上不分高下，而 Parakeet 每段約{" "}
+      {about(parakeet.medianMs)}，Qwen3-ASR 約 {about(qwen.medianMs)}
+      。日文與韓文上，「語言」設為「自動偵測」時，Qwen3-ASR 1.7B 與 Whisper
+      Large v3 Turbo 的區間重疊。把「語言」設為日文或韓文，Qwen3-ASR 1.7B
+      的錯誤分別降低 1.7 與 1.8 個百分點。
     </p>
     <p>
-      SenseVoice Cantonese, which 0.11.0 and earlier installed as SenseVoice,
-      dropped every kana in all 60 Japanese clips and lost most of the text in
-      50 of 60 Korean clips. The original SenseVoice that the app now installs
-      made {autoRate(senseVoice[0])} word errors on English,{" "}
-      {autoRate(senseVoice[1])} character errors on Japanese and{" "}
-      {autoRate(senseVoice[2])} on Korean, against {autoRate(cantonese[0])},{" "}
-      {autoRate(cantonese[1])} and {autoRate(cantonese[2])} for the fine-tune,
-      with Language set to Detect Automatically. On Japanese and Korean it was
-      within the margin of Qwen3-ASR 1.7B; setup still recommends Qwen3-ASR 1.7B
-      and Whisper Large v3 Turbo for those languages. The{" "}
-      <a href="/guides/mixed-chinese-english-dictation/">
-        mixed Chinese and English guide
-      </a>{" "}
-      compares both SenseVoice models on mixed speech.
+      0.11.0 及更早版本以 SenseVoice 名稱安裝的 SenseVoice Cantonese，在全部 60
+      段日文中漏掉了所有假名，60 段韓文中有 50 段遺失大部分文字。App
+      現在安裝的原始 SenseVoice，在「語言」設為「自動偵測」時，英文詞錯誤率為{" "}
+      {autoRate(senseVoice[0])}，日文字元錯誤率為 {autoRate(senseVoice[1])}
+      ，韓文為 {autoRate(senseVoice[2])}；粵語微調版則分別為{" "}
+      {autoRate(cantonese[0])}、{autoRate(cantonese[1])} 與{" "}
+      {autoRate(cantonese[2])}。在日文與韓文上，它與 Qwen3-ASR 1.7B
+      在誤差範圍內；設定仍為這兩種語言推薦 Qwen3-ASR 1.7B 與 Whisper Large v3
+      Turbo。兩個 SenseVoice 模型在中英混說上的比較，請看
+      <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+        中英混說指南
+      </a>
+      。
     </p>
     <p>
-      Median time is transcription after loading, measured while the Mac was
-      also running builds, so compare the models with each other only. Qwen3-ASR
-      1.7B’s measured peak memory was about 3 GB, and SenseVoice’s about 0.9 GB.
-      Parakeet TDT v2 and Whisper run through Core ML and keep part of their
-      memory outside the app’s process, so their memory is not comparable.
-      Download sizes are the totals the Models page lists, not measured
-      transfers.
+      轉錄時間中位數是模型載入後的轉錄時間；測量時這台 Mac
+      同時在編譯其他程式，數字只適合模型之間互相比較。Qwen3-ASR 1.7B
+      實測記憶體峰值約 3 GB，SenseVoice 約 0.9 GB。Parakeet TDT v2 與 Whisper
+      透過 Core ML 執行，部分記憶體不在 App
+      的行程內，因此記憶體無法比較。下載大小取自「模型」頁列出的總和，不是實測傳輸量。
     </p>
-    <h3>Limits of this measurement</h3>
+    <h3>這次測量的限制</h3>
     <ul>
       <li>
-        The clips are {study.utterancesPerLanguage} read Wikipedia sentences per
-        language from Google FLEURS, not dictation: longer sentences, many names
-        and numbers, few hesitations. FLEURS publishes no speaker IDs.
+        每種語言 {study.utterancesPerLanguage} 段語音，是取自 Google FLEURS
+        的朗讀維基百科句子，不是聽寫：句子較長、人名與數字多、很少停頓猶豫。FLEURS
+        沒有公布說話者編號。
       </li>
       <li>
-        {study.utterancesPerLanguage} clips per language give wide intervals.
-        Numbers and kana or kanji spellings are not normalized, and some Korean
-        references contain bracketed glosses that nobody says.
+        每種語言只有 {study.utterancesPerLanguage}{" "}
+        段，區間很寬。數字以及假名或漢字的寫法沒有統一，部分韓文參考文字含有沒人會念出的括號註解。
+      </li>
+      <li>只在一台 48 GB 的 M4 Pro 上測量，沒有測試記憶體 8 GB 以下的 Mac。</li>
+      <li>
+        結果是未經潤稿、尚未轉換中文字體的語音辨識輸出。在 0.11.0
+        及更早版本中，預設的繁體字體也會轉換日文裡的漢字，例如把国改成國，使錯誤增加約
+        2 個百分點；現在含有假名的文字不會被轉換。
       </li>
       <li>
-        It ran on one M4 Pro with 48 GB. Macs with 8 GB of memory or less were
-        not measured.
-      </li>
-      <li>
-        The results are speech output without refinement, before the Chinese
-        script conversion. In 0.11.0 and earlier the default Traditional script
-        also converted kanji in Japanese text, such as 国 to 國, adding about 2
-        points of errors; text that contains kana is now left unchanged.
-      </li>
-      <li>
-        It compares Airdraft’s models with each other, not Airdraft with other
-        dictation apps.
+        這是 Airdraft 各模型之間的比較，不是 Airdraft 與其他聽寫 App 的比較。
       </li>
     </ul>
     <p>
-      Method, corpus selection and scripts:{" "}
-      <a href={study.methodURL}>eval/eja-asr in the source repository</a>,
-      measured at source commit {study.sourceCommit}. The original SenseVoice
-      was measured on the same clips on {study.followup.date}, with a build
-      based on {study.followup.sourceCommit}, after the app’s own download
-      checked its size and SHA-256.
+      方法、語料選擇與腳本：
+      <a href={study.methodURL}>原始碼儲存庫的 eval/eja-asr</a>
+      ，測量版本為 {study.sourceCommit}。原始 SenseVoice 於{" "}
+      {study.followup.date} 以同樣的語音測量，使用以{" "}
+      {study.followup.sourceCommit} 為基礎的版本，模型經由 App
+      本身的下載功能安裝，並核對大小與 SHA-256。
     </p>
   </GuideSection>
 
-  <GuideSection id="offline-scope" title="What does offline cover?">
+  <GuideSection id="offline-scope" title="離線涵蓋哪些範圍？">
     <p>
-      Local speech and local refinement do not need a cloud model to process
-      your dictation. Initial downloads, app updates and official-app licensing
-      are separate network activities. A custom endpoint on another computer is
-      not processing on this Mac.
+      本機語音辨識與本機潤稿處理聽寫時不需要雲端模型。第一次下載、App
+      更新與官方版授權則是另外的網路活動。位於另一台電腦的自訂端點，不算在這台
+      Mac 上處理。
     </p>
     <p>
-      Read{" "}
-      <a href="/guides/local-vs-cloud-dictation/">
-        what each model choice sends
-      </a>{" "}
-      before mixing local and cloud engines.
+      混用本機與雲端引擎之前，先看看
+      <a href={href("/guides/local-vs-cloud-dictation/", locale)}>
+        每種模型選擇會送出什麼
+      </a>
+      。
     </p>
     <div class="guide-actions">
-      <Button href="/support/" icon="right">
-        Troubleshoot Setup
+      <Button href={href("/support/", locale)} icon="right">
+        排解設定問題
       </Button>
       <Button href={siteLinks.build} variant="quiet" icon="external">
-        Source Build Instructions
+        原始碼編譯說明
       </Button>
     </div>
   </GuideSection>

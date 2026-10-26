@@ -1,110 +1,108 @@
 import type { PageCopy } from "../types";
 
-// TRANSLATE: placeholder English copy; translate every string.
 export const ja: PageCopy = {
   chrome: {
-    breadcrumb: "Breadcrumb",
-    home: "Home",
-    guides: "Guides",
-    related: "Related guides",
+    breadcrumb: "パンくずリスト",
+    home: "ホーム",
+    guides: "ガイド",
+    related: "関連するガイド",
   },
   notFound: {
-    title: "Page not found — Airdraft",
-    heading: "This page doesn’t exist",
-    action: "Go to the homepage",
+    title: "ページが見つかりません — Airdraft",
+    heading: "このページは存在しません",
+    action: "ホームページへ",
   },
   hub: {
-    title: "Mac dictation setup and model guides | Airdraft",
+    title: "Mac の音声入力の設定とモデルのガイド | Airdraft",
     description:
-      "Practical Airdraft guides for offline Mac dictation in your language, mixed Chinese and English, dictating into Claude Code and terminals, local and cloud models, private meeting transcription, comparisons with other apps, and the free source build or official app.",
-    heading: "Dictation guides",
+      "Airdraft の実用ガイド。お使いの言語での Mac のオフライン音声入力、中国語と英語の混在、Claude Code やターミナルへの音声入力、ローカルとクラウドのモデル、会議のプライベートな文字起こし、ほかのアプリとの比較、無料のソースビルドと公式アプリの違いを解説します。",
+    heading: "音声入力ガイド",
     help: [
-      "Already set up and something is wrong?",
-      "Check permissions, shortcuts and common problems.",
+      "設定は済んだのに、うまく動きませんか？",
+      "権限、ショートカット、よくある問題を確認しましょう。",
     ],
-    pricing: "Compare Pricing",
-    changes: "See What Changed",
+    pricing: "価格を比べる",
+    changes: "変更点を見る",
   },
   support: {
-    title: "Support — Airdraft",
+    title: "サポート — Airdraft",
     description:
-      "Fix common Airdraft problems with permissions, shortcuts and models, or report a bug.",
-    heading: "Support",
+      "権限、ショートカット、モデルに関する Airdraft のよくある問題を解決するか、不具合を報告できます。",
+    heading: "サポート",
   },
   privacy: {
-    title: "Privacy | Airdraft",
+    title: "プライバシー | Airdraft",
     description:
-      "How Airdraft handles dictation data, optional app usage data and website analytics, and how to change either choice.",
-    heading: "Privacy",
+      "Airdraft が音声入力のデータ、任意のアプリの使用状況データ、ウェブサイト分析をどう扱うか、またそれぞれの選択を変更する方法を説明します。",
+    heading: "プライバシー",
   },
   changelog: {
-    title: "Changelog — Airdraft",
+    title: "更新履歴 — Airdraft",
     description:
-      "Airdraft release history, from the first source build to speech models per profile, local intelligence and a new native interface.",
-    heading: "Changelog",
-    nav: "Release versions",
-    latest: "Latest release",
-    source: "Source",
-    releaseNotes: "Release notes",
-    initialSource: "Initial source",
-    sourceFor: (label, version) => `${label} for ${version}`,
-    firstBuild: "the first source build",
+      "Airdraft のリリース履歴。最初のソースビルドから、モードごとの音声モデル、ローカルのインテリジェンス、新しいネイティブのインターフェイスまで。",
+    heading: "更新履歴",
+    nav: "リリースのバージョン",
+    latest: "最新のリリース",
+    source: "ソース",
+    releaseNotes: "リリースノート",
+    initialSource: "最初のソース",
+    sourceFor: (label, version) =>
+      /^\d/.test(version) ? `${version} の${label}` : `${label}（${version}）`,
+    firstBuild: "最初のソースビルド",
     availability: [
-      "Published installers are personal-use builds signed with Apple Development, without notarization. See ",
-      "installation guidance",
-      ".",
+      "公開しているインストーラは、Apple Development で署名した個人利用向けのビルドで、公証は受けていません。詳しくは",
+      "インストールの案内",
+      "をご覧ください。",
     ],
   },
   guides: {
     "offline-dictation-on-mac": {
-      title: "Set up offline dictation on your Mac",
+      title: "Mac でオフライン音声入力を設定する",
       description:
-        "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
+        "ローカルの音声認識と任意のローカル AI による整形で Airdraft を設定します。Mac の要件、選ぶべきモデル、Airdraft 独自の英語・日本語・韓国語の計測、権限、モードを確認できます。",
       summary:
-        "Choose a speech model for your language, keep cleanup local, and make your first dictation.",
+        "お使いの言語に合う音声モデルを選び、整形もローカルにして、最初の音声入力をします。",
     },
     "mixed-chinese-english-dictation": {
-      title: "Dictate mixed Chinese and English on a Mac",
+      title: "Mac で中国語と英語を混ぜて音声入力する",
       description:
-        "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
+        "標準中国語に英語の用語が混ざる文に向いたローカル音声モデルを選びます。Airdraft 独自の計測で、誤り率、残った英語の用語、サイズ、メモリ、速度を比べています。",
       summary:
-        "Pick a local model for mixed Mandarin and English, with Airdraft's own measured trade-offs.",
+        "標準中国語と英語の混在に向いたローカルモデルを、Airdraft 独自の計測から選びます。",
     },
     "dictate-to-claude-code-and-terminals": {
-      title: "Dictate prompts into Claude Code, Codex and terminals",
+      title: "Claude Code、Codex、ターミナルにプロンプトを音声入力する",
       description:
-        "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
+        "Mac で Claude Code、Codex、ターミナルアプリにプロンプトを話して入力します。自前でテキストを描画するターミナルへのペーストの仕組み、契約中のプランでの整形、Mac の外に出るものを確認できます。",
       summary:
-        "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
+        "コーディングエージェントやターミナルにプロンプトを話して入力し、契約中のプランで整形します。",
     },
     "local-vs-cloud-dictation": {
-      title: "Choose local or cloud dictation",
+      title: "ローカルとクラウドの音声入力を選ぶ",
       description:
-        "Compare Airdraft's local and cloud speech and refinement options. See where audio, transcripts and enabled app context go before choosing a setup.",
-      summary:
-        "See where your audio and text go with each combination of models.",
+        "Airdraft のローカルとクラウドの音声認識と整形の選択肢を比べます。構成を選ぶ前に、音声、文字起こし、オンにしたアプリのコンテキストの送信先を確認できます。",
+      summary: "モデルの組み合わせごとに、音声とテキストの行き先を確認します。",
     },
     "free-source-or-official-app": {
-      title: "Choose the free source build or official app",
+      title: "無料のソースビルドか公式アプリかを選ぶ",
       description:
-        "Compare Airdraft's complete free source build with its one-time official app license, including setup, updates, Mac limits and current availability.",
+        "すべての機能を備えた Airdraft の無料のソースビルドと、買い切りの公式アプリのライセンスを比べます。セットアップ、アップデート、Mac の台数の上限、現在の提供状況を確認できます。",
       summary:
-        "Compare setup, updates and license terms, including what is available now.",
+        "セットアップ、アップデート、ライセンスの条件と、いま入手できるものを比べます。",
     },
     "private-meeting-transcription": {
-      title: "Transcribe meetings privately on your Mac",
+      title: "Mac で会議をプライベートに文字起こしする",
       description:
-        "Record app audio and your microphone or import a file, then transcribe it on your Mac with optional speaker labels. Check permissions, limits and exports.",
+        "アプリの音声とマイクを録音するかファイルを読み込み、Mac 上で文字起こしします。話者ラベルも任意で付けられます。権限、制限、書き出しを確認できます。",
       summary:
-        "Record a call or import a file, label speakers, and export subtitles.",
+        "通話を録音するかファイルを読み込み、話者を分けて、字幕を書き出します。",
     },
     "compare-mac-dictation-apps": {
-      title:
-        "Compare Airdraft with VoiceInk, Handy, Typeless and Apple Dictation",
+      title: "Airdraft と VoiceInk、Handy、Typeless、Apple の音声入力を比較",
       description:
-        "A dated comparison of Airdraft, VoiceInk, Handy, Typeless and Apple Dictation on macOS 27: price, source, where speech runs, meetings and where each is better.",
+        "macOS 27 での Airdraft、VoiceInk、Handy、Typeless、Apple の音声入力の日付つきの比較。価格、ソース、音声の処理場所、会議、それぞれが優れている点を確認できます。",
       summary:
-        "See prices, data flow and meeting support side by side, including where others are better.",
+        "価格、データの流れ、会議への対応を並べて比べます。ほかのアプリが優れている点も含みます。",
     },
   },
 };

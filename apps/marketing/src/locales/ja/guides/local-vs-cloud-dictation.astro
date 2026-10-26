@@ -3,7 +3,7 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { localizedPath, type Locale } from "../../../i18n";
 import { siteLinks } from "../../../data/site";
 
 const locale: Locale = "ja";
@@ -13,126 +13,123 @@ const guide = guidesFor(locale).find(
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="data-flow" title="What leaves your Mac?">
+  <GuideSection id="data-flow" title="Mac の外に出るものは？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare local and cloud data flow"
+      aria-label="ローカルとクラウドのデータの流れの比較"
     >
       <table class="guide-table">
-        <caption>Dictation processing with each combination</caption>
+        <caption>組み合わせごとの音声入力の処理</caption>
         <thead>
           <tr>
-            <th scope="col">Speech</th>
-            <th scope="col">Refinement</th>
-            <th scope="col">Sent to model providers</th>
+            <th scope="col">音声認識</th>
+            <th scope="col">整形</th>
+            <th scope="col">モデルのプロバイダに送られるもの</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Local</th>
-            <td>Local or off</td>
-            <td>No audio or transcript is sent to a cloud model.</td>
+            <th scope="row">ローカル</th>
+            <td>ローカルまたはオフ</td>
+            <td>音声も文字起こしもクラウドのモデルには送られません。</td>
           </tr>
           <tr>
-            <th scope="row">Local</th>
-            <td>Cloud</td>
-            <td>The transcript and refinement prompt. Audio stays local.</td>
+            <th scope="row">ローカル</th>
+            <td>クラウド</td>
+            <td>文字起こしと整形のプロンプト。音声はローカルに残ります。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud</th>
-            <td>Local or off</td>
-            <td>Audio goes to your speech provider for transcription.</td>
-          </tr>
-          <tr>
-            <th scope="row">Cloud</th>
-            <td>Cloud</td>
+            <th scope="row">クラウド</th>
+            <td>ローカルまたはオフ</td>
             <td>
-              Audio goes to the speech provider; text and its prompt go to the
-              refinement provider.
+              文字起こしのために、音声が音声認識のプロバイダに送られます。
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">クラウド</th>
+            <td>クラウド</td>
+            <td>
+              音声は音声認識のプロバイダに、テキストとそのプロンプトは整形のプロバイダに送られます。
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <p>
-      Some speech providers also receive your language selection and vocabulary
-      terms to guide transcription.
+      音声認識のプロバイダによっては、文字起こしの精度を上げるために、選んだ言語や語彙の用語も受け取ります。
     </p>
     <p>
-      Here, local means the model runs on this Mac. The table covers model
-      processing, not downloads, software updates or license requests.
+      ここでいうローカルとは、モデルがこの Mac
+      上で動くことです。この表はモデルによる処理についてのもので、ダウンロード、ソフトウェアのアップデート、ライセンスのリクエストは含みません。
     </p>
   </GuideSection>
 
   <GuideSection
     id="refinement-context"
-    title="What is in the refinement prompt?"
+    title="整形のプロンプトには何が入りますか？"
   >
     <p>
-      Refinement uses the transcript, profile instructions and vocabulary. With
-      Read app context enabled, available context can also include the active
-      app, window title, URL, selected text, text near the cursor and terms from
-      recent dictations in the same app.
+      整形には、文字起こし、モードの指示、語彙を使います。「アプリのコンテキストを読み取る」をオンにすると、使用中のアプリ、ウインドウのタイトル、URL、選択したテキスト、カーソル付近のテキスト、同じアプリでの最近の音声入力に含まれる用語も、取得できる範囲で含まれます。
     </p>
     <p>
-      Turn off Read app context in Settings to leave that context out. Claude
-      Code and Codex refinement also use an external service: the CLI runs on
-      your Mac, its model does not.
+      これらを含めたくない場合は、「設定」で「アプリのコンテキストを読み取る」をオフにします。Claude
+      Code と Codex による整形も外部のサービスを使います。CLI は Mac
+      上で動きますが、そのモデルは Mac 上では動きません。
     </p>
   </GuideSection>
 
-  <GuideSection id="choose" title="Which setup fits my needs?">
+  <GuideSection id="choose" title="どの構成が合っていますか？">
     <dl class="guide-decisions">
       <div>
-        <dt>Keep dictation processing on this Mac</dt>
+        <dt>音声入力の処理をこの Mac の中で完結させる</dt>
         <dd>
-          Choose a local speech model and local refinement, or turn refinement
-          off. Install the required models first. Follow the{" "}
-          <a href="/guides/offline-dictation-on-mac/">offline setup guide</a>.
+          ローカルの音声モデルとローカルの整形を選ぶか、整形をオフにします。必要なモデルを先にインストールしてください。手順は
+          <a href={localizedPath("/guides/offline-dictation-on-mac/", locale)}>
+            オフライン設定ガイド
+          </a>
+          をご覧ください。
         </dd>
       </div>
       <div>
-        <dt>Keep audio local and use a cloud text model</dt>
+        <dt>音声はローカルに残し、テキストはクラウドのモデルで整える</dt>
         <dd>
-          Combine local speech with cloud refinement. This shares the transcript
-          and its prompt while keeping the recording out of the cloud speech
-          service.
+          ローカルの音声認識とクラウドの整形を組み合わせます。共有されるのは文字起こしとそのプロンプトで、録音はクラウドの音声認識サービスに送られません。
         </dd>
       </div>
       <div>
-        <dt>Avoid local model downloads</dt>
+        <dt>ローカルモデルをダウンロードしない</dt>
         <dd>
-          Choose cloud speech and cloud refinement. You need connectivity and
-          the providers' required credentials; their usage charges are separate
-          from Airdraft's license.
+          クラウドの音声認識とクラウドの整形を選びます。インターネット接続と各プロバイダが求める認証情報が必要で、その利用料金は
+          Airdraft のライセンスとは別です。
         </dd>
       </div>
     </dl>
     <p>
-      Check your active profile too: a profile's own speech model overrides the
-      app default in Models, and changing the default does not replace it.
+      使用中のモードも確認してください。モードに設定した音声モデルは「モデル」のアプリのデフォルトより優先され、デフォルトを変えても置き換わりません。
     </p>
   </GuideSection>
 
-  <GuideSection id="storage" title="Where are keys and history stored?">
+  <GuideSection id="storage" title="キーと履歴はどこに保存されますか？">
     <p>
-      Provider API keys are stored in the macOS Keychain. Dictation history is
-      local and searchable. Audio history is opt-in, with retention choices of
-      1, 7 or 30 days, or until deleted. Turning audio retention off removes
-      saved audio while keeping the text history.
+      プロバイダの API キーは macOS
+      のキーチェーンに保存されます。音声入力の履歴はローカルにあり、検索できます。音声の保存は任意で、保存期間は
+      1 日、7 日、30
+      日、または削除するまでから選べます。音声の保存をオフにすると、保存済みの音声は削除され、テキストの履歴は残ります。
     </p>
     <p>
-      Cloud providers apply their own data policies and billing. A local copy in
-      History does not undo a request already sent to a provider.
+      クラウドのプロバイダには、それぞれのデータポリシーと料金が適用されます。「履歴」にローカルのコピーがあっても、すでにプロバイダに送ったリクエストは取り消せません。
     </p>
     <div class="guide-actions">
-      <Button href="/pricing/#provider-costs" icon="right">
-        Compare Setup Costs
+      <Button
+        href={localizedPath("/pricing/", locale) + "#provider-costs"}
+        icon="right"
+      >
+        構成ごとの費用を比べる
       </Button>
       <Button href={siteLinks.source} variant="quiet" icon="external">
-        Inspect the Source
+        ソースを確認する
       </Button>
     </div>
   </GuideSection>

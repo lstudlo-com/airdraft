@@ -8,68 +8,64 @@ import { localizedPath, type Locale } from "../../i18n";
 const locale: Locale = "zh-cn";
 ---
 
-<GuideSection id="problems" title="Common problems">
+<GuideSection id="problems" title="常见问题">
   <div class="question-list">
-    <Disclosure summary="Nothing appears after I let go">
+    <Disclosure summary="松开快捷键后什么都没出现">
       <p>
-        Airdraft needs Accessibility to insert text. Turn it on in System
-        Settings ▸ Privacy & Security ▸ Accessibility.
+        Airdraft
+        需要辅助功能权限才能插入文字。请在「系统设置」▸「隐私与安全性」▸「辅助功能」中开启。
       </p>
       <p>
-        If you rebuilt the app with different signing, the old grant no longer
-        applies. Run{" "}
-        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>, then
-        grant it again.
-      </p>
-    </Disclosure>
-    <Disclosure summary="Nothing is recorded">
-      <p>
-        Allow Microphone when macOS asks. Choose the input from the window
-        toolbar, the menu bar, or Settings ▸ Microphone.
+        如果你用不同的签名重新编译了 App，之前授予的权限就不再适用。请运行{" "}
+        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>
+        ，然后重新授权。
       </p>
     </Disclosure>
-    <Disclosure summary="The first dictation takes a minute">
+    <Disclosure summary="什么都没录到">
       <p>
-        After a model downloads, its first run compiles it for the Neural
-        Engine. The recording pill shows “Loading model” until it’s ready.
+        macOS
+        询问时请允许使用麦克风。可以在窗口工具栏、菜单栏或「设置」▸「麦克风」中选择输入设备。
       </p>
     </Disclosure>
-    <Disclosure summary="Local refinement is slow">
+    <Disclosure summary="第一次听写要等一分钟">
       <p>
-        Reasoning models can think for 10 to 60 seconds before a one-line
-        cleanup. Keep “Disable model thinking” on.
+        模型下载后第一次运行时，会先为 Neural Engine
+        编译。准备好之前，录音胶囊会显示「加载中」。
       </p>
     </Disclosure>
-    <Disclosure summary="The fn key doesn’t work as a shortcut">
+    <Disclosure summary="本机润色很慢">
       <p>
-        Set System Settings ▸ Keyboard ▸ “Press 🌐 key to” to “Do Nothing”.
-        Shortcuts made of a single modifier key also need Accessibility.
+        推理模型在一行简单整理之前可能要思考 10 到 60
+        秒。请在「模型」▸「润色」中把「思考强度」保持为「关闭」。
       </p>
     </Disclosure>
-    <Disclosure summary="Chinese comes out in the wrong script">
-      <p>Choose the script in Models ▸ Speech options ▸ Chinese script.</p>
+    <Disclosure summary="fn 键不能当快捷键">
+      <p>
+        在「系统设置」▸「键盘」中，把「按下 🌐
+        键以」设为「不执行任何操作」。只用单个修饰键的快捷键也需要辅助功能权限。
+      </p>
+    </Disclosure>
+    <Disclosure summary="中文输出成了另一种字形">
+      <p>在「模型」▸「语音选项」▸「中文简繁体」中选择简体或繁体。</p>
     </Disclosure>
   </div>
 </GuideSection>
 
-<GuideSection id="report" title="Still stuck?">
-  <p>
-    Open an issue with your macOS version and the speech and refinement models
-    you use.
-  </p>
+<GuideSection id="report" title="还是没解决？">
+  <p>请提交一个 issue，写明你的 macOS 版本，以及所用的语音识别和润色模型。</p>
   <div class="support-actions">
     <Button href={siteLinks.issues} icon="external">
-      Open an Issue
+      提交 Issue
     </Button>
     <Button
       href={localizedPath("/guides/offline-dictation-on-mac/", locale)}
       variant="quiet"
       icon="right"
     >
-      Local Setup Guide
+      本机设置指南
     </Button>
     <Button href={siteLinks.build} variant="quiet" icon="external">
-      Build Instructions
+      编译说明
     </Button>
   </div>
 </GuideSection>

@@ -3,7 +3,7 @@ import GuideLayout from "../../../layouts/GuideLayout.astro";
 import GuideSection from "../../../components/GuideSection.astro";
 import Button from "../../../components/ui/Button.astro";
 import { guidesFor } from "../../../data/guides";
-import type { Locale } from "../../../i18n";
+import { href, type Locale } from "../../../i18n";
 import { siteLinks } from "../../../data/site";
 
 const locale: Locale = "zh-tw";
@@ -13,126 +13,114 @@ const guide = guidesFor(locale).find(
 ---
 
 <GuideLayout guide={guide}>
-  <GuideSection id="data-flow" title="What leaves your Mac?">
+  <GuideSection id="data-flow" title="哪些資料會離開 Mac？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare local and cloud data flow"
+      aria-label="本機與雲端資料去向比較"
     >
       <table class="guide-table">
-        <caption>Dictation processing with each combination</caption>
+        <caption>各種組合的聽寫處理方式</caption>
         <thead>
           <tr>
-            <th scope="col">Speech</th>
-            <th scope="col">Refinement</th>
-            <th scope="col">Sent to model providers</th>
+            <th scope="col">語音辨識</th>
+            <th scope="col">潤稿</th>
+            <th scope="col">送到模型供應商的資料</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">Local</th>
-            <td>Local or off</td>
-            <td>No audio or transcript is sent to a cloud model.</td>
+            <th scope="row">本機</th>
+            <td>本機或關閉</td>
+            <td>音訊與逐字稿都不會送到雲端模型。</td>
           </tr>
           <tr>
-            <th scope="row">Local</th>
-            <td>Cloud</td>
-            <td>The transcript and refinement prompt. Audio stays local.</td>
+            <th scope="row">本機</th>
+            <td>雲端</td>
+            <td>逐字稿與潤稿提示詞；音訊留在本機。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud</th>
-            <td>Local or off</td>
-            <td>Audio goes to your speech provider for transcription.</td>
+            <th scope="row">雲端</th>
+            <td>本機或關閉</td>
+            <td>音訊送到語音供應商轉錄。</td>
           </tr>
           <tr>
-            <th scope="row">Cloud</th>
-            <td>Cloud</td>
-            <td>
-              Audio goes to the speech provider; text and its prompt go to the
-              refinement provider.
-            </td>
+            <th scope="row">雲端</th>
+            <td>雲端</td>
+            <td>音訊送到語音供應商；文字與提示詞送到潤稿供應商。</td>
           </tr>
         </tbody>
       </table>
     </div>
+    <p>部分語音供應商也會收到你選的語言與詞彙，用來輔助轉錄。</p>
     <p>
-      Some speech providers also receive your language selection and vocabulary
-      terms to guide transcription.
-    </p>
-    <p>
-      Here, local means the model runs on this Mac. The table covers model
-      processing, not downloads, software updates or license requests.
+      這裡的「本機」是指模型在這台 Mac
+      上執行。表格只涵蓋模型處理，不包括下載、軟體更新或授權請求。
     </p>
   </GuideSection>
 
-  <GuideSection
-    id="refinement-context"
-    title="What is in the refinement prompt?"
-  >
+  <GuideSection id="refinement-context" title="潤稿提示詞裡有什麼？">
     <p>
-      Refinement uses the transcript, profile instructions and vocabulary. With
-      Read app context enabled, available context can also include the active
-      app, window title, URL, selected text, text near the cursor and terms from
-      recent dictations in the same app.
+      潤稿使用逐字稿、模式指示與詞彙。開啟「讀取 App
+      情境」時，可用的情境還可能包括目前的
+      App、視窗標題、網址、選取的文字、游標附近的文字，以及同一個 App
+      中最近幾次聽寫的詞語。
     </p>
     <p>
-      Turn off Read app context in Settings to leave that context out. Claude
-      Code and Codex refinement also use an external service: the CLI runs on
-      your Mac, its model does not.
+      在「設定」關閉「讀取 App 情境」，就不會帶入這些情境。以 Claude Code 或
+      Codex 潤稿時也會用到外部服務：CLI 在你的 Mac 上執行，但它的模型不在 Mac
+      上。
     </p>
   </GuideSection>
 
-  <GuideSection id="choose" title="Which setup fits my needs?">
+  <GuideSection id="choose" title="哪種組合適合我？">
     <dl class="guide-decisions">
       <div>
-        <dt>Keep dictation processing on this Mac</dt>
+        <dt>聽寫處理全部留在這台 Mac</dt>
         <dd>
-          Choose a local speech model and local refinement, or turn refinement
-          off. Install the required models first. Follow the{" "}
-          <a href="/guides/offline-dictation-on-mac/">offline setup guide</a>.
+          選擇本機語音模型與本機潤稿，或關閉潤稿。請先安裝所需的模型，步驟請看{" "}
+          <a href={href("/guides/offline-dictation-on-mac/", locale)}>
+            離線設定指南
+          </a>
+          。
         </dd>
       </div>
       <div>
-        <dt>Keep audio local and use a cloud text model</dt>
+        <dt>音訊留在本機，文字交給雲端模型</dt>
         <dd>
-          Combine local speech with cloud refinement. This shares the transcript
-          and its prompt while keeping the recording out of the cloud speech
-          service.
+          搭配本機語音辨識與雲端潤稿。這樣會分享逐字稿與提示詞，但錄音不會送到雲端語音服務。
         </dd>
       </div>
       <div>
-        <dt>Avoid local model downloads</dt>
+        <dt>不想下載本機模型</dt>
         <dd>
-          Choose cloud speech and cloud refinement. You need connectivity and
-          the providers' required credentials; their usage charges are separate
-          from Airdraft's license.
+          選擇雲端語音辨識與雲端潤稿。你需要網路連線與供應商要求的憑證；它們的用量費用與
+          Airdraft 授權分開計算。
         </dd>
       </div>
     </dl>
     <p>
-      Check your active profile too: a profile's own speech model overrides the
-      app default in Models, and changing the default does not replace it.
+      也請檢查目前的模式：模式自己的語音模型會優先於「模型」中的 App
+      預設值，更改預設值不會取代它。
     </p>
   </GuideSection>
 
-  <GuideSection id="storage" title="Where are keys and history stored?">
+  <GuideSection id="storage" title="金鑰與記錄存在哪裡？">
     <p>
-      Provider API keys are stored in the macOS Keychain. Dictation history is
-      local and searchable. Audio history is opt-in, with retention choices of
-      1, 7 or 30 days, or until deleted. Turning audio retention off removes
-      saved audio while keeping the text history.
+      供應商 API 金鑰存在 macOS
+      鑰匙圈。聽寫記錄存在本機，可以搜尋。音訊記錄需自行開啟，保留期限可選 1、7
+      或 30 天，或直到刪除。關閉音訊保留會移除已儲存的音訊，文字記錄仍會保留。
     </p>
     <p>
-      Cloud providers apply their own data policies and billing. A local copy in
-      History does not undo a request already sent to a provider.
+      雲端供應商適用它們自己的資料政策與計費方式。「記錄」中的本機副本，無法撤回已經送到供應商的請求。
     </p>
     <div class="guide-actions">
-      <Button href="/pricing/#provider-costs" icon="right">
-        Compare Setup Costs
+      <Button href={href("/pricing/#provider-costs", locale)} icon="right">
+        比較各種組合的費用
       </Button>
       <Button href={siteLinks.source} variant="quiet" icon="external">
-        Inspect the Source
+        查看原始碼
       </Button>
     </div>
   </GuideSection>

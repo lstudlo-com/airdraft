@@ -21,7 +21,6 @@ const locale: Locale = "zh-tw";
 const guide = guidesFor(locale).find(
   (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
 )!;
-const zh = locale === "zh-tw";
 const english = ejaAsrResults.en;
 const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
 const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
@@ -159,10 +158,10 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
       部分 Codex 版本仍會把你的全域 AGENTS.md 加進潤稿請求。若介意，請改用
       Claude
       Code、本機潤稿，或在該模式關閉「潤飾逐字稿」。各種組合的完整資料去向，請看
-      <a href="/guides/local-vs-cloud-dictation/" hreflang="en">
+      <a href={href("/guides/local-vs-cloud-dictation/", locale)}>
         本機或雲端聽寫指南
       </a>
-      （英文）。
+      。
     </p>
   </GuideSection>
 
@@ -175,10 +174,10 @@ const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
       {percent(qwen.auto.value)} 在誤差範圍內；Qwen3-ASR 1.7B
       還能辨識其他語言，記憶體用量約 3
       GB。測量用的是朗讀的維基百科句子，不是提示詞，方法與限制請看
-      <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
+      <a href={href("/guides/offline-dictation-on-mac/#measured", locale)}>
         離線聽寫指南
       </a>
-      （英文）。0.11.0 及更早版本推薦的是當時安裝的 SenseVoice，也就是現在顯示為
+      。0.11.0 及更早版本推薦的是當時安裝的 SenseVoice，也就是現在顯示為
       SenseVoice Cantonese 的粵語微調版。
     </p>
     <p>

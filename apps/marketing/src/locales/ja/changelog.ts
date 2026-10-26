@@ -1,711 +1,711 @@
 import type { ChangelogText } from "../../data/changelog";
 
-// TRANSLATE: placeholder English copy; translate every title and description.
 // One entry per release id in src/data/changelog.ts, with the same number of
-// changes in the same order.
+// changes in the same order. App labels are the app's ja catalog values;
+// releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
   "0-14-0": {
-    title: "Spanish, Japanese and better defaults in every language",
+    title: "スペイン語、日本語、すべての言語でより良いデフォルト",
     changes: [
       {
-        title: "Use Airdraft in Spanish or Japanese",
+        title: "Airdraft をスペイン語や日本語で使う",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Spanish and Japanese, following your Mac's language. Shortcut instructions are written as whole sentences in each language, and controls widen to fit longer labels.",
+          "インターフェイス、ネイティブのメニュー、App ショートカットのフレーズがスペイン語と日本語に対応し、Mac の言語に合わせて表示されます。ショートカットの説明は各言語で完全な文として書かれ、長いラベルに合わせてコントロールの幅が広がります。",
       },
       {
-        title: "Defaults that fit your language",
+        title: "言語に合ったデフォルト",
         description:
-          "A new setup on a Mac without Chinese no longer starts with Traditional Chinese script or a Taiwanese Apple Speech locale; the Chinese script setting applies only to Mandarin and Cantonese and appears only there. Live preview lists every language your Mac supports.",
+          "中国語を使っていない Mac の新しい設定が、繁体字の中国語表記や台湾の Apple Speech の地域で始まることはなくなりました。「中国語の表記」は標準中国語と広東語にだけ適用され、そのときだけ表示されます。「ライブプレビュー」には Mac が対応するすべての言語が表示されます。",
       },
       {
-        title: "Recommended local models for seven more languages",
+        title: "さらに 7 言語でおすすめのローカルモデル",
         description:
-          "First-run setup and Models recommend from Airdraft's own measurement in Spanish, French, Portuguese, Russian, Arabic, Hindi and Indonesian: Qwen3-ASR 1.7B, with lighter choices on Macs with 8 GB of memory or less (Parakeet TDT v3, GigaAM v3 or Whisper Large v3 Turbo, by language).",
+          "初回設定と「モデル」は、スペイン語、フランス語、ポルトガル語、ロシア語、アラビア語、ヒンディー語、インドネシア語で、Airdraft 独自の計測に基づいて Qwen3-ASR 1.7B を勧めます。メモリが 8 GB 以下の Mac では、言語に応じてより軽い選択肢（Parakeet TDT v3、GigaAM v3、Whisper Large v3 Turbo）を勧めます。",
       },
       {
-        title: "Refinement keeps your language",
+        title: "整形が言語を変えない",
         description:
-          "Refinement is discarded for the raw transcript when it changes the language you spoke, in any script. Thai, Lao, Khmer and Burmese dictations are no longer skipped as too short, and setup no longer offers Apple Intelligence for a language it cannot write.",
+          "整形が話した言語を変えてしまった場合は、どの文字体系でも整形を破棄して元の文字起こしを使います。タイ語、ラオ語、クメール語、ビルマ語の音声入力が短すぎるとしてスキップされることはなくなり、Apple Intelligence が書けない言語では、初回設定で Apple Intelligence を勧めなくなりました。",
       },
     ],
   },
   "0-13-0": {
-    title: "Optional anonymous usage data and crash reports",
+    title: "任意の匿名の使用状況データとクラッシュレポート",
     changes: [
       {
-        title: "Choose whether to share anonymous usage data",
+        title: "匿名の使用状況データを共有するかを選ぶ",
         description:
-          "Downloads from airdraft.app ask once whether to share anonymous usage counts and crash reports, listing what is shared and what never is. Nothing is sent before you choose, Settings > Behavior turns it off at any time, and builds from source never send anything. Your words, transcripts, audio, vocabulary, app names, window titles, URLs, file paths and keys are never sent.",
+          "airdraft.app からのダウンロードでは、匿名の使用状況の集計とクラッシュレポートを共有するかを一度だけ尋ね、共有されるものと決して共有されないものを示します。選ぶまで何も送信されず、「設定」>「動作」でいつでもオフにでき、ソースからのビルドは何も送信しません。話した言葉、文字起こし、音声、語彙、アプリ名、ウインドウのタイトル、URL、ファイルパス、キーが送信されることはありません。",
       },
       {
-        title: "Live text from Apple Speech as the selected model",
+        title: "選択したモデルとしての Apple Speech のライブテキスト",
         description:
-          "When Apple Speech is your speech model and Live preview uses the selected model, live text now appears in the recording window and during meetings.",
+          "音声モデルが Apple Speech で、「ライブプレビュー」が選択したモデルを使う設定のとき、録音ウインドウと会議中にライブテキストが表示されるようになりました。",
       },
     ],
   },
   "0-12-1": {
-    title: "Steadier insertion on busy Macs",
+    title: "負荷の高い Mac でも安定した挿入",
     changes: [
       {
-        title: "Confirm the destination more reliably",
+        title: "入力先をより確実に確認",
         description:
-          "Before recording, Airdraft checks that the text field and cursor have stopped changing. It now also reads them twice in a row, so a slow or busy Mac cannot accept a field that is still moving and later report that the destination changed.",
+          "Airdraft は録音の前に、テキストフィールドとカーソルが動かなくなったことを確認します。さらに 2 回続けて読み取るようになったため、遅い Mac や負荷の高い Mac でも、まだ変化中のフィールドを受け入れて、あとで入力先が変わったと報告することはなくなりました。",
       },
     ],
   },
   "0-12-0": {
-    title: "Profiles by app, live text and Simplified Chinese",
+    title: "アプリごとのモード、ライブテキスト、簡体字中国語",
     changes: [
       {
-        title: "Choose a profile for each app",
+        title: "アプリごとにモードを選ぶ",
         description:
-          "Profiles > Profile by app maps an app, or a family such as code editors, terminals, email, chat or documents, to one of your profiles. It is off by default, and Home names a rule whose profile still needs setup.",
+          "「モード」>「アプリごとのモード」では、アプリや、コードエディタ、ターミナル、メール、チャット、書類などのカテゴリを、モードのひとつに割り当てられます。デフォルトはオフで、モードの設定がまだ必要なルールは「ホーム」に表示されます。",
       },
       {
-        title: "See live text from your local model",
+        title: "ローカルモデルのライブテキストを見る",
         description:
-          "Live preview can use the selected speech model (Parakeet, SenseVoice or Orukeet) as well as Apple Speech, in the recording window and while recording a meeting. The final transcript is unchanged.",
+          "「ライブプレビュー」では Apple Speech に加えて、選択した音声モデル（Parakeet、SenseVoice、Orukeet）も使えるようになり、録音ウインドウと会議の録音中に表示されます。最終的な文字起こしは変わりません。",
       },
       {
-        title: "Use Airdraft in Simplified Chinese",
+        title: "Airdraft を簡体字中国語で使う",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Simplified Chinese. A new setup on a Mac set to Simplified Chinese starts with Simplified script.",
+          "インターフェイス、ネイティブのメニュー、App ショートカットのフレーズが簡体字中国語に対応しました。簡体字中国語に設定した Mac の新しい設定は、簡体字の表記で始まります。",
       },
       {
-        title: "A better first model for English, Japanese and Korean",
+        title: "英語、日本語、韓国語に、より良い最初のモデル",
         description:
-          "First-run setup recommends Parakeet TDT v2 for English and Qwen3-ASR 1.7B for Japanese and Korean, based on Airdraft's own measurement. SenseVoice now installs the original multilingual model; the Cantonese fine-tune that 0.11.0 and earlier installed keeps working as SenseVoice Cantonese.",
+          "初回設定では、Airdraft 独自の計測に基づいて、英語に Parakeet TDT v2、日本語と韓国語に Qwen3-ASR 1.7B を勧めます。SenseVoice は元の多言語モデルをインストールするようになりました。0.11.0 以前がインストールしていた広東語向けのファインチューニング版は、SenseVoice Cantonese としてそのまま使えます。",
       },
       {
-        title: "Your vocabulary helps on-device recognition",
+        title: "語彙がデバイス上の音声認識を助ける",
         description:
-          "Qwen3-ASR, Parakeet and Orukeet use the spellings in Vocabulary while they recognize speech. Settings > Behavior turns this off.",
+          "Qwen3-ASR、Parakeet、Orukeet は、音声を認識するときに「語彙」の表記を使います。「設定」>「動作」でオフにできます。",
       },
       {
-        title: "Cleaner local transcripts",
+        title: "よりきれいなローカルの文字起こし",
         description:
-          "Repeated loops are cut, a wrongly detected language is retried, and SenseVoice and FireRedASR2 write English in normal case with punctuation. Japanese kanji are no longer converted to Chinese script, and refinement that turns Japanese or Korean into Chinese falls back to your transcript.",
+          "繰り返しのループはカットされ、誤って検出された言語は再試行され、SenseVoice と FireRedASR2 は英語を通常の大文字・小文字と句読点で書きます。日本語の漢字が中国語の表記に変換されることはなくなり、日本語や韓国語を中国語に変えてしまう整形は元の文字起こしに戻ります。",
       },
       {
-        title: "Meetings remember speaker names",
+        title: "会議で話者名を覚える",
         description:
-          "Speaker names you type are suggested in later meetings, and Summarize offers Brief Summary, Action Items, Decisions & Follow-ups and Meeting Minutes.",
+          "入力した話者名は以降の会議で候補に表示されます。「要約」では「簡単な要約」「アクションアイテム」「決定事項とフォローアップ」「議事録」を選べます。",
       },
       {
-        title: "A simpler Models page",
+        title: "よりシンプルな「モデル」ページ",
         description:
-          "Models opens with the recommendation for your language and a few alternatives, with Show All Models for the full list and full language names on every row.",
+          "「モデル」はお使いの言語へのおすすめといくつかの代わりの候補から始まり、「すべてのモデルを表示」で全体の一覧を表示できます。どの行にも言語名が省略せずに表示されます。",
       },
       {
-        title: "Paste into Ghostty 1.3 without an error",
+        title: "Ghostty 1.3 にエラーなしでペースト",
         description:
-          "Ghostty 1.3 shows a text cursor to Airdraft, which made every paste report that it couldn't be confirmed. It now gets one paste and no notice, like other terminals that draw their own text.",
+          "Ghostty 1.3 は Airdraft にテキストカーソルを見せるため、どのペーストも確認できなかったと報告していました。現在は、自前でテキストを描画するほかのターミナルと同じく、1 回ペーストして通知は出しません。",
       },
       {
-        title: "Lighter on memory",
+        title: "メモリの負担を軽く",
         description:
-          "When macOS reports memory pressure, idle local speech models and the LM Studio models Airdraft loaded are unloaded. A dictation in progress keeps its model.",
+          "macOS がメモリの逼迫を報告すると、使っていないローカル音声モデルと、Airdraft が読み込んだ LM Studio のモデルをアンロードします。進行中の音声入力はモデルを保持します。",
       },
     ],
   },
   "0-11-0": {
-    title: "Traditional Chinese interface and dependable delivery",
+    title: "繁体字中国語のインターフェイスと確実な入力",
     changes: [
       {
-        title: "Use Airdraft in Traditional Chinese",
+        title: "Airdraft を繁体字中国語で使う",
         description:
-          "The interface, native menus and App Shortcut phrases are available in Traditional Chinese (Taiwan) and follow the macOS language setting. Built-in profile names appear in the interface language until you rename them.",
+          "インターフェイス、ネイティブのメニュー、App ショートカットのフレーズが繁体字中国語（台湾）に対応し、macOS の言語設定に従います。内蔵のモードの名前は、名前を変更するまでインターフェイスの言語で表示されます。",
       },
       {
-        title: "Dictate again right after a paste",
+        title: "ペーストの直後にもう一度音声入力",
         description:
-          "A shortcut pressed while the clipboard was being restored or History was saving could be ignored. Airdraft is now ready as soon as delivery is confirmed, and a newer paste never brings back an older clipboard.",
+          "クリップボードを元に戻している間や「履歴」を保存している間に押したショートカットが、無視されることがありました。現在は入力が確認されるとすぐに準備が整い、新しいペーストが古いクリップボードを戻してしまうこともありません。",
       },
       {
-        title: "Paste into terminals that draw their own text",
+        title: "自前でテキストを描画するターミナルにペースト",
         description:
-          "Warp, Zed, Ghostty, kitty, Alacritty and WezTerm get one paste without an error, and History marks it Pasted, unconfirmed. Your clipboard returns after two seconds. Other apps without a visible cursor still keep the text on the clipboard with a recovery notice.",
+          "Warp、Zed、Ghostty、kitty、Alacritty、WezTerm には 1 回だけエラーなしでペーストし、「履歴」には「ペースト済み（未確認）」と記録されます。クリップボードは 2 秒後に元に戻ります。カーソルが見えないほかのアプリでは、引き続きテキストをクリップボードに残し、復元の通知を表示します。",
       },
       {
-        title: "Keep dictating while recordings wait",
+        title: "録音が待機中でも音声入力を続ける",
         description:
-          "A recording kept after a speech failure no longer blocks new dictation. Up to three recordings or 15 minutes of audio wait for retry or discard; when little room remains, the next recording stops early and says why.",
+          "音声認識に失敗して残った録音が、新しい音声入力を妨げることはなくなりました。最大 3 件の録音、または 15 分の音声が再試行か破棄を待てます。残りの余裕が少ないときは、次の録音は早めに止まり、その理由を表示します。",
       },
       {
-        title: "Clearer setup on Home and in onboarding",
+        title: "「ホーム」と初回設定でわかりやすい設定",
         description:
-          "Home counts an installed speech model as ready even before it loads, and names trial, license and kept-recording blockers. Try It now completes with a real dictation, and Ready offers Apple Intelligence refinement when the Mac supports it.",
+          "「ホーム」はインストール済みの音声モデルを読み込む前から準備完了として扱い、試用、ライセンス、残った録音による妨げを名前で示します。「試してみる」は実際の音声入力で完了するようになり、「準備完了」では Mac が対応していれば Apple Intelligence による整形を勧めます。",
       },
       {
-        title: "Recommended and verified local models",
+        title: "おすすめのローカルモデルと検証済みのローカルモデル",
         description:
-          "A Mac set to Chinese is recommended Qwen3-ASR 1.7B, or SenseVoice first with 8 GB of memory or less. Models opens with that recommendation and verified models, with the rest under Experimental. Qwen3-ASR and Whisper downloads are pinned and checked by size and SHA-256 before installation.",
+          "中国語に設定した Mac には Qwen3-ASR 1.7B を勧め、メモリが 8 GB 以下なら SenseVoice を先に勧めます。「モデル」はそのおすすめと検証済みのモデルから始まり、残りは「試験的」にまとめられます。Qwen3-ASR と Whisper のダウンロードは固定され、インストール前にサイズと SHA-256 が確認されます。",
       },
       {
-        title: "Adjust text size",
+        title: "テキストサイズを調整",
         description:
-          "Settings > Appearance > Text size offers Default, Large and Larger, and text wraps instead of clipping at larger sizes. Every control now has a VoiceOver name and state.",
+          "「設定」>「外観」>「テキストサイズ」で「標準」「大」「特大」を選べ、大きいサイズではテキストが切れずに折り返されます。すべてのコントロールに VoiceOver の名前と状態が付きました。",
       },
       {
-        title: "Start and save dictations faster",
+        title: "音声入力の開始と保存をより速く",
         description:
-          "The microphone opens as soon as setup checks pass, refinement prepares while you speak, and saving a dictation no longer scans stored audio. A long recording keeps its local speech model loaded until processing ends.",
+          "設定の確認が済むとすぐにマイクが開き、話している間に整形の準備が進み、音声入力の保存で保存済みの音声を走査することもなくなりました。長い録音では、処理が終わるまでローカル音声モデルが読み込まれたままになります。",
       },
       {
-        title: "Build Airdraft from source more easily",
+        title: "Airdraft をソースからより簡単にビルド",
         description:
-          "Settings > Updates > Acknowledgements lists third-party notices, and source builds now launch without the project's signing team.",
+          "「設定」>「アップデート」>「謝辞」にサードパーティの通知が表示され、ソースからのビルドはプロジェクトの署名チームなしで起動するようになりました。",
       },
     ],
   },
   "0-10-2": {
-    title: "Add AssemblyAI Universal-3.6 Pro preview",
+    title: "AssemblyAI Universal-3.6 Pro のプレビューを追加",
     changes: [
       {
-        title: "Choose the 3.6 Pro batch preview",
+        title: "3.6 Pro のバッチプレビューを選ぶ",
         description:
-          "Models and Profiles now offer Universal-3.6 Pro (Preview) through AssemblyAI's pre-recorded preview API. Universal-3.5 Pro remains available and keeps its saved selections. Preview availability and transcription quality still need verification with an AssemblyAI account.",
+          "「モデル」と「モード」で、AssemblyAI の録音済み音声向けプレビュー API を使う Universal-3.6 Pro (Preview) を選べるようになりました。Universal-3.5 Pro も引き続き使え、保存済みの選択もそのまま残ります。プレビューの提供状況と文字起こしの品質は、AssemblyAI のアカウントでの検証がまだ必要です。",
       },
       {
-        title: "Keep the selected speech model on the request",
+        title: "リクエストで選択した音声モデルを守る",
         description:
-          "AssemblyAI requests use the model you choose. Preview failures do not retry with 3.5 Pro, and a response that reports a different model version is rejected instead of being recorded as a successful 3.6 Pro transcription.",
+          "AssemblyAI へのリクエストは選んだモデルを使います。プレビューが失敗しても 3.5 Pro で再試行はせず、別のモデルのバージョンを報告した応答は、3.6 Pro の文字起こしの成功として記録せずに拒否します。",
       },
     ],
   },
   "0-10-1": {
-    title: "Recover stalled models and add Disco colors",
+    title: "止まったモデルからの回復と Disco の色",
     changes: [
       {
-        title: "Switch away from a stalled speech model",
+        title: "止まった音声モデルから切り替える",
         description:
-          "Model loading now has a two-minute limit. Cancelling or changing models frees the next selection while unfinished native work cleans up safely. A model still cleaning up stays protected from duplicate loading and deletion.",
+          "モデルの読み込みに 2 分の上限が付きました。キャンセルやモデルの変更で次の選択がすぐに使えるようになり、終わっていないネイティブの処理は安全に後片付けされます。後片付け中のモデルは、重複した読み込みと削除から保護されます。",
       },
       {
-        title: "Make recording colors respond to speech",
+        title: "録音の色を話し声に反応させる",
         description:
-          "The saved Disco switch adds flowing colors to Classic, Cube, Sonic, Orbit and Silk. Voice energy and syllable accents shape the palette, which settles during pauses and freezes during delivery. Reduce Motion keeps the colors still.",
+          "保存される Disco のスイッチで、Classic、Cube、Sonic、Orbit、Silk に流れるような色が加わります。声のエネルギーと音節のアクセントがパレットを形づくり、間があると落ち着き、入力中は止まります。「視差効果を減らす」では色は動きません。",
       },
     ],
   },
   "0-10-0": {
-    title: "More local speech models and guided setup",
+    title: "ローカル音声モデルの追加とガイド付きの設定",
     changes: [
       {
-        title: "Animated recording-window choices",
+        title: "アニメーションする録音ウインドウの選択肢",
         description:
-          "Mini is now Classic, with an animated Settings preview and the same capsule size as the other styles. Larger preview tiles show all five styles, including Orbit’s interlocking silver rings and Silk’s folded metallic ribbon.",
+          "Mini は Classic になり、「設定」でアニメーションのプレビューが表示され、ほかのスタイルと同じカプセルのサイズになりました。大きくなったプレビューのタイルで 5 つのスタイルすべてを確認でき、Orbit の組み合わさった銀のリングや Silk の折り重なった金属のリボンも見られます。",
       },
       {
-        title: "More on-device speech models",
+        title: "デバイス上の音声モデルを追加",
         description:
-          "The local catalogue adds Whisper Large v3, compressed Turbo, pinned GGUF and Core ML choices, Distil-Whisper and Orukeet. Models, Profiles and Meetings share the exact model selection, language limits and download checks.",
+          "ローカルのカタログに Whisper Large v3、圧縮版 Turbo、固定された GGUF と Core ML の選択肢、Distil-Whisper、Orukeet が加わりました。「モデル」「モード」「会議」は、モデルの選択、言語の制限、ダウンロードの確認を共有します。",
       },
       {
-        title: "Learn dictation step by step",
+        title: "音声入力を一歩ずつ学ぶ",
         description:
-          "Six optional setup steps guide you through choosing speech, permissions, shortcut practice and your first dictation. Model downloads continue between steps, and shortcut rehearsal pauses recording.",
+          "任意の 6 つの設定ステップで、音声認識の選択、権限、ショートカットの練習、最初の音声入力を案内します。モデルのダウンロードはステップの間も続き、ショートカットの練習中は録音が止まります。",
       },
       {
-        title: "Clearer meetings and consistent controls",
+        title: "わかりやすい会議と統一されたコントロール",
         description:
-          "Meeting cards keep the next action beside a compact player. Transcript editing has fixed header and footer actions, while buttons, pickers and text fields share one rounded shape.",
+          "会議のカードでは、次の操作がコンパクトなプレーヤーの横に表示されます。文字起こしの編集画面のヘッダとフッタの操作は固定され、ボタン、ピッカー、テキストフィールドは同じ角丸の形になりました。",
       },
     ],
   },
   "0-9-1": {
-    title: "Fix meeting audio and controls",
+    title: "会議の音声とコントロールを修正",
     changes: [
       {
-        title: "Read and choose meeting apps",
+        title: "会議のアプリを見やすく選ぶ",
         description:
-          "The app chooser now gives each app a full-height row, grows as sources load and scrolls longer lists. Refresh, empty states and errors remain visible.",
+          "アプリの選択画面では、各アプリが十分な高さの行で表示され、ソースが読み込まれるにつれて広がり、長い一覧はスクロールします。更新、空の状態、エラーは表示されたままです。",
       },
       {
-        title: "Hear new recordings in both channels",
+        title: "新しい録音を両方のチャンネルで聞く",
         description:
-          "New and recovered meetings mix microphone and app audio into identical left and right channels. Previously saved files stay unchanged. Meeting meters now use the same linear response and ten-cell display as the microphone picker.",
+          "新しい会議と復元した会議は、マイクとアプリの音声を左右同じチャンネルにミックスします。以前に保存したファイルは変わりません。会議のメーターは、マイクのピッカーと同じ線形の反応と 10 セルの表示になりました。",
       },
       {
-        title: "Keep primary controls consistent",
+        title: "主要なコントロールを統一",
         description:
-          "Recording, transcription and transcript-save actions use blue raised capsules with the same pressed and disabled states as Airdraft’s other neumorphic buttons.",
+          "録音、文字起こし、文字起こしの保存の操作は、Airdraft のほかのニューモーフィズムのボタンと同じ押下時と無効時の状態を持つ、青い浮き出たカプセルになりました。",
       },
     ],
   },
   "0-9-0": {
-    title: "A dedicated home for meetings",
+    title: "会議専用のページ",
     changes: [
       {
-        title: "Find every meeting and transcript",
+        title: "すべての会議と文字起こしを見つける",
         description:
-          "Meetings now has its own sidebar page. Each recording has a direct transcription action, saved transcript versions, recovery controls, Finder access and audio export. History stays focused on dictation.",
+          "「会議」がサイドバーの独立したページになりました。各録音には、文字起こしの直接の操作、保存された文字起こしのバージョン、復元の操作、Finder での表示、音声の書き出しがあります。「履歴」は音声入力に専念します。",
       },
       {
-        title: "Choose more local transcription models",
+        title: "選べるローカルの文字起こしモデルを追加",
         description:
-          "Speaker-labelled media transcription supports eight local model choices, including both Qwen3-ASR sizes, Cohere, SenseVoice, FireRed, Parakeet and Apple Speech alongside Whisper Turbo. Additional engines show segment timestamps; Whisper retains word timestamps.",
+          "話者ラベル付きのメディアの文字起こしは、Whisper Turbo に加えて、Qwen3-ASR の両サイズ、Cohere、SenseVoice、FireRed、Parakeet、Apple Speech を含む 8 つのローカルモデルに対応します。追加のエンジンは区間ごとのタイムスタンプを表示し、Whisper は単語ごとのタイムスタンプを残します。",
       },
       {
-        title: "Start recording with fewer steps",
+        title: "少ない手順で録音を始める",
         description:
-          "A compact meeting sheet lets you select app audio and include your microphone. The app chooser opens immediately, and saved recordings stay visible after restarting. Models now appears above Settings, the new name for Configuration.",
+          "コンパクトな会議のシートで、アプリの音声を選び、マイクを含められます。アプリの選択画面はすぐに開き、保存した録音は再起動後も表示されます。「モデル」は、Configuration の新しい名前である「設定」の上に表示されるようになりました。",
       },
       {
-        title: "More cloud speech choices and clearer recovery",
+        title: "クラウド音声認識の選択肢の追加とわかりやすい復元",
         description:
-          "Native speech integrations add AssemblyAI, Cartesia, Speechmatics, xAI, Mistral and Gemini. Blocked data and recovery screens now allow normal quitting while active cleanup remains protected.",
+          "ネイティブの音声認識の連携に AssemblyAI、Cartesia、Speechmatics、xAI、Mistral、Gemini が加わりました。データがブロックされた画面や復元の画面でも通常どおり終了でき、実行中のクリーンアップは保護されたままです。",
       },
     ],
   },
   "0-8-1": {
-    title: "Recover text when a paste cannot be confirmed",
+    title: "ペーストを確認できないときにテキストを復元",
     changes: [
       {
-        title: "Keep unconfirmed text available",
+        title: "確認できなかったテキストを残す",
         description:
-          "Airdraft now checks the destination text before reporting a successful paste. If an editor ignores the paste or cannot expose its text, your transcript stays on the clipboard and a recovery notice appears. Check the destination before pasting again; Airdraft never retries an uncertain paste automatically.",
+          "Airdraft はペーストの成功を報告する前に、入力先のテキストを確認するようになりました。エディタがペーストを無視したり、テキストを公開できなかったりした場合、文字起こしはクリップボードに残り、復元の通知が表示されます。もう一度ペーストする前に入力先を確認してください。Airdraft が不確かなペーストを自動で再試行することはありません。",
       },
       {
-        title: "Preserve recovery details in History",
+        title: "「履歴」に復元の詳細を残す",
         description:
-          "History saves the transcript and delivery diagnostic when a paste cannot be confirmed, including after successful refinement. If another app changes the clipboard, its newer content is preserved and the notice points you to History.",
+          "ペーストを確認できなかったとき、整形が成功した場合も含めて、「履歴」は文字起こしと入力の診断を保存します。ほかのアプリがクリップボードを変更した場合は、その新しい内容を残し、通知で「履歴」を案内します。",
       },
     ],
   },
   "0-8-0": {
-    title: "Recordings, meeting capture and configuration search",
+    title: "録音、会議の録音、設定の検索",
     changes: [
       {
-        title: "Keep audio independently of transcripts",
+        title: "音声を文字起こしとは別に残す",
         description:
-          "Browse and export recordings, import media, edit speaker transcripts and capture meeting audio. Saved audio remains available for transcription and recovery, with separate cleanup controls for recordings and text.",
+          "録音の閲覧と書き出し、メディアの読み込み、話者ごとの文字起こしの編集、会議の音声の録音ができます。保存した音声は文字起こしと復元に使え、録音とテキストにはそれぞれ別のクリーンアップの操作があります。",
       },
       {
-        title: "Find settings and choose your recording window",
+        title: "設定を探し、録音ウインドウを選ぶ",
         description:
-          "Search Configuration by setting name or description. Choose Mini, Cube or Sonic recording windows, enable an optional timer, and select separate light and dark app icons.",
+          "Configuration を設定の名前や説明で検索できます。録音ウインドウに Mini、Cube、Sonic を選び、任意のタイマーをオンにし、ライトとダークで別のアプリアイコンを選べます。",
       },
       {
-        title: "Protect privacy and interrupted work",
+        title: "プライバシーと中断した作業を守る",
         description:
-          "Provider redirect checks, browser context boundaries and interrupted cleanup recovery are stricter. Shared busy-state checks protect active operations, while History scrolling and recovery notices receive reliability fixes.",
+          "プロバイダのリダイレクトの確認、ブラウザのコンテキストの境界、中断したクリーンアップからの復元がより厳しくなりました。共通のビジー状態の確認が実行中の操作を守り、「履歴」のスクロールと復元の通知の信頼性も改善しました。",
       },
     ],
   },
   "0-7-0": {
-    title: "Hold to start with Trigger Delay",
+    title: "Trigger Delay で長押ししてから開始",
     changes: [
       {
-        title: "Prevent accidental dictation",
+        title: "誤って音声入力が始まるのを防ぐ",
         description:
-          "Set Trigger Delay from 0 to 1000 ms in Configuration. Short presses keep the shortcut key’s normal action; holding past the delay starts dictation. The default is off, and stopping stays immediate.",
+          "Configuration で Trigger Delay を 0〜1000 ms に設定できます。短く押したときはショートカットのキーの通常の動作のままで、遅延より長く押すと音声入力が始まります。デフォルトはオフで、停止はすぐに行われます。",
       },
       {
-        title: "Keep recordings within ten minutes",
+        title: "録音を 10 分以内に",
         description:
-          "The recording limit now ranges from 10 seconds to 10 minutes. Longer saved limits are reduced to ten minutes, while shorter choices and the five-minute default are preserved. Imported audio keeps its separate limits.",
+          "録音の上限は 10 秒から 10 分の範囲になりました。保存されていたより長い上限は 10 分に短縮され、より短い選択と 5 分のデフォルトはそのまま残ります。読み込んだ音声には別の上限が適用されます。",
       },
     ],
   },
   "0-6-2": {
-    title: "Speech languages follow each model",
+    title: "音声の言語が各モデルに従う",
     changes: [
       {
-        title: "Choose a supported language",
+        title: "対応している言語を選ぶ",
         description:
-          "Language choices now follow the active speech model, including profile overrides. Unsupported combinations stop before recording with an explanation. Parakeet does not support Chinese.",
+          "言語の選択肢は、モードによる上書きも含めて、使用中の音声モデルに従うようになりました。対応していない組み合わせでは、録音の前に説明とともに止まります。Parakeet は中国語に対応していません。",
       },
       {
-        title: "Set the language for Cohere",
+        title: "Cohere の言語を設定する",
         description:
-          "The local Cohere Transcribe model now requires a language choice. Auto Detect is unavailable in this runtime because it can turn Chinese speech into incorrect English output.",
+          "ローカルの Cohere Transcribe モデルでは、言語の選択が必要になりました。このランタイムでは中国語の発話が誤った英語の出力になることがあるため、Auto Detect は使えません。",
       },
       {
-        title: "Apply language choices consistently",
+        title: "言語の選択を一貫して適用",
         description:
-          "SenseVoice receives the chosen language, Qwen uses the expected language names, and Apple Speech shows available system locales. Switching models preserves your shared preference.",
+          "SenseVoice は選んだ言語を受け取り、Qwen は想定どおりの言語名を使い、Apple Speech は利用できるシステムの地域を表示します。モデルを切り替えても、共有の設定は保たれます。",
       },
     ],
   },
   "0-6-1": {
-    title: "App context is now opt-in",
+    title: "アプリのコンテキストはオプトインに",
     changes: [
       {
-        title: "Choose when to share app context",
+        title: "アプリのコンテキストを共有するときを選ぶ",
         description:
-          "Read app context now defaults to off when no preference is saved. Existing choices are preserved, and cursor insertion continues to work independently.",
+          "設定が保存されていない場合、Read app context はデフォルトでオフになりました。既存の選択は保たれ、カーソル位置への挿入はこれとは関係なく動作します。",
       },
       {
-        title: "A neutral app icon",
+        title: "ニュートラルなアプリアイコン",
         description:
-          "The app icon now uses the same neutral grays, raised waveform and graphite caret as the app window.",
+          "アプリアイコンは、アプリのウインドウと同じニュートラルなグレー、浮き出た波形、グラファイトのキャレットを使うようになりました。",
       },
     ],
   },
   "0-6-0": {
-    title: "A speech model for every profile",
+    title: "モードごとの音声モデル",
     changes: [
       {
-        title: "Choose speech per profile",
+        title: "モードごとに音声認識を選ぶ",
         description:
-          "Bind a speech model to a writing profile, or keep using the app default. Switching profiles applies that choice to the next recording.",
+          "文章のモードに音声モデルを割り当てるか、アプリのデフォルトを使い続けられます。モードを切り替えると、次の録音からその選択が適用されます。",
       },
       {
-        title: "Read a dictation from Home",
+        title: "「ホーム」で音声入力を読む",
         description:
-          "Click a waveform bar to open its transcript. Expand long text, copy it, or switch to another dictation without leaving Home.",
+          "波形のバーをクリックすると、その文字起こしが開きます。「ホーム」を離れずに、長いテキストを展開したり、コピーしたり、別の音声入力に切り替えたりできます。",
       },
       {
-        title: "Find models more easily",
+        title: "モデルを見つけやすく",
         description:
-          "Browse speech models by provider, with brand icons and hosting labels. Browsing a filter leaves your active model unchanged.",
+          "音声モデルをプロバイダ別に、ブランドのアイコンとホスティングのラベル付きで閲覧できます。フィルタで絞り込んでも、使用中のモデルは変わりません。",
       },
       {
-        title: "Clearer progress and controls",
+        title: "わかりやすい進行状況とコントロール",
         description:
-          "Download bars and percentages move together. Shorter page headers leave more room for content, and the menu groups model controls and recovery actions.",
+          "ダウンロードのバーとパーセンテージが一緒に動きます。ページのヘッダが短くなってコンテンツの領域が広がり、メニューではモデルの操作と復元の操作がまとめられました。",
       },
     ],
   },
   "0-5-1": {
-    title: "Models ready when you are",
+    title: "必要なときにモデルの準備ができている",
     changes: [
       {
-        title: "Start after an idle break",
+        title: "しばらく使わなかったあとに開始",
         description:
-          "Beginning a dictation reloads an installed speech model automatically. Idle unloading defaults to 30 minutes, with 5, 10, 30 minutes and Never available.",
+          "音声入力を始めると、インストール済みの音声モデルが自動で再読み込みされます。使っていないモデルのアンロードはデフォルトで 30 分で、5 分、10 分、30 分、しないを選べます。",
       },
       {
-        title: "Watch real download progress",
+        title: "実際のダウンロードの進行状況を見る",
         description:
-          "Model downloads report incoming bytes throughout each file. Preparing and unpacking show activity instead of an invented percentage.",
+          "モデルのダウンロードは、各ファイルの受信バイト数を通して報告します。準備と展開の間は、作られたパーセンテージではなく処理中であることを表示します。",
       },
       {
-        title: "Messages leave on their own",
+        title: "メッセージが自動で消える",
         description:
-          "Errors, recovery notices and confirmations stay for five seconds, then fade. Recovery details remain available on Home and in History where applicable.",
+          "エラー、復元の通知、確認のメッセージは 5 秒間表示されてから消えます。該当する場合、復元の詳細は「ホーム」と「履歴」に残ります。",
       },
       {
-        title: "A more precise sidebar",
+        title: "より精密なサイドバー",
         description:
-          "A raised icon follows the sliding selection well. The microphone button, page toggle and card shadows keep consistent placement and depth.",
+          "浮き出たアイコンが、すべる選択の溝のあとを追います。マイクのボタン、ページの切り替え、カードの影は、位置と奥行きが統一されました。",
       },
     ],
   },
   "0-5-0": {
-    title: "The app takes a new shape",
+    title: "アプリが新しい形に",
     changes: [
       {
-        title: "One material across the window",
+        title: "ウインドウ全体にひとつの素材",
         description:
-          "Rounded page islands, raised cards and controls, recessed selections and a neutral Home waveform share the same light and shadow in both appearances.",
+          "角丸のページのアイランド、浮き出たカードとコントロール、くぼんだ選択、ニュートラルな「ホーム」の波形が、両方の外観で同じ光と影を共有します。",
       },
       {
-        title: "Navigation moves with you",
+        title: "ナビゲーションが動きについてくる",
         description:
-          "The selected sidebar well slides between pages. The carved brand mark and opaque window chrome complete the new interface.",
+          "サイドバーの選択の溝がページの間をすべります。刻まれたブランドマークと不透明なウインドウのクロームが、新しいインターフェイスを仕上げます。",
       },
       {
-        title: "Keep English in English",
+        title: "英語は英語のまま",
         description:
-          "Chinese script hints are sent only when Chinese is selected, avoiding unwanted translation during automatic speech-language detection.",
+          "中国語の表記のヒントは中国語を選んだときだけ送られるようになり、話す言語の自動検出中に意図しない翻訳が起きるのを防ぎます。",
       },
       {
-        title: "Quieter clipboard confirmations",
+        title: "控えめなクリップボードの確認",
         description:
-          "Clipboard confirmations dismiss automatically. The following 0.5.1 release extends timed dismissal to all HUD messages.",
+          "クリップボードの確認は自動で消えます。続く 0.5.1 のリリースでは、時間で消える表示がすべての HUD のメッセージに広がります。",
       },
     ],
   },
   "0-4-6": {
-    title: "Keep the words you just said",
+    title: "いま話した言葉を守る",
     changes: [
       {
-        title: "Keep past dictations out of new ones",
+        title: "過去の音声入力を新しい音声入力に混ぜない",
         description:
-          "Refinement separates context from the current transcript and checks fidelity to reduce reused sentences and unintended translation.",
+          "整形はコンテキストを現在の文字起こしと分け、忠実さを確認して、文の使い回しや意図しない翻訳を減らします。",
       },
       {
-        title: "A compact menu and clearer selection",
+        title: "コンパクトなメニューとわかりやすい選択",
         description:
-          "Long dynamic menu titles fit within the menu width, while the active sidebar destination sits in a deeper recessed well.",
+          "長い動的なメニューのタイトルはメニューの幅に収まり、使用中のサイドバーの項目はより深くくぼんだ溝に収まります。",
       },
     ],
   },
   "0-4-5": {
-    title: "Support editors without an exposed caret",
+    title: "キャレットを公開しないエディタに対応",
     changes: [
       {
-        title: "Paste through the focused app",
+        title: "フォーカスのあるアプリを通してペースト",
         description:
-          "Editors that do not expose an accessible text caret can use the app-window paste path, while changed destinations still trigger recovery.",
+          "アクセシビリティでテキストのキャレットを公開しないエディタでもアプリのウインドウへのペーストを使えるようになり、入力先が変わった場合は引き続き復元が行われます。",
       },
     ],
   },
   "0-4-4": {
-    title: "Read the whole error",
+    title: "エラーを最後まで読む",
     changes: [
       {
-        title: "Make room for diagnostics",
+        title: "診断のための場所を確保",
         description:
-          "The recording capsule expands to show complete error and recovery messages. Oversized messages scroll within the screen.",
+          "録音のカプセルが広がり、エラーと復元のメッセージを完全に表示します。大きすぎるメッセージは画面内でスクロールします。",
       },
       {
-        title: "Copy the full message",
+        title: "メッセージ全体をコピー",
         description:
-          "A trailing Copy Message action copies the diagnostic without taking focus from the app you were using.",
+          "末尾の Copy Message の操作で、使っていたアプリからフォーカスを奪わずに診断をコピーできます。",
       },
     ],
   },
   "0-4-3": {
-    title: "Follow you between apps",
+    title: "アプリを切り替えてもついてくる",
     changes: [
       {
-        title: "Wait for the destination to settle",
+        title: "入力先が落ち着くのを待つ",
         description:
-          "Airdraft waits for the selected app, text field and caret when an app switch is in progress. Transient focus reads can settle before delivery.",
+          "アプリの切り替え中は、Airdraft は選択したアプリ、テキストフィールド、キャレットを待ちます。一時的なフォーカスの読み取りは、入力の前に落ち着くのを待てます。",
       },
     ],
   },
   "0-4-2": {
-    title: "A single, safer paste path",
+    title: "ひとつの、より安全なペーストの経路",
     changes: [
       {
-        title: "Avoid conflicting insertion attempts",
+        title: "競合する挿入の試みを避ける",
         description:
-          "Text delivery uses one normal paste path instead of a speculative Accessibility write followed by paste.",
+          "テキストの入力は、推測によるアクセシビリティの書き込みのあとにペーストするのではなく、通常のペーストの経路をひとつだけ使います。",
       },
       {
-        title: "Preserve text during cancellation",
+        title: "キャンセル中もテキストを残す",
         description:
-          "If cancellation happens after delivery begins, the dictated text remains on the clipboard long enough for the destination to read it.",
+          "入力が始まったあとにキャンセルした場合、音声入力したテキストは、入力先が読み取れるだけの時間クリップボードに残ります。",
       },
     ],
   },
   "0-4-1": {
-    title: "More reliable everyday dictation",
+    title: "日々の音声入力をより確実に",
     changes: [
       {
-        title: "Leave unselected iPhones disconnected",
+        title: "選択していない iPhone は接続しない",
         description:
-          "Opening the microphone picker previews a Continuity microphone only when it is selected, including through System Default.",
+          "マイクのピッカーを開いたとき、連係カメラのマイク（Continuity マイク）をプレビューするのは、System Default を通じた場合も含め、それが選択されているときだけです。",
       },
       {
-        title: "Follow History with accessibility",
+        title: "アクセシビリティで「履歴」をたどる",
         description:
-          "Visible timestamps follow timeline navigation, and offscreen entries leave the accessibility representation when you return to the top.",
+          "表示されるタイムスタンプがタイムラインのナビゲーションに従い、先頭に戻ると画面外の項目はアクセシビリティの表現から外れます。",
       },
       {
-        title: "Recover focus and provider failures",
+        title: "フォーカスとプロバイダの失敗から回復",
         description:
-          "Insertion waits for editor focus and selection. Claude failures preserve the original transcript with an actionable diagnostic; the License sheet uses fewer controls.",
+          "挿入はエディタのフォーカスと選択を待ちます。Claude が失敗しても、元の文字起こしは対処できる診断とともに残ります。License シートのコントロールは少なくなりました。",
       },
     ],
   },
   "0-4-0": {
-    title: "A guided first dictation",
+    title: "ガイド付きの最初の音声入力",
     changes: [
       {
-        title: "Set up by doing",
+        title: "やってみながら設定",
         description:
-          "Optional onboarding walks through permissions and speech setup, then lets you try a real dictation.",
+          "任意の初回設定で権限と音声認識の設定を案内し、そのあと実際の音声入力を試せます。",
       },
       {
-        title: "Trial and activate the official build",
+        title: "公式ビルドを試用してアクティベート",
         description:
-          "Official builds add a user-started, full-feature 14-day trial and license activation. Self-built editions remain fully unlocked.",
+          "公式ビルドに、自分で開始するすべての機能を使える 14 日間の試用と、ライセンスのアクティベーションが加わりました。自分でビルドしたエディションは、すべての機能が使えるままです。",
       },
       {
-        title: "Keep long text inside History",
+        title: "長いテキストを「履歴」の中に収める",
         description:
-          "Long transcripts and text selections stay within their cards. The recording capsule fits its label and fades after successful delivery.",
+          "長い文字起こしとテキストの選択はカードの中に収まります。録音のカプセルはラベルに合わせた大きさになり、入力に成功すると消えます。",
       },
       {
-        title: "An explicit open-source license",
+        title: "明確なオープンソースのライセンス",
         description:
-          "The repository adopts GPL-3.0-only, with the license linked from the website.",
+          "リポジトリは GPL-3.0-only を採用し、ウェブサイトからライセンスにリンクしています。",
       },
     ],
   },
   "0-3-0": {
-    title: "Local intelligence, replay and automation",
+    title: "ローカルのインテリジェンス、再生、自動化",
     changes: [
       {
-        title: "Refine with Apple Intelligence",
+        title: "Apple Intelligence で整形",
         description:
-          "On supported Macs running macOS 26 or later, an on-device Foundation Models session cleans up each dictation. Unavailable or failed refinement preserves the raw transcript.",
+          "macOS 26 以降の対応する Mac では、デバイス上の Foundation Models のセッションが音声入力ごとにテキストを整えます。整形が使えないときや失敗したときは、元の文字起こしが残ります。",
       },
       {
-        title: "More ways to hear and review speech",
+        title: "音声を聞いて確かめる方法を追加",
         description:
-          "Parakeet TDT v3 joins local speech recognition. Optional live transcription previews show provisional words while recording.",
+          "ローカルの音声認識に Parakeet TDT v3 が加わりました。任意のライブ文字起こしのプレビューで、録音中に仮の言葉が表示されます。",
       },
       {
-        title: "Save and replay audio",
+        title: "音声を保存して再生",
         description:
-          "Opt in to retaining dictation audio, replay it from History, and retry transcription from the saved recording.",
+          "音声入力の音声を残すことを選べば、「履歴」から再生し、保存した録音から文字起こしを再試行できます。",
       },
       {
-        title: "Connect dictation to your workflow",
+        title: "音声入力をワークフローにつなぐ",
         description:
-          "Start and stop through Shortcuts, and send delivered text to a configured script.",
+          "ショートカットから開始と停止ができ、入力したテキストを設定したスクリプトに送れます。",
       },
       {
-        title: "Better text fidelity and History",
+        title: "より忠実なテキストと「履歴」",
         description:
-          "Refinement corrects terms while preserving literal text. History bounds work during scrolling, adds calendar dates to its timeline, and gains progressive header blur.",
+          "整形は、字句どおりのテキストを残しながら用語を直します。「履歴」はスクロール中の処理を抑え、タイムラインに日付を加え、段階的にぼかすヘッダを備えました。",
       },
     ],
   },
   "0-2-0": {
-    title: "New speech controls and a refreshed interface",
+    title: "新しい音声認識の操作と一新したインターフェイス",
     changes: [
       {
-        title: "Check your connection",
+        title: "接続を確認する",
         description:
-          "Test API access for Soniox, Groq, ElevenLabs, OpenAI and Deepgram before you dictate. OpenRouter adds model and provider controls.",
+          "音声入力の前に、Soniox、Groq、ElevenLabs、OpenAI、Deepgram の API アクセスをテストできます。OpenRouter にはモデルとプロバイダの操作が加わりました。",
       },
       {
-        title: "Compare supported speech models",
+        title: "対応する音声モデルを比べる",
         description:
-          "Browse provider models with pricing and available quality and speed information linked to official documentation. Unpublished metrics stay marked.",
+          "プロバイダのモデルを、料金と、公開されている品質や速度の情報とともに閲覧でき、公式ドキュメントにリンクしています。公開されていない指標にはその旨が表示されます。",
       },
       {
-        title: "A refreshed native interface",
+        title: "一新したネイティブのインターフェイス",
         description:
-          "A collapsible sidebar, live microphone meters and a scrolling History timeline join consistent settings and model lists.",
+          "折りたためるサイドバー、ライブのマイクのメーター、スクロールする「履歴」のタイムラインが、統一された設定とモデルの一覧に加わりました。",
       },
       {
-        title: "Recover interrupted work",
+        title: "中断した作業を復元",
         description:
-          "Recording prerequisites are checked before capture. Failed speech audio stays available to retry or discard, and refinement errors preserve the raw transcript.",
+          "録音の前提条件は録音の前に確認されます。音声認識に失敗した音声は再試行か破棄のために残り、整形のエラーでは元の文字起こしが残ります。",
       },
       {
-        title: "A version for the feature release",
+        title: "機能リリースのためのバージョン",
         description:
-          "This release carries the same feature set as 0.1.9 build 44 under a new minor version. Its installer uses Apple Development signing and is not notarized.",
+          "このリリースは、0.1.9 ビルド 44 と同じ機能を新しいマイナーバージョンで提供します。インストーラは Apple Development で署名されており、公証は受けていません。",
       },
     ],
   },
   "0-1-9": {
-    title: "Desktop controls take shape",
+    title: "デスクトップのコントロールが形になる",
     changes: [
       {
-        title: "Choose and preview a microphone",
+        title: "マイクを選んでプレビュー",
         description:
-          "The microphone overlay adds a live input-level preview. Sidebar and profile controls become more compact across this series of builds.",
+          "マイクのオーバーレイに、入力レベルのライブプレビューが加わりました。この一連のビルドを通して、サイドバーとモードのコントロールがよりコンパクトになります。",
       },
       {
-        title: "Edit the shared refinement rules",
+        title: "共有の整形ルールを編集",
         description:
-          "Base prompt editing joins profile customization, so shared instructions can be saved or restored.",
+          "モードのカスタマイズに基本プロンプトの編集が加わり、共有の指示を保存したり元に戻したりできます。",
       },
       {
-        title: "A website and branded installer",
+        title: "ウェブサイトとブランド入りのインストーラ",
         description:
-          "The Astro website and a custom drag-to-Applications disk image join the project. Later builds in this series lead into the 0.2.0 feature release.",
+          "Astro のウェブサイトと、アプリケーションフォルダにドラッグするカスタムのディスクイメージがプロジェクトに加わりました。この一連の後半のビルドが、0.2.0 の機能リリースにつながります。",
       },
     ],
   },
   "0-1-8": {
-    title: "Make writing profiles your own",
+    title: "文章のモードを自分好みに",
     changes: [
       {
-        title: "Edit, duplicate and reset",
+        title: "編集、複製、リセット",
         description:
-          "Profiles gain an open editor, inline renaming and duplication, including Verbatim behavior. Shared rules offer Save, Cancel and Restore Defaults.",
+          "モードに、開いたままのエディタ、その場での名前の変更、複製が加わり、Verbatim の動作も含まれます。共有のルールには Save、Cancel、Restore Defaults があります。",
       },
     ],
   },
   "0-1-7": {
-    title: "Fewer interruptions during setup",
+    title: "設定中の中断を減らす",
     changes: [
       {
-        title: "Ask for key access deliberately",
+        title: "キーへのアクセスは意図して求める",
         description:
-          "Page navigation and background checks stop requesting Keychain approval. Protected keys get an explicit access action, and denied reads preserve saved credentials.",
+          "ページの移動や裏側の確認でキーチェーンの承認を求めることはなくなりました。保護されたキーには明示的なアクセスの操作があり、読み取りが拒否されても保存済みの認証情報は残ります。",
       },
       {
-        title: "Capture the selected input channel",
+        title: "選んだ入力チャンネルを録音",
         description:
-          "Microphone capture uses the chosen channel. Releasing the shortcut while permission is pending prevents a delayed recording from starting.",
+          "マイクの録音は選んだチャンネルを使います。権限の確認中にショートカットを離すと、遅れて録音が始まることはありません。",
       },
     ],
   },
   "0-1-6": {
-    title: "More refinement providers",
+    title: "整形のプロバイダを追加",
     changes: [
       {
-        title: "Use Cerebras or Groq",
+        title: "Cerebras や Groq を使う",
         description:
-          "Choose Cerebras or Groq for text refinement independently of your speech-recognition provider.",
+          "音声認識のプロバイダとは別に、テキストの整形に Cerebras や Groq を選べます。",
       },
     ],
   },
   "0-1-5": {
-    title: "A stable identity for updates",
+    title: "アップデートのための安定した識別情報",
     changes: [
       {
-        title: "Keep signing consistent",
+        title: "署名を一貫させる",
         description:
-          "Certificate-signed releases replace the earlier ad-hoc identity. The update process checks signing continuity; upgrading from older builds may require granting permissions again.",
+          "以前のアドホックな識別情報に代わり、証明書で署名したリリースになりました。アップデートの処理は署名の継続性を確認します。古いビルドからアップグレードすると、権限をもう一度許可する必要がある場合があります。",
       },
     ],
   },
   "0-1-4": {
-    title: "Recover microphone interruptions",
+    title: "マイクの中断から回復",
     changes: [
       {
-        title: "Resume a disrupted input",
+        title: "中断した入力を再開",
         description:
-          "Microphone capture recovers from input interruptions, alongside more consistent spacing across settings.",
+          "マイクの録音が入力の中断から回復するようになり、設定全体の余白もより統一されました。",
       },
     ],
   },
   "0-1-3": {
-    title: "Separate development and installed apps",
+    title: "開発用とインストール済みのアプリを分ける",
     changes: [
       {
-        title: "Recognize the right app",
+        title: "正しいアプリを認識",
         description:
-          "Development and installed builds use separate identities, with refreshed permission state so access checks apply to the intended app.",
+          "開発用のビルドとインストール済みのビルドは別の識別情報を使い、権限の状態も更新されるため、アクセスの確認は意図したアプリに適用されます。",
       },
     ],
   },
   "0-1-2": {
-    title: "Respect the system microphone",
+    title: "システムのマイクを尊重",
     changes: [
       {
-        title: "Preserve the selected route",
+        title: "選んだ経路を保つ",
         description:
-          "Capture keeps the system microphone route instead of unexpectedly replacing the input you chose.",
+          "録音はシステムのマイクの経路を保ち、選んだ入力が予期せず置き換えられることはありません。",
       },
     ],
   },
   "0-1-1": {
-    title: "The first packaged builds",
+    title: "最初のパッケージ版ビルド",
     changes: [
       {
-        title: "Remember your microphone choice",
+        title: "マイクの選択を覚える",
         description:
-          "Microphone defaults become part of setup, and locally built releases arrive as a DMG with a signed Sparkle update feed.",
+          "マイクのデフォルトが設定の一部になり、ローカルでビルドしたリリースは、署名された Sparkle のアップデートフィード付きの DMG として届くようになりました。",
       },
     ],
   },
   "initial-source": {
-    title: "Airdraft is on GitHub",
+    title: "Airdraft を GitHub で公開",
     changes: [
       {
-        title: "Speak into the app you use",
+        title: "使っているアプリに話して入力",
         description:
-          "Hold a shortcut, speak and release to insert text at the cursor. Airdraft stays in the menu bar between recordings.",
+          "ショートカットを長押しして話し、離すとカーソル位置にテキストが入力されます。録音の合間、Airdraft はメニューバーで待機します。",
       },
       {
-        title: "Choose each step independently",
+        title: "各ステップを個別に選ぶ",
         description:
-          "Use local or cloud speech recognition and choose refinement separately. Editable writing profiles, vocabulary corrections and local History are part of the source build.",
+          "ローカルかクラウドの音声認識を使い、整形は別に選べます。編集できる文章のモード、語彙による修正、ローカルの「履歴」も、ソースビルドに含まれます。",
       },
     ],
   },

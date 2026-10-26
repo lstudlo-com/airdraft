@@ -4,9 +4,10 @@
 # with an isolated empty data directory (--e2e-local), so no history, usage
 # count or personal setting appears. The fixture never starts the shortcut, so
 # the sidebar footer reads "Finish Setup".
-# It renders the English interface for the English pages and the Traditional
-# Chinese (zh-Hant, Taiwan) interface for the /zh-tw/ pages, which the app
-# ships from 0.11.0. Render from a Debug build of the current release's sources.
+# It renders the interface in each of the site's languages: English for the
+# English pages and the app's own translation for each translated page
+# (configuration-<code>-*). Render from a Debug build of the current
+# release's sources.
 # The renders are converted to grayscale, as the app looks with the system's
 # Graphite accent; the site carries no hue (scripts/check-neutral.mjs).
 #
@@ -47,13 +48,22 @@ render() {
 }
 render en configuration
 render zh-tw configuration-zh-tw -AppleLanguages '(zh-Hant)' -AppleLocale zh_TW
+render zh-cn configuration-zh-cn -AppleLanguages '(zh-Hans)' -AppleLocale zh_CN
+render es configuration-es -AppleLanguages '(es)' -AppleLocale es_ES
+render ja configuration-ja -AppleLanguages '(ja)' -AppleLocale ja_JP
 
 python3 - "$out" "$version" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-languages = {"configuration": "English", "configuration-zh-tw": "Traditional Chinese (zh-Hant, Taiwan)"}
+languages = {
+    "configuration": "English",
+    "configuration-zh-tw": "Traditional Chinese (zh-Hant, Taiwan)",
+    "configuration-zh-cn": "Simplified Chinese (zh-Hans)",
+    "configuration-es": "Spanish",
+    "configuration-ja": "Japanese",
+}
 for prefix, language in languages.items():
     for appearance in ("light", "dark"):
         image = Path(sys.argv[1]) / f"{prefix}-{appearance}.webp"

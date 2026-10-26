@@ -8,68 +8,68 @@ import { localizedPath, type Locale } from "../../i18n";
 const locale: Locale = "ja";
 ---
 
-<GuideSection id="problems" title="Common problems">
+<GuideSection id="problems" title="よくある問題">
   <div class="question-list">
-    <Disclosure summary="Nothing appears after I let go">
+    <Disclosure summary="キーを離しても何も入力されない">
       <p>
-        Airdraft needs Accessibility to insert text. Turn it on in System
-        Settings ▸ Privacy & Security ▸ Accessibility.
+        テキストを挿入するには、Airdraft
+        にアクセシビリティの権限が必要です。「システム設定」▸「プライバシーとセキュリティ」▸「アクセシビリティ」でオンにしてください。
       </p>
       <p>
-        If you rebuilt the app with different signing, the old grant no longer
-        applies. Run{" "}
-        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>, then
-        grant it again.
-      </p>
-    </Disclosure>
-    <Disclosure summary="Nothing is recorded">
-      <p>
-        Allow Microphone when macOS asks. Choose the input from the window
-        toolbar, the menu bar, or Settings ▸ Microphone.
+        別の署名でアプリをビルドし直した場合、以前の許可は適用されません。
+        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>
+        を実行してから、もう一度許可してください。
       </p>
     </Disclosure>
-    <Disclosure summary="The first dictation takes a minute">
+    <Disclosure summary="何も録音されない">
       <p>
-        After a model downloads, its first run compiles it for the Neural
-        Engine. The recording pill shows “Loading model” until it’s ready.
+        macOS
+        に確認されたらマイクを許可してください。入力はウインドウのツールバー、メニューバー、または「設定」▸「マイク」で選べます。
       </p>
     </Disclosure>
-    <Disclosure summary="Local refinement is slow">
+    <Disclosure summary="最初の音声入力に 1 分かかる">
       <p>
-        Reasoning models can think for 10 to 60 seconds before a one-line
-        cleanup. Keep “Disable model thinking” on.
+        モデルをダウンロードしたあとの初回の実行では、Neural Engine
+        向けにモデルがコンパイルされます。準備ができるまで、録音ウインドウには「読み込み中」と表示されます。
       </p>
     </Disclosure>
-    <Disclosure summary="The fn key doesn’t work as a shortcut">
+    <Disclosure summary="ローカルの整形が遅い">
       <p>
-        Set System Settings ▸ Keyboard ▸ “Press 🌐 key to” to “Do Nothing”.
-        Shortcuts made of a single modifier key also need Accessibility.
+        推論モデルは、1 行の整形の前に 10〜60
+        秒考えることがあります。「モデル」▸「整形」の「推論の強度」は「オフ」のままにしてください。
       </p>
     </Disclosure>
-    <Disclosure summary="Chinese comes out in the wrong script">
-      <p>Choose the script in Models ▸ Speech options ▸ Chinese script.</p>
+    <Disclosure summary="fn キーがショートカットとして使えない">
+      <p>
+        「システム設定」▸「キーボード」▸「🌐キーを押して」を「何もしない」にしてください。修飾キーひとつだけのショートカットにも、アクセシビリティの権限が必要です。
+      </p>
+    </Disclosure>
+    <Disclosure summary="中国語が意図しない表記で出力される">
+      <p>
+        「モデル」▸「音声のオプション」▸「中国語の表記」で表記を選んでください。
+      </p>
     </Disclosure>
   </div>
 </GuideSection>
 
-<GuideSection id="report" title="Still stuck?">
+<GuideSection id="report" title="それでも解決しない場合">
   <p>
-    Open an issue with your macOS version and the speech and refinement models
-    you use.
+    macOS のバージョンと、使っている音声モデルと整形のモデルを添えて、Issue
+    を作成してください。
   </p>
   <div class="support-actions">
     <Button href={siteLinks.issues} icon="external">
-      Open an Issue
+      Issue を作成
     </Button>
     <Button
       href={localizedPath("/guides/offline-dictation-on-mac/", locale)}
       variant="quiet"
       icon="right"
     >
-      Local Setup Guide
+      ローカル設定ガイド
     </Button>
     <Button href={siteLinks.build} variant="quiet" icon="external">
-      Build Instructions
+      ビルド手順
     </Button>
   </div>
 </GuideSection>

@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import * as policy from "../src/lib/analytics-policy.ts";
-import { guides, zhGuides } from "../src/data/guides.ts";
+import { guideSlugs } from "../src/data/guide-slugs.ts";
 import { setup, insights } from "./setup-posthog.mjs";
 
 test("production collection requires an explicit switch, public token and exact origin", () => {
@@ -343,15 +343,20 @@ test("dashboard setup is offline by default and reruns without duplicates", asyn
   );
 });
 
-test("guide links report only an allowlisted slug in either language", () => {
-  const slugs = [...guides, ...zhGuides].map((guide) => guide.slug);
+test("guide links report only an allowlisted slug in every language", () => {
   assert.deepEqual(
-    [...new Set(slugs)].sort(),
+    [...guideSlugs].sort(),
     [...policy.guideSlugs].sort(),
-    "guideSlugs must match src/data/guides.ts",
+    "guideSlugs must match src/data/guide-slugs.ts",
   );
-  for (const guide of [...guides, ...zhGuides])
-    assert.equal(policy.guideOf(guide.href), guide.slug);
+  const languages = JSON.parse(
+    readFileSync(new URL("../src/i18n/locales.json", import.meta.url), "utf8"),
+  );
+  for (const { code } of languages)
+    for (const slug of guideSlugs) {
+      const href = `${code === "en" ? "" : `/${code}`}/guides/${slug}/`;
+      assert.equal(policy.guideOf(href), slug, href);
+    }
   for (const path of [
     "/guides/",
     "/guides/unknown-guide/",
@@ -459,19 +464,18 @@ test("every known translated path has its page", () => {
   for (const language of languages) {
     if (language.code === "en") continue;
     for (const path of language.paths) {
-      const page = new URL(
-        `../src/pages/${language.code}${path === "/" ? "/index" : path.replace(/\/$/, "")}.astro`,
-        import.meta.url,
+      const base = `../src/pages/${language.code}${path}`;
+      const pages = [`${base}index.astro`, `${base.replace(/\/$/, "")}.astro`];
+      assert.ok(
+        pages.some((page) => existsSync(new URL(page, import.meta.url))),
+        `${language.code}${path} has no page`,
       );
-      assert.ok(existsSync(page), `${language.code}${path} has no page`);
       assert.equal(
         policy.safePath(`/${language.code}${path}`),
         `/${language.code}${path}`,
       );
     }
   }
-  assert.equal(
-    policy.safePath("/es/guides/offline-dictation-on-mac/"),
-    "/404/",
-  );
+  assert.equal(policy.safePath("/es/guides/unknown-guide/"), "/404/");
+  assert.equal(policy.safePath("/fr/pricing/"), "/404/");
 });
