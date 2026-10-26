@@ -142,6 +142,20 @@ final class MeetingCaptureTests: XCTestCase {
         XCTAssertEqual(all[1000], 0.4, accuracy: 0.01)
     }
 
+    /// AD-112: reading the preview handler once per audio buffer must not wrap
+    /// it in more thunks, or calling it overflows the capture queue's stack.
+    func testPreviewHandlerReadsDoNotDeepenItsCallStack() throws {
+        let root = try directory()
+        var capture: any MeetingCapturing = try MeetingCaptureSession(directory: root, microphone: false, onStatus: { _ in }, onFailure: { _ in })
+        let depth = Locked(0)
+        capture.previewAudioHandler = { _, _, _ in depth.withLock { $0 = Thread.callStackSymbols.count } }
+        capture.previewAudioHandler?(.system, [], 0)
+        let first = depth.withLock { $0 }
+        for _ in 0..<1_000 { _ = capture.previewAudioHandler }
+        capture.previewAudioHandler?(.system, [], 0)
+        XCTAssertEqual(depth.withLock { $0 }, first)
+    }
+
     func testTwoHourCaptureAndExportStayBounded() throws {
         let root = try directory(); let history = try HistoryStore(directory: root)
         let writer = try MeetingAudioWriter(directory: root, microphone: true)

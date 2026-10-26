@@ -59,10 +59,15 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
     private var formats: [MeetingTrack: AVAudioFormat] = [:]
     private var failed = false
     private var microphoneChannel: Int?
-    private let previewHandler = Mutex<(@Sendable (MeetingTrack, [Float], Double) -> Void)?>(nil)
+    /// The handler is boxed: a bare closure in `Mutex` is passed `inout` at the
+    /// generic abstraction, so every `withLock` read wrapped it in two more
+    /// reabstraction thunks. One read per audio buffer overflowed the capture
+    /// queue's stack about ten seconds into a meeting with live text (AD-112).
+    private struct PreviewHandler: Sendable { let call: @Sendable (MeetingTrack, [Float], Double) -> Void }
+    private let previewHandler = Mutex<PreviewHandler?>(nil)
     public var previewAudioHandler: (@Sendable (MeetingTrack, [Float], Double) -> Void)? {
-        get { previewHandler.withLock { $0 } }
-        set { previewHandler.withLock { $0 = newValue } }
+        get { previewHandler.withLock { $0?.call } }
+        set { previewHandler.withLock { $0 = newValue.map(PreviewHandler.init) } }
     }
     public init(directory: URL, microphone: Bool,
                 onStatus: @escaping @Sendable (MeetingCaptureStatus) -> Void,
@@ -158,7 +163,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             if !samples.isEmpty {
                 let at = outputOffsets[track] ?? offset
                 try writer.append(samples, track: track, at: at)
-                previewHandler.withLock { $0 }?(track, samples, at)
+                previewHandler.withLock { $0 }?.call(track, samples, at)
                 outputOffsets[track, default: offset] += Double(samples.count) / 16_000
                 lastReceived[track] = timestamp
                 levels[track] = AudioLevel.meter(samples)
