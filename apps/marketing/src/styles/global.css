@@ -126,6 +126,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     --status-ok: #34c759;
     --status-attention: #ff9500;
     --status-busy: #ffcc00;
+    /* The one accent: the app's system accent (blue), for progress and the
+       current step of a story only. Never text, fills of controls, glows
+       or focus rings. */
+    --accent: #007aff;
 
     /* Light and shade, at the hero's strength in every elevation. */
     --light: rgb(255 255 255);
@@ -257,6 +261,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       --status-ok: #30d158;
       --status-attention: #ff9f0a;
       --status-busy: #ffd60a;
+      --accent: #0a84ff;
 
       --light: rgb(255 255 255 / 0.09);
       --light-soft: rgb(255 255 255 / 0.08);

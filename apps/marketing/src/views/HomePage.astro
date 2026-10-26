@@ -8,6 +8,7 @@ import InterfaceShowcase from "../components/InterfaceShowcase.astro";
 import MeetingsSection from "../components/MeetingsSection.astro";
 import PipelineStory from "../components/PipelineStory.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import StoryScroll from "../components/StoryScroll.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import GuideLinks from "../components/GuideLinks.astro";
 import BentoTile from "../components/ui/BentoTile.astro";
@@ -89,7 +90,9 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
             {copy.headline.map((line, index) => (
               <>
                 {index > 0 && copy.headlineGap}
-                <span>{line}</span>
+                <span class="hero-line" style={`--line: ${index}`}>
+                  <span>{line}</span>
+                </span>
               </>
             ))}
           </h1>
@@ -117,9 +120,13 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
         </div>
         <HeroCard locale={locale} />
       </div>
-
-      <DictationPreview locale={locale} />
     </section>
+
+    <StoryScroll locale={locale} />
+
+    <div class="wrap">
+      <DictationPreview locale={locale} />
+    </div>
 
     <MeetingsSection locale={locale} />
 
@@ -355,4 +362,5 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
 <script>
   import "../scripts/story";
+  import "../scripts/flourish";
 </script>

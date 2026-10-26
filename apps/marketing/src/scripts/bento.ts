@@ -1,20 +1,22 @@
 // The homepage bento's graphics (HomePage.astro, #features) do what their
 // tile says, and answer the visitor.
 //
-//   arrival   when a tile is mostly on screen its graphic performs once, the
-//             tiles of a row one after another from the left, then rests on
-//             its final frame. Nothing loops.
-//   poke      hovering a tile (a mouse) or tapping it performs again; a
-//             choice tile tries its next choice
+//   loop      while a tile is mostly on screen its graphic keeps performing:
+//             the first time the tiles of a row start one after another
+//             from the left, then each repeats on its own rhythm (a choice
+//             tile walks through its choices). Off screen nothing runs.
+//   poke      hovering a tile (a mouse) or tapping it performs at once; a
+//             choice tile tries its next choice. Touching a tile holds its
+//             loop for a while, so the visitor's choice stays put
 //   touch     the parts that are controls in the app work: the shortcut's
 //             keycaps (and the visitor's own ⌃⌥ while that tile is on
 //             screen) record in the cursor tile while held and insert on
 //             release; segmented choices and the subscription chips select
 //
 // Resting CSS is every graphic's final frame, so the bento reads the same
-// without JavaScript. With reduced motion nothing performs and choices
-// change in place, without movement. A tile that leaves the screen jumps to
-// its resting frame, so no timer runs off screen.
+// without JavaScript. With reduced motion nothing performs or loops and
+// choices change in place, without movement. A tile that leaves the screen
+// jumps to its resting frame, so no timer runs off screen.
 import { gsap } from "gsap";
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -32,6 +34,10 @@ const one = <T extends HTMLElement = HTMLElement>(
 interface Performer {
   /** The tile's arrival: a short performance ending on the resting frame. */
   arrive(): void;
+  /** One beat of the on-screen loop; arrive() when not given. */
+  loop?(): void;
+  /** Seconds between loop beats. */
+  period?: number;
   /** A hover or tap. */
   poke(): void;
   /** Jump to the resting frame and stop every timer. */
@@ -167,6 +173,7 @@ function cursor(art: HTMLElement, keys: () => HTMLElement | null): Recorder {
   return {
     arrive: play,
     poke: play,
+    period: 6.5,
     finish,
     hold,
     release,
@@ -258,6 +265,8 @@ function shortcut(
   return {
     arrive: perform,
     poke: perform,
+    // In step with the cursor tile, which the shortcut drives.
+    period: 6.5,
     finish: () => {
       flash?.kill();
       keys.classList.remove("is-pressed");
@@ -302,6 +311,12 @@ function choice(
       tour?.kill();
       select((current + 1) % items.length);
     },
+    // The loop walks through every choice and stays on each.
+    loop() {
+      tour?.kill();
+      select((current + 1) % items.length);
+    },
+    period: 2.8,
     finish() {
       // A choice the visitor made stays; only an arrival tour is undone.
       if (tour?.isActive()) select(initial);
@@ -344,7 +359,7 @@ function plan(art: HTMLElement): Performer {
 // ------------------------------------------------------------ one-shots
 
 /** A tile whose graphic replays one short sequence from its start. */
-function sequence(build: () => gsap.core.Timeline): Performer {
+function sequence(build: () => gsap.core.Timeline, period = 5): Performer {
   let timeline: gsap.core.Timeline | null = null;
   const play = () => {
     if (timeline?.isActive()) return;
@@ -354,6 +369,7 @@ function sequence(build: () => gsap.core.Timeline): Performer {
   return {
     arrive: play,
     poke: play,
+    period,
     finish: () => {
       // Run the remaining callbacks, so status lines land on their last state.
       timeline?.progress(1, false).kill();
@@ -445,8 +461,12 @@ function privacy(art: HTMLElement) {
 
 // ------------------------------------------------------------- the grid
 
-const bento = document.querySelector<HTMLElement>(".bento");
-if (bento) setup(bento);
+// The features grid only: the interface section's specimens are a `.bento`
+// too, earlier on the page, and play from interface.ts.
+for (const bento of document.querySelectorAll<HTMLElement>(
+  ".bento:not(.specimens)",
+))
+  setup(bento);
 
 function setup(bento: HTMLElement) {
   const tiles = all(".tile", bento);
@@ -504,6 +524,28 @@ function setup(bento: HTMLElement) {
 
   bento.classList.add("is-live");
 
+  // The loop: while a tile is mostly on screen its graphic repeats every
+  // `period` seconds (a little jitter keeps the grid from beating in step).
+  // Touching a tile holds its loop for eight seconds.
+  const loops = new Map<HTMLElement, gsap.core.Tween>();
+  const stopLoop = (tile: HTMLElement) => {
+    loops.get(tile)?.kill();
+    loops.delete(tile);
+  };
+  const schedule = (tile: HTMLElement, delay: number) => {
+    stopLoop(tile);
+    const performer = performers.get(tile);
+    if (!performer || reduced.matches) return;
+    loops.set(
+      tile,
+      gsap.delayedCall(delay, () => {
+        if (!visible.get(tile) || document.hidden) return stopLoop(tile);
+        (performer.loop ?? performer.arrive).call(performer);
+        schedule(tile, (performer.period ?? 5) + gsap.utils.random(0, 0.8));
+      }),
+    );
+  };
+
   // Pokes: a mouse entering a tile, or a tap on it. A poke within a second
   // of the last one is ignored, so sweeping across the grid stays calm.
   let lastPoke = new WeakMap<HTMLElement, number>();
@@ -513,6 +555,7 @@ function setup(bento: HTMLElement) {
     if (now - (lastPoke.get(tile) ?? -Infinity) < 1000) return;
     lastPoke.set(tile, now);
     performers.get(tile)?.poke();
+    if (visible.get(tile)) schedule(tile, 8);
   };
   for (const tile of performers.keys()) {
     tile.addEventListener("pointerenter", (event) => {
@@ -521,43 +564,42 @@ function setup(bento: HTMLElement) {
     tile.addEventListener("click", () => {
       if (!hover.matches) poke(tile);
     });
+    // A click on a control inside (a choice, a keycap) holds the loop too.
+    tile.addEventListener(
+      "pointerdown",
+      () => visible.get(tile) && schedule(tile, 8),
+      true,
+    );
   }
 
-  // Arrivals: once per tile, the tiles of a row one after another from the
-  // left. A tile leaving the screen jumps to its resting frame.
+  // Arrivals: the first time, the tiles of a row start one after another
+  // from the left; then each loops. A tile leaving the screen jumps to its
+  // resting frame and its loop stops.
   const arrived = new WeakSet<HTMLElement>();
   const column = (tile: HTMLElement) =>
     tiles
       .filter((other) => Math.abs(other.offsetTop - tile.offsetTop) < 4)
       .sort((a, b) => a.offsetLeft - b.offsetLeft)
       .indexOf(tile);
-  const pending = new WeakMap<HTMLElement, gsap.core.Tween>();
   const watcher = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         const tile = entry.target as HTMLElement;
         const performer = performers.get(tile);
-        visible.set(tile, entry.isIntersecting);
+        const onScreen = entry.intersectionRatio >= 0.55;
         tile.classList.toggle("is-onscreen", entry.isIntersecting);
         if (!entry.isIntersecting) {
-          pending.get(tile)?.kill();
+          visible.set(tile, false);
+          stopLoop(tile);
           performer?.finish();
           continue;
         }
-        if (
-          reduced.matches ||
-          arrived.has(tile) ||
-          entry.intersectionRatio < 0.55
-        )
-          continue;
+        visible.set(tile, true);
+        if (reduced.matches || !onScreen || loops.has(tile)) continue;
+        const first = !arrived.has(tile);
         arrived.add(tile);
         lastPoke.set(tile, performance.now());
-        pending.set(
-          tile,
-          gsap.delayedCall(0.25 + column(tile) * 0.22, () =>
-            performer?.arrive(),
-          ),
-        );
+        schedule(tile, first ? 0.25 + column(tile) * 0.22 : 0.6);
       }
     },
     { threshold: [0, 0.55] },
@@ -565,11 +607,16 @@ function setup(bento: HTMLElement) {
   for (const tile of tiles) watcher.observe(tile);
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) return;
-    for (const performer of performers.values()) performer.finish();
+    if (document.hidden) {
+      for (const tile of [...loops.keys()]) stopLoop(tile);
+      for (const performer of performers.values()) performer.finish();
+      return;
+    }
+    for (const tile of tiles) if (visible.get(tile)) schedule(tile, 0.6);
   });
   reduced.addEventListener("change", () => {
     if (!reduced.matches) return;
+    for (const tile of [...loops.keys()]) stopLoop(tile);
     for (const performer of performers.values()) performer.finish();
     lastPoke = new WeakMap();
   });

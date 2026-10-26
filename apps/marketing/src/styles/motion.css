@@ -148,7 +148,7 @@
           entry var(--stagger) cover calc(32% + var(--stagger));
       }
       .bento .tile-wide {
-        --depth-range: 10px;
+        --depth-range: 16px;
         animation:
           motion-rise linear both,
           motion-lift linear both,
@@ -165,7 +165,7 @@
         view-timeline: --tile block;
       }
       .bento .tile-art > * {
-        --depth-range: 10px;
+        --depth-range: 18px;
         animation: motion-lag linear both;
         animation-timeline: --tile;
         animation-range: cover 0% cover 100%;
@@ -305,6 +305,80 @@
         animation-range: entry calc(var(--step) + 10%) entry
           calc(var(--step) + 45%);
       }
+    }
+  }
+}
+
+/* Entrances and pointer depth (src/scripts/flourish.ts). These need no
+   scroll timeline, only motion. The headline's lines rise out of their own
+   line boxes on load, then the keys and facts follow; section headings rise
+   word by word as they arrive; the hero card and its copy drift a few
+   pixels with the pointer, the raised card toward it. Without JavaScript
+   only the CSS entrances run, and with reduced motion nothing does. */
+@layer motion {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes line-up {
+      from {
+        opacity: 0;
+        translate: 0 105%;
+      }
+    }
+    .hero h1 .hero-line {
+      overflow: clip;
+      padding-block: 0.08em;
+      margin-block: -0.08em;
+    }
+    .hero h1 .hero-line > span {
+      display: inline-block;
+      animation: line-up 1000ms var(--ease-out) both;
+      animation-delay: calc(80ms + var(--line, 0) * 120ms);
+    }
+    .hero-actions {
+      animation: rise 900ms var(--ease-out) 360ms both;
+    }
+    .hero-meta {
+      animation: rise 900ms var(--ease-out) 480ms both;
+    }
+
+    .flourish .reveal-word {
+      display: inline-block;
+      white-space: pre;
+      opacity: 0;
+      translate: 0 0.55em;
+      filter: blur(6px);
+    }
+    .flourish .reveal-words.is-in .reveal-word {
+      opacity: 1;
+      translate: none;
+      filter: none;
+      transition:
+        opacity 520ms ease,
+        translate 900ms var(--ease-out),
+        filter 620ms ease;
+      transition-delay: calc(var(--i, 0) * 45ms);
+    }
+
+    .flourish .hero-copy {
+      transform: translate3d(
+        calc(var(--px, 0) * -6px),
+        calc(var(--py, 0) * -4px),
+        0
+      );
+    }
+    .flourish .hero-card {
+      transform: translate3d(
+        calc(var(--px, 0) * 12px),
+        calc(var(--py, 0) * 9px),
+        0
+      );
+    }
+    /* Inside the well the bars sit further away, so they move less. */
+    .flourish .hero-card .wave {
+      transform: translate3d(
+        calc(var(--px, 0) * -4px),
+        calc(var(--py, 0) * -3px),
+        0
+      );
     }
   }
 }

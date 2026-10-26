@@ -413,15 +413,15 @@
 @layer motion {
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
-      /* The window rises out of the island as it arrives, its shadow
-         growing from nothing; the divider sweeps in from the right so the
+      /* The window rises out of the island as it arrives, growing from
+         0.84 toward the visitor while its shadow grows from nothing; the divider sweeps in from the right so the
          dark appearance slides across; then the callouts draw out to their
          places, top to bottom. */
       @keyframes showcase-rise {
         from {
           opacity: 0;
-          translate: 0 40px;
-          scale: 0.96;
+          translate: 0 140px;
+          scale: 0.84;
         }
       }
       @keyframes showcase-lift {
@@ -450,8 +450,8 @@
           showcase-lift linear both;
         animation-timeline: --showcase, --showcase;
         animation-range:
-          entry 0% cover 35%,
-          entry 0% cover 35%;
+          entry 0% cover 45%,
+          entry 0% cover 45%;
       }
       .callout {
         --at: calc(30% + var(--i) * 2.5%);

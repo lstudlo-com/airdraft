@@ -382,6 +382,10 @@
     gap: 56px;
     margin-top: 40px;
   }
+  /* Under a page title the first section keeps clear of it. */
+  .subpage .section-heading + .guide-article {
+    margin-top: 52px;
+  }
   /* One section: the heading on the island at the section's top left, then
      the content in a recessed well carved into the island (GuideSection).
      The heading never sits inside the well, and the well is never raised. */
