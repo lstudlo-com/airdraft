@@ -346,7 +346,7 @@ struct LivePreviewCard: View {
             .modifier(TextAlignmentForStyle(centered: centered, text: shown))
             .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
             .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: Bool.self) { $0.size.height > textHeight + 0.5 } action: { overflows = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { overflows = $0 > textHeight + 0.5 }
             // Short text keeps the card one line tall; longer text fills it and
             // its oldest line fades out under the top edge.
             .frame(maxHeight: textHeight, alignment: .bottom)
