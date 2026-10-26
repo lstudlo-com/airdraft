@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-16-2": {
+    title: "Un poco más de borde",
+    changes: [
+      {
+        title: "Bordes que vuelven a verse",
+        description:
+          "Los controles y las tarjetas mantienen sus caras planas y recuperan un borde tenue, la mitad de intenso que antes de la 0.16.1.",
+      },
+    ],
+  },
   "0-16-1": {
     title: "Controles más serenos",
     changes: [

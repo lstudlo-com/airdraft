@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-16-2": {
+    title: "边缘再清晰一点",
+    changes: [
+      {
+        title: "边缘重新可见",
+        description:
+          "控件和卡片保持平整的表面，并恢复一条淡淡的边缘，强度为 0.16.1 之前的一半。",
+      },
+    ],
+  },
   "0-16-1": {
     title: "更沉静的控件",
     changes: [
