@@ -7,14 +7,38 @@ import SwiftUI
 /// Multiple modifiers held together become a side-independent combination.
 struct HotkeyRecorderView: View {
     @Environment(AppContainer.self) private var container
+    /// Nil edits the dictation shortcut. Profile and Edit shortcuts (AD-104)
+    /// pass their own binding; they start unset and can be cleared.
+    var shortcut: Binding<Hotkey?>?
+    /// The accessible name of this recorder's shortcut.
+    var accessibilityName: String = String(localized: "Dictation shortcut")
     @State private var recording = false
     @State private var monitors: [Any] = []
     @State private var pendingModifier: UInt16?
     @State private var pendingModifiers: UInt64 = 0
 
+    /// The dictation recorder keeps its visible title; extra shortcuts name theirs.
+    private var buttonAccessibilityLabel: String {
+        if shortcut == nil { return recording ? String(localized: "Cancel") : String(localized: "Record Shortcut") }
+        return recording ? String(localized: "Cancel recording \(accessibilityName)") : String(localized: "Record \(accessibilityName)")
+    }
+
+    private var current: Hotkey? {
+        shortcut.map { $0.wrappedValue } ?? container.settings.hotkey
+    }
+
     var body: some View {
         HStack(spacing: 10) {
-            if container.settings.hotkey != .controlOption, !recording {
+            if let shortcut, shortcut.wrappedValue != nil, !recording {
+                Button { shortcut.wrappedValue = nil } label: {
+                    Image(systemName: "xmark.circle")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Remove Shortcut")
+                .accessibilityLabel("Remove \(accessibilityName)")
+            }
+            if shortcut == nil, container.settings.hotkey != .controlOption, !recording {
                 Button { container.settings.hotkey = .controlOption } label: {
                     Image(systemName: "arrow.counterclockwise")
                 }
@@ -31,13 +55,16 @@ struct HotkeyRecorderView: View {
                     .padding(.vertical, 6)
                     .background(SoftControl.shape.fill(Color.accentColor.opacity(0.12)))
                     .overlay(SoftControl.shape.strokeBorder(Color.accentColor))
+            } else if let current {
+                KeyCaps(hotkey: current)
             } else {
-                KeyCaps(hotkey: container.settings.hotkey)
+                Text("Not set").appFont(.body).foregroundStyle(.secondary)
             }
             Button(recording ? "Cancel" : "Record Shortcut") {
                 if recording { stop() } else { start() }
             }
             .buttonStyle(SoftButtonStyle())
+            .accessibilityLabel(buttonAccessibilityLabel)
         }
         .onDisappear { stop() }
     }
@@ -79,7 +106,7 @@ struct HotkeyRecorderView: View {
     }
 
     private func finish(_ hotkey: Hotkey) {
-        container.settings.hotkey = hotkey
+        if let shortcut { shortcut.wrappedValue = hotkey } else { container.settings.hotkey = hotkey }
         stop()
     }
 

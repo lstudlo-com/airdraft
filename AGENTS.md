@@ -684,6 +684,9 @@ and Local releases below.
   display and fade the capsule out over 0.5 seconds. Start at delivery, before
   clipboard restoration and history saving; never return to the recording timer
   or reopen it for a later success notice. New recording cancels the old fade.
+  Exception (AD-104): a dictation that asked to send, or whose flags will be
+  listed, keeps the window through its send window and shows the outcome as a
+  notice (`DictationPipeline.holdsRecordingWindow`).
   Failures and recovery notices expand the native panel over 0.28 seconds to show
   complete wrapping text centered vertically in the panel. Only errors show
   Copy Message at the far right, centered beside the text. Notices and informative
@@ -967,7 +970,9 @@ and Local releases below.
   requires opt-in. Browser URL metadata is captured as HTTP(S) origin only: scheme,
   host and explicit port, with no userinfo, path, query or fragment. New prompts
   and history receive that minimized value; do not rewrite existing history.
-  Cursor insertion remains independent of this setting.
+  Cursor insertion remains independent of this setting. The Edit shortcut is the
+  one explicit exception: pressing it reads only the focused selection, once,
+  through `AppContextReader.readSelection` (no title, URL or nearby text).
 - Sensitive provider requests use `ProviderTransport`: no persistent cache, cookies
   or credential storage, and redirects stay on the original scheme, normalized
   host and effective port. Injected test sessions remain supported. Anonymous model
@@ -1040,7 +1045,8 @@ and Local releases below.
 - LLM behaviours are `RefinementProfile`s in `ProfileStore`, never hard-coded modes.
   Built-ins have stable ids and must stay resettable to `RefinementProfile.defaults`.
 - Profiles shows the selected profile's Name, Dictation and Refine transcript card,
-  then its speech model and instructions, then Profile by app (the switch, rule rows
+  then its speech model, Output (Send to, file and Send automatically) and
+  instructions, then Profile by app (the switch, rule rows
   with a profile picker and remove button, and a Rule priority row holding the Add
   Rule menu of families, open apps and Choose App…; rules stay saved but hidden while
   the switch is off), with the shared base system prompt in a separate last section.
@@ -1162,6 +1168,7 @@ events pass through so normal chords remain usable. Typing another key, changing
 the chord or setup, focus changes and monitor interruptions cancel pending holds.
 Never start model loading, microphone capture or the HUD before the threshold.
 Keep repeat, release, cancellation and persistence regressions in the core suite.
+Profile and Edit shortcuts (AD-104) use the same delay and Hold/Toggle behavior.
 
 ## First-run setup
 
@@ -1602,6 +1609,46 @@ through `CLIProcess`, without shell interpolation. Bound pipes and execution.
 Never retry uncertain delivery or fall back to pasting. Keep final text and
 accurate delivery status in history. Review-only transcription and disabled
 insertion must never execute scripts. See `docs/automation.md`.
+
+## Send after pasting, profile destinations and shortcuts
+
+AD-104 (`docs/automation.md`). Every part is off or unset by default and never
+part of first-run setup or practice (`AppSettings.effectiveProfile` clears a
+profile's output and send). Settings, profile output and the request are captured
+at recording start (`RecordingSnapshot.request`, `.speed`, `OutputSnapshot`).
+- Return is pressed once, only after a paste the original field confirmed and
+  while focus is still there (`TextInserter.pressReturn`, no modifier flags,
+  never retried). Shift pressed while recording toggles a lock (`sendLocked`,
+  polled modifier flags) unless the shortcut uses Shift; a profile's
+  `sendsAutomatically` sends to AI chats and agents only. `sendDecision` is the
+  only place the rules live: never automatic in browsers (web apps with their
+  own bundle IDs count as apps), email, work chat or personal messaging; email
+  never sends; editors that cannot confirm send only with a Shift lock and
+  `sendsWhenUnconfirmed`; retries, edits and practice never send. The cancel
+  window counts from the release and overlaps processing (1 s Shift, 0.5 s
+  automatic); Esc during it keeps the paste and sends nothing.
+- `HighRiskFlags` (version 0, no engine confidence) flags numbers and negations
+  refinement changed, names it introduced, code-like words not in Vocabulary
+  (`identifiersHoldSend`) and speech-guard corrections. Holding flags keep the
+  text pasted and unsent; the HUD lists at most three snippets
+  (`FlagHandling.showAndWait`) or only says it was not sent. Ordinary cleanup
+  never flags. History stores `flags` (JSON), `sendRequest` and `submitted`
+  (migration `v9-speed`); edits and practice store no flags.
+- A profile's `output` overrides Output and automation: Insert at Cursor, Copy
+  Only or Add to File (`FileAppendDelivery`: `{date}`, `{time}`, `{app}` only,
+  coordinated writes, one line per dictation; a missing folder blocks recording
+  before capture). History stores `copy` and `file`; both count as delivered
+  when they succeed.
+- At most two profile shortcuts and one Edit shortcut (`HotkeyService.applyExtras`,
+  one Carbon or event-tap channel each; duplicates are refused). A profile
+  shortcut replaces app rules and the captured-destination follow. The Edit
+  shortcut needs refinement, refuses to open the microphone without a selection,
+  edits with Clean's instructions when the profile skips refinement, always
+  replaces the selection at the cursor and never sends or flags.
+- `SpeedMetricsStore` keeps `speed-metrics.json` beside History: accepted and
+  ignored presses, capture timing by input transport and cursor delivery outcomes
+  per destination bundle ID. Counts only, never sent; History cleanup and Reset
+  remove it. `scripts/speed-metrics.py` and `eval/speed/` read copies only.
 
 ## Live transcription preview
 

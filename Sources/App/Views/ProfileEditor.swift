@@ -94,6 +94,8 @@ struct ProfileEditor<Chooser: View>: View {
 
         ProfileSpeechSettings(selection: binding(\.speechModel))
 
+        ProfileOutputSettings(output: binding(\.output), sendsAutomatically: binding(\.sendsAutomatically))
+
         if current.usesLLM {
             PageSection("Instructions") {
                 ProfileTextEditor(title: String(localized: "Profile instructions"), text: binding(\.instructions), height: 180, showsTitle: false)

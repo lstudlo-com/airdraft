@@ -62,6 +62,11 @@ public enum AppFamily: String, Codable, Sendable, CaseIterable {
         ("gitlab.com", .code),
     ]
 
+    /// Bundle-ID prefixes classified into `families`, for measurements (AD-104).
+    public static func bundlePrefixes(for families: Set<AppFamily>) -> [String] {
+        table.filter { families.contains($0.family) }.map(\.prefix)
+    }
+
     public static func classify(_ ctx: AppContext) -> AppFamily {
         if let url = ctx.url, let host = URL(string: url)?.host?.lowercased() {
             for entry in urlTable where host == entry.host || host.hasSuffix("." + entry.host) {

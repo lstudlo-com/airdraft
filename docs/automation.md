@@ -33,6 +33,55 @@ set -eu
 
 Script failures leave the final text available in History and show an error. They never trigger a paste or an automatic second execution.
 
+## Profile destinations (AD-104)
+
+Each profile can choose its own **Send to** in Profiles → Output: **Use App Default** (the setting above), **Insert at Cursor**, **Copy Only** or **Add to File**. The choice is captured with the rest of the recording when it starts. **Copy Only** puts the final text on the clipboard and pastes nothing. **Add to File** appends the final text as its own line to the file you chose, creating it when needed. Its path may contain `{date}` (`yyyy-MM-dd`), `{time}` (`HH-mm`) and `{app}` (the destination app's name, with `/` and `:` replaced); nothing else is filled in and a model never chooses the path. Writes use `NSFileCoordinator`, so a file in an iCloud folder such as an Obsidian vault is safe. A missing folder blocks recording before the microphone opens, and a failed write keeps the text in History without a paste. History stores these outputs as `copy` and `file`.
+
+## Sending after the paste (AD-104)
+
+Return is pressed only after a paste that the original field confirmed, and only once:
+
+- **Shift to send** (Settings → Send after pasting, off by default): press Shift while recording; the recording window shows **Send ↩**. Each press toggles the lock. It is unavailable when the shortcut itself uses Shift, for edits, and for destinations other than the cursor.
+- **Send automatically** (per profile): for AI chats and agents. It never applies in browsers, email, work chat or personal messaging apps, and never without read-back confirmation.
+- **Flags** hold a send: numbers or negations that refinement changed, names refinement introduced, code-like words not in Vocabulary (optional) and speech-guard corrections. The text stays pasted; by default the recording window lists up to three flagged phrases and you press Return yourself, or choose **Paste Without Sending**.
+- The cancel window counts from the release and overlaps processing: 1 second for a Shift-locked send, 0.5 seconds for an automatic one. Esc during it keeps the paste and sends nothing.
+- Editors that draw their own text (Warp, Zed, Ghostty and similar) cannot confirm a paste. A Shift-locked send presses Return there only with **Send in terminals that can't confirm**; automatic sends never do.
+- Email apps never send with Return. Return is posted with no modifier flags after waiting briefly for held keys, and only while focus is still in the original field.
+
+History stores the flags (`flags`, JSON), the request (`sendRequest`: `shift` or `auto`) and whether Return was pressed (`submitted`).
+
+## Profile and Edit shortcuts (AD-104)
+
+Settings → Keyboard shortcuts holds up to two profile shortcuts and an **Edit selection** shortcut, all unset by default. They follow the dictation shortcut's Hold or Toggle behavior and Trigger Delay. A profile shortcut dictates with its profile in any app, ignoring app rules. The Edit shortcut reads the current selection once, when pressed; with nothing selected the microphone never opens. The spoken instruction rewrites the selection through the refinement provider (a profile without refinement edits with Clean's instructions) and the result replaces the selection at the cursor. Edits never send, use profile destinations or flag words. Read app context stays independent: the Edit shortcut is the explicit consent to read that one selection.
+
+## Sending to an agent in tmux
+
+A script destination can paste into a terminal pane without switching windows. Save, `chmod +x` and choose this script; set `PANE` to the target (`session:window.pane`) and the absolute tmux path:
+
+```sh
+#!/bin/sh
+# Paste Airdraft's final text into a tmux pane.
+set -eu
+TMUX_BIN=/opt/homebrew/bin/tmux   # absolute path: scripts inherit the app's environment
+PANE="agent:1.0"
+SEND_ENTER=1                      # 0 only pastes
+
+text=$(/bin/cat)
+# Join lines: a pane without bracketed paste would run each line on its own.
+text=$(printf '%s' "$text" | /usr/bin/tr '\n' ' ')
+printf '%s' "$text" | "$TMUX_BIN" load-buffer -b airdraft -
+"$TMUX_BIN" paste-buffer -d -p -b airdraft -t "$PANE"
+if [ "$SEND_ENTER" = 1 ]; then
+  "$TMUX_BIN" send-keys -t "$PANE" Enter
+fi
+```
+
+`paste-buffer` turns LF into CR, and `-p` adds bracketed-paste markers only when the pane asked for them; without them every line break acts as Enter, and `-r` does not help because shells treat LF as Enter too. The named buffer is deleted after pasting (`-d`), so your own tmux buffers are untouched. Exit status 0 means tmux accepted the text, not that the agent read it. Add `-S <socket>` when your tmux server uses another socket.
+
+## Measurements (AD-104)
+
+Settings → Send after pasting → Measurements shows local counts: flagged dictations, sends, read-back confirmations for AI apps and shortcut presses ignored while a dictation was processing. They come from History and `speed-metrics.json` in the data folder (counts per destination bundle ID and capture timing by input type, never text) and are never sent. `python3 scripts/speed-metrics.py` prints the full report from a temporary read-only copy; `eval/speed/` exports retained recordings for labeling and scores flag precision, residual errors and whether errors change an AI's answer (see its README).
+
 ## Validation and references
 
 Validated September 26, 2026: the complete suite ran 266 tests with zero failures and three existing skips. The built app contains all three discoverable AudioRecording intents and App Shortcuts with background execution. Light and dark settings renders were inspected. Shortcuts invocation, cold launch and insertion into a real focused editor remain manual checks.

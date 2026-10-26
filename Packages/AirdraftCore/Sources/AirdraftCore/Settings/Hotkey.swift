@@ -29,6 +29,11 @@ public struct Hotkey: Codable, Sendable, Equatable, Hashable {
     public static let maskSecondaryFn: UInt64 = 1 << 23
     public static let relevantModifierMask: UInt64 = maskShift | maskControl | maskAlternate | maskCommand | maskSecondaryFn
 
+    /// Shift is part of this shortcut, so it cannot also lock a send (AD-104).
+    public var usesShift: Bool {
+        modifiers & Self.maskShift != 0 || (isModifierOnly && Self.modifierFlag(for: keyCode) == Self.maskShift)
+    }
+
     /// The flag bit toggled by a modifier key code, or nil for non-modifier keys.
     public static func modifierFlag(for keyCode: UInt16) -> UInt64? {
         switch keyCode {

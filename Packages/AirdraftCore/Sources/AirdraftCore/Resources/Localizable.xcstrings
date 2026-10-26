@@ -119,6 +119,40 @@
         }
       }
     },
+    "%@ and %lld more" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ and %2$lld more"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ y %2$lld más"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ほか %2$lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，另有 %2$lld 个"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，另有 %2$lld 個"
+          }
+        }
+      }
+    },
     "%@ copy" : {
       "comment" : "Name of a duplicated profile",
       "localizations" : {
@@ -2885,6 +2919,34 @@
         }
       }
     },
+    "Check %@." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ を確認してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请检查 %@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請檢查 %@。"
+          }
+        }
+      }
+    },
     "Check the refinement endpoint in Models." : {
       "localizations" : {
         "es" : {
@@ -2997,6 +3059,34 @@
         }
       }
     },
+    "Choose a file for this profile's text." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un archivo para el texto de este perfil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このモードのテキストを保存するファイルを選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请为此模式的文本选择文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請為這個模式的文字選擇檔案。"
+          }
+        }
+      }
+    },
     "Choose a folder outside Airdraft’s managed data folder so your exported copy survives app cleanup." : {
       "localizations" : {
         "es" : {
@@ -3105,6 +3195,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請在「模型」中選擇語音模型。"
+          }
+        }
+      }
+    },
+    "Choose the file using its full path." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige el archivo con su ruta completa."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルはフルパスで指定してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用完整路径选择文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請使用完整路徑選擇檔案。"
           }
         }
       }
@@ -3724,6 +3842,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法開始錄音：%@"
+          }
+        }
+      }
+    },
+    "Couldn't add the text to the file: %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo añadir el texto al archivo: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルにテキストを追加できませんでした：%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将文本添加到文件：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法將文字加入檔案：%@"
           }
         }
       }
@@ -4476,6 +4622,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在下載權重⋯"
+          }
+        }
+      }
+    },
+    "Edit · %lld characters" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar · %lld caracteres"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編集・%lld 文字"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑 · %lld 个字符"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯 · %lld 個字元"
           }
         }
       }
@@ -7339,6 +7513,34 @@
         }
       }
     },
+    "Not sent. Check %@, then press Return." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se envió. Revisa %@ y pulsa Retorno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "送信していません。%@ を確認してから Return を押してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未发送。请检查 %@，然后按 Return。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未送出。請檢查 %@，然後按 Return。"
+          }
+        }
+      }
+    },
     "Off" : {
       "localizations" : {
         "es" : {
@@ -7644,6 +7846,146 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法確認是否已貼上。文字保留在剪貼簿中；再次貼上前請先檢查目標位置。"
+          }
+        }
+      }
+    },
+    "Pasted, not sent." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegado, sin enviar."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしましたが、送信していません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴，未发送。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未送出。"
+          }
+        }
+      }
+    },
+    "Pasted, not sent. Check the text, then press Return." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegado, sin enviar. Revisa el texto y pulsa Retorno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしましたが、送信していません。テキストを確認してから Return を押してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴，未发送。请检查文本，然后按 Return。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未送出。請檢查文字，然後按 Return。"
+          }
+        }
+      }
+    },
+    "Pasted, not sent: email apps don't send with Return." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegado, sin enviar: las apps de correo no envían con Retorno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしましたが、送信していません：メールアプリは Return では送信しません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴，未发送：邮件 App 不会因 Return 而发送。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未送出：郵件 App 不會因 Return 而送出。"
+          }
+        }
+      }
+    },
+    "Pasted, not sent: the field changed before Return." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegado, sin enviar: el campo cambió antes de Retorno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしましたが、送信していません：Return の前に入力欄が変わりました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴，未发送：按 Return 前输入栏已改变。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未送出：按 Return 前輸入欄已改變。"
+          }
+        }
+      }
+    },
+    "Pasted, not sent: this app can't confirm the paste." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegado, sin enviar: esta app no puede confirmar el pegado."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしましたが、送信していません：このアプリはペーストを確認できません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴，未发送：此 App 无法确认粘贴结果。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已貼上，未送出：這個 App 無法確認貼上結果。"
           }
         }
       }
@@ -9398,6 +9740,34 @@
         }
       }
     },
+    "Select the text to edit, then hold the Edit shortcut and say what to change." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona el texto que quieres editar, mantén pulsado el atajo Editar y di qué cambiar."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編集するテキストを選択し、編集のショートカットを押したまま変更内容を話してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选中要编辑的文本，然后按住编辑快捷键并说出要改什么。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選取要編輯的文字，然後按住編輯快速鍵並說出要改什麼。"
+          }
+        }
+      }
+    },
     "Selected speech model" : {
       "localizations" : {
         "es" : {
@@ -10247,6 +10617,34 @@
         }
       }
     },
+    "The Edit shortcut needs refinement. Choose a refinement provider in Models." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El atajo Editar necesita refinado. Elige un proveedor de refinado en Modelos."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編集のショートカットには整形が必要です。「モデル」で整形のプロバイダを選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑快捷键需要润色。请在“模型”中选择润色服务。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯快速鍵需要潤飾。請在「模型」中選擇潤飾服務。"
+          }
+        }
+      }
+    },
     "The OpenRouter key is valid, but this model is not in the current public speech catalog. Refresh the catalog or choose another model." : {
       "localizations" : {
         "es" : {
@@ -10327,6 +10725,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊時鐘已變更。為保留已儲存的時間軸，錄音已停止。"
+          }
+        }
+      }
+    },
+    "The chosen path is a folder. Choose a file." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ruta elegida es una carpeta. Elige un archivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択したパスはフォルダです。ファイルを選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选路径是文件夹，请选择文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選路徑是資料夾，請選擇檔案。"
           }
         }
       }
@@ -10439,6 +10865,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行檔在所有文字送達前就關閉了標準輸入。"
+          }
+        }
+      }
+    },
+    "The folder for this profile's file doesn't exist." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La carpeta del archivo de este perfil no existe."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このモードのファイルを保存するフォルダがありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模式文件所在的文件夹不存在。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個模式檔案所在的資料夾不存在。"
           }
         }
       }
@@ -11227,6 +11681,34 @@
         }
       }
     },
+    "The text could not be added to the file. Your text is kept in History." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo añadir el texto al archivo. Tu texto se conserva en el Historial."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テキストをファイルに追加できませんでした。テキストは履歴に残っています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将文本添加到文件。文本保留在历史记录中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法將文字加入檔案。文字保留在記錄中。"
+          }
+        }
+      }
+    },
     "The transcription job was %@." : {
       "localizations" : {
         "es" : {
@@ -11615,6 +12097,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此已儲存的轉錄使用了不支援的模型。請使用「會議」中列出的模型開始新的轉錄。"
+          }
+        }
+      }
+    },
+    "This shortcut's profile was deleted. Choose another profile in Settings > Keyboard shortcuts." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se eliminó el perfil de este atajo. Elige otro perfil en Ajustes > Atajos de teclado."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このショートカットのモードは削除されました。「設定」>「キーボードショートカット」で別のモードを選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此快捷键的模式已删除。请在“设置”>“键盘快捷键”中另选一个模式。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個快速鍵的模式已刪除。請在「設定」>「鍵盤快速鍵」中另選一個模式。"
           }
         }
       }

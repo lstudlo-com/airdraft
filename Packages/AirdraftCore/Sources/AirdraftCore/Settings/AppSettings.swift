@@ -92,6 +92,30 @@ public enum TextOutputDestination: String, Codable, CaseIterable, Sendable, Iden
     public var title: String { self == .cursor ? String(localized: "Insert at cursor", bundle: .module) : String(localized: "Send to script", bundle: .module) }
 }
 
+/// What a requested send does when the dictation has flagged words (AD-104).
+public enum FlagHandling: String, Codable, CaseIterable, Sendable, Identifiable {
+    /// Paste, list the flagged words in the recording window and wait for the
+    /// user to press Return or edit.
+    case showAndWait
+    /// Paste without sending and without listing the words; the user reads the text.
+    case pasteOnly
+    public var id: String { rawValue }
+}
+
+/// A shortcut that dictates with one profile, whatever the app rules choose (AD-104).
+public struct ProfileHotkey: Codable, Sendable, Equatable, Hashable, Identifiable {
+    public static let maximumCount = 2
+    public var id: UUID
+    public var profileID: UUID
+    public var hotkey: Hotkey?
+
+    public init(id: UUID = UUID(), profileID: UUID, hotkey: Hotkey? = nil) {
+        self.id = id
+        self.profileID = profileID
+        self.hotkey = hotkey
+    }
+}
+
 /// Audio retention is independent of text history; Off also removes saved audio.
 public enum AudioRetention: String, Codable, CaseIterable, Sendable, Identifiable {
     case off, day, week, month, forever
@@ -142,6 +166,30 @@ public final class AppSettings {
     public var outputDestination: TextOutputDestination { didSet { persist("outputDestination", outputDestination) } }
     public var outputScriptPath: String { didSet { persist("outputScriptPath", outputScriptPath) } }
     public var useAppContext: Bool { didSet { persist("useAppContext", useAppContext) } }
+    /// AD-104: pressing Shift while recording asks to press Return after a
+    /// confirmed paste. Off by default; never part of first-run setup.
+    public var sendWithShift: Bool { didSet { persist("sendWithShift", sendWithShift) } }
+    /// AD-104: what a requested send does when words are flagged.
+    public var flagHandling: FlagHandling { didSet { persist("flagHandling", flagHandling) } }
+    /// AD-104: code-like words keep a requested send from pressing Return.
+    public var identifiersHoldSend: Bool { didSet { persist("identifiersHoldSend", identifiersHoldSend) } }
+    /// AD-104: a Shift-locked send may press Return in editors that draw their
+    /// own text and can never confirm the paste.
+    public var sendsWhenUnconfirmed: Bool { didSet { persist("sendsWhenUnconfirmed", sendsWhenUnconfirmed) } }
+    /// AD-104: list flagged words after every dictation, not only when a send is held.
+    public var showsFlagsAfterDictation: Bool { didSet { persist("showsFlagsAfterDictation", showsFlagsAfterDictation) } }
+    /// AD-104: at most `ProfileHotkey.maximumCount` extra shortcuts, each for one profile.
+    public var profileHotkeys: [ProfileHotkey] {
+        didSet {
+            if profileHotkeys.count > ProfileHotkey.maximumCount {
+                profileHotkeys = Array(profileHotkeys.prefix(ProfileHotkey.maximumCount))
+                return
+            }
+            persist("profileHotkeys", profileHotkeys)
+        }
+    }
+    /// AD-104: the Edit shortcut rewrites the current selection by voice. Unset by default.
+    public var editHotkey: Hotkey? { didSet { persist("editHotkey", editHotkey) } }
     /// AD-081: offer Vocabulary terms to on-device speech models that support
     /// biasing. Cloud keyword fields always receive them.
     public var vocabularyBiasesOnDeviceSpeech: Bool {
@@ -216,6 +264,13 @@ public final class AppSettings {
         outputDestination = Self.load("outputDestination", from: defaults) ?? .cursor
         outputScriptPath = Self.load("outputScriptPath", from: defaults) ?? ""
         useAppContext = Self.load("useAppContext", from: defaults) ?? false
+        sendWithShift = Self.load("sendWithShift", from: defaults) ?? false
+        flagHandling = Self.load("flagHandling", from: defaults) ?? .showAndWait
+        identifiersHoldSend = Self.load("identifiersHoldSend", from: defaults) ?? true
+        sendsWhenUnconfirmed = Self.load("sendsWhenUnconfirmed", from: defaults) ?? false
+        showsFlagsAfterDictation = Self.load("showsFlagsAfterDictation", from: defaults) ?? false
+        profileHotkeys = Array((Self.load("profileHotkeys", from: defaults) ?? [ProfileHotkey]()).prefix(ProfileHotkey.maximumCount))
+        editHotkey = Self.load("editHotkey", from: defaults) ?? nil
         vocabularyBiasesOnDeviceSpeech = Self.load("vocabularyBiasesOnDeviceSpeech", from: defaults) ?? true
         let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? 300
         maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
@@ -294,6 +349,9 @@ public final class AppSettings {
         var practice = profile
         practice.speechModel = nil
         practice.usesLLM = false
+        // Practice pastes into Try It and never sends or writes elsewhere.
+        practice.output = nil
+        practice.sendsAutomatically = false
         return practice
     }
 

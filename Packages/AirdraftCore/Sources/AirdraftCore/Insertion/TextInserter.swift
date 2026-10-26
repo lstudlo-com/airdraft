@@ -86,6 +86,10 @@ public final class TextInserter {
         var postPaste: () -> Bool
         var pasteboard: NSPasteboard
         var readText: (AXUIElement, CFRange) -> String? = { _, _ in nil }
+        /// Presses Return with no modifiers (AD-104).
+        var postReturn: () -> Bool = { false }
+        /// Modifier keys currently held, in `CGEventFlags` bits.
+        var modifierFlags: () -> UInt64 = { 0 }
 
         static var live: Environment {
             Environment(frontmostApplication: {
@@ -116,7 +120,8 @@ public final class TextInserter {
                 guard AXUIElementCopyParameterizedAttributeValue(element,
                     kAXStringForRangeParameterizedAttribute as CFString, parameter, &ref) == .success else { return nil }
                 return ref as? String
-            })
+            }, postReturn: { postReturnKey() },
+            modifierFlags: { CGEventSource.flagsState(.combinedSessionState).rawValue })
         }
 
         private static func copyFocus(in root: AXUIElement,
@@ -258,6 +263,36 @@ public final class TextInserter {
                                     unverifiable: target.isCaretless && Self.drawsOwnText(bundleID: target.bundleID),
                                     unconfirmedIsUnverified: !target.isCaretless && Self.drawsOwnText(bundleID: target.bundleID),
                                     onDelivered: onDelivered)
+    }
+
+    // MARK: - Send
+
+    /// Presses Return once after a delivered paste (AD-104), only while focus
+    /// is still in the original field: same process and, when one was captured,
+    /// the same element (its caret has moved by the paste). Waits briefly for
+    /// held modifiers so Shift cannot turn Return into a new line; the posted
+    /// event also carries no modifier flags. Never retried.
+    public func pressReturn(target: InsertionTarget?) async -> Bool {
+        guard let target, !Task.isCancelled, environment.isTrusted() else { return false }
+        _ = await Self.waitForMatch(timeout: .seconds(1)) {
+            self.environment.modifierFlags() & Hotkey.relevantModifierMask == 0
+        }
+        guard !Task.isCancelled, stillFocused(on: target) else {
+            Self.log.notice("send: destination changed before Return")
+            return false
+        }
+        let posted = environment.postReturn()
+        Self.log.notice("send: Return posted=\(posted, privacy: .public)")
+        return posted
+    }
+
+    private func stillFocused(on target: InsertionTarget) -> Bool {
+        guard environment.frontmostApplication()?.processID == target.processID else { return false }
+        if let original = target.element {
+            guard let current = focusedElement(pid: target.processID) else { return false }
+            return CFEqual(original, current)
+        }
+        return applicationMatches(target)
     }
 
     // MARK: - Focus
@@ -707,6 +742,19 @@ public final class TextInserter {
             return item
         }
         pb.writeObjects(restored)
+    }
+
+    private static func postReturnKey() -> Bool {
+        guard let source = CGEventSource(stateID: .hidSystemState) else { return false }
+        let key = CGKeyCode(kVK_Return)
+        guard let down = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: true),
+              let up = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: false) else { return false }
+        // Explicit empty flags: a held Shift or the hotkey must not make Shift-Return.
+        down.flags = []
+        up.flags = []
+        down.post(tap: .cgSessionEventTap)
+        up.post(tap: .cgSessionEventTap)
+        return true
     }
 
     private static func postCommandV() -> Bool {

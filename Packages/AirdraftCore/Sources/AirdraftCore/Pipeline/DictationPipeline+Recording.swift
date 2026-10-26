@@ -6,14 +6,17 @@ import Synchronization
 extension DictationPipeline {
     // MARK: - Control
 
-    public func toggle() {
+    public func toggle(_ request: RecordingRequest = RecordingRequest()) {
         if recordingRequest != nil && !isRecording { cancel() }
-        else if isRecording { stopAndProcess() } else { startRecording() }
+        else if isRecording { stopAndProcess() } else { startRecording(request) }
     }
 
-    public func startRecording() {
+    public func startRecording(_ request: RecordingRequest = RecordingRequest()) {
         // Recording, startup and processing are already visible in the HUD.
-        guard !state.isBusy, recordingRequest == nil else { return }
+        guard !state.isBusy, recordingRequest == nil else {
+            noteIgnoredPressIfProcessing()
+            return
+        }
         if let reason = exclusiveWorkReason {
             // Never drop a shortcut press silently while nothing else is shown.
             fail(reason)
@@ -27,6 +30,9 @@ extension DictationPipeline {
         let token = UUID()
         recordingRequestID = token
         generation = token
+        activeRequest = request
+        recordingBadge = nil
+        noteAcceptedPress()
         // Shortcut acceptance (after any Trigger Delay) or an automation start.
         captureLatency = CaptureLatency(token: token, acceptedAt: ProcessInfo.processInfo.systemUptime)
         recordingRequest = Task {
@@ -80,22 +86,31 @@ extension DictationPipeline {
         cancel()
     }
 
-    func selectedOutput() -> OutputSnapshot {
+    /// `profile`'s own destination applies over the app's Output setting (AD-104).
+    func selectedOutput(profile: RefinementProfile? = nil) -> OutputSnapshot {
         OutputSnapshot(destination: settings.outputDestination, scriptPath: settings.outputScriptPath,
-                       insertionMethod: settings.insertionMethod)
+                       insertionMethod: settings.insertionMethod, profileOutput: profile?.output)
     }
 
     /// `app` is the destination's bundle ID: its app rule chooses the profile,
     /// including the profile's speech model. Practice always uses the chosen profile.
-    func recordingSnapshot(output: OutputSnapshot? = nil, app: String? = nil) -> RecordingSnapshot {
-        let chosen = settings.isOnboardingPractice ? profiles.activeProfile : profiles.selection(forApp: app).profile
-        let profile = settings.effectiveProfile(chosen)
+    /// A profile shortcut's profile replaces the app rule's (AD-104).
+    func recordingSnapshot(output: OutputSnapshot? = nil, app: String? = nil,
+                           request: RecordingRequest = RecordingRequest()) -> RecordingSnapshot {
+        var chosen = settings.isOnboardingPractice ? profiles.activeProfile : profiles.selection(forApp: app).profile
+        if !settings.isOnboardingPractice, let id = request.profileID,
+           let requested = profiles.profiles.first(where: { $0.id == id }) {
+            chosen = requested
+        }
+        var profile = settings.effectiveProfile(chosen)
+        if request.intent == .editSelection { profile = editProfile(from: profile) }
         return RecordingSnapshot(asr: profile.speechConfig(default: settings.asr), profile: profile,
                                  llm: settings.llm, microphone: settings.microphone,
-                                 output: output ?? selectedOutput(), baseRules: profiles.baseRules,
+                                 output: output ?? selectedOutput(profile: profile), baseRules: profiles.baseRules,
                                  dictionary: dictionary.entries, useAppContext: settings.useAppContext,
                                  profileApp: app,
-                                 vocabularyBiasesOnDeviceSpeech: settings.vocabularyBiasesOnDeviceSpeech)
+                                 vocabularyBiasesOnDeviceSpeech: settings.vocabularyBiasesOnDeviceSpeech,
+                                 request: request, speed: speedOptions())
     }
 
     func beginRecording(token: UUID) async {
@@ -103,13 +118,14 @@ extension DictationPipeline {
         // The frontmost app chooses its rule's profile before any setup check;
         // `followCapturedApp` may adopt the captured destination below.
         var profileApp = frontmostBundleID()
-        var snapshot = recordingSnapshot(app: profileApp)
+        let request = activeRequest
+        var snapshot = recordingSnapshot(app: profileApp, request: request)
         let asr = snapshot.asr
         let llm = snapshot.llm
         let profile = snapshot.profile
         let microphone = snapshot.microphone
         let output = snapshot.output
-        let needsInsertion = insertionEnabled && output.destination == .cursor
+        let needsInsertion = insertionEnabled && output.target == .cursor
         // The recording limit of the provider that will transcribe (the
         // snapshot's, which an app rule may choose), shortened when kept
         // recordings use part of the memory bound. Fixed for this session: kept
@@ -126,8 +142,18 @@ extension DictationPipeline {
             if let reason = profile.speechModel?.unavailableReason {
                 throw RecordingPrerequisiteError(reason, kind: .modelMissing)
             }
-            if insertionEnabled, output.destination == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
+            if let id = request.profileID, !profiles.profiles.contains(where: { $0.id == id }) {
+                throw RecordingPrerequisiteError(String(localized: "This shortcut's profile was deleted. Choose another profile in Settings > Keyboard shortcuts.", bundle: .module), kind: .setup)
+            }
+            if insertionEnabled, output.target == .script, let reason = ScriptDelivery.unavailableReason(path: output.scriptPath) {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason)
+            }
+            if insertionEnabled, case .file(let path) = output.target,
+               let reason = FileAppendDelivery.unavailableReason(template: path) {
+                throw RecordingPrerequisiteError(String(localized: "Recording did not start.", bundle: .module) + " " + reason, kind: .setup)
+            }
+            if request.intent == .editSelection, llm.kind == .none {
+                throw RecordingPrerequisiteError(String(localized: "The Edit shortcut needs refinement. Choose a refinement provider in Models.", bundle: .module), kind: .setup)
             }
             let language = try SpeechLanguagePolicy.resolve(asr)
             speechLanguage = language.language
@@ -138,7 +164,7 @@ extension DictationPipeline {
                                                  microphone: microphone, insertionEnabled: needsInsertion)
             }
             guard isCurrent(token) else { return }
-            guard recordingSnapshot(app: profileApp) == snapshot else {
+            guard recordingSnapshot(app: profileApp, request: request) == snapshot else {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module), kind: .setupChanged)
             }
             if asr.kind.isLocal {
@@ -164,7 +190,7 @@ extension DictationPipeline {
                 }
             }
             guard isCurrent(token) else { return }
-            guard recordingSnapshot(app: profileApp) == snapshot else {
+            guard recordingSnapshot(app: profileApp, request: request) == snapshot else {
                 throw RecordingPrerequisiteError(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module), kind: .setupChanged)
             }
         } catch {
@@ -174,6 +200,18 @@ extension DictationPipeline {
             onRecordingBlocked?()
             return
         }
+        // The Edit shortcut reads the selection once, before the microphone
+        // opens: with nothing selected there is nothing to edit.
+        var editContext: AppContext?
+        if request.intent == .editSelection {
+            let selected = contextReader.readSelection()
+            guard selected.hasSelection, let text = selected.selectedText else {
+                fail(String(localized: "Select the text to edit, then hold the Edit shortcut and say what to change.", bundle: .module))
+                return
+            }
+            editContext = selected
+            recordingBadge = Self.editBadge(characters: text.count)
+        }
         let granted = await requestMicrophoneAccess()
         guard isCurrent(token) else { return }
         guard granted else {
@@ -182,7 +220,7 @@ extension DictationPipeline {
             onRecordingBlocked?()
             return
         }
-        guard recordingSnapshot(app: profileApp) == snapshot else {
+        guard recordingSnapshot(app: profileApp, request: request) == snapshot else {
             fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
             return
@@ -212,16 +250,18 @@ extension DictationPipeline {
         let insertionTarget = needsInsertion && !practice ? await inserter.captureTarget() : nil
         // A cancelled or replaced session already stopped this capture.
         guard isCurrent(token) else { return }
-        var context = snapshot.useAppContext ? contextReader.read() : .empty
+        var context = snapshot.useAppContext ? contextReader.read() : (editContext ?? .empty)
+        if let editContext, !context.hasSelection { context.selectedText = editContext.selectedText }
         if let recentFinals, context.recentDictations.isEmpty {
             context.recentDictations = await recentFinals.finals(for: context.bundleId)
             guard isCurrent(token) else { return }
         }
-        if let followed = followCapturedApp(insertionTarget?.bundleID, from: profileApp, snapshot: snapshot) {
+        if request.profileID == nil, request.intent == .dictate,
+           let followed = followCapturedApp(insertionTarget?.bundleID, from: profileApp, snapshot: snapshot) {
             profileApp = followed.profileApp
             snapshot = followed
         }
-        guard recordingSnapshot(app: profileApp) == snapshot else {
+        guard recordingSnapshot(app: profileApp, request: request) == snapshot else {
             abandonStartingCapture()
             fail(String(localized: "Recording did not start because setup changed. Try your shortcut again.", bundle: .module))
             onRecordingBlocked?()
@@ -238,6 +278,7 @@ extension DictationPipeline {
         stopRequestedAt = nil
         levelHistory = []
         set(.recording)
+        startShiftMonitor(token: token, snapshot: snapshot)
         startRefinementPreparation(context: contextAtStart, snapshot: snapshot, token: token)
 
         let remaining = max(0, allowedSeconds - (ProcessInfo.processInfo.systemUptime - captureStarted))
@@ -274,8 +315,8 @@ extension DictationPipeline {
     /// rule when it needs no setup that was not checked: the same speech model and
     /// no newly required refinement. Otherwise the checked profile stays.
     func followCapturedApp(_ captured: String?, from app: String?, snapshot: RecordingSnapshot) -> RecordingSnapshot? {
-        guard let captured, captured != app, recordingSnapshot(app: app) == snapshot else { return nil }
-        let followed = recordingSnapshot(app: captured)
+        guard let captured, captured != app, recordingSnapshot(app: app, request: snapshot.request) == snapshot else { return nil }
+        let followed = recordingSnapshot(app: captured, request: snapshot.request)
         guard followed.asr == snapshot.asr, followed.profile.speechModel?.unavailableReason == nil,
               !followed.profile.usesLLM || snapshot.profile.usesLLM else { return nil }
         return followed
@@ -333,6 +374,9 @@ extension DictationPipeline {
         releaseTask?.cancel()
         stopping = false
         stopPreview()
+        stopShiftMonitor()
+        sessionSendLock = (generation, sendLocked)
+        recordingBadge = nil
         var samples = recorder.stop()
         if let keepingSeconds {
             let kept = max(0, Int(keepingSeconds * AudioRecorder.sampleRate))
@@ -381,6 +425,12 @@ extension DictationPipeline {
         if recorder.isRecording { recorder.cancel() }
         recordingStartedAt = nil
         recordingAtStart = nil
+        stopShiftMonitor()
+        sendLocked = false
+        sessionSendLock = nil
+        recordingBadge = nil
+        sendCancelled = true
+        holdsRecordingWindow = false
         set(.idle)
     }
 
@@ -419,9 +469,10 @@ extension DictationPipeline {
                 let target = self.insertionTargetAtStart
                 let output = self.recordingAtStart?.output
                 let profileApp = self.recordingAtStart?.profileApp
+                let request = self.recordingAtStart?.request ?? RecordingRequest()
                 self.cancel()
                 let message = reason.localizedDescription + (samples.isEmpty ? "" : " " + String(localized: "Captured audio is kept for retry.", bundle: .module))
-                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, profileApp: profileApp, issue: message) }
+                if !samples.isEmpty { self.retain(samples, context: context, target: target, output: output, profileApp: profileApp, request: request, issue: message) }
                 self.reportFailure(.recordingFailed)
                 self.fail(message, openRecovery: !samples.isEmpty)
             }
@@ -509,6 +560,7 @@ extension DictationPipeline {
         guard var latency = captureLatency, latency.token == token, latency.pressToCaptureMs == nil else { return }
         latency.pressToCaptureMs = Int(max(0, uptime - latency.acceptedAt) * 1000)
         captureLatency = latency
+        if let ms = latency.pressToCaptureMs { noteCaptureMetric(ms: ms, microphone: settings.microphone) }
         let engine = latency.engineID ?? "unknown"
         Self.log.notice("recording timing pressToCaptureMs=\(latency.pressToCaptureMs ?? -1) asrEngine=\(engine, privacy: .public)")
     }

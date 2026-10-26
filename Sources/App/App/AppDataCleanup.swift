@@ -39,6 +39,8 @@ extension AppContainer {
                     case .historyAndAudio, .reset: try history.deleteAll()
                     }
                 }.value
+                // AD-104 counts name the apps dictated into; they go with History.
+                if scope != .audio { await self.pipeline.metrics?.clear() }
             }
         ]
         if scope != .history {

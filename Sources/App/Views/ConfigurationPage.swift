@@ -100,8 +100,11 @@ struct ConfigurationPage: View {
                     SettingRow(title: "Cancel recording", subtitle: "Discards the active recording") {
                         KeyCap(text: "esc")
                     }
+                    ExtraShortcutRows()
                 }
             }
+
+            SendSettings()
 
             AutomationSettings()
 

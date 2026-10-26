@@ -134,11 +134,14 @@ public final class ProfileStore {
     @discardableResult
     public func duplicate(id: UUID) -> RefinementProfile? {
         guard let source = profiles.first(where: { $0.id == id }) else { return nil }
-        return add(RefinementProfile(
+        var copy = RefinementProfile(
             name: uniqueName(Self.copyName(source)), symbol: source.symbol,
             usesLLM: source.usesLLM, task: source.task, instructions: source.instructions,
             speechModel: source.speechModel
-        ))
+        )
+        copy.output = source.output
+        copy.sendsAutomatically = source.sendsAutomatically
+        return add(copy)
     }
 
     public func update(_ profile: RefinementProfile) {

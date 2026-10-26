@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 import Foundation
 import Observation
 import os
@@ -50,6 +51,8 @@ public struct DictationTimings: Sendable, Equatable {
     /// Shortcut acceptance to the first captured audio buffer; nil for
     /// file, review and retry processing.
     public var pressToCaptureMs: Int?
+    /// Release to Return pressed after the paste (AD-104); nil without a send.
+    public var stopToSubmitMs: Int?
     public init() {}
 }
 
@@ -134,6 +137,32 @@ public final class DictationPipeline {
         var destination: TextOutputDestination
         var scriptPath: String
         var insertionMethod: InsertionMethod
+        /// The recording profile's own destination (AD-104); nil follows `destination`.
+        var profileOutput: ProfileOutput? = nil
+
+        /// Where this recording's text actually goes.
+        var target: OutputTarget {
+            switch profileOutput?.kind {
+            case .cursor: .cursor
+            case .copy: .copy
+            case .file: .file(profileOutput?.filePath ?? "")
+            case nil: destination == .cursor ? .cursor : .script
+            }
+        }
+    }
+    enum OutputTarget: Sendable, Equatable {
+        case cursor, script, copy
+        case file(String)
+
+        /// The value History stores in `outputDestination`.
+        var historyValue: String {
+            switch self {
+            case .cursor: TextOutputDestination.cursor.rawValue
+            case .script: TextOutputDestination.script.rawValue
+            case .copy: DictationRecord.copyDestination
+            case .file: DictationRecord.fileDestination
+            }
+        }
     }
     struct RecordingSnapshot: Sendable, Equatable {
         let asr: ASRConfig
@@ -148,6 +177,10 @@ public final class DictationPipeline {
         var profileApp: String? = nil
         /// Captured with the dictionary so a toggle mid-recording applies to the next one.
         var vocabularyBiasesOnDeviceSpeech = true
+        /// What started the recording: a profile shortcut or the Edit shortcut (AD-104).
+        var request = RecordingRequest()
+        /// Send and flag choices captured at recording start (AD-104).
+        var speed = SpeedOptions()
     }
     var recordingAtStart: RecordingSnapshot?
     let sendScript: @Sendable (String, String) async throws -> Void
@@ -160,6 +193,8 @@ public final class DictationPipeline {
         let output: OutputSnapshot
         /// The original destination app, so a retry resolves its app rule again.
         var profileApp: String? = nil
+        /// A profile or Edit shortcut's request, so a retry uses the same profile.
+        var request = RecordingRequest()
     }
     var recoveries: [Recovery] = []
     /// The recovery an explicit retry is processing, keyed by its generation.
@@ -195,6 +230,28 @@ public final class DictationPipeline {
               app.bundleIdentifier != Bundle.main.bundleIdentifier else { return nil }
         return app.bundleIdentifier
     }
+    /// Shift pressed while recording asks to send after delivery (AD-104).
+    public internal(set) var sendLocked = false
+    /// A short label the recording window shows while recording, such as the
+    /// Edit shortcut's target; nil shows none.
+    public internal(set) var recordingBadge: String?
+    /// A confirmed paste is waiting out its cancel window before Return (AD-104).
+    public internal(set) var isSendPending = false
+    /// The delivered dictation keeps the recording window for a flag list or a
+    /// send instead of fading at delivery (AD-104).
+    public internal(set) var holdsRecordingWindow = false
+    var sendCancelled = false
+    /// The session whose Shift lock was captured when its recording stopped.
+    var sessionSendLock: (token: UUID, locked: Bool)?
+    var shiftMonitor: Task<Void, Never>?
+    /// The request of the recording being started or recorded.
+    var activeRequest = RecordingRequest()
+    /// Current modifier keys; tests inject a fake keyboard.
+    public var modifierFlags: @MainActor () -> UInt64 = { CGEventSource.flagsState(.combinedSessionState).rawValue }
+    /// Presses Return in the delivery's original field; tests inject it.
+    var pressReturn: (@MainActor (InsertionTarget?) async -> Bool)?
+    /// Local AD-104 counters; nil records nothing.
+    public var metrics: SpeedMetricsStore?
     /// Onboarding practice's editor. Consulted only while practice runs.
     public weak var practiceTarget: (any PracticeDeliveryTarget)?
     /// Anonymous outcome counts (`+Telemetry`). The recorder decides whether

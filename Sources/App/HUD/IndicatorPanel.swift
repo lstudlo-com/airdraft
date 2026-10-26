@@ -281,7 +281,7 @@ struct LivePreviewCard: View {
     static let width: CGFloat = 280
     static let fontSize: CGFloat = 12.5
     /// Two full lines plus the fading tail of a third.
-    static let textHeight: CGFloat = 42
+    nonisolated static let textHeight: CGFloat = 42
     static let cornerRadius: CGFloat = 14
 
     var text: String?
@@ -452,6 +452,8 @@ struct HUDSnapshot {
     var visualizerTime: TimeInterval = 1.4
     var visualizerEnergy: Double?
     var visualizerDisco: HUDDiscoFrame?
+    /// The recording's send lock or Edit target (AD-104).
+    var badge: String?
 }
 
 /// Preset artwork, optional timer and processing status share one content-sized pill.
@@ -511,7 +513,7 @@ struct IndicatorView: View {
                             .padding(.trailing, Self.textOuterInset - Self.contentInset)
                             .accessibilityIdentifier("hud.timer")
                     }
-                    if let caption = state.hudCaption {
+                    if let caption {
                         Text(caption)
                             .font(.system(size: 10, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.white.opacity(0.7))
@@ -545,6 +547,20 @@ struct IndicatorView: View {
     }
 
     private var showsTimer: Bool { timer.isEnabled && state == .recording }
+
+    /// Processing status, or while recording the send lock or Edit target (AD-104).
+    private var caption: String? {
+        if state == .recording {
+            if let badge = snapshot?.badge { return badge }
+            guard let pipeline else { return nil }
+            if pipeline.sendLocked { return String(localized: "Send ↩", comment: "Recording window: Return will be pressed after pasting") }
+            return pipeline.recordingBadge
+        }
+        if state == .inserting, pipeline?.isSendPending == true {
+            return String(localized: "Sending", comment: "Recording window status")
+        }
+        return state.hudCaption
+    }
 
     private var visualizer: some View {
         SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,

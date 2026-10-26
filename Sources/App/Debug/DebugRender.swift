@@ -531,6 +531,16 @@ enum DebugRender {
             ("failed-long", HUDSnapshot(state: .failed("Transcription failed: the server returned HTTP 429.\nThe selected speech model has reached its request limit. Please retry after 30 seconds.\nRequest ID: fixture-request-END"), levels: [], elapsed: 0)),
             ("failed-cjk", HUDSnapshot(state: .failed("聽寫失敗：無法連線至伺服器。請檢查網路後重試。\n完整原因：連線逾時，沒有收到辨識結果。"), levels: [], elapsed: 0)),
             ("notice", HUDSnapshot(state: .notice("Text copied: the original destination is no longer focused. Return to the intended text field and paste the recovered transcript."), levels: [], elapsed: 0)),
+            // AD-104: Shift-locked send, the Edit target and a held send's flag list.
+            ("recording-send", HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4,
+                                           badge: String(localized: "Send ↩", comment: "Recording window: Return will be pressed after pasting"))),
+            ("recording-edit", HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4,
+                                           badge: DictationPipeline.editBadge(characters: 32))),
+            ("notice-flags", HUDSnapshot(state: .notice(DictationPipeline.heldNotice([
+                DictationFlag(kind: .identifier, text: "kubectl", snippet: "…run kubectl apply -f…"),
+                DictationFlag(kind: .number, text: "8080", snippet: "…port 8080 on…"),
+                DictationFlag(kind: .negation, text: "not", snippet: "…should not restart…"),
+            ], handling: .showAndWait)), levels: [], elapsed: 0)),
         ]
         var images: [NSImage] = []
         var classicWidths: [String: CGFloat] = [:]

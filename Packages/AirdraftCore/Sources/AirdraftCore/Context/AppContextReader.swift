@@ -91,6 +91,32 @@ public final class AppContextReader {
         return ctx
     }
 
+    /// Only the frontmost app and the focused field's selection, for the Edit
+    /// shortcut (AD-104): no window title, URL or surrounding text. Password
+    /// fields and managers report no selection.
+    public func readSelection() -> AppContext {
+        if let override {
+            let full = override()
+            return AppContext(bundleId: full.bundleId, appName: full.appName, selectedText: full.selectedText,
+                              processID: full.processID)
+        }
+        var ctx = AppContext()
+        guard let app = NSWorkspace.shared.frontmostApplication else { return ctx }
+        ctx.bundleId = app.bundleIdentifier
+        ctx.appName = app.localizedName
+        ctx.processID = app.processIdentifier
+        guard Self.isAccessibilityTrusted, !Self.privateApps.contains(app.bundleIdentifier ?? "") else { return ctx }
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(appElement, 0.3)
+        guard let focused: AXUIElement = attribute(appElement, kAXFocusedUIElementAttribute) else { return ctx }
+        AXUIElementSetMessagingTimeout(focused, 0.3)
+        if let subrole: String = attribute(focused, kAXSubroleAttribute), subrole == kAXSecureTextFieldSubrole { return ctx }
+        if let selected: String = attribute(focused, kAXSelectedTextAttribute), !selected.isEmpty {
+            ctx.selectedText = String(selected.prefix(maxSelectionChars))
+        }
+        return ctx
+    }
+
     static func surroundingText(_ value: String, range: CFRange, maxBefore: Int, maxAfter: Int) -> (before: String, after: String)? {
         let count = value.utf16.count
         guard range.location >= 0, range.length >= 0, range.location <= count,

@@ -173,6 +173,8 @@ final class AppContainer {
         )
         pipeline.practiceTarget = practiceEditor
         pipeline.telemetry = telemetry
+        // AD-104 counters stay beside History in the data folder.
+        pipeline.metrics = isolatedData && dataDirectory == nil ? nil : SpeedMetricsStore(directory: lease == nil ? nil : dir)
         settings.onboarding.telemetry = telemetry
         license.telemetry = telemetry
         downloads.telemetry = telemetry
@@ -214,7 +216,8 @@ final class AppContainer {
         // Wired here rather than in `start()` so fixtures exercise the same
         // delivery feedback: the HUD finishes and Try It records real delivery.
         pipeline.onOutputDelivered = { [weak self] in
-            self?.indicator?.deliveryCompleted()
+            // A send or a flag list keeps the recording window until it is shown (AD-104).
+            if self?.pipeline.holdsRecordingWindow != true { self?.indicator?.deliveryCompleted() }
             self?.settings.onboarding.noteDelivery()
         }
     }
@@ -247,7 +250,10 @@ final class AppContainer {
             self.showMainWindow()
         }
         wirePipelineStateChanges()
-        escapeHotkey.onPress = { [weak self] in self?.pipeline.cancel() }
+        escapeHotkey.onPress = { [weak self] in
+            guard let self else { return }
+            if self.pipeline.isSendPending { self.pipeline.cancelPendingSend() } else { self.pipeline.cancel() }
+        }
 
         permissions.accessibilityDidChange = { [weak self] in self?.hotkeys.refreshPermissionState() }
         permissions.startMonitoring()
@@ -288,8 +294,11 @@ final class AppContainer {
             self.indicator?.update(for: state)
             self.hotkeys.cancelPendingPress()
             self.models.setDictationBusy(self.pipeline.isBusy || self.cleanup.isRunning)
-            // Esc cancels only while recording, so it never steals Esc elsewhere.
-            if state == .recording { self.escapeHotkey.register(.escape) } else { self.escapeHotkey.unregister() }
+            self.updateEscapeHotkey()
+        }
+        // Esc also cancels a pending send during its short window (AD-104).
+        observeChanges({ [weak self] in _ = self?.pipeline.isSendPending }) { [weak self] in
+            self?.updateEscapeHotkey()
         }
         // A recording request is busy before its first state change: between the
         // press and capture the snapshot's speech model (an app rule's, say) loads,
@@ -298,6 +307,11 @@ final class AppContainer {
             guard let self else { return }
             self.models.setDictationBusy(self.pipeline.isBusy || self.cleanup.isRunning)
         }
+    }
+
+    /// Esc cancels only while recording or waiting to send, so it never steals Esc elsewhere.
+    private func updateEscapeHotkey() {
+        if pipeline.state == .recording || pipeline.isSendPending { escapeHotkey.register(.escape) } else { escapeHotkey.unregister() }
     }
 
     /// Background intents can arrive during launch. Wait for the delegate's normal
@@ -475,9 +489,10 @@ final class AppContainer {
         hotkeys.onPress = { [weak self] in
             guard let self else { return }
             pressedBehavior = self.settings.hotkeyBehavior
+            let request = RecordingRequest(triggerUsesShift: self.settings.hotkey.usesShift)
             switch self.settings.hotkeyBehavior {
-            case .hold: self.pipeline.startRecording()
-            case .toggle: self.pipeline.toggle()
+            case .hold: self.pipeline.startRecording(request)
+            case .toggle: self.pipeline.toggle(request)
             }
         }
         hotkeys.onRelease = { [weak self] in
@@ -486,7 +501,25 @@ final class AppContainer {
             guard let self, behavior == .hold else { return }
             self.pipeline.stopAndProcess()
         }
+        // Profile and Edit shortcuts follow the same Hold or Toggle behavior (AD-104).
+        var extraBehavior: HotkeyBehavior?
+        hotkeys.onExtraPress = { [weak self] action in
+            guard let self else { return }
+            extraBehavior = self.settings.hotkeyBehavior
+            let request = self.recordingRequest(for: action)
+            switch self.settings.hotkeyBehavior {
+            case .hold: self.pipeline.startRecording(request)
+            case .toggle: self.pipeline.toggle(request)
+            }
+        }
+        hotkeys.onExtraRelease = { [weak self] _ in
+            let behavior = extraBehavior
+            extraBehavior = nil
+            guard let self, behavior == .hold else { return }
+            self.pipeline.stopAndProcess()
+        }
         hotkeys.apply(settings.hotkey, triggerDelayMilliseconds: settings.triggerDelayMilliseconds)
+        hotkeys.applyExtras(extraHotkeyBindings)
         observeHotkeyChanges()
     }
 
@@ -496,9 +529,31 @@ final class AppContainer {
             _ = self?.settings.hotkey
             _ = self?.settings.hotkeyBehavior
             _ = self?.settings.triggerDelayMilliseconds
+            _ = self?.settings.profileHotkeys
+            _ = self?.settings.editHotkey
         }) { [weak self] in
             guard let self else { return }
+            self.hotkeys.applyExtras(self.extraHotkeyBindings)
             self.hotkeys.apply(self.settings.hotkey, triggerDelayMilliseconds: self.settings.triggerDelayMilliseconds)
+        }
+    }
+
+    /// Profile shortcuts with a key, then the Edit shortcut (AD-104).
+    private var extraHotkeyBindings: [HotkeyBinding] {
+        var bindings = settings.profileHotkeys.compactMap { entry in
+            entry.hotkey.map { HotkeyBinding(action: .profile(entry.profileID), hotkey: $0) }
+        }
+        if let edit = settings.editHotkey { bindings.append(HotkeyBinding(action: .edit, hotkey: edit)) }
+        return bindings
+    }
+
+    private func recordingRequest(for action: HotkeyAction) -> RecordingRequest {
+        switch action {
+        case .profile(let id):
+            let hotkey = settings.profileHotkeys.first { $0.profileID == id }?.hotkey
+            return RecordingRequest(profileID: id, triggerUsesShift: hotkey?.usesShift ?? false)
+        case .edit:
+            return RecordingRequest(intent: .editSelection, triggerUsesShift: settings.editHotkey?.usesShift ?? false)
         }
     }
 }

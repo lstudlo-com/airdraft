@@ -195,9 +195,17 @@ extension DictationPipeline {
             return
         }
 
+        // AD-104: flag high-risk words and decide whether Return follows delivery.
+        let speed = speedPlan(transcript: transcript, final: final, snapshot: snapshot, delivery: delivery, token: token)
+        holdsRecordingWindow = speed.holdsWindow
+
         // 4. Deliver once, then 5. hand persistence to the delivery tail.
         guard let report = await deliver(final, output: snapshot.output, target: target, token: token,
-                                         delivery: delivery, stopRequested: stopRequested, timings: &timings) else { return }
+                                         delivery: delivery, stopRequested: stopRequested, speed: speed,
+                                         timings: &timings) else {
+            holdsRecordingWindow = false
+            return
+        }
         finishDelivery(report, transcript: transcript, refinement: refinement, final: final, samples: samples,
                        seconds: seconds, context: context, snapshot: snapshot, token: token,
                        processingStarted: processingStarted, timings: timings)
@@ -205,6 +213,35 @@ extension DictationPipeline {
         if delivery == .normal || delivery == .retry {
             reportCompletion(report, refinement: refinement, snapshot: snapshot, seconds: seconds, timings: timings)
         }
+    }
+
+    /// One delivery's flags and send request (AD-104).
+    struct SpeedPlan {
+        /// Nil when flags were not checked: edits, reviews and practice.
+        var flags: [DictationFlag]?
+        var request: SendRequest?
+        var options = SpeedOptions()
+        var holdsWindow: Bool { request != nil || (options.showsFlagsAfterDictation && !(flags ?? []).isEmpty) }
+        static let none = SpeedPlan()
+    }
+
+    func speedPlan(transcript: Transcript, final: String, snapshot: RecordingSnapshot,
+                   delivery: DeliveryPolicy, token: UUID) -> SpeedPlan {
+        defer { if sessionSendLock?.token == token { sessionSendLock = nil } }
+        guard snapshot.request.intent == .dictate, delivery == .normal || delivery == .retry else { return .none }
+        var plan = SpeedPlan(options: snapshot.speed)
+        plan.flags = HighRiskFlags.flags(raw: transcript.text, final: final,
+                                         vocabulary: DictionaryPostProcessor.vocabulary(snapshot.dictionary),
+                                         adjustments: transcript.adjustments,
+                                         identifiersHoldSend: snapshot.speed.identifiersHoldSend)
+        // Only a fresh dictation sends: a retry's destination may show something else now.
+        guard delivery == .normal, insertionEnabled, snapshot.output.target == .cursor else { return plan }
+        if sessionSendLock?.token == token, sessionSendLock?.locked == true {
+            plan.request = .shift
+        } else if snapshot.profile.sendsAutomatically {
+            plan.request = .auto
+        }
+        return plan
     }
 
     /// Speech hints from the recording's captured dictionary and vocabulary choice.
@@ -245,7 +282,7 @@ extension DictationPipeline {
             }
             let retried = retryingRecovery?.token == token ? retryingRecovery?.id : nil
             retryingRecovery = nil
-            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, profileApp: snapshot.profileApp, issue: message, replacing: retried)
+            retain(samples, context: context, target: target, reviewOnly: reviewOnly, output: snapshot.output, profileApp: snapshot.profileApp, request: snapshot.request, issue: message, replacing: retried)
             if !reviewOnly { reportFailure(.speechError) }
             fail(message, openRecovery: !reviewOnly)
             return nil

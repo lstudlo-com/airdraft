@@ -36,6 +36,18 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     /// is saved so totals never decode every transcript. Nil for rows written
     /// before migration `v7-word-count` or by an older app version.
     public internal(set) var wordCount: Int?
+    /// AD-104: JSON array of `DictationFlag`; nil when not checked (older rows,
+    /// edits, practice), `[]` when checked and clean.
+    public var flags: String?
+    /// AD-104: `SendRequest` raw value when Return was to follow the paste.
+    public var sendRequest: String?
+    /// AD-104: whether a requested Return was pressed; nil without a request.
+    public var submitted: Bool?
+
+    /// `outputDestination` for a profile that only copies (AD-104).
+    public static let copyDestination = "copy"
+    /// `outputDestination` for a profile that appends to a file (AD-104).
+    public static let fileDestination = "file"
 
     public init(
         id: Int64? = nil,
@@ -61,7 +73,10 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         audioFilename: String? = nil,
         recordingID: String? = nil,
         outputDestination: String? = nil,
-        outputSucceeded: Bool? = nil
+        outputSucceeded: Bool? = nil,
+        flags: String? = nil,
+        sendRequest: String? = nil,
+        submitted: Bool? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -87,6 +102,20 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         self.recordingID = recordingID
         self.outputDestination = outputDestination
         self.outputSucceeded = outputSucceeded
+        self.flags = flags
+        self.sendRequest = sendRequest
+        self.submitted = submitted
+    }
+
+    /// The stored flags, decoded; empty for rows that have none.
+    public var decodedFlags: [DictationFlag] {
+        guard let flags, let data = flags.data(using: .utf8) else { return [] }
+        return (try? JSONDecoder().decode([DictationFlag].self, from: data)) ?? []
+    }
+
+    static func encodeFlags(_ flags: [DictationFlag]) -> String {
+        guard let data = try? JSONEncoder().encode(flags) else { return "[]" }
+        return String(decoding: data, as: UTF8.self)
     }
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -97,7 +126,7 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     /// Cursor output that succeeded without confirmed insertion is a paste
     /// sent to a caretless editor; earlier versions never stored that pair.
     public var deliveryStatus: TextDeliveryStatus {
-        if outputDestination == TextOutputDestination.script.rawValue {
+        if [TextOutputDestination.script.rawValue, Self.copyDestination, Self.fileDestination].contains(outputDestination) {
             return outputSucceeded == true ? .delivered : .notDelivered
         }
         if inserted { return .delivered }
@@ -233,9 +262,39 @@ public final class HistoryStore: Sendable {
                 t.column("lastUsedAt", .datetime).notNull().indexed()
             }
         }
+        migrator.registerMigration("v9-speed") { db in
+            // AD-104: flags and send outcome; nullable so older rows stay valid.
+            try db.alter(table: DictationRecord.databaseTableName) { t in
+                t.add(column: "flags", .text)
+                t.add(column: "sendRequest", .text)
+                t.add(column: "submitted", .boolean)
+            }
+        }
         try migrator.migrate(dbQueue)
         // Rows an older version inserted after the migration have no count yet.
         try dbQueue.write { db in try Self.backfillWordCounts(db) }
+    }
+
+    /// AD-104 measurements, counted in SQL without reading any text.
+    public func speedStatistics() throws -> SpeedStatistics {
+        try dbQueue.read { db in
+            var stats = SpeedStatistics()
+            let row = try Row.fetchOne(db, sql: """
+                SELECT
+                  SUM(flags IS NOT NULL),
+                  SUM(flags IS NOT NULL AND flags != '[]'),
+                  SUM(flags LIKE '%"holdsSend":true%'),
+                  SUM(sendRequest IS NOT NULL),
+                  SUM(submitted = 1)
+                FROM dictation
+                """)
+            stats.checked = row?[0] ?? 0
+            stats.flagged = row?[1] ?? 0
+            stats.holding = row?[2] ?? 0
+            stats.sendRequested = row?[3] ?? 0
+            stats.sent = row?[4] ?? 0
+            return stats
+        }
     }
 
     /// Stores the word count of rows that have none. Reads only those rows.
@@ -880,4 +939,16 @@ public final class HistoryStore: Sendable {
         }
         return count
     }
+}
+
+/// AD-104 counts for Settings; `scripts/speed-metrics.py` reports more.
+public struct SpeedStatistics: Sendable, Equatable {
+    /// Dictations whose words were checked for flags.
+    public var checked = 0
+    public var flagged = 0
+    /// Dictations with a flag that holds a send.
+    public var holding = 0
+    public var sendRequested = 0
+    public var sent = 0
+    public init() {}
 }

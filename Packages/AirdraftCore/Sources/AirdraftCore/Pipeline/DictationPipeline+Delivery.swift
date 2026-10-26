@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 /// Delivers final text exactly once, then releases the pipeline while the
@@ -17,6 +18,10 @@ extension DictationPipeline {
         /// nothing was written, the session no longer owns the pipeline, and the
         /// text goes to History as not delivered.
         var cancelledBeforeWriting = false
+        /// AD-104: why Return was to follow, whether it did, and the flags checked.
+        var sendRequest: SendRequest?
+        var submitted: Bool?
+        var flags: [DictationFlag]?
     }
 
     /// A script can have external side effects, so it is never retried and never
@@ -28,11 +33,11 @@ extension DictationPipeline {
     /// (`cancelledBeforeWriting`). A retry returns nil: its kept recording stays
     /// for another retry or discard, so nothing is lost or duplicated.
     func deliver(_ final: String, output: OutputSnapshot, target: InsertionTarget?, token: UUID,
-                 delivery: DeliveryPolicy, stopRequested: TimeInterval?,
+                 delivery: DeliveryPolicy, stopRequested: TimeInterval?, speed: SpeedPlan = .none,
                  timings: inout DictationTimings) async -> DeliveryReport? {
         set(.inserting)
         let deliveryStarted = ProcessInfo.processInfo.systemUptime
-        if insertionEnabled, delivery == .copyOnly || output.destination == .cursor {
+        if insertionEnabled, delivery == .copyOnly || output.target == .cursor || output.target == .copy {
             // An earlier unverified paste's receiver may still read the clipboard,
             // so nothing is written until its window ends (at most
             // `unverifiedRestoreDelay`). Cancel stays available during this wait.
@@ -47,6 +52,8 @@ extension DictationPipeline {
             }
         }
         var report = DeliveryReport()
+        report.flags = speed.flags
+        report.sendRequest = speed.request
         var reportedDelivery = false
         var stopToDeliveryMs: Int?
         let reportDelivery: () -> Void = { [weak self] in
@@ -63,7 +70,7 @@ extension DictationPipeline {
             report.noticeRequiresAttention = result.noticeRequiresAttention
             if result.noticeRequiresAttention { report.deliveryError = result.notice }
         } else if insertionEnabled {
-            switch output.destination {
+            switch output.target {
             case .cursor:
                 let result: InsertionResult
                 if delivery == .practice {
@@ -84,6 +91,30 @@ extension DictationPipeline {
                 report.notice = result.notice
                 report.noticeRequiresAttention = result.noticeRequiresAttention
                 if !result.wasSent, result.noticeRequiresAttention { report.deliveryError = result.notice }
+                if delivery == .normal, let metrics {
+                    let bundleID = target?.bundleID
+                    let status = result.delivery
+                    Task { await metrics.noteDelivery(bundleID: bundleID, status: status) }
+                }
+                if delivery == .normal || delivery == .retry {
+                    if result.wasSent { reportDelivery() }
+                    await applySend(speed, delivered: result.delivery, target: target, stopRequested: stopRequested,
+                                    token: token, report: &report, timings: &timings)
+                }
+            case .copy:
+                let result = inserter.copyOnly(final, notice: String(localized: "Copied to clipboard", bundle: .module), requiresAttention: false)
+                report.outputSucceeded = result.noticeRequiresAttention == false
+                report.notice = result.notice
+                report.noticeRequiresAttention = result.noticeRequiresAttention
+                if result.noticeRequiresAttention { report.deliveryError = result.notice }
+            case .file(let path):
+                do {
+                    try await FileAppendDelivery.append(final, template: path, app: target?.bundleID.flatMap(Self.appName(bundleID:)))
+                    report.outputSucceeded = true
+                } catch {
+                    report.deliveryError = String(localized: "The text could not be added to the file. Your text is kept in History.", bundle: .module) + " " + error.localizedDescription
+                    report.notice = report.deliveryError
+                }
             case .script:
                 do {
                     try await sendScript(final, output.scriptPath)
@@ -100,6 +131,54 @@ extension DictationPipeline {
         return report
     }
 
+    /// AD-104: after a delivered paste, press Return when the request allows it,
+    /// or say why not. Nothing here repeats the paste.
+    func applySend(_ speed: SpeedPlan, delivered: TextDeliveryStatus, target: InsertionTarget?,
+                   stopRequested: TimeInterval?, token: UUID, report: inout DeliveryReport,
+                   timings: inout DictationTimings) async {
+        let flags = speed.flags ?? []
+        let decision = Self.sendDecision(request: speed.request, delivered: delivered, bundleID: target?.bundleID,
+                                         flags: flags, options: speed.options)
+        switch decision {
+        case .none:
+            if speed.request != nil { report.submitted = false }
+            if report.notice == nil, delivered != .notDelivered, speed.options.showsFlagsAfterDictation, !flags.isEmpty {
+                report.notice = Self.flagNotice(flags)
+                report.noticeRequiresAttention = false
+            }
+        case .send(let window):
+            switch await performSend(window: window, target: target, stopRequested: stopRequested, token: token) {
+            case true?:
+                report.submitted = true
+                if let stopRequested { timings.stopToSubmitMs = Self.elapsed(since: stopRequested) }
+                if report.notice == nil, speed.options.showsFlagsAfterDictation, !flags.isEmpty {
+                    report.notice = Self.flagNotice(flags)
+                    report.noticeRequiresAttention = false
+                }
+            case false?:
+                report.submitted = false
+                report.notice = String(localized: "Pasted, not sent: the field changed before Return.", bundle: .module)
+            case nil:
+                report.submitted = false
+                report.notice = String(localized: "Pasted, not sent.", bundle: .module)
+                report.noticeRequiresAttention = false
+            }
+        case .hold(let held):
+            report.submitted = false
+            report.notice = Self.heldNotice(held, handling: speed.options.flagHandling)
+        case .blocked(let reason):
+            report.submitted = false
+            report.notice = reason
+        }
+    }
+
+    /// The destination app's name for a file path's `{app}` field.
+    static func appName(bundleID: String) -> String? {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID).map {
+            FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "")
+        }
+    }
+
     /// Delivery has finished, so this session releases the pipeline before
     /// persistence: the next shortcut press can record at once. Saving and the
     /// outcome continue in a tail that keeps their order and that quit and data
@@ -110,11 +189,12 @@ extension DictationPipeline {
         let output = snapshot.output
         var notice = report.notice
         var noticeRequiresAttention = report.noticeRequiresAttention
+        holdsRecordingWindow = false
         defer { if keptBudgetStop?.token == token { keptBudgetStop = nil } }
         if refinement.llmError != nil, notice == nil {
             let reason = refinement.llmRejected ? String(localized: "Refinement didn't match your speech", bundle: .module) : String(localized: "Refinement unavailable", bundle: .module)
             notice = report.outputSucceeded
-                ? (output.destination == .script ? String(localized: "\(reason); raw text sent to script.", bundle: .module)
+                ? (output.target == .script ? String(localized: "\(reason); raw text sent to script.", bundle: .module)
                     : report.sentUnverified ? String(localized: "\(reason); raw text pasted.", bundle: .module)
                     : String(localized: "\(reason); raw text inserted.", bundle: .module))
                 : String(localized: "\(reason); raw text is available in History.", bundle: .module)
@@ -140,8 +220,11 @@ extension DictationPipeline {
             inserted: report.inserted,
             error: (refinement.llmError != nil || report.deliveryError != nil)
                 ? [refinement.llmError, report.deliveryError].compactMap { $0 }.joined(separator: "\n") : nil,
-            outputDestination: insertionEnabled ? output.destination.rawValue : nil,
-            outputSucceeded: insertionEnabled ? report.outputSucceeded : nil
+            outputDestination: insertionEnabled ? output.target.historyValue : nil,
+            outputSucceeded: insertionEnabled ? report.outputSucceeded : nil,
+            flags: report.flags.map(DictationRecord.encodeFlags),
+            sendRequest: report.sendRequest?.rawValue,
+            submitted: report.submitted
         )
         // Delivered text always reaches history, whatever happens next.
         let savesHistory = history != nil || historyDirectory != nil

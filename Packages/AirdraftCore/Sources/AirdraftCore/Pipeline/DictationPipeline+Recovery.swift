@@ -125,7 +125,7 @@ extension DictationPipeline {
     public func retryRecording(_ id: UUID? = nil) {
         guard !isBusy, let index = recoveryIndex(id) else { return }
         let recovery = recoveries[index]
-        let snapshot = recordingSnapshot(output: recovery.output, app: recovery.profileApp)
+        let snapshot = recordingSnapshot(output: recovery.output, app: recovery.profileApp, request: recovery.request)
         generation = UUID()
         discardRefinementPreparation()
         stopRequestedAt = nil
@@ -148,12 +148,15 @@ extension DictationPipeline {
 
     /// Keeps failed audio. A failed retry replaces its own entry and becomes the newest.
     func retain(_ samples: [Float], context: AppContext, target: InsertionTarget?, reviewOnly: Bool = false,
-                        output: OutputSnapshot? = nil, profileApp: String? = nil, issue: String, replacing id: UUID? = nil) {
+                        output: OutputSnapshot? = nil, profileApp: String? = nil, request: RecordingRequest? = nil,
+                        issue: String, replacing id: UUID? = nil) {
         var isReview = reviewOnly && reviewGeneration == generation
         var profileApp = profileApp
+        var request = request
         if let id, let index = recoveries.firstIndex(where: { $0.info.id == id }) {
             isReview = recoveries[index].info.isReview
             profileApp = profileApp ?? recoveries[index].profileApp
+            request = request ?? recoveries[index].request
             recoveries.remove(at: index)
         }
         if isReview { recoveries.removeAll { $0.info.isReview } }
@@ -161,7 +164,7 @@ extension DictationPipeline {
                                     issue: issue, isReview: isReview)
         recoveries.append(Recovery(info: info, samples: samples, context: context, target: target, reviewOnly: reviewOnly,
                                    output: output ?? recordingAtStart?.output ?? selectedOutput(),
-                                   profileApp: profileApp))
+                                   profileApp: profileApp, request: request ?? recordingAtStart?.request ?? RecordingRequest()))
     }
 
     /// Successful or silent processing resolves the recovery a retry was

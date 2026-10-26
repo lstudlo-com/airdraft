@@ -21,9 +21,15 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
     /// The user typed this name, so it is shown exactly as typed, even when it
     /// equals a built-in's stored English name (AD-079). Older files omit the key.
     public var nameIsCustom = false
+    /// Where this profile's text goes (AD-104). Nil follows Output and automation.
+    public var output: ProfileOutput?
+    /// Press Return after a confirmed paste with nothing flagged: for prompts to
+    /// AI chats and agents. Never in browsers, email or chat apps (AD-104).
+    public var sendsAutomatically = false
 
     private enum CodingKeys: String, CodingKey {
         case id, name, symbol, usesLLM, task, instructions, isBuiltIn, speechModel, nameIsCustom
+        case output, sendsAutomatically
     }
 
     public init(
@@ -57,6 +63,18 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
         speechModel = try container.decodeIfPresent(ProfileSpeechModel.self, forKey: .speechModel)
         nameIsCustom = try container.decodeIfPresent(Bool.self, forKey: .nameIsCustom) ?? false
+        // Older files omit both; an unreadable output follows the app setting.
+        output = (try? container.decodeIfPresent(ProfileOutput.self, forKey: .output)) ?? nil
+        sendsAutomatically = try container.decodeIfPresent(Bool.self, forKey: .sendsAutomatically) ?? false
+    }
+
+    /// True when this profile's text goes to the cursor, its own choice or the app's.
+    public func deliversToCursor(appDefault: TextOutputDestination) -> Bool {
+        switch output?.kind {
+        case nil: appDefault == .cursor
+        case .cursor: true
+        case .copy, .file: false
+        }
     }
 
     public func speechConfig(default appDefault: ASRConfig) -> ASRConfig {
@@ -132,4 +150,23 @@ public struct RefinementProfile: Codable, Sendable, Identifiable, Equatable, Has
         default: nil
         }
     }
+}
+
+/// A profile's own destination (AD-104). The file path may contain `{date}`,
+/// `{time}` and `{app}`; nothing else, and never anything a model wrote.
+public struct ProfileOutput: Codable, Sendable, Equatable, Hashable {
+    public enum Kind: String, Codable, Sendable, CaseIterable, Identifiable {
+        case cursor, copy, file
+        public var id: String { rawValue }
+    }
+    public var kind: Kind
+    public var filePath: String
+
+    public init(kind: Kind, filePath: String = "") {
+        self.kind = kind
+        self.filePath = filePath
+    }
+
+    public static let cursor = ProfileOutput(kind: .cursor)
+    public static let copy = ProfileOutput(kind: .copy)
 }

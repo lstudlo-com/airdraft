@@ -21,6 +21,13 @@ final class HotkeyService {
 
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
+    /// Profile and Edit shortcuts (AD-104), each with its own backend.
+    var onExtraPress: ((HotkeyAction) -> Void)?
+    var onExtraRelease: ((HotkeyAction) -> Void)?
+    private var extras: [ExtraChannel] = []
+    private var extraBindings: [HotkeyBinding] = []
+    /// Extra shortcuts that could not be registered, for Settings.
+    private(set) var extraIssues: [HotkeyAction: String] = [:]
     /// Stop/cancel actions bypass the start threshold.
     var shouldDelayPress: () -> Bool = { true }
     private(set) var triggerDelayMilliseconds = 0
@@ -62,6 +69,7 @@ final class HotkeyService {
         self.triggerDelayMilliseconds = HotkeyTriggerState.clampedDelay(triggerDelayMilliseconds)
         carbon.unregister()
         eventTap.stop()
+        applyExtras()
 
         guard !isSuspended else {
             backend = .none
@@ -87,12 +95,50 @@ final class HotkeyService {
     }
 
     var needsAccessibility: Bool {
-        backend == .eventTap && !permissions.accessibilityGranted
+        (backend == .eventTap || extras.contains { $0.usesEventTap }) && !permissions.accessibilityGranted
     }
 
-    func cancelPendingPress() { eventTap.cancelPendingPress() }
+    /// Registers profile and Edit shortcuts beside the dictation shortcut. A
+    /// binding equal to another shortcut is skipped and reported.
+    func applyExtras(_ bindings: [HotkeyBinding]) {
+        extraBindings = bindings
+        applyExtras()
+    }
+
+    private func applyExtras() {
+        for channel in extras { channel.stop() }
+        extras = []
+        extraIssues = [:]
+        guard !isSuspended else { return }
+        var used: Set<Hotkey> = [hotkey]
+        for binding in extraBindings {
+            guard used.insert(binding.hotkey).inserted else {
+                extraIssues[binding.action] = String(localized: "This shortcut is already used by another shortcut.")
+                continue
+            }
+            let channel = ExtraChannel(action: binding.action)
+            channel.onPress = { [weak self] action in
+                guard let self, !self.isSuspended else { return }
+                Self.log.notice("press extra \(binding.hotkey.displayString, privacy: .public)")
+                self.onExtraPress?(action)
+            }
+            channel.onRelease = { [weak self] action in self?.onExtraRelease?(action) }
+            channel.shouldDelayPress = { [weak self] in self?.shouldDelayPress() ?? true }
+            if let issue = channel.start(binding.hotkey, triggerDelayMilliseconds: triggerDelayMilliseconds,
+                                         accessibilityGranted: permissions.accessibilityGranted) {
+                extraIssues[binding.action] = issue
+            }
+            extras.append(channel)
+        }
+    }
+
+    func cancelPendingPress() {
+        eventTap.cancelPendingPress()
+        for channel in extras { channel.cancelPendingPress() }
+    }
 
     func refreshPermissionState() {
+        if extras.contains(where: \.usesEventTap) { applyExtras() }
         guard backend == .eventTap else { return }
         if permissions.accessibilityGranted {
             eventTap.start()
@@ -127,4 +173,64 @@ final class HotkeyService {
         Self.log.notice("release \(self.hotkey.displayString, privacy: .public)")
         onRelease?()
     }
+}
+
+/// What a profile or Edit shortcut does (AD-104).
+enum HotkeyAction: Hashable {
+    case profile(UUID)
+    case edit
+}
+
+struct HotkeyBinding: Equatable {
+    var action: HotkeyAction
+    var hotkey: Hotkey
+}
+
+/// One extra shortcut with the same backend rules as dictation's: Carbon for an
+/// immediate key combination, the event tap for modifier-only keys, fn and a
+/// trigger delay.
+@MainActor
+private final class ExtraChannel {
+    let action: HotkeyAction
+    var onPress: ((HotkeyAction) -> Void)?
+    var onRelease: ((HotkeyAction) -> Void)?
+    var shouldDelayPress: () -> Bool = { true }
+    private let carbon = CarbonHotkey()
+    private let eventTap = EventTapHotkey()
+    private(set) var usesEventTap = false
+
+    init(action: HotkeyAction) {
+        self.action = action
+        carbon.onPress = { [weak self] in self?.press() }
+        carbon.onRelease = { [weak self] in self?.release() }
+        eventTap.onPress = { [weak self] in self?.press() }
+        eventTap.onRelease = { [weak self] in self?.release() }
+        eventTap.shouldDelayPress = { [weak self] in self?.shouldDelayPress() ?? true }
+    }
+
+    /// Returns why the shortcut cannot work now, or nil.
+    func start(_ hotkey: Hotkey, triggerDelayMilliseconds: Int, accessibilityGranted: Bool) -> String? {
+        if triggerDelayMilliseconds == 0, CarbonHotkey.canRegister(hotkey) {
+            return carbon.register(hotkey) ? nil
+                : String(localized: "Could not register \(hotkey.localizedDisplayString); another app may own it.")
+        }
+        usesEventTap = true
+        eventTap.hotkey = hotkey
+        eventTap.triggerDelayMilliseconds = triggerDelayMilliseconds
+        guard accessibilityGranted else {
+            return String(localized: "Waiting for Accessibility permission (needed for \(hotkey.localizedDisplayString))")
+        }
+        eventTap.start()
+        return nil
+    }
+
+    func stop() {
+        carbon.unregister()
+        eventTap.stop()
+    }
+
+    func cancelPendingPress() { eventTap.cancelPendingPress() }
+
+    private func press() { onPress?(action) }
+    private func release() { onRelease?(action) }
 }
