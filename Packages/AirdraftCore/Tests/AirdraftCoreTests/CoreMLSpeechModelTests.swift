@@ -4,6 +4,16 @@ import XCTest
 final class CoreMLSpeechModelTests: XCTestCase {
     /// Every Core ML variant is pinned with a saved identity; Distil-Whisper, Orukeet and retired Core ML choices follow their directory, archive and language rules.
     @MainActor func testCoreMLDistilOrukeetAndRetiredChoicesKeepPinnedArtifactsAndLanguagePolicies() async throws {
+        // ShortWindowsArePaddedToFluidAudiosMinimum (AD-116)
+        do {
+            let short: [Float] = Array(repeating: 0.25, count: 1_600)
+            let padded = FluidAudioTranscriber.decodable(short)
+            XCTAssertEqual(padded.count, 4_800, "A 0.1 s window reaches FluidAudio's 0.3 s minimum")
+            XCTAssertEqual(Array(padded.prefix(1_600)), short, "Speech is kept and silence follows it")
+            XCTAssertTrue(padded.dropFirst(1_600).allSatisfy { $0 == 0 })
+            let long: [Float] = Array(repeating: 0.25, count: 16_000)
+            XCTAssertEqual(FluidAudioTranscriber.decodable(long), long, "Longer windows are untouched")
+        }
         // EveryCoreMLVariantHasCompletePinnedArtifactsAndSavedIdentity
         do {
             let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in XCTFail("Local engines use no key"); return nil })

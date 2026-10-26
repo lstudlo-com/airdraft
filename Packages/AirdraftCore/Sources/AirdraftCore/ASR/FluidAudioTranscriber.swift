@@ -36,10 +36,17 @@ public actor FluidAudioTranscriber: Transcriber {
         let text = try await AudioChunker.transcribeAsync(samples, maxSeconds: 15) { chunk in
             guard chunk.contains(where: { $0 != 0 }) else { return "" }
             var state = try TdtDecoderState(decoderLayers: await manager.decoderLayerCount)
-            return try await manager.transcribe(chunk, decoderState: &state).text
+            return try await manager.transcribe(Self.decodable(chunk), decoderState: &state).text
         }
         return Transcript(text: text, language: entry.languages.count == 1 ? entry.languages[0] : nil,
                           engine: id, latencyMs: Int(Date().timeIntervalSince(started) * 1000))
+    }
+
+    /// FluidAudio refuses windows under 0.3 s (AD-116): a short tail window or
+    /// Transcribe speaker segment gets trailing silence instead of failing the document.
+    static func decodable(_ chunk: [Float]) -> [Float] {
+        let minimum = ASRConstants.minimumRequiredSamples(forSampleRate: Int(AudioRecorder.sampleRate))
+        return chunk.count >= minimum ? chunk : chunk + [Float](repeating: 0, count: minimum - chunk.count)
     }
 
     private func loadedManager() async throws -> AsrManager {
