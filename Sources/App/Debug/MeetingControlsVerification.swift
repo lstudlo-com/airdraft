@@ -48,7 +48,7 @@ enum MeetingControlsVerification {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate()
             pump()
-            press(find(label: "Record Meeting", in: window))
+            press(find(label: "Record Audio", in: window))
             let sheet = window.attachedSheet!
             press(find(id: "meeting.source", in: sheet))
             wait { !sources.pending.isEmpty }
@@ -121,7 +121,7 @@ enum MeetingControlsVerification {
             let root = VStack(spacing: 24) {
                 MeetingRecordingStatus(meeting: meeting)
                 HStack {
-                    Button("Record Meeting") {}.buttonStyle(SoftButtonStyle(prominent: true))
+                    Button("Record Audio") {}.buttonStyle(SoftButtonStyle(prominent: true))
                     Button("Disabled") {}.buttonStyle(SoftButtonStyle(prominent: true)).disabled(true)
                     Text("Pressed").font(.system(size: 12.5, weight: .medium)).foregroundStyle(.white)
                         .softControlSurface(pressed: true, tint: Color(red: 0.05, green: 0.36, blue: 0.73))

@@ -40,10 +40,11 @@ Chinese (Taiwan) and follows your macOS language.
   is unchanged.
 - **History.** Searchable local history, optional saved recordings with playback
   and retranscription, and recovery for failed dictations.
-- **Meetings.** Record meeting audio from an app and your microphone, or import
-  audio and video files, then transcribe locally or in the cloud with speaker
-  labels, remembered speaker names, transcript versions and summaries in several
-  formats (brief summary, action items, decisions, minutes).
+- **Transcribe.** Record one app's audio or all apps' audio, with your microphone
+  if you like (calls, interviews, lectures), or import audio and video files,
+  then transcribe locally or in the cloud with speaker labels, remembered
+  speaker names, transcript versions and summaries in several formats (brief
+  summary, action items, decisions, minutes).
 - **Automation.** Start, stop and cancel dictation from Apple Shortcuts, or send
   the final text to your own script instead of the cursor.
 

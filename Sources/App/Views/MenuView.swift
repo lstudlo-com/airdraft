@@ -14,10 +14,10 @@ struct MenuView: View {
                 .keyboardShortcut("q")
                 .disabled(container.cleanup.isRunning)
         } else if container.meeting?.isBusy == true {
-            Text(container.meeting?.state == .finishing ? String(localized: "Saving Meeting…") : String(localized: "Recording Meeting"))
-            Button(String(localized: "Stop and Save Meeting")) { Task { await container.meeting?.stop() } }
+            Text(container.meeting?.state == .finishing ? String(localized: "Saving Recording…") : String(localized: "Recording Audio"))
+            Button(String(localized: "Stop and Save Recording")) { Task { await container.meeting?.stop() } }
                 .disabled(container.meeting?.state != .recording)
-            Button(String(localized: "Show Meeting…")) { show(.meetings) }
+            Button(String(localized: "Show Recording…")) { show(.meetings) }
             Divider()
             Button(String(localized: "Quit Airdraft")) { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } else if container.media?.isBusy == true {
@@ -52,7 +52,7 @@ struct MenuView: View {
             }
             .help(container.hotkeys.statusText)
         }
-        Button(String(localized: "Record Meeting…")) { show(.meetings); container.meeting?.isPresented = true }
+        Button(String(localized: "Record Audio…")) { show(.meetings); container.meeting?.isPresented = true }
             .disabled(container.pipeline.isBusy || container.meeting == nil)
         Button(String(localized: "History…")) { show(.history) }
         Button(String(localized: "Settings…")) { show(.configuration) }

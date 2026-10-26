@@ -74,7 +74,7 @@ struct DataCleanupSettings: View {
     }
     private func subtitle(_ scope: DataCleanupScope) -> LocalizedStringResource {
         switch scope {
-        case .history: "Deletes dictations and meeting transcripts; recordings stay"
+        case .history: "Deletes dictations and transcripts; recordings stay"
         case .audio: "Deletes saved audio; transcripts stay"
         case .historyAndAudio: "Deletes transcripts and audio; settings and models stay"
         case .reset: "Clears app data and setup; license and trial records stay"

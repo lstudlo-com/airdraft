@@ -4,7 +4,7 @@
 owns the 69 GGUF variants from the reviewed Handy catalogue and transcribe.cpp
 v0.2.4. The bundled resource includes one quantization per variant, exact file
 bytes, immutable Hugging Face revision, SHA-256, languages, creator and license.
-Models, Profiles and Meetings resolve the same exact entry; unavailable stored
+Models, Profiles and Transcribe resolve the same exact entry; unavailable stored
 IDs require setup rather than substituting a different model. Rows show the runtime
 and quantization, and profile choices include their creator/runtime.
 
@@ -32,7 +32,7 @@ models accept Auto as their fixed language; joint decoders validate the preferen
 without sending an ineffective forcing flag. Mandarin, Cantonese and script stay
 separate. No competitor scores are presented as Airdraft measurements.
 
-Meetings uses measured segment timing for GGUF and the existing SpeakerKit path
+Transcribe uses measured segment timing for GGUF and the existing SpeakerKit path
 for optional speaker identification. Streaming/diarization/translation in an
 upstream model name does not advertise those tasks in dictation.
 
@@ -94,12 +94,12 @@ SHA-256 in `SherpaTranscriber.Model` and checked before unpacking:
 - **SenseVoice Cantonese** (`senseVoice`, catalogue `sherpa:senseVoice`, engine
   `sherpa-onnx:senseVoice`): `…-int8-2025-09-09`, converted from ASLP-lab WSYue-ASR
   `sensevoice_small_yue`, a Cantonese fine-tune, 165,783,878 bytes. Through 0.11.0
-  this was the only SenseVoice, so its raw values, engine ID, folder and Meetings
+  this was the only SenseVoice, so its raw values, engine ID, folder and Transcribe
   `LocalModel` raw value are unchanged: existing app defaults, profile bindings,
   history engine IDs and saved documents keep the same model and files. Its
   language policy offers Cantonese, Mandarin and English; Japanese and Korean are
   rejected with a Models recovery message (AD-083: no kana, CER 76% and 77%).
-  It is retired: Models, Profiles, onboarding and Meetings list it only while it
+  It is retired: Models, Profiles, onboarding and Transcribe list it only while it
   is in use (app default, profile binding, installed or downloading).
 
 The AD-083 follow-up (`eval/eja-asr/` and `eval/mixed-asr/`, 2026-10-24) measured

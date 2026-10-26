@@ -1,6 +1,6 @@
 # Media transcription
 
-Imported audio and video become `TranscriptDocument` records in Meetings.
+Imported audio and video become `TranscriptDocument` records in Transcribe.
 `MediaJobRunner` owns their processing independently of dictation: it never
 inserts text at the cursor or adds to dictation statistics. The import sheet
 captures the engine, language and speaker-identification choice for that job.
@@ -11,8 +11,8 @@ An active-job card remains visible even when search or pagination hides its row.
 
 ## Input and storage
 
-- Import one file through Meetings → Import or file
-  drop. Record Meeting opens audio capture from that page. AVFoundation
+- Import one file through Transcribe → Import or file
+  drop. Record Audio opens audio capture from that page. AVFoundation
   must decode exactly one audio track. Multiple-track files are rejected with an
   instruction to export the desired track separately.
 - Both source duration and decoded audio must be positive and at most two hours.
@@ -26,13 +26,13 @@ An active-job card remains visible even when search or pagination hides its row.
   payload. Updates require the current revision, so a stale editor or callback
   cannot overwrite a newer document or recreate a deleted one.
 
-Saved [meeting recordings](meeting-recording.md) reuse the import sheet after
+Saved [audio recordings](meeting-recording.md) reuse the import sheet after
 capture stops. New and recovered recordings retain a 16 kHz stereo WAV with
 the same microphone-plus-app mix in both channels; older saved WAVs retain their
 original channel layout. Local processing averages the channels when reading
 samples, so it accepts both formats without inferring speaker identity from a
 channel. The existing whole-session SpeakerKit memory check still applies.
-Meeting capture itself performs no transcription or upload.
+Audio capture itself performs no transcription or upload.
 
 See [recording storage](recording-storage.md) and [data cleanup](data-cleanup.md)
 for shared storage and deletion contracts.
@@ -153,7 +153,7 @@ own language or languages, without invented owners, dates or names. Requests use
 sections of at most 8,000 characters, including splitting a long edited turn.
 Results remain ordered section summaries, with no unbounded final merge request.
 The document records `summaryTemplate`, shown beside the Summary heading; older
-summaries have none. Meetings labels this operation Summarizing and offers
+summaries have none. Transcribe labels this operation Summarizing and offers
 Cancel. Cancellation, failure or an empty response leaves the transcript and any
 earlier summary unchanged.
 

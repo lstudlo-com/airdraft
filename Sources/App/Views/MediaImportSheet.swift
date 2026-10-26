@@ -83,7 +83,7 @@ struct MediaImportSheet: View {
             }
             if let issue = issue ?? validationIssue { Text(issue).supportingText().foregroundStyle(.red).textSelection(.enabled) }
             HStack {
-                Text("Saved in Meetings · Up to 2 hours").supportingText()
+                Text("Saved in Transcribe · Up to 2 hours").supportingText()
                 Spacer()
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction).buttonStyle(SoftButtonStyle()).disabled(installing)
                 Button(configuration.engine == .soniox ? "Upload and Transcribe" : "Transcribe") {

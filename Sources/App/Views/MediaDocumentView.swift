@@ -156,7 +156,7 @@ struct MediaDocumentEditor: View {
                     } catch { issue = error.localizedDescription }
                 }
             }
-        } message: { Text("The recording stays in Meetings.") }
+        } message: { Text("The recording stays in Transcribe.") }
         .confirmationDialog("Summarize this transcript?", isPresented: Binding(get: { summaryTemplate != nil }, set: { if !$0 { summaryTemplate = nil } }),
                             titleVisibility: .visible, presenting: summaryTemplate) { template in
             Button(Self.createTitle(template)) {
@@ -276,7 +276,7 @@ struct MediaDocumentEditor: View {
             Text("Recent  \(Image(systemName: "chevron.down"))")
         }
         .disabled(!editable || recentSpeakerNames.isEmpty)
-        .help(recentSpeakerNames.isEmpty ? String(localized: "Names you save appear here in later meetings") : String(localized: "Use a recent name"))
+        .help(recentSpeakerNames.isEmpty ? String(localized: "Names you save appear here in later transcripts") : String(localized: "Use a recent name"))
     }
 
     private var transcript: some View {

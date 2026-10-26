@@ -297,7 +297,7 @@ public enum MediaError: LocalizedError {
         switch self {
         case .emptySummary: return String(localized: "The refinement provider returned an empty summary. Try again or choose another template.", bundle: .module)
         case .noSpeakerActivity: return String(localized: "No speech regions were identified. Choose Without Speakers to transcribe the full recording.", bundle: .module)
-        case .unsupportedModel: return String(localized: "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings.", bundle: .module)
+        case .unsupportedModel: return String(localized: "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Transcribe.", bundle: .module)
         case .invalidAudio: return String(localized: "This file has no decodable audio. Try a WAV, M4A, MP3, MP4 or MOV file.", bundle: .module)
         case .tooLong: return String(localized: "Media files can be up to two hours long. Split this recording before importing it.", bundle: .module)
         case .unavailable: return String(localized: "The recording or document is no longer available.", bundle: .module)

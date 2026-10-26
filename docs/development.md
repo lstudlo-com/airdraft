@@ -132,6 +132,6 @@ Do not ship a prompt that loses a held-out case.
 - [local-speech-models.md](local-speech-models.md): local models, pins and downloads
 - [keychain-access.md](keychain-access.md): credential access rules
 - [media-transcription.md](media-transcription.md) and
-  [meeting-recording.md](meeting-recording.md): Meetings
+  [meeting-recording.md](meeting-recording.md): audio recording in Transcribe
 - [automation.md](automation.md): Shortcuts and script output
 - [updates.md](updates.md): versions, signing and releases

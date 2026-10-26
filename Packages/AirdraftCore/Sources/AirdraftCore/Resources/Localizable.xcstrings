@@ -2022,30 +2022,30 @@
         }
       }
     },
-    "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings." : {
+    "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La captura de audio se quedó atrás. La grabación se detuvo; el audio guardado se puede recuperar desde Reuniones."
+            "value" : "La captura de audio se quedó atrás. La grabación se detuvo; el audio guardado se puede recuperar desde Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声の取り込みが追いつかなくなったため、録音を停止しました。保存された音声は「会議」から復元できます。"
+            "value" : "音声の取り込みが追いつかなくなったため、録音を停止しました。保存された音声は「文字起こし」から復元できます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音频采集跟不上。录音已停止；已保存的音频可从“会议”中恢复。"
+            "value" : "音频采集跟不上。录音已停止；已保存的音频可从“转录”中恢复。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音訊擷取跟不上。錄音已停止；已儲存的音訊可從「會議」中復原。"
+            "value" : "音訊擷取跟不上。錄音已停止；已儲存的音訊可從「轉錄」中復原。"
           }
         }
       }
@@ -4283,58 +4283,58 @@
         }
       }
     },
-    "Deletes all dictation and meeting audio, including interrupted recordings. Saved text, settings and models stay." : {
+    "Deletes all dictation audio and recordings, including interrupted ones. Saved text, settings and models stay." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elimina todo el audio de dictados y reuniones, incluidas las grabaciones interrumpidas. El texto guardado, los ajustes y los modelos se conservan."
+            "value" : "Elimina todo el audio de dictados y las grabaciones, incluidas las interrumpidas. El texto guardado, los ajustes y los modelos se conservan."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "中断された録音を含め、音声入力と会議の音声をすべて削除します。保存したテキスト、設定、モデルは残ります。"
+            "value" : "中断されたものを含め、音声入力の音声と録音をすべて削除します。保存したテキスト、設定、モデルは残ります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除所有听写和会议音频，包括中断的录音。已保存的文本、设置和模型会保留。"
+            "value" : "删除所有听写音频和录音，包括中断的录音。已保存的文本、设置和模型会保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除所有聽寫與會議音訊，包括中斷的錄音。已儲存的文字、設定與模型會保留。"
+            "value" : "刪除所有聽寫音訊與錄音，包括中斷的錄音。已儲存的文字、設定與模型會保留。"
           }
         }
       }
     },
-    "Deletes all dictation history, meeting transcripts, remembered speaker names, recordings and interrupted meetings. Settings and models stay." : {
+    "Deletes all dictation history, transcripts, remembered speaker names and recordings, including interrupted ones. Settings and models stay." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elimina todo el historial de dictados, las transcripciones de reuniones, los nombres de hablantes recordados, las grabaciones y las reuniones interrumpidas. Los ajustes y los modelos se conservan."
+            "value" : "Elimina todo el historial de dictados, las transcripciones, los nombres de hablantes recordados y las grabaciones, incluidas las interrumpidas. Los ajustes y los modelos se conservan."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力の履歴、会議の文字起こし、記憶した話者名、録音、中断された会議をすべて削除します。設定とモデルは残ります。"
+            "value" : "音声入力の履歴、文字起こし、記憶した話者名、中断されたものを含む録音をすべて削除します。設定とモデルは残ります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除所有听写历史记录、会议转录文本、记住的发言人名称、录音和中断的会议。设置和模型会保留。"
+            "value" : "删除所有听写历史记录、转录文本、记住的发言人名称和录音，包括中断的录音。设置和模型会保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除所有聽寫記錄、會議逐字稿、記住的講者名稱、錄音與中斷的會議。設定與模型會保留。"
+            "value" : "刪除所有聽寫記錄、逐字稿、記住的講者名稱與錄音，包括中斷的錄音。設定與模型會保留。"
           }
         }
       }
@@ -4367,30 +4367,30 @@
         }
       }
     },
-    "Deletes dictation history, all meeting transcripts and remembered speaker names. Recordings, settings and models stay." : {
+    "Deletes dictation history, all transcripts and remembered speaker names. Recordings, settings and models stay." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elimina el historial de dictados, todas las transcripciones de reuniones y los nombres de hablantes recordados. Las grabaciones, los ajustes y los modelos se conservan."
+            "value" : "Elimina el historial de dictados, todas las transcripciones y los nombres de hablantes recordados. Las grabaciones, los ajustes y los modelos se conservan."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力の履歴、会議のすべての文字起こし、記憶した話者名を削除します。録音、設定、モデルは残ります。"
+            "value" : "音声入力の履歴、すべての文字起こし、記憶した話者名を削除します。録音、設定、モデルは残ります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除听写历史记录、所有会议转录文本和记住的发言人名称。录音、设置和模型会保留。"
+            "value" : "删除听写历史记录、所有转录文本和记住的发言人名称。录音、设置和模型会保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除聽寫記錄、所有會議逐字稿與記住的講者名稱。錄音、設定與模型會保留。"
+            "value" : "刪除聽寫記錄、所有逐字稿與記住的講者名稱。錄音、設定與模型會保留。"
           }
         }
       }
@@ -7457,30 +7457,30 @@
         }
       }
     },
-    "No display is available for meeting audio capture. Connect a display and try again." : {
+    "No display is available for app audio capture. Connect a display and try again." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No hay ninguna pantalla disponible para capturar el audio de la reunión. Conecta una pantalla y vuelve a intentarlo."
+            "value" : "No hay ninguna pantalla disponible para capturar el audio de apps. Conecta una pantalla y vuelve a intentarlo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議の音声を取り込むためのディスプレイがありません。ディスプレイを接続してから、もう一度試してください。"
+            "value" : "App の音声を取り込むためのディスプレイがありません。ディスプレイを接続してから、もう一度試してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有可用于采集会议音频的显示器。请连接显示器后再试一次。"
+            "value" : "没有可用于采集 App 音频的显示器。请连接显示器后再试一次。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "沒有可用於擷取會議音訊的顯示器。請連接顯示器後再試一次。"
+            "value" : "沒有可用於擷取 App 音訊的顯示器。請連接顯示器後再試一次。"
           }
         }
       }
@@ -9111,30 +9111,30 @@
         }
       }
     },
-    "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings." : {
+    "Recording stopped because disk space is low. Free space, then recover the saved audio from Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La grabación se detuvo por falta de espacio en disco. Libera espacio y recupera el audio guardado desde Reuniones."
+            "value" : "La grabación se detuvo por falta de espacio en disco. Libera espacio y recupera el audio guardado desde Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ディスクの空き容量が不足しているため録音を停止しました。空き容量を確保してから、「会議」で保存された音声を復元してください。"
+            "value" : "ディスクの空き容量が不足しているため録音を停止しました。空き容量を確保してから、「文字起こし」で保存された音声を復元してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由于磁盘空间不足，录音已停止。请释放空间，然后从“会议”中恢复已保存的音频。"
+            "value" : "由于磁盘空间不足，录音已停止。请释放空间，然后从“转录”中恢复已保存的音频。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "因磁碟空間不足，錄音已停止。請釋放空間，然後從「會議」中復原已儲存的音訊。"
+            "value" : "因磁碟空間不足，錄音已停止。請釋放空間，然後從「轉錄」中復原已儲存的音訊。"
           }
         }
       }
@@ -10593,30 +10593,30 @@
         }
       }
     },
-    "Stop the meeting recording before dictating." : {
+    "Stop the audio recording in Transcribe before dictating." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detén la grabación de la reunión antes de dictar."
+            "value" : "Detén la grabación de audio en Transcribir antes de dictar."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力の前に会議の録音を停止してください。"
+            "value" : "音声入力の前に「文字起こし」の録音を停止してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先停止会议录音，再开始听写。"
+            "value" : "请先停止“转录”中的录音，再开始听写。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請先停止會議錄音，再開始聽寫。"
+            "value" : "請先停止「轉錄」中的錄音，再開始聽寫。"
           }
         }
       }
@@ -11324,34 +11324,6 @@
         }
       }
     },
-    "The meeting recording could not be saved. Check disk access, then recover it from Meetings." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo guardar la grabación de la reunión. Revisa el acceso al disco y recupérala desde Reuniones."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議の録音を保存できませんでした。ディスクへのアクセスを確認してから、「会議」で復元してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法保存会议录音。请检查磁盘访问权限，然后从“会议”中恢复。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法儲存會議錄音。請檢查磁碟存取權限，然後從「會議」中復原。"
-          }
-        }
-      }
-    },
     "The microphone input changed. Record again." : {
       "localizations" : {
         "es" : {
@@ -11688,6 +11660,34 @@
         }
       }
     },
+    "The recording could not be saved. Check disk access, then recover it from Transcribe." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar la grabación. Revisa el acceso al disco y recupérala desde Transcribir."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録音を保存できませんでした。ディスクへのアクセスを確認してから、「文字起こし」で復元してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存录音。请检查磁盘访问权限，然后从“转录”中恢复。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存錄音。請檢查磁碟存取權限，然後從「轉錄」中復原。"
+          }
+        }
+      }
+    },
     "The recording location is not a regular file or private folder." : {
       "localizations" : {
         "es" : {
@@ -11856,30 +11856,30 @@
         }
       }
     },
-    "The selected meeting app is no longer running. Choose it again." : {
+    "The selected app is no longer running. Choose it again." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La app de reuniones seleccionada ya no está en ejecución. Vuelve a elegirla."
+            "value" : "La app seleccionada ya no está en ejecución. Vuelve a elegirla."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選択した会議アプリは実行されていません。もう一度選択してください。"
+            "value" : "選択した App は実行されていません。もう一度選択してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所选的会议 App 已不在运行。请重新选择。"
+            "value" : "所选的 App 已不在运行。请重新选择。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所選的會議 App 已不在執行中。請重新選擇。"
+            "value" : "所選的 App 已不在執行中。請重新選擇。"
           }
         }
       }
@@ -12444,30 +12444,30 @@
         }
       }
     },
-    "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Meetings." : {
+    "This saved transcription uses an unsupported model. Start a new transcription with a model listed in Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta transcripción guardada usa un modelo no compatible. Inicia una nueva transcripción con un modelo de la lista de Reuniones."
+            "value" : "Esta transcripción guardada usa un modelo no compatible. Inicia una nueva transcripción con un modelo de la lista de Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この保存された文字起こしは非対応のモデルを使用しています。「会議」に一覧表示されているモデルで新しく文字起こししてください。"
+            "value" : "この保存された文字起こしは非対応のモデルを使用しています。「文字起こし」に一覧表示されているモデルで新しく文字起こししてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此已保存的转录使用了不支持的模型。请使用“会议”中列出的模型开始新的转录。"
+            "value" : "此已保存的转录使用了不支持的模型。请使用“转录”中列出的模型开始新的转录。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此已儲存的轉錄使用了不支援的模型。請使用「會議」中列出的模型開始新的轉錄。"
+            "value" : "此已儲存的轉錄使用了不支援的模型。請使用「轉錄」中列出的模型開始新的轉錄。"
           }
         }
       }

@@ -192,7 +192,7 @@ and Local releases below.
   after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the pinned scroll
   story after the hero (`StoryScroll`, `scrolly.ts`) plays one dictation scrubbed by
   scroll; headings rise word by word, the content under them rises block by block
-  on every page, and the hero drifts with the pointer (`flourish.ts`); Meetings and the provider board play once (`meetings.ts`,
+  on every page, and the hero drifts with the pointer (`flourish.ts`); the Transcribe section and the provider board play once (`meetings.ts`,
   `pipeline.ts`). Reduce Motion and no-JS keep resting frames. The one accent,
   `--accent` (the app's system blue), marks story progress only. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
@@ -653,8 +653,8 @@ and Local releases below.
   popovers inherit: keyboard navigation never draws the system's blue focus ring
   around soft controls. It must sit on an ancestor; inside a `ButtonStyle` it has
   no effect, and `\.isFocused` does not reach a style either.
-  Every primary action, including onboarding, License, Settings and Meetings'
-  Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes, uses
+  Every primary action, including onboarding, License, Settings and Transcribe's
+  Record Audio, Start Recording, Stop and Save, Transcribe and Save Changes, uses
   `.primaryButtonStyle()`, which applies `SoftButtonStyle(prominent: true)`: blue
   fill, white type and the same raised, pressed and disabled geometry as secondary
   buttons, keeping its color when the window is not key. Header actions share the
@@ -729,7 +729,7 @@ and Local releases below.
   issues, notices, device, profile and provider names) through `MenuTitle.fit`,
   which measures the menu font against a 190-point limit. Never show full
   diagnostics in a menu item; keep them in tooltips and Home's recovery notice.
-  Keep three groups: recording (Start Dictation, Record Meeting)/History/Settings, current microphone/profile/refinement
+  Keep three groups: recording (Start Dictation, Record Audio)/History/Settings, current microphone/profile/refinement
   choices plus Models, then app commands. Show current choices in submenu titles.
   Do not add a permanent status header; display the shortcut as a native badge on
   the recording action without registering another shortcut. Processing replaces
@@ -1372,6 +1372,7 @@ Edit shortcuts are 0.15.0.
 Live text styles, lines and size, the Live text model badge and the single
 Speech models table are 0.16.0.
 Live text animations and live text that keeps scrolling are 0.17.0.
+The Transcribe page (formerly Meetings) is 0.18.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with
@@ -1599,11 +1600,11 @@ can cover.
   engines keep working.
   Decode on a worker with one native compute operation per loaded model; retain the
   model until sessions end, signal cancellation through the abort callback and reject
-  aborted/truncated prefixes. Native diarization is off; Meetings owns SpeakerKit
+  aborted/truncated prefixes. Native diarization is off; Transcribe owns SpeakerKit
   and reports segment timing for GGUF models. Auto requires the exact model's language
   policy, including explicit source language for Canary, Cohere and Granite.
   Whisper choices are defined by `WhisperModelVariant`; keep Models, Profiles, language
-  validation and Meetings aligned. Retain existing model selections and exact engine IDs.
+  validation and Transcribe aligned. Retain existing model selections and exact engine IDs.
   Whisper decodes sequential windows of at most 25 seconds, disables the SDK's
   one-second tail clipping, and preserves cancellation/errors across every chunk.
   Check both sub-second speech and final words beyond 30 seconds after changes.
@@ -1727,9 +1728,9 @@ in flight, at least 1 s (or twice the last decode) between decodes, a 10 s windo
 committed at its quietest frame, a 20 s buffer and 500 displayed characters
 (1,500 in meetings); a decode slower than 3 s stops the preview with a message.
 Shortcut release quiesces it inside the existing 0.35 s release grace, so final ASR
-runs once on the full capture. Meetings follow the same setting with a display-only
+runs once on the full capture. Transcribe recordings follow the same setting with a display-only
 Live transcript row (six lines, no animation) fed by `MeetingPreviewMixer`; with
-the model source, starting a meeting prepares the installed model but never
+the model source, starting a recording prepares the installed model but never
 downloads it, and the saved transcript still comes from Transcribe.
 
 ## Saved recording history
@@ -1888,9 +1889,13 @@ actionlint plus shellcheck; `.github/actionlint.yaml` declares new hosted labels
 
 Media import uses the independent document/job contracts in `docs/media-transcription.md`.
 Keep audio ownership independent of text, preserve original words and times, and
-checkpoint completed windows before continuing. Meetings owns media import, saved
-meeting audio, every transcript version and draft recovery; History owns dictations.
-Keep Meetings after History and before the Models/Settings group, with Models first.
+checkpoint completed windows before continuing. Transcribe owns media import, saved
+recordings, every transcript version and draft recovery; History owns dictations.
+The page was Meetings before 0.18.0 (AD-113): user-facing copy says Transcribe,
+Record Audio and recording, never meeting (Meeting Minutes is only a summary
+template); internal types, the `meetings` route, identifiers, fixtures, telemetry
+events and storage keep their meeting names.
+Keep Transcribe after History and before the Models/Settings group, with Models first.
 The user-facing page name is Settings; the internal configuration route stays stable.
 Local media supports every `MediaConfiguration.LocalModel` with shared language
 validation and explicit setup. Whisper retains native word times; other engines use
@@ -1898,7 +1903,7 @@ frame-aligned speaker segments and persist diarization before resumable ASR. Nev
 label segment times as word times or silently switch providers. Cloud IDs persist until scoped cleanup succeeds.
 Share visual and accessibility recovery actions. Test with direct files or injected
 PCM and silent transports; never make the system play sound for verification.
-A Meetings card shows its title, one metadata line (date, duration, engine and
+A Transcribe card shows its title, one metadata line (date, duration, engine and
 transcript count), a status dot and an actions menu, then at most a two-line
 preview and one player row ending in the single next step: Transcribe, Resume or
 Open Transcript. Versions, Save Audio, Show in Finder and deletion stay in the
@@ -1925,9 +1930,9 @@ owners, dates or names. Keep the 8,000-character sections without a final merge
 request. Each summary records its template beside the Summary heading. A cancelled,
 failed or empty response leaves the transcript and earlier summary unchanged.
 
-## Meeting capture
+## Recording capture (Transcribe)
 
-Meeting recording uses ScreenCaptureKit audio/microphone outputs with no screen
+Transcribe's audio recording uses ScreenCaptureKit audio/microphone outputs with no screen
 frames or playback. Preserve a common timestamp axis, separate raw source PCM,
 bounded conversion and recoverable drafts. Finalize new and recovered recordings
 as 16 kHz stereo WAVs with the same microphone-plus-app mix in both channels.
@@ -1947,5 +1952,5 @@ not only Accessibility entries or the closed setup sheet. Recording meters reuse
 logarithmic curve; Receiving/Waiting is independent of amplitude.
 
 Capture, media processing, dictation and cleanup are mutually exclusive. Stop and
-save before quit or sleep, and keep recovery available from Meetings. Use injected
+save before quit or sleep, and keep recovery available from Transcribe. Use injected
 capture sessions and direct PCM for tests. See `docs/meeting-recording.md`.

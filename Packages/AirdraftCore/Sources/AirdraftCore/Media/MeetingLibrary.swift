@@ -15,7 +15,7 @@ public struct MeetingLibraryEntry: Identifiable, Sendable {
     }
     /// A new transcript starts with the library's name; the card shows its date separately.
     public static func defaultTitle(for source: RecordingAsset.Source?) -> String {
-        source == .imported ? "Imported Recording" : "Meeting"
+        source == .imported ? "Imported Recording" : "Recording"
     }
     /// Earlier builds named transcripts "Recording · <date>", repeating the card's date.
     static func isGeneratedTitle(_ title: String) -> Bool { title.hasPrefix("Recording · ") }

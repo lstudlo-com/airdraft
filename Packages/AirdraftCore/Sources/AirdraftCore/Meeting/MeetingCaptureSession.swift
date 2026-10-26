@@ -148,7 +148,7 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
             let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
             guard timestamp.isFinite else { throw MeetingError.invalidClock }
             guard CMClockGetTime(CMClockGetHostTimeClock()).seconds - timestamp < 5 else {
-                throw RecordingPrerequisiteError(String(localized: "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Meetings.", bundle: .module))
+                throw RecordingPrerequisiteError(String(localized: "Audio capture fell behind. Recording stopped; the saved audio can be recovered from Transcribe.", bundle: .module))
             }
             let offset = timestamp - origin
             guard let description = CMSampleBufferGetFormatDescription(sampleBuffer) else { throw MediaError.invalidAudio }

@@ -3369,30 +3369,30 @@
         }
       }
     },
-    "Airdraft will stop and save the meeting before quitting. If saving fails, captured audio remains available for recovery in Meetings." : {
+    "Airdraft will stop and save the recording before quitting. If saving fails, captured audio remains available for recovery in Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft detendrá y guardará la reunión antes de salir. Si no se puede guardar, el audio capturado seguirá disponible para recuperarlo en Reuniones."
+            "value" : "Airdraft detendrá y guardará la grabación antes de salir. Si no se puede guardar, el audio capturado seguirá disponible para recuperarlo en Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft は終了する前に会議を停止して保存します。保存できなかった場合でも、録音した音声は「会議」から復元できます。"
+            "value" : "Airdraft は終了する前に録音を停止して保存します。保存できなかった場合でも、録音した音声は「文字起こし」から復元できます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft 会在退出前停止并保存会议。如果保存失败，已录制的音频仍可在“会议”中恢复。"
+            "value" : "Airdraft 会在退出前停止并保存录音。如果保存失败，已录制的音频仍可在“转录”中恢复。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Airdraft 會在結束前停止並儲存會議。若儲存失敗，已錄製的音訊仍可在「會議」中復原。"
+            "value" : "Airdraft 會在結束前停止並儲存錄音。若儲存失敗，已錄製的音訊仍可在「轉錄」中復原。"
           }
         }
       }
@@ -4159,30 +4159,30 @@
         }
       }
     },
-    "Any captured audio remains available for recovery in Meetings." : {
+    "Any captured audio remains available for recovery in Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El audio capturado sigue disponible para recuperarlo en Reuniones."
+            "value" : "El audio capturado sigue disponible para recuperarlo en Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "録音した音声は「会議」から復元できます。"
+            "value" : "録音した音声は「文字起こし」から復元できます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已录制的音频仍可在“会议”中恢复。"
+            "value" : "已录制的音频仍可在“转录”中恢复。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已錄製的音訊仍可在「會議」中復原。"
+            "value" : "已錄製的音訊仍可在「轉錄」中復原。"
           }
         }
       }
@@ -10151,30 +10151,30 @@
         }
       }
     },
-    "Deletes dictations and meeting transcripts; recordings stay" : {
+    "Deletes dictations and transcripts; recordings stay" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elimina dictados y transcripciones de reuniones; las grabaciones se conservan"
+            "value" : "Elimina dictados y transcripciones; las grabaciones se conservan"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力と会議の文字起こしを削除します。録音は残ります"
+            "value" : "音声入力と文字起こしを削除します。録音は残ります"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除听写和会议转录文本；录音会保留"
+            "value" : "删除听写和转录文本；录音会保留"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刪除聽寫與會議逐字稿；錄音會保留"
+            "value" : "刪除聽寫與逐字稿；錄音會保留"
           }
         }
       }
@@ -17650,90 +17650,6 @@
         }
       }
     },
-    "Meeting audio" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio de la reunión"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議の音声"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会议音频"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "會議音訊"
-          }
-        }
-      }
-    },
-    "Meeting start cancelled." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se canceló el inicio de la reunión."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議の開始をキャンセルしました。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已取消开始会议。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已取消開始會議。"
-          }
-        }
-      }
-    },
-    "Meetings" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reuniones"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会议"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "會議"
-          }
-        }
-      }
-    },
     "Memory" : {
       "localizations" : {
         "es" : {
@@ -18546,30 +18462,30 @@
         }
       }
     },
-    "Names you save appear here in later meetings" : {
+    "Names you save appear here in later transcripts" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los nombres que guardes aparecerán aquí en reuniones posteriores"
+            "value" : "Los nombres que guardes aparecerán aquí en transcripciones posteriores"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存した名前は今後の会議でここに表示されます"
+            "value" : "保存した名前は今後の文字起こしでここに表示されます"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你保存的名称会在以后的会议中显示在这里"
+            "value" : "你保存的名称会在以后的转录中显示在这里"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你儲存的名稱會在之後的會議中出現在這裡"
+            "value" : "你儲存的名稱會在之後的逐字稿中出現在這裡"
           }
         }
       }
@@ -25040,58 +24956,58 @@
         }
       }
     },
-    "Record Meeting" : {
+    "Record Audio" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grabar reunión"
+            "value" : "Grabar audio"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議を録音"
+            "value" : "音声を録音"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录制会议"
+            "value" : "录制音频"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錄製會議"
+            "value" : "錄製音訊"
           }
         }
       }
     },
-    "Record Meeting…" : {
+    "Record Audio…" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grabar reunión…"
+            "value" : "Grabar audio…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議を録音…"
+            "value" : "音声を録音…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录制会议…"
+            "value" : "录制音频…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錄製會議⋯"
+            "value" : "錄製音訊⋯"
           }
         }
       }
@@ -25124,30 +25040,58 @@
         }
       }
     },
-    "Record a meeting or import audio. Recordings and transcripts stay on this Mac." : {
+    "Record audio or import a file. Recordings and transcripts stay on this Mac." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Graba una reunión o importa audio. Las grabaciones y transcripciones se quedan en este Mac."
+            "value" : "Graba audio o importa un archivo. Las grabaciones y transcripciones se quedan en este Mac."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議を録音するか、音声を読み込みます。録音と文字起こしはこの Mac に保存されます。"
+            "value" : "音声を録音するか、ファイルを読み込みます。録音と文字起こしはこの Mac に保存されます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录制会议或导入音频。录音和转录文本会留在这台 Mac 上。"
+            "value" : "录制音频或导入文件。录音和转录文本会留在这台 Mac 上。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錄製會議或匯入音訊。錄音與逐字稿會留在這台 Mac 上。"
+            "value" : "錄製音訊或匯入檔案。錄音與逐字稿會留在這台 Mac 上。"
+          }
+        }
+      }
+    },
+    "Recorded in Transcribe" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabado en Transcribir"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「文字起こし」で録音"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“转录”中录制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「轉錄」中錄製"
           }
         }
       }
@@ -25208,6 +25152,34 @@
         }
       }
     },
+    "Recording Audio" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabando audio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声を録音中"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在录制音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在錄製音訊"
+          }
+        }
+      }
+    },
     "Recording Details" : {
       "localizations" : {
         "es" : {
@@ -25232,34 +25204,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄音詳細資訊"
-          }
-        }
-      }
-    },
-    "Recording Meeting" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grabando reunión"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議を録音中"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在录制会议"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在錄製會議"
           }
         }
       }
@@ -25400,6 +25344,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄音復原選項"
+          }
+        }
+      }
+    },
+    "Recording start cancelled." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se canceló el inicio de la grabación."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録音の開始をキャンセルしました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消开始录音。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消開始錄音。"
           }
         }
       }
@@ -26727,30 +26699,30 @@
         }
       }
     },
-    "Removing meeting recovery audio" : {
+    "Removing interrupted recording audio" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eliminando el audio de recuperación de reuniones"
+            "value" : "Eliminando el audio de grabaciones interrumpidas"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議の復元用音声を削除中"
+            "value" : "中断された録音の音声を削除中"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在移除会议恢复音频"
+            "value" : "正在移除中断录音的音频"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在移除會議復原音訊"
+            "value" : "正在移除中斷錄音的音訊"
           }
         }
       }
@@ -27993,30 +27965,30 @@
         }
       }
     },
-    "Save Meeting and Quit" : {
+    "Save Recording and Quit" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Guardar reunión y salir"
+            "value" : "Guardar grabación y salir"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議を保存して終了"
+            "value" : "録音を保存して終了"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存会议并退出"
+            "value" : "保存录音并退出"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "儲存會議並結束"
+            "value" : "儲存錄音並結束"
           }
         }
       }
@@ -28223,30 +28195,30 @@
         }
       }
     },
-    "Saved in Meetings · Up to 2 hours" : {
+    "Saved in Transcribe · Up to 2 hours" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se guarda en Reuniones · Hasta 2 horas"
+            "value" : "Se guarda en Transcribir · Hasta 2 horas"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「会議」に保存 · 最長 2 時間"
+            "value" : "「文字起こし」に保存 · 最長 2 時間"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存在“会议”中 · 最长 2 小时"
+            "value" : "保存在“转录”中 · 最长 2 小时"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "儲存在「會議」中 · 最長 2 小時"
+            "value" : "儲存在「轉錄」中 · 最長 2 小時"
           }
         }
       }
@@ -28307,30 +28279,30 @@
         }
       }
     },
-    "Saved media jobs can resume from Meetings. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work." : {
+    "Saved media jobs can resume from Transcribe. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las tareas multimedia guardadas pueden reanudarse desde Reuniones. Se perderán los cambios sin guardar y el audio capturado que se conserva para reintentar. El dictado activo y las descargas se detendrán. Mantén Airdraft abierto para terminar o guardar tu trabajo."
+            "value" : "Las tareas multimedia guardadas pueden reanudarse desde Transcribir. Se perderán los cambios sin guardar y el audio capturado que se conserva para reintentar. El dictado activo y las descargas se detendrán. Mantén Airdraft abierto para terminar o guardar tu trabajo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存されたメディアの処理は「会議」から再開できます。保存していない変更と、再試行用に保持している音声は失われます。進行中の音声入力とダウンロードは停止します。作業を完了または保存するには、Airdraft を開いたままにしてください。"
+            "value" : "保存されたメディアの処理は「文字起こし」から再開できます。保存していない変更と、再試行用に保持している音声は失われます。進行中の音声入力とダウンロードは停止します。作業を完了または保存するには、Airdraft を開いたままにしてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的媒体任务可以从“会议”继续。未保存的更改和为重试保留的音频将会丢失。正在进行的听写和下载将会停止。请保持 Airdraft 打开以完成或保存你的工作。"
+            "value" : "已保存的媒体任务可以从“转录”继续。未保存的更改和为重试保留的音频将会丢失。正在进行的听写和下载将会停止。请保持 Airdraft 打开以完成或保存你的工作。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已儲存的媒體工作可以從「會議」繼續。未儲存的變更與保留以供重試的音訊將會遺失。進行中的聽寫與下載將會停止。請保持 Airdraft 開啟以完成或儲存你的工作。"
+            "value" : "已儲存的媒體工作可以從「轉錄」繼續。未儲存的變更與保留以供重試的音訊將會遺失。進行中的聽寫與下載將會停止。請保持 Airdraft 開啟以完成或儲存你的工作。"
           }
         }
       }
@@ -28415,34 +28387,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在儲存音訊⋯"
-          }
-        }
-      }
-    },
-    "Saving Meeting…" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guardando reunión…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議を保存中…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在保存会议…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在儲存會議⋯"
           }
         }
       }
@@ -28755,34 +28699,6 @@
         }
       }
     },
-    "Search meetings" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buscar reuniones"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議を検索"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜索会议"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜尋會議"
-          }
-        }
-      }
-    },
     "Search models" : {
       "localizations" : {
         "es" : {
@@ -28807,6 +28723,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋模型"
+          }
+        }
+      }
+    },
+    "Search recordings" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar grabaciones"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録音を検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索录音"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋錄音"
           }
         }
       }
@@ -30191,34 +30135,6 @@
         }
       }
     },
-    "Show Meeting…" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar reunión…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会議を表示…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示会议…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示會議⋯"
-          }
-        }
-      }
-    },
     "Show More" : {
       "localizations" : {
         "es" : {
@@ -30271,6 +30187,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只顯示推薦模型"
+          }
+        }
+      }
+    },
+    "Show Recording…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar grabación…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録音を表示…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示录音…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示錄音⋯"
           }
         }
       }
@@ -31799,30 +31743,30 @@
         }
       }
     },
-    "Stop and Save Meeting" : {
+    "Stop and Save Recording" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detener y guardar reunión"
+            "value" : "Detener y guardar grabación"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会議を停止して保存"
+            "value" : "録音を停止して保存"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止并保存会议"
+            "value" : "停止并保存录音"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止並儲存會議"
+            "value" : "停止並儲存錄音"
           }
         }
       }
@@ -32653,30 +32597,30 @@
         }
       }
     },
-    "The recording stays in Meetings." : {
+    "The recording stays in Transcribe." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La grabación se queda en Reuniones."
+            "value" : "La grabación se queda en Transcribir."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "録音は「会議」に残ります。"
+            "value" : "録音は「文字起こし」に残ります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录音会保留在“会议”中。"
+            "value" : "录音会保留在“转录”中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錄音會保留在「會議」中。"
+            "value" : "錄音會保留在「轉錄」中。"
           }
         }
       }

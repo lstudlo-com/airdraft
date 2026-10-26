@@ -410,7 +410,7 @@ public final class DictationPipeline {
         if isMaintainingData {
             return maintenanceReason ?? String(localized: "Recording is unavailable while Airdraft manages its data.", bundle: .module)
         }
-        if isCapturingMeeting { return String(localized: "Stop the meeting recording before dictating.", bundle: .module) }
+        if isCapturingMeeting { return String(localized: "Stop the audio recording in Transcribe before dictating.", bundle: .module) }
         if isProcessingMedia { return String(localized: "Wait for the media transcription to finish before dictating.", bundle: .module) }
         return nil
     }

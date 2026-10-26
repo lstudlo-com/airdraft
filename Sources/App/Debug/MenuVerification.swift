@@ -94,7 +94,7 @@ enum MenuVerification {
         precondition(normal.items.filter(\.isSeparatorItem).count == 2, "Exactly three root groups")
         // Recording group: dictation, the meeting recorder's entry point, then History and Settings.
         let firstGroup = normal.items.prefix { !$0.isSeparatorItem }.map(\.title)
-        let expectedGroup = [L("Start Dictation"), L("Record Meeting…"), L("History…"), L("Settings…")]
+        let expectedGroup = [L("Start Dictation"), L("Record Audio…"), L("History…"), L("Settings…")]
         precondition(firstGroup == expectedGroup, "Unexpected recording group: \(firstGroup), expected \(expectedGroup)")
         let lastGroup = Array(normal.items.reversed().prefix { !$0.isSeparatorItem }.map(\.title).reversed())
         precondition(lastGroup == [L("Check for Updates…"), L("Quit Airdraft")], "Unexpected app commands: \(lastGroup)")

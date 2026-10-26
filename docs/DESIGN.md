@@ -101,7 +101,7 @@ remain defined by their native source rather than sampled screenshots.
 `Color.accentColor` marks focused text editors and native prominent controls.
 Navigation icons and selection remain neutral. Native controls retain their
 system appearance, including the accent shown in the live Save button.
-Meetings uses `SoftButtonStyle(prominent: true)` with the blue `prominent-fill`
+Transcribe uses `SoftButtonStyle(prominent: true)` with the blue `prominent-fill`
 token and white text for its primary actions. It retains the shared 8-point
 control geometry and top-left lighting in both appearances.
 
@@ -340,7 +340,7 @@ the system accent; editing fields show an accent ring. Buttons, menu buttons,
 pickers, segmented tracks, search fields and text inputs share one shape,
 `SoftControl.shape`: 8-point continuous corners, never a capsule or circle.
 Segmented thumbs sit concentric 2 points inside their track; only switch and
-slider tracks stay round. Every primary action, in onboarding, License, Meetings
+slider tracks stay round. Every primary action, in onboarding, License, Transcribe
 and Settings, uses `.primaryButtonStyle()`: the prominent variant of
 `SoftButtonStyle`, preserving the raised face and pressed well with blue fill and
 white type, and keeping that color when the window is not key. Native link
@@ -516,10 +516,10 @@ respect Reduce Motion.
 
 ### Media import and transcript editor
 
-Meetings owns recorded meetings and imported media. It follows History in the
-sidebar, with Models above Settings in the lower group. Its shared page heading
-keeps Import and the primary Record Meeting action at the right. The Recordings
-section heading carries Search meetings at its trailing edge above one full-width
+Transcribe owns recorded audio and imported media. It follows History in the
+sidebar with a waveform icon, with Models above Settings in the lower group. Its shared page heading
+keeps Import and the primary Record Audio action at the right. The Recordings
+section heading carries Search recordings at its trailing edge above one full-width
 card column. Use the existing
 gray island and raised cards, with equal 16-point insets and 18-point corners.
 
@@ -531,7 +531,7 @@ separates one player row: play, position, time and the single next step,
 Transcribe, Resume or Open Transcript. The actions menu holds New Transcription,
 Transcript Versions (every saved run by version, date and model), recovery
 choices for a paused transcript, Save Audio, Show in Finder and Delete Recording.
-New transcripts take the library title, Meeting or Imported Recording, so the
+New transcripts take the library title, Recording or Imported Recording, so the
 date appears only in the metadata. Deleting audio confirms that every transcript
 version remains. Missing audio keeps its transcripts visible with an explicit
 unavailable note in the player row.
@@ -546,7 +546,7 @@ the source and options. Show checking, progress, Cancel Download and actionable
 errors beside this setup. Keep transcription unavailable until setup is ready.
 Supporting text distinguishes local word timing for Whisper from segment timing
 for the other local models. Soniox states upload and cost. The footer names
-Meetings and the two-hour limit, with Cancel beside Transcribe or the explicit
+Transcribe and the two-hour limit, with Cancel beside Transcribe or the explicit
 Upload and Transcribe action.
 
 Active processing has a page-level progress card above Recordings, so search and
@@ -576,9 +576,9 @@ explains that the recording remains. Native TXT, JSON, SRT and VTT exports follo
 the selected version. These documents do not add dictation statistics or insert
 text into another app.
 
-### Meeting recording
+### Audio recording
 
-Record Meeting opens a compact setup sheet in the same gray material. Its
+Record Audio opens a compact setup sheet in the same gray material. Its
 18-point heading sits above one `SettingsCard`. App audio is a raised selector
 with the current choice and chevron; Include microphone uses `.softSwitch` below
 a `RowDivider`. The app selector opens a 320-point popover with All Apps,
@@ -590,11 +590,11 @@ Open Recording Permissions below an error. An unavailable selected app remains n
 disables Start Recording. One short notice covers participant awareness and local
 storage; Cancel sits beside the primary Start Recording action.
 
-Record Meeting, Start Recording, Stop and Save, Transcribe and Save Changes use
+Record Audio, Start Recording, Stop and Save, Transcribe and Save Changes use
 the shared blue prominent button. Preserve its raised, pressed and disabled
 geometry; page-header controls share the 28-point height.
 
-Start closes setup and shows recording status on Meetings. The raised status card
+Start closes setup and shows recording status on Transcribe. The raised status card
 leads with a 23-point monospaced elapsed time and Stop and Save, then selected-app
 and enabled-microphone level rows separated by `RowDivider`. Each meter has an
 accessible source label and Receiving or Waiting for audio text. Reuse the
@@ -605,10 +605,10 @@ Leaving the page keeps capture running; the page and menu bar retain its stop
 action. Saving adds an independently transcribable recording to the persistent
 library without starting transcription.
 
-Keep recording and recovery errors beside Retry on Meetings. Interrupted
+Keep recording and recovery errors beside Retry on Transcribe. Interrupted
 recordings appear in a `PageSection` with a dated row and Recover Recording action
 for each valid draft. One unreadable session must not hide the others. Saved
-recording controls say Meeting audio and disclose capture issues under Recording
+recording controls say Recorded in Transcribe and disclose capture issues under Recording
 Details. These rows reuse the shared card insets,
 corners, supporting text and engraved dividers.
 

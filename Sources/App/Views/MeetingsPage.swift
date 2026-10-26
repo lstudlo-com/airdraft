@@ -37,13 +37,13 @@ struct MeetingsPage: View {
                 }
             }
             PageSection("Recordings") {
-                SearchField(text: $query, placeholder: "Search meetings")
+                SearchField(text: $query, placeholder: "Search recordings")
             } content: {
                 if entries.isEmpty {
                     Card {
                         if loading { ProgressView("Loading Recordings…").controlSize(.small) }
                         else {
-                            EmptyNote(query.isEmpty ? "Record a meeting or import audio. Recordings and transcripts stay on this Mac." : "No recordings match “\(query)”.")
+                            EmptyNote(query.isEmpty ? "Record audio or import a file. Recordings and transcripts stay on this Mac." : "No recordings match “\(query)”.")
                         }
                     }
                 }
@@ -66,7 +66,7 @@ struct MeetingsPage: View {
                 .disabled(container.pipeline.isBusy || container.media == nil)
                 .help("Transcribe an audio or video file")
                 .accessibilityIdentifier("meetings.import")
-            Button("Record Meeting") { container.meeting?.isPresented = true }
+            Button("Record Audio") { container.meeting?.isPresented = true }
                 .primaryButtonStyle().disabled(container.pipeline.isBusy || container.meeting == nil)
                 .accessibilityIdentifier("meetings.record")
         }

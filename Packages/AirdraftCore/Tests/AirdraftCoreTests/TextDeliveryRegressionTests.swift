@@ -920,7 +920,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
         fixture.pipeline.isCapturingMeeting = true
         fixture.pipeline.toggle()
         guard case .failed(let meeting) = fixture.pipeline.state else { return XCTFail("Meeting press was dropped") }
-        XCTAssertTrue(meeting.contains("meeting"))
+        XCTAssertTrue(meeting.contains("Transcribe"))
         XCTAssertEqual(fixture.recorder.starts, 0)
 
         // A copy blocked by another running copy names that cause, not a cleanup.

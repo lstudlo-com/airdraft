@@ -44,7 +44,7 @@ extension AppContainer {
             }
         ]
         if scope != .history {
-            steps.append(.init("meetingDrafts", title: String(localized: "Removing meeting recovery audio")) {
+            steps.append(.init("meetingDrafts", title: String(localized: "Removing interrupted recording audio")) {
                 try await Task.detached { try MeetingAudioStore.removeDrafts(in: directory) }.value
                 self.meeting?.refreshDrafts()
             })

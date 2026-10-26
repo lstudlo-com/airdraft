@@ -13,7 +13,7 @@ enum Page: String, CaseIterable, Identifiable {
         case .configuration: return String(localized: "Settings")
         case .models: return String(localized: "Models")
         case .history: return String(localized: "History")
-        case .meetings: return String(localized: "Meetings")
+        case .meetings: return String(localized: "Transcribe")
         }
     }
 
@@ -25,7 +25,7 @@ enum Page: String, CaseIterable, Identifiable {
         case .configuration: return "gearshape"
         case .models: return "square.stack.3d.up"
         case .history: return "clock"
-        case .meetings: return "person.2.wave.2"
+        case .meetings: return "waveform"
         }
     }
 

@@ -11,7 +11,7 @@ struct MeetingSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            Text("Record Meeting").appFont(.title)
+            Text("Record Audio").appFont(.title)
             SettingsCard {
                 SettingRow(title: "App audio") {
                     Button { choosingApp = true } label: {
@@ -112,7 +112,7 @@ struct MeetingRecordingStatus: View {
         Card(spacing: Theme.controlSpacing) {
             HStack(spacing: Theme.controlSpacing) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : "Recording Meeting")
+                    Text(meeting.state == .starting ? "Starting…" : meeting.state == .finishing ? "Saving Recording…" : "Recording Audio")
                         .appFont(.body, weight: .semibold)
                     Text(HistoryRecordingControls.time(meeting.elapsed)).appFont(.metric, weight: .medium, design: .default).monospacedDigit()
                 }

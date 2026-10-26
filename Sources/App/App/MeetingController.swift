@@ -89,7 +89,7 @@ final class MeetingController {
                 try Task.checkCancellation()
                 state = .recording; lastAudioAt = Date(); lastStatusAt = Date()
                 startLiveTranscript(capture: capture, token: token)
-                activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .idleSystemSleepDisabled], reason: "Recording meeting audio")
+                activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .idleSystemSleepDisabled], reason: "Recording audio for transcription")
                 let started = Date()
                 timer = Task { [weak self] in
                     while !Task.isCancelled {
@@ -107,7 +107,7 @@ final class MeetingController {
                     }
                 }
             } catch {
-                issue = error is CancellationError ? issue ?? String(localized: "Meeting start cancelled.") : error.localizedDescription
+                issue = error is CancellationError ? issue ?? String(localized: "Recording start cancelled.") : error.localizedDescription
                 if let capture = session {
                     _ = try? await capture.stop(reason: issue)
                     try? MeetingAudioStore.discardEmpty(id: capture.id, directory: directory)
@@ -170,7 +170,7 @@ final class MeetingController {
             saved = try await Task.detached { try MeetingAudioStore.recover(draft, directory: directory, history: history, interrupted: reason != nil) }.value
             issue = reason ?? saved?.captureIssue
         } catch {
-            issue = error.localizedDescription + " " + String(localized: "Any captured audio remains available for recovery in Meetings.")
+            issue = error.localizedDescription + " " + String(localized: "Any captured audio remains available for recovery in Transcribe.")
             try? MeetingAudioStore.discardEmpty(id: capture.id, directory: directory)
         }
         session = nil; finish(); refreshDrafts()

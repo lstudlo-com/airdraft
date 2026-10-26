@@ -12,12 +12,12 @@ public enum MeetingError: LocalizedError {
     case storage, invalidClock, permission, noDisplay, sourceGone, diskSpace, noAudio
     public var errorDescription: String? {
         switch self {
-        case .storage: return String(localized: "The meeting recording could not be saved. Check disk access, then recover it from Meetings.", bundle: .module)
+        case .storage: return String(localized: "The recording could not be saved. Check disk access, then recover it from Transcribe.", bundle: .module)
         case .invalidClock: return String(localized: "The audio clock changed. Recording stopped to preserve the saved timeline.", bundle: .module)
         case .permission: return String(localized: "Allow Microphone and Screen & System Audio Recording in System Settings, then try again.", bundle: .module)
-        case .noDisplay: return String(localized: "No display is available for meeting audio capture. Connect a display and try again.", bundle: .module)
-        case .sourceGone: return String(localized: "The selected meeting app is no longer running. Choose it again.", bundle: .module)
-        case .diskSpace: return String(localized: "Recording stopped because disk space is low. Free space, then recover the saved audio from Meetings.", bundle: .module)
+        case .noDisplay: return String(localized: "No display is available for app audio capture. Connect a display and try again.", bundle: .module)
+        case .sourceGone: return String(localized: "The selected app is no longer running. Choose it again.", bundle: .module)
+        case .diskSpace: return String(localized: "Recording stopped because disk space is low. Free space, then recover the saved audio from Transcribe.", bundle: .module)
         case .noAudio: return String(localized: "No audio buffers were received. Check the selected app, microphone and permissions.", bundle: .module)
         }
     }
