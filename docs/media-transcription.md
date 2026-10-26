@@ -71,6 +71,12 @@ decoded separately; no detected regions offers Without Speakers recovery instead
 of a false empty success. This does not separate simultaneous voices. Without
 speaker identification, engines use bounded unlabelled windows and require no SpeakerKit.
 Only exact digital silence is skipped by the ASR adapter; quiet nonzero speech is preserved.
+Under Auto each segment identifies its own language, except segments shorter
+than four seconds: once longer segments show the recording's language
+(`MediaLanguageLock`), shorter ones use it and the short ones decoded before it
+was known are decoded again, so a short reply is not written in another
+language. Segment texts join without a space after Chinese or Japanese text.
+Core ML (FluidAudio) windows shorter than 0.3 seconds get trailing silence.
 
 These additional engines return **segment timing**, not measured word timing.
 Each decoded segment retains its full text and audio bounds; JSON marks its
