@@ -4,8 +4,6 @@ export const siteLinks = {
   source: repository,
   build: `${repository}#build`,
   issues: `${repository}/issues`,
-  // Add the owner's confirmed profile URL before showing a donation action.
-  buyMeACoffee: "",
   // The production Polar checkout link (scripts/licensing-config.json
   // `checkout_url`). Leave empty while the merchant account is in test mode:
   // until it is set, license actions read "Not on sale yet" and are disabled.

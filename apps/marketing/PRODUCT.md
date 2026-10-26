@@ -65,11 +65,10 @@ sale before `siteLinks.checkout` is set.
   read "Not on sale yet" and stay disabled until `siteLinks.checkout` holds the
   production checkout link from `scripts/licensing-config.json`. The homepage's
   Get Airdraft section says so in every language.
-- `src/data/site.ts` also controls optional content: the Buy Me a Coffee URL
-  (support page) and the license link (footer). Until set, donation actions show a
-  disabled "Not set up yet" key.
+- `src/data/site.ts` also controls the license link (footer). The site asks for
+  no donations: Airdraft is paid through its official license.
 - Pricing may state only: the open-source build is $0 with no locked features; the
-  license terms above; donations unlock nothing; cloud providers bill users directly;
+  license terms above; cloud providers bill users directly;
   that both editions include dictation and Meetings (the same app); a link to the
   dated app comparison guide; and a dated cost comparison. That comparison prices one stated workload (dictations,
   seconds, token budget) for three Airdraft setups (all local; Parakeet with Cerebras
@@ -186,7 +185,7 @@ Nothing else shows until the visitor scrolls. The headline says transcription,
 not dictation: Airdraft records live but transcribes and refines after release.
 The shortcut is shown in the hero caption and the bento. The close must state
 availability plainly and offer both paths: build free, or the license (one card
-with a 1 Mac / 3 Macs choice). Donations live on the support page.
+with a 1 Mac / 3 Macs choice).
 Every line of copy must inform a decision or explain the product; no taglines,
 no narration, no restating a heading. Build pages from `src/components/ui/`.
 The logo is the app sidebar's neumorphic mark (`SidebarBrandMark`): a raised
@@ -242,22 +241,18 @@ at the root; each translation lives under `/<code>/` with the English slug:
 and `ja`.
 `src/i18n/locales.json` lists each language's code, BCP 47 tag, Open Graph
 locale, own name, direction and translated paths; the search check, sitemap,
-analytics allowlist and i18n helpers all read it. Traditional Chinese
-translates the homepage, pricing, and the mixed-language, coding-agent,
-meeting and comparison guides; every other language translates the homepage
-and pricing. Copy lives in one file per language in `src/i18n/messages`.
+analytics allowlist and i18n helpers all read it. Every language translates
+every page: the homepage, pricing, Support, Privacy, the changelog (with its
+own feed) and every guide. Homepage and pricing copy lives in
+`src/i18n/messages`; the other pages in `src/locales/<code>/`.
 Translations use natural wording for their audience (Taiwan wording for
 zh-tw, Mainland interface terms for zh-cn: 设置, 快捷键, 润色, 模式) and keep
 Airdraft, provider and model names in English; app labels follow the app's
 interface in that language. Prices stay in US dollars from shared data.
-Untranslated pages (support, changelog, privacy, the guides a language lacks)
-stay English and are marked with the language's "(English)" word
-(（英文）, （英語）, (inglés)…) where a translated page links to them,
-including the header, phone menu, footer and guide tiles. The header's globe
-key (and the phone menu's Language row) opens a language menu listing every
-language in its own name: this page in that language, or that language's
-homepage, noted, when this page is not translated. The footer lists the same
-links.
+No page links to an English-only version or carries an "(English)" mark.
+The header's globe key (and the phone menu's Language row) opens a language
+menu, as wide as its names, listing every language in its own name and
+leading to this page in that language. The footer has no language list.
 
 ## Delivery
 

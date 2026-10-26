@@ -178,10 +178,13 @@ recessed surfaces reverse them inside the edge. Contrast stays at full strength
 at every elevation; only the spread shrinks. It is never the hazy,
 low-contrast, wide-shadow variant.
 
-There is **no hue**. Every colour is a neutral gray, as in the app. The only
-exceptions are the three status dots (green, orange, yellow), which mean the
-same thing they mean in the app. `scripts/check-neutral.mjs` enforces this in
-`pnpm check`.
+Almost everything is a neutral gray, as in the app. The exceptions are the
+three status dots (green, orange, yellow), which mean the same thing they mean
+in the app, and one accent, `--accent`: the app's system accent blue
+(`#007aff` light, `#0a84ff` dark). The accent marks progress and the current
+step of a story only (the scroll story's rail fill and current step number);
+never text, control fills, glows, gradients, focus rings or selection.
+`scripts/check-neutral.mjs` enforces this in `pnpm check`.
 
 Tokens live in `src/styles/global.css`; the sidecar `.impeccable/design.json`
 carries shadows, motion, breakpoints and component previews.
@@ -561,11 +564,15 @@ with its status dot (yellow while refining, orange when it fails), and a "This
 Mac" boundary whose signal runs along grooves. Without JavaScript they show
 their final frame.
 
-The graphics perform; nothing loops (`src/scripts/bento.ts`, named by
-`data-art`). When a tile is mostly on screen its graphic plays once, the tiles
-of a row one after another from the left (`220ms` apart), and rests on its
-final frame. Hovering a tile with a mouse, or tapping it, plays it again (at
-most once a second); a choice tile tries its next choice instead. The parts
+The graphics perform and loop while they are on screen (`src/scripts/bento.ts`,
+named by `data-art`; it sets up `.bento:not(.specimens)`, since the interface
+specimens are a `.bento` too). When a tile is first mostly on screen its
+graphic starts, the tiles of a row one after another from the left (`220ms`
+apart), then repeats on its own rhythm (about `5s`, `6.5s` for the shortcut
+and cursor pair; choice tiles walk through their choices every `2.8s`).
+Hovering a tile with a mouse, or tapping it, plays it at once (at most once a
+second) and holds its loop for `8s`, so a choice the visitor made stays; a
+choice tile tries its next choice instead. The parts
 that are controls in the app work: segmented choices and the subscription
 chips select on click (the chosen chip rises, the other sinks), and holding
 the shortcut tile's keycaps, or the visitor's own ⌃⌥ while that tile is on
@@ -575,8 +582,20 @@ as in the hero. The dictionary's fix rises from the surface (flat, `0.92`,
 shadow growing in); each stop on the privacy path rises from its socket as
 the signal passes. A field's caret blinks while its tile is on screen, except
 while text is typed. A tile leaving the screen jumps to its final frame, so
-no timer runs off screen. With reduced motion nothing plays; choices still
-change, in place.
+no timer runs off screen. With reduced motion nothing plays or loops; choices
+still change, in place.
+
+### Scroll story (`StoryScroll.astro`, `src/scripts/scrolly.ts`)
+
+After the hero, "Hold, speak, let go" pins under the header for `330vh` while
+one dictation plays out, scrubbed by the scroll position in both directions:
+the keycaps sink and the recording pill counts with live bars while the spoken
+words (from `src/i18n/story.ts`, fillers marked) arrive in a recessed well;
+on release the pill refines, the fillers are struck and fold away; then the
+result types in at the caret of a raised field. Beside it four steps light in
+turn and a carved rail fills with the accent. Phones put the stage above the
+steps and show only the current step's line. Without JavaScript or with
+reduced motion the section is short, shows every step and the final frame.
 
 ### Provider board (`PipelineStory.astro`)
 
@@ -671,13 +690,21 @@ screen, then rests on its final frame until the visitor touches it, and
 answers touch from then on: the sample types its result (`preview.ts`); the
 Meetings player runs to 0:31 (`meetings.ts`); the interface window's divider
 sweeps and its specimens loop until touched (`interface.ts`); bento tiles
-perform row by row and replay on hover or tap (`bento.ts`); the provider
+loop while on screen and replay on hover or tap (`bento.ts`); the provider
 board runs one dictation through the chosen steps (`pipeline.ts`), the
 climax before the close. Watch visibility
 with IntersectionObserver; anything off screen stops on its resting frame,
 and no frame loop runs while nothing moves. Performances move transforms,
-opacity and shadows only (the Meetings fill slides; it never resizes). Never
-add an ambient loop that runs whether or not the visitor is looking.
+opacity and shadows only (the Meetings fill slides; it never resizes). Loops
+run only while their element is on screen; never add an ambient loop that runs
+whether or not the visitor is looking.
+
+**Entrances and depth (`src/scripts/flourish.ts`, motion.css).** The headline
+rises line by line out of its own line boxes on load, then the keys and facts
+follow; section headings rise word by word (character pairs in Chinese and
+Japanese) as they arrive; the hero card drifts up to `12px` toward the pointer
+and the copy `6px` away, translation only, so light stays at the top left. The
+app window grows from `0.84` and `140px` below as it arrives.
 
 The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
 the final state, so nothing depends on motion to be readable. Interaction
@@ -717,19 +744,14 @@ phone menu key) are raised keys exactly as tall as the brand capsule, `34px`,
 with a transparent margin that keeps a `44px` touch target.
 
 The language key opens the language menu (`LanguageMenu.astro`,
-`src/styles/languages.css`): a native `popover` raised panel (`280px` wide,
+`src/styles/languages.css`): a native `popover` raised panel (as wide as the
+longest name plus its row insets, at least `132px`,
 anchored under the key with `position-area`, otherwise at the header's end)
 with one `40px` row per language, each named in itself and tagged with its
 `lang`; the current language rests in the recessed `--sink-chip` well. A row
-leads to this page in that language, or, when this page has no translation,
-to that language's homepage with a muted "home page" note in the visitor's
-language. It works without JavaScript; browsers without popovers hide it and
-rely on the footer's language list. Translated pages mark English-only links
-with the language's "(English)" word. Chinese and Japanese marks are four
-characters; the spaced languages' marks are longer, so their header
-(`site-header-longer`) centres the links between the mark and the keys below
-`1180px` and folds them into the menu up to `900px`, as the Traditional
-Chinese header does up to `700px`.
+leads to this page in that language: every page exists in every language, so
+nothing is marked as English. It works without JavaScript; the footer has no
+language list.
 
 On phones (`560px` and below) the links and the GitHub key fold into a menu:
 the header keeps the mark, Get Airdraft and a round menu key with two strokes.
@@ -812,8 +834,17 @@ under small group labels, each setup saying what leaves the Mac, each
 three-year total over a usage track filled to its share of the most expensive
 setup, then one note with the workload, models, token budget and price date.
 Then the questions.
-Support is troubleshooting disclosures, an issue link, then ways to fund the
-project.
+Support is troubleshooting disclosures, then an issue link; it asks for no
+donations.
+
+### Guide and text-page sections (`GuideSection.astro`)
+
+Guides, Support and Privacy open with the page title alone (no intro line),
+then sections. A section is one heading on the island at the section's top
+left (`--step-3`, inset `4px`) over one recessed well carved into the island
+(`--sink-section`, `18px` corners, `28px 32px` padding), `16px` below it;
+sections sit `56px` apart (`44px` on phones). The heading never sits inside
+the well and the well is never raised.
 
 ### Guide picker (`GuideLinks.astro`, `GuideGlyph.astro`)
 
@@ -846,11 +877,8 @@ The homepage links to the guides after the interface section, using `GuideLinks`
 as the guide picker (see Guide picker above): offline setup, mixed Chinese and
 English, coding agents and terminals,
 local/cloud data flow, source build versus official app, private meeting
-transcription, and the app comparison. The Traditional Chinese homepage lists
-its four translated guides and links the English hub. The other languages'
-homepages list all seven tiles leading to the English guides (`hreflang="en"`),
-each label in the page's language followed by its "(English)" mark, which then
-names the link. The mixed-language
+transcription, and the app comparison, each leading to the guide in the
+page's language. The mixed-language
 results table reuses `.guide-table-wide`, so on narrow regions each model
 becomes a block of labelled rows. The
 comparison table (`.guide-table-wide`) keeps seven columns at `880px` minimum
@@ -914,7 +942,7 @@ already running when the preference changes.
 
 ### Don't:
 
-- Don't introduce a hue: no blue, violet or cyan text, fills, glows, gradients, focus rings or selection. Status dots are the only colour. `pnpm check` fails otherwise.
+- Don't introduce a hue beyond the status dots and `--accent`, and use the accent only for progress and a story's current step: no coloured text, control fills, glows, gradients, focus rings or selection. `pnpm check` fails on any other hue.
 - Don't lower a shadow's contrast to make it subtle; shrink its spread.
 - Don't use wide, low-contrast ambient shadows or blooming white halos.
 - Don't divide content with flat hairlines; use the groove or space.

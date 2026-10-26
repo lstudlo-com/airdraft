@@ -168,22 +168,29 @@ and Local releases below.
   `/<code>/` with the English slug (zh-tw, zh-cn, es, ja). `src/i18n/locales.json` (code, BCP 47 tag, Open Graph locale, own name,
   direction, translated paths) drives hreflang, sitemap alternates, the language
   menu, the analytics path allowlist and `check-search.py`; add a translated page
-  there together with its page file, `_redirects` aliases and `llms.txt`. Copy lives
-  in one file per language in `src/i18n/messages`; translated pages quote the app's
-  catalog labels for that language and say the released app still shows English
-  until `interfaceReleased` marks that language's release. Links to English-only
-  pages carry the language's "(English)" mark; Chinese and Japanese headers fold
-  their links into the menu up to 700 px, the other languages up to 900 px. No
-  right-to-left language ships yet; styles use logical properties so one can (keep
+  there together with its page file, `_redirects` aliases and `llms.txt`. Every page
+  exists in every language: homepage and pricing copy lives in `src/i18n/messages`,
+  every other page in `src/locales/<code>/` (page copy in `pages.ts`, Support,
+  Privacy and guide bodies as Astro files, release notes in `changelog.ts`, each
+  language with its own changelog feed). Translated pages quote the app's catalog
+  labels for that language. `href()` refuses a missing translation, so nothing
+  links to English or carries an "(English)" mark. The language menu (header globe
+  key) is as wide as its names; the footer has no language row. The homepage's
+  Settings window is rendered in every language. No right-to-left language ships yet; styles use logical properties so one can (keep
   the top-left light and app pictures, the waveform, the HUD and key caps left to
   right). The homepage's guide picker
   (`GuideLinks`/`GuideGlyph`) shows one app-part graphic and one short label per
-  guide, labels in `guideLinks.labels` of every language's messages file; tiles in
-  languages without the guide lead to the English guide with the "(English)" mark
-  and `hreflang="en"`. The header keys sit one 10 px step apart through the
-  `.header-actions` gap, never margins. Homepage graphics play once when on
-  screen and answer the pointer (`bento.ts`, `meetings.ts`, `pipeline.ts`), with
-  Reduce Motion and no-JS resting frames. JavaScript packages
+  guide, labels in `guideLinks.labels` of every language's messages file. Guide and
+  text-page sections are `GuideSection`: the heading on the island at the top left
+  over a recessed well, never a heading inside a raised card, and guide titles
+  have no intro line. The header keys sit one 10 px step apart through the
+  `.header-actions` gap, never margins. Bento tiles loop while on screen and hold
+  after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the pinned scroll
+  story after the hero (`StoryScroll`, `scrolly.ts`) plays one dictation scrubbed by
+  scroll; headings rise word by word and the hero drifts with the pointer
+  (`flourish.ts`); Meetings and the provider board play once (`meetings.ts`,
+  `pipeline.ts`). Reduce Motion and no-JS keep resting frames. The one accent,
+  `--accent` (the app's system blue), marks story progress only. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes

@@ -69,7 +69,6 @@ The header and changelog update was deployed on 2026-09-19 (Asia/Taipei):
 Worker version `e4dba1ee-8768-4021-8a35-905014cc6717`, serving 100% of traffic.
 The authorized browser verified both routes, and anonymous requests to the pages,
 icon, and sitemap still redirect to Access. Alternate Worker URLs remain disabled.
-The donation action awaits the owner's confirmed Buy Me a Coffee profile URL.
 
 Cloudflare Access must protect the entire `airdraft.app` hostname **before the
 first deployment**. Configure Google as the login provider and allow only the
