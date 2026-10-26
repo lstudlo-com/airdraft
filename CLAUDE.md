@@ -626,7 +626,11 @@ and Local releases below.
   `SoftRaisedSurface` from `SoftControls.swift`: the Home hero's light and shade at
   full strength (white highlight up-left, shade down-right), with a smaller spread,
   half for `Card` sections and a quarter for controls. Render each face and its edges
-  in one `drawingGroup`, cast shadows outside it. Never lower their contrast to
+  in one `drawingGroup`, cast shadows outside it. Faces are one flat tone, like the
+  microphone button: never a gradient across the face, including the tinted
+  prominent fill. Edge rims and hairlines stay barely visible (white rim 0.012 dark,
+  0.07 light; hairline 0.01) so light and shade, not an outline, shape them; Increase
+  Contrast keeps its explicit edges. Never lower their contrast to
   make them subtle; shrink the spread instead. Controls are raised: `SoftButtonStyle`
   and `SoftIconButtonStyle` sink into an inset well while pressed; text fields use
   `.softField()` with an accent ring while editing; menu pickers use `SoftPicker`;

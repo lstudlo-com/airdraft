@@ -35,28 +35,24 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
         // The hero's cast shadows: palette shade at 70% (dark) or 85% (light), white light.
         let shade = Color.black.opacity(dark ? 0.525 : 0.27)
         let light = Color.white.opacity(dark ? 0.09 : 1)
-        // Faces sit at the island's mid-tone, like the hero; controls a touch lighter on top.
-        let faces: [CGFloat] = switch (elevation, dark) {
-        case (.card, false): [0.91, 0.89]
-        case (.card, true): [0.19, 0.17]
-        case (.control, false): [0.93, 0.89]
-        case (.control, true): [0.215, 0.18]
+        // Faces are one flat tone at the island's mid-tone, like the microphone button: light
+        // and shade alone lift them. A gradient across the face reads as printed shading.
+        let face: CGFloat = switch (elevation, dark) {
+        case (.card, false): 0.90
+        case (.card, true): 0.18
+        case (.control, false): 0.91
+        case (.control, true): 0.2
         }
-        let rim = Color.white.opacity(dark ? 0.048 : 0.27)
+        // The edges stay barely there: a visible rim outlines the control instead of
+        // letting its light and shade shape it.
+        let rim = Color.white.opacity(dark ? 0.012 : 0.07)
         Group {
             if pressed {
                 shape.fill((tint ?? Color(white: dark ? 0.15 : 0.87))
                     .shadow(.inner(color: shade, radius: 12 * spread, x: 7 * spread, y: 9 * spread))
                     .shadow(.inner(color: light, radius: 12 * spread, x: -6 * spread, y: -7 * spread)))
-            } else if let tint {
-                shape.fill(tint)
-                    .overlay {
-                        shape.fill(LinearGradient(colors: [.white.opacity(0.07), .black.opacity(0.07)],
-                                                  startPoint: .topLeading, endPoint: .bottomTrailing))
-                    }
             } else {
-                shape.fill(LinearGradient(colors: faces.map { Color(white: $0) },
-                                          startPoint: .topLeading, endPoint: .bottomTrailing))
+                shape.fill(tint ?? Color(white: face))
             }
         }
         .overlay {
@@ -64,10 +60,10 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
                 shape.strokeBorder(LinearGradient(colors: [rim, rim.opacity(0)],
                                                   startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
-            shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.035), lineWidth: 0.5)
+            shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.01), lineWidth: 0.5)
         }
         // One GPU-rendered layer for the face and its edges. Otherwise each
-        // gradient is rasterized on the CPU whenever a lazy row appears.
+        // edge gradient is rasterized on the CPU whenever a lazy row appears.
         // Cast shadows stay outside the group, which would clip them.
         .drawingGroup()
         .background {
@@ -96,7 +92,7 @@ struct SoftInsetTrack<S: InsettableShape>: View {
             .shadow(.inner(color: .black.opacity(dark ? 0.6 : 0.3), radius: 2.5, x: 1.5, y: 2))
             .shadow(.inner(color: .white.opacity(dark ? 0.08 : 0.9), radius: 2.5, x: -1.5, y: -2)))
             .overlay {
-                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.04), lineWidth: 0.5)
+                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.01), lineWidth: 0.5)
             }
             .accessibilityHidden(true)
             .allowsHitTesting(false)
