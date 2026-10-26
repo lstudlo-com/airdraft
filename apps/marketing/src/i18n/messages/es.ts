@@ -40,7 +40,7 @@ export const es: Messages = {
       "Airdraft | Dictado en tu idioma y transcripción de reuniones para Mac",
     description:
       "Airdraft es una app de código abierto para Mac que escribe lo que dices en cualquier app, en tu idioma y con términos en inglés de por medio, y transcribe reuniones. La voz y el refinamiento funcionan en tu Mac o con tu propio proveedor. Compilarla desde el código es gratis.",
-    headline: ["Habla en cualquier app.", "Transcribe cualquier reunión."],
+    headline: ["Habla en cualquier app.", "Transcribe lo que sea."],
     headlineGap: " ",
     get: "Obtener Airdraft",
     source: "Ver el código",

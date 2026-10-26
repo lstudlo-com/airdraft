@@ -35,7 +35,7 @@ export const en: Messages = {
     allow: "Allow Analytics",
   },
   home: {
-    headline: ["Speak into any app.", "Transcribe any meeting."],
+    headline: ["Speak into any app.", "Transcribe anything."],
     headlineGap: " ",
     get: "Get Airdraft",
     source: "View source",

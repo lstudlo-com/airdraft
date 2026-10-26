@@ -9,7 +9,7 @@
 //              fold away
 //   0.80–0.97  the result types in at the caret
 //
-// The steps beside it light in turn and the rail fills. A short smoothing
+// The steps beside it light in turn. A short smoothing
 // (scrub) keeps it calm. Without JavaScript, and with reduced motion, the
 // section is short and shows every step and the final frame (story.css).
 import { gsap } from "gsap";
@@ -39,7 +39,6 @@ function setup(section: HTMLElement) {
   const fillers = tokens.filter((token) => token.hasAttribute("data-filler"));
   const words = all("[data-word]");
   const steps = all(".story-step");
-  const rail = section.querySelector<HTMLElement>("[data-rail]")!;
   const header = () =>
     parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue("--header"),
@@ -101,7 +100,6 @@ function setup(section: HTMLElement) {
         item.classList.toggle("is-past", index < step);
       });
     }
-    rail.style.transform = `scaleY(${p.toFixed(4)})`;
   };
 
   const media = gsap.matchMedia();
@@ -139,7 +137,6 @@ function setup(section: HTMLElement) {
           "is-past",
         );
       for (const filler of fillers) filler.classList.add("struck");
-      rail.style.removeProperty("transform");
       label.textContent = "0:00.0";
     };
   });

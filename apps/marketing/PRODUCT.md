@@ -18,8 +18,9 @@ who wants processing that can stay on the Mac.
 The site addresses an international audience in the app's interface
 languages: dictate in your own language, mixing in English or technical
 terms, with speech and refinement on the Mac or with your own provider. The
-English headline is "Speak into any app. Transcribe any meeting.": the two
-jobs, two short lines. Every claim stays true for an English-only user.
+English headline is "Speak into any app. Transcribe anything.": the two
+jobs (dictation, and transcribing meetings and imported audio or video), two
+short lines. Every claim stays true for an English-only user.
 Mixed Chinese and English remains one guide and one homepage example among
 others; dictation into AI coding agents (Claude Code, Codex, terminals) that
 reuses an existing subscription for refinement remains the second job shown.

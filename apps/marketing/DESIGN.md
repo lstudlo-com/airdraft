@@ -182,7 +182,7 @@ Almost everything is a neutral gray, as in the app. The exceptions are the
 three status dots (green, orange, yellow), which mean the same thing they mean
 in the app, and one accent, `--accent`: the app's system accent blue
 (`#007aff` light, `#0a84ff` dark). The accent marks progress and the current
-step of a story only (the scroll story's rail fill and current step number);
+step of a story only (the scroll story's current step number);
 never text, control fills, glows, gradients, focus rings or selection.
 `scripts/check-neutral.mjs` enforces this in `pnpm check`.
 
@@ -593,7 +593,7 @@ the keycaps sink and the recording pill counts with live bars while the spoken
 words (from `src/i18n/story.ts`, fillers marked) arrive in a recessed well;
 on release the pill refines, the fillers are struck and fold away; then the
 result types in at the caret of a raised field. Beside it four steps light in
-turn and a carved rail fills with the accent. Phones put the stage above the
+turn, the current step's number in the accent; there is no progress rail. Phones put the stage above the
 steps and show only the current step's line. Without JavaScript or with
 reduced motion the section is short, shows every step and the final frame.
 

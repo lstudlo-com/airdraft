@@ -5,7 +5,7 @@
    the field). `.is-scrolly`, added only with motion allowed and
    JavaScript, makes the section tall and pins its contents; the script then
    sets each frame from the scroll position. The accent marks only the
-   story's progress: the rail's fill and the current step's number. */
+   story's progress: the current step's number. */
 
 @layer components {
   .story-pin {
@@ -22,26 +22,6 @@
   .story-progress {
     position: relative;
     margin-top: 36px;
-    padding-inline-start: 22px;
-  }
-  /* A groove carved into the island; the accent fills it as the story runs. */
-  .story-rail {
-    position: absolute;
-    inset-block: 6px;
-    inset-inline-start: 0;
-    width: 4px;
-    border-radius: 2px;
-    background: var(--well);
-    box-shadow: var(--sink-chip);
-    overflow: clip;
-  }
-  .story-rail i {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--accent);
-    transform: scaleY(1);
-    transform-origin: top;
   }
   .story-steps {
     display: grid;
@@ -163,9 +143,6 @@
       inset 0.75px 0.75px 0 rgb(255 255 255 / 0.35),
       var(--raise-small);
     color: rgb(255 255 255);
-  }
-  .story.is-scrolly .story-rail i {
-    transform: scaleY(0);
   }
   /* Heard words arrive one by one; the fillers are struck, then fold away. */
   .story.is-scrolly .story-token {
