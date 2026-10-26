@@ -126,6 +126,59 @@ def check_previous_release():
         validate_continuity(json.loads((Path(temporary) / "release.json").read_text()))
 
 
+def is_app_path(path):
+    """Whether a changed path can reach the app bundle or its release gates.
+
+    The marketing website (deployed separately) and Markdown guidance outside
+    the source trees never ship in the app: the root guidance files
+    (CLAUDE.md, AGENTS.md, README.md…) and docs/. Everything else, including
+    scripts, tests, project files and resources, counts as an app change.
+    """
+    if path.startswith("apps/marketing/"):
+        return False
+    if path.endswith(".md") and ("/" not in path or path.startswith("docs/")):
+        return False
+    return True
+
+
+def latest_release_commit():
+    """The commit the latest published release was built from (its release.json)."""
+    tag = gh("api", f"repos/{REPO}/releases/latest", "--jq", ".tag_name", capture=True)
+    with tempfile.TemporaryDirectory(prefix="airdraft-latest-release-") as temporary:
+        gh("release", "download", tag, "--repo", REPO, "--dir", temporary, "--pattern", "release.json")
+        commit = json.loads((Path(temporary) / "release.json").read_text()).get("commit", "")
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise RuntimeError(f"Latest release {tag} has no valid source commit")
+    return tag, commit
+
+
+def app_changes(commit, released):
+    """Paths that can reach the app, changed from the released commit to `commit`.
+
+    A released commit that is not an ancestor (rewritten history, a release
+    from another line) counts as an app change, so it can only add releases."""
+    ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", released, commit], cwd=ROOT)
+    if ancestor.returncode:
+        return [f"(history: {released[:12]} is not an ancestor of {commit[:12]})"]
+    names = run("git", "diff", "--name-only", "--no-renames", released, commit, cwd=ROOT, capture=True)
+    return [name for name in names.splitlines() if name and is_app_path(name)]
+
+
+def needs_app_release(commit):
+    """False when everything since the latest published release is website or
+    Markdown guidance. AIRDRAFT_RELEASE_FORCE=1 always releases."""
+    if os.environ.get("AIRDRAFT_RELEASE_FORCE") == "1":
+        return True
+    tag, released = latest_release_commit()
+    changes = app_changes(commit, released)
+    if changes:
+        return True
+    print(f"Only the website and Markdown guidance changed since {tag} ({released[:12]}); "
+          "no app release for this push. Deploy the website separately "
+          "(pnpm --dir apps/marketing run deploy).", flush=True)
+    return False
+
+
 def validate_manifest(manifest, commit, tag):
     validate_metadata(manifest.get("signing"))
     if manifest.get("commit") != commit or manifest.get("tag") != tag:
@@ -366,7 +419,10 @@ def prepare(commit, test_scope="full", unverified_live_insertion=None, run_inser
     # that everyday runs shorten; see `LongTests` in the test target.
     test_env = dict(local_test_environment() if test_scope == "credential-free" else os.environ)
     test_env["TEST_RUNNER_AIRDRAFT_LONG_TESTS"] = "1"
-    logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "NO",
+    # Parallel test clones on the release Mac: the same 891 cases in about a
+    # third of the serial time (57 s against 190 s, three clean runs,
+    # 2026-10-26). CI keeps test-local-e2e.py serial on its smaller runners.
+    logged(common + ["-configuration", "Debug", "test", "-parallel-testing-enabled", "YES",
                      "-resultBundlePath", core_results] +
            core_test_selection(source, test_scope), source, output / "build.log", env=test_env)
     verify_resolution(source)
@@ -461,6 +517,9 @@ def publish(commit):
     _, tag = version_for(project, build)
     release = release_for(tag)
     if not release:
+        # The hook skips website/guidance-only pushes; so does publication.
+        if not needs_app_release(commit):
+            return
         raise RuntimeError("No locally built draft. Run the release hook on the signing Mac, then rerun this workflow.")
     with tempfile.TemporaryDirectory(prefix="airdraft-publish-") as temporary:
         manifest = download_and_verify(tag, commit, Path(temporary))
@@ -551,6 +610,8 @@ def main():
         if previous != ZERO:
             run("git", "merge-base", "--is-ancestor", previous, commit)
         warn_unmerged_work()
+        if not needs_app_release(commit):
+            return
     lock_path = ROOT / "dist/release.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w") as lock:

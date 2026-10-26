@@ -113,8 +113,12 @@ where releases are made. Keep it on `main`; it is the only checkout of `main`.
 ### Release Mac
 
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
-hook builds committed sources locally for every origin/main push. The GitHub
-workflow publishes the verified draft after the push succeeds. See `docs/updates.md`
+hook builds committed sources locally for every origin/main push that can change
+the app. A push whose changes since the latest published release are only the
+website (`apps/marketing/`) and Markdown guidance (root `*.md`, `docs/`) skips the
+app release, and the publish workflow skips with it; deploy the website on its own.
+`AIRDRAFT_RELEASE_FORCE=1` releases anyway. The GitHub workflow publishes the
+verified draft after the push succeeds. See `docs/updates.md`
 and Local releases below.
 
 ## Structure

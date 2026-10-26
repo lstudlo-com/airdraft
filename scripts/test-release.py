@@ -59,6 +59,76 @@ class ReleaseTests(unittest.TestCase):
         self.assertIsNone(release.pushed_commit(f'refs/tags/v1 {sha} refs/tags/v1 {release.ZERO}\n'))
         self.assertEqual(release.pushed_commit(f'refs/heads/main {sha} refs/heads/main {release.ZERO}\n'), (sha, release.ZERO))
 
+    def test_only_website_and_markdown_guidance_are_outside_the_app(self):
+        for path in ('apps/marketing/src/pages/index.astro', 'apps/marketing/package.json',
+                     'CLAUDE.md', 'AGENTS.md', 'README.md', 'docs/updates.md', 'docs/installer/DESIGN.md'):
+            self.assertFalse(release.is_app_path(path), path)
+        for path in ('Sources/App/Views/HomePage.swift', 'Packages/AirdraftCore/README.md',
+                     'Sources/App/Resources/Acknowledgements.txt', 'project.yml', 'scripts/release.py',
+                     'scripts/README.md', '.github/workflows/release.yml', 'Package.resolved',
+                     'apps/marketing-other/x.ts', 'docs/diagram.png', 'eval/results/summary.json'):
+            self.assertTrue(release.is_app_path(path), path)
+
+    def test_app_changes_compare_against_the_released_commit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            git = lambda *args: subprocess.run(['git', '-C', root, *args], check=True,
+                                               capture_output=True, text=True).stdout.strip()
+            git('init', '-q', '-b', 'main')
+            git('config', 'user.email', 'test@example.com')
+            git('config', 'user.name', 'Test')
+            def commit(path, text):
+                (root / path).parent.mkdir(parents=True, exist_ok=True)
+                (root / path).write_text(text)
+                git('add', '-A')
+                git('commit', '-q', '-m', path)
+                return git('rev-parse', 'HEAD')
+            released = commit('Sources/App/App.swift', 'one')
+            website = commit('apps/marketing/src/index.astro', 'site')
+            guidance = commit('CLAUDE.md', 'rules')
+            with patch.object(release, 'ROOT', root):
+                self.assertEqual(release.app_changes(website, released), [])
+                self.assertEqual(release.app_changes(guidance, released), [])
+                app = commit('Sources/App/App.swift', 'two')
+                self.assertEqual(release.app_changes(app, released), ['Sources/App/App.swift'])
+                # A website change after an app change still releases the app change.
+                later = commit('apps/marketing/src/index.astro', 'site 2')
+                self.assertEqual(release.app_changes(later, released), ['Sources/App/App.swift'])
+                git('checkout', '-q', '--orphan', 'other')
+                unrelated = commit('apps/marketing/x.md', 'x')
+                self.assertTrue(release.app_changes(unrelated, released))
+
+    def test_website_only_pushes_skip_preparation_and_publication(self):
+        sha = 'b' * 40
+        with patch.object(release, 'latest_release_commit', return_value=('v1.0.0-build.1', 'a' * 40)), \
+                patch.object(release, 'app_changes', return_value=[]), patch.dict('os.environ', {}, clear=False):
+            import os
+            os.environ.pop('AIRDRAFT_RELEASE_FORCE', None)
+            self.assertFalse(release.needs_app_release(sha))
+            os.environ['AIRDRAFT_RELEASE_FORCE'] = '1'
+            self.assertTrue(release.needs_app_release(sha))
+            os.environ.pop('AIRDRAFT_RELEASE_FORCE')
+        with patch.object(release, 'latest_release_commit', return_value=('v1.0.0-build.1', 'a' * 40)), \
+                patch.object(release, 'app_changes', return_value=['Sources/App/App.swift']):
+            self.assertTrue(release.needs_app_release(sha))
+        # Publication: no draft and nothing for the app is a skip, not a failure.
+        main_ref = lambda *args, capture=False: sha
+        with patch.object(release, 'gh', side_effect=main_ref), \
+                patch.object(release, 'run', side_effect=lambda *a, **k: '5' if 'rev-list' in a
+                             else 'CFBundleShortVersionString: "1.0.0"'), \
+                patch.object(release, 'release_for', return_value=None):
+            with patch.object(release, 'needs_app_release', return_value=False):
+                self.assertIsNone(release.publish(sha))
+            with patch.object(release, 'needs_app_release', return_value=True):
+                with self.assertRaisesRegex(RuntimeError, 'No locally built draft'):
+                    release.publish(sha)
+
+    def test_release_runs_full_length_tests_in_parallel_clones(self):
+        source = Path(release.__file__).read_text()
+        self.assertIn('test_env["TEST_RUNNER_AIRDRAFT_LONG_TESTS"] = "1"', source)
+        self.assertIn('"test", "-parallel-testing-enabled", "YES"', source)
+        self.assertNotIn('"-parallel-testing-enabled", "NO"', source)
+
     def test_deletion_is_rejected(self):
         with self.assertRaises(RuntimeError):
             release.pushed_commit(f'(delete) {release.ZERO} refs/heads/main {"a" * 40}')

@@ -130,11 +130,22 @@ git commit -m "feat: describe the change"
 git push origin main
 ```
 
-Every push to `origin/main` performs these steps:
+Every push to `origin/main` that can change the app performs the steps below.
+The hook compares the pushed commit with the commit of the latest published
+release (its `release.json`). When every changed path is the website
+(`apps/marketing/`) or Markdown guidance (root `*.md` files and `docs/`), nothing
+in the app can differ, so the hook prints that and lets the push through without
+building, and the publish workflow finds no draft and stops without failing.
+Deploy the website separately (`pnpm --dir apps/marketing run deploy`). A released
+commit that is not an ancestor of the push counts as an app change.
+`AIRDRAFT_RELEASE_FORCE=1 git push origin main` releases regardless.
+
+For an app release, the hook performs these steps:
 
 1. Export the exact pushed commit to ignored `dist/release-source`. Uncommitted
    app and website changes cannot enter the DMG.
-2. Run release-gate, cross-identity Keychain fixture, and core tests, then build an optimized Apple Silicon app
+2. Run release-gate, cross-identity Keychain fixture, and core tests (in parallel test clones, with the
+   full-length tests on), then build an optimized Apple Silicon app
    with the pinned certificate. Verify its bundle ID, team, certificate, default
    designated requirement, validity, and absence of debugger entitlements or a
    device provisioning profile. Exercise real Sparkle installs with both a
