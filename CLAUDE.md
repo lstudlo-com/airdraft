@@ -1371,6 +1371,7 @@ Send after pasting, flagged words, profile destinations and the profile and
 Edit shortcuts are 0.15.0.
 Live text styles, lines and size, the Live text model badge and the single
 Speech models table are 0.16.0.
+Live text animations and live text that keeps scrolling are 0.17.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with
