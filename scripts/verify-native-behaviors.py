@@ -611,6 +611,8 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "WritingDirection.swift": source("Sources/App/Views/WritingDirection.swift"),
             "HUDTimerOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HUDTimerOptions.swift"),
             "LiveTextOptions.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/LiveTextOptions.swift"),
+            "LiveTextRevealTimeline.swift": source(
+                "Packages/AirdraftCore/Sources/AirdraftCore/Settings/LiveTextRevealTimeline.swift"),
             "ModuleBundle.swift": MODULE_BUNDLE,
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"

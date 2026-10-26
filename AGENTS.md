@@ -1706,10 +1706,20 @@ follows `AppSettings.liveText` (`LiveTextOptions`, AD-108): Live text style (Gla
 the default 280-point translucent smoked glass of `HUDGlass`; Solid; light Frost;
 a 420-point centered Subtitle bar; Text Only), Lines (1–4, default 2) and Live text
 size (Small, Medium 12.5 pt default, Large), set in Settings > Live preview with
-specimen tiles. Reduce Transparency makes the translucent styles opaque. It stays
-one line tall until text wraps, then shows the newest lines with an older one
-fading under its top edge; one line keeps only the newest words. It never becomes
-a fixed-size box. Dictation preview never loads, downloads or queues: it skips its tick while
+specimen tiles on a flat mid-gray backdrop. Reduce Transparency makes the
+translucent styles opaque. It stays one line tall until text wraps, then shows the
+newest lines with an older one fading under its top edge; one line keeps only the
+newest words. Several lines lay out the whole text and show its bottom, so each new
+line pushes the earlier ones up; never cap them with a line limit, which pins the
+oldest lines and truncates the newest (AD-110). It never becomes a fixed-size box.
+Text animation (`LiveTextOptions.reveal`: Fade default, Rise, Focus, Pop,
+Typewriter, Wave, Glow, None) animates only newly arrived letters:
+`LiveTextRevealTimeline` aligns each update with the last (grown, rewritten tail or
+dropped head) and stamps only changed text, and `LiveTextRevealRenderer` draws each
+letter's frame; its timeline stops once every letter settles. Reduce Motion turns
+Rise, Pop and Wave into Fade; renders set `liveTextStill`. Settings shows a looping
+specimen tile per effect that rests on the whole sentence in renders, inactive
+windows and Reduce Motion. Dictation preview never loads, downloads or queues: it skips its tick while
 any lease operation runs or waits, never rebuilds a recognizer, and every other
 lease operation (load, final inference, media, unload) cancels it. Keep one decode
 in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window

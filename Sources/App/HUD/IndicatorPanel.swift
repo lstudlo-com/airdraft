@@ -291,7 +291,9 @@ struct LivePreviewCard: View {
     var text: String?
     var options = LiveTextOptions()
     @State private var overflows = false
+    @State private var tracker = LiveTextRevealTracker()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.liveTextStill) private var still
 
     static func width(for style: LiveTextOptions.Style) -> CGFloat {
         switch style {
@@ -314,16 +316,31 @@ struct LivePreviewCard: View {
     private var light: Bool { options.style == .frost }
     private var centered: Bool { options.style == .subtitle }
 
+    /// Renders show settled text; moving effects fade instead under Reduce Motion.
+    private var reveal: LiveTextOptions.Reveal {
+        if still { return .none }
+        return reduceMotion && options.reveal.isSpatial ? .fade : options.reveal
+    }
+
     var body: some View {
         let shown = text ?? String(localized: "Listening…")
         let single = options.lines == 1
-        Text(shown)
+        let timeline = tracker.timeline(for: text ?? "", reveal: reveal,
+                                        now: Date().timeIntervalSinceReferenceDate)
+        TimelineView(LiveTextRevealSchedule(end: timeline.end)) { context in
+            Self.revealText(text, placeholder: shown, timeline: timeline)
+                .textRenderer(LiveTextRevealRenderer(now: context.date.timeIntervalSinceReferenceDate,
+                                                     reveal: timeline.reveal, fontSize: fontSize))
+        }
             .font(.system(size: fontSize, weight: options.style == .subtitle ? .semibold : .medium))
             .lineSpacing(1.5)
             .foregroundStyle(textColor.opacity(text == nil ? 0.5 : 0.94))
             .shadow(color: shadowColor, radius: options.style == .bare ? 2.5 : 1.5, y: 0.5)
             .shadow(color: options.style == .bare ? .black.opacity(0.6) : .clear, radius: 0.6)
-            .lineLimit(single ? 1 : options.lines + 3)
+            // One line keeps the newest words. Several lines lay out the whole text and
+            // show its bottom, so every new line pushes the earlier ones up; a line limit
+            // here would pin the oldest lines and truncate the newest one instead.
+            .lineLimit(single ? 1 : nil)
             .truncationMode(.head)
             .multilineTextAlignment(centered ? .center : .leading)
             .modifier(TextAlignmentForStyle(centered: centered, text: shown))
@@ -355,6 +372,25 @@ struct LivePreviewCard: View {
             .accessibilityIdentifier("hud.liveText")
     }
 
+    /// The text as runs: settled text plain, each still-appearing update marked with
+    /// its timing for `LiveTextRevealRenderer`.
+    static func revealText(_ text: String?, placeholder: String, timeline: LiveTextRevealTimeline) -> Text {
+        guard let text, timeline.text == text, !timeline.segments.isEmpty, timeline.reveal != .none else {
+            return Text(verbatim: text ?? placeholder)
+        }
+        let characters = Array(text)
+        var result = Text(verbatim: "")
+        for (index, segment) in timeline.segments.enumerated() {
+            let end = index + 1 < timeline.segments.count ? timeline.segments[index + 1].offset : characters.count
+            guard segment.offset < end else { continue }
+            let run = Text(verbatim: String(characters[segment.offset..<end]))
+            result = result + (segment.start == LiveTextRevealTimeline.Segment.settledStart ? run
+                : run.customAttribute(LiveTextRevealMark(offset: segment.offset, start: segment.start,
+                                                         stagger: segment.stagger)))
+        }
+        return result
+    }
+
     private var textColor: Color { light ? Color.black : Color.white }
     private var shadowColor: Color {
         switch options.style {
@@ -362,6 +398,127 @@ struct LivePreviewCard: View {
         case .bare: return .black.opacity(0.85)
         default: return .black.opacity(0.35)
         }
+    }
+}
+
+extension EnvironmentValues {
+    /// Shows live text settled, without its reveal animation: captured renders.
+    @Entry var liveTextStill = false
+}
+
+/// Keeps the live text's reveal timeline across view updates. Updating it while the
+/// body is built lets new words start hidden in their first frame instead of flashing.
+@MainActor
+final class LiveTextRevealTracker {
+    private var timeline = LiveTextRevealTimeline()
+
+    func timeline(for text: String, reveal: LiveTextOptions.Reveal, now: TimeInterval) -> LiveTextRevealTimeline {
+        timeline.update(text: text, reveal: reveal, now: now)
+        return timeline
+    }
+}
+
+/// Marks a run of live text that is still appearing.
+struct LiveTextRevealMark: TextAttribute {
+    var offset: Int
+    var start: TimeInterval
+    var stagger: TimeInterval
+}
+
+/// Redraws only while letters are still appearing, then stops.
+struct LiveTextRevealSchedule: TimelineSchedule {
+    var end: TimeInterval
+
+    func entries(from startDate: Date, mode: Mode) -> Entries {
+        Entries(upcoming: startDate, end: Date(timeIntervalSinceReferenceDate: max(end, 0)),
+                step: mode == .lowFrequency ? 1.0 / 10 : 1.0 / 60)
+    }
+
+    struct Entries: Sequence, IteratorProtocol {
+        var upcoming: Date?
+        let end: Date
+        let step: TimeInterval
+
+        mutating func next() -> Date? {
+            guard let current = upcoming else { return nil }
+            upcoming = current >= end ? nil : Swift.min(current.addingTimeInterval(step), end)
+            return current
+        }
+    }
+}
+
+/// Draws each letter of a still-appearing run at its point in the chosen effect.
+struct LiveTextRevealRenderer: TextRenderer {
+    var now: TimeInterval
+    var reveal: LiveTextOptions.Reveal
+    var fontSize: CGFloat
+
+    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
+        // A run that wraps continues its letter count on the next line.
+        var letters: [Int: Int] = [:]
+        for line in layout {
+            for run in line {
+                guard let mark = run[LiveTextRevealMark.self], reveal.duration > 0 else {
+                    context.draw(run)
+                    continue
+                }
+                var index = letters[mark.offset, default: 0]
+                for slice in run {
+                    let elapsed = now - (mark.start + Double(index) * mark.stagger)
+                    index += 1
+                    let progress = min(1, max(0, elapsed / reveal.duration))
+                    if progress >= 1 {
+                        context.draw(slice)
+                    } else if progress > 0 {
+                        draw(slice, at: progress, in: context)
+                    }
+                }
+                letters[mark.offset] = index
+            }
+        }
+    }
+
+    private func draw(_ slice: Text.Layout.RunSlice, at progress: Double, in base: GraphicsContext) {
+        var context = base
+        let eased = 1 - pow(1 - progress, 3)
+        let size = Double(fontSize)
+        switch reveal {
+        case .fade, .typewriter, .none:
+            context.opacity = eased
+        case .rise:
+            context.opacity = eased
+            context.translateBy(x: 0, y: (1 - eased) * size * 0.6)
+        case .focus:
+            context.opacity = min(1, progress * 1.6)
+            context.addFilter(.blur(radius: (1 - eased) * size * 0.45))
+        case .pop:
+            // Grows past full size, then settles back.
+            let overshoot = 1.70158 * 1.4
+            let t = progress - 1
+            let back = 1 + (overshoot + 1) * pow(t, 3) + overshoot * pow(t, 2)
+            let scale = 0.25 + 0.75 * back
+            let bounds = slice.typographicBounds.rect
+            context.opacity = min(1, progress * 2.5)
+            context.translateBy(x: bounds.midX, y: bounds.midY)
+            context.scaleBy(x: scale, y: scale)
+            context.translateBy(x: -bounds.midX, y: -bounds.midY)
+        case .wave:
+            context.opacity = min(1, progress * 3)
+            let lift = sin(progress * .pi) * size * 0.5
+            context.translateBy(x: 0, y: (1 - eased) * size * 0.35 - lift)
+        case .glow:
+            // An accent halo behind the letter, drawn as a shadow only so it shows
+            // around dark and light text alike, cools as the letter settles.
+            let fade = 1 - eased
+            var halo = context
+            halo.opacity = fade
+            halo.addFilter(.shadow(color: .accentColor, radius: size * (0.2 + 0.45 * fade), options: .shadowOnly))
+            halo.draw(slice)
+            halo.draw(slice)
+            context.opacity = min(1, progress * 4)
+            context.addFilter(.brightness(0.3 * fade))
+        }
+        context.draw(slice)
     }
 }
 

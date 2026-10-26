@@ -607,6 +607,7 @@ enum DebugRender {
         let preview = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
             style: .classic, showPreview: true,
             sampleText: "Please send the report tomorrow morning, after the team has reviewed the final numbers.")
+            .environment(\.liveTextStill, true)
             .padding(12).background(Color(white: 0.93))
             .environment(\.layoutDirection, appLayoutDirection)
         let previewRenderer = ImageRenderer(content: preview)
@@ -618,6 +619,7 @@ enum DebugRender {
                        "Short line", nil] as [String?] {
             let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
                 style: .classic, showPreview: true, sampleText: sample)
+                .environment(\.liveTextStill, true)
                 .padding(12).background(Color(white: 0.93))
                 .environment(\.layoutDirection, appLayoutDirection)
             let renderer = ImageRenderer(content: view)
@@ -628,14 +630,48 @@ enum DebugRender {
         let styleSample = "We finish the budget review before Monday, then send the final numbers to the finance team and plan the launch"
         let liveTextCases = LiveTextOptions.Style.allCases.map { LiveTextOptions(style: $0) }
             + [LiveTextOptions(lines: 1), LiveTextOptions(lines: 4, textSize: .large), LiveTextOptions(textSize: .small)]
-        for options in liveTextCases {
+        // AD-110: text far longer than the lines shown still ends with its newest
+        // words on the bottom line, never an ellipsis.
+        let longSample = styleSample + ", then review the hiring plan, book the venue for the offsite in March, "
+            + "confirm the catering order and finally END OF THE NEWEST LINE"
+        let longCases = [LiveTextOptions(lines: 2), LiveTextOptions(lines: 4)].map { ($0, longSample) }
+        for (options, sample) in liveTextCases.map({ ($0, styleSample) }) + longCases {
             let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
-                style: .classic, showPreview: true, liveText: options, sampleText: styleSample)
+                style: .classic, showPreview: true, liveText: options, sampleText: sample)
+                .environment(\.liveTextStill, true)
                 .padding(12)
                 .background(LinearGradient(colors: [Color(white: 0.95), Color(white: 0.95), Color(white: 0.25)],
                                            startPoint: .leading, endPoint: .trailing))
                 .environment(\.layoutDirection, appLayoutDirection)
             let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            if let rendered = renderer.nsImage { images.append(rendered) }
+        }
+        // AD-110: each text animation frame by frame. "Live text" has settled; the words
+        // after it arrived at time zero and are caught at five moments.
+        for reveal in LiveTextOptions.Reveal.allCases where reveal != .none {
+            var timeline = LiveTextRevealTimeline(reveal: reveal)
+            let first = "Live text"
+            let full = first + " arrives with " + reveal.title
+            timeline.update(text: first, reveal: reveal, now: -10)
+            timeline.update(text: full, reveal: reveal, now: 0)
+            let span = max(timeline.end, 0.1)
+            let frames = HStack(spacing: 6) {
+                ForEach([0.12, 0.3, 0.5, 0.75, 1.05], id: \.self) { fraction in
+                    LivePreviewCard.revealText(full, placeholder: full, timeline: timeline)
+                        .textRenderer(LiveTextRevealRenderer(now: span * fraction, reveal: reveal, fontSize: 12.5))
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.94))
+                        .lineLimit(1)
+                        .fixedSize()
+                        .padding(.horizontal, 12).padding(.vertical, 9)
+                        .background { LiveTextBackground(style: .solid) }
+                }
+            }
+            .padding(10)
+            .background(Color(white: 0.42))
+            .environment(\.colorScheme, .dark)
+            let renderer = ImageRenderer(content: frames)
             renderer.scale = 2
             if let rendered = renderer.nsImage { images.append(rendered) }
         }

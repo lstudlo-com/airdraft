@@ -157,6 +157,21 @@ struct ConfigurationPage: View {
                             .disabled(liveTextOff != nil)
                         }
                         RowDivider()
+                        SettingRow(title: "Text animation", detail: liveTextOff, stacked: true) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(HUDPreview.tileWidth), spacing: 10), count: 3), spacing: 12) {
+                                ForEach(LiveTextOptions.Reveal.allCases) { reveal in
+                                    ChoiceTile(title: reveal.title, selected: settings.liveText.reveal == reveal,
+                                               action: { settings.liveText.reveal = reveal }, previewSize: HUDPreview.size) {
+                                        LiveTextRevealPreview(options: LiveTextOptions(style: settings.liveText.style, lines: 2,
+                                                                                       textSize: settings.liveText.textSize,
+                                                                                       reveal: reveal))
+                                    }
+                                }
+                            }
+                            .frame(width: HUDPreview.tileWidth * 3 + 20)
+                            .disabled(liveTextOff != nil)
+                        }
+                        RowDivider()
                         SettingRow(title: "Lines", detail: liveTextOff) {
                             SoftSegmentedPicker("Lines", selection: $settings.liveText.lines,
                                 options: LiveTextOptions.lineRange.map { ($0, $0.formatted()) }, width: 160)
@@ -354,25 +369,71 @@ struct ThemePreview: View {
     }
 }
 
-/// Preview tile for the recording-window picker.
-/// A live-text style on a split light/dark backdrop, so light and dark
-/// surfaces both read in their tile.
+/// Preview tile for the live-text style picker: the style on a flat mid-gray
+/// desktop, where the light and the dark styles both read.
 struct LiveTextStylePreview: View {
     let options: LiveTextOptions
 
+    static let backdrop = Color(white: 0.42)
+    static let sample = String(localized: "Live text appears here while you speak, newest line last.")
+
     var body: some View {
-        let width = LivePreviewCard.width(for: options.style)
-        let scale = (HUDPreview.size.width - 12) / width
-        ZStack {
-            LinearGradient(colors: [Color(white: 0.86), Color(white: 0.86), Color(white: 0.3), Color(white: 0.3)],
-                           startPoint: .leading, endPoint: .trailing)
-            LivePreviewCard(text: String(localized: "Live text appears here while you speak, newest line last."),
-                            options: options)
+        Self.specimen(text: Self.sample, options: options)
+            .accessibilityHidden(true)
+    }
+
+    static func specimen(text: String?, options: LiveTextOptions) -> some View {
+        let scale = (HUDPreview.size.width - 12) / LivePreviewCard.width(for: options.style)
+        return ZStack {
+            backdrop
+            LivePreviewCard(text: text, options: options)
+                .environment(\.liveTextStill, RenderMode.isActive)
                 .fixedSize()
                 .scaleEffect(scale)
                 .frame(width: HUDPreview.size.width, height: HUDPreview.size.height)
         }
+    }
+}
+
+/// Preview tile for the text-animation picker: the sample sentence arrives a few
+/// words at a time with that effect, holds, and starts again. It rests on the whole
+/// sentence in renders, inactive windows and Reduce Motion.
+struct LiveTextRevealPreview: View {
+    let options: LiveTextOptions
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var started = Date()
+
+    /// Seconds between updates, and the pause on the whole sentence.
+    static let step: TimeInterval = 0.5
+    static let hold: TimeInterval = 1.6
+
+    private var paused: Bool { reduceMotion || RenderMode.isActive || scenePhase != .active }
+
+    /// The sample split into the pieces a recognizer would send: two words at a time,
+    /// using the language's own word breaks so Chinese and Japanese split too.
+    static let updates: [String] = {
+        var ends: [String.Index] = []
+        LiveTextStylePreview.sample.enumerateSubstrings(in: LiveTextStylePreview.sample.startIndex...,
+                                                        options: .byWords) { _, range, _, _ in ends.append(range.upperBound) }
+        let sample = LiveTextStylePreview.sample
+        var updates = stride(from: 1, to: ends.count, by: 2).map { String(sample[..<ends[$0]]) }
+        updates.append(sample)
+        return updates
+    }()
+
+    var body: some View {
+        TimelineView(.periodic(from: started, by: Self.step / 2)) { context in
+            LiveTextStylePreview.specimen(text: paused ? LiveTextStylePreview.sample : text(at: context.date),
+                                          options: options)
+        }
         .accessibilityHidden(true)
+    }
+
+    private func text(at date: Date) -> String {
+        let cycle = Double(Self.updates.count) * Self.step + Self.hold
+        let elapsed = date.timeIntervalSince(started).truncatingRemainder(dividingBy: cycle)
+        return Self.updates[min(Self.updates.count - 1, Int(elapsed / Self.step))]
     }
 }
 

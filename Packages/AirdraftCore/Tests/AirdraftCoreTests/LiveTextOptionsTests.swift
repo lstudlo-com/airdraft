@@ -8,6 +8,7 @@ final class LiveTextOptionsTests: XCTestCase {
         XCTAssertEqual(options.lines, 2)
         XCTAssertEqual(options.textSize, .medium)
         XCTAssertEqual(options.textSize.points, 12.5)
+        XCTAssertEqual(options.reveal, .fade)
     }
 
     func testLinesStayInRange() {
@@ -23,6 +24,9 @@ final class LiveTextOptionsTests: XCTestCase {
         let decoded = try JSONDecoder().decode(LiveTextOptions.self,
             from: Data(#"{"style":"neon","lines":12,"textSize":"large"}"#.utf8))
         XCTAssertEqual(decoded, LiveTextOptions(style: .glass, lines: 4, textSize: .large))
+        let reveal = try JSONDecoder().decode(LiveTextOptions.self, from: Data(#"{"reveal":"wave"}"#.utf8))
+        XCTAssertEqual(reveal, LiveTextOptions(reveal: .wave))
+        XCTAssertEqual(try JSONDecoder().decode(LiveTextOptions.self, from: Data(#"{"reveal":"sparkle"}"#.utf8)).reveal, .fade)
         XCTAssertEqual(try JSONDecoder().decode(LiveTextOptions.self, from: Data("{}".utf8)), LiveTextOptions())
     }
 
@@ -33,8 +37,8 @@ final class LiveTextOptionsTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
         let settings = AppSettings(defaults: defaults)
         XCTAssertEqual(settings.liveText, LiveTextOptions())
-        settings.liveText = LiveTextOptions(style: .subtitle, lines: 3, textSize: .small)
-        XCTAssertEqual(AppSettings(defaults: defaults).liveText, LiveTextOptions(style: .subtitle, lines: 3, textSize: .small))
+        settings.liveText = LiveTextOptions(style: .subtitle, lines: 3, textSize: .small, reveal: .pop)
+        XCTAssertEqual(AppSettings(defaults: defaults).liveText, LiveTextOptions(style: .subtitle, lines: 3, textSize: .small, reveal: .pop))
     }
 
     func testLiveTextModelsIncludeAppleSpeechAndExcludeAutoregressive() {
