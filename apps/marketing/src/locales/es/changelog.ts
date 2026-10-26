@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-18-0": {
+    title: "Reuniones pasa a ser Transcribir",
+    changes: [
+      {
+        title: "Una sola página para cualquier grabación",
+        description:
+          "Reuniones ahora se llama Transcribir, con Grabar audio como acción principal. Sigue grabando una app o todas, con tu micrófono si quieres, o importando un archivo, y lo transcribe con hablantes. Acta de reunión sigue siendo una de las plantillas de resumen.",
+      },
+      {
+        title: "La transcripción en directo ya no corta la grabación",
+        description:
+          "Grabar con Transcripción en directo activada podía cerrar Airdraft a los diez segundos. Ahora dura toda la grabación.",
+      },
+    ],
+  },
   "0-17-0": {
     title:
       "Texto en directo que no se queda atrás y palabras que llegan con estilo",

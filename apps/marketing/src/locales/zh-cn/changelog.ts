@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-18-0": {
+    title: "“会议”改为“转录”",
+    changes: [
+      {
+        title: "任何录音都在同一页",
+        description:
+          "“会议”页面改名为“转录”，主要按钮是“录制音频”。它依然可以录制单个或所有 App 的声音、可加录麦克风，或导入文件，再转成标出发言人的转录文本。“会议纪要”仍是摘要模板之一。",
+      },
+      {
+        title: "实时转录文本不再让录音中断",
+        description:
+          "开启“实时转录文本”录音时，Airdraft 可能在约十秒后退出。现在它可以持续到录音结束。",
+      },
+    ],
+  },
   "0-17-0": {
     title: "实时文字跟得上，字也出场得好看",
     changes: [

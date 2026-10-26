@@ -5,6 +5,21 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-18-0": {
+    title: "「會議」改為「轉錄」",
+    changes: [
+      {
+        title: "任何錄音都在同一頁",
+        description:
+          "「會議」頁改名為「轉錄」，主要按鈕是「錄製音訊」。它一樣能錄下單一或所有 App 的聲音、可加錄麥克風，或匯入檔案，再轉成標出講者的逐字稿。「會議紀錄」仍是摘要範本之一。",
+      },
+      {
+        title: "即時逐字稿不再讓錄音中斷",
+        description:
+          "開啟「即時逐字稿」錄音時，Airdraft 可能在約十秒後結束。現在它能撐完整段錄音。",
+      },
+    ],
+  },
   "0-17-0": {
     title: "即時文字跟得上，字也出場得好看",
     changes: [

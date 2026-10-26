@@ -4,6 +4,21 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-18-0": {
+    title: "「会議」が「文字起こし」に",
+    changes: [
+      {
+        title: "どんな録音もひとつのページで",
+        description:
+          "「会議」は「文字起こし」になり、メインのボタンは「音声を録音」です。これまでどおり 1 つまたはすべての App の音声を、必要ならマイクと一緒に録音でき、ファイルの読み込みもできます。話者付きで文字起こしします。「議事録」は要約テンプレートのひとつとして残ります。",
+      },
+      {
+        title: "ライブ文字起こしで録音が止まらなくなりました",
+        description:
+          "「ライブ文字起こし」をオンにして録音すると、約 10 秒で Airdraft が終了することがありました。現在は録音の最後まで動きます。",
+      },
+    ],
+  },
   "0-17-0": {
     title: "遅れないライブテキストと、魅せる文字の登場",
     changes: [

@@ -14,6 +14,28 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-18-0",
+    version: "0.18.0",
+    date: "2026-10-26",
+    title: "Meetings becomes Transcribe",
+    changes: [
+      {
+        title: "One page for any recording",
+        description:
+          "Meetings is now Transcribe, with Record Audio as its main action. It still records one app or all apps, with your microphone if you like, or imports a file, and transcribes it with speakers. Meeting Minutes stays as one of the summary templates.",
+      },
+      {
+        title: "Live transcript no longer ends a recording",
+        description:
+          "Recording with Live transcript on could quit Airdraft after about ten seconds. It now runs for the whole recording.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.18.0-build.500",
+    },
+  },
+  {
     id: "0-17-0",
     version: "0.17.0",
     date: "2026-10-26",
