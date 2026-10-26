@@ -5,6 +5,71 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-16-0": {
+    title: "即時文字隨你調整，語音模型合成一份清單",
+    changes: [
+      {
+        title: "選擇即時文字的樣子",
+        description:
+          "「設定」>「即時預覽」提供五種即時文字樣式（「玻璃」、「實色」、「霧面」、「字幕」與「僅文字」）、一到四行與三種文字大小，每種都有預覽。",
+      },
+      {
+        title: "看出哪些模型能顯示即時文字",
+        description:
+          "能在你說話時顯示即時文字的本機模型，在「模型」頁會標上「即時文字」。",
+      },
+      {
+        title: "語音模型只有一份清單",
+        description:
+          "「模型」把本機與雲端語音合併成「語音模型」一個區塊：先選「在這台 Mac 上」或「雲端」，再選供應商。選本機供應商時會列出它的所有模型。",
+      },
+      {
+        title: "提示更簡短",
+        description:
+          "所選模型無法顯示即時文字時，錄音視窗只用一行說明 1.2 秒，每個模式與模型只提示一次。",
+      },
+    ],
+  },
+  "0-15-0": {
+    title: "貼上後送出、可疑字詞提醒與模式快速鍵",
+    changes: [
+      {
+        title: "貼上確認後再按 Return",
+        description:
+          "錄音時按住 Shift，或在搭配 AI 對話與代理使用的模式開啟「自動送出」，原本的輸入欄位確認貼上後，Airdraft 會按一次 Return。自動送出不會在瀏覽器、郵件與聊天 App 裡發生，郵件一律不送出；短暫的等待時間內按 Esc 就不送出。",
+      },
+      {
+        title: "值得再看一眼的字",
+        description:
+          "潤稿改了數字或否定詞、加入了人名，或寫出不在「詞彙」裡、像程式碼的字時，Airdraft 會貼上但不送出，並在錄音視窗列出最多三個。",
+      },
+      {
+        title: "拷貝或寫入檔案的模式",
+        description:
+          "模式可以「在游標處插入」、「僅拷貝」，或把每次聽寫「加入檔案」成為一行，行內可用 {date}、{time} 與 {app}。",
+      },
+      {
+        title: "模式快速鍵與編輯快速鍵",
+        description:
+          "最多兩個模式可以有自己的快速鍵；編輯快速鍵讓你用說的改寫選取的文字。",
+      },
+    ],
+  },
+  "0-14-1": {
+    title: "更輕巧的即時文字視窗",
+    changes: [
+      {
+        title: "半透明的即時文字",
+        description:
+          "錄音膠囊上方的即時文字視窗改為小巧的煙燻玻璃卡片：文字換行前只有一行，之後顯示最新兩行。開啟「減少透明度」時改為不透明。",
+      },
+      {
+        title: "改為簡短提示",
+        description:
+          "無法顯示即時文字的模型不再開啟視窗；錄音照常進行，只顯示一則提示寫出模型名稱。",
+      },
+    ],
+  },
   "0-14-0": {
     title: "西班牙文、日文介面，各語言的預設值也更合適",
     changes: [

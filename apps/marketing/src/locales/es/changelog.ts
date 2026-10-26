@@ -3,6 +3,71 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-16-0": {
+    title: "Texto en directo a tu gusto y una sola lista de modelos de voz",
+    changes: [
+      {
+        title: "Elige cómo se ve el texto en directo",
+        description:
+          "«Ajustes» > «Vista previa en directo» ofrece cinco estilos («Cristal», «Sólido», «Escarcha», «Subtítulo» y «Solo texto»), de una a cuatro líneas y tres tamaños de texto, cada uno con su vista previa.",
+      },
+      {
+        title: "Mira qué modelos muestran texto en directo",
+        description:
+          "Los modelos locales que pueden mostrar texto mientras hablas llevan la etiqueta «Texto en directo» en «Modelos».",
+      },
+      {
+        title: "Una sola lista de modelos de voz",
+        description:
+          "«Modelos» reúne la voz local y en la nube en una sección, «Modelos de voz»: elige «En este Mac» o «Nube» y luego el proveedor. Al elegir un proveedor local se muestran todos sus modelos.",
+      },
+      {
+        title: "Un aviso más breve",
+        description:
+          "Si el modelo elegido no puede mostrar texto en directo, la ventana de grabación lo dice en una línea durante 1,2 segundos, una vez por perfil y modelo.",
+      },
+    ],
+  },
+  "0-15-0": {
+    title: "Enviar tras pegar, palabras señaladas y atajos de perfil",
+    changes: [
+      {
+        title: "Pulsa Retorno cuando el texto ya está pegado",
+        description:
+          "Mantén Mayúsculas mientras grabas, o activa «Enviar automáticamente» en un perfil que uses con chats y agentes de IA, y Airdraft pulsa Retorno una vez cuando el campo original confirma el texto pegado. El envío automático no se hace en navegadores, correo ni apps de chat, el correo nunca se envía, y Esc durante la breve espera deja el texto sin enviar.",
+      },
+      {
+        title: "Palabras que conviene revisar",
+        description:
+          "Si el refinamiento cambia un número o una negación, añade un nombre o escribe algo con aspecto de código que no está en tu «Vocabulario», Airdraft pega el texto pero no lo envía, y la ventana de grabación muestra hasta tres de esas palabras.",
+      },
+      {
+        title: "Perfiles que copian o escriben en un archivo",
+        description:
+          "Un perfil puede «Insertar en el cursor», «Solo copiar» o «Añadir a un archivo» cada dictado como una línea, con {date}, {time} y {app} en la línea.",
+      },
+      {
+        title: "Atajos de perfil y de edición",
+        description:
+          "Hasta dos perfiles pueden tener su propio atajo, y el atajo de edición reescribe el texto seleccionado con tu voz.",
+      },
+    ],
+  },
+  "0-14-1": {
+    title: "Una ventana de texto en directo más ligera",
+    changes: [
+      {
+        title: "Texto en directo translúcido",
+        description:
+          "La ventana de texto en directo sobre la cápsula de grabación es ahora una tarjeta compacta de cristal ahumado: una línea hasta que el texto se ajusta y luego las dos líneas más recientes. Con «Reducir transparencia» es opaca.",
+      },
+      {
+        title: "Un aviso breve en su lugar",
+        description:
+          "Los modelos que no pueden mostrar texto en directo ya no abren la ventana; un aviso breve nombra el modelo mientras la grabación continúa.",
+      },
+    ],
+  },
   "0-14-0": {
     title: "Español, japonés y mejores valores predeterminados en cada idioma",
     changes: [

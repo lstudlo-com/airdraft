@@ -3,6 +3,71 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-16-0": {
+    title: "实时文字随你调整，语音模型合并为一份列表",
+    changes: [
+      {
+        title: "选择实时文字的样式",
+        description:
+          "「设置」>「实时预览」提供五种实时文字样式（「玻璃」、「实色」、「磨砂」、「字幕」和「仅文字」）、一到四行和三种文字大小，每种都有预览。",
+      },
+      {
+        title: "看出哪些模型能显示实时文字",
+        description:
+          "能在你说话时显示实时文字的本机模型，在「模型」页会标上「实时文字」。",
+      },
+      {
+        title: "语音模型只有一份列表",
+        description:
+          "「模型」把本机和云端语音合并为「语音模型」一个区块：先选「在这台 Mac 上」或「云端」，再选服务商。选本机服务商时会列出它的所有模型。",
+      },
+      {
+        title: "提示更简短",
+        description:
+          "所选模型无法显示实时文字时，录音窗口只用一行提示 1.2 秒，每个模式和模型只提示一次。",
+      },
+    ],
+  },
+  "0-15-0": {
+    title: "粘贴后发送、可疑字词提醒和模式快捷键",
+    changes: [
+      {
+        title: "粘贴确认后再按 Return",
+        description:
+          "录音时按住 Shift，或在配合 AI 对话和代理使用的模式中开启「自动发送」，原来的输入框确认粘贴后，Airdraft 会按一次 Return。自动发送不会在浏览器、邮件和聊天 App 里发生，邮件一律不发送；短暂的等待时间内按 Esc 就不发送。",
+      },
+      {
+        title: "值得再看一眼的词",
+        description:
+          "润色改了数字或否定词、加入了人名，或写出不在「词汇」里、像代码的词时，Airdraft 会粘贴但不发送，并在录音窗口列出最多三个。",
+      },
+      {
+        title: "复制或写入文件的模式",
+        description:
+          "模式可以「在光标处插入」、「仅复制」，或把每次听写「添加到文件」成为一行，行内可用 {date}、{time} 和 {app}。",
+      },
+      {
+        title: "模式快捷键和编辑快捷键",
+        description:
+          "最多两个模式可以有自己的快捷键；编辑快捷键让你用说的改写选中的文字。",
+      },
+    ],
+  },
+  "0-14-1": {
+    title: "更轻巧的实时文字窗口",
+    changes: [
+      {
+        title: "半透明的实时文字",
+        description:
+          "录音胶囊上方的实时文字窗口改为小巧的烟熏玻璃卡片：文字换行前只有一行，之后显示最新两行。开启「降低透明度」时改为不透明。",
+      },
+      {
+        title: "改为简短提示",
+        description:
+          "无法显示实时文字的模型不再打开窗口；录音照常进行，只显示一条提示写出模型名称。",
+      },
+    ],
+  },
   "0-14-0": {
     title: "西班牙语、日语界面，各种语言都有更合适的默认设置",
     changes: [

@@ -8,11 +8,97 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-25.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-26.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-16-0",
+    version: "0.16.0",
+    date: "2026-10-26",
+    title: "Live text your way, and one list of speech models",
+    changes: [
+      {
+        title: "Choose how live text looks",
+        description:
+          "Settings > Live preview offers five live-text styles (Glass, Solid, Frost, Subtitle and Text Only), one to four lines and three text sizes, each with a preview.",
+      },
+      {
+        title: "See which models show live text",
+        description:
+          "Local models that can show live text while you speak carry a Live text badge in Models.",
+      },
+      {
+        title: "One list of speech models",
+        description:
+          "Models brings local and cloud speech into one Speech models section: choose On this Mac or Cloud, then the provider. Choosing a local provider lists all of its models.",
+      },
+      {
+        title: "A shorter notice",
+        description:
+          "When the selected model can't show live text, the recording window says so in one line for 1.2 seconds, once per profile and model.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.16.0-build.477",
+    },
+  },
+  {
+    id: "0-15-0",
+    version: "0.15.0",
+    date: "2026-10-26",
+    title: "Send after pasting, flagged words and profile shortcuts",
+    changes: [
+      {
+        title: "Press Return once the paste lands",
+        description:
+          "Hold Shift while recording, or turn on Send automatically for a profile you use with AI chats and agents, and Airdraft presses Return once after the original field confirms the paste. Automatic sending skips browsers, email and chat apps, email never sends, and Esc during the short window keeps the text unsent.",
+      },
+      {
+        title: "Words worth a second look",
+        description:
+          "When refinement changes a number or a negation, adds a name, or writes a code-like word that isn't in your Vocabulary, Airdraft pastes but doesn't send, and the recording window lists up to three of them.",
+      },
+      {
+        title: "Profiles that copy or write to a file",
+        description:
+          "A profile can insert at the cursor, copy only, or add each dictation as a line to a file, with {date}, {time} and {app} in the line.",
+      },
+      {
+        title: "Profile and Edit shortcuts",
+        description:
+          "Give up to two profiles their own shortcut, and use the Edit shortcut to rewrite the selected text by voice.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.15.0-build.473",
+    },
+  },
+  {
+    id: "0-14-1",
+    version: "0.14.1",
+    date: "2026-10-26",
+    title: "A lighter live-text window",
+    changes: [
+      {
+        title: "Translucent live text",
+        description:
+          "The live-text window above the recording pill is now a compact card of smoked glass: one line until the text wraps, then the newest two lines. Reduce Transparency makes it opaque.",
+      },
+      {
+        title: "A brief notice instead",
+        description:
+          "Models that can't show live text no longer open the window; a short notice names the model while recording continues.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.14.1-build.468",
+    },
+  },
   {
     id: "0-14-0",
     version: "0.14.0",
