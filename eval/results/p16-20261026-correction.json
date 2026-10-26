@@ -1,0 +1,290 @@
+{
+  "label": "p16-20261026-correction",
+  "prompt_version": "p16",
+  "default_rules_sha256": "a13d64aa7a17355bbc468806e0d3ba6dd63809decf5dc5bc64d16e33e95ad1a4",
+  "assembly_sources": {
+    "LLM/PromptBuilder.swift": "ece2a862e3d619d5646cd3b1b714ab16ab27f5515bde1adb5070d241ceefe5ca",
+    "LLM/RefinementProfile.swift": "dfaebdedf540487bd2a89e1f11f1997b7070688ed0b000c6af0d97d8cfa43d7d",
+    "Context/AppFamily.swift": "368362c7ae788a7d41d18c320fe4b6fc7c77a6bbfa9f8b3f960201d8f08fc121",
+    "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
+  },
+  "cases_sha256": "5ffb55b5fe00a213194fb6589609a6dd808d72c4ac9dc1c25586046a554fad8c",
+  "cli_sha256": "f1687ffd1562b41aff4dac948ee2f3ea543f9dfc98a09d83f347bdb4f3a0e693",
+  "cases": "correction_cases.json",
+  "model": "airdraft-eval-p16-ad104",
+  "runs": 3,
+  "total": 30,
+  "max": 30,
+  "results": [
+    {
+      "id": "gemma-homophone",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到 Gemma 的我們自行架設的模型，是這樣子嗎？",
+          "seconds": 14.68,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到 Gemma 的我們自行架設的模型，是這樣子嗎？",
+          "seconds": 2.35,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "所以如果 Gemini 失敗的話，會 fallback 到 Gemma 的我們自行架設的模型，是這樣子嗎？",
+          "seconds": 2.29,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "number-version",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 13.28,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 3.49,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "那是不是要額外 fallback 端點的規則，來去做 3.8 Flash？",
+          "seconds": 3.49,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "qwen-asr-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 13.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 3.84,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我們接了兩個本地引擎，一個是 Whisper，另一個是 Qwen3-ASR，兩個都可以在設定裡面切換。",
+          "seconds": 3.83,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢。",
+          "seconds": 3.71,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢。",
+          "seconds": 3.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我認為使用 Claude Code 是一個非常好的方法，因為 Claude Code 相較於用 API 計費很省錢。",
+          "seconds": 3.7,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-1",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "第一個是輔助使用權限會因為簽章改變而失效。第二個是長句子的轉錄會被截斷。",
+          "seconds": 3.59,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "第一個是輔助使用權限會因為簽章改變而失效。第二個是長句子的轉錄會被截斷。",
+          "seconds": 3.57,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "第一個是輔助使用權限會因為簽章改變而失效。第二個是長句子的轉錄會被截斷。",
+          "seconds": 3.56,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "zh-homophones-2",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪。",
+          "seconds": 3.35,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也是不太可能收到兩則訊息，這個其實也很奇怪",
+          "seconds": 3.29,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "照理來說我只按一次發送的話，應該也不太可能收到兩則訊息，這個其實也很奇怪。",
+          "seconds": 3.28,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "speech-recognition-term",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "再來是語音辨識的部分，我們接了兩個本地引擎。",
+          "seconds": 2.71,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "再來是語音辨識的部分，我們接了兩個本地引擎。",
+          "seconds": 2.71,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "再來是語音辨識的部分，我們接了兩個本地引擎。",
+          "seconds": 2.7,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "git-pull",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 2.93,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 2.93,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "先把 develop branch 的 content 把它 pull 下來，然後再開 PR。",
+          "seconds": 2.94,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "keep-last-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請查看這兩個評測資料夾，比較兩位專家判官的建議並深入分析。之前未測試的角色版本可以跳過嗎？",
+          "seconds": 14.52,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請先查看這兩個評測資料夾，比較兩位專家判官的建議並進行深入分析。另外，之前未測試的角色版本可以跳過嗎？",
+          "seconds": 2.72,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "請查看這兩個評測資料夾，比較兩位專家判官的建議並進行深入分析。角色之前未測試的版本可跳過嗎？",
+          "seconds": 2.52,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "no-overcorrection",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 2.65,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 2.64,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "我今天晚上會晚一點回家，你們先吃飯不用等我。",
+          "seconds": 2.65,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}
