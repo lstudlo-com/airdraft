@@ -43,9 +43,9 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
         case (.control, false): 0.91
         case (.control, true): 0.2
         }
-        // The edges stay barely there: a visible rim outlines the control instead of
-        // letting its light and shade shape it.
-        let rim = Color.white.opacity(dark ? 0.012 : 0.07)
+        // The edges stay faint, at half their former strength: a visible rim outlines
+        // the control instead of letting its light and shade shape it.
+        let rim = Color.white.opacity(dark ? 0.024 : 0.135)
         Group {
             if pressed {
                 shape.fill((tint ?? Color(white: dark ? 0.15 : 0.87))
@@ -60,7 +60,7 @@ struct SoftRaisedSurface<S: InsettableShape>: View {
                 shape.strokeBorder(LinearGradient(colors: [rim, rim.opacity(0)],
                                                   startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
-            shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.01), lineWidth: 0.5)
+            shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.0175), lineWidth: 0.5)
         }
         // One GPU-rendered layer for the face and its edges. Otherwise each
         // edge gradient is rasterized on the CPU whenever a lazy row appears.
@@ -92,7 +92,7 @@ struct SoftInsetTrack<S: InsettableShape>: View {
             .shadow(.inner(color: .black.opacity(dark ? 0.6 : 0.3), radius: 2.5, x: 1.5, y: 2))
             .shadow(.inner(color: .white.opacity(dark ? 0.08 : 0.9), radius: 2.5, x: -1.5, y: -2)))
             .overlay {
-                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.01), lineWidth: 0.5)
+                shape.strokeBorder(Color.primary.opacity(contrast == .increased ? 0.35 : 0.02), lineWidth: 0.5)
             }
             .accessibilityHidden(true)
             .allowsHitTesting(false)
