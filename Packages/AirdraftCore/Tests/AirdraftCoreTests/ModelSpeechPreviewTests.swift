@@ -206,7 +206,7 @@ final class ModelSpeechPreviewTests: XCTestCase {
     func testRecordingNoticeNamesTheUnsupportedModel() {
         let whisper = ASRConfig(kind: .whisperKit)
         let notice = try? XCTUnwrap(ModelSpeechPreview.recordingNotice(for: whisper))
-        XCTAssertEqual(notice, "\(whisper.displayName) doesn’t support live text")
+        XCTAssertEqual(notice, "\(whisper.modelDisplayName) doesn’t support live text")
         XCTAssertNotEqual(notice, ModelSpeechPreview.unavailableReason(for: whisper))
         XCTAssertNil(ModelSpeechPreview.recordingNotice(for: ASRConfig(kind: .apple, appleLocale: "en-US", language: "")))
     }

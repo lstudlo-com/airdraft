@@ -1674,9 +1674,10 @@ supported only for Parakeet, SenseVoice and Orukeet. When the captured model is
 Apple Speech itself, it runs the Apple Speech preview analyzer in that model's
 effective locale (`ModelSpeechPreview.appleSpeechLocale`), never another model.
 Other models and cloud
-providers open no live-text window: the HUD shows a two-second notice naming the
-model (`ModelSpeechPreview.recordingNotice`, timed by `HUDPreviewNotice`) above
-the capsule while recording continues, and Settings shows the active profile's
+providers open no live-text window: the HUD shows a one-line notice naming the
+model without its runtime (`ModelSpeechPreview.recordingNotice`, no icon, shown
+1.2 s by `HUDPreviewNotice`) above the capsule while recording continues, once per
+profile and speech model until a recording previews or either changes, and Settings shows the active profile's
 model with its readiness or reason and Open Models, reading installed state from
 `SetupFacts`. The live-text window (`LivePreviewCard`) is a compact 280-point card
 of translucent smoked glass (`HUDGlass`: blurred material under a dark tint, opaque

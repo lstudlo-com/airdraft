@@ -117,6 +117,10 @@ public final class DictationPipeline {
     /// briefly as a notice and keeps the window closed.
     public internal(set) var previewIssue: String?
     public internal(set) var previewEnabledForRecording = false
+    /// Profile and speech model whose missing live text the HUD already
+    /// announced; cleared when a recording previews, so a later switch back
+    /// announces it again.
+    var previewNoticeShownFor: String?
     var previewSession: (any SpeechPreviewSession)?
     /// The session decodes with the recording's speech engine (AD-084).
     var previewUsesSpeechEngine = false

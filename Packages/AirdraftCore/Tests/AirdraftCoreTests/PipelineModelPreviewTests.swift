@@ -74,6 +74,49 @@ final class PipelineModelPreviewTests: XCTestCase {
         XCTAssertNil(fixture.pipeline.previewIssue)
     }
 
+    /// The notice is said once per profile and model: repeating the same setup
+    /// stays quiet, while another profile, another model, or a recording that
+    /// had live text in between brings it back.
+    func testUnavailableNoticeShowsOncePerProfileAndModel() async throws {
+        let unavailable = Locked(true)
+        let fixture = try Fixture(source: .speechModel, availability: { asr in
+            unavailable.withLock { $0 } ? "\(asr.engineID) has no live text" : nil
+        })
+        defer { fixture.cleanUp() }
+        let parakeet = "\(fixture.settings.asr.engineID) has no live text"
+        let first = try await recordedIssue(fixture)
+        XCTAssertEqual(first, parakeet)
+        let repeated = try await recordedIssue(fixture)
+        XCTAssertNil(repeated, "Same profile and model: no second notice")
+        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+
+        let other = try XCTUnwrap(fixture.profiles.profiles.first { $0.id != fixture.profiles.activeProfileID })
+        fixture.profiles.setActive(other.id)
+        let otherProfile = try await recordedIssue(fixture)
+        XCTAssertEqual(otherProfile, parakeet)
+
+        fixture.settings.asr = ASRConfig(kind: .senseVoiceMultilingual)
+        let otherModel = try await recordedIssue(fixture)
+        XCTAssertEqual(otherModel, "\(fixture.settings.asr.engineID) has no live text")
+
+        unavailable.withLock { $0 = false }
+        let previewed = try await recordedIssue(fixture)
+        XCTAssertNil(previewed)
+        unavailable.withLock { $0 = true }
+        let again = try await recordedIssue(fixture)
+        XCTAssertEqual(again, "\(fixture.settings.asr.engineID) has no live text")
+    }
+
+    /// Records once and returns the notice the HUD had while recording.
+    private func recordedIssue(_ fixture: Fixture) async throws -> String? {
+        try await begin(fixture)
+        let issue = fixture.pipeline.previewIssue
+        fixture.recorder.capture([Float](repeating: 0.2, count: 16_000))
+        fixture.pipeline.stopAndProcess()
+        try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+        return issue
+    }
+
     func testStaleSessionTextIsRejectedByTheNextRecording() async throws {
         let fixture = try Fixture(source: .speechModel)
         defer { fixture.cleanUp() }
@@ -189,6 +232,7 @@ final class PipelineModelPreviewTests: XCTestCase {
         let apple: ModelPreviewTestBuilder
         let appleLocales = Locked<[String]>([])
         let speech: ModelPreviewTestSpeech
+        let profiles: ProfileStore
         let pipeline: DictationPipeline
 
         init(source: LivePreviewSource, production: Bool = false,
@@ -222,8 +266,9 @@ final class PipelineModelPreviewTests: XCTestCase {
             let fakeModelPreview: DictationPipeline.ModelPreviewBuilder = { request, onText, onIssue in
                 builds.build(request: request, onText: onText, onIssue: onIssue)
             }
+            profiles = ProfileStore(directory: directory)
             pipeline = DictationPipeline(settings: settings, dictionary: dictionary,
-                profiles: ProfileStore(directory: directory), history: history, factory: factory, recorder: recorder,
+                profiles: profiles, history: history, factory: factory, recorder: recorder,
                 previewBuilder: applePreview,
                 modelPreviewBuilder: production ? nil : fakeModelPreview,
                 modelPreviewAvailability: availability,

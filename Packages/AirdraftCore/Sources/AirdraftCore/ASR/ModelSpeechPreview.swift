@@ -108,15 +108,16 @@ public enum ModelSpeechPreview {
         return nil
     }
 
-    /// The recording window's short notice for a model without live text. The
-    /// HUD shows it for two seconds instead of opening the live-text window.
-    /// Stats the model folder, like `unavailableReason(for:)`.
+    /// The recording window's one-line notice for a model without live text.
+    /// The HUD shows it briefly instead of opening the live-text window. It
+    /// names the model without its runtime so it stays short. Stats the model
+    /// folder, like `unavailableReason(for:)`.
     public static func recordingNotice(for asr: ASRConfig) -> String? {
         guard unavailableReason(for: asr) != nil else { return nil }
         guard supports(asr) else {
-            return String(localized: "\(asr.displayName) doesn’t support live text", bundle: .module)
+            return String(localized: "\(asr.modelDisplayName) doesn’t support live text", bundle: .module)
         }
-        return String(localized: "Install \(asr.displayName) in Models to see live text.", bundle: .module)
+        return String(localized: "Install \(asr.modelDisplayName) in Models to see live text.", bundle: .module)
     }
 
     public static func start(policy: ModelPreviewPolicy = .standard,

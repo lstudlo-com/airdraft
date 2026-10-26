@@ -230,7 +230,8 @@ extension DictationPipeline {
         // captured while audio is recorded; any exit before the recording state
         // stops the microphone again and discards that audio.
         wireRecorder(for: token)
-        startPreview(for: token, request: ModelPreviewRequest(asr: asr, hints: speechHints(for: snapshot, language: speechLanguage)))
+        startPreview(for: token, request: ModelPreviewRequest(asr: asr, hints: speechHints(for: snapshot, language: speechLanguage)),
+                     profile: profile.id)
         do {
             try recorder.start(microphone: microphone)
         } catch {
@@ -481,7 +482,7 @@ extension DictationPipeline {
 
     /// `request` carries the speech config and hints final transcription uses,
     /// so model preview decodes with the same loaded recognizer (AD-084).
-    func startPreview(for token: UUID, request: ModelPreviewRequest) {
+    func startPreview(for token: UUID, request: ModelPreviewRequest, profile: UUID? = nil) {
         stopPreview()
         guard settings.livePreviewEnabled, settings.hudStyle != .none else { return }
         previewEnabledForRecording = true
@@ -511,6 +512,7 @@ extension DictationPipeline {
         case .speechModel:
             if let locale = ModelSpeechPreview.appleSpeechLocale(for: request.asr) {
                 // Apple Speech previews through its own analyzer, outside the factory lease.
+                previewNoticeShownFor = nil
                 session = previewBuilder(locale, onText, onIssue)
                 break
             }
@@ -518,9 +520,15 @@ extension DictationPipeline {
             // reason as a brief notice while recording continues.
             if let reason = modelPreviewAvailability(request.asr) {
                 previewEnabledForRecording = false
-                previewIssue = reason
+                // Said once: later recordings with the same model and profile stay quiet.
+                let key = "\(profile?.uuidString ?? "")|\(request.asr.engineID)"
+                if previewNoticeShownFor != key {
+                    previewNoticeShownFor = key
+                    previewIssue = reason
+                }
                 return
             }
+            previewNoticeShownFor = nil
             session = modelPreviewBuilder(request, onText, onIssue)
             previewUsesSpeechEngine = true
         }

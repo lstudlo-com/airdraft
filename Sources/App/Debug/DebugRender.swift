@@ -624,16 +624,18 @@ enum DebugRender {
             renderer.scale = 2
             if let rendered = renderer.nsImage { images.append(rendered) }
         }
-        // A model without live text opens no card, only the brief notice.
-        let notice = HUDPreviewNotice()
-        notice.present(ModelSpeechPreview.recordingNotice(for: ASRConfig(kind: .whisperKit)))
-        let noticeView = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
-            style: .classic, showPreview: false, previewNotice: notice)
-            .padding(12).background(Color(white: 0.93))
-            .environment(\.layoutDirection, appLayoutDirection)
-        let noticeRenderer = ImageRenderer(content: noticeView)
-        noticeRenderer.scale = 2
-        if let rendered = noticeRenderer.nsImage { images.append(rendered) }
+        // A model without live text opens no card, only the brief one-line notice.
+        for kind in [ASRProviderKind.qwen3, .whisperKit] {
+            let notice = HUDPreviewNotice()
+            notice.present(ModelSpeechPreview.recordingNotice(for: ASRConfig(kind: kind)))
+            let noticeView = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+                style: .classic, showPreview: false, previewNotice: notice)
+                .padding(12).background(Color(white: 0.93))
+                .environment(\.layoutDirection, appLayoutDirection)
+            let noticeRenderer = ImageRenderer(content: noticeView)
+            noticeRenderer.scale = 2
+            if let rendered = noticeRenderer.nsImage { images.append(rendered) }
+        }
         let width = images.map(\.size.width).max() ?? 0
         let height = images.reduce(0) { $0 + $1.size.height }
         let sheet = NSImage(size: NSSize(width: width, height: height))

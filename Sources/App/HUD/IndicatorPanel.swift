@@ -326,32 +326,27 @@ struct LivePreviewCard: View {
     }
 }
 
-/// A model without live text says so briefly; the live-text window stays closed.
+/// A model without live text says so briefly on one line; the live-text
+/// window stays closed.
 struct LivePreviewNotice: View {
-    static let maxWidth: CGFloat = 280
+    /// Wide enough for the longest catalogue model name on one line.
+    static let maxWidth: CGFloat = 420
     var message: String
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Image(systemName: "text.bubble")
-                .font(.system(size: 10.5, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.6))
-                .accessibilityHidden(true)
-            Text(message)
-                .font(.system(size: 11.5, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.88))
-                .lineLimit(2)
-                .naturalAlignment(for: message)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .frame(maxWidth: Self.maxWidth, alignment: .leading)
-        .fixedSize()
-        .background { HUDGlass(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)) }
-        .environment(\.colorScheme, .dark)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("hud.liveTextNotice")
+        Text(message)
+            .font(.system(size: 11.5, weight: .medium))
+            .foregroundStyle(Color.white.opacity(0.88))
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(maxWidth: Self.maxWidth)
+            .fixedSize()
+            .background { HUDGlass(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)) }
+            .environment(\.colorScheme, .dark)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("hud.liveTextNotice")
     }
 }
 
@@ -379,7 +374,7 @@ struct HUDGlass<S: InsettableShape>: View {
     }
 }
 
-/// Shows why a recording has no live text for two seconds, then fades it.
+/// Shows why a recording has no live text for 1.2 seconds, then fades it.
 /// The controller owns it so rebuilding the HUD's content never restarts it.
 @MainActor @Observable
 final class HUDPreviewNotice {
@@ -393,7 +388,7 @@ final class HUDPreviewNotice {
     typealias Sleep = @MainActor (TimeInterval) async throws -> Void
     @ObservationIgnored private let sleep: Sleep
 
-    init(visibleFor: TimeInterval = 2, fadeFor: TimeInterval = 0.3,
+    init(visibleFor: TimeInterval = 1.2, fadeFor: TimeInterval = 0.3,
          sleep: @escaping Sleep = { try await Task.sleep(for: .seconds($0)) }) {
         self.visibleFor = visibleFor
         self.fadeFor = fadeFor
