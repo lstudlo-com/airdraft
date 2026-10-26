@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-18-1": {
+    title: "“转录”能应付更多会议",
+    changes: [
+      {
+        title: "用 Parakeet 转录会议恢复正常",
+        description:
+          "用 Parakeet（Core ML）模型转录时，只要有人说了很短的一句，整场会议可能就会失败。现在短句也会和其他内容一样转出来。",
+      },
+      {
+        title: "中文和日文转录文本更干净",
+        description:
+          "“转录”不再在中文和日文每句后面多加空格，日文的简短回应如“うん”也不会再被写成中文的“嗯”。",
+      },
+      {
+        title: "Apple Intelligence 不再多加破折号",
+        description:
+          "用 Apple Intelligence 润色时，普通文字有时会像只有一项的列表那样以“-”开头。现在不会了。",
+      },
+    ],
+  },
   "0-18-0": {
     title: "“会议”改为“转录”",
     changes: [

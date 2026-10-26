@@ -4,6 +4,26 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-18-1": {
+    title: "「文字起こし」がより多くの会議に対応",
+    changes: [
+      {
+        title: "Parakeet での会議が再び文字起こしできるように",
+        description:
+          "Parakeet（Core ML）のモデルで文字起こしすると、誰かがごく短く話しただけで会議全体が失敗することがありました。短い部分もほかと同じように文字起こしされます。",
+      },
+      {
+        title: "中国語と日本語の文字起こしがきれいに",
+        description:
+          "「文字起こし」で中国語と日本語の文ごとに空白が入らなくなり、「うん」のような短い日本語の相づちが中国語の「嗯」と書かれなくなりました。",
+      },
+      {
+        title: "Apple Intelligence が余計なダッシュを付けません",
+        description:
+          "Apple Intelligence で整えると、普通の文章の先頭に 1 項目だけのリストのようなダッシュが付くことがありました。現在は付きません。",
+      },
+    ],
+  },
   "0-18-0": {
     title: "「会議」が「文字起こし」に",
     changes: [

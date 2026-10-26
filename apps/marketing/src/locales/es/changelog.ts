@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-18-1": {
+    title: "Transcribir aguanta más reuniones",
+    changes: [
+      {
+        title: "Las reuniones con Parakeet vuelven a transcribirse",
+        description:
+          "Transcribir con un modelo Parakeet de Core ML podía fallar en toda una reunión cuando alguien decía algo muy breve. Ahora los fragmentos cortos se transcriben como el resto.",
+      },
+      {
+        title: "Transcripciones más limpias en chino y japonés",
+        description:
+          "Transcribir ya no añade un espacio tras cada frase en chino y japonés, y las respuestas breves en japonés como うん ya no se escriben como el chino 嗯.",
+      },
+      {
+        title: "Sin guion suelto de Apple Intelligence",
+        description:
+          "Al refinar con Apple Intelligence, a veces el texto empezaba con un guion, como si fuera una lista de un solo elemento. Ya no ocurre.",
+      },
+    ],
+  },
   "0-18-0": {
     title: "Reuniones pasa a ser Transcribir",
     changes: [

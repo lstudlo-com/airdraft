@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-18-1",
+    version: "0.18.1",
+    date: "2026-10-27",
+    title: "Transcribe holds up in more meetings",
+    changes: [
+      {
+        title: "Meetings with Parakeet transcribe again",
+        description:
+          "Transcribing with a Parakeet Core ML model could fail a whole meeting when someone said something very short. Short passages now transcribe like the rest.",
+      },
+      {
+        title: "Cleaner Chinese and Japanese transcripts",
+        description:
+          "Transcribe no longer puts a space after each sentence in Chinese and Japanese, and short Japanese replies such as うん are no longer written as Chinese 嗯.",
+      },
+      {
+        title: "No stray dash from Apple Intelligence",
+        description:
+          "Refining with Apple Intelligence sometimes started plain text with a dash, as if it were a one-item list. It no longer does.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.18.1-build.509",
+    },
+  },
+  {
     id: "0-18-0",
     version: "0.18.0",
     date: "2026-10-26",

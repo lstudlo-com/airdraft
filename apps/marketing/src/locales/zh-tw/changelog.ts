@@ -5,6 +5,26 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-18-1": {
+    title: "「轉錄」撐得住更多會議",
+    changes: [
+      {
+        title: "用 Parakeet 轉錄會議恢復正常",
+        description:
+          "用 Parakeet（Core ML）模型轉錄時，只要有人說了很短的一句，整場會議可能就會失敗。現在短句也會跟其他內容一樣轉出來。",
+      },
+      {
+        title: "中文和日文逐字稿更乾淨",
+        description:
+          "「轉錄」不再在中文和日文每句後面多加空格，日文的短回應像「うん」也不會再被寫成中文的「嗯」。",
+      },
+      {
+        title: "Apple Intelligence 不再多加破折號",
+        description:
+          "用 Apple Intelligence 潤稿時，一般文字有時會像只有一項的清單那樣以「-」開頭。現在不會了。",
+      },
+    ],
+  },
   "0-18-0": {
     title: "「會議」改為「轉錄」",
     changes: [
