@@ -118,6 +118,30 @@ transcript was compared with the reference at several timestamps: every
 clip's audio and reference line up. Its error rates are a quick check, not
 a measurement.
 
+## Running the sets through Airdraft
+
+`run_eval.py` sends every clip through the Debug app's production routes, one
+process per clip with isolated data and the installed models cloned into
+`<work>/models` (`cp -cR`); it never downloads. `score.py` scores the results.
+
+```bash
+python3 -I eval/qa-sets/run_eval.py --app "<DerivedData>/Airdraft Debug.app" \
+  --sets "<qa-sets dir>" --work dist/qa-eval/<date>
+uv run --with opencc-python-reimplemented python -I eval/qa-sets/score.py \
+  --sets "<qa-sets dir>" --work dist/qa-eval/<date> --out dist/qa-eval/<date>/summary.json
+```
+
+- `dictation`: `--e2e-action transcribe`, refinement off, Auto language, each
+  language's first-run recommendation and its alternative.
+- `refine`: the same with Apple Intelligence and the Clean profile.
+- `media`: `--e2e-action media`, Transcribe's file import with speaker
+  identification and the recommended model.
+
+Error rates are pooled (CER for zh/ja, WER for en/es, numbers not normalized).
+Speaker scores are frame-level DER without a collar and the detected speaker
+count; DER on single-speaker clips mostly measures the reference's silence and
+is not meaningful. Aggregates without transcript text go to `results/<date>.json`.
+
 ## Licences
 
 | Corpus | Licence |

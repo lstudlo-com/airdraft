@@ -97,6 +97,10 @@ enum LocalE2E {
                     app.settings.asr.language = locale
                 }
                 if let language = argument("--e2e-language") { app.settings.asr.language = language }
+                if let script = argument("--e2e-chinese-script") {
+                    guard let value = ChineseScript(rawValue: script) else { throw E2EError.unknownAction }
+                    app.settings.asr.chineseScript = value
+                }
                 if let bias = argument("--e2e-vocabulary-bias") {
                     guard ["on", "off"].contains(bias) else { throw E2EError.unknownAction }
                     app.settings.vocabularyBiasesOnDeviceSpeech = bias == "on"
@@ -311,6 +315,32 @@ enum LocalE2E {
                         report["stoppedCallbacks"] as? Bool == true ? "passed" : "failed"
                 case "model-preview":
                     report = try await modelPreview(app: app)
+                case "media":
+                    // AD-114: one file through Transcribe's production import (speech plus speakers).
+                    guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
+                    guard let media = app.media, let model = argument("--e2e-media-model") else { throw E2EError.unknownAction }
+                    var configuration = MediaConfiguration(language: argument("--e2e-language") ?? "",
+                        identifySpeakers: argument("--e2e-speakers") != "off")
+                    configuration.selectModelChoice(model)
+                    guard configuration.selectedModelID == model else { throw E2EError.invalidModel }
+                    let started = ContinuousClock.now
+                    media.importFile(URL(fileURLWithPath: path), configuration: configuration)
+                    let deadline = ContinuousClock.now.advanced(by: .seconds(900))
+                    while media.isBusy, ContinuousClock.now < deadline {
+                        try await Task.sleep(for: .milliseconds(200))
+                    }
+                    let elapsed = started.duration(to: .now).components
+                    report["mediaMs"] = Double(elapsed.seconds) * 1_000 + Double(elapsed.attoseconds) / 1e15
+                    guard !media.isBusy, let document = media.document else { throw E2EError.pipeline(media.issue ?? "busy") }
+                    report["documentIssue"] = document.issue ?? media.issue ?? ""
+                    report["stage"] = document.stage.rawValue
+                    report["text"] = document.originalText
+                    report["speakerCount"] = Set(document.turns.compactMap(\.speaker)).count
+                    report["turns"] = document.turns.map { turn in
+                        ["speaker": turn.speaker ?? "", "start": turn.start, "end": turn.end, "text": turn.originalText] as [String: Any]
+                    }
+                    report["status"] = document.transcriptionComplete && !document.originalText.isEmpty &&
+                        (!configuration.identifySpeakers || document.diarizationComplete) ? "passed" : "failed"
                 case "automation":
                     guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
                     let script = directory.appendingPathComponent("receive.sh")
