@@ -4,8 +4,7 @@ import type { Messages } from "./types";
 // 音声入力 (dictation), 整形 (refinement), モード, 語彙, 履歴.
 export const ja: Messages = {
   gap: "",
-  english: "（英語）",
-  layout: { skip: "本文へ移動", rss: "Airdraft のリリース（英語）" },
+  layout: { skip: "本文へ移動", rss: "Airdraft のリリース" },
   header: {
     pricing: "価格",
     support: "サポート",
@@ -17,7 +16,6 @@ export const ja: Messages = {
     get: "Airdraft を入手",
     menu: "メニュー",
     language: "言語",
-    homeOnly: "ホームページ",
   },
   footer: {
     nav: "フッター",
@@ -25,12 +23,10 @@ export const ja: Messages = {
     pricing: "価格",
     guides: "ガイド",
     support: "サポート",
-    donate: "寄付",
     changelog: "更新履歴",
     rss: "RSS",
     privacy: "プライバシー",
     license: "ライセンス",
-    languages: "言語",
   },
   analytics: {
     title: "任意のウェブサイト分析",

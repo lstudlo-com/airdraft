@@ -1,43 +1,25 @@
 ---
 import Brand from "./ui/Brand.astro";
 import { license, siteLinks } from "../data/site";
-import {
-  href,
-  languageChoices,
-  languageTag,
-  localeOf,
-  localizedPath,
-} from "../i18n";
+import { href, localeOf, localizedPath } from "../i18n";
 import { messages } from "../i18n/messages";
 
+// The page's language comes from the header's language menu; the footer
+// links to the same pages in this language.
 const locale = localeOf(Astro.url.pathname);
 const label = messages[locale].footer;
 const home = messages[locale].header.home;
-// English-only pages linked from a translated one say so.
-const english = messages[locale].english;
-const languages = languageChoices(Astro.url.pathname);
 const links = [
   { href: siteLinks.source, label: "GitHub" },
   { href: siteLinks.build, label: label.build },
   { href: href("/pricing/", locale), label: label.pricing },
-  { href: "/guides/", label: label.guides },
-  { href: "/support/", label: label.support },
-  { href: "/support/#fund", label: label.donate },
-  { href: "/changelog/", label: label.changelog },
-  { href: "/changelog.xml", label: label.rss },
-  { href: "/privacy/", label: label.privacy },
+  { href: href("/guides/", locale), label: label.guides },
+  { href: href("/support/", locale), label: label.support },
+  { href: href("/changelog/", locale), label: label.changelog },
+  { href: `${localizedPath("/", locale)}changelog.xml`, label: label.rss },
+  { href: href("/privacy/", locale), label: label.privacy },
   ...(license ? [{ href: license.url, label: label.license }] : []),
-].map((link) => {
-  const englishOnly =
-    locale !== "en" &&
-    link.href.startsWith("/") &&
-    localeOf(link.href) === "en";
-  return {
-    ...link,
-    label: englishOnly ? `${link.label}${english}` : link.label,
-    hreflang: englishOnly ? "en" : undefined,
-  };
-});
+];
 ---
 
 <footer class="site-footer wrap">
@@ -46,24 +28,7 @@ const links = [
   </a>
   <nav class="footer-links" aria-label={label.nav}>
     {links.map((link) => (
-      <a href={link.href} hreflang={link.hreflang}>
-        {link.label}
-      </a>
-    ))}
-  </nav>
-  <!-- Every language, in its own name: this page's version, or that
-       language's homepage. Also the language menu's fallback without
-       popovers. -->
-  <nav class="footer-languages" aria-label={label.languages}>
-    {languages.map((language) => (
-      <a
-        href={language.path}
-        hreflang={languageTag[language.locale]}
-        lang={languageTag[language.locale]}
-        aria-current={language.current ? "true" : undefined}
-      >
-        {language.label}
-      </a>
+      <a href={link.href}>{link.label}</a>
     ))}
   </nav>
 </footer>

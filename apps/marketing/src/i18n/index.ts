@@ -7,8 +7,6 @@ import definitions from "./locales.json" with { type: "json" };
 
 export const locales = ["en", "zh-tw", "zh-cn", "es", "ja"] as const;
 export type Locale = (typeof locales)[number];
-/** The locales the guides are written in; the other languages link to English. */
-export type GuideLocale = Extract<Locale, "en" | "zh-tw">;
 
 interface Definition {
   code: string;
@@ -113,33 +111,40 @@ export function alternatesFor(
 }
 
 /**
- * The language menu: every language, leading to this page's version in it,
- * or to that language's homepage when this page is not translated.
+ * The language menu: every language, each leading to this page in it.
+ * Pages without translations (the noindex design reference, the 404 page)
+ * lead to that language's homepage.
  */
 export function languageChoices(pathname: string): {
   locale: Locale;
   path: string;
-  translated: boolean;
   current: boolean;
   label: string;
 }[] {
   const current = localeOf(pathname);
-  return locales.map((locale) => {
-    const translated = isTranslated(pathname, locale);
-    return {
+  return locales.map((locale) => ({
+    locale,
+    path: localizedPath(
+      isTranslated(pathname, locale) ? pathname : "/",
       locale,
-      path: localizedPath(translated ? pathname : "/", locale),
-      translated,
-      current: locale === current,
-      label: languageName[locale],
-    };
-  });
+    ),
+    current: locale === current,
+    label: languageName[locale],
+  }));
 }
 
-/** A route in the visitor's language when it exists, else the English one. */
+/**
+ * A route in `locale`. Every page is translated into every language, so a
+ * missing translation is a build error rather than a link to English.
+ */
 export function href(path: string, locale: Locale): string {
   const [route, fragment] = path.split("#");
   const english = englishPath(route);
+  if (!isTranslated(english, locale)) {
+    throw new Error(
+      `${english} has no ${locale} page (src/i18n/locales.json).`,
+    );
+  }
   const hash = fragment === undefined ? "" : `#${fragment}`;
-  return `${isTranslated(english, locale) ? localizedPath(english, locale) : english}${hash}`;
+  return `${localizedPath(english, locale)}${hash}`;
 }

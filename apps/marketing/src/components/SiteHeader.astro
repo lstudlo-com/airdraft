@@ -16,26 +16,11 @@ import { messages } from "../i18n/messages";
 const locale = localeOf(Astro.url.pathname);
 const path = Astro.url.pathname.replace(/\/$/, "");
 const copy = messages[locale].header;
-// An English page linked from a translated one says so ("（英文）",
-// " (inglés)"…).
-const english = messages[locale].english;
 const links = [
   { target: "/pricing/", label: copy.pricing },
   { target: "/support/", label: copy.support },
   { target: "/changelog/", label: copy.changelog },
-].map(({ target, label }) => {
-  const link = href(target, locale);
-  return {
-    href: link,
-    label,
-    hreflang: localeOf(link) === locale ? undefined : "en",
-    note: localeOf(link) === locale ? "" : english,
-  };
-});
-
-// Chinese and Japanese mark English pages in four characters; the other
-// languages' marks need the wider header layout (languages.css).
-const compactNotes = ["zh-tw", "zh-cn", "ja"].includes(locale);
+].map(({ target, label }) => ({ href: href(target, locale), label }));
 const languages = languageChoices(Astro.url.pathname);
 const currentLanguage = languages.find((entry) => entry.current)!;
 // The globe-and-letter mark on the language key and menu row.
@@ -52,13 +37,7 @@ const githubPath =
      backdrop blurs (1 to 32px), each masked to the band where the app's
      quadratic radius ramp (ProgressiveHeaderBlur.swift) reaches it. The
      labels and controls stay sharp above it. -->
-<header
-  class:list={[
-    "site-header",
-    links.some((link) => link.note) && "site-header-long",
-    links.some((link) => link.note) && !compactNotes && "site-header-longer",
-  ]}
->
+<header class="site-header">
   <div class="header-blur" aria-hidden="true">
     <i></i>
     <i></i>
@@ -88,18 +67,16 @@ const githubPath =
         <a
           class="nav-link"
           href={link.href}
-          hreflang={link.hreflang}
           aria-current={index === current ? "page" : undefined}
         >
           {link.label}
-          {link.note && <span class="nav-note">{link.note}</span>}
         </a>
       ))}
     </nav>
     <div class="header-actions">
       <!-- The language menu: a native popover listing every language in
            its own name (LanguageMenu.astro), so it works without
-           JavaScript; the footer lists the same links. -->
+           JavaScript. -->
       <Button
         iconOnly
         label={`${copy.language}: ${currentLanguage.label}`}
@@ -169,14 +146,10 @@ const githubPath =
       <a
         class="menu-link"
         href={link.href}
-        hreflang={link.hreflang}
         style={`--i: ${index}`}
         aria-current={index === current ? "page" : undefined}
       >
-        <span>
-          {link.label}
-          {link.note && <span class="nav-note">{link.note}</span>}
-        </span>
+        <span>{link.label}</span>
       </a>
     ))}
     <span class="menu-groove" style="--i: 3" aria-hidden="true"></span>
@@ -222,10 +195,5 @@ const githubPath =
       </span>
     </button>
   </nav>
-  <LanguageMenu
-    languages={languages}
-    label={copy.language}
-    homeOnly={copy.homeOnly}
-    pageLang={languageTag[locale]}
-  />
+  <LanguageMenu languages={languages} label={copy.language} />
 </header>

@@ -1,0 +1,334 @@
+---
+import GuideLayout from "../../../layouts/GuideLayout.astro";
+import GuideSection from "../../../components/GuideSection.astro";
+import Button from "../../../components/ui/Button.astro";
+import { guidesFor } from "../../../data/guides";
+import {
+  mixedAsrFollowup,
+  mixedAsrResults,
+  mixedAsrStudy,
+  type MixedAsrDelta,
+} from "../../../data/mixed-asr";
+import { href, type Locale } from "../../../i18n";
+
+/**
+ * Mixed Chinese–English dictation, in each language. The numbers come from
+ * src/data/mixed-asr.ts (eval/mixed-asr in the repository) and are presented
+ * as Airdraft's own measurement on one Mac, with its method and limits; the
+ * SenseVoice row is the 2026-10-24 follow-up of the original model, and the
+ * earlier row of the Cantonese fine-tune stays as dated history. App
+ * behavior follows SpeechLanguagePolicy, ChineseScriptConverter, PromptBuilder
+ * and the current onboarding recommendation (AD-083 for English, Japanese and
+ * Korean); 0.11.0's and 0.10.2's recommendations are named only where they
+ * differ. App labels in the zh-TW page are the app's
+ * zh-Hant catalog values, quoted with 「」.
+ */
+const locale: Locale = "es";
+const guide = guidesFor(locale).find(
+  (entry) => entry.slug === "mixed-chinese-english-dictation",
+)!;
+const zh = locale === "zh-tw";
+const study = mixedAsrStudy;
+const followup = mixedAsrFollowup;
+const percent = (value: number) => `${value.toFixed(1)}%`;
+const points = (value: number) => Math.abs(value).toFixed(1);
+const signed = (value: number) =>
+  `${value < 0 ? "−" : "+"}${Math.abs(value).toFixed(1)}`;
+const interval = (delta: MixedAsrDelta) =>
+  zh
+    ? `95% 區間 ${signed(delta.ci[0])} 到 ${signed(delta.ci[1])}`
+    : `95% interval ${signed(delta.ci[0])} to ${signed(delta.ci[1])}`;
+const qwenGap = followup.qwenVsSenseVoice;
+const tie = followup.originalVsCantonese;
+const [qwenRow, senseVoiceRow, cantoneseRow] = [
+  "Qwen3-ASR 1.7B",
+  "SenseVoice",
+  "SenseVoice Cantonese",
+].map((model) => mixedAsrResults.find((row) => row.model === model)!);
+// The follow-up's SenseVoice Cantonese rows equal AD-074's to three decimals,
+// so the dated history row also serves the paired comparison.
+// Sentences with several numbers are assembled here so the page's line
+// breaks never put spaces inside the parentheses.
+const qwenGapText = zh
+  ? `Qwen3-ASR 1.7B 的錯誤比 SenseVoice 少（${percent(qwenRow.mer)} 對 ${percent(senseVoiceRow.mer)}，差 ${signed(qwenGap.errors.points)} 個百分點，${interval(qwenGap.errors)}），英文詞保留率高 ${points(qwenGap.englishKept.points)} 個百分點。`
+  : `Qwen3-ASR 1.7B made fewer errors than SenseVoice (${percent(qwenRow.mer)} against ${percent(senseVoiceRow.mer)}, a difference of ${signed(qwenGap.errors.points)} points, ${interval(qwenGap.errors)}) and kept ${points(qwenGap.englishKept.points)} points more English words.`;
+const caseText = zh
+  ? `App 現在會把 SenseVoice 與 FireRedASR2 輸出的全大寫英文改回一般大小寫，因此 ${study.followup.date} 那一列的英文大小寫正確率較高；這是 App 的處理，不是模型差異：同一次測量中，粵語微調版為 ${followup.cantoneseCaseKeptWithGuards}%。FireRedASR2 那一列測於這項改動之前。`
+  : `The app now turns SenseVoice’s and FireRedASR2’s all-capitals English back into normal case, which is why the ${study.followup.date} row keeps more English in its original case; the change comes from the app, not the model: the fine-tune measured ${followup.cantoneseCaseKeptWithGuards}% in the same run. The FireRedASR2 row predates this change.`;
+const tieText = zh
+  ? `真實語音 ${percent(senseVoiceRow.mer)} 對 ${percent(cantoneseRow.mer)}（${signed(tie.realErrors.points)} 個百分點，${interval(tie.realErrors)}），台灣用語句子 ${percent(senseVoiceRow.ttsMer)} 對 ${percent(cantoneseRow.ttsMer)}（${signed(tie.ttsErrors.points)} 個百分點，${interval(tie.ttsErrors)}）。`
+  : `${percent(senseVoiceRow.mer)} against ${percent(cantoneseRow.mer)} on real speech (${signed(tie.realErrors.points)} points, ${interval(tie.realErrors)}) and ${percent(senseVoiceRow.ttsMer)} against ${percent(cantoneseRow.ttsMer)} on the Taiwan-style sentences (${signed(tie.ttsErrors.points)} points, ${interval(tie.ttsErrors)}).`;
+const columns = zh
+  ? [
+      "模型",
+      "錯誤率（真實語音）",
+      "英文詞保留率",
+      "錯誤率（台灣用語句）",
+      "英文大小寫正確率",
+      "轉錄時間中位數",
+      "下載大小",
+      "實測記憶體峰值",
+    ]
+  : [
+      "Model",
+      "Errors, real mixed speech",
+      "English words kept",
+      "Errors, Taiwan-style sentences",
+      "English case kept",
+      "Median time",
+      "Download",
+      "Measured peak memory",
+    ];
+const cells = (row: (typeof mixedAsrResults)[number]) => [
+  percent(row.mer),
+  `${row.englishKept}%`,
+  percent(row.ttsMer),
+  `${row.ttsCaseKept}%`,
+  `${row.medianMs} ms`,
+  row.download,
+  row.memory ?? (zh ? "無法比較" : "Not comparable"),
+];
+---
+
+<GuideLayout guide={guide}>
+  <GuideSection id="choose" title="Which model should I choose?">
+    <dl class="guide-decisions">
+      <div>
+        <dt>Qwen3-ASR 1.7B: most Macs with 16 GB or more</dt>
+        <dd>
+          It made the fewest errors in our measurement, kept more English terms
+          in their original case, and adds punctuation. It is a 2.44 GB
+          download, and its measured peak memory while transcribing was about
+          2.4 GB.
+        </dd>
+      </div>
+      <div>
+        <dt>
+          SenseVoice: Macs with 8 GB, or alongside a local refinement model
+        </dt>
+        <dd>
+          It is a 163 MB download, its measured peak memory was about 0.9 GB,
+          and it was the fastest. It is weaker with English terms: on real mixed
+          speech it kept {senseVoiceRow.englishKept}% of them, against{" "}
+          {qwenRow.englishKept}% for Qwen3-ASR 1.7B.
+        </dd>
+      </div>
+      <div>
+        <dt>Not recommended for mixed speech</dt>
+        <dd>
+          With Language set to Detect Automatically, Whisper Large v3 Turbo
+          translated 5 of 100 real mixed sentences into English, and across all
+          runs it returned no text on 6 of 360 first attempts. Qwen3-ASR 0.6B
+          repeated a phrase on one degraded clip until its limit, peaking at
+          about 18.5 GB of memory. FireRedASR2 is close to Qwen3-ASR 1.7B on
+          Chinese but is among the slowest and used the most memory. Parakeet
+          does not support Chinese.
+        </dd>
+      </div>
+    </dl>
+  </GuideSection>
+
+  <GuideSection id="app-recommendation" title="What does the app recommend?">
+    <p>
+      First-run setup recommends Qwen3-ASR 1.7B on a Mac set to Chinese. On a
+      Mac with 8 GB of memory or less it recommends SenseVoice and still offers
+      Qwen3-ASR 1.7B. English gets Parakeet TDT v2, with Qwen3-ASR 1.7B as the
+      multilingual alternative. Japanese and Korean get Qwen3-ASR 1.7B, with
+      Whisper Large v3 Turbo as the lower-memory alternative, which comes first
+      on a Mac with 8 GB or less. Other languages get Whisper Large v3 Turbo.
+      The Models page labels Qwen3-ASR 1.7B “Best for mixed Chinese and English”
+      and describes SenseVoice as “Small and fast. Weaker with English terms in
+      Chinese speech.” Nothing downloads until you click Download.
+    </p>
+    <p>
+      0.11.0 and earlier recommended SenseVoice for English, Japanese and
+      Korean, and 0.10.2 also suggested it on a Mac set to Chinese. Those
+      versions installed a Cantonese fine-tune as SenseVoice. If you have it, it
+      keeps working and Models lists it as SenseVoice Cantonese; a new
+      SenseVoice download is the original multilingual model. Airdraft’s{" "}
+      <a href="/guides/offline-dictation-on-mac/#measured">
+        English, Japanese and Korean measurement
+      </a>{" "}
+      is in the offline setup guide.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="results" title="Measured results">
+    <div
+      class="guide-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Local model results on mixed Chinese and English"
+    >
+      <table class="guide-table guide-table-wide" role="table">
+        <caption>
+          Airdraft’s own measurement on an Apple M4 Pro,{study.date}, and{" "}
+          {study.followup.date}for SenseVoice. Language set to Detect
+          Automatically, Traditional script, refinement off. Lower errors are
+          better.
+        </caption>
+        <thead role="rowgroup">
+          <tr role="row">
+            {columns.map((column) => (
+              <th scope="col" role="columnheader">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody role="rowgroup">
+          {mixedAsrResults.map((row) => (
+            <tr role="row">
+              <th scope="row" role="rowheader">
+                {row.model}
+                {row.note && <span class="row-note">{row.note[locale]}</span>}
+              </th>
+              {cells(row).map((cell, index) => (
+                <td role="cell">
+                  <span class="cell-label" aria-hidden="true">
+                    {columns[index + 1]}
+                  </span>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The error rate counts each Chinese character and English word in the
+      reference as one unit and measures the share that needed an edit. On real
+      mixed speech, {qwenGapText} The Taiwan-style sentences point the same way.
+      For Qwen3-ASR 1.7B, Language set to Detect Automatically or Mandarin
+      Chinese made no measurable difference on real speech.
+    </p>
+    <p>
+      0.11.0 and earlier installed a Cantonese fine-tune of SenseVoice under
+      that name, and this guide’s {study.date} SenseVoice figures came from it:
+      the SenseVoice Cantonese row. Measured again on {study.followup.date}, the
+      original model and the fine-tune were statistically tied on mixed speech:{" "}
+      {tieText} {caseText}
+    </p>
+    <p>
+      Median time is transcription after loading for clips of 2.5 to 15 seconds,
+      measured while the Mac was also running builds, so compare the models with
+      each other only. Whisper runs on the Neural Engine and keeps part of its
+      memory outside the app’s process, so its memory is not comparable.
+    </p>
+    <p>
+      Download sizes are the totals the Models page lists for each model’s
+      pinned files, in decimal units, not measured transfers. Memory is the
+      measured median peak of the app’s process while transcribing; SenseVoice’s
+      comes from the same day’s read-speech runs.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="method" title="How we measured">
+    <ul>
+      <li>
+        Each clip went through the app’s own transcription pipeline (a Debug
+        build with isolated data), with refinement and app context off, an empty
+        vocabulary and the default Traditional script.
+      </li>
+      <li>
+        Real speech: {study.realUtterances} conversational mixed sentences from
+        the ASCEND dataset (CAiRE, CC BY-SA 4.0), from five speakers in Hong
+        Kong and Mainland China.
+      </li>
+      <li>
+        Taiwan-style: {study.ttsSentences} workplace and developer sentences,
+        such as “我等一下把 PR merge 到 main branch”, spoken by the macOS zh_TW
+        Meijia voice.
+      </li>
+      <li>
+        Script, case and punctuation were normalized before comparison; the
+        share of English words with their original case is counted separately.
+      </li>
+      <li>
+        On {study.followup.date}, SenseVoice and SenseVoice Cantonese were
+        measured again through the same pipeline. The original model was
+        installed through the app’s own download, which checks its size and
+        SHA-256.
+      </li>
+    </ul>
+    <p>
+      The full method, per-sentence results and steps to reproduce them are in{" "}
+      <a href={study.methodURL}>eval/mixed-asr in the source repository</a>,
+      measured at source commit {study.sourceCommit}; the SenseVoice follow-up
+      used a build based on {study.followup.sourceCommit}.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="limits" title="Limits of this measurement">
+    <ul>
+      <li>
+        Real speech comes from five speakers with Hong Kong and Mainland accents
+        in conversation. Taiwanese accents are covered only by a synthetic
+        voice, with clean audio, no hesitations and textbook English
+        pronunciation.
+      </li>
+      <li>
+        It ran on one M4 Pro with 48 GB. Lower-end Macs were not measured, and
+        Qwen3-ASR will be noticeably slower on Macs with smaller GPUs.
+      </li>
+      <li>
+        Airdraft downloads Qwen3-ASR and Whisper from fixed Hugging Face
+        revisions and checks every file’s size and SHA-256 before installing it.
+        The measured model files have the same SHA-256 digests, so the results
+        apply to the files the app installs. 0.10.2 and earlier downloaded
+        whatever the repositories held at the time.
+      </li>
+      <li>
+        The results are speech output without refinement. Cohere Transcribe was
+        not tested.
+      </li>
+      <li>
+        It compares Airdraft’s models with each other, not Airdraft with other
+        dictation apps.
+      </li>
+    </ul>
+  </GuideSection>
+
+  <GuideSection id="setup" title="Set it up">
+    <ol class="guide-steps">
+      <li>
+        <h3>Download a model</h3>
+        <p>
+          In Models → Speech on this Mac, download and select Qwen3-ASR 1.7B or
+          SenseVoice. Models download only when you ask, then run on your Mac.
+        </p>
+      </li>
+      <li>
+        <h3>Choose the language and script</h3>
+        <p>
+          In Speech options, set Language to Detect Automatically or Mandarin
+          Chinese. Chinese script defaults to 繁體中文 (Traditional) and can be
+          简体中文 (Simplified) or Auto; it converts characters only, so it does
+          not change word choices such as 软件 to 軟體.
+        </p>
+      </li>
+      <li>
+        <h3>Turn on refinement if you want it</h3>
+        <p>
+          Refinement keeps mixed Chinese and English mixed and never translates;
+          with Traditional script it also uses Taiwan vocabulary. If it fails or
+          times out, the raw transcript is inserted. Add names and terms you use
+          often to Vocabulary.
+        </p>
+      </li>
+    </ol>
+    <div class="guide-actions">
+      <Button href={href("/pricing/", locale)} icon="right">
+        See Pricing
+      </Button>
+      <Button
+        href={href("/guides/dictate-to-claude-code-and-terminals/", locale)}
+        variant="quiet"
+        icon="right"
+      >
+        Dictate Into Claude Code and Terminals
+      </Button>
+    </div>
+  </GuideSection>
+</GuideLayout>

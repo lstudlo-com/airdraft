@@ -1,0 +1,150 @@
+---
+import GuideSection from "../../components/GuideSection.astro";
+import Button from "../../components/ui/Button.astro";
+---
+
+<GuideSection id="dictation" title="Dictation on your Mac">
+  <p>
+    Local speech and refinement models process dictation on your Mac. Cloud
+    speech providers receive your audio. Cloud refinement providers receive your
+    transcript and any context you enable. Your provider keys are stored in the
+    macOS Keychain.
+  </p>
+  <p>
+    Website analytics below cover this website only; they never collect data
+    from the Airdraft Mac app. The app's own optional usage data is described in
+    the next section. The website's interactive samples use authored text and
+    never record your microphone.
+  </p>
+</GuideSection>
+
+<GuideSection id="app-telemetry" title="Optional usage data in the Mac app">
+  <p>
+    Official Airdraft downloads can send anonymous usage counts and crash
+    reports, but only after you choose Share Anonymous Usage Data. The app asks
+    once, on its Ready setup step or on Home, and sends nothing before you
+    answer. Builds you compile from source never send usage data or crash
+    reports.
+  </p>
+  <p>With your consent, the app sends only these events:</p>
+  <ul>
+    <li>
+      <strong>App launched</strong>: app version and build, macOS major version,
+      processor type, interface language and license state (trial, licensed,
+      expired or none).
+    </li>
+    <li>
+      <strong>Setup finished</strong>: completed or skipped.
+    </li>
+    <li>
+      <strong>Dictation completed</strong>: speech engine family and whether it
+      runs on your Mac or online, refinement provider type, built-in profile or
+      "custom", recording length and stop-to-delivery time in ranges, delivery
+      status and whether refinement was applied or fell back to your transcript.
+    </li>
+    <li>
+      <strong>Dictation failed</strong>: a category such as permission, missing
+      model, missing key, speech error or delivery failure. Cancelled dictations
+      are not reported.
+    </li>
+    <li>
+      <strong>Model download finished</strong>: the model's identifier from
+      Airdraft's built-in catalogue and whether the download succeeded, failed
+      or was cancelled.
+    </li>
+    <li>
+      <strong>Meeting transcribed</strong>: length in ranges and speech engine
+      family.
+    </li>
+    <li>
+      <strong>License event</strong>: trial started or license activated.
+    </li>
+    <li>
+      <strong>Usage data choice</strong>: sent when you turn sharing on, and
+      once when you turn it off.
+    </li>
+    <li>
+      <strong>Crash reports</strong>: the error type, stack frames and the
+      loaded system and app libraries needed to locate the fault, with user
+      names removed from file paths.
+    </li>
+  </ul>
+  <p>
+    Every event also carries the app's tag, macOS and app versions, the PostHog
+    library version and a random identifier that is not linked to you. The app
+    never sends your words, transcripts, audio, vocabulary, prompts, clipboard,
+    the apps you dictate into, window titles, web addresses, file names or
+    paths, provider endpoints, API keys, license keys, custom model names, your
+    Mac's name or your email address. The app accepts only these fixed events
+    and values and discards anything else before sending.
+  </p>
+  <p>
+    Turn sharing off at any time in Settings &gt; Behavior &gt; Share anonymous
+    usage data and crash reports. Turning it off stops collection and crash
+    capture; unsent events and pending crash reports are removed from your Mac
+    the next time Airdraft opens. It does not delete events already received.
+  </p>
+  <p>
+    PostHog processes this data for us in the United States, in the same project
+    as the website analytics. The app asks PostHog not to infer your location
+    from your IP address, and we configure the project to discard IP addresses;
+    the service still receives the network connection. No person profiles are
+    created.
+  </p>
+</GuideSection>
+
+<GuideSection id="website-analytics" title="Optional website analytics">
+  <p>
+    When website analytics are enabled, we ask before loading PostHog. If you
+    allow it, PostHog receives page visits, selected button actions, browser and
+    device type, performance measurements, referral domains and campaign labels.
+    A random browser identifier connects those events across visits.
+  </p>
+  <p>
+    We do not enable session recordings, capture typed text or create identified
+    person profiles. We remove URL queries and fragments, referral paths,
+    advertising click identifiers and unrecognized event properties before
+    sending events. Campaign labels must not contain personal information. We
+    configure PostHog to discard IP addresses and disable location enrichment;
+    the service still receives the network connection.
+  </p>
+  <p>
+    PostHog uses browser storage after you allow analytics. We also store your
+    allow or decline choice on this browser for 180 days. Declining sends no
+    website analytics to PostHog. Turning analytics off stops future collection
+    and clears the SDK's stored analytics state; it does not delete events
+    already received.
+  </p>
+  <p>
+    We honor Global Privacy Control and Do Not Track signals by keeping
+    analytics off. Analytics choices apply to this website and browser only.
+    JavaScript must be enabled to change the choice or collect analytics.
+  </p>
+  <p>
+    Cloudflare hosts the website and handles network requests and access
+    controls separately. Following GitHub or payment links takes you to those
+    services, under their own privacy practices.
+  </p>
+  <p>
+    Read <a href="https://posthog.com/privacy">PostHog's privacy notice</a> for
+    its service practices.
+  </p>
+</GuideSection>
+
+<GuideSection id="analytics" title="Your analytics choice">
+  <p
+    class="analytics-status"
+    data-analytics-status
+    data-disabled="Website analytics are not enabled on this site."
+    data-blocked="Analytics are off because your browser requests no tracking."
+    data-allowed="Website analytics are allowed. You can turn them off below."
+    data-off="Website analytics are off."
+    aria-live="polite"
+  >
+    Website analytics are off unless you allow them with JavaScript enabled.
+  </p>
+  <div class="analytics-actions analytics-settings">
+    <Button data-analytics-choice="denied">Turn Analytics Off</Button>
+    <Button data-analytics-choice="granted">Allow Analytics</Button>
+  </div>
+</GuideSection>

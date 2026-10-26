@@ -167,7 +167,8 @@ def check(base_url=None):
         robots = page.meta.get("robots", "")
         require("max-image-preview:large" in robots, f"{route}: large preview permission missing.")
         require(not re.search(r"nosnippet|noai|max-snippet:0", robots), f"{route}: unexpected snippet restriction.")
-        require(any(link.get("type") == "application/rss+xml" and urljoin(origin, link.get("href", "")) == origin + "/changelog.xml" for link in page.links), f"{route}: RSS discovery missing.")
+        feed_path = ("/" if locale_of(route)["code"] == "en" else f"/{locale_of(route)['code']}/") + "changelog.xml"
+        require(any(link.get("type") == "application/rss+xml" and urljoin(origin, link.get("href", "")) == origin + feed_path for link in page.links), f"{route}: RSS discovery missing.")
         nodes = [node for schema in page.schemas for node in graph_nodes(schema)]
         require(any(node.get("@type") == "WebPage" and node.get("url") == origin + route and node.get("inLanguage") == language_of(route) for node in nodes), f"{route}: WebPage structured data missing or in the wrong language.")
         require(not any("aggregateRating" in node or "review" in node or "offers" in node for node in nodes), f"{route}: unsupported review or offer claim.")
@@ -248,17 +249,21 @@ def check(base_url=None):
     for bot in ["Googlebot", "Bingbot", "OAI-SearchBot", "Claude-SearchBot", "PerplexityBot", "ChatGPT-User", "Claude-User", "Perplexity-User", "GPTBot", "ClaudeBot", "ExampleBot"]:
         for url in sitemap_urls:
             require(robots_parser.can_fetch(bot, url), f"{bot} blocked from {url}.")
-    feed = ET.parse(DIST / "changelog.xml")
-    items = feed.findall("channel/item")
-    require(bool(items), "RSS has no entries.")
-    guids = []
-    for item in items:
-        link = item.findtext("link", "")
-        target = urlsplit(link)
-        require(target.netloc == urlsplit(origin).netloc and target.path == "/changelog/" and target.fragment in pages["/changelog/"].ids, f"RSS entry target missing: {link}.")
-        require(item.findtext("pubDate") and item.findtext("description"), f"RSS entry incomplete: {link}.")
-        guids.append(item.findtext("guid"))
-    require(len(guids) == len(set(guids)), "RSS GUIDs must be unique.")
+    # One feed per language, each linking to that language's changelog.
+    for language in LANGUAGES:
+        prefix = "/" if language["code"] == "en" else f"/{language['code']}/"
+        feed = ET.parse(DIST / prefix.lstrip("/") / "changelog.xml")
+        require(feed.findtext("channel/language") == language["tag"], f"{prefix}changelog.xml: wrong language.")
+        items = feed.findall("channel/item")
+        require(bool(items), f"{prefix}changelog.xml has no entries.")
+        guids = []
+        for item in items:
+            link = item.findtext("link", "")
+            target = urlsplit(link)
+            require(target.netloc == urlsplit(origin).netloc and target.path == prefix + "changelog/" and target.fragment in pages[prefix + "changelog/"].ids, f"RSS entry target missing: {link}.")
+            require(item.findtext("pubDate") and item.findtext("description"), f"RSS entry incomplete: {link}.")
+            guids.append(item.findtext("guid"))
+        require(len(guids) == len(set(guids)), f"{prefix}changelog.xml GUIDs must be unique.")
     directory = (DIST / "llms.txt").read_text()
     for link in re.findall(r"\]\((https://[^)]+)\)", directory):
         target = urlsplit(link)

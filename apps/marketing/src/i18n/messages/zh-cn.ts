@@ -4,8 +4,7 @@ import type { Messages } from "./types";
 // App labels follow the app's zh-Hans catalog (src/data/app.ts).
 export const zhCn: Messages = {
   gap: "",
-  english: "（英文）",
-  layout: { skip: "跳到主要内容", rss: "Airdraft 版本更新（英文）" },
+  layout: { skip: "跳到主要内容", rss: "Airdraft 版本更新" },
   header: {
     pricing: "价格",
     support: "支持",
@@ -17,7 +16,6 @@ export const zhCn: Messages = {
     get: "获取 Airdraft",
     menu: "菜单",
     language: "语言",
-    homeOnly: "首页",
   },
   footer: {
     nav: "页脚",
@@ -25,12 +23,10 @@ export const zhCn: Messages = {
     pricing: "价格",
     guides: "指南",
     support: "支持",
-    donate: "赞助",
     changelog: "更新日志",
     rss: "RSS",
     privacy: "隐私",
     license: "许可协议",
-    languages: "语言",
   },
   analytics: {
     title: "可选的网站分析",

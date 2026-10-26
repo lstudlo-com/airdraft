@@ -1,0 +1,21 @@
+---
+/**
+ * One section of a guide or a text page: its heading on the island, at the
+ * top left of the section, and the content below it in a recessed well
+ * carved into the island. The heading is never inside the well, and the well
+ * is never raised: one heading and one well make a section.
+ */
+interface Props {
+  id: string;
+  title: string;
+  class?: string;
+}
+const { id, title, class: className } = Astro.props;
+---
+
+<section class:list={["guide-section", className]} aria-labelledby={id}>
+  <h2 id={id}>{title}</h2>
+  <div class="guide-well well">
+    <slot />
+  </div>
+</section>

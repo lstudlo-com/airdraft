@@ -3,7 +3,6 @@ import type { Messages } from "./types";
 
 export const en: Messages = {
   gap: " ",
-  english: "",
   layout: { skip: "Skip to content", rss: "Airdraft releases" },
   header: {
     pricing: "Pricing",
@@ -16,7 +15,6 @@ export const en: Messages = {
     get: "Get Airdraft",
     menu: "Menu",
     language: "Language",
-    homeOnly: "home page",
   },
   footer: {
     nav: "Footer",
@@ -24,12 +22,10 @@ export const en: Messages = {
     pricing: "Pricing",
     guides: "Guides",
     support: "Support",
-    donate: "Donate",
     changelog: "Changelog",
     rss: "RSS",
     privacy: "Privacy",
     license: "License",
-    languages: "Languages",
   },
   analytics: {
     title: "Optional website analytics",

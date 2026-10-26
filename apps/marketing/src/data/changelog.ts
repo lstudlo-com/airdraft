@@ -977,3 +977,12 @@ export const changelog: ChangelogEntry[] = [
     },
   },
 ];
+
+/**
+ * A language's release notes, by entry id: the same titles and changes, in
+ * the same order, as the English entries above (src/locales/<code>/changelog.ts).
+ */
+export type ChangelogText = Record<
+  string,
+  { title: string; changes: { title: string; description: string }[] }
+>;

@@ -7,7 +7,7 @@
 
 import type { GuideSlug } from "../../data/guides";
 
-/** Pages a sentence can link to; English-only targets get the "(English)" mark. */
+/** Pages a sentence can link to, in the sentence's language. */
 export type LinkTarget =
   | "pricing"
   | "guides"
@@ -17,13 +17,8 @@ export type LinkTarget =
   | "offlineGuide"
   | "comparison";
 
-/**
- * A sentence with optional links, rendered by components/Rich.astro. A link
- * whose text already says the page is English sets `plain`.
- */
-export type Rich = (
-  string | { link: LinkTarget; text: string; plain?: boolean }
-)[];
+/** A sentence with optional links, rendered by components/Rich.astro. */
+export type Rich = (string | { link: LinkTarget; text: string })[];
 
 /** Spoken sample text; fillers are struck through. */
 export type Spoken = (string | { filler: string })[];
@@ -31,8 +26,6 @@ export type Spoken = (string | { filler: string })[];
 export interface Messages {
   /** The space between two sentences: "" in Chinese and Japanese. */
   gap: string;
-  /** Marks a link to an English-only page, with its leading space if any. */
-  english: string;
   layout: { skip: string; rss: string };
   header: {
     pricing: string;
@@ -46,8 +39,6 @@ export interface Messages {
     menu: string;
     /** The language menu's name, in this language. */
     language: string;
-    /** Beside a language whose version of this page does not exist. */
-    homeOnly: string;
   };
   footer: {
     nav: string;
@@ -55,12 +46,10 @@ export interface Messages {
     pricing: string;
     guides: string;
     support: string;
-    donate: string;
     changelog: string;
     rss: string;
     privacy: string;
     license: string;
-    languages: string;
   };
   analytics: {
     title: string;
@@ -80,8 +69,6 @@ export interface Messages {
     sample: string;
     facts: string[];
     guidesTitle: string;
-    /** After the guide picker, where it lists only some guides. */
-    guidesNote?: Rich;
     featuresTitle: string;
     spoken: string;
     outputs: string[];

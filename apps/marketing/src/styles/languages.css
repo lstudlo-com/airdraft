@@ -1,5 +1,5 @@
-/* Languages: the header's language menu, the footer's language list and the
-   right-to-left adjustments for Arabic. Kept apart from global.css so the
+/* Languages: the header's language menu and the right-to-left
+   adjustments. Kept apart from global.css so the
    shared header and page styles stay as they are; these rules join the same
    cascade layers (declared in global.css) after it. */
 
@@ -20,7 +20,10 @@
     inset: auto;
     inset-block-start: calc(var(--header) - 6px);
     inset-inline-end: max(var(--gutter), calc((100vw - 1120px) / 2));
-    width: min(280px, calc(100vw - 2 * var(--gutter)));
+    /* As wide as the longest language name plus the row insets. */
+    width: max-content;
+    min-width: 132px;
+    max-width: calc(100vw - 2 * var(--gutter));
     max-height: calc(100dvh - var(--header) - 16px);
     margin: 0;
     padding: 6px;
@@ -46,10 +49,8 @@
   .language-option {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
     min-height: 40px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border-radius: var(--radius-well);
     font-size: var(--step-0);
     font-weight: 500;
@@ -62,12 +63,6 @@
   .language-option[aria-current] {
     background: var(--well-soft);
     box-shadow: var(--sink-chip);
-  }
-  /* "home page" beside a language without this page. */
-  .language-home {
-    font-size: var(--step--1);
-    font-weight: 400;
-    color: var(--muted);
   }
   .language-menu:not(:popover-open) {
     display: none;
@@ -86,33 +81,6 @@
   }
   .menu-language .nav-note {
     color: var(--muted);
-  }
-
-  /* The footer's language list sits under its links, at the same end. */
-  .site-footer {
-    flex-wrap: wrap;
-  }
-  .footer-languages {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 4px 18px;
-    flex-basis: 100%;
-  }
-  .footer-languages a {
-    display: flex;
-    align-items: center;
-    min-height: 32px;
-    font-size: var(--step--1);
-    color: var(--muted);
-  }
-  .footer-languages a:hover {
-    color: var(--ink);
-    text-decoration: underline;
-  }
-  .footer-languages a[aria-current] {
-    color: var(--ink);
-    font-weight: 600;
   }
 
   /* Right to left. Logical properties put the flow-relative spacing on the
@@ -177,39 +145,6 @@
 }
 
 @layer responsive {
-  /* Spaced languages mark English-only links with a word ("(inglés)"), so
-     their header links need more room: below 1180px the links centre
-     between the mark and the keys instead of on the window, and up to 900px
-     they fold into the menu, as translated headers do up to 700px. */
-  @media (min-width: 561px) and (max-width: 1180px) {
-    .site-header-longer .site-header-inner {
-      grid-template-columns: auto 1fr auto;
-    }
-    .site-header-longer .header-links {
-      justify-self: center;
-    }
-  }
-  @media (min-width: 561px) and (max-width: 900px) {
-    .site-header-longer .site-header-inner {
-      grid-template-columns: 1fr auto;
-    }
-    .site-header-longer .header-links {
-      display: none;
-    }
-  }
-  @supports selector(:popover-open) {
-    @media (min-width: 561px) and (max-width: 900px) {
-      .site-header-longer .header-source {
-        display: none;
-      }
-      .site-header-longer .menu-key {
-        display: inline-flex;
-      }
-      .site-header-longer .site-menu:popover-open {
-        display: grid;
-      }
-    }
-  }
   /* The globe key is compact, so it stays in the header down to the
      phone layout (global.css hid the old text link below 760px). */
   @media (max-width: 760px) {
@@ -224,11 +159,6 @@
       }
     }
   }
-  @media (max-width: 700px) {
-    .footer-languages {
-      justify-content: flex-start;
-    }
-  }
   /* Phones open it from the menu's Language row, under the header, across
      the width. */
   @media (max-width: 560px) {
@@ -236,6 +166,7 @@
       position-area: none;
       inset: var(--header) var(--gutter) auto;
       width: auto;
+      max-width: none;
       margin: 0;
     }
   }

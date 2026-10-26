@@ -1,0 +1,213 @@
+---
+import GuideLayout from "../../../layouts/GuideLayout.astro";
+import GuideSection from "../../../components/GuideSection.astro";
+import Button from "../../../components/ui/Button.astro";
+import { guidesFor } from "../../../data/guides";
+import { ejaAsrResults } from "../../../data/eja-asr";
+import { href, type Locale } from "../../../i18n";
+
+/**
+ * Dictating prompts into Claude Code, Codex and terminals, in each language.
+ * Delivery follows TextInserter (selfDrawingEditorBundlePrefixes, read-back
+ * confirmation, explicit-retry copy), destination rules follow AppFamily and
+ * the app-context setting, and CLI refinement follows CLIRefiner and the root
+ * README. Behavior described is 0.11.0's, plus the AD-083 speech
+ * recommendation; 0.11.0, 0.10.2 and earlier are named only where they differ.
+ * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-TW page are the app's
+ * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
+ * (Verbatim, Claude Code, Codex) stay as the app shows them.
+ */
+const locale: Locale = "en";
+const guide = guidesFor(locale).find(
+  (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
+)!;
+const zh = locale === "zh-tw";
+const english = ejaAsrResults.en;
+const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
+const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
+const percent = (value: number) => `${value.toFixed(1)}%`;
+const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
+---
+
+<GuideLayout guide={guide}>
+  <GuideSection id="delivery" title="How does text reach a terminal?">
+    <ul>
+      <li>
+        Airdraft returns to the window you dictated into, pastes the text once
+        and does not press Return.
+      </li>
+      <li>
+        Terminal and iTerm2 expose their cursor and text, so Airdraft reads the
+        paste back to confirm it, as in other editors.
+      </li>
+      <li>
+        Warp, Ghostty, kitty, Alacritty, WezTerm and the Zed editor draw their
+        own text and expose none to read back. Airdraft checks that the same app
+        and window are still in front, pastes once and never repeats it.
+      </li>
+      <li>
+        From 0.11.0, History marks these dictations “Pasted, unconfirmed”
+        without an error, and your clipboard is restored a little later than
+        usual. In 0.10.2, Airdraft says “Paste couldn’t be confirmed” and keeps
+        the text on the clipboard even when it arrived.
+      </li>
+      <li>
+        If the window or field changed after recording, Airdraft copies the text
+        instead of pasting it somewhere else. An explicit retry of a kept
+        recording also copies instead of pasting into these apps, because
+        nothing could confirm where the text would land.
+      </li>
+    </ul>
+  </GuideSection>
+
+  <GuideSection
+    id="cli-refinement"
+    title="Refine on the plan you already pay for"
+  >
+    <ol class="guide-steps">
+      <li>
+        <h3>Install and sign in to the CLI</h3>
+        <p>
+          Airdraft looks for the claude or codex command in ~/.local/bin,
+          /opt/homebrew/bin, /usr/local/bin, ~/.bun/bin or ~/.npm-global/bin and
+          uses the account you are signed in with. No API key is needed.
+        </p>
+      </li>
+      <li>
+        <h3>Choose it in Models</h3>
+        <p>
+          In Models → Refinement, choose Claude Code or Codex. The model list
+          comes from your installed CLI, with Thinking effort beside it; lower
+          is faster and uses less of your plan.
+        </p>
+      </li>
+      <li>
+        <h3>Speak and release</h3>
+        <p>
+          Claude Code starts while you are still speaking, which hides its
+          startup time. Codex starts after you finish, so it takes longer. If
+          refinement fails or times out, the raw transcript is inserted.
+        </p>
+      </li>
+    </ol>
+    <p>
+      Airdraft runs the CLI non-interactively in a temporary folder, without
+      tools, MCP servers, slash commands or a saved session, so it can only
+      return text. It does not change your CLI login or settings. Usage counts
+      toward your plan’s limits.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="prompt-style" title="Keep prompts as prompts">
+    <p>
+      With Read app context on in Settings → Behavior, Airdraft treats Terminal,
+      iTerm2, Warp, Ghostty and kitty as terminals: your speech stays prose
+      without Markdown, and flags and paths are kept exactly only when you
+      dictate a command. In code editors such as VS Code, Cursor, Xcode,
+      JetBrains IDEs and Zed, it restores technical-name spelling and keeps
+      identifiers and paths.
+    </p>
+    <p>
+      Read app context is off by default; then Airdraft does not know the
+      destination and uses general rules. For exact wording, use the Verbatim
+      profile, which skips refinement. Add project names and terms to
+      Vocabulary.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="privacy" title="What leaves your Mac?">
+    <div
+      class="guide-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Where prompt dictation data goes"
+    >
+      <table class="guide-table">
+        <caption>What each step sends</caption>
+        <thead>
+          <tr>
+            <th scope="col">Step</th>
+            <th scope="col">What is sent</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Local speech model</th>
+            <td>Nothing. The recording stays on this Mac.</td>
+          </tr>
+          <tr>
+            <th scope="row">Cloud speech</th>
+            <td>Audio goes to the provider you chose.</td>
+          </tr>
+          <tr>
+            <th scope="row">Claude Code or Codex refinement</th>
+            <td>
+              The transcript, profile instructions and vocabulary go to
+              Anthropic or OpenAI through your CLI account. With Read app
+              context on, so do the app name, window title, selected text, text
+              near the cursor and terms from recent dictations in the same app.
+              The CLI runs on your Mac; its model does not.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Local refinement</th>
+            <td>
+              Apple Intelligence, or LM Studio or Ollama running on this Mac:
+              nothing.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Pressing Return at the prompt</th>
+            <td>
+              As with typing, Claude Code or Codex sends your prompt to its
+              provider. Airdraft is not involved.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Some Codex versions still add your global AGENTS.md to the refinement
+      request. If that matters, use Claude Code or local refinement, or turn off
+      Refine transcript for that profile.
+    </p>
+  </GuideSection>
+
+  <GuideSection id="speech" title="Which speech model?">
+    <p>
+      For English-only prompts, choose Parakeet TDT v2: first-run setup
+      recommends it on a Mac set to English. It recognizes English only. In
+      Airdraft’s own measurement on read English it made{" "}
+      {percent(parakeet.auto.value)} word errors at about{" "}
+      {about(parakeet.medianMs)} per clip, within the margin of Qwen3-ASR 1.7B’s{" "}
+      {percent(qwen.auto.value)}; Qwen3-ASR 1.7B also recognizes other languages
+      and uses about 3 GB of memory. The clips were read Wikipedia sentences,
+      not prompts; see the{" "}
+      <a href="/guides/offline-dictation-on-mac/#measured">
+        offline setup guide
+      </a>{" "}
+      for the method and limits. 0.11.0 and earlier recommended the SenseVoice
+      they installed, a Cantonese fine-tune now shown as SenseVoice Cantonese.
+    </p>
+    <p>
+      Parakeet TDT v3 supports English and 24 other European languages, but not
+      Chinese. If your prompts mix Chinese and English, see the{" "}
+      <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+        mixed-language model measurements
+      </a>
+      .
+    </p>
+    <div class="guide-actions">
+      <Button href={href("/pricing/", locale)} icon="right">
+        See Pricing
+      </Button>
+      <Button
+        href="/guides/local-vs-cloud-dictation/"
+        variant="quiet"
+        icon="right"
+      >
+        Compare Local and Cloud
+      </Button>
+    </div>
+  </GuideSection>
+</GuideLayout>

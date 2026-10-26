@@ -1,4 +1,4 @@
-import type { GuideLocale } from "../i18n";
+import type { Locale } from "../i18n";
 import { siteLinks } from "./site";
 
 /**
@@ -36,7 +36,7 @@ export interface MixedAsrResult {
   /** The model's name in the app's Models page. */
   model: string;
   /** A short line under the model's name, for rows that need their date or version. */
-  note?: Record<GuideLocale, string>;
+  note?: Record<Locale, string>;
   /**
    * The download size the Models page shows, character for character:
    * ByteCountFormatter's decimal total of the pinned files
@@ -101,7 +101,13 @@ export const mixedAsrResults: MixedAsrResult[] = [
     // 0.9 GB" (peak_mb_median 882–918 MB on FLEURS read speech), because the
     // mixed follow-up recorded only maximum peaks.
     model: "SenseVoice",
-    note: { en: "Measured 2026-10-24", "zh-tw": "2026-10-24 測量" },
+    note: {
+      en: "Measured 2026-10-24",
+      "zh-tw": "2026-10-24 測量",
+      "zh-cn": "2026-10-24 测量",
+      es: "Medido el 2026-10-24",
+      ja: "2026-10-24 測定",
+    },
     download: "163 MB",
     mer: 12.6,
     englishKept: 59,
@@ -125,7 +131,13 @@ export const mixedAsrResults: MixedAsrResult[] = [
     // earlier installed as "SenseVoice": the AD-074 row, before AD-082's
     // output guards restored English case.
     model: "SenseVoice Cantonese",
-    note: { en: "0.11.0 and earlier", "zh-tw": "0.11.0 及更早版本" },
+    note: {
+      en: "0.11.0 and earlier",
+      "zh-tw": "0.11.0 及更早版本",
+      "zh-cn": "0.11.0 及更早版本",
+      es: "0.11.0 y anteriores",
+      ja: "0.11.0 以前",
+    },
     download: "166 MB",
     mer: 13.6,
     englishKept: 53,

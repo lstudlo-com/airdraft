@@ -6,8 +6,7 @@ import type { Messages } from "./types";
 export const zhTw: Messages = {
   // No space between full-width punctuation and the next sentence.
   gap: "",
-  english: "（英文）",
-  layout: { skip: "跳到主要內容", rss: "Airdraft 版本更新（英文）" },
+  layout: { skip: "跳到主要內容", rss: "Airdraft 版本更新" },
   header: {
     pricing: "價格",
     support: "支援",
@@ -19,7 +18,6 @@ export const zhTw: Messages = {
     get: "取得 Airdraft",
     menu: "選單",
     language: "語言",
-    homeOnly: "首頁",
   },
   footer: {
     nav: "頁尾",
@@ -27,12 +25,10 @@ export const zhTw: Messages = {
     pricing: "價格",
     guides: "指南",
     support: "支援",
-    donate: "贊助",
     changelog: "更新紀錄",
     rss: "RSS",
     privacy: "隱私",
     license: "授權條款",
-    languages: "語言",
   },
   analytics: {
     title: "網站分析（選用）",
@@ -53,7 +49,6 @@ export const zhTw: Messages = {
     sample: "試試範例",
     facts: ["開放原始碼", "可完全在本機處理", "Apple 晶片、macOS 15 以上"],
     guidesTitle: "設定指南",
-    guidesNote: [{ link: "guides", text: "更多指南" }],
     featuresTitle: "Airdraft 替你做的事",
     spoken: "呃，跟 Maya 說那個 draft 明天會好。",
     outputs: [

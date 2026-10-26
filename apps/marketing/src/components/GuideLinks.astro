@@ -1,7 +1,7 @@
 ---
 import GuideGlyph from "./GuideGlyph.astro";
 import { guideGlyphs, guidesFor } from "../data/guides";
-import { isTranslated, type Locale } from "../i18n";
+import type { Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 import "../styles/guides.css";
 
@@ -11,11 +11,6 @@ import "../styles/guides.css";
  * The whole tile is the link, named by the guide's full title. `detail` (the
  * guide hub) shows the full title as a heading and the one-line summary
  * instead of the label.
- *
- * The guides are written in English and Traditional Chinese. Other languages
- * list the English guides: the label stays in the page's language with its
- * "(English)" mark, which then names the link, and the link carries
- * hreflang="en".
  */
 interface Props {
   exclude?: string;
@@ -31,14 +26,8 @@ const {
   detail = false,
 } = Astro.props;
 const labels = messages[locale].guideLinks.labels;
-const english = messages[locale].english;
 const Heading = headingLevel === 2 ? "h2" : "h3";
-const entries = guidesFor(locale)
-  .filter((guide) => guide.slug !== exclude)
-  .map((guide) => ({
-    ...guide,
-    inEnglish: locale !== "en" && !isTranslated(guide.href, locale),
-  }));
+const entries = guidesFor(locale).filter((guide) => guide.slug !== exclude);
 // Balanced desktop rows: up to four across, three when that divides evenly
 // (six guides read as 3 + 3, seven as 4 + 3 with the short row centred).
 const count = entries.length;
@@ -54,8 +43,7 @@ const columns = count <= 4 ? count : count % 3 === 0 && count % 4 !== 0 ? 3 : 4;
       <a
         class="guide-pick-link"
         href={guide.href}
-        hreflang={guide.inEnglish ? "en" : undefined}
-        aria-label={detail || guide.inEnglish ? undefined : guide.title}
+        aria-label={detail ? undefined : guide.title}
         aria-labelledby={detail ? `guide-${guide.slug}` : undefined}
         aria-describedby={detail ? `guide-${guide.slug}-summary` : undefined}
       >
@@ -64,26 +52,15 @@ const columns = count <= 4 ? count : count % 3 === 0 && count % 4 !== 0 ? 3 : 4;
         </span>
         {detail ? (
           <>
-            <Heading
-              class="guide-pick-title"
-              id={`guide-${guide.slug}`}
-              lang={guide.inEnglish ? "en" : undefined}
-            >
+            <Heading class="guide-pick-title" id={`guide-${guide.slug}`}>
               {guide.title}
             </Heading>
-            <p
-              class="guide-pick-summary"
-              id={`guide-${guide.slug}-summary`}
-              lang={guide.inEnglish ? "en" : undefined}
-            >
+            <p class="guide-pick-summary" id={`guide-${guide.slug}-summary`}>
               {guide.summary}
             </p>
           </>
         ) : (
-          <span class="guide-pick-label">
-            {labels[guide.slug]}
-            {guide.inEnglish && <span class="nav-note">{english}</span>}
-          </span>
+          <span class="guide-pick-label">{labels[guide.slug]}</span>
         )}
       </a>
     </li>

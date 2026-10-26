@@ -4,8 +4,7 @@ import type { Messages } from "./types";
 // Spanish (neutral). App labels follow the app's es catalog (src/data/app.ts).
 export const es: Messages = {
   gap: " ",
-  english: " (inglés)",
-  layout: { skip: "Ir al contenido", rss: "Versiones de Airdraft (en inglés)" },
+  layout: { skip: "Ir al contenido", rss: "Versiones de Airdraft" },
   header: {
     pricing: "Precios",
     support: "Ayuda",
@@ -17,7 +16,6 @@ export const es: Messages = {
     get: "Obtener Airdraft",
     menu: "Menú",
     language: "Idioma",
-    homeOnly: "página de inicio",
   },
   footer: {
     nav: "Pie de página",
@@ -25,12 +23,10 @@ export const es: Messages = {
     pricing: "Precios",
     guides: "Guías",
     support: "Ayuda",
-    donate: "Donar",
     changelog: "Novedades",
     rss: "RSS",
     privacy: "Privacidad",
     license: "Licencia",
-    languages: "Idiomas",
   },
   analytics: {
     title: "Analítica web opcional",

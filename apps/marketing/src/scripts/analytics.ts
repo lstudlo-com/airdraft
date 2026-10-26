@@ -48,14 +48,18 @@ const status = document.querySelector<HTMLElement>("[data-analytics-status]");
 
 function updateControls() {
   if (notice) notice.hidden = !permitted || signalBlocks() || consent !== null;
-  if (status)
-    status.textContent = !permitted
-      ? "Website analytics are not enabled on this site."
-      : signalBlocks()
-        ? "Analytics are off because your browser requests no tracking."
-        : consent === "granted"
-          ? "Website analytics are allowed. You can turn them off below."
-          : "Website analytics are off.";
+  // The four lines are in the page's language, on the status element.
+  if (status) {
+    const { disabled, blocked, allowed, off } = status.dataset;
+    status.textContent =
+      (!permitted
+        ? disabled
+        : signalBlocks()
+          ? blocked
+          : consent === "granted"
+            ? allowed
+            : off) ?? "";
+  }
   document
     .querySelectorAll<HTMLButtonElement>("[data-analytics-choice=granted]")
     .forEach((button) => {

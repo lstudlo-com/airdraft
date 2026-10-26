@@ -1,0 +1,198 @@
+---
+import GuideLayout from "../../../layouts/GuideLayout.astro";
+import GuideSection from "../../../components/GuideSection.astro";
+import Button from "../../../components/ui/Button.astro";
+import { guidesFor } from "../../../data/guides";
+import { ejaAsrResults } from "../../../data/eja-asr";
+import { href, type Locale } from "../../../i18n";
+
+/**
+ * Dictating prompts into Claude Code, Codex and terminals, in each language.
+ * Delivery follows TextInserter (selfDrawingEditorBundlePrefixes, read-back
+ * confirmation, explicit-retry copy), destination rules follow AppFamily and
+ * the app-context setting, and CLI refinement follows CLIRefiner and the root
+ * README. Behavior described is 0.11.0's, plus the AD-083 speech
+ * recommendation; 0.11.0, 0.10.2 and earlier are named only where they differ.
+ * Speech numbers come from src/data/eja-asr.ts (eval/eja-asr). App labels in the zh-TW page are the app's
+ * zh-Hant catalog values, quoted with 「」; labels without a catalog entry
+ * (Verbatim, Claude Code, Codex) stay as the app shows them.
+ */
+const locale: Locale = "zh-tw";
+const guide = guidesFor(locale).find(
+  (entry) => entry.slug === "dictate-to-claude-code-and-terminals",
+)!;
+const zh = locale === "zh-tw";
+const english = ejaAsrResults.en;
+const parakeet = english.find((row) => row.model === "Parakeet TDT v2")!;
+const qwen = english.find((row) => row.model === "Qwen3-ASR 1.7B")!;
+const percent = (value: number) => `${value.toFixed(1)}%`;
+const about = (ms: number) => `${Math.round(ms / 10) * 10} ms`;
+---
+
+<GuideLayout guide={guide}>
+  <GuideSection id="delivery" title="文字怎麼進到終端機？">
+    <ul>
+      <li>Airdraft 回到你開始聽寫的視窗，只貼上一次，不會按 Return。</li>
+      <li>
+        Terminal 與 iTerm2 會提供游標與文字，Airdraft
+        和在其他編輯器一樣，讀回剛貼上的內容確認送達。
+      </li>
+      <li>
+        Warp、Ghostty、kitty、Alacritty、WezTerm 與 Zed
+        編輯器自行繪製文字，沒有內容可讀回。Airdraft 會確認仍是同一個 App
+        與視窗，只貼上一次，絕不重貼。
+      </li>
+      <li>
+        從 0.11.0
+        起，這類聽寫在「記錄」中標為「已貼上，未確認」，不顯示錯誤，剪貼簿會比平常稍晚還原。0.10.2
+        即使文字已經送達，仍會顯示「Paste couldn't be
+        confirmed」並把文字留在剪貼簿。
+      </li>
+      <li>
+        錄音後若切換了視窗或輸入欄位，Airdraft
+        會改為拷貝到剪貼簿，不會貼到別處。重試保留的錄音時，這些 App
+        也一律改為拷貝，因為無法確認文字會落在哪裡。
+      </li>
+    </ul>
+  </GuideSection>
+
+  <GuideSection id="cli-refinement" title="用你的訂閱潤稿">
+    <ol class="guide-steps">
+      <li>
+        <h3>安裝並登入 CLI</h3>
+        <p>
+          Airdraft 會在
+          ~/.local/bin、/opt/homebrew/bin、/usr/local/bin、~/.bun/bin 或
+          ~/.npm-global/bin 尋找 claude 或 codex
+          指令，並使用你已登入的帳號，不需要 API 金鑰。
+        </p>
+      </li>
+      <li>
+        <h3>在「模型」選用</h3>
+        <p>
+          在「模型」的「潤稿」選 Claude Code 或 Codex。模型清單來自你安裝的
+          CLI，旁邊可調「思考強度」；越低越快，也越省用量。
+        </p>
+      </li>
+      <li>
+        <h3>說完就放開</h3>
+        <p>
+          Claude Code 會在你說話時先行啟動，省下啟動時間；Codex
+          要等你說完才啟動，所以較慢。潤稿失敗或逾時，會直接貼上原始逐字稿。
+        </p>
+      </li>
+    </ol>
+    <p>
+      Airdraft 以非互動模式在暫存資料夾執行 CLI，不提供工具、MCP
+      伺服器、斜線指令或保存的工作階段，因此只會回傳文字，也不會更動你的 CLI
+      登入或設定。用量計入你訂閱的額度。
+    </p>
+  </GuideSection>
+
+  <GuideSection id="prompt-style" title="讓提示詞保持原樣">
+    <p>
+      在「設定」的「行為」開啟「讀取 App 情境」後，Airdraft 會把
+      Terminal、iTerm2、Warp、Ghostty 與 kitty
+      視為終端機：口述內容維持一般文句、不加
+      Markdown，只有在你明確念出指令時，才原樣保留旗標與路徑。在 VS
+      Code、Cursor、Xcode、JetBrains IDE 與 Zed
+      等程式編輯器裡，則會修正技術名稱的拼寫，並保留識別字與路徑。
+    </p>
+    <p>
+      「讀取 App 情境」預設關閉，此時 Airdraft
+      不知道目的地，套用一般規則。要逐字保留，請用完全不潤稿的 Verbatim
+      模式。專案名稱與術語可加到「詞彙」。
+    </p>
+  </GuideSection>
+
+  <GuideSection id="privacy" title="哪些資料會離開 Mac？">
+    <div
+      class="guide-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="提示詞聽寫的資料去向"
+    >
+      <table class="guide-table">
+        <caption>每個步驟送出的資料</caption>
+        <thead>
+          <tr>
+            <th scope="col">步驟</th>
+            <th scope="col">送出的資料</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">本機語音模型</th>
+            <td>不送出，錄音留在這台 Mac。</td>
+          </tr>
+          <tr>
+            <th scope="row">雲端語音辨識</th>
+            <td>音訊送到你選的供應商。</td>
+          </tr>
+          <tr>
+            <th scope="row">Claude Code 或 Codex 潤稿</th>
+            <td>
+              逐字稿、模式指示與詞彙，透過你的 CLI 帳號送到 Anthropic 或
+              OpenAI；開啟「讀取 App 情境」時，還包括 App
+              名稱、視窗標題、選取的文字、游標附近的文字，以及同一個 App
+              最近聽寫的詞。CLI 在你的 Mac 上執行，模型卻不在本機。
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">本機潤稿</th>
+            <td>
+              Apple Intelligence，或在這台 Mac 上執行的 LM
+              Studio、Ollama：不送出。
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">在提示列按 Return</th>
+            <td>
+              和打字一樣，由 Claude Code 或 Codex 把提示詞送到它的供應商，與
+              Airdraft 無關。
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      部分 Codex 版本仍會把你的全域 AGENTS.md 加進潤稿請求。若介意，請改用
+      Claude
+      Code、本機潤稿，或在該模式關閉「潤飾逐字稿」。各種組合的完整資料去向，請看
+      <a href="/guides/local-vs-cloud-dictation/" hreflang="en">
+        本機或雲端聽寫指南
+      </a>
+      （英文）。
+    </p>
+  </GuideSection>
+
+  <GuideSection id="speech" title="語音模型怎麼選？">
+    <p>
+      只說英文時選 Parakeet TDT v2，系統語言為英文的 Mac
+      首次設定就會推薦它；它只辨識英文。在 Airdraft
+      以朗讀英文進行的測量中，它的詞錯誤率為 {percent(parakeet.auto.value)}
+      ，每段約 {about(parakeet.medianMs)}，與 Qwen3-ASR 1.7B 的{" "}
+      {percent(qwen.auto.value)} 在誤差範圍內；Qwen3-ASR 1.7B
+      還能辨識其他語言，記憶體用量約 3
+      GB。測量用的是朗讀的維基百科句子，不是提示詞，方法與限制請看
+      <a href="/guides/offline-dictation-on-mac/#measured" hreflang="en">
+        離線聽寫指南
+      </a>
+      （英文）。0.11.0 及更早版本推薦的是當時安裝的 SenseVoice，也就是現在顯示為
+      SenseVoice Cantonese 的粵語微調版。
+    </p>
+    <p>
+      Parakeet TDT v3 支援英文與另外 24
+      種歐洲語言，但不支援中文。提示詞中英混說時，請看
+      <a href={href("/guides/mixed-chinese-english-dictation/", locale)}>
+        中英混說的模型測量
+      </a>
+      。
+    </p>
+    <div class="guide-actions">
+      <Button href={href("/pricing/", locale)} icon="right">
+        查看價格
+      </Button>
+    </div>
+  </GuideSection>
+</GuideLayout>

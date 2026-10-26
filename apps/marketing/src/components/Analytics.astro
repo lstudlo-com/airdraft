@@ -1,21 +1,16 @@
 ---
 import Button from "./ui/Button.astro";
 import "../styles/analytics.css";
-import type { Locale } from "../i18n";
+import { localizedPath, type Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 
 interface Props {
   locale?: Locale;
 }
 const { locale = "en" } = Astro.props;
-// The notice in the page's language; the privacy page is English, so the
-// link says so on translated pages.
+// The notice in the page's language, linking to the privacy page in it.
 const text = messages[locale];
-const copy = {
-  ...text.analytics,
-  privacy: `${text.analytics.privacy}${text.english}`,
-  gap: text.gap,
-};
+const copy = { ...text.analytics, gap: text.gap };
 
 if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
   if (
@@ -48,9 +43,7 @@ if (import.meta.env.PUBLIC_POSTHOG_ENABLED === "true") {
     <p>
       {copy.body}
       {copy.gap}
-      <a href="/privacy/" hreflang={locale === "en" ? undefined : "en"}>
-        {copy.privacy}
-      </a>
+      <a href={localizedPath("/privacy/", locale)}>{copy.privacy}</a>
     </p>
   </div>
   <div class="analytics-actions">

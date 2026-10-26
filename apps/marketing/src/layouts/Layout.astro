@@ -20,6 +20,7 @@ import {
   direction,
   languageTag,
   localeOf,
+  localizedPath,
   ogLocale,
 } from "../i18n";
 import { messages } from "../i18n/messages";
@@ -104,7 +105,7 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       rel="alternate"
       type="application/rss+xml"
       title={text.layout.rss}
-      href="/changelog.xml"
+      href={`${localizedPath("/", locale)}changelog.xml`}
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={siteName} />

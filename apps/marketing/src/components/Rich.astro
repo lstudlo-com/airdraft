@@ -1,11 +1,10 @@
 ---
-import { href, isTranslated, type Locale } from "../i18n";
-import { messages, type LinkTarget, type Rich } from "../i18n/messages";
+import { href, type Locale } from "../i18n";
+import type { LinkTarget, Rich } from "../i18n/messages";
 
 /**
- * A translated sentence with links (src/i18n/messages). A link to a page
- * that has no version in this language leads to the English page, says so
- * with the language's "(English)" mark and carries hreflang="en".
+ * A translated sentence with links (src/i18n/messages), each leading to
+ * the page in the same language.
  */
 interface Props {
   parts: Rich;
@@ -26,11 +25,5 @@ const targets: Record<LinkTarget, string> = {
 {parts.map((part) => {
   if (typeof part === "string") return part;
   const target = targets[part.link];
-  const english = !isTranslated(target, locale);
-  return (
-    <a href={href(target, locale)} hreflang={english ? "en" : undefined}>
-      {part.text}
-      {english && !part.plain && messages[locale].english}
-    </a>
-  );
+  return <a href={href(target, locale)}>{part.text}</a>;
 })}

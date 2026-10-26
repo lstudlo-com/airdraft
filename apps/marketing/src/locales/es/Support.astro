@@ -1,0 +1,75 @@
+---
+import GuideSection from "../../components/GuideSection.astro";
+import Button from "../../components/ui/Button.astro";
+import Disclosure from "../../components/ui/Disclosure.astro";
+import { siteLinks } from "../../data/site";
+import { localizedPath, type Locale } from "../../i18n";
+
+const locale: Locale = "es";
+---
+
+<GuideSection id="problems" title="Common problems">
+  <div class="question-list">
+    <Disclosure summary="Nothing appears after I let go">
+      <p>
+        Airdraft needs Accessibility to insert text. Turn it on in System
+        Settings ▸ Privacy & Security ▸ Accessibility.
+      </p>
+      <p>
+        If you rebuilt the app with different signing, the old grant no longer
+        applies. Run{" "}
+        <code>tccutil reset Accessibility com.lstudlo.app.airdraft</code>, then
+        grant it again.
+      </p>
+    </Disclosure>
+    <Disclosure summary="Nothing is recorded">
+      <p>
+        Allow Microphone when macOS asks. Choose the input from the window
+        toolbar, the menu bar, or Settings ▸ Microphone.
+      </p>
+    </Disclosure>
+    <Disclosure summary="The first dictation takes a minute">
+      <p>
+        After a model downloads, its first run compiles it for the Neural
+        Engine. The recording pill shows “Loading model” until it’s ready.
+      </p>
+    </Disclosure>
+    <Disclosure summary="Local refinement is slow">
+      <p>
+        Reasoning models can think for 10 to 60 seconds before a one-line
+        cleanup. Keep “Disable model thinking” on.
+      </p>
+    </Disclosure>
+    <Disclosure summary="The fn key doesn’t work as a shortcut">
+      <p>
+        Set System Settings ▸ Keyboard ▸ “Press 🌐 key to” to “Do Nothing”.
+        Shortcuts made of a single modifier key also need Accessibility.
+      </p>
+    </Disclosure>
+    <Disclosure summary="Chinese comes out in the wrong script">
+      <p>Choose the script in Models ▸ Speech options ▸ Chinese script.</p>
+    </Disclosure>
+  </div>
+</GuideSection>
+
+<GuideSection id="report" title="Still stuck?">
+  <p>
+    Open an issue with your macOS version and the speech and refinement models
+    you use.
+  </p>
+  <div class="support-actions">
+    <Button href={siteLinks.issues} icon="external">
+      Open an Issue
+    </Button>
+    <Button
+      href={localizedPath("/guides/offline-dictation-on-mac/", locale)}
+      variant="quiet"
+      icon="right"
+    >
+      Local Setup Guide
+    </Button>
+    <Button href={siteLinks.build} variant="quiet" icon="external">
+      Build Instructions
+    </Button>
+  </div>
+</GuideSection>

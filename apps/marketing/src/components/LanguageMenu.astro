@@ -4,26 +4,21 @@ import { languageTag, type Locale } from "../i18n";
 /**
  * The language menu: a native popover (no JavaScript needed) opened by the
  * header's globe key or the phone menu's Language row. Each language is
- * named in itself and leads to this page in that language, or to that
- * language's homepage when this page has no translation, which the row says
- * in the visitor's language. The current language rests in the recessed
- * well, like the current page in the header. Browsers without popovers
- * hide it; the footer lists the same links.
+ * named in itself and leads to this page in that language; every page
+ * exists in every language. The menu is as wide as its longest name plus
+ * the row insets. The current language rests in the recessed well, like the
+ * current page in the header.
  */
 interface Props {
   languages: {
     locale: Locale;
     path: string;
-    translated: boolean;
     current: boolean;
     label: string;
   }[];
   label: string;
-  homeOnly: string;
-  /** The page's own language tag, for the "homepage" note. */
-  pageLang: string;
 }
-const { languages, label, homeOnly, pageLang } = Astro.props;
+const { languages, label } = Astro.props;
 ---
 
 <nav id="language-menu" class="language-menu panel" popover aria-label={label}>
@@ -38,11 +33,6 @@ const { languages, label, homeOnly, pageLang } = Astro.props;
           aria-current={language.current ? "true" : undefined}
         >
           {language.label}
-          {!language.translated && (
-            <span class="language-home" lang={pageLang}>
-              {homeOnly}
-            </span>
-          )}
         </a>
       </li>
     ))}

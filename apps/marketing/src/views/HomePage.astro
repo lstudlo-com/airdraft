@@ -17,7 +17,6 @@ import Keys from "../components/ui/Keys.astro";
 import Section from "../components/ui/Section.astro";
 import { appLabels } from "../data/app";
 import { siteLinks } from "../data/site";
-import Rich from "../components/Rich.astro";
 import { href, type Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 
@@ -128,11 +127,6 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
     <Section id="guides" title={copy.guidesTitle}>
       <GuideLinks locale={locale} />
-      {copy.guidesNote && (
-        <p class="guide-hub-note guide-hub-more">
-          <Rich parts={copy.guidesNote} locale={locale} />
-        </p>
-      )}
     </Section>
 
     <Section id="features" title={copy.featuresTitle}>

@@ -371,37 +371,58 @@
     margin-right: 8px;
   }
   .guide-breadcrumbs a,
-  .guide-section p a,
-  .guide-section dd a,
+  .guide-well p a,
+  .guide-well dd a,
   .guide-hub-note a {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
   .guide-article {
     display: grid;
-    gap: 28px;
-    margin-top: 28px;
+    gap: 56px;
+    margin-top: 40px;
   }
+  /* One section: the heading on the island at the section's top left, then
+     the content in a recessed well carved into the island (GuideSection).
+     The heading never sits inside the well, and the well is never raised. */
   .guide-section {
-    padding: 28px;
+    display: grid;
+    gap: 16px;
     min-width: 0;
   }
-  .guide-section h2 {
+  .guide-section > h2 {
+    padding-inline-start: 4px;
     font-size: var(--step-3);
     line-height: 1.25;
+    letter-spacing: -0.015em;
+    scroll-margin-top: calc(var(--header) + 24px);
   }
-  .guide-section > * + * {
+  .guide-well {
+    min-width: 0;
+    padding: 28px 32px;
+    border-radius: var(--radius-card);
+    box-shadow: var(--sink-section);
+  }
+  .guide-well > * + * {
     margin-top: 18px;
   }
-  .guide-section :is(p, li, dd) {
+  .guide-well :is(p, li, dd) {
     line-height: 1.7;
   }
-  .guide-section > ul,
+  .guide-well > ul,
   .guide-steps {
     padding-left: 24px;
   }
-  .guide-section > ul li + li {
+  .guide-well > ul {
+    list-style: disc;
+  }
+  .guide-well > ul li + li {
     margin-top: 8px;
+  }
+  /* Troubleshooting rows sit straight in the well, divided by grooves. */
+  .guide-well > .question-list {
+    margin: -14px -8px;
+    padding: 0;
   }
   .guide-steps li {
     padding-left: 8px;
@@ -482,8 +503,8 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .guide-section li > a,
-  .guide-section .details-body a {
+  .guide-well li > a,
+  .guide-well .details-body a {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -633,13 +654,16 @@
     }
   }
   @media (max-width: 700px) {
-    .guide-section {
-      padding: 22px;
+    .guide-article {
+      gap: 44px;
+    }
+    .guide-well {
+      padding: 22px 20px;
     }
     .guide-table {
       min-width: 520px;
     }
-    .guide-section h2 {
+    .guide-section > h2 {
       font-size: var(--step-2);
     }
   }

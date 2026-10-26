@@ -16,8 +16,15 @@
     "paths": [
       "/",
       "/pricing/",
+      "/support/",
+      "/privacy/",
+      "/changelog/",
+      "/guides/",
+      "/guides/offline-dictation-on-mac/",
       "/guides/mixed-chinese-english-dictation/",
       "/guides/dictate-to-claude-code-and-terminals/",
+      "/guides/local-vs-cloud-dictation/",
+      "/guides/free-source-or-official-app/",
       "/guides/private-meeting-transcription/",
       "/guides/compare-mac-dictation-apps/"
     ]
@@ -28,7 +35,21 @@
     "og": "zh_CN",
     "name": "简体中文",
     "dir": "ltr",
-    "paths": ["/", "/pricing/"]
+    "paths": [
+      "/",
+      "/pricing/",
+      "/support/",
+      "/privacy/",
+      "/changelog/",
+      "/guides/",
+      "/guides/offline-dictation-on-mac/",
+      "/guides/mixed-chinese-english-dictation/",
+      "/guides/dictate-to-claude-code-and-terminals/",
+      "/guides/local-vs-cloud-dictation/",
+      "/guides/free-source-or-official-app/",
+      "/guides/private-meeting-transcription/",
+      "/guides/compare-mac-dictation-apps/"
+    ]
   },
   {
     "code": "es",
@@ -36,7 +57,21 @@
     "og": "es_ES",
     "name": "Español",
     "dir": "ltr",
-    "paths": ["/", "/pricing/"]
+    "paths": [
+      "/",
+      "/pricing/",
+      "/support/",
+      "/privacy/",
+      "/changelog/",
+      "/guides/",
+      "/guides/offline-dictation-on-mac/",
+      "/guides/mixed-chinese-english-dictation/",
+      "/guides/dictate-to-claude-code-and-terminals/",
+      "/guides/local-vs-cloud-dictation/",
+      "/guides/free-source-or-official-app/",
+      "/guides/private-meeting-transcription/",
+      "/guides/compare-mac-dictation-apps/"
+    ]
   },
   {
     "code": "ja",
@@ -44,6 +79,20 @@
     "og": "ja_JP",
     "name": "日本語",
     "dir": "ltr",
-    "paths": ["/", "/pricing/"]
+    "paths": [
+      "/",
+      "/pricing/",
+      "/support/",
+      "/privacy/",
+      "/changelog/",
+      "/guides/",
+      "/guides/offline-dictation-on-mac/",
+      "/guides/mixed-chinese-english-dictation/",
+      "/guides/dictate-to-claude-code-and-terminals/",
+      "/guides/local-vs-cloud-dictation/",
+      "/guides/free-source-or-official-app/",
+      "/guides/private-meeting-transcription/",
+      "/guides/compare-mac-dictation-apps/"
+    ]
   }
 ]

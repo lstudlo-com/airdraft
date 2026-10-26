@@ -1,0 +1,32 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Section from "../components/ui/Section.astro";
+import type { Breadcrumb } from "../lib/seo";
+import "../styles/guides.css";
+
+/**
+ * A text page (Support, Privacy, the guide hub) in any language: the title
+ * alone, then sections (GuideSection) or the page's own content.
+ */
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  breadcrumbs?: Breadcrumb[];
+}
+const { title, description, heading, breadcrumbs } = Astro.props;
+---
+
+<Layout title={title} description={description} breadcrumbs={breadcrumbs}>
+  <SiteHeader />
+  <main id="main" class="island subpage">
+    <Section level={1} first title={heading}>
+      <div class="guide-article">
+        <slot />
+      </div>
+    </Section>
+  </main>
+  <SiteFooter />
+</Layout>

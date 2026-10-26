@@ -1,0 +1,25 @@
+---
+import TextPage from "./TextPage.astro";
+import { pages } from "../locales";
+import type { Locale } from "../i18n";
+import En from "../locales/en/Support.astro";
+import ZhTw from "../locales/zh-tw/Support.astro";
+import ZhCn from "../locales/zh-cn/Support.astro";
+import Es from "../locales/es/Support.astro";
+import Ja from "../locales/ja/Support.astro";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = pages[locale].support;
+const Body = { en: En, "zh-tw": ZhTw, "zh-cn": ZhCn, es: Es, ja: Ja }[locale];
+---
+
+<TextPage
+  title={copy.title}
+  description={copy.description}
+  heading={copy.heading}
+>
+  <Body />
+</TextPage>

@@ -1,14 +1,44 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Button from "../components/ui/Button.astro";
+import { languageTag, locales, localizedPath } from "../i18n";
+import { pages } from "../locales";
+
+// One 404 page serves every path. It reads in English, and a missing path
+// under a language prefix (/ja/…) switches it to that language.
+const copy = Object.fromEntries(
+  locales.map((locale) => [
+    locale,
+    {
+      ...pages[locale].notFound,
+      lang: languageTag[locale],
+      home: localizedPath("/", locale),
+    },
+  ]),
+);
+const en = pages.en.notFound;
 ---
 
-<Layout title="Page not found — Airdraft" noindex>
-  <main id="main" class="island not-found">
+<Layout title={en.title} noindex>
+  <main id="main" class="island not-found" data-copy={JSON.stringify(copy)}>
     <img src="/airdraft-icon.png" width="96" height="96" alt="" />
-    <h1>This page doesn’t exist</h1>
-    <Button href="/" variant="primary" icon="right">
-      Go to the homepage
+    <h1 data-heading>{en.heading}</h1>
+    <Button href="/" variant="primary" icon="right" data-home>
+      <span data-action>{en.action}</span>
     </Button>
   </main>
 </Layout>
+
+<script>
+  const main = document.querySelector<HTMLElement>("[data-copy]");
+  const code = location.pathname.split("/")[1];
+  const all = JSON.parse(main?.dataset.copy ?? "{}");
+  const copy = code !== "en" ? all[code] : undefined;
+  if (main && copy) {
+    document.documentElement.lang = copy.lang;
+    document.title = copy.title;
+    main.querySelector("[data-heading]")!.textContent = copy.heading;
+    main.querySelector("[data-action]")!.textContent = copy.action;
+    main.querySelector<HTMLAnchorElement>("[data-home]")!.href = copy.home;
+  }
+</script>

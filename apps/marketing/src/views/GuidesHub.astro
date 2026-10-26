@@ -1,0 +1,37 @@
+---
+import TextPage from "./TextPage.astro";
+import GuideLinks from "../components/GuideLinks.astro";
+import Button from "../components/ui/Button.astro";
+import { href, localizedPath, type Locale } from "../i18n";
+import { pages } from "../locales";
+
+/** The guide hub, in each language: every guide with its one-line summary. */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const { hub: copy, chrome } = pages[locale];
+---
+
+<TextPage
+  title={copy.title}
+  description={copy.description}
+  heading={copy.heading}
+  breadcrumbs={[
+    { name: chrome.home, path: localizedPath("/", locale) },
+    { name: chrome.guides, path: localizedPath("/guides/", locale) },
+  ]}
+>
+  <GuideLinks headingLevel={2} detail locale={locale} />
+  <p class="guide-hub-note">
+    {copy.help[0]} <a href={href("/support/", locale)}>{copy.help[1]}</a>
+  </p>
+  <div class="guide-actions">
+    <Button href={href("/pricing/", locale)} variant="quiet" icon="right">
+      {copy.pricing}
+    </Button>
+    <Button href={href("/changelog/", locale)} variant="quiet" icon="right">
+      {copy.changes}
+    </Button>
+  </div>
+</TextPage>
