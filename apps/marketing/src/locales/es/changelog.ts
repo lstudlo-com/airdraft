@@ -3,6 +3,27 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-17-0": {
+    title:
+      "Texto en directo que no se queda atrás y palabras que llegan con estilo",
+    changes: [
+      {
+        title: "El texto en directo sigue avanzando",
+        description:
+          "Con varias líneas, cada línea nueva empuja hacia arriba a las anteriores. Antes, en dictados largos las primeras líneas se quedaban fijas y la última se reescribía tras unos puntos suspensivos.",
+      },
+      {
+        title: "Elige cómo aparecen las palabras",
+        description:
+          "Ajustes > Vista previa en directo > Animación del texto ofrece Fundido, Ascenso, Enfoque, Rebote, Máquina de escribir, Ola, Brillo o Ninguna, cada una con una vista previa en bucle. Solo se animan las palabras nuevas, y con Reducir movimiento los efectos con desplazamiento se convierten en un fundido.",
+      },
+      {
+        title: "Vistas previas más sencillas",
+        description:
+          "Las vistas previas de los estilos del texto en directo están sobre un fondo gris liso en lugar de uno dividido entre claro y oscuro.",
+      },
+    ],
+  },
   "0-16-2": {
     title: "Un poco más de borde",
     changes: [

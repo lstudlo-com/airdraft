@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-17-0": {
+    title: "实时文字跟得上，字也出场得好看",
+    changes: [
+      {
+        title: "实时文字持续上滚",
+        description:
+          "多行显示时，每一行新文字都会把前面的行往上推。以前长段听写时，上面几行会停住，最后一行在省略号后原地改写。",
+      },
+      {
+        title: "选择文字出现的方式",
+        description:
+          "“设置”>“实时预览”>“文字动画”提供淡入、上浮、聚焦、弹出、打字机、波浪、发光或无，每种都有循环播放的预览。只有新到的文字会有动画；开启“减弱动态效果”时，会移动的效果改为淡入。",
+      },
+      {
+        title: "更简洁的预览",
+        description:
+          "实时文字样式的预览改为纯灰色背景，不再是左浅右深的分割背景。",
+      },
+    ],
+  },
   "0-16-2": {
     title: "边缘再清晰一点",
     changes: [

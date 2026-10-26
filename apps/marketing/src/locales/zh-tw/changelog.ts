@@ -5,6 +5,26 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-17-0": {
+    title: "即時文字跟得上，字也出場得好看",
+    changes: [
+      {
+        title: "即時文字持續上捲",
+        description:
+          "多行顯示時，每一行新文字都會把前面的行往上推。以前長段聽寫時，上面幾行會停住，最後一行在刪節號後原地改寫。",
+      },
+      {
+        title: "選擇文字出現的方式",
+        description:
+          "「設定」>「即時預覽」>「文字動畫」提供淡入、上浮、聚焦、彈出、打字機、波浪、發光或無，每種都有循環播放的預覽。只有新到的文字會有動畫；開啟「減少動態效果」時，會移動的效果改為淡入。",
+      },
+      {
+        title: "更簡潔的預覽",
+        description:
+          "即時文字樣式的預覽改為純灰色背景，不再是左淺右深的分割背景。",
+      },
+    ],
+  },
   "0-16-2": {
     title: "邊緣再清楚一點",
     changes: [

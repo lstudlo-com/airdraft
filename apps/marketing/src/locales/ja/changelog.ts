@@ -4,6 +4,26 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-17-0": {
+    title: "遅れないライブテキストと、魅せる文字の登場",
+    changes: [
+      {
+        title: "ライブテキストが上へ流れ続ける",
+        description:
+          "複数行のとき、新しい行が前の行を上へ押し上げます。これまでは長い音声入力で上の行が止まり、最後の行だけが「…」の後で書き換わっていました。",
+      },
+      {
+        title: "文字の現れ方を選べる",
+        description:
+          "「設定」>「ライブプレビュー」>「テキストのアニメーション」で、フェード、浮き上がり、フォーカス、ポップ、タイプライター、ウェーブ、グロー、なしから選べます。それぞれループするプレビュー付きです。アニメーションするのは新しく届いた文字だけで、「視差効果を減らす」がオンのときは動きのある効果がフェードになります。",
+      },
+      {
+        title: "すっきりしたプレビュー",
+        description:
+          "ライブテキストのスタイルのプレビューは、明暗に分かれた背景ではなく、無地のグレーの背景になりました。",
+      },
+    ],
+  },
   "0-16-2": {
     title: "縁をすこしだけ",
     changes: [

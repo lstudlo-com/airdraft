@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-17-0",
+    version: "0.17.0",
+    date: "2026-10-26",
+    title: "Live text that keeps up, and words that arrive in style",
+    changes: [
+      {
+        title: "Live text keeps scrolling",
+        description:
+          "With several lines, every new line now pushes the earlier ones up. Before, long dictations froze the top lines and rewrote the last one behind an ellipsis.",
+      },
+      {
+        title: "Choose how words appear",
+        description:
+          "Settings > Live preview > Text animation offers Fade, Rise, Focus, Pop, Typewriter, Wave, Glow or None, each with a looping preview. Only new words animate, and moving effects fade instead under Reduce Motion.",
+      },
+      {
+        title: "Plainer previews",
+        description:
+          "The live-text style previews sit on a plain gray backdrop instead of a light-to-dark split.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.17.0-build.493",
+    },
+  },
+  {
     id: "0-16-2",
     version: "0.16.2",
     date: "2026-10-26",
