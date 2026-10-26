@@ -82,11 +82,23 @@ public struct AppleIntelligenceRefiner: Refiner {
             try await generate(instructions, prompt)
         }
         try Task.checkCancellation()
-        let cleaned = PromptBuilder.sanitize(text)
+        let cleaned = Self.droppingLoneBullet(PromptBuilder.sanitize(text))
         guard !cleaned.isEmpty else { throw RefinerError.emptyOutput }
         return RefineResult(text: cleaned, engine: id,
                             latencyMs: Int(Date().timeIntervalSince(started) * 1000),
                             promptVersion: PromptBuilder.version)
+    }
+
+    /// A one-item "list": the system model started 3 of 24 QA-set refinements of
+    /// plain prose with "- " (AD-118). A real list keeps its bullets.
+    static func droppingLoneBullet(_ text: String) -> String {
+        let markers = ["- ", "* ", "• "]
+        guard let marker = markers.first(where: { text.hasPrefix($0) }) else { return text }
+        let rest = text.components(separatedBy: "\n").dropFirst()
+        guard rest.allSatisfy({ line in !markers.contains { line.trimmingCharacters(in: .whitespaces).hasPrefix($0) } }) else {
+            return text
+        }
+        return String(text.dropFirst(marker.count))
     }
 
     private static func generate(instructions: String, prompt: String) async throws -> String {

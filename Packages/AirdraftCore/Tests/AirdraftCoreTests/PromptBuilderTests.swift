@@ -64,6 +64,11 @@ final class PromptBuilderTests: XCTestCase {
     func testSanitizeStripsThinkingAndFencesAndWordCountMixesCJKAndLatin() {
         XCTAssertEqual(PromptBuilder.sanitize("<think>reasoning</think>\n```\nHello\n```"), "Hello")
         XCTAssertEqual(PromptBuilder.sanitize("\"quoted\""), "quoted")
+        // AD-118: a lone leading bullet is not a list; a real list keeps its bullets.
+        XCTAssertEqual(AppleIntelligenceRefiner.droppingLoneBullet("- Okay. This is all about the design."), "Okay. This is all about the design.")
+        XCTAssertEqual(AppleIntelligenceRefiner.droppingLoneBullet("• defiende a lanzazos su barco"), "defiende a lanzazos su barco")
+        XCTAssertEqual(AppleIntelligenceRefiner.droppingLoneBullet("- Milk\n- Eggs"), "- Milk\n- Eggs")
+        XCTAssertEqual(AppleIntelligenceRefiner.droppingLoneBullet("Buy:\n- Milk"), "Buy:\n- Milk")
         XCTAssertEqual(DictationPipeline.approximateWordCount("hello world"), 2)
         XCTAssertEqual(DictationPipeline.approximateWordCount("今天很好"), 4)
         XCTAssertEqual(DictationPipeline.approximateWordCount("用 Floze 寫"), 3)
