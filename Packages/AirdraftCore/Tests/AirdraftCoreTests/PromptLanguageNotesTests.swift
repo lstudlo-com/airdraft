@@ -11,14 +11,14 @@ final class PromptLanguageNotesTests: XCTestCase {
             dictionary: [], chineseScript: script, speechLanguages: languages))
     }
 
-    func testBaseRulesAreLanguageNeutral() {
+    /// Language-neutral base rules, per-language notes in the user's order, an output
+    /// rule naming no language pair, and refinement languages from the speech setup.
+    func testLanguageNotesFollowTheSpeechSetupOverNeutralBaseRules() {
         let rules = PromptBuilder.defaultBaseRules
         XCTAssertNil(rules.range(of: "\\p{Han}", options: .regularExpression), "Chinese rules belong in the Chinese notes")
         XCTAssertFalse(rules.contains("Chinese"))
         XCTAssertTrue(rules.contains("Speech that mixes languages stays mixed."))
-    }
 
-    func testChineseNotesFollowTheSpeechLanguage() {
         for languages in [["zh"], ["yue"], ["zh-hk"], ["en", "zh"]] {
             XCTAssertTrue(prompt(languages: languages).contains("CHINESE (for Chinese in the transcript):"), "\(languages)")
             XCTAssertTrue(prompt(languages: languages).contains("部署"), "\(languages)")
@@ -32,15 +32,12 @@ final class PromptLanguageNotesTests: XCTestCase {
         let mixed = prompt(languages: ["es", "zh", "es"])
         XCTAssertEqual(mixed.components(separatedBy: "SPANISH (").count, 2)
         XCTAssertLessThan(mixed.range(of: "SPANISH (")!.lowerBound, mixed.range(of: "CHINESE (")!.lowerBound)
-    }
 
-    func testOutputLanguageRuleNamesNoLanguagePair() {
+        // The OUTPUT LANGUAGE rule names no language pair.
         let text = prompt(languages: ["es"])
         XCTAssertTrue(text.contains("speech that mixes languages stays mixed"))
         XCTAssertFalse(text.contains("mixed Chinese and English stays mixed"))
-    }
 
-    func testRefinementLanguagesComeFromTheSpeechSetup() {
         XCTAssertEqual(ASRConfig(language: "es").refinementLanguages(preferredLanguages: ["zh-Hant-TW"]), ["es"])
         XCTAssertEqual(ASRConfig(language: "").refinementLanguages(preferredLanguages: ["ja-JP", "en-US", "zh-Hant-TW", "es-ES"]),
                        ["ja", "en", "zh"])

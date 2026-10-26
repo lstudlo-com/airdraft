@@ -8,188 +8,228 @@ final class ModelSpeechPreviewTests: XCTestCase {
         [Float](repeating: level, count: Int(value * 16_000))
     }
 
-    func testDecodesRespectMinimumIntervalAndNewAudio() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.2)
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        defer { session.cancel() }
+    func testCadenceRespectsMinimumIntervalNewAudioAndDecodeCostBackoff() async throws {
+        do { // DecodesRespectMinimumIntervalAndNewAudio
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.2)
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            defer { session.cancel() }
 
-        session.append(seconds(3))
-        try await waitUntil { decoder.calls.count == 1 }
-        // No new audio: polling continues without another decode.
-        try await clock.waitUntilTime(clock.now + 5)
-        XCTAssertEqual(decoder.calls.count, 1)
+            session.append(seconds(3))
+            try await waitUntil { decoder.calls.count == 1 }
+            // No new audio: polling continues without another decode.
+            try await clock.waitUntilTime(clock.now + 5)
+            XCTAssertEqual(decoder.calls.count, 1)
 
-        // Less than the 0.5-second minimum of new audio does not decode.
-        session.append(seconds(0.25))
-        try await clock.waitUntilTime(clock.now + 3)
-        XCTAssertEqual(decoder.calls.count, 1)
+            // Less than the 0.5-second minimum of new audio does not decode.
+            session.append(seconds(0.25))
+            try await clock.waitUntilTime(clock.now + 3)
+            XCTAssertEqual(decoder.calls.count, 1)
 
-        session.append(seconds(0.3))
-        try await waitUntil { decoder.calls.count == 2 }
-        let calls = decoder.calls
-        XCTAssertEqual(calls[0].samples, 48_000)
-        XCTAssertEqual(calls[1].samples, 56_800)
-        XCTAssertGreaterThanOrEqual(calls[1].start - calls[0].start, 1.0 + 0.2 - 1e-9)
-        try await waitUntil { events.texts.last == "n56800" }
-        XCTAssertEqual(decoder.maximumConcurrent, 1)
-    }
+            session.append(seconds(0.3))
+            try await waitUntil { decoder.calls.count == 2 }
+            let calls = decoder.calls
+            XCTAssertEqual(calls[0].samples, 48_000)
+            XCTAssertEqual(calls[1].samples, 56_800)
+            XCTAssertGreaterThanOrEqual(calls[1].start - calls[0].start, 1.0 + 0.2 - 1e-9)
+            try await waitUntil { events.texts.last == "n56800" }
+            XCTAssertEqual(decoder.maximumConcurrent, 1)
+        }
 
-    func testCadenceBacksOffToTwiceTheDecodeCost() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.8)
-        let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog())
-        defer { session.cancel() }
+        do { // CadenceBacksOffToTwiceTheDecodeCost
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.8)
+            let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog())
+            defer { session.cancel() }
 
-        session.append(seconds(1))
-        try await waitUntil { decoder.calls.count == 1 }
-        for _ in 0..<4 {
             session.append(seconds(1))
-            let count = decoder.calls.count
-            try await waitUntil { decoder.calls.count == count + 1 }
+            try await waitUntil { decoder.calls.count == 1 }
+            for _ in 0..<4 {
+                session.append(seconds(1))
+                let count = decoder.calls.count
+                try await waitUntil { decoder.calls.count == count + 1 }
+            }
+            let starts = decoder.calls.map(\.start)
+            // Each start waits for the previous end plus 2 x 0.8 s.
+            for (earlier, later) in zip(starts, starts.dropFirst()) {
+                XCTAssertGreaterThanOrEqual(later - earlier, 0.8 + 1.6 - 1e-9)
+            }
+            let intervals = session.metrics.intervals
+            XCTAssertEqual(intervals.count, 4)
+            XCTAssertTrue(intervals.allSatisfy { $0 >= 2.4 - 1e-9 })
         }
-        let starts = decoder.calls.map(\.start)
-        // Each start waits for the previous end plus 2 x 0.8 s.
-        for (earlier, later) in zip(starts, starts.dropFirst()) {
-            XCTAssertGreaterThanOrEqual(later - earlier, 0.8 + 1.6 - 1e-9)
+    }
+
+    /// The window commits at a quiet point and bounds every decode, the buffer drops the
+    /// oldest audio while decodes are skipped, and the display is a bounded tail.
+    func testWindowBufferAndDisplayStayBounded() async throws {
+        do { // WindowCommitsAtQuietPointAndBoundsEveryDecode
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            defer { session.cancel() }
+
+            // 12 s of speech with a silent 100 ms frame at 8.0 s, inside the 7-10 s search span.
+            var audio = seconds(12, level: 0.3)
+            for index in 128_000..<129_600 { audio[index] = 0 }
+            session.append(audio)
+            try await waitUntil { decoder.calls.count >= 2 }
+            let calls = decoder.calls
+            XCTAssertEqual(calls[0].samples, 128_800, "Commit cuts at the quiet frame's centre")
+            XCTAssertEqual(calls[1].samples, 192_000 - 128_800, "Provisional text covers only the uncommitted tail")
+            XCTAssertTrue(calls.allSatisfy { $0.samples <= 160_000 })
+            try await waitUntil { events.texts.last == "n128800 n63200" }
+            XCTAssertEqual(session.metrics.commits, 1)
+            XCTAssertLessThanOrEqual(session.metrics.longestWindowSamples, 160_000)
         }
-        let intervals = session.metrics.intervals
-        XCTAssertEqual(intervals.count, 4)
-        XCTAssertTrue(intervals.allSatisfy { $0 >= 2.4 - 1e-9 })
+
+        do { // BufferDropsOldestAudioWhileDecodesAreSkipped
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.busy = true
+            let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog())
+            defer { session.cancel() }
+
+            for _ in 0..<25 { session.append(seconds(1)) }
+            try await waitUntil { session.metrics.skippedBusy >= 1 }
+            XCTAssertGreaterThan(session.metrics.droppedSamples, 0)
+            XCTAssertEqual(session.metrics.decodes, 0)
+            XCTAssertTrue(decoder.calls.allSatisfy { $0.samples <= 20 * 16_000 })
+        }
+
+        do { // DisplayIsBoundedTail
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.text = { String(repeating: "word ", count: 400) + "end\($0)" }
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            defer { session.cancel() }
+            session.append(seconds(1))
+            try await waitUntil { !events.texts.isEmpty }
+            let shown = try XCTUnwrap(events.texts.last)
+            XCTAssertLessThanOrEqual(shown.count, 500)
+            XCTAssertGreaterThan(shown.count, 470)
+            XCTAssertTrue(shown.hasPrefix("word "), "The bounded tail starts at a word boundary")
+            XCTAssertTrue(shown.hasSuffix("end16000"))
+            let chinese = String(repeating: "我們開會", count: 200)
+            XCTAssertEqual(ModelSpeechPreview.tail(chinese, maximum: 500).count, 500, "Unspaced text keeps the full bound")
+        }
     }
 
-    func testWindowCommitsAtQuietPointAndBoundsEveryDecode() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        defer { session.cancel() }
+    /// A slow decode stops with one nonfatal issue, errors and invalid audio stop once,
+    /// cancel during a decode drops its result and later audio, and a preempted decode
+    /// retries without an issue.
+    func testSlowFailedCancelledAndPreemptedDecodes() async throws {
+        do { // SlowDecodeStopsPreviewWithNonfatalIssue
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 3.5)
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            session.append(seconds(2))
+            try await waitUntil { !events.issues.isEmpty }
+            XCTAssertFalse(session.isActive)
+            XCTAssertTrue(events.texts.isEmpty, "A too-slow result is never shown")
+            XCTAssertEqual(events.issues.count, 1)
+            session.append(seconds(2))
+            XCTAssertEqual(decoder.calls.count, 1)
+        }
 
-        // 12 s of speech with a silent 100 ms frame at 8.0 s, inside the 7-10 s search span.
-        var audio = seconds(12, level: 0.3)
-        for index in 128_000..<129_600 { audio[index] = 0 }
-        session.append(audio)
-        try await waitUntil { decoder.calls.count >= 2 }
-        let calls = decoder.calls
-        XCTAssertEqual(calls[0].samples, 128_800, "Commit cuts at the quiet frame's centre")
-        XCTAssertEqual(calls[1].samples, 192_000 - 128_800, "Provisional text covers only the uncommitted tail")
-        XCTAssertTrue(calls.allSatisfy { $0.samples <= 160_000 })
-        try await waitUntil { events.texts.last == "n128800 n63200" }
-        XCTAssertEqual(session.metrics.commits, 1)
-        XCTAssertLessThanOrEqual(session.metrics.longestWindowSamples, 160_000)
+        do { // DecoderErrorAndInvalidAudioStopPreviewOnce
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.failure = TranscriberError.invalidResponse
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            session.append(seconds(1))
+            try await waitUntil { events.issues.count == 1 }
+            XCTAssertFalse(session.isActive)
+
+            let invalidEvents = PreviewEventLog()
+            let invalid = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0), events: invalidEvents)
+            invalid.append([0.1, .nan])
+            XCTAssertEqual(invalidEvents.issues.count, 1)
+            invalid.append([.infinity])
+            XCTAssertEqual(invalidEvents.issues.count, 1)
+            XCTAssertFalse(invalid.isActive)
+        }
+
+        do { // CancelDuringDecodeDropsItsResultAndLaterAudio
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0)
+            decoder.gate = true
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            session.append(seconds(1))
+            try await waitUntil { decoder.waiting }
+            session.cancel()
+            decoder.release()
+            session.append(seconds(5))
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertTrue(events.texts.isEmpty, "A decode that finished after cancel is never published")
+            XCTAssertTrue(events.issues.isEmpty, "Cancellation is not an issue")
+            XCTAssertFalse(session.isActive)
+            XCTAssertEqual(decoder.calls.count, 1)
+        }
+
+        do { // PreemptedDecodeRetriesWithoutIssue
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.cancellations = 1
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events)
+            defer { session.cancel() }
+            session.append(seconds(1))
+            try await waitUntil { events.texts == ["n16000"] }
+            XCTAssertTrue(events.issues.isEmpty)
+            XCTAssertEqual(decoder.calls.count, 2)
+            XCTAssertEqual(session.metrics.preempted, 1)
+        }
     }
 
-    func testBufferDropsOldestAudioWhileDecodesAreSkipped() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
-        decoder.busy = true
-        let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog())
-        defer { session.cancel() }
+    func testJoinQuietestCutAndMeetingMixerTimeline() {
+        do { // JoinAndQuietestCut
+            XCTAssertEqual(ModelSpeechPreview.join("Hello there", "general"), "Hello there general")
+            XCTAssertEqual(ModelSpeechPreview.join("我們開會", "然後討論"), "我們開會然後討論")
+            XCTAssertEqual(ModelSpeechPreview.join("Done", ", next"), "Done, next")
+            XCTAssertEqual(ModelSpeechPreview.join("", " tail "), "tail")
+            XCTAssertEqual(ModelSpeechPreview.join("head", ""), "head")
+            var samples = [Float](repeating: 0.5, count: 48_000)
+            for index in 20_000..<21_600 { samples[index] = 0 }
+            XCTAssertEqual(ModelSpeechPreview.quietestCut(samples, in: 16_000..<32_000), 20_800)
+            XCTAssertEqual(ModelSpeechPreview.quietestCut(samples, in: 0..<100), 100)
+        }
 
-        for _ in 0..<25 { session.append(seconds(1)) }
-        try await waitUntil { session.metrics.skippedBusy >= 1 }
-        XCTAssertGreaterThan(session.metrics.droppedSamples, 0)
-        XCTAssertEqual(session.metrics.decodes, 0)
-        XCTAssertTrue(decoder.calls.allSatisfy { $0.samples <= 20 * 16_000 })
+        do { // MeetingMixerAveragesTracksOnOneTimeline
+            let output = Locked<[Float]>([])
+            let mixer = MeetingPreviewMixer(lagSeconds: 0.1) { chunk in output.withLock { $0.append(contentsOf: chunk) } }
+            // Capture delivers both tracks in small interleaved chunks (20 ms here) for 0.5 s.
+            for index in 0..<25 {
+                let offset = Double(index) * 0.02
+                mixer.append([Float](repeating: 0.4, count: 320), track: .microphone, at: offset)
+                mixer.append([Float](repeating: 0.2, count: 320), track: .system, at: offset)
+            }
+            let mixed = output.value
+            XCTAssertEqual(mixed.count, 8_000 - 1_600, "Audio newer than the lag waits for the other track")
+            // Both sources cover every emitted sample, so each is their average (the saved mix rule).
+            XCTAssertTrue(mixed.allSatisfy { abs($0 - 0.3) < 1e-6 })
+            // Late audio for an emitted span never reappears.
+            mixer.append([Float](repeating: 0.9, count: 800), track: .system, at: 0)
+            XCTAssertEqual(output.value.count, 6_400)
+            // A single source keeps its level.
+            let single = Locked<[Float]>([])
+            let solo = MeetingPreviewMixer(lagSeconds: 0) { chunk in single.withLock { $0.append(contentsOf: chunk) } }
+            solo.append([Float](repeating: 0.25, count: 1_600), track: .system, at: 1)
+            XCTAssertEqual(single.value.count, 17_600, "Leading time before the first chunk is silence on the timeline")
+            XCTAssertEqual(single.value.suffix(1_600).allSatisfy { $0 == 0.25 }, true)
+            mixer.finish()
+            mixer.append([Float](repeating: 0.4, count: 16_000), track: .microphone, at: 0.5)
+            XCTAssertEqual(output.value.count, 6_400)
+        }
     }
 
-    func testSlowDecodeStopsPreviewWithNonfatalIssue() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 3.5)
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        session.append(seconds(2))
-        try await waitUntil { !events.issues.isEmpty }
-        XCTAssertFalse(session.isActive)
-        XCTAssertTrue(events.texts.isEmpty, "A too-slow result is never shown")
-        XCTAssertEqual(events.issues.count, 1)
-        session.append(seconds(2))
-        XCTAssertEqual(decoder.calls.count, 1)
-    }
-
-    func testDecoderErrorAndInvalidAudioStopPreviewOnce() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
-        decoder.failure = TranscriberError.invalidResponse
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        session.append(seconds(1))
-        try await waitUntil { events.issues.count == 1 }
-        XCTAssertFalse(session.isActive)
-
-        let invalidEvents = PreviewEventLog()
-        let invalid = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0), events: invalidEvents)
-        invalid.append([0.1, .nan])
-        XCTAssertEqual(invalidEvents.issues.count, 1)
-        invalid.append([.infinity])
-        XCTAssertEqual(invalidEvents.issues.count, 1)
-        XCTAssertFalse(invalid.isActive)
-    }
-
-    func testCancelDuringDecodeDropsItsResultAndLaterAudio() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0)
-        decoder.gate = true
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        session.append(seconds(1))
-        try await waitUntil { decoder.waiting }
-        session.cancel()
-        decoder.release()
-        session.append(seconds(5))
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertTrue(events.texts.isEmpty, "A decode that finished after cancel is never published")
-        XCTAssertTrue(events.issues.isEmpty, "Cancellation is not an issue")
-        XCTAssertFalse(session.isActive)
-        XCTAssertEqual(decoder.calls.count, 1)
-    }
-
-    func testPreemptedDecodeRetriesWithoutIssue() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
-        decoder.cancellations = 1
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        defer { session.cancel() }
-        session.append(seconds(1))
-        try await waitUntil { events.texts == ["n16000"] }
-        XCTAssertTrue(events.issues.isEmpty)
-        XCTAssertEqual(decoder.calls.count, 2)
-        XCTAssertEqual(session.metrics.preempted, 1)
-    }
-
-    func testDisplayIsBoundedTail() async throws {
-        let clock = FakePreviewClock()
-        let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
-        decoder.text = { String(repeating: "word ", count: 400) + "end\($0)" }
-        let events = PreviewEventLog()
-        let session = makeSession(clock: clock, decoder: decoder, events: events)
-        defer { session.cancel() }
-        session.append(seconds(1))
-        try await waitUntil { !events.texts.isEmpty }
-        let shown = try XCTUnwrap(events.texts.last)
-        XCTAssertLessThanOrEqual(shown.count, 500)
-        XCTAssertGreaterThan(shown.count, 470)
-        XCTAssertTrue(shown.hasPrefix("word "), "The bounded tail starts at a word boundary")
-        XCTAssertTrue(shown.hasSuffix("end16000"))
-        let chinese = String(repeating: "我們開會", count: 200)
-        XCTAssertEqual(ModelSpeechPreview.tail(chinese, maximum: 500).count, 500, "Unspaced text keeps the full bound")
-    }
-
-    func testJoinAndQuietestCut() {
-        XCTAssertEqual(ModelSpeechPreview.join("Hello there", "general"), "Hello there general")
-        XCTAssertEqual(ModelSpeechPreview.join("我們開會", "然後討論"), "我們開會然後討論")
-        XCTAssertEqual(ModelSpeechPreview.join("Done", ", next"), "Done, next")
-        XCTAssertEqual(ModelSpeechPreview.join("", " tail "), "tail")
-        XCTAssertEqual(ModelSpeechPreview.join("head", ""), "head")
-        var samples = [Float](repeating: 0.5, count: 48_000)
-        for index in 20_000..<21_600 { samples[index] = 0 }
-        XCTAssertEqual(ModelSpeechPreview.quietestCut(samples, in: 16_000..<32_000), 20_800)
-        XCTAssertEqual(ModelSpeechPreview.quietestCut(samples, in: 0..<100), 100)
-    }
-
-    func testSupportedEnginesExcludeCloudAndAutoregressiveModels() {
+    func testSupportedEnginesNoticesAndAppleSpeechPreviewLocale() {
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .parakeet)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .senseVoice)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .orukeet)))
@@ -199,54 +239,23 @@ final class ModelSpeechPreviewTests: XCTestCase {
             XCTAssertNotNil(ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: kind)), kind.rawValue)
             XCTAssertNil(ModelSpeechPreview.appleSpeechLocale(for: ASRConfig(kind: kind)), kind.rawValue)
         }
-    }
 
-    /// The recording window's notice names the model in one short phrase; the
-    /// longer Settings reason keeps its alternatives.
-    func testRecordingNoticeNamesTheUnsupportedModel() {
+        // The recording window's notice names the model in one short phrase; the
+        // longer Settings reason keeps its alternatives.
         let whisper = ASRConfig(kind: .whisperKit)
         let notice = try? XCTUnwrap(ModelSpeechPreview.recordingNotice(for: whisper))
         XCTAssertEqual(notice, "\(whisper.modelDisplayName) doesn’t support live text")
         XCTAssertNotEqual(notice, ModelSpeechPreview.unavailableReason(for: whisper))
         XCTAssertNil(ModelSpeechPreview.recordingNotice(for: ASRConfig(kind: .apple, appleLocale: "en-US", language: "")))
-    }
 
-    /// Apple Speech never decodes through the factory, but previews with its own
-    /// analyzer in the model's effective locale, so it is not unavailable.
-    func testAppleSpeechModelPreviewsThroughAppleAnalyzer() {
+        // Apple Speech never decodes through the factory, but previews with its own
+        // analyzer in the model's effective locale, so it is not unavailable.
         let apple = ASRConfig(kind: .apple, appleLocale: "ja-JP", language: "")
         XCTAssertFalse(ModelSpeechPreview.supports(apple))
         XCTAssertEqual(ModelSpeechPreview.appleSpeechLocale(for: apple), "ja-JP")
         XCTAssertNil(ModelSpeechPreview.unavailableReason(for: apple, installed: false))
         let mandarin = ASRConfig(kind: .apple, appleLocale: "zh-TW", language: "zh", chineseScript: .simplified)
         XCTAssertEqual(ModelSpeechPreview.appleSpeechLocale(for: mandarin), "zh-CN")
-    }
-
-    func testMeetingMixerAveragesTracksOnOneTimeline() {
-        let output = Locked<[Float]>([])
-        let mixer = MeetingPreviewMixer(lagSeconds: 0.1) { chunk in output.withLock { $0.append(contentsOf: chunk) } }
-        // Capture delivers both tracks in small interleaved chunks (20 ms here) for 0.5 s.
-        for index in 0..<25 {
-            let offset = Double(index) * 0.02
-            mixer.append([Float](repeating: 0.4, count: 320), track: .microphone, at: offset)
-            mixer.append([Float](repeating: 0.2, count: 320), track: .system, at: offset)
-        }
-        let mixed = output.value
-        XCTAssertEqual(mixed.count, 8_000 - 1_600, "Audio newer than the lag waits for the other track")
-        // Both sources cover every emitted sample, so each is their average (the saved mix rule).
-        XCTAssertTrue(mixed.allSatisfy { abs($0 - 0.3) < 1e-6 })
-        // Late audio for an emitted span never reappears.
-        mixer.append([Float](repeating: 0.9, count: 800), track: .system, at: 0)
-        XCTAssertEqual(output.value.count, 6_400)
-        // A single source keeps its level.
-        let single = Locked<[Float]>([])
-        let solo = MeetingPreviewMixer(lagSeconds: 0) { chunk in single.withLock { $0.append(contentsOf: chunk) } }
-        solo.append([Float](repeating: 0.25, count: 1_600), track: .system, at: 1)
-        XCTAssertEqual(single.value.count, 17_600, "Leading time before the first chunk is silence on the timeline")
-        XCTAssertEqual(single.value.suffix(1_600).allSatisfy { $0 == 0.25 }, true)
-        mixer.finish()
-        mixer.append([Float](repeating: 0.4, count: 16_000), track: .microphone, at: 0.5)
-        XCTAssertEqual(output.value.count, 6_400)
     }
 
     // MARK: - Helpers

@@ -7,107 +7,113 @@ import XCTest
 /// fine-tune, the only SenseVoice through 0.11.0, keeps its exact IDs as
 /// "SenseVoice Cantonese" so existing selections never change model.
 final class SenseVoiceArtifactTests: XCTestCase {
-    func testExistingSelectionsKeepTheirExactEngineIDAndArtifact() throws {
-        // A 0.11.0 settings blob: kind "senseVoice", no artifact field.
-        let legacy = try JSONDecoder().decode(ASRConfig.self, from: Data(#"{"kind":"senseVoice","language":"zh"}"#.utf8))
-        XCTAssertEqual(legacy.kind, .senseVoice)
-        XCTAssertEqual(legacy.engineID, "sherpa-onnx:senseVoice")
-        XCTAssertEqual(LocalModels.folder(for: legacy)?.lastPathComponent,
-                       "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09")
-        XCTAssertEqual(legacy.modelDisplayName, "SenseVoice Cantonese")
-        XCTAssertEqual(SherpaTranscriber(model: .senseVoice).id, legacy.engineID)
-
-        // A profile binding saved by 0.11.0 resolves to the same artifact.
-        let binding = try JSONDecoder().decode(ProfileSpeechModel.self,
-                                               from: Data(#"{"kind":"senseVoice","model":""}"#.utf8))
-        XCTAssertEqual(binding.applying(to: ASRConfig(kind: .qwen3)).engineID, "sherpa-onnx:senseVoice")
-
-        // Meetings documents and settings saved with "senseVoice" keep the Cantonese engine.
-        let media = try JSONDecoder().decode(MediaConfiguration.self,
-                                             from: Data(#"{"engine":"local","whisperModel":"large-v3-v20240930_turbo","language":"","identifySpeakers":false,"localModel":"senseVoice"}"#.utf8))
-        XCTAssertEqual(media.selectedLocalModel.kind, .senseVoice)
-        XCTAssertEqual(media.asr.engineID, "sherpa-onnx:senseVoice")
-        XCTAssertEqual(media.selectedModelTitle, "SenseVoice Cantonese")
-    }
-
-    func testMultilingualArtifactHasItsOwnIdentityFolderAndBinding() throws {
-        let config = ASRConfig(kind: .senseVoiceMultilingual)
-        XCTAssertEqual(config.engineID, "sherpa-onnx:senseVoiceMultilingual")
-        XCTAssertEqual(SherpaTranscriber(model: .senseVoiceMultilingual).id, config.engineID)
-        XCTAssertEqual(LocalModels.folder(for: config)?.lastPathComponent,
-                       "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17")
-        XCTAssertNotEqual(LocalModels.folder(for: config), LocalModels.folder(for: ASRConfig(kind: .senseVoice)))
-        XCTAssertEqual(config.modelDisplayName, "SenseVoice")
-        XCTAssertTrue(ModelSpeechPreview.supports(config))
-
-        let binding = ProfileSpeechModel(config: config)
-        let decoded = try JSONDecoder().decode(ProfileSpeechModel.self, from: JSONEncoder().encode(binding))
-        XCTAssertEqual(decoded.applying(to: ASRConfig(kind: .senseVoice)).kind, .senseVoiceMultilingual)
-
-        var media = MediaConfiguration()
-        media.selectModelChoice(MediaConfiguration.LocalModel.senseVoiceMultilingual.rawValue)
-        XCTAssertEqual(media.asr.kind, .senseVoiceMultilingual)
-        XCTAssertEqual(media.asr.engineID, "sherpa-onnx:senseVoiceMultilingual")
-        XCTAssertEqual(MediaConfiguration.LocalModel.senseVoice.rawValue, "senseVoice")
-    }
-
-    func testMultilingualArchiveIsPinnedByURLBytesAndDigest() {
-        let model = SherpaTranscriber.Model.senseVoiceMultilingual
-        XCTAssertEqual(model.archiveURL.absoluteString,
-                       "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2")
-        XCTAssertEqual(model.archiveBytes, 163_002_883)
-        XCTAssertEqual(model.archiveSHA256, "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e")
-        XCTAssertEqual(model.sizeLabel, "163 MB")
-        XCTAssertEqual(SherpaTranscriber.Model.senseVoice.archiveBytes, 165_783_878)
-        for model in SherpaTranscriber.Model.allCases { XCTAssertGreaterThan(model.archiveBytes, 100_000_000) }
-        XCTAssertTrue(model.isSenseVoice && SherpaTranscriber.Model.senseVoice.isSenseVoice)
-        XCTAssertFalse(SherpaTranscriber.Model.fireRed.isSenseVoice)
-    }
-
-    /// A download with the wrong size is rejected before hashing or unpacking.
-    func testArchiveWithDifferentSizeNeverReachesTheModelFolder() async throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-sensevoice-size-\(UUID())")
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
-        let candidate = root.appendingPathComponent("candidate")
-        try Data("short archive".utf8).write(to: candidate)
+    /// Existing selections keep their exact engine ID and artifact; the multilingual artifact has its own
+    /// identity, folder and binding; both artifacts run the SenseVoice decoder with the selected language token.
+    func testArtifactsKeepTheirOwnIdentityFolderBindingAndNativeConfiguration() throws {
         do {
-            try await ModelDownloader.installSherpaArchive(candidate, model: .senseVoiceMultilingual,
-                                                           root: root.appendingPathComponent("models")) { _ in }
-            XCTFail("A size mismatch must fail")
-        } catch ModelDownloader.DownloadError.checksumMismatch {
-        } catch { XCTFail("Unexpected error: \(error)") }
-        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("models").path))
-    }
+            // A 0.11.0 settings blob: kind "senseVoice", no artifact field.
+            let legacy = try JSONDecoder().decode(ASRConfig.self, from: Data(#"{"kind":"senseVoice","language":"zh"}"#.utf8))
+            XCTAssertEqual(legacy.kind, .senseVoice)
+            XCTAssertEqual(legacy.engineID, "sherpa-onnx:senseVoice")
+            XCTAssertEqual(LocalModels.folder(for: legacy)?.lastPathComponent,
+                           "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09")
+            XCTAssertEqual(legacy.modelDisplayName, "SenseVoice Cantonese")
+            XCTAssertEqual(SherpaTranscriber(model: .senseVoice).id, legacy.engineID)
 
-    /// Both artifacts run the SenseVoice decoder with the selected language token.
-    func testBothArtifactsUseTheSenseVoiceNativeConfiguration() throws {
-        for model in [SherpaTranscriber.Model.senseVoice, .senseVoiceMultilingual] {
-            let configuration = try SherpaTranscriber.RecognizerConfiguration(model: model, hints: .init(language: "yue"))
-            try configuration.withCConfiguration(folder: URL(fileURLWithPath: "/fixture"), files: ["model.int8.onnx"]) { native in
-                XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.model_type)), "sense_voice")
-                XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.sense_voice.language)), "yue")
-                XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.sense_voice.model)), "/fixture/model.int8.onnx")
+            // A profile binding saved by 0.11.0 resolves to the same artifact.
+            let binding = try JSONDecoder().decode(ProfileSpeechModel.self,
+                                                   from: Data(#"{"kind":"senseVoice","model":""}"#.utf8))
+            XCTAssertEqual(binding.applying(to: ASRConfig(kind: .qwen3)).engineID, "sherpa-onnx:senseVoice")
+
+            // Meetings documents and settings saved with "senseVoice" keep the Cantonese engine.
+            let media = try JSONDecoder().decode(MediaConfiguration.self,
+                                                 from: Data(#"{"engine":"local","whisperModel":"large-v3-v20240930_turbo","language":"","identifySpeakers":false,"localModel":"senseVoice"}"#.utf8))
+            XCTAssertEqual(media.selectedLocalModel.kind, .senseVoice)
+            XCTAssertEqual(media.asr.engineID, "sherpa-onnx:senseVoice")
+            XCTAssertEqual(media.selectedModelTitle, "SenseVoice Cantonese")
+        }
+        do {
+            let config = ASRConfig(kind: .senseVoiceMultilingual)
+            XCTAssertEqual(config.engineID, "sherpa-onnx:senseVoiceMultilingual")
+            XCTAssertEqual(SherpaTranscriber(model: .senseVoiceMultilingual).id, config.engineID)
+            XCTAssertEqual(LocalModels.folder(for: config)?.lastPathComponent,
+                           "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17")
+            XCTAssertNotEqual(LocalModels.folder(for: config), LocalModels.folder(for: ASRConfig(kind: .senseVoice)))
+            XCTAssertEqual(config.modelDisplayName, "SenseVoice")
+            XCTAssertTrue(ModelSpeechPreview.supports(config))
+
+            let binding = ProfileSpeechModel(config: config)
+            let decoded = try JSONDecoder().decode(ProfileSpeechModel.self, from: JSONEncoder().encode(binding))
+            XCTAssertEqual(decoded.applying(to: ASRConfig(kind: .senseVoice)).kind, .senseVoiceMultilingual)
+
+            var media = MediaConfiguration()
+            media.selectModelChoice(MediaConfiguration.LocalModel.senseVoiceMultilingual.rawValue)
+            XCTAssertEqual(media.asr.kind, .senseVoiceMultilingual)
+            XCTAssertEqual(media.asr.engineID, "sherpa-onnx:senseVoiceMultilingual")
+            XCTAssertEqual(MediaConfiguration.LocalModel.senseVoice.rawValue, "senseVoice")
+        }
+        do {
+            for model in [SherpaTranscriber.Model.senseVoice, .senseVoiceMultilingual] {
+                let configuration = try SherpaTranscriber.RecognizerConfiguration(model: model, hints: .init(language: "yue"))
+                try configuration.withCConfiguration(folder: URL(fileURLWithPath: "/fixture"), files: ["model.int8.onnx"]) { native in
+                    XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.model_type)), "sense_voice")
+                    XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.sense_voice.language)), "yue")
+                    XCTAssertEqual(String(cString: try XCTUnwrap(native.model_config.sense_voice.model)), "/fixture/model.int8.onnx")
+                }
             }
         }
     }
 
-    func testMeetingsOfferTheCantoneseArtifactOnlyWhenItIsAlreadySelected() {
-        let offered = MediaConfiguration.modelChoices.map(\.id)
-        XCTAssertTrue(offered.contains("senseVoiceMultilingual"))
-        XCTAssertFalse(offered.contains("senseVoice"))
-        XCTAssertTrue(MediaConfiguration.modelChoices(keeping: "senseVoice").map(\.id).contains("senseVoice"))
-        XCTAssertEqual(MediaConfiguration.modelChoices(keeping: "senseVoice").first { $0.id == "senseVoice" }?.title,
-                       "SenseVoice Cantonese")
+    /// The multilingual archive is pinned by URL, bytes and digest; a download with the wrong size is
+    /// rejected before hashing or unpacking.
+    func testMultilingualArchiveIsPinnedAndAWrongSizeNeverReachesTheModelFolder() async throws {
+        do {
+            let model = SherpaTranscriber.Model.senseVoiceMultilingual
+            XCTAssertEqual(model.archiveURL.absoluteString,
+                           "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2")
+            XCTAssertEqual(model.archiveBytes, 163_002_883)
+            XCTAssertEqual(model.archiveSHA256, "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e")
+            XCTAssertEqual(model.sizeLabel, "163 MB")
+            XCTAssertEqual(SherpaTranscriber.Model.senseVoice.archiveBytes, 165_783_878)
+            for model in SherpaTranscriber.Model.allCases { XCTAssertGreaterThan(model.archiveBytes, 100_000_000) }
+            XCTAssertTrue(model.isSenseVoice && SherpaTranscriber.Model.senseVoice.isSenseVoice)
+            XCTAssertFalse(SherpaTranscriber.Model.fireRed.isSenseVoice)
+        }
+        do {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-sensevoice-size-\(UUID())")
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let candidate = root.appendingPathComponent("candidate")
+            try Data("short archive".utf8).write(to: candidate)
+            do {
+                try await ModelDownloader.installSherpaArchive(candidate, model: .senseVoiceMultilingual,
+                                                               root: root.appendingPathComponent("models")) { _ in }
+                XCTFail("A size mismatch must fail")
+            } catch ModelDownloader.DownloadError.checksumMismatch {
+            } catch { XCTFail("Unexpected error: \(error)") }
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("models").path))
+        }
     }
 
-    func testChineseRecommendationPointsAtTheMultilingualArtifact() {
-        XCTAssertEqual(LocalSpeechRecommendation.Model.senseVoice.catalogueID, "sherpa:senseVoiceMultilingual")
-        let small = LocalModelShortlist.make(languageCode: "zh-Hant-TW", physicalMemory: 8 << 30)
-        XCTAssertEqual(small.picks.first?.id, "sherpa:senseVoiceMultilingual")
-        for code in ["zh-Hant-TW", "zh-Hans", "ja", "ko", "en"] {
-            XCTAssertFalse(LocalModelShortlist.make(languageCode: code, physicalMemory: 8 << 30).ids.contains("sherpa:senseVoice"), code)
-            XCTAssertFalse(LocalModelShortlist.make(languageCode: code, physicalMemory: 32 << 30).ids.contains("sherpa:senseVoice"), code)
+    /// Meetings offer the Cantonese artifact only when it is already selected; the Chinese recommendation
+    /// points at the multilingual artifact.
+    func testMeetingsAndRecommendationsOfferCantoneseOnlyWhenAlreadySelected() {
+        do {
+            let offered = MediaConfiguration.modelChoices.map(\.id)
+            XCTAssertTrue(offered.contains("senseVoiceMultilingual"))
+            XCTAssertFalse(offered.contains("senseVoice"))
+            XCTAssertTrue(MediaConfiguration.modelChoices(keeping: "senseVoice").map(\.id).contains("senseVoice"))
+            XCTAssertEqual(MediaConfiguration.modelChoices(keeping: "senseVoice").first { $0.id == "senseVoice" }?.title,
+                           "SenseVoice Cantonese")
+        }
+        do {
+            XCTAssertEqual(LocalSpeechRecommendation.Model.senseVoice.catalogueID, "sherpa:senseVoiceMultilingual")
+            let small = LocalModelShortlist.make(languageCode: "zh-Hant-TW", physicalMemory: 8 << 30)
+            XCTAssertEqual(small.picks.first?.id, "sherpa:senseVoiceMultilingual")
+            for code in ["zh-Hant-TW", "zh-Hans", "ja", "ko", "en"] {
+                XCTAssertFalse(LocalModelShortlist.make(languageCode: code, physicalMemory: 8 << 30).ids.contains("sherpa:senseVoice"), code)
+                XCTAssertFalse(LocalModelShortlist.make(languageCode: code, physicalMemory: 32 << 30).ids.contains("sherpa:senseVoice"), code)
+            }
         }
     }
 }
@@ -123,39 +129,40 @@ final class SenseVoicePreparationTests: XCTestCase {
         super.tearDown()
     }
 
-    func testPreparationBuildsTheAnticipatedLanguage() throws {
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
-        let prepared = try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual)
-        XCTAssertEqual(prepared.language, "ja")
-        XCTAssertEqual(prepared, try Configuration(model: .senseVoiceMultilingual, hints: .init(language: "ja")),
-                       "The dictation's own configuration must equal the prewarmed one")
+    /// Preparation builds the anticipated language, falls back to Auto for a language the model cannot use,
+    /// keeps the vocabulary choice with the language, and a language change still requires a rebuild.
+    func testPreparationBuildsTheAnticipatedLanguageAndVocabularyChoice() throws {
+        do {
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
+            let prepared = try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual)
+            XCTAssertEqual(prepared.language, "ja")
+            XCTAssertEqual(prepared, try Configuration(model: .senseVoiceMultilingual, hints: .init(language: "ja")),
+                           "The dictation's own configuration must equal the prewarmed one")
 
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "zh"))
-        XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoice).language, "zh")
-        SherpaTranscriber.anticipate(TranscriptionHints(language: nil))
-        XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).language)
-    }
-
-    func testLanguageTheModelCannotUseFallsBackToAutoInsteadOfFailing() throws {
-        // The Cantonese artifact does not offer Japanese; Parakeet takes no language.
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
-        XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoice).language)
-        XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .parakeet).language)
-        XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .fireRed).language)
-    }
-
-    func testAnticipationKeepsTheVocabularyChoiceWithTheLanguage() throws {
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"]))
-        XCTAssertTrue(try SherpaTranscriber.anticipatedConfiguration(for: .parakeet).hotwordDecoding)
-        XCTAssertFalse(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).hotwordDecoding)
-        XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).language, "en")
-    }
-
-    func testChangingLanguageStillRequiresARebuild() throws {
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
-        let prepared = try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual)
-        XCTAssertNotEqual(prepared, try Configuration(model: .senseVoiceMultilingual, hints: .init(language: "ko")))
-        XCTAssertNotEqual(prepared, try Configuration(model: .senseVoiceMultilingual))
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "zh"))
+            XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoice).language, "zh")
+            SherpaTranscriber.anticipate(TranscriptionHints(language: nil))
+            XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).language)
+        }
+        do {
+            // The Cantonese artifact does not offer Japanese; Parakeet takes no language.
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
+            XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoice).language)
+            XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .parakeet).language)
+            XCTAssertNil(try SherpaTranscriber.anticipatedConfiguration(for: .fireRed).language)
+        }
+        do {
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"]))
+            XCTAssertTrue(try SherpaTranscriber.anticipatedConfiguration(for: .parakeet).hotwordDecoding)
+            XCTAssertFalse(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).hotwordDecoding)
+            XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual).language, "en")
+        }
+        do {
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "ja"))
+            let prepared = try SherpaTranscriber.anticipatedConfiguration(for: .senseVoiceMultilingual)
+            XCTAssertNotEqual(prepared, try Configuration(model: .senseVoiceMultilingual, hints: .init(language: "ko")))
+            XCTAssertNotEqual(prepared, try Configuration(model: .senseVoiceMultilingual))
+        }
     }
 }
 
@@ -169,27 +176,28 @@ final class SherpaPrewarmAndHotwordFallbackTests: XCTestCase {
         super.tearDown()
     }
 
-    /// Live preview compares the loaded recognizer with the recording's own
-    /// hints (`isWarm`). The prewarm now builds exactly that configuration, so
-    /// the first session's preview is not skipped for an explicit language.
-    func testPrewarmConfigurationMatchesTheFirstSessionsPreviewHints() throws {
-        for (model, language) in [(SherpaTranscriber.Model.senseVoiceMultilingual, "ja"), (.senseVoiceMultilingual, "ko"),
-                                  (.senseVoice, "yue"), (.senseVoice, "zh")] {
-            let hints = TranscriptionHints(language: language)
-            SherpaTranscriber.anticipate(hints)
-            XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: model), try Configuration(model: model, hints: hints),
-                           "\(model) \(language)")
+    /// Live preview compares the loaded recognizer with the recording's own hints (`isWarm`). The prewarm
+    /// now builds exactly that configuration, so the first session's preview is not skipped for an explicit
+    /// language. The greedy fallback keeps the language and drops only the hotword decoder.
+    func testPrewarmMatchesPreviewHintsAndGreedyFallbackDropsOnlyHotwords() throws {
+        do {
+            for (model, language) in [(SherpaTranscriber.Model.senseVoiceMultilingual, "ja"), (.senseVoiceMultilingual, "ko"),
+                                      (.senseVoice, "yue"), (.senseVoice, "zh")] {
+                let hints = TranscriptionHints(language: language)
+                SherpaTranscriber.anticipate(hints)
+                XCTAssertEqual(try SherpaTranscriber.anticipatedConfiguration(for: model), try Configuration(model: model, hints: hints),
+                               "\(model) \(language)")
+            }
         }
-    }
-
-    func testGreedyFallbackKeepsLanguageAndDropsOnlyTheHotwordDecoder() throws {
-        let hotwords = try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"]))
-        XCTAssertTrue(hotwords.hotwordDecoding)
-        let greedy = hotwords.withoutHotwords
-        XCTAssertFalse(greedy.hotwordDecoding)
-        XCTAssertEqual(greedy, try Configuration(model: .parakeet, hints: .init(language: "en")))
-        try greedy.withCConfiguration(folder: URL(fileURLWithPath: "/fixture"), files: ["encoder.int8.onnx"]) { native in
-            XCTAssertEqual(String(cString: try XCTUnwrap(native.decoding_method)), "greedy_search")
+        do {
+            let hotwords = try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"]))
+            XCTAssertTrue(hotwords.hotwordDecoding)
+            let greedy = hotwords.withoutHotwords
+            XCTAssertFalse(greedy.hotwordDecoding)
+            XCTAssertEqual(greedy, try Configuration(model: .parakeet, hints: .init(language: "en")))
+            try greedy.withCConfiguration(folder: URL(fileURLWithPath: "/fixture"), files: ["encoder.int8.onnx"]) { native in
+                XCTAssertEqual(String(cString: try XCTUnwrap(native.decoding_method)), "greedy_search")
+            }
         }
     }
 

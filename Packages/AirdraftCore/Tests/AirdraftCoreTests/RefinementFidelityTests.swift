@@ -9,259 +9,268 @@ final class RefinementFidelityTests: XCTestCase {
 
     // MARK: - Guard
 
-    func testRejectsEarlierDictationReturnedForNewSpeech() {
-        for transcript in ["我也想問你,所以", "這是什麼意思?"] {
+    /// Rejects an earlier dictation returned for new speech; accepts a speaker repeating the same
+    /// sentence and unrelated English dictations.
+    func testRepeatCheckRejectsEarlierDictationsButNotSpokenRepeatsOrUnrelatedText() {
+        do {
+            for transcript in ["我也想問你,所以", "這是什麼意思?"] {
+                XCTAssertEqual(RefinementFidelity.violation(
+                    output: "Floze: What is the English expression for the recessed and protruding effects of Numorphism style?",
+                    transcript: transcript, recentDictations: [echoed, echoed], allowsLanguageChange: false),
+                    .repeatsEarlierDictation, transcript)
+            }
             XCTAssertEqual(RefinementFidelity.violation(
-                output: "Floze: What is the English expression for the recessed and protruding effects of Numorphism style?",
-                transcript: transcript, recentDictations: [echoed, echoed], allowsLanguageChange: false),
-                .repeatsEarlierDictation, transcript)
+                output: "Please send the quarterly report to Anna before Friday.",
+                transcript: "can you check whether the build passed on main",
+                recentDictations: ["Please send the quarterly report to Anna before Friday."], allowsLanguageChange: false),
+                .repeatsEarlierDictation)
         }
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "Please send the quarterly report to Anna before Friday.",
-            transcript: "can you check whether the build passed on main",
-            recentDictations: ["Please send the quarterly report to Anna before Friday."], allowsLanguageChange: false),
-            .repeatsEarlierDictation)
-    }
-
-    func testAcceptsSpeakerRepeatingTheSameSentence() {
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "所以現在的結果是如何？", transcript: "所以現在的結果是如何?",
-            recentDictations: ["所以現在的結果是如何？"], allowsLanguageChange: false))
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "Hello, can you hear me?", transcript: "hello can you hear me",
-            recentDictations: ["Hello, can you hear me?"], allowsLanguageChange: false))
-    }
-
-    func testUnrelatedEnglishDictationsAreNotMistakenForCopies() {
-        let earlier = "I want you to do a comprehensive survey of the interface design and for mainly two parts, the microphone pop-up and the purchase pop-up."
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "What does the dash only mean after a GPL 3.0 license name?",
-            transcript: "What does the dash only mean after a GPAL 3.0 license name?",
-            recentDictations: [earlier], allowsLanguageChange: false))
-    }
-
-    func testRejectsTranslationOfChineseSpeech() {
-        let transcript = "另外我也想問你,Numorphism style它的凹陷跟凸起效果用英文應該怎麼表達?"
-        XCTAssertEqual(RefinementFidelity.violation(output: echoed, transcript: transcript, recentDictations: [],
-                                                    allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "Additionally, how should the recessed and protruding effects of the Numorphism style be expressed in English?",
-            transcript: transcript, recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "Should we deploy the new build today?", transcript: "我們今天要部署新版本嗎",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "我們今天要部署新版本嗎？", transcript: "should we deploy the new build today",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-    }
-
-    /// The p15 Japanese check: under the Traditional script rule the model returned
-    /// Chinese for Japanese speech, which kept the CJK share and passed unnoticed.
-    func testRejectsJapaneseOrKoreanSpeechReturnedAsChinese() {
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "來週的會議中，將彙整並分享國內的銷售數字。",
-            transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "新的廣告效果，我們來月再觀察一下。", transcript: "あの、新しい広告の効果は来月まで様子を見ましょう。",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "我們明天開會吧。", transcript: "내일 회의를 합시다",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "明日会議をしましょう。", transcript: "我們明天開會吧",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-        // Cleanup that keeps the language passes, including kanji-only fragments.
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "来週の会議では、国内の売上の数字をまとめて共有します。",
-            transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
-            recentDictations: [], allowsLanguageChange: false))
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "내일 회의를 합시다.", transcript: "내일 회의를 합시다",
-            recentDictations: [], allowsLanguageChange: false))
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "東京大学", transcript: "東京大学",
-            recentDictations: [], allowsLanguageChange: false))
-    }
-
-    func testAcceptsCleanupThatKeepsMixedLanguage() {
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "另外我也想問你，Numorphism style 的凹陷跟凸起效果用英文應該怎麼表達？",
-            transcript: "另外我也想問你,Numorphism style它的凹陷跟凸起效果用英文應該怎麼表達?",
-            recentDictations: [], allowsLanguageChange: false))
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "你認為 Buy Me a Coffee 會跟我所提供的 subscription 訂閱服務產生衝突嗎？",
-            transcript: "你認為,Buy me a coffee會跟我所提供的subscription訂閱服務產生衝突嗎?",
-            recentDictations: [], allowsLanguageChange: false))
-        XCTAssertNil(RefinementFidelity.violation(
-            output: "接下來請一律以繁體中文回答。你已調查過即時聽寫，結論是需要支援即時聽寫模型。",
-            transcript: "接下來請都用繁體中文來回答我的問題。OK,所以你已經去調查了real-time dictation,那調查結果是說需要支援real-time",
-            recentDictations: [], allowsLanguageChange: false))
-    }
-
-    func testRejectsTranslationBetweenOtherScriptsAndEnglish() {
-        let cases: [(transcript: String, output: String)] = [
-            ("пожалуйста отправь отчёт анне до пятницы и напомни про встречу", "Please send the report to Anna before Friday and remind her about the meeting."),
-            ("أرسل التقرير إلى آنا قبل يوم الجمعة وذكرها بالاجتماع", "Send the report to Anna before Friday and remind her about the meeting."),
-            ("कृपया शुक्रवार से पहले अन्ना को रिपोर्ट भेज दो और मीटिंग याद दिला दो", "Please send the report to Anna before Friday and remind her about the meeting."),
-            ("please send the report to anna before friday and remind her about the meeting", "Пожалуйста, отправь отчёт Анне до пятницы и напомни про встречу."),
-        ]
-        for (transcript, output) in cases {
-            XCTAssertEqual(RefinementFidelity.violation(output: output, transcript: transcript,
-                                                        recentDictations: [], allowsLanguageChange: false),
-                           .changesLanguage, transcript)
+        do {
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "所以現在的結果是如何？", transcript: "所以現在的結果是如何?",
+                recentDictations: ["所以現在的結果是如何？"], allowsLanguageChange: false))
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "Hello, can you hear me?", transcript: "hello can you hear me",
+                recentDictations: ["Hello, can you hear me?"], allowsLanguageChange: false))
+        }
+        do {
+            let earlier = "I want you to do a comprehensive survey of the interface design and for mainly two parts, the microphone pop-up and the purchase pop-up."
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "What does the dash only mean after a GPL 3.0 license name?",
+                transcript: "What does the dash only mean after a GPAL 3.0 license name?",
+                recentDictations: [earlier], allowsLanguageChange: false))
         }
     }
 
-    func testRejectsSpanishSpeechReturnedInEnglish() {
-        XCTAssertEqual(RefinementFidelity.violation(
-            output: "Tell María the draft will arrive tomorrow morning and that we will review it together on Friday.",
-            transcript: "eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
-            recentDictations: [], allowsLanguageChange: false), .changesLanguage)
-    }
-
-    func testAcceptsCleanupInOtherLanguagesAndMixedEnglish() {
-        let cases: [(transcript: String, output: String)] = [
-            ("eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
-             "Dile a María que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes."),
-            ("mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release",
-             "Mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release."),
-            ("пожалуйста отправь отчёт анне до пятницы через slack", "Пожалуйста, отправь отчёт Анне до пятницы через Slack."),
-            ("कल की मीटिंग में हम नया dashboard और API review करेंगे", "कल की मीटिंग में हम नया dashboard और API review करेंगे।"),
-            ("明日の会議で新しい dashboard と API を確認します", "明日の会議で新しい dashboard と API を確認します。"),
-        ]
-        for (transcript, output) in cases {
-            XCTAssertNil(RefinementFidelity.violation(output: output, transcript: transcript,
-                                                      recentDictations: [], allowsLanguageChange: false), transcript)
+    /// Rejects translations of Chinese speech, Japanese or Korean speech returned as Chinese (the p15
+    /// Japanese check: under the Traditional script rule the model returned Chinese for Japanese speech,
+    /// which kept the CJK share and passed unnoticed), other scripts to and from English, and Spanish to English.
+    func testRejectsTranslationsAcrossScriptsAndLatinLanguages() {
+        do {
+            let transcript = "另外我也想問你,Numorphism style它的凹陷跟凸起效果用英文應該怎麼表達?"
+            XCTAssertEqual(RefinementFidelity.violation(output: echoed, transcript: transcript, recentDictations: [],
+                                                        allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "Additionally, how should the recessed and protruding effects of the Numorphism style be expressed in English?",
+                transcript: transcript, recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "Should we deploy the new build today?", transcript: "我們今天要部署新版本嗎",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "我們今天要部署新版本嗎？", transcript: "should we deploy the new build today",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+        }
+        do {
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "來週的會議中，將彙整並分享國內的銷售數字。",
+                transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "新的廣告效果，我們來月再觀察一下。", transcript: "あの、新しい広告の効果は来月まで様子を見ましょう。",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "我們明天開會吧。", transcript: "내일 회의를 합시다",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "明日会議をしましょう。", transcript: "我們明天開會吧",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
+            // Cleanup that keeps the language passes, including kanji-only fragments.
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "来週の会議では、国内の売上の数字をまとめて共有します。",
+                transcript: "えーと、来週の会議では国内の売上の数字をまとめて共有します。",
+                recentDictations: [], allowsLanguageChange: false))
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "내일 회의를 합시다.", transcript: "내일 회의를 합시다",
+                recentDictations: [], allowsLanguageChange: false))
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "東京大学", transcript: "東京大学",
+                recentDictations: [], allowsLanguageChange: false))
+        }
+        do {
+            let cases: [(transcript: String, output: String)] = [
+                ("пожалуйста отправь отчёт анне до пятницы и напомни про встречу", "Please send the report to Anna before Friday and remind her about the meeting."),
+                ("أرسل التقرير إلى آنا قبل يوم الجمعة وذكرها بالاجتماع", "Send the report to Anna before Friday and remind her about the meeting."),
+                ("कृपया शुक्रवार से पहले अन्ना को रिपोर्ट भेज दो और मीटिंग याद दिला दो", "Please send the report to Anna before Friday and remind her about the meeting."),
+                ("please send the report to anna before friday and remind her about the meeting", "Пожалуйста, отправь отчёт Анне до пятницы и напомни про встречу."),
+            ]
+            for (transcript, output) in cases {
+                XCTAssertEqual(RefinementFidelity.violation(output: output, transcript: transcript,
+                                                            recentDictations: [], allowsLanguageChange: false),
+                               .changesLanguage, transcript)
+            }
+        }
+        do {
+            XCTAssertEqual(RefinementFidelity.violation(
+                output: "Tell María the draft will arrive tomorrow morning and that we will review it together on Friday.",
+                transcript: "eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
+                recentDictations: [], allowsLanguageChange: false), .changesLanguage)
         }
     }
 
-    func testTaskOrSelectedTextMayChangeLanguage() {
-        XCTAssertNil(RefinementFidelity.violation(output: "Should we deploy the new build today?",
-            transcript: "我們今天要部署新版本嗎", recentDictations: [], allowsLanguageChange: true))
+    /// Accepts cleanup that keeps mixed language or another language with English, and a language
+    /// change a TASK or selected text asks for.
+    func testAcceptsSameLanguageCleanupAndRequestedLanguageChange() {
+        do {
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "另外我也想問你，Numorphism style 的凹陷跟凸起效果用英文應該怎麼表達？",
+                transcript: "另外我也想問你,Numorphism style它的凹陷跟凸起效果用英文應該怎麼表達?",
+                recentDictations: [], allowsLanguageChange: false))
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "你認為 Buy Me a Coffee 會跟我所提供的 subscription 訂閱服務產生衝突嗎？",
+                transcript: "你認為,Buy me a coffee會跟我所提供的subscription訂閱服務產生衝突嗎?",
+                recentDictations: [], allowsLanguageChange: false))
+            XCTAssertNil(RefinementFidelity.violation(
+                output: "接下來請一律以繁體中文回答。你已調查過即時聽寫，結論是需要支援即時聽寫模型。",
+                transcript: "接下來請都用繁體中文來回答我的問題。OK,所以你已經去調查了real-time dictation,那調查結果是說需要支援real-time",
+                recentDictations: [], allowsLanguageChange: false))
+        }
+        do {
+            let cases: [(transcript: String, output: String)] = [
+                ("eh dile a maría que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes",
+                 "Dile a María que el borrador llega mañana por la mañana y que lo revisamos juntos el viernes."),
+                ("mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release",
+                 "Mañana tengo un meeting con el team para revisar el deployment del nuevo feature antes del release."),
+                ("пожалуйста отправь отчёт анне до пятницы через slack", "Пожалуйста, отправь отчёт Анне до пятницы через Slack."),
+                ("कल की मीटिंग में हम नया dashboard और API review करेंगे", "कल की मीटिंग में हम नया dashboard और API review करेंगे।"),
+                ("明日の会議で新しい dashboard と API を確認します", "明日の会議で新しい dashboard と API を確認します。"),
+            ]
+            for (transcript, output) in cases {
+                XCTAssertNil(RefinementFidelity.violation(output: output, transcript: transcript,
+                                                          recentDictations: [], allowsLanguageChange: false), transcript)
+            }
+        }
+        do {
+            XCTAssertNil(RefinementFidelity.violation(output: "Should we deploy the new build today?",
+                transcript: "我們今天要部署新版本嗎", recentDictations: [], allowsLanguageChange: true))
+        }
     }
 
     // MARK: - Prompt
 
-    func testRecentDictationsContributeTermsNotSentences() {
-        XCTAssertEqual(PromptBuilder.recentTerms(["今天測了 FireRedASR2 跟 SenseVoice 的中文準確度。"]),
-                       ["FireRedASR2", "SenseVoice"])
-        XCTAssertEqual(PromptBuilder.recentTerms([
-            "Gemma runs locally. We compared it with Qwen3 and Claude Code on Next.js, OK?",
-        ]), ["Qwen3", "Claude", "Code", "Next.js"])
+    /// Recent dictations contribute terms, not sentences; the OUTPUT LANGUAGE rule survives edited base rules.
+    func testPromptGetsRecentTermsNotSentencesAndKeepsOutputLanguageRule() {
+        do {
+            XCTAssertEqual(PromptBuilder.recentTerms(["今天測了 FireRedASR2 跟 SenseVoice 的中文準確度。"]),
+                           ["FireRedASR2", "SenseVoice"])
+            XCTAssertEqual(PromptBuilder.recentTerms([
+                "Gemma runs locally. We compared it with Qwen3 and Claude Code on Next.js, OK?",
+            ]), ["Qwen3", "Claude", "Code", "Next.js"])
 
-        let request = RefineRequest(
-            transcript: "我也想問你,所以", profile: RefinementProfile.defaults[1],
-            context: AppContext(bundleId: "com.openai.codex", appName: "ChatGPT", recentDictations: [echoed]),
-            family: .general, dictionary: [])
-        let user = PromptBuilder.userMessage(for: request)
-        XCTAssertFalse(user.contains("What is the English expression"))
-        XCTAssertFalse(user.contains("<recent_dictations>"))
-        XCTAssertTrue(user.contains("<recent_terms>\nEnglish, Numorphism\n</recent_terms>"))
-    }
+            let request = RefineRequest(
+                transcript: "我也想問你,所以", profile: RefinementProfile.defaults[1],
+                context: AppContext(bundleId: "com.openai.codex", appName: "ChatGPT", recentDictations: [echoed]),
+                family: .general, dictionary: [])
+            let user = PromptBuilder.userMessage(for: request)
+            XCTAssertFalse(user.contains("What is the English expression"))
+            XCTAssertFalse(user.contains("<recent_dictations>"))
+            XCTAssertTrue(user.contains("<recent_terms>\nEnglish, Numorphism\n</recent_terms>"))
+        }
+        do {
+            var request = RefineRequest(transcript: "這是什麼意思?", profile: RefinementProfile.defaults[1],
+                                        baseRules: "Clean dictation. Output only final text.",
+                                        context: .empty, family: .general, dictionary: [])
+            XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE: write in the language or languages spoken in <transcription>"))
 
-    func testOutputLanguageRuleSurvivesEditedBaseRules() {
-        var request = RefineRequest(transcript: "這是什麼意思?", profile: RefinementProfile.defaults[1],
-                                    baseRules: "Clean dictation. Output only final text.",
-                                    context: .empty, family: .general, dictionary: [])
-        XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE: write in the language or languages spoken in <transcription>"))
+            request.profile = RefinementProfile.defaults[2]
+            XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE: unless the TASK names another language"))
 
-        request.profile = RefinementProfile.defaults[2]
-        XCTAssertTrue(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE: unless the TASK names another language"))
-
-        request.context = AppContext(selectedText: "hello world")
-        XCTAssertFalse(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE"))
+            request.context = AppContext(selectedText: "hello world")
+            XCTAssertFalse(PromptBuilder.systemPrompt(for: request).contains("OUTPUT LANGUAGE"))
+        }
     }
 
     // MARK: - Pipeline
 
-    func testPipelineInsertsRawTranscriptWhenRefinementRepeatsHistory() async throws {
-        let fixture = try Fixture(transcript: "我也想問你,所以", refined: echoed)
-        defer { fixture.cleanUp() }
-        try fixture.saveEarlier(echoed)
+    /// The pipeline falls back to the raw transcript when refinement repeats history or translates,
+    /// and keeps a faithful refinement.
+    func testPipelineInsertsRawTranscriptForRepeatOrTranslationAndKeepsFaithfulRefinement() async throws {
+        do {
+            let fixture = try Fixture(transcript: "我也想問你,所以", refined: echoed)
+            defer { fixture.cleanUp() }
+            try fixture.saveEarlier(echoed)
 
-        fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
-        try await waitUntilIdle(fixture.pipeline)
+            fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
+            try await waitUntilIdle(fixture.pipeline)
 
-        XCTAssertEqual(fixture.probe.insertedTexts, ["我也想問你,所以"])
-        XCTAssertEqual(fixture.pipeline.lastIssue, "Refinement didn't match your speech; raw text inserted.")
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.finalText, "我也想問你,所以")
-        XCTAssertEqual(record.refinedText, "我也想問你,所以")
-        XCTAssertNil(record.llmEngine)
-        XCTAssertTrue(record.error?.contains("repeated an earlier dictation") == true)
-        let requests = await fixture.refiner.requests
-        let sent = try XCTUnwrap(requests.first)
-        XCTAssertFalse(PromptBuilder.userMessage(for: sent).contains("What is the English expression"))
-    }
-
-    func testPipelineInsertsRawTranscriptWhenRefinementTranslates() async throws {
-        let fixture = try Fixture(transcript: "我們今天要部署新版本嗎", refined: "Should we deploy the new build today?")
-        defer { fixture.cleanUp() }
-
-        fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
-        try await waitUntilIdle(fixture.pipeline)
-
-        XCTAssertEqual(fixture.probe.insertedTexts, ["我們今天要部署新版本嗎"])
-        XCTAssertTrue(try XCTUnwrap(fixture.history.recent().first).error?.contains("changed the language") == true)
-    }
-
-    func testPipelineKeepsFaithfulRefinement() async throws {
-        let fixture = try Fixture(transcript: "我也想問你,所以", refined: "我也想問你，所以")
-        defer { fixture.cleanUp() }
-        try fixture.saveEarlier(echoed)
-
-        fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
-        try await waitUntilIdle(fixture.pipeline)
-
-        XCTAssertEqual(fixture.probe.insertedTexts, ["我也想問你，所以"])
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(try XCTUnwrap(fixture.history.recent().first).llmEngine, "fidelity-test")
-    }
-
-    /// The delivery tail saves history after the pipeline is released. Until it
-    /// has, the delivered dictation must still reach `<recent_terms>` and the
-    /// repeat check of a recording that starts right away.
-    func testRecordingStartIncludesDeliveredDictationHistoryHasNotSaved() async throws {
-        let earlier = "Please send the quarterly report to Anna before Friday."
-        let fixture = try Fixture(transcripts: ["please send the quarterly report to anna before friday",
-                                                "can you check whether the build passed on main"],
-                                  refined: earlier, historyAvailable: false)
-        defer { fixture.cleanUp() }
-        fixture.pipeline.insertionEnabled = false
-
-        try await fixture.record()
-        XCTAssertNotNil(fixture.pipeline.historyStorageError, "The first dictation must still be unsaved")
-        XCTAssertEqual(try fixture.history.recent().count, 0)
-        try await fixture.record()
-
-        let requests = await fixture.refiner.requests
-        XCTAssertEqual(requests.count, 2)
-        XCTAssertEqual(requests.last?.context.recentDictations, [earlier],
-                       "An unsaved delivered dictation belongs to the next recording's context")
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "can you check whether the build passed on main",
-                       "A refinement that repeats the unsaved dictation falls back to the raw transcript")
-    }
-
-    func testRecentFinalsMergeSavedAndPendingOncePerApp() {
-        let now = Date()
-        func record(_ text: String, _ app: String, _ secondsAgo: TimeInterval) -> DictationRecord {
-            DictationRecord(createdAt: now.addingTimeInterval(-secondsAgo), appBundleId: app, mode: "Clean",
-                            family: "general", rawTranscript: text, refinedText: text, finalText: text, asrEngine: "fixture",
-                            audioSeconds: 1, asrMs: 1, llmMs: 1, inserted: true)
+            XCTAssertEqual(fixture.probe.insertedTexts, ["我也想問你,所以"])
+            XCTAssertEqual(fixture.pipeline.lastIssue, "Refinement didn't match your speech; raw text inserted.")
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.finalText, "我也想問你,所以")
+            XCTAssertEqual(record.refinedText, "我也想問你,所以")
+            XCTAssertNil(record.llmEngine)
+            XCTAssertTrue(record.error?.contains("repeated an earlier dictation") == true)
+            let requests = await fixture.refiner.requests
+            let sent = try XCTUnwrap(requests.first)
+            XCTAssertFalse(PromptBuilder.userMessage(for: sent).contains("What is the English expression"))
         }
-        var savedCopy = record("Second", "com.example.editor", 60)
-        // A stored date keeps only milliseconds; the pending copy must still match it.
-        savedCopy.createdAt = Date(timeIntervalSinceReferenceDate: (savedCopy.createdAt.timeIntervalSinceReferenceDate * 1000).rounded(.down) / 1000)
-        let saved = [record("Old", "com.example.editor", 30 * 60), record("First", "com.example.editor", 120),
-                     savedCopy, record("Elsewhere", "com.example.browser", 10)]
-        let pending = [record("Second", "com.example.editor", 60), record("Third", "com.example.editor", 5),
-                       record("Fourth", "com.example.editor", 1), record("Other app", "com.example.browser", 2)]
-        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now),
-                       ["Second", "Third", "Fourth"])
-        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now, limit: 5),
-                       ["First", "Second", "Third", "Fourth"])
-        XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: nil, now: now), [])
+        do {
+            let fixture = try Fixture(transcript: "我們今天要部署新版本嗎", refined: "Should we deploy the new build today?")
+            defer { fixture.cleanUp() }
+
+            fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
+            try await waitUntilIdle(fixture.pipeline)
+
+            XCTAssertEqual(fixture.probe.insertedTexts, ["我們今天要部署新版本嗎"])
+            XCTAssertTrue(try XCTUnwrap(fixture.history.recent().first).error?.contains("changed the language") == true)
+        }
+        do {
+            let fixture = try Fixture(transcript: "我也想問你,所以", refined: "我也想問你，所以")
+            defer { fixture.cleanUp() }
+            try fixture.saveEarlier(echoed)
+
+            fixture.pipeline.processSamples(Fixture.samples, context: fixture.context)
+            try await waitUntilIdle(fixture.pipeline)
+
+            XCTAssertEqual(fixture.probe.insertedTexts, ["我也想問你，所以"])
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(try XCTUnwrap(fixture.history.recent().first).llmEngine, "fidelity-test")
+        }
+    }
+
+    /// The delivery tail saves history after the pipeline is released. Until it has, the delivered
+    /// dictation must still reach `<recent_terms>` and the repeat check of a recording that starts right
+    /// away; saved and pending finals merge once per app.
+    func testRecentDictationsIncludeUnsavedDeliveriesOncePerApp() async throws {
+        do {
+            let earlier = "Please send the quarterly report to Anna before Friday."
+            let fixture = try Fixture(transcripts: ["please send the quarterly report to anna before friday",
+                                                    "can you check whether the build passed on main"],
+                                      refined: earlier, historyAvailable: false)
+            defer { fixture.cleanUp() }
+            fixture.pipeline.insertionEnabled = false
+
+            try await fixture.record()
+            XCTAssertNotNil(fixture.pipeline.historyStorageError, "The first dictation must still be unsaved")
+            XCTAssertEqual(try fixture.history.recent().count, 0)
+            try await fixture.record()
+
+            let requests = await fixture.refiner.requests
+            XCTAssertEqual(requests.count, 2)
+            XCTAssertEqual(requests.last?.context.recentDictations, [earlier],
+                           "An unsaved delivered dictation belongs to the next recording's context")
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "can you check whether the build passed on main",
+                           "A refinement that repeats the unsaved dictation falls back to the raw transcript")
+        }
+        do {
+            let now = Date()
+            func record(_ text: String, _ app: String, _ secondsAgo: TimeInterval) -> DictationRecord {
+                DictationRecord(createdAt: now.addingTimeInterval(-secondsAgo), appBundleId: app, mode: "Clean",
+                                family: "general", rawTranscript: text, refinedText: text, finalText: text, asrEngine: "fixture",
+                                audioSeconds: 1, asrMs: 1, llmMs: 1, inserted: true)
+            }
+            var savedCopy = record("Second", "com.example.editor", 60)
+            // A stored date keeps only milliseconds; the pending copy must still match it.
+            savedCopy.createdAt = Date(timeIntervalSinceReferenceDate: (savedCopy.createdAt.timeIntervalSinceReferenceDate * 1000).rounded(.down) / 1000)
+            let saved = [record("Old", "com.example.editor", 30 * 60), record("First", "com.example.editor", 120),
+                         savedCopy, record("Elsewhere", "com.example.browser", 10)]
+            let pending = [record("Second", "com.example.editor", 60), record("Third", "com.example.editor", 5),
+                           record("Fourth", "com.example.editor", 1), record("Other app", "com.example.browser", 2)]
+            XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now),
+                           ["Second", "Third", "Fourth"])
+            XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: "com.example.editor", now: now, limit: 5),
+                           ["First", "Second", "Third", "Fourth"])
+            XCTAssertEqual(HistoryStore.recentFinals(saved: saved, pending: pending, appBundleId: nil, now: now), [])
+        }
     }
 
     private func waitUntilIdle(_ pipeline: DictationPipeline) async throws {

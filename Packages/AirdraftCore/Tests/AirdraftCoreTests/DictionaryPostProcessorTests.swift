@@ -2,100 +2,111 @@ import XCTest
 @testable import AirdraftCore
 
 final class DictionaryPostProcessorTests: XCTestCase {
-    func testCanonicalTermContainingItsAliasIsNotExpandedAgain() {
-        let latin = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("Acme Studio and Acme", entries: latin), "Acme Studio and Acme Studio")
-        let cjk = [DictionaryEntry(term: "長谷川", aliases: ["長谷"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("長谷川和長谷", entries: cjk), "長谷川和長谷川")
-    }
-
-    func testLongerAliasWinsAndReplacementIsNotProcessedAgain() {
-        let entries = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme", "Acme Corporation"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("Acme Corporation and Acme", entries: entries), "Acme Studio and Acme Studio")
-    }
-
-    func testLiteralReplacementCharactersAndMixedScriptCaseArePreserved() {
-        let entries = [DictionaryEntry(term: "$1 \\ final", aliases: ["alias", "中文Test"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("alias 中文Test 中文test", entries: entries), "$1 \\ final $1 \\ final 中文test")
-    }
-
-    func testLatinAliasReplacedOnWordBoundary() {
-        let entries = [DictionaryEntry(term: "Floze", aliases: ["flows", "flow's"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("open flows now", entries: entries), "open Floze now")
-        XCTAssertEqual(DictionaryPostProcessor.apply("workflows", entries: entries), "workflows")
-    }
-
-    func testTermCasingIsFixed() {
-        let entries = [DictionaryEntry(term: "Floze")]
-        XCTAssertEqual(DictionaryPostProcessor.apply("I use floze daily", entries: entries), "I use Floze daily")
-    }
-
-    func testCaseSensitiveEntryLeavesOtherCasing() {
-        let entries = [DictionaryEntry(term: "iOS", aliases: ["IOS"], caseSensitive: true)]
-        XCTAssertEqual(DictionaryPostProcessor.apply("IOS and ios", entries: entries), "iOS and ios")
-    }
-
-    func testCJKAliasLiteralReplacement() {
-        let entries = [DictionaryEntry(term: "浮洛茲", aliases: ["浮落資", "福洛斯"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("今天用浮落資寫故事", entries: entries), "今天用浮洛茲寫故事")
-    }
-
-    func testSingleCJKCharacterAliasIsIgnored() {
-        let entries = [DictionaryEntry(term: "陳", aliases: ["成"])]
-        XCTAssertEqual(DictionaryPostProcessor.apply("完成了", entries: entries), "完成了")
-    }
-
-    func testChineseScriptConversion() {
-        XCTAssertEqual(ChineseScriptConverter.convert("我们今天要讨论三件事", to: .traditional), "我們今天要討論三件事")
-        XCTAssertEqual(ChineseScriptConverter.convert("軟體測試", to: .simplified), "软体测试")
-        XCTAssertEqual(ChineseScriptConverter.convert("hello world", to: .traditional), "hello world")
-        XCTAssertEqual(ChineseScriptConverter.convert("我们", to: .auto), "我们")
-    }
-
-    /// AD-083: Japanese kanji are not Simplified Chinese. With the default
-    /// Traditional script, ICU rewrote 国 as 國 in 59% of FLEURS Japanese sentences.
-    func testJapaneseTextKeepsItsKanji() {
-        for text in ["参列者の数が多すぎて、全員が国境に参加した。", "パリジャンは横柄で失礼だ", "ｶﾀｶﾅの国", "ㇰの学校"] {
-            XCTAssertEqual(ChineseScriptConverter.convert(text, to: .traditional), text)
-            XCTAssertEqual(ChineseScriptConverter.convert(text, to: .simplified), text)
+    /// Canonical terms, longer aliases, literal replacement text, word boundaries, casing, CJK aliases and generated vocabulary/correction lines.
+    func testAliasReplacementRulesAndVocabularyLines() {
+        // CanonicalTermContainingItsAliasIsNotExpandedAgain
+        do {
+            let latin = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("Acme Studio and Acme", entries: latin), "Acme Studio and Acme Studio")
+            let cjk = [DictionaryEntry(term: "長谷川", aliases: ["長谷"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("長谷川和長谷", entries: cjk), "長谷川和長谷川")
         }
-        // The katakana middle dot also separates Chinese names, so it still converts.
-        XCTAssertEqual(ChineseScriptConverter.convert("马丁・路德说过这个", to: .traditional), "馬丁・路德說過這個")
-        // Korean Hangul and mixed Chinese-English are unaffected.
-        XCTAssertEqual(ChineseScriptConverter.convert("국가 国家", to: .traditional), "국가 國家")
-        XCTAssertEqual(ChineseScriptConverter.convert("这个 bug 修好了", to: .traditional), "這個 bug 修好了")
-    }
-
-    func testWhisperPromptLeadsWithScriptHint() {
-        let hints = TranscriptionHints(language: "zh", vocabulary: ["Floze"], chineseScript: .traditional)
-        XCTAssertEqual(hints.contextText, "以下是繁體中文的內容。 Floze")
-        XCTAssertEqual(TranscriptionHints(language: "zh-TW", chineseScript: .simplified).promptText, "以下是简体中文的内容。")
-        XCTAssertNil(TranscriptionHints().promptText)
-        XCTAssertNil(TranscriptionHints().contextText)
-    }
-
-    /// Groq Whisper transcribed 33 s of English speech as a Chinese translation
-    /// when auto-detect received the Traditional Chinese script prompt.
-    func testScriptHintRequiresChineseLanguage() {
-        for language in [nil, "", "en", "ja"] {
-            let hints = TranscriptionHints(language: language, vocabulary: ["Floze"], chineseScript: .traditional)
-            XCTAssertNil(hints.promptText, "language \(language ?? "nil")")
-            XCTAssertEqual(hints.contextText, "Floze")
+        // LongerAliasWinsAndReplacementIsNotProcessedAgain
+        do {
+            let entries = [DictionaryEntry(term: "Acme Studio", aliases: ["Acme", "Acme Corporation"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("Acme Corporation and Acme", entries: entries), "Acme Studio and Acme Studio")
+        }
+        // LiteralReplacementCharactersAndMixedScriptCaseArePreserved
+        do {
+            let entries = [DictionaryEntry(term: "$1 \\ final", aliases: ["alias", "中文Test"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("alias 中文Test 中文test", entries: entries), "$1 \\ final $1 \\ final 中文test")
+        }
+        // LatinAliasReplacedOnWordBoundary
+        do {
+            let entries = [DictionaryEntry(term: "Floze", aliases: ["flows", "flow's"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("open flows now", entries: entries), "open Floze now")
+            XCTAssertEqual(DictionaryPostProcessor.apply("workflows", entries: entries), "workflows")
+        }
+        // TermCasingIsFixed
+        do {
+            let entries = [DictionaryEntry(term: "Floze")]
+            XCTAssertEqual(DictionaryPostProcessor.apply("I use floze daily", entries: entries), "I use Floze daily")
+        }
+        // CaseSensitiveEntryLeavesOtherCasing
+        do {
+            let entries = [DictionaryEntry(term: "iOS", aliases: ["IOS"], caseSensitive: true)]
+            XCTAssertEqual(DictionaryPostProcessor.apply("IOS and ios", entries: entries), "iOS and ios")
+        }
+        // CJKAliasLiteralReplacement
+        do {
+            let entries = [DictionaryEntry(term: "浮洛茲", aliases: ["浮落資", "福洛斯"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("今天用浮落資寫故事", entries: entries), "今天用浮洛茲寫故事")
+        }
+        // SingleCJKCharacterAliasIsIgnored
+        do {
+            let entries = [DictionaryEntry(term: "陳", aliases: ["成"])]
+            XCTAssertEqual(DictionaryPostProcessor.apply("完成了", entries: entries), "完成了")
+        }
+        // VocabularyAndCorrectionLines
+        do {
+            let entries = [DictionaryEntry(term: "Printage", aliases: ["print age"])]
+            XCTAssertEqual(DictionaryPostProcessor.vocabulary(entries), ["Printage"])
+            XCTAssertEqual(DictionaryPostProcessor.correctionLines(entries), ["print age -> Printage"])
         }
     }
 
-    /// Groq Whisper returned "floze" for short clips and appended it after long
-    /// recordings when the bare term was part of its prompt.
-    func testWhisperPromptOmitsDictionaryTerms() {
-        let hints = TranscriptionHints(language: "zh", vocabulary: ["floze"], chineseScript: .traditional)
-        XCTAssertEqual(hints.promptText, "以下是繁體中文的內容。")
-        XCTAssertNil(TranscriptionHints(vocabulary: ["floze"]).promptText)
-        XCTAssertEqual(TranscriptionHints(vocabulary: ["floze"]).contextText, "floze")
+    func testChineseScriptConversionKeepsJapaneseKanji() {
+        // ChineseScriptConversion
+        do {
+            XCTAssertEqual(ChineseScriptConverter.convert("我们今天要讨论三件事", to: .traditional), "我們今天要討論三件事")
+            XCTAssertEqual(ChineseScriptConverter.convert("軟體測試", to: .simplified), "软体测试")
+            XCTAssertEqual(ChineseScriptConverter.convert("hello world", to: .traditional), "hello world")
+            XCTAssertEqual(ChineseScriptConverter.convert("我们", to: .auto), "我们")
+        }
+        // JapaneseTextKeepsItsKanji
+        // AD-083: Japanese kanji are not Simplified Chinese. With the default
+        // Traditional script, ICU rewrote 国 as 國 in 59% of FLEURS Japanese sentences.
+        do {
+            for text in ["参列者の数が多すぎて、全員が国境に参加した。", "パリジャンは横柄で失礼だ", "ｶﾀｶﾅの国", "ㇰの学校"] {
+                XCTAssertEqual(ChineseScriptConverter.convert(text, to: .traditional), text)
+                XCTAssertEqual(ChineseScriptConverter.convert(text, to: .simplified), text)
+            }
+            // The katakana middle dot also separates Chinese names, so it still converts.
+            XCTAssertEqual(ChineseScriptConverter.convert("马丁・路德说过这个", to: .traditional), "馬丁・路德說過這個")
+            // Korean Hangul and mixed Chinese-English are unaffected.
+            XCTAssertEqual(ChineseScriptConverter.convert("국가 国家", to: .traditional), "국가 國家")
+            XCTAssertEqual(ChineseScriptConverter.convert("这个 bug 修好了", to: .traditional), "這個 bug 修好了")
+        }
     }
 
-    func testVocabularyAndCorrectionLines() {
-        let entries = [DictionaryEntry(term: "Printage", aliases: ["print age"])]
-        XCTAssertEqual(DictionaryPostProcessor.vocabulary(entries), ["Printage"])
-        XCTAssertEqual(DictionaryPostProcessor.correctionLines(entries), ["print age -> Printage"])
+    func testWhisperPromptCarriesOnlyTheChineseScriptHint() {
+        // WhisperPromptLeadsWithScriptHint
+        do {
+            let hints = TranscriptionHints(language: "zh", vocabulary: ["Floze"], chineseScript: .traditional)
+            XCTAssertEqual(hints.contextText, "以下是繁體中文的內容。 Floze")
+            XCTAssertEqual(TranscriptionHints(language: "zh-TW", chineseScript: .simplified).promptText, "以下是简体中文的内容。")
+            XCTAssertNil(TranscriptionHints().promptText)
+            XCTAssertNil(TranscriptionHints().contextText)
+        }
+        // ScriptHintRequiresChineseLanguage
+        // Groq Whisper transcribed 33 s of English speech as a Chinese translation
+        // when auto-detect received the Traditional Chinese script prompt.
+        do {
+            for language in [nil, "", "en", "ja"] {
+                let hints = TranscriptionHints(language: language, vocabulary: ["Floze"], chineseScript: .traditional)
+                XCTAssertNil(hints.promptText, "language \(language ?? "nil")")
+                XCTAssertEqual(hints.contextText, "Floze")
+            }
+        }
+        // WhisperPromptOmitsDictionaryTerms
+        // Groq Whisper returned "floze" for short clips and appended it after long
+        // recordings when the bare term was part of its prompt.
+        do {
+            let hints = TranscriptionHints(language: "zh", vocabulary: ["floze"], chineseScript: .traditional)
+            XCTAssertEqual(hints.promptText, "以下是繁體中文的內容。")
+            XCTAssertNil(TranscriptionHints(vocabulary: ["floze"]).promptText)
+            XCTAssertEqual(TranscriptionHints(vocabulary: ["floze"]).contextText, "floze")
+        }
     }
+
 }

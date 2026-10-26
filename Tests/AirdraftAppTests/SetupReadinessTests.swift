@@ -12,7 +12,10 @@ final class SetupReadinessTests: XCTestCase {
         try body(isolated.container)
     }
 
-    func testRefinementOffIsInactiveNotAnIssue() {
+    /// Each row with a fresh container: refinement off is inactive, an unmeasured local model is
+    /// Checking, cloud speech without a key needs attention, the microphone needs its device and
+    /// channel, and cursor output follows Accessibility while scripts wait for their check.
+    func testReadinessRowsForRefinementSpeechMicrophoneAndOutput() {
         withContainer { container in
             container.settings.llm.select(.none)
             let readiness = container.readiness
@@ -20,9 +23,7 @@ final class SetupReadinessTests: XCTestCase {
             XCTAssertEqual(readiness.refinementDetail, "Off · original transcript")
             XCTAssertFalse(readiness.refinementNeedsKey)
         }
-    }
 
-    func testUnmeasuredLocalModelIsCheckingNotASetupStep() {
         withContainer { container in
             container.settings.asr = ASRConfig(kind: .senseVoice, language: "en")
             let readiness = container.readiness
@@ -30,9 +31,7 @@ final class SetupReadinessTests: XCTestCase {
             XCTAssertEqual(readiness.speechDetail, "Checking model files…")
             XCTAssertFalse(readiness.speechInstalled)
         }
-    }
 
-    func testCloudSpeechWithoutASavedKeyNeedsAttention() {
         withContainer { container in
             container.settings.asr = ASRConfig(kind: .openAI, language: "en")
             XCTAssertNotNil(ASRProviderKind.openAI.preset)
@@ -41,9 +40,7 @@ final class SetupReadinessTests: XCTestCase {
             XCTAssertEqual(readiness.speechTone, .attention)
             XCTAssertEqual(readiness.speechDetail, "API key missing or locked")
         }
-    }
 
-    func testMicrophoneNeedsTheSelectedDeviceAndChannel() {
         withContainer { container in
             let readiness = { container.readiness }
             container.settings.microphone = MicrophonePreference(uid: "fixture-main", name: "Fixture Main", channelIndex: 1)
@@ -58,9 +55,7 @@ final class SetupReadinessTests: XCTestCase {
             XCTAssertFalse(readiness().microphoneReady)
             XCTAssertEqual(readiness().microphoneDetail, "Selected microphone is unavailable")
         }
-    }
 
-    func testCursorOutputFollowsAccessibilityAndScriptsWaitForTheirCheck() {
         withContainer { container in
             container.settings.outputDestination = .cursor
             XCTAssertTrue(container.readiness.outputReady)
@@ -74,7 +69,8 @@ final class SetupReadinessTests: XCTestCase {
         }
     }
 
-    func testCommunityBuildHasNoPipelineBlockers() {
+    /// A community build has no pipeline blockers; the summary and footer count setup steps.
+    func testCommunityBuildHasNoBlockersAndSummaryAndFooterCountSetupSteps() {
         withContainer { container in
             let readiness = container.readiness
             XCTAssertTrue(readiness.blockers.isEmpty)
@@ -82,9 +78,7 @@ final class SetupReadinessTests: XCTestCase {
             XCTAssertFalse(readiness.recordingsBlocked)
             XCTAssertFalse(readiness.footerOpensLicense)
         }
-    }
 
-    func testSummaryAndFooterCountSetupSteps() {
         withContainer { container in
             container.settings.asr = ASRConfig(kind: .openAI, language: "en")
             container.settings.llm.select(.none)

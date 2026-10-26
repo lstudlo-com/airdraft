@@ -8,81 +8,89 @@ final class ModelPreviewLeaseTests: XCTestCase {
     private let config = ASRConfig(kind: .parakeet)
     private let hints = TranscriptionHints(language: nil, vocabulary: ["Airdraft"])
 
-    func testPreviewNeverLoadsAnUnloadedEngine() async throws {
-        let engine = LeaseTestSpeech(ready: false)
-        let factory = makeFactory(engine)
-        let text = try await factory.transcribePreview([0.1, 0.2], hints: hints, config: config)
-        XCTAssertNil(text, "An engine that is not loaded yet drops the preview")
-        let prepares = await engine.prepareCount
-        XCTAssertEqual(prepares, 0)
-        let calls = await engine.calls
-        XCTAssertTrue(calls.isEmpty)
-    }
-
-    func testPreviewDecodesWithLoadedEngineAndSameHints() async throws {
-        let engine = LeaseTestSpeech(ready: true)
-        let factory = makeFactory(engine)
-        _ = await factory.transcriber(for: config)
-        let text = try await factory.transcribePreview([Float](repeating: 0.1, count: 800), hints: hints, config: config)
-        XCTAssertEqual(text, "heard 800")
-        let calls = await engine.calls
-        XCTAssertEqual(calls.map(\.count), [800])
-        XCTAssertEqual(calls.first?.vocabulary, ["Airdraft"])
-        let prepares = await engine.prepareCount
-        XCTAssertEqual(prepares, 0)
-    }
-
-    func testUnsupportedOrCloudConfigNeverDecodes() async throws {
-        let engine = LeaseTestSpeech(ready: true)
-        let factory = makeFactory(engine)
-        for kind in [ASRProviderKind.whisperKit, .qwen3, .openAI] {
-            let other = ASRConfig(kind: kind)
-            _ = await factory.transcriber(for: other)
-            let text = try await factory.transcribePreview([0.1], hints: hints, config: other)
-            XCTAssertNil(text, kind.rawValue)
+    /// Preview never loads an unloaded engine, decodes with a loaded one using the same
+    /// hints, and never decodes unsupported or cloud configs.
+    func testPreviewDecodesOnlyWithLoadedSupportedEngineAndSameHints() async throws {
+        do { // PreviewNeverLoadsAnUnloadedEngine
+            let engine = LeaseTestSpeech(ready: false)
+            let factory = makeFactory(engine)
+            let text = try await factory.transcribePreview([0.1, 0.2], hints: hints, config: config)
+            XCTAssertNil(text, "An engine that is not loaded yet drops the preview")
+            let prepares = await engine.prepareCount
+            XCTAssertEqual(prepares, 0)
+            let calls = await engine.calls
+            XCTAssertTrue(calls.isEmpty)
         }
-        let calls = await engine.calls
-        XCTAssertTrue(calls.isEmpty)
+
+        do { // PreviewDecodesWithLoadedEngineAndSameHints
+            let engine = LeaseTestSpeech(ready: true)
+            let factory = makeFactory(engine)
+            _ = await factory.transcriber(for: config)
+            let text = try await factory.transcribePreview([Float](repeating: 0.1, count: 800), hints: hints, config: config)
+            XCTAssertEqual(text, "heard 800")
+            let calls = await engine.calls
+            XCTAssertEqual(calls.map(\.count), [800])
+            XCTAssertEqual(calls.first?.vocabulary, ["Airdraft"])
+            let prepares = await engine.prepareCount
+            XCTAssertEqual(prepares, 0)
+        }
+
+        do { // UnsupportedOrCloudConfigNeverDecodes
+            let engine = LeaseTestSpeech(ready: true)
+            let factory = makeFactory(engine)
+            for kind in [ASRProviderKind.whisperKit, .qwen3, .openAI] {
+                let other = ASRConfig(kind: kind)
+                _ = await factory.transcriber(for: other)
+                let text = try await factory.transcribePreview([0.1], hints: hints, config: other)
+                XCTAssertNil(text, kind.rawValue)
+            }
+            let calls = await engine.calls
+            XCTAssertTrue(calls.isEmpty)
+        }
     }
 
-    func testPreviewDropsWhileFinalInferenceHoldsTheLease() async throws {
-        let engine = LeaseTestSpeech(ready: true)
-        let factory = makeFactory(engine)
-        _ = await factory.transcriber(for: config)
-        await engine.holdNextDecode()
-        let full = [Float](repeating: 0.2, count: 32_000)
-        let final = Task { try await factory.transcribe(full, hints: self.hints, config: self.config) }
-        try await waitUntil { await engine.isHolding }
-        let preview = try await factory.transcribePreview([0.1, 0.1], hints: hints, config: config)
-        XCTAssertNil(preview, "Preview never queues behind final inference")
-        await engine.releaseHeld()
-        let result = try await final.value
-        XCTAssertEqual(result.text, "heard 32000")
-        let calls = await engine.calls
-        XCTAssertEqual(calls.map(\.count), [32_000], "Only the final decode ran")
-    }
+    /// Preview drops while final inference holds the lease, and final inference preempts a
+    /// queued or running preview.
+    func testPreviewYieldsToFinalInferenceInEitherOrder() async throws {
+        do { // PreviewDropsWhileFinalInferenceHoldsTheLease
+            let engine = LeaseTestSpeech(ready: true)
+            let factory = makeFactory(engine)
+            _ = await factory.transcriber(for: config)
+            await engine.holdNextDecode()
+            let full = [Float](repeating: 0.2, count: 32_000)
+            let final = Task { try await factory.transcribe(full, hints: self.hints, config: self.config) }
+            try await waitUntil { await engine.isHolding }
+            let preview = try await factory.transcribePreview([0.1, 0.1], hints: hints, config: config)
+            XCTAssertNil(preview, "Preview never queues behind final inference")
+            await engine.releaseHeld()
+            let result = try await final.value
+            XCTAssertEqual(result.text, "heard 32000")
+            let calls = await engine.calls
+            XCTAssertEqual(calls.map(\.count), [32_000], "Only the final decode ran")
+        }
 
-    func testFinalInferencePreemptsQueuedOrRunningPreview() async throws {
-        let engine = LeaseTestSpeech(ready: true)
-        let factory = makeFactory(engine)
-        _ = await factory.transcriber(for: config)
-        // The preview decode sleeps cooperatively, so preemption cancels it.
-        await engine.setPreviewDelay(.seconds(5))
-        let preview = Task { try await factory.transcribePreview([Float](repeating: 0.1, count: 1_600), hints: self.hints, config: self.config) }
-        try await waitUntil { await engine.calls.count == 1 }
-        await engine.setPreviewDelay(nil)
-        let started = ContinuousClock.now
-        let full = [Float](repeating: 0.3, count: 48_000)
-        let result = try await factory.transcribe(full, hints: hints, config: config)
-        let waited = started.duration(to: .now)
-        XCTAssertEqual(result.text, "heard 48000")
-        XCTAssertLessThan(waited, .seconds(2), "Final inference does not wait out the preview decode")
-        do {
-            _ = try await preview.value
-            XCTFail("A preempted preview must not return text")
-        } catch is CancellationError {}
-        let calls = await engine.calls
-        XCTAssertEqual(calls.last?.count, 48_000, "Final inference always receives the full capture")
+        do { // FinalInferencePreemptsQueuedOrRunningPreview
+            let engine = LeaseTestSpeech(ready: true)
+            let factory = makeFactory(engine)
+            _ = await factory.transcriber(for: config)
+            // The preview decode sleeps cooperatively, so preemption cancels it.
+            await engine.setPreviewDelay(.seconds(5))
+            let preview = Task { try await factory.transcribePreview([Float](repeating: 0.1, count: 1_600), hints: self.hints, config: self.config) }
+            try await waitUntil { await engine.calls.count == 1 }
+            await engine.setPreviewDelay(nil)
+            let started = ContinuousClock.now
+            let full = [Float](repeating: 0.3, count: 48_000)
+            let result = try await factory.transcribe(full, hints: hints, config: config)
+            let waited = started.duration(to: .now)
+            XCTAssertEqual(result.text, "heard 48000")
+            XCTAssertLessThan(waited, .seconds(2), "Final inference does not wait out the preview decode")
+            do {
+                _ = try await preview.value
+                XCTFail("A preempted preview must not return text")
+            } catch is CancellationError {}
+            let calls = await engine.calls
+            XCTAssertEqual(calls.last?.count, 48_000, "Final inference always receives the full capture")
+        }
     }
 
     func testFinalResultIsIdenticalWithAndWithoutPreviewTraffic() async throws {

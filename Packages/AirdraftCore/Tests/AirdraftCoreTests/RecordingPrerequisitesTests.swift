@@ -47,7 +47,9 @@ final class RecordingPrerequisitesTests: XCTestCase {
         }
     }
 
-    func testMissingModelInvalidChannelAndEndpointAreRejected() {
+    /// Missing model, invalid channel and endpoint are rejected; refinement keys and Apple
+    /// Intelligence availability matter only when refinement is enabled; a ready setup passes.
+    func testDirectChecksRejectMissingSetupAndPassReadySetup() throws {
         var env = environment()
         env.installed = { _ in false }
         XCTAssertThrowsError(try check(.init(kind: .qwen3), env: env))
@@ -56,17 +58,13 @@ final class RecordingPrerequisitesTests: XCTestCase {
         var config = ASRConfig(kind: .openAICompatible)
         config.baseURL = "not a URL"
         XCTAssertThrowsError(try check(config, env: env))
-    }
 
-    func testRefinementOffNeedsNoRefinementKeyButEnabledCloudDoes() {
-        var env = environment()
+        env = environment()
         env.readCredential = { $0.hasPrefix("llm.") ? nil : "speech-key" }
         XCTAssertNoThrow(try check(.init(kind: .groq), env: env))
         XCTAssertThrowsError(try check(.init(kind: .groq), llm: .init(kind: .anthropic), env: env))
-    }
 
-    func testAppleAvailabilityBlocksOnlyWhenRefinementIsEnabled() throws {
-        var env = environment()
+        env = environment()
         env.appleIntelligenceUnavailable = { "Apple model not ready" }
         let llm = LLMConfig(kind: .appleIntelligence)
         XCTAssertThrowsError(try check(.init(kind: .apple), llm: llm, env: env))
@@ -75,9 +73,8 @@ final class RecordingPrerequisitesTests: XCTestCase {
         env.appleIntelligenceUnavailable = { nil }
         env.readCredential = { _ in XCTFail("No keys for either local stage"); return nil }
         try check(.init(kind: .apple), llm: llm, env: env)
-    }
 
-    func testReadySetupPassesWithoutRecordingOrNetwork() throws {
+        // A ready setup passes without recording or network.
         try check(.init(kind: .groq), env: environment())
     }
 

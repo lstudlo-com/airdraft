@@ -38,110 +38,115 @@ final class RefinementProviderTests: XCTestCase {
         }
     }
 
-    func testReasoningMapsToSupportedLevelsAndKeepsReasoningOutOfText() {
-        let groqOSS = refiner(.groq).payload(for: request)
-        XCTAssertEqual(groqOSS["include_reasoning"] as? Bool, false)
-        XCTAssertNil(groqOSS["reasoning_format"])
-        let qwen = refiner(.groq, model: "qwen/qwen3.8-27b", effort: .high).payload(for: request)
-        XCTAssertEqual(qwen["reasoning_effort"] as? String, "high")
-        XCTAssertEqual(qwen["reasoning_format"] as? String, "hidden")
-        XCTAssertNil(qwen["include_reasoning"])
-        let cerebrasOSS = refiner(.cerebras, model: "gpt-oss-120b", effort: .off).payload(for: request)
-        XCTAssertEqual(cerebrasOSS["reasoning_effort"] as? String, "low")
-        let extended = refiner(.cerebras, effort: .max).payload(for: request)
-        XCTAssertEqual(extended["reasoning_effort"] as? String, "high")
-        for kind in [LLMProviderKind.cerebras, .groq] {
-            let unknown = refiner(kind, model: "future-chat-model").payload(for: request)
-            XCTAssertNil(unknown["reasoning_effort"])
-            XCTAssertNil(unknown["chat_template_kwargs"])
+    /// Cloud reasoning maps to supported levels and stays out of text; local thinking controls remain available.
+    func testReasoningAndThinkingControlsMapPerModelAndProvider() {
+        do {
+            let groqOSS = refiner(.groq).payload(for: request)
+            XCTAssertEqual(groqOSS["include_reasoning"] as? Bool, false)
+            XCTAssertNil(groqOSS["reasoning_format"])
+            let qwen = refiner(.groq, model: "qwen/qwen3.8-27b", effort: .high).payload(for: request)
+            XCTAssertEqual(qwen["reasoning_effort"] as? String, "high")
+            XCTAssertEqual(qwen["reasoning_format"] as? String, "hidden")
+            XCTAssertNil(qwen["include_reasoning"])
+            let cerebrasOSS = refiner(.cerebras, model: "gpt-oss-120b", effort: .off).payload(for: request)
+            XCTAssertEqual(cerebrasOSS["reasoning_effort"] as? String, "low")
+            let extended = refiner(.cerebras, effort: .max).payload(for: request)
+            XCTAssertEqual(extended["reasoning_effort"] as? String, "high")
+            for kind in [LLMProviderKind.cerebras, .groq] {
+                let unknown = refiner(kind, model: "future-chat-model").payload(for: request)
+                XCTAssertNil(unknown["reasoning_effort"])
+                XCTAssertNil(unknown["chat_template_kwargs"])
+            }
+        }
+        do {
+            let body = refiner(.openAICompatible).payload(for: request)
+            XCTAssertEqual(body["reasoning_effort"] as? String, "none")
+            XCTAssertEqual((body["chat_template_kwargs"] as? [String: Bool])?["enable_thinking"], false)
         }
     }
 
-    func testLocalThinkingControlsRemainAvailable() {
-        let body = refiner(.openAICompatible).payload(for: request)
-        XCTAssertEqual(body["reasoning_effort"] as? String, "none")
-        XCTAssertEqual((body["chat_template_kwargs"] as? [String: Bool])?["enable_thinking"], false)
-    }
-
-    func testProviderChoicesSurviveSwitchingAndPersistence() throws {
-        var config = LLMConfig()
-        config.select(.cerebras)
-        config.model = "gpt-oss-120b"
-        config.thinkingEffort = .medium
-        config.select(.groq)
-        config.model = "openai/gpt-oss-120b"
-        config.thinkingEffort = .high
-        config = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(config))
-        config.select(.cerebras)
-        XCTAssertEqual(config.model, "gpt-oss-120b")
-        XCTAssertEqual(config.thinkingEffort, .medium)
-        XCTAssertEqual(config.keyRef, "llm.cerebras")
-        config.select(.groq)
-        XCTAssertEqual(config.model, "openai/gpt-oss-120b")
-        XCTAssertEqual(config.thinkingEffort, .high)
-        XCTAssertEqual(config.keyRef, "llm.groq")
-    }
-
-    func testLegacyGroqPresetMigrationPreservesModelEffortAndKey() throws {
-        let old = LLMConfig(baseURL: LLMProviderKind.groq.defaultBaseURL, model: "llama-3.3-70b-versatile",
-                            apiKeyRef: "llm.groq", thinkingEffort: .medium)
-        var migrated = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(old))
-        XCTAssertEqual(migrated.kind, .groq)
-        XCTAssertEqual(migrated.model, old.model)
-        XCTAssertEqual(migrated.thinkingEffort, .medium)
-        XCTAssertEqual(migrated.keyRef, old.keyRef)
-        XCTAssertEqual(migrated.endpoint, old.endpoint)
-        migrated.select(.openAICompatible)
-        XCTAssertEqual(migrated.endpoint?.host, "localhost")
-        XCTAssertEqual(migrated.keyRef, "llm.lmstudio")
-        XCTAssertFalse(EndpointPreset.llm.contains { $0.name == "Groq" })
-    }
-
-    func testMigrationLeavesCustomServersAndKeyReferencesAlone() throws {
-        for original in [
-            LLMConfig(baseURL: "https://proxy.example/v1", model: "custom", apiKeyRef: "llm.groq"),
-            LLMConfig(baseURL: LLMProviderKind.groq.defaultBaseURL, model: "custom", apiKeyRef: "llm.custom"),
-        ] {
-            let restored = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(original))
-            XCTAssertEqual(restored, original)
+    /// Provider choices survive switching and persistence; the legacy Groq preset migrates while custom
+    /// servers and key references stay alone; the Groq picker excludes non-refinement models.
+    func testProviderChoicesMigrationAndModelPickerPersist() throws {
+        do {
+            var config = LLMConfig()
+            config.select(.cerebras)
+            config.model = "gpt-oss-120b"
+            config.thinkingEffort = .medium
+            config.select(.groq)
+            config.model = "openai/gpt-oss-120b"
+            config.thinkingEffort = .high
+            config = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(config))
+            config.select(.cerebras)
+            XCTAssertEqual(config.model, "gpt-oss-120b")
+            XCTAssertEqual(config.thinkingEffort, .medium)
+            XCTAssertEqual(config.keyRef, "llm.cerebras")
+            config.select(.groq)
+            XCTAssertEqual(config.model, "openai/gpt-oss-120b")
+            XCTAssertEqual(config.thinkingEffort, .high)
+            XCTAssertEqual(config.keyRef, "llm.groq")
+        }
+        do {
+            let old = LLMConfig(baseURL: LLMProviderKind.groq.defaultBaseURL, model: "llama-3.3-70b-versatile",
+                                apiKeyRef: "llm.groq", thinkingEffort: .medium)
+            var migrated = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(old))
+            XCTAssertEqual(migrated.kind, .groq)
+            XCTAssertEqual(migrated.model, old.model)
+            XCTAssertEqual(migrated.thinkingEffort, .medium)
+            XCTAssertEqual(migrated.keyRef, old.keyRef)
+            XCTAssertEqual(migrated.endpoint, old.endpoint)
+            migrated.select(.openAICompatible)
+            XCTAssertEqual(migrated.endpoint?.host, "localhost")
+            XCTAssertEqual(migrated.keyRef, "llm.lmstudio")
+            XCTAssertFalse(EndpointPreset.llm.contains { $0.name == "Groq" })
+        }
+        do {
+            for original in [
+                LLMConfig(baseURL: "https://proxy.example/v1", model: "custom", apiKeyRef: "llm.groq"),
+                LLMConfig(baseURL: LLMProviderKind.groq.defaultBaseURL, model: "custom", apiKeyRef: "llm.custom"),
+            ] {
+                let restored = try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(original))
+                XCTAssertEqual(restored, original)
+            }
+        }
+        do {
+            let ids = ["whisper-large-v3-turbo", "canopylabs/orpheus-v1-english", "meta-llama/llama-prompt-guard-2-22m",
+                       "openai/gpt-oss-safeguard-20b", "groq/compound", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "future-chat"]
+            XCTAssertEqual(ModelCatalog.refinementModels(in: ids, for: .groq), Array(ids.suffix(3)))
+            XCTAssertEqual(ModelCatalog.refinementModels(in: ids, for: .openAICompatible), ids)
         }
     }
 
-    func testGroqModelPickerExcludesNonRefinementModels() {
-        let ids = ["whisper-large-v3-turbo", "canopylabs/orpheus-v1-english", "meta-llama/llama-prompt-guard-2-22m",
-                   "openai/gpt-oss-safeguard-20b", "groq/compound", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "future-chat"]
-        XCTAssertEqual(ModelCatalog.refinementModels(in: ids, for: .groq), Array(ids.suffix(3)))
-        XCTAssertEqual(ModelCatalog.refinementModels(in: ids, for: .openAICompatible), ids)
-    }
-
-    func test400RetriesExactlyOnceWithMinimalRequest() async throws {
-        for kind in [LLMProviderKind.cerebras, .groq] {
+    /// A 400 retries exactly once with the minimal request; an authentication error is not retried.
+    func test400RetriesOnceWithMinimalRequestButAuthenticationErrorIsNotRetried() async throws {
+        do {
+            for kind in [LLMProviderKind.cerebras, .groq] {
+                let config = URLSessionConfiguration.ephemeral
+                config.protocolClasses = [RefinementURLProtocol.self]
+                let session = URLSession(configuration: config)
+                defer { session.invalidateAndCancel() }
+                RefinementURLProtocol.requests = []
+                RefinementURLProtocol.statuses = [400, 200]
+                let result = try await refiner(kind, session: session).refine(request)
+                XCTAssertEqual(result.text, "今天下午開會。")
+                XCTAssertEqual(RefinementURLProtocol.requests.count, 2)
+                let retry = try XCTUnwrap(RefinementURLProtocol.requests.last)
+                XCTAssertEqual(Set(retry.keys), ["model", "messages", "stream"])
+            }
+        }
+        do {
             let config = URLSessionConfiguration.ephemeral
             config.protocolClasses = [RefinementURLProtocol.self]
             let session = URLSession(configuration: config)
             defer { session.invalidateAndCancel() }
             RefinementURLProtocol.requests = []
-            RefinementURLProtocol.statuses = [400, 200]
-            let result = try await refiner(kind, session: session).refine(request)
-            XCTAssertEqual(result.text, "今天下午開會。")
-            XCTAssertEqual(RefinementURLProtocol.requests.count, 2)
-            let retry = try XCTUnwrap(RefinementURLProtocol.requests.last)
-            XCTAssertEqual(Set(retry.keys), ["model", "messages", "stream"])
+            RefinementURLProtocol.statuses = [401]
+            do {
+                _ = try await refiner(.cerebras, session: session).refine(request)
+                XCTFail("Expected authentication error")
+            } catch RefinerError.http(let status, _) { XCTAssertEqual(status, 401) }
+            XCTAssertEqual(RefinementURLProtocol.requests.count, 1)
         }
-    }
-
-    func testAuthenticationErrorIsNotRetried() async throws {
-        let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [RefinementURLProtocol.self]
-        let session = URLSession(configuration: config)
-        defer { session.invalidateAndCancel() }
-        RefinementURLProtocol.requests = []
-        RefinementURLProtocol.statuses = [401]
-        do {
-            _ = try await refiner(.cerebras, session: session).refine(request)
-            XCTFail("Expected authentication error")
-        } catch RefinerError.http(let status, _) { XCTAssertEqual(status, 401) }
-        XCTAssertEqual(RefinementURLProtocol.requests.count, 1)
     }
 }
 

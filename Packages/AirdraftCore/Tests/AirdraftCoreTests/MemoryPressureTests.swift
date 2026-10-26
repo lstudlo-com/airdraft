@@ -5,91 +5,97 @@ import XCTest
 final class MemoryPressureTests: XCTestCase {
     private let config = ASRConfig(kind: .parakeet)
 
-    func testIdleModelUnloadsUnderPressure() async throws {
-        let (factory, status, speech, clock) = try await loadedFactory()
-        clock.advance(MemoryPressureLevel.warning.minimumIdleSeconds + 1)
-        let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.warning.minimumIdleSeconds)
-        XCTAssertEqual(result.unloaded, [config.engineID])
-        XCTAssertFalse(result.skippedBusy)
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
-        let unloads = await speech.unloads
-        XCTAssertEqual(unloads, 1)
-        // The next dictation loads it again through the normal path.
-        try await factory.prepare(config)
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        await factory.unloadAll()
+    /// An idle model unloads and reloads normally, a recently used model survives warning but
+    /// not critical pressure, and a pinned model stays resident until released.
+    func testPressureUnloadsIdleModelsButKeepsRecentUnderWarningAndPinned() async throws {
+        do { // IdleModelUnloadsUnderPressure
+            let (factory, status, speech, clock) = try await loadedFactory()
+            clock.advance(MemoryPressureLevel.warning.minimumIdleSeconds + 1)
+            let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.warning.minimumIdleSeconds)
+            XCTAssertEqual(result.unloaded, [config.engineID])
+            XCTAssertFalse(result.skippedBusy)
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+            let unloads = await speech.unloads
+            XCTAssertEqual(unloads, 1)
+            // The next dictation loads it again through the normal path.
+            try await factory.prepare(config)
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            await factory.unloadAll()
+        }
+
+        do { // RecentlyUsedModelSurvivesWarningButNotCritical
+            let (factory, status, _, clock) = try await loadedFactory()
+            clock.advance(30)
+            var result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.warning.minimumIdleSeconds)
+            XCTAssertEqual(result.keptRecent, [config.engineID])
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.critical.minimumIdleSeconds)
+            XCTAssertEqual(result.unloaded, [config.engineID], "Critical pressure frees a model idle past its short grace")
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+        }
+
+        do { // PinnedModelStaysResident
+            let (factory, status, speech, clock) = try await loadedFactory()
+            let pin = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+            clock.advance(10 * 60)
+            let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
+            XCTAssertEqual(result.keptPinned, [config.engineID])
+            XCTAssertTrue(result.unloaded.isEmpty)
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            let unloads = await speech.unloads
+            XCTAssertEqual(unloads, 0)
+            await factory.releaseSessionPin(pin)
+            clock.advance(10 * 60)
+            let released = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
+            XCTAssertEqual(released.unloaded, [config.engineID], "Releasing the pin makes the model eligible again")
+        }
     }
 
-    func testRecentlyUsedModelSurvivesWarningButNotCritical() async throws {
-        let (factory, status, _, clock) = try await loadedFactory()
-        clock.advance(30)
-        var result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.warning.minimumIdleSeconds)
-        XCTAssertEqual(result.keptRecent, [config.engineID])
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        result = await factory.unloadForMemoryPressure(minimumIdleSeconds: MemoryPressureLevel.critical.minimumIdleSeconds)
-        XCTAssertEqual(result.unloaded, [config.engineID], "Critical pressure frees a model idle past its short grace")
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
-    }
+    func testPressureSkipsInFlightLoadAndActiveInference() async throws {
+        do { // InFlightLoadIsNotInterrupted
+            let speech = PressureSpeech(id: config.engineID, suspendsLoad: true)
+            let status = EngineStatus()
+            let clock = TestClock()
+            let factory = EngineFactory(status: status, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in speech }, now: { clock.now })
+            let loading = Task { try await factory.prepare(config) }
+            defer { loading.cancel() }
+            try await waitUntil("Load started") { await speech.isSuspended }
+            clock.advance(10 * 60)
+            let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
+            XCTAssertTrue(result.skippedBusy, "A pressure pass must not queue behind or touch an active load")
+            XCTAssertTrue(result.unloaded.isEmpty)
+            await speech.resume()
+            try await loading.value
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            let unloads = await speech.unloads
+            XCTAssertEqual(unloads, 0)
+            // Once the lease is free and the model idle, pressure may free it.
+            clock.advance(10 * 60)
+            let later = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
+            XCTAssertEqual(later.unloaded, [config.engineID])
+        }
 
-    func testPinnedModelStaysResident() async throws {
-        let (factory, status, speech, clock) = try await loadedFactory()
-        let pin = await factory.pinForSession(config.engineID, recordingSeconds: 600)
-        clock.advance(10 * 60)
-        let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
-        XCTAssertEqual(result.keptPinned, [config.engineID])
-        XCTAssertTrue(result.unloaded.isEmpty)
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        let unloads = await speech.unloads
-        XCTAssertEqual(unloads, 0)
-        await factory.releaseSessionPin(pin)
-        clock.advance(10 * 60)
-        let released = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
-        XCTAssertEqual(released.unloaded, [config.engineID], "Releasing the pin makes the model eligible again")
-    }
-
-    func testInFlightLoadIsNotInterrupted() async throws {
-        let speech = PressureSpeech(id: config.engineID, suspendsLoad: true)
-        let status = EngineStatus()
-        let clock = TestClock()
-        let factory = EngineFactory(status: status, credentialReader: { _ in nil },
-                                    transcriberBuilder: { _ in speech }, now: { clock.now })
-        let loading = Task { try await factory.prepare(config) }
-        defer { loading.cancel() }
-        try await waitUntil("Load started") { await speech.isSuspended }
-        clock.advance(10 * 60)
-        let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
-        XCTAssertTrue(result.skippedBusy, "A pressure pass must not queue behind or touch an active load")
-        XCTAssertTrue(result.unloaded.isEmpty)
-        await speech.resume()
-        try await loading.value
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        let unloads = await speech.unloads
-        XCTAssertEqual(unloads, 0)
-        // Once the lease is free and the model idle, pressure may free it.
-        clock.advance(10 * 60)
-        let later = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
-        XCTAssertEqual(later.unloaded, [config.engineID])
-    }
-
-    func testActiveInferenceKeepsItsModel() async throws {
-        let speech = PressureSpeech(id: config.engineID, suspendsTranscription: true)
-        let status = EngineStatus()
-        let clock = TestClock()
-        let factory = EngineFactory(status: status, credentialReader: { _ in nil },
-                                    transcriberBuilder: { _ in speech }, now: { clock.now })
-        let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: config) }
-        defer { transcription.cancel() }
-        try await waitUntil("Inference started") { await speech.isSuspended }
-        clock.advance(10 * 60)
-        let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
-        XCTAssertTrue(result.skippedBusy)
-        await speech.resume()
-        let transcript = try await transcription.value
-        XCTAssertEqual(transcript.text, "Fixture words")
-        let unloads = await speech.unloads
-        XCTAssertEqual(unloads, 0)
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        await factory.unloadAll()
+        do { // ActiveInferenceKeepsItsModel
+            let speech = PressureSpeech(id: config.engineID, suspendsTranscription: true)
+            let status = EngineStatus()
+            let clock = TestClock()
+            let factory = EngineFactory(status: status, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in speech }, now: { clock.now })
+            let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: config) }
+            defer { transcription.cancel() }
+            try await waitUntil("Inference started") { await speech.isSuspended }
+            clock.advance(10 * 60)
+            let result = await factory.unloadForMemoryPressure(minimumIdleSeconds: 0)
+            XCTAssertTrue(result.skippedBusy)
+            await speech.resume()
+            let transcript = try await transcription.value
+            XCTAssertEqual(transcript.text, "Fixture words")
+            let unloads = await speech.unloads
+            XCTAssertEqual(unloads, 0)
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            await factory.unloadAll()
+        }
     }
 
     func testRepeatedEventsAreDebouncedAndEscalationRuns() async throws {

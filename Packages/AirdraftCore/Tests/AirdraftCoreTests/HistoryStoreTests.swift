@@ -3,16 +3,32 @@ import XCTest
 @testable import AirdraftCore
 
 final class HistoryStoreTests: XCTestCase {
-    func testHomeShowsFirstDictationOnlyForLoadedEmptyHistory() {
+    /// Merged: Home's first-run state, the period overview, SQL aggregates
+    /// including uncounted rows (AD-077) and the streak rule.
+    func testOverviewSummarisesPeriodAggregatesHomeFirstRunAndStreak() throws {
         XCTAssertEqual(HomeHistoryContent(loaded: false, available: true, hasDictations: false), .loading)
         XCTAssertEqual(HomeHistoryContent(loaded: true, available: true, hasDictations: false), .firstDictation)
         XCTAssertEqual(HomeHistoryContent(loaded: true, available: true, hasDictations: true), .metrics)
         // A failed read or a missing store is not a new user's first run.
         XCTAssertEqual(HomeHistoryContent(loaded: true, available: false, hasDictations: false), .unavailable)
         XCTAssertEqual(HomeHistoryContent(loaded: false, available: false, hasDictations: false), .unavailable)
+
+        try overviewSummarisesPeriodLocally()
+        try overviewAggregatesIncludeUncountedRowsAndKeepAppIdentity()
+
+        // The streak survives until the day after the last active day.
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let now = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
+        let day = { (ago: Double) in now.addingTimeInterval(-ago * 86_400) }
+        XCTAssertEqual(HistoryStore.streak([day(1), day(2), day(4)], now: now, calendar: calendar), 2)
+        XCTAssertEqual(HistoryStore.streak([day(2), day(3)], now: now, calendar: calendar), 0)
+        XCTAssertEqual(HistoryStore.streak([], now: now, calendar: calendar), 0)
     }
 
-    func testSaveAndSearch() throws {
+    /// Merged: save, search and delete, waveform record identity and complete
+    /// delivered text, and the WAV header used for saved audio.
+    func testSaveSearchDeleteWaveformIdentityAndWavHeader() throws {
         let store = try HistoryStore(inMemory: true)
         let record = DictationRecord(
             appBundleId: "com.apple.Notes", appName: "Notes", mode: "clean", family: "document",
@@ -26,6 +42,13 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try store.recent(query: "nothing").count, 0)
         try store.delete(id: saved.id!)
         XCTAssertEqual(try store.count(), 0)
+
+        try waveformKeepsRecordIdentityAndCompleteDeliveredText()
+
+        let data = WAVEncoder.encode(samples: [0, 0.5, -0.5], sampleRate: 16_000)
+        XCTAssertEqual(data.count, 44 + 6)
+        XCTAssertEqual(String(decoding: data.prefix(4), as: UTF8.self), "RIFF")
+        XCTAssertEqual(String(decoding: data[8..<12], as: UTF8.self), "WAVE")
     }
 
     /// The unverified-paste status is derived from existing columns, so it
@@ -49,7 +72,7 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try store.overview().stats.dictations, 7)
     }
 
-    func testOverviewSummarisesPeriodLocally() throws {
+    private func overviewSummarisesPeriodLocally() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
         let now = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
@@ -90,7 +113,7 @@ final class HistoryStoreTests: XCTestCase {
     /// AD-077: the overview aggregates in SQL. Rows without a stored count
     /// (written by an older version) still count from their text, in totals,
     /// app shares and the longest dictation; an app keeps its earliest name.
-    func testOverviewAggregatesIncludeUncountedRowsAndKeepAppIdentity() throws {
+    private func overviewAggregatesIncludeUncountedRowsAndKeepAppIdentity() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
         let now = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
@@ -132,17 +155,7 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try store.overview(now: now, calendar: calendar, pulseLimit: 0).pulses, [])
     }
 
-    func testStreakSurvivesUntilTheDayAfter() {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        let now = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
-        let day = { (ago: Double) in now.addingTimeInterval(-ago * 86_400) }
-        XCTAssertEqual(HistoryStore.streak([day(1), day(2), day(4)], now: now, calendar: calendar), 2)
-        XCTAssertEqual(HistoryStore.streak([day(2), day(3)], now: now, calendar: calendar), 0)
-        XCTAssertEqual(HistoryStore.streak([], now: now, calendar: calendar), 0)
-    }
-
-    func testWaveformKeepsRecordIdentityAndCompleteDeliveredText() throws {
+    private func waveformKeepsRecordIdentityAndCompleteDeliveredText() throws {
         let store = try HistoryStore(inMemory: true)
         let date = Date(timeIntervalSince1970: 1_790_000_000)
         let texts = ["First dictation.", String(repeating: "保留完整文字 🎙️\n", count: 300), "Final dictation."]
@@ -165,13 +178,6 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(try store.overview(now: date), .empty)
     }
 
-    func testWavEncoderHeader() {
-        let data = WAVEncoder.encode(samples: [0, 0.5, -0.5], sampleRate: 16_000)
-        XCTAssertEqual(data.count, 44 + 6)
-        XCTAssertEqual(String(decoding: data.prefix(4), as: UTF8.self), "RIFF")
-        XCTAssertEqual(String(decoding: data[8..<12], as: UTF8.self), "WAVE")
-    }
-
     // MARK: - AD-072 stored word counts
 
     private func dictation(_ text: String, app: String? = "com.example.editor", date: Date = Date()) -> DictationRecord {
@@ -180,8 +186,10 @@ final class HistoryStoreTests: XCTestCase {
                         asrEngine: "test", audioSeconds: 6, asrMs: 1, llmMs: 1, inserted: true)
     }
 
-    /// Totals come from counts stored at save time and equal per-row counting.
-    func testWordTotalsUseStoredCountsAndMatchTextCounting() throws {
+    /// Merged: totals come from counts stored at save time and equal per-row
+    /// counting; uncounted rows are counted and backfilled on open; a database
+    /// from before `v7-word-count` gains the column and its counts.
+    func testWordCountsAreStoredBackfilledAndMigrated() throws {
         let store = try HistoryStore(inMemory: true)
         let now = Date()
         let texts = ["Ship the build today.", "會議改到星期四下午", "Mixed 中文 and English words 123", ""]
@@ -200,11 +208,14 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(recent.words, expected[0] + expected[1])
         XCTAssertEqual(try store.overview(now: now).stats, all)
         XCTAssertEqual(try store.recent(limit: 4).map(\.wordCount), expected.map(Optional.some))
+
+        try uncountedRowsAreCountedAndBackfilledOnOpen()
+        try wordCountMigrationBackfillsExistingHistory()
     }
 
     /// Rows written without a count (by an older version, or before migration)
     /// are still counted from their text, then backfilled when the store opens.
-    func testUncountedRowsAreCountedAndBackfilledOnOpen() throws {
+    private func uncountedRowsAreCountedAndBackfilledOnOpen() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let text = "Four words right here"
@@ -234,7 +245,7 @@ final class HistoryStoreTests: XCTestCase {
     }
 
     /// A database from before `v7-word-count` gains the column and its counts.
-    func testWordCountMigrationBackfillsExistingHistory() throws {
+    private func wordCountMigrationBackfillsExistingHistory() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         do {

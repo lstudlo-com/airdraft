@@ -4,33 +4,33 @@ import XCTest
 @testable import AirdraftCore
 
 final class ModelArchiveIntegrityTests: XCTestCase {
-    func testEveryFixedSherpaArchiveHasAPublishedDigest() throws {
+    /// Every fixed archive has a unique digest, verification accepts exact bytes and
+    /// rejects changes, and an invalid download never reaches the installed model.
+    func testArchiveDigestsVerificationAndInstallRejectChangedBytes() async throws {
         for model in SherpaTranscriber.Model.allCases {
             let digest = try XCTUnwrap(model.archiveSHA256)
             XCTAssertEqual(digest.count, 64)
             XCTAssertTrue(digest.allSatisfy { "0123456789abcdef".contains($0) })
         }
         XCTAssertEqual(Set(SherpaTranscriber.Model.allCases.compactMap(\.archiveSHA256)).count, SherpaTranscriber.Model.allCases.count)
-    }
 
-    func testArchiveVerificationAcceptsExactBytesAndRejectsChanges() throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-integrity-\(UUID())")
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
-        let archive = root.appendingPathComponent("candidate")
-        let bytes = Data("harmless model archive fixture".utf8)
-        let expected = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
-        try bytes.write(to: archive)
-        XCTAssertNoThrow(try ModelDownloader.verifySHA256(of: archive, expected: expected))
-        try Data("changed model archive fixture".utf8).write(to: archive)
-        XCTAssertThrowsError(try ModelDownloader.verifySHA256(of: archive, expected: expected)) { error in
-            guard case ModelDownloader.DownloadError.checksumMismatch = error else {
-                return XCTFail("Expected integrity rejection, got \(error)")
+        do {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-integrity-\(UUID())")
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let archive = root.appendingPathComponent("candidate")
+            let bytes = Data("harmless model archive fixture".utf8)
+            let expected = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+            try bytes.write(to: archive)
+            XCTAssertNoThrow(try ModelDownloader.verifySHA256(of: archive, expected: expected))
+            try Data("changed model archive fixture".utf8).write(to: archive)
+            XCTAssertThrowsError(try ModelDownloader.verifySHA256(of: archive, expected: expected)) { error in
+                guard case ModelDownloader.DownloadError.checksumMismatch = error else {
+                    return XCTFail("Expected integrity rejection, got \(error)")
+                }
             }
         }
-    }
 
-    func testInvalidDownloadedArchiveNeverReachesInstalledModel() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-install-integrity-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }

@@ -5,113 +5,120 @@ import XCTest
 @testable import AirdraftCore
 
 final class ModelDownloadProgressTests: XCTestCase {
-    func testReportsBytesBeforeFileCompletes() async throws {
-        let server = try await SlowModelServer.start()
-        defer { server.stop() }
-        let updates = DownloadUpdates()
-        let (file, _) = try await ModelDownloadTransfer.download(from: server.url("weights")) { received, total in
-            updates.append(.init(fraction: total.map { Double(received) / Double($0) },
-                                 currentFile: "weights", receivedBytes: received, totalBytes: total))
+    /// Bytes arrive before a file completes, unknown lengths report bytes without a percentage,
+    /// the aggregate includes tokenizer and cached bytes, and failed or wrong-size downloads
+    /// never install.
+    func testTransferReportsLiveBytesAggregatesFilesAndRejectsFailedDownloads() async throws {
+        do { // ReportsBytesBeforeFileCompletes
+            let server = try await SlowModelServer.start()
+            defer { server.stop() }
+            let updates = DownloadUpdates()
+            let (file, _) = try await ModelDownloadTransfer.download(from: server.url("weights")) { received, total in
+                updates.append(.init(fraction: total.map { Double(received) / Double($0) },
+                                     currentFile: "weights", receivedBytes: received, totalBytes: total))
+            }
+            defer { try? FileManager.default.removeItem(at: file) }
+            let partial = updates.values.filter { ($0.fraction ?? 0) > 0 && ($0.fraction ?? 1) < 1 }
+            XCTAssertGreaterThan(partial.count, 2, "Progress must arrive during a single large file, not only at completion")
+            XCTAssertEqual(partial.first?.totalBytes, Int64(SlowModelServer.size))
+            XCTAssertEqual(updates.values.compactMap(\.receivedBytes), updates.values.compactMap(\.receivedBytes).sorted())
+            XCTAssertEqual(try Data(contentsOf: file).count, SlowModelServer.size)
         }
-        defer { try? FileManager.default.removeItem(at: file) }
-        let partial = updates.values.filter { ($0.fraction ?? 0) > 0 && ($0.fraction ?? 1) < 1 }
-        XCTAssertGreaterThan(partial.count, 2, "Progress must arrive during a single large file, not only at completion")
-        XCTAssertEqual(partial.first?.totalBytes, Int64(SlowModelServer.size))
-        XCTAssertEqual(updates.values.compactMap(\.receivedBytes), updates.values.compactMap(\.receivedBytes).sorted())
-        XCTAssertEqual(try Data(contentsOf: file).count, SlowModelServer.size)
-    }
 
-    func testUnknownLengthReportsReceivedBytesWithoutInventingPercentage() async throws {
-        let server = try await SlowModelServer.start()
-        defer { server.stop() }
-        let updates = DownloadUpdates()
-        let (file, _) = try await ModelDownloadTransfer.download(from: server.url("unknown")) { received, total in
-            updates.append(.init(fraction: total.map { Double(received) / Double($0) },
-                                 currentFile: "weights", receivedBytes: received, totalBytes: total))
+        do { // UnknownLengthReportsReceivedBytesWithoutInventingPercentage
+            let server = try await SlowModelServer.start()
+            defer { server.stop() }
+            let updates = DownloadUpdates()
+            let (file, _) = try await ModelDownloadTransfer.download(from: server.url("unknown")) { received, total in
+                updates.append(.init(fraction: total.map { Double(received) / Double($0) },
+                                     currentFile: "weights", receivedBytes: received, totalBytes: total))
+            }
+            defer { try? FileManager.default.removeItem(at: file) }
+            XCTAssertGreaterThan(updates.values.count, 2)
+            XCTAssertTrue(updates.values.allSatisfy { $0.fraction == nil && $0.totalBytes == nil })
+            XCTAssertTrue(updates.values.allSatisfy { ($0.receivedBytes ?? 0) > 0 })
         }
-        defer { try? FileManager.default.removeItem(at: file) }
-        XCTAssertGreaterThan(updates.values.count, 2)
-        XCTAssertTrue(updates.values.allSatisfy { $0.fraction == nil && $0.totalBytes == nil })
-        XCTAssertTrue(updates.values.allSatisfy { ($0.receivedBytes ?? 0) > 0 })
-    }
 
-    func testAggregateIncludesTokenizerAndCachedBytes() async throws {
-        let server = try await SlowModelServer.start()
-        defer { server.stop() }
-        let root = try scratch()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let cached = root.appendingPathComponent("cached")
-        try Data(repeating: 3, count: 32).write(to: cached)
-        let updates = DownloadUpdates()
-        try await ModelDownloadTransfer.install([
-            .init(url: server.url("missing"), destination: cached, size: 32),
-            .init(url: server.url("weights"), destination: root.appendingPathComponent("weights"), size: Int64(SlowModelServer.size)),
-            .init(url: server.url("tokenizer"), destination: root.appendingPathComponent("tokenizer"), size: Int64(SlowModelServer.size))
-        ], progress: { updates.append($0) })
-        let values = updates.values
-        XCTAssertTrue(values.filter { $0.currentFile == "weights" }.allSatisfy { ($0.fraction ?? 1) < 1 })
-        XCTAssertTrue(values.filter { $0.currentFile == "tokenizer" }.contains { ($0.fraction ?? 1) < 1 })
-        XCTAssertEqual(values.last?.fraction, 1)
-        XCTAssertEqual(values.last?.receivedBytes, Int64(32 + 2 * SlowModelServer.size))
-        let fractions = values.compactMap(\.fraction)
-        XCTAssertEqual(fractions, fractions.sorted())
-    }
+        do { // AggregateIncludesTokenizerAndCachedBytes
+            let server = try await SlowModelServer.start()
+            defer { server.stop() }
+            let root = try scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let cached = root.appendingPathComponent("cached")
+            try Data(repeating: 3, count: 32).write(to: cached)
+            let updates = DownloadUpdates()
+            try await ModelDownloadTransfer.install([
+                .init(url: server.url("missing"), destination: cached, size: 32),
+                .init(url: server.url("weights"), destination: root.appendingPathComponent("weights"), size: Int64(SlowModelServer.size)),
+                .init(url: server.url("tokenizer"), destination: root.appendingPathComponent("tokenizer"), size: Int64(SlowModelServer.size))
+            ], progress: { updates.append($0) })
+            let values = updates.values
+            XCTAssertTrue(values.filter { $0.currentFile == "weights" }.allSatisfy { ($0.fraction ?? 1) < 1 })
+            XCTAssertTrue(values.filter { $0.currentFile == "tokenizer" }.contains { ($0.fraction ?? 1) < 1 })
+            XCTAssertEqual(values.last?.fraction, 1)
+            XCTAssertEqual(values.last?.receivedBytes, Int64(32 + 2 * SlowModelServer.size))
+            let fractions = values.compactMap(\.fraction)
+            XCTAssertEqual(fractions, fractions.sorted())
+        }
 
-    func testFailedAndWrongSizeDownloadsNeverInstall() async throws {
-        let server = try await SlowModelServer.start()
-        defer { server.stop() }
-        let root = try scratch()
-        defer { try? FileManager.default.removeItem(at: root) }
-        for (path, size) in [("missing", SlowModelServer.size), ("weights", 7)] {
-            let destination = root.appendingPathComponent(path)
-            do {
-                try await ModelDownloadTransfer.install([
-                    .init(url: server.url(path), destination: destination, size: Int64(size))
-                ], progress: { _ in })
-                XCTFail("Must reject HTTP errors and incomplete manifest sizes")
-            } catch { XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path)) }
+        do { // FailedAndWrongSizeDownloadsNeverInstall
+            let server = try await SlowModelServer.start()
+            defer { server.stop() }
+            let root = try scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            for (path, size) in [("missing", SlowModelServer.size), ("weights", 7)] {
+                let destination = root.appendingPathComponent(path)
+                do {
+                    try await ModelDownloadTransfer.install([
+                        .init(url: server.url(path), destination: destination, size: Int64(size))
+                    ], progress: { _ in })
+                    XCTFail("Must reject HTTP errors and incomplete manifest sizes")
+                } catch { XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path)) }
+            }
         }
     }
 
-    func testSameSizeCorruptCacheIsReplacedOnlyAfterDigestVerification() async throws {
-        let root = try scratch()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let destination = root.appendingPathComponent("model.gguf")
-        let valid = Data("valid-model".utf8)
-        try Data(repeating: 0, count: valid.count).write(to: destination)
-        let digest = SHA256.hash(data: valid).map { String(format: "%02x", $0) }.joined()
-        let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
-                                             destination: destination, size: Int64(valid.count), sha256: digest)
-        try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { url, _ in
-            let temporary = root.appendingPathComponent(UUID().uuidString)
-            try valid.write(to: temporary)
-            return (temporary, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
-        })
-        XCTAssertEqual(try Data(contentsOf: destination), valid)
-        try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { _, _ in
-            XCTFail("A verified cache must not download again")
-            throw URLError(.badURL)
-        })
-    }
-
-    func testWrongDigestNeverReplacesExistingFiles() async throws {
-        let root = try scratch()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let destination = root.appendingPathComponent("model.gguf")
-        let original = Data("old".utf8)
-        try original.write(to: destination)
-        let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
-                                             destination: destination, size: 3, sha256: String(repeating: "0", count: 64))
-        do {
+    func testDigestVerificationGatesCacheReuseAndReplacement() async throws {
+        do { // SameSizeCorruptCacheIsReplacedOnlyAfterDigestVerification
+            let root = try scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let destination = root.appendingPathComponent("model.gguf")
+            let valid = Data("valid-model".utf8)
+            try Data(repeating: 0, count: valid.count).write(to: destination)
+            let digest = SHA256.hash(data: valid).map { String(format: "%02x", $0) }.joined()
+            let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
+                                                 destination: destination, size: Int64(valid.count), sha256: digest)
             try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { url, _ in
-                let temporary = root.appendingPathComponent("temporary")
-                try Data("bad".utf8).write(to: temporary)
+                let temporary = root.appendingPathComponent(UUID().uuidString)
+                try valid.write(to: temporary)
                 return (temporary, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
             })
-            XCTFail("Must reject a same-size response with a wrong digest")
-        } catch ModelDownloader.DownloadError.checksumMismatch {}
-        XCTAssertEqual(try Data(contentsOf: destination), original)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("temporary").path))
+            XCTAssertEqual(try Data(contentsOf: destination), valid)
+            try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { _, _ in
+                XCTFail("A verified cache must not download again")
+                throw URLError(.badURL)
+            })
+        }
+
+        do { // WrongDigestNeverReplacesExistingFiles
+            let root = try scratch()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let destination = root.appendingPathComponent("model.gguf")
+            let original = Data("old".utf8)
+            try original.write(to: destination)
+            let file = ModelDownloadTransfer.File(url: URL(string: "https://example.invalid/model")!,
+                                                 destination: destination, size: 3, sha256: String(repeating: "0", count: 64))
+            do {
+                try await ModelDownloadTransfer.install([file], progress: { _ in }, fetch: { url, _ in
+                    let temporary = root.appendingPathComponent("temporary")
+                    try Data("bad".utf8).write(to: temporary)
+                    return (temporary, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+                })
+                XCTFail("Must reject a same-size response with a wrong digest")
+            } catch ModelDownloader.DownloadError.checksumMismatch {}
+            XCTAssertEqual(try Data(contentsOf: destination), original)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("temporary").path))
+        }
     }
 
     @MainActor
@@ -149,14 +156,12 @@ final class ModelDownloadProgressTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
     }
 
-    func testUnknownStagesAndNearCompletionLabels() {
+    func testProgressLabelsForUnknownStagesStartupTinyAndNearCompleteTransfers() {
         XCTAssertEqual(ModelDownloader.Progress(fraction: nil, currentFile: "Unpacking…").detail, "")
         XCTAssertTrue(ModelDownloader.Progress(fraction: 0.99999, currentFile: "weights").detail.hasPrefix("99.9%"))
         XCTAssertTrue(ModelDownloader.Progress(fraction: 0.001, currentFile: "weights").detail.hasPrefix("0.1%"))
         XCTAssertNil(ModelDownloader.Progress(fraction: .nan, currentFile: "weights").fraction)
-    }
 
-    func testStartupAndTinyTransfersNeverLookStuckAtZero() {
         XCTAssertEqual(ModelDownloader.Progress(fraction: 0, currentFile: "Connecting…",
                                                receivedBytes: 0, totalBytes: 1_000_000_000).detail, "")
         let tiny = ModelDownloader.Progress(fraction: 0.0000005, currentFile: "config.json",

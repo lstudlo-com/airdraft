@@ -57,64 +57,68 @@ final class BundledModelCatalogTests: XCTestCase {
         }
     }
 
-    func testDamagedGGUFCatalogueIsUnavailableInsteadOfCrashing() throws {
-        let damaged: [String?] = [
-            nil, "{not json", "[]", "[\(gguf()),\(gguf())]",
-            "[\(gguf(id: "../escape"))]", "[\(gguf(id: ".hidden"))]", "[\(gguf(filename: "a/b.gguf"))]",
-            "[\(gguf(filename: ".."))]", "[\(gguf(repository: "not a repo"))]", "[\(gguf(revision: "main"))]",
-            "[\(gguf(bytes: 0))]", "[\(gguf(sha256: "abc"))]", "[\(gguf(languages: "[]"))]",
-            // One bad entry rejects the whole file, including the good one.
-            "[\(gguf(id: "good")),\(gguf(id: "bad", sha256: "x"))]"
-        ]
-        for contents in damaged {
-            assertDamaged(GGUFModelCatalog.catalog(url: try file(contents)), .gguf, id: "whisper-tiny")
-        }
-        assertDamaged(GGUFModelCatalog.catalog(url: nil), .gguf, id: "whisper-tiny")
-        assertDamaged(GGUFModelCatalog.catalog(url: try file("[\(gguf(id: "good")),\(gguf(id: "bad", sha256: "x"))]")),
-                      .gguf, id: "good")
+    func testDamagedCataloguesAreUnavailableAndShippedCataloguesPassReview() throws {
+        // DamagedGGUFCatalogueIsUnavailableInsteadOfCrashing
+        do {
+            let damaged: [String?] = [
+                nil, "{not json", "[]", "[\(gguf()),\(gguf())]",
+                "[\(gguf(id: "../escape"))]", "[\(gguf(id: ".hidden"))]", "[\(gguf(filename: "a/b.gguf"))]",
+                "[\(gguf(filename: ".."))]", "[\(gguf(repository: "not a repo"))]", "[\(gguf(revision: "main"))]",
+                "[\(gguf(bytes: 0))]", "[\(gguf(sha256: "abc"))]", "[\(gguf(languages: "[]"))]",
+                // One bad entry rejects the whole file, including the good one.
+                "[\(gguf(id: "good")),\(gguf(id: "bad", sha256: "x"))]"
+            ]
+            for contents in damaged {
+                assertDamaged(GGUFModelCatalog.catalog(url: try file(contents)), .gguf, id: "whisper-tiny")
+            }
+            assertDamaged(GGUFModelCatalog.catalog(url: nil), .gguf, id: "whisper-tiny")
+            assertDamaged(GGUFModelCatalog.catalog(url: try file("[\(gguf(id: "good")),\(gguf(id: "bad", sha256: "x"))]")),
+                          .gguf, id: "good")
 
-        let valid = GGUFModelCatalog.catalog(url: try file("[\(gguf())]"))
-        XCTAssertNil(valid.error)
-        let model = try valid.require("whisper-tiny")
-        XCTAssertEqual(model.downloadURL?.absoluteString,
-                       "https://huggingface.co/org/repo/resolve/\(revision)/model-Q8_0.gguf")
-        XCTAssertThrowsError(try valid.require("unknown")) { error in
-            guard case ModelDownloader.DownloadError.unpinned("unknown") = error else { return XCTFail("\(error)") }
+            let valid = GGUFModelCatalog.catalog(url: try file("[\(gguf())]"))
+            XCTAssertNil(valid.error)
+            let model = try valid.require("whisper-tiny")
+            XCTAssertEqual(model.downloadURL?.absoluteString,
+                           "https://huggingface.co/org/repo/resolve/\(revision)/model-Q8_0.gguf")
+            XCTAssertThrowsError(try valid.require("unknown")) { error in
+                guard case ModelDownloader.DownloadError.unpinned("unknown") = error else { return XCTFail("\(error)") }
+            }
+        }
+        // DamagedCoreMLCatalogueIsUnavailableInsteadOfCrashing
+        do {
+            let damaged: [String?] = [
+                nil, "{", "[]", "[\(coreML()),\(coreML())]",
+                "[\(coreML(path: "../../escape.bin"))]", "[\(coreML(path: "/etc/passwd"))]",
+                "[\(coreML(path: "Decoder.mlmodelc//weight.bin"))]", "[\(coreML(path: "has space.bin"))]",
+                "[\(coreML(path: "a.bin", second: "a.bin"))]", "[\(coreML(id: "a/b"))]",
+                "[\(coreML(revision: String(repeating: "A", count: 40)))]", "[\(coreML(bytes: -1))]",
+                "[\(coreML(sha256: String(repeating: "z", count: 64)))]",
+                #"[{"id":"parakeet-v2","title":"T","repository":"org/repo","revision":"\#(revision)","version":"v2","precision":"int8","creator":"C","languages":["en"],"files":[]}]"#,
+                #"[{"id":"parakeet-v2","title":"T","repository":"org/repo","revision":"\#(revision)","version":"v2","precision":"int8","creator":"C","languages":[],"files":[{"path":"a.bin","bytes":1,"sha256":"\#(digest)"}]}]"#
+            ]
+            for contents in damaged {
+                assertDamaged(CoreMLSpeechModelCatalog.catalog(url: try file(contents)), .coreML, id: "parakeet-v2")
+            }
+
+            let valid = CoreMLSpeechModelCatalog.catalog(url: try file("[\(coreML())]"))
+            XCTAssertNil(valid.error)
+            let model = try valid.require("parakeet-v2")
+            XCTAssertEqual(model.downloadURL(for: model.files[0])?.absoluteString,
+                           "https://huggingface.co/org/repo/resolve/\(revision)/Decoder.mlmodelc/weights/weight.bin")
+        }
+        // BundledCataloguesPassReview
+        // The shipped catalogues pass the same review, so every engine stays available.
+        do {
+            XCTAssertNil(GGUFModelCatalog.catalogueError)
+            XCTAssertNil(CoreMLSpeechModelCatalog.catalogueError)
+            XCTAssertFalse(GGUFModelCatalog.models.isEmpty)
+            XCTAssertFalse(CoreMLSpeechModelCatalog.models.isEmpty)
+            for kind in [ASRProviderKind.transcribeCpp, .fluidAudio, .whisperKit] {
+                XCTAssertNil(LocalModels.catalogueError(for: ASRConfig(kind: kind)))
+            }
+            XCTAssertEqual(ModelCatalogueError(catalogue: .gguf, detail: "x").errorDescription?.contains("GGUF"), true)
+            XCTAssertEqual(ModelCatalogueError(catalogue: .coreML, detail: "x").errorDescription?.contains("Core ML"), true)
         }
     }
 
-    func testDamagedCoreMLCatalogueIsUnavailableInsteadOfCrashing() throws {
-        let damaged: [String?] = [
-            nil, "{", "[]", "[\(coreML()),\(coreML())]",
-            "[\(coreML(path: "../../escape.bin"))]", "[\(coreML(path: "/etc/passwd"))]",
-            "[\(coreML(path: "Decoder.mlmodelc//weight.bin"))]", "[\(coreML(path: "has space.bin"))]",
-            "[\(coreML(path: "a.bin", second: "a.bin"))]", "[\(coreML(id: "a/b"))]",
-            "[\(coreML(revision: String(repeating: "A", count: 40)))]", "[\(coreML(bytes: -1))]",
-            "[\(coreML(sha256: String(repeating: "z", count: 64)))]",
-            #"[{"id":"parakeet-v2","title":"T","repository":"org/repo","revision":"\#(revision)","version":"v2","precision":"int8","creator":"C","languages":["en"],"files":[]}]"#,
-            #"[{"id":"parakeet-v2","title":"T","repository":"org/repo","revision":"\#(revision)","version":"v2","precision":"int8","creator":"C","languages":[],"files":[{"path":"a.bin","bytes":1,"sha256":"\#(digest)"}]}]"#
-        ]
-        for contents in damaged {
-            assertDamaged(CoreMLSpeechModelCatalog.catalog(url: try file(contents)), .coreML, id: "parakeet-v2")
-        }
-
-        let valid = CoreMLSpeechModelCatalog.catalog(url: try file("[\(coreML())]"))
-        XCTAssertNil(valid.error)
-        let model = try valid.require("parakeet-v2")
-        XCTAssertEqual(model.downloadURL(for: model.files[0])?.absoluteString,
-                       "https://huggingface.co/org/repo/resolve/\(revision)/Decoder.mlmodelc/weights/weight.bin")
-    }
-
-    /// The shipped catalogues pass the same review, so every engine stays available.
-    func testBundledCataloguesPassReview() {
-        XCTAssertNil(GGUFModelCatalog.catalogueError)
-        XCTAssertNil(CoreMLSpeechModelCatalog.catalogueError)
-        XCTAssertFalse(GGUFModelCatalog.models.isEmpty)
-        XCTAssertFalse(CoreMLSpeechModelCatalog.models.isEmpty)
-        for kind in [ASRProviderKind.transcribeCpp, .fluidAudio, .whisperKit] {
-            XCTAssertNil(LocalModels.catalogueError(for: ASRConfig(kind: kind)))
-        }
-        XCTAssertEqual(ModelCatalogueError(catalogue: .gguf, detail: "x").errorDescription?.contains("GGUF"), true)
-        XCTAssertEqual(ModelCatalogueError(catalogue: .coreML, detail: "x").errorDescription?.contains("Core ML"), true)
-    }
 }

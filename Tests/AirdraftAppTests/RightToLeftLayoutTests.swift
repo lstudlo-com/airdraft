@@ -19,7 +19,8 @@ final class RightToLeftLayoutTests: XCTestCase {
         XCTAssertEqual(rtl.minimize, rtl.close - 20)
     }
 
-    func testWritingDirectionFollowsTheFirstLetter() {
+    /// Writing direction follows the first letter; isolates wrap text without changing it.
+    func testWritingDirectionFollowsTheFirstLetterAndIsolatesKeepText() {
         XCTAssertEqual(WritingDirection.of("Send the report"), .leftToRight)
         XCTAssertEqual(WritingDirection.of("أرسل التقرير غدًا"), .rightToLeft)
         XCTAssertEqual(WritingDirection.of("שלום"), .rightToLeft)
@@ -34,9 +35,7 @@ final class RightToLeftLayoutTests: XCTestCase {
         XCTAssertEqual(WritingDirection.paragraphDirection(of: "Report"), .leftToRight)
         XCTAssertEqual(WritingDirection.paragraphDirection(of: "تقرير"), .rightToLeft)
         XCTAssertEqual(WritingDirection.paragraphDirection(of: "2026"), .natural)
-    }
 
-    func testIsolatesWrapTextWithoutChangingIt() {
         let isolated = WritingDirection.isolated("LM Studio")
         XCTAssertEqual(isolated.unicodeScalars.first?.value, 0x2068)
         XCTAssertEqual(isolated.unicodeScalars.last?.value, 0x2069)

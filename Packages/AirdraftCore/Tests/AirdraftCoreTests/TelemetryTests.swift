@@ -87,98 +87,120 @@ final class TelemetryTests: XCTestCase {
 
     // MARK: Gating
 
-    func testNothingIsCapturedOrConstructedUnlessOfficialReleaseHasConsent() {
-        let builds: [(String, Bool, TelemetryConfiguration?, Bool)] = [
-            ("community", false, TelemetryHarness.configuration, false),
-            ("debug", true, TelemetryHarness.configuration, true),
-            ("unconfigured", true, nil, false),
-            ("official", true, TelemetryHarness.configuration, false),
-        ]
-        for (name, official, configuration, debug) in builds {
-            for consent in TelemetryConsent.allCases {
-                let harness = harness(official: official, configuration: configuration, debug: debug, consent: consent)
-                harness.telemetry.start()
-                for event in Self.sampleEvents { harness.telemetry.record(event) }
-                let allowed = name == "official" && consent == .granted
-                XCTAssertEqual(harness.constructions, allowed ? 1 : 0, "\(name) \(consent)")
-                XCTAssertEqual(harness.captured.count, allowed ? Self.sampleEvents.count : 0, "\(name) \(consent)")
-                XCTAssertEqual(harness.telemetry.isSending, allowed)
-                XCTAssertEqual(harness.telemetry.showsChoice, name == "official", "\(name)")
+    /// Nothing is captured or constructed unless an official release has consent; community and
+    /// Debug builds never construct a client even when choosing to share; previews show the choice
+    /// without sending; configuration accepts only project tokens and ingestion origins.
+    func testOnlyConsentedOfficialReleasesSendAndConfigurationIsStrict() {
+        do {
+            let builds: [(String, Bool, TelemetryConfiguration?, Bool)] = [
+                ("community", false, TelemetryHarness.configuration, false),
+                ("debug", true, TelemetryHarness.configuration, true),
+                ("unconfigured", true, nil, false),
+                ("official", true, TelemetryHarness.configuration, false),
+            ]
+            for (name, official, configuration, debug) in builds {
+                for consent in TelemetryConsent.allCases {
+                    let harness = harness(official: official, configuration: configuration, debug: debug, consent: consent)
+                    harness.telemetry.start()
+                    for event in Self.sampleEvents { harness.telemetry.record(event) }
+                    let allowed = name == "official" && consent == .granted
+                    XCTAssertEqual(harness.constructions, allowed ? 1 : 0, "\(name) \(consent)")
+                    XCTAssertEqual(harness.captured.count, allowed ? Self.sampleEvents.count : 0, "\(name) \(consent)")
+                    XCTAssertEqual(harness.telemetry.isSending, allowed)
+                    XCTAssertEqual(harness.telemetry.showsChoice, name == "official", "\(name)")
+                }
             }
         }
-    }
 
-    func testCommunityAndDebugBuildsNeverConstructAClientEvenWhenChoosingToShare() {
-        for (official, debug) in [(false, false), (true, true), (false, true)] {
-            let harness = harness(official: official, debug: debug)
-            harness.telemetry.start()
-            harness.telemetry.choose(.granted)
-            for event in Self.sampleEvents { harness.telemetry.record(event) }
-            harness.telemetry.choose(.denied)
-            harness.telemetry.choose(.granted)
-            XCTAssertEqual(harness.constructions, 0)
-            XCTAssertNil(harness.telemetry.client)
-            XCTAssertTrue(harness.captured.isEmpty)
-            XCTAssertEqual(harness.purges, 0, "Only an offered build manages SDK data")
+        do {
+            for (official, debug) in [(false, false), (true, true), (false, true)] {
+                let harness = harness(official: official, debug: debug)
+                harness.telemetry.start()
+                harness.telemetry.choose(.granted)
+                for event in Self.sampleEvents { harness.telemetry.record(event) }
+                harness.telemetry.choose(.denied)
+                harness.telemetry.choose(.granted)
+                XCTAssertEqual(harness.constructions, 0)
+                XCTAssertNil(harness.telemetry.client)
+                XCTAssertTrue(harness.captured.isEmpty)
+                XCTAssertEqual(harness.purges, 0, "Only an offered build manages SDK data")
+            }
         }
+
+        do {
+            let harness = harness(debug: true)
+            harness.telemetry.previewShowsChoice = true
+            XCTAssertTrue(harness.telemetry.needsDecision)
+            harness.telemetry.choose(.granted)
+            harness.telemetry.record(.dictationFailed(.permission))
+            XCTAssertEqual(harness.settings.telemetryConsent, .granted)
+            XCTAssertEqual(harness.constructions, 0)
+            XCTAssertTrue(harness.captured.isEmpty)
+        }
+
+        XCTAssertNotNil(TelemetryConfiguration(token: "phc_abc123XYZ", host: "https://us.i.posthog.com"))
+        XCTAssertNotNil(TelemetryConfiguration(token: "phc_abc123XYZ", host: "https://eu.i.posthog.com"))
+        for (token, host) in [("phx_abc", "https://us.i.posthog.com"), ("phc_", "https://us.i.posthog.com"),
+                              ("phc_abc-123", "https://us.i.posthog.com"), ("phc_abc$(X)", "https://us.i.posthog.com"),
+                              ("", "https://us.i.posthog.com"), ("phc_abc", "http://us.i.posthog.com"),
+                              ("phc_abc", "https://us.i.posthog.com/"), ("phc_abc", "https://us.posthog.com"),
+                              ("phc_abc", "https://us.i.posthog.com.evil.test"), ("phc_abc", "https://app.posthog.com"),
+                              ("phc_abc", "")] {
+            XCTAssertNil(TelemetryConfiguration(token: token, host: host), "\(token) \(host)")
+        }
+        XCTAssertNil(TelemetryConfiguration.from(info: ["AirdraftTelemetryToken": "", "AirdraftTelemetryHost": ""]))
+        XCTAssertNil(TelemetryConfiguration.from(info: [:]))
+        XCTAssertEqual(TelemetryConfiguration.from(info: ["AirdraftTelemetryToken": "phc_abc", "AirdraftTelemetryHost": "https://eu.i.posthog.com"])?.host,
+                       "https://eu.i.posthog.com")
     }
 
-    func testPreviewShowsTheChoiceWithoutEverSending() {
-        let harness = harness(debug: true)
-        harness.telemetry.previewShowsChoice = true
-        XCTAssertTrue(harness.telemetry.needsDecision)
-        harness.telemetry.choose(.granted)
-        harness.telemetry.record(.dictationFailed(.permission))
-        XCTAssertEqual(harness.settings.telemetryConsent, .granted)
-        XCTAssertEqual(harness.constructions, 0)
-        XCTAssertTrue(harness.captured.isEmpty)
-    }
+    /// Consent sends only after yes and reports denial before stopping; a first no sends nothing
+    /// and later launches purge local data; consent persists outside existing-setup detection.
+    func testConsentTransitionsLaunchPurgesAndPersistence() {
+        do {
+            let harness = harness()
+            harness.telemetry.start()
+            XCTAssertEqual(harness.purges, 1, "Undecided launches remove leftover SDK data")
+            XCTAssertTrue(harness.telemetry.needsDecision)
+            harness.telemetry.record(.onboardingFinished(.skipped))
+            XCTAssertEqual(harness.constructions, 0, "Nothing is created before a choice")
 
-    func testConsentTransitionsSendOnlyAfterYesAndReportDenialBeforeStopping() {
-        let harness = harness()
-        harness.telemetry.start()
-        XCTAssertEqual(harness.purges, 1, "Undecided launches remove leftover SDK data")
-        XCTAssertTrue(harness.telemetry.needsDecision)
-        harness.telemetry.record(.onboardingFinished(.skipped))
-        XCTAssertEqual(harness.constructions, 0, "Nothing is created before a choice")
+            harness.telemetry.choose(.granted)
+            XCTAssertFalse(harness.telemetry.needsDecision)
+            XCTAssertEqual(harness.constructions, 1)
+            XCTAssertEqual(harness.clients[0].calls.value, ["optIn", "capture:telemetry_consent_changed"])
+            XCTAssertEqual(harness.captured.last?.properties, ["consent": "granted", "app": "airdraft-mac"])
 
-        harness.telemetry.choose(.granted)
-        XCTAssertFalse(harness.telemetry.needsDecision)
-        XCTAssertEqual(harness.constructions, 1)
-        XCTAssertEqual(harness.clients[0].calls.value, ["optIn", "capture:telemetry_consent_changed"])
-        XCTAssertEqual(harness.captured.last?.properties, ["consent": "granted", "app": "airdraft-mac"])
+            harness.telemetry.choose(.denied)
+            XCTAssertEqual(harness.clients[0].calls.value.suffix(2), ["capture:telemetry_consent_changed", "optOut"])
+            XCTAssertEqual(harness.captured.last?.properties["consent"], "denied")
+            XCTAssertNil(harness.telemetry.client)
+            harness.telemetry.record(.dictationFailed(.permission))
+            XCTAssertEqual(harness.captured.count, 2)
+            XCTAssertEqual(AppSettings(defaults: harness.defaults).telemetryConsent, .denied)
 
-        harness.telemetry.choose(.denied)
-        XCTAssertEqual(harness.clients[0].calls.value.suffix(2), ["capture:telemetry_consent_changed", "optOut"])
-        XCTAssertEqual(harness.captured.last?.properties["consent"], "denied")
-        XCTAssertNil(harness.telemetry.client)
-        harness.telemetry.record(.dictationFailed(.permission))
-        XCTAssertEqual(harness.captured.count, 2)
-        XCTAssertEqual(AppSettings(defaults: harness.defaults).telemetryConsent, .denied)
+            // Turning it on again creates a fresh client that opts in.
+            harness.telemetry.choose(.granted)
+            XCTAssertEqual(harness.constructions, 2)
+            XCTAssertEqual(harness.clients[1].calls.value.first, "optIn")
+        }
 
-        // Turning it on again creates a fresh client that opts in.
-        harness.telemetry.choose(.granted)
-        XCTAssertEqual(harness.constructions, 2)
-        XCTAssertEqual(harness.clients[1].calls.value.first, "optIn")
-    }
+        do {
+            let first = harness()
+            first.telemetry.choose(.denied)
+            XCTAssertEqual(first.constructions, 0)
+            XCTAssertTrue(first.captured.isEmpty)
+            let relaunch = harness(consent: .denied)
+            relaunch.telemetry.start()
+            XCTAssertEqual(relaunch.purges, 1)
+            XCTAssertEqual(relaunch.constructions, 0)
+            let granted = harness(consent: .granted)
+            granted.telemetry.start()
+            XCTAssertEqual(granted.purges, 0)
+            XCTAssertEqual(granted.constructions, 1)
+            XCTAssertEqual(granted.clients[0].calls.value, [], "A launch with earlier consent sends nothing by itself")
+        }
 
-    func testFirstNoSendsNothingAndLaterLaunchesPurgeLocalData() {
-        let first = harness()
-        first.telemetry.choose(.denied)
-        XCTAssertEqual(first.constructions, 0)
-        XCTAssertTrue(first.captured.isEmpty)
-        let relaunch = harness(consent: .denied)
-        relaunch.telemetry.start()
-        XCTAssertEqual(relaunch.purges, 1)
-        XCTAssertEqual(relaunch.constructions, 0)
-        let granted = harness(consent: .granted)
-        granted.telemetry.start()
-        XCTAssertEqual(granted.purges, 0)
-        XCTAssertEqual(granted.constructions, 1)
-        XCTAssertEqual(granted.clients[0].calls.value, [], "A launch with earlier consent sends nothing by itself")
-    }
-
-    func testConsentPersistsOutsideExistingSetupDetection() {
         let suite = "airdraft.telemetry.consent.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -194,23 +216,6 @@ final class TelemetryTests: XCTestCase {
         XCTAssertNil(defaults.object(forKey: "telemetry.consent"))
         defaults.set("maybe", forKey: "telemetry.consent")
         XCTAssertEqual(AppSettings(defaults: defaults).telemetryConsent, .undecided)
-    }
-
-    func testConfigurationAcceptsOnlyProjectTokensAndIngestionOrigins() {
-        XCTAssertNotNil(TelemetryConfiguration(token: "phc_abc123XYZ", host: "https://us.i.posthog.com"))
-        XCTAssertNotNil(TelemetryConfiguration(token: "phc_abc123XYZ", host: "https://eu.i.posthog.com"))
-        for (token, host) in [("phx_abc", "https://us.i.posthog.com"), ("phc_", "https://us.i.posthog.com"),
-                              ("phc_abc-123", "https://us.i.posthog.com"), ("phc_abc$(X)", "https://us.i.posthog.com"),
-                              ("", "https://us.i.posthog.com"), ("phc_abc", "http://us.i.posthog.com"),
-                              ("phc_abc", "https://us.i.posthog.com/"), ("phc_abc", "https://us.posthog.com"),
-                              ("phc_abc", "https://us.i.posthog.com.evil.test"), ("phc_abc", "https://app.posthog.com"),
-                              ("phc_abc", "")] {
-            XCTAssertNil(TelemetryConfiguration(token: token, host: host), "\(token) \(host)")
-        }
-        XCTAssertNil(TelemetryConfiguration.from(info: ["AirdraftTelemetryToken": "", "AirdraftTelemetryHost": ""]))
-        XCTAssertNil(TelemetryConfiguration.from(info: [:]))
-        XCTAssertEqual(TelemetryConfiguration.from(info: ["AirdraftTelemetryToken": "phc_abc", "AirdraftTelemetryHost": "https://eu.i.posthog.com"])?.host,
-                       "https://eu.i.posthog.com")
     }
 
     // MARK: Allowlist
@@ -257,65 +262,54 @@ final class TelemetryTests: XCTestCase {
         return events
     }
 
-    func testEveryEventValueIsEnumeratedAndPassesTheAllowlist() {
-        let events = Self.allEvents
-        XCTAssertGreaterThan(events.count, 1000)
-        var names = Set<String>()
-        for event in events {
-            var properties = event.properties
-            properties["app"] = TelemetrySanitizer.appTag
-            names.insert(event.name)
-            XCTAssertTrue(sanitizer.allows(event: event.name, properties: properties), "\(event)")
-            XCTAssertNotNil(sanitizer.outgoing(event: event.name, properties: properties))
-            for value in properties.values {
-                XCTAssertLessThanOrEqual(value.count, 32, "Values are short labels: \(value)")
-                XCTAssertFalse(value.contains("/") && !value.contains("-") && value != "0-5s", "No paths: \(value)")
-                XCTAssertFalse(value.contains(" "), "No free text: \(value)")
-            }
-        }
-        XCTAssertEqual(names, TelemetrySanitizer.eventNames)
-    }
-
-    static let hostile = [
-        "Please send the quarterly report to Alice before Friday", // transcript
-        "Kubernetes, Airdraft, 林小明", // vocabulary
-        "Visual Studio Code", "com.microsoft.VSCode", // app name, bundle ID
-        "Re: Contract draft — Mail", // window title
-        "https://mail.example.com/inbox?id=42", // URL
-        "/Users/alice/Documents/Secret Plan.pages", "~/Library/Application Support/Transcribar/history.sqlite",
-        "http://192.168.1.20:1234/v1", "https://api.openai.com/v1/chat/completions", // endpoints
-        "sk-proj-AbCdEf0123456789", "phc_leakedKey", "gsk_live_123", // keys
-        "mlx-community/my-private-finetune", "custom:whisper-large-v3-acme", "qwen3:../../etc/passwd", // custom models
-        "", " ", "clean\n", "delivered ", "../../", "ok; DROP TABLE", String(repeating: "a", count: 300),
-    ]
-
-    func testHostileValuesInAnyKeyAreRejected() {
-        for event in Self.allEvents.prefix(400) + Self.sampleEvents {
-            var base = event.properties
-            base["app"] = TelemetrySanitizer.appTag
-            for key in base.keys {
-                for value in Self.hostile {
-                    var properties = base
-                    properties[key] = value
-                    XCTAssertFalse(sanitizer.allows(event: event.name, properties: properties), "\(event.name).\(key)=\(value)")
-                    XCTAssertNil(sanitizer.outgoing(event: event.name, properties: properties), "\(event.name).\(key)=\(value)")
+    /// Every enumerated event value passes the allowlist; hostile values in any key, extra keys,
+    /// foreign tags and event names are rejected and never reach the client.
+    func testEveryEnumeratedValuePassesAndHostileValuesNeverReachTheClient() {
+        do {
+            let events = Self.allEvents
+            XCTAssertGreaterThan(events.count, 1000)
+            var names = Set<String>()
+            for event in events {
+                var properties = event.properties
+                properties["app"] = TelemetrySanitizer.appTag
+                names.insert(event.name)
+                XCTAssertTrue(sanitizer.allows(event: event.name, properties: properties), "\(event)")
+                XCTAssertNotNil(sanitizer.outgoing(event: event.name, properties: properties))
+                for value in properties.values {
+                    XCTAssertLessThanOrEqual(value.count, 32, "Values are short labels: \(value)")
+                    XCTAssertFalse(value.contains("/") && !value.contains("-") && value != "0-5s", "No paths: \(value)")
+                    XCTAssertFalse(value.contains(" "), "No free text: \(value)")
                 }
             }
-            for extra in ["transcript", "app_name", "bundle_id", "window_title", "url", "path", "endpoint", "api_key", "model_id", "$ip"] {
-                var properties = base
-                properties[extra] = "x"
-                XCTAssertFalse(sanitizer.allows(event: event.name, properties: properties), "Extra key \(extra)")
-            }
-            var untagged = base
-            untagged["app"] = "airdraft-web"
-            XCTAssertFalse(sanitizer.allows(event: event.name, properties: untagged))
+            XCTAssertEqual(names, TelemetrySanitizer.eventNames)
         }
-        for name in Self.hostile + ["$pageview", "Application Opened", "$identify", "$set"] {
-            XCTAssertFalse(sanitizer.allows(event: name, properties: ["app": TelemetrySanitizer.appTag]))
-        }
-    }
 
-    func testHostileModelsAndStringsNeverReachTheClient() {
+        do {
+            for event in Self.allEvents.prefix(400) + Self.sampleEvents {
+                var base = event.properties
+                base["app"] = TelemetrySanitizer.appTag
+                for key in base.keys {
+                    for value in Self.hostile {
+                        var properties = base
+                        properties[key] = value
+                        XCTAssertFalse(sanitizer.allows(event: event.name, properties: properties), "\(event.name).\(key)=\(value)")
+                        XCTAssertNil(sanitizer.outgoing(event: event.name, properties: properties), "\(event.name).\(key)=\(value)")
+                    }
+                }
+                for extra in ["transcript", "app_name", "bundle_id", "window_title", "url", "path", "endpoint", "api_key", "model_id", "$ip"] {
+                    var properties = base
+                    properties[extra] = "x"
+                    XCTAssertFalse(sanitizer.allows(event: event.name, properties: properties), "Extra key \(extra)")
+                }
+                var untagged = base
+                untagged["app"] = "airdraft-web"
+                XCTAssertFalse(sanitizer.allows(event: event.name, properties: untagged))
+            }
+            for name in Self.hostile + ["$pageview", "Application Opened", "$identify", "$set"] {
+                XCTAssertFalse(sanitizer.allows(event: name, properties: ["app": TelemetrySanitizer.appTag]))
+            }
+        }
+
         let harness = harness(consent: .granted)
         harness.telemetry.start()
         for value in Self.hostile {
@@ -332,35 +326,50 @@ final class TelemetryTests: XCTestCase {
         }
     }
 
-    func testOutgoingStripsIdentifyingSDKPropertiesAndDropsOtherSDKEvents() throws {
-        var properties: [String: Any] = TelemetryEvent.dictationFailed(.permission).properties
-        properties["app"] = TelemetrySanitizer.appTag
-        let sdk: [String: Any] = [
-            "$lib": "posthog-ios", "$lib_version": "3.92.4", "$os_name": "macOS", "$os_version": "26.0.1",
-            "$app_version": "0.12.1", "$app_build": "1234", "$session_id": "01920c3e-7c1a-7d5b-9f3a-3b5c8e2a1f00",
-            "$process_person_profile": false, "$geoip_disable": true,
-            "$device_name": "Alice’s MacBook Pro", "$device_model": "Mac15,3", "$device_manufacturer": "Apple",
-            "$device_type": "Desktop", "$locale": "zh-Hant-TW", "$timezone": "Asia/Taipei",
-            "$screen_width": 1512.0, "$screen_height": 982.0, "$network_wifi": true, "$app_namespace": "com.lstudlo.app.airdraft",
-            "$app_name": "Airdraft", "$groups": ["company": "x"], "$set": ["name": "x"], "$screen_name": "Home",
-            "$active_feature_flags": ["beta"], "$ip": "203.0.113.4", "$os_version_bad": "/Users/alice",
-        ]
-        properties.merge(sdk) { current, _ in current }
-        let out = try XCTUnwrap(sanitizer.outgoing(event: "dictation_failed", properties: properties))
-        XCTAssertEqual(Set(out.keys), Set(["category", "app"]).union(TelemetrySanitizer.sdkKeys))
-        XCTAssertEqual(out["$geoip_disable"] as? Bool, true)
-        XCTAssertNil(out["$ip"])
-        // An SDK value that is not a short label is dropped too.
-        var odd = properties
-        odd["$os_version"] = "/Users/alice/secret"
-        XCTAssertNil(try XCTUnwrap(sanitizer.outgoing(event: "dictation_failed", properties: odd))["$os_version"])
-        for name in ["Application Opened", "Application Installed", "$screen", "$identify", "$feature_flag_called",
-                     "$snapshot", "$create_alias", "$groupidentify", "$set", "$autocapture"] {
-            XCTAssertNil(sanitizer.outgoing(event: name, properties: sdk), name)
-        }
-    }
+    static let hostile = [
+        "Please send the quarterly report to Alice before Friday", // transcript
+        "Kubernetes, Airdraft, 林小明", // vocabulary
+        "Visual Studio Code", "com.microsoft.VSCode", // app name, bundle ID
+        "Re: Contract draft — Mail", // window title
+        "https://mail.example.com/inbox?id=42", // URL
+        "/Users/alice/Documents/Secret Plan.pages", "~/Library/Application Support/Transcribar/history.sqlite",
+        "http://192.168.1.20:1234/v1", "https://api.openai.com/v1/chat/completions", // endpoints
+        "sk-proj-AbCdEf0123456789", "phc_leakedKey", "gsk_live_123", // keys
+        "mlx-community/my-private-finetune", "custom:whisper-large-v3-acme", "qwen3:../../etc/passwd", // custom models
+        "", " ", "clean\n", "delivered ", "../../", "ok; DROP TABLE", String(repeating: "a", count: 300),
+    ]
 
-    func testCrashReportsKeepExceptionFieldsWithoutUserNamesOrSteps() throws {
+    /// Outgoing strips identifying SDK properties and drops other SDK events; crash reports keep
+    /// exception fields without user names or steps.
+    func testOutgoingStripsSDKPropertiesAndCrashReportsDropUserNamesAndSteps() throws {
+        do {
+            var properties: [String: Any] = TelemetryEvent.dictationFailed(.permission).properties
+            properties["app"] = TelemetrySanitizer.appTag
+            let sdk: [String: Any] = [
+                "$lib": "posthog-ios", "$lib_version": "3.92.4", "$os_name": "macOS", "$os_version": "26.0.1",
+                "$app_version": "0.12.1", "$app_build": "1234", "$session_id": "01920c3e-7c1a-7d5b-9f3a-3b5c8e2a1f00",
+                "$process_person_profile": false, "$geoip_disable": true,
+                "$device_name": "Alice’s MacBook Pro", "$device_model": "Mac15,3", "$device_manufacturer": "Apple",
+                "$device_type": "Desktop", "$locale": "zh-Hant-TW", "$timezone": "Asia/Taipei",
+                "$screen_width": 1512.0, "$screen_height": 982.0, "$network_wifi": true, "$app_namespace": "com.lstudlo.app.airdraft",
+                "$app_name": "Airdraft", "$groups": ["company": "x"], "$set": ["name": "x"], "$screen_name": "Home",
+                "$active_feature_flags": ["beta"], "$ip": "203.0.113.4", "$os_version_bad": "/Users/alice",
+            ]
+            properties.merge(sdk) { current, _ in current }
+            let out = try XCTUnwrap(sanitizer.outgoing(event: "dictation_failed", properties: properties))
+            XCTAssertEqual(Set(out.keys), Set(["category", "app"]).union(TelemetrySanitizer.sdkKeys))
+            XCTAssertEqual(out["$geoip_disable"] as? Bool, true)
+            XCTAssertNil(out["$ip"])
+            // An SDK value that is not a short label is dropped too.
+            var odd = properties
+            odd["$os_version"] = "/Users/alice/secret"
+            XCTAssertNil(try XCTUnwrap(sanitizer.outgoing(event: "dictation_failed", properties: odd))["$os_version"])
+            for name in ["Application Opened", "Application Installed", "$screen", "$identify", "$feature_flag_called",
+                         "$snapshot", "$create_alias", "$groupidentify", "$set", "$autocapture"] {
+                XCTAssertNil(sanitizer.outgoing(event: name, properties: sdk), name)
+            }
+        }
+
         let crash: [String: Any] = [
             "$exception_level": "fatal", "$exception_source": "ios.crash_reporter",
             "$exception_list": [["type": "EXC_BAD_ACCESS", "value": "Crashed in /Users/alice/Library/x.dylib " + String(repeating: "x", count: 2000),

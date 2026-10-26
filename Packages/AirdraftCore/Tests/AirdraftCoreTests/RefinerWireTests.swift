@@ -60,96 +60,115 @@ final class RefinerWireTests: XCTestCase {
         XCTAssertNil(retryGeneration["thinkingConfig"])
     }
 
+    /// The factory picks each provider's wire; switching providers keeps each model choice.
     @MainActor
-    func testFactoryPicksTheProviderWire() async {
-        let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in nil })
-        var config = LLMConfig()
-        for (kind, expected) in [
-            (LLMProviderKind.openAICompatible, "OpenAICompatibleRefiner"),
-            (.openAI, "OpenAICompatibleRefiner"),
-            (.openRouter, "OpenAICompatibleRefiner"),
-            (.cerebras, "OpenAICompatibleRefiner"),
-            (.groq, "OpenAICompatibleRefiner"),
-            (.anthropic, "AnthropicRefiner"),
-            (.gemini, "GeminiRefiner"),
-        ] {
-            config.select(kind)
-            let refiner = await factory.refiner(for: config)
-            XCTAssertEqual(String(describing: Swift.type(of: refiner!)), expected, "\(kind)")
-            if let chat = refiner as? OpenAICompatibleRefiner {
-                XCTAssertEqual(chat.provider, kind)
-                XCTAssertEqual(chat.baseURL, config.endpoint)
-            }
-        }
-        config.select(.none)
-        let off = await factory.refiner(for: config)
-        XCTAssertNil(off)
-    }
-
-    func testNativeWiresRememberOnlySuccessfulCompatibilityNegotiation() async throws {
-        for wire in ["anthropic", "gemini"] {
-            let fixture = RefinerCompatibilityFixture(wire: wire)
-            defer { fixture.close() }
-            let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
-            _ = try await refiner.refine(fixture.request())
-            _ = try await refiner.refine(fixture.request(transcript: "Different original words"))
-            XCTAssertEqual(fixture.bodies.count, 3, wire)
-            let option = wire == "anthropic" ? "output_config" : "generationConfig"
-            XCTAssertNotNil(fixture.bodies[0][option])
-            XCTAssertNil(fixture.bodies[1][option])
-            XCTAssertNil(fixture.bodies[2][option])
-            if wire == "anthropic" {
-                let messages = try XCTUnwrap(fixture.bodies[2]["messages"] as? [[String: String]])
-                XCTAssertTrue(messages[0]["content"]?.contains("Different original words") == true)
-                XCTAssertEqual(fixture.bodies[2]["max_tokens"] as? Int, AnthropicRefiner.maxTokens)
-                XCTAssertEqual(fixture.bodies[0]["system"] as? String, fixture.bodies[2]["system"] as? String)
-            } else {
-                let contents = try XCTUnwrap(fixture.bodies[2]["contents"] as? [[String: Any]])
-                let parts = try XCTUnwrap(contents[0]["parts"] as? [[String: String]])
-                XCTAssertTrue(parts[0]["text"]?.contains("Different original words") == true)
-                XCTAssertNotNil(fixture.bodies[2]["systemInstruction"])
-            }
-        }
-    }
-
-    func testNativeWiresRejectIncompleteMinimalWithoutLearningCompatibility() async throws {
-        for wire in ["anthropic", "gemini"] {
-            let fixture = RefinerCompatibilityFixture(mode: .incomplete, wire: wire)
-            defer { fixture.close() }
-            let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
-            for _ in 0..<2 {
-                do { _ = try await refiner.refine(fixture.request()); XCTFail("Expected incomplete output") }
-                catch RefinerError.incompleteOutput {}
-            }
-            XCTAssertEqual(fixture.bodies.count, 4, wire)
-            let option = wire == "anthropic" ? "output_config" : "generationConfig"
-            XCTAssertNotNil(fixture.bodies[2][option], "Incomplete minimal output must not suppress future options")
-        }
-    }
-
-    func testChangedCredentialsRenegotiateOptionsForEveryWire() async throws {
-        for wire in ["chat", "anthropic", "gemini"] {
-            let fixture = RefinerCompatibilityFixture(wire: wire)
-            defer { fixture.close() }
-            let compatibility = RefinerCompatibility()
-            for credential in ["fixture-account-a", "fixture-account-b"] {
-                let refiner: any Refiner
-                if wire == "chat" {
-                    var chat = OpenAICompatibleRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
-                    chat.compatibility = compatibility
-                    refiner = chat
-                } else if wire == "anthropic" {
-                    var anthropic = AnthropicRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
-                    anthropic.compatibility = compatibility
-                    refiner = anthropic
-                } else {
-                    var gemini = GeminiRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
-                    gemini.compatibility = compatibility
-                    refiner = gemini
+    func testFactoryPicksTheProviderWireAndSwitchingKeepsEachModelChoice() async {
+        do {
+            let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in nil })
+            var config = LLMConfig()
+            for (kind, expected) in [
+                (LLMProviderKind.openAICompatible, "OpenAICompatibleRefiner"),
+                (.openAI, "OpenAICompatibleRefiner"),
+                (.openRouter, "OpenAICompatibleRefiner"),
+                (.cerebras, "OpenAICompatibleRefiner"),
+                (.groq, "OpenAICompatibleRefiner"),
+                (.anthropic, "AnthropicRefiner"),
+                (.gemini, "GeminiRefiner"),
+            ] {
+                config.select(kind)
+                let refiner = await factory.refiner(for: config)
+                XCTAssertEqual(String(describing: Swift.type(of: refiner!)), expected, "\(kind)")
+                if let chat = refiner as? OpenAICompatibleRefiner {
+                    XCTAssertEqual(chat.provider, kind)
+                    XCTAssertEqual(chat.baseURL, config.endpoint)
                 }
-                _ = try await refiner.refine(fixture.request())
             }
-            XCTAssertEqual(fixture.bodies.count, 4, "A different account must first try its full options: \(wire)")
+            config.select(.none)
+            let off = await factory.refiner(for: config)
+            XCTAssertNil(off)
+        }
+        do {
+            var config = LLMConfig()
+            config.model = "google/gemma-4-26b-a4b-qat"
+            config.select(.anthropic)
+            XCTAssertEqual(config.model, LLMProviderKind.anthropic.defaultModel)
+            config.model = "claude-opus-5"
+            config.select(.openAICompatible)
+            XCTAssertEqual(config.model, "google/gemma-4-26b-a4b-qat")
+            config.select(.anthropic)
+            XCTAssertEqual(config.model, "claude-opus-5")
+            // Cloud providers use their own endpoint, the editable one stays local.
+            XCTAssertEqual(config.endpoint?.host, "api.anthropic.com")
+            XCTAssertEqual(config.keyRef, "llm.anthropic")
+        }
+    }
+
+    /// Native wires remember only successful compatibility negotiation, reject incomplete minimal output
+    /// without learning, and renegotiate options for changed credentials on every wire.
+    func testNativeWiresNegotiateCompatibilityOnlyFromCompleteSuccessPerCredential() async throws {
+        do {
+            for wire in ["anthropic", "gemini"] {
+                let fixture = RefinerCompatibilityFixture(wire: wire)
+                defer { fixture.close() }
+                let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
+                _ = try await refiner.refine(fixture.request())
+                _ = try await refiner.refine(fixture.request(transcript: "Different original words"))
+                XCTAssertEqual(fixture.bodies.count, 3, wire)
+                let option = wire == "anthropic" ? "output_config" : "generationConfig"
+                XCTAssertNotNil(fixture.bodies[0][option])
+                XCTAssertNil(fixture.bodies[1][option])
+                XCTAssertNil(fixture.bodies[2][option])
+                if wire == "anthropic" {
+                    let messages = try XCTUnwrap(fixture.bodies[2]["messages"] as? [[String: String]])
+                    XCTAssertTrue(messages[0]["content"]?.contains("Different original words") == true)
+                    XCTAssertEqual(fixture.bodies[2]["max_tokens"] as? Int, AnthropicRefiner.maxTokens)
+                    XCTAssertEqual(fixture.bodies[0]["system"] as? String, fixture.bodies[2]["system"] as? String)
+                } else {
+                    let contents = try XCTUnwrap(fixture.bodies[2]["contents"] as? [[String: Any]])
+                    let parts = try XCTUnwrap(contents[0]["parts"] as? [[String: String]])
+                    XCTAssertTrue(parts[0]["text"]?.contains("Different original words") == true)
+                    XCTAssertNotNil(fixture.bodies[2]["systemInstruction"])
+                }
+            }
+        }
+        do {
+            for wire in ["anthropic", "gemini"] {
+                let fixture = RefinerCompatibilityFixture(mode: .incomplete, wire: wire)
+                defer { fixture.close() }
+                let refiner = compatibilityRefiner(wire: wire, fixture: fixture)
+                for _ in 0..<2 {
+                    do { _ = try await refiner.refine(fixture.request()); XCTFail("Expected incomplete output") }
+                    catch RefinerError.incompleteOutput {}
+                }
+                XCTAssertEqual(fixture.bodies.count, 4, wire)
+                let option = wire == "anthropic" ? "output_config" : "generationConfig"
+                XCTAssertNotNil(fixture.bodies[2][option], "Incomplete minimal output must not suppress future options")
+            }
+        }
+        do {
+            for wire in ["chat", "anthropic", "gemini"] {
+                let fixture = RefinerCompatibilityFixture(wire: wire)
+                defer { fixture.close() }
+                let compatibility = RefinerCompatibility()
+                for credential in ["fixture-account-a", "fixture-account-b"] {
+                    let refiner: any Refiner
+                    if wire == "chat" {
+                        var chat = OpenAICompatibleRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                        chat.compatibility = compatibility
+                        refiner = chat
+                    } else if wire == "anthropic" {
+                        var anthropic = AnthropicRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                        anthropic.compatibility = compatibility
+                        refiner = anthropic
+                    } else {
+                        var gemini = GeminiRefiner(baseURL: fixture.url, model: "fixture", apiKey: credential, session: fixture.session)
+                        gemini.compatibility = compatibility
+                        refiner = gemini
+                    }
+                    _ = try await refiner.refine(fixture.request())
+                }
+                XCTAssertEqual(fixture.bodies.count, 4, "A different account must first try its full options: \(wire)")
+            }
         }
     }
 
@@ -163,21 +182,6 @@ final class RefinerWireTests: XCTestCase {
         refiner.compatibility = RefinerCompatibility()
         return refiner
     }
-
-    func testSwitchingProvidersKeepsEachModelChoice() {
-        var config = LLMConfig()
-        config.model = "google/gemma-4-26b-a4b-qat"
-        config.select(.anthropic)
-        XCTAssertEqual(config.model, LLMProviderKind.anthropic.defaultModel)
-        config.model = "claude-opus-5"
-        config.select(.openAICompatible)
-        XCTAssertEqual(config.model, "google/gemma-4-26b-a4b-qat")
-        config.select(.anthropic)
-        XCTAssertEqual(config.model, "claude-opus-5")
-        // Cloud providers use their own endpoint, the editable one stays local.
-        XCTAssertEqual(config.endpoint?.host, "api.anthropic.com")
-        XCTAssertEqual(config.keyRef, "llm.anthropic")
-    }
 }
 
 /// The CLI providers spend the user's subscription, so the flags that keep a call
@@ -185,75 +189,79 @@ final class RefinerWireTests: XCTestCase {
 final class CLIRefinerTests: XCTestCase {
     private let out = URL(fileURLWithPath: "/tmp/last-message.txt")
 
-    func testClaudeCodeRunsWithoutToolsOrUserConfig() {
-        let refiner = CLIRefiner(tool: .claudeCode, executable: "/usr/local/bin/claude", model: "sonnet")
-        let args = refiner.arguments(outputFile: out, systemPrompt: "SYSTEM")
+    /// Claude Code runs without tools or user config and switches to streaming I/O for warm starts;
+    /// Codex runs one-shot in a temporary directory.
+    func testClaudeCodeAndCodexArgumentsKeepCallsCheapAndSideEffectFree() {
+        do {
+            let refiner = CLIRefiner(tool: .claudeCode, executable: "/usr/local/bin/claude", model: "sonnet")
+            let args = refiner.arguments(outputFile: out, systemPrompt: "SYSTEM")
 
-        XCTAssertEqual(args.first, "-p")
-        XCTAssertEqual(args[args.firstIndex(of: "--system-prompt")! + 1], "SYSTEM")
-        XCTAssertEqual(args[args.firstIndex(of: "--model")! + 1], "sonnet")
-        // Without an empty tool set the CLI ships ~15k tokens of schemas per call.
-        XCTAssertEqual(args[args.firstIndex(of: "--tools")! + 1], "")
-        for flag in ["--restricted", "--strict-mcp-config", "--disable-slash-commands", "--no-session-persistence", "--safe-mode"] {
-            XCTAssertTrue(args.contains(flag), flag)
+            XCTAssertEqual(args.first, "-p")
+            XCTAssertEqual(args[args.firstIndex(of: "--system-prompt")! + 1], "SYSTEM")
+            XCTAssertEqual(args[args.firstIndex(of: "--model")! + 1], "sonnet")
+            // Without an empty tool set the CLI ships ~15k tokens of schemas per call.
+            XCTAssertEqual(args[args.firstIndex(of: "--tools")! + 1], "")
+            for flag in ["--restricted", "--strict-mcp-config", "--disable-slash-commands", "--no-session-persistence", "--safe-mode"] {
+                XCTAssertTrue(args.contains(flag), flag)
+            }
+            XCTAssertEqual(args[args.firstIndex(of: "--output-format")! + 1], "json")
         }
-        XCTAssertEqual(args[args.firstIndex(of: "--output-format")! + 1], "json")
-    }
+        do {
+            let refiner = CLIRefiner(tool: .codex, executable: "/usr/local/bin/codex", model: "gpt-6-astra")
+            let args = refiner.arguments(outputFile: out, systemPrompt: "SYSTEM")
 
-    func testCodexRunsOneShotInATemporaryDirectory() {
-        let refiner = CLIRefiner(tool: .codex, executable: "/usr/local/bin/codex", model: "gpt-6-astra")
-        let args = refiner.arguments(outputFile: out, systemPrompt: "SYSTEM")
-
-        XCTAssertEqual(args.first, "exec")
-        XCTAssertEqual(args.last, "-")  // prompt arrives on stdin
-        XCTAssertEqual(args[args.firstIndex(of: "-o")! + 1], out.path)
-        XCTAssertEqual(args[args.firstIndex(of: "--model")! + 1], "gpt-6-astra")
-        for flag in ["--ephemeral", "--ignore-user-config", "--skip-git-repo-check"] {
-            XCTAssertTrue(args.contains(flag), flag)
+            XCTAssertEqual(args.first, "exec")
+            XCTAssertEqual(args.last, "-")  // prompt arrives on stdin
+            XCTAssertEqual(args[args.firstIndex(of: "-o")! + 1], out.path)
+            XCTAssertEqual(args[args.firstIndex(of: "--model")! + 1], "gpt-6-astra")
+            for flag in ["--ephemeral", "--ignore-user-config", "--skip-git-repo-check"] {
+                XCTAssertTrue(args.contains(flag), flag)
+            }
+            XCTAssertEqual(args[args.firstIndex(of: "--sandbox")! + 1], "read-only")
         }
-        XCTAssertEqual(args[args.firstIndex(of: "--sandbox")! + 1], "read-only")
+        do {
+            let refiner = CLIRefiner(tool: .claudeCode, executable: "/usr/local/bin/claude", model: "sonnet", effort: .low)
+            let args = refiner.warmArguments(systemPrompt: "SYSTEM")
+            // The process is started before the transcript exists, so it has to read stdin
+            // as a stream and answer as a stream.
+            XCTAssertEqual(args[args.firstIndex(of: "--input-format")! + 1], "stream-json")
+            XCTAssertEqual(args[args.firstIndex(of: "--output-format")! + 1], "stream-json")
+            XCTAssertTrue(args.contains("--verbose"))  // required with streaming output
+            XCTAssertEqual(args[args.firstIndex(of: "--effort")! + 1], "low")
+            XCTAssertTrue(refiner.supportsWarmStart)
+            XCTAssertFalse(CLIRefiner(tool: .codex, executable: "/usr/local/bin/codex", model: "").supportsWarmStart)
+        }
     }
 
-    func testWarmStartSwitchesClaudeCodeToStreamingIO() {
-        let refiner = CLIRefiner(tool: .claudeCode, executable: "/usr/local/bin/claude", model: "sonnet", effort: .low)
-        let args = refiner.warmArguments(systemPrompt: "SYSTEM")
-        // The process is started before the transcript exists, so it has to read stdin
-        // as a stream and answer as a stream.
-        XCTAssertEqual(args[args.firstIndex(of: "--input-format")! + 1], "stream-json")
-        XCTAssertEqual(args[args.firstIndex(of: "--output-format")! + 1], "stream-json")
-        XCTAssertTrue(args.contains("--verbose"))  // required with streaming output
-        XCTAssertEqual(args[args.firstIndex(of: "--effort")! + 1], "low")
-        XCTAssertTrue(refiner.supportsWarmStart)
-        XCTAssertFalse(CLIRefiner(tool: .codex, executable: "/usr/local/bin/codex", model: "").supportsWarmStart)
-    }
+    /// Effort reaches each provider; both CLIs receive only the transcript on stdin.
+    func testEffortReachesEachProviderAndCLIsReceiveOnlyTheTranscript() {
+        do {
+            let claude = CLIRefiner(tool: .claudeCode, executable: "/bin/true", model: "", effort: .medium)
+            XCTAssertEqual(claude.arguments(outputFile: out, systemPrompt: "S")[claude.arguments(outputFile: out, systemPrompt: "S").firstIndex(of: "--effort")! + 1], "medium")
+            let codex = CLIRefiner(tool: .codex, executable: "/bin/true", model: "", effort: .off)
+            XCTAssertTrue(codex.arguments(outputFile: out, systemPrompt: "S").contains("model_reasoning_effort=\"low\""))
 
-    func testEffortReachesEachProvider() {
-        let claude = CLIRefiner(tool: .claudeCode, executable: "/bin/true", model: "", effort: .medium)
-        XCTAssertEqual(claude.arguments(outputFile: out, systemPrompt: "S")[claude.arguments(outputFile: out, systemPrompt: "S").firstIndex(of: "--effort")! + 1], "medium")
-        let codex = CLIRefiner(tool: .codex, executable: "/bin/true", model: "", effort: .off)
-        XCTAssertTrue(codex.arguments(outputFile: out, systemPrompt: "S").contains("model_reasoning_effort=\"low\""))
-
-        // Claude 4.7+ reject `temperature`; depth is set through output_config.effort.
-        let anthropic = AnthropicRefiner(baseURL: URL(string: "https://api.anthropic.com/v1")!, model: "claude-sonnet-5", apiKey: "k", effort: .low)
-        let request = RefineRequest(transcript: "測試", profile: RefinementProfile.defaults[0], context: .empty, family: .general, dictionary: [])
-        let payload = anthropic.payload(for: request)
-        XCTAssertNil(payload["temperature"])
-        XCTAssertEqual((payload["output_config"] as? [String: Any])?["effort"] as? String, "low")
-        // The 400 retry falls back to the bare spec body.
-        let minimal = anthropic.payload(for: request, minimal: true)
-        XCTAssertNil(minimal["output_config"])
-        XCTAssertNil(minimal["thinking"])
-        XCTAssertNotNil(minimal["messages"])
-    }
-
-    func testBothCLIsReceiveOnlyTheTranscriptOnStdin() {
-        let request = RefineRequest(transcript: "測試", profile: RefinementProfile.defaults[0], context: .empty, family: .general, dictionary: [])
-        let claude = CLIRefiner(tool: .claudeCode, executable: "/bin/true", model: "")
-        let codex = CLIRefiner(tool: .codex, executable: "/bin/true", model: "")
-        XCTAssertFalse(claude.input(for: request).contains("FIDELITY"))
-        XCTAssertFalse(codex.input(for: request).contains("FIDELITY"))
-        XCTAssertEqual(codex.input(for: request), PromptBuilder.userMessage(for: request))
-        // An empty model means "whatever the CLI is set to", so no --model flag.
-        XCTAssertFalse(claude.arguments(outputFile: out, systemPrompt: "S").contains("--model"))
+            // Claude 4.7+ reject `temperature`; depth is set through output_config.effort.
+            let anthropic = AnthropicRefiner(baseURL: URL(string: "https://api.anthropic.com/v1")!, model: "claude-sonnet-5", apiKey: "k", effort: .low)
+            let request = RefineRequest(transcript: "測試", profile: RefinementProfile.defaults[0], context: .empty, family: .general, dictionary: [])
+            let payload = anthropic.payload(for: request)
+            XCTAssertNil(payload["temperature"])
+            XCTAssertEqual((payload["output_config"] as? [String: Any])?["effort"] as? String, "low")
+            // The 400 retry falls back to the bare spec body.
+            let minimal = anthropic.payload(for: request, minimal: true)
+            XCTAssertNil(minimal["output_config"])
+            XCTAssertNil(minimal["thinking"])
+            XCTAssertNotNil(minimal["messages"])
+        }
+        do {
+            let request = RefineRequest(transcript: "測試", profile: RefinementProfile.defaults[0], context: .empty, family: .general, dictionary: [])
+            let claude = CLIRefiner(tool: .claudeCode, executable: "/bin/true", model: "")
+            let codex = CLIRefiner(tool: .codex, executable: "/bin/true", model: "")
+            XCTAssertFalse(claude.input(for: request).contains("FIDELITY"))
+            XCTAssertFalse(codex.input(for: request).contains("FIDELITY"))
+            XCTAssertEqual(codex.input(for: request), PromptBuilder.userMessage(for: request))
+            // An empty model means "whatever the CLI is set to", so no --model flag.
+            XCTAssertFalse(claude.arguments(outputFile: out, systemPrompt: "S").contains("--model"))
+        }
     }
 }

@@ -7,22 +7,22 @@ import XCTest
 /// local measurements. Every OS boundary is injected; nothing is pasted, no key
 /// is posted and no real History or preferences are read.
 final class HighRiskFlagsTests: XCTestCase {
-    func testOrdinaryCleanupIsNotFlagged() {
+    /// Ordinary cleanup stays unflagged; changed numbers, flipped negations, introduced
+    /// names and speech-guard corrections are flagged by kind.
+    func testOrdinaryCleanupIsQuietAndRiskyChangesAreFlaggedByKind() {
         let flags = HighRiskFlags.flags(raw: "um so i think we should ship it tomorrow you know",
                                         final: "So I think we should ship it tomorrow.")
         XCTAssertEqual(flags, [])
-    }
 
-    func testChangedNumbersAreFlaggedBothWays() {
+        // Numbers, both ways.
         let added = HighRiskFlags.flags(raw: "set the timeout to fifteen seconds", final: "Set the timeout to 50 seconds.")
         XCTAssertEqual(added.map(\.kind), [.number])
         XCTAssertEqual(added.first?.text, "50")
         let removed = HighRiskFlags.flags(raw: "use port 8080 please", final: "Use the default port, please.")
         XCTAssertEqual(removed.map(\.text), ["8080"])
         XCTAssertEqual(HighRiskFlags.flags(raw: "port ８０８０", final: "Port 8080."), [], "Full-width digits read as ASCII")
-    }
 
-    func testFlippedNegationIsFlaggedInEnglishAndChinese() {
+        // Negation in English and Chinese.
         let english = HighRiskFlags.flags(raw: "do not restart the server", final: "Restart the server.")
         XCTAssertEqual(english.map(\.kind), [.negation])
         XCTAssertEqual(english.first?.text, "not")
@@ -30,34 +30,31 @@ final class HighRiskFlagsTests: XCTestCase {
         XCTAssertEqual(chinese.map(\.kind), [.negation])
         XCTAssertEqual(HighRiskFlags.flags(raw: "我沒有空", final: "我没有空。"), [],
                        "Script conversion keeps the same count of negations")
-    }
 
-    func testNamesRefinementIntroducedAreFlaggedButVocabularyIsTrusted() {
-        let flags = HighRiskFlags.flags(raw: "deploy it with kuber netes", final: "Deploy it with Kubernetes.")
-        XCTAssertEqual(flags.map(\.kind), [.newTerm])
-        XCTAssertEqual(flags.first?.text, "Kubernetes")
+        // Names refinement introduced, unless Vocabulary trusts them.
+        let names = HighRiskFlags.flags(raw: "deploy it with kuber netes", final: "Deploy it with Kubernetes.")
+        XCTAssertEqual(names.map(\.kind), [.newTerm])
+        XCTAssertEqual(names.first?.text, "Kubernetes")
         XCTAssertEqual(HighRiskFlags.flags(raw: "deploy it with kuber netes", final: "Deploy it with Kubernetes.",
                                            vocabulary: ["Kubernetes"]), [])
         XCTAssertEqual(HighRiskFlags.flags(raw: "ask claude to review", final: "Ask Claude to review."), [],
                        "A name the speech already contained only changed case")
+
+        // Speech-guard corrections.
+        let recognition = HighRiskFlags.flags(raw: "hello there", final: "Hello there.", adjustments: [.repetitionTrimmed])
+        XCTAssertEqual(recognition.map(\.kind), [.recognition])
+        XCTAssertEqual(HighRiskFlags.flags(raw: "hello there", final: "Hello there.", adjustments: [.punctuationAdded]), [])
     }
 
-    func testIdentifiersFlagAndCanStopHoldingTheSend() {
+    /// Identifiers flag and can stop holding the send; snippets carry context and are bounded.
+    func testIdentifiersFlagAndCanStopHoldingTheSendWithBoundedSnippets() {
         let flags = HighRiskFlags.flags(raw: "open user_settings.json and fix fetchUser", final: "Open user_settings.json and fix fetchUser.")
         XCTAssertEqual(Set(flags.map(\.text)), ["user_settings.json", "fetchUser"])
         XCTAssertTrue(flags.allSatisfy { $0.kind == .identifier && $0.holdsSend })
         let relaxed = HighRiskFlags.flags(raw: "open user_settings.json", final: "Open user_settings.json.", identifiersHoldSend: false)
         XCTAssertEqual(relaxed.count, 1)
         XCTAssertEqual(HighRiskFlags.holdingSend(relaxed), [])
-    }
 
-    func testSpeechGuardCorrectionsAreFlagged() {
-        let flags = HighRiskFlags.flags(raw: "hello there", final: "Hello there.", adjustments: [.repetitionTrimmed])
-        XCTAssertEqual(flags.map(\.kind), [.recognition])
-        XCTAssertEqual(HighRiskFlags.flags(raw: "hello there", final: "Hello there.", adjustments: [.punctuationAdded]), [])
-    }
-
-    func testSnippetsCarryContextAndAreBounded() {
         XCTAssertEqual(HighRiskFlags.snippet(for: "8080", in: "Please use port 8080 on the staging host"), "…se port 8080 on the…")
         let many = (0..<40).map { "v\($0)x" }.joined(separator: " ")
         XCTAssertEqual(HighRiskFlags.flags(raw: many, final: many).count, HighRiskFlags.maximumStored)
@@ -68,7 +65,8 @@ final class HighRiskFlagsTests: XCTestCase {
 final class SendDecisionTests: XCTestCase {
     private let flag = DictationFlag(kind: .number, text: "50", snippet: "to 50 seconds")
 
-    func testAutomaticSendIsOnlyForAIChatsAndAgents() {
+    /// Automatic send only for AI chats and agents; Shift waits longer and respects confirmation.
+    func testAutomaticSendIsOnlyForAIChatsAndShiftSendRespectsConfirmation() {
         let options = SpeedOptions()
         XCTAssertEqual(DictationPipeline.sendDecision(request: .auto, delivered: .delivered, bundleID: "com.openai.chat",
                                                       flags: [], options: options), .send(window: DictationPipeline.aiSendWindow))
@@ -81,34 +79,31 @@ final class SendDecisionTests: XCTestCase {
                        .send(window: DictationPipeline.aiSendWindow), "An installed web app has its own bundle ID")
         XCTAssertEqual(DictationPipeline.sendDecision(request: .auto, delivered: .sentUnverified, bundleID: "dev.warp.Warp-Stable",
                                                       flags: [], options: options), .none, "Never automatic without confirmation")
-    }
 
-    func testShiftSendWaitsLongerAndRespectsConfirmation() {
-        var options = SpeedOptions()
+        var shiftOptions = SpeedOptions()
         XCTAssertEqual(DictationPipeline.sendDecision(request: .shift, delivered: .delivered, bundleID: "com.tinyspeck.slackmacgap",
-                                                      flags: [], options: options), .send(window: DictationPipeline.personSendWindow))
+                                                      flags: [], options: shiftOptions), .send(window: DictationPipeline.personSendWindow))
         guard case .blocked = DictationPipeline.sendDecision(request: .shift, delivered: .sentUnverified, bundleID: "dev.zed.Zed",
-                                                             flags: [], options: options) else { return XCTFail("Unconfirmed paste must not send") }
-        options.sendsWhenUnconfirmed = true
+                                                             flags: [], options: shiftOptions) else { return XCTFail("Unconfirmed paste must not send") }
+        shiftOptions.sendsWhenUnconfirmed = true
         XCTAssertEqual(DictationPipeline.sendDecision(request: .shift, delivered: .sentUnverified, bundleID: "dev.zed.Zed",
-                                                      flags: [], options: options), .send(window: DictationPipeline.personSendWindow))
+                                                      flags: [], options: shiftOptions), .send(window: DictationPipeline.personSendWindow))
         guard case .blocked = DictationPipeline.sendDecision(request: .shift, delivered: .delivered, bundleID: "com.apple.mail",
-                                                             flags: [], options: options) else { return XCTFail("Mail does not send with Return") }
+                                                             flags: [], options: shiftOptions) else { return XCTFail("Mail does not send with Return") }
         XCTAssertEqual(DictationPipeline.sendDecision(request: .shift, delivered: .notDelivered, bundleID: "com.openai.chat",
-                                                      flags: [], options: options), .none)
+                                                      flags: [], options: shiftOptions), .none)
         XCTAssertEqual(DictationPipeline.sendDecision(request: nil, delivered: .delivered, bundleID: "com.openai.chat",
-                                                      flags: [flag], options: options), .none)
+                                                      flags: [flag], options: shiftOptions), .none)
     }
 
-    func testHoldingFlagsKeepTheTextPastedWithoutSending() {
+    /// Holding flags keep the text pasted without sending; the held notice lists at most three.
+    func testHoldingFlagsKeepTheTextUnsentAndTheNoticeListsAtMostThree() {
         XCTAssertEqual(DictationPipeline.sendDecision(request: .auto, delivered: .delivered, bundleID: "com.openai.chat",
                                                       flags: [flag], options: SpeedOptions()), .hold([flag]))
         let quiet = DictationFlag(kind: .identifier, text: "fetchUser", snippet: "fix fetchUser", holdsSend: false)
         XCTAssertEqual(DictationPipeline.sendDecision(request: .auto, delivered: .delivered, bundleID: "com.openai.chat",
                                                       flags: [quiet], options: SpeedOptions()), .send(window: DictationPipeline.aiSendWindow))
-    }
 
-    func testHeldNoticeListsAtMostThreeFlags() {
         let flags = (1...5).map { DictationFlag(kind: .number, text: "\($0)", snippet: "n\($0)") }
         let notice = DictationPipeline.heldNotice(flags, handling: .showAndWait)
         XCTAssertTrue(notice.contains("“n1”") && notice.contains("“n3”"))
@@ -118,7 +113,9 @@ final class SendDecisionTests: XCTestCase {
 }
 
 final class ProfileOutputTests: XCTestCase {
-    func testOlderProfileFilesDecodeWithoutOutputOrSend() throws {
+    /// Older profile files decode without output or send; cursor delivery follows the app
+    /// default only without the profile's own choice; Shift shortcuts cannot lock a send.
+    func testProfileOutputDecodingCursorDeliveryAndShiftShortcuts() throws {
         let json = #"{"id":"6B1F0C1E-0000-4000-8000-000000000001","name":"Clean","symbol":"sparkles","usesLLM":true,"task":"","instructions":"x","isBuiltIn":true}"#
         let profile = try JSONDecoder().decode(RefinementProfile.self, from: Data(json.utf8))
         XCTAssertNil(profile.output)
@@ -128,49 +125,51 @@ final class ProfileOutputTests: XCTestCase {
         updated.sendsAutomatically = true
         let roundTrip = try JSONDecoder().decode(RefinementProfile.self, from: JSONEncoder().encode(updated))
         XCTAssertEqual(roundTrip, updated)
+
+        var cursor = RefinementProfile(name: "AI", instructions: "")
+        XCTAssertTrue(cursor.deliversToCursor(appDefault: .cursor))
+        XCTAssertFalse(cursor.deliversToCursor(appDefault: .script))
+        cursor.output = .copy
+        XCTAssertFalse(cursor.deliversToCursor(appDefault: .cursor))
+        cursor.output = .cursor
+        XCTAssertTrue(cursor.deliversToCursor(appDefault: .script))
+
+        XCTAssertTrue(Hotkey(keyCode: 49, modifiers: Hotkey.maskShift | Hotkey.maskCommand).usesShift)
+        XCTAssertTrue(Hotkey(keyCode: 60, isModifierOnly: true).usesShift)
+        XCTAssertFalse(Hotkey.controlOption.usesShift)
     }
 
-    func testCursorDeliveryFollowsTheAppDefaultOnlyWithoutOwnChoice() {
-        var profile = RefinementProfile(name: "AI", instructions: "")
-        XCTAssertTrue(profile.deliversToCursor(appDefault: .cursor))
-        XCTAssertFalse(profile.deliversToCursor(appDefault: .script))
-        profile.output = .copy
-        XCTAssertFalse(profile.deliversToCursor(appDefault: .cursor))
-        profile.output = .cursor
-        XCTAssertTrue(profile.deliversToCursor(appDefault: .script))
-    }
-
+    /// Duplicates keep output and send; practice never sends or writes elsewhere; speed
+    /// settings persist and profile shortcuts are bounded.
     @MainActor
-    func testDuplicateKeepsOutputAndSend() throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("speed-profiles-\(UUID())")
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let store = ProfileStore(directory: directory)
-        var clean = store.activeProfile
-        clean.output = .copy
-        clean.sendsAutomatically = true
-        store.update(clean)
-        let copy = try XCTUnwrap(store.duplicate(id: clean.id))
-        XCTAssertEqual(copy.output, .copy)
-        XCTAssertTrue(copy.sendsAutomatically)
-    }
+    func testDuplicationPracticeAndSpeedSettingsPersistence() throws {
+        do {
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent("speed-profiles-\(UUID())")
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let store = ProfileStore(directory: directory)
+            var clean = store.activeProfile
+            clean.output = .copy
+            clean.sendsAutomatically = true
+            store.update(clean)
+            let copy = try XCTUnwrap(store.duplicate(id: clean.id))
+            XCTAssertEqual(copy.output, .copy)
+            XCTAssertTrue(copy.sendsAutomatically)
+        }
 
-    @MainActor
-    func testPracticeNeverSendsOrWritesElsewhere() {
-        let suite = "speed-practice-\(UUID())"
-        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
-        let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
-        var profile = RefinementProfile(name: "AI", instructions: "")
-        profile.output = .copy
-        profile.sendsAutomatically = true
-        settings.beginOnboardingPractice()
-        let practice = settings.effectiveProfile(profile)
-        XCTAssertNil(practice.output)
-        XCTAssertFalse(practice.sendsAutomatically)
-        settings.endOnboardingPractice()
-    }
+        do {
+            let suite = "speed-practice-\(UUID())"
+            defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+            let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
+            var profile = RefinementProfile(name: "AI", instructions: "")
+            profile.output = .copy
+            profile.sendsAutomatically = true
+            settings.beginOnboardingPractice()
+            let practice = settings.effectiveProfile(profile)
+            XCTAssertNil(practice.output)
+            XCTAssertFalse(practice.sendsAutomatically)
+            settings.endOnboardingPractice()
+        }
 
-    @MainActor
-    func testSpeedSettingsPersistAndProfileShortcutsAreBounded() {
         let suite = "speed-settings-\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
@@ -192,12 +191,6 @@ final class ProfileOutputTests: XCTestCase {
         reloaded.editHotkey = nil
         XCTAssertNil(AppSettings(defaults: UserDefaults(suiteName: suite)!).editHotkey)
     }
-
-    func testShortcutsWithShiftCannotLockASend() {
-        XCTAssertTrue(Hotkey(keyCode: 49, modifiers: Hotkey.maskShift | Hotkey.maskCommand).usesShift)
-        XCTAssertTrue(Hotkey(keyCode: 60, isModifierOnly: true).usesShift)
-        XCTAssertFalse(Hotkey.controlOption.usesShift)
-    }
 }
 
 final class FileAppendDeliveryTests: XCTestCase {
@@ -212,24 +205,22 @@ final class FileAppendDeliveryTests: XCTestCase {
         try? FileManager.default.removeItem(at: directory)
     }
 
-    func testTemplateFieldsAreFilledAndAppNamesCannotEscapeTheFolder() {
+    /// Template fields fill without letting app names escape the folder, unusable
+    /// templates report a reason, and each dictation becomes its own line.
+    func testTemplatesUnavailableReasonsAndOneLinePerDictation() async throws {
         let date = Date(timeIntervalSince1970: 1_793_000_000)
         let path = FileAppendDelivery.resolvedPath("/tmp/{date} {time} {app}.md", app: "Evil/../App", date: date)
         XCTAssertFalse(path.contains("{"))
         XCTAssertTrue(path.hasPrefix("/tmp/"))
         XCTAssertFalse(path.dropFirst(5).contains("/"), "An app name cannot add a folder")
         XCTAssertTrue(FileAppendDelivery.resolvedPath("~/x.md", app: nil).hasPrefix("/"))
-    }
 
-    func testUnavailableReasons() throws {
         XCTAssertNotNil(FileAppendDelivery.unavailableReason(template: ""))
         XCTAssertNotNil(FileAppendDelivery.unavailableReason(template: "relative/path.md"))
         XCTAssertNotNil(FileAppendDelivery.unavailableReason(template: directory.path), "A folder is not a file")
         XCTAssertNotNil(FileAppendDelivery.unavailableReason(template: directory.appendingPathComponent("missing/x.md").path))
         XCTAssertNil(FileAppendDelivery.unavailableReason(template: directory.appendingPathComponent("new.md").path))
-    }
 
-    func testEachDictationBecomesItsOwnLine() async throws {
         let file = directory.appendingPathComponent("notes.md")
         try Data("Existing line without newline".utf8).write(to: file)
         try await FileAppendDelivery.append("First", template: file.path, app: nil)
@@ -242,7 +233,8 @@ final class FileAppendDeliveryTests: XCTestCase {
 }
 
 final class SpeedMetricsStoreTests: XCTestCase {
-    func testCountsPersistAndStayBounded() async throws {
+    /// Speed counts persist and stay bounded; History stores flags and the send outcome.
+    func testSpeedCountsPersistAndHistoryStoresFlagsAndSendOutcome() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("speed-metrics-\(UUID())")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -270,9 +262,7 @@ final class SpeedMetricsStoreTests: XCTestCase {
         let bounded = await store.snapshot()
         XCTAssertEqual(bounded.captureSamples.count, SpeedMetricsSnapshot.maximumSamples)
         XCTAssertEqual(SpeedMetricsStore.transportName(nil), "unknown")
-    }
 
-    func testHistoryStoresFlagsAndSendOutcome() throws {
         let history = try HistoryStore(inMemory: true)
         let flag = DictationFlag(kind: .number, text: "50", snippet: "to 50 s")
         try history.save(DictationRecord(mode: "Clean", family: "general", rawTranscript: "a", refinedText: "a", finalText: "a",
@@ -300,76 +290,40 @@ final class SpeedMetricsStoreTests: XCTestCase {
     }
 }
 
+/// Each phase builds its own `SpeedFixture`, so phases share no pipeline, history or settings.
 @MainActor
 final class SpeedPipelineTests: XCTestCase {
-    func testAutomaticSendPressesReturnOnceAfterAConfirmedPaste() async throws {
-        let fixture = try SpeedFixture(speech: "Summarize the meeting notes")
-        defer { fixture.cleanUp() }
-        fixture.setActiveProfile(output: nil, sendsAutomatically: true)
-        try await fixture.dictate()
-        XCTAssertEqual(fixture.probe.insertedTexts, ["Summarize the meeting notes"])
-        XCTAssertEqual(fixture.probe.returns, 1)
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.sendRequest, SendRequest.auto.rawValue)
-        XCTAssertEqual(record.submitted, true)
-        XCTAssertEqual(record.flags, "[]")
-        XCTAssertNotNil(fixture.pipeline.lastOutcome?.timings.stopToSubmitMs)
-    }
+    /// Automatic send presses Return once after a confirmed paste; flagged words hold it
+    /// and say why; Esc during the window keeps the paste and sends nothing.
+    func testAutomaticSendPressesReturnOnceUnlessFlagsOrEscHoldIt() async throws {
+        do {
+            let fixture = try SpeedFixture(speech: "Summarize the meeting notes")
+            defer { fixture.cleanUp() }
+            fixture.setActiveProfile(output: nil, sendsAutomatically: true)
+            try await fixture.dictate()
+            XCTAssertEqual(fixture.probe.insertedTexts, ["Summarize the meeting notes"])
+            XCTAssertEqual(fixture.probe.returns, 1)
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.sendRequest, SendRequest.auto.rawValue)
+            XCTAssertEqual(record.submitted, true)
+            XCTAssertEqual(record.flags, "[]")
+            XCTAssertNotNil(fixture.pipeline.lastOutcome?.timings.stopToSubmitMs)
+        }
 
-    func testFlaggedWordsHoldTheSendAndSayWhy() async throws {
-        let fixture = try SpeedFixture(speech: "Restart user_service on port 8080")
-        defer { fixture.cleanUp() }
-        fixture.setActiveProfile(output: nil, sendsAutomatically: true)
-        var states: [PipelineState] = []
-        fixture.pipeline.onStateChange = { states.append($0) }
-        try await fixture.dictate()
-        XCTAssertEqual(fixture.probe.insertedTexts.count, 1, "The text is still pasted")
-        XCTAssertEqual(fixture.probe.returns, 0)
-        XCTAssertTrue(states.contains { if case .notice(let text, _) = $0 { return text.contains("user_service") }; return false })
-        XCTAssertEqual(try fixture.history.recent().first?.submitted, false)
-        XCTAssertFalse(fixture.pipeline.holdsRecordingWindow)
-    }
+        do {
+            let fixture = try SpeedFixture(speech: "Restart user_service on port 8080")
+            defer { fixture.cleanUp() }
+            fixture.setActiveProfile(output: nil, sendsAutomatically: true)
+            var states: [PipelineState] = []
+            fixture.pipeline.onStateChange = { states.append($0) }
+            try await fixture.dictate()
+            XCTAssertEqual(fixture.probe.insertedTexts.count, 1, "The text is still pasted")
+            XCTAssertEqual(fixture.probe.returns, 0)
+            XCTAssertTrue(states.contains { if case .notice(let text, _) = $0 { return text.contains("user_service") }; return false })
+            XCTAssertEqual(try fixture.history.recent().first?.submitted, false)
+            XCTAssertFalse(fixture.pipeline.holdsRecordingWindow)
+        }
 
-    func testShiftDuringRecordingLocksASend() async throws {
-        let fixture = try SpeedFixture(speech: "Thanks, see you tomorrow")
-        defer { fixture.cleanUp() }
-        fixture.settings.sendWithShift = true
-        fixture.pipeline.startRecording()
-        try await waitUntil("recording") { fixture.pipeline.isRecording }
-        fixture.keyboard.value = Hotkey.maskShift
-        try await waitUntil("Shift locks the send") { fixture.pipeline.sendLocked }
-        fixture.keyboard.value = 0
-        try await Task.sleep(for: .milliseconds(80))
-        fixture.pipeline.stopAndProcess()
-        try await fixture.finished()
-        XCTAssertEqual(fixture.probe.returns, 1)
-        XCTAssertEqual(try fixture.history.recent().first?.sendRequest, SendRequest.shift.rawValue)
-    }
-
-    func testShiftDoesNothingWhileTheFeatureIsOffOrPartOfTheShortcut() async throws {
-        let fixture = try SpeedFixture(speech: "Plain words")
-        defer { fixture.cleanUp() }
-        fixture.keyboard.value = 0
-        fixture.pipeline.startRecording()
-        try await waitUntil("recording") { fixture.pipeline.isRecording }
-        fixture.keyboard.value = Hotkey.maskShift
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertFalse(fixture.pipeline.sendLocked)
-        fixture.pipeline.stopAndProcess()
-        try await fixture.finished()
-
-        fixture.settings.sendWithShift = true
-        fixture.keyboard.value = 0
-        fixture.pipeline.startRecording(RecordingRequest(triggerUsesShift: true))
-        try await waitUntil("second recording") { fixture.pipeline.isRecording }
-        fixture.keyboard.value = Hotkey.maskShift
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertFalse(fixture.pipeline.sendLocked)
-        fixture.pipeline.cancel()
-        XCTAssertEqual(fixture.probe.returns, 0)
-    }
-
-    func testEscDuringTheWindowKeepsThePasteAndSendsNothing() async throws {
         let fixture = try SpeedFixture(speech: "Message for the team")
         defer { fixture.cleanUp() }
         fixture.setActiveProfile(output: nil, sendsAutomatically: true)
@@ -379,42 +333,85 @@ final class SpeedPipelineTests: XCTestCase {
         try await waitUntil("send pending") { fixture.pipeline.isSendPending }
         fixture.pipeline.cancelPendingSend()
         try await fixture.finished()
-        XCTAssertEqual(fixture.probe.insertedTexts.count, 1)
-        XCTAssertEqual(fixture.probe.returns, 0)
+        XCTAssertEqual(fixture.probe.insertedTexts.count, 1, "Esc keeps the paste")
+        XCTAssertEqual(fixture.probe.returns, 0, "Esc sends nothing")
         XCTAssertEqual(try fixture.history.recent().first?.submitted, false)
     }
 
-    func testCopyOnlyProfileCopiesWithoutPastingAndRecordsIt() async throws {
-        let fixture = try SpeedFixture(speech: "Remember to call Alex")
-        defer { fixture.cleanUp() }
-        fixture.setActiveProfile(output: .copy, sendsAutomatically: true)
-        try await fixture.dictate()
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertEqual(fixture.clipboard.string(forType: .string), "Remember to call Alex")
-        XCTAssertEqual(fixture.probe.returns, 0, "Copy never sends")
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.outputDestination, DictationRecord.copyDestination)
-        XCTAssertEqual(record.deliveryStatus, .delivered)
-    }
+    /// Shift during recording locks a send, but not while the feature is off or Shift
+    /// is part of the shortcut.
+    func testShiftLocksASendOnlyWhenEnabledAndNotPartOfTheShortcut() async throws {
+        do {
+            let fixture = try SpeedFixture(speech: "Thanks, see you tomorrow")
+            defer { fixture.cleanUp() }
+            fixture.settings.sendWithShift = true
+            fixture.pipeline.startRecording()
+            try await waitUntil("recording") { fixture.pipeline.isRecording }
+            fixture.keyboard.value = Hotkey.maskShift
+            try await waitUntil("Shift locks the send") { fixture.pipeline.sendLocked }
+            fixture.keyboard.value = 0
+            try await Task.sleep(for: .milliseconds(80))
+            fixture.pipeline.stopAndProcess()
+            try await fixture.finished()
+            XCTAssertEqual(fixture.probe.returns, 1)
+            XCTAssertEqual(try fixture.history.recent().first?.sendRequest, SendRequest.shift.rawValue)
+        }
 
-    func testFileProfileAppendsAndAMissingFolderBlocksRecording() async throws {
-        let fixture = try SpeedFixture(speech: "Buy milk")
+        let fixture = try SpeedFixture(speech: "Plain words")
         defer { fixture.cleanUp() }
-        let file = fixture.directory.appendingPathComponent("today.md")
-        fixture.setActiveProfile(output: ProfileOutput(kind: .file, filePath: file.path), sendsAutomatically: false)
-        try await fixture.dictate()
-        XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), "Buy milk\n")
-        XCTAssertEqual(try fixture.history.recent().first?.outputDestination, DictationRecord.fileDestination)
-
-        fixture.setActiveProfile(output: ProfileOutput(kind: .file, filePath: fixture.directory.appendingPathComponent("no/x.md").path),
-                                 sendsAutomatically: false)
-        let starts = fixture.recorder.startCount
+        fixture.keyboard.value = 0
         fixture.pipeline.startRecording()
-        try await waitUntil("blocked") { fixture.probe.blocked > 0 }
-        XCTAssertEqual(fixture.recorder.startCount, starts, "The microphone never opens")
+        try await waitUntil("recording") { fixture.pipeline.isRecording }
+        fixture.keyboard.value = Hotkey.maskShift
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertFalse(fixture.pipeline.sendLocked, "Feature off")
+        fixture.pipeline.stopAndProcess()
+        try await fixture.finished()
+
+        fixture.settings.sendWithShift = true
+        fixture.keyboard.value = 0
+        fixture.pipeline.startRecording(RecordingRequest(triggerUsesShift: true))
+        try await waitUntil("second recording") { fixture.pipeline.isRecording }
+        fixture.keyboard.value = Hotkey.maskShift
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertFalse(fixture.pipeline.sendLocked, "Shift is part of the shortcut")
+        fixture.pipeline.cancel()
+        XCTAssertEqual(fixture.probe.returns, 0)
     }
 
-    func testProfileShortcutUsesItsProfileInsteadOfTheActiveOne() async throws {
+    /// A copy-only profile copies without pasting, a file profile appends and a missing
+    /// folder blocks recording, and a profile shortcut uses its own profile.
+    func testProfileOutputsCopyOrAppendAndProfileShortcutsUseTheirProfile() async throws {
+        do {
+            let fixture = try SpeedFixture(speech: "Remember to call Alex")
+            defer { fixture.cleanUp() }
+            fixture.setActiveProfile(output: .copy, sendsAutomatically: true)
+            try await fixture.dictate()
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertEqual(fixture.clipboard.string(forType: .string), "Remember to call Alex")
+            XCTAssertEqual(fixture.probe.returns, 0, "Copy never sends")
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.outputDestination, DictationRecord.copyDestination)
+            XCTAssertEqual(record.deliveryStatus, .delivered)
+        }
+
+        do {
+            let fixture = try SpeedFixture(speech: "Buy milk")
+            defer { fixture.cleanUp() }
+            let file = fixture.directory.appendingPathComponent("today.md")
+            fixture.setActiveProfile(output: ProfileOutput(kind: .file, filePath: file.path), sendsAutomatically: false)
+            try await fixture.dictate()
+            XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), "Buy milk\n")
+            XCTAssertEqual(try fixture.history.recent().first?.outputDestination, DictationRecord.fileDestination)
+
+            fixture.setActiveProfile(output: ProfileOutput(kind: .file, filePath: fixture.directory.appendingPathComponent("no/x.md").path),
+                                     sendsAutomatically: false)
+            let starts = fixture.recorder.startCount
+            fixture.pipeline.startRecording()
+            try await waitUntil("blocked") { fixture.probe.blocked > 0 }
+            XCTAssertEqual(fixture.recorder.startCount, starts, "The microphone never opens")
+        }
+
         let fixture = try SpeedFixture(speech: "Note for later")
         defer { fixture.cleanUp() }
         var notes = fixture.profiles.addNew()
@@ -433,18 +430,20 @@ final class SpeedPipelineTests: XCTestCase {
         try await waitUntil("deleted profile blocks") { fixture.probe.blocked > 0 }
     }
 
-    func testEditWithoutSelectionNeverOpensTheMicrophone() async throws {
-        let fixture = try SpeedFixture(speech: "Make it formal", refiner: true)
-        defer { fixture.cleanUp() }
-        fixture.context.value = AppContext(bundleId: "com.apple.TextEdit", appName: "TextEdit", selectedText: nil, processID: 101)
-        var failures: [String] = []
-        fixture.pipeline.onStateChange = { if case .failed(let message) = $0 { failures.append(message) } }
-        fixture.pipeline.startRecording(RecordingRequest(intent: .editSelection))
-        try await waitUntil("refused") { !failures.isEmpty }
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-    }
+    /// Edit without a selection never opens the microphone; with one it rewrites the
+    /// selection at the cursor without sending or flagging.
+    func testEditRefusesWithoutSelectionAndRewritesItWithoutSendingOrFlagging() async throws {
+        do {
+            let fixture = try SpeedFixture(speech: "Make it formal", refiner: true)
+            defer { fixture.cleanUp() }
+            fixture.context.value = AppContext(bundleId: "com.apple.TextEdit", appName: "TextEdit", selectedText: nil, processID: 101)
+            var failures: [String] = []
+            fixture.pipeline.onStateChange = { if case .failed(let message) = $0 { failures.append(message) } }
+            fixture.pipeline.startRecording(RecordingRequest(intent: .editSelection))
+            try await waitUntil("refused") { !failures.isEmpty }
+            XCTAssertEqual(fixture.recorder.startCount, 0)
+        }
 
-    func testEditRewritesTheSelectionWithoutSendingOrFlagging() async throws {
         let fixture = try SpeedFixture(speech: "Make it formal", refiner: true)
         defer { fixture.cleanUp() }
         fixture.setActiveProfile(output: .copy, sendsAutomatically: true)

@@ -5,106 +5,132 @@ import XCTest
 /// stays display-only and the final transcript is identical with preview on or off.
 @MainActor
 final class PipelineModelPreviewTests: XCTestCase {
-    func testSelectedModelSourceUsesRecordingConfigAndHints() async throws {
-        let fixture = try Fixture(source: .speechModel)
-        defer { fixture.cleanUp() }
-        fixture.dictionary.add(DictionaryEntry(term: "Airdraft"))
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.builds.sessions.first)
-        let request = try XCTUnwrap(fixture.builds.requests.first)
-        XCTAssertEqual(request.asr, fixture.settings.asr)
-        XCTAssertEqual(request.hints.vocabulary, ["Airdraft"])
-        XCTAssertTrue(fixture.apple.sessions.isEmpty, "Apple Speech does not run for the model source")
+    /// The model source uses the recording's config and hints, an Apple Speech model uses
+    /// the Apple analyzer in its own locale, the Apple source keeps its builder, and the
+    /// source setting persists with Apple Speech as the default.
+    func testPreviewSourceRoutesToModelOrAppleAnalyzerAndPersists() async throws {
+        do { // SelectedModelSourceUsesRecordingConfigAndHints
+            let fixture = try Fixture(source: .speechModel)
+            defer { fixture.cleanUp() }
+            fixture.dictionary.add(DictionaryEntry(term: "Airdraft"))
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.builds.sessions.first)
+            let request = try XCTUnwrap(fixture.builds.requests.first)
+            XCTAssertEqual(request.asr, fixture.settings.asr)
+            XCTAssertEqual(request.hints.vocabulary, ["Airdraft"])
+            XCTAssertTrue(fixture.apple.sessions.isEmpty, "Apple Speech does not run for the model source")
 
-        let chunk = [Float](repeating: 0.2, count: 8_000)
-        fixture.recorder.capture(chunk)
-        fixture.recorder.capture(chunk)
-        XCTAssertEqual(preview.chunks, [chunk, chunk])
-        preview.sendText("Provisional model text")
-        try await waitUntil { fixture.pipeline.previewText == "Provisional model text" }
+            let chunk = [Float](repeating: 0.2, count: 8_000)
+            fixture.recorder.capture(chunk)
+            fixture.recorder.capture(chunk)
+            XCTAssertEqual(preview.chunks, [chunk, chunk])
+            preview.sendText("Provisional model text")
+            try await waitUntil { fixture.pipeline.previewText == "Provisional model text" }
 
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        let received = await fixture.speech.receivedSamples
-        XCTAssertEqual(received, [chunk + chunk])
-        let finalHints = await fixture.speech.receivedVocabulary
-        XCTAssertEqual(finalHints, [request.hints.vocabulary], "Preview and final share the same captured hints")
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.rawTranscript, ModelPreviewTestSpeech.text(for: 16_000))
-        XCTAssertFalse(record.finalText.contains("Provisional"), "Preview text never reaches history")
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            let received = await fixture.speech.receivedSamples
+            XCTAssertEqual(received, [chunk + chunk])
+            let finalHints = await fixture.speech.receivedVocabulary
+            XCTAssertEqual(finalHints, [request.hints.vocabulary], "Preview and final share the same captured hints")
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.rawTranscript, ModelPreviewTestSpeech.text(for: 16_000))
+            XCTAssertFalse(record.finalText.contains("Provisional"), "Preview text never reaches history")
+        }
+
+        // The selected model is Apple Speech: the model source runs the Apple
+        // analyzer in that model's locale, not the separate preview language.
+        do { // AppleSpeechModelSourceUsesAppleAnalyzerInModelLocale
+            let fixture = try Fixture(source: .speechModel)
+            defer { fixture.cleanUp() }
+            fixture.settings.asr = ASRConfig(kind: .apple, appleLocale: "ja-JP", language: "")
+            fixture.settings.livePreviewLocale = "en-US"
+            try await begin(fixture)
+            XCTAssertEqual(fixture.appleLocales.value, ["ja-JP"])
+            XCTAssertTrue(fixture.builds.sessions.isEmpty, "No model decode runs for Apple Speech")
+            XCTAssertNil(fixture.pipeline.previewIssue)
+            let preview = try XCTUnwrap(fixture.apple.sessions.first)
+            let chunk = [Float](repeating: 0.2, count: 8_000)
+            fixture.recorder.capture(chunk)
+            XCTAssertEqual(preview.chunks, [chunk])
+            preview.sendText("Apple provisional text")
+            try await waitUntil { fixture.pipeline.previewText == "Apple provisional text" }
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 8_000))
+        }
+
+        do { // AppleSourceStillUsesAppleSpeechBuilder
+            let fixture = try Fixture(source: .appleSpeech)
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            XCTAssertEqual(fixture.apple.sessions.count, 1)
+            XCTAssertTrue(fixture.builds.sessions.isEmpty)
+        }
+
+        do { // SourceSettingPersistsAndDefaultsToAppleSpeech
+            let suite = "airdraft.model-preview-setting.\(UUID().uuidString)"
+            defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+            let defaults = UserDefaults(suiteName: suite)!
+            XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .appleSpeech)
+            AppSettings(defaults: defaults).livePreviewSource = .speechModel
+            XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .speechModel)
+            defaults.set(Data("\"unknown\"".utf8), forKey: "settings.livePreviewSource")
+            XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .appleSpeech)
+        }
     }
 
-    /// The selected model is Apple Speech: the model source runs the Apple
-    /// analyzer in that model's locale, not the separate preview language.
-    func testAppleSpeechModelSourceUsesAppleAnalyzerInModelLocale() async throws {
-        let fixture = try Fixture(source: .speechModel)
-        defer { fixture.cleanUp() }
-        fixture.settings.asr = ASRConfig(kind: .apple, appleLocale: "ja-JP", language: "")
-        fixture.settings.livePreviewLocale = "en-US"
-        try await begin(fixture)
-        XCTAssertEqual(fixture.appleLocales.value, ["ja-JP"])
-        XCTAssertTrue(fixture.builds.sessions.isEmpty, "No model decode runs for Apple Speech")
-        XCTAssertNil(fixture.pipeline.previewIssue)
-        let preview = try XCTUnwrap(fixture.apple.sessions.first)
-        let chunk = [Float](repeating: 0.2, count: 8_000)
-        fixture.recorder.capture(chunk)
-        XCTAssertEqual(preview.chunks, [chunk])
-        preview.sendText("Apple provisional text")
-        try await waitUntil { fixture.pipeline.previewText == "Apple provisional text" }
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 8_000))
-    }
+    func testUnavailableModelOpensNoPreviewAndNoticeShowsOncePerProfileAndModel() async throws {
+        do { // UnavailableModelOpensNoPreviewAndRecordingContinues
+            let fixture = try Fixture(source: .speechModel, availability: { _ in "Live text is unavailable for this model." })
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            XCTAssertTrue(fixture.builds.sessions.isEmpty)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            // The HUD keeps the live-text window closed and shows the reason briefly.
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertEqual(fixture.pipeline.previewIssue, "Live text is unavailable for this model.")
+            fixture.recorder.capture([Float](repeating: 0.2, count: 16_000))
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy }
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 16_000))
+            XCTAssertNil(fixture.pipeline.previewIssue)
+        }
 
-    func testUnavailableModelOpensNoPreviewAndRecordingContinues() async throws {
-        let fixture = try Fixture(source: .speechModel, availability: { _ in "Live text is unavailable for this model." })
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        XCTAssertTrue(fixture.builds.sessions.isEmpty)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        // The HUD keeps the live-text window closed and shows the reason briefly.
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertEqual(fixture.pipeline.previewIssue, "Live text is unavailable for this model.")
-        fixture.recorder.capture([Float](repeating: 0.2, count: 16_000))
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy }
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, ModelPreviewTestSpeech.text(for: 16_000))
-        XCTAssertNil(fixture.pipeline.previewIssue)
-    }
+        // The notice is said once per profile and model: repeating the same setup
+        // stays quiet, while another profile, another model, or a recording that
+        // had live text in between brings it back.
+        do { // UnavailableNoticeShowsOncePerProfileAndModel
+            let unavailable = Locked(true)
+            let fixture = try Fixture(source: .speechModel, availability: { asr in
+                unavailable.withLock { $0 } ? "\(asr.engineID) has no live text" : nil
+            })
+            defer { fixture.cleanUp() }
+            let parakeet = "\(fixture.settings.asr.engineID) has no live text"
+            let first = try await recordedIssue(fixture)
+            XCTAssertEqual(first, parakeet)
+            let repeated = try await recordedIssue(fixture)
+            XCTAssertNil(repeated, "Same profile and model: no second notice")
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
 
-    /// The notice is said once per profile and model: repeating the same setup
-    /// stays quiet, while another profile, another model, or a recording that
-    /// had live text in between brings it back.
-    func testUnavailableNoticeShowsOncePerProfileAndModel() async throws {
-        let unavailable = Locked(true)
-        let fixture = try Fixture(source: .speechModel, availability: { asr in
-            unavailable.withLock { $0 } ? "\(asr.engineID) has no live text" : nil
-        })
-        defer { fixture.cleanUp() }
-        let parakeet = "\(fixture.settings.asr.engineID) has no live text"
-        let first = try await recordedIssue(fixture)
-        XCTAssertEqual(first, parakeet)
-        let repeated = try await recordedIssue(fixture)
-        XCTAssertNil(repeated, "Same profile and model: no second notice")
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            let other = try XCTUnwrap(fixture.profiles.profiles.first { $0.id != fixture.profiles.activeProfileID })
+            fixture.profiles.setActive(other.id)
+            let otherProfile = try await recordedIssue(fixture)
+            XCTAssertEqual(otherProfile, parakeet)
 
-        let other = try XCTUnwrap(fixture.profiles.profiles.first { $0.id != fixture.profiles.activeProfileID })
-        fixture.profiles.setActive(other.id)
-        let otherProfile = try await recordedIssue(fixture)
-        XCTAssertEqual(otherProfile, parakeet)
+            fixture.settings.asr = ASRConfig(kind: .senseVoiceMultilingual)
+            let otherModel = try await recordedIssue(fixture)
+            XCTAssertEqual(otherModel, "\(fixture.settings.asr.engineID) has no live text")
 
-        fixture.settings.asr = ASRConfig(kind: .senseVoiceMultilingual)
-        let otherModel = try await recordedIssue(fixture)
-        XCTAssertEqual(otherModel, "\(fixture.settings.asr.engineID) has no live text")
-
-        unavailable.withLock { $0 = false }
-        let previewed = try await recordedIssue(fixture)
-        XCTAssertNil(previewed)
-        unavailable.withLock { $0 = true }
-        let again = try await recordedIssue(fixture)
-        XCTAssertEqual(again, "\(fixture.settings.asr.engineID) has no live text")
+            unavailable.withLock { $0 = false }
+            let previewed = try await recordedIssue(fixture)
+            XCTAssertNil(previewed)
+            unavailable.withLock { $0 = true }
+            let again = try await recordedIssue(fixture)
+            XCTAssertEqual(again, "\(fixture.settings.asr.engineID) has no live text")
+        }
     }
 
     /// Records once and returns the notice the HUD had while recording.
@@ -177,25 +203,6 @@ final class PipelineModelPreviewTests: XCTestCase {
         XCTAssertEqual(finals[0], finals[1])
         XCTAssertEqual(previewDecodes[0], 0)
         XCTAssertGreaterThan(previewDecodes[1], 0)
-    }
-
-    func testAppleSourceStillUsesAppleSpeechBuilder() async throws {
-        let fixture = try Fixture(source: .appleSpeech)
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        XCTAssertEqual(fixture.apple.sessions.count, 1)
-        XCTAssertTrue(fixture.builds.sessions.isEmpty)
-    }
-
-    func testSourceSettingPersistsAndDefaultsToAppleSpeech() {
-        let suite = "airdraft.model-preview-setting.\(UUID().uuidString)"
-        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
-        let defaults = UserDefaults(suiteName: suite)!
-        XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .appleSpeech)
-        AppSettings(defaults: defaults).livePreviewSource = .speechModel
-        XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .speechModel)
-        defaults.set(Data("\"unknown\"".utf8), forKey: "settings.livePreviewSource")
-        XCTAssertEqual(AppSettings(defaults: defaults).livePreviewSource, .appleSpeech)
     }
 
     // MARK: - Helpers

@@ -6,159 +6,166 @@ import XCTest
 final class SpeechVocabularyTests: XCTestCase {
     // MARK: Bounds and sanitization
 
-    func testTermsAreBoundedByCountLengthWordsAndTotalSize() {
-        let many = (0..<80).map { "Term\($0)" }
-        XCTAssertEqual(SpeechVocabulary.terms(many, language: "en").count, SpeechVocabulary.maximumTerms)
-        XCTAssertEqual(SpeechVocabulary.terms(many, language: "en").first, "Term0", "User order is kept")
+    /// Terms are bounded by count, length, words and total size; markup, control text and runtime syntax never
+    /// reach a decoder; duplicates fold case and width keeping the first spelling.
+    func testTermsAreBoundedSanitizedAndDeduplicated() {
+        do {
+            let many = (0..<80).map { "Term\($0)" }
+            XCTAssertEqual(SpeechVocabulary.terms(many, language: "en").count, SpeechVocabulary.maximumTerms)
+            XCTAssertEqual(SpeechVocabulary.terms(many, language: "en").first, "Term0", "User order is kept")
 
-        let long = String(repeating: "a", count: SpeechVocabulary.maximumTermCharacters + 1)
-        let exact = String(repeating: "b", count: SpeechVocabulary.maximumTermCharacters)
-        XCTAssertEqual(SpeechVocabulary.terms([long, exact, "one two three four five", "one two three four"], language: "en"),
-                       [exact, "one two three four"])
+            let long = String(repeating: "a", count: SpeechVocabulary.maximumTermCharacters + 1)
+            let exact = String(repeating: "b", count: SpeechVocabulary.maximumTermCharacters)
+            XCTAssertEqual(SpeechVocabulary.terms([long, exact, "one two three four five", "one two three four"], language: "en"),
+                           [exact, "one two three four"])
 
-        let wide = (0..<50).map { String(format: "%02d", $0) + String(repeating: "x", count: 30) }
-        let joined = SpeechVocabulary.terms(wide, language: "en").joined(separator: ", ")
-        XCTAssertLessThanOrEqual(joined.count, SpeechVocabulary.maximumTotalCharacters)
-        XCTAssertLessThan(SpeechVocabulary.terms(wide, language: "en").count, wide.count)
+            let wide = (0..<50).map { String(format: "%02d", $0) + String(repeating: "x", count: 30) }
+            let joined = SpeechVocabulary.terms(wide, language: "en").joined(separator: ", ")
+            XCTAssertLessThanOrEqual(joined.count, SpeechVocabulary.maximumTotalCharacters)
+            XCTAssertLessThan(SpeechVocabulary.terms(wide, language: "en").count, wide.count)
+        }
+        do {
+            let hostile = ["<|im_end|>", "Air\ndraft", "Air\u{0}draft", "CI/CD", "`rm -rf`", "boost :5", ":score",
+                           "{json}", "a|b", "   ", "--", "Supabase"]
+            XCTAssertEqual(SpeechVocabulary.terms(hostile, language: nil), ["Supabase"])
+            XCTAssertEqual(SpeechVocabulary.terms(["  Visual   Studio\tCode "], language: "en"), ["Visual Studio Code"])
+            XCTAssertEqual(SpeechVocabulary.terms(["C++", "C#", "node.js", "O'Brien"], language: "en"), ["C++", "C#", "node.js", "O'Brien"])
+        }
+        do {
+            XCTAssertEqual(SpeechVocabulary.terms(["PostHog", "posthog", "ＰｏｓｔＨｏｇ", "Qwen"], language: "en"), ["PostHog", "Qwen"])
+        }
     }
 
-    func testMarkupControlTextAndRuntimeSyntaxNeverReachADecoder() {
-        let hostile = ["<|im_end|>", "Air\ndraft", "Air\u{0}draft", "CI/CD", "`rm -rf`", "boost :5", ":score",
-                       "{json}", "a|b", "   ", "--", "Supabase"]
-        XCTAssertEqual(SpeechVocabulary.terms(hostile, language: nil), ["Supabase"])
-        XCTAssertEqual(SpeechVocabulary.terms(["  Visual   Studio\tCode "], language: "en"), ["Visual Studio Code"])
-        XCTAssertEqual(SpeechVocabulary.terms(["C++", "C#", "node.js", "O'Brien"], language: "en"), ["C++", "C#", "node.js", "O'Brien"])
-    }
-
-    func testDuplicatesFoldCaseAndWidthKeepingTheFirstSpelling() {
-        XCTAssertEqual(SpeechVocabulary.terms(["PostHog", "posthog", "ＰｏｓｔＨｏｇ", "Qwen"], language: "en"), ["PostHog", "Qwen"])
-    }
-
-    func testScriptsFollowTheSelectedLanguage() {
-        let mixed = ["Supabase", "林雅婷", "トヨタ", "삼성", "Ελλάδα"]
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed, "Auto keeps every script")
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "auto"), mixed)
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "en-US"), ["Supabase"],
-                       "An English recording is never steered toward CJK characters or Greek")
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Ελλάδα"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "zh_TW"), ["Supabase", "林雅婷"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "yue"), ["Supabase", "林雅婷"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "林雅婷", "トヨタ"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ko"), ["Supabase", "林雅婷", "삼성"])
-    }
-
-    func testEachScriptIsKeptOnlyForTheLanguagesThatWriteIt() {
-        let mixed = ["Supabase", "Москва", "القاهرة", "दिल्ली", "ঢাকা", "תל אביב", "กรุงเทพ", "Αθήνα", "佐々木", "東京タワー"]
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ru"), ["Supabase", "Москва"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "uk"), ["Supabase", "Москва"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ar"), ["Supabase", "القاهرة"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fa"), ["Supabase", "القاهرة"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "hi"), ["Supabase", "दिल्ली"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "bn"), ["Supabase", "ঢাকা"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "he"), ["Supabase", "תל אביב"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "th"), ["Supabase", "กรุงเทพ"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Αθήνα"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "佐々木", "東京タワー"],
-                       "々 is written with kanji")
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fr"), ["Supabase"])
-        XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed)
-        XCTAssertEqual(SpeechVocabulary.terms(["Ñandú", "Øresund", "ªdmin"], language: "es"), ["Ñandú", "Øresund", "ªdmin"])
+    /// Scripts follow the selected language; each script is kept only for the languages that write it.
+    func testScriptsAreKeptOnlyForTheLanguagesThatWriteThem() {
+        do {
+            let mixed = ["Supabase", "林雅婷", "トヨタ", "삼성", "Ελλάδα"]
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed, "Auto keeps every script")
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "auto"), mixed)
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "en-US"), ["Supabase"],
+                           "An English recording is never steered toward CJK characters or Greek")
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Ελλάδα"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "zh_TW"), ["Supabase", "林雅婷"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "yue"), ["Supabase", "林雅婷"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "林雅婷", "トヨタ"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ko"), ["Supabase", "林雅婷", "삼성"])
+        }
+        do {
+            let mixed = ["Supabase", "Москва", "القاهرة", "दिल्ली", "ঢাকা", "תל אביב", "กรุงเทพ", "Αθήνα", "佐々木", "東京タワー"]
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ru"), ["Supabase", "Москва"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "uk"), ["Supabase", "Москва"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ar"), ["Supabase", "القاهرة"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fa"), ["Supabase", "القاهرة"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "hi"), ["Supabase", "दिल्ली"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "bn"), ["Supabase", "ঢাকা"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "he"), ["Supabase", "תל אביב"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "th"), ["Supabase", "กรุงเทพ"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "el"), ["Supabase", "Αθήνα"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "ja"), ["Supabase", "佐々木", "東京タワー"],
+                           "々 is written with kanji")
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: "fr"), ["Supabase"])
+            XCTAssertEqual(SpeechVocabulary.terms(mixed, language: nil), mixed)
+            XCTAssertEqual(SpeechVocabulary.terms(["Ñandú", "Øresund", "ªdmin"], language: "es"), ["Ñandú", "Øresund", "ªdmin"])
+        }
     }
 
     // MARK: Hints
 
-    func testSwitchingBiasOffKeepsCloudKeywordsAndTheScriptPrompt() {
-        let on = TranscriptionHints(language: "zh", vocabulary: ["Supabase", "Supabase"], chineseScript: .traditional)
-        let off = TranscriptionHints(language: "zh", vocabulary: ["Supabase", "Supabase"], chineseScript: .traditional,
-                                     biasOnDeviceSpeech: false)
-        XCTAssertEqual(on.onDeviceVocabulary, ["Supabase"])
-        XCTAssertEqual(off.onDeviceVocabulary, [])
-        XCTAssertEqual(on.contextText, "以下是繁體中文的內容。 Supabase")
-        XCTAssertEqual(off.contextText, "以下是繁體中文的內容。")
-        XCTAssertNil(TranscriptionHints(language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false).contextText)
-        XCTAssertEqual(off.vocabularyTerms, on.vocabularyTerms, "Cloud keyword fields are independent of the on-device choice")
-        XCTAssertEqual(off.vocabularyTerms, ["Supabase"])
-    }
-
-    /// The Whisper silence guard: Whisper treats its prompt as preceding speech
-    /// and repeats bare terms on silence, so no Whisper route (WhisperKit, GGUF,
-    /// OpenAI-compatible) ever receives dictionary terms, whatever the setting.
-    func testWhisperPromptNeverCarriesVocabulary() {
-        for language in [nil, "", "auto", "en", "zh", "zh-TW", "yue", "ja"] {
-            for script in [ChineseScript.auto, .traditional, .simplified] {
-                for bias in [true, false] {
-                    let hints = TranscriptionHints(language: language, vocabulary: ["Supabase", "林雅婷"],
-                                                   chineseScript: script, biasOnDeviceSpeech: bias)
-                    let prompt = hints.promptText ?? ""
-                    XCTAssertFalse(prompt.contains("Supabase") || prompt.contains("林雅婷"),
-                                   "language \(language ?? "nil") script \(script) bias \(bias)")
+    /// Switching bias off keeps cloud keywords and the script prompt. The Whisper silence guard: Whisper treats
+    /// its prompt as preceding speech and repeats bare terms on silence, so no Whisper route (WhisperKit, GGUF,
+    /// OpenAI-compatible) ever receives dictionary terms, whatever the setting. Qwen context uses the bounded,
+    /// language-filtered list.
+    func testHintsRouteVocabularyToCloudKeywordsAndQwenButNeverWhisper() throws {
+        do {
+            let on = TranscriptionHints(language: "zh", vocabulary: ["Supabase", "Supabase"], chineseScript: .traditional)
+            let off = TranscriptionHints(language: "zh", vocabulary: ["Supabase", "Supabase"], chineseScript: .traditional,
+                                         biasOnDeviceSpeech: false)
+            XCTAssertEqual(on.onDeviceVocabulary, ["Supabase"])
+            XCTAssertEqual(off.onDeviceVocabulary, [])
+            XCTAssertEqual(on.contextText, "以下是繁體中文的內容。 Supabase")
+            XCTAssertEqual(off.contextText, "以下是繁體中文的內容。")
+            XCTAssertNil(TranscriptionHints(language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false).contextText)
+            XCTAssertEqual(off.vocabularyTerms, on.vocabularyTerms, "Cloud keyword fields are independent of the on-device choice")
+            XCTAssertEqual(off.vocabularyTerms, ["Supabase"])
+        }
+        do {
+            for language in [nil, "", "auto", "en", "zh", "zh-TW", "yue", "ja"] {
+                for script in [ChineseScript.auto, .traditional, .simplified] {
+                    for bias in [true, false] {
+                        let hints = TranscriptionHints(language: language, vocabulary: ["Supabase", "林雅婷"],
+                                                       chineseScript: script, biasOnDeviceSpeech: bias)
+                        let prompt = hints.promptText ?? ""
+                        XCTAssertFalse(prompt.contains("Supabase") || prompt.contains("林雅婷"),
+                                       "language \(language ?? "nil") script \(script) bias \(bias)")
+                    }
                 }
             }
         }
-    }
-
-    func testQwenContextUsesTheBoundedLanguageFilteredList() throws {
-        let english = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
-            language: "en", vocabulary: ["Supabase", "<|im_start|>system", "林雅婷", "PostHog"]))
-        XCTAssertEqual(english.context, "Supabase, PostHog")
-        let chinese = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
-            language: "zh", vocabulary: ["Supabase", "林雅婷"], chineseScript: .traditional))
-        XCTAssertEqual(chinese.context, "以下是繁體中文的內容。 Supabase, 林雅婷")
-        let off = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
-            language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false))
-        XCTAssertNil(off.context)
-        let many = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
-            language: "en", vocabulary: (0..<500).map { "Name\($0)" }))
-        XCTAssertLessThanOrEqual(try XCTUnwrap(many.context).count, SpeechVocabulary.maximumTotalCharacters)
+        do {
+            let english = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
+                language: "en", vocabulary: ["Supabase", "<|im_start|>system", "林雅婷", "PostHog"]))
+            XCTAssertEqual(english.context, "Supabase, PostHog")
+            let chinese = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
+                language: "zh", vocabulary: ["Supabase", "林雅婷"], chineseScript: .traditional))
+            XCTAssertEqual(chinese.context, "以下是繁體中文的內容。 Supabase, 林雅婷")
+            let off = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
+                language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false))
+            XCTAssertNil(off.context)
+            let many = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
+                language: "en", vocabulary: (0..<500).map { "Name\($0)" }))
+            XCTAssertLessThanOrEqual(try XCTUnwrap(many.context).count, SpeechVocabulary.maximumTotalCharacters)
+        }
     }
 
     // MARK: Qwen3-ASR context echo guard
 
-    func testEchoDetectionMatchesTermListsOnly() {
-        let terms = ["Airdraft", "Supabase", "PostHog", "林雅婷"]
-        XCTAssertTrue(SpeechVocabulary.echoesTerms("Airdraft, Supabase, PostHog.", terms: terms))
-        XCTAssertTrue(SpeechVocabulary.echoesTerms("airdraft supabase", terms: terms))
-        XCTAssertTrue(SpeechVocabulary.echoesTerms("林雅婷、Supabase", terms: terms))
-        XCTAssertFalse(SpeechVocabulary.echoesTerms("Supabase.", terms: terms), "A one-word dictation is legitimate")
-        XCTAssertFalse(SpeechVocabulary.echoesTerms("Move Airdraft to Supabase.", terms: terms))
-        XCTAssertFalse(SpeechVocabulary.echoesTerms("Okay.", terms: terms))
-        XCTAssertFalse(SpeechVocabulary.echoesTerms("Airdraft, Supabase", terms: []))
-    }
-
-    func testSilenceGateKeepsQuietSpeech() {
-        XCTAssertTrue(SpeechVocabulary.isNearSilent([]))
-        XCTAssertTrue(SpeechVocabulary.isNearSilent([Float](repeating: 0.001, count: 1600)), "-60 dBFS")
-        XCTAssertFalse(SpeechVocabulary.isNearSilent([Float](repeating: 0.008, count: 1600)), "-42 dBFS quiet speech")
-        XCTAssertFalse(SpeechVocabulary.isNearSilent([Float](repeating: 0.15, count: 1600)), "-16 dBFS speech")
-    }
-
-    func testQwenChunkDecodingDropsVocabularyOnSilenceAndEcho() throws {
-        let terms = ["Airdraft", "Supabase"]
-        let options = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
-            language: "zh", vocabulary: terms, chineseScript: .traditional))
-        XCTAssertEqual(options.context, "以下是繁體中文的內容。 Airdraft, Supabase")
-        let speech = [Float](repeating: 0.15, count: 1600)
-        let silence = [Float](repeating: 0.001, count: 1600)
-        var contexts: [String?] = []
-        func run(_ chunk: [Float], _ outputs: [String]) -> String {
-            contexts = []
-            var remaining = outputs
-            return Qwen3ASRTranscriber.decodeGuardingVocabulary(chunk, options: options, fallbackContext: "以下是繁體中文的內容。",
-                                                                terms: terms) { _, used in
-                contexts.append(used.context)
-                return remaining.removeFirst()
+    /// Echo detection matches term lists only; the silence gate keeps quiet speech; Qwen chunk decoding drops
+    /// the vocabulary on silence and echo.
+    func testQwenEchoAndSilenceGuardsDropVocabulary() throws {
+        do {
+            let terms = ["Airdraft", "Supabase", "PostHog", "林雅婷"]
+            XCTAssertTrue(SpeechVocabulary.echoesTerms("Airdraft, Supabase, PostHog.", terms: terms))
+            XCTAssertTrue(SpeechVocabulary.echoesTerms("airdraft supabase", terms: terms))
+            XCTAssertTrue(SpeechVocabulary.echoesTerms("林雅婷、Supabase", terms: terms))
+            XCTAssertFalse(SpeechVocabulary.echoesTerms("Supabase.", terms: terms), "A one-word dictation is legitimate")
+            XCTAssertFalse(SpeechVocabulary.echoesTerms("Move Airdraft to Supabase.", terms: terms))
+            XCTAssertFalse(SpeechVocabulary.echoesTerms("Okay.", terms: terms))
+            XCTAssertFalse(SpeechVocabulary.echoesTerms("Airdraft, Supabase", terms: []))
+        }
+        do {
+            XCTAssertTrue(SpeechVocabulary.isNearSilent([]))
+            XCTAssertTrue(SpeechVocabulary.isNearSilent([Float](repeating: 0.001, count: 1600)), "-60 dBFS")
+            XCTAssertFalse(SpeechVocabulary.isNearSilent([Float](repeating: 0.008, count: 1600)), "-42 dBFS quiet speech")
+            XCTAssertFalse(SpeechVocabulary.isNearSilent([Float](repeating: 0.15, count: 1600)), "-16 dBFS speech")
+        }
+        do {
+            let terms = ["Airdraft", "Supabase"]
+            let options = try Qwen3ASRTranscriber.decodingOptions(for: TranscriptionHints(
+                language: "zh", vocabulary: terms, chineseScript: .traditional))
+            XCTAssertEqual(options.context, "以下是繁體中文的內容。 Airdraft, Supabase")
+            let speech = [Float](repeating: 0.15, count: 1600)
+            let silence = [Float](repeating: 0.001, count: 1600)
+            var contexts: [String?] = []
+            func run(_ chunk: [Float], _ outputs: [String]) -> String {
+                contexts = []
+                var remaining = outputs
+                return Qwen3ASRTranscriber.decodeGuardingVocabulary(chunk, options: options, fallbackContext: "以下是繁體中文的內容。",
+                                                                    terms: terms) { _, used in
+                    contexts.append(used.context)
+                    return remaining.removeFirst()
+                }
             }
+            XCTAssertEqual(run(speech, ["Deploy Airdraft"]), "Deploy Airdraft")
+            XCTAssertEqual(contexts, [options.context], "Speech decodes once with the vocabulary")
+            XCTAssertEqual(run(silence, [""]), "")
+            XCTAssertEqual(contexts, ["以下是繁體中文的內容。"], "Silence never sees the vocabulary; the script sentence stays")
+            XCTAssertEqual(run(speech, ["Airdraft, Supabase.", "Okay."]), "Okay.")
+            XCTAssertEqual(contexts, [options.context, "以下是繁體中文的內容。"], "An echoed list is decoded once more without terms")
+            let unbiased = Qwen3ASRTranscriber.decodeGuardingVocabulary(silence, options: options, fallbackContext: nil, terms: []) { _, used in
+                used.context ?? "nil"
+            }
+            XCTAssertEqual(unbiased, options.context, "Without terms the options pass through unchanged")
         }
-        XCTAssertEqual(run(speech, ["Deploy Airdraft"]), "Deploy Airdraft")
-        XCTAssertEqual(contexts, [options.context], "Speech decodes once with the vocabulary")
-        XCTAssertEqual(run(silence, [""]), "")
-        XCTAssertEqual(contexts, ["以下是繁體中文的內容。"], "Silence never sees the vocabulary; the script sentence stays")
-        XCTAssertEqual(run(speech, ["Airdraft, Supabase.", "Okay."]), "Okay.")
-        XCTAssertEqual(contexts, [options.context, "以下是繁體中文的內容。"], "An echoed list is decoded once more without terms")
-        let unbiased = Qwen3ASRTranscriber.decodeGuardingVocabulary(silence, options: options, fallbackContext: nil, terms: []) { _, used in
-            used.context ?? "nil"
-        }
-        XCTAssertEqual(unbiased, options.context, "Without terms the options pass through unchanged")
     }
 
     // MARK: sherpa-onnx transducer hotwords
@@ -167,88 +174,89 @@ final class SpeechVocabularyTests: XCTestCase {
     private let folder = URL(fileURLWithPath: "/airdraft-hotword-fixture", isDirectory: true)
     private let files = ["encoder.int8.onnx", "decoder.int8.onnx", "joiner.int8.onnx", "tokens.txt"]
 
-    func testOnlyTransducersSwitchToHotwordDecoding() throws {
-        let hints = TranscriptionHints(language: "en", vocabulary: ["Supabase"])
-        for model in SherpaTranscriber.Model.allCases {
-            let language = model == .fireRed ? "zh" : "en"
-            var modelHints = hints
-            modelHints.language = language
-            let configuration = try Configuration(model: model, hints: modelHints)
-            XCTAssertEqual(configuration.hotwordDecoding, model == .parakeet || model == .orukeet, "\(model)")
-            XCTAssertEqual(model.supportsHotwords, configuration.hotwordDecoding)
+    /// Only transducers switch to hotword decoding; it sets beam search and the BPE vocabulary together; token
+    /// vocabulary coverage and the scored file are valid; prewarm follows the anticipated vocabulary choice.
+    func testTransducerHotwordDecodingConfigurationVocabularyAndPrewarm() throws {
+        do {
+            let hints = TranscriptionHints(language: "en", vocabulary: ["Supabase"])
+            for model in SherpaTranscriber.Model.allCases {
+                let language = model == .fireRed ? "zh" : "en"
+                var modelHints = hints
+                modelHints.language = language
+                let configuration = try Configuration(model: model, hints: modelHints)
+                XCTAssertEqual(configuration.hotwordDecoding, model == .parakeet || model == .orukeet, "\(model)")
+                XCTAssertEqual(model.supportsHotwords, configuration.hotwordDecoding)
+            }
+            XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en")).hotwordDecoding, "No terms, greedy")
+            XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"],
+                                                                             biasOnDeviceSpeech: false)).hotwordDecoding)
+            XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["林雅婷"])).hotwordDecoding,
+                           "Terms the language filter removes do not change decoding")
+            XCTAssertNotEqual(try Configuration(model: .parakeet, hints: hints), try Configuration(model: .parakeet),
+                              "Turning hotwords on rebuilds the recognizer")
         }
-        XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en")).hotwordDecoding, "No terms, greedy")
-        XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"],
-                                                                         biasOnDeviceSpeech: false)).hotwordDecoding)
-        XCTAssertFalse(try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["林雅婷"])).hotwordDecoding,
-                       "Terms the language filter removes do not change decoding")
-        XCTAssertNotEqual(try Configuration(model: .parakeet, hints: hints), try Configuration(model: .parakeet),
-                          "Turning hotwords on rebuilds the recognizer")
-    }
+        do {
+            let configuration = try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"]))
+            configuration.withCConfiguration(folder: folder, files: files, bpeVocabulary: "/tmp/scored.txt") { native in
+                XCTAssertEqual(String(cString: native.decoding_method), "modified_beam_search")
+                XCTAssertEqual(native.max_active_paths, 4)
+                XCTAssertEqual(native.hotwords_score, SherpaTranscriber.hotwordScore)
+                XCTAssertEqual(String(cString: native.model_config.modeling_unit), "bpe")
+                XCTAssertEqual(String(cString: native.model_config.bpe_vocab), "/tmp/scored.txt")
+                XCTAssertNil(native.hotwords_file, "Hotwords are per stream, never a file")
+            }
+            // Without a vocabulary file the native encoder would dereference null.
+            configuration.withCConfiguration(folder: folder, files: files) { native in
+                XCTAssertEqual(String(cString: native.decoding_method), "greedy_search")
+                XCTAssertNil(native.model_config.modeling_unit)
+                XCTAssertNil(native.model_config.bpe_vocab)
+            }
+            try Configuration(model: .parakeet).withCConfiguration(folder: folder, files: files, bpeVocabulary: "/tmp/scored.txt") { native in
+                XCTAssertEqual(String(cString: native.decoding_method), "greedy_search", "Greedy configuration ignores the file")
+                XCTAssertNil(native.model_config.bpe_vocab)
+            }
+        }
+        do {
+            let tokens = SherpaTranscriber.TokenVocabulary(text: """
+            <unk> 0
+            ▁ 1
+            ▁Sup 2
+            a 3
+            base 4
+            ▁P 5
+            ost 6
+            H 7
+            og 8
+            broken line 9
+            x
+            """)
+            XCTAssertEqual(tokens.pieces, ["<unk>", "▁", "▁Sup", "a", "base", "▁P", "ost", "H", "og"])
+            XCTAssertTrue(tokens.canEncode("▁Supabase"))
+            XCTAssertTrue(tokens.canEncode("▁PostHog"))
+            XCTAssertFalse(tokens.canEncode("▁Qwen"), "Unspellable terms are skipped, not partially boosted")
+            XCTAssertEqual(SherpaTranscriber.hotwords(["Supabase", "Qwen", "PostHog"], vocabulary: tokens), "Supabase/PostHog")
+            XCTAssertNil(SherpaTranscriber.hotwords(["Qwen"], vocabulary: tokens))
 
-    func testHotwordDecodingSetsBeamSearchAndTheBPEVocabularyTogether() throws {
-        let configuration = try Configuration(model: .parakeet, hints: .init(language: "en", vocabulary: ["Supabase"]))
-        configuration.withCConfiguration(folder: folder, files: files, bpeVocabulary: "/tmp/scored.txt") { native in
-            XCTAssertEqual(String(cString: native.decoding_method), "modified_beam_search")
-            XCTAssertEqual(native.max_active_paths, 4)
-            XCTAssertEqual(native.hotwords_score, SherpaTranscriber.hotwordScore)
-            XCTAssertEqual(String(cString: native.model_config.modeling_unit), "bpe")
-            XCTAssertEqual(String(cString: native.model_config.bpe_vocab), "/tmp/scored.txt")
-            XCTAssertNil(native.hotwords_file, "Hotwords are per stream, never a file")
+            // simple-sentencepiece exits the process on any malformed line.
+            let lines = tokens.scoredVocabulary().split(separator: "\n", omittingEmptySubsequences: false)
+            XCTAssertEqual(lines.last, "", "File ends with a newline")
+            for line in lines.dropLast() {
+                let fields = line.split(separator: " ", omittingEmptySubsequences: false)
+                XCTAssertEqual(fields.count, 2, String(line))
+                let score = try XCTUnwrap(Float(fields[1]), String(line))
+                XCTAssertLessThanOrEqual(score, -1)
+                XCTAssertGreaterThan(score, -2)
+            }
+            XCTAssertEqual(lines.count - 1, tokens.pieces.count)
         }
-        // Without a vocabulary file the native encoder would dereference null.
-        configuration.withCConfiguration(folder: folder, files: files) { native in
-            XCTAssertEqual(String(cString: native.decoding_method), "greedy_search")
-            XCTAssertNil(native.model_config.modeling_unit)
-            XCTAssertNil(native.model_config.bpe_vocab)
+        do {
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"]))
+            XCTAssertTrue(SherpaTranscriber.anticipatesHotwordDecoding)
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false))
+            XCTAssertFalse(SherpaTranscriber.anticipatesHotwordDecoding)
+            SherpaTranscriber.anticipate(TranscriptionHints(language: "en"))
+            XCTAssertFalse(SherpaTranscriber.anticipatesHotwordDecoding)
         }
-        try Configuration(model: .parakeet).withCConfiguration(folder: folder, files: files, bpeVocabulary: "/tmp/scored.txt") { native in
-            XCTAssertEqual(String(cString: native.decoding_method), "greedy_search", "Greedy configuration ignores the file")
-            XCTAssertNil(native.model_config.bpe_vocab)
-        }
-    }
-
-    func testTokenVocabularyCoverageAndScoredFile() throws {
-        let tokens = SherpaTranscriber.TokenVocabulary(text: """
-        <unk> 0
-        ▁ 1
-        ▁Sup 2
-        a 3
-        base 4
-        ▁P 5
-        ost 6
-        H 7
-        og 8
-        broken line 9
-        x
-        """)
-        XCTAssertEqual(tokens.pieces, ["<unk>", "▁", "▁Sup", "a", "base", "▁P", "ost", "H", "og"])
-        XCTAssertTrue(tokens.canEncode("▁Supabase"))
-        XCTAssertTrue(tokens.canEncode("▁PostHog"))
-        XCTAssertFalse(tokens.canEncode("▁Qwen"), "Unspellable terms are skipped, not partially boosted")
-        XCTAssertEqual(SherpaTranscriber.hotwords(["Supabase", "Qwen", "PostHog"], vocabulary: tokens), "Supabase/PostHog")
-        XCTAssertNil(SherpaTranscriber.hotwords(["Qwen"], vocabulary: tokens))
-
-        // simple-sentencepiece exits the process on any malformed line.
-        let lines = tokens.scoredVocabulary().split(separator: "\n", omittingEmptySubsequences: false)
-        XCTAssertEqual(lines.last, "", "File ends with a newline")
-        for line in lines.dropLast() {
-            let fields = line.split(separator: " ", omittingEmptySubsequences: false)
-            XCTAssertEqual(fields.count, 2, String(line))
-            let score = try XCTUnwrap(Float(fields[1]), String(line))
-            XCTAssertLessThanOrEqual(score, -1)
-            XCTAssertGreaterThan(score, -2)
-        }
-        XCTAssertEqual(lines.count - 1, tokens.pieces.count)
-    }
-
-    func testPrewarmFollowsTheAnticipatedVocabularyChoice() {
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"]))
-        XCTAssertTrue(SherpaTranscriber.anticipatesHotwordDecoding)
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "en", vocabulary: ["Supabase"], biasOnDeviceSpeech: false))
-        XCTAssertFalse(SherpaTranscriber.anticipatesHotwordDecoding)
-        SherpaTranscriber.anticipate(TranscriptionHints(language: "en"))
-        XCTAssertFalse(SherpaTranscriber.anticipatesHotwordDecoding)
     }
 
     /// Real model, opt-in through test-local-e2e.py --parakeet-model (the same
@@ -278,40 +286,42 @@ final class SpeechVocabularyTests: XCTestCase {
 
 @MainActor
 final class SpeechVocabularyPipelineTests: XCTestCase {
-    func testSettingDefaultsOnAndPersists() throws {
-        let suite = "airdraft.speech-vocabulary.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
-        XCTAssertTrue(AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech)
-        AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech = false
-        XCTAssertFalse(AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech)
-    }
+    /// The setting defaults on and persists; a recording captures preferred spellings and the choice at start.
+    func testSettingDefaultsOnPersistsAndRecordingCapturesSpellingsAtStart() async throws {
+        do {
+            let suite = "airdraft.speech-vocabulary.\(UUID().uuidString)"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            defer { defaults.removePersistentDomain(forName: suite) }
+            XCTAssertTrue(AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech)
+            AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech = false
+            XCTAssertFalse(AppSettings(defaults: defaults).vocabularyBiasesOnDeviceSpeech)
+        }
+        do {
+            let fixture = try VocabularyPipelineFixture()
+            defer { fixture.cleanUp() }
+            fixture.dictionary.add(DictionaryEntry(term: "Supabase", aliases: ["super base", "soup a base"]))
+            fixture.dictionary.add(DictionaryEntry(term: "林雅婷"))
 
-    func testRecordingCapturesPreferredSpellingsAndTheChoiceAtStart() async throws {
-        let fixture = try VocabularyPipelineFixture()
-        defer { fixture.cleanUp() }
-        fixture.dictionary.add(DictionaryEntry(term: "Supabase", aliases: ["super base", "soup a base"]))
-        fixture.dictionary.add(DictionaryEntry(term: "林雅婷"))
+            fixture.pipeline.processSamples(VocabularyPipelineFixture.samples)
+            // Changes after capture apply to the next recording only.
+            fixture.settings.vocabularyBiasesOnDeviceSpeech = false
+            fixture.dictionary.add(DictionaryEntry(term: "PostHog"))
+            try await fixture.waitForIdle()
 
-        fixture.pipeline.processSamples(VocabularyPipelineFixture.samples)
-        // Changes after capture apply to the next recording only.
-        fixture.settings.vocabularyBiasesOnDeviceSpeech = false
-        fixture.dictionary.add(DictionaryEntry(term: "PostHog"))
-        try await fixture.waitForIdle()
+            fixture.pipeline.processSamples(VocabularyPipelineFixture.samples)
+            try await fixture.waitForIdle()
 
-        fixture.pipeline.processSamples(VocabularyPipelineFixture.samples)
-        try await fixture.waitForIdle()
-
-        let calls = fixture.probe.calls.value
-        XCTAssertEqual(calls.count, 2)
-        XCTAssertEqual(calls[0].vocabulary, ["Supabase", "林雅婷"], "Aliases are misheard forms and never bias recognition")
-        XCTAssertTrue(calls[0].bias)
-        XCTAssertEqual(calls[0].onDevice, ["Supabase"], "English recording drops the Chinese name")
-        XCTAssertEqual(calls[1].vocabulary, ["Supabase", "林雅婷", "PostHog"], "Cloud keyword input is unchanged")
-        XCTAssertFalse(calls[1].bias)
-        XCTAssertEqual(calls[1].onDevice, [])
-        // Dictionary post-processing still runs last on the final text.
-        XCTAssertEqual(try fixture.history.recent().first?.finalText, "Deploy to Supabase")
+            let calls = fixture.probe.calls.value
+            XCTAssertEqual(calls.count, 2)
+            XCTAssertEqual(calls[0].vocabulary, ["Supabase", "林雅婷"], "Aliases are misheard forms and never bias recognition")
+            XCTAssertTrue(calls[0].bias)
+            XCTAssertEqual(calls[0].onDevice, ["Supabase"], "English recording drops the Chinese name")
+            XCTAssertEqual(calls[1].vocabulary, ["Supabase", "林雅婷", "PostHog"], "Cloud keyword input is unchanged")
+            XCTAssertFalse(calls[1].bias)
+            XCTAssertEqual(calls[1].onDevice, [])
+            // Dictionary post-processing still runs last on the final text.
+            XCTAssertEqual(try fixture.history.recent().first?.finalText, "Deploy to Supabase")
+        }
     }
 }
 

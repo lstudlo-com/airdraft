@@ -10,73 +10,81 @@ final class TelemetryServiceTests: XCTestCase {
                                            "AirdraftTelemetryToken": "phc_TestOnly0123456789",
                                            "AirdraftTelemetryHost": "https://us.i.posthog.com"]
 
-    func testOnlyOfficialNonDebugBuildsWithValidConfigurationOfferTelemetry() {
-        XCTAssertTrue(TelemetryService.availability(info: official, isolated: false, isDebugBuild: false).isOffered)
-        XCTAssertFalse(TelemetryService.availability(info: official, isolated: false, isDebugBuild: true).isOffered)
-        XCTAssertFalse(TelemetryService.availability(info: official, isolated: true, isDebugBuild: false).isOffered)
-        var community = official
-        community["AirdraftDistribution"] = "community"
-        XCTAssertFalse(TelemetryService.availability(info: community, isolated: false, isDebugBuild: false).isOffered)
-        var unconfigured = official
-        unconfigured["AirdraftTelemetryToken"] = ""
-        XCTAssertFalse(TelemetryService.availability(info: unconfigured, isolated: false, isDebugBuild: false).isOffered)
-        XCTAssertTrue(TelemetryService.isDebugBuild, "App tests run the Debug configuration")
-    }
-
-    func testDebugBuildNeverConstructsThePostHogClientEvenWithOfficialPlistAndConsent() throws {
-        let fixture = IsolatedContainer()
-        defer { fixture.tearDown() }
-        let settings = fixture.container.settings
-        settings.telemetryConsent = .granted
-        let bundle = try plistBundle(official)
-        let telemetry = TelemetryService.make(settings: settings, bundle: bundle, isolated: false)
-        XCTAssertTrue(telemetry.availability.isOfficial)
-        XCTAssertNotNil(telemetry.availability.configuration)
-        XCTAssertFalse(telemetry.availability.isOffered)
-        telemetry.start()
-        telemetry.choose(.denied)
-        telemetry.choose(.granted)
-        telemetry.record(.dictationFailed(.permission))
-        XCTAssertNil(telemetry.client)
-        XCTAssertFalse(telemetry.isSending)
-        XCTAssertTrue(PostHogSDK.shared.isOptOut(), "The shared SDK was never set up")
-    }
-
-    func testCommunityAndIsolatedContainersHaveNoClientAndHideTheChoice() {
-        let fixture = IsolatedContainer()
-        defer { fixture.tearDown() }
-        let telemetry = fixture.container.telemetry
-        XCTAssertFalse(telemetry.availability.isOfficial, "Isolated containers are community builds")
-        XCTAssertFalse(telemetry.showsChoice)
-        XCTAssertFalse(telemetry.needsDecision)
-        telemetry.choose(.granted)
-        XCTAssertNil(telemetry.client)
-        XCTAssertTrue(PostHogSDK.shared.isOptOut())
-        // The real bundle running these tests is a community Debug build.
-        XCTAssertFalse(TelemetryService.availability(info: Bundle.main.infoDictionary ?? [:], isolated: false).isOffered)
-    }
-
-    func testEveryBundledCatalogueIDPassesTheAllowlist() {
-        let sanitizer = TelemetrySanitizer(isKnownModel: { TelemetryService.knownModelIDs.contains($0) })
-        XCTAssertFalse(TelemetryService.knownModelIDs.isEmpty)
-        for id in TelemetryService.knownModelIDs.sorted() {
-            XCTAssertTrue(sanitizer.allows(event: "model_download_finished",
-                                           properties: ["model": id, "outcome": "ok", "app": TelemetrySanitizer.appTag]), id)
+    /// Only official non-Debug builds with valid configuration offer telemetry; a Debug build never
+    /// constructs the PostHog client even with an official plist and consent; community and isolated
+    /// containers have no client and hide the choice.
+    func testOnlyOfficialReleaseBuildsOfferTelemetryAndDebugOrIsolatedNeverConstructAClient() throws {
+        do {
+            XCTAssertTrue(TelemetryService.availability(info: official, isolated: false, isDebugBuild: false).isOffered)
+            XCTAssertFalse(TelemetryService.availability(info: official, isolated: false, isDebugBuild: true).isOffered)
+            XCTAssertFalse(TelemetryService.availability(info: official, isolated: true, isDebugBuild: false).isOffered)
+            var community = official
+            community["AirdraftDistribution"] = "community"
+            XCTAssertFalse(TelemetryService.availability(info: community, isolated: false, isDebugBuild: false).isOffered)
+            var unconfigured = official
+            unconfigured["AirdraftTelemetryToken"] = ""
+            XCTAssertFalse(TelemetryService.availability(info: unconfigured, isolated: false, isDebugBuild: false).isOffered)
+            XCTAssertTrue(TelemetryService.isDebugBuild, "App tests run the Debug configuration")
         }
-        let entry = try? XCTUnwrap(ModelCatalogue.entries.first { $0.isDownloadable })
-        if let entry { XCTAssertEqual(TelemetryService.catalogueID(for: entry.config(from: ASRConfig())), entry.id) }
-        var custom = ASRConfig(kind: .openAICompatible)
-        custom.baseURL = "http://192.168.1.20:1234/v1"
-        XCTAssertEqual(TelemetryService.catalogueID(for: custom), "other")
+
+        do {
+            let fixture = IsolatedContainer()
+            defer { fixture.tearDown() }
+            let settings = fixture.container.settings
+            settings.telemetryConsent = .granted
+            let bundle = try plistBundle(official)
+            let telemetry = TelemetryService.make(settings: settings, bundle: bundle, isolated: false)
+            XCTAssertTrue(telemetry.availability.isOfficial)
+            XCTAssertNotNil(telemetry.availability.configuration)
+            XCTAssertFalse(telemetry.availability.isOffered)
+            telemetry.start()
+            telemetry.choose(.denied)
+            telemetry.choose(.granted)
+            telemetry.record(.dictationFailed(.permission))
+            XCTAssertNil(telemetry.client)
+            XCTAssertFalse(telemetry.isSending)
+            XCTAssertTrue(PostHogSDK.shared.isOptOut(), "The shared SDK was never set up")
+        }
+
+        do {
+            let fixture = IsolatedContainer()
+            defer { fixture.tearDown() }
+            let telemetry = fixture.container.telemetry
+            XCTAssertFalse(telemetry.availability.isOfficial, "Isolated containers are community builds")
+            XCTAssertFalse(telemetry.showsChoice)
+            XCTAssertFalse(telemetry.needsDecision)
+            telemetry.choose(.granted)
+            XCTAssertNil(telemetry.client)
+            XCTAssertTrue(PostHogSDK.shared.isOptOut())
+            // The real bundle running these tests is a community Debug build.
+            XCTAssertFalse(TelemetryService.availability(info: Bundle.main.infoDictionary ?? [:], isolated: false).isOffered)
+        }
     }
 
-    func testLaunchEventUsesOnlyEnumeratedFields() {
-        let event = TelemetryService.launchEvent(license: .trial(until: .distantFuture))
-        var properties = event.properties
-        properties["app"] = TelemetrySanitizer.appTag
-        XCTAssertEqual(properties["license_state"], "trial")
-        XCTAssertEqual(Set(properties.keys), ["app_version", "app_build", "macos_major", "arch", "interface_language",
-                                              "license_state", "app"])
+    /// Every bundled catalogue ID passes the allowlist; the launch event uses only enumerated fields.
+    func testBundledCatalogueIDsAndTheLaunchEventPassTheAllowlist() {
+        do {
+            let sanitizer = TelemetrySanitizer(isKnownModel: { TelemetryService.knownModelIDs.contains($0) })
+            XCTAssertFalse(TelemetryService.knownModelIDs.isEmpty)
+            for id in TelemetryService.knownModelIDs.sorted() {
+                XCTAssertTrue(sanitizer.allows(event: "model_download_finished",
+                                               properties: ["model": id, "outcome": "ok", "app": TelemetrySanitizer.appTag]), id)
+            }
+            let entry = try? XCTUnwrap(ModelCatalogue.entries.first { $0.isDownloadable })
+            if let entry { XCTAssertEqual(TelemetryService.catalogueID(for: entry.config(from: ASRConfig())), entry.id) }
+            var custom = ASRConfig(kind: .openAICompatible)
+            custom.baseURL = "http://192.168.1.20:1234/v1"
+            XCTAssertEqual(TelemetryService.catalogueID(for: custom), "other")
+        }
+
+        do {
+            let event = TelemetryService.launchEvent(license: .trial(until: .distantFuture))
+            var properties = event.properties
+            properties["app"] = TelemetrySanitizer.appTag
+            XCTAssertEqual(properties["license_state"], "trial")
+            XCTAssertEqual(Set(properties.keys), ["app_version", "app_build", "macos_major", "arch", "interface_language",
+                                                  "license_state", "app"])
+        }
     }
 
     func testPurgeRemovesOnlyTheSDKFoldersInsideTheGivenRoots() throws {

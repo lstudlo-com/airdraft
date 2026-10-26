@@ -3,7 +3,9 @@ import XCTest
 
 /// User-facing labels use catalogue names; raw IDs stay in `engineLabel`/`engineID`.
 final class ModelDisplayNameTests: XCTestCase {
-    func testLocalSpeechModelsUseCatalogueTitlesWithRuntime() {
+    /// Local speech models show catalogue titles with runtime, every catalogue entry has its
+    /// title, same-family variants stay distinguishable and titles have one source.
+    func testLocalSpeechModelsUseOneCatalogueTitleWithDistinguishableRuntime() {
         XCTAssertEqual(ASRConfig(kind: .whisperKit).displayName, "Whisper Large v3 Turbo · Core ML")
         XCTAssertEqual(ASRConfig(kind: .whisperKit, whisperModel: "distil-large-v3").displayName,
                        "Distil-Whisper Large v3 · Core ML")
@@ -17,9 +19,7 @@ final class ModelDisplayNameTests: XCTestCase {
         XCTAssertEqual(ASRConfig(kind: .parakeet).displayName, "Parakeet TDT v3 · ONNX")
         XCTAssertEqual(ASRConfig(kind: .orukeet).displayName, "Orukeet · ONNX")
         XCTAssertEqual(ASRConfig(kind: .apple).displayName, "Apple Speech")
-    }
 
-    func testEveryCatalogueModelHasItsTitle() {
         for variant in WhisperModelVariant.allCases {
             XCTAssertEqual(ASRConfig(kind: .whisperKit, whisperModel: variant.rawValue).modelDisplayName, variant.title)
         }
@@ -29,55 +29,72 @@ final class ModelDisplayNameTests: XCTestCase {
         for model in GGUFModelCatalog.models {
             XCTAssertEqual(model.config.displayName, "\(model.title) · GGUF \(model.quantization)")
         }
-    }
 
-    func testSameFamilyVariantsStayDistinguishable() {
         let whisper = [ASRConfig(kind: .whisperKit).displayName,
                        ASRConfig(kind: .transcribeCpp, model: "whisper-large-v3-turbo").displayName]
         XCTAssertEqual(Set(whisper).count, 2, "\(whisper)")
         let qwen = [ASRConfig(kind: .qwen3).displayName,
                     ASRConfig(kind: .transcribeCpp, model: "qwen3-asr-1.7b").displayName]
         XCTAssertEqual(Set(qwen).count, 2, "\(qwen)")
+
+        // The App's Models table takes its titles from `modelDisplayName`; Home,
+        // Profiles and the menu use the same names for each local model.
+        let expected: [(ASRConfig, String)] = [
+            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-1.7B-MLX-5bit"), "Qwen3-ASR 1.7B"),
+            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"), "Qwen3-ASR 0.6B"),
+            (ASRConfig(kind: .cohere), "Cohere Transcribe"),
+            (ASRConfig(kind: .fireRed), "FireRedASR2"),
+            (ASRConfig(kind: .senseVoiceMultilingual), "SenseVoice"),
+            (ASRConfig(kind: .senseVoice), "SenseVoice Cantonese"),
+            (ASRConfig(kind: .parakeet), "Parakeet TDT v3"),
+            (ASRConfig(kind: .orukeet), "Orukeet"),
+            (ASRConfig(kind: .apple), "Apple Speech"),
+        ]
+        for (config, title) in expected { XCTAssertEqual(config.modelDisplayName, title) }
     }
 
-    func testCloudSpeechUsesModelTitleAndHost() {
-        var config = ASRConfig()
-        config.select(.openAI)
-        config.selectModel("gpt-4o-mini-transcribe")
-        XCTAssertEqual(config.displayName, "GPT-4o Mini Transcribe · OpenAI")
-        for preset in EndpointPreset.asr {
-            for model in SpeechModelInfo.models(for: preset.kind) {
-                var cloud = ASRConfig()
-                cloud.select(preset.kind)
-                cloud.selectModel(model.id)
-                XCTAssertEqual(cloud.displayName, "\(model.title) · \(preset.name)")
-                XCTAssertFalse(cloud.engineID.isEmpty, "Display names never replace engine identity")
+    /// Cloud speech shows model title and host, unknown and custom models fall back to raw
+    /// IDs, and display names never change engine identity or stored data.
+    func testCloudCustomAndUnknownSpeechNamesKeepEngineIdentity() throws {
+        do { // CloudSpeechUsesModelTitleAndHost
+            var config = ASRConfig()
+            config.select(.openAI)
+            config.selectModel("gpt-4o-mini-transcribe")
+            XCTAssertEqual(config.displayName, "GPT-4o Mini Transcribe · OpenAI")
+            for preset in EndpointPreset.asr {
+                for model in SpeechModelInfo.models(for: preset.kind) {
+                    var cloud = ASRConfig()
+                    cloud.select(preset.kind)
+                    cloud.selectModel(model.id)
+                    XCTAssertEqual(cloud.displayName, "\(model.title) · \(preset.name)")
+                    XCTAssertFalse(cloud.engineID.isEmpty, "Display names never replace engine identity")
+                }
             }
+        }
+
+        do { // UnknownAndCustomModelsFallBackToRawIDs
+            XCTAssertEqual(ASRConfig(kind: .fluidAudio, model: "vendor/unknown").modelDisplayName, "vendor/unknown")
+            XCTAssertEqual(ASRConfig(kind: .transcribeCpp, model: "unlisted-gguf").displayName, "unlisted-gguf · GGUF")
+            XCTAssertEqual(ASRConfig(kind: .whisperKit, whisperModel: "tiny").modelDisplayName, "Whisper tiny")
+            XCTAssertEqual(ASRConfig(kind: .qwen3, qwen3Model: "me/Qwen3-ASR-custom").modelDisplayName, "Qwen3-ASR-custom")
+            let custom = ASRConfig(kind: .openAICompatible, baseURL: "http://speech.local:9000/v1", model: "my-whisper")
+            XCTAssertEqual(custom.displayName, "my-whisper · speech.local")
+            var router = ASRConfig()
+            router.select(.openRouter)
+            router.selectModel("vendor/new-speech-model")
+            XCTAssertTrue(router.displayName.contains("vendor/new-speech-model"))
+        }
+
+        do { // DisplayNamesDoNotChangeIdentityOrStoredData
+            let config = ASRConfig(kind: .whisperKit)
+            XCTAssertEqual(config.engineID, "whisperkit:large-v3-v20240930_turbo")
+            XCTAssertEqual(config.engineLabel, "WhisperKit · large-v3-v20240930_turbo")
+            let encoded = String(decoding: try JSONEncoder().encode(config), as: UTF8.self)
+            XCTAssertFalse(encoded.contains("Whisper Large v3 Turbo"))
         }
     }
 
-    func testUnknownAndCustomModelsFallBackToRawIDs() {
-        XCTAssertEqual(ASRConfig(kind: .fluidAudio, model: "vendor/unknown").modelDisplayName, "vendor/unknown")
-        XCTAssertEqual(ASRConfig(kind: .transcribeCpp, model: "unlisted-gguf").displayName, "unlisted-gguf · GGUF")
-        XCTAssertEqual(ASRConfig(kind: .whisperKit, whisperModel: "tiny").modelDisplayName, "Whisper tiny")
-        XCTAssertEqual(ASRConfig(kind: .qwen3, qwen3Model: "me/Qwen3-ASR-custom").modelDisplayName, "Qwen3-ASR-custom")
-        let custom = ASRConfig(kind: .openAICompatible, baseURL: "http://speech.local:9000/v1", model: "my-whisper")
-        XCTAssertEqual(custom.displayName, "my-whisper · speech.local")
-        var router = ASRConfig()
-        router.select(.openRouter)
-        router.selectModel("vendor/new-speech-model")
-        XCTAssertTrue(router.displayName.contains("vendor/new-speech-model"))
-    }
-
-    func testDisplayNamesDoNotChangeIdentityOrStoredData() throws {
-        let config = ASRConfig(kind: .whisperKit)
-        XCTAssertEqual(config.engineID, "whisperkit:large-v3-v20240930_turbo")
-        XCTAssertEqual(config.engineLabel, "WhisperKit · large-v3-v20240930_turbo")
-        let encoded = String(decoding: try JSONEncoder().encode(config), as: UTF8.self)
-        XCTAssertFalse(encoded.contains("Whisper Large v3 Turbo"))
-    }
-
-    func testRefinementShowsProviderAndReadableModel() {
+    func testRefinementShowsProviderAndReadableModelNames() {
         XCTAssertEqual(LLMConfig().displayName, "LM Studio · Gemma 4 26B A4B QAT")
         XCTAssertEqual(LLMConfig().engineLabel, "localhost · google/gemma-4-26b-a4b-qat", "Raw identifiers stay available for help text")
         var ollama = LLMConfig(baseURL: "http://localhost:11434/v1", model: "qwen3:8b")
@@ -103,26 +120,7 @@ final class ModelDisplayNameTests: XCTestCase {
         XCTAssertEqual(config.displayName, "Apple Intelligence")
         config.select(.none)
         XCTAssertEqual(config.displayName, "Off")
-    }
 
-    /// The App's Models table takes its titles from `modelDisplayName`; Home,
-    /// Profiles and the menu use the same names for each local model.
-    func testLocalSpeechModelTitlesHaveOneSource() {
-        let expected: [(ASRConfig, String)] = [
-            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-1.7B-MLX-5bit"), "Qwen3-ASR 1.7B"),
-            (ASRConfig(kind: .qwen3, qwen3Model: "aufklarer/Qwen3-ASR-0.6B-MLX-4bit"), "Qwen3-ASR 0.6B"),
-            (ASRConfig(kind: .cohere), "Cohere Transcribe"),
-            (ASRConfig(kind: .fireRed), "FireRedASR2"),
-            (ASRConfig(kind: .senseVoiceMultilingual), "SenseVoice"),
-            (ASRConfig(kind: .senseVoice), "SenseVoice Cantonese"),
-            (ASRConfig(kind: .parakeet), "Parakeet TDT v3"),
-            (ASRConfig(kind: .orukeet), "Orukeet"),
-            (ASRConfig(kind: .apple), "Apple Speech"),
-        ]
-        for (config, title) in expected { XCTAssertEqual(config.modelDisplayName, title) }
-    }
-
-    func testReadableModelNames() {
         let cases = [
             ("gemini-2.5-flash", "Gemini 2.5 Flash"),
             ("claude-sonnet-4-5-20250929", "Claude Sonnet 4.5"),

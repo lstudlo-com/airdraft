@@ -4,14 +4,13 @@ import XCTest
 /// docs/PRODUCT.md fix. A change here is a design decision, not a refactor.
 @MainActor
 final class LayoutContractTests: XCTestCase {
-    func testWindowAndTitlebar() {
+    /// Window and titlebar, sidebar widths and brand, the content island and the page header blur.
+    func testWindowSidebarIslandAndPageHeaderGeometry() {
         XCTAssertEqual(Theme.windowWidth, 784)
         XCTAssertEqual(Theme.windowMinHeight, 600)
         XCTAssertEqual(Theme.titlebarHeight, 46)
         XCTAssertEqual(Theme.windowControlsInset, 16)
-    }
 
-    func testSidebarWidthsAndBrand() {
         XCTAssertEqual(Theme.sidebarWidth, 180)
         XCTAssertEqual(Theme.sidebarContentInset, 10)
         XCTAssertEqual(Theme.sidebarIconSize, 13)
@@ -22,15 +21,11 @@ final class LayoutContractTests: XCTestCase {
         // The collapsed rail is the unchanged brand width plus equal 20-point side insets.
         XCTAssertEqual(Theme.sidebarContentInset + Theme.sidebarBrandInset, 20)
         XCTAssertEqual(Theme.sidebarCollapsedWidth, Theme.sidebarBrandWidth + 40, accuracy: 0.0001)
-    }
 
-    func testContentIslandSharesTheSidebarInset() {
         XCTAssertEqual(Theme.islandInset, Theme.sidebarContentInset)
         XCTAssertEqual(Theme.islandInset, 10)
         XCTAssertEqual(Theme.islandRadius, 12)
-    }
 
-    func testPageHeaderAndBlurGeometry() {
         XCTAssertEqual(Theme.pagePadding, 24)
         // One 60-point sticky header: 16 above a 32-point row, 12 below.
         XCTAssertEqual(Theme.pageHeaderTopInset + Theme.pageHeaderRowHeight + Theme.pageHeaderBottomInset, 60)
@@ -41,7 +36,8 @@ final class LayoutContractTests: XCTestCase {
         XCTAssertEqual(Theme.sidebarToggleTop, Theme.islandInset + Theme.pageHeaderTopInset)
     }
 
-    func testCardsAndSections() {
+    /// Cards and sections, sidebar navigation metrics, and the island following the well 300 ms later.
+    func testCardsSectionsNavigationMetricsAndSelectionMotion() {
         XCTAssertEqual(Theme.cardPadding, 16)
         XCTAssertEqual(Theme.cardRadius, 18)
         XCTAssertEqual(Theme.sectionTitleMinHeight, 32)
@@ -49,9 +45,7 @@ final class LayoutContractTests: XCTestCase {
         XCTAssertEqual(Theme.sectionSpacing, 28)
         XCTAssertEqual(Theme.sectionTitleLeadingInset, 4)
         XCTAssertEqual(Theme.modelTableMaxHeight, 300)
-    }
 
-    func testSidebarNavigationMetrics() {
         XCTAssertEqual(NavigationStyle.destinationHeight, 34)
         XCTAssertEqual(NavigationStyle.microphoneHeight, 38)
         XCTAssertEqual(NavigationStyle.destinationInset, 4)
@@ -64,9 +58,7 @@ final class LayoutContractTests: XCTestCase {
         // Concentric corners: the well's radius less the inset, 9 points.
         XCTAssertEqual(NavigationStyle.iconIslandShape.cornerSize.width, 9)
         XCTAssertEqual(NavigationStyle.wellShape.cornerSize.width, NavigationStyle.wellRadius)
-    }
 
-    func testSelectionMotionDelaysTheIslandBehindTheWell() {
         XCTAssertEqual(SelectionMotion.islandDelay, 0.3, accuracy: 0.0001)
     }
 }

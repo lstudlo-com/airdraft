@@ -14,25 +14,28 @@ final class FrontmostApplicationTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.05))
     }
 
-    func testOwnProcessIsNeverTheDestination() {
-        let frontmost = FrontmostApplication()
-        frontmost.override(.init(bundleID: "com.apple.TextEdit", name: "TextEdit"))
-        let fresh = FrontmostApplication()
-        // Activating this process (the test runner) reads as no destination.
-        activate(.current)
-        XCTAssertNil(fresh.current)
-        XCTAssertEqual(frontmost.current, .init(bundleID: "com.apple.TextEdit", name: "TextEdit"))
-    }
+    /// Activating this process reads as no destination; an override ignores later activation until cleared.
+    func testOwnProcessIsNeverTheDestinationAndOverridesIgnoreLaterActivation() {
+        do {
+            let frontmost = FrontmostApplication()
+            frontmost.override(.init(bundleID: "com.apple.TextEdit", name: "TextEdit"))
+            let fresh = FrontmostApplication()
+            // Activating this process (the test runner) reads as no destination.
+            activate(.current)
+            XCTAssertNil(fresh.current)
+            XCTAssertEqual(frontmost.current, .init(bundleID: "com.apple.TextEdit", name: "TextEdit"))
+        }
 
-    func testOverrideIgnoresLaterActivation() {
-        let frontmost = FrontmostApplication()
-        let notes = FrontmostApplication.App(bundleID: "com.apple.Notes", name: "Notes")
-        frontmost.override(notes)
-        activate(.current)
-        XCTAssertEqual(frontmost.current, notes)
-        frontmost.override(nil)
-        XCTAssertNil(frontmost.current)
-        activate(.current)
-        XCTAssertNil(frontmost.current)
+        do {
+            let frontmost = FrontmostApplication()
+            let notes = FrontmostApplication.App(bundleID: "com.apple.Notes", name: "Notes")
+            frontmost.override(notes)
+            activate(.current)
+            XCTAssertEqual(frontmost.current, notes)
+            frontmost.override(nil)
+            XCTAssertNil(frontmost.current)
+            activate(.current)
+            XCTAssertNil(frontmost.current)
+        }
     }
 }

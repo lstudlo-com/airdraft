@@ -36,7 +36,8 @@ final class RecordingPlaybackTests: XCTestCase {
         XCTAssertFalse(playback.isPlaying)
     }
 
-    func testBoundsCompletionAndFailedStartClearState() throws {
+    /// Seek bounds, completion, a failed start and a failed open all clear playback state.
+    func testBoundsCompletionFailedStartAndOpenFailureClearState() throws {
         let transport = SilentTransport()
         let playback = RecordingPlayback(automaticUpdates: false) { _ in transport }
         try playback.toggle(id: "one", url: url)
@@ -55,20 +56,19 @@ final class RecordingPlaybackTests: XCTestCase {
         XCTAssertThrowsError(try playback.toggle(id: "broken", url: url))
         XCTAssertNil(playback.recordingID)
         XCTAssertFalse(playback.isPlaying)
-    }
 
-    func testOpenFailureStopsPreviousRecording() throws {
-        let transport = SilentTransport()
+        // An open failure stops the previous recording (fresh player and transport).
+        let previous = SilentTransport()
         var fail = false
-        let playback = RecordingPlayback(automaticUpdates: false) { _ in
+        let opening = RecordingPlayback(automaticUpdates: false) { _ in
             if fail { throw CocoaError(.fileNoSuchFile) }
-            return transport
+            return previous
         }
-        try playback.toggle(id: "old", url: url)
+        try opening.toggle(id: "old", url: url)
         fail = true
-        XCTAssertThrowsError(try playback.toggle(id: "missing", url: url))
-        XCTAssertFalse(transport.isPlaying)
-        XCTAssertNil(playback.recordingID)
+        XCTAssertThrowsError(try opening.toggle(id: "missing", url: url))
+        XCTAssertFalse(previous.isPlaying)
+        XCTAssertNil(opening.recordingID)
     }
 }
 

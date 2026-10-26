@@ -1432,6 +1432,12 @@ milliseconds, between the action and the deadline. A unit test that sleeps longe
 stated reason, and tests that model hours of audio shorten unless
 `LongTests.enabled`. Do not add a UI-operation fixture for behavior a logic test
 can cover.
+Both test bundles run in parallel test clones (`parallelizable` in `project.yml`,
+`-parallel-testing-enabled YES` in the scripts), so every test owns its fixtures:
+temporary directories, defaults suites, pasteboards and servers, never shared
+paths or global state another test can see. Prefer one scenario test with
+independent phases over many near-identical methods; keep the method names that
+scripts and docs cite.
 
 - App icons: after a Debug build, run `python3 scripts/verify-app-icons.py --app <Debug.app>`.
   It checks real AppKit icon images, theme changes, independent preferences and

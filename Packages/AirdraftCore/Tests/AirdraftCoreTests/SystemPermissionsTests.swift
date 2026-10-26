@@ -5,7 +5,9 @@ import XCTest
 
 @MainActor
 final class SystemPermissionsTests: XCTestCase {
-    func testGrantAndRevocationRefreshWithoutRestartOrHotkeyActivity() {
+    /// Grant and revocation refresh without restart or hotkey activity, and a fresh
+    /// instance reads the current process rather than a previous grant.
+    func testGrantAndRevocationRefreshAndFreshInstancesReadCurrentState() {
         var trusted = false
         var microphone: AVAuthorizationStatus = .notDetermined
         let permissions = SystemPermissions(checkAccessibility: { trusted }, checkMicrophone: { microphone })
@@ -24,9 +26,16 @@ final class SystemPermissionsTests: XCTestCase {
         XCTAssertFalse(permissions.accessibilityGranted)
         XCTAssertEqual(permissions.microphone, .denied)
         XCTAssertEqual(transitions, 2)
+
+        let previous = SystemPermissions(checkAccessibility: { true }, checkMicrophone: { .authorized })
+        let replacement = SystemPermissions(checkAccessibility: { false }, checkMicrophone: { .denied })
+        XCTAssertTrue(previous.accessibilityGranted)
+        XCTAssertFalse(replacement.accessibilityGranted)
     }
 
-    func testPromptDoesNotPretendPermissionWasGranted() {
+    /// The prompt does not pretend permission was granted, and a permission change
+    /// invalidates an observing view.
+    func testPromptDoesNotPretendGrantAndChangesInvalidateObservers() {
         var prompts = 0
         var trusted = false
         let permissions = SystemPermissions(checkAccessibility: { trusted }, checkMicrophone: { .authorized },
@@ -38,26 +47,17 @@ final class SystemPermissionsTests: XCTestCase {
         permissions.requestAccessibility()
         XCTAssertTrue(permissions.accessibilityGranted)
         XCTAssertEqual(prompts, 1)
-    }
 
-    func testPermissionChangeInvalidatesAnObservingView() {
-        var trusted = false
-        let permissions = SystemPermissions(checkAccessibility: { trusted }, checkMicrophone: { .authorized })
+        var observedTrusted = false
+        let observed = SystemPermissions(checkAccessibility: { observedTrusted }, checkMicrophone: { .authorized })
         let changed = expectation(description: "SwiftUI observation invalidates")
         withObservationTracking {
-            _ = permissions.accessibilityGranted
+            _ = observed.accessibilityGranted
         } onChange: {
             changed.fulfill()
         }
-        trusted = true
-        permissions.refresh()
+        observedTrusted = true
+        observed.refresh()
         wait(for: [changed], timeout: 1)
-    }
-
-    func testFreshInstanceReadsCurrentProcessRatherThanPreviousGrant() {
-        let previous = SystemPermissions(checkAccessibility: { true }, checkMicrophone: { .authorized })
-        let replacement = SystemPermissions(checkAccessibility: { false }, checkMicrophone: { .denied })
-        XCTAssertTrue(previous.accessibilityGranted)
-        XCTAssertFalse(replacement.accessibilityGranted)
     }
 }

@@ -4,7 +4,9 @@ import XCTest
 @testable import AirdraftCore
 
 final class ProviderTransportTests: XCTestCase {
-    func testOriginComparisonNormalizesCaseAndDefaultPorts() throws {
+    /// Origin comparison normalizes case and default ports; relative same-origin 307/308
+    /// keep a harmless POST; cross host, port and scheme redirects never reach the destination.
+    func testRedirectsStayOnTheNormalizedOrigin() async throws {
         for (source, destination) in [
             ("HTTP://EXAMPLE.TEST/a", "http://example.test:80/b"),
             ("https://example.test:443/a", "https://EXAMPLE.TEST/b"),
@@ -18,18 +20,16 @@ final class ProviderTransportTests: XCTestCase {
                                                             to: URL(string: destination)), destination)
         }
         XCTAssertFalse(ProviderTransport.allowsRedirect(from: nil, to: URL(string: "https://example.test")))
-    }
 
-    func testRelativeSameOrigin307And308PreserveHarmlessPost() async throws {
         let server = try await TransportServer.start(routes: [
             "/307": .init(status: 307, location: "/destination"),
             "/308": .init(status: 308, location: "/destination"),
         ])
         defer { server.stop() }
-        let session = ProviderTransport.makeSession()
-        defer { session.invalidateAndCancel() }
+        let sameOrigin = ProviderTransport.makeSession()
+        defer { sameOrigin.invalidateAndCancel() }
         for path in ["307", "308"] {
-            let (_, response) = try await session.data(for: markerRequest(server.url(path)))
+            let (_, response) = try await sameOrigin.data(for: markerRequest(server.url(path)))
             XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
         }
         let destinations = server.requests.filter { $0.path == "/destination" }
@@ -39,9 +39,7 @@ final class ProviderTransportTests: XCTestCase {
             XCTAssertTrue(request.headers.lowercased().contains("x-airdraft-audit: harmless-marker"))
             XCTAssertEqual(request.body, Data("harmless synthetic content".utf8))
         }
-    }
 
-    func testCrossHostPortAndSchemeRedirectsNeverReachDestination() async throws {
         let destination = try await TransportServer.start()
         defer { destination.stop() }
         let portURL = destination.url("destination")
@@ -63,7 +61,8 @@ final class ProviderTransportTests: XCTestCase {
         XCTAssertEqual(origin.requests.count, routes.count)
     }
 
-    func testCacheAndCookieStateAreNotRetained() async throws {
+    /// No cache, cookie or credential state is retained; cancellation and the wall-clock deadline stay bounded.
+    func testSessionRetainsNoStateAndStaysBounded() async throws {
         let server = try await TransportServer.start(routes: ["/cache": .init(status: 200,
             headers: "Cache-Control: public, max-age=600\r\nSet-Cookie: audit=ordinary; Path=/\r\n")])
         defer { server.stop() }
@@ -76,23 +75,21 @@ final class ProviderTransportTests: XCTestCase {
         for _ in 0..<2 { _ = try await session.data(from: server.url("cache")) }
         XCTAssertEqual(server.requests.count, 2, "A cacheable response must still make another request")
         XCTAssertTrue(server.requests.allSatisfy { !$0.headers.lowercased().contains("\r\ncookie:") })
-    }
 
-    func testCancellationAndWallClockDeadlineRemainBounded() async throws {
-        let server = try await TransportServer.start(routes: ["/wait": .init(status: 200, withholdResponse: true)])
-        defer { server.stop() }
-        let session = ProviderTransport.makeSession()
-        defer { session.invalidateAndCancel() }
-        let task = Task { try await session.data(from: server.url("wait")) }
+        let waiting = try await TransportServer.start(routes: ["/wait": .init(status: 200, withholdResponse: true)])
+        defer { waiting.stop() }
+        let bounded = ProviderTransport.makeSession()
+        defer { bounded.invalidateAndCancel() }
+        let task = Task { try await bounded.data(from: waiting.url("wait")) }
         try await Task.sleep(for: .milliseconds(30))
         task.cancel()
         do { _ = try await task.value; XCTFail("Cancelled transport must throw") }
         catch { XCTAssertTrue(error is CancellationError || (error as? URLError)?.code == .cancelled) }
-        var request = URLRequest(url: server.url("wait"))
+        var request = URLRequest(url: waiting.url("wait"))
         request.timeoutInterval = 0.1
         let started = Date()
         do {
-            _ = try await HTTPDeadline.data(for: request, session: session,
+            _ = try await HTTPDeadline.data(for: request, session: bounded,
                                             timeoutError: FixtureError.deadline, invalidResponse: FixtureError.invalid)
             XCTFail("Withheld response must time out")
         } catch { XCTAssertEqual(error as? FixtureError, .deadline) }

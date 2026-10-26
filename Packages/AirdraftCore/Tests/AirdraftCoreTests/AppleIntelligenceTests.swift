@@ -21,43 +21,48 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LLMConfig.self, from: JSONEncoder().encode(config)), config)
     }
 
-    func testAvailabilityAgreesWithTheUnavailableReason() {
-        let availability = AppleIntelligenceRefiner.availability
-        XCTAssertEqual(availability == .available, AppleIntelligenceRefiner.unavailableReason == nil)
-        for value in AppleIntelligenceRefiner.Availability.allCases {
-            XCTAssertEqual(AppleIntelligenceRefiner.Availability(rawValue: value.rawValue), value)
+    /// Availability agrees with its reason, prompts are reused, empty output falls back, unavailable never generates, late output times out.
+    func testRefinerAvailabilityPromptEmptyOutputAndDeadline() async throws {
+        // AvailabilityAgreesWithTheUnavailableReason
+        do {
+            let availability = AppleIntelligenceRefiner.availability
+            XCTAssertEqual(availability == .available, AppleIntelligenceRefiner.unavailableReason == nil)
+            for value in AppleIntelligenceRefiner.Availability.allCases {
+                XCTAssertEqual(AppleIntelligenceRefiner.Availability(rawValue: value.rawValue), value)
+            }
+        }
+        // UsesExistingPromptAndRejectsEmptyOutput
+        do {
+            let expectedSystem = PromptBuilder.systemPrompt(for: request)
+            let expectedUser = PromptBuilder.userMessage(for: request)
+            let engine = AppleIntelligenceRefiner(timeout: 2, availability: { nil }) { instructions, prompt in
+                XCTAssertEqual(instructions, expectedSystem)
+                XCTAssertEqual(prompt, expectedUser)
+                return "  Meet tomorrow.  "
+            }
+            let result = try await engine.refine(request)
+            XCTAssertEqual(result.text, "Meet tomorrow.")
+            XCTAssertEqual(result.promptVersion, PromptBuilder.version)
+            let empty = AppleIntelligenceRefiner(timeout: 2, availability: { nil }) { _, _ in " " }
+            do { _ = try await empty.refine(request); XCTFail("Empty output must fall back") }
+            catch RefinerError.emptyOutput {}
+        }
+        // UnavailableDoesNotStartGeneration
+        do {
+            let engine = AppleIntelligenceRefiner(timeout: 2, availability: { "Enable Apple Intelligence" }) { _, _ in
+                XCTFail("Unavailable model must not be invoked"); return ""
+            }
+            do { _ = try await engine.refine(request); XCTFail("Must report availability") }
+            catch { XCTAssertEqual(error.localizedDescription, "Enable Apple Intelligence") }
+        }
+        // DeadlineRejectsLateGeneration
+        do {
+            let engine = AppleIntelligenceRefiner(timeout: 0.01, availability: { nil }) { _, _ in
+                try await Task.sleep(for: .seconds(5)); return "Late text"
+            }
+            do { _ = try await engine.refine(request); XCTFail("Must time out") }
+            catch { XCTAssertTrue(error is RefinerError) }
         }
     }
 
-    func testUsesExistingPromptAndRejectsEmptyOutput() async throws {
-        let expectedSystem = PromptBuilder.systemPrompt(for: request)
-        let expectedUser = PromptBuilder.userMessage(for: request)
-        let engine = AppleIntelligenceRefiner(timeout: 2, availability: { nil }) { instructions, prompt in
-            XCTAssertEqual(instructions, expectedSystem)
-            XCTAssertEqual(prompt, expectedUser)
-            return "  Meet tomorrow.  "
-        }
-        let result = try await engine.refine(request)
-        XCTAssertEqual(result.text, "Meet tomorrow.")
-        XCTAssertEqual(result.promptVersion, PromptBuilder.version)
-        let empty = AppleIntelligenceRefiner(timeout: 2, availability: { nil }) { _, _ in " " }
-        do { _ = try await empty.refine(request); XCTFail("Empty output must fall back") }
-        catch RefinerError.emptyOutput {}
-    }
-
-    func testUnavailableDoesNotStartGeneration() async {
-        let engine = AppleIntelligenceRefiner(timeout: 2, availability: { "Enable Apple Intelligence" }) { _, _ in
-            XCTFail("Unavailable model must not be invoked"); return ""
-        }
-        do { _ = try await engine.refine(request); XCTFail("Must report availability") }
-        catch { XCTAssertEqual(error.localizedDescription, "Enable Apple Intelligence") }
-    }
-
-    func testDeadlineRejectsLateGeneration() async {
-        let engine = AppleIntelligenceRefiner(timeout: 0.01, availability: { nil }) { _, _ in
-            try await Task.sleep(for: .seconds(5)); return "Late text"
-        }
-        do { _ = try await engine.refine(request); XCTFail("Must time out") }
-        catch { XCTAssertTrue(error is RefinerError) }
-    }
 }

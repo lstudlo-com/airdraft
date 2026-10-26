@@ -3,213 +3,218 @@ import XCTest
 
 @MainActor
 final class PipelinePreviewTests: XCTestCase {
-    func testPreviewReceivesSameCapturedSamplesAsFinalSpeechEngine() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        let first = [Float](repeating: 0.125, count: 8_000)
-        let second = [Float](repeating: -0.25, count: 8_000)
+    /// Final speech gets the same captured samples as the preview, never waits for preview completion,
+    /// and keeps its transcript and History when the preview fails.
+    func testFinalTranscriptionUsesCapturedSamplesWithoutWaitingForOrTrustingPreview() async throws {
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            let first = [Float](repeating: 0.125, count: 8_000)
+            let second = [Float](repeating: -0.25, count: 8_000)
 
-        fixture.recorder.capture(first)
-        fixture.recorder.capture(second)
-        preview.sendText("Temporary preview")
-        try await waitUntil("Preview appears") { fixture.pipeline.previewText == "Temporary preview" }
+            fixture.recorder.capture(first)
+            fixture.recorder.capture(second)
+            preview.sendText("Temporary preview")
+            try await waitUntil("Preview appears") { fixture.pipeline.previewText == "Temporary preview" }
 
-        XCTAssertTrue(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertEqual(fixture.previews.locales, ["zh-TW"])
-        XCTAssertEqual(preview.chunks, [first, second])
-        XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertTrue(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertEqual(fixture.previews.locales, ["zh-TW"])
+            XCTAssertEqual(preview.chunks, [first, second])
+            XCTAssertEqual(try fixture.history.count(), 0)
 
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final transcription finishes") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        let received = await fixture.speech.receivedSamples
-        XCTAssertEqual(received, [first + second])
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.rawTranscript, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(record.refinedText, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(record.finalText, FinalPreviewTestSpeech.finalText)
-    }
-
-    func testDisablingPreviewKeepsRecordingAndFinalTranscription() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        fixture.recorder.capture(Fixture.samples)
-        fixture.pipeline.disableLivePreview()
-        preview.sendText("Late disabled preview")
-        await drainCallbacks()
-        XCTAssertTrue(fixture.pipeline.isRecording)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final speech finishes") { fixture.pipeline.lastOutcome != nil }
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
-    }
-
-    func testCancelDetachesPreviewAndIgnoresItsLateCallbacks() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        fixture.recorder.capture(Fixture.samples)
-        preview.sendText("Temporary preview")
-        try await waitUntil("Preview appears") { !fixture.pipeline.previewText.isEmpty }
-
-        fixture.pipeline.cancel()
-        preview.sendText("Late cancelled text")
-        preview.sendIssue("Late cancelled error")
-        await drainCallbacks()
-
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertFalse(fixture.recorder.isRecording)
-        XCTAssertEqual(fixture.pipeline.state, .idle)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        XCTAssertNil(fixture.pipeline.previewIssue)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        let received = await fixture.speech.receivedSamples
-        XCTAssertTrue(received.isEmpty)
-    }
-
-    func testFinalTranscriptionDoesNotWaitForPreviewCompletion() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        fixture.recorder.capture(Fixture.samples)
-
-        // This fake only records cancellation. It never completes its preview work.
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final speech completes independently of preview") {
-            fixture.pipeline.lastOutcome?.final == FinalPreviewTestSpeech.finalText && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil("Final transcription finishes") { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            let received = await fixture.speech.receivedSamples
+            XCTAssertEqual(received, [first + second])
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.rawTranscript, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(record.refinedText, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(record.finalText, FinalPreviewTestSpeech.finalText)
         }
-        preview.sendText("Preview still producing text after stop")
-        preview.sendIssue("Preview still producing errors after stop")
-        await drainCallbacks()
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            fixture.recorder.capture(Fixture.samples)
 
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        XCTAssertNil(fixture.pipeline.previewIssue)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
+            // This fake only records cancellation. It never completes its preview work.
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil("Final speech completes independently of preview") {
+                fixture.pipeline.lastOutcome?.final == FinalPreviewTestSpeech.finalText && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
+            preview.sendText("Preview still producing text after stop")
+            preview.sendIssue("Preview still producing errors after stop")
+            await drainCallbacks()
 
-    func testPreviousRecordingCallbacksCannotAffectNewRecordingPreview() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let previous = try XCTUnwrap(fixture.previews.sessions.first)
-        fixture.pipeline.cancel()
-        try await begin(fixture)
-        let current = try XCTUnwrap(fixture.previews.sessions.last)
-        XCTAssertFalse(previous === current)
-        current.sendText("Current preview")
-        try await waitUntil("Current preview appears") { fixture.pipeline.previewText == "Current preview" }
-
-        previous.sendText("Stale preview")
-        previous.sendIssue("Stale preview error")
-        await drainCallbacks()
-
-        XCTAssertTrue(fixture.pipeline.isRecording)
-        XCTAssertTrue(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertEqual(fixture.pipeline.previewText, "Current preview")
-        XCTAssertNil(fixture.pipeline.previewIssue)
-        XCTAssertEqual(previous.cancelCount, 1)
-        XCTAssertEqual(current.cancelCount, 0)
-        fixture.recorder.capture(Fixture.samples)
-        XCTAssertTrue(previous.chunks.isEmpty)
-        XCTAssertEqual(current.chunks, [Fixture.samples])
-    }
-
-    func testPreviewFailureDoesNotChangeFinalTranscriptOrHistory() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await begin(fixture)
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        fixture.recorder.capture(Fixture.samples)
-        preview.sendText("Unreliable temporary words")
-        try await waitUntil("Preview appears") { !fixture.pipeline.previewText.isEmpty }
-        preview.sendIssue("Preview language assets are unavailable")
-        try await waitUntil("Preview issue appears") { fixture.pipeline.previewIssue != nil }
-
-        XCTAssertTrue(fixture.pipeline.isRecording)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final transcription survives preview failure") {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            XCTAssertNil(fixture.pipeline.previewIssue)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            fixture.recorder.capture(Fixture.samples)
+            preview.sendText("Unreliable temporary words")
+            try await waitUntil("Preview appears") { !fixture.pipeline.previewText.isEmpty }
+            preview.sendIssue("Preview language assets are unavailable")
+            try await waitUntil("Preview issue appears") { fixture.pipeline.previewIssue != nil }
 
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        let records = try fixture.history.recent()
-        XCTAssertEqual(records.count, 1)
-        let record = try XCTUnwrap(records.first)
-        XCTAssertEqual(record.rawTranscript, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(record.refinedText, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(record.finalText, FinalPreviewTestSpeech.finalText)
-        XCTAssertNil(record.error)
-    }
+            XCTAssertTrue(fixture.pipeline.isRecording)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil("Final transcription survives preview failure") {
+                fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
 
-    func testPreviewIsNotCreatedWhenDisabled() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.livePreviewEnabled = false
-        try await begin(fixture)
-
-        XCTAssertTrue(fixture.previews.sessions.isEmpty)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
-        XCTAssertNil(fixture.pipeline.previewIssue)
-    }
-
-    func testHiddenHUDNeverStartsSpeechPreview() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.hudStyle = .none
-        try await begin(fixture)
-        fixture.recorder.capture(Fixture.samples)
-
-        XCTAssertTrue(fixture.previews.sessions.isEmpty)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        fixture.pipeline.stopAndProcess()
-        try await waitUntil("Final speech still finishes with hidden HUD") {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            let records = try fixture.history.recent()
+            XCTAssertEqual(records.count, 1)
+            let record = try XCTUnwrap(records.first)
+            XCTAssertEqual(record.rawTranscript, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(record.refinedText, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(record.finalText, FinalPreviewTestSpeech.finalText)
+            XCTAssertNil(record.error)
         }
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
-        XCTAssertEqual(try fixture.history.count(), 1)
     }
 
-    func testRecorderStartFailureCancelsPreviewAndDetachesSamples() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.recorder.failOnStart = true
-        fixture.pipeline.startRecording()
-        try await waitUntil("Recording start failure finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+    /// Disabling preview mid-recording, preview off and a hidden HUD all skip or detach preview
+    /// while recording and final transcription continue.
+    func testDisabledMidRecordingOffOrHiddenHUDPreviewKeepsFinalTranscription() async throws {
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            fixture.recorder.capture(Fixture.samples)
+            fixture.pipeline.disableLivePreview()
+            preview.sendText("Late disabled preview")
+            await drainCallbacks()
+            XCTAssertTrue(fixture.pipeline.isRecording)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil("Final speech finishes") { fixture.pipeline.lastOutcome != nil }
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
+        }
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.livePreviewEnabled = false
+            try await begin(fixture)
 
-        let preview = try XCTUnwrap(fixture.previews.sessions.first)
-        XCTAssertEqual(preview.cancelCount, 1)
-        XCTAssertNil(fixture.recorder.samplesHandler)
-        XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
-        XCTAssertFalse(fixture.recorder.isRecording)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertTrue(fixture.previews.sessions.isEmpty)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            XCTAssertNil(fixture.pipeline.previewIssue)
+        }
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.hudStyle = .none
+            try await begin(fixture)
+            fixture.recorder.capture(Fixture.samples)
+
+            XCTAssertTrue(fixture.previews.sessions.isEmpty)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            fixture.pipeline.stopAndProcess()
+            try await waitUntil("Final speech still finishes with hidden HUD") {
+                fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, FinalPreviewTestSpeech.finalText)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+    }
+
+    /// Cancel, a previous recording's late callbacks and a recorder start failure all detach preview.
+    func testCancelStaleSessionAndStartFailureDetachPreviewCallbacks() async throws {
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            fixture.recorder.capture(Fixture.samples)
+            preview.sendText("Temporary preview")
+            try await waitUntil("Preview appears") { !fixture.pipeline.previewText.isEmpty }
+
+            fixture.pipeline.cancel()
+            preview.sendText("Late cancelled text")
+            preview.sendIssue("Late cancelled error")
+            await drainCallbacks()
+
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertFalse(fixture.recorder.isRecording)
+            XCTAssertEqual(fixture.pipeline.state, .idle)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertTrue(fixture.pipeline.previewText.isEmpty)
+            XCTAssertNil(fixture.pipeline.previewIssue)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            let received = await fixture.speech.receivedSamples
+            XCTAssertTrue(received.isEmpty)
+        }
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await begin(fixture)
+            let previous = try XCTUnwrap(fixture.previews.sessions.first)
+            fixture.pipeline.cancel()
+            try await begin(fixture)
+            let current = try XCTUnwrap(fixture.previews.sessions.last)
+            XCTAssertFalse(previous === current)
+            current.sendText("Current preview")
+            try await waitUntil("Current preview appears") { fixture.pipeline.previewText == "Current preview" }
+
+            previous.sendText("Stale preview")
+            previous.sendIssue("Stale preview error")
+            await drainCallbacks()
+
+            XCTAssertTrue(fixture.pipeline.isRecording)
+            XCTAssertTrue(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertEqual(fixture.pipeline.previewText, "Current preview")
+            XCTAssertNil(fixture.pipeline.previewIssue)
+            XCTAssertEqual(previous.cancelCount, 1)
+            XCTAssertEqual(current.cancelCount, 0)
+            fixture.recorder.capture(Fixture.samples)
+            XCTAssertTrue(previous.chunks.isEmpty)
+            XCTAssertEqual(current.chunks, [Fixture.samples])
+        }
+        do {
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.recorder.failOnStart = true
+            fixture.pipeline.startRecording()
+            try await waitUntil("Recording start failure finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+
+            let preview = try XCTUnwrap(fixture.previews.sessions.first)
+            XCTAssertEqual(preview.cancelCount, 1)
+            XCTAssertNil(fixture.recorder.samplesHandler)
+            XCTAssertFalse(fixture.pipeline.previewEnabledForRecording)
+            XCTAssertFalse(fixture.recorder.isRecording)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(try fixture.history.count(), 0)
+        }
     }
 
     private func begin(_ fixture: Fixture) async throws {

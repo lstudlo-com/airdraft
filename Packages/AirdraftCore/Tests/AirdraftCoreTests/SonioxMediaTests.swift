@@ -11,7 +11,9 @@ final class SonioxMediaTests: XCTestCase {
         configuration.protocolClasses = [MediaHTTPFixture.self]
         return URLSession(configuration: configuration)
     }
-    func testResumingJobDoesNotUploadAgainAndPreservesSpeakerTimes() async throws {
+    /// A resumed job neither uploads nor changes IDs and keeps speaker times; a new job
+    /// opts into diarization and checkpoints its job ID before polling.
+    func testResumedJobKeepsSpeakerTimesAndNewJobCheckpointsDiarizedJobID() async throws {
         var document = TranscriptDocument(recordingID: "asset", title: "Test", configuration: .init(engine: .soniox))
         document.remoteFileID = fileID; document.remoteJobID = jobID
         let id = jobID
@@ -25,13 +27,11 @@ final class SonioxMediaTests: XCTestCase {
         let result = try await SonioxMediaTranscriber(key: "fixture", session: session)
             .transcribe(url: URL(fileURLWithPath: "/nonexistent"), stagingDirectory: URL(fileURLWithPath: "/nonexistent"), document: document) { _, _ in XCTFail("Resumed IDs must not change") }
         XCTAssertEqual(result, [.init(start: 1.5, end: 2.1, text: "Hello", speaker: "2")])
-    }
-    func testDiarizationOptInAndDurableJobIDBeforePolling() async throws {
-        var document = TranscriptDocument(recordingID: "asset", title: "Test", configuration: .init(engine: .soniox, identifySpeakers: true))
-        document.remoteFileID = fileID
-        let id = jobID
+
+        var fresh = TranscriptDocument(recordingID: "asset", title: "Test", configuration: .init(engine: .soniox, identifySpeakers: true))
+        fresh.remoteFileID = fileID
         let checkpoint = Checkpoint()
-        let session = session { request in
+        let posting = self.session { request in
             if request.httpMethod == "POST" {
                 var body = request.httpBody ?? Data()
                 if let stream = request.httpBodyStream {
@@ -49,8 +49,8 @@ final class SonioxMediaTests: XCTestCase {
             if request.url!.path.hasSuffix("/transcript") { return (200, #"{"tokens":[]}"#) }
             return (200, "{\"id\":\"\(id)\",\"status\":\"completed\"}")
         }
-        _ = try await SonioxMediaTranscriber(key: "fixture", session: session)
-            .transcribe(url: URL(fileURLWithPath: "/nonexistent"), stagingDirectory: URL(fileURLWithPath: "/nonexistent"), document: document) { file, job in await checkpoint.save(file, job) }
+        _ = try await SonioxMediaTranscriber(key: "fixture", session: posting)
+            .transcribe(url: URL(fileURLWithPath: "/nonexistent"), stagingDirectory: URL(fileURLWithPath: "/nonexistent"), document: fresh) { file, job in await checkpoint.save(file, job) }
         let saved = await checkpoint.ids
         XCTAssertEqual(saved.0, fileID); XCTAssertEqual(saved.1, jobID)
     }

@@ -3,26 +3,86 @@ import XCTest
 
 @MainActor
 final class PipelineLanguageTests: XCTestCase {
-    func testInvalidRecordingLanguageBlocksBeforeCredentialsModelsAndMicrophone() async throws {
-        for config in [ASRConfig(kind: .cohere), ASRConfig(kind: .parakeet, language: "zh")] {
-            let fixture = try LanguagePipelineFixture(config: config)
+    /// An invalid recording language blocks before credentials, models and microphone;
+    /// captured audio is kept and retries with the corrected selection, and a History
+    /// language failure and its retry stay review-only.
+    func testInvalidLanguageBlocksCaptureOrKeepsAudioForCorrectedRetry() async throws {
+        do { // InvalidRecordingLanguageBlocksBeforeCredentialsModelsAndMicrophone
+            for config in [ASRConfig(kind: .cohere), ASRConfig(kind: .parakeet, language: "zh")] {
+                let fixture = try LanguagePipelineFixture(config: config)
+                defer { fixture.cleanUp() }
+                fixture.settings.llm = LLMConfig(kind: .openAI)
+
+                do {
+                    try await fixture.pipeline.startFromAutomation()
+                    XCTFail("Incompatible language must block capture")
+                } catch {
+                    XCTAssertFalse(error.localizedDescription.isEmpty)
+                }
+
+                for event in ["credential", "installation", "engine", "prepare", "microphone", "capture"] {
+                    XCTAssertEqual(fixture.probe.count(event), 0, "Language rejection must precede \(event)")
+                }
+                XCTAssertFalse(fixture.recorder.isRecording)
+                XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "No audio was captured")
+                XCTAssertNotNil(fixture.pipeline.lastIssue)
+                XCTAssertEqual(try fixture.history.count(), 0)
+            }
+        }
+
+        do { // InvalidLanguageRetainsAudioAndRetryUsesCorrectedSelection
+            let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .cohere))
             defer { fixture.cleanUp() }
-            fixture.settings.llm = LLMConfig(kind: .openAI)
+            fixture.pipeline.processSamples(LanguagePipelineFixture.samples)
+            try await waitForCompletion(fixture.pipeline)
 
-            do {
-                try await fixture.pipeline.startFromAutomation()
-                XCTFail("Incompatible language must block capture")
-            } catch {
-                XCTAssertFalse(error.localizedDescription.isEmpty)
-            }
-
-            for event in ["credential", "installation", "engine", "prepare", "microphone", "capture"] {
-                XCTAssertEqual(fixture.probe.count(event), 0, "Language rejection must precede \(event)")
-            }
-            XCTAssertFalse(fixture.recorder.isRecording)
-            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "No audio was captured")
+            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
             XCTAssertNotNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(fixture.probe.count("engine"), 0)
+            XCTAssertTrue(fixture.probe.invocations.isEmpty)
             XCTAssertEqual(try fixture.history.count(), 0)
+
+            fixture.settings.asr.language = "zh"
+            fixture.pipeline.retryRecording()
+            try await waitForCompletion(fixture.pipeline)
+
+            let call = try XCTUnwrap(fixture.probe.invocations.first)
+            XCTAssertEqual(call.language, "zh")
+            XCTAssertEqual(call.sampleCount, LanguagePipelineFixture.samples.count)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, LanguagePipelineFixture.transcript)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        do { // HistoryLanguageFailureAndRetryStayReviewOnly
+            for destination in [TextOutputDestination.cursor, .script] {
+                let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .cohere))
+                defer { fixture.cleanUp() }
+                fixture.settings.outputDestination = destination
+                fixture.settings.outputScriptPath = "/unused-review-only-script"
+                fixture.pipeline.insertionEnabled = true
+                fixture.pipeline.onOutputDelivered = { XCTFail("A history review must never deliver text") }
+                let original = try fixture.saveOriginal()
+
+                fixture.pipeline.retranscribe(original)
+                try await waitForCompletion(fixture.pipeline)
+                XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
+                XCTAssertEqual(fixture.probe.count("engine"), 0)
+                XCTAssertNil(fixture.pipeline.reviewOutcome)
+
+                fixture.settings.asr.language = "zh"
+                fixture.pipeline.retryRecording()
+                try await waitForCompletion(fixture.pipeline)
+
+                XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, LanguagePipelineFixture.transcript)
+                XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+                XCTAssertNil(fixture.pipeline.lastOutcome)
+                XCTAssertEqual(fixture.probe.count("insert"), 0)
+                XCTAssertEqual(fixture.probe.count("script"), 0)
+                XCTAssertEqual(try fixture.history.recent(), [original])
+                XCTAssertNotNil(fixture.history.audioURL(for: original))
+            }
         }
     }
 
@@ -52,88 +112,35 @@ final class PipelineLanguageTests: XCTestCase {
         XCTAssertNil(fixture.pipeline.lastIssue)
     }
 
-    func testInvalidLanguageRetainsAudioAndRetryUsesCorrectedSelection() async throws {
-        let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .cohere))
-        defer { fixture.cleanUp() }
-        fixture.pipeline.processSamples(LanguagePipelineFixture.samples)
-        try await waitForCompletion(fixture.pipeline)
-
-        XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(fixture.probe.count("engine"), 0)
-        XCTAssertTrue(fixture.probe.invocations.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-
-        fixture.settings.asr.language = "zh"
-        fixture.pipeline.retryRecording()
-        try await waitForCompletion(fixture.pipeline)
-
-        let call = try XCTUnwrap(fixture.probe.invocations.first)
-        XCTAssertEqual(call.language, "zh")
-        XCTAssertEqual(call.sampleCount, LanguagePipelineFixture.samples.count)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.raw, LanguagePipelineFixture.transcript)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testHistoryLanguageFailureAndRetryStayReviewOnly() async throws {
-        for destination in [TextOutputDestination.cursor, .script] {
-            let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .cohere))
+    func testFactoryLanguageComesFromConfigNotHints() async throws {
+        do { // FactoryRejectsInvalidConfigDespiteSupportedLanguageHint
+            let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .parakeet, language: "zh"))
             defer { fixture.cleanUp() }
-            fixture.settings.outputDestination = destination
-            fixture.settings.outputScriptPath = "/unused-review-only-script"
-            fixture.pipeline.insertionEnabled = true
-            fixture.pipeline.onOutputDelivered = { XCTFail("A history review must never deliver text") }
-            let original = try fixture.saveOriginal()
-
-            fixture.pipeline.retranscribe(original)
-            try await waitForCompletion(fixture.pipeline)
-            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
+            do {
+                _ = try await fixture.factory.transcribe(LanguagePipelineFixture.samples,
+                    hints: .init(language: "en"), config: fixture.settings.asr)
+                XCTFail("A caller must not bypass incompatible settings through different hints")
+            } catch {
+                XCTAssertFalse(error.localizedDescription.isEmpty)
+            }
+            XCTAssertEqual(fixture.probe.count("credential"), 0)
             XCTAssertEqual(fixture.probe.count("engine"), 0)
-            XCTAssertNil(fixture.pipeline.reviewOutcome)
-
-            fixture.settings.asr.language = "zh"
-            fixture.pipeline.retryRecording()
-            try await waitForCompletion(fixture.pipeline)
-
-            XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, LanguagePipelineFixture.transcript)
-            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-            XCTAssertNil(fixture.pipeline.lastOutcome)
-            XCTAssertEqual(fixture.probe.count("insert"), 0)
-            XCTAssertEqual(fixture.probe.count("script"), 0)
-            XCTAssertEqual(try fixture.history.recent(), [original])
-            XCTAssertNotNil(fixture.history.audioURL(for: original))
+            XCTAssertTrue(fixture.probe.invocations.isEmpty)
         }
-    }
 
-    func testFactoryRejectsInvalidConfigDespiteSupportedLanguageHint() async throws {
-        let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .parakeet, language: "zh"))
-        defer { fixture.cleanUp() }
-        do {
+        do { // FactoryResolvesLanguageFromConfigAndPreservesOtherHints
+            let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .senseVoice, language: "zh-TW"))
+            defer { fixture.cleanUp() }
             _ = try await fixture.factory.transcribe(LanguagePipelineFixture.samples,
-                hints: .init(language: "en"), config: fixture.settings.asr)
-            XCTFail("A caller must not bypass incompatible settings through different hints")
-        } catch {
-            XCTAssertFalse(error.localizedDescription.isEmpty)
+                hints: .init(language: "en", vocabulary: ["AirDraft"], chineseScript: .traditional),
+                config: fixture.settings.asr)
+
+            let call = try XCTUnwrap(fixture.probe.invocations.first)
+            XCTAssertEqual(call.language, "zh", "The recording configuration owns language selection")
+            XCTAssertEqual(call.vocabulary, ["AirDraft"])
+            XCTAssertEqual(call.script, .traditional)
+            XCTAssertEqual(fixture.probe.count("credential"), 0)
         }
-        XCTAssertEqual(fixture.probe.count("credential"), 0)
-        XCTAssertEqual(fixture.probe.count("engine"), 0)
-        XCTAssertTrue(fixture.probe.invocations.isEmpty)
-    }
-
-    func testFactoryResolvesLanguageFromConfigAndPreservesOtherHints() async throws {
-        let fixture = try LanguagePipelineFixture(config: ASRConfig(kind: .senseVoice, language: "zh-TW"))
-        defer { fixture.cleanUp() }
-        _ = try await fixture.factory.transcribe(LanguagePipelineFixture.samples,
-            hints: .init(language: "en", vocabulary: ["AirDraft"], chineseScript: .traditional),
-            config: fixture.settings.asr)
-
-        let call = try XCTUnwrap(fixture.probe.invocations.first)
-        XCTAssertEqual(call.language, "zh", "The recording configuration owns language selection")
-        XCTAssertEqual(call.vocabulary, ["AirDraft"])
-        XCTAssertEqual(call.script, .traditional)
-        XCTAssertEqual(fixture.probe.count("credential"), 0)
     }
 
     private func waitForCompletion(_ pipeline: DictationPipeline, file: StaticString = #filePath, line: UInt = #line) async throws {

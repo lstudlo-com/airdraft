@@ -5,555 +5,585 @@ import XCTest
 
 @MainActor
 final class PipelineAutomationTests: XCTestCase {
-    func testAccessIsCheckedBeforeManualAndAutomationCaptureOrAudioProcessing() async throws {
-        var checks = 0
-        let fixture = try Fixture(accessCheck: { checks += 1; throw LicenseError.accessRequired })
-        defer { fixture.cleanUp() }
-        do { try await fixture.pipeline.startFromAutomation(); XCTFail("Must reject expired access") }
-        catch {}
-        XCTAssertFalse(fixture.recorder.isRecording)
-        fixture.pipeline.startRecording()
-        try await waitUntil("Manual access check") { checks == 2 }
-        XCTAssertFalse(fixture.recorder.isRecording)
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Audio access check") { checks == 3 }
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        let original = try fixture.saveOriginal()
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("History access check") { checks == 4 }
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testExpiryCannotInterruptAnAlreadyStartedRecording() async throws {
-        let allowed = Locked(true)
-        let fixture = try Fixture(accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        allowed.value = false
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testCapturedAudioRemainsRecoverableAfterAccessExpires() async throws {
-        let allowed = Locked(true)
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]),
-                                  accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        allowed.value = false
-        fixture.pipeline.retryRecording()
-        try await finished(fixture)
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    /// Kanji-only Japanese has no kana for the converter's guard; with Japanese
-    /// selected, the Traditional script setting must not rewrite it (review #1).
-    func testJapaneseSpeechKeepsKanjiUnderTraditionalScript() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.text("会議室検索")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
-
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["会議室検索"])
-        fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
-        XCTAssertEqual(fixture.settings.asr.effectiveChineseScript, .auto)
-    }
-
-    func testScriptReceivesOnlyFinalTextAfterChineseConversionAndDictionary() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.text("汉语 floze")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.asr.chineseScript = .traditional
-        fixture.dictionary.add(DictionaryEntry(term: "Airdraft", aliases: ["floze"]))
-        var delivered = 0
-        fixture.pipeline.onOutputDelivered = {
-            delivered += 1
-            XCTAssertEqual(fixture.pipeline.state, .inserting)
-            XCTAssertEqual(try? fixture.history.count(), 0, "Delivery feedback must not wait for history")
-            XCTAssertNil(fixture.pipeline.lastOutcome)
+    /// Access is checked before manual and automation capture or audio processing; expiry
+    /// neither interrupts a started recording nor makes captured audio unrecoverable.
+    func testAccessIsCheckedBeforeNewWorkButNeverInterruptsStartedOrCapturedAudio() async throws {
+        do { // AccessIsCheckedBeforeManualAndAutomationCaptureOrAudioProcessing
+            var checks = 0
+            let fixture = try Fixture(accessCheck: { checks += 1; throw LicenseError.accessRequired })
+            defer { fixture.cleanUp() }
+            do { try await fixture.pipeline.startFromAutomation(); XCTFail("Must reject expired access") }
+            catch {}
+            XCTAssertFalse(fixture.recorder.isRecording)
+            fixture.pipeline.startRecording()
+            try await waitUntil("Manual access check") { checks == 2 }
+            XCTAssertFalse(fixture.recorder.isRecording)
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Audio access check") { checks == 3 }
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            let original = try fixture.saveOriginal()
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("History access check") { checks == 4 }
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
 
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "漢語 Airdraft", path: fixture.firstScript.path)])
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.rawTranscript, "汉语 floze")
-        XCTAssertEqual(record.refinedText, "汉语 floze")
-        XCTAssertEqual(record.finalText, "漢語 Airdraft")
-        XCTAssertEqual(record.outputDestination, TextOutputDestination.script.rawValue)
-        XCTAssertEqual(record.outputSucceeded, true)
-        XCTAssertFalse(record.inserted, "Script delivery is not insertion into the focused field")
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "漢語 Airdraft")
-        XCTAssertEqual(delivered, 1)
-    }
-
-    func testScriptDestinationAndPathAreSnapshottedWhileRecording() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-
-        fixture.settings.outputDestination = .cursor
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertEqual(try fixture.history.recent().first?.outputDestination, TextOutputDestination.script.rawValue)
-    }
-
-    func testCursorDestinationDoesNotTurnIntoScriptDeliveryMidRecording() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.outputDestination = .cursor
-        var delivered = 0
-        fixture.pipeline.onOutputDelivered = {
-            delivered += 1
-            XCTAssertEqual(fixture.pipeline.state, .inserting)
-            XCTAssertEqual(try? fixture.history.count(), 0)
-            XCTAssertNil(fixture.pipeline.lastOutcome)
-        }
-        try await fixture.pipeline.startFromAutomation()
-
-        fixture.settings.outputDestination = .script
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(fixture.probe.insertedTexts, ["Final words"])
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.outputDestination, TextOutputDestination.cursor.rawValue)
-        XCTAssertEqual(record.outputSucceeded, true)
-        XCTAssertTrue(record.inserted)
-        XCTAssertEqual(delivered, 1)
-    }
-
-    func testScriptFailurePreservesFinalTextWithoutPasteOrDeliveryRetry() async throws {
-        let fixture = try Fixture(scriptFails: true)
-        defer { fixture.cleanUp() }
-        fixture.pipeline.onOutputDelivered = { XCTFail("Failed delivery must keep recovery feedback visible") }
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertTrue(fixture.pipeline.lastIssue?.contains("script fixture failed") == true)
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.finalText, "Final words")
-        XCTAssertEqual(record.outputDestination, TextOutputDestination.script.rawValue)
-        XCTAssertEqual(record.outputSucceeded, false)
-        XCTAssertFalse(record.inserted)
-        XCTAssertNotNil(record.error)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-
-        fixture.pipeline.retryRecording()
-        await fixture.pipeline.retryHistorySave()
-        for _ in 0..<10 { await Task.yield() }
-        XCTAssertEqual(fixture.probe.scripts.count, 1, "Saving history or retrying absent audio must never repeat a script")
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testSpeechRecoveryKeepsOriginalScriptDestinationAndPath() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-
-        fixture.settings.outputDestination = .cursor
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        fixture.pipeline.retryRecording()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "Recovered words", path: fixture.firstScript.path)])
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertEqual(try fixture.history.recent().first?.outputSucceeded, true)
-    }
-
-    func testReviewOnlyRetranscriptionAndRecoveryNeverExecuteScript() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Reviewed words")]))
-        defer { fixture.cleanUp() }
-        fixture.pipeline.onOutputDelivered = { XCTFail("Review-only text is not delivered") }
-        let original = try fixture.saveOriginal()
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("Review speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        fixture.pipeline.retryRecording()
-        try await waitUntil("Review retry completes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed words")
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertEqual(try fixture.history.recent(), [original])
-    }
-
-    func testInsertionDisabledAlsoSuppressesScripts() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.pipeline.insertionEnabled = false
-        fixture.pipeline.onOutputDelivered = { XCTFail("Disabled output is not delivered") }
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await finished(fixture)
-
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-        XCTAssertFalse(try XCTUnwrap(fixture.history.recent().first).inserted)
-    }
-
-    func testAutomationCancelCannotInterruptScriptAfterDeliveryStarts() async throws {
-        let gate = AutomationStartupGate()
-        let fixture = try Fixture(deliveryGate: gate)
-        defer { gate.release(); fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Script delivery starts") { gate.callCount == 1 }
-        XCTAssertEqual(fixture.pipeline.state, .inserting)
-        do {
-            try fixture.pipeline.cancelFromAutomation()
-            XCTFail("An external side effect already in flight cannot be cancelled safely")
-        } catch {}
-        XCTAssertTrue(fixture.pipeline.isBusy)
-        gate.release()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertEqual(try fixture.history.recent().first?.outputSucceeded, true)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testCancelledStartupCannotReviveOrCancelNewAutomationRecording() async throws {
-        let gate = AutomationStartupGate()
-        let fixture = try Fixture(startupGate: gate)
-        let firstStart = Task { () -> Bool in
-            do { try await fixture.pipeline.startFromAutomation(); return true }
-            catch { return false }
-        }
-        defer { gate.release(); firstStart.cancel(); fixture.cleanUp() }
-        try await waitUntil("First startup reaches suspended preflight") { gate.callCount == 1 }
-        do {
+        do { // ExpiryCannotInterruptAnAlreadyStartedRecording
+            let allowed = Locked(true)
+            let fixture = try Fixture(accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
+            defer { fixture.cleanUp() }
             try await fixture.pipeline.startFromAutomation()
-            XCTFail("Concurrent automation start must fail instead of starting another microphone")
-        } catch {}
-        XCTAssertEqual(gate.callCount, 1)
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-
-        try fixture.pipeline.cancelFromAutomation()
-        try await fixture.pipeline.startFromAutomation()
-        XCTAssertTrue(fixture.pipeline.isRecording)
-        XCTAssertEqual(fixture.recorder.startCount, 1)
-        gate.release()
-        let firstSucceeded = await firstStart.value
-        XCTAssertFalse(firstSucceeded, "The superseded start must not report the newer recording as its success")
-        XCTAssertTrue(fixture.pipeline.isRecording, "A stale startup must not cancel the replacement recording")
-        XCTAssertTrue(fixture.recorder.isRecording)
-        XCTAssertEqual(fixture.recorder.startCount, 1)
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-    }
-
-    func testCancellingAutomationStartReturnsBeforeUncooperativePreflightFinishes() async throws {
-        let gate = AutomationStartupGate()
-        let fixture = try Fixture(startupGate: gate)
-        let returned = expectation(description: "Cancelled automation start returns without waiting for preflight")
-        let start = Task {
-            do {
-                try await fixture.pipeline.startFromAutomation()
-                XCTFail("A cancelled startup must not report success")
-            } catch {}
-            returned.fulfill()
+            allowed.value = false
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
-        defer { gate.release(); start.cancel(); fixture.cleanUp() }
-        try await waitUntil("Startup reaches uncooperative preflight") { gate.callCount == 1 }
 
-        start.cancel()
-        // The gate remains suspended throughout this deadline. Awaiting the child
-        // startup directly would hang here despite cancellation of its caller.
-        await fulfillment(of: [returned], timeout: 1)
-        XCTAssertFalse(fixture.pipeline.isBusy)
-        XCTAssertFalse(fixture.pipeline.isRecording)
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-
-        gate.release()
-        await start.value
-        for _ in 0..<20 { await Task.yield() }
-        XCTAssertFalse(fixture.pipeline.isRecording, "A late preflight response must not revive the cancelled recording")
-        XCTAssertFalse(fixture.pipeline.isBusy)
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-    }
-
-    func testMissingScriptBlocksAutomationBeforeMicrophoneStarts() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.outputScriptPath = fixture.directory.appendingPathComponent("missing-script").path
-        do {
+        do { // CapturedAudioRemainsRecoverableAfterAccessExpires
+            let allowed = Locked(true)
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]),
+                                      accessCheck: { if !allowed.value { throw LicenseError.accessRequired } })
+            defer { fixture.cleanUp() }
             try await fixture.pipeline.startFromAutomation()
-            XCTFail("Missing script must block recording")
-        } catch {}
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-        XCTAssertFalse(fixture.pipeline.isRecording)
-        XCTAssertFalse(fixture.pipeline.isBusy)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Audio retained") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            allowed.value = false
+            fixture.pipeline.retryRecording()
+            try await finished(fixture)
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
     }
 
-    func testSetupChangesDuringPermissionWaitBlockCapture() async throws {
-        for change in ["speech", "refinement", "microphone", "profile"] {
+    /// Japanese kanji survive the Traditional script setting, the script receives only the
+    /// final text after conversion and dictionary, and a real script runs once with literal
+    /// stdin while audio and text are stored.
+    func testScriptReceivesOnlyFinalConvertedTextOnceAsLiteralInput() async throws {
+        // Kanji-only Japanese has no kana for the converter's guard; with Japanese
+        // selected, the Traditional script setting must not rewrite it (review #1).
+        do { // JapaneseSpeechKeepsKanjiUnderTraditionalScript
+            let fixture = try Fixture(speech: AutomationSpeech([.text("会議室検索")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
+
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts.map(\.text), ["会議室検索"])
+            fixture.settings.asr = ASRConfig(kind: .whisperKit, language: "ja", chineseScript: .traditional)
+            XCTAssertEqual(fixture.settings.asr.effectiveChineseScript, .auto)
+        }
+
+        do { // ScriptReceivesOnlyFinalTextAfterChineseConversionAndDictionary
+            let fixture = try Fixture(speech: AutomationSpeech([.text("汉语 floze")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.asr.chineseScript = .traditional
+            fixture.dictionary.add(DictionaryEntry(term: "Airdraft", aliases: ["floze"]))
+            var delivered = 0
+            fixture.pipeline.onOutputDelivered = {
+                delivered += 1
+                XCTAssertEqual(fixture.pipeline.state, .inserting)
+                XCTAssertEqual(try? fixture.history.count(), 0, "Delivery feedback must not wait for history")
+                XCTAssertNil(fixture.pipeline.lastOutcome)
+            }
+
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "漢語 Airdraft", path: fixture.firstScript.path)])
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.rawTranscript, "汉语 floze")
+            XCTAssertEqual(record.refinedText, "汉语 floze")
+            XCTAssertEqual(record.finalText, "漢語 Airdraft")
+            XCTAssertEqual(record.outputDestination, TextOutputDestination.script.rawValue)
+            XCTAssertEqual(record.outputSucceeded, true)
+            XCTAssertFalse(record.inserted, "Script delivery is not insertion into the focused field")
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "漢語 Airdraft")
+            XCTAssertEqual(delivered, 1)
+        }
+
+        do { // PipelineExecutesScriptOnceAndStoresMatchingAudioAndText
+            let text = "繁體中文🙂\n'quoted' \"double\" $HOME; $(touch injected) `touch injected`\nlast line"
+            let fixture = try Fixture(speech: AutomationSpeech([.text(text)]), executeScript: true)
+            defer { fixture.cleanUp() }
+            fixture.settings.audioRetention = .week
+            try Data("#!/bin/sh\n/bin/cat > received.txt\nprintf 'attempt\\n' >> attempts.txt\n".utf8).write(to: fixture.firstScript)
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(try Data(contentsOf: fixture.directory.appendingPathComponent("received.txt")), Data(text.utf8))
+            XCTAssertEqual(try String(contentsOf: fixture.directory.appendingPathComponent("attempts.txt"), encoding: .utf8), "attempt\n")
+            XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("injected").path))
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.finalText, text)
+            XCTAssertEqual(record.outputSucceeded, true)
+            XCTAssertFalse(record.inserted)
+            XCTAssertEqual(try fixture.history.audioSamples(for: record).count, Fixture.samples.count)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+        }
+    }
+
+    /// Script and cursor destinations are snapshotted while recording, and speech or
+    /// microphone-interruption recovery keeps the original output.
+    func testOutputDestinationIsSnapshottedThroughRecordingAndRecovery() async throws {
+        do { // ScriptDestinationAndPathAreSnapshottedWhileRecording
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await fixture.pipeline.startFromAutomation()
+
+            fixture.settings.outputDestination = .cursor
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertEqual(try fixture.history.recent().first?.outputDestination, TextOutputDestination.script.rawValue)
+        }
+
+        do { // CursorDestinationDoesNotTurnIntoScriptDeliveryMidRecording
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.outputDestination = .cursor
+            var delivered = 0
+            fixture.pipeline.onOutputDelivered = {
+                delivered += 1
+                XCTAssertEqual(fixture.pipeline.state, .inserting)
+                XCTAssertEqual(try? fixture.history.count(), 0)
+                XCTAssertNil(fixture.pipeline.lastOutcome)
+            }
+            try await fixture.pipeline.startFromAutomation()
+
+            fixture.settings.outputDestination = .script
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(fixture.probe.insertedTexts, ["Final words"])
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.outputDestination, TextOutputDestination.cursor.rawValue)
+            XCTAssertEqual(record.outputSucceeded, true)
+            XCTAssertTrue(record.inserted)
+            XCTAssertEqual(delivered, 1)
+        }
+
+        do { // SpeechRecoveryKeepsOriginalScriptDestinationAndPath
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
+            defer { fixture.cleanUp() }
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+
+            fixture.settings.outputDestination = .cursor
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            fixture.pipeline.retryRecording()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "Recovered words", path: fixture.firstScript.path)])
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertEqual(try fixture.history.recent().first?.outputSucceeded, true)
+        }
+
+        do { // MicrophoneInterruptionRecoveryKeepsOriginalOutput
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await fixture.pipeline.startFromAutomation()
+            fixture.settings.outputDestination = .cursor
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            fixture.recorder.interruptionHandler?(.inputChanged)
+            try await waitUntil("Interrupted audio is recoverable") {
+                fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
+
+            XCTAssertEqual(fixture.probe.blockedRecordings, 1)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            fixture.pipeline.retryRecording()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+    }
+
+    /// A failed script keeps the final text without paste or retry, review-only
+    /// retranscription and recovery never run it, and disabled insertion suppresses it.
+    func testFailedReviewOnlyOrDisabledOutputNeverRepeatsOrRunsScripts() async throws {
+        do { // ScriptFailurePreservesFinalTextWithoutPasteOrDeliveryRetry
+            let fixture = try Fixture(scriptFails: true)
+            defer { fixture.cleanUp() }
+            fixture.pipeline.onOutputDelivered = { XCTFail("Failed delivery must keep recovery feedback visible") }
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertTrue(fixture.pipeline.lastIssue?.contains("script fixture failed") == true)
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.finalText, "Final words")
+            XCTAssertEqual(record.outputDestination, TextOutputDestination.script.rawValue)
+            XCTAssertEqual(record.outputSucceeded, false)
+            XCTAssertFalse(record.inserted)
+            XCTAssertNotNil(record.error)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
+
+            fixture.pipeline.retryRecording()
+            await fixture.pipeline.retryHistorySave()
+            for _ in 0..<10 { await Task.yield() }
+            XCTAssertEqual(fixture.probe.scripts.count, 1, "Saving history or retrying absent audio must never repeat a script")
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        do { // ReviewOnlyRetranscriptionAndRecoveryNeverExecuteScript
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Reviewed words")]))
+            defer { fixture.cleanUp() }
+            fixture.pipeline.onOutputDelivered = { XCTFail("Review-only text is not delivered") }
+            let original = try fixture.saveOriginal()
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("Review speech failure retains audio") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            fixture.pipeline.retryRecording()
+            try await waitUntil("Review retry completes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed words")
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertEqual(try fixture.history.recent(), [original])
+        }
+
+        do { // InsertionDisabledAlsoSuppressesScripts
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.pipeline.insertionEnabled = false
+            fixture.pipeline.onOutputDelivered = { XCTFail("Disabled output is not delivered") }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await finished(fixture)
+
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
+            XCTAssertFalse(try XCTUnwrap(fixture.history.recent().first).inserted)
+        }
+    }
+
+    /// Cancel cannot interrupt a script already delivering, a cancelled startup cannot revive
+    /// or cancel a newer recording, and cancelling a start returns before an uncooperative
+    /// preflight finishes.
+    func testAutomationCancelRacesNeverInterruptDeliveryReviveOrCancelNewerRecordings() async throws {
+        do { // AutomationCancelCannotInterruptScriptAfterDeliveryStarts
             let gate = AutomationStartupGate()
-            let fixture = try Fixture(permissionGate: gate, verbatim: change == "profile")
-            let start = Task { () -> Bool in
+            let fixture = try Fixture(deliveryGate: gate)
+            defer { gate.release(); fixture.cleanUp() }
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Script delivery starts") { gate.callCount == 1 }
+            XCTAssertEqual(fixture.pipeline.state, .inserting)
+            do {
+                try fixture.pipeline.cancelFromAutomation()
+                XCTFail("An external side effect already in flight cannot be cancelled safely")
+            } catch {}
+            XCTAssertTrue(fixture.pipeline.isBusy)
+            gate.release()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertEqual(try fixture.history.recent().first?.outputSucceeded, true)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        do { // CancelledStartupCannotReviveOrCancelNewAutomationRecording
+            let gate = AutomationStartupGate()
+            let fixture = try Fixture(startupGate: gate)
+            let firstStart = Task { () -> Bool in
                 do { try await fixture.pipeline.startFromAutomation(); return true }
                 catch { return false }
             }
-            defer { gate.release(); start.cancel(); fixture.cleanUp() }
-            try await waitUntil("Permission request suspends") { gate.callCount == 1 }
-            switch change {
-            case "speech": fixture.settings.asr.language = "zh"
-            case "refinement": fixture.settings.llm.minWordsForLLM += 1
-            case "profile": fixture.profiles.setActive(RefinementProfile.cleanID)
-            default: fixture.settings.microphone.channelIndex = 1
-            }
-            gate.release()
+            defer { gate.release(); firstStart.cancel(); fixture.cleanUp() }
+            try await waitUntil("First startup reaches suspended preflight") { gate.callCount == 1 }
+            do {
+                try await fixture.pipeline.startFromAutomation()
+                XCTFail("Concurrent automation start must fail instead of starting another microphone")
+            } catch {}
+            XCTAssertEqual(gate.callCount, 1)
+            XCTAssertEqual(fixture.recorder.startCount, 0)
 
-            let succeeded = await start.value
-            XCTAssertFalse(succeeded, "A changed \(change) setup must be checked again before capture")
+            try fixture.pipeline.cancelFromAutomation()
+            try await fixture.pipeline.startFromAutomation()
+            XCTAssertTrue(fixture.pipeline.isRecording)
+            XCTAssertEqual(fixture.recorder.startCount, 1)
+            gate.release()
+            let firstSucceeded = await firstStart.value
+            XCTAssertFalse(firstSucceeded, "The superseded start must not report the newer recording as its success")
+            XCTAssertTrue(fixture.pipeline.isRecording, "A stale startup must not cancel the replacement recording")
+            XCTAssertTrue(fixture.recorder.isRecording)
+            XCTAssertEqual(fixture.recorder.startCount, 1)
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+        }
+
+        do { // CancellingAutomationStartReturnsBeforeUncooperativePreflightFinishes
+            let gate = AutomationStartupGate()
+            let fixture = try Fixture(startupGate: gate)
+            let returned = expectation(description: "Cancelled automation start returns without waiting for preflight")
+            let start = Task {
+                do {
+                    try await fixture.pipeline.startFromAutomation()
+                    XCTFail("A cancelled startup must not report success")
+                } catch {}
+                returned.fulfill()
+            }
+            defer { gate.release(); start.cancel(); fixture.cleanUp() }
+            try await waitUntil("Startup reaches uncooperative preflight") { gate.callCount == 1 }
+
+            start.cancel()
+            // The gate remains suspended throughout this deadline. Awaiting the child
+            // startup directly would hang here despite cancellation of its caller.
+            await fulfillment(of: [returned], timeout: 1)
+            XCTAssertFalse(fixture.pipeline.isBusy)
+            XCTAssertFalse(fixture.pipeline.isRecording)
+            XCTAssertEqual(fixture.recorder.startCount, 0)
+
+            gate.release()
+            await start.value
+            for _ in 0..<20 { await Task.yield() }
+            XCTAssertFalse(fixture.pipeline.isRecording, "A late preflight response must not revive the cancelled recording")
+            XCTAssertFalse(fixture.pipeline.isBusy)
+            XCTAssertEqual(fixture.recorder.startCount, 0)
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+        }
+    }
+
+    /// A missing script, setup changed during the permission wait, a microphone start failure
+    /// with a hidden HUD and revoked permission all block capture and open recovery.
+    func testBlockedStartupNeverCapturesAndOpensRecovery() async throws {
+        do { // MissingScriptBlocksAutomationBeforeMicrophoneStarts
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.outputScriptPath = fixture.directory.appendingPathComponent("missing-script").path
+            do {
+                try await fixture.pipeline.startFromAutomation()
+                XCTFail("Missing script must block recording")
+            } catch {}
             XCTAssertEqual(fixture.recorder.startCount, 0)
             XCTAssertFalse(fixture.pipeline.isRecording)
+            XCTAssertFalse(fixture.pipeline.isBusy)
             XCTAssertNotNil(fixture.pipeline.lastIssue)
-            XCTAssertEqual(fixture.probe.blockedRecordings, 1)
             XCTAssertTrue(fixture.probe.scripts.isEmpty)
         }
+
+        do { // SetupChangesDuringPermissionWaitBlockCapture
+            for change in ["speech", "refinement", "microphone", "profile"] {
+                let gate = AutomationStartupGate()
+                let fixture = try Fixture(permissionGate: gate, verbatim: change == "profile")
+                let start = Task { () -> Bool in
+                    do { try await fixture.pipeline.startFromAutomation(); return true }
+                    catch { return false }
+                }
+                defer { gate.release(); start.cancel(); fixture.cleanUp() }
+                try await waitUntil("Permission request suspends") { gate.callCount == 1 }
+                switch change {
+                case "speech": fixture.settings.asr.language = "zh"
+                case "refinement": fixture.settings.llm.minWordsForLLM += 1
+                case "profile": fixture.profiles.setActive(RefinementProfile.cleanID)
+                default: fixture.settings.microphone.channelIndex = 1
+                }
+                gate.release()
+
+                let succeeded = await start.value
+                XCTAssertFalse(succeeded, "A changed \(change) setup must be checked again before capture")
+                XCTAssertEqual(fixture.recorder.startCount, 0)
+                XCTAssertFalse(fixture.pipeline.isRecording)
+                XCTAssertNotNil(fixture.pipeline.lastIssue)
+                XCTAssertEqual(fixture.probe.blockedRecordings, 1)
+                XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            }
+        }
+
+        do { // MicrophoneStartFailureOpensRecoveryEvenWithHiddenHUD
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.hudStyle = .none
+            fixture.recorder.failOnStart = true
+
+            do {
+                try await fixture.pipeline.startFromAutomation()
+                XCTFail("Recording must fail when the selected microphone disappears")
+            } catch {}
+
+            XCTAssertEqual(fixture.probe.blockedRecordings, 1)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+            XCTAssertFalse(fixture.pipeline.isRecording)
+            XCTAssertFalse(fixture.pipeline.isBusy)
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+        }
+
+        do { // PermissionRevokedDuringStartupOpensRecovery
+            let fixture = try Fixture(microphoneGranted: false)
+            defer { fixture.cleanUp() }
+            fixture.settings.hudStyle = .none
+
+            do {
+                try await fixture.pipeline.startFromAutomation()
+                XCTFail("Revoked microphone permission must block recording")
+            } catch {}
+
+            XCTAssertEqual(fixture.recorder.startCount, 0)
+            XCTAssertEqual(fixture.probe.blockedRecordings, 1)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+            XCTAssertFalse(fixture.pipeline.isBusy)
+        }
     }
 
-    func testMicrophoneStartFailureOpensRecoveryEvenWithHiddenHUD() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.hudStyle = .none
-        fixture.recorder.failOnStart = true
+    func testRefinementSkipsVerbatimFallsBackOnCLIFailureAndUsesCapturedSettings() async throws {
+        do { // VerbatimRecordingDoesNotStartConfiguredCLI
+            let fixture = try Fixture(verbatim: true)
+            defer { fixture.cleanUp() }
+            let fakeCLI = fixture.directory.appendingPathComponent("fake-codex")
+            let marker = URL(fileURLWithPath: fakeCLI.path + ".started")
+            try Data("#!/bin/sh\n/usr/bin/touch \"$0.started\"\nexit 1\n".utf8).write(to: fakeCLI)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
+            fixture.settings.llm = LLMConfig(kind: .codex, cliPaths: ["codex": fakeCLI.path])
 
-        do {
             try await fixture.pipeline.startFromAutomation()
-            XCTFail("Recording must fail when the selected microphone disappears")
-        } catch {}
+            // Discovery normally starts as soon as recording begins. The local fake
+            // exits immediately; no installed CLI or account is used by this test.
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
 
-        XCTAssertEqual(fixture.probe.blockedRecordings, 1)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertFalse(fixture.pipeline.isRecording)
-        XCTAssertFalse(fixture.pipeline.isBusy)
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-    }
+            XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "Verbatim: no LLM")
+        }
 
-    func testPermissionRevokedDuringStartupOpensRecovery() async throws {
-        let fixture = try Fixture(microphoneGranted: false)
-        defer { fixture.cleanUp() }
-        fixture.settings.hudStyle = .none
+        do { // CLIFailureDeliversRawTranscriptAndRecordsTheFailure
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            let fakeCLI = fixture.directory.appendingPathComponent("failing-codex")
+            try Data("#!/bin/sh\nexit 17\n".utf8).write(to: fakeCLI)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
+            fixture.settings.llm = LLMConfig(kind: .codex, cliPaths: ["codex": fakeCLI.path], minWordsForLLM: 0)
 
-        do {
             try await fixture.pipeline.startFromAutomation()
-            XCTFail("Revoked microphone permission must block recording")
-        } catch {}
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
 
-        XCTAssertEqual(fixture.recorder.startCount, 0)
-        XCTAssertEqual(fixture.probe.blockedRecordings, 1)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertFalse(fixture.pipeline.isBusy)
-    }
-
-    func testMicrophoneInterruptionRecoveryKeepsOriginalOutput() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        fixture.settings.outputDestination = .cursor
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        fixture.recorder.interruptionHandler?(.inputChanged)
-        try await waitUntil("Interrupted audio is recoverable") {
-            fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.rawTranscript, "Final words")
+            XCTAssertEqual(record.finalText, "Final words")
+            XCTAssertEqual(record.outputSucceeded, true)
+            XCTAssertNotNil(record.error)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
         }
 
-        XCTAssertEqual(fixture.probe.blockedRecordings, 1)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        fixture.pipeline.retryRecording()
-        try await finished(fixture)
+        do { // RefinementPreparationKeepsCapturedSettingsWhenSelectionChanges
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            let fakeCLI = fixture.directory.appendingPathComponent("failing-codex")
+            try Data("#!/bin/sh\nexit 17\n".utf8).write(to: fakeCLI)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
+            let captured = LLMConfig(kind: .codex, model: "captured-model",
+                                     cliPaths: ["codex": fakeCLI.path], minWordsForLLM: 0)
+            fixture.settings.llm = captured
+            var inspected: [LLMConfig] = []
+            var loaded: [LLMConfig] = []
+            fixture.pipeline.prepareRefinement = { config in
+                inspected.append(config)
+                fixture.settings.llm = LLMConfig(kind: .none)
+                loaded.append(config)
+                return .unmanaged
+            }
 
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertEqual(try fixture.history.count(), 1)
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await finished(fixture)
+
+            XCTAssertEqual(inspected, [captured])
+            XCTAssertEqual(loaded, [captured], "Preparation and refinement must use the same settings snapshot")
+            XCTAssertEqual(fixture.settings.llm.kind, .none)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+        }
     }
 
-    func testVerbatimRecordingDoesNotStartConfiguredCLI() async throws {
-        let fixture = try Fixture(verbatim: true)
-        defer { fixture.cleanUp() }
-        let fakeCLI = fixture.directory.appendingPathComponent("fake-codex")
-        let marker = URL(fileURLWithPath: fakeCLI.path + ".started")
-        try Data("#!/bin/sh\n/usr/bin/touch \"$0.started\"\nexit 1\n".utf8).write(to: fakeCLI)
-        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
-        fixture.settings.llm = LLMConfig(kind: .codex, cliPaths: ["codex": fakeCLI.path])
+    func testRepeatedStopsAndMaximumTimerDeliverOnceAndNeverStopAReplacement() async throws {
+        do { // RepeatedAutomationStopDeliversOnlyOnce
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            try await fixture.pipeline.startFromAutomation()
+            try await fixture.pipeline.startFromAutomation()
+            XCTAssertEqual(fixture.recorder.startCount, 1)
+            for _ in 0..<5 { try fixture.pipeline.stopFromAutomation() }
+            try await finished(fixture)
+            try fixture.pipeline.stopFromAutomation()
 
-        try await fixture.pipeline.startFromAutomation()
-        // Discovery normally starts as soon as recording begins. The local fake
-        // exits immediately; no installed CLI or account is used by this test.
-        try await Task.sleep(for: .milliseconds(300))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "Verbatim: no LLM")
-    }
-
-    func testCLIFailureDeliversRawTranscriptAndRecordsTheFailure() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        let fakeCLI = fixture.directory.appendingPathComponent("failing-codex")
-        try Data("#!/bin/sh\nexit 17\n".utf8).write(to: fakeCLI)
-        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
-        fixture.settings.llm = LLMConfig(kind: .codex, cliPaths: ["codex": fakeCLI.path], minWordsForLLM: 0)
-
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "Final words", path: fixture.firstScript.path)])
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.rawTranscript, "Final words")
-        XCTAssertEqual(record.finalText, "Final words")
-        XCTAssertEqual(record.outputSucceeded, true)
-        XCTAssertNotNil(record.error)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-    }
-
-    func testRefinementPreparationKeepsCapturedSettingsWhenSelectionChanges() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        let fakeCLI = fixture.directory.appendingPathComponent("failing-codex")
-        try Data("#!/bin/sh\nexit 17\n".utf8).write(to: fakeCLI)
-        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fakeCLI.path)
-        let captured = LLMConfig(kind: .codex, model: "captured-model",
-                                 cliPaths: ["codex": fakeCLI.path], minWordsForLLM: 0)
-        fixture.settings.llm = captured
-        var inspected: [LLMConfig] = []
-        var loaded: [LLMConfig] = []
-        fixture.pipeline.prepareRefinement = { config in
-            inspected.append(config)
-            fixture.settings.llm = LLMConfig(kind: .none)
-            loaded.append(config)
-            return .unmanaged
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
         }
 
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await finished(fixture)
+        do { // MaximumRecordingTimerStopsAndDeliversOnlyOnce
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            // The injected limit stands in for the 10-second setting minimum.
+            fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
+            let started = Date()
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Maximum recording time delivers the transcript", timeout: 4) {
+                fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
+            XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(started), 0.9)
+            XCTAssertFalse(fixture.recorder.isRecording)
+            XCTAssertNil(fixture.pipeline.recordingStartedAt)
+            try fixture.pipeline.stopFromAutomation()
+            try await Task.sleep(for: .milliseconds(450))
 
-        XCTAssertEqual(inspected, [captured])
-        XCTAssertEqual(loaded, [captured], "Preparation and refinement must use the same settings snapshot")
-        XCTAssertEqual(fixture.settings.llm.kind, .none)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-    }
-
-    func testRepeatedAutomationStopDeliversOnlyOnce() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        try await fixture.pipeline.startFromAutomation()
-        try await fixture.pipeline.startFromAutomation()
-        XCTAssertEqual(fixture.recorder.startCount, 1)
-        for _ in 0..<5 { try fixture.pipeline.stopFromAutomation() }
-        try await finished(fixture)
-        try fixture.pipeline.stopFromAutomation()
-
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-    }
-
-    func testMaximumRecordingTimerStopsAndDeliversOnlyOnce() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        // The injected limit stands in for the 10-second setting minimum.
-        fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
-        let started = Date()
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Maximum recording time delivers the transcript", timeout: 4) {
-            fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            XCTAssertEqual(fixture.recorder.stopCount, 1)
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
-        XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(started), 0.9)
-        XCTAssertFalse(fixture.recorder.isRecording)
-        XCTAssertNil(fixture.pipeline.recordingStartedAt)
-        try fixture.pipeline.stopFromAutomation()
-        try await Task.sleep(for: .milliseconds(450))
 
-        XCTAssertEqual(fixture.recorder.stopCount, 1)
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
+        do { // CancelledMaximumTimerCannotStopReplacementRecording
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
+            try await fixture.pipeline.startFromAutomation()
+            try await Task.sleep(for: .milliseconds(50))
+            try fixture.pipeline.cancelFromAutomation()
+            fixture.pipeline.recordingLimitSeconds = { _, _ in 30 }
+            try await fixture.pipeline.startFromAutomation()
+            // Pass the cancelled session's original deadline with a new session active.
+            try await Task.sleep(for: .milliseconds(1_250))
 
-    func testCancelledMaximumTimerCannotStopReplacementRecording() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.pipeline.recordingLimitSeconds = { _, _ in 1 }
-        try await fixture.pipeline.startFromAutomation()
-        try await Task.sleep(for: .milliseconds(50))
-        try fixture.pipeline.cancelFromAutomation()
-        fixture.pipeline.recordingLimitSeconds = { _, _ in 30 }
-        try await fixture.pipeline.startFromAutomation()
-        // Pass the cancelled session's original deadline with a new session active.
-        try await Task.sleep(for: .milliseconds(1_250))
-
-        XCTAssertTrue(fixture.pipeline.isRecording)
-        XCTAssertTrue(fixture.recorder.isRecording)
-        XCTAssertEqual(fixture.recorder.stopCount, 0)
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        XCTAssertEqual(fixture.recorder.stopCount, 1)
-        XCTAssertEqual(fixture.probe.scripts.count, 1)
-    }
-
-    func testPipelineExecutesScriptOnceAndStoresMatchingAudioAndText() async throws {
-        let text = "繁體中文🙂\n'quoted' \"double\" $HOME; $(touch injected) `touch injected`\nlast line"
-        let fixture = try Fixture(speech: AutomationSpeech([.text(text)]), executeScript: true)
-        defer { fixture.cleanUp() }
-        fixture.settings.audioRetention = .week
-        try Data("#!/bin/sh\n/bin/cat > received.txt\nprintf 'attempt\\n' >> attempts.txt\n".utf8).write(to: fixture.firstScript)
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(try Data(contentsOf: fixture.directory.appendingPathComponent("received.txt")), Data(text.utf8))
-        XCTAssertEqual(try String(contentsOf: fixture.directory.appendingPathComponent("attempts.txt"), encoding: .utf8), "attempt\n")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("injected").path))
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.finalText, text)
-        XCTAssertEqual(record.outputSucceeded, true)
-        XCTAssertFalse(record.inserted)
-        XCTAssertEqual(try fixture.history.audioSamples(for: record).count, Fixture.samples.count)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertTrue(fixture.pipeline.isRecording)
+            XCTAssertTrue(fixture.recorder.isRecording)
+            XCTAssertEqual(fixture.recorder.stopCount, 0)
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            XCTAssertEqual(fixture.recorder.stopCount, 1)
+            XCTAssertEqual(fixture.probe.scripts.count, 1)
+        }
     }
 
     // MARK: - Pending recordings (AD-063)
@@ -564,313 +594,328 @@ final class PipelineAutomationTests: XCTestCase {
         try await waitUntil("Recording processed") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
     }
 
-    func testFailedRecordingNoLongerBlocksNewDictation() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("New words"), .text("Recovered words")]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
-        XCTAssertTrue(kept.issue.contains("Captured audio is kept for retry"))
-        XCTAssertEqual(fixture.probe.blockedRecordings, 1, "A kept recording still opens its recovery")
+    func testKeptRecordingsAllowNewDictationAndRetryToTheirOwnTargets() async throws {
+        do { // FailedRecordingNoLongerBlocksNewDictation
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("New words"), .text("Recovered words")]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+            XCTAssertTrue(kept.issue.contains("Captured audio is kept for retry"))
+            XCTAssertEqual(fixture.probe.blockedRecordings, 1, "A kept recording still opens its recovery")
 
-        // A new dictation records and delivers with the current destination.
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        try await recordOnce(fixture)
-        XCTAssertEqual(fixture.recorder.startCount, 2)
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "New words", path: fixture.secondScript.path)])
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "The earlier recording stays available")
-        XCTAssertEqual(fixture.pipeline.latestPendingDictation?.issue, kept.issue, "Its own failure text survives the success")
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertTrue(fixture.pipeline.hasRecoverableRecording, "Quit still warns about the kept recording")
+            // A new dictation records and delivers with the current destination.
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            try await recordOnce(fixture)
+            XCTAssertEqual(fixture.recorder.startCount, 2)
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "New words", path: fixture.secondScript.path)])
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "The earlier recording stays available")
+            XCTAssertEqual(fixture.pipeline.latestPendingDictation?.issue, kept.issue, "Its own failure text survives the success")
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording, "Quit still warns about the kept recording")
 
-        // Explicit retry keeps the original destination.
-        fixture.pipeline.retryRecording(kept.id)
-        try await waitUntil("Retry delivers") { fixture.probe.scripts.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.scripts.last, .init(text: "Recovered words", path: fixture.firstScript.path))
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertEqual(try fixture.history.count(), 2)
-    }
-
-    func testSecondFailureKeepsBothAndOlderItemRetriesToItsOwnTarget() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .text("Older words"), .failure, .text("Newer words")]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        fixture.settings.outputScriptPath = fixture.secondScript.path
-        try await recordOnce(fixture)
-        let pending = fixture.pipeline.pendingRecordings
-        XCTAssertEqual(pending.count, 2)
-        XCTAssertEqual(fixture.pipeline.latestPendingDictation?.id, pending[1].id)
-        XCTAssertEqual(fixture.probe.blockedRecordings, 2)
-
-        fixture.pipeline.retryRecording(pending[0].id)
-        try await waitUntil("Older retry delivers") { fixture.probe.scripts.count == 1 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.scripts, [.init(text: "Older words", path: fixture.firstScript.path)])
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [pending[1].id])
-
-        // A failed retry keeps the same audio entry and its target.
-        fixture.pipeline.retryRecording(pending[1].id)
-        try await waitUntil("Failed retry keeps audio") { !fixture.pipeline.isBusy && fixture.pipeline.lastIssue != nil }
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [pending[1].id])
-        fixture.settings.outputScriptPath = fixture.firstScript.path
-        fixture.pipeline.retryRecording()
-        try await waitUntil("Newer retry delivers") { fixture.probe.scripts.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.scripts.last, .init(text: "Newer words", path: fixture.secondScript.path))
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-    }
-
-    func testFullRecoveryQueueBlocksNewRecordingInsteadOfDroppingAudio() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .failure, .text("After discard")]))
-        defer { fixture.cleanUp() }
-        for _ in 0..<DictationPipeline.maximumPendingRecordings { try await recordOnce(fixture) }
-        let kept = fixture.pipeline.pendingRecordings
-        XCTAssertEqual(kept.count, DictationPipeline.maximumPendingRecordings)
-        XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording)
-        let blocked = fixture.probe.blockedRecordings
-
-        fixture.pipeline.startRecording()
-        XCTAssertEqual(fixture.recorder.startCount, DictationPipeline.maximumPendingRecordings, "No capture starts")
-        XCTAssertEqual(fixture.probe.blockedRecordings, blocked + 1, "Home opens with the kept recordings")
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        do { try await fixture.pipeline.startFromAutomation(); XCTFail("Automation must not exceed the bound") } catch {}
-        XCTAssertEqual(fixture.pipeline.pendingRecordings, kept, "No kept audio is dropped")
-
-        fixture.pipeline.discardRecording(kept[0].id)
-        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording)
-        try await recordOnce(fixture)
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["After discard"])
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), Array(kept.dropFirst()).map(\.id))
-    }
-
-    func testCancellingANewRecordingOrRetryKeepsEarlierAudio() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.cancelFromAutomation()
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id])
-        fixture.pipeline.retryRecording(kept.id)
-        fixture.pipeline.cancel()
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "Only an explicit discard removes audio")
-        fixture.pipeline.discardRecording(kept.id)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-    }
-
-    func testDataCleanupAppliesToEveryKeptRecording() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .text("Review words"), .text("Review words")]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        try await recordOnce(fixture)
-        try fixture.pipeline.beginDataMaintenance()
-        try await fixture.pipeline.prepareDataRemoval(.history)
-        fixture.pipeline.endDataMaintenance()
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2, "History cleanup keeps audio for review")
-        let first = fixture.pipeline.pendingRecordings[0].id
-        fixture.pipeline.retryRecording(first)
-        try await waitUntil("Review-only retry finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy }
-        XCTAssertTrue(fixture.probe.scripts.isEmpty, "Cleaned recordings never deliver to their old destination")
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
-
-        try fixture.pipeline.beginDataMaintenance()
-        try await fixture.pipeline.prepareDataRemoval(.audio)
-        fixture.pipeline.endDataMaintenance()
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-    }
-
-    /// AD-063 review, revised: the kept-audio bound stays hard, but a long
-    /// recording limit no longer blocks dictation. A new recording may capture
-    /// the budget that remains (900 s minus kept audio), so its own failure can
-    /// still be kept; recording is refused only when less than 10 s remain.
-    func testKeptAudioBoundShortensTheNextRecordingInsteadOfBlockingIt() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Fits")]))
-        defer { fixture.cleanUp() }
-        fixture.recorder.sampleCount = 400 * 16_000
-        try await recordOnce(fixture)
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.first?.seconds, 400)
-        fixture.recorder.sampleCount = 16_000
-        fixture.settings.maxRecordingSeconds = 600
-        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording, "One long kept recording no longer blocks dictation")
-        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 500, "400 s kept leaves 500 s of a 600 s limit")
-        XCTAssertTrue(fixture.pipeline.keptAudioShortensNextRecording)
-        fixture.settings.maxRecordingSeconds = 300
-        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 300)
-        XCTAssertFalse(fixture.pipeline.keptAudioShortensNextRecording)
-        try await recordOnce(fixture)
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Fits"])
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1, "No kept audio is dropped")
-    }
-
-    /// Recording is refused, visibly and before capture, once less than the
-    /// shortest recording limit (10 s) remains within the bound.
-    func testKeptAudioBoundRefusesRecordingWithoutRoomLeft() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
-        defer { fixture.cleanUp() }
-        fixture.recorder.sampleCount = 600 * 16_000
-        try await recordOnce(fixture)
-        fixture.recorder.sampleCount = 295 * 16_000
-        try await recordOnce(fixture)
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.seconds), [600, 295])
-        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 5)
-        XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording)
-        let starts = fixture.recorder.startCount
-        fixture.pipeline.startRecording()
-        XCTAssertEqual(fixture.recorder.startCount, starts, "No capture starts past the bound")
-        guard case .failed = fixture.pipeline.state else { return XCTFail("The refusal must be visible") }
-        do { try await fixture.pipeline.startFromAutomation(); XCTFail("Automation must not exceed the bound") } catch {}
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2, "No kept audio is dropped")
-        fixture.pipeline.discardRecording(fixture.pipeline.pendingRecordings[1].id)
-        XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording)
-    }
-
-    /// A recording shortened by kept audio stops at the remaining budget, is
-    /// processed normally and says why it stopped.
-    func testRecordingStopsAtRemainingBudgetWithANotice() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Budget words")]))
-        defer { fixture.cleanUp() }
-        fixture.recorder.sampleCount = 400 * 16_000
-        try await recordOnce(fixture)
-        fixture.recorder.sampleCount = 16_000
-        // Leave half a second of budget so the auto-stop fires quickly.
-        fixture.pipeline.keptAudioBudgetSeconds = 400.5
-        fixture.pipeline.minimumRecordingWithinBudget = 0.1
-        XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 0.5, accuracy: 0.001)
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
-        try await waitUntil("Recording processed") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Budget words"])
-        guard case .notice(let message, let attention) = fixture.pipeline.state else {
-            return XCTFail("The early stop must be explained")
+            // Explicit retry keeps the original destination.
+            fixture.pipeline.retryRecording(kept.id)
+            try await waitUntil("Retry delivers") { fixture.probe.scripts.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.scripts.last, .init(text: "Recovered words", path: fixture.firstScript.path))
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertEqual(try fixture.history.count(), 2)
         }
-        XCTAssertTrue(message.hasPrefix("Recording stopped at 0:01"), message)
-        XCTAssertTrue(attention)
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
-    }
 
-    /// AD-077: a budget-shortened recording whose speech recognition fails keeps
-    /// the reason it stopped early in the failure and in its recovery issue.
-    func testBudgetStopReasonSurvivesASpeechFailure() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
-        defer { fixture.cleanUp() }
-        fixture.recorder.sampleCount = 400 * 16_000
-        try await recordOnce(fixture)
-        fixture.recorder.sampleCount = 16_000
-        fixture.pipeline.keptAudioBudgetSeconds = 400.5
-        fixture.pipeline.minimumRecordingWithinBudget = 0.1
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
-        try await waitUntil("Recording processed") { !fixture.pipeline.isBusy }
-        guard case .failed(let message) = fixture.pipeline.state else {
-            return XCTFail("The speech failure must be visible")
+        do { // SecondFailureKeepsBothAndOlderItemRetriesToItsOwnTarget
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .text("Older words"), .failure, .text("Newer words")]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            fixture.settings.outputScriptPath = fixture.secondScript.path
+            try await recordOnce(fixture)
+            let pending = fixture.pipeline.pendingRecordings
+            XCTAssertEqual(pending.count, 2)
+            XCTAssertEqual(fixture.pipeline.latestPendingDictation?.id, pending[1].id)
+            XCTAssertEqual(fixture.probe.blockedRecordings, 2)
+
+            fixture.pipeline.retryRecording(pending[0].id)
+            try await waitUntil("Older retry delivers") { fixture.probe.scripts.count == 1 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.scripts, [.init(text: "Older words", path: fixture.firstScript.path)])
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [pending[1].id])
+
+            // A failed retry keeps the same audio entry and its target.
+            fixture.pipeline.retryRecording(pending[1].id)
+            try await waitUntil("Failed retry keeps audio") { !fixture.pipeline.isBusy && fixture.pipeline.lastIssue != nil }
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [pending[1].id])
+            fixture.settings.outputScriptPath = fixture.firstScript.path
+            fixture.pipeline.retryRecording()
+            try await waitUntil("Newer retry delivers") { fixture.probe.scripts.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.scripts.last, .init(text: "Newer words", path: fixture.secondScript.path))
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
         }
-        XCTAssertTrue(message.hasPrefix("Transcription failed:"), message)
-        XCTAssertTrue(message.contains("Recording stopped at 0:01"), "The early stop must be explained: \(message)")
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2)
-        XCTAssertTrue(try XCTUnwrap(fixture.pipeline.pendingRecordings.last).issue.contains("Recording stopped at 0:01"))
-        XCTAssertNil(fixture.pipeline.keptBudgetStop, "The reason is reported once")
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
     }
 
-    /// AD-063 review: a retry resolves its kept recording only once the result
-    /// is delivered and held for History. Cancelling during refinement keeps it.
-    func testCancellingRetryDuringRefinementKeepsTheRecording() async throws {
-        let refiner = GatedRefiner()
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered three words"), .text("Recovered three words")]),
-                                  refiner: refiner)
-        defer { fixture.cleanUp() }
-        fixture.settings.llm = LLMConfig(kind: .openAICompatible)
-        try await recordOnce(fixture)
-        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
-        fixture.pipeline.retryRecording(kept.id)
-        try await waitUntil("Retry reaches refinement") { fixture.pipeline.state == .refining && refiner.started }
-        fixture.pipeline.cancel()
-        try await waitUntil("Cancelled retry settles") { !fixture.pipeline.isBusy }
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "Audio survives a cancelled retry after ASR")
-        XCTAssertTrue(fixture.probe.scripts.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
+    func testFullQueueAndCancellationNeverDropKeptAudio() async throws {
+        do { // FullRecoveryQueueBlocksNewRecordingInsteadOfDroppingAudio
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .failure, .text("After discard")]))
+            defer { fixture.cleanUp() }
+            for _ in 0..<DictationPipeline.maximumPendingRecordings { try await recordOnce(fixture) }
+            let kept = fixture.pipeline.pendingRecordings
+            XCTAssertEqual(kept.count, DictationPipeline.maximumPendingRecordings)
+            XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording)
+            let blocked = fixture.probe.blockedRecordings
 
-        refiner.release = true
-        fixture.pipeline.retryRecording(kept.id)
-        try await waitUntil("Second retry delivers") { fixture.probe.scripts.count == 1 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "A delivered retry resolves the recording")
-        XCTAssertEqual(try fixture.history.count(), 1)
+            fixture.pipeline.startRecording()
+            XCTAssertEqual(fixture.recorder.startCount, DictationPipeline.maximumPendingRecordings, "No capture starts")
+            XCTAssertEqual(fixture.probe.blockedRecordings, blocked + 1, "Home opens with the kept recordings")
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+            do { try await fixture.pipeline.startFromAutomation(); XCTFail("Automation must not exceed the bound") } catch {}
+            XCTAssertEqual(fixture.pipeline.pendingRecordings, kept, "No kept audio is dropped")
+
+            fixture.pipeline.discardRecording(kept[0].id)
+            XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording)
+            try await recordOnce(fixture)
+            XCTAssertEqual(fixture.probe.scripts.map(\.text), ["After discard"])
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), Array(kept.dropFirst()).map(\.id))
+        }
+
+        do { // CancellingANewRecordingOrRetryKeepsEarlierAudio
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.cancelFromAutomation()
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id])
+            fixture.pipeline.retryRecording(kept.id)
+            fixture.pipeline.cancel()
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "Only an explicit discard removes audio")
+            fixture.pipeline.discardRecording(kept.id)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+        }
     }
 
-    /// Practice never runs a saved script: a retry while it runs copies only,
-    /// even when the kept recording's own destination was a script.
-    func testRetryDuringPracticeNeverRunsTheSavedScript() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
-        fixture.settings.beginOnboardingPractice()
-        defer { fixture.settings.endOnboardingPractice() }
-        fixture.pipeline.retryRecording(kept.id)
-        try await waitUntil("Practice retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery && (try? fixture.history.count()) == 1 }
-        XCTAssertTrue(fixture.probe.scripts.isEmpty, "The kept recording's script never runs during practice")
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty, "Nothing is pasted")
-        XCTAssertEqual(fixture.clipboard.string(forType: .string), "Recovered words")
-        XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.outputSucceeded, false)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+    func testDataCleanupCoversEveryKeptRecordingAndReviewRecoveryStaysSeparate() async throws {
+        do { // DataCleanupAppliesToEveryKeptRecording
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure, .text("Review words"), .text("Review words")]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            try await recordOnce(fixture)
+            try fixture.pipeline.beginDataMaintenance()
+            try await fixture.pipeline.prepareDataRemoval(.history)
+            fixture.pipeline.endDataMaintenance()
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2, "History cleanup keeps audio for review")
+            let first = fixture.pipeline.pendingRecordings[0].id
+            fixture.pipeline.retryRecording(first)
+            try await waitUntil("Review-only retry finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy }
+            XCTAssertTrue(fixture.probe.scripts.isEmpty, "Cleaned recordings never deliver to their old destination")
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
+
+            try fixture.pipeline.beginDataMaintenance()
+            try await fixture.pipeline.prepareDataRemoval(.audio)
+            fixture.pipeline.endDataMaintenance()
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+        }
+
+        do { // ReviewRecoveryIsSeparateFromDictationRecoveries
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            let original = try fixture.saveOriginal()
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("Review failure kept") { fixture.pipeline.pendingRecordings.count == 2 && !fixture.pipeline.isBusy }
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.filter(\.isReview).count, 1)
+            XCTAssertFalse(fixture.pipeline.latestPendingDictation?.isReview ?? true)
+            fixture.pipeline.dismissReview()
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
+            XCTAssertFalse(fixture.pipeline.pendingRecordings[0].isReview)
+        }
     }
 
-    func testReviewRecoveryIsSeparateFromDictationRecoveries() async throws {
-        let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
-        defer { fixture.cleanUp() }
-        try await recordOnce(fixture)
-        let original = try fixture.saveOriginal()
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("Review failure kept") { fixture.pipeline.pendingRecordings.count == 2 && !fixture.pipeline.isBusy }
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.filter(\.isReview).count, 1)
-        XCTAssertFalse(fixture.pipeline.latestPendingDictation?.isReview ?? true)
-        fixture.pipeline.dismissReview()
-        XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
-        XCTAssertFalse(fixture.pipeline.pendingRecordings[0].isReview)
+    func testKeptAudioBoundShortensNextRecordingAndRefusesWithoutRoom() async throws {
+        // AD-063 review, revised: the kept-audio bound stays hard, but a long
+        // recording limit no longer blocks dictation. A new recording may capture
+        // the budget that remains (900 s minus kept audio), so its own failure can
+        // still be kept; recording is refused only when less than 10 s remain.
+        do { // KeptAudioBoundShortensTheNextRecordingInsteadOfBlockingIt
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Fits")]))
+            defer { fixture.cleanUp() }
+            fixture.recorder.sampleCount = 400 * 16_000
+            try await recordOnce(fixture)
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.first?.seconds, 400)
+            fixture.recorder.sampleCount = 16_000
+            fixture.settings.maxRecordingSeconds = 600
+            XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording, "One long kept recording no longer blocks dictation")
+            XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 500, "400 s kept leaves 500 s of a 600 s limit")
+            XCTAssertTrue(fixture.pipeline.keptAudioShortensNextRecording)
+            fixture.settings.maxRecordingSeconds = 300
+            XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 300)
+            XCTAssertFalse(fixture.pipeline.keptAudioShortensNextRecording)
+            try await recordOnce(fixture)
+            XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Fits"])
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1, "No kept audio is dropped")
+        }
+
+        // Recording is refused, visibly and before capture, once less than the
+        // shortest recording limit (10 s) remains within the bound.
+        do { // KeptAudioBoundRefusesRecordingWithoutRoomLeft
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
+            defer { fixture.cleanUp() }
+            fixture.recorder.sampleCount = 600 * 16_000
+            try await recordOnce(fixture)
+            fixture.recorder.sampleCount = 295 * 16_000
+            try await recordOnce(fixture)
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.seconds), [600, 295])
+            XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 5)
+            XCTAssertFalse(fixture.pipeline.canKeepAnotherRecording)
+            let starts = fixture.recorder.startCount
+            fixture.pipeline.startRecording()
+            XCTAssertEqual(fixture.recorder.startCount, starts, "No capture starts past the bound")
+            guard case .failed = fixture.pipeline.state else { return XCTFail("The refusal must be visible") }
+            do { try await fixture.pipeline.startFromAutomation(); XCTFail("Automation must not exceed the bound") } catch {}
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2, "No kept audio is dropped")
+            fixture.pipeline.discardRecording(fixture.pipeline.pendingRecordings[1].id)
+            XCTAssertTrue(fixture.pipeline.canKeepAnotherRecording)
+        }
+    }
+
+    func testBudgetStopExplainsItselfOnSuccessAndSpeechFailure() async throws {
+        // A recording shortened by kept audio stops at the remaining budget, is
+        // processed normally and says why it stopped.
+        do { // RecordingStopsAtRemainingBudgetWithANotice
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Budget words")]))
+            defer { fixture.cleanUp() }
+            fixture.recorder.sampleCount = 400 * 16_000
+            try await recordOnce(fixture)
+            fixture.recorder.sampleCount = 16_000
+            // Leave half a second of budget so the auto-stop fires quickly.
+            fixture.pipeline.keptAudioBudgetSeconds = 400.5
+            fixture.pipeline.minimumRecordingWithinBudget = 0.1
+            XCTAssertEqual(fixture.pipeline.availableRecordingSeconds, 0.5, accuracy: 0.001)
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
+            try await waitUntil("Recording processed") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Budget words"])
+            if case .notice(let message, let attention) = fixture.pipeline.state {
+                XCTAssertTrue(message.hasPrefix("Recording stopped at 0:01"), message)
+                XCTAssertTrue(attention)
+            } else {
+                XCTFail("The early stop must be explained")
+            }
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 1)
+        }
+
+        // AD-077: a budget-shortened recording whose speech recognition fails keeps
+        // the reason it stopped early in the failure and in its recovery issue.
+        do { // BudgetStopReasonSurvivesASpeechFailure
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .failure]))
+            defer { fixture.cleanUp() }
+            fixture.recorder.sampleCount = 400 * 16_000
+            try await recordOnce(fixture)
+            fixture.recorder.sampleCount = 16_000
+            fixture.pipeline.keptAudioBudgetSeconds = 400.5
+            fixture.pipeline.minimumRecordingWithinBudget = 0.1
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("The budget stops capture") { !fixture.pipeline.isRecording }
+            try await waitUntil("Recording processed") { !fixture.pipeline.isBusy }
+            guard case .failed(let message) = fixture.pipeline.state else {
+                return XCTFail("The speech failure must be visible")
+            }
+            XCTAssertTrue(message.hasPrefix("Transcription failed:"), message)
+            XCTAssertTrue(message.contains("Recording stopped at 0:01"), "The early stop must be explained: \(message)")
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.count, 2)
+            XCTAssertTrue(try XCTUnwrap(fixture.pipeline.pendingRecordings.last).issue.contains("Recording stopped at 0:01"))
+            XCTAssertNil(fixture.pipeline.keptBudgetStop, "The reason is reported once")
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+        }
+    }
+
+    func testRetryKeepsRecordingWhenCancelledInRefinementAndOnlyCopiesDuringPractice() async throws {
+        // AD-063 review: a retry resolves its kept recording only once the result
+        // is delivered and held for History. Cancelling during refinement keeps it.
+        do { // CancellingRetryDuringRefinementKeepsTheRecording
+            let refiner = GatedRefiner()
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered three words"), .text("Recovered three words")]),
+                                      refiner: refiner)
+            defer { fixture.cleanUp() }
+            fixture.settings.llm = LLMConfig(kind: .openAICompatible)
+            try await recordOnce(fixture)
+            let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+            fixture.pipeline.retryRecording(kept.id)
+            try await waitUntil("Retry reaches refinement") { fixture.pipeline.state == .refining && refiner.started }
+            fixture.pipeline.cancel()
+            try await waitUntil("Cancelled retry settles") { !fixture.pipeline.isBusy }
+            XCTAssertEqual(fixture.pipeline.pendingRecordings.map(\.id), [kept.id], "Audio survives a cancelled retry after ASR")
+            XCTAssertTrue(fixture.probe.scripts.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+
+            refiner.release = true
+            fixture.pipeline.retryRecording(kept.id)
+            try await waitUntil("Second retry delivers") { fixture.probe.scripts.count == 1 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording, "A delivered retry resolves the recording")
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        // Practice never runs a saved script: a retry while it runs copies only,
+        // even when the kept recording's own destination was a script.
+        do { // RetryDuringPracticeNeverRunsTheSavedScript
+            let fixture = try Fixture(speech: AutomationSpeech([.failure, .text("Recovered words")]))
+            defer { fixture.cleanUp() }
+            try await recordOnce(fixture)
+            let kept = try XCTUnwrap(fixture.pipeline.latestPendingDictation)
+            fixture.settings.beginOnboardingPractice()
+            defer { fixture.settings.endOnboardingPractice() }
+            fixture.pipeline.retryRecording(kept.id)
+            try await waitUntil("Practice retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery && (try? fixture.history.count()) == 1 }
+            XCTAssertTrue(fixture.probe.scripts.isEmpty, "The kept recording's script never runs during practice")
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty, "Nothing is pasted")
+            XCTAssertEqual(fixture.clipboard.string(forType: .string), "Recovered words")
+            XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.outputSucceeded, false)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+        }
     }
 
     // MARK: - Session pins (AD-063)
 
-    func testLongRecordingKeepsItsSpeechModelPastTheIdleTimeout() async throws {
-        let clock = TestClock()
-        let engine = PinnedSpeech()
-        let fixture = try Fixture(engine: engine, clock: clock)
-        defer { fixture.cleanUp() }
-        await fixture.factory.setIdleUnloadMinutes(5)
-        defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
+    func testSessionPinKeepsSpeechModelUntilRecordingEndsOrIsCancelled() async throws {
+        do { // LongRecordingKeepsItsSpeechModelPastTheIdleTimeout
+            let clock = TestClock()
+            let engine = PinnedSpeech()
+            let fixture = try Fixture(engine: engine, clock: clock)
+            defer { fixture.cleanUp() }
+            await fixture.factory.setIdleUnloadMinutes(5)
+            defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
 
-        try await fixture.pipeline.startFromAutomation()
-        clock.advance(9 * 60)  // longer than the 5-minute idle setting
-        await fixture.factory.unloadIdle()
-        var counts = await engine.counts
-        XCTAssertEqual(counts.unloads, 0, "The recording's model stays resident")
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        counts = await engine.counts
-        XCTAssertEqual(counts.prepares, 1, "Stop must not reload the model")
-        XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Pinned words"])
+            try await fixture.pipeline.startFromAutomation()
+            clock.advance(9 * 60)  // longer than the 5-minute idle setting
+            await fixture.factory.unloadIdle()
+            var counts = await engine.counts
+            XCTAssertEqual(counts.unloads, 0, "The recording's model stays resident")
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            counts = await engine.counts
+            XCTAssertEqual(counts.prepares, 1, "Stop must not reload the model")
+            XCTAssertEqual(fixture.probe.scripts.map(\.text), ["Pinned words"])
 
-        // The pin ends with the session; the idle countdown then applies again.
-        try await Task.sleep(for: .milliseconds(50))
-        clock.advance(6 * 60)
-        await fixture.factory.unloadIdle()
-        counts = await engine.counts
-        XCTAssertEqual(counts.unloads, 1)
-    }
+            // The pin ends with the session; the idle countdown then applies again.
+            try await Task.sleep(for: .milliseconds(50))
+            clock.advance(6 * 60)
+            await fixture.factory.unloadIdle()
+            counts = await engine.counts
+            XCTAssertEqual(counts.unloads, 1)
+        }
 
-    func testCancelledRecordingReleasesItsSpeechModelPin() async throws {
-        let clock = TestClock()
-        let engine = PinnedSpeech()
-        let fixture = try Fixture(engine: engine, clock: clock)
-        defer { fixture.cleanUp() }
-        await fixture.factory.setIdleUnloadMinutes(5)
-        defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
-        try await fixture.pipeline.startFromAutomation()
-        fixture.pipeline.cancel()
-        try await Task.sleep(for: .milliseconds(50))
-        clock.advance(6 * 60)
-        await fixture.factory.unloadIdle()
-        let counts = await engine.counts
-        XCTAssertEqual(counts.unloads, 1)
+        do { // CancelledRecordingReleasesItsSpeechModelPin
+            let clock = TestClock()
+            let engine = PinnedSpeech()
+            let fixture = try Fixture(engine: engine, clock: clock)
+            defer { fixture.cleanUp() }
+            await fixture.factory.setIdleUnloadMinutes(5)
+            defer { Task { await fixture.factory.setIdleUnloadMinutes(0) } }
+            try await fixture.pipeline.startFromAutomation()
+            fixture.pipeline.cancel()
+            try await Task.sleep(for: .milliseconds(50))
+            clock.advance(6 * 60)
+            await fixture.factory.unloadIdle()
+            let counts = await engine.counts
+            XCTAssertEqual(counts.unloads, 1)
+        }
     }
 
     private func finished(_ fixture: Fixture) async throws {

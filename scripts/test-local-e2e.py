@@ -136,7 +136,7 @@ def main():
     command = ["xcodebuild", "-project", "airdraft.xcodeproj", "-scheme", "airdraft",
                "-configuration", "Debug", "-skipPackagePluginValidation", "-skipMacroValidation",
                "-packageAuthorizationProvider", "netrc", "-onlyUsePackageVersionsFromResolvedFile",
-               "test", "-parallel-testing-enabled", "NO", "-resultBundlePath", str(result)]
+               "test", "-parallel-testing-enabled", "YES", "-resultBundlePath", str(result)]
     if args.unsigned:
         command += UNSIGNED_SETTINGS
     command += credential_free_selection()

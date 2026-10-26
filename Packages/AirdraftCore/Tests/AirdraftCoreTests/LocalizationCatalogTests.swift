@@ -82,58 +82,64 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
-    func testShippedLanguagesMatchTheBundleLocalizations() throws {
-        XCTAssertFalse(Self.languages.isEmpty, "Config/languages.json lists no languages")
-        let project = try String(contentsOf: Self.repository.appendingPathComponent("project.yml"), encoding: .utf8)
-        let line = try XCTUnwrap(project.split(separator: "\n").first { $0.contains("CFBundleLocalizations:") })
-        let listed = line.split(separator: "[").last?.split(separator: "]").first?
-            .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } ?? []
-        XCTAssertEqual(Set(listed), Set(Self.languages + ["en"]))
-        for language in Self.languages {
-            XCTAssertTrue(Bundle.module.localizations.contains(language), "Core bundle lacks \(language): \(Bundle.module.localizations)")
+    func testShippedLanguagesMatchTheBundleAndCoreBundleResolvesEachLanguage() throws {
+        // Shipped languages match the bundle localizations.
+        do {
+            XCTAssertFalse(Self.languages.isEmpty, "Config/languages.json lists no languages")
+            let project = try String(contentsOf: Self.repository.appendingPathComponent("project.yml"), encoding: .utf8)
+            let line = try XCTUnwrap(project.split(separator: "\n").first { $0.contains("CFBundleLocalizations:") })
+            let listed = line.split(separator: "[").last?.split(separator: "]").first?
+                .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } ?? []
+            XCTAssertEqual(Set(listed), Set(Self.languages + ["en"]))
+            for language in Self.languages {
+                XCTAssertTrue(Bundle.module.localizations.contains(language), "Core bundle lacks \(language): \(Bundle.module.localizations)")
+            }
         }
-    }
 
-    func testCoreBundleResolvesTraditionalChinese() throws {
-        XCTAssertTrue(Bundle.module.localizations.contains("zh-Hant"), "\(Bundle.module.localizations)")
-        let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hant", ofType: "lproj"))
-        let chinese = try XCTUnwrap(Bundle(path: path))
-        XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "關閉")
-        XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼簿")
-        // Built-in profile names and a modifier key's side are shown in the interface language.
-        XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
-        XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
-        XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
-        // The test process runs in English: Core copy keeps its exact source wording.
-        XCTAssertEqual(AppearanceMode.light.title, "Light")
-    }
+        // The Core bundle resolves Traditional Chinese.
+        do {
+            XCTAssertTrue(Bundle.module.localizations.contains("zh-Hant"), "\(Bundle.module.localizations)")
+            let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hant", ofType: "lproj"))
+            let chinese = try XCTUnwrap(Bundle(path: path))
+            XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "關閉")
+            XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已拷貝到剪貼簿")
+            // Built-in profile names and a modifier key's side are shown in the interface language.
+            XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
+            XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
+            XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
+            // The test process runs in English: Core copy keeps its exact source wording.
+            XCTAssertEqual(AppearanceMode.light.title, "Light")
+        }
 
-    func testCoreBundleResolvesSimplifiedChinese() throws {
-        XCTAssertTrue(Bundle.module.localizations.contains("zh-Hans"), "\(Bundle.module.localizations)")
-        let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hans", ofType: "lproj"))
-        let chinese = try XCTUnwrap(Bundle(path: path))
-        XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "关闭")
-        XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已复制到剪贴板")
-        // Built-in profile names and a modifier key's side are shown in the interface language.
-        XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
-        XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
-        XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
-        XCTAssertEqual(chinese.localizedString(forKey: "Microphone", value: nil, table: nil), "麦克风")
-    }
+        // The Core bundle resolves Simplified Chinese.
+        do {
+            XCTAssertTrue(Bundle.module.localizations.contains("zh-Hans"), "\(Bundle.module.localizations)")
+            let path = try XCTUnwrap(Bundle.module.path(forResource: "zh-Hans", ofType: "lproj"))
+            let chinese = try XCTUnwrap(Bundle(path: path))
+            XCTAssertEqual(chinese.localizedString(forKey: "Off", value: nil, table: nil), "关闭")
+            XCTAssertEqual(chinese.localizedString(forKey: "Copied to clipboard", value: nil, table: nil), "已复制到剪贴板")
+            // Built-in profile names and a modifier key's side are shown in the interface language.
+            XCTAssertEqual(chinese.localizedString(forKey: "Clean", value: nil, table: nil), "整理")
+            XCTAssertEqual(chinese.localizedString(forKey: "Verbatim", value: nil, table: nil), "逐字")
+            XCTAssertEqual(chinese.localizedString(forKey: "Right %@", value: nil, table: nil), "右 %@")
+            XCTAssertEqual(chinese.localizedString(forKey: "Microphone", value: nil, table: nil), "麦克风")
+        }
 
-    func testCoreBundleResolvesSpanishAndJapanese() throws {
-        let expected: [String: [String: String]] = [
-            "es": ["Off": "Desactivado", "Copied to clipboard": "Copiado al portapapeles", "Clean": "Limpio",
-                   "Verbatim": "Literal", "Right %@": "%@ derecha", "Microphone": "Micrófono"],
-            "ja": ["Off": "オフ", "Copied to clipboard": "クリップボードにコピーしました", "Clean": "クリーン",
-                   "Verbatim": "逐語", "Right %@": "右 %@", "Microphone": "マイク"],
-        ]
-        for (language, values) in expected {
-            XCTAssertTrue(Bundle.module.localizations.contains(language), "\(Bundle.module.localizations)")
-            let path = try XCTUnwrap(Bundle.module.path(forResource: language, ofType: "lproj"), language)
-            let bundle = try XCTUnwrap(Bundle(path: path))
-            for (key, value) in values {
-                XCTAssertEqual(bundle.localizedString(forKey: key, value: nil, table: nil), value, "\(language): \(key)")
+        // The Core bundle resolves Spanish and Japanese.
+        do {
+            let expected: [String: [String: String]] = [
+                "es": ["Off": "Desactivado", "Copied to clipboard": "Copiado al portapapeles", "Clean": "Limpio",
+                       "Verbatim": "Literal", "Right %@": "%@ derecha", "Microphone": "Micrófono"],
+                "ja": ["Off": "オフ", "Copied to clipboard": "クリップボードにコピーしました", "Clean": "クリーン",
+                       "Verbatim": "逐語", "Right %@": "右 %@", "Microphone": "マイク"],
+            ]
+            for (language, values) in expected {
+                XCTAssertTrue(Bundle.module.localizations.contains(language), "\(Bundle.module.localizations)")
+                let path = try XCTUnwrap(Bundle.module.path(forResource: language, ofType: "lproj"), language)
+                let bundle = try XCTUnwrap(Bundle(path: path))
+                for (key, value) in values {
+                    XCTAssertEqual(bundle.localizedString(forKey: key, value: nil, table: nil), value, "\(language): \(key)")
+                }
             }
         }
     }

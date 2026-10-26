@@ -24,67 +24,72 @@ final class ParakeetTests: XCTestCase {
         XCTAssertFalse(ready, "Constructing a provider must not load or download it")
     }
 
-    func testEveryNamedAssetMustBeANonemptyFile() throws {
-        let directory = try temporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        for omitted in requiredAssets {
+    /// Every named asset must be a non-empty file, archive integrity rejects changed bytes,
+    /// a missing model never downloads or writes files, and an incomplete install never
+    /// reaches the native recognizer.
+    func testIncompleteOrChangedInstallNeverLoadsOrDownloads() async throws {
+        do { // EveryNamedAssetMustBeANonemptyFile
+            let directory = try temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            for omitted in requiredAssets {
+                for name in requiredAssets {
+                    let file = directory.appendingPathComponent(name)
+                    try? FileManager.default.removeItem(at: file)
+                    if name != omitted { try Data([1]).write(to: file) }
+                }
+                XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Missing \(omitted)")
+                let omittedFile = directory.appendingPathComponent(omitted)
+                try Data().write(to: omittedFile)
+                XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Empty \(omitted)")
+                try FileManager.default.removeItem(at: omittedFile)
+                try FileManager.default.createDirectory(at: omittedFile, withIntermediateDirectories: true)
+                XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Directory named \(omitted)")
+            }
             for name in requiredAssets {
                 let file = directory.appendingPathComponent(name)
                 try? FileManager.default.removeItem(at: file)
-                if name != omitted { try Data([1]).write(to: file) }
+                try Data([1]).write(to: file)
             }
-            XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Missing \(omitted)")
-            let omittedFile = directory.appendingPathComponent(omitted)
-            try Data().write(to: omittedFile)
-            XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Empty \(omitted)")
-            try FileManager.default.removeItem(at: omittedFile)
-            try FileManager.default.createDirectory(at: omittedFile, withIntermediateDirectories: true)
-            XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Directory named \(omitted)")
+            XCTAssertTrue(LocalModels.hasSherpa(.parakeet, at: directory))
+            try FileManager.default.moveItem(at: directory.appendingPathComponent("joiner.int8.onnx"),
+                                            to: directory.appendingPathComponent("joiner.other.onnx"))
+            XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Another conversion is not the pinned INT8 asset")
         }
-        for name in requiredAssets {
-            let file = directory.appendingPathComponent(name)
-            try? FileManager.default.removeItem(at: file)
-            try Data([1]).write(to: file)
-        }
-        XCTAssertTrue(LocalModels.hasSherpa(.parakeet, at: directory))
-        try FileManager.default.moveItem(at: directory.appendingPathComponent("joiner.int8.onnx"),
-                                        to: directory.appendingPathComponent("joiner.other.onnx"))
-        XCTAssertFalse(LocalModels.hasSherpa(.parakeet, at: directory), "Another conversion is not the pinned INT8 asset")
-    }
 
-    func testMissingModelDoesNotDownloadOrWriteFiles() async throws {
-        let directory = try temporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let engine = SherpaTranscriber(model: .parakeet, modelDirectory: directory)
-        await assertNotDownloaded { try await engine.prepare() }
-        await assertNotDownloaded { _ = try await engine.transcribe(samples: [0.1], hints: .init()) }
-        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path), [])
-        let ready = await engine.isReady()
-        XCTAssertFalse(ready)
-    }
-
-    func testIncompleteInstallNeverReachesNativeRecognizer() async throws {
-        let directory = try temporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        for name in requiredAssets { try Data([1]).write(to: directory.appendingPathComponent(name)) }
-        try Data().write(to: directory.appendingPathComponent(LocalModels.incompleteMarker))
-        let engine = SherpaTranscriber(model: .parakeet, modelDirectory: directory)
-        await assertNotDownloaded { try await engine.prepare() }
-        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appendingPathComponent(LocalModels.incompleteMarker).path))
-    }
-
-    func testArchiveIntegrityRejectsChangedBytes() throws {
-        let directory = try temporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let file = directory.appendingPathComponent("archive")
-        try Data("abc".utf8).write(to: file)
-        let digest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        XCTAssertNoThrow(try ModelDownloader.verifySHA256(of: file, expected: digest))
-        try Data("abd".utf8).write(to: file)
-        XCTAssertThrowsError(try ModelDownloader.verifySHA256(of: file, expected: digest)) { error in
-            guard case ModelDownloader.DownloadError.checksumMismatch = error else {
-                return XCTFail("Unexpected error: \(error)")
+        do { // ArchiveIntegrityRejectsChangedBytes
+            let directory = try temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let file = directory.appendingPathComponent("archive")
+            try Data("abc".utf8).write(to: file)
+            let digest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+            XCTAssertNoThrow(try ModelDownloader.verifySHA256(of: file, expected: digest))
+            try Data("abd".utf8).write(to: file)
+            XCTAssertThrowsError(try ModelDownloader.verifySHA256(of: file, expected: digest)) { error in
+                guard case ModelDownloader.DownloadError.checksumMismatch = error else {
+                    return XCTFail("Unexpected error: \(error)")
+                }
             }
+        }
+
+        do { // MissingModelDoesNotDownloadOrWriteFiles
+            let directory = try temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let engine = SherpaTranscriber(model: .parakeet, modelDirectory: directory)
+            await assertNotDownloaded { try await engine.prepare() }
+            await assertNotDownloaded { _ = try await engine.transcribe(samples: [0.1], hints: .init()) }
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path), [])
+            let ready = await engine.isReady()
+            XCTAssertFalse(ready)
+        }
+
+        do { // IncompleteInstallNeverReachesNativeRecognizer
+            let directory = try temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            for name in requiredAssets { try Data([1]).write(to: directory.appendingPathComponent(name)) }
+            try Data().write(to: directory.appendingPathComponent(LocalModels.incompleteMarker))
+            let engine = SherpaTranscriber(model: .parakeet, modelDirectory: directory)
+            await assertNotDownloaded { try await engine.prepare() }
+            XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appendingPathComponent(LocalModels.incompleteMarker).path))
         }
     }
 

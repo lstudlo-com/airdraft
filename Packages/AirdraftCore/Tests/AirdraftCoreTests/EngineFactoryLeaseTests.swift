@@ -4,311 +4,325 @@ import os
 
 @MainActor
 final class EngineFactoryLeaseTests: XCTestCase {
-    func testUncachedTranscriptionUsesThePreparedInstanceOnce() async throws {
-        let config = ASRConfig(kind: .openAICompatible, model: "fixture")
-        let builds = OSAllocatedUnfairLock(initialState: 0)
-        let preparing = OSAllocatedUnfairLock(initialState: 0)
-        let factory = factory(status: EngineStatus()) { config in
-            builds.withLock { $0 += 1 }
-            return TimedSpeech(id: config.engineID)
-        }
-        let result = try await factory.transcribe([0.1], hints: .init(), config: config) {
-            preparing.withLock { $0 += 1 }
-        }
-        XCTAssertEqual(result.text, "Complete words")
-        XCTAssertEqual(builds.withLock { $0 }, 1, "Prepare and decode must use one request-scoped engine")
-        XCTAssertEqual(preparing.withLock { $0 }, 1)
-        XCTAssertGreaterThanOrEqual(result.latencyMs, 75, "ASR time must include model preparation")
-        _ = try await factory.transcribe([0.1], hints: .init(), config: config)
-        XCTAssertEqual(builds.withLock { $0 }, 2, "Remote engines must still resolve fresh settings per call")
-        await factory.unloadAll()
-    }
-
-    func testWarmTranscriptionSkipsPreparation() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let engine = TimedSpeech(id: config.engineID)
-        let factory = factory(status: EngineStatus()) { _ in engine }
-        try await factory.prepare(config)
-        let warm = try await factory.transcribe([0.1], hints: .init(), config: config) {
-            XCTFail("A warm model must not show Loading")
-        }
-        XCTAssertEqual(warm.text, "Complete words")
-        let preparations = await engine.preparations
-        XCTAssertEqual(preparations, 1)
-        await factory.unloadAll()
-    }
-
-    func testCancelledLoadDoesNotBlockAnotherModelOrPublishLateReadiness() async throws {
-        let firstConfig = ASRConfig(kind: .parakeet)
-        let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
-        let first = SuspendedLoadSpeech(id: firstConfig.engineID)
-        let second = LeaseSpeech(id: secondConfig.engineID)
-        let status = EngineStatus()
-        let factory = factory(status: status) { config in
-            if config.kind == .parakeet { return first }
-            return second
-        }
-        var loadFinished = false
-        let loading = Task {
-            defer { loadFinished = true }
-            try await factory.prepare(firstConfig)
-        }
-        defer { loading.cancel(); Task { await first.release() } }
-        try await waitUntil("First load started") { await first.isLoading }
-        loading.cancel()
-        let switching = Task { try await factory.prepare(secondConfig) }
-        defer { switching.cancel() }
-        try await waitUntil("Cancelled load releases selection without waiting for the SDK") {
-            loadFinished && status.state(for: secondConfig.engineID) == .ready
-        }
-        try await switching.value
-        guard case .failure(let error) = await loading.result, error is CancellationError else {
-            return XCTFail("Cancelled preparation must report cancellation")
-        }
-        XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
-        XCTAssertTrue(status.hasPendingLoad(for: firstConfig.engineID), "Files stay protected until native work ends")
-        let unloadedWhileLoading = await first.unloadedWhileLoading
-        XCTAssertFalse(unloadedWhileLoading, "Do not unload a model while its SDK is still loading")
-
-        await first.release()
-        try await waitUntil("Abandoned model is unloaded after its SDK returns") {
-            await first.unloaded && !status.hasPendingLoad(for: firstConfig.engineID)
-        }
-        XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
-        XCTAssertEqual(status.state(for: secondConfig.engineID), .ready)
-        await factory.unloadAll()
-    }
-
-    func testLoadTimeoutAllowsSwitchingButPreventsDuplicateNativeLoads() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
-        let stalled = SuspendedLoadSpeech(id: config.engineID)
-        let retry = LeaseSpeech(id: config.engineID)
-        let other = LeaseSpeech(id: otherConfig.engineID)
-        let builds = OSAllocatedUnfairLock(initialState: 0)
-        let status = EngineStatus()
-        let factory = factory(status: status, timeout: 0.1) { config in
-            if config.kind != .parakeet { return other }
-            let count = builds.withLock { count in count += 1; return count }
-            if count == 1 { return stalled }
-            return retry
-        }
-        defer { Task { await stalled.release() } }
+    func testTranscriptionUsesOnePreparedInstanceAndWarmModelsSkipPreparation() async throws {
+        // UncachedTranscriptionUsesThePreparedInstanceOnce
         do {
-            try await factory.prepare(config)
-            XCTFail("A stalled load must time out")
-        } catch TranscriberError.modelLoadTimedOut {}
-        XCTAssertEqual(status.state(for: config.engineID), .failed(TranscriberError.modelLoadTimedOut.localizedDescription))
-        XCTAssertTrue(status.hasPendingLoad(for: config.engineID))
-        do {
-            try await factory.prepare(config)
-            XCTFail("Do not start a second copy of the same native load")
-        } catch TranscriberError.modelLoadStillStopping {}
-        XCTAssertEqual(builds.withLock { $0 }, 1)
-        try await factory.prepare(otherConfig)
-        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
-
-        await stalled.release()
-        try await waitUntil("Native cleanup finishes") { !status.hasPendingLoad(for: config.engineID) }
-        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
-        try await factory.prepare(config)
-        XCTAssertEqual(builds.withLock { $0 }, 2, "Retry must use a fresh engine")
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        XCTAssertEqual(status.state(for: otherConfig.engineID), .notLoaded)
-        await factory.unloadAll()
-    }
-
-    func testUnloadAllWaitsForRetiredLoadWithoutBlockingAnotherSelection() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
-        let stalled = SuspendedLoadSpeech(id: config.engineID)
-        let other = LeaseSpeech(id: otherConfig.engineID)
-        let status = EngineStatus()
-        let factory = factory(status: status, timeout: 0.1) { config in
-            if config.kind == .parakeet { return stalled }
-            return other
-        }
-        defer { Task { await stalled.release() } }
-        do { try await factory.prepare(config); XCTFail("Expected load timeout") }
-        catch TranscriberError.modelLoadTimedOut {}
-        var cleanupFinished = false
-        let cleanup = Task { await factory.unloadAll(); cleanupFinished = true }
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertFalse(cleanupFinished, "Reset must not delete files still used by a retired loader")
-        try await factory.prepare(otherConfig)
-        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
-        XCTAssertFalse(cleanupFinished)
-        await stalled.release()
-        await cleanup.value
-        let unloadedWhileLoading = await stalled.unloadedWhileLoading
-        XCTAssertFalse(unloadedWhileLoading)
-        XCTAssertFalse(status.hasPendingLoad(for: config.engineID))
-        XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
-        await factory.unloadAll()
-    }
-
-    func testUnloadWaitsForActiveTranscription() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let speech = LeaseSpeech(id: config.engineID)
-        let status = EngineStatus()
-        let factory = factory(status: status) { _ in speech }
-        let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: config) }
-        defer { transcription.cancel(); Task { await speech.release() } }
-        try await waitUntil("Transcription started") { await speech.isTranscribing }
-        var unloaded = false
-        let cleanup = Task { await factory.unloadAll(); unloaded = true }
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertFalse(unloaded)
-        let beforeRelease = await speech.snapshot()
-        XCTAssertEqual(beforeRelease, [.prepare, .transcribeStarted])
-
-        await speech.release()
-        _ = try await transcription.value
-        await cleanup.value
-        let afterRelease = await speech.snapshot()
-        XCTAssertEqual(afterRelease, [.prepare, .transcribeStarted, .transcribeFinished, .unload])
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
-    }
-
-    func testModelSwitchWaitsForActiveTranscription() async throws {
-        let firstConfig = ASRConfig(kind: .parakeet)
-        let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
-        let first = LeaseSpeech(id: firstConfig.engineID)
-        let second = LeaseSpeech(id: secondConfig.engineID)
-        let status = EngineStatus()
-        let factory = factory(status: status) { $0.kind == .parakeet ? first : second }
-        let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: firstConfig) }
-        defer { transcription.cancel(); Task { await first.release() } }
-        try await waitUntil("Transcription started") { await first.isTranscribing }
-        let switching = Task { try await factory.prepare(secondConfig) }
-        try await Task.sleep(for: .milliseconds(50))
-        let secondBeforeRelease = await second.snapshot()
-        let firstBeforeRelease = await first.snapshot()
-        XCTAssertTrue(secondBeforeRelease.isEmpty)
-        XCTAssertEqual(firstBeforeRelease, [.prepare, .transcribeStarted])
-
-        await first.release()
-        _ = try await transcription.value
-        try await switching.value
-        let firstAfterRelease = await first.snapshot()
-        let secondAfterRelease = await second.snapshot()
-        XCTAssertEqual(firstAfterRelease, [.prepare, .transcribeStarted, .transcribeFinished, .unload])
-        XCTAssertEqual(secondAfterRelease, [.prepare])
-        XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
-        XCTAssertEqual(status.state(for: secondConfig.engineID), .ready)
-        await factory.unloadAll()
-    }
-
-    /// Uses the real one-minute setting and 30-second timer; normally takes 60 seconds.
-    func testIdleTimerUnloadsExpiredEngineButCannotInterruptActiveInference() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        // One injected clock replaces the minute this test once waited in real time.
-        let clock = TestClock()
-        let idleSpeech = LeaseSpeech(id: config.engineID, ready: true)
-        let idleStatus = EngineStatus()
-        let idleFactory = EngineFactory(status: idleStatus, credentialReader: { _ in nil },
-                                        transcriberBuilder: { _ in idleSpeech }, now: { clock.now })
-        _ = await idleFactory.transcriber(for: config)
-        idleStatus.set(config.engineID, .ready, at: clock.now)
-        await idleFactory.setIdleUnloadMinutes(1)
-
-        let busySpeech = LeaseSpeech(id: config.engineID)
-        let busyStatus = EngineStatus()
-        let busyFactory = EngineFactory(status: busyStatus, credentialReader: { _ in nil },
-                                        transcriberBuilder: { _ in busySpeech }, now: { clock.now })
-        await busyFactory.setIdleUnloadMinutes(1)
-        let transcription = Task { try await busyFactory.transcribe([0.1], hints: .init(), config: config) }
-        defer {
-            transcription.cancel()
-            Task {
-                await busySpeech.release()
-                await idleFactory.setIdleUnloadMinutes(0)
-                await busyFactory.setIdleUnloadMinutes(0)
+            let config = ASRConfig(kind: .openAICompatible, model: "fixture")
+            let builds = OSAllocatedUnfairLock(initialState: 0)
+            let preparing = OSAllocatedUnfairLock(initialState: 0)
+            let factory = factory(status: EngineStatus()) { config in
+                builds.withLock { $0 += 1 }
+                return TimedSpeech(id: config.engineID)
             }
+            let result = try await factory.transcribe([0.1], hints: .init(), config: config) {
+                preparing.withLock { $0 += 1 }
+            }
+            XCTAssertEqual(result.text, "Complete words")
+            XCTAssertEqual(builds.withLock { $0 }, 1, "Prepare and decode must use one request-scoped engine")
+            XCTAssertEqual(preparing.withLock { $0 }, 1)
+            XCTAssertGreaterThanOrEqual(result.latencyMs, 75, "ASR time must include model preparation")
+            _ = try await factory.transcribe([0.1], hints: .init(), config: config)
+            XCTAssertEqual(builds.withLock { $0 }, 2, "Remote engines must still resolve fresh settings per call")
+            await factory.unloadAll()
         }
-        try await waitUntil("Busy transcription started") { await busySpeech.isTranscribing }
-        clock.advance(61)
-
-        await idleFactory.unloadIdle()
-        let idleEvents = await idleSpeech.snapshot()
-        XCTAssertTrue(idleEvents.contains(.unload))
-        XCTAssertEqual(idleStatus.state(for: config.engineID), .notLoaded)
-
-        // The busy factory's idle pass queues behind the inference lease.
-        let busyCheck = Task { await busyFactory.unloadIdle() }
-        try await Task.sleep(for: .milliseconds(50))
-        let beforeRelease = await busySpeech.snapshot()
-        XCTAssertEqual(beforeRelease, [.prepare, .transcribeStarted])
-        XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)
-
-        // Completed inference refreshes the use timestamp, so the queued pass
-        // leaves this engine resident.
-        await busySpeech.release()
-        _ = try await transcription.value
-        await busyCheck.value
-        let afterRelease = await busySpeech.snapshot()
-        XCTAssertEqual(afterRelease, [.prepare, .transcribeStarted, .transcribeFinished])
-        XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)
-        await busyFactory.setIdleUnloadMinutes(0)
-        await busyFactory.unloadAll()
+        // WarmTranscriptionSkipsPreparation
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let engine = TimedSpeech(id: config.engineID)
+            let factory = factory(status: EngineStatus()) { _ in engine }
+            try await factory.prepare(config)
+            let warm = try await factory.transcribe([0.1], hints: .init(), config: config) {
+                XCTFail("A warm model must not show Loading")
+            }
+            XCTAssertEqual(warm.text, "Complete words")
+            let preparations = await engine.preparations
+            XCTAssertEqual(preparations, 1)
+            await factory.unloadAll()
+        }
     }
 
-    /// Recordings longer than the idle setting must keep their speech model.
-    func testSessionPinKeepsRecordingEngineResidentPastIdleTimeout() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let speech = LeaseSpeech(id: config.engineID)
-        let status = EngineStatus()
-        let clock = TestClock()
-        let factory = EngineFactory(status: status, credentialReader: { _ in nil },
-                                    transcriberBuilder: { _ in speech }, now: { clock.now })
-        try await factory.prepare(config)
-        await factory.setIdleUnloadMinutes(5)
-        defer { Task { await factory.setIdleUnloadMinutes(0) } }
+    /// Cancelled loads publish no late readiness, timeouts allow switching but no duplicate native load, and unloadAll waits for retired loaders.
+    func testCancelledOrTimedOutLoadsRetireWithoutBlockingOtherModels() async throws {
+        // CancelledLoadDoesNotBlockAnotherModelOrPublishLateReadiness
+        do {
+            let firstConfig = ASRConfig(kind: .parakeet)
+            let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+            let first = SuspendedLoadSpeech(id: firstConfig.engineID)
+            let second = LeaseSpeech(id: secondConfig.engineID)
+            let status = EngineStatus()
+            let factory = factory(status: status) { config in
+                if config.kind == .parakeet { return first }
+                return second
+            }
+            var loadFinished = false
+            let loading = Task {
+                defer { loadFinished = true }
+                try await factory.prepare(firstConfig)
+            }
+            defer { loading.cancel(); Task { await first.release() } }
+            try await waitUntil("First load started") { await first.isLoading }
+            loading.cancel()
+            let switching = Task { try await factory.prepare(secondConfig) }
+            defer { switching.cancel() }
+            try await waitUntil("Cancelled load releases selection without waiting for the SDK") {
+                loadFinished && status.state(for: secondConfig.engineID) == .ready
+            }
+            try await switching.value
+            guard case .failure(let error) = await loading.result, error is CancellationError else {
+                return XCTFail("Cancelled preparation must report cancellation")
+            }
+            XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
+            XCTAssertTrue(status.hasPendingLoad(for: firstConfig.engineID), "Files stay protected until native work ends")
+            let unloadedWhileLoading = await first.unloadedWhileLoading
+            XCTAssertFalse(unloadedWhileLoading, "Do not unload a model while its SDK is still loading")
 
-        let pin = await factory.pinForSession(config.engineID, recordingSeconds: 600)
-        clock.advance(9 * 60)
-        await factory.unloadIdle()
-        var events = await speech.snapshot()
-        XCTAssertFalse(events.contains(.unload), "A pinned engine survives the idle timeout")
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
+            await first.release()
+            try await waitUntil("Abandoned model is unloaded after its SDK returns") {
+                await first.unloaded && !status.hasPendingLoad(for: firstConfig.engineID)
+            }
+            XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
+            XCTAssertEqual(status.state(for: secondConfig.engineID), .ready)
+            await factory.unloadAll()
+        }
+        // LoadTimeoutAllowsSwitchingButPreventsDuplicateNativeLoads
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+            let stalled = SuspendedLoadSpeech(id: config.engineID)
+            let retry = LeaseSpeech(id: config.engineID)
+            let other = LeaseSpeech(id: otherConfig.engineID)
+            let builds = OSAllocatedUnfairLock(initialState: 0)
+            let status = EngineStatus()
+            let factory = factory(status: status, timeout: 0.1) { config in
+                if config.kind != .parakeet { return other }
+                let count = builds.withLock { count in count += 1; return count }
+                if count == 1 { return stalled }
+                return retry
+            }
+            defer { Task { await stalled.release() } }
+            do {
+                try await factory.prepare(config)
+                XCTFail("A stalled load must time out")
+            } catch TranscriberError.modelLoadTimedOut {}
+            XCTAssertEqual(status.state(for: config.engineID), .failed(TranscriberError.modelLoadTimedOut.localizedDescription))
+            XCTAssertTrue(status.hasPendingLoad(for: config.engineID))
+            do {
+                try await factory.prepare(config)
+                XCTFail("Do not start a second copy of the same native load")
+            } catch TranscriberError.modelLoadStillStopping {}
+            XCTAssertEqual(builds.withLock { $0 }, 1)
+            try await factory.prepare(otherConfig)
+            XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
 
-        // The idle countdown restarts when the session ends.
-        await factory.releaseSessionPin(pin)
-        clock.advance(4 * 60)
-        await factory.unloadIdle()
-        events = await speech.snapshot()
-        XCTAssertFalse(events.contains(.unload), "Release refreshes the use timestamp")
-        clock.advance(2 * 60)
-        await factory.unloadIdle()
-        events = await speech.snapshot()
-        XCTAssertEqual(events.filter { $0 == .unload }.count, 1)
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+            await stalled.release()
+            try await waitUntil("Native cleanup finishes") { !status.hasPendingLoad(for: config.engineID) }
+            XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+            try await factory.prepare(config)
+            XCTAssertEqual(builds.withLock { $0 }, 2, "Retry must use a fresh engine")
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            XCTAssertEqual(status.state(for: otherConfig.engineID), .notLoaded)
+            await factory.unloadAll()
+        }
+        // UnloadAllWaitsForRetiredLoadWithoutBlockingAnotherSelection
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let otherConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+            let stalled = SuspendedLoadSpeech(id: config.engineID)
+            let other = LeaseSpeech(id: otherConfig.engineID)
+            let status = EngineStatus()
+            let factory = factory(status: status, timeout: 0.1) { config in
+                if config.kind == .parakeet { return stalled }
+                return other
+            }
+            defer { Task { await stalled.release() } }
+            do { try await factory.prepare(config); XCTFail("Expected load timeout") }
+            catch TranscriberError.modelLoadTimedOut {}
+            var cleanupFinished = false
+            let cleanup = Task { await factory.unloadAll(); cleanupFinished = true }
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertFalse(cleanupFinished, "Reset must not delete files still used by a retired loader")
+            try await factory.prepare(otherConfig)
+            XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+            XCTAssertFalse(cleanupFinished)
+            await stalled.release()
+            await cleanup.value
+            let unloadedWhileLoading = await stalled.unloadedWhileLoading
+            XCTAssertFalse(unloadedWhileLoading)
+            XCTAssertFalse(status.hasPendingLoad(for: config.engineID))
+            XCTAssertEqual(status.state(for: otherConfig.engineID), .ready)
+            await factory.unloadAll()
+        }
     }
 
-    func testLeakedSessionPinExpiresAfterLoadRecordingAndProcessingBounds() async throws {
-        let config = ASRConfig(kind: .parakeet)
-        let speech = LeaseSpeech(id: config.engineID)
-        let status = EngineStatus()
-        let clock = TestClock()
-        let factory = EngineFactory(status: status, modelLoadTimeout: 120, credentialReader: { _ in nil },
-                                    transcriberBuilder: { _ in speech }, now: { clock.now })
-        try await factory.prepare(config)
-        await factory.setIdleUnloadMinutes(5)
-        defer { Task { await factory.setIdleUnloadMinutes(0) } }
+    func testUnloadAndModelSwitchWaitForActiveTranscription() async throws {
+        // UnloadWaitsForActiveTranscription
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let speech = LeaseSpeech(id: config.engineID)
+            let status = EngineStatus()
+            let factory = factory(status: status) { _ in speech }
+            let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: config) }
+            defer { transcription.cancel(); Task { await speech.release() } }
+            try await waitUntil("Transcription started") { await speech.isTranscribing }
+            var unloaded = false
+            let cleanup = Task { await factory.unloadAll(); unloaded = true }
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertFalse(unloaded)
+            let beforeRelease = await speech.snapshot()
+            XCTAssertEqual(beforeRelease, [.prepare, .transcribeStarted])
 
-        _ = await factory.pinForSession(config.engineID, recordingSeconds: 600)
-        clock.advance(120 + 600 + EngineFactory.sessionPinProcessingSeconds - 1)
-        await factory.unloadIdle()
-        XCTAssertEqual(status.state(for: config.engineID), .ready)
-        clock.advance(2)
-        await factory.unloadIdle()
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded, "A pin never holds a model indefinitely")
-        // Explicit unloads (model switch, reset, quit) are never blocked by pins.
-        let second = await factory.pinForSession(config.engineID, recordingSeconds: 600)
-        try await factory.prepare(config)
-        await factory.unloadAll()
-        XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
-        await factory.releaseSessionPin(second)
+            await speech.release()
+            _ = try await transcription.value
+            await cleanup.value
+            let afterRelease = await speech.snapshot()
+            XCTAssertEqual(afterRelease, [.prepare, .transcribeStarted, .transcribeFinished, .unload])
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+        }
+        // ModelSwitchWaitsForActiveTranscription
+        do {
+            let firstConfig = ASRConfig(kind: .parakeet)
+            let secondConfig = ASRConfig(kind: .qwen3, qwen3Model: "fixture/replacement")
+            let first = LeaseSpeech(id: firstConfig.engineID)
+            let second = LeaseSpeech(id: secondConfig.engineID)
+            let status = EngineStatus()
+            let factory = factory(status: status) { $0.kind == .parakeet ? first : second }
+            let transcription = Task { try await factory.transcribe([0.1], hints: .init(), config: firstConfig) }
+            defer { transcription.cancel(); Task { await first.release() } }
+            try await waitUntil("Transcription started") { await first.isTranscribing }
+            let switching = Task { try await factory.prepare(secondConfig) }
+            try await Task.sleep(for: .milliseconds(50))
+            let secondBeforeRelease = await second.snapshot()
+            let firstBeforeRelease = await first.snapshot()
+            XCTAssertTrue(secondBeforeRelease.isEmpty)
+            XCTAssertEqual(firstBeforeRelease, [.prepare, .transcribeStarted])
+
+            await first.release()
+            _ = try await transcription.value
+            try await switching.value
+            let firstAfterRelease = await first.snapshot()
+            let secondAfterRelease = await second.snapshot()
+            XCTAssertEqual(firstAfterRelease, [.prepare, .transcribeStarted, .transcribeFinished, .unload])
+            XCTAssertEqual(secondAfterRelease, [.prepare])
+            XCTAssertEqual(status.state(for: firstConfig.engineID), .notLoaded)
+            XCTAssertEqual(status.state(for: secondConfig.engineID), .ready)
+            await factory.unloadAll()
+        }
+    }
+
+    /// Idle timer unloads expired engines but not active inference; session pins keep a recording's engine and expire after their bounds.
+    func testIdleUnloadRespectsActiveInferenceAndBoundedSessionPins() async throws {
+        // IdleTimerUnloadsExpiredEngineButCannotInterruptActiveInference
+        // Uses the real one-minute setting and 30-second timer; normally takes 60 seconds.
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            // One injected clock replaces the minute this test once waited in real time.
+            let clock = TestClock()
+            let idleSpeech = LeaseSpeech(id: config.engineID, ready: true)
+            let idleStatus = EngineStatus()
+            let idleFactory = EngineFactory(status: idleStatus, credentialReader: { _ in nil },
+                                            transcriberBuilder: { _ in idleSpeech }, now: { clock.now })
+            _ = await idleFactory.transcriber(for: config)
+            idleStatus.set(config.engineID, .ready, at: clock.now)
+            await idleFactory.setIdleUnloadMinutes(1)
+
+            let busySpeech = LeaseSpeech(id: config.engineID)
+            let busyStatus = EngineStatus()
+            let busyFactory = EngineFactory(status: busyStatus, credentialReader: { _ in nil },
+                                            transcriberBuilder: { _ in busySpeech }, now: { clock.now })
+            await busyFactory.setIdleUnloadMinutes(1)
+            let transcription = Task { try await busyFactory.transcribe([0.1], hints: .init(), config: config) }
+            defer {
+                transcription.cancel()
+                Task {
+                    await busySpeech.release()
+                    await idleFactory.setIdleUnloadMinutes(0)
+                    await busyFactory.setIdleUnloadMinutes(0)
+                }
+            }
+            try await waitUntil("Busy transcription started") { await busySpeech.isTranscribing }
+            clock.advance(61)
+
+            await idleFactory.unloadIdle()
+            let idleEvents = await idleSpeech.snapshot()
+            XCTAssertTrue(idleEvents.contains(.unload))
+            XCTAssertEqual(idleStatus.state(for: config.engineID), .notLoaded)
+
+            // The busy factory's idle pass queues behind the inference lease.
+            let busyCheck = Task { await busyFactory.unloadIdle() }
+            try await Task.sleep(for: .milliseconds(50))
+            let beforeRelease = await busySpeech.snapshot()
+            XCTAssertEqual(beforeRelease, [.prepare, .transcribeStarted])
+            XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)
+
+            // Completed inference refreshes the use timestamp, so the queued pass
+            // leaves this engine resident.
+            await busySpeech.release()
+            _ = try await transcription.value
+            await busyCheck.value
+            let afterRelease = await busySpeech.snapshot()
+            XCTAssertEqual(afterRelease, [.prepare, .transcribeStarted, .transcribeFinished])
+            XCTAssertEqual(busyStatus.state(for: config.engineID), .ready)
+            await busyFactory.setIdleUnloadMinutes(0)
+            await busyFactory.unloadAll()
+        }
+        // SessionPinKeepsRecordingEngineResidentPastIdleTimeout
+        // Recordings longer than the idle setting must keep their speech model.
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let speech = LeaseSpeech(id: config.engineID)
+            let status = EngineStatus()
+            let clock = TestClock()
+            let factory = EngineFactory(status: status, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in speech }, now: { clock.now })
+            try await factory.prepare(config)
+            await factory.setIdleUnloadMinutes(5)
+            defer { Task { await factory.setIdleUnloadMinutes(0) } }
+
+            let pin = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+            clock.advance(9 * 60)
+            await factory.unloadIdle()
+            var events = await speech.snapshot()
+            XCTAssertFalse(events.contains(.unload), "A pinned engine survives the idle timeout")
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+
+            // The idle countdown restarts when the session ends.
+            await factory.releaseSessionPin(pin)
+            clock.advance(4 * 60)
+            await factory.unloadIdle()
+            events = await speech.snapshot()
+            XCTAssertFalse(events.contains(.unload), "Release refreshes the use timestamp")
+            clock.advance(2 * 60)
+            await factory.unloadIdle()
+            events = await speech.snapshot()
+            XCTAssertEqual(events.filter { $0 == .unload }.count, 1)
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+        }
+        // LeakedSessionPinExpiresAfterLoadRecordingAndProcessingBounds
+        do {
+            let config = ASRConfig(kind: .parakeet)
+            let speech = LeaseSpeech(id: config.engineID)
+            let status = EngineStatus()
+            let clock = TestClock()
+            let factory = EngineFactory(status: status, modelLoadTimeout: 120, credentialReader: { _ in nil },
+                                        transcriberBuilder: { _ in speech }, now: { clock.now })
+            try await factory.prepare(config)
+            await factory.setIdleUnloadMinutes(5)
+            defer { Task { await factory.setIdleUnloadMinutes(0) } }
+
+            _ = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+            clock.advance(120 + 600 + EngineFactory.sessionPinProcessingSeconds - 1)
+            await factory.unloadIdle()
+            XCTAssertEqual(status.state(for: config.engineID), .ready)
+            clock.advance(2)
+            await factory.unloadIdle()
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded, "A pin never holds a model indefinitely")
+            // Explicit unloads (model switch, reset, quit) are never blocked by pins.
+            let second = await factory.pinForSession(config.engineID, recordingSeconds: 600)
+            try await factory.prepare(config)
+            await factory.unloadAll()
+            XCTAssertEqual(status.state(for: config.engineID), .notLoaded)
+            await factory.releaseSessionPin(second)
+        }
     }
 
     private func factory(status: EngineStatus, timeout: TimeInterval = 120,

@@ -33,267 +33,294 @@ final class AdditionalCloudSpeechTests: XCTestCase {
         return data
     }
 
-    func testNativeMultipartContractsAndLanguageValidation() throws {
-        let cartesia = try CartesiaTranscriber(apiKey: " key ").makeRequest(samples: samples, hints: hints)
-        XCTAssertEqual(cartesia.url?.absoluteString, "https://api.cartesia.ai/stt")
-        XCTAssertEqual(cartesia.value(forHTTPHeaderField: "Cartesia-Version"), "2026-08-14")
-        XCTAssertEqual(cartesia.value(forHTTPHeaderField: "Authorization"), "Bearer key")
-        XCTAssertTrue(String(decoding: body(cartesia), as: UTF8.self).contains("\r\nzh\r\n"))
-        XCTAssertThrowsError(try CartesiaTranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init())) {
-            guard case SpeechLanguageError.automaticUnavailable = $0 else { return XCTFail("\($0)") }
-        }
-        let xai = try XAITranscriber(apiKey: "key").makeRequest(samples: samples, hints: hints)
-        XCTAssertEqual(xai.url?.path, "/v1/stt")
-        let xaiBody = String(decoding: body(xai), as: UTF8.self)
-        XCTAssertTrue(xaiBody.contains("grok-voice-transcribe-2.0"))
-        XCTAssertTrue(xaiBody.contains("name=\"keyterm\"\r\n\r\nC++"))
-        XCTAssertLessThan(try XCTUnwrap(xaiBody.range(of: "name=\"keyterm\"")?.lowerBound),
-                          try XCTUnwrap(xaiBody.range(of: "name=\"file\"")?.lowerBound))
-        let auto = try XAITranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init())
-        XCTAssertFalse(String(decoding: body(auto), as: UTF8.self).contains("name=\"language\""))
-        let mistral = try MistralTranscriber(apiKey: "key").makeRequest(samples: samples, hints: hints)
-        XCTAssertEqual(mistral.url?.absoluteString, "https://api.mistral.ai/v1/audio/transcriptions")
-        XCTAssertTrue(String(decoding: body(mistral), as: UTF8.self).contains("voxtral-mini-latest"))
-        XCTAssertThrowsError(try MistralTranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init(language: "yue")))
-    }
-
-    func testSynchronousRepliesAndHTTPFailures() async throws {
-        for kind in [ASRProviderKind.cartesia, .xAI, .mistral] {
-            let s = session { _ in .init(body: #"{"type":"transcript","text":"  中文 English  ","language":"zh"}"#) }
-            let engine: any Transcriber
-            switch kind {
-            case .cartesia: engine = CartesiaTranscriber(apiKey: "key", session: s)
-            case .xAI: engine = XAITranscriber(apiKey: "key", session: s)
-            default: engine = MistralTranscriber(apiKey: "key", session: s)
-            }
-            let result = try await engine.transcribe(samples: samples, hints: hints)
-            XCTAssertEqual(result.text, "中文 English")
-            XCTAssertEqual(result.language, "zh")
-            XCTAssertEqual(result.engine, ASRConfig(kind: kind).engineID)
-            s.invalidateAndCancel()
-        }
-        let s = session { _ in .init(status: 429, body: "quota") }
-        defer { s.invalidateAndCancel() }
+    /// Cartesia/xAI/Mistral multipart contracts, AssemblyAI stable and preview payloads, Speechmatics Mandarin and vocabulary.
+    func testRequestPayloadContractsAndLanguageValidation() throws {
+        // NativeMultipartContractsAndLanguageValidation
         do {
-            _ = try await XAITranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: .init())
-            XCTFail("Expected HTTP failure")
-        } catch TranscriberError.http(let status, _) { XCTAssertEqual(status, 429) }
-    }
-
-    func testAllNewAdaptersRejectMissingKeysAndEmptyAudioLocally() async {
-        let s = session { _ in XCTFail("Unexpected upload"); return .init(status: 500) }
-        defer { s.invalidateAndCancel() }
-        for key in [nil, "key"] as [String?] {
-            let engines: [any Transcriber] = [AssemblyAITranscriber(apiKey: key, session: s), CartesiaTranscriber(apiKey: key, session: s),
-                SpeechmaticsTranscriber(apiKey: key, session: s), XAITranscriber(apiKey: key, session: s),
-                MistralTranscriber(apiKey: key, session: s), GeminiTranscriber(apiKey: key, session: s)]
-            for engine in engines {
-                do {
-                    _ = try await engine.transcribe(samples: key == nil ? samples : [], hints: hints)
-                    XCTFail("Expected validation failure")
-                } catch TranscriberError.missingAPIKey { XCTAssertNil(key) }
-                catch TranscriberError.emptyAudio { XCTAssertNotNil(key) }
-                catch { XCTFail("\(error)") }
+            let cartesia = try CartesiaTranscriber(apiKey: " key ").makeRequest(samples: samples, hints: hints)
+            XCTAssertEqual(cartesia.url?.absoluteString, "https://api.cartesia.ai/stt")
+            XCTAssertEqual(cartesia.value(forHTTPHeaderField: "Cartesia-Version"), "2026-08-14")
+            XCTAssertEqual(cartesia.value(forHTTPHeaderField: "Authorization"), "Bearer key")
+            XCTAssertTrue(String(decoding: body(cartesia), as: UTF8.self).contains("\r\nzh\r\n"))
+            XCTAssertThrowsError(try CartesiaTranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init())) {
+                guard case SpeechLanguageError.automaticUnavailable = $0 else { return XCTFail("\($0)") }
             }
+            let xai = try XAITranscriber(apiKey: "key").makeRequest(samples: samples, hints: hints)
+            XCTAssertEqual(xai.url?.path, "/v1/stt")
+            let xaiBody = String(decoding: body(xai), as: UTF8.self)
+            XCTAssertTrue(xaiBody.contains("grok-voice-transcribe-2.0"))
+            XCTAssertTrue(xaiBody.contains("name=\"keyterm\"\r\n\r\nC++"))
+            XCTAssertLessThan(try XCTUnwrap(xaiBody.range(of: "name=\"keyterm\"")?.lowerBound),
+                              try XCTUnwrap(xaiBody.range(of: "name=\"file\"")?.lowerBound))
+            let auto = try XAITranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init())
+            XCTAssertFalse(String(decoding: body(auto), as: UTF8.self).contains("name=\"language\""))
+            let mistral = try MistralTranscriber(apiKey: "key").makeRequest(samples: samples, hints: hints)
+            XCTAssertEqual(mistral.url?.absoluteString, "https://api.mistral.ai/v1/audio/transcriptions")
+            XCTAssertTrue(String(decoding: body(mistral), as: UTF8.self).contains("voxtral-mini-latest"))
+            XCTAssertThrowsError(try MistralTranscriber(apiKey: "key").makeRequest(samples: samples, hints: .init(language: "yue")))
+        }
+        // AssemblyPayloadUsesOnlySelectedModelAndMixedLanguageRecognition
+        do {
+            let engine = AssemblyAITranscriber(apiKey: "key")
+            let payload = try engine.payload(audioURL: "https://fixture.invalid/audio", hints: hints)
+            XCTAssertEqual(payload["speech_models"] as? [String], ["universal-3-5-pro"])
+            XCTAssertEqual(payload["keyterms_prompt"] as? [String], ["Airdraft", "C++"])
+            let options = try XCTUnwrap(payload["language_detection_options"] as? [String: Any])
+            XCTAssertEqual(options["expected_languages"] as? [String], ["en", "zh"])
+            XCTAssertEqual(options["code_switching"] as? Bool, true)
+            XCTAssertNil(payload["prompt"])
+            XCTAssertThrowsError(try engine.payload(audioURL: "", hints: .init(language: "yue")))
+            XCTAssertEqual(SpeechLanguagePolicy.assemblyLanguages.count, 18)
+        }
+        // AssemblyPreviewDoesNotInheritStableOrStreamingLanguageClaims
+        do {
+            let engine = AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key")
+            let automatic = try engine.payload(audioURL: "", hints: .init())
+            let options = try XCTUnwrap(automatic["language_detection_options"] as? [String: Any])
+            XCTAssertNil(options["expected_languages"], "Do not restrict the preview to 3.5 Pro's 18 languages.")
+            let payload = try engine.payload(audioURL: "", hints: .init(language: "yue"))
+            let explicit = try XCTUnwrap(payload["language_detection_options"] as? [String: Any])
+            XCTAssertEqual(explicit["expected_languages"] as? [String], ["en", "yue"])
+            let capabilities = SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .assemblyAI, model: engine.model))
+            XCTAssertNil(capabilities.supportedLanguages)
+            XCTAssertNil(capabilities.supportsAutomatic)
+            XCTAssertTrue(capabilities.modelName.contains("3.6"))
+            XCTAssertThrowsError(try AssemblyAITranscriber(model: "universal-3-6-pro", apiKey: "key").payload(audioURL: "", hints: .init()))
+        }
+        // SpeechmaticsMandarinAndVocabularyPayload
+        do {
+            let config = try XCTUnwrap(SpeechmaticsTranscriber(apiKey: "key").payload(hints: hints)["transcription_config"] as? [String: Any])
+            XCTAssertEqual(config["model"] as? String, "enhanced")
+            XCTAssertEqual(config["language"] as? String, "cmn")
+            XCTAssertEqual((config["additional_vocab"] as? [[String: String]])?.map { $0["content"]! }, ["Airdraft", "C++"])
+            let automatic = try SpeechmaticsTranscriber(apiKey: "key").payload(hints: .init())
+            XCTAssertEqual((automatic["transcription_config"] as? [String: Any])?["language"] as? String, "auto")
         }
     }
 
-    func testAssemblyPayloadUsesOnlySelectedModelAndMixedLanguageRecognition() throws {
-        let engine = AssemblyAITranscriber(apiKey: "key")
-        let payload = try engine.payload(audioURL: "https://fixture.invalid/audio", hints: hints)
-        XCTAssertEqual(payload["speech_models"] as? [String], ["universal-3-5-pro"])
-        XCTAssertEqual(payload["keyterms_prompt"] as? [String], ["Airdraft", "C++"])
-        let options = try XCTUnwrap(payload["language_detection_options"] as? [String: Any])
-        XCTAssertEqual(options["expected_languages"] as? [String], ["en", "zh"])
-        XCTAssertEqual(options["code_switching"] as? Bool, true)
-        XCTAssertNil(payload["prompt"])
-        XCTAssertThrowsError(try engine.payload(audioURL: "", hints: .init(language: "yue")))
-        XCTAssertEqual(SpeechLanguagePolicy.assemblyLanguages.count, 18)
-    }
-
-    func testAssemblyBatchCompletesAndDeletesOwnJob() async throws {
-        for model in ModelCatalog.transcriptionModels(for: .assemblyAI) {
-            let deleted = expectation(description: "Assembly job deleted")
-            let s = session { request in
-                XCTAssertEqual(request.url?.host, "api.assemblyai.com")
-                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "key")
-                if request.httpMethod == "DELETE" {
-                    XCTAssertEqual(request.url?.path, "/v2/transcript/\(Self.jobID)"); deleted.fulfill(); return .init()
-                }
-                switch request.url?.path {
-                case "/v2/upload":
-                    XCTAssertEqual(Self.body(request), WAVEncoder.encode(samples: Self.samples))
-                    return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
-                case "/v2/transcript":
-                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
-                    XCTAssertEqual(payload["speech_models"] as? [String], [model])
-                    return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
-                default: return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
-                }
-            }
+    func testLocalValidationSynchronousRepliesAndHTTPFailures() async throws {
+        // AllNewAdaptersRejectMissingKeysAndEmptyAudioLocally
+        do {
+            let s = session { _ in XCTFail("Unexpected upload"); return .init(status: 500) }
             defer { s.invalidateAndCancel() }
-            let result = try await AssemblyAITranscriber(model: model, apiKey: "key", session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
-            XCTAssertEqual(result.text, "中文 English")
-            XCTAssertEqual(result.engine, "assemblyAI:\(model)")
-            await fulfillment(of: [deleted], timeout: 1)
-        }
-    }
-
-    func testAssemblyPreviewDoesNotInheritStableOrStreamingLanguageClaims() throws {
-        let engine = AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key")
-        let automatic = try engine.payload(audioURL: "", hints: .init())
-        let options = try XCTUnwrap(automatic["language_detection_options"] as? [String: Any])
-        XCTAssertNil(options["expected_languages"], "Do not restrict the preview to 3.5 Pro's 18 languages.")
-        let payload = try engine.payload(audioURL: "", hints: .init(language: "yue"))
-        let explicit = try XCTUnwrap(payload["language_detection_options"] as? [String: Any])
-        XCTAssertEqual(explicit["expected_languages"] as? [String], ["en", "yue"])
-        let capabilities = SpeechLanguagePolicy.capabilities(for: ASRConfig(kind: .assemblyAI, model: engine.model))
-        XCTAssertNil(capabilities.supportedLanguages)
-        XCTAssertNil(capabilities.supportsAutomatic)
-        XCTAssertTrue(capabilities.modelName.contains("3.6"))
-        XCTAssertThrowsError(try AssemblyAITranscriber(model: "universal-3-6-pro", apiKey: "key").payload(audioURL: "", hints: .init()))
-    }
-
-    func testAssemblyPreviewFailureDoesNotRetryWithStableModel() async {
-        for reply in [
-            "{\"id\":\"\(jobID)\",\"status\":\"error\",\"error\":\"Preview unavailable\"}",
-            "{\"id\":\"\(jobID)\",\"status\":\"completed\",\"text\":\"Wrong model\",\"speech_model_used\":\"universal-3-5-pro\"}"
-        ] {
-            let deleted = expectation(description: "Failed preview job deleted")
-            let submittedModels = Locked<[[String]]>([])
-            let s = session { request in
-                if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
-                if request.url?.lastPathComponent == "upload" {
-                    return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
+            for key in [nil, "key"] as [String?] {
+                let engines: [any Transcriber] = [AssemblyAITranscriber(apiKey: key, session: s), CartesiaTranscriber(apiKey: key, session: s),
+                    SpeechmaticsTranscriber(apiKey: key, session: s), XAITranscriber(apiKey: key, session: s),
+                    MistralTranscriber(apiKey: key, session: s), GeminiTranscriber(apiKey: key, session: s)]
+                for engine in engines {
+                    do {
+                        _ = try await engine.transcribe(samples: key == nil ? samples : [], hints: hints)
+                        XCTFail("Expected validation failure")
+                    } catch TranscriberError.missingAPIKey { XCTAssertNil(key) }
+                    catch TranscriberError.emptyAudio { XCTAssertNotNil(key) }
+                    catch { XCTFail("\(error)") }
                 }
-                if request.httpMethod == "POST" {
-                    let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
-                    let models = try XCTUnwrap(payload["speech_models"] as? [String])
-                    submittedModels.withLock { $0.append(models) }
-                    return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
-                }
-                return .init(body: reply)
             }
+        }
+        // SynchronousRepliesAndHTTPFailures
+        do {
+            for kind in [ASRProviderKind.cartesia, .xAI, .mistral] {
+                let s = session { _ in .init(body: #"{"type":"transcript","text":"  中文 English  ","language":"zh"}"#) }
+                let engine: any Transcriber
+                switch kind {
+                case .cartesia: engine = CartesiaTranscriber(apiKey: "key", session: s)
+                case .xAI: engine = XAITranscriber(apiKey: "key", session: s)
+                default: engine = MistralTranscriber(apiKey: "key", session: s)
+                }
+                let result = try await engine.transcribe(samples: samples, hints: hints)
+                XCTAssertEqual(result.text, "中文 English")
+                XCTAssertEqual(result.language, "zh")
+                XCTAssertEqual(result.engine, ASRConfig(kind: kind).engineID)
+                s.invalidateAndCancel()
+            }
+            let s = session { _ in .init(status: 429, body: "quota") }
             defer { s.invalidateAndCancel() }
             do {
-                _ = try await AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key", session: s, pollInterval: 0.01)
-                    .transcribe(samples: samples, hints: hints)
-                XCTFail("Expected preview error")
-            } catch TranscriberError.providerFailure(let provider, let message) {
-                XCTAssertEqual(provider, "AssemblyAI")
-                XCTAssertTrue(message == "Preview unavailable" || message.contains("AssemblyAI used universal-3-5-pro"))
-            } catch { XCTFail("\(error)") }
-            XCTAssertEqual(submittedModels.value, [["universal-3-6-pro-preview"]])
+                _ = try await XAITranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: .init())
+                XCTFail("Expected HTTP failure")
+            } catch TranscriberError.http(let status, _) { XCTAssertEqual(status, 429) }
+        }
+    }
+
+    /// Assembly and Speechmatics batches complete, a failed preview never retries 3.5 Pro, and a timeout deletes the job.
+    func testBatchJobsCompleteFailOrTimeOutAndDeleteOwnJob() async throws {
+        // AssemblyBatchCompletesAndDeletesOwnJob
+        do {
+            for model in ModelCatalog.transcriptionModels(for: .assemblyAI) {
+                let deleted = expectation(description: "Assembly job deleted")
+                let s = session { request in
+                    XCTAssertEqual(request.url?.host, "api.assemblyai.com")
+                    XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "key")
+                    if request.httpMethod == "DELETE" {
+                        XCTAssertEqual(request.url?.path, "/v2/transcript/\(Self.jobID)"); deleted.fulfill(); return .init()
+                    }
+                    switch request.url?.path {
+                    case "/v2/upload":
+                        XCTAssertEqual(Self.body(request), WAVEncoder.encode(samples: Self.samples))
+                        return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
+                    case "/v2/transcript":
+                        let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
+                        XCTAssertEqual(payload["speech_models"] as? [String], [model])
+                        return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
+                    default: return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"completed\",\"text\":\"中文 English\",\"language_code\":\"zh\"}")
+                    }
+                }
+                defer { s.invalidateAndCancel() }
+                let result = try await AssemblyAITranscriber(model: model, apiKey: "key", session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
+                XCTAssertEqual(result.text, "中文 English")
+                XCTAssertEqual(result.engine, "assemblyAI:\(model)")
+                await fulfillment(of: [deleted], timeout: 1)
+            }
+        }
+        // AssemblyPreviewFailureDoesNotRetryWithStableModel
+        do {
+            for reply in [
+                "{\"id\":\"\(jobID)\",\"status\":\"error\",\"error\":\"Preview unavailable\"}",
+                "{\"id\":\"\(jobID)\",\"status\":\"completed\",\"text\":\"Wrong model\",\"speech_model_used\":\"universal-3-5-pro\"}"
+            ] {
+                let deleted = expectation(description: "Failed preview job deleted")
+                let submittedModels = Locked<[[String]]>([])
+                let s = session { request in
+                    if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
+                    if request.url?.lastPathComponent == "upload" {
+                        return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#)
+                    }
+                    if request.httpMethod == "POST" {
+                        let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.body(request)) as? [String: Any])
+                        let models = try XCTUnwrap(payload["speech_models"] as? [String])
+                        submittedModels.withLock { $0.append(models) }
+                        return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
+                    }
+                    return .init(body: reply)
+                }
+                defer { s.invalidateAndCancel() }
+                do {
+                    _ = try await AssemblyAITranscriber(model: "universal-3-6-pro-preview", apiKey: "key", session: s, pollInterval: 0.01)
+                        .transcribe(samples: samples, hints: hints)
+                    XCTFail("Expected preview error")
+                } catch TranscriberError.providerFailure(let provider, let message) {
+                    XCTAssertEqual(provider, "AssemblyAI")
+                    XCTAssertTrue(message == "Preview unavailable" || message.contains("AssemblyAI used universal-3-5-pro"))
+                } catch { XCTFail("\(error)") }
+                XCTAssertEqual(submittedModels.value, [["universal-3-6-pro-preview"]])
+                await fulfillment(of: [deleted], timeout: 1)
+            }
+        }
+        // SpeechmaticsBatchCompletesAndDeletesAudioAndJob
+        do {
+            let deleted = expectation(description: "Speechmatics job deleted")
+            let s = session { request in
+                XCTAssertEqual(request.url?.host, "eu1.asr.api.speechmatics.com")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer key")
+                if request.httpMethod == "DELETE" {
+                    XCTAssertEqual(request.url?.path, "/v2/jobs/fixture-job")
+                    XCTAssertEqual(request.url?.query, "force=true"); deleted.fulfill(); return .init()
+                }
+                if request.httpMethod == "POST" {
+                    let body = String(decoding: Self.body(request), as: UTF8.self)
+                    XCTAssertTrue(body.contains("name=\"data_file\""))
+                    XCTAssertTrue(body.contains("Content-Type: application/json"))
+                    return .init(status: 201, body: #"{"id":"fixture-job"}"#)
+                }
+                if request.url?.lastPathComponent == "transcript" {
+                    XCTAssertEqual(request.url?.query, "format=txt"); return .init(body: "  中文 English  ")
+                }
+                return .init(body: #"{"job":{"id":"fixture-job","status":"done"}}"#)
+            }
+            defer { s.invalidateAndCancel() }
+            let result = try await SpeechmaticsTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints)
+            XCTAssertEqual(result.text, "中文 English")
             await fulfillment(of: [deleted], timeout: 1)
         }
-    }
-
-    func testSpeechmaticsMandarinAndVocabularyPayload() throws {
-        let config = try XCTUnwrap(SpeechmaticsTranscriber(apiKey: "key").payload(hints: hints)["transcription_config"] as? [String: Any])
-        XCTAssertEqual(config["model"] as? String, "enhanced")
-        XCTAssertEqual(config["language"] as? String, "cmn")
-        XCTAssertEqual((config["additional_vocab"] as? [[String: String]])?.map { $0["content"]! }, ["Airdraft", "C++"])
-        let automatic = try SpeechmaticsTranscriber(apiKey: "key").payload(hints: .init())
-        XCTAssertEqual((automatic["transcription_config"] as? [String: Any])?["language"] as? String, "auto")
-    }
-
-    func testSpeechmaticsBatchCompletesAndDeletesAudioAndJob() async throws {
-        let deleted = expectation(description: "Speechmatics job deleted")
-        let s = session { request in
-            XCTAssertEqual(request.url?.host, "eu1.asr.api.speechmatics.com")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer key")
-            if request.httpMethod == "DELETE" {
-                XCTAssertEqual(request.url?.path, "/v2/jobs/fixture-job")
-                XCTAssertEqual(request.url?.query, "force=true"); deleted.fulfill(); return .init()
-            }
-            if request.httpMethod == "POST" {
-                let body = String(decoding: Self.body(request), as: UTF8.self)
-                XCTAssertTrue(body.contains("name=\"data_file\""))
-                XCTAssertTrue(body.contains("Content-Type: application/json"))
-                return .init(status: 201, body: #"{"id":"fixture-job"}"#)
-            }
-            if request.url?.lastPathComponent == "transcript" {
-                XCTAssertEqual(request.url?.query, "format=txt"); return .init(body: "  中文 English  ")
-            }
-            return .init(body: #"{"job":{"id":"fixture-job","status":"done"}}"#)
-        }
-        defer { s.invalidateAndCancel() }
-        let result = try await SpeechmaticsTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints)
-        XCTAssertEqual(result.text, "中文 English")
-        await fulfillment(of: [deleted], timeout: 1)
-    }
-
-    func testBatchCancellationStillDeletesOnlyOwnedJob() async throws {
-        for kind in [ASRProviderKind.assemblyAI, .speechmatics] {
-            let polling = expectation(description: "Poll started"), deleted = expectation(description: "Cancelled job deleted")
+        // BatchTimeoutDeletesOwnJob
+        do {
+            let deleted = expectation(description: "Timed out job deleted")
             let s = session { request in
                 if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
                 if request.url?.lastPathComponent == "upload" { return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#) }
-                if request.httpMethod == "POST" {
-                    return .init(body: kind == .assemblyAI ? "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}" : #"{"id":"fixture-job"}"#)
-                }
-                polling.fulfill(); return nil // Hold the poll until cancellation.
+                return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
             }
-            let engine: any Transcriber = kind == .assemblyAI ? AssemblyAITranscriber(apiKey: "key", session: s, pollInterval: 0.01) :
-                SpeechmaticsTranscriber(apiKey: "key", session: s, pollInterval: 0.01)
+            defer { s.invalidateAndCancel() }
+            do {
+                _ = try await AssemblyAITranscriber(apiKey: "key", timeout: 0.04, session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
+                XCTFail("Expected timeout")
+            } catch { XCTAssertTrue(error is TranscriberError) }
+            await fulfillment(of: [deleted], timeout: 1)
+        }
+    }
+
+    func testCancellationDeletesOwnedBatchJobsAndGeminiFile() async throws {
+        // BatchCancellationStillDeletesOnlyOwnedJob
+        do {
+            for kind in [ASRProviderKind.assemblyAI, .speechmatics] {
+                let polling = expectation(description: "Poll started"), deleted = expectation(description: "Cancelled job deleted")
+                let s = session { request in
+                    if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
+                    if request.url?.lastPathComponent == "upload" { return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#) }
+                    if request.httpMethod == "POST" {
+                        return .init(body: kind == .assemblyAI ? "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}" : #"{"id":"fixture-job"}"#)
+                    }
+                    polling.fulfill(); return nil // Hold the poll until cancellation.
+                }
+                let engine: any Transcriber = kind == .assemblyAI ? AssemblyAITranscriber(apiKey: "key", session: s, pollInterval: 0.01) :
+                    SpeechmaticsTranscriber(apiKey: "key", session: s, pollInterval: 0.01)
+                let (samples, hints) = (samples, hints)
+                let task = Task { try await engine.transcribe(samples: samples, hints: hints) }
+                await fulfillment(of: [polling], timeout: 2)
+                task.cancel()
+                do { _ = try await task.value; XCTFail("Expected cancellation") }
+                catch { XCTAssertTrue(error is CancellationError || (error as? URLError)?.code == .cancelled) }
+                await fulfillment(of: [deleted], timeout: 1)
+                s.invalidateAndCancel()
+            }
+        }
+        // GeminiCancellationDeletesItsUploadedFile
+        do {
+            let pending = expectation(description: "Gemini interaction pending"), deleted = expectation(description: "Cancelled Gemini file deleted")
+            let s = geminiSession(deleted: deleted, response: "", pending: pending)
+            defer { s.invalidateAndCancel() }
             let (samples, hints) = (samples, hints)
-            let task = Task { try await engine.transcribe(samples: samples, hints: hints) }
-            await fulfillment(of: [polling], timeout: 2)
+            let task = Task { try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints) }
+            await fulfillment(of: [pending], timeout: 2)
             task.cancel()
             do { _ = try await task.value; XCTFail("Expected cancellation") }
             catch { XCTAssertTrue(error is CancellationError || (error as? URLError)?.code == .cancelled) }
             await fulfillment(of: [deleted], timeout: 1)
-            s.invalidateAndCancel()
         }
     }
 
-    func testBatchTimeoutDeletesOwnJob() async {
-        let deleted = expectation(description: "Timed out job deleted")
-        let s = session { request in
-            if request.httpMethod == "DELETE" { deleted.fulfill(); return .init() }
-            if request.url?.lastPathComponent == "upload" { return .init(body: #"{"upload_url":"https://cdn.assemblyai.com/upload/fixture"}"#) }
-            return .init(body: "{\"id\":\"\(Self.jobID)\",\"status\":\"queued\"}")
-        }
-        defer { s.invalidateAndCancel() }
+    func testGeminiVerbatimSchemaRejectsPartialResponsesAndUntrustedUploadHost() async throws {
+        // GeminiUsesVerbatimAndCurrentStepsSchemaAndDeletesFile
         do {
-            _ = try await AssemblyAITranscriber(apiKey: "key", timeout: 0.04, session: s, pollInterval: 0.01).transcribe(samples: samples, hints: hints)
-            XCTFail("Expected timeout")
-        } catch { XCTAssertTrue(error is TranscriberError) }
-        await fulfillment(of: [deleted], timeout: 1)
-    }
-
-    func testGeminiUsesVerbatimAndCurrentStepsSchemaAndDeletesFile() async throws {
-        let deleted = expectation(description: "Gemini file deleted")
-        let s = geminiSession(deleted: deleted, response: #"{"status":"completed","steps":[{"type":"thought","summary":[]},{"type":"model_output","content":[{"type":"text","text":"um 中文 "},{"type":"text","text":"English"}]}]}"#)
-        defer { s.invalidateAndCancel() }
-        let result = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints)
-        XCTAssertEqual(result.text, "um 中文 English")
-        await fulfillment(of: [deleted], timeout: 1)
-    }
-
-    func testGeminiRejectsPartialOrMalformedTranscriptsAndStillDeletesFile() async {
-        for response in [#"{"status":"in_progress","steps":[{"type":"model_output","content":[{"type":"text","text":"partial"}]}]}"#,
-                         #"{"status":"completed","steps":[]}"#, #"{"status":"completed","outputs":[{"type":"text","text":"old"}]}"#] {
-            let deleted = expectation(description: "Failed Gemini file deleted")
-            let s = geminiSession(deleted: deleted, response: response)
-            do { _ = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints); XCTFail("Expected invalid response") }
-            catch { guard case TranscriberError.invalidResponse = error else { return XCTFail("\(error)") } }
+            let deleted = expectation(description: "Gemini file deleted")
+            let s = geminiSession(deleted: deleted, response: #"{"status":"completed","steps":[{"type":"thought","summary":[]},{"type":"model_output","content":[{"type":"text","text":"um 中文 "},{"type":"text","text":"English"}]}]}"#)
+            defer { s.invalidateAndCancel() }
+            let result = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints)
+            XCTAssertEqual(result.text, "um 中文 English")
             await fulfillment(of: [deleted], timeout: 1)
-            s.invalidateAndCancel()
         }
-    }
-
-    func testGeminiCancellationDeletesItsUploadedFile() async {
-        let pending = expectation(description: "Gemini interaction pending"), deleted = expectation(description: "Cancelled Gemini file deleted")
-        let s = geminiSession(deleted: deleted, response: "", pending: pending)
-        defer { s.invalidateAndCancel() }
-        let (samples, hints) = (samples, hints)
-        let task = Task { try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints) }
-        await fulfillment(of: [pending], timeout: 2)
-        task.cancel()
-        do { _ = try await task.value; XCTFail("Expected cancellation") }
-        catch { XCTAssertTrue(error is CancellationError || (error as? URLError)?.code == .cancelled) }
-        await fulfillment(of: [deleted], timeout: 1)
+        // GeminiRejectsPartialOrMalformedTranscriptsAndStillDeletesFile
+        do {
+            for response in [#"{"status":"in_progress","steps":[{"type":"model_output","content":[{"type":"text","text":"partial"}]}]}"#,
+                             #"{"status":"completed","steps":[]}"#, #"{"status":"completed","outputs":[{"type":"text","text":"old"}]}"#] {
+                let deleted = expectation(description: "Failed Gemini file deleted")
+                let s = geminiSession(deleted: deleted, response: response)
+                do { _ = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints); XCTFail("Expected invalid response") }
+                catch { guard case TranscriberError.invalidResponse = error else { return XCTFail("\(error)") } }
+                await fulfillment(of: [deleted], timeout: 1)
+                s.invalidateAndCancel()
+            }
+        }
+        // GeminiDoesNotForwardKeyToAnUntrustedUploadHost
+        do {
+            let s = session { request in
+                XCTAssertEqual(request.url?.host, "generativelanguage.googleapis.com")
+                return .init(headers: ["X-Goog-Upload-URL": "https://attacker.invalid/upload"])
+            }
+            defer { s.invalidateAndCancel() }
+            do { _ = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints); XCTFail("Expected rejection") }
+            catch { guard case TranscriberError.invalidResponse = error else { return XCTFail("\(error)") } }
+        }
     }
 
     private func geminiSession(deleted: XCTestExpectation, response: String, pending: XCTestExpectation? = nil) -> URLSession {
@@ -323,15 +350,6 @@ final class AdditionalCloudSpeechTests: XCTestCase {
         }
     }
 
-    func testGeminiDoesNotForwardKeyToAnUntrustedUploadHost() async {
-        let s = session { request in
-            XCTAssertEqual(request.url?.host, "generativelanguage.googleapis.com")
-            return .init(headers: ["X-Goog-Upload-URL": "https://attacker.invalid/upload"])
-        }
-        defer { s.invalidateAndCancel() }
-        do { _ = try await GeminiTranscriber(apiKey: "key", session: s).transcribe(samples: samples, hints: hints); XCTFail("Expected rejection") }
-        catch { guard case TranscriberError.invalidResponse = error else { return XCTFail("\(error)") } }
-    }
 }
 
 struct AdditionalSpeechResponse: Sendable {

@@ -6,56 +6,61 @@ import XCTest
 /// the tests never depend on how fast the machine runs.
 @MainActor
 final class HUDPreviewNoticeTests: XCTestCase {
-    func testNoticeFadesAndClearsAfterItsDeadline() async throws {
-        let clock = ManualSleep()
-        let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
-        // Clearing cancels any phase still waiting, so no task outlives the test.
-        defer { notice.present(nil) }
-        notice.present("Model doesn’t support live text")
-        XCTAssertEqual(notice.message, "Model doesn’t support live text")
-        XCTAssertFalse(notice.isFading)
-        try await waitUntil { clock.waiting == [2] }
-        clock.elapse()
-        try await waitUntil { notice.isFading }
-        XCTAssertNotNil(notice.message, "The notice stays laid out while it fades")
-        try await waitUntil { clock.waiting == [0.3] }
-        clock.elapse()
-        try await waitUntil { notice.message == nil }
-    }
+    /// Each phase has its own clock and notice: the notice fades and clears after its deadline,
+    /// repeating it keeps the first deadline and an expired one does not reopen, and clearing
+    /// lets the next recording show it again.
+    func testNoticeFadesAfterItsDeadlineKeepsItWhenRepeatedAndReopensAfterClearing() async throws {
+        do {
+            let clock = ManualSleep()
+            let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
+            // Clearing cancels any phase still waiting, so no task outlives the test.
+            defer { notice.present(nil) }
+            notice.present("Model doesn’t support live text")
+            XCTAssertEqual(notice.message, "Model doesn’t support live text")
+            XCTAssertFalse(notice.isFading)
+            try await waitUntil { clock.waiting == [2] }
+            clock.elapse()
+            try await waitUntil { notice.isFading }
+            XCTAssertNotNil(notice.message, "The notice stays laid out while it fades")
+            try await waitUntil { clock.waiting == [0.3] }
+            clock.elapse()
+            try await waitUntil { notice.message == nil }
+        }
 
-    func testRepeatingTheSameNoticeKeepsItsDeadline() async throws {
-        let clock = ManualSleep()
-        let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
-        // Clearing cancels any phase still waiting, so no task outlives the test.
-        defer { notice.present(nil) }
-        notice.present("Same")
-        try await waitUntil { clock.waiting == [2] }
-        notice.present("Same")
-        await Task.yield()
-        XCTAssertEqual(clock.waiting, [2], "Repeating the notice must not start a new deadline")
-        clock.elapse()
-        try await waitUntil { clock.waiting == [0.3] }
-        clock.elapse()
-        try await waitUntil { notice.message == nil }
-        // Once expired, the same recording's notice does not reopen.
-        notice.present("Same")
-        XCTAssertNil(notice.message)
-        XCTAssertEqual(clock.waiting, [])
-    }
+        do {
+            let clock = ManualSleep()
+            let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
+            // Clearing cancels any phase still waiting, so no task outlives the test.
+            defer { notice.present(nil) }
+            notice.present("Same")
+            try await waitUntil { clock.waiting == [2] }
+            notice.present("Same")
+            await Task.yield()
+            XCTAssertEqual(clock.waiting, [2], "Repeating the notice must not start a new deadline")
+            clock.elapse()
+            try await waitUntil { clock.waiting == [0.3] }
+            clock.elapse()
+            try await waitUntil { notice.message == nil }
+            // Once expired, the same recording's notice does not reopen.
+            notice.present("Same")
+            XCTAssertNil(notice.message)
+            XCTAssertEqual(clock.waiting, [])
+        }
 
-    func testClearingLetsTheNextRecordingShowItAgain() async throws {
-        let clock = ManualSleep()
-        let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
-        // Clearing cancels any phase still waiting, so no task outlives the test.
-        defer { notice.present(nil) }
-        notice.present("Same")
-        try await waitUntil { clock.waiting == [2] }
-        notice.present(nil)
-        XCTAssertNil(notice.message)
-        try await waitUntil { clock.waiting.isEmpty }
-        notice.present("Same")
-        XCTAssertEqual(notice.message, "Same")
-        XCTAssertFalse(notice.isFading)
+        do {
+            let clock = ManualSleep()
+            let notice = HUDPreviewNotice(visibleFor: 2, fadeFor: 0.3, sleep: clock.sleep)
+            // Clearing cancels any phase still waiting, so no task outlives the test.
+            defer { notice.present(nil) }
+            notice.present("Same")
+            try await waitUntil { clock.waiting == [2] }
+            notice.present(nil)
+            XCTAssertNil(notice.message)
+            try await waitUntil { clock.waiting.isEmpty }
+            notice.present("Same")
+            XCTAssertEqual(notice.message, "Same")
+            XCTAssertFalse(notice.isFading)
+        }
     }
 
     /// Polls for a state the manual clock has already made inevitable; the

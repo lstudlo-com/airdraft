@@ -159,6 +159,9 @@ schemes:
     test:
       config: Debug
       # Core tests build into the app's DerivedData instead of a second SwiftPM tree.
+      # Both bundles run in parallel test clones: every test owns its fixtures.
       targets:
         - package: AirdraftCore/AirdraftCoreTests
-        - AirdraftAppTests
+          parallelizable: true
+        - name: AirdraftAppTests
+          parallelizable: true

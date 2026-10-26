@@ -31,66 +31,70 @@ final class ModelOwnershipTests: XCTestCase {
         XCTAssertTrue(nowReady)
     }
 
-    func testCancelledDownloadCannotReportCompletionOrStartDuplicate() async throws {
-        let operation = DownloadGate()
-        var completions = 0
-        let store = ModelDownloadStore(download: { _, progress in
-            await operation.run(progress)
-        }, installed: { _ in true })
-        let config = ASRConfig(kind: .qwen3)
-        store.start(config) { completions += 1 }
-        for _ in 0..<200 {
-            if await operation.started { break }
-            try await Task.sleep(for: .milliseconds(5))
+    func testCancelledOrIncompleteDownloadNeverCompletesOrSelectsModel() async throws {
+        do { // CancelledDownloadCannotReportCompletionOrStartDuplicate
+            let operation = DownloadGate()
+            var completions = 0
+            let store = ModelDownloadStore(download: { _, progress in
+                await operation.run(progress)
+            }, installed: { _ in true })
+            let config = ASRConfig(kind: .qwen3)
+            store.start(config) { completions += 1 }
+            for _ in 0..<200 {
+                if await operation.started { break }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            store.start(config) { completions += 1 }
+            XCTAssertNotNil(store.jobs[config.engineID]?.progress)
+            store.cancel(config)
+            await operation.finish()
+            for _ in 0..<200 {
+                if !store.isBusy { break }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertEqual(completions, 0)
+            XCTAssertNil(store.jobs[config.engineID]?.progress)
+            XCTAssertTrue(store.jobs[config.engineID]?.error?.contains("cancelled") == true)
+            let calls = await operation.calls
+            XCTAssertEqual(calls, 1)
         }
-        store.start(config) { completions += 1 }
-        XCTAssertNotNil(store.jobs[config.engineID]?.progress)
-        store.cancel(config)
-        await operation.finish()
-        for _ in 0..<200 {
-            if !store.isBusy { break }
-            try await Task.sleep(for: .milliseconds(5))
+
+        do { // IncompleteDownloadDoesNotSelectModel
+            let store = ModelDownloadStore(download: { _, _ in }, installed: { _ in false })
+            var completed = false
+            let config = ASRConfig(kind: .whisperKit)
+            store.start(config) { completed = true }
+            for _ in 0..<200 {
+                if !store.isBusy { break }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertFalse(completed)
+            XCTAssertTrue(store.jobs[config.engineID]?.error?.contains("incomplete") == true)
         }
-        XCTAssertEqual(completions, 0)
-        XCTAssertNil(store.jobs[config.engineID]?.progress)
-        XCTAssertTrue(store.jobs[config.engineID]?.error?.contains("cancelled") == true)
-        let calls = await operation.calls
-        XCTAssertEqual(calls, 1)
     }
 
-    func testIncompleteDownloadDoesNotSelectModel() async throws {
-        let store = ModelDownloadStore(download: { _, _ in }, installed: { _ in false })
-        var completed = false
-        let config = ASRConfig(kind: .whisperKit)
-        store.start(config) { completed = true }
-        for _ in 0..<200 {
-            if !store.isBusy { break }
-            try await Task.sleep(for: .milliseconds(5))
+    func testWhisperTokenizerNeedsEveryFileAndAppleEngineIdentityFollowsLanguage() async throws {
+        do { // TokenizerRequiresEveryFileNotOnlyFirstFile
+            let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: dir) }
+            try Data("{}".utf8).write(to: dir.appendingPathComponent("tokenizer.json"))
+            XCTAssertFalse(LocalModels.hasWhisperTokenizer(at: dir))
+            for file in LocalModels.whisperTokenizerFiles {
+                try Data("{}".utf8).write(to: dir.appendingPathComponent(file))
+            }
+            XCTAssertTrue(LocalModels.hasWhisperTokenizer(at: dir))
         }
-        XCTAssertFalse(completed)
-        XCTAssertTrue(store.jobs[config.engineID]?.error?.contains("incomplete") == true)
-    }
 
-    func testTokenizerRequiresEveryFileNotOnlyFirstFile() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        try Data("{}".utf8).write(to: dir.appendingPathComponent("tokenizer.json"))
-        XCTAssertFalse(LocalModels.hasWhisperTokenizer(at: dir))
-        for file in LocalModels.whisperTokenizerFiles {
-            try Data("{}".utf8).write(to: dir.appendingPathComponent(file))
+        do { // AppleLanguageAndLocaleUseSameEngineIdentity
+            var config = ASRConfig(kind: .apple)
+            config.appleLocale = "zh-TW"
+            config.language = "en"
+            let factory = EngineFactory(status: EngineStatus())
+            let engine = await factory.transcriber(for: config)
+            XCTAssertEqual(config.engineID, "apple-speech:en-US")
+            XCTAssertEqual(engine.id, config.engineID)
         }
-        XCTAssertTrue(LocalModels.hasWhisperTokenizer(at: dir))
-    }
-
-    func testAppleLanguageAndLocaleUseSameEngineIdentity() async {
-        var config = ASRConfig(kind: .apple)
-        config.appleLocale = "zh-TW"
-        config.language = "en"
-        let factory = EngineFactory(status: EngineStatus())
-        let engine = await factory.transcriber(for: config)
-        XCTAssertEqual(config.engineID, "apple-speech:en-US")
-        XCTAssertEqual(engine.id, config.engineID)
     }
 }
 

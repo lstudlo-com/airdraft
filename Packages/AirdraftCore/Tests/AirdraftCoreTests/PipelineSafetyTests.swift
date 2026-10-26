@@ -34,30 +34,47 @@ final class PipelineSafetyTests: XCTestCase {
         XCTAssertTrue(pipeline.isRecording)
     }
 
-    func testOldReleaseDoesNotStopNewRecording() async throws {
-        let (pipeline, recorder, directory, suite) = fixture()
-        defer { pipeline.cancel(); cleanup(directory, suite) }
-        try await begin(pipeline)
-        pipeline.stopAndProcess()
-        pipeline.cancel()
-        try await begin(pipeline)
-        try await Task.sleep(for: .milliseconds(500))
-        XCTAssertEqual(pipeline.state, .recording)
-        XCTAssertTrue(recorder.isRecording)
-        XCTAssertNil(pipeline.lastOutcome)
-    }
-
-    func testLateCancelledASRDoesNotResetNewRecording() async throws {
-        let (pipeline, recorder, directory, suite) = fixture(delay: 0.25)
-        defer { pipeline.cancel(); cleanup(directory, suite) }
-        pipeline.processSamples([Float](repeating: 0.1, count: 16000))
-        try await Task.sleep(for: .milliseconds(30))
-        pipeline.cancel()
-        try await begin(pipeline)
-        try await Task.sleep(for: .milliseconds(350))
-        XCTAssertEqual(pipeline.state, .recording)
-        XCTAssertTrue(recorder.isRecording)
-        XCTAssertNil(pipeline.lastOutcome)
+    /// An old release, a late cancelled ASR result and stale microphone callbacks never touch a newer recording.
+    func testStaleReleaseASRAndMicrophoneCallbacksCannotAffectNewRecording() async throws {
+        do {
+            let (pipeline, recorder, directory, suite) = fixture()
+            defer { pipeline.cancel(); cleanup(directory, suite) }
+            try await begin(pipeline)
+            pipeline.stopAndProcess()
+            pipeline.cancel()
+            try await begin(pipeline)
+            try await Task.sleep(for: .milliseconds(500))
+            XCTAssertEqual(pipeline.state, .recording)
+            XCTAssertTrue(recorder.isRecording)
+            XCTAssertNil(pipeline.lastOutcome)
+        }
+        do {
+            let (pipeline, recorder, directory, suite) = fixture(delay: 0.25)
+            defer { pipeline.cancel(); cleanup(directory, suite) }
+            pipeline.processSamples([Float](repeating: 0.1, count: 16000))
+            try await Task.sleep(for: .milliseconds(30))
+            pipeline.cancel()
+            try await begin(pipeline)
+            try await Task.sleep(for: .milliseconds(350))
+            XCTAssertEqual(pipeline.state, .recording)
+            XCTAssertTrue(recorder.isRecording)
+            XCTAssertNil(pipeline.lastOutcome)
+        }
+        do {
+            let (pipeline, recorder, directory, suite) = fixture()
+            defer { pipeline.cancel(); cleanup(directory, suite) }
+            try await begin(pipeline)
+            let oldInterruption = recorder.interruptionHandler
+            let oldLevel = recorder.levelHandler
+            pipeline.cancel()
+            try await begin(pipeline)
+            oldInterruption?(.inputChanged)
+            oldLevel?(0.9)
+            for _ in 0..<5 { await Task.yield() }
+            XCTAssertTrue(pipeline.isRecording)
+            XCTAssertTrue(pipeline.levelHistory.isEmpty)
+            XCTAssertNil(pipeline.lastIssue)
+        }
     }
 
     func testFailedRecordingCanRetryAfterProviderRecovery() async throws {
@@ -88,54 +105,40 @@ final class PipelineSafetyTests: XCTestCase {
         XCTAssertFalse(pipeline.hasRecoverableRecording)
     }
 
-    func testStaleMicrophoneCallbackCannotCancelNewRecording() async throws {
-        let (pipeline, recorder, directory, suite) = fixture()
-        defer { pipeline.cancel(); cleanup(directory, suite) }
-        try await begin(pipeline)
-        let oldInterruption = recorder.interruptionHandler
-        let oldLevel = recorder.levelHandler
-        pipeline.cancel()
-        try await begin(pipeline)
-        oldInterruption?(.inputChanged)
-        oldLevel?(0.9)
-        for _ in 0..<5 { await Task.yield() }
-        XCTAssertTrue(pipeline.isRecording)
-        XCTAssertTrue(pipeline.levelHistory.isEmpty)
-        XCTAssertNil(pipeline.lastIssue)
-    }
-
-    func testDeadlineReturnsWithoutWaitingForUncooperativeWork() async throws {
-        let start = Date()
+    /// The deadline returns without waiting for uncooperative work, a cancelled CLI never launches,
+    /// and incomplete completion reasons fail closed.
+    func testDeadlineCancelledCLIAndIncompleteCompletionsFailClosed() async throws {
         do {
-            let _: String = try await OperationDeadline.run(seconds: 0.04) {
-                await withCheckedContinuation { continuation in
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 0.4) { continuation.resume(returning: "late") }
+            let start = Date()
+            do {
+                let _: String = try await OperationDeadline.run(seconds: 0.04) {
+                    await withCheckedContinuation { continuation in
+                        DispatchQueue.global().asyncAfter(deadline: .now() + 0.4) { continuation.resume(returning: "late") }
+                    }
                 }
+                XCTFail("Expected deadline")
+            } catch RefinerError.timeout {}
+            XCTAssertLessThan(Date().timeIntervalSince(start), 0.3)
+        }
+        do {
+            let marker = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: marker) }
+            let task = Task {
+                withUnsafeCurrentTask { $0?.cancel() }
+                let process = Process()
+                process.executableURL = URL(fileURLWithPath: "/usr/bin/touch")
+                process.arguments = [marker.path]
+                return try await CLIProcess.run(process, input: "", timeout: 2)
             }
-            XCTFail("Expected deadline")
-        } catch RefinerError.timeout {}
-        XCTAssertLessThan(Date().timeIntervalSince(start), 0.3)
-    }
-
-    func testCancelledCLIIsNeverLaunched() async throws {
-        let marker = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        defer { try? FileManager.default.removeItem(at: marker) }
-        let task = Task {
-            withUnsafeCurrentTask { $0?.cancel() }
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/touch")
-            process.arguments = [marker.path]
-            return try await CLIProcess.run(process, input: "", timeout: 2)
+            do { _ = try await task.value; XCTFail("Expected cancellation") } catch is CancellationError {}
+            XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
         }
-        do { _ = try await task.value; XCTFail("Expected cancellation") } catch is CancellationError {}
-        XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
-    }
-
-    func testIncompleteCompletionReasonsFailClosed() throws {
-        for reason in [nil, "length", "max_tokens", "MAX_TOKENS", "refusal", "content_filter", "tool_calls"] as [String?] {
-            XCTAssertThrowsError(try CompletionReason.validate(reason, allowed: ["stop", "STOP", "end_turn"]))
+        do {
+            for reason in [nil, "length", "max_tokens", "MAX_TOKENS", "refusal", "content_filter", "tool_calls"] as [String?] {
+                XCTAssertThrowsError(try CompletionReason.validate(reason, allowed: ["stop", "STOP", "end_turn"]))
+            }
+            try CompletionReason.validate("stop", allowed: ["stop"])
         }
-        try CompletionReason.validate("stop", allowed: ["stop"])
     }
 }
 
@@ -175,61 +178,66 @@ private actor RecoveringSpeech: Transcriber {
 }
 
 extension PipelineSafetyTests {
-    func testBoundProfileDrivesPreflightCaptureAndHistoryAcrossProfileSwitch() async throws {
-        let fixture = try ProfilePipelineFixture()
-        defer { fixture.cleanUp() }
-        var checked: ASRConfig?
-        let pipeline = fixture.pipeline(preflight: { config in checked = config })
-        defer { pipeline.cancel() }
-        try await pipeline.startFromAutomation()
-        XCTAssertEqual(checked?.kind, .senseVoice)
-        fixture.profiles.setActive(RefinementProfile.conciseID)
-        pipeline.stopAndProcess()
-        for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
-        XCTAssertEqual(record.mode, "Bound profile")
-        XCTAssertEqual(fixture.settings.asr.kind, .parakeet)
-        XCTAssertEqual(pipeline.speechConfig.kind, .parakeet)
-    }
-
-    func testBoundProfileMissingModelBlocksBeforeMicrophone() async throws {
-        let fixture = try ProfilePipelineFixture()
-        defer { fixture.cleanUp() }
-        let pipeline = fixture.pipeline(preflight: { config in
-            XCTAssertEqual(config.kind, .senseVoice)
-            throw RecordingPrerequisiteError("The profile speech model is not installed.")
-        })
-        defer { pipeline.cancel() }
-        do { try await pipeline.startFromAutomation(); XCTFail("Missing model must block capture") }
-        catch { XCTAssertTrue(error.localizedDescription.contains("not installed")) }
-        XCTAssertFalse(fixture.recorder.isRecording)
-        XCTAssertEqual(try fixture.history.count(), 0)
-    }
-
-    func testChangingProfileDuringPreflightCannotStartStaleRecording() async throws {
-        let fixture = try ProfilePipelineFixture()
-        defer { fixture.cleanUp() }
-        let pipeline = fixture.pipeline(preflight: { _ in
+    /// The bound profile drives preflight, capture and History across a profile switch, and
+    /// processSamples snapshots the binding before its async work.
+    func testBoundProfileIsSnapshottedForAutomationAndProcessedSamples() async throws {
+        do {
+            let fixture = try ProfilePipelineFixture()
+            defer { fixture.cleanUp() }
+            var checked: ASRConfig?
+            let pipeline = fixture.pipeline(preflight: { config in checked = config })
+            defer { pipeline.cancel() }
+            try await pipeline.startFromAutomation()
+            XCTAssertEqual(checked?.kind, .senseVoice)
+            fixture.profiles.setActive(RefinementProfile.conciseID)
+            pipeline.stopAndProcess()
+            for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
+            XCTAssertEqual(record.mode, "Bound profile")
+            XCTAssertEqual(fixture.settings.asr.kind, .parakeet)
+            XCTAssertEqual(pipeline.speechConfig.kind, .parakeet)
+        }
+        do {
+            let fixture = try ProfilePipelineFixture()
+            defer { fixture.cleanUp() }
+            let pipeline = fixture.pipeline()
+            defer { pipeline.cancel() }
+            pipeline.processSamples([Float](repeating: 0.1, count: 16000))
             fixture.profiles.setActive(RefinementProfile.cleanID)
-        })
-        defer { pipeline.cancel() }
-        do { try await pipeline.startFromAutomation(); XCTFail("Changed profile must reject capture") }
-        catch { XCTAssertTrue(error.localizedDescription.contains("setup changed")) }
-        XCTAssertFalse(fixture.recorder.isRecording)
+            for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
+            XCTAssertEqual(record.mode, "Bound profile")
+        }
     }
 
-    func testProcessSamplesSnapshotsBindingBeforeAsyncWork() async throws {
-        let fixture = try ProfilePipelineFixture()
-        defer { fixture.cleanUp() }
-        let pipeline = fixture.pipeline()
-        defer { pipeline.cancel() }
-        pipeline.processSamples([Float](repeating: 0.1, count: 16000))
-        fixture.profiles.setActive(RefinementProfile.cleanID)
-        for _ in 0..<400 where pipeline.isBusy || pipeline.isFinishingDelivery { try await Task.sleep(for: .milliseconds(5)) }
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.asrEngine, "sherpa-onnx:senseVoice")
-        XCTAssertEqual(record.mode, "Bound profile")
+    /// A missing bound model blocks before the microphone; a profile change during preflight cannot start stale recording.
+    func testBoundProfileMissingModelOrChangedProfileBlocksCapture() async throws {
+        do {
+            let fixture = try ProfilePipelineFixture()
+            defer { fixture.cleanUp() }
+            let pipeline = fixture.pipeline(preflight: { config in
+                XCTAssertEqual(config.kind, .senseVoice)
+                throw RecordingPrerequisiteError("The profile speech model is not installed.")
+            })
+            defer { pipeline.cancel() }
+            do { try await pipeline.startFromAutomation(); XCTFail("Missing model must block capture") }
+            catch { XCTAssertTrue(error.localizedDescription.contains("not installed")) }
+            XCTAssertFalse(fixture.recorder.isRecording)
+            XCTAssertEqual(try fixture.history.count(), 0)
+        }
+        do {
+            let fixture = try ProfilePipelineFixture()
+            defer { fixture.cleanUp() }
+            let pipeline = fixture.pipeline(preflight: { _ in
+                fixture.profiles.setActive(RefinementProfile.cleanID)
+            })
+            defer { pipeline.cancel() }
+            do { try await pipeline.startFromAutomation(); XCTFail("Changed profile must reject capture") }
+            catch { XCTAssertTrue(error.localizedDescription.contains("setup changed")) }
+            XCTAssertFalse(fixture.recorder.isRecording)
+        }
     }
 }
 

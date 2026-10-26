@@ -3,259 +3,271 @@ import XCTest
 
 @MainActor
 final class HistoryRetranscriptionTests: XCTestCase {
-    func testDetachedRecordingReviewDoesNotRecreateDeletedHistory() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Reviewed audio")]))
-        defer { fixture.cleanUp() }
-        let original = try fixture.saveOriginal()
-        let asset = try XCTUnwrap(fixture.history.recording(id: XCTUnwrap(original.recordingID)))
-        try fixture.history.deleteHistoryKeepingAudio()
-        fixture.pipeline.retranscribe(asset)
-        try await waitUntil("Detached recording review finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed audio")
-        XCTAssertEqual(try fixture.history.count(), 0)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertTrue(fixture.probe.outcomes.isEmpty)
-        XCTAssertNotNil(fixture.history.audioURL(for: asset))
-    }
-
-    func testRetranscriptionReturnsReviewWithoutInsertionOrDuplicateHistory() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("New transcription")]))
-        defer { fixture.cleanUp() }
-        let original = try fixture.saveOriginal()
-
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("Retranscription finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "New transcription")
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "New transcription")
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertTrue(fixture.probe.outcomes.isEmpty)
-        XCTAssertEqual(try fixture.history.recent(), [original])
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-
-        fixture.pipeline.dismissReview()
-        XCTAssertNil(fixture.pipeline.reviewOutcome)
-        XCTAssertEqual(fixture.pipeline.state, .idle)
-    }
-
-    func testRetryAfterSpeechFailureKeepsReviewOnlyDelivery() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.failure, .success("Recovered transcription")]))
-        defer { fixture.cleanUp() }
-        let original = try fixture.saveOriginal()
-
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("Failed retranscription retains audio") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-        XCTAssertNil(fixture.pipeline.reviewOutcome)
-        XCTAssertEqual(fixture.probe.blockedRecordings, 0, "Review errors must stay in the review UI")
-
-        fixture.pipeline.retryRecording()
-        try await waitUntil("Retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Recovered transcription")
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertTrue(fixture.probe.outcomes.isEmpty)
-        XCTAssertEqual(try fixture.history.recent(), [original])
-    }
-
-    func testCancelledReviewCannotChangeNewRecordingWhenSpeechReturnsLate() async throws {
-        let speech = HistorySpeech([.suspended("Late transcription")])
-        let fixture = try Fixture(speech: speech)
-        defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
-        let original = try fixture.saveOriginal()
-
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("First ASR call starts") { await speech.callCount == 1 }
-        fixture.pipeline.dismissReview()
-        fixture.pipeline.startRecording()
-        try await waitUntil("New recording starts") { fixture.pipeline.isRecording }
-
-        await speech.release(call: 1)
-        // Waiting on the same factory lease proves the old ASR operation has returned.
-        try await fixture.factory.prepare(fixture.settings.asr)
-        for _ in 0..<10 { await Task.yield() }
-
-        XCTAssertEqual(fixture.pipeline.state, .recording)
-        XCTAssertTrue(fixture.recorder.isRecording)
-        XCTAssertNil(fixture.pipeline.reviewOutcome)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertEqual(try fixture.history.recent(), [original])
-    }
-
-    func testCancelledReviewCannotOverwriteNewReview() async throws {
-        let speech = HistorySpeech([.suspended("Stale transcription"), .success("Current transcription")])
-        let fixture = try Fixture(speech: speech)
-        defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
-        let original = try fixture.saveOriginal()
-
-        fixture.pipeline.retranscribe(original)
-        try await waitUntil("First ASR call starts") { await speech.callCount == 1 }
-        fixture.pipeline.dismissReview()
-        fixture.pipeline.retranscribe(original)
-        await speech.release(call: 1)
-        try await waitUntil("Replacement review finishes") {
-            fixture.pipeline.reviewOutcome?.final == "Current transcription" && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+    /// Detached recordings, retranscription and retry after a speech failure stay review-only.
+    func testReviewOnlyRetranscriptionAndRetryNeverInsertOrDuplicateHistory() async throws {
+        // DetachedRecordingReviewDoesNotRecreateDeletedHistory
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Reviewed audio")]))
+            defer { fixture.cleanUp() }
+            let original = try fixture.saveOriginal()
+            let asset = try XCTUnwrap(fixture.history.recording(id: XCTUnwrap(original.recordingID)))
+            try fixture.history.deleteHistoryKeepingAudio()
+            fixture.pipeline.retranscribe(asset)
+            try await waitUntil("Detached recording review finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Reviewed audio")
+            XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertTrue(fixture.probe.outcomes.isEmpty)
+            XCTAssertNotNil(fixture.history.audioURL(for: asset))
         }
+        // RetranscriptionReturnsReviewWithoutInsertionOrDuplicateHistory
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("New transcription")]))
+            defer { fixture.cleanUp() }
+            let original = try fixture.saveOriginal()
 
-        XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "Current transcription")
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertTrue(fixture.probe.outcomes.isEmpty)
-        XCTAssertEqual(try fixture.history.recent(), [original])
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("Retranscription finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "New transcription")
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "New transcription")
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertTrue(fixture.probe.outcomes.isEmpty)
+            XCTAssertEqual(try fixture.history.recent(), [original])
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+
+            fixture.pipeline.dismissReview()
+            XCTAssertNil(fixture.pipeline.reviewOutcome)
+            XCTAssertEqual(fixture.pipeline.state, .idle)
+        }
+        // RetryAfterSpeechFailureKeepsReviewOnlyDelivery
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.failure, .success("Recovered transcription")]))
+            defer { fixture.cleanUp() }
+            let original = try fixture.saveOriginal()
+
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("Failed retranscription retains audio") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+            XCTAssertNil(fixture.pipeline.reviewOutcome)
+            XCTAssertEqual(fixture.probe.blockedRecordings, 0, "Review errors must stay in the review UI")
+
+            fixture.pipeline.retryRecording()
+            try await waitUntil("Retry finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.final, "Recovered transcription")
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertTrue(fixture.probe.outcomes.isEmpty)
+            XCTAssertEqual(try fixture.history.recent(), [original])
+        }
     }
 
-    func testSuccessfulDictationSavesAudioWhenRetentionEnabled() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Saved transcription")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.audioRetention = .week
-        fixture.pipeline.insertionEnabled = false
+    /// A cancelled review cannot change a new recording or review, and maintenance rejects active work.
+    func testCancelledReviewsAndLateASRCannotChangeNewerWork() async throws {
+        // CancelledReviewCannotChangeNewRecordingWhenSpeechReturnsLate
+        do {
+            let speech = HistorySpeech([.suspended("Late transcription")])
+            let fixture = try Fixture(speech: speech)
+            defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
+            let original = try fixture.saveOriginal()
 
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Dictation and audio save finish") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("First ASR call starts") { await speech.callCount == 1 }
+            fixture.pipeline.dismissReview()
+            fixture.pipeline.startRecording()
+            try await waitUntil("New recording starts") { fixture.pipeline.isRecording }
 
-        let records = try fixture.history.recent()
-        XCTAssertEqual(records.count, 1)
-        let record = try XCTUnwrap(records.first)
-        XCTAssertEqual(record.finalText, "Saved transcription")
-        XCTAssertFalse(record.inserted)
-        XCTAssertNotNil(record.audioFilename)
-        XCTAssertNotNil(fixture.history.audioURL(for: record))
-        let samples = try fixture.history.audioSamples(for: record)
-        XCTAssertEqual(samples.count, Fixture.samples.count)
-        XCTAssertEqual(try XCTUnwrap(samples.first), 0.125, accuracy: 1.0 / 32767)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Saved transcription")
-        XCTAssertEqual(fixture.probe.outcomes.count, 1)
-        XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
-        XCTAssertNil(fixture.pipeline.reviewOutcome)
-        XCTAssertNil(fixture.pipeline.historyStorageError)
-        XCTAssertNil(fixture.pipeline.audioStorageError)
+            await speech.release(call: 1)
+            // Waiting on the same factory lease proves the old ASR operation has returned.
+            try await fixture.factory.prepare(fixture.settings.asr)
+            for _ in 0..<10 { await Task.yield() }
+
+            XCTAssertEqual(fixture.pipeline.state, .recording)
+            XCTAssertTrue(fixture.recorder.isRecording)
+            XCTAssertNil(fixture.pipeline.reviewOutcome)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertEqual(try fixture.history.recent(), [original])
+        }
+        // CancelledReviewCannotOverwriteNewReview
+        do {
+            let speech = HistorySpeech([.suspended("Stale transcription"), .success("Current transcription")])
+            let fixture = try Fixture(speech: speech)
+            defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
+            let original = try fixture.saveOriginal()
+
+            fixture.pipeline.retranscribe(original)
+            try await waitUntil("First ASR call starts") { await speech.callCount == 1 }
+            fixture.pipeline.dismissReview()
+            fixture.pipeline.retranscribe(original)
+            await speech.release(call: 1)
+            try await waitUntil("Replacement review finishes") {
+                fixture.pipeline.reviewOutcome?.final == "Current transcription" && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery
+            }
+
+            XCTAssertEqual(fixture.pipeline.reviewOutcome?.raw, "Current transcription")
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertTrue(fixture.probe.outcomes.isEmpty)
+            XCTAssertEqual(try fixture.history.recent(), [original])
+        }
+        // MaintenanceRejectsActiveWorkAndLateCancelledASRCannotRestoreHistory
+        do {
+            let speech = HistorySpeech([.suspended("Late text")])
+            let fixture = try Fixture(speech: speech)
+            defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
+            fixture.pipeline.insertionEnabled = false
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Speech begins") { await speech.callCount == 1 }
+            XCTAssertThrowsError(try fixture.pipeline.beginDataMaintenance())
+            fixture.pipeline.cancel()
+            try fixture.pipeline.beginDataMaintenance()
+            try await fixture.pipeline.prepareDataRemoval(.historyAndAudio)
+            try fixture.history.deleteAll()
+            await speech.release(call: 1)
+            try await fixture.factory.prepare(fixture.settings.asr)
+            for _ in 0..<10 { await Task.yield() }
+            XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            fixture.pipeline.endDataMaintenance()
+        }
     }
 
-    func testSuccessfulDictationDoesNotSaveAudioByDefault() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Text only")]))
-        defer { fixture.cleanUp() }
-        XCTAssertEqual(fixture.settings.audioRetention, .off)
-        fixture.pipeline.insertionEnabled = false
+    /// Audio saves follow retention, failed saves retry without duplicates, history and audio cleanup handle pending saves.
+    func testAudioRetentionSaveRetryAndCleanupKeepPendingAudioConsistent() async throws {
+        // SuccessfulDictationSavesAudioWhenRetentionEnabled
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Saved transcription")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.audioRetention = .week
+            fixture.pipeline.insertionEnabled = false
 
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Text-only dictation finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Dictation and audio save finish") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.finalText, "Text only")
-        XCTAssertNil(record.audioFilename)
-        XCTAssertNil(fixture.history.audioURL(for: record))
-        XCTAssertNil(fixture.pipeline.historyStorageError)
-    }
+            let records = try fixture.history.recent()
+            XCTAssertEqual(records.count, 1)
+            let record = try XCTUnwrap(records.first)
+            XCTAssertEqual(record.finalText, "Saved transcription")
+            XCTAssertFalse(record.inserted)
+            XCTAssertNotNil(record.audioFilename)
+            XCTAssertNotNil(fixture.history.audioURL(for: record))
+            let samples = try fixture.history.audioSamples(for: record)
+            XCTAssertEqual(samples.count, Fixture.samples.count)
+            XCTAssertEqual(try XCTUnwrap(samples.first), 0.125, accuracy: 1.0 / 32767)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Saved transcription")
+            XCTAssertEqual(fixture.probe.outcomes.count, 1)
+            XCTAssertTrue(fixture.probe.insertedTexts.isEmpty)
+            XCTAssertNil(fixture.pipeline.reviewOutcome)
+            XCTAssertNil(fixture.pipeline.historyStorageError)
+            XCTAssertNil(fixture.pipeline.audioStorageError)
+        }
+        // SuccessfulDictationDoesNotSaveAudioByDefault
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Text only")]))
+            defer { fixture.cleanUp() }
+            XCTAssertEqual(fixture.settings.audioRetention, .off)
+            fixture.pipeline.insertionEnabled = false
 
-    func testFailedAudioSaveRetainsSamplesForExplicitRetryWithoutDuplicates() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Pending transcription")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.audioRetention = .week
-        fixture.pipeline.insertionEnabled = false
-        let blocker = fixture.directory.appendingPathComponent("Recordings")
-        try Data("blocks the recordings directory".utf8).write(to: blocker)
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Text-only dictation finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Failed audio save finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.finalText, "Text only")
+            XCTAssertNil(record.audioFilename)
+            XCTAssertNil(fixture.history.audioURL(for: record))
+            XCTAssertNil(fixture.pipeline.historyStorageError)
+        }
+        // FailedAudioSaveRetainsSamplesForExplicitRetryWithoutDuplicates
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Pending transcription")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.audioRetention = .week
+            fixture.pipeline.insertionEnabled = false
+            let blocker = fixture.directory.appendingPathComponent("Recordings")
+            try Data("blocks the recordings directory".utf8).write(to: blocker)
 
-        XCTAssertNotNil(fixture.pipeline.historyStorageError)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Pending transcription")
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Failed audio save finishes") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
 
-        try FileManager.default.removeItem(at: blocker)
-        await fixture.pipeline.retryHistorySave()
+            XCTAssertNotNil(fixture.pipeline.historyStorageError)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Pending transcription")
 
-        XCTAssertNil(fixture.pipeline.historyStorageError)
-        XCTAssertNil(fixture.pipeline.audioStorageError)
-        let records = try fixture.history.recent()
-        XCTAssertEqual(records.count, 1)
-        let record = try XCTUnwrap(records.first)
-        XCTAssertEqual(record.finalText, "Pending transcription")
-        XCTAssertNotNil(record.audioFilename)
-        let samples = try fixture.history.audioSamples(for: record)
-        XCTAssertEqual(samples.count, Fixture.samples.count)
-        XCTAssertTrue(zip(samples, Fixture.samples).allSatisfy { pair in abs(pair.0 - pair.1) <= 1.0 / 32767 })
+            try FileManager.default.removeItem(at: blocker)
+            await fixture.pipeline.retryHistorySave()
 
-        await fixture.pipeline.retryHistorySave()
+            XCTAssertNil(fixture.pipeline.historyStorageError)
+            XCTAssertNil(fixture.pipeline.audioStorageError)
+            let records = try fixture.history.recent()
+            XCTAssertEqual(records.count, 1)
+            let record = try XCTUnwrap(records.first)
+            XCTAssertEqual(record.finalText, "Pending transcription")
+            XCTAssertNotNil(record.audioFilename)
+            let samples = try fixture.history.audioSamples(for: record)
+            XCTAssertEqual(samples.count, Fixture.samples.count)
+            XCTAssertTrue(zip(samples, Fixture.samples).allSatisfy { pair in abs(pair.0 - pair.1) <= 1.0 / 32767 })
 
-        XCTAssertEqual(try fixture.history.recent(), [record])
-        XCTAssertNil(fixture.pipeline.historyStorageError)
-        XCTAssertEqual(try fixture.history.audioSamples(for: record), samples)
-    }
+            await fixture.pipeline.retryHistorySave()
 
-    func testHistoryCleanupDiscardsPendingTextButKeepsItsAudio() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Text to remove")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.audioRetention = .forever
-        fixture.pipeline.insertionEnabled = false
-        let blocker = fixture.directory.appendingPathComponent("Recordings")
-        try Data([1]).write(to: blocker)
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertNotNil(fixture.pipeline.historyStorageError)
-        try FileManager.default.removeItem(at: blocker)
-        try fixture.pipeline.beginDataMaintenance()
-        try await fixture.pipeline.prepareDataRemoval(.history)
-        try fixture.history.deleteHistoryKeepingAudio()
-        fixture.pipeline.startRecording()
-        XCTAssertFalse(fixture.recorder.isRecording, "Maintenance blocks new capture")
-        fixture.pipeline.endDataMaintenance()
-        await fixture.pipeline.retryHistorySave()
-        XCTAssertEqual(try fixture.history.count(), 0)
-        XCTAssertEqual(try fixture.history.recordings().entries.count, 1)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-    }
-
-    func testAudioCleanupPreventsPendingSaveFromRestoringAudio() async throws {
-        let fixture = try Fixture(speech: HistorySpeech([.success("Keep this text")]))
-        defer { fixture.cleanUp() }
-        fixture.settings.audioRetention = .forever
-        fixture.pipeline.insertionEnabled = false
-        let blocker = fixture.directory.appendingPathComponent("Recordings")
-        try Data([1]).write(to: blocker)
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        try FileManager.default.removeItem(at: blocker)
-        try fixture.pipeline.beginDataMaintenance()
-        try await fixture.pipeline.prepareDataRemoval(.audio)
-        try fixture.history.deleteAllAudio()
-        await fixture.pipeline.retryHistorySave()
-        XCTAssertEqual(try fixture.history.count(), 0, "Save Retry is fenced")
-        fixture.pipeline.endDataMaintenance()
-        await fixture.pipeline.retryHistorySave()
-        XCTAssertEqual(try fixture.history.recent().first?.finalText, "Keep this text")
-        XCTAssertEqual(try fixture.history.recordings().entries.count, 0)
-    }
-
-    func testMaintenanceRejectsActiveWorkAndLateCancelledASRCannotRestoreHistory() async throws {
-        let speech = HistorySpeech([.suspended("Late text")])
-        let fixture = try Fixture(speech: speech)
-        defer { fixture.cleanUp(); Task { await speech.release(call: 1) } }
-        fixture.pipeline.insertionEnabled = false
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Speech begins") { await speech.callCount == 1 }
-        XCTAssertThrowsError(try fixture.pipeline.beginDataMaintenance())
-        fixture.pipeline.cancel()
-        try fixture.pipeline.beginDataMaintenance()
-        try await fixture.pipeline.prepareDataRemoval(.historyAndAudio)
-        try fixture.history.deleteAll()
-        await speech.release(call: 1)
-        try await fixture.factory.prepare(fixture.settings.asr)
-        for _ in 0..<10 { await Task.yield() }
-        XCTAssertEqual(try fixture.history.count(), 0)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
-        fixture.pipeline.endDataMaintenance()
+            XCTAssertEqual(try fixture.history.recent(), [record])
+            XCTAssertNil(fixture.pipeline.historyStorageError)
+            XCTAssertEqual(try fixture.history.audioSamples(for: record), samples)
+        }
+        // HistoryCleanupDiscardsPendingTextButKeepsItsAudio
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Text to remove")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.audioRetention = .forever
+            fixture.pipeline.insertionEnabled = false
+            let blocker = fixture.directory.appendingPathComponent("Recordings")
+            try Data([1]).write(to: blocker)
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertNotNil(fixture.pipeline.historyStorageError)
+            try FileManager.default.removeItem(at: blocker)
+            try fixture.pipeline.beginDataMaintenance()
+            try await fixture.pipeline.prepareDataRemoval(.history)
+            try fixture.history.deleteHistoryKeepingAudio()
+            fixture.pipeline.startRecording()
+            XCTAssertFalse(fixture.recorder.isRecording, "Maintenance blocks new capture")
+            fixture.pipeline.endDataMaintenance()
+            await fixture.pipeline.retryHistorySave()
+            XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertEqual(try fixture.history.recordings().entries.count, 1)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+        }
+        // AudioCleanupPreventsPendingSaveFromRestoringAudio
+        do {
+            let fixture = try Fixture(speech: HistorySpeech([.success("Keep this text")]))
+            defer { fixture.cleanUp() }
+            fixture.settings.audioRetention = .forever
+            fixture.pipeline.insertionEnabled = false
+            let blocker = fixture.directory.appendingPathComponent("Recordings")
+            try Data([1]).write(to: blocker)
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Save fails") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            try FileManager.default.removeItem(at: blocker)
+            try fixture.pipeline.beginDataMaintenance()
+            try await fixture.pipeline.prepareDataRemoval(.audio)
+            try fixture.history.deleteAllAudio()
+            await fixture.pipeline.retryHistorySave()
+            XCTAssertEqual(try fixture.history.count(), 0, "Save Retry is fenced")
+            fixture.pipeline.endDataMaintenance()
+            await fixture.pipeline.retryHistorySave()
+            XCTAssertEqual(try fixture.history.recent().first?.finalText, "Keep this text")
+            XCTAssertEqual(try fixture.history.recordings().entries.count, 0)
+        }
     }
 
     private func waitUntil(_ description: String, file: StaticString = #filePath, line: UInt = #line,

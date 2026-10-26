@@ -46,112 +46,120 @@ final class AppRuleReadinessTests: XCTestCase {
             .map { AppRuleReadiness.status(of: $0, llm: settings.llm, facts: facts) }
     }
 
-    func testARuleWhoseProfileBindsAMissingLocalModelIsASetupIssue() {
-        let (store, settings) = fixture()
-        var parakeet = settings.asr
-        parakeet.select(.parakeet)
-        bind(store, RefinementProfile.summaryID, to: parakeet)
-        let rule = store.addAppRule(.app(bundleID: "com.tinyspeck.slackmacgap"), profileID: RefinementProfile.summaryID, appName: "Slack")!
-        // Off: rules are kept but never chosen, so nothing extra is checked.
-        XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
+    /// A missing bound local model is an issue, matching rules add nothing, refinement is checked only when the rule's profile refines.
+    func testRuleSetupsCheckOnlyDifferingSpeechModelsAndRefinement() {
+        // ARuleWhoseProfileBindsAMissingLocalModelIsASetupIssue
+        do {
+            let (store, settings) = fixture()
+            var parakeet = settings.asr
+            parakeet.select(.parakeet)
+            bind(store, RefinementProfile.summaryID, to: parakeet)
+            let rule = store.addAppRule(.app(bundleID: "com.tinyspeck.slackmacgap"), profileID: RefinementProfile.summaryID, appName: "Slack")!
+            // Off: rules are kept but never chosen, so nothing extra is checked.
+            XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
 
-        store.setChoosesProfileByApp(true)
-        let setups = AppRuleReadiness.setups(profiles: store, settings: settings)
-        XCTAssertEqual(setups.map(\.rule.id), [rule.id])
-        XCTAssertEqual(setups.first?.speech.kind, .parakeet)
-        XCTAssertEqual(setups.first?.checksSpeech, true)
-        XCTAssertEqual(setups.first?.checksRefinement, false, "Clean and Summary both refine")
-        XCTAssertEqual(AppRuleReadiness.localSpeechConfigs(setups).map(\.kind), [.parakeet])
-        XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: false])), [.issue(.speechModelMissing)])
-        XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: Bool?.none])), [.checking],
-                       "Unmeasured files are checked, not reported")
-        XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: true])), [.ready])
+            store.setChoosesProfileByApp(true)
+            let setups = AppRuleReadiness.setups(profiles: store, settings: settings)
+            XCTAssertEqual(setups.map(\.rule.id), [rule.id])
+            XCTAssertEqual(setups.first?.speech.kind, .parakeet)
+            XCTAssertEqual(setups.first?.checksSpeech, true)
+            XCTAssertEqual(setups.first?.checksRefinement, false, "Clean and Summary both refine")
+            XCTAssertEqual(AppRuleReadiness.localSpeechConfigs(setups).map(\.kind), [.parakeet])
+            XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: false])), [.issue(.speechModelMissing)])
+            XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: Bool?.none])), [.checking],
+                           "Unmeasured files are checked, not reported")
+            XCTAssertEqual(status(store, settings, facts(installed: [.parakeet: true])), [.ready])
 
-        // The pipeline's own snapshot for that app uses the same speech config.
-        XCTAssertEqual(store.selection(forApp: "com.tinyspeck.slackmacgap").profile.speechConfig(default: settings.asr), setups[0].speech)
-        // Onboarding practice always uses the chosen profile.
-        settings.beginOnboardingPractice()
-        XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
-        settings.endOnboardingPractice()
-    }
-
-    func testRulesThatMatchTheChosenProfilesSetupAddNothing() {
-        let (store, settings) = fixture()
-        store.setChoosesProfileByApp(true)
-        store.addAppRule(.family(.code), profileID: RefinementProfile.conciseID)
-        store.addAppRule(.family(.terminal), profileID: RefinementProfile.verbatimID)
-        XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty,
-                      "Same speech model; Verbatim refines less than the chosen profile")
-        // A binding equal to the app default resolves to the same speech config.
-        bind(store, RefinementProfile.conciseID, to: settings.asr)
-        XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
-    }
-
-    func testRefinementIsCheckedWhenOnlyTheRulesProfileRefines() {
-        let (store, settings) = fixture()
-        store.setActive(RefinementProfile.verbatimID)
-        settings.llm.select(.groq)
-        store.setChoosesProfileByApp(true)
-        store.addAppRule(.family(.email), profileID: RefinementProfile.conciseID)
-        let setups = AppRuleReadiness.setups(profiles: store, settings: settings)
-        XCTAssertEqual(setups.map(\.checksRefinement), [true])
-        XCTAssertEqual(setups.map(\.checksSpeech), [false])
-        guard case .issue(.refinement)? = status(store, settings, facts(refinementKey: false)).first else {
-            return XCTFail("A missing refinement key refuses dictation into Mail")
+            // The pipeline's own snapshot for that app uses the same speech config.
+            XCTAssertEqual(store.selection(forApp: "com.tinyspeck.slackmacgap").profile.speechConfig(default: settings.asr), setups[0].speech)
+            // Onboarding practice always uses the chosen profile.
+            settings.beginOnboardingPractice()
+            XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
+            settings.endOnboardingPractice()
         }
-        XCTAssertEqual(status(store, settings, facts(refinementKey: true)), [.ready])
-        settings.llm.select(.none)
-        XCTAssertEqual(status(store, settings, facts()), [.ready], "Refinement Off needs nothing")
-    }
-
-    func testCloudBindingsRetiredBindingsAndLanguagesMapToTheirSetupActions() {
-        let (store, settings) = fixture()
-        store.setChoosesProfileByApp(true)
-        var groq = settings.asr
-        groq.select(.groq)
-        bind(store, RefinementProfile.summaryID, to: groq)
-        store.addAppRule(.family(.workChat), profileID: RefinementProfile.summaryID)
-        XCTAssertEqual(AppRuleReadiness.speechKeyRefs(AppRuleReadiness.setups(profiles: store, settings: settings)), [groq.keyRef])
-        XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: false])), [.issue(.speechKeyMissing)])
-        XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: Bool?.none])), [.checking])
-        XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: true])), [.ready])
-
-        bind(store, RefinementProfile.summaryID, to: ASRConfig(kind: .transcribeCpp, model: "retired-model"))
-        XCTAssertEqual(status(store, settings, facts()), [.issue(.speechModelUnavailable)])
-
-        var distil = settings.asr
-        distil.select(.whisperKit)
-        distil.whisperModel = WhisperModelVariant.allCases.first(where: \.isEnglishOnly)!.rawValue
-        bind(store, RefinementProfile.summaryID, to: distil)
-        settings.asr.language = "zh"
-        guard case .issue(.speechLanguage)? = status(store, settings, facts()).first else {
-            return XCTFail("An English-only binding cannot take the shared Chinese language")
+        // RulesThatMatchTheChosenProfilesSetupAddNothing
+        do {
+            let (store, settings) = fixture()
+            store.setChoosesProfileByApp(true)
+            store.addAppRule(.family(.code), profileID: RefinementProfile.conciseID)
+            store.addAppRule(.family(.terminal), profileID: RefinementProfile.verbatimID)
+            XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty,
+                          "Same speech model; Verbatim refines less than the chosen profile")
+            // A binding equal to the app default resolves to the same speech config.
+            bind(store, RefinementProfile.conciseID, to: settings.asr)
+            XCTAssertTrue(AppRuleReadiness.setups(profiles: store, settings: settings).isEmpty)
+        }
+        // RefinementIsCheckedWhenOnlyTheRulesProfileRefines
+        do {
+            let (store, settings) = fixture()
+            store.setActive(RefinementProfile.verbatimID)
+            settings.llm.select(.groq)
+            store.setChoosesProfileByApp(true)
+            store.addAppRule(.family(.email), profileID: RefinementProfile.conciseID)
+            let setups = AppRuleReadiness.setups(profiles: store, settings: settings)
+            XCTAssertEqual(setups.map(\.checksRefinement), [true])
+            XCTAssertEqual(setups.map(\.checksSpeech), [false])
+            guard case .issue(.refinement)? = status(store, settings, facts(refinementKey: false)).first else {
+                return XCTFail("A missing refinement key refuses dictation into Mail")
+            }
+            XCTAssertEqual(status(store, settings, facts(refinementKey: true)), [.ready])
+            settings.llm.select(.none)
+            XCTAssertEqual(status(store, settings, facts()), [.ready], "Refinement Off needs nothing")
         }
     }
 
-    /// The readiness result agrees with the recording check for the same facts.
-    func testStatusAgreesWithTheRecordingPrerequisites() throws {
-        let (store, settings) = fixture()
-        store.setChoosesProfileByApp(true)
-        var parakeet = settings.asr
-        parakeet.select(.parakeet)
-        var groq = settings.asr
-        groq.select(.groq)
-        let microphone = Microphone(id: AudioDeviceID(7), uid: "fixture", name: "Fixture")
-        for (binding, installed, key) in [(parakeet, false, false), (parakeet, true, false), (groq, true, false), (groq, true, true)] {
-            bind(store, RefinementProfile.summaryID, to: binding)
+    func testSetupActionsMatchBindingsAndAgreeWithTheRecordingPrerequisites() throws {
+        // CloudBindingsRetiredBindingsAndLanguagesMapToTheirSetupActions
+        do {
+            let (store, settings) = fixture()
+            store.setChoosesProfileByApp(true)
+            var groq = settings.asr
+            groq.select(.groq)
+            bind(store, RefinementProfile.summaryID, to: groq)
             store.addAppRule(.family(.workChat), profileID: RefinementProfile.summaryID)
-            let setup = try XCTUnwrap(AppRuleReadiness.setups(profiles: store, settings: settings).first)
-            let readiness = AppRuleReadiness.status(of: setup, llm: settings.llm, facts: facts(installed: [setup.speech.kind: installed],
-                                                                                              keys: [setup.speech.keyRef: key]))
-            let environment = RecordingPrerequisites.Environment(
-                microphoneAuthorized: true, accessibilityAuthorized: true, devices: [microphone], defaultDeviceID: 7,
-                readCredential: { key && $0 == setup.speech.keyRef ? "fixture-key" : nil },
-                installed: { _ in installed })
-            let refused = (try? RecordingPrerequisites.check(asr: setup.speech, llm: settings.llm, refinementEnabled: setup.profile.usesLLM,
-                                                             microphone: .systemDefault, insertionEnabled: true,
-                                                             environment: environment)) == nil
-            XCTAssertEqual(readiness != .ready, refused, "\(binding.kind) installed \(installed) key \(key): \(readiness)")
+            XCTAssertEqual(AppRuleReadiness.speechKeyRefs(AppRuleReadiness.setups(profiles: store, settings: settings)), [groq.keyRef])
+            XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: false])), [.issue(.speechKeyMissing)])
+            XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: Bool?.none])), [.checking])
+            XCTAssertEqual(status(store, settings, facts(keys: [groq.keyRef: true])), [.ready])
+
+            bind(store, RefinementProfile.summaryID, to: ASRConfig(kind: .transcribeCpp, model: "retired-model"))
+            XCTAssertEqual(status(store, settings, facts()), [.issue(.speechModelUnavailable)])
+
+            var distil = settings.asr
+            distil.select(.whisperKit)
+            distil.whisperModel = WhisperModelVariant.allCases.first(where: \.isEnglishOnly)!.rawValue
+            bind(store, RefinementProfile.summaryID, to: distil)
+            settings.asr.language = "zh"
+            guard case .issue(.speechLanguage)? = status(store, settings, facts()).first else {
+                return XCTFail("An English-only binding cannot take the shared Chinese language")
+            }
+        }
+        // StatusAgreesWithTheRecordingPrerequisites
+        // The readiness result agrees with the recording check for the same facts.
+        do {
+            let (store, settings) = fixture()
+            store.setChoosesProfileByApp(true)
+            var parakeet = settings.asr
+            parakeet.select(.parakeet)
+            var groq = settings.asr
+            groq.select(.groq)
+            let microphone = Microphone(id: AudioDeviceID(7), uid: "fixture", name: "Fixture")
+            for (binding, installed, key) in [(parakeet, false, false), (parakeet, true, false), (groq, true, false), (groq, true, true)] {
+                bind(store, RefinementProfile.summaryID, to: binding)
+                store.addAppRule(.family(.workChat), profileID: RefinementProfile.summaryID)
+                let setup = try XCTUnwrap(AppRuleReadiness.setups(profiles: store, settings: settings).first)
+                let readiness = AppRuleReadiness.status(of: setup, llm: settings.llm, facts: facts(installed: [setup.speech.kind: installed],
+                                                                                                  keys: [setup.speech.keyRef: key]))
+                let environment = RecordingPrerequisites.Environment(
+                    microphoneAuthorized: true, accessibilityAuthorized: true, devices: [microphone], defaultDeviceID: 7,
+                    readCredential: { key && $0 == setup.speech.keyRef ? "fixture-key" : nil },
+                    installed: { _ in installed })
+                let refused = (try? RecordingPrerequisites.check(asr: setup.speech, llm: settings.llm, refinementEnabled: setup.profile.usesLLM,
+                                                                 microphone: .systemDefault, insertionEnabled: true,
+                                                                 environment: environment)) == nil
+                XCTAssertEqual(readiness != .ready, refused, "\(binding.kind) installed \(installed) key \(key): \(readiness)")
+            }
         }
     }
+
 }

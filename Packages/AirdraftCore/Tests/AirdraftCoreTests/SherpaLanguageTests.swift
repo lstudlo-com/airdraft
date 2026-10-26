@@ -5,7 +5,9 @@ final class SherpaLanguageTests: XCTestCase {
     private typealias Configuration = SherpaTranscriber.RecognizerConfiguration
     private let fixtureFolder = URL(fileURLWithPath: "/airdraft-language-contract-fixture", isDirectory: true)
 
-    func testSenseVoicePassesSelectedLanguageToNativeConfiguration() throws {
+    /// SenseVoice passes the selected language to its native configuration and rebuilds
+    /// per language (not per locale spelling); joint-language decoders get no language controls.
+    func testNativeLanguageConfigurationAndRecognizerCacheIdentity() throws {
         // Read the actual C field used by recognizer creation. A hard-coded
         // "auto" would fail every fixed-language case without loading any model.
         let cases: [(String?, String)] = [
@@ -21,9 +23,7 @@ final class SherpaLanguageTests: XCTestCase {
                 XCTAssertEqual(native.model_config.sense_voice.use_itn, 1)
             }
         }
-    }
 
-    func testSenseVoiceCacheIdentityChangesWithLanguageButNotLocaleSpelling() throws {
         let automatic = try Configuration(model: .senseVoice)
         let chinese = try Configuration(model: .senseVoice, hints: .init(language: "zh"))
         let english = try Configuration(model: .senseVoice, hints: .init(language: "en"))
@@ -33,9 +33,7 @@ final class SherpaLanguageTests: XCTestCase {
         XCTAssertNotEqual(chinese, cantonese, "Cantonese must remain distinct from Mandarin")
         XCTAssertEqual(chinese, try Configuration(model: .senseVoice, hints: .init(language: "zh-TW")))
         XCTAssertEqual(automatic, try Configuration(model: .senseVoice, hints: .init(language: "auto")))
-    }
 
-    func testJointLanguageDecodersDoNotGetSenseVoiceLanguageControls() throws {
         for (model, languages) in [(SherpaTranscriber.Model.fireRed, ["zh", "en"]), (.parakeet, ["en", "de"])] {
             let automatic = try Configuration(model: model)
             for language in languages {
@@ -49,7 +47,10 @@ final class SherpaLanguageTests: XCTestCase {
         }
     }
 
-    func testUnsupportedLanguageIsRejectedByTheAdapterBeforeModelAccess() async throws {
+    /// Unsupported languages fail in the adapter before model access; the SenseVoice
+    /// engine keeps one identity across language changes.
+    @MainActor
+    func testAdapterRejectsUnsupportedLanguageBeforeModelAccessAndKeepsEngineIdentity() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("airdraft-sherpa-language-\(UUID().uuidString)")
         for (model, language) in [(SherpaTranscriber.Model.senseVoice, "fr"), (.fireRed, "ja"), (.parakeet, "zh")] {
             let engine = SherpaTranscriber(model: model, modelDirectory: directory)
@@ -65,10 +66,7 @@ final class SherpaLanguageTests: XCTestCase {
             XCTAssertFalse(ready)
         }
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path), "Validation must not create a model directory")
-    }
 
-    @MainActor
-    func testSenseVoiceEngineIdentityRemainsStableAcrossLanguageChanges() async {
         let factory = EngineFactory(status: EngineStatus(), credentialReader: { _ in
             XCTFail("Local speech must not read credentials")
             return nil

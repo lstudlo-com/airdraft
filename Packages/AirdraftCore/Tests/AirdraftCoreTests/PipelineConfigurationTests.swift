@@ -8,119 +8,126 @@ import XCTest
 /// microphone, general clipboard, executable, network session or credential value.
 @MainActor
 final class PipelineConfigurationTests: XCTestCase {
-    func testRecordingUsesPreflightedRefinerForPrewarmAndProcessingThenNextSelection() async throws {
-        let fixture = try ConfigurationFixture()
-        defer { fixture.close() }
-        let original = fixture.settings.llm
-        try await fixture.pipeline.startFromAutomation()
-        try await wait { !fixture.probe.built.isEmpty }
-        XCTAssertEqual(fixture.preflightLLM, original)
-        fixture.settings.llm = fixture.nextLLM
-        fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
-        XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
+    /// Recording, sample processing and retranscription capture the refiner before their first
+    /// await and use it through prewarm and processing; a cancelled snapshot never delivers
+    /// late, and a captured refiner failure still keeps the raw transcript.
+    func testRecordingSamplesAndRetranscriptionUseTheirCapturedRefinerSnapshot() async throws {
+        do { // RecordingUsesPreflightedRefinerForPrewarmAndProcessingThenNextSelection
+            let fixture = try ConfigurationFixture()
+            defer { fixture.close() }
+            let original = fixture.settings.llm
+            try await fixture.pipeline.startFromAutomation()
+            try await wait { !fixture.probe.built.isEmpty }
+            XCTAssertEqual(fixture.preflightLLM, original)
+            fixture.settings.llm = fixture.nextLLM
+            fixture.pipeline.stopAndProcess()
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
+            XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
 
-        fixture.probe.clear()
-        try await fixture.pipeline.startFromAutomation()
-        fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.preflightLLM, fixture.nextLLM)
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
-        XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == fixture.nextLLM })
+            fixture.probe.clear()
+            try await fixture.pipeline.startFromAutomation()
+            fixture.pipeline.stopAndProcess()
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.preflightLLM, fixture.nextLLM)
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
+            XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == fixture.nextLLM })
+        }
+
+        do { // SampleProcessingCapturesRefinerBeforeItsFirstAwait
+            let fixture = try ConfigurationFixture()
+            defer { fixture.close() }
+            let original = fixture.settings.llm
+            fixture.pipeline.processSamples(ConfigurationFixture.samples)
+            fixture.settings.llm = fixture.nextLLM
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
+            XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
+        }
+
+        do { // RetranscriptionCapturesRefinerAndDoesNotDeliverOrAddHistory
+            let fixture = try ConfigurationFixture()
+            defer { fixture.close() }
+            let original = fixture.settings.llm
+            let saved = try fixture.history.save(fixture.record, samples: ConfigurationFixture.samples)
+            fixture.pipeline.retranscribe(saved)
+            fixture.settings.llm = fixture.nextLLM
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertNotNil(fixture.pipeline.reviewOutcome)
+            XCTAssertEqual(fixture.probe.built, [original])
+            XCTAssertTrue(fixture.deliveries.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        do { // CancellationBeforeProcessingCannotDeliverLateSnapshot
+            let fixture = try ConfigurationFixture()
+            defer { fixture.close() }
+            fixture.pipeline.processSamples(ConfigurationFixture.samples)
+            fixture.pipeline.cancel()
+            fixture.settings.llm = fixture.nextLLM
+            for _ in 0..<20 { await Task.yield() }
+            XCTAssertEqual(try fixture.history.count(), 0)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            fixture.pipeline.processSamples(ConfigurationFixture.samples)
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
+        }
+
+        do { // CapturedRefinerFailureStillKeepsRawTranscript
+            let fixture = try ConfigurationFixture(failRefinement: true)
+            defer { fixture.close() }
+            fixture.pipeline.processSamples(ConfigurationFixture.samples)
+            fixture.settings.llm = LLMConfig(kind: .none)
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Recorded words")
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
+            XCTAssertNotNil(try fixture.history.recent().first?.error)
+        }
     }
 
-    func testSampleProcessingCapturesRefinerBeforeItsFirstAwait() async throws {
-        let fixture = try ConfigurationFixture()
-        defer { fixture.close() }
-        let original = fixture.settings.llm
-        fixture.pipeline.processSamples(ConfigurationFixture.samples)
-        fixture.settings.llm = fixture.nextLLM
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, original.model)
-        XCTAssertTrue(fixture.probe.built.allSatisfy { $0 == original })
-    }
+    func testRetryUsesCurrentRefinerButOriginalOutputPolicyTargetAndInsertionMethod() async throws {
+        do { // RetryCapturesCurrentRefinerAndRetainsOriginalOutputPolicy
+            let fixture = try ConfigurationFixture(failSpeechOnce: true)
+            defer { fixture.close() }
+            fixture.pipeline.insertionEnabled = true
+            fixture.settings.outputDestination = .script
+            fixture.settings.outputScriptPath = fixture.script.path
+            try await fixture.pipeline.startFromAutomation()
+            fixture.pipeline.stopAndProcess()
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
+            fixture.settings.llm = fixture.nextLLM
+            fixture.settings.outputDestination = .cursor
+            fixture.pipeline.retryRecording()
+            fixture.settings.llm = LLMConfig(kind: .none)
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
+            XCTAssertEqual(fixture.deliveries, [fixture.script.path])
+            XCTAssertEqual(try fixture.history.recent().first?.outputDestination, "script")
+        }
 
-    func testRetranscriptionCapturesRefinerAndDoesNotDeliverOrAddHistory() async throws {
-        let fixture = try ConfigurationFixture()
-        defer { fixture.close() }
-        let original = fixture.settings.llm
-        let saved = try fixture.history.save(fixture.record, samples: ConfigurationFixture.samples)
-        fixture.pipeline.retranscribe(saved)
-        fixture.settings.llm = fixture.nextLLM
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertNotNil(fixture.pipeline.reviewOutcome)
-        XCTAssertEqual(fixture.probe.built, [original])
-        XCTAssertTrue(fixture.deliveries.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testRetryCapturesCurrentRefinerAndRetainsOriginalOutputPolicy() async throws {
-        let fixture = try ConfigurationFixture(failSpeechOnce: true)
-        defer { fixture.close() }
-        fixture.pipeline.insertionEnabled = true
-        fixture.settings.outputDestination = .script
-        fixture.settings.outputScriptPath = fixture.script.path
-        try await fixture.pipeline.startFromAutomation()
-        fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
-        fixture.settings.llm = fixture.nextLLM
-        fixture.settings.outputDestination = .cursor
-        fixture.pipeline.retryRecording()
-        fixture.settings.llm = LLMConfig(kind: .none)
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
-        XCTAssertEqual(fixture.deliveries, [fixture.script.path])
-        XCTAssertEqual(try fixture.history.recent().first?.outputDestination, "script")
-    }
-
-    func testCancellationBeforeProcessingCannotDeliverLateSnapshot() async throws {
-        let fixture = try ConfigurationFixture()
-        defer { fixture.close() }
-        fixture.pipeline.processSamples(ConfigurationFixture.samples)
-        fixture.pipeline.cancel()
-        fixture.settings.llm = fixture.nextLLM
-        for _ in 0..<20 { await Task.yield() }
-        XCTAssertEqual(try fixture.history.count(), 0)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        fixture.pipeline.processSamples(ConfigurationFixture.samples)
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
-    }
-
-    func testRetryKeepsOriginalCapturedCursorTargetAndInsertionMethod() async throws {
-        let target = ConfigurationTarget()
-        defer { target.close() }
-        let fixture = try ConfigurationFixture(failSpeechOnce: true, target: target)
-        defer { fixture.close() }
-        fixture.pipeline.insertionEnabled = true
-        fixture.settings.insertionMethod = .paste
-        try await fixture.pipeline.startFromAutomation()
-        fixture.pipeline.stopAndProcess()
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
-        target.currentPID = 202
-        fixture.settings.insertionMethod = .auto
-        fixture.settings.llm = fixture.nextLLM
-        fixture.pipeline.retryRecording()
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(target.deliveries.count, 1)
-        XCTAssertEqual(target.deliveries.first?.0, .paste)
-        XCTAssertEqual(target.deliveries.first?.1?.processID, 101)
-        XCTAssertEqual(target.deliveries.first?.1?.selection?.location, 0)
-        XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
-    }
-
-    func testCapturedRefinerFailureStillKeepsRawTranscript() async throws {
-        let fixture = try ConfigurationFixture(failRefinement: true)
-        defer { fixture.close() }
-        fixture.pipeline.processSamples(ConfigurationFixture.samples)
-        fixture.settings.llm = LLMConfig(kind: .none)
-        try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Recorded words")
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
-        XCTAssertNotNil(try fixture.history.recent().first?.error)
+        do { // RetryKeepsOriginalCapturedCursorTargetAndInsertionMethod
+            let target = ConfigurationTarget()
+            defer { target.close() }
+            let fixture = try ConfigurationFixture(failSpeechOnce: true, target: target)
+            defer { fixture.close() }
+            fixture.pipeline.insertionEnabled = true
+            fixture.settings.insertionMethod = .paste
+            try await fixture.pipeline.startFromAutomation()
+            fixture.pipeline.stopAndProcess()
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.pipeline.hasRecoverableRecording)
+            target.currentPID = 202
+            fixture.settings.insertionMethod = .auto
+            fixture.settings.llm = fixture.nextLLM
+            fixture.pipeline.retryRecording()
+            try await wait { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(target.deliveries.count, 1)
+            XCTAssertEqual(target.deliveries.first?.0, .paste)
+            XCTAssertEqual(target.deliveries.first?.1?.processID, 101)
+            XCTAssertEqual(target.deliveries.first?.1?.selection?.location, 0)
+            XCTAssertEqual(try fixture.history.recent().first?.llmEngine, fixture.nextLLM.model)
+        }
     }
 
     func testPracticeUsesChosenSpeechInPreflightAndProcessingWithoutChangingBinding() async throws {

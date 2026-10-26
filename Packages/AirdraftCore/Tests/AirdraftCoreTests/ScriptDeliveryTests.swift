@@ -2,7 +2,9 @@ import XCTest
 @testable import AirdraftCore
 
 final class ScriptDeliveryTests: XCTestCase {
-    func testTextAndPathAreLiteralAndWorkingDirectoryIsScriptParent() async throws {
+    /// Text and path are literal, the working directory is the script's parent, and a
+    /// successful noisy script may discard its bounded output.
+    func testLiteralDeliveryFromScriptParentIncludingNoisyOutput() async throws {
         let fixture = try ScriptFixture(body: "/bin/cat > received.txt\n/usr/bin/printf '%s' \"$#\" > argc.txt\n/bin/pwd > cwd.txt\n", name: "delivery ; $(literal).sh")
         defer { fixture.remove() }
         let text = "繁體中文🙂\n'quoted' \"double\" $HOME; $(touch injected) `touch injected`\nlast line"
@@ -13,6 +15,11 @@ final class ScriptDeliveryTests: XCTestCase {
         let actualDirectory = URL(fileURLWithPath: try fixture.read("cwd.txt").trimmingCharacters(in: .whitespacesAndNewlines))
         XCTAssertEqual(actualDirectory.resolvingSymlinksInPath(), fixture.directory.resolvingSymlinksInPath())
         XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("injected").path))
+
+        let noisy = try ScriptFixture(body: "/bin/cat > received.txt\n/usr/bin/head -c 2000000 /dev/zero\n")
+        defer { noisy.remove() }
+        try await ScriptDelivery.send(text: "received exactly once", to: noisy.script.path)
+        XCTAssertEqual(try noisy.read("received.txt"), "received exactly once")
     }
 
     func testUnavailablePathsFailBeforeLaunching() async throws {
@@ -28,7 +35,8 @@ final class ScriptDeliveryTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("must-not-run").path))
     }
 
-    func testNonzeroExitHasBoundedDetailsAndIsNotRetried() async throws {
+    /// A nonzero exit (bounded details), a timeout and cancellation each run once and are never retried.
+    func testNonzeroExitTimeoutAndCancellationAreBoundedAndNotRetried() async throws {
         let fixture = try ScriptFixture(body: "/bin/cat >/dev/null\nprintf 'attempt\\n' >> attempts.txt\n/usr/bin/head -c 5000 /dev/zero | /usr/bin/tr '\\0' E >&2\nexit 17\n")
         defer { fixture.remove() }
         do {
@@ -39,26 +47,23 @@ final class ScriptDeliveryTests: XCTestCase {
             XCTAssertEqual(detail.count, 300)
         }
         XCTAssertEqual(try fixture.read("attempts.txt"), "attempt\n")
-    }
 
-    func testTimeoutIsBoundedAndNotRetried() async throws {
-        let fixture = try ScriptFixture(body: "printf 'attempt\\n' >> attempts.txt\nexec /bin/sleep 30\n")
-        defer { fixture.remove() }
+        let slow = try ScriptFixture(body: "printf 'attempt\\n' >> attempts.txt\nexec /bin/sleep 30\n")
+        defer { slow.remove() }
         let started = Date()
         do {
-            try await ScriptDelivery.send(text: "text", to: fixture.script.path, timeout: 0.2)
+            // One second lets the script start even when parallel test clones load the Mac.
+            try await ScriptDelivery.send(text: "text", to: slow.script.path, timeout: 1)
             XCTFail("Expected timeout")
         } catch ScriptDelivery.Failure.timeout {}
-        XCTAssertLessThan(Date().timeIntervalSince(started), 2)
-        XCTAssertEqual(try fixture.read("attempts.txt"), "attempt\n")
-    }
+        XCTAssertLessThan(Date().timeIntervalSince(started), 5)
+        XCTAssertEqual(try slow.read("attempts.txt"), "attempt\n")
 
-    func testCancellationIsPreservedAndNotRetried() async throws {
-        let fixture = try ScriptFixture(body: "printf 'attempt\\n' >> attempts.txt\nexec /bin/sleep 30\n")
-        defer { fixture.remove() }
-        let task = Task { try await ScriptDelivery.send(text: "text", to: fixture.script.path) }
-        for _ in 0..<100 {
-            if FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("attempts.txt").path) { break }
+        let cancelled = try ScriptFixture(body: "printf 'attempt\\n' >> attempts.txt\nexec /bin/sleep 30\n")
+        defer { cancelled.remove() }
+        let task = Task { try await ScriptDelivery.send(text: "text", to: cancelled.script.path) }
+        for _ in 0..<500 {
+            if FileManager.default.fileExists(atPath: cancelled.directory.appendingPathComponent("attempts.txt").path) { break }
             try await Task.sleep(for: .milliseconds(10))
         }
         task.cancel()
@@ -66,14 +71,7 @@ final class ScriptDeliveryTests: XCTestCase {
             try await task.value
             XCTFail("Expected cancellation")
         } catch is CancellationError {}
-        XCTAssertEqual(try fixture.read("attempts.txt"), "attempt\n")
-    }
-
-    func testSuccessfulNoisyScriptMayDiscardBoundedOutput() async throws {
-        let fixture = try ScriptFixture(body: "/bin/cat > received.txt\n/usr/bin/head -c 2000000 /dev/zero\n")
-        defer { fixture.remove() }
-        try await ScriptDelivery.send(text: "received exactly once", to: fixture.script.path)
-        XCTAssertEqual(try fixture.read("received.txt"), "received exactly once")
+        XCTAssertEqual(try cancelled.read("attempts.txt"), "attempt\n")
     }
 }
 

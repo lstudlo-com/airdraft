@@ -4,7 +4,9 @@ import XCTest
 
 @MainActor
 final class MicrophonePermissionTests: XCTestCase {
-    func testConcurrentRequestsShareOnePrompt() async {
+    /// Concurrent requests share one prompt; known microphone states and passive
+    /// Accessibility checks never prompt.
+    func testPermissionRequestsPromptOnceAndKnownOrPassiveChecksNeverPrompt() async {
         let gate = PermissionGate()
         var prompts = 0
         let permission = MicrophonePermission(status: { .notDetermined }, prompt: {
@@ -19,24 +21,20 @@ final class MicrophonePermissionTests: XCTestCase {
         let results = await (first.value, second.value)
         XCTAssertTrue(results.0 && results.1)
         XCTAssertEqual(prompts, 1)
-    }
 
-    func testKnownPermissionStatesNeverPrompt() async {
         for status in [AVAuthorizationStatus.authorized, .denied, .restricted] {
             let permission = MicrophonePermission(status: { status }, prompt: { XCTFail("Must not prompt"); return false })
             let granted = await permission.request()
-            XCTAssertEqual(granted, status == .authorized)
+            XCTAssertEqual(granted, status == .authorized, "status \(status.rawValue)")
         }
-    }
 
-    func testPassiveAccessibilityChecksNeverPrompt() {
-        var prompts = 0
+        var accessibilityPrompts = 0
         let permissions = SystemPermissions(checkAccessibility: { false }, checkMicrophone: { .notDetermined },
-                                            promptAccessibility: { prompts += 1 })
+                                            promptAccessibility: { accessibilityPrompts += 1 })
         permissions.startMonitoring()
         defer { permissions.stopMonitoring() }
         for _ in 0..<8 { permissions.refresh() }
-        XCTAssertEqual(prompts, 0)
+        XCTAssertEqual(accessibilityPrompts, 0)
         XCTAssertFalse(permissions.accessibilityGranted)
     }
 

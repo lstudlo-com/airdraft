@@ -3,27 +3,30 @@ import XCTest
 @testable import AirdraftCore
 
 final class BrowserContextURLTests: XCTestCase {
-    func testOnlyOriginSurvivesBrowserURLCapture() {
-        let samples = [
-            ("https://example.test/docs?q=ordinary#heading", "https://example.test"),
-            ("HTTP://EXAMPLE.TEST:8080/a/b", "http://example.test:8080"),
-            ("https://example.test:443/", "https://example.test:443"),
-            ("https://reader:label@example.test/private", "https://example.test"),
-            ("https://example.test/文件/%E6%96%87?q=ordinary", "https://example.test"),
-            ("https://[::1]:8443/docs#heading", "https://[::1]:8443"),
-            ("http://localhost:1234/v1", "http://localhost:1234"),
-        ]
-        for (input, expected) in samples {
-            XCTAssertEqual(BrowserContextURL.origin(from: input), expected, input)
+    func testOnlyWebOriginsSurviveBrowserURLCapture() {
+        // OnlyOriginSurvivesBrowserURLCapture
+        do {
+            let samples = [
+                ("https://example.test/docs?q=ordinary#heading", "https://example.test"),
+                ("HTTP://EXAMPLE.TEST:8080/a/b", "http://example.test:8080"),
+                ("https://example.test:443/", "https://example.test:443"),
+                ("https://reader:label@example.test/private", "https://example.test"),
+                ("https://example.test/文件/%E6%96%87?q=ordinary", "https://example.test"),
+                ("https://[::1]:8443/docs#heading", "https://[::1]:8443"),
+                ("http://localhost:1234/v1", "http://localhost:1234"),
+            ]
+            for (input, expected) in samples {
+                XCTAssertEqual(BrowserContextURL.origin(from: input), expected, input)
+            }
         }
-    }
-
-    func testMalformedAndNonWebURLsDoNotBecomeContext() {
-        for value in ["", "file:///tmp/document", "javascript:example", "https:///missing",
-                      "httpstuff://example.test", "//example.test/docs", "https://",
-                      "https://bad host/docs", "https://example.test:0/", "https://example.test:65536/",
-                      "https://example.test/\nprivate"] {
-            XCTAssertNil(BrowserContextURL.origin(from: value), value)
+        // MalformedAndNonWebURLsDoNotBecomeContext
+        do {
+            for value in ["", "file:///tmp/document", "javascript:example", "https:///missing",
+                          "httpstuff://example.test", "//example.test/docs", "https://",
+                          "https://bad host/docs", "https://example.test:0/", "https://example.test:65536/",
+                          "https://example.test/\nprivate"] {
+                XCTAssertNil(BrowserContextURL.origin(from: value), value)
+            }
         }
     }
 

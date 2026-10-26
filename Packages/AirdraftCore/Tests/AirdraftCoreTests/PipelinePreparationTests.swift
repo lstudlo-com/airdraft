@@ -6,366 +6,384 @@ import XCTest
 /// fixtures never open a microphone, read a key, call a provider or paste text.
 @MainActor
 final class PipelinePreparationTests: XCTestCase {
-    func testRecordingPreparationIsJoinedOnceAfterSpeechCompletes() async throws {
-        let fixture = try Fixture()
-        let gate = PreparationGate()
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        fixture.pipeline.prepareRefinement = { config in
-            fixture.probe.prepared(config)
-            await gate.enter()
-            return .unmanaged
+    func testRecordingPreparationIsJoinedOnceAndUsesTheRecordingSnapshot() async throws {
+        do { // RecordingPreparationIsJoinedOnceAfterSpeechCompletes
+            let fixture = try Fixture()
+            let gate = PreparationGate()
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            fixture.pipeline.prepareRefinement = { config in
+                fixture.probe.prepared(config)
+                await gate.enter()
+                return .unmanaged
+            }
+
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Preparation starts during capture") { await gate.callCount == 1 }
+            XCTAssertTrue(fixture.recorder.isRecording)
+            XCTAssertEqual(fixture.probe.builtConfigs, [fixture.settings.llm])
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            let callsBeforeStop = await fixture.speech.callCount
+            XCTAssertEqual(callsBeforeStop, 0)
+
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Speech completes while preparation is pending") {
+                await fixture.speech.callCount == 1 && fixture.pipeline.state == .refining
+            }
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            let preparationsAfterStop = await gate.callCount
+            XCTAssertEqual(preparationsAfterStop, 1)
+            await gate.release()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
+            XCTAssertEqual(fixture.probe.preparedConfigs.count, 1)
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
 
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Preparation starts during capture") { await gate.callCount == 1 }
-        XCTAssertTrue(fixture.recorder.isRecording)
-        XCTAssertEqual(fixture.probe.builtConfigs, [fixture.settings.llm])
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        let callsBeforeStop = await fixture.speech.callCount
-        XCTAssertEqual(callsBeforeStop, 0)
+        do { // PreparationAndFinalRequestUseRecordingSnapshotAfterEdits
+            let fixture = try Fixture(text: "Final words floze")
+            defer { fixture.cleanUp() }
+            let entry = DictionaryEntry(term: "Airdraft", aliases: ["floze"])
+            fixture.dictionary.add(entry)
+            fixture.profiles.setBaseRules("Captured base rules")
+            let capturedProfile = fixture.profiles.activeProfile
+            let capturedConfig = fixture.settings.llm
+            fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Captured refiner is prepared") { !fixture.probe.preparedConfigs.isEmpty }
 
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Speech completes while preparation is pending") {
-            await fixture.speech.callCount == 1 && fixture.pipeline.state == .refining
+            fixture.settings.llm = LLMConfig(kind: .none)
+            fixture.settings.asr.chineseScript = .simplified
+            fixture.settings.useAppContext = true
+            fixture.profiles.setActive(RefinementProfile.verbatimID)
+            fixture.profiles.setBaseRules("New base rules")
+            var edited = entry
+            edited.term = "Changed"
+            fixture.dictionary.update(edited)
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            let request = try XCTUnwrap(fixture.probe.requests.first)
+            XCTAssertEqual(fixture.probe.builtConfigs, [capturedConfig])
+            XCTAssertEqual(fixture.probe.preparedConfigs, [capturedConfig])
+            XCTAssertEqual(request.profile, capturedProfile)
+            XCTAssertEqual(request.baseRules, "Captured base rules")
+            XCTAssertEqual(request.dictionary, [entry])
+            XCTAssertEqual(request.chineseScript, .traditional)
+            let capturedVocabulary = await fixture.speech.lastVocabulary
+            XCTAssertEqual(capturedVocabulary, ["Airdraft"])
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words Airdraft"])
+
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Next capture uses edited settings") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries.last, "Final words Changed")
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "Verbatim: no LLM")
         }
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        let preparationsAfterStop = await gate.callCount
-        XCTAssertEqual(preparationsAfterStop, 1)
-        await gate.release()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
-        XCTAssertEqual(fixture.probe.preparedConfigs.count, 1)
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertEqual(try fixture.history.count(), 1)
     }
 
-    func testPreparationAndFinalRequestUseRecordingSnapshotAfterEdits() async throws {
-        let fixture = try Fixture(text: "Final words floze")
-        defer { fixture.cleanUp() }
-        let entry = DictionaryEntry(term: "Airdraft", aliases: ["floze"])
-        fixture.dictionary.add(entry)
-        fixture.profiles.setBaseRules("Captured base rules")
-        let capturedProfile = fixture.profiles.activeProfile
-        let capturedConfig = fixture.settings.llm
-        fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Captured refiner is prepared") { !fixture.probe.preparedConfigs.isEmpty }
+    func testCancelledPreparationOrPromptPrefixCannotAffectTheReplacementRecording() async throws {
+        do { // CancelledLatePreparationCannotReplaceTheNextSession
+            let fixture = try Fixture()
+            let gate = PreparationGate()
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            let original = fixture.settings.llm
+            fixture.pipeline.prepareRefinement = { config in
+                fixture.probe.prepared(config)
+                if config.model == original.model { await gate.enter() }
+                return .unmanaged
+            }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Old preparation is suspended") { await gate.callCount == 1 }
+            try fixture.pipeline.cancelFromAutomation()
+            fixture.settings.llm.model = "replacement-model"
+            let replacement = fixture.settings.llm
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            await gate.release()
+            for _ in 0..<20 { await Task.yield() }
 
-        fixture.settings.llm = LLMConfig(kind: .none)
-        fixture.settings.asr.chineseScript = .simplified
-        fixture.settings.useAppContext = true
-        fixture.profiles.setActive(RefinementProfile.verbatimID)
-        fixture.profiles.setBaseRules("New base rules")
-        var edited = entry
-        edited.term = "Changed"
-        fixture.dictionary.update(edited)
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        let request = try XCTUnwrap(fixture.probe.requests.first)
-        XCTAssertEqual(fixture.probe.builtConfigs, [capturedConfig])
-        XCTAssertEqual(fixture.probe.preparedConfigs, [capturedConfig])
-        XCTAssertEqual(request.profile, capturedProfile)
-        XCTAssertEqual(request.baseRules, "Captured base rules")
-        XCTAssertEqual(request.dictionary, [entry])
-        XCTAssertEqual(request.chineseScript, .traditional)
-        let capturedVocabulary = await fixture.speech.lastVocabulary
-        XCTAssertEqual(capturedVocabulary, ["Airdraft"])
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words Airdraft"])
-
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Next capture uses edited settings") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries.last, "Final words Changed")
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "Verbatim: no LLM")
-    }
-
-    func testCancelledLatePreparationCannotReplaceTheNextSession() async throws {
-        let fixture = try Fixture()
-        let gate = PreparationGate()
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        let original = fixture.settings.llm
-        fixture.pipeline.prepareRefinement = { config in
-            fixture.probe.prepared(config)
-            if config.model == original.model { await gate.enter() }
-            return .unmanaged
+            XCTAssertEqual(fixture.probe.builtConfigs, [original, replacement])
+            XCTAssertEqual(fixture.probe.preparedConfigs, [original, replacement])
+            XCTAssertEqual(fixture.probe.requestModels, [replacement.model])
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertEqual(try fixture.history.count(), 1)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
         }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Old preparation is suspended") { await gate.callCount == 1 }
-        try fixture.pipeline.cancelFromAutomation()
-        fixture.settings.llm.model = "replacement-model"
-        let replacement = fixture.settings.llm
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        await gate.release()
-        for _ in 0..<20 { await Task.yield() }
 
-        XCTAssertEqual(fixture.probe.builtConfigs, [original, replacement])
-        XCTAssertEqual(fixture.probe.preparedConfigs, [original, replacement])
-        XCTAssertEqual(fixture.probe.requestModels, [replacement.model])
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertEqual(try fixture.history.count(), 1)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.final, "Final words")
-    }
+        do { // CancelledPromptPrefixCannotRefineOrPublishIntoTheReplacementRecording
+            let gate = PreparationGate()
+            let originalModel = Fixture.config.model
+            let fixture = try Fixture(prefixWork: { config in
+                if config.model == originalModel { await gate.enter() }
+            })
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            fixture.pipeline.prepareRefinement = { _ in .lmStudio }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Old prompt prefix is pending") { await gate.callCount == 1 }
+            try fixture.pipeline.cancelFromAutomation()
+            fixture.settings.llm.model = "replacement-prefix-model"
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            await gate.release()
+            for _ in 0..<20 { await Task.yield() }
 
-    func testPromptPrefixPreparationAndFinalRefinementShareTheCapturedRequest() async throws {
-        let gate = PreparationGate()
-        let fixture = try Fixture(text: "Final words floze", prefixWork: { _ in await gate.enter() })
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        let entry = DictionaryEntry(term: "Airdraft", aliases: ["floze"])
-        fixture.dictionary.add(entry)
-        fixture.profiles.setBaseRules("Captured prefix rules")
-        let captured = fixture.settings.llm
-        fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .lmStudio }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Prompt prefix starts during recording") { await gate.callCount == 1 }
-        XCTAssertTrue(fixture.recorder.isRecording)
-        let prefix = try XCTUnwrap(fixture.probe.prefixRequests.first)
-        XCTAssertTrue(prefix.transcript.isEmpty, "Prefix preparation must not contain unfinished speech")
-
-        fixture.settings.llm.kind = .none
-        fixture.profiles.setActive(RefinementProfile.verbatimID)
-        fixture.profiles.setBaseRules("Changed rules")
-        var edited = entry
-        edited.term = "Changed"
-        fixture.dictionary.update(edited)
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        let stillPending = await gate.waitingCount
-        XCTAssertEqual(stillPending, 1, "A prefix operation that ignores cancellation must not block final refinement")
-
-        let final = try XCTUnwrap(fixture.probe.requests.first)
-        XCTAssertEqual(PromptBuilder.systemPrompt(for: prefix), PromptBuilder.systemPrompt(for: final))
-        XCTAssertEqual(prefix.context, final.context)
-        XCTAssertEqual(prefix.baseRules, "Captured prefix rules")
-        XCTAssertEqual(prefix.dictionary, [entry])
-        XCTAssertEqual(fixture.probe.preparedConfigs, [captured])
-        XCTAssertEqual(fixture.probe.prefixBackends, [.lmStudio])
-        XCTAssertEqual(fixture.probe.requestUsedPreparedValue, [true],
-                       "Refinement must use the refiner returned by prepare, rather than rebuild it")
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words Airdraft"])
-        XCTAssertGreaterThanOrEqual(try XCTUnwrap(fixture.pipeline.lastOutcome).timings.promptPrefixMs, 300)
-        XCTAssertEqual(try fixture.history.count(), 1)
-        await gate.release()
-        for _ in 0..<20 { await Task.yield() }
-        XCTAssertEqual(fixture.probe.deliveries.count, 1)
-    }
-
-    func testCancelledPromptPrefixCannotRefineOrPublishIntoTheReplacementRecording() async throws {
-        let gate = PreparationGate()
-        let originalModel = Fixture.config.model
-        let fixture = try Fixture(prefixWork: { config in
-            if config.model == originalModel { await gate.enter() }
-        })
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        fixture.pipeline.prepareRefinement = { _ in .lmStudio }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Old prompt prefix is pending") { await gate.callCount == 1 }
-        try fixture.pipeline.cancelFromAutomation()
-        fixture.settings.llm.model = "replacement-prefix-model"
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        await gate.release()
-        for _ in 0..<20 { await Task.yield() }
-
-        XCTAssertEqual(fixture.probe.prefixRequests.count, 2)
-        XCTAssertEqual(Set(fixture.probe.prefixOwners).count, 2, "Preparation belongs to a distinct recording owner")
-        XCTAssertEqual(fixture.probe.requestModels, ["replacement-prefix-model"])
-        XCTAssertEqual(fixture.probe.requestUsedPreparedValue, [true])
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testTimedOutPromptPrefixDoesNotConsumeTheFinalRequestBudgetOrDeliverLateOutput() async throws {
-        let gate = PreparationGate()
-        let fixture = try Fixture(refineDelay: .milliseconds(10), prefixWork: { _ in await gate.enter() })
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        fixture.settings.llm.timeoutSeconds = 0.08
-        fixture.pipeline.prepareRefinement = { _ in .lmStudio }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Prompt prefix starts") { await gate.callCount == 1 }
-        try await Task.sleep(for: .milliseconds(100))
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        let outcome = try XCTUnwrap(fixture.pipeline.lastOutcome)
-        XCTAssertGreaterThanOrEqual(outcome.timings.promptPrefixMs, 70)
-        XCTAssertLessThan(outcome.timings.preparationWaitMs, 70)
-        XCTAssertLessThan(outcome.llmMs, 80)
-        XCTAssertNil(outcome.llmSkippedReason)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        let stillPending = await gate.waitingCount
-        XCTAssertEqual(stillPending, 1)
-        await gate.release()
-        for _ in 0..<20 { await Task.yield() }
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testFailedPreparationDeliversRawTranscriptAndPersistsItsError() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.pipeline.prepareRefinement = { _ in throw PreparationError.unavailable }
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
-        let record = try XCTUnwrap(fixture.history.recent().first)
-        XCTAssertEqual(record.finalText, "Final words")
-        XCTAssertEqual(record.outputSucceeded, true)
-        XCTAssertTrue(record.error?.contains("preparation fixture unavailable") == true)
-        XCTAssertNotNil(fixture.pipeline.lastIssue)
-    }
-
-    func testPreparationDeadlineCanAbandonAnUncooperativeLoaderWithoutLateDelivery() async throws {
-        let fixture = try Fixture()
-        let gate = PreparationGate()
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        fixture.settings.llm.timeoutSeconds = 0.08
-        fixture.pipeline.prepareRefinement = { _ in await gate.enter(); return .unmanaged }
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Loader starts") { await gate.callCount == 1 }
-        try await finished(fixture)
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
-        let timedOut = try XCTUnwrap(fixture.pipeline.lastOutcome)
-        XCTAssertGreaterThanOrEqual(timedOut.timings.modelPreparationMs, 70,
-                                    "An unfinished loader still contributes its elapsed preparation time")
-        XCTAssertGreaterThanOrEqual(timedOut.timings.preparationWaitMs, 70)
-        await gate.release()
-        for _ in 0..<20 { await Task.yield() }
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        XCTAssertEqual(fixture.probe.deliveries.count, 1)
-        XCTAssertEqual(try fixture.history.count(), 1)
-    }
-
-    func testRecordingPreparationCanOutlastFinalRequestBudgetWithoutAnEarlyTimeout() async throws {
-        let fixture = try Fixture(refineDelay: .milliseconds(10))
-        defer { fixture.cleanUp() }
-        fixture.settings.llm.timeoutSeconds = 0.08
-        fixture.pipeline.prepareRefinement = { _ in try await Task.sleep(for: .milliseconds(250)); return .unmanaged }
-        try await fixture.pipeline.startFromAutomation()
-        try await Task.sleep(for: .milliseconds(300))
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertNil(fixture.pipeline.lastOutcome?.llmSkippedReason)
-        let outcome = try XCTUnwrap(fixture.pipeline.lastOutcome)
-        XCTAssertGreaterThanOrEqual(outcome.timings.modelPreparationMs, 240)
-        XCTAssertLessThan(outcome.llmMs, 80,
-                          "Work completed while recording must not consume the final request budget")
-    }
-
-    func testDisabledAndVerbatimRefinementNeverBuildOrPrepare() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.pipeline.prepareRefinement = { _ in XCTFail("Disabled refinement must not prepare"); return .unmanaged }
-        fixture.settings.llm.kind = .none
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-
-        fixture.settings.llm = Fixture.config
-        fixture.profiles.setActive(RefinementProfile.verbatimID)
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Verbatim output completes") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.probe.builtConfigs.isEmpty)
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-    }
-
-    func testSkippedShortUtteranceDoesNotReportSpeculativePreparationFailure() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.settings.llm.minWordsForLLM = 10
-        fixture.pipeline.prepareRefinement = { _ in throw PreparationError.unavailable }
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await finished(fixture)
-
-        XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        XCTAssertNil(fixture.pipeline.lastIssue)
-        XCTAssertNil(try fixture.history.recent().first?.error)
-        XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "short utterance (2 words)")
-    }
-
-    func testDiscardedTooShortRecordingCannotKeepItsPreparedRefinerForTheNextCapture() async throws {
-        let fixture = try Fixture()
-        let gate = PreparationGate()
-        defer { fixture.cleanUp(); Task { await gate.release() } }
-        fixture.recorder.samples = Array(Fixture.samples.prefix(1_600))
-        fixture.pipeline.prepareRefinement = { config in
-            fixture.probe.prepared(config)
-            await gate.enter()
-            return .unmanaged
+            XCTAssertEqual(fixture.probe.prefixRequests.count, 2)
+            XCTAssertEqual(Set(fixture.probe.prefixOwners).count, 2, "Preparation belongs to a distinct recording owner")
+            XCTAssertEqual(fixture.probe.requestModels, ["replacement-prefix-model"])
+            XCTAssertEqual(fixture.probe.requestUsedPreparedValue, [true])
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertEqual(try fixture.history.count(), 1)
         }
-        try await fixture.pipeline.startFromAutomation()
-        try await waitUntil("Short capture prepares") { await gate.callCount == 1 }
-        try fixture.pipeline.stopFromAutomation()
-        try await waitUntil("Short capture is discarded") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertTrue(fixture.probe.requests.isEmpty)
-        XCTAssertEqual(try fixture.history.count(), 0)
-        await gate.release()
-        fixture.recorder.samples = Fixture.samples
-        fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
-        try await fixture.pipeline.startFromAutomation()
-        try fixture.pipeline.stopFromAutomation()
-        try await finished(fixture)
-        XCTAssertEqual(fixture.probe.builtConfigs.count, 2)
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertEqual(fixture.probe.deliveries.count, 1)
     }
 
-    func testSpeechRetryPreparesTheCurrentRefinerAndKeepsDeliverySingle() async throws {
-        let fixture = try Fixture(speechResponses: [.failure, .text("Recovered words")])
-        defer { fixture.cleanUp() }
-        fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
-        fixture.pipeline.processSamples(Fixture.samples)
-        try await waitUntil("Speech audio becomes recoverable") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        fixture.settings.llm.model = "retry-model"
-        fixture.pipeline.retryRecording()
-        try await finished(fixture)
+    func testPromptPrefixSharesTheCapturedRequestAndNeverConsumesTheFinalBudget() async throws {
+        do { // PromptPrefixPreparationAndFinalRefinementShareTheCapturedRequest
+            let gate = PreparationGate()
+            let fixture = try Fixture(text: "Final words floze", prefixWork: { _ in await gate.enter() })
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            let entry = DictionaryEntry(term: "Airdraft", aliases: ["floze"])
+            fixture.dictionary.add(entry)
+            fixture.profiles.setBaseRules("Captured prefix rules")
+            let captured = fixture.settings.llm
+            fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .lmStudio }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Prompt prefix starts during recording") { await gate.callCount == 1 }
+            XCTAssertTrue(fixture.recorder.isRecording)
+            let prefix = try XCTUnwrap(fixture.probe.prefixRequests.first)
+            XCTAssertTrue(prefix.transcript.isEmpty, "Prefix preparation must not contain unfinished speech")
 
-        XCTAssertEqual(fixture.probe.requestModels, ["retry-model"])
-        XCTAssertEqual(fixture.probe.deliveries, ["Recovered words"])
-        XCTAssertEqual(try fixture.history.count(), 1)
-        XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+            fixture.settings.llm.kind = .none
+            fixture.profiles.setActive(RefinementProfile.verbatimID)
+            fixture.profiles.setBaseRules("Changed rules")
+            var edited = entry
+            edited.term = "Changed"
+            fixture.dictionary.update(edited)
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            let stillPending = await gate.waitingCount
+            XCTAssertEqual(stillPending, 1, "A prefix operation that ignores cancellation must not block final refinement")
+
+            let final = try XCTUnwrap(fixture.probe.requests.first)
+            XCTAssertEqual(PromptBuilder.systemPrompt(for: prefix), PromptBuilder.systemPrompt(for: final))
+            XCTAssertEqual(prefix.context, final.context)
+            XCTAssertEqual(prefix.baseRules, "Captured prefix rules")
+            XCTAssertEqual(prefix.dictionary, [entry])
+            XCTAssertEqual(fixture.probe.preparedConfigs, [captured])
+            XCTAssertEqual(fixture.probe.prefixBackends, [.lmStudio])
+            XCTAssertEqual(fixture.probe.requestUsedPreparedValue, [true],
+                           "Refinement must use the refiner returned by prepare, rather than rebuild it")
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words Airdraft"])
+            XCTAssertGreaterThanOrEqual(try XCTUnwrap(fixture.pipeline.lastOutcome).timings.promptPrefixMs, 300)
+            XCTAssertEqual(try fixture.history.count(), 1)
+            await gate.release()
+            for _ in 0..<20 { await Task.yield() }
+            XCTAssertEqual(fixture.probe.deliveries.count, 1)
+        }
+
+        do { // TimedOutPromptPrefixDoesNotConsumeTheFinalRequestBudgetOrDeliverLateOutput
+            let gate = PreparationGate()
+            let fixture = try Fixture(refineDelay: .milliseconds(10), prefixWork: { _ in await gate.enter() })
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            fixture.settings.llm.timeoutSeconds = 0.08
+            fixture.pipeline.prepareRefinement = { _ in .lmStudio }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Prompt prefix starts") { await gate.callCount == 1 }
+            try await Task.sleep(for: .milliseconds(100))
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            let outcome = try XCTUnwrap(fixture.pipeline.lastOutcome)
+            XCTAssertGreaterThanOrEqual(outcome.timings.promptPrefixMs, 70)
+            XCTAssertLessThan(outcome.timings.preparationWaitMs, 70)
+            XCTAssertLessThan(outcome.llmMs, 80)
+            XCTAssertNil(outcome.llmSkippedReason)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            let stillPending = await gate.waitingCount
+            XCTAssertEqual(stillPending, 1)
+            await gate.release()
+            for _ in 0..<20 { await Task.yield() }
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
     }
 
-    func testReviewRetranscriptionPreparesButNeverDeliversOrDuplicatesHistory() async throws {
-        let fixture = try Fixture()
-        defer { fixture.cleanUp() }
-        fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
-        let record = DictationRecord(mode: "clean", family: "document", rawTranscript: "Original words",
-            refinedText: "Original words", finalText: "Original words", asrEngine: "fixture",
-            audioSeconds: 1, asrMs: 1, llmMs: 0, inserted: false)
-        let saved = try fixture.history.save(record, samples: Fixture.samples)
-        XCTAssertNotNil(saved.audioFilename)
-        XCTAssertEqual(try fixture.history.audioSamples(for: saved).count, Fixture.samples.count)
-        fixture.pipeline.retranscribe(saved)
-        try await waitUntil("Review finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
-        XCTAssertEqual(fixture.probe.preparedConfigs.count, 1)
-        XCTAssertEqual(fixture.probe.requests.count, 1)
-        XCTAssertTrue(fixture.probe.deliveries.isEmpty)
-        XCTAssertNil(fixture.pipeline.lastOutcome)
-        XCTAssertEqual(try fixture.history.count(), 1)
+    /// Failed preparation delivers the raw transcript and persists its error, the deadline
+    /// can abandon an uncooperative loader without late delivery, and preparation during
+    /// recording can outlast the final request budget without an early timeout.
+    func testPreparationFailureDeadlineAndLongLoadsKeepDeliverySingleAndTimely() async throws {
+        do { // FailedPreparationDeliversRawTranscriptAndPersistsItsError
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.pipeline.prepareRefinement = { _ in throw PreparationError.unavailable }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
+            let record = try XCTUnwrap(fixture.history.recent().first)
+            XCTAssertEqual(record.finalText, "Final words")
+            XCTAssertEqual(record.outputSucceeded, true)
+            XCTAssertTrue(record.error?.contains("preparation fixture unavailable") == true)
+            XCTAssertNotNil(fixture.pipeline.lastIssue)
+        }
+
+        do { // PreparationDeadlineCanAbandonAnUncooperativeLoaderWithoutLateDelivery
+            let fixture = try Fixture()
+            let gate = PreparationGate()
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            fixture.settings.llm.timeoutSeconds = 0.08
+            fixture.pipeline.prepareRefinement = { _ in await gate.enter(); return .unmanaged }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Loader starts") { await gate.callCount == 1 }
+            try await finished(fixture)
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "LLM failed, using raw transcript")
+            let timedOut = try XCTUnwrap(fixture.pipeline.lastOutcome)
+            XCTAssertGreaterThanOrEqual(timedOut.timings.modelPreparationMs, 70,
+                                        "An unfinished loader still contributes its elapsed preparation time")
+            XCTAssertGreaterThanOrEqual(timedOut.timings.preparationWaitMs, 70)
+            await gate.release()
+            for _ in 0..<20 { await Task.yield() }
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            XCTAssertEqual(fixture.probe.deliveries.count, 1)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
+
+        do { // RecordingPreparationCanOutlastFinalRequestBudgetWithoutAnEarlyTimeout
+            let fixture = try Fixture(refineDelay: .milliseconds(10))
+            defer { fixture.cleanUp() }
+            fixture.settings.llm.timeoutSeconds = 0.08
+            fixture.pipeline.prepareRefinement = { _ in try await Task.sleep(for: .milliseconds(250)); return .unmanaged }
+            try await fixture.pipeline.startFromAutomation()
+            try await Task.sleep(for: .milliseconds(300))
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertNil(fixture.pipeline.lastOutcome?.llmSkippedReason)
+            let outcome = try XCTUnwrap(fixture.pipeline.lastOutcome)
+            XCTAssertGreaterThanOrEqual(outcome.timings.modelPreparationMs, 240)
+            XCTAssertLessThan(outcome.llmMs, 80,
+                              "Work completed while recording must not consume the final request budget")
+        }
+    }
+
+    /// Disabled and Verbatim refinement never build or prepare, a skipped short utterance
+    /// reports no speculative failure, and a discarded too-short recording keeps no prepared
+    /// refiner for the next capture.
+    func testSkippedRefinementNeverBuildsReportsOrKeepsSpeculativePreparation() async throws {
+        do { // DisabledAndVerbatimRefinementNeverBuildOrPrepare
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.pipeline.prepareRefinement = { _ in XCTFail("Disabled refinement must not prepare"); return .unmanaged }
+            fixture.settings.llm.kind = .none
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+
+            fixture.settings.llm = Fixture.config
+            fixture.profiles.setActive(RefinementProfile.verbatimID)
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Verbatim output completes") { fixture.probe.deliveries.count == 2 && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.probe.builtConfigs.isEmpty)
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+        }
+
+        do { // SkippedShortUtteranceDoesNotReportSpeculativePreparationFailure
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.settings.llm.minWordsForLLM = 10
+            fixture.pipeline.prepareRefinement = { _ in throw PreparationError.unavailable }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.deliveries, ["Final words"])
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            XCTAssertNil(fixture.pipeline.lastIssue)
+            XCTAssertNil(try fixture.history.recent().first?.error)
+            XCTAssertEqual(fixture.pipeline.lastOutcome?.llmSkippedReason, "short utterance (2 words)")
+        }
+
+        do { // DiscardedTooShortRecordingCannotKeepItsPreparedRefinerForTheNextCapture
+            let fixture = try Fixture()
+            let gate = PreparationGate()
+            defer { fixture.cleanUp(); Task { await gate.release() } }
+            fixture.recorder.samples = Array(Fixture.samples.prefix(1_600))
+            fixture.pipeline.prepareRefinement = { config in
+                fixture.probe.prepared(config)
+                await gate.enter()
+                return .unmanaged
+            }
+            try await fixture.pipeline.startFromAutomation()
+            try await waitUntil("Short capture prepares") { await gate.callCount == 1 }
+            try fixture.pipeline.stopFromAutomation()
+            try await waitUntil("Short capture is discarded") { !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertTrue(fixture.probe.requests.isEmpty)
+            XCTAssertEqual(try fixture.history.count(), 0)
+            await gate.release()
+            fixture.recorder.samples = Fixture.samples
+            fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
+            try await fixture.pipeline.startFromAutomation()
+            try fixture.pipeline.stopFromAutomation()
+            try await finished(fixture)
+            XCTAssertEqual(fixture.probe.builtConfigs.count, 2)
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertEqual(fixture.probe.deliveries.count, 1)
+        }
+    }
+
+    func testRetryAndReviewRetranscriptionPrepareTheCurrentRefinerWithoutExtraDeliveryOrHistory() async throws {
+        do { // SpeechRetryPreparesTheCurrentRefinerAndKeepsDeliverySingle
+            let fixture = try Fixture(speechResponses: [.failure, .text("Recovered words")])
+            defer { fixture.cleanUp() }
+            fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
+            fixture.pipeline.processSamples(Fixture.samples)
+            try await waitUntil("Speech audio becomes recoverable") { fixture.pipeline.hasRecoverableRecording && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            fixture.settings.llm.model = "retry-model"
+            fixture.pipeline.retryRecording()
+            try await finished(fixture)
+
+            XCTAssertEqual(fixture.probe.requestModels, ["retry-model"])
+            XCTAssertEqual(fixture.probe.deliveries, ["Recovered words"])
+            XCTAssertEqual(try fixture.history.count(), 1)
+            XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)
+        }
+
+        do { // ReviewRetranscriptionPreparesButNeverDeliversOrDuplicatesHistory
+            let fixture = try Fixture()
+            defer { fixture.cleanUp() }
+            fixture.pipeline.prepareRefinement = { config in fixture.probe.prepared(config); return .unmanaged }
+            let record = DictationRecord(mode: "clean", family: "document", rawTranscript: "Original words",
+                refinedText: "Original words", finalText: "Original words", asrEngine: "fixture",
+                audioSeconds: 1, asrMs: 1, llmMs: 0, inserted: false)
+            let saved = try fixture.history.save(record, samples: Fixture.samples)
+            XCTAssertNotNil(saved.audioFilename)
+            XCTAssertEqual(try fixture.history.audioSamples(for: saved).count, Fixture.samples.count)
+            fixture.pipeline.retranscribe(saved)
+            try await waitUntil("Review finishes") { fixture.pipeline.reviewOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
+            XCTAssertEqual(fixture.probe.builtConfigs.count, 1)
+            XCTAssertEqual(fixture.probe.preparedConfigs.count, 1)
+            XCTAssertEqual(fixture.probe.requests.count, 1)
+            XCTAssertTrue(fixture.probe.deliveries.isEmpty)
+            XCTAssertNil(fixture.pipeline.lastOutcome)
+            XCTAssertEqual(try fixture.history.count(), 1)
+        }
     }
 
     /// A service with fixed preparation/decode/refine delays runs through the

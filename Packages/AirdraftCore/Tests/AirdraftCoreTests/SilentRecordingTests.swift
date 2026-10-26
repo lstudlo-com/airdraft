@@ -3,7 +3,8 @@ import XCTest
 
 @MainActor
 final class SilentRecordingTests: XCTestCase {
-    func testDigitalSilenceNeverLoadsRecognizesDeliversOrSaves() async throws {
+    /// Digital silence never loads, recognizes, delivers or saves; quiet nonzero audio still does.
+    func testDigitalSilenceIsDroppedButQuietNonzeroAudioReachesRecognizer() async throws {
         for destination in [TextOutputDestination.cursor, .script] {
             let fixture = try Fixture(destination: destination)
             defer { fixture.cleanup() }
@@ -18,9 +19,7 @@ final class SilentRecordingTests: XCTestCase {
                 XCTAssertTrue(try fixture.history.recent().isEmpty)
             }
         }
-    }
 
-    func testQuietNonzeroAudioStillReachesRecognizer() async throws {
         let fixture = try Fixture(destination: .cursor)
         defer { fixture.cleanup() }
         fixture.pipeline.processSamples([Float](repeating: 0.00000001, count: 16_000))

@@ -23,62 +23,67 @@ final class InternationalPipelineTextTests: XCTestCase {
         XCTAssertNil(AppleSpeechTranscriber.locale(forLanguage: "", region: "US"))
     }
 
-    // MARK: - Practice sentence
+    // MARK: - Practice sentence and refinement sample
 
     private let english = "Hello! I’m trying Airdraft for the first time, and it’s writing what I say."
 
-    func testPracticeSentenceUsesTheInterfaceCatalogForTheInterfaceLanguage() {
-        let localized = "¡Hola! (catalog)"
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "es"), interfaceLanguage: "es",
-                                                 localized: localized), localized)
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: ""), interfaceLanguage: "es",
-                                                 localized: localized, preferredLanguages: ["es-ES"]), localized)
-    }
-
-    func testPracticeSentenceFollowsAnExplicitSpeechLanguage() {
-        XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "ru"), interfaceLanguage: "en",
-                                                localized: english).hasPrefix("Здравствуйте"))
-        XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .whisperKit, language: "hi"), interfaceLanguage: "en",
-                                                localized: english).hasPrefix("नमस्ते"))
-        XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .apple, appleLocale: "fr-FR", language: ""),
-                                                interfaceLanguage: "en", localized: english).hasPrefix("Bonjour"))
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "zh", chineseScript: .simplified),
-                                                 interfaceLanguage: "en", localized: english), PracticeSentence.sentences["zh-Hans"])
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "yue", chineseScript: .traditional),
-                                                 interfaceLanguage: "es", localized: "x"), PracticeSentence.sentences["zh-Hant"])
-        // Cantonese speakers read the Chinese interface's sentence.
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "yue"), interfaceLanguage: "zh-Hant",
-                                                 localized: "catalog"), "catalog")
-        // A language without a sentence keeps the interface's.
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .whisperKit, language: "sw"), interfaceLanguage: "en",
-                                                 localized: english), english)
-    }
-
-    func testPracticeSentenceUnderAutoUsesALanguageTheModelRecognizes() {
-        // Parakeet v3 recognizes 25 European languages, not Japanese.
-        let parakeet = ASRConfig(kind: .parakeet, language: "")
-        XCTAssertEqual(PracticeSentence.sentence(for: parakeet, interfaceLanguage: "ja", localized: "こんにちは（catalog）",
-                                                 preferredLanguages: ["ja-JP", "de-DE"]), PracticeSentence.sentences["de"])
-        XCTAssertEqual(PracticeSentence.sentence(for: parakeet, interfaceLanguage: "ja", localized: "こんにちは（catalog）",
-                                                 preferredLanguages: ["ja-JP"]), english)
-        XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: ""), interfaceLanguage: "ja",
-                                                 localized: "catalog", preferredLanguages: ["ja-JP"]), "catalog")
-    }
-
-    func testEveryPracticeSentenceNamesTheApp() {
-        for (language, sentence) in PracticeSentence.sentences {
-            XCTAssertTrue(sentence.contains("Airdraft"), language)
+    func testPracticeSentenceAndRefinementSampleFollowTheLanguage() {
+        // The practice sentence uses the interface catalog for the interface language.
+        do {
+            let localized = "¡Hola! (catalog)"
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "es"), interfaceLanguage: "es",
+                                                     localized: localized), localized)
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: ""), interfaceLanguage: "es",
+                                                     localized: localized, preferredLanguages: ["es-ES"]), localized)
         }
-    }
 
-    // MARK: - Refinement sample
-
-    func testRefinementSampleCoversTheNewInterfaceLanguages() {
-        let expectations = ["fr": "premièrement", "pt": "primeiro", "ru": "во-первых", "ar": "أولاً", "hi": "दूसरा",
-                            "id": "pertama", "de": "erstens", "ko": "첫째", "it": "primo"]
-        for (language, marker) in expectations {
-            XCTAssertTrue(RefinementSample.transcript(for: ASRConfig(language: language)).contains(marker), language)
+        // The practice sentence follows an explicit speech language.
+        do {
+            XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "ru"), interfaceLanguage: "en",
+                                                    localized: english).hasPrefix("Здравствуйте"))
+            XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .whisperKit, language: "hi"), interfaceLanguage: "en",
+                                                    localized: english).hasPrefix("नमस्ते"))
+            XCTAssertTrue(PracticeSentence.sentence(for: ASRConfig(kind: .apple, appleLocale: "fr-FR", language: ""),
+                                                    interfaceLanguage: "en", localized: english).hasPrefix("Bonjour"))
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "zh", chineseScript: .simplified),
+                                                     interfaceLanguage: "en", localized: english), PracticeSentence.sentences["zh-Hans"])
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "yue", chineseScript: .traditional),
+                                                     interfaceLanguage: "es", localized: "x"), PracticeSentence.sentences["zh-Hant"])
+            // Cantonese speakers read the Chinese interface's sentence.
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: "yue"), interfaceLanguage: "zh-Hant",
+                                                     localized: "catalog"), "catalog")
+            // A language without a sentence keeps the interface's.
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .whisperKit, language: "sw"), interfaceLanguage: "en",
+                                                     localized: english), english)
         }
-        XCTAssertTrue(RefinementSample.transcript(for: ASRConfig(language: ""), preferredLanguages: ["ru-RU"]).contains("тест"))
+
+        // Under Auto the practice sentence uses a language the model recognizes.
+        do {
+            // Parakeet v3 recognizes 25 European languages, not Japanese.
+            let parakeet = ASRConfig(kind: .parakeet, language: "")
+            XCTAssertEqual(PracticeSentence.sentence(for: parakeet, interfaceLanguage: "ja", localized: "こんにちは（catalog）",
+                                                     preferredLanguages: ["ja-JP", "de-DE"]), PracticeSentence.sentences["de"])
+            XCTAssertEqual(PracticeSentence.sentence(for: parakeet, interfaceLanguage: "ja", localized: "こんにちは（catalog）",
+                                                     preferredLanguages: ["ja-JP"]), english)
+            XCTAssertEqual(PracticeSentence.sentence(for: ASRConfig(kind: .qwen3, language: ""), interfaceLanguage: "ja",
+                                                     localized: "catalog", preferredLanguages: ["ja-JP"]), "catalog")
+        }
+
+        // Every practice sentence names the app.
+        do {
+            for (language, sentence) in PracticeSentence.sentences {
+                XCTAssertTrue(sentence.contains("Airdraft"), language)
+            }
+        }
+
+        // The refinement sample covers the new interface languages.
+        do {
+            let expectations = ["fr": "premièrement", "pt": "primeiro", "ru": "во-первых", "ar": "أولاً", "hi": "दूसरा",
+                                "id": "pertama", "de": "erstens", "ko": "첫째", "it": "primo"]
+            for (language, marker) in expectations {
+                XCTAssertTrue(RefinementSample.transcript(for: ASRConfig(language: language)).contains(marker), language)
+            }
+            XCTAssertTrue(RefinementSample.transcript(for: ASRConfig(language: ""), preferredLanguages: ["ru-RU"]).contains("тест"))
+        }
     }
 }
