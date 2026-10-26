@@ -703,14 +703,16 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       opacity 240ms ease,
       background-color 240ms ease;
   }
-  /* A veil of the page's own background, 35% opaque and solid behind the
-     whole header row, keeps the nav labels readable over busy content; it
-     feathers out only below the row, over the rest of the blur's reach. */
+  /* A veil of the island's colour (the surface scrolling under the header:
+     the darker gray in dark mode, the light gray in light mode), 35% opaque
+     and solid behind the whole header row, keeps the nav labels readable
+     over busy content; it feathers out only below the row. It follows the
+     tint's colour, so the phone menu opened over the chrome uses the chrome. */
   .header-blur::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-color: color-mix(in srgb, var(--chrome) 35%, transparent);
+    background-color: color-mix(in srgb, var(--blur-tint) 35%, transparent);
     -webkit-mask-image: linear-gradient(
       to bottom,
       black calc(100% - 100px + var(--header)),
