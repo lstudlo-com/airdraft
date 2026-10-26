@@ -702,7 +702,11 @@ whether or not the visitor is looking.
 **Entrances and depth (`src/scripts/flourish.ts`, motion.css).** The headline
 rises line by line out of its own line boxes on load, then the keys and facts
 follow; section headings rise word by word (character pairs in Chinese and
-Japanese) as they arrive; the hero card drifts up to `12px` toward the pointer
+Japanese) as they arrive, and the content under them rises the same way
+(`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): the
+scroll story's stage and steps, guide tiles, guide and text-page sections,
+breadcrumbs, pricing questions and changelog cards. Every page loads it
+(`Layout.astro`). Blocks the scroll timelines already raise are left to them; the hero card drifts up to `12px` toward the pointer
 and the copy `6px` away, translation only, so light stays at the top left. The
 app window grows from `0.84` and `140px` below as it arrives.
 

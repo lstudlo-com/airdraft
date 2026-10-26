@@ -187,8 +187,8 @@ and Local releases below.
   `.header-actions` gap, never margins. Bento tiles loop while on screen and hold
   after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the pinned scroll
   story after the hero (`StoryScroll`, `scrolly.ts`) plays one dictation scrubbed by
-  scroll; headings rise word by word and the hero drifts with the pointer
-  (`flourish.ts`); Meetings and the provider board play once (`meetings.ts`,
+  scroll; headings rise word by word, the content under them rises block by block
+  on every page, and the hero drifts with the pointer (`flourish.ts`); Meetings and the provider board play once (`meetings.ts`,
   `pipeline.ts`). Reduce Motion and no-JS keep resting frames. The one accent,
   `--accent` (the app's system blue), marks story progress only. JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.

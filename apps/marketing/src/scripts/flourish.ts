@@ -2,6 +2,13 @@
 //
 //   headings   section headings rise word by word (character pairs in
 //              Chinese and Japanese) as they come into view, once
+//   content    the content under them rises the same way, block by block:
+//              the scroll story's stage and steps, guide tiles, guide and
+//              text-page sections, pricing questions and changelog cards.
+//              Blocks that come into view together rise one after another.
+//              Blocks the scroll timelines already raise (bento tiles, the
+//              sample, Meetings, the provider board, offers, plans, the app
+//              window) are left to motion.css
 //   depth      the hero card and the copy above it drift a few pixels with
 //              the pointer, the card toward it and the copy away, so the
 //              raised card reads closer than the text. Translation only:
@@ -57,6 +64,55 @@ function headings() {
   }
 }
 
+// Content blocks that rise like the headings above them.
+const contentBlocks = [
+  ".story-stage",
+  ".story-step > *",
+  ".guide-pick",
+  ".guide-section",
+  ".guide-breadcrumbs",
+  ".guide-hub-note",
+  ".guide-actions",
+  ".question-list",
+  ".release-card",
+].join(", ");
+
+function content() {
+  const blocks = [...document.querySelectorAll<HTMLElement>(contentBlocks)];
+  const watcher = new IntersectionObserver(
+    (entries) => {
+      // Blocks arriving in the same frame rise in reading order, a step
+      // apart; one arriving alone rises at once.
+      entries
+        .filter((entry) => entry.isIntersecting)
+        .map((entry) => entry.target as HTMLElement)
+        .sort((a, b) =>
+          a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
+            ? -1
+            : 1,
+        )
+        .forEach((block, index) => {
+          block.style.setProperty("--i", String(Math.min(index, 6)));
+          block.classList.add("is-in");
+          watcher.unobserve(block);
+        });
+    },
+    { rootMargin: "0px 0px -10% 0px" },
+  );
+  for (const block of blocks) {
+    block.classList.add("reveal-block");
+    watcher.observe(block);
+    // Once risen, the block gets its own transitions back.
+    const settle = (event: TransitionEvent) => {
+      if (event.target !== block || event.propertyName !== "translate") return;
+      block.classList.remove("reveal-block", "is-in");
+      block.style.removeProperty("--i");
+      block.removeEventListener("transitionend", settle);
+    };
+    block.addEventListener("transitionend", settle);
+  }
+}
+
 function depth() {
   const hero = document.querySelector<HTMLElement>("[data-hero]");
   if (!hero) return;
@@ -92,6 +148,7 @@ function depth() {
 if (!reduced.matches) {
   document.documentElement.classList.add("flourish");
   headings();
+  content();
   depth();
 }
 
