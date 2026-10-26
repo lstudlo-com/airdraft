@@ -1347,6 +1347,8 @@ Spanish and Japanese interfaces, language-neutral internationalization (defaults
 prompts, guards, layouts that fit translations, right-to-left readiness) and the
 measured per-language speech recommendations are 0.14.0.
 Official-build opt-in usage data and crash reports are 0.13.0.
+Send after pasting, flagged words, profile destinations and the profile and
+Edit shortcuts are 0.15.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with
