@@ -346,7 +346,9 @@ final class TextInsertionTests: XCTestCase {
         defer { pasteboard.releaseGlobally() }
         pasteboard.setString("Old clipboard", forType: .string)
         let inserter = TextInserter()
-        inserter.restoreDelay = 0.15
+        // The check below runs moments after the paste; the delay leaves a
+        // slow CI runner ample room before the restore may happen.
+        inserter.restoreDelay = 2
         let posted = expectation(description: "Paste posted")
         var posts = 0
         let task = Task { @MainActor in

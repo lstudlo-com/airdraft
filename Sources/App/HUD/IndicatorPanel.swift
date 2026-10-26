@@ -389,10 +389,15 @@ final class HUDPreviewNotice {
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private let visibleFor: TimeInterval
     @ObservationIgnored private let fadeFor: TimeInterval
+    /// Waits out a phase; tests pass a manual clock so they never race real time.
+    typealias Sleep = @MainActor (TimeInterval) async throws -> Void
+    @ObservationIgnored private let sleep: Sleep
 
-    init(visibleFor: TimeInterval = 2, fadeFor: TimeInterval = 0.3) {
+    init(visibleFor: TimeInterval = 2, fadeFor: TimeInterval = 0.3,
+         sleep: @escaping Sleep = { try await Task.sleep(for: .seconds($0)) }) {
         self.visibleFor = visibleFor
         self.fadeFor = fadeFor
+        self.sleep = sleep
     }
 
     /// The notice for a recording whose live-text window stays closed.
@@ -409,10 +414,12 @@ final class HUDPreviewNotice {
         isFading = false
         message = next
         guard next != nil else { return }
-        task = Task { [weak self, visibleFor, fadeFor] in
-            do { try await Task.sleep(for: .seconds(visibleFor)) } catch { return }
+        task = Task { [weak self, visibleFor, fadeFor, sleep] in
+            do { try await sleep(visibleFor) } catch { return }
+            guard !Task.isCancelled else { return }
             withAnimation(.easeOut(duration: fadeFor)) { self?.isFading = true }
-            do { try await Task.sleep(for: .seconds(fadeFor)) } catch { return }
+            do { try await sleep(fadeFor) } catch { return }
+            guard !Task.isCancelled else { return }
             self?.message = nil
         }
     }

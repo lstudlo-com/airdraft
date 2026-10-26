@@ -61,7 +61,7 @@ git push origin main
 
 - 正常通過 hook。它會重新驗證並重用上一節的 draft；不要使用 `--no-verify` 或停用 hook。未完成的 live insertion 驗收使用 `--unverified-live-insertion REASON`，讓 hook 和 manifest 保留真實狀態。
 - 推送失敗先核對遠端狀態。建置或驗證失敗回到修正流程；網路問題先確認提交是否已到遠端，再決定重試，避免重複建立版本。
-- 推送成功後，以完整 SHA 查詢 `Publish local macOS release` workflow，等待成功。`git push` 成功只代表程式碼已推送。
+- 推送成功後，以完整 SHA 查詢 `Publish local macOS release` 與 `macOS CI` 兩個 workflow，都要等到結果。`git push` 成功只代表程式碼已推送；Publish 成功也不代表 CI 通過。`macOS CI` 失敗時，從 `macos-ci-logs` artifact 的 `local-e2e/tests.log` 找出失敗案例，在同一個任務內修正並重新推送，不留到下一次。
 
   ```sh
   gh run list --repo lstudlo-com/airdraft --commit "$COMMIT" \

@@ -1399,8 +1399,12 @@ everything, including the full-length tests (`AIRDRAFT_LONG_TESTS=1`).
 | Docs or vault only | `check-vault.py` when the vault changed; nothing else |
 
 Tests use injected time instead of waiting: `EngineFactory`'s `now`,
-`DictationPipeline.recordingLimitSeconds` and `resetDelayScale`, and
-`TextInserter`'s delays. A unit test that sleeps longer than a second needs a
+`DictationPipeline.recordingLimitSeconds` and `resetDelayScale`,
+`TextInserter`'s delays and `HUDPreviewNotice`'s `sleep`. A timer-driven type
+takes an injected sleep, and its tests drive a manual clock; never assert after
+a real sleep that races a real deadline (they pass locally and fail on slower
+CI runners). Where a real delay remains, leave a margin of seconds, not
+milliseconds, between the action and the deadline. A unit test that sleeps longer than a second needs a
 stated reason, and tests that model hours of audio shorten unless
 `LongTests.enabled`. Do not add a UI-operation fixture for behavior a logic test
 can cover.
