@@ -91,3 +91,35 @@ public enum MediaSegmentPlan {
         return result
     }
 }
+
+/// Under Auto, Transcribe decodes each speaker segment on its own. A one-word reply
+/// carries too little audio to identify its language, and Qwen wrote Japanese うん
+/// as Chinese 嗯 (AD-117). Once longer segments show the recording's language,
+/// shorter ones reuse it; an explicit language or an engine without language
+/// control is left alone.
+public struct MediaLanguageLock: Sendable {
+    public static let shortSegmentSeconds = 4.0
+    static let minimumEvidenceLetters = 30
+    private var evidence = ""
+    public private(set) var language: String?
+
+    public init(words: [TranscriptWord] = []) {
+        for word in words { observe(word.text, seconds: word.end - word.start) }
+    }
+
+    public mutating func observe(_ text: String, seconds: Double) {
+        guard language == nil, seconds >= Self.shortSegmentSeconds else { return }
+        evidence += text
+        guard evidence.unicodeScalars.filter({ $0.properties.isAlphabetic }).count >= Self.minimumEvidenceLetters,
+              let detected = RefinementFidelity.dominantLanguage(evidence) else { return }
+        language = (try? SpeechLanguagePolicy.canonicalLanguage(detected)) ?? nil
+    }
+
+    public func config(for config: ASRConfig, seconds: Double) -> ASRConfig {
+        guard seconds < Self.shortSegmentSeconds, let language,
+              (try? SpeechLanguagePolicy.resolve(config))?.isAutomatic == true else { return config }
+        var locked = config
+        locked.language = language
+        return (try? SpeechLanguagePolicy.resolve(locked)) == nil ? config : locked
+    }
+}

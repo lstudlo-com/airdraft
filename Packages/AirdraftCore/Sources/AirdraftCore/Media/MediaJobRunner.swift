@@ -172,6 +172,7 @@ public final class MediaJobRunner {
                     ? MediaSegmentPlan.speechTurns(duration: asset.duration, speakers: document?.speakerIntervals ?? [])
                     : segmentTiming ? MediaSegmentPlan.make(duration: asset.duration, speakers: []) : []
                 if speechOnly && segments.isEmpty { throw MediaError.noSpeakerActivity }
+                var languageLock = MediaLanguageLock(words: document?.words ?? [])
                 while let current = document, Int((current.completedSeconds * 16_000).rounded()) < Int((asset.duration * 16_000).rounded()) {
                     try Task.checkCancellation()
                     let completedFrame = Int((current.completedSeconds * 16_000).rounded())
@@ -187,9 +188,31 @@ public final class MediaJobRunner {
                     guard !samples.isEmpty else { throw MediaError.invalidAudio }
                     // Select a quiet boundary within a bounded window, without retaining the whole file.
                     let chunk = segmentTiming ? samples : AudioChunker.split(samples, maxSeconds: 25, minTailSeconds: 0).first!.samples
+                    let seconds = Double(chunk.count) / 16_000
+                    let config = languageLock.config(for: initial.configuration.asr, seconds: seconds)
                     var words: [TranscriptWord]
-                    if let windowDecoder { words = try await windowDecoder(chunk, offset, initial.configuration.asr) }
-                    else { words = try await factory.transcribeMediaWindow(chunk, offset: offset, config: initial.configuration.asr) }
+                    if let windowDecoder { words = try await windowDecoder(chunk, offset, config) }
+                    else { words = try await factory.transcribeMediaWindow(chunk, offset: offset, config: config) }
+                    let wasLocked = languageLock.language != nil
+                    languageLock.observe(words.map(\.text).joined(), seconds: seconds)
+                    if !wasLocked, languageLock.language != nil, let saved = document?.words {
+                        // Short segments decoded before the language was known get it now.
+                        var revised = saved
+                        for index in revised.indices where revised[index].timing == .segment &&
+                            revised[index].end - revised[index].start < MediaLanguageLock.shortSegmentSeconds {
+                            let word = revised[index]
+                            let audio = try await Task.detached {
+                                try MediaAudioWindow.read(url, from: word.start, maximumSeconds: word.end - word.start)
+                            }.value
+                            let redone = languageLock.config(for: initial.configuration.asr, seconds: Double(audio.count) / 16_000)
+                            let text: [TranscriptWord]
+                            if let windowDecoder { text = try await windowDecoder(audio, word.start, redone) }
+                            else { text = try await factory.transcribeMediaWindow(audio, offset: word.start, config: redone) }
+                            if let first = text.first { revised[index].text = first.text }
+                        }
+                        try Task.checkCancellation()
+                        try await persist { $0.words = revised; $0.rebuildTurns() }
+                    }
                     if let segment {
                         words = words.map { word in
                             var value = word

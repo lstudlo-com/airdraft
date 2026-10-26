@@ -46,6 +46,27 @@ final class MediaDocumentTests: XCTestCase {
     }
 
     func testDocumentAlignmentExportsAndCleanupScopesPreserveOriginalsAndPreventResurrection() throws {
+        // AD-117: Chinese and Japanese segments join without spaces, and short segments
+        // under Auto reuse the language longer segments showed.
+        do {
+            XCTAssertEqual(EngineFactory.segmentText("でまだそれが終わんねえんだ。"), "でまだそれが終わんねえんだ。")
+            XCTAssertEqual(EngineFactory.segmentText("最好就是周日，"), "最好就是周日，")
+            XCTAssertEqual(EngineFactory.segmentText("Okay."), "Okay. ")
+            let qwen = ASRConfig(kind: .qwen3, language: "")
+            var lock = MediaLanguageLock()
+            XCTAssertEqual(lock.config(for: qwen, seconds: 1).language, "", "Nothing is locked before evidence arrives")
+            lock.observe("うん", seconds: 0.8)
+            XCTAssertNil(lock.language, "Short segments are not evidence")
+            lock.observe("でまだそれが終わんねえんだ。それであと一教科残して大体終わるんだな。分かんないけど、全体がうまくいけば取れるんだって。", seconds: 9)
+            XCTAssertEqual(lock.language, "ja")
+            XCTAssertEqual(lock.config(for: qwen, seconds: 1).language, "ja", "A short reply reuses the recording's language")
+            XCTAssertEqual(lock.config(for: qwen, seconds: 8).language, "", "Long segments keep identifying their own language")
+            XCTAssertEqual(lock.config(for: ASRConfig(kind: .qwen3, language: "zh"), seconds: 1).language, "zh",
+                           "An explicit language is never replaced")
+            let resumed = MediaLanguageLock(words: [TranscriptWord(start: 0, end: 9,
+                text: "Señor Presidente, quiero comenzar mis palabras haciendo referencia a la huelga general.")])
+            XCTAssertEqual(resumed.language, "es", "Resuming rebuilds the lock from saved segments")
+        }
         // Cleanup scopes retain independent audio and prevent document resurrection.
         do {
             let history = try HistoryStore(directory: directory())

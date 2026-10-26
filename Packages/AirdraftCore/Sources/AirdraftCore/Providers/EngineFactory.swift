@@ -149,12 +149,20 @@ public actor EngineFactory {
                 // Measured audio-segment bounds, never invented times for individual words.
                 // AD-082: a decoder loop inside a media window is cut to one occurrence.
                 let text = TranscriptRepetition.trimmed(result.text) ?? result.text
-                words = result.isEmpty ? [] : [.init(start: offset, end: offset + Double(samples.count) / 16_000, text: text + " ", timing: .segment)]
+                words = result.isEmpty ? [] : [.init(start: offset, end: offset + Double(samples.count) / 16_000,
+                                                      text: Self.segmentText(text), timing: .segment)]
             }
             try Task.checkCancellation()
             await self.markUsed(engine.id)
             return words
         }
+    }
+
+    /// Segment texts are concatenated into passages. Chinese and Japanese are
+    /// written without spaces, so only other scripts get a separator (AD-117).
+    static func segmentText(_ text: String) -> String {
+        guard let last = text.unicodeScalars.last, !AudioChunker.isUnspacedScript(last) else { return text }
+        return text + " "
     }
 
     /// Refiners are cheap value types built per call, so a key or model change
