@@ -14,6 +14,23 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-16-1",
+    version: "0.16.1",
+    date: "2026-10-26",
+    title: "Calmer controls",
+    changes: [
+      {
+        title: "Flat faces, softer edges",
+        description:
+          "Buttons, fields, menus and cards no longer have shading across their face or a light outline around them, so light and shade alone lift them, in light and dark appearance.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.16.1-build.485",
+    },
+  },
+  {
     id: "0-16-0",
     version: "0.16.0",
     date: "2026-10-26",

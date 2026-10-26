@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-16-1": {
+    title: "Controles más serenos",
+    changes: [
+      {
+        title: "Caras planas, bordes más suaves",
+        description:
+          "Los botones, campos, menús y tarjetas ya no tienen sombreado en su cara ni un contorno claro alrededor, así que solo la luz y la sombra los elevan, en apariencia clara y oscura.",
+      },
+    ],
+  },
   "0-16-0": {
     title: "Texto en directo a tu gusto y una sola lista de modelos de voz",
     changes: [

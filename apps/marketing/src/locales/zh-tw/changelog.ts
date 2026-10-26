@@ -5,6 +5,16 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-16-1": {
+    title: "更沉穩的控制項",
+    changes: [
+      {
+        title: "平整的表面，更柔和的邊緣",
+        description:
+          "按鈕、欄位、選單與卡片的表面不再有漸層，周圍也不再有淺色外框，在淺色與深色外觀下都只靠光影浮起。",
+      },
+    ],
+  },
   "0-16-0": {
     title: "即時文字隨你調整，語音模型合成一份清單",
     changes: [

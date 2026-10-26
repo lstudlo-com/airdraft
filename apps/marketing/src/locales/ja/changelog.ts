@@ -4,6 +4,16 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-16-1": {
+    title: "落ち着いたコントロール",
+    changes: [
+      {
+        title: "平らな面とやわらかな縁",
+        description:
+          "ボタン、フィールド、メニュー、カードの面からグラデーションをなくし、周りの明るい輪郭も目立たなくしました。ライトとダークのどちらでも、光と影だけで浮き上がって見えます。",
+      },
+    ],
+  },
   "0-16-0": {
     title: "ライブテキストを好みに、音声モデルはひとつのリストに",
     changes: [

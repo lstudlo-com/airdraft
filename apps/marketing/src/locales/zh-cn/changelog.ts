@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-16-1": {
+    title: "更沉静的控件",
+    changes: [
+      {
+        title: "平整的表面，更柔和的边缘",
+        description:
+          "按钮、输入框、菜单和卡片的表面不再有渐变，周围也不再有浅色轮廓，在浅色和深色外观下都只靠光影浮起。",
+      },
+    ],
+  },
   "0-16-0": {
     title: "实时文字随你调整，语音模型合并为一份列表",
     changes: [
