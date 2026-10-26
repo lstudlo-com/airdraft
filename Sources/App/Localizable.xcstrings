@@ -299,6 +299,34 @@
         }
       }
     },
+    "%@ Live text" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Texto en directo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ライブテキスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 实时文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 即時文字"
+          }
+        }
+      }
+    },
     "%@ and %@" : {
       "comment" : "Key names, e.g. Control and Option",
       "localizations" : {
@@ -3533,34 +3561,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "包含所有功能。你也可以啟用已購買的授權。"
-          }
-        }
-      }
-    },
-    "All models" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Todos los modelos"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべてのモデル"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有模型"
           }
         }
       }
@@ -7879,34 +7879,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "雲端"
-          }
-        }
-      }
-    },
-    "Cloud speech" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voz en la nube"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クラウド音声認識"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "云端语音"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "雲端語音"
           }
         }
       }
@@ -16325,6 +16297,34 @@
         }
       }
     },
+    "Lines" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Líneas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行数"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行数"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行數"
+          }
+        }
+      }
+    },
     "List every local model, with provider filters and experimental models." : {
       "localizations" : {
         "es" : {
@@ -16497,6 +16497,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即時預覽"
+          }
+        }
+      }
+    },
+    "Live text" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto en directo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字"
+          }
+        }
+      }
+    },
+    "Live text appears here while you speak, newest line last." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El texto en directo aparece aquí mientras hablas, con la línea más reciente al final."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "話している間、ここにライブテキストが表示されます。最新の行が一番下です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说话时实时文字显示在这里，最新的一行在最下面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說話時即時文字顯示在這裡，最新的一行在最下面。"
+          }
+        }
+      }
+    },
+    "Live text size" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño del texto en directo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストのサイズ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字大小"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字大小"
+          }
+        }
+      }
+    },
+    "Live text style" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo del texto en directo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストのスタイル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字样式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字樣式"
           }
         }
       }
@@ -30275,34 +30387,6 @@
         }
       }
     },
-    "Show models" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar modelos"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モデルを表示"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示模型"
-          }
-        }
-      }
-    },
     "Show setup details" : {
       "localizations" : {
         "es" : {
@@ -30439,6 +30523,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示或隱藏尚未在 Airdraft 中完整測試的模型。"
+          }
+        }
+      }
+    },
+    "Shows text while you speak when Live preview uses Selected speech model" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra texto mientras hablas cuando la vista previa en directo usa el modelo de voz seleccionado"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブプレビューで「選択した音声モデル」を使うと、話している間テキストを表示します"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览使用“所选语音模型”时，说话时显示文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽使用「所選語音模型」時，說話時顯示文字"
           }
         }
       }
@@ -31031,30 +31143,58 @@
         }
       }
     },
-    "Speech on this Mac" : {
+    "Speech model location" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voz en este Mac"
+            "value" : "Ubicación del modelo de voz"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この Mac での音声認識"
+            "value" : "音声モデルの場所"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这台 Mac 上的语音"
+            "value" : "语音模型位置"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "這台 Mac 上的語音"
+            "value" : "語音模型位置"
+          }
+        }
+      }
+    },
+    "Speech models" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelos de voz"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声モデル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音模型"
           }
         }
       }

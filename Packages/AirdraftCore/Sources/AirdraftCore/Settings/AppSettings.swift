@@ -219,6 +219,8 @@ public final class AppSettings {
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
     /// Apple Speech or the recording's own local model (AD-084). Meetings use it too.
     public var livePreviewSource: LivePreviewSource { didSet { persist("livePreviewSource", livePreviewSource) } }
+    /// Style, lines and text size of the recording window's live text (AD-108).
+    public var liveText: LiveTextOptions { didSet { persist("liveText", liveText) } }
     public var audioRetention: AudioRetention { didSet { persist("audioRetention", audioRetention) } }
     public var microphone: MicrophonePreference { didSet { persist("microphone", microphone) } }
     /// The last template chosen from a meeting transcript's Summarize menu.
@@ -286,6 +288,7 @@ public final class AppSettings {
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? systemSpeech.appleLocale
         livePreviewSource = Self.load("livePreviewSource", from: defaults) ?? .appleSpeech
+        liveText = Self.load("liveText", from: defaults) ?? LiveTextOptions()
         audioRetention = Self.load("audioRetention", from: defaults) ?? .off
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
         meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default

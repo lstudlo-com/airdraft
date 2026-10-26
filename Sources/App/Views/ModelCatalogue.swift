@@ -648,6 +648,17 @@ struct ExperimentalModelsDisclosure: View {
     }
 }
 
+/// Marks a speech model that shows text while you speak (AD-108).
+struct LiveTextBadge: View {
+    var body: some View {
+        Text("\(Image(systemName: "text.bubble.fill")) Live text")
+            .appFont(.supporting, weight: .semibold)
+            .foregroundStyle(Color.accentColor)
+            .help("Shows text while you speak when Live preview uses Selected speech model")
+            .accessibilityHidden(true)
+    }
+}
+
 struct ModelRow: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.colorSchemeContrast) private var contrast
@@ -706,6 +717,7 @@ struct ModelRow: View {
                                     .mutedForeground(0.75)
                             }
                             tierAndTags
+                            if showsLiveText { LiveTextBadge() }
                             loadStateLabel
                         }
                         .fixedSize(horizontal: false, vertical: true)
@@ -749,6 +761,8 @@ struct ModelRow: View {
         }
     }
 
+    private var showsLiveText: Bool { ModelSpeechPreview.showsLiveText(entryConfig) }
+
     private var strengthLabel: (symbol: String, text: String)? {
         if let role { return role.label(for: ModelCatalogue.recommendation.reason) }
         return entry.highlight.map { ("star.fill", $0) }
@@ -776,6 +790,7 @@ struct ModelRow: View {
         if let tier = entry.tier { parts.append(tier.title) }
         parts.append(entry.languageSummary)
         parts += entry.tags
+        if showsLiveText { parts.append(String(localized: "Live text")) }
         return parts.joined(separator: ", ")
     }
 

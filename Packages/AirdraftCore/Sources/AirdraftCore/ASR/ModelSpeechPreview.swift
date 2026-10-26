@@ -74,6 +74,12 @@ public enum ModelSpeechPreview {
     /// non-autoregressive sherpa-onnx offline decoders. Autoregressive or GPU
     /// models (Whisper, Qwen3-ASR, Cohere, FireRedASR2, GGUF, Core ML) and every
     /// cloud provider stay unavailable.
+    /// Whether choosing this model shows live text with the Selected speech
+    /// model source: its own fast decoder, or Apple Speech's analyzer (AD-108).
+    public static func showsLiveText(_ asr: ASRConfig) -> Bool {
+        supports(asr) || appleSpeechLocale(for: asr) != nil
+    }
+
     public static func supports(_ asr: ASRConfig) -> Bool {
         switch asr.kind {
         case .parakeet, .senseVoice, .senseVoiceMultilingual, .orukeet: return true
@@ -100,7 +106,7 @@ public enum ModelSpeechPreview {
     public static func unavailableReason(for asr: ASRConfig, installed: Bool) -> String? {
         if appleSpeechLocale(for: asr) != nil { return nil }
         guard supports(asr) else {
-            return String(localized: "Live text is unavailable for \(asr.displayName). Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet.", bundle: .module)
+            return String(localized: "Live text is unavailable for \(asr.displayName). Use Apple Speech for preview, or a model marked Live text in Models.", bundle: .module)
         }
         guard installed else {
             return String(localized: "Install \(asr.displayName) in Models to see live text.", bundle: .module)

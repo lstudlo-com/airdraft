@@ -140,6 +140,34 @@ struct ConfigurationPage: View {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
                     if settings.livePreviewEnabled || search.isSearching {
+                        let liveTextOff = !settings.livePreviewEnabled ? String(localized: "Enable Show text while speaking")
+                            : settings.hudStyle == .none ? String(localized: "Choose a recording window style") : nil
+                        RowDivider()
+                        SettingRow(title: "Live text style", detail: liveTextOff, stacked: true) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(HUDPreview.tileWidth), spacing: 10), count: 3), spacing: 12) {
+                                ForEach(LiveTextOptions.Style.allCases) { style in
+                                    ChoiceTile(title: style.title, selected: settings.liveText.style == style,
+                                               action: { settings.liveText.style = style }, previewSize: HUDPreview.size) {
+                                        LiveTextStylePreview(options: LiveTextOptions(style: style, lines: settings.liveText.lines,
+                                                                                      textSize: settings.liveText.textSize))
+                                    }
+                                }
+                            }
+                            .frame(width: HUDPreview.tileWidth * 3 + 20)
+                            .disabled(liveTextOff != nil)
+                        }
+                        RowDivider()
+                        SettingRow(title: "Lines", detail: liveTextOff) {
+                            SoftSegmentedPicker("Lines", selection: $settings.liveText.lines,
+                                options: LiveTextOptions.lineRange.map { ($0, $0.formatted()) }, width: 160)
+                                .disabled(liveTextOff != nil)
+                        }
+                        RowDivider()
+                        SettingRow(title: "Live text size", detail: liveTextOff) {
+                            SoftSegmentedPicker("Live text size", selection: $settings.liveText.textSize,
+                                options: LiveTextOptions.TextSize.allCases.map { ($0, $0.title) }, width: 240)
+                                .disabled(liveTextOff != nil)
+                        }
                         RowDivider()
                         SettingRow(title: "Preview source", detail: settings.livePreviewEnabled ? nil : String(localized: "Enable Show text while speaking")) {
                             SoftPicker("Preview source", selection: $settings.livePreviewSource, width: 200) {
@@ -327,6 +355,27 @@ struct ThemePreview: View {
 }
 
 /// Preview tile for the recording-window picker.
+/// A live-text style on a split light/dark backdrop, so light and dark
+/// surfaces both read in their tile.
+struct LiveTextStylePreview: View {
+    let options: LiveTextOptions
+
+    var body: some View {
+        let width = LivePreviewCard.width(for: options.style)
+        let scale = (HUDPreview.size.width - 12) / width
+        ZStack {
+            LinearGradient(colors: [Color(white: 0.86), Color(white: 0.86), Color(white: 0.3), Color(white: 0.3)],
+                           startPoint: .leading, endPoint: .trailing)
+            LivePreviewCard(text: String(localized: "Live text appears here while you speak, newest line last."),
+                            options: options)
+                .fixedSize()
+                .scaleEffect(scale)
+                .frame(width: HUDPreview.size.width, height: HUDPreview.size.height)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 struct HUDPreview: View {
     static let specimenScale: CGFloat = 0.65 * 1.2
     static let size = CGSize(width: 96 * 1.2, height: 60 * 1.2)

@@ -12,12 +12,14 @@ final class IndicatorPanelController {
     private let styleProvider: () -> HUDStyle
     private let discoProvider: () -> Bool
     private let timerProvider: () -> HUDTimerOptions
+    private let liveTextProvider: () -> LiveTextOptions
     private let messagePasteboard: NSPasteboard
     private let reduceMotion: () -> Bool
     private let screenFrame: () -> NSRect?
     private var currentStyle: HUDStyle = .classic
     private var currentDisco = false
     private var currentTimer = HUDTimerOptions()
+    private var currentLiveText = LiveTextOptions()
     private var currentPreview = false
     private var lastVisibleState: PipelineState = .idle
     private var messageTimeoutTask: Task<Void, Never>?
@@ -30,6 +32,7 @@ final class IndicatorPanelController {
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
          disco: @escaping () -> Bool = { false },
          timer: @escaping () -> HUDTimerOptions = { HUDTimerOptions() },
+         liveText: @escaping () -> LiveTextOptions = { LiveTextOptions() },
          messagePasteboard: NSPasteboard = .general,
          reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion },
          screenFrame: (() -> NSRect?)? = nil) {
@@ -37,6 +40,7 @@ final class IndicatorPanelController {
         self.styleProvider = style
         self.discoProvider = disco
         self.timerProvider = timer
+        self.liveTextProvider = liveText
         self.messagePasteboard = messagePasteboard
         self.reduceMotion = reduceMotion
         self.screenFrame = screenFrame ?? {
@@ -63,6 +67,7 @@ final class IndicatorPanelController {
         currentStyle = style
         currentDisco = discoProvider()
         currentTimer = timerProvider()
+        currentLiveText = liveTextProvider()
         currentPreview = preview
         let id = UUID()
         contentID = id
@@ -73,6 +78,7 @@ final class IndicatorPanelController {
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
             snapshot: messageSnapshot, style: style, timer: currentTimer, discoEnabled: currentDisco, showPreview: preview,
+            liveText: currentLiveText,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
             spatialAnimation: spatialAnimation,
@@ -96,7 +102,8 @@ final class IndicatorPanelController {
         switch state {
         case .idle:
             if messageTimeoutTask != nil, dismissalID == nil {
-                if styleProvider() != currentStyle || discoProvider() != currentDisco || timerProvider() != currentTimer { show() }
+                if styleProvider() != currentStyle || discoProvider() != currentDisco || timerProvider() != currentTimer
+                    || liveTextProvider() != currentLiveText { show() }
                 return
             }
             dismiss()
@@ -162,6 +169,7 @@ final class IndicatorPanelController {
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
             timer: currentTimer, discoEnabled: currentDisco, showPreview: currentPreview,
+            liveText: currentLiveText,
             sampleText: currentPreview ? pipeline.previewIssue ?? pipeline.previewText : nil,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard))
@@ -240,6 +248,7 @@ struct RecordingHUDView: View {
     var timer = HUDTimerOptions()
     var discoEnabled = false
     var showPreview: Bool
+    var liveText = LiveTextOptions()
     var sampleText: String?
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
@@ -248,7 +257,7 @@ struct RecordingHUDView: View {
     var previewNotice: HUDPreviewNotice?
     var onSizeChange: ((CGSize) -> Void)?
 
-    private var liveText: String? {
+    private var shownText: String? {
         let text = sampleText ?? pipeline?.previewIssue ?? pipeline?.previewText
         return text?.isEmpty == false ? text : nil
     }
@@ -259,7 +268,7 @@ struct RecordingHUDView: View {
                 LivePreviewNotice(message: notice)
                     .opacity(previewNotice?.isFading == true ? 0 : 1)
             } else if showPreview {
-                LivePreviewCard(text: liveText)
+                LivePreviewCard(text: shownText, options: liveText)
             }
             IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style, timer: timer,
                           discoEnabled: discoEnabled,
@@ -275,54 +284,131 @@ struct RecordingHUDView: View {
     }
 }
 
-/// Live text floats above the capsule on dark glass. The newest words stay
-/// crisp at the bottom; earlier lines scroll up and dissolve into the material.
+/// Live text floats above the capsule. The newest lines stay crisp at the
+/// bottom; earlier lines scroll up and dissolve under the top edge. Style,
+/// line count and text size come from `LiveTextOptions` (AD-108).
 struct LivePreviewCard: View {
-    static let width: CGFloat = 280
-    static let fontSize: CGFloat = 12.5
-    /// Two full lines plus the fading tail of a third.
-    nonisolated static let textHeight: CGFloat = 42
-    static let cornerRadius: CGFloat = 14
-
     var text: String?
+    var options = LiveTextOptions()
     @State private var overflows = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    static func width(for style: LiveTextOptions.Style) -> CGFloat {
+        switch style {
+        case .subtitle: return 420
+        case .bare: return 320
+        default: return 280
+        }
+    }
+
+    static func lineHeight(for size: LiveTextOptions.TextSize) -> CGFloat { size.points * 1.2 + 1.5 }
+
+    /// The newest `lines` full lines plus, above several, the fading tail of one more.
+    static func textHeight(for options: LiveTextOptions) -> CGFloat {
+        let line = lineHeight(for: options.textSize)
+        return CGFloat(options.lines) * line + (options.lines > 1 ? line * 0.55 : 0)
+    }
+
+    private var fontSize: CGFloat { options.textSize.points }
+    private var textHeight: CGFloat { Self.textHeight(for: options) }
+    private var light: Bool { options.style == .frost }
+    private var centered: Bool { options.style == .subtitle }
+
     var body: some View {
         let shown = text ?? String(localized: "Listening…")
+        let single = options.lines == 1
         Text(shown)
-            .font(.system(size: Self.fontSize, weight: .medium))
+            .font(.system(size: fontSize, weight: options.style == .subtitle ? .semibold : .medium))
             .lineSpacing(1.5)
-            .foregroundStyle(Color.white.opacity(text == nil ? 0.45 : 0.92))
-            .shadow(color: .black.opacity(0.35), radius: 1.5, y: 0.5)
-            .lineLimit(5)
+            .foregroundStyle(textColor.opacity(text == nil ? 0.5 : 0.94))
+            .shadow(color: shadowColor, radius: options.style == .bare ? 2.5 : 1.5, y: 0.5)
+            .shadow(color: options.style == .bare ? .black.opacity(0.6) : .clear, radius: 0.6)
+            .lineLimit(single ? 1 : options.lines + 3)
             .truncationMode(.head)
-            .naturalAlignment(for: shown)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(centered ? .center : .leading)
+            .modifier(TextAlignmentForStyle(centered: centered, text: shown))
+            .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
             .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: Bool.self) { $0.size.height > Self.textHeight + 0.5 } action: { overflows = $0 }
+            .onGeometryChange(for: Bool.self) { $0.size.height > textHeight + 0.5 } action: { overflows = $0 }
             // Short text keeps the card one line tall; longer text fills it and
             // its oldest line fades out under the top edge.
-            .frame(maxHeight: Self.textHeight, alignment: .bottom)
+            .frame(maxHeight: textHeight, alignment: .bottom)
             .clipped()
             .mask {
-                if overflows {
-                    LinearGradient(stops: [.init(color: .clear, location: 0.06),
-                                           .init(color: .black.opacity(0.4), location: 0.24),
-                                           .init(color: .black, location: 0.46)],
+                if overflows && !single {
+                    let line = Self.lineHeight(for: options.textSize)
+                    LinearGradient(stops: [.init(color: .clear, location: line * 0.1 / textHeight),
+                                           .init(color: .black.opacity(0.4), location: line * 0.4 / textHeight),
+                                           .init(color: .black, location: line * 0.75 / textHeight)],
                                    startPoint: .top, endPoint: .bottom)
                 } else {
                     Color.black
                 }
             }
             .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: shown)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .frame(width: Self.width)
-            .background { HUDGlass(shape: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)) }
-            .environment(\.colorScheme, .dark)
+            .padding(.horizontal, options.style == .bare ? 4 : 14)
+            .padding(.vertical, options.style == .bare ? 2 : 9)
+            .frame(width: Self.width(for: options.style))
+            .background { LiveTextBackground(style: options.style) }
+            .environment(\.colorScheme, light ? .light : .dark)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("hud.liveText")
+    }
+
+    private var textColor: Color { light ? Color.black : Color.white }
+    private var shadowColor: Color {
+        switch options.style {
+        case .frost: return .white.opacity(0.5)
+        case .bare: return .black.opacity(0.85)
+        default: return .black.opacity(0.35)
+        }
+    }
+}
+
+/// Centered captions read centered; the other styles follow the text's own direction.
+private struct TextAlignmentForStyle: ViewModifier {
+    var centered: Bool
+    var text: String
+    func body(content: Content) -> some View {
+        if centered { content } else { content.naturalAlignment(for: text) }
+    }
+}
+
+/// The surface behind live text for each style.
+struct LiveTextBackground: View {
+    var style: LiveTextOptions.Style
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        switch style {
+        case .glass:
+            HUDGlass(shape: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        case .solid:
+            let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+            ZStack {
+                shape.fill(Color(white: 0.11))
+                shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 0.75)
+            }
+        case .frost:
+            let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+            ZStack {
+                if reduceTransparency {
+                    shape.fill(Color(white: 0.94))
+                } else {
+                    shape.fill(.regularMaterial)
+                    shape.fill(Color.white.opacity(0.45))
+                }
+                shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.9), .black.opacity(0.12)],
+                                                  startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                    .physicalLight()
+            }
+            .environment(\.colorScheme, .light)
+        case .subtitle:
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.black.opacity(reduceTransparency ? 1 : 0.74))
+        case .bare:
+            Color.clear
+        }
     }
 }
 

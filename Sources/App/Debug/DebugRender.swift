@@ -624,6 +624,21 @@ enum DebugRender {
             renderer.scale = 2
             if let rendered = renderer.nsImage { images.append(rendered) }
         }
+        // AD-108: every live-text style, then line counts and text sizes.
+        let styleSample = "We finish the budget review before Monday, then send the final numbers to the finance team and plan the launch"
+        let liveTextCases = LiveTextOptions.Style.allCases.map { LiveTextOptions(style: $0) }
+            + [LiveTextOptions(lines: 1), LiveTextOptions(lines: 4, textSize: .large), LiveTextOptions(textSize: .small)]
+        for options in liveTextCases {
+            let view = RecordingHUDView(snapshot: HUDSnapshot(state: .recording, levels: samples, elapsed: 7.4),
+                style: .classic, showPreview: true, liveText: options, sampleText: styleSample)
+                .padding(12)
+                .background(LinearGradient(colors: [Color(white: 0.95), Color(white: 0.95), Color(white: 0.25)],
+                                           startPoint: .leading, endPoint: .trailing))
+                .environment(\.layoutDirection, appLayoutDirection)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            if let rendered = renderer.nsImage { images.append(rendered) }
+        }
         // A model without live text opens no card, only the brief one-line notice.
         for kind in [ASRProviderKind.qwen3, .whisperKit] {
             let notice = HUDPreviewNotice()

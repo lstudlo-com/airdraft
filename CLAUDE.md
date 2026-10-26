@@ -375,14 +375,17 @@ and Local releases below.
   actionable error, unavailable state, permission, or cost. Put related heading
   actions immediately beside their selector rather than separating them with a
   fixed-width invisible frame. Provider selection uses one compact picker, not
-  a grid of decorative provider cards. Both speech tables default to All providers;
-  their heading pickers filter browsing without changing the active speech config.
-  Only choosing a model selects its provider. Models' local section opens with a
+  a grid of decorative provider cards. Models lists speech in one Speech models
+  section (AD-108): its heading holds a location picker (On this Mac or Cloud,
+  opening on this Mac, with no page-level filter) and, right of it, that location's
+  provider picker defaulting to All. Both filter browsing without changing the
+  active speech config; only choosing a model selects its provider. The local view opens with a
   compact set from `LocalModelShortlist`: the recommendation plus at most two
   curated Verified alternatives (never Qwen3-ASR 0.6B), deterministic per language
   and memory, then Your models (app default, active profile binding, installed and
   downloading models it does not already show). Show All Models (N) reveals the
-  full table and the provider filter, which appears only there; the choice persists
+  full table; choosing a local provider lists all of that provider's models and
+  hides the button. The choice persists
   in `AppSettings.showsAllLocalModels` without counting as an existing setup, and the
   button hides while searching. Search always covers the whole catalogue, including
   language names. Each row shows one strength label, never an accuracy claim
@@ -390,8 +393,10 @@ and Local releases below.
   with the complete list in the tooltip. Language summaries state the model's own
   coverage, never support relative to Chinese; Chinese-only strengths (Qwen3-ASR
   1.7B's mixed Chinese and English) show only to users with a Chinese language
-  (`ModelCatalogue.speaksChinese`). Keep table headers fixed and cap the
-  scrolling rows of the full and cloud tables, and of any compact list over six
+  (`ModelCatalogue.speaksChinese`). Local rows whose model shows live text with the
+  Selected speech model source (`ModelSpeechPreview.showsLiveText`) carry an accent
+  Live text badge below their tags. Keep table headers fixed and cap the
+  scrolling rows of the full and cloud lists, and of any compact list over six
   rows, at `Theme.modelTableMaxHeight` (300 pt); shorter lists show every row
   without an inner scroll. The full local table opens with Recommended for your
   language, then Verified and built-in models, then a collapsed Experimental
@@ -1679,11 +1684,15 @@ model without its runtime (`ModelSpeechPreview.recordingNotice`, no icon, shown
 1.2 s by `HUDPreviewNotice`) above the capsule while recording continues, once per
 profile and speech model until a recording previews or either changes, and Settings shows the active profile's
 model with its readiness or reason and Open Models, reading installed state from
-`SetupFacts`. The live-text window (`LivePreviewCard`) is a compact 280-point card
-of translucent smoked glass (`HUDGlass`: blurred material under a dark tint, opaque
-with Reduce Transparency) above the capsule. It stays one line tall until text
-wraps, then shows the newest two lines with the oldest fading under its top edge;
-never return to an opaque fixed-size box. Dictation preview never loads, downloads or queues: it skips its tick while
+`SetupFacts`. The live-text window (`LivePreviewCard`) sits above the capsule and
+follows `AppSettings.liveText` (`LiveTextOptions`, AD-108): Live text style (Glass,
+the default 280-point translucent smoked glass of `HUDGlass`; Solid; light Frost;
+a 420-point centered Subtitle bar; Text Only), Lines (1–4, default 2) and Live text
+size (Small, Medium 12.5 pt default, Large), set in Settings > Live preview with
+specimen tiles. Reduce Transparency makes the translucent styles opaque. It stays
+one line tall until text wraps, then shows the newest lines with an older one
+fading under its top edge; one line keeps only the newest words. It never becomes
+a fixed-size box. Dictation preview never loads, downloads or queues: it skips its tick while
 any lease operation runs or waits, never rebuilds a recognizer, and every other
 lease operation (load, final inference, media, unload) cancels it. Keep one decode
 in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window

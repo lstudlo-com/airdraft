@@ -4991,6 +4991,34 @@
         }
       }
     },
+    "Frost" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escarcha"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フロスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磨砂"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "霧面"
+          }
+        }
+      }
+    },
     "Full-size multilingual model." : {
       "localizations" : {
         "es" : {
@@ -5127,6 +5155,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "適用於多種語言與口音的一般語音辨識。"
+          }
+        }
+      }
+    },
+    "Glass" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cristal"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ガラス"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玻璃"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玻璃"
           }
         }
       }
@@ -5943,6 +5999,34 @@
         }
       }
     },
+    "Large" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grande"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大"
+          }
+        }
+      }
+    },
     "Left" : {
       "localizations" : {
         "es" : {
@@ -6336,30 +6420,30 @@
         }
       }
     },
-    "Live text is unavailable for %@. Use Apple Speech for preview, or Parakeet, SenseVoice or Orukeet." : {
+    "Live text is unavailable for %@. Use Apple Speech for preview, or a model marked Live text in Models." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El texto en directo no está disponible para %@. Usa Apple Speech para la vista previa, o Parakeet, SenseVoice u Orukeet."
+            "value" : "El texto en directo no está disponible para %@. Usa Apple Speech para la vista previa, o un modelo marcado como Texto en directo en Modelos."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ではライブテキストを使用できません。プレビューには Apple Speech、または Parakeet、SenseVoice、Orukeet を使用してください。"
+            "value" : "%@ ではライブテキストを使用できません。プレビューには Apple Speech、または「モデル」で「ライブテキスト」と表示されたモデルを使用してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 无法显示实时文字。请改用 Apple Speech 预览，或使用 Parakeet、SenseVoice 或 Orukeet。"
+            "value" : "%@ 无法显示实时文字。请改用 Apple Speech 预览，或在“模型”中选择标有“实时文字”的模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 無法顯示即時文字。請改用 Apple Speech 預覽，或使用 Parakeet、SenseVoice 或 Orukeet。"
+            "value" : "%@ 無法顯示即時文字。請改用 Apple Speech 預覽，或在「模型」中選擇標有「即時文字」的模型。"
           }
         }
       }
@@ -9964,6 +10048,34 @@
         }
       }
     },
+    "Small" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pequeño"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小"
+          }
+        }
+      }
+    },
     "Smart punctuation, dates and numbers. Auto-detects the dominant language." : {
       "localizations" : {
         "es" : {
@@ -9988,6 +10100,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "智慧標點、日期與數字。自動偵測主要語言。"
+          }
+        }
+      }
+    },
+    "Solid" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sólido"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソリッド"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實色"
           }
         }
       }
@@ -10306,6 +10446,34 @@
         }
       }
     },
+    "Subtitle" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtítulo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕"
+          }
+        }
+      }
+    },
     "Summarizing" : {
       "localizations" : {
         "es" : {
@@ -10557,6 +10725,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "終端機"
+          }
+        }
+      }
+    },
+    "Text Only" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo texto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テキストのみ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅文字"
           }
         }
       }

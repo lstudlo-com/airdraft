@@ -4,7 +4,8 @@ import SwiftUI
 struct ModelsPage: View {
     @Environment(AppContainer.self) private var container
     @State private var query = ""
-    @State private var filter: Filter = .all
+    /// AD-108: one speech table, browsing local or cloud models. Opens on this Mac.
+    @State private var category: Category = .local
     @State private var localProvider: String?
     @State private var cloudProvider: ASRProviderKind?
     /// Experimental models stay one click away; searching always includes them.
@@ -16,21 +17,23 @@ struct ModelsPage: View {
     @State private var openRouterCatalogError: String?
     @State private var openRouterRefreshID = UUID()
 
-    enum Filter: String, CaseIterable, Identifiable {
-        case all, local, cloud
+    enum Category: String, CaseIterable, Identifiable {
+        case local, cloud
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .all: return String(localized: "All models")
             case .local: return String(localized: "On this Mac")
             case .cloud: return String(localized: "Cloud")
             }
         }
     }
 
-    /// The provider filter belongs to the full list; the compact set ignores it.
+    /// Choosing a provider lists all of its models; All keeps the compact set
+    /// unless the full list is shown.
+    private var showsFullLocalList: Bool { container.settings.showsAllLocalModels || localProvider != nil }
+
     private var localModels: [ModelEntry] {
-        let provider = container.settings.showsAllLocalModels ? localProvider : nil
+        let provider = showsFullLocalList ? localProvider : nil
         return ModelCatalogue.entries.filter {
             (provider == nil || $0.provider == provider) &&
                 matches([$0.title, $0.provider, $0.vendor, $0.note] + $0.tags + ($0.languages?.names ?? []))
@@ -45,7 +48,7 @@ struct ModelsPage: View {
     /// searching, its rows. Each item is one list cell.
     private var localItems: [LocalModelItem] {
         ModelCatalogue.localItems(localModels, shortlist: ModelCatalogue.shortlist, inUse: inUseIDs,
-                                  showsAll: container.settings.showsAllLocalModels,
+                                  showsAll: showsFullLocalList,
                                   expanded: showsExperimental, searching: isSearching)
     }
 
@@ -150,57 +153,42 @@ struct ModelsPage: View {
                     }
                 }
             }
-            if filter != .cloud {
-                PageSection("Speech on this Mac", trailing: {
-                    if settings.showsAllLocalModels {
+            PageSection("Speech models", trailing: {
+                HStack(spacing: Theme.sectionTitleSpacing) {
+                    if category == .cloud, showsOpenRouter {
+                        RefreshButton(loading: openRouterLoading, help: "Refresh OpenRouter speech models") {
+                            openRouterRefreshID = UUID()
+                        }
+                    }
+                    if !RenderMode.excludesCredentials {
+                        SoftPicker("Speech model location", selection: $category, width: 140) {
+                            ForEach(Category.allCases) { Text($0.title).tag($0) }
+                        }
+                        .accessibilityIdentifier("models.category")
+                    }
+                    switch category {
+                    case .local:
                         SoftPicker("Local speech provider", selection: $localProvider, width: 160) {
                             Text("All").tag(String?.none)
                             ForEach(localProviders, id: \.self) { Text($0).tag(Optional($0)) }
                         }
-                    }
-                }) {
-                    let items = localItems
-                    ModelTable(cost: String(localized: "Storage"), rowCount: items.count,
-                               capped: settings.showsAllLocalModels || isSearching) {
-                        if items.isEmpty {
-                            EmptyNote("No local models match your search.")
-                                .padding(Theme.cardPadding)
+                    case .cloud:
+                        SoftPicker("Cloud speech provider", selection: $cloudProvider, width: 160) {
+                            Text("All").tag(ASRProviderKind?.none)
+                            ForEach(EndpointPreset.asr) { Text($0.name).tag(Optional($0.kind)) }
                         }
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            VStack(spacing: 0) {
-                                if index > 0 { RowDivider() }
-                                switch item {
-                                case let .model(entry, header, role):
-                                    if let header { LocalModelGroupHeader(header: header) }
-                                    ModelRow(entry: entry, role: role)
-                                case let .experimental(count, kept, expanded, searching):
-                                    ExperimentalModelsDisclosure(count: count, kept: kept, expanded: expanded, searching: searching) {
-                                        showsExperimental.toggle()
-                                    }
-                                }
-                            }
-                            .accessibilityElement(children: .contain)
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                        }
-                    }
-                    .id("\(settings.showsAllLocalModels)|\(localProvider ?? "all")|\(query)")
-                    HStack(alignment: .center, spacing: Theme.controlSpacing) {
-                        EmptyNote("Relative ratings; results vary by Mac, language and audio.")
-                            .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: 0)
-                        if !isSearching { showAllModelsButton }
                     }
                 }
-                // Finished or cancelled downloads change which files are installed.
-                .task(id: container.downloads.jobs.keys.sorted()) { await refreshInstalled() }
+            }) {
+                switch category {
+                case .local: localModelsTable
+                case .cloud: cloudModels
+                }
             }
+            // Finished or cancelled downloads change which files are installed.
+            .task(id: container.downloads.jobs.keys.sorted()) { await refreshInstalled() }
 
-            if filter != .local, !RenderMode.excludesCredentials {
-                cloudModels
-                customSpeechSettings
-            }
+            if !RenderMode.excludesCredentials { customSpeechSettings }
 
             PageSection("Speech options") {
                 SettingsCard {
@@ -244,15 +232,12 @@ struct ModelsPage: View {
 
         } accessory: {
             SearchField(text: $query, placeholder: "Search models")
-            PageFilter(title: "Show models", selection: $filter,
-                       options: Filter.allCases.filter { !RenderMode.excludesCredentials || $0 != .cloud }.map { ($0, $0.title) })
         }
         .onAppear {
             if !initialized {
-                filter = RenderMode.excludesCredentials ? .local : .all
-                if RenderMode.isActive,
-                   let value = RenderMode.value("FILTER").flatMap(Filter.init(rawValue:)) {
-                    filter = value
+                if RenderMode.isActive, !RenderMode.excludesCredentials,
+                   let value = RenderMode.value("FILTER").flatMap(Category.init(rawValue:)) {
+                    category = value
                 }
                 localProvider = RenderMode.value("LOCAL_PROVIDER")
                 showsExperimental = RenderMode.value("SHOW_EXPERIMENTAL") == "1"
@@ -268,21 +253,49 @@ struct ModelsPage: View {
         }
     }
 
-    private var cloudModels: some View {
-        let visible = visibleCloudModels
-        return PageSection("Cloud speech", trailing: {
-            HStack(spacing: Theme.sectionTitleSpacing) {
-                if showsOpenRouter {
-                    RefreshButton(loading: openRouterLoading, help: "Refresh OpenRouter speech models") {
-                        openRouterRefreshID = UUID()
-                    }
+    @ViewBuilder
+    private var localModelsTable: some View {
+        @Bindable var settings = container.settings
+        let items = localItems
+        VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
+            ModelTable(cost: String(localized: "Storage"), rowCount: items.count,
+                       capped: showsFullLocalList || isSearching) {
+                if items.isEmpty {
+                    EmptyNote("No local models match your search.")
+                        .padding(Theme.cardPadding)
                 }
-                SoftPicker("Cloud speech provider", selection: $cloudProvider, width: 160) {
-                    Text("All").tag(ASRProviderKind?.none)
-                    ForEach(EndpointPreset.asr) { Text($0.name).tag(Optional($0.kind)) }
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    VStack(spacing: 0) {
+                        if index > 0 { RowDivider() }
+                        switch item {
+                        case let .model(entry, header, role):
+                            if let header { LocalModelGroupHeader(header: header) }
+                            ModelRow(entry: entry, role: role)
+                        case let .experimental(count, kept, expanded, searching):
+                            ExperimentalModelsDisclosure(count: count, kept: kept, expanded: expanded, searching: searching) {
+                                showsExperimental.toggle()
+                            }
+                        }
+                    }
+                    .accessibilityElement(children: .contain)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             }
-        }) {
+            .id("\(settings.showsAllLocalModels)|\(localProvider ?? "all")|\(query)")
+            HStack(alignment: .center, spacing: Theme.controlSpacing) {
+                EmptyNote("Relative ratings; results vary by Mac, language and audio.")
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                if !isSearching, localProvider == nil { showAllModelsButton }
+            }
+        }
+    }
+
+    private var cloudModels: some View {
+        let visible = visibleCloudModels
+        return Group {
             VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
                 if showsOpenRouter,
                    openRouterCatalogError != nil || openRouterLoading || selectedOpenRouterModelMissing {

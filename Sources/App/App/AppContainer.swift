@@ -238,7 +238,8 @@ final class AppContainer {
         let panel = IndicatorPanelController(pipeline: pipeline,
             style: { [weak self] in self?.settings.hudStyle ?? .classic },
             disco: { [weak self] in self?.settings.hudDiscoEnabled ?? false },
-            timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() })
+            timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() },
+            liveText: { [weak self] in self?.settings.liveText ?? LiveTextOptions() })
         indicator = panel
         pipeline.onRecordingBlocked = { [weak self] in
             guard let self else { return }
@@ -374,6 +375,7 @@ final class AppContainer {
             _ = self?.settings.hudStyle
             _ = self?.settings.hudDiscoEnabled
             _ = self?.settings.hudTimer
+            _ = self?.settings.liveText
         }) { [weak self] in
             guard let self else { return }
             if !self.settings.livePreviewEnabled || self.settings.hudStyle == .none {
