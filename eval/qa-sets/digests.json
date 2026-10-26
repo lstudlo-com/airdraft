@@ -1,0 +1,391 @@
+{
+ "source_files": {
+  "aishell1-test-0.parquet": "2466b1e851147943d4a2c46e1dddc8a70a45b733065c7f6a86e44bd88d5579c6",
+  "aishell4/L_R003S01C02.TextGrid": "a7e060c87f76f6ad51ca1bcd6ae7243942757f25bdcbfc9a628c552d03dcbc4c",
+  "aishell4/L_R003S01C02.flac": "93125b2c8f9f73c042ccd63178d1fec6db2d3047af4078834da7c6c1aa118e72",
+  "aishell4/M_R003S01C01.TextGrid": "35eaaab7f13e594393adacdabbacac5779e2850992277d72dfbcfd12320c5782",
+  "aishell4/M_R003S01C01.flac": "26b4cd2045077e3db7170c376db3cb63b469d208e1d474155721911b3fe9866a",
+  "aishell4/S_R004S01C01.TextGrid": "0cad5eb74526f99cc72e330f83cd59115298c2cadc60eaa71e3102d6d62ec51f",
+  "aishell4/S_R004S01C01.flac": "89ce19bfdf94fab9648cf1a67b0d1dd963b118c72080b22241833b56baa42ff7",
+  "aishell_transcript_v0.8.txt": "b5f33b9e0b47548e20a5ea4e504297f80df41d559133924c4e5b7b544c15b5c4",
+  "ami/ES2004c.Mix-Headset.wav": "47dc9bd2e3b1d174842091ae9e1fe765218f0c87658b17d6469c404e03ec2ac5",
+  "ami/IS1009b.Mix-Headset.wav": "07c2891ae6ad7c507b2a4f15b2dcd0a2343491df9e4e6a58f9db0d0b2c5e1382",
+  "ami/TS3003c.Mix-Headset.wav": "b9f455870e8cb0ba765523a1767cc366775ab7e5e3eabf37d9c91289e5a1a70a",
+  "ami_public_manual_1.6.2.zip": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+  "callhome_ja/0696.cha": "229a65a62d4ec92ba1d80c63e2e14b972bebcc954254c4e82483322e901fa270",
+  "callhome_ja/0696.wav": "904dc3c1694a0f3f32c9530135555ebcad9c23475c22d3b7d07f16741db21f5b",
+  "callhome_ja/0743.cha": "2c7e7fb2cdd9ea06437035c582b522d56d6b130a2c6ad363d46b84f3c3fb6581",
+  "callhome_ja/0856.cha": "724e1b7deb9956e254367bb9986ba8afa49e244cb9969774edc7f2bad392ecd2",
+  "callhome_ja/0862.cha": "8adf40f0ffe0a8f57ad9e9bb71fc5cf583f4145233bfd781f737e81e415877b3",
+  "callhome_ja/0922.cha": "fddd1ba4d2a6f53a43462a3d80c271121d0752a9fe006108aeb77473098a196d",
+  "callhome_ja/0924.cha": "d498a6f948f49bfc62b8287ee5940c817f484f0c7f588f5d0cc33a3bf1c0d515",
+  "callhome_ja/0930.cha": "08924ffacf3a38fc0c832cfdf064134fd22d69d305ead44b47ebe688e6e87112",
+  "callhome_ja/0986.cha": "a1e87fea3903286c8948eecff70ea3582734fd663735258e58f3fa03aaaa1d9f",
+  "callhome_ja/0988.cha": "47d024b26c965663782ca6ca083464fdcc965cbfc6787a8e10b999d21d95f614",
+  "callhome_ja/1003.cha": "4db3454775c13606a70a4a0338128dc1ad09e29ddcde9a4e49910004becc83ad",
+  "callhome_ja/1005.cha": "a8e540d88695366a1a273dff0dbee738d7fe55c56542f0ab5592f51125af7ba8",
+  "callhome_ja/1012.cha": "36dcf0d8f5d86a4bbdc5a64cced9c19e83e8caa3bace675113477c9e9c0ed466",
+  "callhome_ja/1032.cha": "81d97f348e1cf8e4748fb66bf09e06d4bea5a132e7bf3ee5984467fb58196457",
+  "callhome_ja/1041.cha": "96461f978803dbc345100b7b67fc6fd8cb150d88873ed5e592683c723e769cd2",
+  "callhome_ja/1048.cha": "18e32d0dc3b319b22b353d8e073ba199ac3b64718bc4158678b9a4638691db04",
+  "callhome_ja/1057.cha": "b97b07f4d94bebc1d30433ae91ca2bb751d8a9b5f2ea5460cb35d4eba2f4edce",
+  "callhome_ja/1069.cha": "cbeeddb66908a65f4d5e6a16c14b0f837ba2ef22d16a56798485e7a67a3577dd",
+  "callhome_ja/1072.cha": "7d2036de08fddb65aed9cc3b8f99915ae512fe3b1ffddf4495a07d9b90209226",
+  "callhome_ja/1099.cha": "491d4b6d8ec78ec8489bd0c5455ca47603c214b404fb501eb6e5d80aabe3296f",
+  "callhome_ja/1109.cha": "9cd869a40bee738a3c0dc7ec927255d968508062edbc84023a70e2e6c0452732",
+  "callhome_ja/1123.cha": "46037f8ae83373cd0b0cbcc64b35ae0849e9e16ade3f823142f348cf44714e42",
+  "callhome_ja/1201.cha": "a1f15834729cd445eda24d6610d6aa3c2ddaf85e339d67649864ea298ac0e4ba",
+  "callhome_ja/1237.cha": "d0eb681526c090a9c2409a542847a028a61ccafd881eab58c9ba45cc82fa04a8",
+  "callhome_ja/1263.cha": "952e6c9dcd568de2a2313608c8e02c4af89ee8366aceeb3d642723a3e82a09bc",
+  "callhome_ja/1277.cha": "9bf4943851525f9c398fe06209a9b78ee3e09e4d7403c4904b43b1fc613724f9",
+  "callhome_ja/1288.cha": "3e11d3cbeab431e5a8fda18bc6bd2d302ff8e3a21ffaa90c83ea02586403493c",
+  "callhome_ja/1290.cha": "966a0253184fbab84f0f0f3049eac56b6d9fddbec39309c23c9f68d96937649e",
+  "callhome_ja/1328.cha": "51f31960cea2c7d4a32ec5f1c0e095659402f93e143f9e3eeba2c80b4017d180",
+  "callhome_ja/1369.cha": "5ee813a1a9eb7731e77741f877f27c7601d610ff9843dbfe695a6532829d4d0e",
+  "callhome_ja/1370.cha": "4c434722fbe0bb51a505c3b837cc0899ad0979c317a5ff7b406012464ed48a3b",
+  "callhome_ja/1418.cha": "c7ef3ad4e3fc5fbe8f1fe886969d1c751cdf18bd9af6bd13e647daa61f757f42",
+  "callhome_ja/1425.cha": "b3a47610a0dfde5d9c77c590ef4294c01a3080243156ac03136f0464efd1ccfc",
+  "callhome_ja/1428.cha": "52b75aa61a1d5b53cae2a1a109ec8400f4ee80b7081f0c8307fe9c9332c74649",
+  "callhome_ja/1461.cha": "e1304e429a36dd6bdbf8628413d7aa83958148984040e856700ff4e6a6921624",
+  "callhome_ja/1509.cha": "a2405dc1bd89966f3c3a3640673b400ebfa7441cce188e10232c3ecb95ef3dec",
+  "callhome_ja/1538.cha": "4975e014f9be1d936de9322fddf74433d02455ff725b8f436215ab251e275aee",
+  "callhome_ja/1541.cha": "71b2a920a321bca405d72c76bb4cacd882fc92443fc7c59f254fc159a8234b5c",
+  "callhome_ja/1542.cha": "8e8012a32ae0ca7ba5b7ec9346ac70d68fbfdbd34d39a20dbfa5ebb4227f694d",
+  "callhome_ja/1557.cha": "5aaf438fcfb9fd83c7502fe799b9309fb7267812a5c9a58cb4cd37853ea08c89",
+  "callhome_ja/1586.cha": "64048fbc850489b948e2ba0c8da47f568844b3d7924361cc79fc81c475097049",
+  "callhome_ja/1593.cha": "e29357307b8bf61270aaf36f297964e296e3028622016ab77d08ad5a13979e92",
+  "callhome_ja/1604.cha": "27bc71fd9199a88ee0ad35a46656e67282a5f2210d415268aa82aa69d4c6653e",
+  "callhome_ja/1607.cha": "a403292b34fa2386c701781a44b89989f2398dd4827c8282fddb6d5581e25a86",
+  "callhome_ja/1608.cha": "143c9dca7f53441a96e891772a28ba3d29f8d5da583ab40abc19c1cbb33e436b",
+  "callhome_ja/1615.cha": "4f59e1b7253cebb3e540aef3849f6bd8af6ba3fbbab5859eb58b8057999ad344",
+  "callhome_ja/1622.cha": "5956c6066d96c6005b6106e742682103b928b20d51cd57c4e6e69aa404886649",
+  "callhome_ja/1628.cha": "8298eb8c326a135d8c4efd113039ae29efcd841baff775caa7c8e71a06e74106",
+  "callhome_ja/1629.cha": "a4b7dfdbd725bddc60ead10b95b88f5cd14eb43587e669ed27249e21dd487db9",
+  "callhome_ja/1642.cha": "f334cbc25662cd8caa4b6998c0cc5c34ea4c5e386b8d4c71e23782902cc820be",
+  "callhome_ja/1667.cha": "5659e390255c3732f08b1c84c4d1267c1fe6ab451c38a162f115f0dc75d3c233",
+  "callhome_ja/1670.cha": "7945c726ba8357a0bf21e569b64f7fc99697b3dc9cd34301d00866609c20a8f9",
+  "callhome_ja/1674.cha": "27e43da74012d10d50ad8e6bb0e01127cdf5dffa2b2473b52bfbd8f37dbbb393",
+  "callhome_ja/1688.cha": "27f739b49fbaf942b2281187c3b97f51e7a114fa75cca82386f4ac81d40f3239",
+  "callhome_ja/1690.cha": "e483dbd1e175fe2115473f99d765004e3ce27cafafe24bd5566b49129f7f9f6a",
+  "callhome_ja/1710.cha": "8f286269f33d1dbf23ade003ef6c70448942601dc08a304d776aaecd73847b16",
+  "callhome_ja/1713.cha": "f1dd129bcf4c86a38f7d10884da60facd527bf8b6267c1781dbcf4fca7521107",
+  "callhome_ja/1725.cha": "5576a253a1d44a32b5fc3d744ed2cceb28837e5b9e75673c2ea4447cc8150139",
+  "callhome_ja/1731.cha": "c428bda607511250ca45a30ae84cb1a272c12634a0fc0c24ceff224ac3065594",
+  "callhome_ja/1738.cha": "2dd09a7ccab03c7ae6174eb0290e7108ff91942ad234a29c2a3d0876e02135b6",
+  "callhome_ja/1741.cha": "f7f3870216f3f59092de862cf0f2bf66c5dfc97d675920f6e139222a037df5c7",
+  "callhome_ja/1749.cha": "86a6d2e30cb6e657ba87fa77895c722130fbe60b2a51936c4406f8daf4da7c8f",
+  "callhome_ja/1832.cha": "6f63805e0bc3a3ecf0ca5c10307e4438158c06ab9f65db8a01cfbc8bc1911e38",
+  "callhome_ja/1867.cha": "16033778ac833f3f2349314185b82e68e9d02b4393a37bd9dc3e8742190a7701",
+  "callhome_ja/1889.cha": "2a4a5fb56439ec675f6847f02f4aa788b8fc020a5e5bca17f591928283bfd0c9",
+  "callhome_ja/1899.cha": "ef953db62961245178b3814cb6e1cdbf656f4a8ab87d324bb59a66be1e0a6c8d",
+  "callhome_ja/1925.cha": "19e466cd4a2afdc688cd73366277d01bfc3f378a7781b0998a42c8ccbcf59b44",
+  "callhome_ja/1928.cha": "31160dcd0e84d7f5e12fc2f78ef58d0e28cb1fe2f839c0e865eb15d2a7cfdb01",
+  "callhome_ja/1966.cha": "2677be0561e4097d302ce133fd0b5949fce95c248d60284a5147075247f2a2fc",
+  "callhome_ja/1967.cha": "edf3fad042e9a99eacb5117a029d60e3d4b068fff8c1c189aed3dc8bab439858",
+  "callhome_ja/1999.cha": "901a7506d84f89c9085e27bdeecfd56e919adf9b2e5aaf4b9d51ac94381fd0d3",
+  "callhome_ja/2004.cha": "90ab1954156ad7cfa45136f8775bb61ce55572bef750b4da6c6c36dfc3e22efd",
+  "callhome_ja/2035.cha": "6828629a976e6685c42d0a7592918c23ec3ab3f7d0fd16985bd696610f608f84",
+  "callhome_ja/2041.cha": "1aab6bdb3db8c07ce7f6d638a2647a892750742dc0055edfc890db7556bced2b",
+  "callhome_ja/2053.cha": "1d65c25bbc6e11f86f3891a22601b9a252ee31c53dcc5b8ef0ac26626737707c",
+  "callhome_ja/2074.cha": "e17591904b89c3cd3f55b04a6ff74dfd7b1f9bd7908fd850c6744f99e1cd7f47",
+  "callhome_ja/2085.cha": "d30fde2b164f2ca8807099fa4447a953c93157d039e4ce79d3f606b10038942b",
+  "callhome_ja/2096.cha": "bf6460835992fcd284eefc12693f1eab8ecd7b81011b34ab19e3d2f1c290e6c0",
+  "callhome_ja/2111.cha": "3b37e4e9eae25ec5a290c7af0bf14e75fd38b52776851976aa5f56d4f733de08",
+  "callhome_ja/2134.cha": "2c92198550a60ffc90769ed494c8d64e03f78d7740063f3c36aae94ac6fb6cc5",
+  "callhome_ja/2157.cha": "72ef9186042f8dc558235fc46c7762327fe84c0257ee6070c1f7ba36839260dd",
+  "callhome_ja/2180.cha": "11b26c464e85e5e218fc8825290ef2accd83abcabc5103fdf5527c467b125b1e",
+  "callhome_ja/2188.cha": "a7be4a755d802a5fef2e9f11a31332ae8f12da246eb41f19feb24d6747ce2dcd",
+  "callhome_ja/2196.cha": "8e0ee0cbd2d08ce06f91c460137d1432a704358e8b42c9474e68a698122c69d5",
+  "callhome_ja/2199.cha": "3e0fe617653f7ab8ad5bd175ce174f906e996ef5602d6b15c5db07719b0e63ad",
+  "callhome_ja/2204.cha": "f690b41a6ce92df863cee530542d1b450fc79b58b8bb37d667d35a81a8ab7e4a",
+  "callhome_ja/2206.cha": "37a9a990ea835f04026e4d7e6b159c9e019a65a12c685e1b50c3ea7b127a2312",
+  "callhome_ja/2207.cha": "741598179f618ea7c59a687de008bcdbd3b013a3002281cb2e935809b1a6710e",
+  "callhome_ja/2208.cha": "71af6460d7f04766cc6aea05a6a7d60f574345a54a182bd11b1f08ea3928e927",
+  "callhome_ja/2209.cha": "ed6404c7373a66cb1ca31395483b9860d09c5f7578b6824c67a33abd99ca06fa",
+  "callhome_ja/2210.cha": "adff79b692c580f61b70139f9f9742b5ac4b83aad4be3e49236f44d123124f20",
+  "callhome_ja/2212.cha": "2fc92eac061a12085562547dd470fd4ef78401d04a01eb6f7ea513d0f4dd3e3d",
+  "callhome_ja/2214.cha": "f1e288c9f7ef12e54534af2015458f442ee575871bdd48304c10b1547427df03",
+  "callhome_ja/2215.cha": "a7766e2c8bdedbb75bb703973aee70750586cf0003d53017c902488a735bb216",
+  "callhome_ja/2216.cha": "6aaabdff52f6c33cbb487364acce296dea3b590aa7ebf2e904961774d87d29a6",
+  "callhome_ja/2217.cha": "9d53f235b69f3ab6620bff12c0db3dd09fb4a5f30351de5c65085680d9e6cd40",
+  "callhome_ja/2218.cha": "c8428ba9c8f37a76edbc29da416ef8ca9c2bca2910a2cc96457d19b5f74e62d4",
+  "callhome_ja/2219.cha": "60c44bb20df72abac23ebcf577bf64d18db8c1fcf3b4866a6071f7165e53edc0",
+  "callhome_ja/2220.cha": "21f6859bf7c2cbccfcbaa3322cce14e85f7557d064e6fa968be1936db559803f",
+  "callhome_ja/2222.cha": "6e874c1f8fe3c5a4c615a258a2b742f7e1d681c29ce46d99ca963e48d396139f",
+  "callhome_ja/2223.cha": "2515ffa221eef58270c907621005ca8d4faca59d4c82f91f65c4de539d3ffb35",
+  "callhome_ja/2224.cha": "e7ff3df3f3a2eda8b8917930e0bd23e0dff950520f43cbbbe4b13c5befd03f62",
+  "callhome_ja/2225.cha": "715eff90ca64b2e6027c3526a228b2924033028917bb248e80dbfdc9887150af",
+  "callhome_ja/2231.cha": "89361c11e7f4a78adc1e7013bbdf573027d011285a0092dfd584a28c5a538a78",
+  "callhome_ja/2234.cha": "e2904a5d987763dfbd96ddf02d62ca22946891dcf3cedb1660562330ca58d09f",
+  "callhome_ja/2235.cha": "ca4ab8b9380b5fa96623a4183b4c9689e183a0f8809c30a9c17d7f3fb22f5edd",
+  "callhome_ja/2236.cha": "c958210873e99eeae5cc0665ea4873d3ff09af71546436e6548b03849fe30311",
+  "callhome_ja/2237.cha": "3bd7619e145497417cc3fcdfc8fb656921051e8a7255640744cdbdfc76c196fd",
+  "callhome_ja/2238.cha": "e99b3cb7df36dd364ff59aa266862843a69ead8e1367ba161d6b6cbcd715b9d6",
+  "callhome_ja/2239.cha": "4e3bc5b92e4f446e7c95731edc50fcc9f33a162b1adb59a9ea6b6a1502d7fad7",
+  "callhome_ja/2242.cha": "d92d1bd08e226d762a1f89723de9612cfa0aef295e49dca94459f9b2c791879e",
+  "callhome_ja/2243.cha": "08975464065e84aaf3acf835522a511318a4b9fb9b6b0a27fb018f0e0780cb06",
+  "callhome_ja/3001.cha": "ee7f926f4553d2489ee8b5001fabe81f1326d6b91ece6969047fe834054bbcb1",
+  "callhome_ja/3002.cha": "179ed564955eb064a345fe0d6e699de598939d3ee92ebf8e50228b58aa4fd0ff",
+  "callhome_ja/3004.cha": "fb9e3aa4bf6baefefd5c39e29b6e8e2267a1922d4f3bb8e73432f16bb4b262fa",
+  "callhome_ja/3005.cha": "38b59beba725052cc63d68914b388c294df16d3a1472988842afd841338e27c1",
+  "callhome_ja/3006.cha": "429b407ecb09004d842ff7fd467f5c9a6a98c3d26a97f12ff5974b193df6365e",
+  "callhome_ja/3007.cha": "a9ffd983139975e85ac69ee553c82fa727ce916e0da6e38be715eb5c8739353e",
+  "callhome_ja/3008.cha": "e9b8ea82536a9af3effdb432f38a7731cf1490993f2d1f939659f8bed8c9bbfb",
+  "callhome_ja/4061.cha": "bc8b3b5b60a995e2d80d44e19770ecd41d460ba7e4d439a6851f8f414e42c4bb",
+  "callhome_ja/4275.cha": "257d3acadcebdf088984c8cb3dc5edff2a865df62a4a43f3ef5806326ba69075",
+  "callhome_ja/4275.wav": "335f12cefefe80d35956ad5fd4d40920c46d99649d7389415c5c82f62afb3d00",
+  "fleurs-ja_jp-test.parquet": "e954b67e934b9a31d7a74a070a75225379660d50c8d1aacdb755852c57f23e6b",
+  "librispeech-test-clean.parquet": "7113aa4c3cf963fb54697145719a7725f984c8836d1c494a554cbb9f1a017df0",
+  "mls-es-test-segments.txt": "38e9aeee6484ddac21a52d21072732d78aa25178e9be963fca5537e780ab1241",
+  "mls-es-test-transcripts.txt": "d4439ac8313f734098f860a77bab8e656004dd956e1e7d037c820d4cc0a5c46c",
+  "mls-es/11266_10604_000.tar.gz": "a04bb7234d42847b68d0c5cc2ed2a0ad073f173fa328b4d5d8c932730868d4d0",
+  "mls-es/3503_2162_000.tar.gz": "edf0b454596e4f461fe711ad193e4dba5aec74a50c66b779299a15edc0651a4b",
+  "mls-es/8585_9503_000.tar.gz": "9dec2ac7c10cb97f17acb835cd1c75aa2cb276f4f204726ddb9fba1dfa75f0ae",
+  "sakura/sakura05.cha": "0cac2b06603b541c32f328922d58d4d4b6ba8bbfd0dfd0dc9024f7eb9e8ac872",
+  "sakura/sakura05.mp4": "776cc254f4767340f2a1e3c339b17ec4ad3c142f89c1977bb4cb0f12088b7420",
+  "voxpopuli-es-test.parquet": "cabf405c29580e945f8448e4dac34effcbcf7001c7a24ebf1b7c9b77c3e6caf0"
+ },
+ "clips": {
+  "zh-single-1": {
+   "audio_sha256": "2b6d6f3ab43bf6482b1298841826696dc463d79b0ac76fce2e2ee289ee82e485",
+   "reference_sha256": "0fa592a44d6352dd7eba13bf36011418c320df54163cf299e836532116fab89c",
+   "where": {
+    "item": "BAC009S0766W0430",
+    "speaker": "S0766"
+   }
+  },
+  "zh-single-2": {
+   "audio_sha256": "0fecc06ec68104e2e00b6e19a6de3b2d494bcf5109e37e238db48a6804c9a389",
+   "reference_sha256": "8ee41378057d220150fa7820ee8e14d454c0338acb196e4b2dc78e08c76e3e9a",
+   "where": {
+    "item": "BAC009S0770W0349",
+    "speaker": "S0770"
+   }
+  },
+  "zh-single-3": {
+   "audio_sha256": "65f2e7533264ecedc7c5a5705104ec09233f2fc42fdd624195995dab3fe6f914",
+   "reference_sha256": "00285d1fa63083d71cc6ee6fda2735fc4f250bbc3008345a43187e8e8efcdc9c",
+   "where": {
+    "item": "BAC009S0768W0452",
+    "speaker": "S0768"
+   }
+  },
+  "zh-small-1": {
+   "audio_sha256": "caa9f9e55973632ecae16f4d7f855d716cf8ee46bf67b31391cf201b425e1e95",
+   "reference_sha256": "449b183dd6fde2fe34141177872e327cbcef051a518c9807903ce027d723ca0d",
+   "where": {
+    "recording": "S_R004S01C01",
+    "start": 273.138,
+    "end": 341.807,
+    "rule": "exact:2"
+   }
+  },
+  "zh-small-2": {
+   "audio_sha256": "8d8670be35251127c17ec9df54b2801618852733581027084729f7b8f5fb3380",
+   "reference_sha256": "05fcc0ab776f15bf90241b48885a70be8b50f35a3cf7af9273520d67dd1b6637",
+   "where": {
+    "recording": "M_R003S01C01",
+    "start": 616.925,
+    "end": 682.919,
+    "rule": "exact:3"
+   }
+  },
+  "zh-group-1": {
+   "audio_sha256": "916de87165f93f776df01754e4e257b1464693d6ec534ba8b19dff07ced891da",
+   "reference_sha256": "5d7a14376859bf325481e20952070ad906040cb3f484dded87731103df1a5624",
+   "where": {
+    "recording": "L_R003S01C02",
+    "start": 145.883,
+    "end": 359.395,
+    "rule": "atleast:4"
+   }
+  },
+  "en-single-1": {
+   "audio_sha256": "97590f9678af22691e70fc7cea613a5604bc7e0c3ba23e963324eef406f88d3d",
+   "reference_sha256": "9cae98a705fd1b9ac3140ea98672a11d2547977a3b308abd4f19b0479ec54770",
+   "where": {
+    "item": "6829-68769-0026",
+    "speaker": "6829"
+   }
+  },
+  "en-single-2": {
+   "audio_sha256": "d93d6c5771e1bf6621a5f47d8c0681cc2ca9c564a18793288c13ff09b3444a32",
+   "reference_sha256": "a163d9e57340c5bbd417d07dbaec6b5d5ecaf6c27927c75e83bf8930db604f3a",
+   "where": {
+    "item": "7127-75946-0016",
+    "speaker": "7127"
+   }
+  },
+  "en-single-3": {
+   "audio_sha256": "c4a412292f7affe7b15877debca533e49a287b668206e818f96ce21aa155ba5b",
+   "reference_sha256": "153b918b2dd52add39229b58900a5212c959f98274d51bf2d0acca4f203bc9e0",
+   "where": {
+    "item": "3729-6852-0006",
+    "speaker": "3729"
+   }
+  },
+  "en-small-1": {
+   "audio_sha256": "e8138f384757c02ec984fa94aaf375f4d594fc8a0905f54f926c7cc598e580bd",
+   "reference_sha256": "687b94da8f2a80f21b7cbc105184460ad92831e26104ab76a60953769e27dd5c",
+   "where": {
+    "recording": "ES2004c",
+    "start": 402.52,
+    "end": 479.03,
+    "rule": "exact:2"
+   }
+  },
+  "en-small-2": {
+   "audio_sha256": "781138202fce2e6b971d14a4cef0863bd78b5982ced752dcdb3f1c50eea5e671",
+   "reference_sha256": "d41dd09d0bca8af81c0c7f10d4a26a60b2d37527c1d2031d640e4218fcb2f80e",
+   "where": {
+    "recording": "IS1009b",
+    "start": 1398.64,
+    "end": 1506.32,
+    "rule": "exact:3"
+   }
+  },
+  "en-group-1": {
+   "audio_sha256": "6647e5902028f32084ad490169aca02be757bd45b6bc90916b56af6e914d771f",
+   "reference_sha256": "7fc7afee60cc999c1c783da0d9fa84521a3eabda4d04fc9e835a94fbff4dc292",
+   "where": {
+    "recording": "TS3003c",
+    "start": 775.1,
+    "end": 1008.18,
+    "rule": "atleast:4"
+   }
+  },
+  "ja-single-1": {
+   "audio_sha256": "589deb2287c9cc4d86943d5031497ca1c39a12443bac9c506b67c2157d4444b7",
+   "reference_sha256": "7ab71433dd2453a191cd79268b7a6d4dbc9371545854df9e0d2e10ace96c683a",
+   "where": {
+    "item": "ja_jp/1700/13547784623075189164.wav",
+    "speaker": "sentence-1700"
+   }
+  },
+  "ja-single-2": {
+   "audio_sha256": "69b6408e096abdc17323ba5b1a3d5519b291fa84dcddcd6035cc246040e75c73",
+   "reference_sha256": "ce7d3e299b08820a58659960760645e6e999b06d322f852aae6862dbae9aa43c",
+   "where": {
+    "item": "ja_jp/2004/3499908623335261784.wav",
+    "speaker": "sentence-2004"
+   }
+  },
+  "ja-single-3": {
+   "audio_sha256": "753978c469194e8eef9cbfae307d2e79b74c6b2adef02d6e61c643bbef4dbc4b",
+   "reference_sha256": "a4df11a51df769a896f8bc9210f37e2e354c49223686693271757217378cb1f6",
+   "where": {
+    "item": "ja_jp/1795/15848687326632366448.wav",
+    "speaker": "sentence-1795"
+   }
+  },
+  "ja-small-1": {
+   "audio_sha256": "e203b483a5baf7eb0d1c53c1e4b3ed6b905d23cc2a7e0740adebf71ab5efbd44",
+   "reference_sha256": "9cbfb9ffc26a5aea6a97e775a436a40280d1217b7c339f895da7cedd6ca0915a",
+   "where": {
+    "recording": "0696",
+    "start": 140.305,
+    "end": 187.405,
+    "rule": "exact:2"
+   }
+  },
+  "ja-small-2": {
+   "audio_sha256": "e6fe9191ed80660602615d837da842cdc71b66e20ff9e322d149c60836475716",
+   "reference_sha256": "6f16a08e5f8ba478750a674e6d92ab44ffe86355441529265ebfebe11d0f2724",
+   "where": {
+    "recording": "4275",
+    "start": 547.62,
+    "end": 666.32,
+    "rule": "exact:3"
+   }
+  },
+  "ja-group-1": {
+   "audio_sha256": "5fe1f9bdb5ad649a3cd1273a7db2a68d02d4f4dd28ede3f71f6547d81f6713d1",
+   "reference_sha256": "6696f14669c117113f552a17f1c82065af4e3c04358bd93f0b4bebb0e25673ad",
+   "where": {
+    "recording": "sakura05",
+    "start": 130.695,
+    "end": 299.926,
+    "rule": "atleast:4"
+   }
+  },
+  "es-single-1": {
+   "audio_sha256": "881d6b66a8db812e16405a0bbd19ba290803a8655b1557ffe4915224834f67b5",
+   "reference_sha256": "cd96c25d32766e48b12b83df344853af9cacc58f40e27fd8c7cb20abd4a366c3",
+   "where": {
+    "item": "11266_10604_000047",
+    "speaker": "11266"
+   }
+  },
+  "es-single-2": {
+   "audio_sha256": "31309db7e30d483d7edbc4d752cbc6b87bf09f7f5c41dc97ebeb80e63d2fad2e",
+   "reference_sha256": "904481306356147cd01597994ea3d37c17ecb0bb2a5028ed684529d6bd495170",
+   "where": {
+    "item": "8585_9503_000099",
+    "speaker": "8585"
+   }
+  },
+  "es-single-3": {
+   "audio_sha256": "c222abb1091ba20d93f8dece59f59d0f40ed51e3c6c9184d7d03746f2001e61b",
+   "reference_sha256": "9c6caebbfe4e0b0e0a62eb0222904492ac8a35cba2721313e9d305b2d3aeb8be",
+   "where": {
+    "item": "3503_2162_000089",
+    "speaker": "3503"
+   }
+  },
+  "es-small-1": {
+   "audio_sha256": "b8ed79bc2e0a69ae3cdf4a8d515be0b5f560ff98a13a1d2b950c4470ea5b6661",
+   "reference_sha256": "4460a2f9b75518c5ee9af51caa8384ff65e37f3ed36752236834fdc2ec94d5c2",
+   "where": {
+    "session": "20090505-0900-PLENARY-3-es",
+    "segments": [
+     "20090505-0900-PLENARY-3-es_20090505-09:17:19_1",
+     "20090505-0900-PLENARY-3-es_20090505-09:17:19_2",
+     "20090505-0900-PLENARY-3-es_20090505-09:56:00_3",
+     "20090505-0900-PLENARY-3-es_20090505-09:56:00_4"
+    ],
+    "gap_seconds": 0.6,
+    "stitched": true
+   }
+  },
+  "es-small-2": {
+   "audio_sha256": "c6b340670b1602ce9bf90681ce1c8e7ed5c1867c634aadea77ee33cbe849a12d",
+   "reference_sha256": "b1f6f482064bfa9d921a3eb848d5a1b3aa39d014ceace56afa9ef9735690192c",
+   "where": {
+    "session": "20090203-0900-PLENARY-13-es",
+    "segments": [
+     "20090203-0900-PLENARY-13-es_20090203-21:24:09_1",
+     "20090203-0900-PLENARY-13-es_20090203-21:24:09_2",
+     "20090203-0900-PLENARY-13-es_20090203-21:32:24_1",
+     "20090203-0900-PLENARY-13-es_20090203-21:32:24_7",
+     "20090203-0900-PLENARY-13-es_20090203-21:47:47_0",
+     "20090203-0900-PLENARY-13-es_20090203-21:47:47_1"
+    ],
+    "gap_seconds": 0.6,
+    "stitched": true
+   }
+  },
+  "es-group-1": {
+   "audio_sha256": "a1445e3e837b0abafa5c1804b4c46c4d318f19904d6be294c3cd5b1ee3d07793",
+   "reference_sha256": "c3ffa71026ae1ac7e445383056a633b237e80fb015ecc80a50f5758acfb03d3f",
+   "where": {
+    "session": "20180612-0900-PLENARY-es",
+    "segments": [
+     "20180612-0900-PLENARY-es_20180612-12:28:59_1",
+     "20180612-0900-PLENARY-es_20180612-12:28:59_2",
+     "20180612-0900-PLENARY-es_20180612-12:28:59_3",
+     "20180612-0900-PLENARY-es_20180612-13:40:09_1",
+     "20180612-0900-PLENARY-es_20180612-13:40:09_2",
+     "20180612-0900-PLENARY-es_20180612-13:40:09_3",
+     "20180612-0900-PLENARY-es_20180612-13:45:18_1",
+     "20180612-0900-PLENARY-es_20180612-13:45:18_2",
+     "20180612-0900-PLENARY-es_20180612-13:45:18_3",
+     "20180612-0900-PLENARY-es_20180612-17:34:51_0",
+     "20180612-0900-PLENARY-es_20180612-17:34:51_1",
+     "20180612-0900-PLENARY-es_20180612-17:34:51_2"
+    ],
+    "gap_seconds": 0.6,
+    "stitched": true
+   }
+  }
+ }
+}
