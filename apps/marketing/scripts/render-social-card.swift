@@ -67,7 +67,7 @@ island.stroke()
 
 text("Airdraft", x: 78, top: 72, width: 650, size: 32, weight: .semibold)
 text("Speak into any app.", x: 76, top: 162, width: 710, size: 60, weight: .semibold)
-text("Transcribe meetings.", x: 76, top: 232, width: 710, size: 60, weight: .semibold)
+text("Transcribe anything.", x: 76, top: 232, width: 710, size: 60, weight: .semibold)
 text("Keep it on your Mac.", x: 76, top: 302, width: 710, size: 60, weight: .semibold)
 text("Open source · Local or cloud models", x: 79, top: 430,
      width: 720, size: 25, weight: .regular, gray: 0.36)

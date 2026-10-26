@@ -8,9 +8,12 @@ import { messages } from "../i18n/messages";
 import "../styles/meetings.css";
 
 /**
- * Meetings on the homepage: a transcript card built from the app's Meetings
- * page parts (title, one metadata line, a status dot, the player row, then
- * speaker turns with their timestamps), beside what the feature does. The
+ * Transcribe on the homepage: a transcript card built from the app's
+ * Transcribe page parts (title, one metadata line, a status dot, the player
+ * row, then speaker turns with their timestamps), beside what the feature
+ * does. The feature records or imports any audio; the sample is a meeting,
+ * one use among others. Internal names (file, classes, #meetings, scripts)
+ * keep the feature's former name. The
  * transcript is authored sample text, not a recording or a model benchmark.
  * Speaker labels are the app's own in the page's language (src/data/app.ts).
  *
@@ -18,7 +21,8 @@ import "../styles/meetings.css";
  * docs/media-transcription.md: ScreenCaptureKit app audio plus an optional
  * microphone with no screen frames, single-track files up to two hours,
  * optional local speaker estimates, Soniox only after Upload and Transcribe,
- * and TXT, JSON, SRT and VTT export.
+ * Summarize templates (summary, action items) and TXT, JSON, SRT and VTT
+ * export.
  *
  * The player works like the app's (src/scripts/meetings.ts): it plays the
  * sample once as the card arrives, the play key toggles playback and a

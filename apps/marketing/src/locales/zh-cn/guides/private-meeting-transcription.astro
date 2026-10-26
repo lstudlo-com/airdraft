@@ -22,7 +22,8 @@ const guide = guidesFor(locale).find(
     <ul>
       <li>搭载 Apple 芯片、macOS 15 或更高版本的 Mac。</li>
       <li>
-        录制会议需要「录屏与系统录音」权限；只有开启「包含麦克风」时才会请求麦克风权限。
+        录制 App
+        音频需要「录屏与系统录音」权限；只有开启「包含麦克风」时才会请求麦克风权限。
       </li>
       <li>已安装的本机语音模型，或用于云端转录的 Soniox API 密钥。</li>
       <li>Airdraft 没有回声消除；麦克风可能收到扬声器的声音时，请戴耳机。</li>
@@ -30,10 +31,14 @@ const guide = guidesFor(locale).find(
   </GuideSection>
 
   <GuideSection id="record" title="录制会议">
+    <p>
+      会议只是 Airdraft「转录」页面的一种用法：它能录下任何 App
+      的声音或导入文件，再转成转录稿。
+    </p>
     <ol class="guide-steps">
       <li>
-        <h3>打开「录制会议」</h3>
-        <p>在「会议」页面点按「录制会议」，也可以从菜单栏打开同样的流程。</p>
+        <h3>打开「录制音频」</h3>
+        <p>在「转录」页面点按「录制音频」，也可以从菜单栏打开同样的流程。</p>
       </li>
       <li>
         <h3>选择录什么</h3>
@@ -45,7 +50,7 @@ const guide = guidesFor(locale).find(
       <li>
         <h3>开始录音，并告知所有人</h3>
         <p>
-          点按「开始录音」，并让与会者知道你在录音。离开「会议」页面也会继续录；要结束时，在「会议」页面或菜单栏点按「停止并保存」。
+          点按「开始录音」，并让与会者知道你在录音。离开「转录」页面也会继续录；要结束时，在「转录」页面或菜单栏点按「停止并保存」。
         </p>
       </li>
       <li>
@@ -59,7 +64,7 @@ const guide = guidesFor(locale).find(
 
   <GuideSection id="import" title="或者导入文件">
     <p>
-      在「会议」页面点按「导入…」，或直接把文件拖进来。音频或视频最长两小时，且只能有一条音轨；多音轨文件请先导出需要的那一条。Airdraft
+      在「转录」页面点按「导入…」，或直接把文件拖进来。音频或视频最长两小时，且只能有一条音轨；多音轨文件请先导出需要的那一条。Airdraft
       会另存一份 16 kHz 副本，从不改动原始文件。
     </p>
   </GuideSection>
@@ -84,12 +89,12 @@ const guide = guidesFor(locale).find(
     </ul>
   </GuideSection>
 
-  <GuideSection id="privacy" title="哪些会议数据会离开 Mac？">
+  <GuideSection id="privacy" title="哪些数据会离开 Mac？">
     <div
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="比较会议数据的去向"
+      aria-label="比较录音和转录稿的去向"
     >
       <table class="guide-table">
         <caption>每个步骤发送的数据</caption>
@@ -134,7 +139,7 @@ const guide = guidesFor(locale).find(
       VTT，字幕保留每段发言的时间和发言人。点选时间戳即可从那里播放录音。
     </p>
     <p>
-      会议录音不受听写音频保留设置的影响，会一直保留到你删除音频为止；删除转录稿不会删除录音。
+      「转录」页面的录音和导入文件不受听写音频保留设置的影响，会一直保留到你删除音频为止；删除转录稿不会删除录音。
     </p>
   </GuideSection>
 
@@ -145,7 +150,7 @@ const guide = guidesFor(locale).find(
       <li>长文件的发言人识别需要足够的可用内存，开始前会先检查。</li>
       <li>
         Airdraft
-        尚未公布会议转录或发言人标签的准确率测量，请用你自己的录音试一试。
+        尚未公布录音和文件转录或发言人标签的准确率测量，请用你自己的录音试一试。
       </li>
     </ul>
     <div class="guide-actions">

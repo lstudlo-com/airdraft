@@ -92,7 +92,7 @@ const columns = [
   "原始碼",
   "語音辨識",
   "文字整理",
-  "會議與檔案",
+  "錄音與檔案轉錄",
   "平台",
 ];
 
@@ -294,10 +294,12 @@ const sources = [
         。
       </li>
       <li>
+        「轉錄」頁可錄 App
+        音訊與麥克風或匯入檔案，標出講者、製作摘要、匯出字幕。詳見
         <a href={href("/guides/private-meeting-transcription/", locale)}>
-          會議錄音與逐字稿
+          會議逐字稿指南
         </a>
-        ：錄 App 音訊與麥克風、標出講者、匯出字幕。
+        。
       </li>
     </ul>
   </GuideSection>
@@ -312,7 +314,7 @@ const sources = [
         自己對本機模型的測量：中英混說，以及英、日、韓朗讀語音（各在一台 Mac
         上），沒有與其他 App 比較過準確度或速度。
       </li>
-      <li>會議錄音沒有回音消除。</li>
+      <li>「轉錄」頁的錄音沒有回音消除。</li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">

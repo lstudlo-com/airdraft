@@ -93,7 +93,7 @@ const columns = [
   "源代码",
   "语音识别",
   "文字整理",
-  "会议与文件",
+  "录音与文件转录",
   "平台",
 ];
 
@@ -297,10 +297,12 @@ const sources = [
         。
       </li>
       <li>
+        「转录」页面可录制 App
+        音频和麦克风或导入文件，标出发言人、生成摘要、导出字幕。详见
         <a href={href("/guides/private-meeting-transcription/", locale)}>
-          会议录音与转录稿
+          会议转录指南
         </a>
-        ：录制 App 音频和麦克风、标出发言人、导出字幕。
+        。
       </li>
     </ul>
   </GuideSection>
@@ -315,7 +317,7 @@ const sources = [
         自己对本机模型的测试：中英混说，以及英语、日语、韩语朗读语音（各在一台
         Mac 上），没有与其他 App 比较过准确率或速度。
       </li>
-      <li>会议录音没有回声消除。</li>
+      <li>「转录」页面的录音没有回声消除。</li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">

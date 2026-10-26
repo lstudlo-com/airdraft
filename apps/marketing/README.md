@@ -160,7 +160,7 @@ and immutable caching for Astro's hashed assets.
   speed; `src/scripts/story.ts` runs the homepage's entrance rises with GSAP and
   ScrollTrigger (`gsap` is a dependency under GSAP's no-charge standard license);
   `bento.ts`, `meetings.ts` and `pipeline.ts` play the bento graphics, the
-  Meetings player and the provider board's run once on screen and answer the
+  Transcribe player and the provider board's run once on screen and answer the
   pointer. None of them play with reduced motion, and every element's resting
   CSS is its final state.
 - Bento tiles use `ui/BentoTile.astro` (one graphic, a title, one line); the provider

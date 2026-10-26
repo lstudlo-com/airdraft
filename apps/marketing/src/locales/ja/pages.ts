@@ -93,16 +93,16 @@ export const ja: PageCopy = {
     "private-meeting-transcription": {
       title: "Mac で会議をプライベートに文字起こしする",
       description:
-        "アプリの音声とマイクを録音するかファイルを読み込み、Mac 上で文字起こしします。話者ラベルも任意で付けられます。権限、制限、書き出しを確認できます。",
+        "「文字起こし」ページで会議のアプリ音声とマイクを録音するかファイルを読み込み、Mac 上で文字起こしします。話者ラベルも任意で付けられます。権限、制限、書き出しを確認できます。",
       summary:
         "通話を録音するかファイルを読み込み、話者を分けて、字幕を書き出します。",
     },
     "compare-mac-dictation-apps": {
       title: "Airdraft と VoiceInk、Handy、Typeless、Apple の音声入力を比較",
       description:
-        "macOS 27 での Airdraft、VoiceInk、Handy、Typeless、Apple の音声入力の日付つきの比較。価格、ソース、音声の処理場所、会議、それぞれが優れている点を確認できます。",
+        "macOS 27 での Airdraft、VoiceInk、Handy、Typeless、Apple の音声入力の日付つきの比較。価格、ソース、音声の処理場所、録音とファイルの文字起こし、それぞれが優れている点を確認できます。",
       summary:
-        "価格、データの流れ、会議への対応を並べて比べます。ほかのアプリが優れている点も含みます。",
+        "価格、データの流れ、録音の文字起こしへの対応を並べて比べます。ほかのアプリが優れている点も含みます。",
     },
   },
 };

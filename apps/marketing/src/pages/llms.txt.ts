@@ -36,7 +36,7 @@ export const GET: APIRoute = ({ site }) => {
   return new Response(
     `# Airdraft
 
-> Airdraft is an open-source menu-bar dictation app for Apple silicon Macs running macOS 15 or later. It transcribes speech, optionally refines the text, and inserts it at the cursor. Speech and refinement providers are chosen independently. Its Meetings page records app audio and the microphone or imports audio and video files, then transcribes them with optional speaker labels.
+> Airdraft is an open-source menu-bar dictation app for Apple silicon Macs running macOS 15 or later. It transcribes speech, optionally refines the text, and inserts it at the cursor. Speech and refinement providers are chosen independently. Its Transcribe page records app audio and the microphone or imports audio and video files, then transcribes them on the Mac or with Soniox, with optional speaker labels and summaries, for a meeting or any other recording.
 
 The linked pages contain current product facts and availability. The source build is free. See Pricing for official-build availability and license terms.
 

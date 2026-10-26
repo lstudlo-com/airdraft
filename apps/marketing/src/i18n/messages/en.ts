@@ -132,10 +132,10 @@ export const en: Messages = {
     placeholder: "The text appears here when you let go.",
   },
   meetings: {
-    title: "Meetings, transcribed on your Mac",
+    title: "Transcribe audio and video on your Mac",
     intro:
-      "Record a call or import a file, then turn it into a transcript with speakers.",
-    sample: "Sample meeting transcript",
+      "Record a call, a lecture or any app’s audio, or import a file, and get a transcript with speakers.",
+    sample: "Sample transcript",
     meeting: "Design review",
     meta: "Oct 21 · 32:14 · Whisper Large v3 Turbo",
     turns: [
@@ -145,7 +145,7 @@ export const en: Messages = {
     points: [
       [
         "Record any app",
-        "One app or all apps, plus your microphone. No screen video.",
+        "One app or all apps, with your microphone if you like. No screen video.",
       ],
       [
         "Or import a file",
@@ -160,8 +160,8 @@ export const en: Messages = {
         "A local model keeps the audio here; Soniox uploads only after you confirm.",
       ],
       [
-        "Edit, then export",
-        "Keep the original beside your edits. Export TXT, JSON, SRT or VTT.",
+        "Edit, summarize, export",
+        "Keep the original beside your edits, add a summary or action items, and export TXT, JSON, SRT or VTT.",
       ],
     ],
     guide: "Read the Meeting Guide",
@@ -270,7 +270,7 @@ export const en: Messages = {
     buildAction: "Build instructions",
     sourceList: "The source build includes",
     sourceIncludes: [
-      "Dictation and Meetings",
+      "Dictation and transcription",
       "Every feature, no locks",
       "Needs Xcode to build",
     ],
@@ -280,7 +280,7 @@ export const en: Messages = {
     notOnSale: "Not on sale yet",
     appList: "Every license includes",
     licenseIncludes: [
-      "Dictation and Meetings",
+      "Dictation and transcription",
       "Every feature, no Xcode",
       "14-day full-feature trial",
       "Updates to the version you buy",
@@ -336,7 +336,7 @@ export const en: Messages = {
       editions: [
         "What do both editions include?",
         [
-          "The same app: dictation into any app, Meetings (record app audio and your microphone or import audio and video, with optional speaker labels and TXT, JSON, SRT or VTT export), profiles, vocabulary and history. The official app adds no features; it saves building with Xcode. See the ",
+          "The same app: dictation into any app, Transcribe (record app audio and your microphone or import audio and video, with optional speaker labels, summaries and TXT, JSON, SRT or VTT export), profiles, vocabulary and history. The official app adds no features; it saves building with Xcode. See the ",
           { link: "meetingGuide", text: "meeting guide" },
           ".",
         ],

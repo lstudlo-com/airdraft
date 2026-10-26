@@ -277,7 +277,7 @@
       box-shadow 200ms var(--ease-out),
       background 200ms ease;
   }
-  /* Meetings: speaker chips with their timestamps. */
+  /* Meeting guide: Transcribe's speaker chips with their timestamps. */
   .gg-turns {
     display: grid;
     gap: 8px;

@@ -436,7 +436,7 @@ The site's keys (`SoftButtonStyle`). Renders `<a>` with `href`, otherwise `<butt
 Keys are raised rounded rectangles on `--radius-control`. Hover lightens the top
 of the face; pressing sinks the key into a well. Focus shows the 2px ink ring.
 
-The native Meetings flow's `SoftButtonStyle(prominent: true)` adds a blue fill
+The native Transcribe flow's `SoftButtonStyle(prominent: true)` adds a blue fill
 and white type to that same raised/pressed geometry. Website primary keys keep
 the graphite `--key-*` tokens specified here; the native variant does not change
 the site's palette.
@@ -482,17 +482,19 @@ jumps to the result. Without JavaScript the Clean result shows; reduced motion
 shows it immediately and never autoplays. Its accessible name is "Sample
 dictation".
 
-### Meetings (`MeetingsSection.astro`)
+### Transcribe (`MeetingsSection.astro`)
 
-"Meetings, transcribed on your Mac" follows the sample and precedes the
+The app's Transcribe page (formerly Meetings; the file, classes, `#meetings`
+anchor and `meetings.ts` keep the old name). "Transcribe audio and video on
+your Mac" follows the sample and precedes the
 interface section. Two raised panels share a row (`1.15fr` / `1fr`, stacked
 below `1000px` at most `640px` wide): a transcript card from the app's
-Meetings page (status dot, title, one metadata line, a player row with a
+Transcribe page (status dot, title, one metadata line, a player row with a
 raised play key, a recessed track and the rounded timer, then speaker turns
 with recessed speaker chips and timestamps, divided by grooves) and a grooved
 list of five points with a quiet key to the meeting guide. The transcript is
-authored sample text. Both panels rise like the provider board; the five
-points then fade up in turn, as a list.
+authored sample text from a meeting, one use among others. Both panels rise
+like the provider board; the five points then fade up in turn, as a list.
 
 The player works like the app's transcript editor (`src/scripts/meetings.ts`):
 the play key shows pause while playing and sinks while pressed, and a
@@ -506,7 +508,7 @@ without JavaScript it is the still 0:31 frame.
 
 ### Interface section (`InterfaceShowcase.astro`)
 
-"An interface you’ll love to open" follows the Meetings section and precedes the guides.
+"An interface you’ll love to open" follows the Transcribe section and precedes the guides.
 Its heading and one-line intro are centered over the window, `72px` above it
 (`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
@@ -673,7 +675,7 @@ outside it (`--tile`, `--cost-table`).
 | Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                       |
 | Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
 | Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
-| Meetings         | Both panels rise like the provider board; the five points then fade up `14px` in turn (`5%` of the panel's range apart).                                                                 |
+| Transcribe       | Both panels rise like the provider board; the five points then fade up `14px` in turn (`5%` of the panel's range apart).                                                                 |
 | Provider board   | Rises from `0.94` and `56px` below until `40%` covered; its columns then fade up `18px` left to right (`6%` of the range apart).                                                         |
 | Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                                              |
 | Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
@@ -688,14 +690,14 @@ for the visitor and something the visitor plays, and builds to one climax;
 it is never nine things moving at once. Each beat plays once when it is on
 screen, then rests on its final frame until the visitor touches it, and
 answers touch from then on: the sample types its result (`preview.ts`); the
-Meetings player runs to 0:31 (`meetings.ts`); the interface window's divider
+Transcribe player runs to 0:31 (`meetings.ts`); the interface window's divider
 sweeps and its specimens loop until touched (`interface.ts`); bento tiles
 loop while on screen and replay on hover or tap (`bento.ts`); the provider
 board runs one dictation through the chosen steps (`pipeline.ts`), the
 climax before the close. Watch visibility
 with IntersectionObserver; anything off screen stops on its resting frame,
 and no frame loop runs while nothing moves. Performances move transforms,
-opacity and shadows only (the Meetings fill slides; it never resizes). Loops
+opacity and shadows only (the Transcribe fill slides; it never resizes). Loops
 run only while their element is on screen; never add an ambient loop that runs
 whether or not the visitor is looking.
 
@@ -715,7 +717,7 @@ the final state, so nothing depends on motion to be readable. Interaction
 motion: the hero's dictation (`dictate.ts`), hover magnification
 (`waveform.ts`), the island fill (`island.ts`), the segmented thumb
 (`segmented.ts`), keycaps that follow the keyboard (`keys.ts`), the bento's
-controls (`bento.ts`), the Meetings player (`meetings.ts`), the license and
+controls (`bento.ts`), the Transcribe player (`meetings.ts`), the license and
 provider board swaps and disclosures (CSS).
 
 ### Disclosure (`ui/Disclosure.astro`)
@@ -862,7 +864,7 @@ so voice control finds it). No summary,
 no "Read Guide" key. The graphics are the app's parts (`guideGlyphs`, by
 slug): the 繁｜简 picker under a mixed phrase, a terminal prompt with the ink
 caret, Home's waveform well inside This Mac, the provider board's This Mac /
-Cloud rows, the $0 and license price keys, Meetings' speaker chips, and a
+Cloud rows, the $0 and license price keys, Transcribe's speaker chips, and a
 grooved table with one column in the selection well. Hover and keyboard focus
 lift the tile `2px` with a wider shade and give its graphic one move (the
 selection slides, a key sinks, a chip rises, bars grow, the caret blinks);
@@ -899,7 +901,7 @@ The footer also links the release RSS feed, with a 760px link group to avoid an
 isolated final link at desktop widths.
 
 The shared 1200×630 social card uses the existing app icon, neutral chrome and
-island, and factual product copy ("Speak into any app. Transcribe meetings.
+island, and factual product copy ("Speak into any app. Transcribe anything.
 Keep it on your Mac."). Regenerate it from the repository root with
 `swift apps/marketing/scripts/render-social-card.swift`. It contains no personal
 app data, price or unverified availability claim.

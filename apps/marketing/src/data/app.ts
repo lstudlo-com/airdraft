@@ -45,7 +45,7 @@ const english = {
   settings: "Settings",
   // The first words of the pipeline's refinement-failure notice.
   refinementFailed: "Refinement failed",
-  // Meetings speaker labels ("Speaker %@").
+  // Transcribe's speaker labels ("Speaker %@").
   speaker: (number: number) => `Speaker ${number}`,
 };
 

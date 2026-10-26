@@ -94,7 +94,7 @@ export const es: PageCopy = {
     "private-meeting-transcription": {
       title: "Transcribe reuniones en privado en tu Mac",
       description:
-        "Graba el audio de las apps y tu micrófono o importa un archivo, y transcríbelo en tu Mac con etiquetas de hablante opcionales. Permisos, límites y exportación.",
+        "En «Transcribir», graba el audio de una reunión y tu micrófono o importa un archivo, y transcríbelo en tu Mac con etiquetas de hablante opcionales.",
       summary:
         "Graba una llamada o importa un archivo, etiqueta a los hablantes y exporta subtítulos.",
     },
@@ -102,9 +102,9 @@ export const es: PageCopy = {
       title:
         "Compara Airdraft con VoiceInk, Handy, Typeless y el Dictado de Apple",
       description:
-        "Comparación fechada de Airdraft, VoiceInk, Handy, Typeless y el Dictado de Apple en macOS 27: precio, código, dónde se procesa la voz, reuniones y en qué es mejor cada uno.",
+        "Comparación fechada de Airdraft, VoiceInk, Handy, Typeless y el Dictado de Apple en macOS 27: precio, código, dónde se procesa la voz, transcripción de grabaciones y archivos, y en qué es mejor cada uno.",
       summary:
-        "Compara precios, flujo de datos y reuniones, incluido en qué son mejores los demás.",
+        "Compara precios, flujo de datos y transcripción de grabaciones, incluido en qué son mejores los demás.",
     },
   },
 };

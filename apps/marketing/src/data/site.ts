@@ -50,6 +50,6 @@ export const licenses: License[] = [
 // Each language's license names and the lists of what every license and
 // the source build include are copy, in src/i18n/messages (`license.plans`,
 // `pricing.licenseIncludes`, `pricing.sourceIncludes`). Both editions ship
-// the same app, so dictation and Meetings head both lists; the official
+// the same app, so dictation and Transcribe head both lists; the official
 // app adds a 14-day full-feature trial, updates to the purchased version
 // and moving between Macs, with no Xcode needed.

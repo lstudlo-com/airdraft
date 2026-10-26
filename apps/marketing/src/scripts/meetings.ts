@@ -1,4 +1,4 @@
-// The Meetings card's player (components/MeetingsSection.astro), as the
+// The Transcribe card's player (components/MeetingsSection.astro), as the
 // app's transcript editor has it: the play key toggles playback, and a
 // timestamp plays from that point. The sample has no audio, so nothing is
 // heard; the playhead and clock move six times faster than real time so the

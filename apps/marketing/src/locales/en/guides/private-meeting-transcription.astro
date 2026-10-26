@@ -6,7 +6,8 @@ import { guidesFor } from "../../../data/guides";
 import { href, type Locale } from "../../../i18n";
 
 /**
- * Private meeting transcription, in each language. Every statement follows
+ * Private meeting transcription, in each language: a meeting is one use of
+ * the app's Transcribe page, which records or imports any audio. Every statement follows
  * docs/meeting-recording.md and docs/media-transcription.md. Button and
  * setting names are the app's own in the page's language: the zh-Hant values
  * in its string catalogs, quoted with 「」. Builds through 0.10.2 show
@@ -24,7 +25,7 @@ const guide = guidesFor(locale).find(
     <ul>
       <li>An Apple silicon Mac with macOS 15 or later.</li>
       <li>
-        Screen &amp; System Audio Recording permission to record meetings.
+        Screen &amp; System Audio Recording permission to record app audio.
         Microphone access is requested only when you include the microphone.
       </li>
       <li>
@@ -39,11 +40,15 @@ const guide = guidesFor(locale).find(
   </GuideSection>
 
   <GuideSection id="record" title="Record a meeting">
+    <p>
+      A meeting is one use of Airdraft’s Transcribe page, which records any
+      app’s audio or imports a file and transcribes it.
+    </p>
     <ol class="guide-steps">
       <li>
-        <h3>Open Record Meeting</h3>
+        <h3>Open Record Audio</h3>
         <p>
-          Choose Record Meeting on the Meetings page. The menu bar opens the
+          Choose Record Audio on the Transcribe page. The menu bar opens the
           same flow.
         </p>
       </li>
@@ -59,8 +64,8 @@ const guide = guidesFor(locale).find(
         <h3>Start, and tell everyone</h3>
         <p>
           Choose Start Recording, and let participants know you are recording.
-          Recording continues if you leave Meetings; stop it with Stop and Save
-          on Meetings or in the menu bar.
+          Recording continues if you leave Transcribe; stop it with Stop and
+          Save on Transcribe or in the menu bar.
         </p>
       </li>
       <li>
@@ -75,10 +80,10 @@ const guide = guidesFor(locale).find(
 
   <GuideSection id="import" title="Or import a file">
     <p>
-      Choose Import… on Meetings or drop a file. Audio and video files can be up
-      to two hours long with exactly one audio track; export the track you want
-      from a multi-track file first. Airdraft keeps a 16 kHz copy and never
-      changes the original.
+      Choose Import… on the Transcribe page or drop a file. Audio and video
+      files can be up to two hours long with exactly one audio track; export the
+      track you want from a multi-track file first. Airdraft keeps a 16 kHz copy
+      and never changes the original.
     </p>
   </GuideSection>
 
@@ -110,7 +115,7 @@ const guide = guidesFor(locale).find(
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compare where meeting data goes"
+      aria-label="Compare where recordings and transcripts go"
     >
       <table class="guide-table">
         <caption>Data sent at each step</caption>
@@ -156,8 +161,9 @@ const guide = guidesFor(locale).find(
       the recording from there.
     </p>
     <p>
-      Meeting recordings ignore dictation’s audio retention and stay until you
-      remove the audio. Deleting a transcript keeps its recording.
+      Recordings and imported files on the Transcribe page ignore dictation’s
+      audio retention and stay until you remove the audio. Deleting a transcript
+      keeps its recording.
     </p>
   </GuideSection>
 
@@ -173,8 +179,9 @@ const guide = guidesFor(locale).find(
         before it starts.
       </li>
       <li>
-        Airdraft has not published accuracy measurements for meeting
-        transcription or speaker labels. Try it with your own recordings.
+        Airdraft has not published accuracy measurements for transcribing
+        recordings and files or for speaker labels. Try it with your own
+        recordings.
       </li>
     </ul>
     <div class="guide-actions">

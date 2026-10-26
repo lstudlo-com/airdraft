@@ -22,9 +22,9 @@ const guide = guidesFor(locale).find(
     <ul>
       <li>Un Mac con Apple silicon y macOS 15 o posterior.</li>
       <li>
-        El permiso «Grabación de pantalla y audio del sistema» para grabar
-        reuniones. El acceso al micrófono solo se pide cuando incluyes el
-        micrófono.
+        El permiso «Grabación de pantalla y audio del sistema» para grabar el
+        audio de las apps. El acceso al micrófono solo se pide cuando incluyes
+        el micrófono.
       </li>
       <li>
         Un modelo de voz local instalado, o una clave de API de Soniox para
@@ -38,12 +38,16 @@ const guide = guidesFor(locale).find(
   </GuideSection>
 
   <GuideSection id="record" title="Graba una reunión">
+    <p>
+      Una reunión es solo un uso de la página «Transcribir» de Airdraft, que
+      graba el audio de cualquier app o importa un archivo y lo transcribe.
+    </p>
     <ol class="guide-steps">
       <li>
-        <h3>Abre «Grabar reunión»</h3>
+        <h3>Abre «Grabar audio»</h3>
         <p>
-          Elige «Grabar reunión» en la página Reuniones. La barra de menús abre
-          el mismo flujo.
+          Elige «Grabar audio» en la página «Transcribir». La barra de menús
+          abre el mismo flujo.
         </p>
       </li>
       <li>
@@ -59,8 +63,8 @@ const guide = guidesFor(locale).find(
         <h3>Empieza y avisa a todos</h3>
         <p>
           Elige «Iniciar grabación» y avisa a los participantes de que estás
-          grabando. La grabación continúa si sales de Reuniones; detenla con
-          «Detener y guardar» en Reuniones o en la barra de menús.
+          grabando. La grabación continúa si sales de «Transcribir»; detenla con
+          «Detener y guardar» en «Transcribir» o en la barra de menús.
         </p>
       </li>
       <li>
@@ -75,10 +79,10 @@ const guide = guidesFor(locale).find(
 
   <GuideSection id="import" title="O importa un archivo">
     <p>
-      Elige «Importar…» en Reuniones o suelta un archivo. Los archivos de audio
-      y vídeo pueden durar hasta dos horas y deben tener exactamente una pista
-      de audio; si tienen varias, exporta antes la que quieras. Airdraft guarda
-      una copia a 16 kHz y nunca modifica el original.
+      Elige «Importar…» en «Transcribir» o suelta un archivo. Los archivos de
+      audio y vídeo pueden durar hasta dos horas y deben tener exactamente una
+      pista de audio; si tienen varias, exporta antes la que quieras. Airdraft
+      guarda una copia a 16 kHz y nunca modifica el original.
     </p>
   </GuideSection>
 
@@ -112,7 +116,7 @@ const guide = guidesFor(locale).find(
       class="guide-table-scroll"
       tabindex="0"
       role="region"
-      aria-label="Compara adónde van los datos de la reunión"
+      aria-label="Compara adónde van las grabaciones y las transcripciones"
     >
       <table class="guide-table">
         <caption>Datos enviados en cada paso</caption>
@@ -162,9 +166,9 @@ const guide = guidesFor(locale).find(
       reproducir la grabación desde ahí.
     </p>
     <p>
-      Las grabaciones de reuniones no siguen la retención de audio del dictado y
-      se conservan hasta que elimines el audio. Eliminar una transcripción
-      conserva su grabación.
+      Las grabaciones y los archivos importados en «Transcribir» no siguen la
+      retención de audio del dictado y se conservan hasta que elimines el audio.
+      Eliminar una transcripción conserva su grabación.
     </p>
   </GuideSection>
 
@@ -181,8 +185,8 @@ const guide = guidesFor(locale).find(
       </li>
       <li>
         Airdraft no ha publicado mediciones de precisión de la transcripción de
-        reuniones ni de las etiquetas de hablante. Pruébalo con tus propias
-        grabaciones.
+        grabaciones y archivos ni de las etiquetas de hablante. Pruébalo con tus
+        propias grabaciones.
       </li>
     </ul>
     <div class="guide-actions">

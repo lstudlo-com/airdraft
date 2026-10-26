@@ -36,9 +36,9 @@ export const zhCn: Messages = {
     allow: "允许分析",
   },
   home: {
-    title: "Airdraft｜中英混合听写与会议转录的 Mac App",
+    title: "Airdraft｜中英混合听写与录音转录的 Mac App",
     description:
-      "Airdraft 是开源的 Mac App：中文里夹着英文术语照样说，说完就粘贴到任何 App；会议录音也能整理成标出发言人的转录稿。语音识别和润色可以在本机运行，也可以用你自己的服务商。自行编译免费，官方版一次买断。",
+      "Airdraft 是开源的 Mac App：中文里夹着英文术语照样说，说完就粘贴到任何 App；会议、课程等录音或音视频文件，也能整理成标出发言人的转录稿。语音识别和润色可以在本机运行，也可以用你自己的服务商。自行编译免费，官方版一次买断。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
     headline: ["中英混着讲，", "说完就打好。"],
     headlineGap: "",
@@ -117,9 +117,10 @@ export const zhCn: Messages = {
     placeholder: "松开快捷键后，文字会出现在这里。",
   },
   meetings: {
-    title: "会议录音，在你的 Mac 上变成转录稿",
-    intro: "录下通话或导入文件，整理成标出发言人的转录稿。",
-    sample: "会议转录稿示例",
+    title: "音频和视频，在你的 Mac 上变成转录稿",
+    intro:
+      "录下通话、课程或任何 App 的声音，或导入文件，整理成标出发言人的转录稿。",
+    sample: "转录稿示例",
     meeting: "设计评审",
     meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
     turns: [
@@ -131,7 +132,10 @@ export const zhCn: Messages = {
       ["也能导入文件", "音频或视频，最长两小时、单个音轨。"],
       ["在本机估计发言人", "可选择标出发言人，再自己改名或调整。"],
       ["选本机模型就不上传", "使用 Soniox 云端转录时，确认之后才上传。"],
-      ["编辑后导出", "原文和修改并存，可导出 TXT、JSON、SRT 或 VTT。"],
+      [
+        "编辑、摘要、导出",
+        "原文和修改并存，可加上摘要或待办事项，再导出 TXT、JSON、SRT 或 VTT。",
+      ],
     ],
     guide: "阅读会议转录指南",
   },
@@ -226,14 +230,14 @@ export const zhCn: Messages = {
     build: "自己编译",
     buildAction: "自行编译说明",
     sourceList: "源代码版本包含",
-    sourceIncludes: ["听写和会议转录", "全部功能，没有锁定", "需要 Xcode 编译"],
+    sourceIncludes: ["听写和转录", "全部功能，没有锁定", "需要 Xcode 编译"],
     app: "现成可用的 App",
     once: "一次付清",
     buy: (macs) => `购买（${macs}）`,
     notOnSale: "尚未开售",
     appList: "每份许可证都包含",
     licenseIncludes: [
-      "听写和会议转录",
+      "听写和转录",
       "全部功能，不需要 Xcode",
       "14 天全功能试用",
       "包含所购版本的更新",
@@ -285,7 +289,7 @@ export const zhCn: Messages = {
       editions: [
         "两个版本包含哪些功能？",
         [
-          "是同一个 App：在任何 App 里听写、会议功能（录下 App 音频和麦克风，或导入音频和视频，可选择标出发言人，并导出 TXT、JSON、SRT 或 VTT）、模式、词汇和历史记录。官方版没有额外功能，只是省去用 Xcode 编译。详见",
+          "是同一个 App：在任何 App 里听写、「转录」页面（录下 App 音频和麦克风，或导入音频和视频，可选择标出发言人、生成摘要，并导出 TXT、JSON、SRT 或 VTT）、模式、词汇和历史记录。官方版没有额外功能，只是省去用 Xcode 编译。详见",
           { link: "meetingGuide", text: "会议转录指南" },
           "。",
         ],

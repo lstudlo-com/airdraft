@@ -13,13 +13,14 @@ The primary audience values a quiet Mac utility, control over their models and
 their data, and less typing.
 Positioning: Airdraft is a late entrant among dictation apps, so the site does
 not lead with what every dictation app does (cleaning up ums). The hero names
-the jobs (speak into any app, transcribe meetings) and the privacy-minded user
+the jobs (speak into any app, transcribe anything) and the privacy-minded user
 who wants processing that can stay on the Mac.
 The site addresses an international audience in the app's interface
 languages: dictate in your own language, mixing in English or technical
 terms, with speech and refinement on the Mac or with your own provider. The
 English headline is "Speak into any app. Transcribe anything.": the two
-jobs (dictation, and transcribing meetings and imported audio or video), two
+jobs (dictation, and transcribing recorded app audio and imported audio or
+video, of which meetings are one use), two
 short lines. Every claim stays true for an English-only user.
 Mixed Chinese and English remains one guide and one homepage example among
 others; dictation into AI coding agents (Claude Code, Codex, terminals) that
@@ -27,7 +28,8 @@ reuses an existing subscription for refinement remains the second job shown.
 The Traditional Chinese positioning is unchanged:
 中英混著講，說完就貼上；會議也能整理成逐字稿，一次買斷. The segment decision
 of 2026-10-22 (vault: `Strategy/`) predates this international positioning;
-the vault records the current decision. Meetings, mixing English into
+the vault records the current decision. Transcribe (recording and file
+transcription, formerly named Meetings), mixing English into
 another language, and Claude Code / Codex refinement are shown on the
 homepage, not only in the changelog, guides or pricing. "一次買斷" and its
 translations describe the license terms; never imply the official app is on
@@ -70,7 +72,7 @@ sale before `siteLinks.checkout` is set.
   no donations: Airdraft is paid through its official license.
 - Pricing may state only: the open-source build is $0 with no locked features; the
   license terms above; cloud providers bill users directly;
-  that both editions include dictation and Meetings (the same app); a link to the
+  that both editions include dictation and Transcribe (the same app); a link to the
   dated app comparison guide; and a dated cost comparison. That comparison prices one stated workload (dictations,
   seconds, token budget) for three Airdraft setups (all local; Parakeet with Cerebras
   `qwen-3.8-27b`; Groq Whisper Large v3 Turbo with Cerebras) against Wispr Flow Pro
@@ -80,13 +82,18 @@ sale before `siteLinks.checkout` is set.
   pages, rechecked whenever the date changes. Show the assumptions beneath the table
   and say what leaves the Mac for each cloud setup.
 - Support troubleshooting comes from the root README's First run and Known issues sections.
-- Meetings records app audio from all apps or one app
+- Transcribe (the app page formerly named Meetings; its record button is Record
+  Audio) is general audio transcription, not a meeting feature: meetings are
+  one use case among calls, lectures and other recordings. It records app
+  audio from all apps or one app
   plus an optional microphone through ScreenCaptureKit, with no screen frames,
   or imports one audio or video file with a single audio track, up to two hours.
   Transcription uses a chosen local model or Soniox (upload only after Upload and
   Transcribe). Speaker labels are optional local estimates (Speaker 1, …),
   renameable, never guessed names; overlapping voices are not separated. Exports
-  are TXT, JSON, SRT and VTT. There is no echo cancellation. Claims follow
+  are TXT, JSON, SRT and VTT. Summarize offers Brief Summary, Action Items,
+  Decisions & Follow-ups and Meeting Minutes through the selected refinement
+  provider. There is no echo cancellation. Claims follow
   `docs/meeting-recording.md` and `docs/media-transcription.md`; no accuracy
   measurement is published.
 - Chinese: Qwen3-ASR, SenseVoice and FireRedASR2 run locally. First-run setup
@@ -137,7 +144,7 @@ sale before `siteLinks.checkout` is set.
   app's catalogs but not yet in a published release; their pages say the released app still shows English
   (`interfaceReleased` in `src/i18n/index.ts`; turn a language on when its
   release is published). Translated pages quote app labels (buttons,
-  settings, HUD states, Refined/Original, profile names, Meetings controls)
+  settings, HUD states, Refined/Original, profile names, Transcribe controls)
   with the app's values for that language from its string catalogs
   (`src/data/app.ts` for shared labels); a label without a catalog entry stays
   as the app shows it. The English and Traditional Chinese pages keep the
@@ -174,8 +181,8 @@ action. Raised keys and recessed wells explain the interaction. Keep readable
 contrast, a 13px text floor, visible keyboard focus, reduced-motion behavior,
 and useful content without JavaScript. Mac visitors read SF Pro, the app's face.
 The first viewport is the hero alone, at every window size: the positioning
-headline (the jobs, in two short lines: "Speak into any app. Transcribe any
-meeting."; in Traditional and Simplified Chinese the audience and the job:
+headline (the jobs, in two short lines: "Speak into any app. Transcribe
+anything."; in Traditional and Simplified Chinese the audience and the job:
 中英混著講，說完就打好。),
 the "Get Airdraft", source and sample actions, three quiet facts (open source;
 on the Mac or with your own provider; macOS 15+ on Apple silicon), and Home's waveform card from the app

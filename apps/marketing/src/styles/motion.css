@@ -208,7 +208,7 @@
         --step: 12%;
       }
 
-      /* The Meetings card and its list rise like the pipeline board. */
+      /* The Transcribe card and its list rise like the pipeline board. */
       .meetings > * {
         --rise-y: 56px;
         --rise-scale: 0.94;

@@ -38,9 +38,9 @@ export const zhTw: Messages = {
     allow: "允許分析",
   },
   home: {
-    title: "Airdraft｜Mac 中英混合聽寫與會議逐字稿",
+    title: "Airdraft｜Mac 中英混合聽寫與錄音逐字稿",
     description:
-      "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；會議錄音也能整理成標出講者的逐字稿。語音辨識與潤稿可各自選本機或雲端。自行編譯免費，官方版一次買斷。",
+      "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；會議、課程等錄音或影音檔，也能整理成標出講者的逐字稿。語音辨識與潤稿可各自選本機或雲端。自行編譯免費，官方版一次買斷。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
     headline: ["中英混著講，", "說完就打好。"],
     headlineGap: "",
@@ -109,9 +109,10 @@ export const zhTw: Messages = {
     placeholder: "放開快速鍵後，文字會出現在這裡。",
   },
   meetings: {
-    title: "會議錄音，在 Mac 上轉成逐字稿",
-    intro: "錄下通話或匯入檔案，整理成標出講者的逐字稿。",
-    sample: "會議逐字稿範例",
+    title: "音訊和影片，在 Mac 上轉成逐字稿",
+    intro:
+      "錄下通話、課程或任何 App 的聲音，或匯入檔案，整理成標出講者的逐字稿。",
+    sample: "逐字稿範例",
     meeting: "設計週會",
     meta: "10 月 21 日 · 32:14 · Qwen3-ASR 1.7B",
     turns: [
@@ -123,7 +124,10 @@ export const zhTw: Messages = {
       ["也能匯入檔案", "音訊或影片，最長兩小時、單一音軌。"],
       ["在本機估算講者", "講者標籤可選用，能改名或重新指派。"],
       ["用本機模型就不上傳", "選 Soniox 雲端轉錄時，經你確認才上傳。"],
-      ["編輯後匯出", "保留原文，可匯出 TXT、JSON、SRT 或 VTT。"],
+      [
+        "編輯、摘要、匯出",
+        "保留原文，可加上摘要或待辦事項，再匯出 TXT、JSON、SRT 或 VTT。",
+      ],
     ],
     guide: "會議逐字稿指南",
   },
@@ -220,14 +224,14 @@ export const zhTw: Messages = {
     build: "自行編譯",
     buildAction: "編譯說明",
     sourceList: "原始碼版本包含",
-    sourceIncludes: ["聽寫與會議逐字稿", "所有功能皆開放", "需用 Xcode 編譯"],
+    sourceIncludes: ["聽寫與轉錄", "所有功能皆開放", "需用 Xcode 編譯"],
     app: "官方版 App",
     once: "一次買斷",
     buy: (macs) => `購買（${macs}）`,
     notOnSale: "尚未開賣",
     appList: "每份授權都包含",
     licenseIncludes: [
-      "聽寫與會議逐字稿",
+      "聽寫與轉錄",
       "全功能，免 Xcode",
       "14 天全功能試用",
       "所購版本的後續更新",
@@ -279,7 +283,7 @@ export const zhTw: Messages = {
       editions: [
         "兩個版本包含哪些功能？",
         [
-          "同一個 App：在任何 App 裡聽寫、「會議」（錄下 App 音訊與麥克風，或匯入音訊、影片，可選擇標出講者，匯出 TXT、JSON、SRT 或 VTT）、「模式」、「詞彙」與「記錄」。官方版沒有額外功能，只是免去用 Xcode 編譯。詳見",
+          "同一個 App：在任何 App 裡聽寫、「轉錄」（錄下 App 音訊與麥克風，或匯入音訊、影片，可選擇標出講者、製作摘要，匯出 TXT、JSON、SRT 或 VTT）、「模式」、「詞彙」與「記錄」。官方版沒有額外功能，只是免去用 Xcode 編譯。詳見",
           { link: "meetingGuide", text: "會議逐字稿指南" },
           "。",
         ],

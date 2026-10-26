@@ -36,10 +36,9 @@ export const es: Messages = {
     allow: "Permitir analítica",
   },
   home: {
-    title:
-      "Airdraft | Dictado en tu idioma y transcripción de reuniones para Mac",
+    title: "Airdraft | Dictado en tu idioma y transcripción de audio para Mac",
     description:
-      "Airdraft es una app de código abierto para Mac que escribe lo que dices en cualquier app, en tu idioma y con términos en inglés de por medio, y transcribe reuniones. La voz y el refinamiento funcionan en tu Mac o con tu propio proveedor. Compilarla desde el código es gratis.",
+      "Airdraft es una app de código abierto para Mac que escribe lo que dices en cualquier app, en tu idioma y con términos en inglés de por medio, y transcribe grabaciones y archivos de audio o vídeo. La voz y el refinamiento funcionan en tu Mac o con tu propio proveedor. Compilarla desde el código es gratis.",
     headline: ["Habla en cualquier app.", "Transcribe lo que sea."],
     headlineGap: " ",
     get: "Obtener Airdraft",
@@ -142,10 +141,10 @@ export const es: Messages = {
     placeholder: "El texto aparece aquí cuando sueltas.",
   },
   meetings: {
-    title: "Reuniones transcritas en tu Mac",
+    title: "Transcribe audio y vídeo en tu Mac",
     intro:
-      "Graba una llamada o importa un archivo y conviértelo en una transcripción con hablantes.",
-    sample: "Transcripción de reunión de ejemplo",
+      "Graba una llamada, una clase o el audio de cualquier app, o importa un archivo, y obtén una transcripción con hablantes.",
+    sample: "Transcripción de ejemplo",
     meeting: "Revisión de diseño",
     meta: "21 oct · 32:14 · Whisper Large v3 Turbo",
     turns: [
@@ -155,7 +154,7 @@ export const es: Messages = {
     points: [
       [
         "Graba cualquier app",
-        "Una app o todas, más tu micrófono. Sin vídeo de la pantalla.",
+        "Una app o todas, y tu micrófono si quieres. Sin vídeo de la pantalla.",
       ],
       [
         "O importa un archivo",
@@ -170,8 +169,8 @@ export const es: Messages = {
         "Un modelo local deja el audio aquí; Soniox lo sube solo después de que confirmes.",
       ],
       [
-        "Edita y exporta",
-        "Conserva el original junto a tus cambios. Exporta TXT, JSON, SRT o VTT.",
+        "Edita, resume y exporta",
+        "Conserva el original junto a tus cambios, añade un resumen o las tareas pendientes y exporta TXT, JSON, SRT o VTT.",
       ],
     ],
     guide: "Leer la guía de reuniones",
@@ -294,7 +293,7 @@ export const es: Messages = {
     buildAction: "Instrucciones de compilación",
     sourceList: "La versión compilada desde el código incluye",
     sourceIncludes: [
-      "Dictado y Reuniones",
+      "Dictado y transcripción",
       "Todas las funciones, sin bloqueos",
       "Necesita Xcode para compilar",
     ],
@@ -304,7 +303,7 @@ export const es: Messages = {
     notOnSale: "Aún no está a la venta",
     appList: "Toda licencia incluye",
     licenseIncludes: [
-      "Dictado y Reuniones",
+      "Dictado y transcripción",
       "Todas las funciones, sin Xcode",
       "Prueba de 14 días con todo",
       "Actualizaciones de la versión que compras",
@@ -361,7 +360,7 @@ export const es: Messages = {
       editions: [
         "¿Qué incluyen las dos ediciones?",
         [
-          "La misma app: dictado en cualquier app, Reuniones (graba el audio de las apps y tu micrófono o importa audio y vídeo, con etiquetas de hablante opcionales y exportación a TXT, JSON, SRT o VTT), perfiles, vocabulario e historial. La app oficial no añade funciones; te ahorra compilar con Xcode. Consulta la ",
+          "La misma app: dictado en cualquier app, «Transcribir» (graba el audio de las apps y tu micrófono o importa audio y vídeo, con etiquetas de hablante opcionales, resúmenes y exportación a TXT, JSON, SRT o VTT), perfiles, vocabulario e historial. La app oficial no añade funciones; te ahorra compilar con Xcode. Consulta la ",
           { link: "meetingGuide", text: "guía de reuniones" },
           ".",
         ],

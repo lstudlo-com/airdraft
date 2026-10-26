@@ -1,7 +1,7 @@
 // Scroll storytelling for the homepage, built on GSAP and ScrollTrigger:
 // headings, the sample, panels, bento tiles and offers rise into place as
 // they enter, where the browser has no scroll timelines (motion.css does it
-// elsewhere). The bento's graphics perform in bento.ts, the Meetings player
+// elsewhere). The bento's graphics perform in bento.ts, the Transcribe player
 // in meetings.ts and the provider board's run in pipeline.ts.
 //
 // Every element's resting state in CSS is its final state, so the page reads

@@ -8,18 +8,18 @@ export interface Breadcrumb {
 
 export const siteName = "Airdraft";
 export const defaultTitle =
-  "Airdraft | Mac dictation and meeting transcription, local or cloud";
+  "Airdraft | Mac dictation and audio transcription, local or cloud";
 export const defaultDescription =
-  "Airdraft is an open-source Mac app that types what you say into any app, in your language with English and technical terms mixed in, and transcribes meetings. Speech and refinement run on your Mac or with your own provider. Free to build from source.";
+  "Airdraft is an open-source Mac app that types what you say into any app, in your language with English and technical terms mixed in, and transcribes recordings and audio or video files. Speech and refinement run on your Mac or with your own provider. Free to build from source.";
 /** The social card's text, described in each page's language. */
 export const socialImageAlt: Record<Locale, string> = {
-  en: "Airdraft: Speak into any app. Transcribe meetings. Keep it on your Mac. Open source, with local or cloud models.",
+  en: "Airdraft: Speak into any app. Transcribe anything. Keep it on your Mac. Open source, with local or cloud models.",
   "zh-tw":
-    "Airdraft：在任何 App 裡用說的輸入，把會議轉成逐字稿，資料留在你的 Mac。開放原始碼，可用本機或雲端模型。",
+    "Airdraft：在任何 App 裡用說的輸入，什麼聲音都能轉成逐字稿，資料留在你的 Mac。開放原始碼，可用本機或雲端模型。",
   "zh-cn":
-    "Airdraft：在任何 App 里用说的输入，把会议转成文字稿，数据留在你的 Mac。开源，可用本地或云端模型。",
-  es: "Airdraft: habla en cualquier app, transcribe reuniones y mantenlo en tu Mac. Código abierto, con modelos locales o en la nube.",
-  ja: "Airdraft：どのアプリにも話して入力し、会議を文字起こし。データは Mac に。オープンソースで、ローカルまたはクラウドのモデルを使えます。",
+    "Airdraft：在任何 App 里用说的输入，什么声音都能转成文字稿，数据留在你的 Mac。开源，可用本地或云端模型。",
+  es: "Airdraft: habla en cualquier app, transcribe lo que sea y mantenlo en tu Mac. Código abierto, con modelos locales o en la nube.",
+  ja: "Airdraft：どのアプリにも話して入力し、なんでも文字起こし。データは Mac に。オープンソースで、ローカルまたはクラウドのモデルを使えます。",
 };
 
 /** HTML routes use the same trailing slash as Astro's directory output. */
@@ -86,7 +86,7 @@ export function pageStructuredData({
           "Independent local or cloud speech recognition and refinement",
           "Editable writing profiles and vocabulary corrections",
           "Local, searchable dictation history",
-          "Meeting recording and audio or video transcription with optional speaker labels",
+          "Audio recording from apps and the microphone, and audio or video file transcription with optional speaker labels and summaries",
           "Dictation in many languages, with English and technical terms mixed in, using the selected speech model",
           "Traditional or Simplified Chinese output, including mixed Chinese and English speech with supported models",
         ],

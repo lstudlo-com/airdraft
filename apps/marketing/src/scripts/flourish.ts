@@ -7,7 +7,7 @@
 //              text-page sections, pricing questions and changelog cards.
 //              Blocks that come into view together rise one after another.
 //              Blocks the scroll timelines already raise (bento tiles, the
-//              sample, Meetings, the provider board, offers, plans, the app
+//              sample, Transcribe, the provider board, offers, plans, the app
 //              window) are left to motion.css
 //   depth      the hero card and the copy above it drift a few pixels with
 //              the pointer, the card toward it and the copy away, so the

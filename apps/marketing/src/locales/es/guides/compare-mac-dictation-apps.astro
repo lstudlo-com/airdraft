@@ -104,7 +104,7 @@ const columns = [
   "Código",
   "Reconocimiento de voz",
   "Limpieza del texto",
-  "Reuniones y archivos",
+  "Transcripción de grabaciones y archivos",
   "Plataformas",
 ];
 
@@ -317,11 +317,13 @@ const sources = [
         .
       </li>
       <li>
+        «Transcribir» graba el audio de las apps y el micrófono o importa un
+        archivo, con etiquetas de hablante, resúmenes y exportación de
+        subtítulos. Consulta la{" "}
         <a href={href("/guides/private-meeting-transcription/", locale)}>
-          Grabación y transcripción de reuniones
+          guía de reuniones
         </a>
-        : audio de las apps y micrófono, etiquetas de hablante y exportación de
-        subtítulos.
+        .
       </li>
     </ul>
   </GuideSection>
@@ -342,7 +344,7 @@ const sources = [
         coreano (un Mac en cada caso); no hay comparación de precisión ni de
         velocidad con otras apps.
       </li>
-      <li>La grabación de reuniones no tiene cancelación de eco.</li>
+      <li>La grabación en «Transcribir» no tiene cancelación de eco.</li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">

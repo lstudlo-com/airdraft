@@ -85,14 +85,15 @@ export const zhCn: PageCopy = {
     "private-meeting-transcription": {
       title: "在自己的 Mac 上把会议转成转录稿",
       description:
-        "录制 App 音频和麦克风，或导入文件，在 Mac 上转录，可选择标出发言人。另附所需权限、限制和导出格式。",
+        "在「转录」页面录下会议的 App 音频和麦克风，或导入文件，在 Mac 上转录，可选择标出发言人。另附所需权限、限制和导出格式。",
       summary: "录下通话或导入文件，标出发言人，再导出字幕。",
     },
     "compare-mac-dictation-apps": {
       title: "Airdraft 与 VoiceInk、Handy、Typeless、Apple 听写对比",
       description:
-        "附核查日期，对比 Airdraft、VoiceInk、Handy、Typeless 和 macOS 27 的 Apple 听写：价格、源代码、语音在哪里处理、会议功能，以及各自的长处。",
-      summary: "并排比较价格、数据去向和会议功能，也列出别人做得更好的地方。",
+        "附核查日期，对比 Airdraft、VoiceInk、Handy、Typeless 和 macOS 27 的 Apple 听写：价格、源代码、语音在哪里处理、录音和文件转录，以及各自的长处。",
+      summary:
+        "并排比较价格、数据去向和录音转录功能，也列出别人做得更好的地方。",
     },
   },
 };

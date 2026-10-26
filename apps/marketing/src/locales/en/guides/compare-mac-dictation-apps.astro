@@ -99,7 +99,7 @@ const columns = [
   "Source",
   "Speech recognition",
   "Text cleanup",
-  "Meetings and files",
+  "Recording and file transcription",
   "Platforms",
 ];
 
@@ -310,10 +310,12 @@ const sources = [
         .
       </li>
       <li>
+        The Transcribe page records app audio and the microphone or imports a
+        file, with speaker labels, summaries and subtitle export. See{" "}
         <a href={href("/guides/private-meeting-transcription/", locale)}>
-          Meeting recording and transcripts
+          transcribing meetings privately
         </a>
-        : app audio and microphone, speaker labels and subtitle export.
+        .
       </li>
     </ul>
   </GuideSection>
@@ -331,7 +333,7 @@ const sources = [
         Chinese and English and on English, Japanese and Korean read speech (one
         Mac each); there is no accuracy or speed comparison with other apps.
       </li>
-      <li>Meeting recording has no echo cancellation.</li>
+      <li>Recording on the Transcribe page has no echo cancellation.</li>
     </ul>
     <div class="guide-actions">
       <Button href={href("/pricing/", locale)} icon="right">
