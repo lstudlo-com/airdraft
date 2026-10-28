@@ -401,7 +401,11 @@ public final class DictationPipeline {
             ?? { SpeechPreview.startTranscript(locale: $0, onText: $1, onIssue: $2) }
         self.modelPreviewAvailability = modelPreviewAvailability
         self.modelPreviewBuilder = modelPreviewBuilder ?? { request, onText, onIssue in
-            ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: factory, request: request),
+            // AD-123: cloud models stream to their provider's real-time API.
+            if !request.asr.kind.isLocal {
+                return factory.cloudLiveTranscript(request, onText: onText, onIssue: onIssue)
+            }
+            return ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: factory, request: request),
                                      finals: ModelSpeechPreview.finals(factory: factory, request: request),
                                      onText: onText, onIssue: onIssue)
         }

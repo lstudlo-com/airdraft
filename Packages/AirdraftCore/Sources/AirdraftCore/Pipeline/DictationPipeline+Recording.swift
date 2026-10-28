@@ -538,7 +538,7 @@ extension DictationPipeline {
             }
             previewNoticeShownFor = nil
             session = modelPreviewBuilder(request, onText, onIssue)
-            previewUsesSpeechEngine = true
+            previewUsesSpeechEngine = request.asr.kind.isLocal
         }
         previewSession = session
         previewBecomesTranscript = (session as? any LiveTranscriptSession)?.reusesForTranscript == true

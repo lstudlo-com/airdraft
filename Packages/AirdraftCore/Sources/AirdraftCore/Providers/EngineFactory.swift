@@ -22,6 +22,7 @@ public actor EngineFactory {
     private let transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)?
     private let refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)?
     private let credentialReader: @Sendable (String) throws -> String?
+    private let streamingConnector: StreamingConnector
     private let now: @Sendable () -> Date
     /// Active dictation sessions keep their speech engine resident. Each pin
     /// has a hard deadline so a leaked session cannot hold a model forever.
@@ -34,7 +35,9 @@ public actor EngineFactory {
                 credentialReader: @escaping @Sendable (String) throws -> String? = { try Keychain.read($0) },
                 transcriberBuilder: (@Sendable (ASRConfig) -> any Transcriber)? = nil,
                 refinerBuilder: (@Sendable (LLMConfig) -> (any Refiner)?)? = nil,
+                streamingConnector: @escaping StreamingConnector = CloudLiveTranscript.urlSessionConnector,
                 now: @escaping @Sendable () -> Date = { Date() }) {
+        self.streamingConnector = streamingConnector
         self.transcriberBuilder = transcriberBuilder
         self.refinerBuilder = refinerBuilder
         self.status = status
@@ -269,6 +272,23 @@ public actor EngineFactory {
             let text = TranscriptRepetition.trimmed(result.text) ?? result.text
             return ChineseScriptConverter.convert(text.trimmingCharacters(in: .whitespacesAndNewlines), to: hints.chineseScript)
         }
+    }
+
+    /// AD-123: cloud live text for a recording, streamed to the provider's
+    /// real-time API. The key is read once here, never interactively; without
+    /// one, or when the read fails, live text reports why and stays off.
+    public nonisolated func cloudLiveTranscript(_ request: ModelPreviewRequest,
+                                                onText: @escaping @Sendable (String) -> Void,
+                                                onIssue: @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession {
+        guard let provider = CloudStreaming.provider(for: request.asr, hints: request.hints) else {
+            return UnavailableLiveSession(issue: ModelSpeechPreview.unavailableReason(for: request.asr, installed: false) ?? "", onIssue: onIssue)
+        }
+        let key = (try? credentialReader(request.asr.keyRef)) ?? nil
+        guard let key, !key.isEmpty else {
+            return UnavailableLiveSession(issue: String(localized: "Live text needs the \(request.asr.kind.preset?.name ?? request.asr.kind.rawValue) API key. Add it in Models.", bundle: .module), onIssue: onIssue)
+        }
+        return CloudLiveTranscriptSession(provider: provider, apiKey: key, connector: streamingConnector,
+                                          onText: onText, onIssue: onIssue)
     }
 
     /// AD-123: one committed live-text window decoded the way final transcription

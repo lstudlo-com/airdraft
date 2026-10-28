@@ -93,7 +93,13 @@ public enum ModelSpeechPreview {
     /// Whether choosing this model shows live text with the Selected speech
     /// model source: its own fast decoder, or Apple Speech's analyzer (AD-108).
     public static func showsLiveText(_ asr: ASRConfig) -> Bool {
-        supports(asr) || appleSpeechLocale(for: asr) != nil
+        supports(asr) || appleSpeechLocale(for: asr) != nil || CloudStreaming.supports(asr)
+    }
+
+    /// AD-123: whether this model's live text becomes its transcript, so the
+    /// recording is not transcribed again after release.
+    public static func liveTextBecomesTranscript(_ asr: ASRConfig) -> Bool {
+        supports(asr) || appleSpeechLocale(for: asr) != nil || CloudStreaming.becomesTranscript(asr)
     }
 
     public static func supports(_ asr: ASRConfig) -> Bool {
@@ -120,7 +126,7 @@ public enum ModelSpeechPreview {
     /// The same reason from an installed state already measured elsewhere;
     /// reads no files.
     public static func unavailableReason(for asr: ASRConfig, installed: Bool) -> String? {
-        if appleSpeechLocale(for: asr) != nil { return nil }
+        if appleSpeechLocale(for: asr) != nil || CloudStreaming.supports(asr) { return nil }
         guard supports(asr) else {
             return String(localized: "Live text is unavailable for \(asr.displayName). Use Apple Speech for preview, or a model marked Live text in Models.", bundle: .module)
         }
