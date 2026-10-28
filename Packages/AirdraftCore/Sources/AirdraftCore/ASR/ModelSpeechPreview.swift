@@ -189,6 +189,11 @@ public enum ModelSpeechPreview {
     public static func startForMeeting(asr: ASRConfig, hints: TranscriptionHints, factory: EngineFactory,
                                        onText: @escaping @Sendable (String) -> Void,
                                        onIssue: @escaping @Sendable (String) -> Void) async -> ModelPreviewSession? {
+        // Recording audio in Transcribe never streams to a cloud provider for live text.
+        guard asr.kind.isLocal else {
+            onIssue(String(localized: "Live transcript in Transcribe uses on-device models. Choose one in Models, or Apple Speech as the preview source.", bundle: .module))
+            return nil
+        }
         if let reason = unavailableReason(for: asr) {
             onIssue(reason)
             return nil
@@ -381,7 +386,8 @@ public final class ModelPreviewSession: LiveTranscriptSession, Sendable {
             guard let transcript = try? await finals.tail(tail), !Task.isCancelled else { return nil }
             parts.append(transcript)
         }
-        let text = parts.map(\.text).reduce("") { ModelSpeechPreview.join($0, $1) }
+        // Joined as the final path joins its windows.
+        let text = AudioChunker.join(parts.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
         return Transcript(text: text, language: parts.last(where: { $0.language != nil })?.language,
                           engine: parts.last?.engine ?? "", latencyMs: Int((now() - started) * 1000),
                           adjustments: parts.flatMap(\.adjustments))
@@ -422,7 +428,16 @@ public final class ModelPreviewSession: LiveTranscriptSession, Sendable {
         return state.withLock { state -> Job? in
             guard state.active else { return nil }
             let end = state.segmentStart + state.segment.count
-            if state.segment.count >= window {
+            if finals != nil {
+                // AD-123: commit exactly where final transcription would cut. Once the
+                // uncommitted audio exceeds a full window plus the chunker's minimum
+                // tail, its first window is the one the final path decodes from here.
+                let full = Int(SherpaTranscriber.chunkSeconds * 16_000)
+                if state.segment.count > full + Int(AudioChunker.minimumTailSeconds * 16_000),
+                   let first = AudioChunker.split(state.segment, maxSeconds: SherpaTranscriber.chunkSeconds).first {
+                    return .commit(samples: first.samples, end: state.segmentStart + first.samples.count)
+                }
+            } else if state.segment.count >= window {
                 let cut = ModelSpeechPreview.quietestCut(state.segment, in: (window - search)..<window)
                 return .commit(samples: Array(state.segment.prefix(cut)), end: state.segmentStart + cut)
             }

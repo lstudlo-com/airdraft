@@ -1708,27 +1708,58 @@ at recording start (`RecordingSnapshot.request`, `.speed`, `OutputSnapshot`).
 ## Live transcription preview
 
 Settings > Live preview chooses a Preview source (`LivePreviewSource`): Apple
-Speech (the default) or Selected speech model. Neither supplies the final transcript.
-Apple Speech preview uses a separate analyzer on macOS 26+ and the same 16 kHz
-microphone chunks as final transcription. Its language is independent of the
-selected final ASR provider, and Models shows its language section only while it
-is the source. Install assets explicitly in Models through `ModelDownloadStore`;
-preview never downloads or uses a cloud provider. Bound its audio queue and
-displayed text, replace provisional phrases, and cancel without waiting before
-final ASR. Reject callbacks from old sessions. Preview errors are nonfatal;
-preview text never reaches history, refinement, clipboard or scripts.
-Selected speech model: `ModelSpeechPreview` decodes the recording's captured config
-and hints with the already loaded engine through `EngineFactory.transcribePreview`,
-supported only for Parakeet, SenseVoice and Orukeet. When the captured model is
-Apple Speech itself, it runs the Apple Speech preview analyzer in that model's
-effective locale (`ModelSpeechPreview.appleSpeechLocale`), never another model.
-Other models and cloud
-providers open no live-text window: the HUD shows a one-line notice naming the
+Speech (the default) or Selected speech model. AD-123 (the 2026-10-28 decision):
+live text that is expected to equal the recording model's own output becomes the
+transcript that refinement, the dictionary and delivery receive; any other live
+text is display only and the recording is transcribed again after release. A
+session that matches conforms to `LiveTranscriptSession` with
+`reusesForTranscript`; release hands it to processing (`takeLiveTranscript`), and
+`finishTranscript(capture:)` returns the transcript for the whole capture or nil
+(failed, cancelled, missed audio, other model), when `transcribe` runs the normal
+final path on the full capture. Kept-audio retries always use the final path.
+Matching sessions: local Parakeet, SenseVoice and Orukeet with the model source
+(`ModelPreviewFinals`: committed windows decode through
+`EngineFactory.transcribeLiveSegment`, the guarded final path at preview priority,
+only once the uncommitted audio exceeds a full `SherpaTranscriber.chunkSeconds`
+window plus `AudioChunker.minimumTailSeconds`, cutting where `AudioChunker.split`
+cuts, so segments equal the final path's; the tail after the last commit is decoded
+at release; such sessions never drop audio); Apple Speech when it is the recording's
+model, with either source in that model's own locale
+(`SpeechPreview.startTranscript`: final transcription's `.transcription` options
+plus volatile reporting, never `fastResults`; the capture supplies audio still in
+flight and the analyzer finalizes through the end); and cloud providers whose
+real-time model is the batch model with the same options
+(`StreamingSpeechProvider.matchesBatchModel`). Apple Speech preview with another
+recording model stays display only, analyzing on macOS 26+ in its own language
+(independent of the selected final ASR provider; Models shows its language section
+only while it is the source) with `.progressiveTranscription`. Install assets
+explicitly in Models through `ModelDownloadStore`; preview never downloads. Bound
+display-only audio queues and displayed text, replace provisional phrases, and
+cancel without waiting before final ASR. Reject callbacks from old sessions.
+Preview errors are nonfatal; display-only text never reaches history, refinement,
+clipboard or scripts.
+Cloud live text (`CloudLiveTranscriptSession`, `CloudStreaming`): with the model
+source, a cloud model with a real-time adapter streams the recording to its
+provider over a WebSocket on `ProviderTransport`'s ephemeral session (keys only in
+headers or subprotocols, a short-lived token where a provider takes one in the URL;
+`EngineFactory.cloudLiveTranscript` reads the key once, never interactively). Audio
+is buffered until the connection opens; at release the rest of the capture and the
+provider's end frames are sent and `CloudLiveTranscript.finishSeconds` (10 s) bounds
+the wait for its final words. Matching adapters' final text is the transcript;
+display-only adapters are cancelled at release and the batch request runs, so the
+provider bills both, as Settings says. Settings names what live text costs: audio
+streams to the provider while recording, including recordings that are then
+cancelled. Groq, OpenRouter and custom endpoints have no live text. Adapters are
+data in `ASR/Streaming/` with fake-socket tests; never reach a provider in tests.
+Transcribe's live transcript stays on-device. Selected speech model with Whisper,
+Qwen3-ASR, Cohere, FireRedASR2, GGUF or Core ML models opens no live-text window:
+the HUD shows a one-line notice naming the
 model without its runtime (`ModelSpeechPreview.recordingNotice`, no icon, shown
 1.2 s by `HUDPreviewNotice`) above the capsule while recording continues, once per
 profile and speech model until a recording previews or either changes, and Settings shows the active profile's
 model with its readiness or reason and Open Models, reading installed state from
-`SetupFacts`. The live-text window (`LivePreviewCard`) sits above the capsule and
+`SetupFacts`, and whether live text becomes the transcript or, for cloud
+display-only adapters, is billed twice. The live-text window (`LivePreviewCard`) sits above the capsule and
 follows `AppSettings.liveText` (`LiveTextOptions`, AD-108): Live text style (Glass,
 the default 280-point translucent smoked glass of `HUDGlass`; Solid; light Frost;
 a 420-point centered Subtitle bar; Text Only), Lines (1–4, default 2) and Live text
@@ -1750,10 +1781,11 @@ windows and Reduce Motion. Dictation preview never loads, downloads or queues: i
 any lease operation runs or waits, never rebuilds a recognizer, and every other
 lease operation (load, final inference, media, unload) cancels it. Keep one decode
 in flight, at least 1 s (or twice the last decode) between decodes, a 10 s window
-committed at its quietest frame, a 20 s buffer and 500 displayed characters
+committed at its quietest frame (display only), a 20 s buffer and 500 displayed characters
 (1,500 in meetings); a decode slower than 3 s stops the preview with a message.
-Shortcut release quiesces it inside the existing 0.35 s release grace, so final ASR
-runs once on the full capture. Transcribe recordings follow the same setting with a display-only
+Shortcut release quiesces display-only local preview inside the existing 0.35 s
+release grace, so final ASR runs once on the full capture; a matching session keeps
+decoding through the grace instead. Transcribe recordings follow the same setting with a display-only
 Live transcript row (six lines, no animation) fed by `MeetingPreviewMixer`; with
 the model source, starting a recording prepares the installed model but never
 downloads it, and the saved transcript still comes from Transcribe.

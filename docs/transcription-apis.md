@@ -57,7 +57,19 @@ French, German, Hindi, Russian, Portuguese, Japanese, Italian and Dutch. The sel
 explain this before use. Deepgram Whisper is included as an alternative recognition
 family with different coverage, despite its slower processing; local model choices
 are unchanged. Soniox has only one active asynchronous model, which the table
-states explicitly. Retired aliases and realtime models are not offered.
+states explicitly. Retired aliases are not offered, and realtime models are not
+selectable as speech models.
+
+## Live text (AD-123)
+
+With Live preview's Selected speech model source, a cloud model whose provider has
+a real-time API streams the recording to it while you speak
+(`Packages/AirdraftCore/Sources/AirdraftCore/ASR/Streaming/`). When the real-time
+model is the batch model with the same options, its final text is the transcript
+and nothing is uploaded again; otherwise live text is display only and the batch
+request runs after release, so the provider bills both. Groq, OpenRouter and custom
+endpoints have no real-time API in Airdraft. Each adapter cites the provider page
+and check date it follows.
 
 Quality/speed descriptions are provider-reported and are not a shared cross-provider
 benchmark. Airdraft does not turn unavailable measurements into invented ratings.

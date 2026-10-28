@@ -593,7 +593,24 @@ enum LocalE2E {
         report["contendedPreviewPreempted"] = contendedPreempted
         report["contendedPreviewDecodes"] = contendedDecodes
         report["contendedIdentical"] = contendedIdentical
-        report["status"] = snapshot.texts.count > 0 && snapshot.issues.isEmpty &&
+
+        // 5. AD-123: live text that becomes the transcript, in real time with the last
+        // second left to the capture, against the baseline final transcript.
+        let live = ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: app.factory, request: request),
+                                            finals: ModelSpeechPreview.finals(factory: app.factory, request: request),
+                                            onText: { _ in }, onIssue: { _ in })
+        let fed = max(0, samples.count - 16_000)
+        for offset in stride(from: 0, to: fed, by: 1600) {
+            live.append(Array(samples[offset..<min(offset + 1600, fed)]))
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        let liveStart = ContinuousClock.now
+        let liveTranscript = await live.finishTranscript(capture: samples)
+        report["liveTranscriptMs"] = ms(liveStart)
+        report["liveTranscript"] = liveTranscript?.text ?? NSNull()
+        report["liveCommits"] = live.metrics.commits
+        report["liveTranscriptIdentical"] = liveTranscript?.text == baseline.text
+        report["status"] = liveTranscript != nil && snapshot.texts.count > 0 && snapshot.issues.isEmpty &&
             report["finalIdentical"] as? Bool == true && report["contendedIdentical"] as? Bool == true &&
             report["stoppedCallbacks"] as? Bool == true ? "passed" : "failed"
         return report

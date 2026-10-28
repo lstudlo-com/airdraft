@@ -191,6 +191,8 @@ enum ModelPreviewReadiness: Equatable {
     static func of(_ speech: ASRConfig, facts: SetupFacts.Values) -> ModelPreviewReadiness {
         // Apple Speech previews through its own analyzer; it has no model folder to measure.
         if ModelSpeechPreview.appleSpeechLocale(for: speech) != nil { return .ready }
+        // Cloud models stream to their provider (AD-123); the key was checked by setup.
+        if CloudStreaming.supports(speech) { return .ready }
         if !ModelSpeechPreview.supports(speech) || !facts.pending.contains(.speech),
            let reason = ModelSpeechPreview.unavailableReason(for: speech, installed: facts.speechInstalled) {
             return .unavailable(reason)

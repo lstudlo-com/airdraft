@@ -233,8 +233,13 @@ final class ModelSpeechPreviewTests: XCTestCase {
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .parakeet)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .senseVoice)))
         XCTAssertTrue(ModelSpeechPreview.supports(ASRConfig(kind: .orukeet)))
-        for kind in [ASRProviderKind.whisperKit, .qwen3, .cohere, .fireRed, .transcribeCpp, .fluidAudio,
-                     .openAI, .deepgram, .soniox, .groq] {
+        // AD-123: cloud models with a real-time API show live text without a local engine.
+        for kind in [ASRProviderKind.openAI, .soniox, .xAI] {
+            XCTAssertFalse(ModelSpeechPreview.supports(ASRConfig(kind: kind)), kind.rawValue)
+            XCTAssertNil(ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: kind)), kind.rawValue)
+            XCTAssertTrue(ModelSpeechPreview.showsLiveText(ASRConfig(kind: kind)), kind.rawValue)
+        }
+        for kind in [ASRProviderKind.whisperKit, .qwen3, .cohere, .fireRed, .transcribeCpp, .fluidAudio, .groq, .openRouter] {
             XCTAssertFalse(ModelSpeechPreview.supports(ASRConfig(kind: kind)), kind.rawValue)
             XCTAssertNotNil(ModelSpeechPreview.unavailableReason(for: ASRConfig(kind: kind)), kind.rawValue)
             XCTAssertNil(ModelSpeechPreview.appleSpeechLocale(for: ASRConfig(kind: kind)), kind.rawValue)
@@ -271,21 +276,25 @@ final class ModelSpeechPreviewTests: XCTestCase {
             defer { session.cancel() }
             XCTAssertTrue(session.reusesForTranscript)
 
-            var audio = seconds(12, level: 0.3)
-            for index in 128_000..<129_600 { audio[index] = 0 }
+            // 34 s of speech with a pause at 27 s: past a full 30-second window plus
+            // the chunker's 3-second tail, so the first window commits where the final
+            // path cuts, at the quietest 20 ms frame of its last 6 seconds.
+            var audio = seconds(34, level: 0.3)
+            for index in 432_000..<433_600 { audio[index] = 0 }
+            XCTAssertEqual(AudioChunker.split(audio, maxSeconds: 30).first?.samples.count, 432_160)
             session.append(audio)
             try await waitUntil { session.metrics.commits == 1 }
-            XCTAssertEqual(finals.segments, [128_800], "The committed window goes through the guarded segment path")
-            try await waitUntil { events.texts.contains { $0.hasPrefix("shown128800") } }
+            XCTAssertEqual(finals.segments, [432_160], "The committed window goes through the guarded segment path")
+            try await waitUntil { events.texts.contains { $0.hasPrefix("shown432160") } }
 
             // The recording ends a second later; the tail starts at the commit.
             let capture = audio + seconds(1, level: 0.3)
             let finished = await session.finishTranscript(capture: capture)
             let transcript = try XCTUnwrap(finished)
-            XCTAssertEqual(transcript.text, "seg128800 tail\(capture.count - 128_800)")
+            XCTAssertEqual(transcript.text, "seg432160 tail\(capture.count - 432_160)")
             XCTAssertEqual(transcript.engine, "fake-engine")
             XCTAssertEqual(transcript.adjustments, [.repetitionTrimmed, .repetitionTrimmed])
-            XCTAssertEqual(finals.tails, [capture.count - 128_800])
+            XCTAssertEqual(finals.tails, [capture.count - 432_160])
             let shown = events.texts.count
             session.append(seconds(2))
             try await clock.waitUntilTime(clock.now + 3)
@@ -301,12 +310,12 @@ final class ModelSpeechPreviewTests: XCTestCase {
             let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog(), finals: finals.finals)
             defer { session.cancel() }
             var capture: [Float] = []
-            for _ in 0..<25 { let second = seconds(1); capture += second; session.append(second) }
+            for _ in 0..<34 { let second = seconds(1); capture += second; session.append(second) }
             try await waitUntil { finals.segmentCalls >= 1 }
             XCTAssertEqual(session.metrics.droppedSamples, 0)
             let finished = await session.finishTranscript(capture: capture)
             let transcript = try XCTUnwrap(finished)
-            XCTAssertEqual(transcript.text, "tail400000", "The whole recording is decoded at release")
+            XCTAssertEqual(transcript.text, "tail544000", "The whole recording is decoded at release")
         }
 
         do { // FailureCancellationFailedTailAndDisplayOnlyGiveNil

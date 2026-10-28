@@ -5,6 +5,9 @@ import Foundation
 /// the quietest point inside the last few seconds of a window so words are
 /// not split in the middle.
 public enum AudioChunker {
+    /// The shortest last window `split` leaves by default.
+    public static let minimumTailSeconds: Double = 3
+
     public struct Chunk: Sendable {
         public let samples: [Float]
         public let startSeconds: Double
@@ -21,7 +24,7 @@ public enum AudioChunker {
         maxSeconds: Double = 25,
         searchWindowSeconds: Double = 6,
         frameMs: Int = 20,
-        minTailSeconds: Double = 3
+        minTailSeconds: Double = minimumTailSeconds
     ) -> [Chunk] {
         let maxLen = Int(maxSeconds * Double(sampleRate))
         guard samples.count > maxLen else { return [Chunk(samples: samples, startSeconds: 0)] }

@@ -322,7 +322,18 @@ extension ConfigurationPage {
         switch readiness {
         case .unavailable(let reason): return reason
         case .checking: return String(localized: "Checking model files…")
-        case .ready: return container.speechConfig.displayName
+        case .ready:
+            let speech = container.speechConfig
+            let name = speech.displayName
+            // AD-123: say what live text costs and whether it is the transcript.
+            guard !speech.kind.isLocal else {
+                return String(localized: "\(name). Live text becomes the transcript, so it isn’t transcribed again.")
+            }
+            let provider = speech.kind.preset?.name ?? speech.kind.rawValue
+            if ModelSpeechPreview.liveTextBecomesTranscript(speech) {
+                return String(localized: "\(name). Streams audio to \(provider) while you speak; live text becomes the transcript.")
+            }
+            return String(localized: "\(name). Streams audio to \(provider) while you speak, then sends the recording again for the transcript, so it’s billed twice.")
         }
     }
 }

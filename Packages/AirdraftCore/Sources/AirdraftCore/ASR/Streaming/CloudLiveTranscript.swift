@@ -43,8 +43,17 @@ public protocol StreamingParser: AnyObject {
     var language: String? { get }
     /// The provider has delivered everything for the ended input.
     var finished: Bool { get }
+    /// False until the provider accepts the start frames.
+    var readyForStart: Bool { get }
+    /// False until the provider accepts audio; the session buffers audio until then.
+    var readyForAudio: Bool { get }
     /// Throws `StreamingError.provider` for an error message.
     func consume(_ frame: StreamingFrame) throws
+}
+
+extension StreamingParser {
+    public var readyForStart: Bool { true }
+    public var readyForAudio: Bool { true }
 }
 
 /// AD-123: a cloud provider's real-time speech API for one recording.
@@ -277,6 +286,14 @@ public final class CloudLiveTranscriptSession: LiveTranscriptSession, Sendable {
         }
     }
 
+    private func receive(from socket: any StreamingConnection) async throws -> StreamingFrame {
+        do {
+            return try await socket.receive()
+        } catch {
+            throw Task.isCancelled ? CancellationError() : StreamingError.closed
+        }
+    }
+
     /// Connects, streams audio until the input ends, and returns the finalized
     /// transcript once the provider finishes; nil on failure or cancellation.
     private func run(stream: AsyncStream<[Float]>, apiKey: String, connector: StreamingConnector) async -> Transcript? {
@@ -285,7 +302,15 @@ public final class CloudLiveTranscriptSession: LiveTranscriptSession, Sendable {
             let socket = try await connector(try await provider.request(apiKey: apiKey))
             connection.withLock { $0 = socket }
             if Task.isCancelled { socket.close(); return nil }
+            let parser = provider.makeParser()
+            // Start frames and then audio wait, buffered, until the provider is ready for each.
+            while !parser.readyForStart {
+                try parser.consume(try await receive(from: socket))
+            }
             for frame in provider.startFrames() { try await socket.send(frame) }
+            while !parser.readyForAudio {
+                try parser.consume(try await receive(from: socket))
+            }
             let sender = Task {
                 for await samples in stream {
                     try Task.checkCancellation()
@@ -295,15 +320,8 @@ public final class CloudLiveTranscriptSession: LiveTranscriptSession, Sendable {
                 for frame in provider.endFrames() { try await socket.send(frame) }
             }
             defer { sender.cancel() }
-            let parser = provider.makeParser()
             while !parser.finished {
-                let frame: StreamingFrame
-                do {
-                    frame = try await socket.receive()
-                } catch {
-                    throw Task.isCancelled ? CancellationError() : StreamingError.closed
-                }
-                try parser.consume(frame)
+                try parser.consume(try await receive(from: socket))
                 publish(final: parser.finalText, provisional: parser.provisional)
             }
             try await sender.value
@@ -325,6 +343,35 @@ public enum CloudStreaming {
         case .soniox:
             guard config.speechModelID == "stt-async-v5" else { return nil }
             return SonioxStreaming(hints: hints, engineID: config.engineID)
+        case .deepgram:
+            // Whisper Large has no Deepgram streaming API.
+            guard ["nova-3", "nova-3-multilingual"].contains(config.speechModelID) else { return nil }
+            return DeepgramStreaming(model: config.speechModelID, hints: hints, engineID: config.engineID)
+        case .xAI:
+            guard config.speechModelID == "grok-voice-transcribe-2.0" else { return nil }
+            return XAIStreaming(hints: hints, engineID: config.engineID)
+        case .cartesia:
+            guard config.speechModelID == "ink-whisper" else { return nil }
+            return CartesiaStreaming(hints: hints, engineID: config.engineID)
+        case .assemblyAI:
+            guard ["universal-3-5-pro", "universal-3-6-pro-preview"].contains(config.speechModelID) else { return nil }
+            return AssemblyAIStreaming(batchModel: config.speechModelID, hints: hints, engineID: config.engineID)
+        case .speechmatics:
+            guard config.speechModelID == "enhanced" else { return nil }
+            return SpeechmaticsStreaming(config: config, hints: hints)
+        case .elevenLabs:
+            // The medical model has no real-time counterpart.
+            guard config.speechModelID == "scribe_v2" else { return nil }
+            return ElevenLabsStreaming(hints: hints, engineID: config.engineID)
+        case .openAI:
+            guard ["gpt-transcribe", "gpt-4o-mini-transcribe", "gpt-4o-transcribe"].contains(config.speechModelID) else { return nil }
+            return OpenAIStreaming(hints: hints, engineID: config.engineID)
+        case .mistral:
+            guard config.speechModelID == "voxtral-mini-latest" else { return nil }
+            return MistralStreaming(hints: hints, engineID: config.engineID)
+        case .gemini:
+            guard config.speechModelID == "gemini-3.5-transcribe" else { return nil }
+            return GeminiStreaming(hints: hints, engineID: config.engineID)
         default:
             return nil
         }
@@ -332,13 +379,19 @@ public enum CloudStreaming {
 
     /// Whether this cloud model shows live text.
     public static func supports(_ config: ASRConfig) -> Bool {
-        provider(for: config, hints: TranscriptionHints()) != nil
+        provider(for: config, hints: hints(for: config)) != nil
     }
 
     /// Whether its live text is the batch model's own output, so it becomes the
     /// transcript; otherwise the recording is transcribed again after release.
+    /// Judged with the language the recording would resolve, since some
+    /// providers match only with an explicit language.
     public static func becomesTranscript(_ config: ASRConfig) -> Bool {
-        provider(for: config, hints: TranscriptionHints())?.matchesBatchModel == true
+        provider(for: config, hints: hints(for: config))?.matchesBatchModel == true
+    }
+
+    private static func hints(for config: ASRConfig) -> TranscriptionHints {
+        TranscriptionHints(language: (try? SpeechLanguagePolicy.resolve(config))?.language)
     }
 }
 

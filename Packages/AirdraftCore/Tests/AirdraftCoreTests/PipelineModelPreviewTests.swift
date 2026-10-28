@@ -209,21 +209,21 @@ final class PipelineModelPreviewTests: XCTestCase {
     /// window and the tail decoded at release become the transcript; the complete
     /// capture is never transcribed a second time.
     func testMatchingLiveTextBecomesTheTranscriptWithoutTranscribingAgain() async throws {
-        var audio = (0..<192_000).map { Float(sin(Double($0) * 0.02)) * 0.25 }
-        for index in 128_000..<129_600 { audio[index] = 0 }
+        // 34 s with a pause at 27 s: the first 30-second window commits at the final path's cut.
+        var audio = (0..<544_000).map { Float(sin(Double($0) * 0.02)) * 0.25 }
+        for index in 432_000..<433_600 { audio[index] = 0 }
         let fixture = try Fixture(source: .speechModel, production: true)
         defer { fixture.cleanUp() }
         try await begin(fixture)
         fixture.recorder.capture(audio)
-        // The 10-second window commits at the quiet frame.
-        try await waitUntil(seconds: 5) { await fixture.speech.receivedSamples.contains { $0.count == 128_800 } }
+        try await waitUntil(seconds: 5) { await fixture.speech.receivedSamples.contains { $0.count == 432_160 } }
         let tail = (0..<16_000).map { Float(sin(Double($0) * 0.03)) * 0.2 }
         fixture.recorder.capture(tail)
         fixture.pipeline.stopAndProcess()
         try await waitUntil(seconds: 5) { fixture.pipeline.lastOutcome != nil && !fixture.pipeline.isBusy && !fixture.pipeline.isFinishingDelivery }
-        let rest = audio.count + tail.count - 128_800
+        let rest = audio.count + tail.count - 432_160
         XCTAssertEqual(fixture.pipeline.lastOutcome?.raw,
-                       "\(ModelPreviewTestSpeech.text(for: 128_800)) \(ModelPreviewTestSpeech.text(for: rest))")
+                       "\(ModelPreviewTestSpeech.text(for: 432_160)) \(ModelPreviewTestSpeech.text(for: rest))")
         let received = await fixture.speech.receivedSamples
         XCTAssertFalse(received.contains { $0.count == audio.count + tail.count }, "The capture is not transcribed again")
         XCTAssertEqual(received.last?.count, rest, "Only the tail after the committed window is decoded at release")

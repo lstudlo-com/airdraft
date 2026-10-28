@@ -125,6 +125,10 @@ public actor SherpaTranscriber: Transcriber {
     private static let anticipatedLanguage = Mutex<String?>(nil)
 
     /// Call with the recording's captured hints before prewarming the model.
+    /// Final transcription decodes windows of at most this length, cut at silence;
+    /// live text that becomes the transcript commits at the same cuts (AD-123).
+    public static let chunkSeconds: Double = 30
+
     public static func anticipate(_ hints: TranscriptionHints) {
         let wanted = !hints.onDeviceVocabulary.isEmpty
         anticipatedHotwordDecoding.withLock { $0 = wanted }
@@ -185,7 +189,7 @@ public actor SherpaTranscriber: Transcriber {
         let started = Date()
         // These are offline (whole-utterance) decoders; long recordings
         // are split at silences so memory and latency stay bounded.
-        var text = try AudioChunker.transcribe(samples, maxSeconds: 30) {
+        var text = try AudioChunker.transcribe(samples, maxSeconds: Self.chunkSeconds) {
             Self.decode($0, with: recognizer.pointer, hotwords: hotwords)
         }
         var adjustments: [TranscriptAdjustment] = []
