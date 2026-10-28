@@ -61,7 +61,7 @@ targets:
       properties:
         CFBundleDisplayName: "$(AIRDRAFT_DISPLAY_NAME)"
         CFBundleLocalizations: [en, es, ja, zh-Hans, zh-Hant]
-        CFBundleShortVersionString: "0.18.2"
+        CFBundleShortVersionString: "0.18.3"
         CFBundleVersion: "1"
         AirdraftDistribution: "$(AIRDRAFT_DISTRIBUTION)"
         AirdraftPolarEnvironment: "$(AIRDRAFT_POLAR_ENVIRONMENT)"
