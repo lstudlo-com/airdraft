@@ -10,7 +10,7 @@ struct SonioxStreaming: StreamingSpeechProvider {
     let engineID: String
     var matchesBatchModel: Bool { true }
 
-    func request(apiKey: String) throws -> URLRequest {
+    func request(apiKey: String) async throws -> URLRequest {
         var request = URLRequest(url: Self.endpoint)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         return request

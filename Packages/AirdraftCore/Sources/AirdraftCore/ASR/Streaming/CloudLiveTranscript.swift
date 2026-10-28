@@ -56,8 +56,9 @@ public protocol StreamingSpeechProvider: Sendable {
     var engineID: String { get }
     /// Audio sample rate the provider expects; samples are resampled from 16 kHz.
     var sampleRate: Int { get }
-    /// The handshake request. Keys go in headers or subprotocols, never the URL.
-    func request(apiKey: String) throws -> URLRequest
+    /// The handshake request. Keys go in headers or subprotocols, never the URL;
+    /// a provider that takes only a URL token mints a short-lived one first.
+    func request(apiKey: String) async throws -> URLRequest
     func startFrames() -> [StreamingFrame]
     func audioFrame(_ pcm16: Data) -> StreamingFrame
     /// Frames that end the input; the provider then finalizes and finishes.
@@ -281,7 +282,7 @@ public final class CloudLiveTranscriptSession: LiveTranscriptSession, Sendable {
     private func run(stream: AsyncStream<[Float]>, apiKey: String, connector: StreamingConnector) async -> Transcript? {
         let provider = self.provider
         do {
-            let socket = try await connector(try provider.request(apiKey: apiKey))
+            let socket = try await connector(try await provider.request(apiKey: apiKey))
             connection.withLock { $0 = socket }
             if Task.isCancelled { socket.close(); return nil }
             for frame in provider.startFrames() { try await socket.send(frame) }

@@ -139,7 +139,7 @@ final class CloudLiveTranscriptTests: XCTestCase {
 private struct DisplayOnlyStreaming: StreamingSpeechProvider {
     var matchesBatchModel: Bool { false }
     var engineID: String { "display-only" }
-    func request(apiKey: String) throws -> URLRequest {
+    func request(apiKey: String) async throws -> URLRequest {
         var request = URLRequest(url: URL(string: "wss://example.invalid/stream")!)
         request.setValue(apiKey, forHTTPHeaderField: "X-Key")
         return request
