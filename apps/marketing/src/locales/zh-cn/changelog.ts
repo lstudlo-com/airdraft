@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-18-2": {
+    title: "“模型”一眼看清支持的语言",
+    changes: [
+      {
+        title: "每个模型的语言都收进一个标签",
+        description:
+          "“模型”中的每个模型（包括云端模型）现在以一个简短标签显示支持的语言，例如“30 种语言”或“仅英语”。悬停即可查看完整列表，点击则打开先列出你的语言、可搜索的列表。",
+      },
+      {
+        title: "点击一行的任意位置即可选择模型",
+        description:
+          "选择模型不必再点它的名称或图标。下载、删除和语言标签仍各自响应点击。",
+      },
+    ],
+  },
   "0-18-1": {
     title: "“转录”能应付更多会议",
     changes: [

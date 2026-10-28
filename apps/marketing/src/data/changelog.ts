@@ -14,6 +14,28 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-18-2",
+    version: "0.18.2",
+    date: "2026-10-28",
+    title: "Models shows languages at a glance",
+    changes: [
+      {
+        title: "Languages in one tag, for every model",
+        description:
+          "Each model in Models, including cloud models, now shows its languages as one short tag such as 30 languages or English only. Hover it for the full list, or click it for a list with your languages first and a search field.",
+      },
+      {
+        title: "Click anywhere in a row to choose a model",
+        description:
+          "Choosing a model no longer needs a click on its name or icon. Download, delete and the language tag keep their own clicks.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.18.2-build.513",
+    },
+  },
+  {
     id: "0-18-1",
     version: "0.18.1",
     date: "2026-10-27",

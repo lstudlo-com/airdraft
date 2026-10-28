@@ -4,6 +4,21 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-18-2": {
+    title: "「モデル」で対応言語がひと目でわかるように",
+    changes: [
+      {
+        title: "すべてのモデルの対応言語を一つのタグに",
+        description:
+          "「モデル」の各モデル（クラウドモデルを含む）は、対応言語を「30言語」「英語のみ」のような短いタグで表示します。ポインタを合わせると全言語の一覧を、クリックするとお使いの言語を先頭にした検索できる一覧を表示します。",
+      },
+      {
+        title: "行のどこをクリックしてもモデルを選択",
+        description:
+          "モデルを選ぶのに名前やアイコンをクリックする必要はなくなりました。ダウンロード、削除、言語タグはそれぞれのクリックで動作します。",
+      },
+    ],
+  },
   "0-18-1": {
     title: "「文字起こし」がより多くの会議に対応",
     changes: [

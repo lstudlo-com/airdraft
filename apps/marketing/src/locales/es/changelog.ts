@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-18-2": {
+    title: "Modelos muestra los idiomas de un vistazo",
+    changes: [
+      {
+        title: "Los idiomas en una etiqueta, para cada modelo",
+        description:
+          "Cada modelo en Modelos, también los modelos en la nube, muestra ahora sus idiomas en una etiqueta breve como 30 idiomas. Pasa el puntero para ver la lista completa o haz clic para ver una lista con tus idiomas primero y un campo de búsqueda.",
+      },
+      {
+        title: "Haz clic en cualquier parte de una fila para elegir un modelo",
+        description:
+          "Para elegir un modelo ya no hace falta hacer clic en su nombre o icono. Descargar, eliminar y la etiqueta de idiomas mantienen su propio clic.",
+      },
+    ],
+  },
   "0-18-1": {
     title: "Transcribir aguanta más reuniones",
     changes: [

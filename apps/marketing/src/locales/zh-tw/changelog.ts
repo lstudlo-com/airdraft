@@ -5,6 +5,21 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-18-2": {
+    title: "「模型」一眼看出支援的語言",
+    changes: [
+      {
+        title: "每個模型的語言都收進一個標籤",
+        description:
+          "「模型」中的每個模型（包括雲端模型）現在以一個簡短標籤顯示支援的語言，例如「30 種語言」或「僅英文」。游標停在上面即可看完整列表，點一下則開啟先列出你的語言、可搜尋的列表。",
+      },
+      {
+        title: "點一列的任何位置即可選擇模型",
+        description:
+          "選擇模型不必再點它的名稱或圖示。下載、刪除和語言標籤仍各自回應點擊。",
+      },
+    ],
+  },
   "0-18-1": {
     title: "「轉錄」撐得住更多會議",
     changes: [
