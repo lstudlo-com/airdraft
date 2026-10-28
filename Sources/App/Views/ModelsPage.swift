@@ -16,6 +16,8 @@ struct ModelsPage: View {
     @State private var openRouterLoading = false
     @State private var openRouterCatalogError: String?
     @State private var openRouterRefreshID = UUID()
+    /// AD-122: the language sheet a row's tag opened.
+    @State private var languageSheet: ModelLanguageInfo?
 
     enum Category: String, CaseIterable, Identifiable {
         case local, cloud
@@ -109,8 +111,12 @@ struct ModelsPage: View {
 
     private var visibleCloudModels: [CloudEntry] {
         EndpointPreset.asr.filter { cloudProvider == nil || $0.kind == cloudProvider }.flatMap { preset in
-            speechModels(for: preset).filter {
-                matches([preset.name, $0.id, $0.title, $0.quality, $0.qualityDetail])
+            speechModels(for: preset).filter { model in
+                var config = ASRConfig()
+                config.select(preset.kind)
+                config.selectModel(model.id)
+                let languages = ModelLanguageInfo.make(id: "\(preset.id)/\(model.id)", title: model.title, config: config)
+                return matches([preset.name, model.id, model.title, model.quality, model.qualityDetail] + languages.names)
             }.map { CloudEntry(preset: preset, model: $0) }
         }
     }
@@ -233,6 +239,8 @@ struct ModelsPage: View {
         } accessory: {
             SearchField(text: $query, placeholder: "Search models")
         }
+        .environment(\.showModelLanguages, ShowModelLanguagesAction { languageSheet = $0 })
+        .sheet(item: $languageSheet) { ModelLanguagesSheet(info: $0) }
         .onAppear {
             if !initialized {
                 if RenderMode.isActive, !RenderMode.excludesCredentials,

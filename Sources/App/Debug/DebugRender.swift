@@ -293,6 +293,13 @@ enum DebugRender {
                         MediaImportSheet(request: .file(URL(fileURLWithPath: "/tmp/Interview.m4a"))).ignoresSafeArea()
                     } else if pageName == "media-editor" {
                         MediaDocumentEditor(initial: MediaPreview.document).ignoresSafeArea()
+                    } else if pageName == "model-languages" {
+                        // AD-122: the language sheet; `MODEL_LANGUAGES=<catalogue ID>` picks the model.
+                        let entry = ModelCatalogue.entries.first { $0.id == (RenderMode.value("MODEL_LANGUAGES") ?? "qwen3:1.7b") }
+                            ?? ModelCatalogue.entries[0]
+                        ModelLanguagesSheet(info: entry.languageInfo).ignoresSafeArea()
+                            .environment(\.controlActiveState, .key)
+                            .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "cleanup" {
                         DataCleanupProgress().ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
@@ -330,7 +337,7 @@ enum DebugRender {
                 let host = NSHostingView(rootView: root)
                 let width = Double(env["AIRDRAFT_RENDER_WIDTH"] ?? "") ?? Double(Theme.windowWidth)
                 var frame = NSRect(x: 0, y: 0, width: width, height: Double(env["AIRDRAFT_RENDER_HEIGHT"] ?? "") ?? height)
-                if pageName.hasPrefix("license-") || ["cleanup", "media-import", "media-editor", "meeting-setup", "meeting-recording"].contains(pageName) {
+                if pageName.hasPrefix("license-") || ["cleanup", "model-languages", "media-import", "media-editor", "meeting-setup", "meeting-recording"].contains(pageName) {
                     // The sheet sizes to its content; render exactly that size.
                     frame.size = host.fittingSize
                     print("LICENSE_SIZE \(pageName) \(suffix) \(Int(frame.width)) x \(Int(frame.height))")
@@ -338,7 +345,7 @@ enum DebugRender {
                 host.frame = frame
                 // The main window's buttons, so their inset is checked in each layout direction.
                 let mainWindow = !pageName.hasPrefix("license-") && !pageName.hasPrefix("meeting-") && !pageName.hasPrefix("media-")
-                    && !["cleanup", "permissions", "automation", "speech-preview", "refinement"].contains(pageName)
+                    && !["cleanup", "model-languages", "permissions", "automation", "speech-preview", "refinement"].contains(pageName)
                 let window = NSWindow(contentRect: frame, styleMask: (pageName.hasPrefix("media-") || pageName.hasPrefix("meeting-")) ? [.borderless]
                                       : mainWindow ? [.titled, .closable, .miniaturizable, .fullSizeContentView] : [.titled, .fullSizeContentView],
                                       backing: .buffered, defer: false)
@@ -380,7 +387,7 @@ enum DebugRender {
                 guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { continue }
                 host.cacheDisplay(in: host.bounds, to: rep)
                 if let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
-                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup", "media-import", "media-editor", "meeting-setup", "meeting-recording", "profiles-by-app", "home-by-app"].contains(pageName) ? pageName : page.rawValue
+                    let name = pageName.hasPrefix("license-") || pageName.hasPrefix("onboarding-") || ["permissions", "refinement", "speech-preview", "automation", "cleanup", "model-languages", "media-import", "media-editor", "meeting-setup", "meeting-recording", "profiles-by-app", "home-by-app"].contains(pageName) ? pageName : page.rawValue
                     try? png.write(to: dir.appendingPathComponent("\(name)-\(suffix).png"))
                 }
             }

@@ -80,20 +80,9 @@ struct ModelEntry: Identifiable, Sendable {
         return list
     }
 
-    /// The compact language form shown in the row, such as
-    /// "Mandarin Chinese, English and 28 more".
-    @MainActor var languageSummary: String {
-        guard let list = languages else { return String(localized: "Languages set in macOS") }
-        // Names are in their mid-sentence form; only the label's start is capitalized.
-        guard list.remaining > 0 else { return SpeechLanguagePolicy.startingWithCapital(list.shown.formatted(.list(type: .and))) }
-        return SpeechLanguagePolicy.startingWithCapital(String(localized: "\(list.shown[0]), \(list.shown[1]) and \(list.remaining) more"))
-    }
-
-    /// Every supported language, for the tooltip.
-    @MainActor var languageDetail: String {
-        guard let list = languages else { return String(localized: "Uses the Apple Speech locale chosen in Speech options.") }
-        if list.names.count == 1 { return String(localized: "Supports \(list.names[0]) only.") }
-        return String(localized: "Supports \(list.names.count) languages: \(list.names.formatted(.list(type: .and)))")
+    /// The row's language tag, tooltip and sheet (AD-122).
+    @MainActor var languageInfo: ModelLanguageInfo {
+        ModelLanguageInfo.make(id: id, title: title, config: config(from: ASRConfig()))
     }
 }
 
@@ -511,52 +500,70 @@ struct ModelMetric: View {
 
 struct CloudModelRow: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.showModelLanguages) private var showLanguages
     let preset: EndpointPreset.Speech
     let model: SpeechModelInfo
     @State private var hovering = false
 
+    /// The same policy the recording check applies to this provider and model.
+    private var languageInfo: ModelLanguageInfo {
+        var config = ASRConfig()
+        config.select(preset.kind)
+        config.selectModel(model.id)
+        return ModelLanguageInfo.make(id: "\(preset.id)/\(model.id)", title: model.title, config: config)
+    }
+
     var body: some View {
         let selected = container.settings.asr.kind == preset.kind && container.settings.asr.model == model.id
-        Button {
-            container.settings.asr.select(preset.kind)
-            container.settings.asr.selectModel(model.id)
-        } label: {
-            ModelComparisonColumns {
-                HStack(spacing: 8) {
-                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 14))
-                        .foregroundStyle(selected ? Color.accentColor : .secondary)
-                    ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(model.title).appFont(.body, weight: .medium)
-                        Text(preset.name).supportingText()
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
+        let languages = languageInfo
+        ModelComparisonColumns {
+            HStack(spacing: 8) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 14))
+                    .foregroundStyle(selected ? Color.accentColor : .secondary)
+                ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(model.title).appFont(.body, weight: .medium)
+                    Text(preset.name).supportingText()
+                    ModelLanguageTag(info: languages)
                 }
-            } speed: {
-                ModelMetric(title: String(localized: "Speed"), fraction: speedFraction,
-                            label: model.realtimeSpeedFactor.map { "\($0.formatted())×" } ?? String(localized: "Not rated"),
-                            detail: model.speedDetail)
-            } accuracy: {
-                ModelMetric(title: String(localized: "Accuracy"), fraction: model.wordErrorRate.map { 1 - $0 / 100 },
-                            label: model.wordErrorRate.map { String(localized: "\($0.formatted())% WER") } ?? String(localized: "Not rated"),
-                            detail: model.qualityDetail + " " + (model.wordErrorRate == nil ? String(localized: "No numeric rating is available.")
-                                : String(localized: "WER is word error rate; lower is better.")))
-            } cost: {
-                Text(model.price).appFont(.detail).monospacedDigit().foregroundStyle(.secondary)
-                    .help(model.billing)
-            } accessory: {
-                Color.clear.frame(height: 1)
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(Theme.cardPadding)
-            .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
-            .contentShape(Rectangle())
+        } speed: {
+            ModelMetric(title: String(localized: "Speed"), fraction: speedFraction,
+                        label: model.realtimeSpeedFactor.map { "\($0.formatted())×" } ?? String(localized: "Not rated"),
+                        detail: model.speedDetail)
+        } accuracy: {
+            ModelMetric(title: String(localized: "Accuracy"), fraction: model.wordErrorRate.map { 1 - $0 / 100 },
+                        label: model.wordErrorRate.map { String(localized: "\($0.formatted())% WER") } ?? String(localized: "Not rated"),
+                        detail: model.qualityDetail + " " + (model.wordErrorRate == nil ? String(localized: "No numeric rating is available.")
+                            : String(localized: "WER is word error rate; lower is better.")))
+        } cost: {
+            Text(model.price).appFont(.detail).monospacedDigit().foregroundStyle(.secondary)
+                .help(model.billing)
+        } accessory: {
+            Color.clear.frame(height: 1)
         }
-        .buttonStyle(.plain)
+        .padding(Theme.cardPadding)
+        .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
+        // AD-122: anywhere in the row chooses the model; the language tag keeps its own click.
+        .contentShape(Rectangle())
+        .onTapGesture { choose() }
         .onHover { hovering = $0 }
-        .accessibilityLabel("\(model.title), hosted by \(preset.name), \(model.quality), speed: \(model.speed), \(model.price)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
         .accessibilityValue(selected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { choose() }
+        .accessibilityAction(named: Text("Show Languages")) {
+            if languages.opensList { showLanguages(languages) }
+        }
         .help(model.qualityDetail + " " + model.speedDetail)
+    }
+
+    private func choose() {
+        container.settings.asr.select(preset.kind)
+        container.settings.asr.selectModel(model.id)
     }
 
     private var speedFraction: Double? {
@@ -662,6 +669,7 @@ struct LiveTextBadge: View {
 struct ModelRow: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.showModelLanguages) private var showLanguages
     let entry: ModelEntry
     /// Why the entry is in the compact recommended set, if it is.
     var role: LocalModelShortlist.Role?
@@ -697,36 +705,37 @@ struct ModelRow: View {
         let selected = entry.isSelected(settings.asr)
         VStack(alignment: .leading, spacing: 6) {
             ModelComparisonColumns {
-                Button {
-                    guard installed else { return }
-                    entry.select(&settings.asr)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 14))
-                            .foregroundStyle(selected ? Color.accentColor
-                                             : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
-                        ModelBrandIcon(brand: entry.brand)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.title).appFont(.body, weight: .medium)
-                            // One visible label: why the model is recommended, or
-                            // its strength elsewhere in the table.
-                            if let label = strengthLabel {
-                                Text("\(Image(systemName: label.symbol)) \(label.text)")
-                                    .appFont(.supporting, weight: .medium)
-                                    .mutedForeground(0.75)
-                            }
-                            tierAndTags
-                            if showsLiveText { LiveTextBadge() }
-                            loadStateLabel
+                HStack(spacing: 8) {
+                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(selected ? Color.accentColor
+                                         : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
+                    ModelBrandIcon(brand: entry.brand)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(entry.title).appFont(.body, weight: .medium)
+                        // One visible label: why the model is recommended, or
+                        // its strength elsewhere in the table.
+                        if let label = strengthLabel {
+                            Text("\(Image(systemName: label.symbol)) \(label.text)")
+                                .appFont(.supporting, weight: .medium)
+                                .mutedForeground(0.75)
                         }
-                        .fixedSize(horizontal: false, vertical: true)
+                        tierAndTags
+                        if showsLiveText { LiveTextBadge() }
+                        loadStateLabel
                     }
-                    .contentShape(Rectangle())
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                .buttonStyle(.plain)
+                // The language tag is a control of its own; VoiceOver reaches its
+                // list through the row's Show Languages action instead.
+                .accessibilityElement(children: .ignore)
                 .accessibilityLabel(accessibilityLabel)
                 .accessibilityValue(selected ? "Selected" : "Not selected")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { choose() }
+                .accessibilityAction(named: Text("Show Languages")) {
+                    if entry.languageInfo.opensList { showLanguages(entry.languageInfo) }
+                }
                 .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
             } speed: {
                 ModelMetric(title: String(localized: "Speed"), fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? ModelRating.label(entry.speed) : String(localized: "Not rated"),
@@ -749,6 +758,10 @@ struct ModelRow: View {
         }
         .padding(Theme.cardPadding)
         .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
+        // AD-122: anywhere in the row chooses the model; the language tag and the
+        // download, cancel and delete buttons keep their own clicks.
+        .contentShape(Rectangle())
+        .onTapGesture { choose() }
         .onHover { hovering = $0 }
         .help(entry.note)
         .task(id: progress != nil) {
@@ -763,32 +776,44 @@ struct ModelRow: View {
 
     private var showsLiveText: Bool { ModelSpeechPreview.showsLiveText(entryConfig) }
 
+    /// Downloaded models only: choosing one that is not installed does nothing.
+    private func choose() {
+        guard installed else { return }
+        entry.select(&container.settings.asr)
+    }
+
     private var strengthLabel: (symbol: String, text: String)? {
         if let role { return role.label(for: ModelCatalogue.recommendation.reason) }
         return entry.highlight.map { ("star.fill", $0) }
     }
 
-    /// Tier first, as a compact symbol and word, then the languages by name and
-    /// runtime tags. The tooltip lists every supported language.
+    /// Tier first, as a compact symbol and word, then runtime tags and the
+    /// language tag, whose tooltip lists every supported language.
     private var tierAndTags: some View {
-        let details = ([entry.languageSummary] + entry.tags).joined(separator: " · ")
-        return Group {
+        let details = entry.tags.joined(separator: " · ")
+        let tierText = Group {
             if let tier = entry.tier {
-                Text("\(Image(systemName: tier.symbol)) \(tier.title) · \(details)")
-            } else {
+                Text(details.isEmpty ? "\(Image(systemName: tier.symbol)) \(tier.title)"
+                     : "\(Image(systemName: tier.symbol)) \(tier.title) · \(details)")
+            } else if !details.isEmpty {
                 Text(details)
             }
         }
         .supportingText()
-        .fixedSize(horizontal: false, vertical: true)
-        .help([entry.tier?.detail, entry.languageDetail].compactMap { $0 }.joined(separator: " "))
+        .help(entry.tier?.detail ?? "")
+        let tag = ModelLanguageTag(info: entry.languageInfo)
+        // One line when both fit beside each other; otherwise the tag goes below.
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) { tierText.fixedSize(); tag }
+            VStack(alignment: .leading, spacing: 4) { tierText; tag }
+        }
     }
 
     private var accessibilityLabel: String {
         var parts = [String(localized: "Use \(entry.title)"), entry.provider]
         if let label = strengthLabel { parts.append(label.text) }
         if let tier = entry.tier { parts.append(tier.title) }
-        parts.append(entry.languageSummary)
+        parts.append(entry.languageInfo.label)
         parts += entry.tags
         if showsLiveText { parts.append(String(localized: "Live text")) }
         return parts.joined(separator: ", ")

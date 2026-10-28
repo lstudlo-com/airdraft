@@ -662,6 +662,35 @@
         }
       }
     },
+    "%@ only" : {
+      "comment" : "Tag on a speech model that recognizes one language, such as English only",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@のみ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅%@"
+          }
+        }
+      }
+    },
     "%@ s" : {
       "comment" : "Audio duration in seconds",
       "localizations" : {
@@ -1173,40 +1202,6 @@
         }
       }
     },
-    "%@, %@ and %lld more" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@, %2$@ and %3$lld more"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@, %2$@ y %3$lld más"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@、%2$@ ほか %3$lld 言語"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@、%2$@及另外 %3$lld 种"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@、%2$@及另外 %3$lld 種"
-          }
-        }
-      }
-    },
     "%@, %lld words, %lld percent" : {
       "localizations" : {
         "en" : {
@@ -1241,36 +1236,36 @@
         }
       }
     },
-    "%@, hosted by %@, %@, speed: %@, %@" : {
+    "%@, hosted by %@, %@, %@, speed: %@, %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$@, hosted by %2$@, %3$@, speed: %4$@, %5$@"
+            "value" : "%1$@, hosted by %2$@, %3$@, %4$@, speed: %5$@, %6$@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@, alojado por %2$@, %3$@, velocidad: %4$@, %5$@"
+            "value" : "%1$@, alojado por %2$@, %3$@, %4$@, velocidad: %5$@, %6$@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@、ホスト：%2$@、%3$@、速度：%4$@、%5$@"
+            "value" : "%1$@、ホスト：%2$@、%3$@、%4$@、速度：%5$@、%6$@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@，由 %2$@ 托管，%3$@，速度：%4$@，%5$@"
+            "value" : "%1$@，由 %2$@ 托管，%3$@，%4$@，速度：%5$@，%6$@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@，由 %2$@ 託管，%3$@，速度：%4$@，%5$@"
+            "value" : "%1$@，由 %2$@ 託管，%3$@，%4$@，速度：%5$@，%6$@"
           }
         }
       }
@@ -1571,6 +1566,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有 %lld 個項目需要處理"
+          }
+        }
+      }
+    },
+    "%lld languages" : {
+      "comment" : "Tag on a speech model: how many languages it recognizes",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld言語"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 种语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 種語言"
           }
         }
       }
@@ -3201,6 +3225,34 @@
         }
       }
     },
+    "Airdraft has no complete language list for this model." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft no tiene una lista completa de idiomas para este modelo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft にはこのモデルの対応言語の完全な一覧がありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 没有此模型的完整语言列表。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airdraft 沒有此模型的完整語言列表。"
+          }
+        }
+      }
+    },
     "Airdraft is quitting. Reopen it before running this action." : {
       "localizations" : {
         "es" : {
@@ -3561,6 +3613,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "包含所有功能。你也可以啟用已購買的授權。"
+          }
+        }
+      }
+    },
+    "All languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos los idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての言語"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有語言"
+          }
+        }
+      }
+    },
+    "All supported languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos los idiomas compatibles"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "対応しているすべての言語"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有支持的语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有支援的語言"
           }
         }
       }
@@ -10375,6 +10483,34 @@
         }
       }
     },
+    "Detects languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detecta el idioma"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を自動判別"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动识别语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動辨識語言"
+          }
+        }
+      }
+    },
     "Development builds do not install public releases." : {
       "localizations" : {
         "es" : {
@@ -15785,6 +15921,34 @@
         }
       }
     },
+    "Languages unverified" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idiomas sin verificar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "対応言語は未確認"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言未经验证"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言未經驗證"
+          }
+        }
+      }
+    },
     "Large" : {
       "comment" : "Text size",
       "localizations" : {
@@ -19046,6 +19210,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚無記錄。"
+          }
+        }
+      }
+    },
+    "No languages match your search." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún idioma coincide con tu búsqueda."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索に一致する言語はありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有符合搜索的语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有符合搜尋的語言。"
           }
         }
       }
@@ -28699,6 +28891,34 @@
         }
       }
     },
+    "Search languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋語言"
+          }
+        }
+      }
+    },
     "Search models" : {
       "localizations" : {
         "es" : {
@@ -30103,6 +30323,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示所有模型（%lld）"
+          }
+        }
+      }
+    },
+    "Show Languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示語言"
           }
         }
       }
@@ -36100,6 +36348,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你對此內建模式的變更將被取代。"
+          }
+        }
+      }
+    },
+    "Your languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あなたの言語"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的語言"
           }
         }
       }

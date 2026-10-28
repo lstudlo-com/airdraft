@@ -400,8 +400,17 @@ and Local releases below.
   in `AppSettings.showsAllLocalModels` without counting as an existing setup, and the
   button hides while searching. Search always covers the whole catalogue, including
   language names. Each row shows one strength label, never an accuracy claim
-  Airdraft has not measured, and languages by full name (the user's language first)
-  with the complete list in the tooltip. Language summaries state the model's own
+  Airdraft has not measured, and its languages as one compact tag
+  (`ModelLanguageTag`, AD-122): "30 languages", "English only", or for lists Airdraft
+  does not have "Languages set in macOS", "Detects languages" or "Languages
+  unverified", never an invented list. Local and cloud rows read the tag from
+  `SpeechLanguagePolicy.capabilities` through `ModelLanguageInfo`. Its tooltip names
+  every language (the user's language first); clicking a tag with more than one
+  language opens `ModelLanguagesSheet` from the page (Your languages, then all A to Z,
+  with search past 12), and VoiceOver reaches it through the row's Show Languages
+  action. Clicking anywhere else in a row chooses its model (an installed one for
+  local rows); the tag and the download, cancel and delete buttons keep their own
+  clicks. Language summaries state the model's own
   coverage, never support relative to Chinese; Chinese-only strengths (Qwen3-ASR
   1.7B's mixed Chinese and English) show only to users with a Chinese language
   (`ModelCatalogue.speaksChinese`). Local rows whose model shows live text with the
