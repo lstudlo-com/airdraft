@@ -4,6 +4,21 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-18-3": {
+    title: "使うモデルをピンで固定",
+    changes: [
+      {
+        title: "音声モデルを先頭にピンで固定",
+        description:
+          "「モデル」のローカルとクラウドの各モデルにピンが付きました。ピンで固定したモデルは、このMacでは「ピンで固定」グループに、クラウドでは一覧の最初に移動するので、以前使ったモデルをすぐに見つけられます。検索結果はいつもの順序のままです。",
+      },
+      {
+        title: "「モデル」の細かな修正",
+        description:
+          "ダウンロード、削除、ピンのボタンにそれぞれのヘルプが表示されるようになり、大きい文字サイズでは長い言語タグが表を広げずに折り返し、スペイン語の単一言語タグは言語名を小文字で表記します。",
+      },
+    ],
+  },
   "0-18-2": {
     title: "「モデル」で対応言語がひと目でわかるように",
     changes: [

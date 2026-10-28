@@ -14,6 +14,28 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-18-3",
+    version: "0.18.3",
+    date: "2026-10-28",
+    title: "Pin the models you use",
+    changes: [
+      {
+        title: "Pin speech models to the top",
+        description:
+          "Every local and cloud model in Models now has a pin. Pinned models move to the top of their list, under Pinned on this Mac and first among cloud models, so the models you used before are easy to find. Search keeps its usual order.",
+      },
+      {
+        title: "Smaller fixes in Models",
+        description:
+          "The download, delete and pin buttons now show their own tooltips, long language tags wrap instead of widening the table at larger text sizes, and Spanish one-language tags write the language name in lowercase.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.18.3-build.517",
+    },
+  },
+  {
     id: "0-18-2",
     version: "0.18.2",
     date: "2026-10-28",

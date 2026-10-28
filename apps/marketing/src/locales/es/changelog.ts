@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-18-3": {
+    title: "Fija los modelos que usas",
+    changes: [
+      {
+        title: "Fija modelos de voz arriba",
+        description:
+          "Cada modelo local y en la nube de Modelos tiene ahora un botón para fijarlo. Los modelos fijados suben al principio de su lista, en Fijados en este Mac y primero entre los modelos en la nube, para que encuentres fácilmente los modelos que ya usaste. La búsqueda mantiene su orden habitual.",
+      },
+      {
+        title: "Pequeñas correcciones en Modelos",
+        description:
+          "Los botones de descargar, eliminar y fijar muestran ahora su propia ayuda, las etiquetas de idiomas largas pasan a otra línea en lugar de ensanchar la tabla con tamaños de texto grandes, y las etiquetas de un solo idioma escriben el nombre del idioma en minúscula.",
+      },
+    ],
+  },
   "0-18-2": {
     title: "Modelos muestra los idiomas de un vistazo",
     changes: [

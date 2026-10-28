@@ -3,6 +3,21 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-18-3": {
+    title: "置顶你常用的模型",
+    changes: [
+      {
+        title: "把语音模型置顶",
+        description:
+          "“模型”中的每个本地和云端模型现在都有置顶按钮。置顶的模型会移到所在列表的最上方：本机模型列在“已置顶”下，云端模型排在最前面，方便找到以前用过的模型。搜索结果保持原来的顺序。",
+      },
+      {
+        title: "“模型”的小修正",
+        description:
+          "下载、删除和置顶按钮现在显示各自的提示；文字较大时，较长的语言标签会换行而不撑宽表格；西班牙语的单一语言标签改用小写语言名称。",
+      },
+    ],
+  },
   "0-18-2": {
     title: "“模型”一眼看清支持的语言",
     changes: [

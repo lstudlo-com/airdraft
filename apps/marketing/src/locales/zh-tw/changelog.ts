@@ -5,6 +5,21 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-18-3": {
+    title: "釘選你常用的模型",
+    changes: [
+      {
+        title: "把語音模型釘選在最上方",
+        description:
+          "「模型」中的每個本機與雲端模型現在都有釘選按鈕。釘選的模型會移到所在列表的最上方：本機模型列在「已釘選」下，雲端模型排在最前面，方便找到以前用過的模型。搜尋結果維持原本的順序。",
+      },
+      {
+        title: "「模型」的小修正",
+        description:
+          "下載、刪除與釘選按鈕現在顯示各自的提示；文字較大時，較長的語言標籤會換行而不撐寬表格；西班牙文的單一語言標籤改用小寫語言名稱。",
+      },
+    ],
+  },
   "0-18-2": {
     title: "「模型」一眼看出支援的語言",
     changes: [
