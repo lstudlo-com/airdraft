@@ -512,7 +512,8 @@ final class TextDeliveryRegressionTests: XCTestCase {
         editor.focusedWindow = editor.otherWindow
         let result = await inserter.insert(Editor.dictation, target: target)
         XCTAssertFalse(result.didInsert)
-        XCTAssertEqual(result.notice, "Destination changed. Text copied; paste it where you want.")
+        XCTAssertEqual(result.notice, "Dictation copied", "The HUD only says the text was copied")
+        XCTAssertEqual(result.detail, "Destination changed.")
         XCTAssertTrue(editor.pasted.isEmpty)
         XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
     }
@@ -540,7 +541,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
     /// `AXManualAccessibility` but never exposed its caret, keep the previous
     /// outcome: one paste, transcript kept on the clipboard, recovery notice.
     func testOnlySelfDrawingEditorsAreSentUnverified() async throws {
-        let unconfirmed = "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again."
+        let unconfirmed = "Dictation copied"
         for shape in ["finder without field", "finder container", "electron without caret", "self-drawing editor"] {
             let editor = Editor()
             defer { editor.close() }
@@ -568,6 +569,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
             } else {
                 XCTAssertEqual(result.delivery, .notDelivered, shape)
                 XCTAssertEqual(result.notice, unconfirmed, shape)
+                XCTAssertEqual(result.detail, "Paste couldn't be confirmed.", shape)
                 XCTAssertEqual(delivered, 0, "\(shape): nothing confirmed the text")
                 XCTAssertFalse(inserter.hasPendingClipboardRestoration, "\(shape): no restore replaces the transcript")
                 XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation,
@@ -646,7 +648,7 @@ final class TextDeliveryRegressionTests: XCTestCase {
             XCTAssertEqual(fixture.editor.activations, 0, "The old app is not re-activated")
             XCTAssertEqual(fixture.delivered, 0)
             XCTAssertEqual(fixture.editor.clipboard.string(forType: .string), Editor.dictation)
-            XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+            XCTAssertEqual(fixture.pipeline.state, .notice("Dictation copied", requiresAttention: false))
             XCTAssertFalse(fixture.inserter.hasPendingClipboardRestoration, "Nothing restores over the copied text")
             let record = try XCTUnwrap(fixture.history.recent(limit: 1).first)
             XCTAssertEqual(record.deliveryStatus, .notDelivered)
@@ -1029,13 +1031,14 @@ final class TextDeliveryRegressionTests: XCTestCase {
         if copiedOnly {
             XCTAssertEqual(editor.clipboard.string(forType: .string), Editor.dictation)
             let notice = unconfirmed
-                ? "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again."
+                ? "Dictation copied"
                 : (copyWithinApp ? "Copied to clipboard" : "Accessibility is off, text copied")
             XCTAssertEqual(pipeline.state, .notice(notice,
                                                   requiresAttention: !copyWithinApp))
             if unconfirmed {
                 XCTAssertEqual(editor.posts, 1)
-                XCTAssertEqual(try history.recent(limit: 1).first?.error, notice)
+                // The HUD stays short; History keeps why the paste was not confirmed.
+                XCTAssertEqual(try history.recent(limit: 1).first?.error, "Paste couldn't be confirmed.")
             }
             try await Task.sleep(for: .milliseconds(500))
             XCTAssertEqual(pipeline.state, .idle, "The notice timer must reset after three (scaled) seconds")

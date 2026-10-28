@@ -102,7 +102,8 @@ silently reset all permissions as part of an update.
 "Destination changed" means the captured app, window, field or selection no
 longer matches. "Couldn't identify the destination app" means no frontmost app
 could be captured when recording began. Both preserve the text on the clipboard
-for manual paste.
+for manual paste. The HUD then says only "Dictation copied"; the reason is kept
+in History's diagnostic and the log.
 
 Some editors draw their own text and expose no caret through Accessibility:
 Zed, Warp and other GPU-rendered terminals report no focused element, a
@@ -148,8 +149,8 @@ starts the HUD fade and permits restoration of the previous clipboard after
 the one-second handoff delay. Confirmation and handoff survive cancellation.
 
 Ignored, partial, slow or unobservable pastes keep the dictated text on the
-clipboard and show "Paste couldn't be confirmed" with a reminder to check the
-destination before pasting again. Caretless terminals still receive one paste;
+clipboard and show "Dictation copied", with "Paste couldn't be confirmed" as
+History's diagnostic. Caretless terminals still receive one paste;
 the lack of read-back prevents false success, not the initial attempt. History
 retains the final text and diagnostic without marking delivery successful.
 There is never a second automatic paste. Newer clipboard contents are preserved;

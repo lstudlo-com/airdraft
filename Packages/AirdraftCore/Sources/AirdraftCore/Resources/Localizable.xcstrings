@@ -3930,58 +3930,58 @@
         }
       }
     },
-    "Couldn't identify the destination app. Text copied; paste it where you want." : {
+    "Couldn't identify the destination app." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo identificar la app de destino. Texto copiado; pégalo donde quieras."
+            "value" : "No se pudo identificar la app de destino."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力先のアプリを特定できませんでした。テキストをコピーしたので、好きな場所にペーストしてください。"
+            "value" : "入力先のアプリを特定できませんでした。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法识别目标 App。文本已复制；请粘贴到你想要的位置。"
+            "value" : "无法识别目标 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法辨識目標 App。已拷貝文字；請貼到你想要的位置。"
+            "value" : "無法辨識目標 App。"
           }
         }
       }
     },
-    "Couldn't paste, text copied" : {
+    "Couldn't paste." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo pegar; texto copiado"
+            "value" : "No se pudo pegar."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ペーストできなかったため、テキストをコピーしました"
+            "value" : "ペーストできませんでした。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法粘贴，文本已复制"
+            "value" : "无法粘贴。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法貼上，已拷貝文字"
+            "value" : "無法貼上。"
           }
         }
       }
@@ -4423,58 +4423,58 @@
         }
       }
     },
-    "Destination changed. Text copied." : {
+    "Destination changed." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El destino cambió. Texto copiado."
+            "value" : "El destino cambió."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力先が変わりました。テキストをコピーしました。"
+            "value" : "入力先が変わりました。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标已更改。文本已复制。"
+            "value" : "目标已更改。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目標已變更。已拷貝文字。"
+            "value" : "目標已變更。"
           }
         }
       }
     },
-    "Destination changed. Text copied; paste it where you want." : {
+    "Dictation copied" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El destino cambió. Texto copiado; pégalo donde quieras."
+            "value" : "Dictado copiado"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入力先が変わりました。テキストをコピーしたので、好きな場所にペーストしてください。"
+            "value" : "音声入力の内容をコピーしました"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标已更改。文本已复制；请粘贴到你想要的位置。"
+            "value" : "听写内容已复制"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目標已變更。已拷貝文字；請貼到你想要的位置。"
+            "value" : "聽寫內容已拷貝"
           }
         }
       }
@@ -8046,6 +8046,34 @@
         }
       }
     },
+    "Paste couldn't be confirmed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo confirmar el pegado."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストを確認できませんでした。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确认是否已粘贴。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法確認是否已貼上。"
+          }
+        }
+      }
+    },
     "Paste couldn't be confirmed. Clipboard changed; recover your text from History." : {
       "localizations" : {
         "es" : {
@@ -8070,34 +8098,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法確認是否已貼上。剪貼簿已變更；請從「記錄」中找回你的文字。"
-          }
-        }
-      }
-    },
-    "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo confirmar el pegado. El texto sigue en el portapapeles; revisa el destino antes de volver a pegar."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ペーストを確認できませんでした。テキストはクリップボードに残っています。もう一度ペーストする前に入力先を確認してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法确认是否已粘贴。文本保留在剪贴板中；再次粘贴前请先检查目标位置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法確認是否已貼上。文字保留在剪貼簿中；再次貼上前請先檢查目標位置。"
           }
         }
       }
@@ -9679,34 +9679,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置 App"
-          }
-        }
-      }
-    },
-    "Retried text copied. Paste it where you want it." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Texto reintentado copiado. Pégalo donde quieras."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "再試行したテキストをコピーしました。好きな場所にペーストしてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已复制重试的文本。请粘贴到你想要的位置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已拷貝重試的文字；請貼到你想要的位置。"
           }
         }
       }

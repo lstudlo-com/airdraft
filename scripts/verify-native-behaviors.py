@@ -538,7 +538,7 @@ enum HUDStyle: String, CaseIterable {
         for (name, state) in [
             ("short-error", PipelineState.failed("Microphone access denied")),
             ("copied-notice", .notice("Dictation text copied", requiresAttention: false)),
-            ("destination-notice", .notice("Destination changed. Text copied; paste it where you want."))
+            ("destination-notice", .notice("Dictation copied"))
         ] {
             update(state)
             let panel = NSApp.windows.first { $0 is NSPanel && $0.isVisible }!

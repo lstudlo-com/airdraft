@@ -864,7 +864,7 @@ final class PipelineAutomationTests: XCTestCase {
             XCTAssertTrue(fixture.probe.scripts.isEmpty, "The kept recording's script never runs during practice")
             XCTAssertTrue(fixture.probe.insertedTexts.isEmpty, "Nothing is pasted")
             XCTAssertEqual(fixture.clipboard.string(forType: .string), "Recovered words")
-            XCTAssertEqual(fixture.pipeline.state, .notice("Retried text copied. Paste it where you want it.", requiresAttention: false))
+            XCTAssertEqual(fixture.pipeline.state, .notice("Dictation copied", requiresAttention: false))
             let record = try XCTUnwrap(fixture.history.recent().first)
             XCTAssertEqual(record.outputSucceeded, false)
             XCTAssertFalse(fixture.pipeline.hasRecoverableRecording)

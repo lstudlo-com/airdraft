@@ -34,6 +34,8 @@ public struct InsertionResult: Sendable, Equatable {
     public let notice: String?
     /// Recovery messages stay readable; an intentional copy is only a confirmation.
     public var noticeRequiresAttention = true
+    /// Why the text was copied instead of pasted, for History; the HUD shows only `notice`.
+    public var detail: String?
     /// False only for a paste into a validated editor that draws its own text.
     public var isVerified = true
     public var delivery: TextDeliveryStatus {
@@ -199,6 +201,10 @@ public final class TextInserter {
         self.environment = environment
     }
 
+    /// The one HUD notice for text that could not be pasted but is on the
+    /// clipboard. The reason goes to History and the log, never the HUD.
+    public static var copiedNotice: String { String(localized: "Dictation copied", bundle: .module) }
+
     /// `allowsUnconfirmedPaste` false (an explicit retry of a kept recording)
     /// copies instead of pasting into a caretless target: its window may now
     /// show something else, and nothing could confirm where the text went.
@@ -220,8 +226,7 @@ public final class TextInserter {
 
         if let target, target.isCaretless, !allowsUnconfirmedPaste {
             Self.log.notice("insert: retry for a caretless destination, copied only")
-            return copyOnly(text, notice: String(localized: "Retried text copied. Paste it where you want it.", bundle: .module),
-                            requiresAttention: false)
+            return copyOnly(text, notice: Self.copiedNotice, requiresAttention: false)
         }
 
         // Bring the original app back if focus moved while we were transcribing.
@@ -233,9 +238,9 @@ public final class TextInserter {
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard restored, let target else {
             Self.log.notice("insert: destination unavailable=\(target == nil, privacy: .public)")
-            return copyOnly(text, notice: target == nil
-                ? String(localized: "Couldn't identify the destination app. Text copied; paste it where you want.", bundle: .module)
-                : String(localized: "Destination changed. Text copied; paste it where you want.", bundle: .module))
+            return copyOnly(text, notice: Self.copiedNotice, detail: target == nil
+                ? String(localized: "Couldn't identify the destination app.", bundle: .module)
+                : String(localized: "Destination changed.", bundle: .module))
         }
 
         // Both persisted settings use one paste operation. AXSelectedText can
@@ -247,7 +252,7 @@ public final class TextInserter {
         guard await Self.waitForMatch(matches: { self.matches(target) }) else {
             guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
             Self.log.notice("insert: destination changed before paste")
-            return copyOnly(text, notice: String(localized: "Destination changed. Text copied.", bundle: .module))
+            return copyOnly(text, notice: Self.copiedNotice, detail: String(localized: "Destination changed.", bundle: .module))
         }
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         Self.log.notice("insert: destination matched by \(target.selection == nil ? "app window" : "field and caret", privacy: .public)")
@@ -256,7 +261,7 @@ public final class TextInserter {
         // and caret after that read, immediately before posting the only paste.
         guard !Task.isCancelled else { return InsertionResult(method: .clipboardOnly, notice: nil) }
         guard matches(target) else {
-            return copyOnly(text, notice: String(localized: "Destination changed. Text copied.", bundle: .module))
+            return copyOnly(text, notice: Self.copiedNotice, detail: String(localized: "Destination changed.", bundle: .module))
         }
         return await insertViaPaste(text, pasteboard: environment.pasteboard,
                                     postPaste: environment.postPaste, confirmation: confirmation,
@@ -594,7 +599,8 @@ public final class TextInserter {
         }
 
         guard (postPaste ?? Self.postCommandV)() else {
-            return InsertionResult(method: .clipboardOnly, notice: String(localized: "Couldn't paste, text copied", bundle: .module))
+            return InsertionResult(method: .clipboardOnly, notice: Self.copiedNotice,
+                                   detail: String(localized: "Couldn't paste.", bundle: .module))
         }
         // The receiving app handles the posted event asynchronously. Once it is
         // posted, cancellation must not restore the old clipboard before that
@@ -631,9 +637,12 @@ public final class TextInserter {
             guard confirmed else {
                 let kept = pasteboard.changeCount == ourChange
                 Self.log.notice("insert: paste unconfirmed; recovery clipboard retained=\(kept, privacy: .public)")
-                return InsertionResult(method: .clipboardOnly, notice: kept
-                    ? String(localized: "Paste couldn't be confirmed. Text kept on clipboard; check the destination before pasting again.", bundle: .module)
-                    : String(localized: "Paste couldn't be confirmed. Clipboard changed; recover your text from History.", bundle: .module))
+                guard kept else {
+                    return InsertionResult(method: .clipboardOnly,
+                        notice: String(localized: "Paste couldn't be confirmed. Clipboard changed; recover your text from History.", bundle: .module))
+                }
+                return InsertionResult(method: .clipboardOnly, notice: Self.copiedNotice,
+                                       detail: String(localized: "Paste couldn't be confirmed.", bundle: .module))
             }
             Self.log.notice("insert: delivery confirmed by destination text")
             onDelivered?()
@@ -714,13 +723,13 @@ public final class TextInserter {
     }
 
     /// Copies `text` for the user to paste; nothing is posted.
-    func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true) -> InsertionResult {
+    func copyOnly(_ text: String, notice: String, requiresAttention: Bool = true, detail: String? = nil) -> InsertionResult {
         environment.pasteboard.clearContents()
         guard environment.pasteboard.setString(text, forType: .string),
               environment.pasteboard.string(forType: .string) == text else {
             return InsertionResult(method: .clipboardOnly, notice: String(localized: "Couldn't copy. Your text is available in History.", bundle: .module))
         }
-        return InsertionResult(method: .clipboardOnly, notice: notice, noticeRequiresAttention: requiresAttention)
+        return InsertionResult(method: .clipboardOnly, notice: notice, noticeRequiresAttention: requiresAttention, detail: detail)
     }
 
     private func snapshot(_ pb: NSPasteboard) -> ClipboardItems {

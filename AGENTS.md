@@ -970,7 +970,11 @@ and Local releases below.
   These reads stay local, independent of optional refinement context. When a
   receiver with a caret is slow, ignores paste or exposes no readable text, keep
   the transcript on the clipboard and show a recovery notice instead of silently
-  dismissing the HUD. Record the notice with undelivered History status. A
+  dismissing the HUD. Record the reason with undelivered History status. Every
+  case where the text could not be pasted but is on the clipboard (destination
+  changed or unknown, paste not posted or not confirmed, a copy-only retry)
+  shows only `TextInserter.copiedNotice` ("Dictation copied") in the HUD; the
+  reason (`InsertionResult.detail`) goes to History and the log, never the HUD. A
   validated self-drawing editor cannot confirm its one paste: report it as sent
   unverified, never as failed. The HUD finishes as after delivery with no notice
   or error (a refinement fallback says the raw text was pasted, not inserted); History stores `inserted` false with cursor `outputSucceeded` true

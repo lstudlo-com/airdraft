@@ -64,8 +64,7 @@ extension DictationPipeline {
         }
         if insertionEnabled, delivery == .copyOnly {
             // Neither a paste nor the recording's saved script: copy for the user.
-            let result = inserter.copyOnly(final, notice: String(localized: "Retried text copied. Paste it where you want it.", bundle: .module),
-                                           requiresAttention: false)
+            let result = inserter.copyOnly(final, notice: TextInserter.copiedNotice, requiresAttention: false)
             report.notice = result.notice
             report.noticeRequiresAttention = result.noticeRequiresAttention
             if result.noticeRequiresAttention { report.deliveryError = result.notice }
@@ -90,7 +89,7 @@ extension DictationPipeline {
                 report.outputSucceeded = result.wasSent
                 report.notice = result.notice
                 report.noticeRequiresAttention = result.noticeRequiresAttention
-                if !result.wasSent, result.noticeRequiresAttention { report.deliveryError = result.notice }
+                if !result.wasSent, result.noticeRequiresAttention { report.deliveryError = result.detail ?? result.notice }
                 if delivery == .normal, let metrics {
                     let bundleID = target?.bundleID
                     let status = result.delivery
