@@ -232,6 +232,19 @@ public final class AppSettings {
         didSet { defaults.set(showsAllLocalModels, forKey: Self.showsAllLocalModelsKey) }
     }
     static let showsAllLocalModelsKey = "models.showsAllLocalModels"
+    /// AD-124: speech models pinned to the top of Models' lists, by stable ID:
+    /// `ModelEntry.id` for local models, "<preset id>/<model id>" for cloud ones.
+    /// A view preference outside the `settings.` keys, so it never counts as an
+    /// existing setup; Reset All removes it with the preference domain. IDs
+    /// Models no longer lists are ignored there.
+    public var pinnedSpeechModels: Set<String> {
+        didSet { defaults.set(pinnedSpeechModels.sorted(), forKey: Self.pinnedSpeechModelsKey) }
+    }
+    static let pinnedSpeechModelsKey = "models.pinnedSpeechModels"
+
+    public func setSpeechModel(_ id: String, pinned: Bool) {
+        if pinned { pinnedSpeechModels.insert(id) } else { pinnedSpeechModels.remove(id) }
+    }
     /// The anonymous usage data answer. Kept outside the `settings.` keys so an
     /// answer never counts as an existing setup; absent means undecided.
     public var telemetryConsent: TelemetryConsent {
@@ -293,6 +306,7 @@ public final class AppSettings {
         microphone = Self.load("microphone", from: defaults) ?? .systemDefault
         meetingSummaryTemplate = Self.load("meetingSummaryTemplate", from: defaults) ?? .default
         showsAllLocalModels = defaults.bool(forKey: Self.showsAllLocalModelsKey)
+        pinnedSpeechModels = Set(defaults.stringArray(forKey: Self.pinnedSpeechModelsKey) ?? [])
         telemetryConsent = defaults.string(forKey: Self.telemetryConsentKey).flatMap(TelemetryConsent.init(rawValue:)) ?? .undecided
         if savedHUDStyle == "mini" {
             persist("hudStyle", hudStyle)

@@ -403,14 +403,24 @@ and Local releases below.
   Airdraft has not measured, and its languages as one compact tag
   (`ModelLanguageTag`, AD-122): "30 languages", "English only", or for lists Airdraft
   does not have "Languages set in macOS", "Detects languages" or "Languages
-  unverified", never an invented list. Local and cloud rows read the tag from
+  unverified", never an invented list; a long tag wraps rather than widening the
+  row past the window. Local and cloud rows read the tag from
   `SpeechLanguagePolicy.capabilities` through `ModelLanguageInfo`. Its tooltip names
   every language (the user's language first); clicking a tag with more than one
   language opens `ModelLanguagesSheet` from the page (Your languages, then all A to Z,
   with search past 12), and VoiceOver reaches it through the row's Show Languages
   action. Clicking anywhere else in a row chooses its model (an installed one for
-  local rows); the tag and the download, cancel and delete buttons keep their own
-  clicks. Language summaries state the model's own
+  local rows); the tag, the pin and the download, cancel and delete buttons keep
+  their own clicks. Every local and cloud row has a pin button (`ModelPinButton`,
+  AD-124) with a name, Pinned/Not pinned value and tooltip. Pins are
+  `AppSettings.pinnedSpeechModels`, keyed by `ModelEntry.id` or
+  "<preset id>/<model id>", a view preference outside the `settings.` keys that
+  Reset All clears; unknown IDs are ignored. Outside search, pinned local models
+  lead under a Pinned heading (`ModelCatalogue.localItems`, catalogue order) and
+  pinned cloud models come first (`ModelCatalogue.pinnedFirst`), in the compact
+  set, the full table and a provider filter; each row is listed once (a pinned
+  shortlist row keeps its label) and pinned retired or Experimental models stay
+  listed. Search keeps the normal order. Language summaries state the model's own
   coverage, never support relative to Chinese; Chinese-only strengths (Qwen3-ASR
   1.7B's mixed Chinese and English) show only to users with a Chinese language
   (`ModelCatalogue.speaksChinese`). Local rows whose model shows live text with the

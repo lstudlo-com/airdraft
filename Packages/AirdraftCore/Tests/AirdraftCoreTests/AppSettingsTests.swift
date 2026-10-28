@@ -383,6 +383,29 @@ final class AppSettingsTests: XCTestCase {
         }
     }
 
+    /// AD-124: pinned speech models persist by ID, never count as an existing
+    /// setup, and Reset All's preference reset removes them.
+    func testPinnedSpeechModelsPersistWithoutCountingAsSetupAndResetClearsThem() throws {
+        let name = "airdraft-settings-fixture-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let settings = AppSettings(defaults: defaults)
+        XCTAssertEqual(settings.pinnedSpeechModels, [])
+        settings.setSpeechModel("sherpa:parakeet", pinned: true)
+        settings.setSpeechModel("groq/whisper-large-v3-turbo", pinned: true)
+        settings.setSpeechModel("unknown-model", pinned: true)
+        settings.setSpeechModel("unknown-model", pinned: false)
+        settings.setSpeechModel("never-pinned", pinned: false)
+
+        let reopened = AppSettings(defaults: defaults)
+        XCTAssertEqual(reopened.pinnedSpeechModels, ["sherpa:parakeet", "groq/whisper-large-v3-turbo"])
+        XCTAssertFalse(reopened.hadExistingSetup, "Pins are a view preference, not a setup")
+        XCTAssertFalse(defaults.dictionaryRepresentation().keys.contains { $0.hasPrefix("settings.") })
+
+        AppResetAdapters.resetPreferences(in: defaults, domains: [name])
+        XCTAssertEqual(AppSettings(defaults: defaults).pinnedSpeechModels, [])
+    }
+
     private func withDefaults(_ body: (UserDefaults) throws -> Void) throws {
         let name = "airdraft-settings-fixture-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))

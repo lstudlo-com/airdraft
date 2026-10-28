@@ -47,9 +47,11 @@ struct ModelsPage: View {
     /// AD-071: the compact recommended set plus the user's models, or, when
     /// showing all models or searching, Recommended, then Verified (with
     /// built-in) rows, then the Experimental disclosure and, when open or
-    /// searching, its rows. Each item is one list cell.
+    /// searching, its rows. Pinned models come first outside search (AD-124).
+    /// Each item is one list cell.
     private var localItems: [LocalModelItem] {
         ModelCatalogue.localItems(localModels, shortlist: ModelCatalogue.shortlist, inUse: inUseIDs,
+                                  pinned: container.settings.pinnedSpeechModels,
                                   showsAll: showsFullLocalList,
                                   expanded: showsExperimental, searching: isSearching)
     }
@@ -90,7 +92,7 @@ struct ModelsPage: View {
             if showsAll {
                 Text("Show Recommended Only")
             } else {
-                Text("Show All Models (\(ModelCatalogue.offered(ModelCatalogue.entries, inUse: inUseIDs).count))")
+                Text("Show All Models (\(ModelCatalogue.offered(ModelCatalogue.entries, inUse: inUseIDs.union(container.settings.pinnedSpeechModels)).count))")
             }
         }
         .buttonStyle(SoftButtonStyle())
@@ -109,7 +111,13 @@ struct ModelsPage: View {
         var id: String { "\(preset.id)/\(model.id)" }
     }
 
+    /// Pinned models first outside search (AD-124), then provider order.
     private var visibleCloudModels: [CloudEntry] {
+        ModelCatalogue.pinnedFirst(matchingCloudModels, pinned: container.settings.pinnedSpeechModels,
+                                   searching: isSearching, id: \.id)
+    }
+
+    private var matchingCloudModels: [CloudEntry] {
         EndpointPreset.asr.filter { cloudProvider == nil || $0.kind == cloudProvider }.flatMap { preset in
             speechModels(for: preset).filter { model in
                 var config = ASRConfig()

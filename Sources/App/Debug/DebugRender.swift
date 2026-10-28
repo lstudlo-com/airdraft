@@ -159,6 +159,11 @@ enum DebugRender {
         if RenderMode.value("TELEMETRY") == "official-granted", !usesSharedSettings {
             container.settings.telemetryConsent = .granted
         }
+        // Pinned Models rows (AD-124): <id>,<preset id>/<model id>. Only isolated
+        // render settings or a --e2e-local container, never the user's preferences.
+        if let pins = env["AIRDRAFT_RENDER_PINNED_MODELS"], !usesSharedSettings || LocalE2E.isActive {
+            container.settings.pinnedSpeechModels = Set(pins.split(separator: ",").map(String.init))
+        }
         container.navigation.sidebarCollapsed = env["AIRDRAFT_RENDER_SIDEBAR_COLLAPSED"] == "1"
         if let position = env["AIRDRAFT_RENDER_HUD_TIMER"].flatMap(HUDTimerOptions.Position.init(rawValue:)) {
             container.settings.hudTimer = HUDTimerOptions(isEnabled: true, position: position)

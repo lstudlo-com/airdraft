@@ -99,11 +99,12 @@ struct ModelLanguageTag: View {
         }
     }
 
+    /// One line where it fits; a long label ("Idiomas definidos en macOS" at
+    /// Larger text) wraps instead of widening the row past the window.
     private var content: some View {
         Text("\(Image(systemName: info.symbol)) \(info.label)")
             .appFont(.supporting, weight: .medium)
-            .lineLimit(1)
-            .fixedSize()
+            .fixedSize(horizontal: false, vertical: true)
             .mutedForeground(0.75)
     }
 }

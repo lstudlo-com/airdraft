@@ -262,35 +262,58 @@ extension ModelCatalogue {
     /// group still lists the Experimental entries in `inUse`, so a model the user
     /// relies on never disappears. Expanded or searching, it lists every
     /// Experimental entry in catalogue order.
+    ///
+    /// AD-124: outside search, `pinned` entries come first under Pinned, in
+    /// catalogue order, and are left out of the groups below, so each row is
+    /// listed once. A pinned shortlist entry keeps its recommendation label, and
+    /// pinned retired or Experimental entries stay listed like ones in use.
+    /// Searching keeps the normal order; rows still show their pin.
     static func localItems(_ entries: [ModelEntry], shortlist: LocalModelShortlist, inUse: Set<String>,
-                           showsAll: Bool, expanded: Bool, searching: Bool) -> [LocalModelItem] {
-        let entries = offered(entries, inUse: inUse)
+                           pinned: Set<String> = [], showsAll: Bool, expanded: Bool, searching: Bool) -> [LocalModelItem] {
+        let entries = offered(entries, inUse: inUse.union(pinned))
         let groups = grouped(entries, shortlist: shortlist)
+        let pinnedEntries = searching ? [] : entries.filter { pinned.contains($0.id) }
+        let first = Set(pinnedEntries.map(\.id))
         var items: [LocalModelItem] = []
+        for (index, entry) in pinnedEntries.enumerated() {
+            let role = groups.recommended.first { $0.0.id == entry.id }?.1
+            items.append(.model(entry, header: index == 0 ? .pinned : nil, role: role))
+        }
         let recommendedHeader: LocalModelItem.Header = shortlist.recommendation.reason == .limitedMemory ? .recommendedForMemory : .recommended
-        for (index, (entry, role)) in groups.recommended.enumerated() {
+        let recommended = groups.recommended.filter { !first.contains($0.0.id) }
+        for (index, (entry, role)) in recommended.enumerated() {
             items.append(.model(entry, header: index == 0 ? recommendedHeader : nil, role: role))
         }
         guard showsAll || searching else {
-            let yours = shortlist.inUse(catalogueOrder: entries.map(\.id), inUse: inUse)
+            let yours = shortlist.inUse(catalogueOrder: entries.map(\.id), inUse: inUse).filter { !first.contains($0) }
             for (index, id) in yours.enumerated() {
                 guard let entry = entries.first(where: { $0.id == id }) else { continue }
                 items.append(.model(entry, header: index == 0 ? .yourModels : nil, role: nil))
             }
             return items
         }
-        for (index, entry) in groups.verified.enumerated() {
-            let labelled = !groups.recommended.isEmpty || !groups.experimental.isEmpty
+        let verified = groups.verified.filter { !first.contains($0.id) }
+        let experimental = groups.experimental.filter { !first.contains($0.id) }
+        for (index, entry) in verified.enumerated() {
+            let labelled = !items.isEmpty || !experimental.isEmpty
             items.append(.model(entry, header: index == 0 && labelled ? .verified : nil, role: nil))
         }
-        if !groups.experimental.isEmpty {
-            let kept = groups.experimental.filter { inUse.contains($0.id) }
+        if !experimental.isEmpty {
+            let kept = experimental.filter { inUse.contains($0.id) }
             let open = expanded || searching
-            items.append(.experimental(count: groups.experimental.count, kept: open ? 0 : kept.count,
+            items.append(.experimental(count: experimental.count, kept: open ? 0 : kept.count,
                                        expanded: open, searching: searching))
-            items += (open ? groups.experimental : kept).map { .model($0, header: nil, role: nil) }
+            items += (open ? experimental : kept).map { .model($0, header: nil, role: nil) }
         }
         return items
+    }
+
+    /// AD-124: pinned items first, each group in its original order. Searching
+    /// keeps the original order.
+    static func pinnedFirst<Item>(_ items: [Item], pinned: Set<String>, searching: Bool,
+                                  id: (Item) -> String) -> [Item] {
+        guard !searching, !pinned.isEmpty else { return items }
+        return items.filter { pinned.contains(id($0)) } + items.filter { !pinned.contains(id($0)) }
     }
 
     /// Every entry except retired ones the user does not rely on.
@@ -505,29 +528,47 @@ struct CloudModelRow: View {
     let model: SpeechModelInfo
     @State private var hovering = false
 
+    /// The row's stable key, shared with the language cache and pins (AD-124).
+    private var pinID: String { "\(preset.id)/\(model.id)" }
+
     /// The same policy the recording check applies to this provider and model.
     private var languageInfo: ModelLanguageInfo {
         var config = ASRConfig()
         config.select(preset.kind)
         config.selectModel(model.id)
-        return ModelLanguageInfo.make(id: "\(preset.id)/\(model.id)", title: model.title, config: config)
+        return ModelLanguageInfo.make(id: pinID, title: model.title, config: config)
     }
 
     var body: some View {
         let selected = container.settings.asr.kind == preset.kind && container.settings.asr.model == model.id
         let languages = languageInfo
         ModelComparisonColumns {
-            HStack(spacing: 8) {
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 14))
-                    .foregroundStyle(selected ? Color.accentColor : .secondary)
-                ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(model.title).appFont(.body, weight: .medium)
-                    Text(preset.name).supportingText()
-                    ModelLanguageTag(info: languages)
+            HStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(selected ? Color.accentColor : .secondary)
+                    ModelBrandIcon(brand: .speech(model, hostedBy: preset.kind))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(model.title).appFont(.body, weight: .medium)
+                        Text(preset.name).supportingText()
+                        ModelLanguageTag(info: languages)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                .fixedSize(horizontal: false, vertical: true)
+                // The language tag and pin are controls of their own; VoiceOver
+                // reaches the language list through the Show Languages action.
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
+                .accessibilityValue(selected ? "Selected" : "Not selected")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { choose() }
+                .accessibilityAction(named: Text("Show Languages")) {
+                    if languages.opensList { showLanguages(languages) }
+                }
+                .help(model.qualityDetail + " " + model.speedDetail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                ModelPinButton(id: pinID, title: model.title, rowHovered: hovering)
             }
         } speed: {
             ModelMetric(title: String(localized: "Speed"), fraction: speedFraction,
@@ -546,19 +587,11 @@ struct CloudModelRow: View {
         }
         .padding(Theme.cardPadding)
         .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
-        // AD-122: anywhere in the row chooses the model; the language tag keeps its own click.
+        // AD-122: anywhere in the row chooses the model; the language tag and
+        // the pin (AD-124) keep their own clicks.
         .contentShape(Rectangle())
         .onTapGesture { choose() }
         .onHover { hovering = $0 }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
-        .accessibilityValue(selected ? "Selected" : "Not selected")
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction { choose() }
-        .accessibilityAction(named: Text("Show Languages")) {
-            if languages.opensList { showLanguages(languages) }
-        }
-        .help(model.qualityDetail + " " + model.speedDetail)
     }
 
     private func choose() {
@@ -576,7 +609,7 @@ struct CloudModelRow: View {
 
 /// One cell of the local models table (AD-071).
 enum LocalModelItem: Identifiable {
-    enum Header { case recommended, recommendedForMemory, yourModels, verified }
+    enum Header { case pinned, recommended, recommendedForMemory, yourModels, verified }
     /// `role` is set for the compact recommended set and names its one label.
     case model(ModelEntry, header: Header?, role: LocalModelShortlist.Role?)
     /// `kept` counts Experimental rows listed while collapsed because they are in use.
@@ -609,6 +642,8 @@ struct LocalModelGroupHeader: View {
 
     private var title: String {
         switch header {
+        case .pinned: String(localized: "ModelGroupPinned", defaultValue: "Pinned",
+                             comment: "Heading above the speech models the user pinned to the top of the table")
         case .recommended, .recommendedForMemory: String(localized: "Recommended for your language")
         case .yourModels: String(localized: "Your models")
         case .verified: String(localized: "ModelGroupVerified", defaultValue: "Verified",
@@ -652,6 +687,37 @@ struct ExperimentalModelsDisclosure: View {
         .accessibilityValue(expanded ? Text("Expanded") : Text("Collapsed"))
         .accessibilityHint(searching ? Text(verbatim: "") : Text("Shows or hides models Airdraft has not tested end to end."))
         .accessibilityIdentifier("models.experimental-disclosure")
+    }
+}
+
+/// AD-124: pins a speech model to the top of its list in Models. A button of
+/// its own, so its click wins over the row's whole-row click.
+struct ModelPinButton: View {
+    @Environment(AppContainer.self) private var container
+    @Environment(\.colorSchemeContrast) private var contrast
+    /// `ModelEntry.id`, or "<preset id>/<model id>" for a cloud model.
+    let id: String
+    let title: String
+    /// The row's hover, which brings an unpinned pin forward.
+    let rowHovered: Bool
+
+    var body: some View {
+        let pinned = container.settings.pinnedSpeechModels.contains(id)
+        Button {
+            container.settings.setSpeechModel(id, pinned: !pinned)
+        } label: {
+            Image(systemName: pinned ? "pin.fill" : "pin")
+                .font(.system(size: 12))
+                .foregroundStyle(pinned ? Color.accentColor : Color.secondary)
+                .opacity(pinned || rowHovered || contrast == .increased ? 1 : 0.4)
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(pinned ? String(localized: "Unpin from the top of the list") : String(localized: "Pin to the top of the list"))
+        .accessibilityLabel(String(localized: "Pin \(title)"))
+        .accessibilityValue(pinned ? String(localized: "Pinned") : String(localized: "Not pinned"))
+        .accessibilityIdentifier("models.pin.\(id)")
     }
 }
 
@@ -705,38 +771,42 @@ struct ModelRow: View {
         let selected = entry.isSelected(settings.asr)
         VStack(alignment: .leading, spacing: 6) {
             ModelComparisonColumns {
-                HStack(spacing: 8) {
-                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 14))
-                        .foregroundStyle(selected ? Color.accentColor
-                                         : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
-                    ModelBrandIcon(brand: entry.brand)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(entry.title).appFont(.body, weight: .medium)
-                        // One visible label: why the model is recommended, or
-                        // its strength elsewhere in the table.
-                        if let label = strengthLabel {
-                            Text("\(Image(systemName: label.symbol)) \(label.text)")
-                                .appFont(.supporting, weight: .medium)
-                                .mutedForeground(0.75)
+                HStack(spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 14))
+                            .foregroundStyle(selected ? Color.accentColor
+                                             : Color.secondary.opacity(contrast == .increased ? 1 : installed ? 0.6 : 0.3))
+                        ModelBrandIcon(brand: entry.brand)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(entry.title).appFont(.body, weight: .medium)
+                            // One visible label: why the model is recommended, or
+                            // its strength elsewhere in the table.
+                            if let label = strengthLabel {
+                                Text("\(Image(systemName: label.symbol)) \(label.text)")
+                                    .appFont(.supporting, weight: .medium)
+                                    .mutedForeground(0.75)
+                            }
+                            tierAndTags
+                            if showsLiveText { LiveTextBadge() }
+                            loadStateLabel
                         }
-                        tierAndTags
-                        if showsLiveText { LiveTextBadge() }
-                        loadStateLabel
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    .fixedSize(horizontal: false, vertical: true)
+                    // The language tag is a control of its own; VoiceOver reaches its
+                    // list through the row's Show Languages action instead.
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(accessibilityLabel)
+                    .accessibilityValue(selected ? "Selected" : "Not selected")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { choose() }
+                    .accessibilityAction(named: Text("Show Languages")) {
+                        if entry.languageInfo.opensList { showLanguages(entry.languageInfo) }
+                    }
+                    .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    ModelPinButton(id: entry.id, title: entry.title, rowHovered: hovering)
                 }
-                // The language tag is a control of its own; VoiceOver reaches its
-                // list through the row's Show Languages action instead.
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(accessibilityLabel)
-                .accessibilityValue(selected ? "Selected" : "Not selected")
-                .accessibilityAddTraits(.isButton)
-                .accessibilityAction { choose() }
-                .accessibilityAction(named: Text("Show Languages")) {
-                    if entry.languageInfo.opensList { showLanguages(entry.languageInfo) }
-                }
-                .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
             } speed: {
                 ModelMetric(title: String(localized: "Speed"), fraction: entry.speed > 0 ? Double(entry.speed) / 5 : nil, label: entry.speed > 0 ? ModelRating.label(entry.speed) : String(localized: "Not rated"),
                             detail: entry.speed > 0 ? String(localized: "Airdraft's relative guidance for local models. Actual speed depends on your Mac.") : String(localized: "Not benchmarked in Airdraft."))
@@ -758,12 +828,11 @@ struct ModelRow: View {
         }
         .padding(Theme.cardPadding)
         .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
-        // AD-122: anywhere in the row chooses the model; the language tag and the
-        // download, cancel and delete buttons keep their own clicks.
+        // AD-122: anywhere in the row chooses the model; the language tag, the
+        // pin (AD-124) and the download, cancel and delete buttons keep their own clicks.
         .contentShape(Rectangle())
         .onTapGesture { choose() }
         .onHover { hovering = $0 }
-        .help(entry.note)
         .task(id: progress != nil) {
             checkingInstallation = true
             let config = entryConfig
