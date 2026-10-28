@@ -131,6 +131,9 @@ public final class DictationPipeline {
     var previewGeneration = UUID()
     public typealias PreviewBuilder = @Sendable (String, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
     let previewBuilder: PreviewBuilder
+    /// AD-123: Apple Speech live text whose finalized results become the transcript
+    /// when Apple Speech is the recording's own model in the same locale.
+    let appleTranscriptPreviewBuilder: PreviewBuilder
     /// Live text from the recording's own loaded local model (AD-084).
     public typealias ModelPreviewBuilder = @Sendable (ModelPreviewRequest, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
     let modelPreviewBuilder: ModelPreviewBuilder
@@ -372,7 +375,8 @@ public final class DictationPipeline {
         historyDirectory: URL? = nil,
         factory: EngineFactory,
         recorder: any AudioRecording = AudioRecorder(),
-        previewBuilder: @escaping PreviewBuilder = { SpeechPreview.start(locale: $0, onText: $1, onIssue: $2) },
+        previewBuilder: PreviewBuilder? = nil,
+        appleTranscriptPreviewBuilder: PreviewBuilder? = nil,
         modelPreviewBuilder: ModelPreviewBuilder? = nil,
         modelPreviewAvailability: @escaping @Sendable (ASRConfig) -> String? = { ModelSpeechPreview.recordingNotice(for: $0) },
         contextReader: AppContextReader? = nil,
@@ -391,7 +395,10 @@ public final class DictationPipeline {
         if history == nil && historyDirectory != nil { historyStorageError = String(localized: "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder.", bundle: .module) }
         self.factory = factory
         self.recorder = recorder
-        self.previewBuilder = previewBuilder
+        self.previewBuilder = previewBuilder ?? { SpeechPreview.start(locale: $0, onText: $1, onIssue: $2) }
+        // A test that injects only the display builder keeps using it for Apple Speech.
+        self.appleTranscriptPreviewBuilder = appleTranscriptPreviewBuilder ?? previewBuilder
+            ?? { SpeechPreview.startTranscript(locale: $0, onText: $1, onIssue: $2) }
         self.modelPreviewAvailability = modelPreviewAvailability
         self.modelPreviewBuilder = modelPreviewBuilder ?? { request, onText, onIssue in
             ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: factory, request: request),

@@ -510,12 +510,18 @@ extension DictationPipeline {
         let session: any SpeechPreviewSession
         switch settings.livePreviewSource {
         case .appleSpeech:
-            session = previewBuilder(settings.livePreviewLocale, onText, onIssue)
+            // AD-123: when Apple Speech in this locale is also the recording's model,
+            // its live text is the model's own output and becomes the transcript.
+            if ModelSpeechPreview.appleSpeechLocale(for: request.asr) == settings.livePreviewLocale {
+                session = appleTranscriptPreviewBuilder(settings.livePreviewLocale, onText, onIssue)
+            } else {
+                session = previewBuilder(settings.livePreviewLocale, onText, onIssue)
+            }
         case .speechModel:
             if let locale = ModelSpeechPreview.appleSpeechLocale(for: request.asr) {
                 // Apple Speech previews through its own analyzer, outside the factory lease.
                 previewNoticeShownFor = nil
-                session = previewBuilder(locale, onText, onIssue)
+                session = appleTranscriptPreviewBuilder(locale, onText, onIssue)
                 break
             }
             // An unsupported model opens no live-text window: the HUD shows the

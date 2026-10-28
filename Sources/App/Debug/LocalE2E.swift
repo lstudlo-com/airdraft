@@ -313,6 +313,34 @@ enum LocalE2E {
                     report["stoppedCallbacks"] = before.texts == after.texts && before.issues == after.issues
                     report["status"] = !after.texts.isEmpty && after.issues.isEmpty &&
                         report["stoppedCallbacks"] as? Bool == true ? "passed" : "failed"
+                case "apple-live-transcript":
+                    // AD-123: Apple Speech live text finished as a transcript against
+                    // Apple Speech's own final transcription of the same file.
+                    guard let path = argument("--e2e-audio") else { throw E2EError.missingAudio }
+                    let locale = argument("--e2e-locale") ?? "en-US"
+                    if let reason = await SpeechPreview.unavailableReason(locale: locale) {
+                        throw E2EError.pipeline(reason)
+                    }
+                    let events = PreviewEvents()
+                    let samples = try AudioFile.load(path: path)
+                    let session = try liveTranscriptSession(SpeechPreview.startTranscript(locale: locale,
+                        onText: { events.text($0) }, onIssue: { events.issue($0) }))
+                    // Real-time 100 ms chunks, all but the last second, which the capture supplies.
+                    let fed = max(0, samples.count - 16_000)
+                    for offset in stride(from: 0, to: fed, by: 1600) {
+                        session.append(Array(samples[offset..<min(offset + 1600, fed)]))
+                        try await Task.sleep(for: .milliseconds(100))
+                    }
+                    let live = await session.finishTranscript(capture: samples)
+                    let final = try await AppleSpeechTranscriber(locale: locale).transcribe(samples: samples, hints: TranscriptionHints())
+                    report["liveTranscript"] = live?.text
+                    report["finalTranscript"] = final.text
+                    report["finishMs"] = live?.latencyMs
+                    report["finalMs"] = final.latencyMs
+                    report["previewTexts"] = events.snapshot.texts.count
+                    report["previewIssues"] = events.snapshot.issues
+                    report["identical"] = live?.text == final.text
+                    report["status"] = live != nil && !(live?.text.isEmpty ?? true) && events.snapshot.issues.isEmpty ? "passed" : "failed"
                 case "model-preview":
                     report = try await modelPreview(app: app)
                 case "media":
@@ -584,6 +612,11 @@ enum LocalE2E {
         var snapshot: (texts: [(ms: Int, text: String)], issues: [String], firstTextMs: Int?) {
             lock.withLock { (texts: texts, issues: issues, firstTextMs: texts.first?.ms) }
         }
+    }
+
+    private static func liveTranscriptSession(_ session: any SpeechPreviewSession) throws -> any LiveTranscriptSession {
+        guard let live = session as? any LiveTranscriptSession, live.reusesForTranscript else { throw E2EError.unknownAction }
+        return live
     }
 
     private final class PreviewEvents: @unchecked Sendable {

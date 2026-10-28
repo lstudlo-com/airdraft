@@ -46,6 +46,28 @@ final class SpeechPreviewTests: XCTestCase {
 
     /// Cancellation resumes a waiting consumer and rejects new audio; cancelling the consumer task also
     /// closes the queue; concurrent append and cancel cannot retain audio.
+    /// AD-123: finishing drains queued audio in order, then ends; later audio is refused.
+    func testFinishDrainsQueuedAudioThenEnds() async {
+        let queue = SpeechPreviewAudioQueue(maximumSamples: 100)
+        XCTAssertEqual(queue.append([1, 2]), .accepted)
+        XCTAssertEqual(queue.append([3]), .accepted)
+        queue.finish()
+        XCTAssertEqual(queue.append([4]), .stopped)
+        let first = await queue.next()
+        let second = await queue.next()
+        let end = await queue.next()
+        XCTAssertEqual(first, [1, 2])
+        XCTAssertEqual(second, [3])
+        XCTAssertNil(end)
+
+        let waiting = SpeechPreviewAudioQueue(maximumSamples: 100)
+        let consumer = Task { await waiting.next() }
+        try? await Task.sleep(for: .milliseconds(20))
+        waiting.finish()
+        let ended = await consumer.value
+        XCTAssertNil(ended, "A waiting consumer sees the end")
+    }
+
     func testCancellationClosesTheQueueForConsumersTasksAndConcurrentAppends() async {
         do {
             let queue = SpeechPreviewAudioQueue()

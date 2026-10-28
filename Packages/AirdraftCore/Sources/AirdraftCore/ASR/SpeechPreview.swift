@@ -102,7 +102,7 @@ public enum SpeechPreview {
     }
 }
 
-private struct PreviewIssue: LocalizedError {
+struct PreviewIssue: LocalizedError {
     let message: String
     init(_ message: String) { self.message = message }
     var errorDescription: String? { message }
@@ -216,6 +216,8 @@ final class SpeechPreviewAudioQueue: Sendable {
         var chunks: [[Float]] = []
         var sampleCount = 0
         var stopped = false
+        /// No more audio: the consumer drains what is queued, then sees the end.
+        var finished = false
         var waiter: CheckedContinuation<[Float]?, Never>?
     }
     private let state = Mutex(State())
@@ -227,7 +229,7 @@ final class SpeechPreviewAudioQueue: Sendable {
     func append(_ samples: [Float]) -> AppendResult {
         let maximumSamples = maximumSamples
         let (result, delivery) = state.withLock { state -> (AppendResult, CheckedContinuation<[Float]?, Never>?) in
-            guard !state.stopped else { return (.stopped, nil) }
+            guard !state.stopped, !state.finished else { return (.stopped, nil) }
             guard !samples.isEmpty else { return (.accepted, nil) }
             let invalid = samples.count <= maximumSamples && !samples.allSatisfy(\.isFinite)
             if samples.count > maximumSamples - state.sampleCount || invalid {
@@ -260,6 +262,7 @@ final class SpeechPreviewAudioQueue: Sendable {
                         state.sampleCount -= chunk.count
                         return (true, chunk)
                     }
+                    if state.finished { return (true, nil) }
                     precondition(state.waiter == nil, "Speech preview has one audio consumer")
                     state.waiter = continuation
                     return (false, nil)
@@ -269,6 +272,17 @@ final class SpeechPreviewAudioQueue: Sendable {
         } onCancel: {
             self.cancel()
         }
+    }
+
+    /// Ends the input after the queued audio (AD-123); later appends are refused.
+    func finish() {
+        let pending = state.withLock { state -> CheckedContinuation<[Float]?, Never>? in
+            state.finished = true
+            let pending = state.waiter
+            state.waiter = nil
+            return pending
+        }
+        pending?.resume(returning: nil)
     }
 
     func cancel() {
@@ -285,7 +299,7 @@ final class SpeechPreviewAudioQueue: Sendable {
 }
 
 @available(macOS 26, *)
-private actor SpeechPreviewConverter {
+actor SpeechPreviewConverter {
     private let sourceFormat: AVAudioFormat
     private let targetFormat: AVAudioFormat
     private let converter: AVAudioConverter?
