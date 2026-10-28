@@ -1392,6 +1392,8 @@ Live text styles, lines and size, the Live text model badge and the single
 Speech models table are 0.16.0.
 Live text animations and live text that keeps scrolling are 0.17.0.
 The Transcribe page (formerly Meetings) is 0.18.0.
+Live text that becomes the transcript when it matches the model, and cloud live
+text through providers' real-time APIs, are 0.19.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with
