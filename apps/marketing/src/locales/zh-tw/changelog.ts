@@ -5,6 +5,26 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-19-0": {
+    title: "即時文字直接成為逐字稿",
+    changes: [
+      {
+        title: "即時文字一致時不再轉錄第二次",
+        description:
+          "即時文字來自你正在使用的語音模型本身時，現在會直接作為要潤稿、貼上的逐字稿。Parakeet、SenseVoice 和 Orukeet 保留說話時已解碼的部分，停止後只解碼剩下的部分；Apple Speech 以它自己的語言完成。即時文字若有遺漏，Airdraft 會像以前一樣轉錄整段錄音。",
+      },
+      {
+        title: "雲端模型的即時文字",
+        description:
+          "即時預覽來源為「所選語音模型」時，服務商有即時 API 的雲端模型會在你說話時顯示文字。Soniox、選定語言的 Deepgram Nova-3、xAI、Cartesia 和 Speechmatics 串流的是同一個模型，不會再傳送一次。AssemblyAI、ElevenLabs、OpenAI、Mistral 和 Gemini 串流的是另一個模型，停止後仍會傳送錄音，因此計費兩次；「設定」和「模型」中的即時文字標記會註明。",
+      },
+      {
+        title: "錄音時就會傳送音訊",
+        description:
+          "雲端即時文字會在你說話時把音訊傳送給服務商，包括之後取消的錄音。Groq、OpenRouter 和自訂端點不顯示即時文字，「轉錄」的即時逐字稿仍在這台 Mac 上進行。",
+      },
+    ],
+  },
   "0-18-3": {
     title: "釘選你常用的模型",
     changes: [

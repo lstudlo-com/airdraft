@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-19-0",
+    version: "0.19.0",
+    date: "2026-10-28",
+    title: "Live text becomes your transcript",
+    changes: [
+      {
+        title: "No second pass when live text matches",
+        description:
+          "When live text comes from the model you dictate with, it is now the transcript that gets refined and pasted. Parakeet, SenseVoice and Orukeet keep the parts already decoded while you speak and decode only the rest when you stop, and Apple Speech finishes in its own language. If live text missed anything, Airdraft transcribes the recording as before.",
+      },
+      {
+        title: "Live text for cloud models",
+        description:
+          "With Selected speech model as the Live preview source, cloud models whose provider has a real-time API show text while you speak. Soniox, Deepgram Nova-3 with a chosen language, xAI, Cartesia and Speechmatics stream the same model, so nothing is sent again. AssemblyAI, ElevenLabs, OpenAI, Mistral and Gemini stream a different model, so the recording is still sent after you stop and billed twice; Settings and the Live text badge in Models say which.",
+      },
+      {
+        title: "Audio streams while you record",
+        description:
+          "Cloud live text sends audio to the provider as you speak, including recordings you then cancel. Groq, OpenRouter and custom endpoints show no live text, and Transcribe's live transcript stays on this Mac.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.19.0-build.526",
+    },
+  },
+  {
     id: "0-18-3",
     version: "0.18.3",
     date: "2026-10-28",

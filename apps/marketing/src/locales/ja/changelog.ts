@@ -4,6 +4,26 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-19-0": {
+    title: "ライブテキストがそのまま書き起こしに",
+    changes: [
+      {
+        title: "ライブテキストが一致すれば書き起こし直さない",
+        description:
+          "ライブテキストが音声入力に使っているモデル自身から出ている場合、それがそのまま整形・貼り付けされる書き起こしになります。Parakeet、SenseVoice、Orukeet は話している間に処理した部分を残し、止めたときは残りだけを処理します。Apple Speech は自分の言語のまま仕上げます。ライブテキストに抜けがあった場合は、これまでどおり録音を書き起こします。",
+      },
+      {
+        title: "クラウドモデルのライブテキスト",
+        description:
+          "ライブプレビューのソースが「選択した音声モデル」のとき、リアルタイム API を持つプロバイダのクラウドモデルが話している間にテキストを表示します。Soniox、言語を選んだ Deepgram Nova-3、xAI、Cartesia、Speechmatics は同じモデルでストリーミングするため、再送信しません。AssemblyAI、ElevenLabs、OpenAI、Mistral、Gemini は別のモデルでストリーミングするため、止めた後も録音を送信し、料金が 2 回かかります。どちらになるかは「設定」と「モデル」のライブテキスト表示でわかります。",
+      },
+      {
+        title: "録音中に音声を送信",
+        description:
+          "クラウドのライブテキストは、話している間に音声をプロバイダへ送信します。あとでキャンセルした録音も含みます。Groq、OpenRouter、カスタムエンドポイントにはライブテキストがなく、「文字起こし」のライブ書き起こしはこの Mac 上で処理します。",
+      },
+    ],
+  },
   "0-18-3": {
     title: "使うモデルをピンで固定",
     changes: [

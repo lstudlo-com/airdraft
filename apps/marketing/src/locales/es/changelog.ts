@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-19-0": {
+    title: "El texto en directo pasa a ser tu transcripción",
+    changes: [
+      {
+        title: "Sin segunda pasada cuando el texto en directo coincide",
+        description:
+          "Cuando el texto en directo viene del modelo con el que dictas, ahora es la transcripción que se refina y se pega. Parakeet, SenseVoice y Orukeet conservan lo ya decodificado mientras hablas y solo decodifican el resto al terminar, y Apple Speech termina en su propio idioma. Si al texto en directo le faltó algo, Airdraft transcribe la grabación como antes.",
+      },
+      {
+        title: "Texto en directo para modelos en la nube",
+        description:
+          "Con Modelo de voz seleccionado como fuente de la vista previa en directo, los modelos en la nube cuyo proveedor tiene una API en tiempo real muestran texto mientras hablas. Soniox, Deepgram Nova-3 con un idioma elegido, xAI, Cartesia y Speechmatics transmiten el mismo modelo, así que no se vuelve a enviar nada. AssemblyAI, ElevenLabs, OpenAI, Mistral y Gemini transmiten otro modelo, así que la grabación se sigue enviando al terminar y se cobra dos veces; Ajustes y la etiqueta Texto en directo de Modelos indican cuál es cuál.",
+      },
+      {
+        title: "El audio se envía mientras grabas",
+        description:
+          "El texto en directo en la nube envía el audio al proveedor mientras hablas, también en las grabaciones que luego cancelas. Groq, OpenRouter y los endpoints personalizados no muestran texto en directo, y la transcripción en directo de Transcribir sigue en este Mac.",
+      },
+    ],
+  },
   "0-18-3": {
     title: "Fija los modelos que usas",
     changes: [

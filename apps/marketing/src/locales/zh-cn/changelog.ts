@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-19-0": {
+    title: "实时文字直接成为转写结果",
+    changes: [
+      {
+        title: "实时文字一致时不再转写第二次",
+        description:
+          "实时文字来自你正在使用的语音模型本身时，现在会直接作为要润色、粘贴的转写结果。Parakeet、SenseVoice 和 Orukeet 保留说话时已解码的部分，停止后只解码剩下的部分；Apple Speech 以它自己的语言完成。实时文字若有遗漏，Airdraft 会像以前一样转写整段录音。",
+      },
+      {
+        title: "云端模型的实时文字",
+        description:
+          "实时预览来源为“所选语音模型”时，服务商有实时 API 的云端模型会在你说话时显示文字。Soniox、选定语言的 Deepgram Nova-3、xAI、Cartesia 和 Speechmatics 串流的是同一个模型，不会再发送一次。AssemblyAI、ElevenLabs、OpenAI、Mistral 和 Gemini 串流的是另一个模型，停止后仍会发送录音，因此计费两次；“设置”和“模型”中的实时文字标记会注明。",
+      },
+      {
+        title: "录音时就会发送音频",
+        description:
+          "云端实时文字会在你说话时把音频发送给服务商，包括之后取消的录音。Groq、OpenRouter 和自定义端点不显示实时文字，“转录”的实时转写仍在这台 Mac 上进行。",
+      },
+    ],
+  },
   "0-18-3": {
     title: "置顶你常用的模型",
     changes: [
