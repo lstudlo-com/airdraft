@@ -1,7 +1,8 @@
 import Foundation
 import Synchronization
 
-/// Where live preview text comes from. Neither source supplies the final transcript.
+/// Where live preview text comes from. Live text that matches the recording
+/// model's own output becomes the transcript (AD-123); other live text is display only.
 public enum LivePreviewSource: String, Codable, CaseIterable, Sendable, Identifiable {
     /// A separate Apple Speech analyzer (macOS 26+).
     case appleSpeech
@@ -57,6 +58,21 @@ public struct ModelPreviewPolicy: Sendable, Equatable {
 /// Display-only decode of one window. Returns nil when the engine is busy or not
 /// loaded, so this tick is dropped; it never loads, downloads or waits for a lease.
 public typealias ModelPreviewDecoder = @Sendable ([Float]) async throws -> String?
+
+/// AD-123: the recording model's own decoders behind a session whose live text
+/// becomes the transcript. Committed windows go through the guarded final path at
+/// preview priority (nil while the engine is busy, so the window waits for the next
+/// tick); the tail left at release goes through the ordinary final path.
+public struct ModelPreviewFinals: Sendable {
+    public typealias Segment = @Sendable ([Float]) async throws -> (transcript: Transcript, display: String)?
+    public typealias Tail = @Sendable ([Float]) async throws -> Transcript
+    public var segment: Segment
+    public var tail: Tail
+    public init(segment: @escaping Segment, tail: @escaping Tail) {
+        self.segment = segment
+        self.tail = tail
+    }
+}
 
 /// What a recording captured for model preview: the same speech config and hints
 /// its final transcription uses, so preview never rebuilds the native decoder.
@@ -128,17 +144,37 @@ public enum ModelSpeechPreview {
 
     public static func start(policy: ModelPreviewPolicy = .standard,
                              decode: @escaping ModelPreviewDecoder,
+                             finals: ModelPreviewFinals? = nil,
                              onText: @escaping @Sendable (String) -> Void,
                              onIssue: @escaping @Sendable (String) -> Void,
                              now: @escaping @Sendable () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
                              sleep: @escaping @Sendable (Double) async throws -> Void = { try await Task.sleep(for: .seconds($0)) })
         -> ModelPreviewSession {
-        ModelPreviewSession(policy: policy, decode: decode, onText: onText, onIssue: onIssue, now: now, sleep: sleep)
+        ModelPreviewSession(policy: policy, decode: decode, finals: finals, onText: onText, onIssue: onIssue, now: now, sleep: sleep)
     }
 
     /// The production decoder: the factory's display-only lease path.
     public static func decoder(factory: EngineFactory, request: ModelPreviewRequest) -> ModelPreviewDecoder {
         { samples in try await factory.transcribePreview(samples, hints: request.hints, config: request.asr) }
+    }
+
+    /// AD-123: the guarded segment and tail decoders for a recording whose live
+    /// text becomes its transcript. Display text is cleaned like ordinary preview.
+    public static func finals(factory: EngineFactory, request: ModelPreviewRequest) -> ModelPreviewFinals {
+        ModelPreviewFinals(segment: { samples in
+            guard let transcript = try await factory.transcribeLiveSegment(samples, hints: request.hints, config: request.asr) else {
+                return nil
+            }
+            return (transcript, display(transcript.text, script: request.hints.chineseScript))
+        }, tail: { samples in
+            try await factory.transcribe(samples, hints: request.hints, config: request.asr)
+        })
+    }
+
+    /// Live text as the HUD shows it: one copy of a repeated loop, trimmed, in the recording's script.
+    static func display(_ text: String, script: ChineseScript) -> String {
+        let text = TranscriptRepetition.trimmed(text) ?? text
+        return ChineseScriptConverter.convert(text.trimmingCharacters(in: .whitespacesAndNewlines), to: script)
     }
 
     /// Meetings: loads the installed model through the factory lease (never a
@@ -218,7 +254,9 @@ public enum ModelSpeechPreview {
 
 /// Model-driven live preview: one decode in flight, a cadence floor, a bounded
 /// window plus committed prefix, and no callback after `cancel()` returns.
-public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
+/// With `finals` its committed windows are the recording's transcript (AD-123):
+/// no audio is dropped, and `finishTranscript` decodes only the tail left at release.
+public final class ModelPreviewSession: LiveTranscriptSession, Sendable {
     public struct Metrics: Sendable, Equatable {
         public var decodes = 0
         public var commits = 0
@@ -240,6 +278,8 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
         /// Absolute end index of the audio the last provisional decode covered.
         var decodedEnd = 0
         var committed = ""
+        /// AD-123: the committed windows' guarded transcripts, in order.
+        var segments: [Transcript] = []
         var provisional = ""
         var published = ""
         var metrics = Metrics()
@@ -247,6 +287,7 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
 
     private let policy: ModelPreviewPolicy
     private let decode: ModelPreviewDecoder
+    private let finals: ModelPreviewFinals?
     private let onText: @Sendable (String) -> Void
     private let onIssue: @Sendable (String) -> Void
     private let now: @Sendable () -> TimeInterval
@@ -259,11 +300,12 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
     nonisolated(unsafe) private var worker: Task<Void, Never>?
     nonisolated(unsafe) private var stopped = false
 
-    init(policy: ModelPreviewPolicy, decode: @escaping ModelPreviewDecoder,
+    init(policy: ModelPreviewPolicy, decode: @escaping ModelPreviewDecoder, finals: ModelPreviewFinals? = nil,
          onText: @escaping @Sendable (String) -> Void, onIssue: @escaping @Sendable (String) -> Void,
          now: @escaping @Sendable () -> TimeInterval, sleep: @escaping @Sendable (Double) async throws -> Void) {
         self.policy = policy
         self.decode = decode
+        self.finals = finals
         self.onText = onText
         self.onIssue = onIssue
         self.now = now
@@ -278,6 +320,7 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
     }
 
     public var metrics: Metrics { state.withLock { $0.metrics } }
+    public var reusesForTranscript: Bool { finals != nil }
     public var isActive: Bool { state.withLock { $0.active } }
 
     public func append(_ samples: [Float]) {
@@ -291,7 +334,9 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
         state.withLock { state in
             guard state.active else { return }
             state.segment.append(contentsOf: samples)
-            if state.segment.count > limit {
+            // A transcript must cover every sample, so it never drops audio; a
+            // recording is bounded by its 600-second limit.
+            if finals == nil, state.segment.count > limit {
                 // Decodes were skipped for a long time. Drop the oldest audio in
                 // one block instead of growing without bound.
                 let drop = state.segment.count - keep
@@ -304,6 +349,37 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
     }
 
     public func cancel() { stop(issue: nil) }
+
+    public func finishTranscript(capture: [Float]) async -> Transcript? {
+        let started = now()
+        // Ends live text: no callback after this, and the worker's in-flight decode
+        // either lands before it stops or leaves its window for the tail.
+        let worker = callbackLock.withLock { () -> Task<Void, Never>?? in
+            guard !stopped else { return nil }
+            stopped = true
+            defer { self.worker = nil }
+            return .some(self.worker)
+        }
+        guard let worker else { return nil }
+        worker?.cancel()
+        await worker?.value
+        let (segments, start) = state.withLock { state -> ([Transcript], Int) in
+            state.active = false
+            defer { state.segment = []; state.segments = []; state.committed = ""; state.provisional = "" }
+            return (state.segments, state.segmentStart)
+        }
+        guard let finals, start <= capture.count, !Task.isCancelled else { return nil }
+        var parts = segments
+        let tail = Array(capture[start...])
+        if tail.contains(where: { $0 != 0 }) {
+            guard let transcript = try? await finals.tail(tail), !Task.isCancelled else { return nil }
+            parts.append(transcript)
+        }
+        let text = parts.map(\.text).reduce("") { ModelSpeechPreview.join($0, $1) }
+        return Transcript(text: text, language: parts.last(where: { $0.language != nil })?.language,
+                          engine: parts.last?.engine ?? "", latencyMs: Int((now() - started) * 1000),
+                          adjustments: parts.flatMap(\.adjustments))
+    }
 
     func fail(_ issue: String) { stop(issue: issue) }
 
@@ -360,8 +436,15 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
             guard let job = nextJob() else { continue }
             let started = now()
             let text: String?
+            var segment: Transcript?
             do {
-                text = try await decode(job.samples)
+                if let finals, case .commit = job {
+                    let result = try await finals.segment(job.samples)
+                    segment = result?.transcript
+                    text = result?.display
+                } else {
+                    text = try await decode(job.samples)
+                }
             } catch is CancellationError {
                 // Final inference preempted this display-only decode; try again later.
                 lastEnd = now()
@@ -389,11 +472,11 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
             // The cadence adapts to the decode cost so preview never takes more
             // than about a third of the engine's time.
             interval = max(policy.minimumInterval, elapsed * 2)
-            apply(job, text: text, elapsed: elapsed, gap: gap)
+            apply(job, text: text, segment: segment, elapsed: elapsed, gap: gap)
         }
     }
 
-    private func apply(_ job: Job, text: String, elapsed: Double, gap: Double?) {
+    private func apply(_ job: Job, text: String, segment: Transcript?, elapsed: Double, gap: Double?) {
         let maximum = policy.maximumCharacters
         callbackLock.withLock {
             guard !stopped else { return }
@@ -407,6 +490,7 @@ public final class ModelPreviewSession: SpeechPreviewSession, Sendable {
                 case .commit(_, let end):
                     state.metrics.commits += 1
                     state.committed = String(ModelSpeechPreview.join(state.committed, text).suffix(maximum * 4))
+                    if let segment { state.segments.append(segment) }
                     let drop = min(state.segment.count, max(0, end - state.segmentStart))
                     state.segment.removeFirst(drop)
                     state.segmentStart += drop

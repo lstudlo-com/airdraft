@@ -134,7 +134,9 @@ extension DictationPipeline {
     }
 
     func process(samples: [Float], seconds: Double, context: AppContext, target: InsertionTarget?, token: UUID,
-                 snapshot: RecordingSnapshot, reviewOnly: Bool = false, delivery: DeliveryPolicy = .normal) async {
+                 snapshot: RecordingSnapshot, reviewOnly: Bool = false, delivery: DeliveryPolicy = .normal,
+                 live: (any LiveTranscriptSession)? = nil) async {
+        defer { live?.cancel() }
         guard isCurrent(token) else { return }
         let processingStarted = ProcessInfo.processInfo.systemUptime
         let stopRequested = stopRequestedAt
@@ -165,7 +167,7 @@ extension DictationPipeline {
 
         // 1. ASR
         guard let transcript = await transcribe(samples, context: context, target: target, token: token,
-                                                snapshot: snapshot, reviewOnly: reviewOnly) else { return }
+                                                snapshot: snapshot, reviewOnly: reviewOnly, live: live) else { return }
         guard isCurrent(token) else { return }
         refinementPreparation?.prefixTask?.cancel()
         lastIssue = nil
@@ -256,7 +258,8 @@ extension DictationPipeline {
     /// Recognises speech with the captured configuration. A failure keeps the
     /// audio for retry and returns nil, as does a session that is no longer current.
     func transcribe(_ samples: [Float], context: AppContext, target: InsertionTarget?, token: UUID,
-                    snapshot: RecordingSnapshot, reviewOnly: Bool) async -> Transcript? {
+                    snapshot: RecordingSnapshot, reviewOnly: Bool,
+                    live: (any LiveTranscriptSession)? = nil) async -> Transcript? {
         let asrConfig = snapshot.asr
         do {
             if let reason = snapshot.profile.speechModel?.unavailableReason {
@@ -266,6 +269,19 @@ extension DictationPipeline {
             try SpeechInputLimits.validate(sampleCount: samples.count, for: asrConfig.kind)
             startRefinementPreparation(context: context, snapshot: snapshot, token: token)
             let hints = speechHints(for: snapshot, language: language.language)
+            // AD-123: live text that matches the model and covered the whole
+            // recording is the transcript; otherwise transcribe it as before.
+            if let live {
+                let reused = await withTaskCancellationHandler {
+                    await live.finishTranscript(capture: samples)
+                } onCancel: { live.cancel() }
+                guard isCurrent(token) else { return nil }
+                if let reused {
+                    Self.log.notice("live text became the transcript engine=\(reused.engine, privacy: .public) finishMs=\(reused.latencyMs)")
+                    return reused
+                }
+                Self.log.notice("live text did not cover the recording; transcribing it again")
+            }
             // The factory prepares an unloaded model before inference (AD-081).
             SherpaTranscriber.anticipate(hints)
             return try await factory.transcribe(samples, hints: hints, config: asrConfig) { @MainActor [weak self] in

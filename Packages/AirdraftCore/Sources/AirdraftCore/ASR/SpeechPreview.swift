@@ -8,6 +8,18 @@ public protocol SpeechPreviewSession: Sendable {
     func cancel()
 }
 
+/// AD-123: live text that can stand in for the recording model's own output.
+/// When live text is expected to match what the model would produce for the whole
+/// recording, the pipeline takes it as the transcript instead of transcribing again.
+public protocol LiveTranscriptSession: SpeechPreviewSession {
+    /// Whether this session's text is expected to equal the recording model's output.
+    var reusesForTranscript: Bool { get }
+    /// Ends live text and returns the transcript for `capture`, the whole recording,
+    /// or nil when this session cannot stand in for the model (it does not match,
+    /// failed, was cancelled or missed audio). Delivers no text after it returns.
+    func finishTranscript(capture: [Float]) async -> Transcript?
+}
+
 /// Optional on-device feedback. This session never supplies the final transcript.
 public enum SpeechPreview {
     public static func start(

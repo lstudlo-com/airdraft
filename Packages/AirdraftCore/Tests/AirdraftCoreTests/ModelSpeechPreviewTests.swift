@@ -258,11 +258,99 @@ final class ModelSpeechPreviewTests: XCTestCase {
         XCTAssertEqual(ModelSpeechPreview.appleSpeechLocale(for: mandarin), "zh-CN")
     }
 
+    /// AD-123: committed windows plus the tail decoded at release are the transcript;
+    /// a busy engine never drops audio; failure, cancellation, a failed tail and a
+    /// display-only session give nil so the pipeline transcribes again.
+    func testLiveTextBecomesTranscriptOnlyWhenItCoversTheRecording() async throws {
+        do { // CommittedWindowsAndTailFormTheTranscript
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            let finals = FakeLiveFinals()
+            let events = PreviewEventLog()
+            let session = makeSession(clock: clock, decoder: decoder, events: events, finals: finals.finals)
+            defer { session.cancel() }
+            XCTAssertTrue(session.reusesForTranscript)
+
+            var audio = seconds(12, level: 0.3)
+            for index in 128_000..<129_600 { audio[index] = 0 }
+            session.append(audio)
+            try await waitUntil { session.metrics.commits == 1 }
+            XCTAssertEqual(finals.segments, [128_800], "The committed window goes through the guarded segment path")
+            try await waitUntil { events.texts.contains { $0.hasPrefix("shown128800") } }
+
+            // The recording ends a second later; the tail starts at the commit.
+            let capture = audio + seconds(1, level: 0.3)
+            let finished = await session.finishTranscript(capture: capture)
+            let transcript = try XCTUnwrap(finished)
+            XCTAssertEqual(transcript.text, "seg128800 tail\(capture.count - 128_800)")
+            XCTAssertEqual(transcript.engine, "fake-engine")
+            XCTAssertEqual(transcript.adjustments, [.repetitionTrimmed, .repetitionTrimmed])
+            XCTAssertEqual(finals.tails, [capture.count - 128_800])
+            let shown = events.texts.count
+            session.append(seconds(2))
+            try await clock.waitUntilTime(clock.now + 3)
+            XCTAssertEqual(events.texts.count, shown, "No live text after finishing")
+        }
+
+        do { // BusyEngineNeverDropsAudio
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.busy = true
+            let finals = FakeLiveFinals()
+            finals.busy = true
+            let session = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog(), finals: finals.finals)
+            defer { session.cancel() }
+            var capture: [Float] = []
+            for _ in 0..<25 { let second = seconds(1); capture += second; session.append(second) }
+            try await waitUntil { finals.segmentCalls >= 1 }
+            XCTAssertEqual(session.metrics.droppedSamples, 0)
+            let finished = await session.finishTranscript(capture: capture)
+            let transcript = try XCTUnwrap(finished)
+            XCTAssertEqual(transcript.text, "tail400000", "The whole recording is decoded at release")
+        }
+
+        do { // FailureCancellationFailedTailAndDisplayOnlyGiveNil
+            let clock = FakePreviewClock()
+            let decoder = FakePreviewDecoder(clock: clock, cost: 0.1)
+            decoder.failure = .invalidResponse
+            let failed = makeSession(clock: clock, decoder: decoder, events: PreviewEventLog(), finals: FakeLiveFinals().finals)
+            failed.append(seconds(1))
+            try await waitUntil { !failed.isActive }
+            let none = await failed.finishTranscript(capture: seconds(1))
+            XCTAssertNil(none, "A failed session cannot stand in for the model")
+
+            let cancelled = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0.1),
+                                        events: PreviewEventLog(), finals: FakeLiveFinals().finals)
+            cancelled.cancel()
+            let afterCancel = await cancelled.finishTranscript(capture: seconds(1))
+            XCTAssertNil(afterCancel)
+
+            let tailFails = FakeLiveFinals()
+            tailFails.tailFails = true
+            let failing = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0.1),
+                                      events: PreviewEventLog(), finals: tailFails.finals)
+            let afterTailFailure = await failing.finishTranscript(capture: seconds(1))
+            XCTAssertNil(afterTailFailure)
+
+            let displayOnly = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0.1),
+                                          events: PreviewEventLog())
+            XCTAssertFalse(displayOnly.reusesForTranscript)
+            let displayResult = await displayOnly.finishTranscript(capture: seconds(1))
+            XCTAssertNil(displayResult)
+
+            let trimmed = makeSession(clock: FakePreviewClock(), decoder: FakePreviewDecoder(clock: clock, cost: 0.1),
+                                      events: PreviewEventLog(), finals: FakeLiveFinals().finals)
+            let silentResult = await trimmed.finishTranscript(capture: [Float](repeating: 0, count: 8_000))
+            let silent = try XCTUnwrap(silentResult)
+            XCTAssertTrue(silent.isEmpty, "A silent tail is not decoded")
+        }
+    }
+
     // MARK: - Helpers
 
     private func makeSession(clock: FakePreviewClock, decoder: FakePreviewDecoder, events: PreviewEventLog,
-                             policy: ModelPreviewPolicy = .standard) -> ModelPreviewSession {
-        ModelSpeechPreview.start(policy: policy, decode: { try await decoder.decode($0) },
+                             policy: ModelPreviewPolicy = .standard, finals: ModelPreviewFinals? = nil) -> ModelPreviewSession {
+        ModelSpeechPreview.start(policy: policy, decode: { try await decoder.decode($0) }, finals: finals,
                                  onText: { events.addText($0) }, onIssue: { events.addIssue($0) },
                                  now: { clock.now }, sleep: { try await clock.sleep($0) })
     }
@@ -274,6 +362,43 @@ final class ModelSpeechPreviewTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(1))
         }
         XCTFail("Timed out", file: file, line: line)
+    }
+}
+
+/// AD-123: segment and tail decoders that record their window sizes.
+final class FakeLiveFinals: Sendable {
+    private struct State {
+        var segments: [Int] = []
+        var segmentCalls = 0
+        var tails: [Int] = []
+        var busy = false
+        var tailFails = false
+    }
+    private let state = Locked(State())
+    var segments: [Int] { state.value.segments }
+    var segmentCalls: Int { state.value.segmentCalls }
+    var tails: [Int] { state.value.tails }
+    var busy: Bool { get { state.value.busy } set { state.withLock { $0.busy = newValue } } }
+    var tailFails: Bool { get { state.value.tailFails } set { state.withLock { $0.tailFails = newValue } } }
+
+    var finals: ModelPreviewFinals {
+        ModelPreviewFinals(segment: { [self] samples in
+            let busy = state.withLock { state -> Bool in
+                state.segmentCalls += 1
+                if !state.busy { state.segments.append(samples.count) }
+                return state.busy
+            }
+            guard !busy else { return nil }
+            return (Transcript(text: "seg\(samples.count)", engine: "fake-engine", latencyMs: 1, adjustments: [.repetitionTrimmed]),
+                    "shown\(samples.count)")
+        }, tail: { [self] samples in
+            let fails = state.withLock { state -> Bool in
+                state.tails.append(samples.count)
+                return state.tailFails
+            }
+            if fails { throw TranscriberError.invalidResponse }
+            return Transcript(text: "tail\(samples.count)", engine: "fake-engine", latencyMs: 1, adjustments: [.repetitionTrimmed])
+        })
     }
 }
 

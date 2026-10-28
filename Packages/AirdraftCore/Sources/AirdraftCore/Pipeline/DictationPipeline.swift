@@ -124,6 +124,9 @@ public final class DictationPipeline {
     var previewSession: (any SpeechPreviewSession)?
     /// The session decodes with the recording's speech engine (AD-084).
     var previewUsesSpeechEngine = false
+    /// AD-123: set when the session's live text becomes the recording's transcript.
+    /// It keeps receiving the release grace and is handed to processing at stop.
+    var previewBecomesTranscript = false
     /// Identifies the preview session whose callbacks may still update the HUD.
     var previewGeneration = UUID()
     public typealias PreviewBuilder = @Sendable (String, @escaping @Sendable (String) -> Void, @escaping @Sendable (String) -> Void) -> any SpeechPreviewSession
@@ -392,6 +395,7 @@ public final class DictationPipeline {
         self.modelPreviewAvailability = modelPreviewAvailability
         self.modelPreviewBuilder = modelPreviewBuilder ?? { request, onText, onIssue in
             ModelSpeechPreview.start(decode: ModelSpeechPreview.decoder(factory: factory, request: request),
+                                     finals: ModelSpeechPreview.finals(factory: factory, request: request),
                                      onText: onText, onIssue: onIssue)
         }
         self.contextReader = contextReader ?? AppContextReader()

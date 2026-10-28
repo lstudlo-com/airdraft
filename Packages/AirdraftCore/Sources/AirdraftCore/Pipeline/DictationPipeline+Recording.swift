@@ -374,6 +374,7 @@ extension DictationPipeline {
         autoStopTask?.cancel()
         releaseTask?.cancel()
         stopping = false
+        let live = takeLiveTranscript()
         stopPreview()
         stopShiftMonitor()
         sessionSendLock = (generation, sendLocked)
@@ -389,6 +390,7 @@ extension DictationPipeline {
         recordingStartedAt = nil
 
         guard seconds >= Self.minimumRecordingSeconds else {
+            live?.cancel()
             discardRefinementPreparation()
             releaseSpeechSessionPin()
             set(.idle)
@@ -399,7 +401,7 @@ extension DictationPipeline {
         let token = generation
         let target = insertionTargetAtStart
         let delivery: DeliveryPolicy = practiceDeliveryAtStart ? .practice : .normal
-        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx, target: target, token: token, snapshot: snapshot, delivery: delivery) }
+        processingTask = Task { await process(samples: samples, seconds: seconds, context: ctx, target: target, token: token, snapshot: snapshot, delivery: delivery, live: live) }
     }
 
     public func cancel() {
@@ -533,7 +535,18 @@ extension DictationPipeline {
             previewUsesSpeechEngine = true
         }
         previewSession = session
+        previewBecomesTranscript = (session as? any LiveTranscriptSession)?.reusesForTranscript == true
         recorder.samplesHandler = { samples in session.append(samples) }
+    }
+
+    /// AD-123: detaches the session whose live text becomes the transcript, so
+    /// stopping preview does not cancel it; processing finishes or cancels it.
+    func takeLiveTranscript() -> (any LiveTranscriptSession)? {
+        guard previewBecomesTranscript, let live = previewSession as? any LiveTranscriptSession else { return nil }
+        recorder.samplesHandler = nil
+        previewSession = nil
+        previewBecomesTranscript = false
+        return live
     }
 
     /// Apply an explicit Off choice immediately without interrupting final capture.
@@ -543,7 +556,8 @@ extension DictationPipeline {
     /// during the release grace instead of delaying final inference. The last
     /// text stays visible until the recording state ends.
     func quiesceEnginePreview() {
-        guard previewUsesSpeechEngine else { return }
+        // Live text that becomes the transcript keeps decoding through the grace (AD-123).
+        guard previewUsesSpeechEngine, !previewBecomesTranscript else { return }
         previewGeneration = UUID()
         previewSession?.cancel()
         previewSession = nil
@@ -555,6 +569,7 @@ extension DictationPipeline {
         previewSession?.cancel()
         previewSession = nil
         previewUsesSpeechEngine = false
+        previewBecomesTranscript = false
         previewText = ""
         previewIssue = nil
         previewEnabledForRecording = false

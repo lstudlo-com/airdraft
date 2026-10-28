@@ -271,6 +271,29 @@ public actor EngineFactory {
         }
     }
 
+    /// AD-123: one committed live-text window decoded the way final transcription
+    /// decodes it (resolved language, the local output guards), but with preview's
+    /// priority: nil when the engine is not loaded or any lease operation is queued
+    /// or running, and cancelled by every other lease operation.
+    public func transcribeLiveSegment(_ samples: [Float], hints: TranscriptionHints, config: ASRConfig) async throws -> Transcript? {
+        guard ModelSpeechPreview.supports(config), !samples.isEmpty else { return nil }
+        var resolvedHints = hints
+        resolvedHints.language = try SpeechLanguagePolicy.resolve(config).language
+        let effectiveHints = resolvedHints
+        guard leaseOperations == 0, retiringLoads[config.engineID] == nil,
+              let engine = local[config.engineID] else { return nil }
+        return try await serialize(preview: true) { () async throws -> Transcript? in
+            guard await engine.isReady() else { return nil }
+            if let sherpa = engine as? SherpaTranscriber, !(await sherpa.isWarm(for: effectiveHints)) { return nil }
+            try Task.checkCancellation()
+            let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: samples,
+                                                                  hints: effectiveHints, config: config)
+            try Task.checkCancellation()
+            await self.markUsed(engine.id)
+            return result
+        }
+    }
+
     private func serialize<Value: Sendable>(preview: Bool = false,
                                             _ operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
         // Final inference, loading and unloading always take precedence over preview.
