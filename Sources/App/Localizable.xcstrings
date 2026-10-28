@@ -5567,6 +5567,34 @@
         }
       }
     },
+    "Becomes the transcript when it matches your model" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasa a ser la transcripción si coincide con tu modelo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルの出力と一致すると、そのまま書き起こしになります"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与模型输出一致时直接作为转写结果"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與模型輸出一致時直接作為逐字稿"
+          }
+        }
+      }
+    },
     "Behavior" : {
       "localizations" : {
         "es" : {
@@ -20832,34 +20860,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在這台 Mac 上執行。你可以在「模型」中更改或關閉。"
-          }
-        }
-      }
-    },
-    "On this Mac; final transcript unchanged" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En este Mac; la transcripción final no cambia"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この Mac 上で処理。最終的な文字起こしには影響しません"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在这台 Mac 上处理；不影响最终转录文本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在這台 Mac 上處理；不影響最終逐字稿"
           }
         }
       }

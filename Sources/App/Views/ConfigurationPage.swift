@@ -136,7 +136,7 @@ struct ConfigurationPage: View {
 
             PageSection("Live preview") {
                 SettingsCard {
-                    SettingRow(title: "Show text while speaking", subtitle: "On this Mac; final transcript unchanged") {
+                    SettingRow(title: "Show text while speaking", subtitle: "Becomes the transcript when it matches your model") {
                         Toggle("Show text while speaking", isOn: $settings.livePreviewEnabled).labelsHidden().toggleStyle(.softSwitch)
                     }
                     if settings.livePreviewEnabled || search.isSearching {
