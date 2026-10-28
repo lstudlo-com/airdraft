@@ -1361,6 +1361,34 @@
         }
       }
     },
+    "%@. Live text becomes the transcript, so it isn’t transcribed again." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. El texto en directo pasa a ser la transcripción, así que no se transcribe de nuevo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@。ライブテキストがそのまま書き起こしになるため、再度書き起こしません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@。实时文字直接成为转写结果，不会再转写一次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@。即時文字直接成為逐字稿，不會再轉錄一次。"
+          }
+        }
+      }
+    },
     "%@. Saved as Airdraft's default microphone. Finish the current operation before switching." : {
       "localizations" : {
         "es" : {
@@ -1385,6 +1413,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@。已儲存為 Airdraft 的預設麥克風。請先完成目前的作業再切換。"
+          }
+        }
+      }
+    },
+    "%@. Streams audio to %@ while you speak, then sends the recording again for the transcript, so it’s billed twice." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. Streams audio to %2$@ while you speak, then sends the recording again for the transcript, so it’s billed twice."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@. Envía el audio a %2$@ mientras hablas y después vuelve a enviar la grabación para la transcripción, así que se cobra dos veces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。話している間に音声を %2$@ へ送信し、書き起こしのために録音をもう一度送信するため、料金が 2 回かかります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。说话时会把音频串流到 %2$@，之后再发送一次录音以获得转写结果，因此会计费两次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。說話時會把音訊串流到 %2$@，之後再傳送一次錄音以取得逐字稿，因此會計費兩次。"
+          }
+        }
+      }
+    },
+    "%@. Streams audio to %@ while you speak; live text becomes the transcript." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. Streams audio to %2$@ while you speak; live text becomes the transcript."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@. Envía el audio a %2$@ mientras hablas; el texto en directo pasa a ser la transcripción."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。話している間に音声を %2$@ へ送信し、ライブテキストがそのまま書き起こしになります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。说话时会把音频串流到 %2$@，实时文字直接成为转写结果。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@。說話時會把音訊串流到 %2$@，即時文字直接成為逐字稿。"
           }
         }
       }
@@ -36244,6 +36340,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你使用的功能與引擎類型"
+          }
+        }
+      }
+    },
+    "With Selected speech model as the Live preview source, streams audio to the provider while you speak, then sends the recording again, so it’s billed twice" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con Modelo de voz seleccionado como fuente de la vista previa en directo, envía el audio al proveedor mientras hablas y después vuelve a enviar la grabación, así que se cobra dos veces"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブプレビューのソースが「選択した音声モデル」のとき、話している間に音声をプロバイダへ送信し、録音をもう一度送信するため、料金が 2 回かかります"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览来源为“所选语音模型”时，说话时会把音频串流到服务商，之后再发送一次录音，因此会计费两次"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽來源為「所選語音模型」時，說話時會把音訊串流到服務商，之後再傳送一次錄音，因此會計費兩次"
+          }
+        }
+      }
+    },
+    "With Selected speech model as the Live preview source, streams audio to the provider while you speak; live text becomes the transcript" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con Modelo de voz seleccionado como fuente de la vista previa en directo, envía el audio al proveedor mientras hablas; el texto en directo pasa a ser la transcripción"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブプレビューのソースが「選択した音声モデル」のとき、話している間に音声をプロバイダへ送信し、ライブテキストがそのまま書き起こしになります"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时预览来源为“所选语音模型”时，说话时会把音频串流到服务商，实时文字直接成为转写结果"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時預覽來源為「所選語音模型」時，說話時會把音訊串流到服務商，即時文字直接成為逐字稿"
           }
         }
       }

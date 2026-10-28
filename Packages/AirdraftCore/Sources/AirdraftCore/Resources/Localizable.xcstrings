@@ -6532,6 +6532,90 @@
         }
       }
     },
+    "Live text needs the %@ API key. Add it in Models." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El texto en directo necesita la clave de API de %@. Añádela en Modelos."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストには %@ の API キーが必要です。「モデル」で追加してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字需要 %@ 的 API 密钥。请在“模型”中添加。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字需要 %@ 的 API 金鑰。請在「模型」中新增。"
+          }
+        }
+      }
+    },
+    "Live text stopped: %@ Your recording continues." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El texto en directo se detuvo: %@ La grabación continúa."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストが停止しました：%@ 録音は続いています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字已停止：%@ 录音会继续。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字已停止：%@ 錄音會繼續。"
+          }
+        }
+      }
+    },
+    "Live transcript in Transcribe uses on-device models. Choose one in Models, or Apple Speech as the preview source." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La transcripción en directo de Transcribir usa modelos del dispositivo. Elige uno en Modelos, o Apple Speech como fuente de la vista previa."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「文字起こし」のライブ書き起こしはデバイス上のモデルを使います。「モデル」で選ぶか、プレビューのソースに Apple Speech を選んでください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“转录”的实时转写使用设备上的模型。请在“模型”中选择一个，或将预览来源设为 Apple Speech。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「轉錄」的即時逐字稿使用裝置上的模型。請在「模型」中選擇一個，或將預覽來源設為 Apple Speech。"
+          }
+        }
+      }
+    },
     "Live transcript unavailable: %@" : {
       "localizations" : {
         "es" : {
@@ -11320,6 +11404,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法驗證授權回應。已保留你儲存的授權。"
+          }
+        }
+      }
+    },
+    "The live text connection closed early." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La conexión del texto en directo se cerró antes de tiempo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストの接続が途中で切れました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字的连接提前关闭了。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字的連線提前關閉了。"
+          }
+        }
+      }
+    },
+    "The live text service sent an unexpected reply." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servicio de texto en directo envió una respuesta inesperada."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブテキストのサービスから予期しない応答がありました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时文字服务返回了意外的回复。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時文字服務傳回了非預期的回覆。"
           }
         }
       }

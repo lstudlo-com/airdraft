@@ -539,8 +539,19 @@ struct CloudModelRow: View {
         return ModelLanguageInfo.make(id: pinID, title: model.title, config: config)
     }
 
+    /// The current speech settings pointed at this row's model, so live text is
+    /// judged with the language the recording would use.
+    private var rowConfig: ASRConfig {
+        var config = container.settings.asr
+        config.select(preset.kind)
+        config.selectModel(model.id)
+        return config
+    }
+
     var body: some View {
         let selected = container.settings.asr.kind == preset.kind && container.settings.asr.model == model.id
+        let live = ModelSpeechPreview.showsLiveText(rowConfig)
+            ? (ModelSpeechPreview.liveTextBecomesTranscript(rowConfig) ? LiveTextBadge.Cloud.becomesTranscript : .billedTwice) : nil
         let languages = languageInfo
         ModelComparisonColumns {
             HStack(spacing: 4) {
@@ -553,13 +564,15 @@ struct CloudModelRow: View {
                         Text(model.title).appFont(.body, weight: .medium)
                         Text(preset.name).supportingText()
                         ModelLanguageTag(info: languages)
+                        if let live { LiveTextBadge(cloud: live) }
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 // The language tag and pin are controls of their own; VoiceOver
                 // reaches the language list through the Show Languages action.
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
+                .accessibilityLabel(String(localized: "\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
+                                    + (live == nil ? "" : ", " + String(localized: "Live text")))
                 .accessibilityValue(selected ? "Selected" : "Not selected")
                 .accessibilityAddTraits(.isButton)
                 .accessibilityAction { choose() }
@@ -723,12 +736,24 @@ struct ModelPinButton: View {
 
 /// Marks a speech model that shows text while you speak (AD-108).
 struct LiveTextBadge: View {
+    /// AD-123: what a cloud model's live text costs; nil for on-device models.
+    enum Cloud { case becomesTranscript, billedTwice }
+    var cloud: Cloud?
+
     var body: some View {
         Text("\(Image(systemName: "text.bubble.fill")) Live text")
             .appFont(.supporting, weight: .semibold)
             .foregroundStyle(Color.accentColor)
-            .help("Shows text while you speak when Live preview uses Selected speech model")
+            .help(help)
             .accessibilityHidden(true)
+    }
+
+    private var help: String {
+        switch cloud {
+        case nil: String(localized: "Shows text while you speak when Live preview uses Selected speech model")
+        case .becomesTranscript?: String(localized: "With Selected speech model as the Live preview source, streams audio to the provider while you speak; live text becomes the transcript")
+        case .billedTwice?: String(localized: "With Selected speech model as the Live preview source, streams audio to the provider while you speak, then sends the recording again, so it’s billed twice")
+        }
     }
 }
 
