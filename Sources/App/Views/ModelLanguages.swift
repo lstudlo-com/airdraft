@@ -40,8 +40,10 @@ struct ModelLanguageInfo: Identifiable, Equatable {
     var label: String {
         if let codes {
             if codes.count == 1 {
-                return String(localized: "\(SpeechLanguagePolicy.languageLabel(codes[0])) only",
-                              comment: "Tag on a speech model that recognizes one language, such as English only")
+                // The name in its mid-sentence form ("Solo inglés"); only the tag's start is capitalized.
+                return SpeechLanguagePolicy.startingWithCapital(
+                    String(localized: "\(SpeechLanguagePolicy.languageName(codes[0])) only",
+                           comment: "Tag on a speech model that recognizes one language, such as English only"))
             }
             return String(localized: "\(codes.count) languages",
                           comment: "Tag on a speech model: how many languages it recognizes")
