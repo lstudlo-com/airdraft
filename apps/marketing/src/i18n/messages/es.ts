@@ -141,39 +141,21 @@ export const es: Messages = {
     placeholder: "El texto aparece aquí cuando sueltas.",
   },
   meetings: {
-    title: "Transcribe audio y vídeo en tu Mac",
+    title: "Convierte cualquier grabación en texto",
     intro:
-      "Graba una llamada, una clase o el audio de cualquier app, o importa un archivo, y obtén una transcripción con hablantes.",
+      "Graba una app o importa un archivo, y tu Mac lo transcribe por hablante.",
     sample: "Transcripción de ejemplo",
-    meeting: "Revisión de diseño",
-    meta: "21 oct · 32:14 · Whisper Large v3 Turbo",
+    meeting: "Entrevista de pódcast",
+    meta: "21 oct · 42:18 · Whisper Large v3 Turbo",
     turns: [
-      [1, "0:12", "Publiquemos los cambios del onboarding el jueves."],
-      [2, "0:31", "Entonces actualizo las capturas antes del lanzamiento."],
+      [1, "0:02", "¿Y por qué grabas todas tus conversaciones?"],
+      [2, "0:06", "Siempre olvidaba lo que me decía la gente."],
+      [1, "0:13", "¿Y ahora?"],
+      [2, "0:15", "Ahora las busco como si fueran correos."],
     ],
-    points: [
-      [
-        "Graba cualquier app",
-        "Una app o todas, y tu micrófono si quieres. Sin vídeo de la pantalla.",
-      ],
-      [
-        "O importa un archivo",
-        "Audio o vídeo de hasta dos horas, con una pista de audio.",
-      ],
-      [
-        "Hablantes, estimados en local",
-        "Etiquetas de hablante opcionales que puedes renombrar y reasignar.",
-      ],
-      [
-        "Local, salvo que elijas la nube",
-        "Un modelo local deja el audio aquí; Soniox lo sube solo después de que confirmes.",
-      ],
-      [
-        "Edita, resume y exporta",
-        "Conserva el original junto a tus cambios, añade un resumen o las tareas pendientes y exporta TXT, JSON, SRT o VTT.",
-      ],
-    ],
-    guide: "Leer la guía de reuniones",
+    play: "Reproducir ejemplo",
+    export: "Exportar",
+    guide: "Guía de transcripción",
   },
   interface: {
     title: "Una interfaz que da gusto abrir",

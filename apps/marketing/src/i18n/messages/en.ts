@@ -132,39 +132,21 @@ export const en: Messages = {
     placeholder: "The text appears here when you let go.",
   },
   meetings: {
-    title: "Transcribe audio and video on your Mac",
+    title: "Turn any recording into a transcript",
     intro:
-      "Record a call, a lecture or any app’s audio, or import a file, and get a transcript with speakers.",
+      "Record any app or import a file. Your Mac writes it out, speaker by speaker.",
     sample: "Sample transcript",
-    meeting: "Design review",
-    meta: "Oct 21 · 32:14 · Whisper Large v3 Turbo",
+    meeting: "Podcast interview",
+    meta: "Oct 21 · 42:18 · Whisper Large v3 Turbo",
     turns: [
-      [1, "0:12", "Let’s ship the onboarding changes on Thursday."],
-      [2, "0:31", "Then I’ll update the screenshots before the release."],
+      [1, "0:02", "So why record every conversation?"],
+      [2, "0:06", "I kept forgetting what people told me."],
+      [1, "0:13", "And now?"],
+      [2, "0:15", "Now I search them like email."],
     ],
-    points: [
-      [
-        "Record any app",
-        "One app or all apps, with your microphone if you like. No screen video.",
-      ],
-      [
-        "Or import a file",
-        "Audio or video up to two hours, with one audio track.",
-      ],
-      [
-        "Speakers, estimated locally",
-        "Optional speaker labels you can rename and reassign.",
-      ],
-      [
-        "Local unless you choose cloud",
-        "A local model keeps the audio here; Soniox uploads only after you confirm.",
-      ],
-      [
-        "Edit, summarize, export",
-        "Keep the original beside your edits, add a summary or action items, and export TXT, JSON, SRT or VTT.",
-      ],
-    ],
-    guide: "Read the Meeting Guide",
+    play: "Play sample",
+    export: "Export",
+    guide: "Transcription guide",
   },
   interface: {
     title: "An interface you’ll love to open",

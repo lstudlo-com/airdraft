@@ -1,161 +1,221 @@
-/* Meetings on the homepage (MeetingsSection.astro): a transcript card from
-   the app's Meetings page beside a grooved list of what the feature does.
-   Both are raised panels on the island; the player's track and the speaker
-   chips are recessed, as in the app. */
+/* Transcribe on the homepage (MeetingsSection.astro): one raised transcript
+   panel. The recording lies in a recessed well as one lane of Home waveform
+   bars per speaker (HomeHero's raised bars; the first speaker in the caret's
+   deeper tone so the two read apart without a hue), and the turns sit on
+   the panel below it. While the sample runs (src/scripts/meetings.ts) the
+   accent playhead marks progress: bars ahead of it lie flat and turns ahead
+   of it wait unseen, so nothing reflows. The resting CSS is the finished
+   transcript. */
 @layer components {
-  .meetings {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
-  }
-  .meeting-card,
-  .meeting-points {
+  .transcript {
     padding: 28px;
   }
-  .meeting-head {
+  .transcript-head {
     display: flex;
     align-items: flex-start;
     gap: 12px;
   }
-  .meeting-head .status-dot {
+  /* Centred on the title's first line. */
+  .transcript-head .status-dot {
     margin-top: 9px;
   }
-  .meeting-title {
+  .transcript-name {
+    flex: 1;
+    min-width: 0;
+  }
+  .transcript-title {
     font-size: var(--step-2);
     font-weight: 600;
     line-height: 1.3;
   }
-  .meeting-meta {
+  .transcript-meta {
     margin-top: 2px;
     color: var(--muted);
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
   }
-  /* The player row: a raised play key, a recessed track with its stage fill
-     clipped inside, and the rounded timer face. */
-  .meeting-player {
+  /* The metadata wraps between its parts, never inside a model name. */
+  .transcript-meta > span {
+    white-space: nowrap;
+  }
+  /* The status dot reads busy while the sample transcribes, done at rest. */
+  .transcript.is-partial .status-dot {
+    background: var(--status-busy);
+  }
+  .transcript-glyph-pause {
+    display: none;
+  }
+  .transcript.is-playing .transcript-glyph-play {
+    display: none;
+  }
+  .transcript.is-playing .transcript-glyph-pause {
+    display: block;
+  }
+
+  /* The recording: speaker lanes in one recessed well. */
+  .lanes {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 16px;
+    margin-top: 24px;
+    padding: 8px 20px;
+    border-radius: var(--radius-well);
+    background: var(--well);
+    box-shadow: var(--sink-soft);
+    user-select: none;
+  }
+  .lane {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    height: 48px;
+  }
+  .lane-name {
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .lane-bars {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-top: 22px;
-  }
-  .meeting-play {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-control);
-    background: var(--fill-control);
-    box-shadow: var(--edge), var(--raise-control);
-  }
-  .meeting-track {
-    flex: 1;
-    height: 8px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: var(--well);
-    box-shadow: var(--sink-track);
-  }
-  /* The fill is the track's full width, slid left so --played of it shows:
-     playback (src/scripts/meetings.ts) moves it without reflowing. Its
-     resting share is the 0:31 frame. */
-  .meeting-track b {
-    display: block;
-    width: 100%;
+    justify-content: space-between;
+    gap: 2px;
     height: 100%;
-    border-radius: inherit;
+  }
+  /* The lane's quiet baseline, where this speaker isn't talking. */
+  .lane-bars::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc(50% - 0.5px);
+    height: 1px;
+    background: color-mix(in srgb, var(--muted), transparent 80%);
+  }
+  .lane-bars i {
+    flex: 1 1 0;
+    position: relative;
+    min-width: 2px;
+    max-width: 4px;
+    height: calc(var(--h) * 36px);
+    border-radius: 999px;
     background: var(--fill-bar);
-    box-shadow: var(--raise-small);
-    translate: calc((var(--played, 0.32) - 1) * 100%) 0;
+    box-shadow:
+      inset 0.75px 0.75px 0 color-mix(in srgb, var(--rim), var(--light) 60%),
+      1px 1.5px 3px var(--shade-deep),
+      -1px -1px 2.5px var(--light);
+    transition:
+      transform 280ms var(--ease-out),
+      opacity 280ms ease;
   }
-  .meeting-time {
-    font-family: var(--font-rounded);
-    font-size: var(--step--1);
-    font-variant-numeric: tabular-nums;
-    color: var(--muted);
+  .lane[data-speaker="1"] .lane-bars i {
+    background: var(--fill-caret);
   }
-  .meeting-turns {
-    margin-top: 22px;
+  /* Where the other speaker talks, this lane keeps the column empty. */
+  .lane-bars i.is-rest {
+    visibility: hidden;
+  }
+  .lane-bars i.is-ahead:not(.is-rest) {
+    opacity: 0.45;
+    transform: scaleY(0.1);
+  }
+  /* The playhead: the lane's full width, slid so its leading edge sits at
+     --p of the recording; its line is the accent, the site's progress mark.
+     Each lane draws its own line, and the lanes touch, so they read as one. */
+  .lane-head {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    translate: calc(var(--p, 1) * 100%) 0;
+    transition: opacity 240ms ease;
+  }
+  .lane-head::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -1px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+  }
+  .transcript.is-partial .lane-head {
+    opacity: 1;
+  }
+
+  /* The turns share one grid, so speakers, times and text line up. */
+  .turns {
+    display: grid;
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 16px;
+    margin-top: 24px;
     padding: 0;
     list-style: none;
   }
-  .meeting-turns li {
-    padding-block: 18px;
-    box-shadow: var(--groove);
+  .turns li {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: baseline;
+    transition:
+      opacity 420ms ease,
+      translate 420ms var(--ease-out);
   }
-  .meeting-turns li:last-child {
-    padding-bottom: 0;
+  .turns li.is-ahead {
+    opacity: 0;
+    translate: 0 8px;
   }
-  .meeting-speaker {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .turn-speaker i {
+    width: 3px;
+    height: 11px;
+    border-radius: 2px;
+    background: var(--fill-bar);
   }
-  .meeting-stamp {
+  .turn-speaker[data-speaker="1"] i {
+    background: var(--fill-caret);
+  }
+  .turn-time {
+    color: var(--muted);
     font-family: var(--font-rounded);
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
-    color: var(--muted);
   }
-  .meeting-turns p {
-    margin-top: 10px;
+  .turns p {
     font-size: var(--step-1);
     line-height: 1.5;
   }
-  .meeting-points dl > div + div {
-    margin-top: 16px;
-    padding-top: 16px;
+
+  .transcript-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 28px;
+    padding-top: 20px;
     box-shadow: var(--groove);
   }
-  .meeting-points dt {
-    font-weight: 600;
-  }
-  .meeting-points dd {
-    margin-top: 4px;
+  .transcript-export {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
     color: var(--muted);
+    font-size: var(--step--1);
   }
-  .meeting-points .key {
-    margin-top: 18px;
+  .transcript-export > span:first-child {
+    margin-inline-end: 4px;
   }
 
-  /* The working player. The play key shows pause while playing, as the
-     app's does, and sinks into a well while pressed; timestamps play from
-     their point, so they take the pointer. Without JavaScript the player
-     is a still frame. */
-  .meeting-glyph-pause {
-    display: none;
-  }
-  .meeting-card.is-playing .meeting-glyph-play {
-    display: none;
-  }
-  .meeting-card.is-playing .meeting-glyph-pause {
-    display: block;
-  }
-  .meeting-card.is-live .meeting-play,
-  .meeting-card.is-live .meeting-stamp {
+  /* With JavaScript the times and the lanes seek, and the key plays. */
+  .transcript.is-live .turn-time,
+  .transcript.is-live .lane-bars {
     cursor: pointer;
   }
-  .meeting-play {
-    transition:
-      background 120ms ease,
-      box-shadow 120ms ease,
-      translate 120ms ease;
-  }
-  .meeting-card.is-live .meeting-play:hover {
-    background: linear-gradient(
-      135deg,
-      var(--control-hover-top),
-      var(--control-bottom)
-    );
-  }
-  .meeting-card.is-live .meeting-play:active {
-    translate: 0.5px 1px;
-    background: var(--pressed);
-    box-shadow: var(--press-small);
-  }
-  .meeting-stamp {
+  .turn-time {
     margin: -3px -6px;
     padding: 3px 6px;
     border-radius: 6px;
@@ -164,27 +224,40 @@
       background 120ms ease,
       box-shadow 120ms ease;
   }
-  .meeting-card.is-live .meeting-stamp:hover {
+  .transcript.is-live .turn-time:hover {
     color: var(--ink);
   }
-  .meeting-card.is-live .meeting-stamp:active {
+  .transcript.is-live .turn-time:active {
     background: var(--pressed);
     box-shadow: var(--press-small);
   }
 }
 
 @layer responsive {
-  @media (max-width: 1000px) {
-    .meetings {
-      grid-template-columns: minmax(0, 1fr);
-      max-width: 640px;
-      margin-inline: auto;
-    }
-  }
   @media (max-width: 700px) {
-    .meeting-card,
-    .meeting-points {
+    .transcript {
       padding: 22px;
+    }
+    .lanes {
+      column-gap: 12px;
+      padding-inline: 14px;
+    }
+    .lane {
+      height: 44px;
+    }
+    /* Half the columns, so the bars keep their width. */
+    .lane-bars i:nth-of-type(even) {
+      display: none;
+    }
+    .turns {
+      grid-template-columns: max-content minmax(0, 1fr);
+      row-gap: 18px;
+    }
+    .turns li {
+      row-gap: 6px;
+    }
+    .turns p {
+      grid-column: 1 / -1;
     }
   }
 }

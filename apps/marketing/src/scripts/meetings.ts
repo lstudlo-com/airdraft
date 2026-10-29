@@ -1,71 +1,67 @@
-// The Transcribe card's player (components/MeetingsSection.astro), as the
-// app's transcript editor has it: the play key toggles playback, and a
-// timestamp plays from that point. The sample has no audio, so nothing is
-// heard; the playhead and clock move six times faster than real time so the
-// short sample reads at a glance.
+// The Transcribe panel (components/MeetingsSection.astro): the sample
+// recording turns into its transcript. An accent playhead crosses the
+// speaker lanes, each bar rises as the playhead reaches it, and each turn
+// appears when its speaker starts. Nothing is heard; the sample runs three
+// times faster than real time so its 20 seconds read at a glance.
 //
-// It plays once when the card is mostly on screen, from 0:00 to the resting
-// frame (0:31, the card's CSS). Later playback runs to the end of the
-// sample's speech and stops. Leaving the screen pauses it. With reduced
-// motion it never plays by itself and the playhead jumps instead of moving:
-// a timestamp moves it to that point, the play key to the end.
+// It runs once when the panel is on screen and rests on the finished
+// transcript. Leaving the screen finishes it, so the panel never rests half
+// written. Afterwards the play key runs it again (and pauses it), a turn's
+// time runs it from that turn, and a click on the lanes runs it from there.
+// With reduced motion nothing runs and the key stays hidden; without
+// JavaScript the panel is the finished frame.
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-const player = document.querySelector<HTMLElement>("[data-meeting-player]");
-const card = player?.closest<HTMLElement>(".meeting-card");
-if (player && card) setup(player, card);
+const card = document.querySelector<HTMLElement>("[data-transcript]");
+if (card && !reduced.matches) setup(card);
 
-function setup(player: HTMLElement, card: HTMLElement) {
-  const play = player.querySelector<HTMLElement>("[data-meeting-play]")!;
-  const track = player.querySelector<HTMLElement>("[data-meeting-track]")!;
-  const clock = player.querySelector<HTMLElement>("[data-meeting-time]")!;
-  const stamps = [...card.querySelectorAll<HTMLElement>("[data-seek]")];
-  const seconds = (stamp: string) => {
-    const [minutes, rest] = stamp.split(":").map(Number);
-    return minutes * 60 + rest;
-  };
-  // The resting frame: 0:31 with the playhead at 32% (meetings.css), so the
-  // track spans about 97 seconds of the sample.
-  const resting = seconds(clock.textContent?.trim() ?? "0:31");
-  const span = resting / 0.32;
-  // Playback ends 15 seconds after the last passage starts.
-  const end =
-    Math.max(...stamps.map((s) => seconds(s.dataset.seek ?? "0"))) + 15;
-  const speed = 6;
+function setup(card: HTMLElement) {
+  const end = Number(card.dataset.end);
+  const play = card.querySelector<HTMLButtonElement>("[data-transcript-play]")!;
+  const lanes = card.querySelector<HTMLElement>("[data-lanes]")!;
+  const bars = [...lanes.querySelectorAll<HTMLElement>("[data-t]")].map(
+    (bar) => ({ bar, t: Number(bar.dataset.t) }),
+  );
+  const turns = [...card.querySelectorAll<HTMLElement>("[data-at]")].map(
+    (turn) => ({ turn, t: Number(turn.dataset.at) }),
+  );
+  const speed = 3;
 
-  let time = resting;
-  let stopAt = end;
+  let time = end;
   let frame = 0;
   let last = 0;
-  let visible = false;
   let played = false;
+  let visible = false;
 
-  const format = (value: number) => {
-    const whole = Math.floor(value);
-    return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
-  };
+  // Only what crosses the playhead changes, so a frame touches a few nodes.
   const draw = () => {
-    // The fill slides inside its track (meetings.css); nothing reflows.
-    track.style.setProperty("--played", Math.min(1, time / span).toFixed(4));
-    clock.textContent = format(time);
+    card.style.setProperty("--p", (time / end).toFixed(4));
+    for (const { bar, t } of bars) bar.classList.toggle("is-ahead", t > time);
+    for (const { turn, t } of turns)
+      turn.classList.toggle("is-ahead", t > time);
+    card.classList.toggle("is-partial", time < end);
   };
   const pause = () => {
     cancelAnimationFrame(frame);
     frame = 0;
     card.classList.remove("is-playing");
   };
+  const finish = () => {
+    pause();
+    time = end;
+    draw();
+  };
   const tick = (now: number) => {
-    time = Math.min(stopAt, time + ((now - last) / 1000) * speed);
+    time = Math.min(end, time + ((now - last) / 1000) * speed);
     last = now;
     draw();
-    if (time >= stopAt) return pause();
+    if (time >= end) return pause();
     frame = requestAnimationFrame(tick);
   };
-  const start = (from: number, to = end) => {
+  const start = (from: number) => {
     pause();
+    played = true;
     time = from;
-    stopAt = to;
-    if (reduced.matches) return draw();
     draw();
     card.classList.add("is-playing");
     last = performance.now();
@@ -73,38 +69,52 @@ function setup(player: HTMLElement, card: HTMLElement) {
   };
 
   card.classList.add("is-live");
+  play.hidden = false;
 
   play.addEventListener("click", () => {
-    played = true;
     if (frame) return pause();
-    // With reduced motion the playhead jumps to where playback would end.
-    if (reduced.matches) {
-      time = time >= end ? 0 : end;
-      return draw();
-    }
     start(time >= end ? 0 : time);
   });
-  for (const stamp of stamps) {
-    stamp.addEventListener("click", () => {
-      played = true;
-      start(seconds(stamp.dataset.seek ?? "0"));
+  for (const { turn, t } of turns) {
+    turn.querySelector("[data-seek]")?.addEventListener("click", () => {
+      start(t);
     });
   }
+  lanes.addEventListener("click", (event) => {
+    const track = (event.target as Element).closest(".lane-bars");
+    if (!track) return;
+    const box = track.getBoundingClientRect();
+    const share = (event.clientX - box.left) / box.width;
+    start(Math.max(0, Math.min(1, share)) * end);
+  });
 
+  // The panel goes blank only as it nears the screen, and rests finished
+  // again if the visitor turns back before it plays, so nobody meets a
+  // half-written transcript.
+  new IntersectionObserver(
+    ([entry]) => {
+      if (played) return;
+      if (!entry.isIntersecting) return finish();
+      time = 0;
+      draw();
+    },
+    { rootMargin: "0px 0px 30% 0px" },
+  ).observe(card);
+  // It plays once it is well on screen, and leaving the screen finishes it.
   new IntersectionObserver(
     ([entry]) => {
       visible = entry.isIntersecting;
-      if (!visible) return pause();
-      if (played || reduced.matches || entry.intersectionRatio < 0.6) return;
+      if (!visible) return played ? finish() : undefined;
+      if (played) return;
       played = true;
-      // Once the card has risen (motion.css), play the sample to its rest.
-      window.setTimeout(() => visible && start(0, resting), 300);
+      // Let the panel rise first (motion.css), then transcribe.
+      window.setTimeout(() => visible && !frame && start(0), 450);
     },
-    { threshold: [0, 0.6] },
+    { rootMargin: "0px 0px -25% 0px" },
   ).observe(card);
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) pause();
+    if (document.hidden) finish();
   });
 }
 

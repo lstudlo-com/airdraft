@@ -120,7 +120,8 @@ export interface Messages {
     meeting: string;
     meta: string;
     turns: [number, string, string][];
-    points: [string, string][];
+    play: string;
+    export: string;
     guide: string;
   };
   interface: {
