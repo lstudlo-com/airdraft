@@ -280,6 +280,8 @@ export const es: Messages = {
     atCursor: "En tu cursor",
     insertionLine:
       "El vocabulario corrige los nombres al final y luego el texto entra en la app en la que escribes.",
+    heard: "eh nos vemos en cooper tino a las nueve",
+    refined: "Nos vemos en cooper tino a las nueve.",
     fix: ["Nos vemos en", "a las nueve."],
   },
   get: {

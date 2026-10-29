@@ -180,6 +180,12 @@ export interface Messages {
     refinementPlan: string;
     atCursor: string;
     insertionLine: string;
+    /** What speech recognition hears: lowercase, with a filler word and
+     * the name misheard as "cooper tino". Words are split on spaces. */
+    heard: string;
+    /** The same words after refinement: filler gone, punctuated, the name
+     * still misheard (the vocabulary fixes it last). */
+    refined: string;
     /** The vocabulary sample around the corrected name. */
     fix: [string, string];
   };

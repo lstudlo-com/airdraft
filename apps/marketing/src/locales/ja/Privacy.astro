@@ -21,24 +21,38 @@ import Button from "../../components/ui/Button.astro";
     の公式ダウンロードは、匿名の使用状況の集計とクラッシュレポートを送信できますが、それは「匿名の使用状況データを共有」を選んだ場合だけです。アプリは初回設定の「準備完了」ステップか「ホーム」で一度だけ尋ね、回答するまで何も送信しません。ソースからビルドしたアプリは、使用状況データもクラッシュレポートも送信しません。
   </p>
   <p>同意した場合、アプリが送信するのは次のイベントだけです。</p>
-  <ul>
+  <ul class="guide-facts">
     <li>
-      <strong>アプリの起動</strong>：アプリのバージョンとビルド、macOS
+      <strong>
+        アプリの起動<span class="visually-hidden">：</span>
+      </strong>{" "}
+      アプリのバージョンとビルド、macOS
       のメジャーバージョン、プロセッサの種類、インターフェイスの言語、ライセンスの状態（試用中、ライセンスあり、期限切れ、なし）。
     </li>
     <li>
-      <strong>設定の完了</strong>：完了したか、スキップしたか。
+      <strong>
+        設定の完了<span class="visually-hidden">：</span>
+      </strong>{" "}
+      完了したか、スキップしたか。
     </li>
     <li>
-      <strong>音声入力の完了</strong>：音声エンジンの系統と、Mac
+      <strong>
+        音声入力の完了<span class="visually-hidden">：</span>
+      </strong>{" "}
+      音声エンジンの系統と、Mac
       上かオンラインか、整形のプロバイダの種類、内蔵のモードか「カスタム」か、録音の長さと停止から入力までの時間（範囲）、入力の状態、整形が適用されたか元の文字起こしに戻ったか。
     </li>
     <li>
-      <strong>音声入力の失敗</strong>
-      ：権限、モデルがない、キーがない、音声認識のエラー、入力の失敗などの分類。キャンセルした音声入力は報告されません。
+      <strong>
+        音声入力の失敗<span class="visually-hidden">：</span>
+      </strong>
+      権限、モデルがない、キーがない、音声認識のエラー、入力の失敗などの分類。キャンセルした音声入力は報告されません。
     </li>
     <li>
-      <strong>モデルのダウンロードの終了</strong>：Airdraft
+      <strong>
+        モデルのダウンロードの終了<span class="visually-hidden">：</span>
+      </strong>{" "}
+      Airdraft
       の内蔵カタログでのモデルの識別子と、ダウンロードが成功したか、失敗したか、キャンセルされたか。
     </li>
     <li>
@@ -46,16 +60,22 @@ import Button from "../../components/ui/Button.astro";
       （「文字起こし」ページ）：長さ（範囲）と音声エンジンの系統。
     </li>
     <li>
-      <strong>ライセンスのイベント</strong>
-      ：試用の開始、またはライセンスのアクティベート。
+      <strong>
+        ライセンスのイベント<span class="visually-hidden">：</span>
+      </strong>
+      試用の開始、またはライセンスのアクティベート。
     </li>
     <li>
-      <strong>使用状況データの選択</strong>
-      ：共有をオンにしたとき、およびオフにしたときに一度。
+      <strong>
+        使用状況データの選択<span class="visually-hidden">：</span>
+      </strong>
+      共有をオンにしたとき、およびオフにしたときに一度。
     </li>
     <li>
-      <strong>クラッシュレポート</strong>
-      ：エラーの種類、スタックフレーム、問題の箇所を特定するのに必要な読み込み済みのシステムとアプリのライブラリ。ファイルパスからユーザ名は取り除かれます。
+      <strong>
+        クラッシュレポート<span class="visually-hidden">：</span>
+      </strong>
+      エラーの種類、スタックフレーム、問題の箇所を特定するのに必要な読み込み済みのシステムとアプリのライブラリ。ファイルパスからユーザ名は取り除かれます。
     </li>
   </ul>
   <p>

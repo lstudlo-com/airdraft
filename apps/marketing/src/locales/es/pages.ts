@@ -6,6 +6,7 @@ export const es: PageCopy = {
     home: "Inicio",
     guides: "Guías",
     related: "Guías relacionadas",
+    onThisPage: "En esta página",
   },
   notFound: {
     title: "Página no encontrada | Airdraft",

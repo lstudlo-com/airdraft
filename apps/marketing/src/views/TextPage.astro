@@ -2,13 +2,17 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import GuideToc from "../components/GuideToc.astro";
 import Section from "../components/ui/Section.astro";
 import type { Breadcrumb } from "../lib/seo";
+import { localeOf } from "../i18n";
+import { pages } from "../locales";
 import "../styles/guides.css";
 
 /**
  * A text page (Support, Privacy, the guide hub) in any language: the title
- * alone, then sections (GuideSection) or the page's own content.
+ * alone, then sections (GuideSection) or the page's own content. With three
+ * or more sections, "On this page" sits beside them (GuideToc).
  */
 interface Props {
   title: string;
@@ -17,16 +21,25 @@ interface Props {
   breadcrumbs?: Breadcrumb[];
 }
 const { title, description, heading, breadcrumbs } = Astro.props;
+const locale = localeOf(Astro.url.pathname);
+const body = await Astro.slots.render("default");
 ---
 
 <Layout title={title} description={description} breadcrumbs={breadcrumbs}>
   <SiteHeader />
   <main id="main" class="island subpage">
     <Section level={1} first title={heading}>
-      <div class="guide-article">
-        <slot />
+      <div class="guide-layout">
+        <GuideToc html={body} label={pages[locale].chrome.onThisPage} />
+        <div class="guide-article">
+          <Fragment set:html={body} />
+        </div>
       </div>
     </Section>
   </main>
   <SiteFooter />
 </Layout>
+
+<script>
+  import "../scripts/guide-toc";
+</script>

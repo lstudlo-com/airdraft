@@ -6,7 +6,11 @@ import { href, localizedPath, type Locale } from "../i18n";
 import { pages } from "../locales";
 import { messages } from "../i18n/messages";
 
-/** The guide hub, in each language: every guide with its one-line summary. */
+/**
+ * The guide hub, in each language: every guide with its one-line summary,
+ * then one recessed strip with the way to Support, Pricing and the
+ * changelog.
+ */
 interface Props {
   locale: Locale;
 }
@@ -24,18 +28,20 @@ const { hub: copy, chrome } = pages[locale];
   ]}
 >
   <GuideLinks headingLevel={2} detail locale={locale} />
-  <p class="guide-hub-note">
-    {[
-      `${copy.help[0]}${messages[locale].gap}`,
-      <a href={href("/support/", locale)}>{copy.help[1]}</a>,
-    ]}
-  </p>
-  <div class="guide-actions">
-    <Button href={href("/pricing/", locale)} variant="quiet" icon="right">
-      {copy.pricing}
-    </Button>
-    <Button href={href("/changelog/", locale)} variant="quiet" icon="right">
-      {copy.changes}
-    </Button>
+  <div class="guide-hub-foot">
+    <p class="guide-hub-note">
+      {[
+        `${copy.help[0]}${messages[locale].gap}`,
+        <a href={href("/support/", locale)}>{copy.help[1]}</a>,
+      ]}
+    </p>
+    <div class="guide-actions">
+      <Button href={href("/pricing/", locale)} variant="quiet" icon="right">
+        {copy.pricing}
+      </Button>
+      <Button href={href("/changelog/", locale)} variant="quiet" icon="right">
+        {copy.changes}
+      </Button>
+    </div>
   </div>
 </TextPage>

@@ -267,6 +267,8 @@ export const ja: Messages = {
     atCursor: "カーソル位置に",
     insertionLine:
       "最後に語彙が名前を直し、入力中のアプリにテキストが入ります。",
+    heard: "えーと 9 時に cooper tino で会いましょう",
+    refined: "9 時に cooper tino で会いましょう。",
     fix: ["9 時に", "で会いましょう。"],
   },
   get: {

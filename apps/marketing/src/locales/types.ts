@@ -14,6 +14,8 @@ export interface PageCopy {
     home: string;
     guides: string;
     related: string;
+    /** The name of a guide or text page's list of its sections. */
+    onThisPage: string;
   };
   notFound: { title: string; heading: string; action: string };
   hub: {

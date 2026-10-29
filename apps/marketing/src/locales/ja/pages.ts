@@ -6,6 +6,7 @@ export const ja: PageCopy = {
     home: "ホーム",
     guides: "ガイド",
     related: "関連するガイド",
+    onThisPage: "このページの内容",
   },
   notFound: {
     title: "ページが見つかりません | Airdraft",
