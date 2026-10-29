@@ -193,6 +193,12 @@ export const en: Messages = {
     title: "Turn any recording into a transcript",
     intro:
       "Record any app or import a file. Your Mac writes it out, speaker by speaker.",
+    steps: [
+      "Record or import",
+      "Speakers split into lanes",
+      "Written out, turn by turn",
+      "Export to text or subtitles",
+    ],
     sample: "Sample transcript",
     meeting: "Podcast interview",
     meta: "Oct 21 · 42:18 · Whisper Large v3 Turbo",

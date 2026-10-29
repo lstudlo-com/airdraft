@@ -74,8 +74,8 @@ const costGroups = [
   { label: copy.groups[0], rows: costRows.filter((row) => row.airdraft) },
   { label: copy.groups[1], rows: costRows.filter((row) => !row.airdraft) },
 ];
-// Row order across both groups, for the rows' staggered entrance (motion.css).
-const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
+// Both tables share one column layout, so their figures line up.
+const columnClasses = ["cost-setup", "cost-month", "cost-year", "cost-three"];
 ---
 
 <Layout
@@ -93,9 +93,11 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
       intro={copy.intro}
     >
       <div class="plans">
-        <Surface as="article" class="plan plan-source">
-          <h2>{copy.source}</h2>
-          <div class="tier">
+        <section class="plan-group" aria-labelledby="plan-source">
+          <h2 id="plan-source" class="plan-group-title">
+            {copy.source}
+          </h2>
+          <Surface as="article" class="plan">
             <h3>{copy.build}</h3>
             <p class="price">$0</p>
             <Button
@@ -105,51 +107,65 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
             >
               {copy.buildAction}
             </Button>
+          </Surface>
+          <div class="plan-list">
+            <p id="plan-source-list" class="plan-list-title">
+              {copy.sourceList}
+            </p>
+            <ul aria-labelledby="plan-source-list">
+              {copy.sourceIncludes.map((feature) => (
+                <li>
+                  <Check />
+                  {feature}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul class="plan-includes" aria-label={copy.sourceList}>
-            {copy.sourceIncludes.map((feature) => (
-              <li>
-                <Check />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </Surface>
+        </section>
 
-        <Surface as="article" class="plan plan-app">
-          <h2>{copy.app}</h2>
-          <div class="tiers">
-            {plans.map((plan, index) => (
-              <div class="tier">
-                <h3>{plan.title}</h3>
-                <p class="price">
-                  {plan.price}
-                  <span class="price-unit">{copy.once}</span>
-                </p>
-                {onSale ? (
-                  <Button
-                    href={siteLinks.checkout}
-                    data-analytics-plan={plan.id}
-                    variant={index === 0 ? "primary" : "secondary"}
-                    icon="external"
-                  >
-                    {copy.buy(plan.macs)}
-                  </Button>
-                ) : (
-                  <Button disabled>{copy.notOnSale}</Button>
-                )}
-              </div>
-            ))}
+        <section class="plan-group plan-group-app" aria-labelledby="plan-app">
+          <h2 id="plan-app" class="plan-group-title">
+            {copy.app}
+          </h2>
+          {plans.map((plan, index) => (
+            <Surface
+              as="article"
+              class="plan plan-license"
+              data-col={String(index + 1)}
+            >
+              <h3>{plan.title}</h3>
+              <p class="price">
+                {plan.price}
+                <span class="price-unit">{copy.once}</span>
+              </p>
+              {onSale ? (
+                <Button
+                  href={siteLinks.checkout}
+                  data-analytics-plan={plan.id}
+                  variant={index === 0 ? "primary" : "secondary"}
+                  icon="external"
+                >
+                  {copy.buy(plan.macs)}
+                </Button>
+              ) : (
+                <Button disabled>{copy.notOnSale}</Button>
+              )}
+            </Surface>
+          ))}
+          <div class="plan-list">
+            <p id="plan-app-list" class="plan-list-title">
+              {copy.appList}
+            </p>
+            <ul aria-labelledby="plan-app-list">
+              {copy.licenseIncludes.map((feature) => (
+                <li>
+                  <Check />
+                  {feature}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul class="plan-includes" aria-label={copy.appList}>
-            {copy.licenseIncludes.map((feature) => (
-              <li>
-                <Check />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </Surface>
+        </section>
       </div>
       <p class="pricing-note">{copy.currency}</p>
       <NotifyRow locale={locale} />
@@ -160,56 +176,59 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
       title={copy.costTitle}
       intro={copy.costIntro(n(workloadSummary.dictationsPerMonth))}
     >
-      <Surface class="cost-table-wrap">
-        <table class="cost-table">
-          <thead>
-            <tr>
-              <th scope="col">{copy.columns[0]}</th>
-              <th scope="col" class="cost-optional">
-                {copy.columns[1]}
-              </th>
-              <th scope="col">{copy.columns[2]}</th>
-              <th scope="col">{copy.columns[3]}</th>
-            </tr>
-          </thead>
-          {costGroups.map((group) => (
-            <tbody
-              class:list={[
-                group.rows[0]?.airdraft === false && "cost-subscription",
-              ]}
-            >
-              <tr
-                class="cost-group"
-                style={`--row: ${rowIndex(group.rows[0])}`}
+      <div class="costs">
+        {costGroups.map((group, groupIndex) => (
+          <div
+            class:list={["cost-group", groupIndex > 0 && "cost-subscription"]}
+          >
+            <h3 id={`cost-group-${groupIndex}`} class="cost-label">
+              {group.label}
+            </h3>
+            <div class="cost-table-wrap">
+              <table
+                class="cost-table"
+                aria-labelledby={`cost-group-${groupIndex}`}
               >
-                <th scope="colgroup" colspan="4">
-                  {group.label}
-                </th>
-              </tr>
-              {group.rows.map((row) => (
-                <tr style={`--row: ${rowIndex(row)}`}>
-                  <th scope="row">
-                    {rowLabel(row).name}
-                    <span class="cost-detail">{rowLabel(row).detail}</span>
-                  </th>
-                  <td class="cost-optional">{formatUSD(row.monthly)}</td>
-                  <td>{formatUSD(totalAfter(row, 1))}</td>
-                  <td>
-                    {formatUSD(totalAfter(row, 3))}
-                    <span
-                      class="cost-bar"
-                      style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
-                      aria-hidden="true"
-                    >
-                      <b />
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          ))}
-        </table>
-      </Surface>
+                <thead class:list={[groupIndex > 0 && "cost-head-quiet"]}>
+                  <tr>
+                    {copy.columns.map((column, index) => (
+                      <th scope="col" class={columnClasses[index]}>
+                        {groupIndex > 0 ? (
+                          <span class="visually-hidden">{column}</span>
+                        ) : (
+                          column
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.rows.map((row, index) => (
+                    <tr style={`--row: ${index}`}>
+                      <th scope="row" class="cost-setup">
+                        {rowLabel(row).name}
+                        <span class="cost-detail">{rowLabel(row).detail}</span>
+                      </th>
+                      <td class="cost-month">{formatUSD(row.monthly)}</td>
+                      <td class="cost-year">{formatUSD(totalAfter(row, 1))}</td>
+                      <td class="cost-three">
+                        {formatUSD(totalAfter(row, 3))}
+                        <span
+                          class="cost-bar"
+                          style={`--share: ${totalAfter(row, 3) / mostInThreeYears}`}
+                          aria-hidden="true"
+                        >
+                          <b />
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
       <p class="pricing-note">{note}</p>
     </Section>
 

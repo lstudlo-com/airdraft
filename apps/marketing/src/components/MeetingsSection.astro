@@ -2,19 +2,22 @@
 import Chip from "./ui/Chip.astro";
 import Button from "./ui/Button.astro";
 import Section from "./ui/Section.astro";
-import Surface from "./ui/Surface.astro";
 import { appLabels } from "../data/app";
 import { href, type Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 import "../styles/meetings.css";
 
 /**
- * Transcribe on the homepage: one raised transcript panel that shows a
- * recording turning into text. The panel opens with the app's Transcribe
- * card head (status dot, title, one metadata line), then the recording as
- * one lane of Home waveform bars per speaker, then the speaker turns, then
- * the export formats and the guide. Internal names (file, classes,
- * #meetings, meetings.ts) keep the feature's former name.
+ * Transcribe on the homepage, told in four beats on the island instead of
+ * one panel: the recording comes in (a raised card with the app's title and
+ * metadata line), the speakers split into lanes (Home waveform bars, one
+ * lane per speaker, carved into the island), the transcript is written out
+ * turn by turn (one raised card per turn, the second speaker at the far
+ * side), then it exports (recessed slots that raised TXT, JSON, SRT and VTT
+ * tiles rise into). Each beat sits under its own numbered label; the current
+ * beat's number takes the accent, like the dictation sample's steps.
+ * Internal names (file, #meetings, meetings.ts) keep the feature's former
+ * name.
  *
  * The transcript is authored sample text, not a recording or a model
  * benchmark. Speaker labels are the app's own in the page's language
@@ -22,11 +25,17 @@ import "../styles/meetings.css";
  * docs/media-transcription.md: any app's audio or an imported file,
  * optional local speaker estimates and TXT, JSON, SRT and VTT export.
  *
- * The lanes come from the turns: each half-second column belongs to the
+ * One number drives the story: --ts-p, 0 to 1 across the four beats. Each
+ * beat turns it into its own --ts-k (0 to 1 within the beat, between its
+ * --a and --b), and everything inside reads --ts-k, so the resting value
+ * (1, registered in meetings.css) is the finished transcript without
+ * JavaScript or with reduced motion. motion.css scrubs --ts-p with the
+ * scroll (pinned on tall desktop windows, beat by beat when stacked);
+ * src/scripts/meetings.ts plays it in time from the play key, a timestamp or
+ * the lanes, and plays it on arrival where scroll timelines are missing.
+ *
+ * The lanes come from the turns: each quarter-second column belongs to the
  * speaker whose turn covers it, and the other lane shows a flat rest.
- * src/scripts/meetings.ts runs the transcription once when the panel is on
- * screen; without it (no JavaScript, reduced motion) the panel rests on its
- * finished frame.
  */
 interface Props {
   locale?: Locale;
@@ -71,114 +80,188 @@ const columns = Array.from({ length: Math.round(end / step) }, (_, index) => {
   const level = ease * (0.22 + 0.78 * (0.6 * grain + 0.4 * syllable));
   return { t, speaker: turn.speaker, level };
 });
+
+// The beats' shares of the story (--ts-p). Within a beat, items arrive in
+// turn: item i starts at --at = i × 0.8 / (count − 1) and takes 0.2.
+const beats = {
+  source: [0, 0.16],
+  lanes: [0.16, 0.46],
+  turns: [0.46, 0.78],
+  export: [0.78, 0.96],
+} as const;
+const range = (name: keyof typeof beats) =>
+  `--a: ${beats[name][0]}; --b: ${beats[name][1]}`;
+const arrival = (index: number, count: number) =>
+  ((index * 0.8) / Math.max(1, count - 1)).toFixed(3);
+
 const guideHref = href("/guides/private-meeting-transcription/", locale);
 const formats = ["TXT", "JSON", "SRT", "VTT"];
+// The source card's glyph: the app icon's five-bar rhythm.
+const glyph = [0.42, 0.78, 1, 0.64, 0.34];
 ---
 
 <Section id="meetings" title={copy.title} intro={copy.intro}>
-  <Surface
-    as="article"
-    class="transcript"
-    aria-label={copy.sample}
-    data-transcript
-    data-reveal=""
-    data-end={String(end)}
-  >
-    <div class="transcript-head">
-      <span class="status-dot" aria-hidden="true" data-transcript-status></span>
-      <div class="transcript-name">
-        <p class="transcript-title">{copy.meeting}</p>
-        <p class="transcript-meta">
-          {copy.meta.split(" · ").map((part, index) => (
-            <>
-              {index > 0 && " · "}
-              <span>{part}</span>
-            </>
-          ))}
-        </p>
-      </div>
-      <Button
-        iconOnly
-        label={copy.play}
-        class="transcript-play"
-        hidden
-        data-transcript-play
-      >
-        <svg
-          slot="icon"
-          class="transcript-glyph-play"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
-        </svg>
-        <svg
-          slot="icon"
-          class="transcript-glyph-pause"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <rect x="6.5" y="5" width="4" height="14" rx="1.2"></rect>
-          <rect x="13.5" y="5" width="4" height="14" rx="1.2"></rect>
-        </svg>
-      </Button>
-    </div>
-
-    <div class="lanes" dir="ltr" aria-hidden="true" data-lanes>
-      {speakers.map((speaker) => (
-        <div class="lane" data-speaker={speaker}>
-          <span class="lane-name">{app.speaker(speaker)}</span>
-          <span class="lane-bars">
-            <span class="lane-head"></span>
-            {columns.map((column) => (
-              <i
-                class:list={[column.speaker !== speaker && "is-rest"]}
-                style={
-                  column.speaker === speaker
-                    ? `--h: ${column.level.toFixed(3)}`
-                    : undefined
-                }
-                data-t={column.t}
-              />
+  <div class="ts" data-transcript>
+    <article class="ts-stage" aria-label={copy.sample} data-reveal="">
+      <div class="ts-beat ts-beat-source" style={range("source")}>
+        <h3 class="ts-label">
+          <span class="ts-index" aria-hidden="true">
+            1
+          </span>
+          {copy.steps[0]}
+        </h3>
+        <div class="ts-source">
+          <span class="ts-socket" aria-hidden="true">
+            {glyph.map((height) => (
+              <i style={`--h: ${height}`} />
             ))}
           </span>
+          <div class="ts-name">
+            <p class="ts-title">{copy.meeting}</p>
+            <p class="ts-meta">
+              {copy.meta.split(" · ").map((part, index) => (
+                <>
+                  {index > 0 && " · "}
+                  <span>{part}</span>
+                </>
+              ))}
+            </p>
+          </div>
+          <Button
+            iconOnly
+            label={copy.play}
+            class="ts-play"
+            hidden
+            data-transcript-play
+          >
+            <svg
+              slot="icon"
+              class="ts-glyph-play"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+            </svg>
+            <svg
+              slot="icon"
+              class="ts-glyph-pause"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <rect x="6.5" y="5" width="4" height="14" rx="1.2"></rect>
+              <rect x="13.5" y="5" width="4" height="14" rx="1.2"></rect>
+            </svg>
+          </Button>
         </div>
-      ))}
-    </div>
+      </div>
 
-    <ol class="turns">
-      {turns.map((turn) => (
-        <li data-at={turn.at}>
-          <Chip class="turn-speaker" data-speaker={turn.speaker}>
-            <i aria-hidden="true"></i>
-            {app.speaker(turn.speaker)}
-          </Chip>
-          <span class="turn-time" data-seek={turn.at}>
-            {turn.time}
+      <div class="ts-beat ts-beat-lanes" style={range("lanes")} data-beat-lanes>
+        <h3 class="ts-label">
+          <span class="ts-index" aria-hidden="true">
+            2
           </span>
-          <p>{turn.text}</p>
-        </li>
-      ))}
-    </ol>
+          {copy.steps[1]}
+        </h3>
+        <div class="lanes" dir="ltr" aria-hidden="true" data-lanes>
+          {speakers.map((speaker) => (
+            <div class="lane" data-speaker={speaker}>
+              <span class="lane-name">{app.speaker(speaker)}</span>
+              <span class="lane-bars">
+                <span class="lane-head" />
+                {columns.map((column) => (
+                  <i
+                    class:list={[column.speaker !== speaker && "is-rest"]}
+                    style={
+                      column.speaker === speaker
+                        ? `--h: ${column.level.toFixed(3)}; --s: ${(column.t / end).toFixed(3)}`
+                        : undefined
+                    }
+                  />
+                ))}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
 
-    <div class="transcript-foot">
-      <p class="transcript-export">
-        <span>{copy.export}</span>
-        {formats.map((format) => (
-          <span class="tag">{format}</span>
-        ))}
-      </p>
-      <Button href={guideHref} variant="quiet" icon="right">
-        {copy.guide}
-      </Button>
-    </div>
-  </Surface>
+      <div class="ts-beat ts-beat-turns" style={range("turns")} data-beat-turns>
+        <h3 class="ts-label">
+          <span class="ts-index" aria-hidden="true">
+            3
+          </span>
+          {copy.steps[2]}
+        </h3>
+        <ol class="turns">
+          {turns.map((turn, index) => (
+            <li
+              class="turn"
+              data-speaker={turn.speaker}
+              style={`--at: ${arrival(index, turns.length)}`}
+            >
+              <Chip class="turn-speaker" data-speaker={turn.speaker}>
+                <i aria-hidden="true" />
+                {app.speaker(turn.speaker)}
+              </Chip>
+              <span class="turn-time" data-seek>
+                {turn.time}
+              </span>
+              <p>{turn.text}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="ts-beat ts-beat-export" style={range("export")}>
+        <h3 class="ts-label">
+          <span class="ts-index" aria-hidden="true">
+            4
+          </span>
+          {copy.steps[3]}
+        </h3>
+        <ul class="ts-formats" aria-label={copy.export}>
+          {formats.map((format, index) => (
+            <li
+              class="ts-slot"
+              style={`--at: ${arrival(index, formats.length)}`}
+            >
+              <span class="ts-file">
+                <svg
+                  width="12"
+                  height="14"
+                  viewBox="0 0 12 14"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 1h4.6L10 3.9v8a1.1 1.1 0 0 1-1.1 1.1H2.5a1.1 1.1 0 0 1-1.1-1.1V2.1A1.1 1.1 0 0 1 2.5 1Z"
+                    stroke="currentColor"
+                    stroke-width="1.3"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M7 1.2v2.9h2.8"
+                    stroke="currentColor"
+                    stroke-width="1.3"
+                    stroke-linejoin="round"
+                  ></path>
+                </svg>
+                {format}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <Button href={guideHref} variant="quiet" icon="right">
+          {copy.guide}
+        </Button>
+      </div>
+    </article>
+  </div>
 </Section>
 
 <script>

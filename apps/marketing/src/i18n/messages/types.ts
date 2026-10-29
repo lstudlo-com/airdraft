@@ -130,6 +130,8 @@ export interface Messages {
   meetings: {
     title: string;
     intro: string;
+    /** The story's four beats: record, speaker lanes, turns, export. */
+    steps: [string, string, string, string];
     sample: string;
     meeting: string;
     meta: string;

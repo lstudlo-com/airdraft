@@ -1,75 +1,96 @@
-/* Pricing page. */
+/* Pricing page. Every part is its own object on the island: each group's
+   title sits on the island, each plan is its own raised card, what a plan
+   includes is a separate well carved into the island below its cards, and
+   the cost comparison is two tables, Airdraft's raised and the
+   subscriptions carved in. Raised objects are what you choose; recessed
+   ones are what you read. */
 @layer components {
-  /* Two plans: the free source build first, as a plain card, then the
-     ready-to-run app, wider and raised like the homepage's license offer,
-     with both licenses side by side inside it. */
+  /* Three equal columns: the source build, then the ready-to-run app's two
+     licenses. Both groups share the rows (title, cards, list), so titles,
+     prices, keys and lists line up across them. */
   .plans {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
-    gap: var(--space-7);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-8);
   }
-  .plan {
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-8);
+  .plan-group {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
   }
-  .plan-app {
-    box-shadow: var(--edge), var(--raise-hero);
+  .plan-group-app {
+    grid-column: span 2;
+    grid-template-columns: subgrid;
   }
-  .plan h2 {
+  .plan-group-title {
+    grid-column: 1 / -1;
+    padding-inline-start: var(--space-1);
     font-size: var(--step-2);
     line-height: 1.3;
     letter-spacing: -0.01em;
   }
-  /* The licenses, divided by RowDivider turned on its side. */
-  .tiers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: var(--space-6);
-  }
-  .tier {
+
+  .plan {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding-right: var(--space-7);
+    padding: var(--space-7) var(--space-8) var(--space-8);
   }
-  .tier + .tier {
-    padding-left: var(--space-7);
-    padding-right: 0;
-    box-shadow:
-      inset 1px 0 0 var(--groove-shade),
-      inset 2px 0 0 var(--groove-light);
+  /* The ready-to-run licenses are the offer: raised with the hero spread,
+     like the homepage's license card. */
+  .plan-license {
+    box-shadow: var(--edge), var(--raise-hero);
   }
-  .tier h3 {
+  .plan h3 {
     font-size: var(--step-0);
     font-weight: 500;
     line-height: 1.4;
     letter-spacing: 0;
     color: var(--muted);
   }
-  .tier .price {
-    margin: 6px 0 22px;
+  .plan .price {
+    margin: 6px 0 var(--space-7);
+  }
+  .plan .key {
+    margin-top: auto;
   }
 
-  /* What every license includes: two short columns below a groove, each
-     item marked by a check in a small recessed socket. */
-  .plan-includes {
+  /* What a plan includes: a well carved into the island under its cards,
+     each item checked in a small recessed socket. */
+  .plan-list {
+    grid-column: 1 / -1;
+    margin-top: var(--space-3);
+    padding: var(--space-6) var(--space-7);
+    border-radius: var(--radius-card);
+    box-shadow: var(--sink-section);
+  }
+  .plan-list-title {
+    font-size: var(--step--1);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .plan-list ul {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px var(--space-7);
-    margin: 30px 0 0;
-    padding: 26px 0 0;
-    box-shadow: var(--groove);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px var(--space-8);
+    margin: var(--space-4) 0 0;
+    padding: 0;
     list-style: none;
   }
-  .plan-includes li {
+  .plan-group-app .plan-list ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plan-list li {
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: var(--step-0);
     line-height: 1.4;
   }
-  .plan-includes .check {
+  .plan-list .check {
     flex: none;
     box-sizing: content-box;
     padding: var(--space-1);
@@ -78,72 +99,98 @@
     box-shadow: var(--sink-chip);
     color: var(--muted);
   }
-
-  /* The source build mirrors one license, so prices, keys and lists line
-     up across the cards; its list sits at the bottom like the licenses'. */
-  .plan-source .tier {
-    margin-top: var(--space-6);
-    padding: 0;
-  }
-  .plan-source .plan-includes {
-    grid-template-columns: minmax(0, 1fr);
-    margin-top: auto;
-  }
-  .plan-source .tier {
-    margin-bottom: 30px;
-  }
   .pricing-note {
     max-width: 78ch;
-    margin-top: var(--space-4);
+    margin-top: var(--space-6);
     font-size: var(--step--1);
     line-height: 1.55;
     color: var(--muted);
   }
 
-  /* The cost comparison: Airdraft's setups, then the subscriptions in
-     muted type, each group under a small label. */
+  /* The cost comparison: Airdraft's setups in a raised table, then the
+     subscriptions in a table carved into the island, each under its label
+     on the island. Both share one column layout, so figures line up; the
+     subscriptions repeat their column names for screen readers only. */
+  .costs {
+    display: grid;
+    gap: var(--space-10);
+  }
+  .cost-label {
+    margin-bottom: var(--space-4);
+    padding-inline-start: var(--space-1);
+    font-size: var(--step-0);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
   .cost-table-wrap {
-    padding: 6px var(--space-6) 10px;
+    padding: 6px var(--space-7) 10px;
     overflow-x: auto;
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow: var(--edge), var(--raise-card);
+  }
+  .cost-subscription .cost-label {
+    color: var(--muted);
+  }
+  .cost-subscription .cost-table-wrap {
+    padding-block: 4px;
+    background: none;
+    box-shadow: var(--sink-section);
   }
   .cost-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: var(--step-0);
     font-variant-numeric: tabular-nums;
   }
+  .cost-table .cost-setup {
+    width: 40%;
+  }
+  .cost-table .cost-month,
+  .cost-table .cost-year {
+    width: 17%;
+  }
+  .cost-table .cost-three {
+    width: 26%;
+  }
+  /* The setup reads from the start; figures line up at the end. */
   .cost-table :is(th, td) {
-    padding: 14px var(--space-4) 14px 0;
-    text-align: left;
+    padding-block: 16px;
+    padding-inline: var(--space-4) 0;
+    text-align: end;
+    vertical-align: top;
+  }
+  .cost-table :is(th, td):first-child {
+    padding-inline: 0 var(--space-4);
+    text-align: start;
+  }
+  .cost-table :is(td, thead th):not(:first-child) {
     white-space: nowrap;
   }
-  .cost-table :is(th, td):last-child {
-    padding-right: 0;
-    text-align: right;
-  }
   .cost-table thead th {
+    padding-block: 14px;
     font-size: var(--step--1);
     font-weight: 600;
     color: var(--muted);
   }
-  .cost-table tbody tr:not(.cost-group) :is(th, td) {
+  .cost-table .cost-head-quiet th {
+    padding-block: 0;
+  }
+  .cost-table tbody tr :is(th, td) {
     box-shadow: var(--groove);
+  }
+  .cost-head-quiet + tbody tr:first-child :is(th, td) {
+    box-shadow: none;
   }
   .cost-table tbody th {
     font-weight: 500;
-    white-space: normal;
   }
   .cost-table td {
     font-weight: 500;
   }
-  .cost-table .cost-group th {
-    padding: 22px 0 var(--space-2);
-    font-size: var(--step--1);
-    font-weight: 600;
-    text-align: left;
-    color: var(--muted);
-  }
-  .cost-table td.cost-optional,
+  .cost-table td.cost-month,
   .cost-subscription :is(th, td) {
     color: var(--muted);
   }
@@ -160,7 +207,7 @@
      motion.css fills it as its row arrives. */
   .cost-bar {
     display: block;
-    width: 120px;
+    width: min(100%, 180px);
     height: 8px;
     margin: var(--space-2) 0 2px auto;
     padding: 1.5px;
@@ -182,42 +229,58 @@
 }
 
 @layer responsive {
+  /* The groups stack; each keeps its cards side by side, the source card
+     beside its list, so the two groups still share columns. */
   @media (max-width: 1000px) {
     .plans {
-      grid-template-columns: minmax(0, 1fr);
-      max-width: 560px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: var(--space-5);
+    }
+    .plan-group {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      grid-template-columns: subgrid;
+      grid-template-rows: none;
+      row-gap: var(--space-5);
+    }
+    .plan-group + .plan-group {
+      margin-top: var(--space-10);
+    }
+    .plan-group:not(.plan-group-app) .plan-list {
+      grid-column: auto;
+      margin-top: 0;
     }
   }
   @media (max-width: 700px) {
     .plan {
       padding: 22px;
     }
+    .plan-list {
+      padding: 22px;
+    }
     .cost-table-wrap {
       padding-inline: 18px;
     }
-    .cost-table :is(th, td) {
-      white-space: normal;
-    }
-    .cost-optional {
+    .cost-table .cost-month {
       display: none;
     }
+    .cost-table .cost-setup {
+      width: 50%;
+    }
+    .cost-table .cost-year {
+      width: 22%;
+    }
+    .cost-table .cost-three {
+      width: 28%;
+    }
   }
-  @media (max-width: 520px) {
-    .tiers,
-    .plan-includes {
+  @media (max-width: 560px) {
+    .plans,
+    .plan-group-app .plan-list ul {
       grid-template-columns: minmax(0, 1fr);
     }
-    .tier,
-    .tier + .tier {
-      padding: 0;
-    }
-    .tier + .tier {
-      margin-top: 22px;
-      padding-top: 22px;
-      box-shadow: var(--groove);
-    }
-    .tier .price {
-      margin-bottom: 18px;
+    .plan-group:not(.plan-group-app) .plan-list {
+      grid-column: 1 / -1;
     }
   }
 }

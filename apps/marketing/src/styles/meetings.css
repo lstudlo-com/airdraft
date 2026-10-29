@@ -1,65 +1,200 @@
-/* Transcribe on the homepage (MeetingsSection.astro): one raised transcript
-   panel. The recording lies in a recessed well as one lane of Home waveform
-   bars per speaker (HomeHero's raised bars; the first speaker in the caret's
-   deeper tone so the two read apart without a hue), and the turns sit on
-   the panel below it. While the sample runs (src/scripts/meetings.ts) the
-   accent playhead marks progress: bars ahead of it lie flat and turns ahead
-   of it wait unseen, so nothing reflows. The resting CSS is the finished
-   transcript. */
+/* Transcribe on the homepage (MeetingsSection.astro): four separate objects
+   on the island, each under its own numbered label, told in order. The
+   recording comes in as a raised card; its speakers split into lanes of
+   Home waveform bars in a well carved into the island (HomeHero's raised
+   bars; the first speaker in the caret's deeper tone so the two read apart
+   without a hue); each turn is its own raised card, the second speaker's at
+   the far side; and the export formats rise as raised tiles into recessed
+   slots. The accent marks progress only: the lanes' playhead and the
+   current beat's number.
+
+   One registered number, --ts-p (0 to 1 across the story), drives it; each
+   beat derives its own --ts-k (0 to 1 within its --a to --b share) and
+   everything inside reads only --ts-k. Both rest at 1, so the resting CSS
+   is the finished transcript. motion.css scrubs them with the scroll;
+   meetings.ts plays them in time. */
+@property --ts-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --ts-k {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 @layer components {
-  .transcript {
-    padding: var(--space-7);
+  .ts-stage {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-14) var(--space-8);
+    align-content: center;
   }
-  .transcript-head {
+  /* Row one: the recording and its lanes. Row two: the transcript, then
+     the export beside its end, so the story reads in a Z. */
+  .ts-beat-source {
+    grid-column: 1 / span 5;
+  }
+  .ts-beat-lanes {
+    grid-column: 6 / -1;
+  }
+  .ts-beat-turns {
+    grid-column: 1 / span 8;
+  }
+  .ts-beat-export {
+    grid-column: 9 / -1;
+    align-self: start;
+  }
+
+  .ts-beat {
+    --ts-k: clamp(0, (var(--ts-p) - var(--a)) / (var(--b) - var(--a)), 1);
+    /* Reached once the beat starts; current while it runs. */
+    --seen: clamp(0, var(--ts-k) * 40, 1);
+    --now: min(var(--seen), clamp(0, (1 - var(--ts-k)) * 40, 1));
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    min-width: 0;
+  }
+  /* While meetings.ts plays the story in time, its --ts-p (set important
+     on .ts) drives every beat, over the scroll's animations. */
+  .ts.is-timed .ts-beat {
+    --ts-k: clamp(
+      0,
+      (var(--ts-p) - var(--a)) / (var(--b) - var(--a)),
+      1
+    ) !important;
+  }
+
+  /* Each beat's label sits on the island above its object, like a guide
+     section's heading over its well. Upcoming beats fade, reached ones read
+     as ink, and the current one's number takes the accent. */
+  .ts-label {
+    display: flex;
+    align-items: center;
     gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    padding-inline-start: var(--space-1);
+    color: color-mix(
+      in srgb,
+      var(--ink) calc(var(--seen) * 100%),
+      color-mix(in srgb, var(--muted), transparent 35%)
+    );
+    font-size: var(--step-0);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0;
   }
-  /* Centred on the title's first line. */
-  .transcript-head .status-dot {
-    margin-top: 9px;
+  .ts-index {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 0.75px 0.75px 0 var(--rim),
+      var(--raise-small);
+    color: color-mix(in srgb, #fff calc(var(--now) * 100%), var(--muted));
+    font: 600 var(--step--1) / 1 var(--font-rounded);
+    isolation: isolate;
   }
-  .transcript-name {
+  .ts-index::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--accent-strong);
+    opacity: var(--now);
+  }
+
+  /* 1. The recording: a raised card that rises from the island as it
+     comes in, its shadow growing from nothing. */
+  .ts-source {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow:
+      var(--edge),
+      calc(var(--ts-k) * 4px) calc(var(--ts-k) * 5px) calc(var(--ts-k) * 14px)
+        var(--shade),
+      calc(var(--ts-k) * -3.5px) calc(var(--ts-k) * -4px)
+        calc(var(--ts-k) * 14px) var(--light);
+    opacity: calc(0.3 + 0.7 * var(--ts-k));
+    translate: 0 calc((1 - var(--ts-k)) * 24px);
+    scale: calc(0.94 + 0.06 * var(--ts-k));
+  }
+  /* The app icon's five bars in a recessed socket; they rise with it. */
+  .ts-socket {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-well);
+    background: var(--well);
+    box-shadow: var(--sink-chip);
+  }
+  .ts-socket i {
+    width: 4px;
+    height: calc(var(--h) * 26px);
+    border-radius: 999px;
+    background: var(--fill-caret);
+    box-shadow: 0.5px 1px 1.5px var(--shade-deep);
+    scale: 1 calc(0.15 + 0.85 * var(--ts-k));
+  }
+  .ts-name {
     flex: 1;
     min-width: 0;
   }
-  .transcript-title {
+  .ts-title {
     font-size: var(--step-2);
     font-weight: 600;
     line-height: 1.3;
+    letter-spacing: -0.01em;
   }
-  .transcript-meta {
+  .ts-meta {
     margin-top: 2px;
     color: var(--muted);
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
   }
   /* The metadata wraps between its parts, never inside a model name. */
-  .transcript-meta > span {
+  .ts-meta > span {
     white-space: nowrap;
   }
-  /* The status dot reads busy while the sample transcribes, done at rest. */
-  .transcript.is-partial .status-dot {
-    background: var(--status-busy);
+  .ts-play {
+    flex: none;
   }
-  .transcript-glyph-pause {
+  .ts-glyph-pause {
     display: none;
   }
-  .transcript.is-playing .transcript-glyph-play {
+  .ts.is-playing .ts-glyph-play {
     display: none;
   }
-  .transcript.is-playing .transcript-glyph-pause {
+  .ts.is-playing .ts-glyph-pause {
     display: block;
   }
 
-  /* The recording: speaker lanes in one recessed well. */
+  /* 2. The speakers: one lane each in a well carved into the island. Bars
+     lie flat until the accent playhead reaches them. */
   .lanes {
     display: grid;
+    flex: 1;
     grid-template-columns: max-content minmax(0, 1fr);
+    align-content: center;
     column-gap: var(--space-4);
-    margin-top: var(--space-6);
     padding: var(--space-2) var(--space-5);
-    border-radius: var(--radius-well);
+    border-radius: var(--radius-card);
     background: var(--well);
     box-shadow: var(--sink-soft);
     user-select: none;
@@ -95,6 +230,7 @@
     background: color-mix(in srgb, var(--muted), transparent 80%);
   }
   .lane-bars i {
+    --on: clamp(0, (var(--ts-k) - var(--s, 0)) * 30, 1);
     flex: 1 1 0;
     position: relative;
     min-width: 2px;
@@ -106,9 +242,8 @@
       inset 0.75px 0.75px 0 color-mix(in srgb, var(--rim), var(--light) 60%),
       1px 1.5px 3px var(--shade-deep),
       -1px -1px 2.5px var(--light);
-    transition:
-      transform 280ms var(--ease-out),
-      opacity 280ms ease;
+    opacity: calc(0.45 + 0.55 * var(--on));
+    scale: 1 calc(0.1 + 0.9 * var(--on));
   }
   .lane[data-speaker="1"] .lane-bars i {
     background: var(--fill-caret);
@@ -117,20 +252,16 @@
   .lane-bars i.is-rest {
     visibility: hidden;
   }
-  .lane-bars i.is-ahead:not(.is-rest) {
-    opacity: 0.45;
-    transform: scaleY(0.1);
-  }
   /* The playhead: the lane's full width, slid so its leading edge sits at
-     --p of the recording; its line is the accent, the site's progress mark.
-     Each lane draws its own line, and the lanes touch, so they read as one. */
+     the beat's progress; its line is the accent, the site's progress mark.
+     Each lane draws its own line, and the lanes touch, so they read as one.
+     It shows only while the lanes fill. */
   .lane-head {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0;
-    translate: calc(var(--p, 1) * 100%) 0;
-    transition: opacity 240ms ease;
+    opacity: var(--now);
+    translate: calc(var(--ts-k) * 100%) 0;
   }
   .lane-head::before {
     content: "";
@@ -141,32 +272,44 @@
     border-radius: 1px;
     background: var(--accent);
   }
-  .transcript.is-partial .lane-head {
-    opacity: 1;
-  }
 
-  /* The turns share one grid, so speakers, times and text line up. */
+  /* 3. The transcript: each turn its own raised card, rising in turn; the
+     first speaker's at the leading side, the second's at the far side. */
   .turns {
-    display: grid;
-    grid-template-columns: max-content max-content minmax(0, 1fr);
-    column-gap: var(--space-4);
-    row-gap: var(--space-4);
-    margin-top: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
-  .turns li {
+  .turn {
+    --on: clamp(0, (var(--ts-k) - var(--at, 0)) * 5, 1);
     display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: subgrid;
-    align-items: baseline;
-    transition:
-      opacity 420ms ease,
-      translate 420ms var(--ease-out);
+    grid-template-columns: max-content max-content minmax(0, auto);
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    width: fit-content;
+    max-width: 88%;
+    padding-block: var(--space-3);
+    padding-inline: var(--space-3) var(--space-6);
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow:
+      var(--edge),
+      calc(var(--on) * 2.5px) calc(var(--on) * 3px) calc(var(--on) * 8px)
+        var(--shade),
+      calc(var(--on) * -2px) calc(var(--on) * -2.5px) calc(var(--on) * 8px)
+        var(--light);
+    translate: 0 calc((1 - var(--on)) * 16px);
   }
-  .turns li.is-ahead {
-    opacity: 0;
-    translate: 0 8px;
+  /* Before its turn the card waits flat on the island, empty; then it
+     rises and its words fade in. */
+  .turn > * {
+    opacity: var(--on);
+  }
+  .turn[data-speaker="2"] {
+    margin-inline-start: auto;
   }
   .turn-speaker i {
     width: 3px;
@@ -178,65 +321,117 @@
     background: var(--fill-caret);
   }
   .turn-time {
+    margin: -3px -6px;
+    padding: 3px 6px;
+    border-radius: 6px;
     color: var(--muted);
     font-family: var(--font-rounded);
     font-size: var(--step--1);
     font-variant-numeric: tabular-nums;
-  }
-  .turns p {
-    font-size: var(--step-1);
-    line-height: 1.5;
-  }
-
-  .transcript-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3) var(--space-6);
-    margin-top: var(--space-7);
-    padding-top: var(--space-5);
-    box-shadow: var(--groove);
-  }
-  .transcript-export {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    color: var(--muted);
-    font-size: var(--step--1);
-  }
-  .transcript-export > span:first-child {
-    margin-inline-end: var(--space-1);
-  }
-
-  /* With JavaScript the times and the lanes seek, and the key plays. */
-  .transcript.is-live .turn-time,
-  .transcript.is-live .lane-bars {
-    cursor: pointer;
-  }
-  .turn-time {
-    margin: -3px -6px;
-    padding: 3px 6px;
-    border-radius: 6px;
     transition:
       color 160ms ease,
       background 120ms ease,
       box-shadow 120ms ease;
   }
-  .transcript.is-live .turn-time:hover {
+  .turn p {
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+
+  /* 4. The export: recessed slots that raised format tiles rise into, one
+     after another, their light and shade clipped inside the slot. */
+  .ts-formats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ts-slot {
+    --on: clamp(0, (var(--ts-k) - var(--at, 0)) * 5, 1);
+    display: grid;
+    height: 60px;
+    padding: 7px;
+    overflow: hidden;
+    border-radius: var(--radius-well);
+    background: var(--well);
+    box-shadow: var(--sink-soft);
+  }
+  .ts-file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 7px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 0.75px 0.75px 0 var(--rim),
+      var(--raise-small);
+    color: var(--ink);
+    font: 600 var(--step--1) / 1 var(--font-rounded);
+    letter-spacing: 0.06em;
+    opacity: var(--on);
+    translate: 0 calc((1 - var(--on)) * 115%);
+  }
+  .ts-file svg {
+    flex: none;
+    color: var(--muted);
+  }
+  .ts-beat-export .text-link {
+    align-self: flex-start;
+    margin-top: var(--space-6);
+  }
+
+  /* With JavaScript the times and the lanes play from there, and the key
+     plays the whole story. */
+  .ts.is-live .turn-time,
+  .ts.is-live .lane-bars {
+    cursor: pointer;
+  }
+  .ts.is-live .turn-time:hover {
     color: var(--ink);
   }
-  .transcript.is-live .turn-time:active {
+  .ts.is-live .turn-time:active {
     background: var(--pressed);
     box-shadow: var(--press-small);
   }
 }
 
 @layer responsive {
+  /* The beats stack in reading order. */
+  @media (max-width: 1000px) {
+    .ts-stage {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-12);
+    }
+    .ts-beat {
+      grid-column: 1 / -1;
+    }
+    .ts-formats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .turn {
+      max-width: 92%;
+    }
+  }
   @media (max-width: 700px) {
-    .transcript {
-      padding: 22px;
+    .ts-stage {
+      gap: var(--space-10);
+    }
+    .ts-label {
+      margin-bottom: var(--space-4);
+    }
+    .ts-source {
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    .ts-socket {
+      width: 40px;
+      height: 40px;
+    }
+    .ts-socket i {
+      height: calc(var(--h) * 22px);
     }
     .lanes {
       column-gap: var(--space-3);
@@ -250,14 +445,19 @@
       display: none;
     }
     .turns {
+      gap: var(--space-3);
+    }
+    .turn {
       grid-template-columns: max-content minmax(0, 1fr);
-      row-gap: 18px;
+      padding-inline: var(--space-3) var(--space-4);
     }
-    .turns li {
-      row-gap: 6px;
-    }
-    .turns p {
+    .turn p {
       grid-column: 1 / -1;
+      font-size: var(--step-0);
+    }
+    .ts-slot {
+      height: 52px;
+      padding: 6px;
     }
   }
 }

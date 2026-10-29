@@ -202,6 +202,12 @@ export const es: Messages = {
     title: "Convierte cualquier grabación en texto",
     intro:
       "Graba una app o importa un archivo, y tu Mac lo transcribe por hablante.",
+    steps: [
+      "Graba o importa",
+      "Cada hablante, en su carril",
+      "Escrito turno a turno",
+      "Exporta a texto o subtítulos",
+    ],
     sample: "Transcripción de ejemplo",
     meeting: "Entrevista de pódcast",
     meta: "21 oct · 42:18 · Whisper Large v3 Turbo",
