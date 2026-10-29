@@ -165,7 +165,10 @@ and Local releases below.
   `Hotkeys/`, `HUD/`, `Views/` (one file per page, shared components in `Theme.swift`),
   `Debug/` (offscreen renders, self-tests).
 - `apps/marketing` is the Astro marketing website, initialized from Cloudflare's
-  official Astro Framework Starter and deployed with Workers static assets.
+  official Astro Framework Starter and deployed with Workers static assets. Its
+  Worker (`worker/index.ts`) runs only for requests that match no asset and serves
+  their 404 as `no-store`, so a hashed file requested before a deploy reached it is
+  never cached as missing under the immutable `/_astro/*` rule.
   Read its `PRODUCT.md` and `DESIGN.md` before changing content or design, and
   build pages from its reusable components in `src/components/ui/`. The site ships
   the app's interface languages: English at the root, translations under

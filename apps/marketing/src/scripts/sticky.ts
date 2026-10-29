@@ -122,6 +122,8 @@ if (sections.length) {
   all();
   addEventListener("resize", later);
   addEventListener("load", all);
+  // A page restored from the back/forward cache may have a new window size.
+  addEventListener("pageshow", (event) => event.persisted && all());
   document.fonts?.ready.then(all);
   reduced.addEventListener("change", all);
 }
