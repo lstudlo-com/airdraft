@@ -164,6 +164,7 @@ export const zhTw: Messages = {
   meetings: {
     title: "任何錄音，都能變成逐字稿",
     intro: "錄下任何 App 的聲音或匯入檔案，Mac 會分講者寫成文字。",
+    steps: ["錄音或匯入", "講者各自分軌", "逐段寫成文字", "匯出成文字或字幕"],
     sample: "逐字稿範例",
     meeting: "Podcast 訪談",
     meta: "10 月 21 日 · 42:18 · Qwen3-ASR 1.7B",

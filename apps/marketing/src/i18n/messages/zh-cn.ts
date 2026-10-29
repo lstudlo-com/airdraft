@@ -172,6 +172,7 @@ export const zhCn: Messages = {
   meetings: {
     title: "任何录音，都能变成转录稿",
     intro: "录下任何 App 的声音或导入文件，Mac 会按发言人写成文字。",
+    steps: ["录音或导入", "发言人各自分轨", "逐段写成文字", "导出为文本或字幕"],
     sample: "转录稿示例",
     meeting: "播客访谈",
     meta: "10 月 21 日 · 42:18 · Qwen3-ASR 1.7B",

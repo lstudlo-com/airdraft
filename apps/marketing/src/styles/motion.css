@@ -208,18 +208,52 @@
         --step: 12%;
       }
 
-      /* The Transcribe panel rises like the provider board; its transcript
-         then writes itself (meetings.ts). */
-      .transcript {
-        --rise-y: 56px;
-        --rise-scale: 0.94;
-        animation:
-          motion-rise linear both,
-          motion-lift linear both;
-        animation-timeline: view(), view();
-        animation-range:
-          entry 0% cover 40%,
-          entry 0% cover 40%;
+      /* The Transcribe story (MeetingsSection.astro). Stacked, each beat
+         plays while it crosses a line 65% down the window, so the beats
+         run one at a time, in order.
+         On a desktop window tall enough for the whole stage, the stage pins
+         under the header while the scroll runs the four beats in order;
+         scrolling back runs them backwards. While meetings.ts plays the
+         story in time, its .is-timed values win over these (meetings.css). */
+      @keyframes ts-beat {
+        from {
+          --ts-k: 0;
+        }
+        to {
+          --ts-k: 1;
+        }
+      }
+      @keyframes ts-story {
+        from {
+          --ts-p: 0;
+        }
+        to {
+          --ts-p: 1;
+        }
+      }
+      .ts-beat {
+        animation: ts-beat linear both;
+        animation-timeline: view(block 0% 35%);
+        animation-range: entry 0% entry 100%;
+      }
+      @media (min-width: 1001px) and (min-height: 760px) {
+        .ts {
+          height: calc(100svh - var(--header) + 150vh);
+          view-timeline: --ts block;
+          view-timeline-inset: var(--header) 0px;
+          animation: ts-story linear both;
+          animation-timeline: --ts;
+          animation-range: entry 65% contain 88%;
+        }
+        .ts-stage {
+          position: sticky;
+          top: var(--header);
+          min-height: calc(100svh - var(--header));
+          padding-block: var(--space-8);
+        }
+        .ts-beat {
+          animation: none;
+        }
       }
 
       /* 5. The close. Both offers rise as the island settles back to its
@@ -239,10 +273,11 @@
         --rise-scale: 0.92;
       }
 
-      /* 6. Pricing. Plans rise left to right; the cost comparison's rows
-         rise in turn (each row's --row is set in pricing.astro) and each
-         three-year bar fills to its share. */
-      .plans > .plan {
+      /* 6. Pricing. Plans rise left to right; each list well's contents
+         fade up after its cards; the cost tables' rows rise in turn (each
+         row's --row is set in PricingPage.astro) and each three-year bar
+         fills to its share. */
+      .plans .plan {
         --stagger: calc(var(--col, 0) * 8%);
         animation:
           motion-rise linear both,
@@ -253,22 +288,31 @@
           entry var(--stagger) cover calc(30% + var(--stagger));
       }
       @media (min-width: 1001px) {
-        .plans > .plan:nth-child(2) {
+        .plans .plan[data-col="1"] {
           --col: 1;
         }
+        .plans .plan[data-col="2"] {
+          --col: 2;
+        }
       }
-      /* The table scrolls sideways in its wrapper, which would make the
-         wrapper the rows' scroller; they follow the wrapper's own view
+      .plan-list > * {
+        --rise-y: 16px;
+        animation: motion-fade-up linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 25%;
+      }
+      /* The tables scroll sideways in their wrappers, which would make a
+         wrapper its rows' scroller; they follow the wrapper's own view
          timeline instead, each row a step later. */
       .cost-table-wrap {
         view-timeline: --cost-table block;
       }
       .cost-table tbody tr {
         --rise-y: 16px;
-        --step: calc(8% + var(--row, 0) * 13%);
+        --step: calc(10% + var(--row, 0) * 16%);
         animation: motion-fade-up linear both;
         animation-timeline: --cost-table;
-        animation-range: entry var(--step) entry calc(var(--step) + 22%);
+        animation-range: entry var(--step) entry calc(var(--step) + 30%);
       }
       @keyframes cost-fill {
         from {
