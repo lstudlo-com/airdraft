@@ -182,7 +182,8 @@ Almost everything is a neutral gray, as in the app. The exceptions are the
 three status dots (green, orange, yellow), which mean the same thing they mean
 in the app, and one accent, `--accent`: the app's system accent blue
 (`#007aff` light, `#0a84ff` dark). The accent marks progress and the current
-step of a story only (the scroll story's current step number);
+step of a story only (the dictation sample's current step number and the
+Transcribe playhead);
 never text, control fills, glows, gradients, focus rings or selection.
 `scripts/check-neutral.mjs` enforces this in `pnpm check`.
 
@@ -471,10 +472,20 @@ Traditional Chinese pages, from `src/data/app.ts`, which holds each
 language's catalog labels); scripts read them from
 its `data-refining` and `data-transcribing` attributes.
 
-The sample (`DictationPreview.astro`) is a raised panel: a recessed "What you
+The sample (`DictationPreview.astro`) is the homepage's one telling of how
+dictation works, the first section after the hero, titled "Hold, speak, let
+go" (each language's `preview.title`). It is a raised panel at the full
+content width. Along its top run three steps (`preview.steps`): "Hold ⌃ ⌥ and
+speak" with real keycaps, "Let go, and Airdraft tidies it" and "It lands at
+your cursor", each a raised number beside one short label (stacked on phones).
+They follow the sample's state: the first lights while it listens (its
+keycaps sink), the second while it transcribes and refines, the third while
+it types and rests; reached steps read as ink, upcoming ones fade, and the
+current number takes the accent. Without JavaScript every step is plainly
+readable. Below them sit a recessed "What you
 said" well and a "What Airdraft inserts" card that waits pressed in and rises
-once typed, above Run sample, the HUD and a status line that speaks only while
-running. It plays once when mostly on screen: words light up, the HUD counts,
+once typed, above Run sample and the HUD. A visually hidden status line
+speaks the state to screen readers; the steps and the HUD show it. It plays once when mostly on screen: words light up, the HUD counts,
 then shows Decoding and Refining (轉錄中 and 潤稿中 in Traditional Chinese),
 fillers are struck one at a time, and the text
 is typed with an ink caret. Profile buttons re-run only the refinement; Stop
@@ -594,18 +605,6 @@ while text is typed. A tile leaving the screen jumps to its final frame, so
 no timer runs off screen. With reduced motion nothing plays or loops; choices
 still change, in place.
 
-### Scroll story (`StoryScroll.astro`, `src/scripts/scrolly.ts`)
-
-After the hero, "Hold, speak, let go" pins under the header for `330vh` while
-one dictation plays out, scrubbed by the scroll position in both directions:
-the keycaps sink and the recording pill counts with live bars while the spoken
-words (from `src/i18n/story.ts`, fillers marked) arrive in a recessed well;
-on release the pill refines, the fillers are struck and fold away; then the
-result types in at the caret of a raised field. Beside it four steps light in
-turn, the current step's number in the accent; there is no progress rail. Phones put the stage above the
-steps and show only the current step's line. Without JavaScript or with
-reduced motion the section is short, shows every step and the final frame.
-
 ### Provider board (`PipelineStory.astro`)
 
 "You choose where each step runs" as one raised card in three columns, in the
@@ -712,8 +711,7 @@ whether or not the visitor is looking.
 rises line by line out of its own line boxes on load, then the keys and facts
 follow; section headings rise word by word (character pairs in Chinese and
 Japanese) as they arrive, and the content under them rises the same way
-(`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): the
-scroll story's stage and steps, guide tiles, guide and text-page sections,
+(`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): guide tiles, guide and text-page sections,
 breadcrumbs, pricing questions and changelog cards. Every page loads it
 (`Layout.astro`). Blocks the scroll timelines already raise are left to them; the hero card drifts up to `12px` toward the pointer
 and the copy `6px` away, translation only, so light stays at the top left. The

@@ -105,6 +105,12 @@ export const en: Messages = {
     },
   },
   preview: {
+    title: "Hold, speak, let go",
+    steps: [
+      ["Hold", "and speak"],
+      "Let go, and Airdraft tidies it",
+      "It lands at your cursor",
+    ],
     name: "Sample dictation",
     said: "What you said",
     inserts: "What Airdraft inserts",

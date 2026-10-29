@@ -2,15 +2,20 @@
 import Arrow from "./Arrow.astro";
 import Button from "./ui/Button.astro";
 import Hud from "./ui/Hud.astro";
+import Keys from "./ui/Keys.astro";
 import { appLabels } from "../data/app";
 import type { Locale } from "../i18n";
 import { messages } from "../i18n/messages";
 
 /**
- * The authored sample dictation (src/scripts/preview.ts). Each language has
- * its own spoken line and profile results (src/i18n/messages); the script
- * reads them from data attributes. Profile names and HUD states are the
- * app's own labels in the page's language (src/data/app.ts).
+ * The authored sample dictation (src/scripts/preview.ts), the homepage's one
+ * telling of how dictation works. Its three steps (hold the shortcut and
+ * speak, let go while Airdraft tidies, the text at the cursor) run along the
+ * panel's top and light in turn as the sample plays, the current number in
+ * the accent. Each language has its own spoken line and profile results
+ * (src/i18n/messages); the script reads them from data attributes. Profile
+ * names and HUD states are the app's own labels in the page's language
+ * (src/data/app.ts).
  */
 interface Props {
   locale?: Locale;
@@ -42,6 +47,24 @@ const profiles = [
   data-examples={JSON.stringify(copy.examples)}
   data-labels={JSON.stringify(labels)}
 >
+  <ol class="preview-steps">
+    {copy.steps.map((step, index) => (
+      <li data-step={index}>
+        <span class="step-index" aria-hidden="true">
+          {index + 1}
+        </span>
+        {typeof step === "string" ? (
+          <span>{step}</span>
+        ) : (
+          <span class="step-hold">
+            {step[0] && <span>{step[0]}</span>}
+            <Keys keys={["⌃", "⌥"]} label="Control Option" />
+            <span>{step[1]}</span>
+          </span>
+        )}
+      </li>
+    ))}
+  </ol>
   <div class="preview-stage">
     <div class="spoken well">
       <span class="field-label">{copy.said}</span>

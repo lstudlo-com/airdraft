@@ -115,6 +115,12 @@ export const ja: Messages = {
     },
   },
   preview: {
+    title: "押して、話して、離す",
+    steps: [
+      ["", "を押しながら話す"],
+      "離すと Airdraft が整える",
+      "カーソル位置に入力される",
+    ],
     name: "音声入力のサンプル",
     said: "話した内容",
     inserts: "Airdraft が入力するテキスト",

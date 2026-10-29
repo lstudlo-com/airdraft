@@ -3,8 +3,7 @@
 //   headings   section headings rise word by word (character pairs in
 //              Chinese and Japanese) as they come into view, once
 //   content    the content under them rises the same way, block by block:
-//              the scroll story's stage and steps, guide tiles, guide and
-//              text-page sections, pricing questions and changelog cards.
+//              guide tiles, guide and text-page sections, pricing questions and changelog cards.
 //              Blocks that come into view together rise one after another.
 //              Blocks the scroll timelines already raise (bento tiles, the
 //              sample, Transcribe, the provider board, offers, plans, the app
@@ -21,9 +20,7 @@ const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
 
 function headings() {
   const targets = [
-    ...document.querySelectorAll<HTMLElement>(
-      ".section-heading > :is(h2, h1), .story-title",
-    ),
+    ...document.querySelectorAll<HTMLElement>(".section-heading > :is(h2, h1)"),
   ];
   const watcher = new IntersectionObserver(
     (entries) => {
@@ -66,8 +63,6 @@ function headings() {
 
 // Content blocks that rise like the headings above them.
 const contentBlocks = [
-  ".story-stage",
-  ".story-step > *",
   ".guide-pick",
   ".guide-section",
   ".guide-breadcrumbs",

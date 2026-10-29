@@ -101,6 +101,9 @@ export interface Messages {
     };
   };
   preview: {
+    title: string;
+    /** Hold (the words before and after the keycaps), let go, the result. */
+    steps: [[string, string], string, string];
     name: string;
     said: string;
     inserts: string;

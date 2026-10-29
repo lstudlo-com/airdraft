@@ -1425,12 +1425,91 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
   }
 
-  /* Dictation sample */
+  /* Dictation sample: the homepage's one telling of how dictation works. */
   .preview {
-    max-width: 1040px;
-    margin: 72px auto 0;
     padding: 24px;
     text-align: left;
+  }
+  /* Its three steps run along the top and follow the sample's state: hold
+     and speak while it listens (the keycaps sink), let go while it
+     transcribes and refines, the result while it types and rests. Past
+     steps read as ink, the current one carries the accent number, and
+     without JavaScript every step is plainly readable. */
+  .preview-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0 0 20px;
+    padding: 4px 4px 0;
+    list-style: none;
+  }
+  .preview-steps li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: var(--muted);
+    font-size: var(--step-0);
+    font-weight: 500;
+    line-height: 1.35;
+    transition: color 320ms ease;
+  }
+  .step-hold {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+  }
+  .step-index {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 0.75px 0.75px 0 var(--rim),
+      var(--raise-small);
+    color: var(--muted);
+    font: 600 var(--step--1) / 1 var(--font-rounded);
+    transition:
+      background 320ms ease,
+      color 320ms ease,
+      box-shadow 320ms ease;
+  }
+  .preview:is(
+      [data-state="listening"],
+      [data-state="decoding"],
+      [data-state="refining"],
+      [data-state="typing"],
+      [data-state="done"]
+    )
+    .preview-steps
+    li {
+    color: color-mix(in srgb, var(--muted), transparent 35%);
+  }
+  .preview[data-state="listening"] li[data-step="0"],
+  .preview:is([data-state="decoding"], [data-state="refining"])
+    li:is([data-step="0"], [data-step="1"]),
+  .preview:is([data-state="typing"], [data-state="done"]) .preview-steps li {
+    color: var(--ink);
+  }
+  .preview[data-state="listening"] [data-step="0"] .step-index,
+  .preview:is([data-state="decoding"], [data-state="refining"])
+    [data-step="1"]
+    .step-index,
+  .preview:is([data-state="typing"], [data-state="done"])
+    [data-step="2"]
+    .step-index {
+    background: var(--accent);
+    box-shadow: var(--raise-small);
+    color: #fff;
+  }
+  .preview[data-state="listening"] .step-hold kbd {
+    translate: 0.5px 1px;
+    background: var(--pressed);
+    box-shadow: var(--press-small);
   }
   .preview-stage {
     display: grid;
@@ -1705,11 +1784,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     font: 500 var(--step-0) / 1 var(--font-rounded);
     font-variant-numeric: tabular-nums;
   }
+  /* The steps and the pill show the state; the status line only speaks it. */
   .preview-status {
-    flex: 1;
-    min-width: 0;
-    font-size: var(--step--1);
-    color: var(--muted);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .no-script-note {
     margin-top: 14px;
@@ -2578,8 +2660,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       height: 52px;
     }
     .preview {
-      margin-top: 48px;
       padding: 16px;
+    }
+    .preview-steps {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
     }
     .preview-stage {
       grid-template-columns: minmax(0, 1fr);
@@ -2601,9 +2687,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       flex-wrap: wrap;
       gap: 12px;
       margin-top: 18px;
-    }
-    .preview-status {
-      flex-basis: 100%;
     }
     .hud-bars span:nth-child(n + 11) {
       display: none;

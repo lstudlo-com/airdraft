@@ -86,6 +86,8 @@ export const zhTw: Messages = {
     },
   },
   preview: {
+    title: "按住、說話、放開",
+    steps: [["按住", "說話"], "放開，Airdraft 幫你整理", "文字出現在游標位置"],
     name: "聽寫範例",
     said: "你說的話",
     inserts: "Airdraft 貼上的文字",

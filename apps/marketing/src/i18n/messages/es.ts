@@ -114,6 +114,12 @@ export const es: Messages = {
     },
   },
   preview: {
+    title: "Mantén, habla, suelta",
+    steps: [
+      ["Mantén", "y habla"],
+      "Suelta, y Airdraft lo pule",
+      "El texto aparece en tu cursor",
+    ],
     name: "Dictado de ejemplo",
     said: "Lo que dijiste",
     inserts: "Lo que inserta Airdraft",

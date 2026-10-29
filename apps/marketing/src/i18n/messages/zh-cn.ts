@@ -94,6 +94,8 @@ export const zhCn: Messages = {
     },
   },
   preview: {
+    title: "按住、说话、松开",
+    steps: [["按住", "说话"], "松开，Airdraft 帮你整理", "文字出现在光标处"],
     name: "听写示例",
     said: "你说的话",
     inserts: "Airdraft 粘贴的文字",

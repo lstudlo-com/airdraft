@@ -189,12 +189,13 @@ and Local releases below.
   over a recessed well, never a heading inside a raised card, and guide titles
   have no intro line. The header keys sit one 10 px step apart through the
   `.header-actions` gap, never margins. Bento tiles loop while on screen and hold
-  after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the pinned scroll
-  story after the hero (`StoryScroll`, `scrolly.ts`) plays one dictation scrubbed by
-  scroll; headings rise word by word, the content under them rises block by block
+  after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the dictation
+  sample after the hero (`DictationPreview`, `preview.ts`), titled "Hold, speak,
+  let go", is the one telling of how dictation works: its three steps light as it
+  plays; headings rise word by word, the content under them rises block by block
   on every page, and the hero drifts with the pointer (`flourish.ts`); the Transcribe section and the provider board play once (`meetings.ts`,
   `pipeline.ts`). Reduce Motion and no-JS keep resting frames. The one accent,
-  `--accent` (the app's system blue), marks story progress only. JavaScript packages
+  `--accent` (the app's system blue), marks progress only (the sample's current step and the Transcribe playhead). JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
