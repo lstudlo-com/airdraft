@@ -183,8 +183,9 @@ Almost everything is a neutral gray, as in the app. The exceptions are the
 three status dots (green, orange, yellow), which mean the same thing they mean
 in the app, and one accent, `--accent`: the app's system accent blue
 (`#007aff` light, `#0a84ff` dark). The accent marks progress and the current
-step of a story only (the dictation sample's current step number and the
-Transcribe playhead);
+step of a story only (the dictation sample's current step number and its
+filling step tracks, the Transcribe playhead and current beat number, and the
+provider channels' progress bar);
 never text, control fills, glows, gradients, focus rings or selection. Where
 white text sits on it (the sample's current step number), it takes
 `--accent-strong` (`#0064d2`), a deeper shade of the same blue at 5.6:1 with
@@ -203,6 +204,7 @@ carries shadows, motion, breakpoints and component previews.
 - One graphite key for the primary action; everything else is a gray rounded key.
 - Keys, fields and segmented tracks share one corner, `--radius-control` (the app's 8-point `SoftControl.radius` at the site's 44px key scale); never capsules.
 - Engraved grooves (a shade line over a highlight line), never flat hairlines, to divide rows.
+- A showcase is a scene of separate objects on the island, never one slab holding every part. Its steps or beats sit on the island under the title, and the scroll tells the story (pinned on desktop, reversible). Raised means what you act on or choose; recessed means what you read.
 - Light and dark follow the system appearance, like the app's Auto theme.
 
 ## Colors
@@ -493,57 +495,79 @@ Traditional Chinese pages, from `src/data/app.ts`, which holds each
 language's catalog labels); scripts read them from
 its `data-refining` and `data-transcribing` attributes.
 
-The sample (`DictationPreview.astro`) is the homepage's one telling of how
-dictation works, the first section after the hero, titled "Hold, speak, let
-go" (each language's `preview.title`). It is a raised panel at the full
-content width. Along its top run three steps (`preview.steps`): "Hold ⌃ ⌥ and
-speak" with real keycaps, "Let go, and Airdraft tidies it" and "It lands at
-your cursor", each a raised number beside one short label (stacked on phones).
-They follow the sample's state: the first lights while it listens (its
-keycaps sink), the second while it transcribes and refines, the third while
-it types and rests; reached steps read as ink, upcoming ones fade, and the
-current number takes the accent. Without JavaScript every step is plainly
-readable. Below them sit a recessed "What you
-said" well and a "What Airdraft inserts" card that waits pressed in and rises
-once typed, above Run sample and the HUD. A visually hidden status line
-speaks the state to screen readers; the steps and the HUD show it. It plays once when mostly on screen: words light up, the HUD counts,
-then shows Decoding and Refining (轉錄中 and 潤稿中 in Traditional Chinese),
-fillers are struck one at a time, and the text
-is typed with an ink caret. Profile buttons re-run only the refinement; Stop
-jumps to the result. Without JavaScript the Clean result shows; reduced motion
-shows it immediately and never autoplays. Its accessible name is "Sample
-dictation".
+The sample (`DictationPreview.astro`, `src/styles/sample.css`) is the
+homepage's one telling of how dictation works, the first section after the
+hero, titled "Hold, speak, let go" (each language's `preview.title`). It
+renders its own section (`id="try"`, which the hero's "Try the sample" key
+targets) and is a scene of separate objects on the island, never one panel.
+The three steps (`preview.steps`: "Hold ⌃ ⌥ and speak" with real keycaps,
+"Let go, and Airdraft tidies it", "It lands at your cursor") sit centered
+under the title, outside any card: a raised number above each label, joined
+by recessed tracks that fill with the accent as the story moves on; the
+current number takes `--accent-strong`, reached steps read as ink and
+upcoming ones fade. Below them stand a deep recessed "What you said" well
+(`--sink-section`, card radius), the recording pill floating on an engraved
+groove between them (scaled 1.12 on desktop, riding higher with a longer
+shadow while it works, dimmed at rest), and the "What Airdraft inserts" card,
+pressed in (`--sink-soft`, 0.985) while it waits and raised (`--raise-card`)
+once typed. The profile picker and the Run key stand alone below. The middle
+column is as wide as the pill's widest state (`--hud-column`, measured by the
+script), so the well and card never move.
+
+The scroll tells the story. Above `700px`, with motion allowed and when the
+scene plus `32px` fits under the header, it pins at the vertical centre below
+the header over a runway of the larger of `900px` and 1.7 window heights; the
+scroll position drives it: 0–4% lead-in, to 46% listening (words light up,
+the pill's timer runs, its meter moves only while scrolling), to 56% decoding,
+to 68% refining (fillers struck), to 90% typing, then the finished frame.
+Scrolling back reverses every part. Run, a profile change or holding ⌃⌥
+(only while the pointer or focus is on the scene; under `0.3s` or a third key
+cancels) plays it in real time, and the scroll takes over again after about
+`48px`. Phones, short windows and browsers without IntersectionObserver do not
+pin: it plays once as it reaches the middle of the screen and jumps to its
+finished frame off screen. At `700px` or less the objects stack and the
+groove stands upright. Pinned objects rise only within their entry range, so
+none freezes half risen. A visually hidden status line speaks the state.
+Without JavaScript the Clean result shows with every step readable; reduced
+motion shows the finished frame and never pins or plays. Its accessible name
+is "Sample dictation".
 
 ### Transcribe (`MeetingsSection.astro`)
 
 The app's Transcribe page (formerly Meetings; the file, `#meetings` anchor and
 `meetings.ts` keep the old name). "Turn any recording into a transcript"
-follows the features bento and precedes the provider board, with one intro line.
-One raised panel at the full content width is the section's only object: the
-app's Transcribe card head (status dot, title, one metadata line that wraps
-only between its parts) with a raised play key at the end; the recording as
-one lane of Home waveform bars per speaker in a recessed well (the first
-speaker's bars in the caret's deeper tone, so two speakers read apart without
-a hue; columns where the other speaker talks leave only the lane's faint
-baseline); the speaker turns on one grid (recessed speaker chip with a bar in
-its lane's tone, the rounded timestamp, the text); then, below a groove, the
-export formats as tags and a quiet key to the transcription guide. Feature
-caveats (file length, cloud upload, summaries) live in the guide, not here.
-The lanes are computed from the turns' timestamps, a quarter-second column
-each. The transcript is authored sample text from an interview, one use
-among others; Chinese and Japanese pages name Qwen3-ASR 1.7B, the others
-Whisper Large v3 Turbo.
+follows the features bento and precedes the provider board, with one intro
+line. It is four separate objects on the island, each under a numbered label
+(an `h3`, `meetings.steps`) whose number takes the accent while its beat
+plays; there is no status dot:
 
-The panel transcribes itself once (`src/scripts/meetings.ts`). It goes blank
-only as it nears the screen; once a quarter into the window an accent
-playhead (the site's progress mark) crosses the lanes three times faster than
-real time, each bar rising as it is reached and each turn fading up `8px`
-when its speaker starts, while the status dot reads busy. Nothing reflows and
-nothing is heard. It then rests on the finished transcript; leaving the
-screen or hiding the tab finishes it, so it never rests half written. The play
-key runs it again or pauses it, a timestamp runs it from that turn and a
-click on the lanes runs it from there. With reduced motion, or without
-JavaScript, it is the finished frame and the play key stays hidden.
+1. The recording: a raised card with a five-bar icon in a recessed socket,
+   the title, one metadata line and the play key.
+2. The speaker lanes: a well carved into the island, one lane of Home
+   waveform bars per speaker (the first speaker's bars in the caret's deeper
+   tone), lying flat until the accent playhead reaches them. The lanes are
+   computed from the turns' timestamps, a quarter-second column each.
+3. The transcript: one raised card per turn, speaker 1 at the start and
+   speaker 2 at the far side, each waiting flat and empty, then rising as its
+   words fade in.
+4. The export: four recessed slots that TXT, JSON, SRT and VTT tiles rise
+   into one by one, then the transcription guide link.
+
+On desktop the first row is the recording and the lanes, the second the
+transcript and the export. One number from 0 to 1 drives the story and rests
+at 1, so without JavaScript or with reduced motion the finished transcript
+shows. On windows at least `1001×760` the stage pins under the header for
+about `150vh` and the beats run in order, backwards when scrolling back;
+otherwise the beats stack and each plays as it crosses a line 65% down the
+window. The play key plays the whole story in about `9s` and pauses it; a
+timestamp plays from that turn and a click on the lanes from that point. A
+timed play overrides the scroll animation with an `!important` value and
+hands control back once the scroll would show the same finished frame, or
+when the section leaves the screen or the tab hides; browsers without scroll
+timelines play it once on arrival. Nothing is heard. The transcript is
+authored sample text from an interview; Chinese and Japanese pages name
+Qwen3-ASR 1.7B, the others Whisper Large v3 Turbo. Feature caveats live in
+the guide.
 
 ### Interface section (`InterfaceShowcase.astro`)
 
@@ -630,36 +654,31 @@ still change, in place.
 
 ### Provider board (`PipelineStory.astro`)
 
-"You choose where each step runs" as one raised card in three columns, in the
-order dictation runs: Speech, Refinement, Insertion. Engraved vertical grooves
-(`RowDivider` on its side) divide the columns, and a small raised chevron sits
-on each groove level with the headings. Below `1000px` the columns stack, the
-grooves lie flat and the chevrons point down. The section never pins.
+"You choose where each step runs" (`src/styles/pipeline.css`) is three
+separate raised cards on the island, in the order dictation runs: Speech,
+Refinement, Insertion. Each has a numbered keycap and title, its choice of
+where it runs (native radio groups as segmented pickers: This Mac | Cloud,
+This Mac | Cloud | Subscription; Insertion reads "At your cursor"), one line
+on what leaves the Mac, a settings-style table (rows divided by grooves, the
+chosen row in the sidebar's recessed selection well with a raised check
+island), and the text that step hands on. Recessed channels join the cards
+at the height of those outputs; an accent progress bar and a small raised
+packet travel along them.
 
-Speech and Refinement each carry a segmented choice of where they run (This
-Mac | Cloud, and This Mac | Cloud | Subscription). The choice swaps that
-column's one line on what leaves the Mac and its provider table, laid out like
-the app's settings tables: rows divided by grooves, the first resting in the
-sidebar's recessed selection well (12px corners, 2.5px depth) with a raised
-check island inside it. Every choice is visible at once, so the columns read as
-independent. Each choice's alternatives share one grid cell, so a column keeps
-the height of its longest list and switching never moves the page. The choices
-are native radio groups and CSS `:has()` swaps the columns, as on the license
-card; `segmented.ts` adds the sliding thumb.
-
-Insertion has no choice: "At your cursor" sits at the pickers' height, then a
-raised field where the vocabulary fix strikes "cooper tino" and brings in
-"Cupertino" (its resting frame is the fixed sentence). The board rises as it
-arrives and its columns follow left to right.
-
-The board is the homepage's climax (`src/scripts/pipeline.ts`): once it is
-half on screen, one dictation runs through the visitor's choices in order.
-Each chosen row's check island sinks flush into its well while that step
-works, holding a busy status dot, then rises with its check (`0.8s` a step);
-the chevron on the next groove presses as the text passes; Insertion strikes
-the misheard words and brings in the fix. Changing a choice runs it again
-from that column, after the new table has swapped in. Leaving the screen
-stops it on the resting frame; with reduced motion it never runs.
+One number, `--p` (0 to 1, from a CSS scroll timeline; `pipeline.ts`
+computes it where scroll timelines are missing), drives every state, so the
+story reverses when scrolling back. One dictation runs through: Speech
+(.08–.28) shows the recording bars and then "um meet me in cooper tino at
+nine", the misheard words underlined; Refinement (.40–.60) outputs "Meet me
+in cooper tino at nine."; Insertion (.72–.92) strikes "cooper tino", brings
+in Cupertino from its vocabulary table (six spelling examples) and shows the
+caret. A card lifts as it is reached and floats forward while it works; the
+chosen row's check island sinks with a busy dot and rises with its check;
+finished keycaps turn ink. Above `1000px` the cards pin, centred; at
+`1000px` or less they stack without pinning, the channels stand upright and
+each card plays as it passes. Changing a choice reruns that card. Reduced
+motion, or no scroll timeline and no JavaScript, shows the finished frame
+(`--p: 1`).
 
 ### Get Airdraft (`GetAirdraft.astro`) and the license card (`LicenseCard.astro`)
 
@@ -718,16 +737,16 @@ inside a scroll container (`overflow: hidden` or `auto` included) would take
 that container as its scroller, so its timeline comes from an ancestor
 outside it (`--tile`, `--cost-table`).
 
-| Where            | Motion                                                                                                                                                                                   |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Section headings | Fade up `28px` as they enter.                                                                                                                                                            |
-| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                       |
-| Sample           | Rises from `0.92` and `56px` below until it is near the middle of the window, then plays (`preview.ts`). The spoken words lag `±6px` in their well; the raised result card leads `±6px`. |
-| Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`.                             |
-| Transcribe       | The panel rises like the provider board, then writes its transcript (`meetings.ts`).                                                                                                     |
-| Provider board   | Rises from `0.94` and `56px` below until `40%` covered; its columns then fade up `18px` left to right (`6%` of the range apart).                                                         |
-| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                                              |
-| Pricing          | Plans rise left to right; cost rows and group labels fade up in turn; each three-year bar fills to its share.                                                                            |
+| Where            | Motion                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Section headings | Fade up `28px` as they enter.                                                                                                                                |
+| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                           |
+| Sample           | Each object rises as it enters; above `700px` the scene pins and the scroll plays the story (`preview.ts`), otherwise it plays once mid-screen.              |
+| Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`. |
+| Transcribe       | Four beats on one scroll-driven number: pinned on large desktops, otherwise each beat as it crosses 65% of the window (`meetings.ts`).                       |
+| Provider board   | `--p` from the scroll runs one dictation through the three cards and channels, pinned above `1000px` (`pipeline.ts`).                                        |
+| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                  |
+| Pricing          | Plan cards rise left to right; each list well's contents and the cost rows fade up in turn; each three-year bar fills to its share.                          |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. In browsers without scroll timelines, GSAP
@@ -870,35 +889,43 @@ callouts, the Home waveform (newest bar last), the recording pill and key
 caps (⌃ before ⌥, as macOS prints shortcuts).
 
 Pricing keeps its copy to labels, prices and short checks; details belong in
-the questions. Two plans share a row (`src/styles/pricing.css`): the free
-Open source card comes first, on the left, then the ready-to-run app, wider
-and raised like the homepage's license offer, with One Mac (`$29`) and Three
-Macs (`$49`) side by side, divided by a vertical groove, each a muted label, price and action; the Open source card mirrors one
-license (`$0`, build instructions), so prices, keys and lists line up. A groove
-separates each card's short checklist (`pricing.licenseIncludes` and
-`pricing.sourceIncludes` in each language's `src/i18n/messages` file),
-each item checked in a small recessed socket. License actions are the
+the questions. The plans are three equal raised cards under two group titles
+on the island, "Open source" (Build it yourself, `$0`) and "Ready-to-run app"
+(One Mac `$29`, Three Macs `$49`, raised with the hero spread); titles,
+prices and keys line up across all three (`src/styles/pricing.css`). Each
+group's checklist (`pricing.sourceIncludes`, `pricing.licenseIncludes`) is
+its own well carved into the island under its cards, headed by its list
+label, each item checked in a small recessed socket. License actions are the
 purchase, disabled "Not on sale yet" until `siteLinks.checkout` is set; until
-then build instructions hold the page's primary key, after that One Mac. Plans
-stack under `1000px` (max `560px`) and licenses stack under `520px`. A note
-gives the currency and tax basis. "What a year of dictation costs" follows: a
-raised table from `src/data/pricing.ts` (setup, per month, first year, three
-years; phones drop per month), Airdraft's setups and the muted subscriptions
-under small group labels, each setup saying what leaves the Mac, each
-three-year total over a usage track filled to its share of the most expensive
-setup, then one note with the workload, models, token budget and price date.
-Then the questions.
+then build instructions hold the page's primary key, after that One Mac. At
+`1000px` or less the groups stack (the source card beside its list); at
+`560px` or less everything is one column. A note gives the currency and tax
+basis. "What a year of dictation costs" follows as two objects sharing one
+column layout so figures line up: Airdraft's setups in a raised table and
+the subscriptions in a recessed one (its headers for screen readers only),
+figures aligned to the end, each setup saying what leaves the Mac, each
+three-year total over a usage track filled to its share of the most
+expensive setup; phones drop the per-month column. Then one note with the
+workload, models, token budget and price date, then the questions.
 Support is troubleshooting disclosures, then an issue link; it asks for no
 donations.
 
 ### Guide and text-page sections (`GuideSection.astro`)
 
 Guides, Support and Privacy open with the page title alone (no intro line),
-then sections. A section is one heading on the island at the section's top
-left (`--step-3`, inset `4px`) over one recessed well carved into the island
-(`--sink-section`, `18px` corners, `28px 32px` padding), `16px` below it;
-sections sit `56px` apart (`44px` on phones). The heading never sits inside
-the well and the well is never raised.
+then sections. A section has no frame: a numbered keycap and heading on the
+island, then its body at most `70ch` wide; sections sit `72px` apart (`56px`
+on phones). The content picks its material: steps are raised number keycaps
+on a recessed track; `guide-decisions` is a grid of raised cards (four make
+2 + 2); tables and troubleshooting sit in a raised panel; plain lists use
+recessed dots; Privacy's event list is a grid of small cards and its
+analytics choice a settings card. Support's "Still stuck?" is a raised card
+beside the troubleshooting (`GuideSection aside`), sticky on desktop.
+
+With at least three sections, `GuideToc` ("On this page", `208px` wide,
+sticky `124px` from the top, hidden at `1000px` or less) lists them, a raised
+thumb on a recessed track following the section being read on the selection
+curve.
 
 ### Guide picker (`GuideLinks.astro`, `GuideGlyph.astro`)
 
@@ -959,8 +986,11 @@ app data, price or unverified availability claim.
 ### Changelog
 
 The release timeline has one entry per product version and an initial source
-build. Version, date and the latest-release chip sit above each raised `Surface`
-card. Its linked title leads straight into described change items, separated by
+build. Version, date and the latest-release chip sit in a `112px` column
+beside each card, sticky while a long card is read (above it at `1000px` or
+less). The latest release is raised with `--raise-hero`; patch releases
+(x.y.z with z above 0) are recessed wells with a title one step smaller;
+other releases are raised `Surface` cards. Its linked title leads straight into described change items, separated by
 the shared groove, followed by a release or source link. Neither the page title
 nor release titles have summary paragraphs. Cards use the shared card radius,
 padding and neutral materials; descriptions stay within `70ch`.
@@ -1006,6 +1036,7 @@ already running when the preference changes.
 - Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.
 - Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.
 - Don't hand-roll a key or section; extend the component instead.
+- Don't put every part of a showcase in one raised slab; separate its objects on the island and let the scroll tell the story.
 - Don't put more than one line of text in a bento tile, or a graphic that isn't built from the app's parts.
 - Don't animate anything that has no resting state in CSS, or ignore reduced motion.
 - Don't publish app renders that contain personal profiles, device names, history or usage counts.

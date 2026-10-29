@@ -185,9 +185,9 @@ and Local releases below.
   right). The homepage's guide picker
   (`GuideLinks`/`GuideGlyph`) shows one app-part graphic and one short label per
   guide, labels in `guideLinks.labels` of every language's messages file. Guide and
-  text-page sections are `GuideSection`: the heading on the island at the top left
-  over a recessed well, never a heading inside a raised card, and guide titles
-  have no intro line. Homepage section titles and intros are centered
+  text-page sections are `GuideSection`: a numbered heading on the island at the top
+  left over an unframed body whose material follows its content (never a heading
+  inside a raised card), and guide titles have no intro line. Homepage section titles and intros are centered
   (`main.home`); subpages keep them at the leading edge. The header keys sit one 10 px step apart through the
   `.header-actions` gap, never margins. Bento tiles play on arrival, repeat twice
   while on screen, then rest, and hold after a touch (`bento.ts` sets up
@@ -199,11 +199,16 @@ and Local releases below.
   `#get-airdraft`, the source build holds the primary key there and on Pricing,
   and `NotifyRow` offers GitHub releases and the changelog feed; the dictation
   sample after the hero (`DictationPreview`, `preview.ts`), titled "Hold, speak,
-  let go", is the one telling of how dictation works: its three steps light as it
-  plays; headings rise word by word, the content under them rises block by block
-  on every page, and the hero drifts with the pointer (`flourish.ts`); the Transcribe section and the provider board play once (`meetings.ts`,
+  let go", is the one telling of how dictation works: its three steps sit centered
+  on the island above separate objects and light as it plays. Every showcase is a
+  scene of separate objects on the island, never one raised slab, and its story is
+  told by the scroll (pinned on desktop, reversible): the sample above 700 px,
+  Transcribe's four beats on windows at least 1001×760, the provider board's three
+  cards above 1000 px; Pricing plans are separate cards and text pages frame no
+  section in a well; headings rise word by word, the content under them rises block by block
+  on every page, and the hero drifts with the pointer (`flourish.ts`); the Transcribe section and the provider board follow the scroll (`meetings.ts`,
   `pipeline.ts`). Reduce Motion and no-JS keep resting frames. The one accent,
-  `--accent` (the app's system blue), marks progress only (the sample's current step and the Transcribe playhead). JavaScript packages
+  `--accent` (the app's system blue), marks progress only (the sample's current step and tracks, the Transcribe playhead and beat number, the provider channels). JavaScript packages
   use the root pnpm workspace and lockfile; do not add nested repositories or lockfiles.
   `pnpm dev:marketing`, `pnpm check:marketing`, `pnpm build:marketing`, and
   `pnpm preview:marketing` run its independent Moon tasks. Website-only changes
